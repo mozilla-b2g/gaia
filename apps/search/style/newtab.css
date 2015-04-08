@@ -15,16 +15,19 @@ body {
   padding: 0.5rem 1rem;
 }
 
-h2 {
+h2,
+#history h3:first-child {
   text-align: center;
   border-top: 0.2rem solid #e5e5e5;
   font-size: 1.4rem;
   margin-top: 0.9rem;
   margin-bottom: -0.9rem;
   color: #a6a6a6;
+  font-style: normal;
 }
 
-h2 span {
+h2 span,
+#history h3:first-child span {
   position: relative;
   top: -0.9rem;
   background: #fff;
@@ -73,12 +76,8 @@ h2 span {
   color: #fff;
 }
 
-#history-header {
+#history {
   margin-top: 2.1rem;
-}
-
-#history-header.hidden {
-  display: none;
 }
 
 #history .result {
@@ -133,7 +132,7 @@ h2 span {
   text-overflow: ellipsis;
 }
 
-#history h3 {
+section h3 {
   text-align: center;
   font-size: 1.4rem;
   font-style: italic;
