@@ -71,7 +71,13 @@
       var getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia;
       getUserMedia = getUserMedia.bind(navigator);
 
-      getUserMedia({ video: true, audio: false }, function(stream) {
+      getUserMedia({
+        video: {
+          width: { min: 480 },
+          height: { min: 480 }
+        },
+        audio: false
+      }, function(stream) {
         var video = this.dialog.video;
 
         video.addEventListener('loadedmetadata', function onMetadata() {
