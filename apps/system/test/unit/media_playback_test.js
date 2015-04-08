@@ -103,6 +103,8 @@ suite('system/media playback widget', function() {
       var metadata = { title: 'title', artist: 'artist' };
       widget.updateNowPlaying(metadata);
       assert.equal(widget.track.textContent, 'title — artist');
+      assert.equal(widget.track.innerHTML,
+                   '<bdi>title</bdi> — <bdi>artist</bdi>');
     });
   });
 

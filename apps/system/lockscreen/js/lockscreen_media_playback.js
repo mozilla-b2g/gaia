@@ -95,16 +95,32 @@ LockScreenMediaPlaybackWidget.prototype = {
 
     var title = metadata.title.trim();
     var artist = metadata.artist.trim();
-    var track = [];
 
-    if (title) {
-      track.push(title);
+    if (title || artist) {
+      this.track.removeAttribute('data-l10n-id');
+      this.track.textContent= '';
+
+      if (title) {
+        var titleNode = document.createTextNode(title);
+        var titleBdiNode = document.createElement('bdi');
+        titleBdiNode.appendChild(titleNode);
+        this.track.appendChild(titleBdiNode);
+      }
+
+      if (title && artist) {
+        var emDashNode = document.createTextNode(' — '); // Using a &mdash;
+        this.track.appendChild(emDashNode);
+      }
+
+      if (artist) {
+        var artistNode = document.createTextNode(artist);
+        var artistBdiNode = document.createElement('bdi');
+        artistBdiNode.appendChild(artistNode);
+        this.track.appendChild(artistBdiNode);
+      }
+    } else {
+      this.track.setAttribute('data-l10n-id', 'UnknownTrack');
     }
-    if (artist) {
-      track.push(artist);
-    }
-    track = track.join(' — '); // Using a &mdash; here.
-    this.track.textContent = track || navigator.mozL10n.get('UnknownTrack');
   },
 
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
