@@ -1,7 +1,7 @@
 
 'use script';
 var Alarm = require('./regions/alarm');
-var AlarmFlows = require('../flows/alarm_flows');
+var AlarmFlows = require('./flows/alarm_flows');
 var View = require('../lib/view');
 var should = require('chai').should;
 var expect = require('chai').expect;
