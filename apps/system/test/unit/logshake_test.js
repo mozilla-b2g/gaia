@@ -159,14 +159,13 @@ suite('system/LogShake', function() {
 
   suite('Capture success handling', function() {
     var filename = 'logs/2014-06-03-00-00/log.log';
-    var logPrefix = 'logs/2014-06-03-00-00/';
     var notificationSpy;
 
     setup(function() {
       notificationSpy = this.sinon.spy(window, 'Notification');
 
       window.dispatchEvent(new CustomEvent('capture-logs-success',
-        { detail: { logFilenames: [filename], logPrefix: logPrefix } }));
+        { detail: { logFilenames: [filename]  } }));
     });
 
     test('Notification sent', function() {
@@ -176,7 +175,7 @@ suite('system/LogShake', function() {
       assert.equal(notificationSpy.firstCall.args[0],
         'logsSaved');
       assert.equal(notificationSpy.firstCall.args[1].body,
-        logPrefix);
+        'logsSavedBody');
       assert.equal(notificationSpy.firstCall.args[1].tag,
         expectedLogTag);
     });

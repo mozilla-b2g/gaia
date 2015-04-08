@@ -102,7 +102,7 @@
     handleCaptureLogsSuccess: function(event) {
       debug('handling capture-logs-success');
       navigator.vibrate(100);
-      this._notify('logsSaved', event.detail.logPrefix,
+      this._notify('logsSaved', 'logsSavedBody',
                    this.triggerShareLogs.bind(this, event.detail.logFilenames),
                    event.detail);
       this._shakeId = null;
@@ -217,7 +217,7 @@
     _notify: function(titleId, body, onclick, dataPayload) {
       var title = navigator.mozL10n.get(titleId) || titleId;
       var payload = {
-        body: body,
+        body: navigator.mozL10n.get(body) || body,
         tag: 'logshake:' + this._shakeId,
         data: {
           systemMessageTarget: 'logshake',
