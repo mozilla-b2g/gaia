@@ -46,10 +46,10 @@ var TilesView = {
     // every time the view is updated!
   },
 
-  hideSearch: function tv_hideSearch() {
+  hideSearch: function tv_hideSearch(behavior) {
     this.searchInput.value = '';
     if (this.view.scrollTop < this.anchor.offsetTop) {
-      this.anchor.scrollIntoView({behavior: 'smooth'});
+      this.anchor.scrollIntoView({behavior: behavior || 'smooth'});
     }
   },
 
