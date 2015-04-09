@@ -1,3 +1,4 @@
+/* global ValuePicker */
 'use strict';
 
 requireApp('system/js/value_selector/value_picker.js');
