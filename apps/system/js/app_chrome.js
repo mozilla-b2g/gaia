@@ -698,7 +698,7 @@
       if (this.app.isPrivateBrowser() &&
         this.app.config.url.startsWith('app:')) {
         this._gotName = true;
-        this.title.dataset.l10nId = 'search-the-web';
+        this.title.dataset.l10nId = 'search-or-enter-address';
       }
     };
 
