@@ -1,4 +1,5 @@
-/* global LazyLoader */
+/* global LazyLoader, DownloadFormatter, DownloadNotification, DownloadIcon,
+          Service */
 'use strict';
 
 /*
@@ -12,6 +13,7 @@
  * - shared/js/download/download_formatter.js
  * - js/download/download_notification.js
  */
+ /* exported DownloadManager */
 var DownloadManager = (function() {
 
   var mozDownloadManager = navigator.mozDownloadManager;
@@ -98,7 +100,7 @@ var DownloadManager = (function() {
         resolve();
       }
     });
-  };
+  }
 
   Service.register('incDownloads', downloadManager);
   Service.register('decDownloads', downloadManager);

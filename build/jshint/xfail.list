@@ -125,8 +125,6 @@ apps/sharedtest/test/unit/gesture_detector_test.js
 apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
 apps/system/js/browser_mixin.js
-apps/system/js/download/download_manager.js
-apps/system/js/download/download_notification.js
 apps/system/js/emergency_callback_manager.js
 apps/system/js/icc.js
 apps/system/js/icc_events.js
@@ -142,8 +140,6 @@ apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/wifi.js
 apps/system/test/unit/app_install_manager_test.js
-apps/system/test/unit/download_manager_test.js
-apps/system/test/unit/download_notification_test.js
 apps/system/test/unit/entery_sheet_test.js
 apps/system/test/unit/iac_handler_test.js
 apps/system/test/unit/keyboard_helper_test.js
@@ -154,10 +150,6 @@ apps/system/test/unit/mock_asyncStorage.js
 apps/system/test/unit/mock_captive_portal.js
 apps/system/test/unit/mock_chrome_event.js
 apps/system/test/unit/mock_clock.js
-apps/system/test/unit/mock_download_formatter.js
-apps/system/test/unit/mock_download_helper.js
-apps/system/test/unit/mock_download_store.js
-apps/system/test/unit/mock_download_ui.js
 apps/system/test/unit/mock_fxa_client.js
 apps/system/test/unit/mock_fxa_ui.js
 apps/system/test/unit/mock_homescreen_window.js
