@@ -349,6 +349,7 @@ suite('settings.js', function() {
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
+          'gaia.system.checkForUpdates': true,
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
