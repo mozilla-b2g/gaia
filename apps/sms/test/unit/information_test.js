@@ -614,6 +614,24 @@ suite('Information view', function() {
         assert.isTrue(simInfo.classList.contains('hide'));
       });
 
+      test('unknown SIM', function() {
+        this.sinon.stub(window.navigator, 'mozIccManager', {
+          getIccById: () => null
+        });
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
+        this.sinon.stub(Settings, 'getOperatorByIccId').returns('');
+        reportView.render();
+
+        sinon.assert.calledWithMatch(
+          navigator.mozL10n.setAttributes,
+          simDetail,
+          'dsds-unknown-sim'
+        );
+
+        assert.isFalse(simInfo.classList.contains('hide'));
+      });
+
       test('no phone number', function() {
         this.sinon.stub(window.navigator, 'mozIccManager', {
           getIccById: function() {
