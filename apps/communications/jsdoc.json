@@ -1,7 +1,6 @@
 {
   "contacts": {
-    "src": ["apps/communications/contacts/js/**/*.js",
-            "!apps/communications/contacts/js/views/form.js"],
+    "src": ["apps/communications/contacts/js/**/*.js"],
     "options": {
       "destination": "docs/contacts"
     }
