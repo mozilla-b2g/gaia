@@ -94,6 +94,9 @@ suite('system/UtilityTray', function() {
     var ambientIndicator = document.createElement('div');
     ambientIndicator.style.cssText = 'height: 2px; display: block;';
 
+    var softwareButtons = document.createElement('div');
+    softwareButtons.style.cssText = 'height: 20px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -114,6 +117,8 @@ suite('system/UtilityTray', function() {
           return topPanel;
         case 'ambient-indicator':
           return ambientIndicator;
+        case 'software-buttons':
+          return softwareButtons;
         default:
           return null;
       }
@@ -273,6 +278,11 @@ suite('system/UtilityTray', function() {
 
       test('should be hidden by a drag from the bottom', function() {
         fakeTouches(480, 380, UtilityTray.grippy);
+        assert.equal(UtilityTray.showing, false);
+      });
+
+      test('should be hidden by a drag from the softwareButtons', function() {
+        fakeTouches(480, 380, UtilityTray.softwareButtons);
         assert.equal(UtilityTray.showing, false);
       });
     });
