@@ -106,10 +106,12 @@ var FindMyDevice = {
 
   _loadState: function fmd_load_state(callback) {
     var self = this;
+    DUMP('Reloading previous state from localStorage');
     asyncStorage.getItem('findmydevice-state', function(state) {
       self._state = state;
       if (state) {
         Requester.setHawkCredentials(state.deviceid, state.secret);
+        DUMP('_state.clientid from localStorage: ' + self._state.clientid);
       }
 
       callback && callback();
@@ -338,14 +340,26 @@ var FindMyDevice = {
       obj.deviceid = this._state.deviceid;
     }
 
-    var self = this;
-    Requester.post('/register/', obj, function(response) {
-      DUMP('findmydevice successfully registered: ', response);
+    Requester.post('/register/',
+                   obj,
+                   this._onRegistrationResponse.bind(this, assertion !== null),
+                   this._handleServerError.bind(this));
+  },
 
-      asyncStorage.setItem('findmydevice-state', response, function() {
-        self._registeredHelper.set(true);
-      });
-    }, this._handleServerError.bind(this));
+  _onRegistrationResponse: function(withAssert, response) {
+    DUMP('findmydevice successfully registered: ', response);
+
+    // Workaround for bug 1108166, in which the server returned an incorrect
+    // clientid when registering with no assertion
+    if (!withAssert && this._state) {
+      DUMP('findmydevice registration without assert, discarding clientid');
+      response.clientid = this._state.clientid;
+    }
+
+    DUMP('findmydevice registration done, updating state');
+    asyncStorage.setItem('findmydevice-state', response, (function() {
+      this._registeredHelper.set(true);
+    }).bind(this));
   },
 
   _onLogout: function fmd_fxa_onlogout() {
@@ -458,11 +472,21 @@ var FindMyDevice = {
   _onClientIDChanged: function fmd_client_id_changed(event) {
     this._currentClientID = event.settingValue;
     DUMP('current id set to: ', this._currentClientID);
+    DUMP('current state id set to: ',
+      this._state ? this._state.clientid : 'no _state');
+    DUMP('_loggedIn: ', this._loggedIn);
+    DUMP('_registered: ', this._registered);
 
     if (this._loggedIn && this._currentClientID === '') {
       this._refreshClientIDIfRegistered(false);
       this.endHighPriority('clientLogic');
     } else if (this._registered) {
+      if (this._state && this._state.clientid &&
+          this._currentClientID !== this._state.clientid) {
+        DUMP('Mismatching clientid: _currentClientID=' +
+             this._currentClientID + ' while _state.clientid=' +
+             this._state.clientid);
+      }
       this._canDisableHelper.set(
         this._loggedIn &&
         this._currentClientID === this._state.clientid);

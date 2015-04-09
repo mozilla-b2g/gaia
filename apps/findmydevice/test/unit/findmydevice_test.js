@@ -1,14 +1,25 @@
-/* global MocksHelper, MockGeolocation, MockNavigatormozSetMessageHandler,
-   MockSettingsHelper, MockNavigatorSettings, FindMyDevice, MockMozAlarms,
-   IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
-   IAC_API_WAKEUP_REASON_TRY_DISABLE, IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
-   IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED, Commands
+/* global
+   IAC_API_WAKEUP_REASON_LOGIN,
+   IAC_API_WAKEUP_REASON_LOGOUT,
+   IAC_API_WAKEUP_REASON_TRY_DISABLE,
+   IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
+   IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED,
+   Commands,
+   FindMyDevice,
+   MocksHelper,
+   MockasyncStorage,
+   MockGeolocation,
+   MockMozAlarms,
+   MockNavigatormozSetMessageHandler,
+   MockNavigatorSettings,
+   MockSettingsHelper
 */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
@@ -53,6 +64,8 @@ suite('FindMyDevice >', function() {
     realMozAlarms = navigator.mozAlarms;
     navigator.mozAlarms = MockMozAlarms;
 
+    window.asyncStorage = MockasyncStorage;
+
     realNavigatorOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
       fakeOnLine: true,
@@ -91,6 +104,8 @@ suite('FindMyDevice >', function() {
     MockNavigatormozSetMessageHandler.mTeardown();
 
     navigator.mozAlarms = realMozAlarms;
+
+    delete window.asyncStorage;
 
     if (realNavigatorOnLine) {
       Object.defineProperty(navigator, 'onLine', realNavigatorOnLine);
@@ -319,6 +334,42 @@ suite('FindMyDevice >', function() {
     assert.isTrue(
       navigator.mozId.request.calledWithMatch(
         {refreshAuthentication: 0}));
+  });
+
+  suite('_onRegistrationResponse', function() {
+    var mockResponse = {}, stateClientId;
+    var asyncSpy;
+
+    setup(function() {
+      if (FindMyDevice._state && FindMyDevice._state.clientid !== null) {
+        stateClientId = FindMyDevice._state.clientid;
+        FindMyDevice._state.clientid = 'currentClientID';
+      } else {
+        FindMyDevice._state = { clientid: 'currentClientID' };
+      }
+      mockResponse.clientid = 'newClientId';
+      asyncSpy = this.sinon.spy(MockasyncStorage, 'setItem');
+    });
+
+    teardown(function() {
+      if (stateClientId) {
+        FindMyDevice._state.clientid = stateClientId;
+      }
+    });
+
+    test('update clientid when registering with an assert', function() {
+      assert.equal(mockResponse.clientid, 'newClientId');
+      FindMyDevice._onRegistrationResponse(true, mockResponse);
+      assert.equal(mockResponse.clientid, 'newClientId');
+      sinon.assert.calledWith(asyncSpy, 'findmydevice-state', mockResponse);
+    });
+
+    test('do not update clientid when registering without assert', function() {
+      assert.equal(mockResponse.clientid, 'newClientId');
+      FindMyDevice._onRegistrationResponse(false, mockResponse);
+      assert.equal(mockResponse.clientid, 'currentClientID');
+      sinon.assert.calledWith(asyncSpy, 'findmydevice-state', mockResponse);
+    });
   });
 
   test('setting an alarm releases a wakelock', function() {
