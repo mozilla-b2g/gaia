@@ -444,6 +444,7 @@ html[dir="rtl"] #views-sublist-header-controls {
 
 #views-sublist-header-name {
   position:relative;
+  display: block;
   font-size: 1.9rem;
   padding: 0 1rem;
   width: calc(100% - 2rem);
@@ -452,6 +453,10 @@ html[dir="rtl"] #views-sublist-header-controls {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+html[dir="rtl"] #views-sublist-header-name {
+  text-align: right;
 }
 
 #views-sublist-header-controls {
