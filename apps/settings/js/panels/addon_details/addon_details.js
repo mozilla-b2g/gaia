@@ -23,25 +23,25 @@ define(function(require) {
    *
    * @access public
    * @memberOf AddonDetails.prototype
-   * @param {App} app
+   * @param {JSON} options that contain:
+   *          {Object}  app        Add-on to render
+   *          {Boolean} isActivity A flag indicating if the panel is accessed
+   *                               via activity handling.
    */
-  AddonDetails.prototype.render = function render(app) {
+  AddonDetails.prototype.render = function render({app, isActivity}) {
     var l10n = navigator.mozL10n;
+    this.noRename = !isActivity || !AddonManager.canDelete(app);
     var manifest =
       new ManifestHelper(app.instance.manifest || app.instance.updateManifest);
 
-    // Display the name of the add-on in the panel header
-    var appnameArgs = { appName: manifest.name };
-    l10n.setAttributes(
-      this._elements.header, 'addon-details-header', appnameArgs);
-
+    this._elements.body.classList.toggle('no-rename', this.noRename);
+    this.updateNames(manifest);
     // Put an icon next to the description
     navigator.mozApps.mgmt.getIcon(app, PREFERRED_ICON_SIZE).then((blob) => {
       this._elements.icon.src = URL.createObjectURL(blob);
     }).catch(() => {
       this._elements.icon.src = '../style/images/default.png';
     });
-    l10n.setAttributes(this._elements.icon, 'accessible-app-icon', appnameArgs);
 
     // Display the add-on description if there is one
     if (manifest.description) {
@@ -59,7 +59,7 @@ define(function(require) {
     var developerName = manifest.developer && manifest.developer.name;
     if (developerName) {
       this._elements.developer.hidden = false;
-      l10n.setAttributes(this._elements.developer, 'addon-developer', {
+      l10n.setAttributes(this._elements.developer, 'addon-developer-name', {
         developerName: developerName
       });
     } else {
@@ -94,6 +94,24 @@ define(function(require) {
         this._elements.noTargetsMsg.hidden = true;
       }
     });
+  };
+
+  /**
+   * Render app names where appropriate.
+   *
+   * @access public
+   * @memberOf AddonDetails.prototype
+   * @param {JSON} manifest
+   */
+  AddonDetails.prototype.updateNames = function _updateNames(manifest) {
+    // Display the name of the add-on in the panel header
+    var appnameArgs = { appName: manifest.name };
+    var l10n = navigator.mozL10n;
+
+    l10n.setAttributes(
+      this._elements.header, 'addon-details-header', appnameArgs);
+    // Put text description for an icon
+    l10n.setAttributes(this._elements.icon, 'accessible-app-icon', appnameArgs);
   };
 
   return function ctor_addon_details(panel) {

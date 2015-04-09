@@ -10,6 +10,7 @@
   // If the inquiries to the object are all performed by requirejs, we can
   // remove the path of the object from the following list.
   paths: {
+    'vendor/jszip': 'empty:',
     'prim': 'empty:',
     'settings': 'empty:',
     'shared/apn_helper': 'empty:',

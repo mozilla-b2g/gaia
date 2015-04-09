@@ -273,6 +273,122 @@ define(function(require) {
     },
 
     /**
+     * Convert exported add-on into an Array Buffer.
+     *
+     * @access private
+     * @memberOf AddonManager.prototype
+     * @param {Blob} blob
+     * @returns {Promise}
+     */
+    _blobToArrayBuffer: function(blob) {
+      return new Promise(function(resolve, reject) {
+        var fileReader = new FileReader();
+        fileReader.onload = function() {
+          resolve(fileReader.result);
+        };
+        fileReader.onerror = function(reason) {
+          reject(reason);
+        };
+        fileReader.readAsArrayBuffer(blob);
+      });
+    },
+
+    /**
+     * Upack an add-on script.
+     *
+     * @access private
+     * @memberOf AddonManager.prototype
+     * @param {ArrayBuffer} arrayBuffer
+     * @returns {Promise}
+     */
+    _unpackScript: function(arrayBuffer) {
+      return this._JSZip.then(JSZip => {
+        var zip = new JSZip();
+        zip.load(arrayBuffer);
+
+        var applicationZipFile = zip.file('application.zip');
+        if (!applicationZipFile) { return; }
+
+        var applicationZip = new JSZip();
+        applicationZip.load(applicationZipFile.asArrayBuffer());
+
+        var scriptFile = applicationZip.file('main.js');
+        if (!scriptFile) { return; }
+
+        return(scriptFile.asText());
+      });
+    },
+
+    /**
+     * Generate a new add-on.
+     *
+     * @access private
+     * @memberOf AddonManager.prototype
+     * @param {JSON} manifest add-on manifest
+     * @param {String} script add-on script
+     * @returns {Promise}
+     */
+    _generate: function(manifest, script) {
+      return this._JSZip.then(JSZip => {
+        var id = 'addon' + Math.round(Math.random() * 100000000);
+        var applicationZip = new JSZip();
+
+        // Ensure that we are creating an addon with a new id.
+        manifest.role = 'addon';
+        manifest.type = 'certified';
+        manifest.origin = 'app://' + id + '.gaiamobile.org';
+        manifest.activities = manifest.activities || {};
+
+        applicationZip.file('manifest.webapp', JSON.stringify(manifest));
+        applicationZip.file('main.js', script);
+
+        var packageZip = new JSZip();
+        packageZip.file('metadata.json', JSON.stringify({
+          installOrigin: 'http://gaiamobile.org',
+          manifestURL: 'app://' + id + '.gaiamobile.org/update.webapp',
+          version: 1
+        }));
+        packageZip.file('update.webapp', JSON.stringify({
+          name: manifest.name,
+          package_path: '/application.zip'
+        }));
+        packageZip.file('application.zip',
+          applicationZip.generate({ type: 'arraybuffer' }));
+
+        return new Blob([packageZip.generate({ type: 'arraybuffer' })],
+          { type: 'application/zip' });
+      });
+    },
+
+    /**
+     * Lazily require jszip. It is currently used only for renaming Add-ons.
+     *
+     * @access private
+     * @memberOf AddonManager.prototype
+     * @returns {Promise}
+     */
+    get _JSZip() {
+      return new Promise(resolve => { require(['vendor/jszip'], resolve); });
+    },
+
+    /**
+     * Install add-on, but importing it using a memory-backed blob.
+     *
+     * @access private
+     * @memberOf AddonManager.prototype
+     * @param {Blob} blob add-on blob
+     * @returns {Promise}
+     */
+    _install: function(blob) {
+      return navigator.mozApps.mgmt.import(blob).then(addon => {
+        // Enable the addon by default.
+        var app = { instance: addon };
+        this.enableAddon(app);
+        return app;
+      });
+    },
+
+    /**
      * Check whether an addon is enabled.
      *
      * @access public
@@ -349,6 +465,49 @@ define(function(require) {
           reject();
         };
       });
+    },
+
+    /**
+     * Rename an addon.
+     *
+     * @access public
+     * @memberOf AddonManager.prototype
+     * @param {App} addon
+     * @param {String} name addon name
+     * @returns {Promise}
+     */
+    renameAddon: function(addon, name) {
+      if (!name) {
+        return Promise.reject('no name given');
+      }
+
+      if (!this._isAddon(addon.instance)) {
+        return Promise.reject('not an addon');
+      }
+
+      var manifest = this._getManifest(addon.instance);
+      if (name === manifest.name) {
+        return Promise.reject('name is unchanged');
+      }
+
+      var newManifest, addonBlob;
+      // To rename an addon we are creating a new DOMApplication that will have
+      // an updated name. Other manifest attributes are preserved.
+      // Export an add-on as a blob.
+      return addon.instance.export().then(blob => {
+        addonBlob = blob;
+        // Copy over manifest object.
+        newManifest = Object.assign({}, manifest);
+        newManifest.name = name;
+        // Delete original add-on.
+        return this.deleteAddon(addon);
+      }).then(() => {
+        // Convert exported add-on into an Array Buffer.
+        return this._blobToArrayBuffer(addonBlob);
+      }).then(this._unpackScript.bind(this)).then(script => {
+        // Generate a new add-on using the original manifest and a new name.
+        return this._generate(newManifest, script);
+      }).then(this._install.bind(this));
     },
 
     /**
