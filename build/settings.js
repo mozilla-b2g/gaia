@@ -274,6 +274,7 @@ function execute(config) {
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
     settings['debugger.remote-mode'] = 'disabled';
+    settings['gaia.system.checkForUpdates'] = true;
   }
 
   if (config.PRODUCTION === '0') {
