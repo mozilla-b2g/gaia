@@ -27,9 +27,6 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
 
       // TODO do we have LazyLoader.getJSON in 2.1?
       LazyLoader.getJSON('/resources/findmydevice.json').then(function(data) {
-        SettingsListener.observe('findmydevice.logged-in', false,
-          self._togglePanel.bind(self));
-
         navigator.mozId.watch({
           wantIssuer: 'firefox-accounts',
           audience: data.api_url,
@@ -51,9 +48,10 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
                 unverifiedError.hidden = false;
                 var login = document.getElementById('findmydevice-login');
                 login.hidden = true;
+              } else {
+                // consider as logged out if onerror fires when not offline
+                self._onChangeLoginState(false);
               }
-
-              SettingsHelper('findmydevice.logged-in').set(false);
             }
           }
         });
@@ -122,6 +120,7 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
 
     _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
       console.log('settings, logged in: ' + loggedIn);
+      this._togglePanel(loggedIn);
 
       if (this._interactiveLogin) {
         SettingsHelper('findmydevice.registered').get(function(registered) {

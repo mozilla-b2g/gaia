@@ -135,7 +135,7 @@ suite('Find My Device panel > ', function() {
   });
 
   test('prompt for login when logged out of FxA', function() {
-    MockSettingsListener.mCallbacks['findmydevice.logged-in'](false);
+    MockMozId.onlogout();
     assert.isFalse(signinSection.hidden);
     assert.isTrue(settingsSection.hidden);
   });
@@ -143,24 +143,24 @@ suite('Find My Device panel > ', function() {
   test('consider ourselves logged out if onerror fires when not offline',
   function() {
     MockMozId.onerror('{"name": "NOT_OFFLINE"}');
-    assert.isFalse(
-      MockSettingsHelper.instances['findmydevice.logged-in'].value);
+    assert.isFalse(signinSection.hidden);
+    assert.isTrue(settingsSection.hidden);
   });
 
   test('persist panel if onerror fires due to being offline', function() {
-    MockSettingsListener.mCallbacks['findmydevice.logged-in'](true);
+    MockMozId.onlogin();
     MockMozId.onerror('{"name": "OFFLINE"}');
     assert.isFalse(settingsSection.hidden);
     assert.isTrue(signinSection.hidden);
 
-    MockSettingsListener.mCallbacks['findmydevice.logged-in'](false);
+    MockMozId.onlogout();
     MockMozId.onerror('{"name": "OFFLINE"}');
     assert.isTrue(settingsSection.hidden);
     assert.isFalse(signinSection.hidden);
   });
 
   test('show settings when logged in to FxA', function() {
-    MockSettingsListener.mCallbacks['findmydevice.logged-in'](true);
+    MockMozId.onlogin();
     assert.isFalse(settingsSection.hidden);
     assert.isTrue(signinSection.hidden);
   });
