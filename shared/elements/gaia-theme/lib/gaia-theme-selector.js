@@ -9,12 +9,17 @@
 var proto = Object.create(HTMLElement.prototype);
 
 proto.createdCallback = function() {
-  var tmpl = template.content.cloneNode(true);
-  var shadow = this.createShadowRoot();
-  shadow.addEventListener('click', this.onClick.bind(this));
-  shadow.appendChild(tmpl);
+  this.createShadowRoot().innerHTML = template;
+
+  this.els = {
+    themes: this.shadowRoot.querySelector('.themes'),
+    rtl: this.shadowRoot.querySelector('.toggle-rtl')
+  };
+
+  this.els.rtl.addEventListener('click', this.onRtlClick.bind(this));
+  this.els.themes.addEventListener('click', this.onThemeClick.bind(this));
   this.styleHack();
-  this.set('settings');
+  this.set(localStorage.theme || 'settings');
 };
 
 proto.styleHack = function() {
@@ -23,9 +28,13 @@ proto.styleHack = function() {
   this.appendChild(style.cloneNode(true));
 };
 
-proto.onClick = function(e) {
+proto.onThemeClick = function(e) {
   var theme = e.target.value;
   if (theme) { this.set(theme); }
+};
+
+proto.onRtlClick = function() {
+  document.dir = this.els.rtl.checked ? 'rtl' : 'ltr';
 };
 
 proto.set = function(theme) {
@@ -34,10 +43,10 @@ proto.set = function(theme) {
   document.body.classList.add('theme-' + theme);
   radio.checked = true;
   this.theme = theme;
+  localStorage.theme = theme;
 };
 
-var template = document.createElement('template');
-template.innerHTML = `
+var template = `
 <style>
 
 * { margin: 0; padding: 0; }
@@ -53,6 +62,7 @@ gaia-theme-selector {
   font-size: 9px;
   text-align: center;
   box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  direction: ltr;
 }
 
 form {
@@ -63,21 +73,34 @@ form {
 }
 
 form label {
-  margin-left: 9px;
+  -moz-margin-start: 9px;
 }
 
 form input {
-  margin-right: 6px;
+  -moz-margin-end: 6px;
   vertical-align: middle;
+}
+
+.rtl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
 }
 
 </style>
 
 <form>
-   <label><input type="radio" name="theme" value="productivity"/>Prod</label>
-  <label><input type="radio" name="theme" value="communications"/>Comms</label>
-  <label><input type="radio" name="theme" value="media"/>Media</label>
-  <label><input type="radio" name="theme" value="settings"/>Settings</label>
+  <label class="rtl"><input type="checkbox" class="toggle-rtl" />RTL</label>
+  <span class="themes">
+    <label><input type="radio" name="theme" value="productivity"/>Prod</label>
+    <label><input type="radio" name="theme" value="communications"/>Comms</label>
+    <label><input type="radio" name="theme" value="media"/>Media</label>
+    <label><input type="radio" name="theme" value="settings"/>Settings</label>
+  </span>
 </form>`;
 
 document.registerElement('gaia-theme-selector', { prototype: proto });
