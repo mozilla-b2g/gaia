@@ -328,7 +328,8 @@ suite('Call Info', function(argument) {
 
     test('view title is set', function() {
       var callInfoTitle = document.getElementById('call-info-title');
-      assert.equal(callInfoTitle.textContent, fakeNumber);
+      var callInfoTitleBdi = callInfoTitle.querySelector('bdi');
+      assert.equal(callInfoTitleBdi.textContent, fakeNumber);
     });
 
     suite('Number is voicemail', function() {
@@ -343,7 +344,9 @@ suite('Call Info', function(argument) {
 
       test('view title is set', function() {
         var callInfoTitle = document.getElementById('call-info-title');
-        assert.equal(callInfoTitle.getAttribute('data-l10n-id'), 'voiceMail');
+        var callInfoTitleBdi = callInfoTitle.querySelector('bdi');
+        assert.equal(callInfoTitleBdi.getAttribute('data-l10n-id'),
+          'voiceMail');
       });
     });
 
@@ -355,7 +358,8 @@ suite('Call Info', function(argument) {
 
       test('view title is set', function() {
         var callInfoTitle = document.getElementById('call-info-title');
-        assert.equal(callInfoTitle.getAttribute('data-l10n-id'),
+        var callInfoTitleBdi = callInfoTitle.querySelector('bdi');
+        assert.equal(callInfoTitleBdi.getAttribute('data-l10n-id'),
                      'emergencyNumber');
       });
     });
@@ -567,7 +571,9 @@ suite('Call Info', function(argument) {
 
     test('view title is set', function() {
       var callInfoTitle = document.getElementById('call-info-title');
-      assert.equal(callInfoTitle.textContent, groupReturn.contact.primaryInfo);
+      var callInfoTitleBdi = callInfoTitle.querySelector('bdi');
+      assert.equal(callInfoTitleBdi.textContent,
+        groupReturn.contact.primaryInfo);
     });
   });
 

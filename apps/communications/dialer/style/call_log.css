@@ -304,3 +304,12 @@ html[dir="rtl"] .recents-edit .log-item a {
 html[dir="rtl"] #sticky {
   background-position: calc(100% - 1.5rem) 0;
 }
+
+.ellipsis-dir-fix {
+  display: block;
+  max-width: 100%;
+  width: auto;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

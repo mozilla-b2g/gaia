@@ -34,7 +34,8 @@ suite('Call Group menu', function() {
       var called = OptionMenu.calls[0];
       assert.equal(called.items.length, 3);
 
-      assert.equal(called.header, fakePrimaryInfo);
+      assert.equal(called.header.textContent, fakePrimaryInfo);
+      assert.equal(called.header.className, 'ellipsis-dir-fix');
 
       assert.equal(called.items[0].l10nId, 'callInformation');
 

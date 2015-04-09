@@ -36,14 +36,16 @@
 
   function updateGroupInformation(group) {
     var titleElt = document.getElementById('call-info-title');
+    var titleEltBdi = titleElt.querySelector('bdi');
+
     if (group.contact) {
-      titleElt.textContent = group.contact.primaryInfo;
+      titleEltBdi.textContent = group.contact.primaryInfo;
     } else if (group.voicemail) {
-      titleElt.setAttribute('data-l10n-id', 'voiceMail');
+      titleEltBdi.setAttribute('data-l10n-id', 'voiceMail');
     } else if (group.emergency) {
-      titleElt.setAttribute('data-l10n-id', 'emergencyNumber');
+      titleEltBdi.setAttribute('data-l10n-id', 'emergencyNumber');
     } else {
-      titleElt.textContent = group.number;
+      titleEltBdi.textContent = group.number;
     }
 
     document.getElementById('call-info-day').textContent =
