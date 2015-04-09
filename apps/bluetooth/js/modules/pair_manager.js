@@ -33,7 +33,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf PairManger
-     * @type {Object} BluetoothAdapter
+     * @type {BluetoothAdapter}
      */
     _defaultAdapter: null,
 

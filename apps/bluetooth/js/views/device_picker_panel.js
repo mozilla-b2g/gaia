@@ -93,7 +93,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf DevicePickerPanel
-     * @type {Object} BluetoothAdapter
+     * @type {BluetoothAdapter}
      */
     _defaultAdapter: null,
 
