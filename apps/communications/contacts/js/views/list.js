@@ -2335,6 +2335,9 @@ contacts.List = (function() {
 
   var cacheRequestTimer;
   function cacheContactsList() {
+    if (inSelectMode) {
+      return;
+    }
     // The Cache mechanism accesses localStorage.
     // Use the following logic to cache the contact list in a
     // moderate pattern.
