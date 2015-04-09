@@ -2083,9 +2083,13 @@ var TabBar = {
 window.addEventListener('scrollstart', function onScroll(e) {
   var views = document.getElementById('views');
   views.classList.add('scrolling');
+  // Disable the TabBar in case the user tap them accidentally.
+  TabBar.setDisabled(true);
 });
 
 window.addEventListener('scrollend', function onScroll(e) {
   var views = document.getElementById('views');
   views.classList.remove('scrolling');
+  // Re-enable the TabBar after the user finished scrolling the views.
+  TabBar.setDisabled(false);
 });
