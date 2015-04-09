@@ -103,7 +103,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @type {Object BluetoothAdapter}
+     * @type {Object} BluetoothAdapter
      */
     _defaultAdapter: null,
 
@@ -126,8 +126,8 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothAdapter} newAdapter
-     * @param {Object BluetoothAdapter} oldAdapter
+     * @param {Object} BluetoothAdapter newAdapter
+     * @param {Object} BluetoothAdapter oldAdapter
      */
     _onDefaultAdapterChanged:
     function btcm__onDefaultAdapterChanged(newAdapter, oldAdapter) {
@@ -365,7 +365,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _watchDefaultAdapterOnattributechanged:
     function btcm__watchDefaultAdapterOnattributechanged(adapter) {
@@ -379,7 +379,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _unwatchDefaultAdapterOnattributechanged:
     function btcm__unwatchDefaultAdapterOnattributechanged(adapter) {
@@ -393,7 +393,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      * @param {event} evt
      */
     _onAdapterAttributeChanged:
@@ -427,7 +427,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _watchProfilesStatuschanged: 
     function btcm__watchProfilesStatuschanged(adapter) {
@@ -445,7 +445,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _unwatchProfilesStatuschanged:
     function btc__unwatchProfilesStatuschanged(adapter) {
@@ -654,7 +654,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothDevice} device
+     * @param {Object} BluetoothDevice device
      * @return {Promise}
      */
     connect: function btcm_connect(device) {
@@ -708,7 +708,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothDevice} device
+     * @param {Object} BluetoothDevice device
      * @returns {Promise}
      */
     _connect: function btcm__connect(device) {
@@ -772,7 +772,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothConnectionManager
-     * @param {Object BluetoothDevice} device
+     * @param {Object} BluetoothDevice device
      * @returns {Promise}
      */
     disconnect: function btcm_disconnect(device) {
@@ -855,7 +855,7 @@ define(function(require) {
      * @access private
      * @memberOf BluetoothConnectionManager
      * @param {String} address
-     * @param {Object BluetoothDevice}
+     * @param {Object} BluetoothDevice
      */
     _getPairedDeviceByAddress: 
     function btcm__getPairedDeviceByAddress(address) {

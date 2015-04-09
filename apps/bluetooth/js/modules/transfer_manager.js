@@ -152,8 +152,8 @@ define(function(require) {
      *
      * @access private
      * @memberOf TransferManager
-     * @param {Object BluetoothAdapter} newAdapter
-     * @param {Object BluetoothAdapter} oldAdapter
+     * @param {Object} BluetoothAdapter newAdapter
+     * @param {Object} BluetoothAdapter oldAdapter
      */
     _onDefaultAdapterChanged:
     function bttm__onDefaultAdapterChanged(newAdapter, oldAdapter) {

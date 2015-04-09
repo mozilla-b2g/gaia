@@ -124,7 +124,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @type {Object BluetoothAdapter}
+     * @type {Object} BluetoothAdapter
      */
     _defaultAdapter: null,
 
@@ -162,7 +162,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _initProperties: function btc__initProperties(adapter) {
       // init observable properties
@@ -198,7 +198,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _watchDefaultAdapterOnattributechanged:
     function btc__watchDefaultAdapterOnattributechanged(adapter) {
@@ -212,7 +212,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _unwatchDefaultAdapterOnattributechanged:
     function btc__unwatchDefaultAdapterOnattributechanged(adapter) {
@@ -230,7 +230,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _watchDefaultAdapterOndevicepaired:
     function btc__watchDefaultAdapterOndevicepaired(adapter) {
@@ -244,7 +244,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _unwatchDefaultAdapterOndevicepaired:
     function btc__unwatchDefaultAdapterOndevicepaired(adapter) {
@@ -261,7 +261,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _watchDefaultAdapterOndeviceunpaired:
     function btc__watchDefaultAdapterOndeviceunpaired(adapter) {
@@ -275,7 +275,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _unwatchDefaultAdapterOndeviceunpaired:
     function btc__unwatchDefaultAdapterOndeviceunpaired(adapter) {
@@ -288,7 +288,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      * @param {event} evt
      */
     _onAdapterAttributeChanged:
@@ -330,7 +330,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      * @param {event} evt
      */
     _onAdapterDevicepaired:
@@ -353,7 +353,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      * @param {event} evt
      */
     _onAdapterDeviceunpaired:
@@ -372,8 +372,8 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} newAdapter
-     * @param {Object BluetoothAdapter} oldAdapter
+     * @param {Object} BluetoothAdapter newAdapter
+     * @param {Object} BluetoothAdapter oldAdapter
      */
     _onDefaultAdapterChanged:
     function btc__onDefaultAdapterChanged(newAdapter, oldAdapter) {
@@ -411,7 +411,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {Object} BluetoothAdapter adapter
      */
     _refreshPairedDevicesInfo: function btc__refreshPairedDevicesInfo(adapter) {
       var pairedDevices = adapter.getPairedDevices();
@@ -685,7 +685,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothDiscoveryHandle} handle
+     * @param {Object} BluetoothDiscoveryHandle handle
      */
     _setDiscoveryHandler: function btc__setDiscoveryHandler(handle) {
       Debug('_setDiscoveryHandler(): handle = ' + handle);
@@ -714,7 +714,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object Observable} device
+     * @param {Object} Observable device
      */
     _saveDevice: function btc__saveDevice(device) {
       // Find the device is existed in devices list or not. 
