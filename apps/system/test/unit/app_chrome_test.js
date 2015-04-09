@@ -140,7 +140,7 @@ suite('system/AppChrome', function() {
 
       var chrome = new AppChrome(app);
       chrome.handleEvent({ type: 'mozbrowserlocationchange' });
-      assert.equal(chrome.title.dataset.l10nId, 'search-the-web');
+      assert.equal(chrome.title.dataset.l10nId, 'search-or-enter-address');
 
 
     });
