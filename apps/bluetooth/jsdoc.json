@@ -1,10 +1,6 @@
 {
   "bluetooth": {
-    "src": ["apps/bluetooth/js/**/*.js",
-            "!apps/bluetooth/js/modules/bluetooth/bluetooth_connection_manager.js",
-            "!apps/bluetooth/js/modules/bluetooth/bluetooth_context.js",
-            "!apps/bluetooth/js/modules/pair_manager.js",
-            "!apps/bluetooth/js/views/device_picker_panel.js"],
+    "src": ["apps/bluetooth/js/**/*.js"],
     "options": {
       "destination": "docs/bluetooth"
     }

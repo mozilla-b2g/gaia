@@ -1,19 +1,14 @@
 {
   "settings": {
-    "src": ["apps/settings/js/**/*.js",
+    "src": ["apps/settings/README.md",
+            "apps/settings/js/**/*.js",
             "!apps/settings/js/panels/app_permissions_detail/app_permissions_detail.js",
             "!apps/settings/js/modules/apn/apn_list.js",
             "!apps/settings/js/modules/apn/apn_selections.js",
             "!apps/settings/js/modules/apn/apn_settings.js",
             "!apps/settings/js/modules/apn/apn_settings_manager.js",
-            "!apps/settings/js/modules/bluetooth/bluetooth_cod_mapper.js",
-            "!apps/settings/js/modules/bluetooth/bluetooth_device.js",
-            "!apps/settings/js/modules/bluetooth/bluetooth_connection_manager.js",
-            "!apps/settings/js/modules/bluetooth/bluetooth_context.js",
-            "!apps/settings/js/panels/call_barring/call_barring.js",
-            "!apps/settings/js/panels/call_barring_passcode_change/call_barring_passcode_change.js",
-            "!apps/settings/js/modules/fdn_context.js",
-            "!apps/settings/js/startup.js"],
+            "!apps/settings/js/panels/apn_editor/apn_editor_const.js",
+            "!apps/settings/js/panels/apn_editor/panel.js"],
     "options": {
       "destination": "docs/settings"
     }

@@ -64,10 +64,7 @@ var CallHandler = {
   },
 };
 
-/**
- * CallHandler
- * @global
- */
+/** @global CallHandler */
 window.CallHandler = CallHandler;
 
 window.addEventListener('load', function onload() {

@@ -1,6 +1,7 @@
 {
   "fl": {
-    "src": ["apps/fl/js/**/*.js"],
+    "src": ["apps/fl/js/**/*.js",
+            "!apps/fl/js/utils.js"],
     "options": {
       "destination": "docs/forwardlock"
     }
