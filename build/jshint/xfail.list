@@ -130,14 +130,12 @@ apps/system/js/download/download_notification.js
 apps/system/js/emergency_callback_manager.js
 apps/system/js/icc.js
 apps/system/js/icc_events.js
-apps/system/js/identity.js
 apps/system/js/init_logo_handler.js
 apps/system/js/notifications.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
 apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
-apps/system/js/storage_watcher.js
 apps/system/js/trusted_ui.js
 apps/system/js/update_manager.js
 apps/system/js/value_selector/spin_date_picker.js
@@ -156,7 +154,6 @@ apps/system/test/unit/download_manager_test.js
 apps/system/test/unit/download_notification_test.js
 apps/system/test/unit/entery_sheet_test.js
 apps/system/test/unit/iac_handler_test.js
-apps/system/test/unit/identity_test.js
 apps/system/test/unit/keyboard_helper_test.js
 apps/system/test/unit/lockscreen/lockscreen_test.js
 apps/system/test/unit/mobile_operator_test.js
@@ -187,7 +184,6 @@ apps/system/test/unit/mock_statusbar.js
 apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/spin_date_picker_test.js
-apps/system/test/unit/storage_watcher_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
 apps/system/test/unit/value_picker_test.js

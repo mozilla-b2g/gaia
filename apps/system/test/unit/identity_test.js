@@ -1,3 +1,4 @@
+/* global Identity, MockChromeEvent, MockL10n */
 'use strict';
 
 requireApp('system/js/identity.js');
