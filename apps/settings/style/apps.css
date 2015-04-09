@@ -60,9 +60,8 @@
 
 .addon-paragraph {
   font-size: 1.7rem;
-  line-height: 1.7rem;
+  line-height: 2.3rem;
   font-weight: 400;
-  font-style: italic;
   padding-left: 1rem;
   padding-right: 1rem;
 }
@@ -70,9 +69,76 @@
 .addon-paragraph img {
   float: left;  /* RTL? */
   margin: 0 1rem 1rem 1rem;
-  width: 6.4rem;
-  height: 6.4rem;
-  filter: url('shadow.svg#drop-shadow');
+  width: 5rem;
+  height: 5rem;
+}
+
+#addon-detail-icon {
+  flex-shrink: 0;
+  margin: 0;
+  padding-top: 0.6rem;
+  align-self: flex-start;
+}
+
+.addon-description-container {
+  display: flex;
+  margin: 1.5rem 1.5rem 0;
+  align-items: baseline;
+  padding: 0;
+}
+
+.no-rename .addon-description-container {
+  align-items: center;
+}
+
+#addon-description-text {
+  margin: 2rem 1.5rem;
+  padding: 0;
+}
+
+#addon-name {
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  font-weight: 500;
+}
+
+#addon-developer {
+  opacity: 0.5;
+  line-height: 2.3rem;
+}
+
+.addon-description {
+  padding: 0 2rem 0 1rem;
+}
+
+.addon-description span {
+  display: block;
+}
+
+.addon-rename {
+  background: none;
+  flex-shrink: 0;
+  width: auto;
+  color: #00aac5;
+  font-style: italic;
+  font-size: 1.4rem;
+  line-height: 1.4rem;
+  padding: 0;
+  margin: 0;
+}
+
+.addon-rename:active {
+  background: none;
+  color: #00aac5;
+  opacity: 0.5;
+}
+
+.no-rename .addon-rename {
+  display: none;
+}
+
+#rename-dialog {
+  font-size: 1.7rem !important;
 }
 
 #addon-details header {
