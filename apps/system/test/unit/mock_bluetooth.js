@@ -48,6 +48,9 @@ var MockBluetooth = {
       },
       pair: function() {
         return new MockDOMRequest();
+      },
+      connect: function() {
+        return new MockDOMRequest();
       }
     };
     this.defaultAdapter = mockAdapater;
