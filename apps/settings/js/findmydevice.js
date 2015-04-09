@@ -121,6 +121,7 @@ define('findmydevice', ['modules/settings_utils', 'shared/settings_listener'
 
     _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
       console.log('settings, logged in: ' + loggedIn);
+      this._togglePanel(loggedIn);
 
       if (this._interactiveLogin) {
         SettingsHelper('findmydevice.registered').get(function(registered) {
