@@ -424,6 +424,8 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
+      assert.equal(StatusBar.element.classList.contains('maximized'), true);
+      assert.equal(StatusBar.element.classList.contains('light'), false);
     });
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
