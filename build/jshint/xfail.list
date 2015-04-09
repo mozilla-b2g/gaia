@@ -147,14 +147,6 @@ apps/system/js/update_manager.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/wifi.js
-apps/system/test/marionette/fakemusic/js/comms.js
-apps/system/test/marionette/fakemusic/js/fakemusic.js
-apps/system/test/marionette/lib/fake_music.js
-apps/system/test/marionette/lib/notification.js
-apps/system/test/marionette/lockscreen_disabled_test.js
-apps/system/test/marionette/net_error_test.js
-apps/system/test/marionette/notification_launch_app_test.js
-apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/download_manager_test.js
 apps/system/test/unit/download_notification_test.js

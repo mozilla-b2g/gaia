@@ -1,3 +1,5 @@
+'use strict';
+
 marionette('lockscreen disabled test', function() {
   var assert = require('assert');
 

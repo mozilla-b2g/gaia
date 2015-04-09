@@ -1,3 +1,5 @@
+'use strict';
+
 var assert = require('assert');
 var APP_FAKE = 'http://fake.fake.fake';
 
