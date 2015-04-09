@@ -10,16 +10,16 @@
       "reruns": 3,
       "task": {
         "metadata": {
-          "name": "Task graph construction...."
+          "name": "Gaia Taskcluster Decision Task"
         },
         "provisionerId": "aws-provisioner",
-        "workerType": "gaia",
+        "workerType": "gaia-decision",
         "scopes": ["docker-worker:cache:gaia-misc-caches"],
         "payload": {
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
-          "image": "taskcluster/gaia-taskenv:0.7.2",
+          "image": "taskcluster/gaia-taskenv:0.8.0",
           "command": [
             "entrypoint",
             "echo 'what' && make node_modules && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
@@ -28,7 +28,8 @@
         },
         "extra": {
           "treeherder": {
-            "symbol": "G"
+            "symbol": "D",
+            "groupSymbol": "?"
           }
         }
       }
