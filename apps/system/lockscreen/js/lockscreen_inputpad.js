@@ -191,18 +191,10 @@
   function(key) {
     switch (key) {
       case 'e': // 'E'mergency Call
-        // Cancel the notification clicked to activate.
-        if (this.lockScreen._unlockingMessage.notificationId) {
-          delete this.lockScreen._unlockingMessage.notificationId;
-        }
         this.lockScreen.invokeSecureApp('emergency-call');
         break;
 
       case 'c': // 'C'ancel
-        // Cancel the notification clicked to activate.
-        if (this.lockScreen._unlockingMessage.notificationId) {
-          delete this.lockScreen._unlockingMessage.notificationId;
-        }
         this.dispatchEvent(new window.CustomEvent(
           'lockscreen-keypad-input', { detail: {
             key: key
