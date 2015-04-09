@@ -1,6 +1,19 @@
 {
   "collection": {
-    "src": ["apps/collection/js/**/*.js"],
+    "src": ["apps/collection/README.md",
+            "apps/collection/js/**/*.js",
+            "!apps/collection/js/add_to_collection.js",
+            "!apps/collection/js/common.js",
+            "!apps/collection/js/contextmenu.js",
+            "!apps/collection/js/create_collection.js",
+            "!apps/collection/js/home_icons.js",
+            "!apps/collection/js/native_info.js",
+            "!apps/collection/js/objects.js",
+            "!apps/collection/js/setup.js",
+            "!apps/collection/js/synchronize.js",
+            "!apps/collection/js/view_apps.js",
+            "!apps/collection/js/view_editmode.js",
+            "!apps/collection/js/update_collection.js"],
     "options": {
       "destination": "docs/collection"
     }

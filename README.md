@@ -258,12 +258,19 @@ If you would like to run more than one test, we could do the below command.
 make build-test-integration TEST_FILES="apps/keyboard/test/build/integration/keyboard_test.js apps/keyboard/test/build/integration/keyboard_layout_test.js"
 ```
 
-## Generate JSDOC
+## Generate jsdoc
 
-To generate API reference locally, run `make docs` command to generate docs. The generated per app API docs will be located in `docs` folder.
+To generate API reference locally, you have to install grunt with following command:
+
+```sh
+$ npm -g grunt-cli
+```
+
+then run `make docs` command to generate docs.
+The generated API docs will be located in `docs` folder.
 
 You could generate single app doc with this:
 
 ```sh
-$ gulp jsdoc:system
+$ grunt jsdoc:system
 ```
