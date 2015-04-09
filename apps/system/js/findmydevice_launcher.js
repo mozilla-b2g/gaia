@@ -103,13 +103,10 @@ function onFxAChromeEvent(event) {
   }
 
   var eventName = event.detail.eventName;
-  var loggedInHelper = SettingsHelper('findmydevice.logged-in');
   DUMP('findmydevice received ' + eventName + ' FxA event in the System app');
   if (eventName === 'onlogin' || eventName === 'onverified') {
-    loggedInHelper.set(true);
     wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOGIN);
   } else if (eventName === 'onlogout') {
-    loggedInHelper.set(false);
     wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOGOUT);
   }
 }
