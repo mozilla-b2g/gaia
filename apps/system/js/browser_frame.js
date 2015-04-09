@@ -15,9 +15,9 @@
  * @class  BrowserFrame
  */
 
-(function(window) {
+(function(exports) {
   var nextId = 0;
-  window.BrowserFrame = function BrowserFrame() {
+  var BrowserFrame = function BrowserFrame() {
     this.element = null;
     this._id = nextId++;
     // All arguments are values to createFrame
@@ -82,6 +82,7 @@
       browser.dataset.url = config.url;
     }
 
+    /*jshint validthis: true */
     browser.id = this.CLASS_NAME + this._id;
 
     browser.classList.add(this.CLASS_NAME);
@@ -89,7 +90,7 @@
     this.config = config;
 
     this.element = browser;
-  };
+  }
 
   function setMozAppType(iframe, config) {
     // XXX: Those urls needs to be built dynamically.
@@ -115,4 +116,6 @@
       iframe.setAttribute('mozapptype', 'inputmethod');
     }
   }
-}(this));
+
+  exports.BrowserFrame = BrowserFrame;
+}(window));
