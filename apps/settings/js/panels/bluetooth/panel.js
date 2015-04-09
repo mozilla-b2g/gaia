@@ -40,6 +40,23 @@ define(function(require) {
         this._leftApp = false;
         // Init an instance to maintain visibility timeout.
         this._visibleTimeout = null;
+        // Init bounding instances for observe/un-observe property.
+        this._boundUpdateEnableCheckbox = this._updateEnableCheckbox.bind(this);
+        this._boundUpdateVisibleItem = this._updateVisibleItem.bind(this);
+        this._boundUpdateVisibleCheckbox =
+          this._updateVisibleCheckbox.bind(this);
+        this._boundUpdateVisibilityTimer =
+          this._updateVisibilityTimer.bind(this);
+        this._boundUpdateVisibleName = this._updateVisibleName.bind(this);
+        this._boundUpdateRenameItem = this._updateRenameItem.bind(this);
+        this._boundUpdatePairedDevicesHeader =
+         this._updatePairedDevicesHeader.bind(this);
+        this._boundUpdatePairedDevicesList =
+          this._updatePairedDevicesList.bind(this);
+        this._boundUpdateFoundDevicesList =
+          this._updateFoundDevicesList.bind(this);
+        this._boundUpdateSearchItem = this._updateSearchItem.bind(this);
+        this._boundUpdateSearchingItem = this._updateSearchingItem.bind(this);
 
         elements = {
           panel: panel,
@@ -112,46 +129,47 @@ define(function(require) {
         Debug('onBeforeShow():');
 
         // enable/disable
-        BtContext.observe('state', this._updateEnableCheckbox);
+        BtContext.observe('state', this._boundUpdateEnableCheckbox);
         this._updateEnableCheckbox(BtContext.state);
 
         // visible
-        BtContext.observe('state', this._updateVisibleItem);
+        BtContext.observe('state', this._boundUpdateVisibleItem);
         this._updateVisibleItem(BtContext.state);
 
-        BtContext.observe('discoverable', this._updateVisibleCheckbox);
+        BtContext.observe('discoverable', this._boundUpdateVisibleCheckbox);
         this._updateVisibleCheckbox(BtContext.discoverable);
 
-        BtContext.observe('discoverable', this._updateVisibilityTimer);
+        BtContext.observe('discoverable', this._boundUpdateVisibilityTimer);
         this._updateVisibilityTimer(BtContext.discoverable);
 
-        BtContext.observe('name', this._updateVisibleName);
+        BtContext.observe('name', this._boundUpdateVisibleName);
         this._updateVisibleName(BtContext.name);
 
         // rename
-        BtContext.observe('state', this._updateRenameItem);
+        BtContext.observe('state', this._boundUpdateRenameItem);
         this._updateRenameItem(BtContext.state);
 
         // paired devices header
-        BtContext.observe('hasPairedDevice', this._updatePairedDevicesHeader);
+        BtContext.observe('hasPairedDevice',
+          this._boundUpdatePairedDevicesHeader);
         this._updatePairedDevicesHeader(BtContext.hasPairedDevice);
 
         // paired devices list
-        BtContext.observe('state', this._updatePairedDevicesList);
+        BtContext.observe('state', this._boundUpdatePairedDevicesList);
         this._updatePairedDevicesList(BtContext.state);
 
         // found devices list
-        BtContext.observe('state', this._updateFoundDevicesList);
+        BtContext.observe('state', this._boundUpdateFoundDevicesList);
         this._updateFoundDevicesList(BtContext.state);
 
         _pairedDevicesListView.enabled = true;
         _foundDevicesListView.enabled = true;
 
         // search
-        BtContext.observe('state', this._updateSearchItem);
+        BtContext.observe('state', this._boundUpdateSearchItem);
         this._updateSearchItem(BtContext.state);
 
-        BtContext.observe('discovering', this._updateSearchingItem);
+        BtContext.observe('discovering', this._boundUpdateSearchingItem);
         this._updateSearchingItem(BtContext.discovering);
       },
 
@@ -174,12 +192,18 @@ define(function(require) {
 
       onBeforeHide: function() {
         Debug('onBeforeHide():');
-
-        BtContext.unobserve('state');
-        BtContext.unobserve('hasPairedDevice');
-        BtContext.unobserve('name');
-        BtContext.unobserve('discoverable');
-        BtContext.unobserve('discovering');
+        BtContext.unobserve('state', this._boundUpdateEnableCheckbox);
+        BtContext.unobserve('state', this._boundUpdateVisibleItem);
+        BtContext.unobserve('discoverable', this._boundUpdateVisibleCheckbox);
+        BtContext.unobserve('discoverable', this._boundUpdateVisibilityTimer);
+        BtContext.unobserve('name', this._boundUpdateVisibleName);
+        BtContext.unobserve('state', this._boundUpdateRenameItem);
+        BtContext.unobserve('hasPairedDevice',
+          this._boundUpdatePairedDevicesHeader);
+        BtContext.unobserve('state', this._boundUpdatePairedDevicesList);
+        BtContext.unobserve('state', this._boundUpdateFoundDevicesList);
+        BtContext.unobserve('state', this._boundUpdateSearchItem);
+        BtContext.unobserve('discovering', this._boundUpdateSearchingItem);
       },
 
       onHide: function() {
@@ -218,10 +242,10 @@ define(function(require) {
         var checkbox = elements.visible.visibleCheckBox;
         Debug('_onVisibleCheckBoxClick(): checked = ' + checkbox.checked);
         BtContext.setDiscoverable(checkbox.checked).then(() => {
-          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' + 
+          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' +
                 checkbox.checked + ' successfully');
         }, (reason) => {
-          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' + 
+          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' +
                 checkbox.checked + ' failed, reason = ' + reason);
         });
       },
@@ -261,10 +285,10 @@ define(function(require) {
         if (nameEntered !== '') {
           Debug('_onRenameSubmit(): set new name = ' + nameEntered);
           BtContext.setName(nameEntered).then(() => {
-            Debug('_onRenameSubmit(): setName = ' + 
+            Debug('_onRenameSubmit(): setName = ' +
                   nameEntered + ' successfully');
           }, (reason) => {
-            Debug('_onRenameSubmit(): setName = ' + 
+            Debug('_onRenameSubmit(): setName = ' +
                   nameEntered + ' failed, reason = ' + reason);
           });
         } else {
@@ -299,13 +323,13 @@ define(function(require) {
         Debug('_updateEnableCheckbox(): ' +
               'callback from observe "state" = ' + state);
         // Update Bluetooth enable checkbox
-        elements.enableCheckbox.checked = 
+        elements.enableCheckbox.checked =
           (state === 'enabled') || (state === 'enabling');
-        elements.enableCheckbox.disabled = 
+        elements.enableCheckbox.disabled =
           (state === 'enabling') || (state === 'disabling');
 
         // Update Bluetooth enable checkbox message
-        elements.enableCheckboxMsg.hidden = 
+        elements.enableCheckboxMsg.hidden =
           (state === 'enabled') || (state === 'enabling');
       },
 
@@ -403,7 +427,7 @@ define(function(require) {
         BtContext.startDiscovery().then(() => {
           Debug('_onSearchButtonClick(): startDiscovery successfully');
         }, (reason) => {
-          Debug('_onSearchButtonClick(): startDiscovery failed, ' + 
+          Debug('_onSearchButtonClick(): startDiscovery failed, ' +
                 'reason = ' + reason);
         });
       },
@@ -411,7 +435,7 @@ define(function(require) {
       _onPairedDeviceItemClick: function(deviceItem) {
         Debug('_onPairedDeviceItemClick(): deviceItem.address = ' +
               deviceItem.address);
-        Debug('_onPairedDeviceItemClick(): deviceItem.paired = ' + 
+        Debug('_onPairedDeviceItemClick(): deviceItem.paired = ' +
               deviceItem.paired);
         // Pop out dialog and show operation correspond to device paired device
         // type.
@@ -516,7 +540,7 @@ define(function(require) {
         BtContext.unpair(deviceItem.address).then(() => {
           Debug('_onPairedDeviceItemClick(): unpair successfully');
         }, (reason) => {
-          Debug('_onPairedDeviceItemClick(): unpair failed, ' + 
+          Debug('_onPairedDeviceItemClick(): unpair failed, ' +
                 'reason = ' + reason);
         });
       },
@@ -532,7 +556,7 @@ define(function(require) {
           // Connect the device which is just paired.
           this._connectHeadsetDevice(deviceItem);
         }, (reason) => {
-          Debug('_onFoundDeviceItemClick(): pair failed, ' + 
+          Debug('_onFoundDeviceItemClick(): pair failed, ' +
                 'reason = ' + reason);
           // Reset the paired status back to false, 
           // since the 'pairing' status is given in Gaia side.
@@ -543,7 +567,7 @@ define(function(require) {
       },
 
       _connectHeadsetDevice: function(deviceItem) {
-        if (!((deviceItem.type === 'audio-card') || 
+        if (!((deviceItem.type === 'audio-card') ||
               (deviceItem.type === 'audio-input-microphone'))) {
           return;
         }
