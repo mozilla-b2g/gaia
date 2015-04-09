@@ -20,11 +20,15 @@
 }
 
 #statusbar-tray {
-  background-image: -moz-element(#statusbar);
+  background-image: none;
   width: 100%;
   top: 0;
   height: 3rem;
   filter: none;
+}
+
+#screen.utility-tray-in-transition #statusbar-tray {
+  background-image: -moz-element(#statusbar);
 }
 
 #statusbar-tray > .sb-start-upper {

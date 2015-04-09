@@ -310,6 +310,7 @@ window.UtilityTray = {
 
       case 'transitionend':
         this.showing ? this.afterShow() : this.afterHide();
+        this.screen.classList.remove('utility-tray-in-transition');
         break;
 
       case 'resize':
@@ -433,6 +434,8 @@ window.UtilityTray = {
     this.notifications.style.transition = '';
     this.notifications.style.transform =
       'translateY(' + (this.screenHeight - dy) + 'px)';
+
+    this.screen.classList.add('utility-tray-in-transition');
   },
 
   onTouchEnd: function ut_onTouchEnd(touch, timestamp) {

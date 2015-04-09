@@ -113,6 +113,13 @@
   z-index: 16385;
 }
 
+/* We need to have the statusbar lying on top of the utility tray
+   when it's open so that its icons are accessible to touch events
+   from the screenreader. */
+#screen.utility-tray > [data-z-index-level="statusbar"] {
+  z-index: 16386;
+}
+
 /* In landscape the software home button is on the right side of the screen
  * so we demote it below the gesture-panels to prevent edge gestures issues
  * (the software home button doesn't need to be on top of the keyboard
