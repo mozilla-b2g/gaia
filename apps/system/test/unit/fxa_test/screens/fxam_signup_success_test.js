@@ -1,3 +1,5 @@
+/* global FxaModuleSignupSuccess, FxaModuleStates,
+          HtmlImports, LoadElementHelper, MocksHelper, MockL10n */
 'use strict';
 
 // Helper for loading the elements

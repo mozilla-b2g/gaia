@@ -1,3 +1,5 @@
+/* global FxaModuleSigninSuccess, FxaModuleStates,
+          HtmlImports, LoadElementHelper, MocksHelper, MockL10n */
 'use strict';
 
 // Helper for loading the elements
@@ -29,7 +31,6 @@ var mocksHelperForSigninSuccess = new MocksHelper([
 ]);
 
 suite('Screen: Signin Success', function() {
-  var emailTest = 'testuser@testuser.com';
   var realL10n;
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;

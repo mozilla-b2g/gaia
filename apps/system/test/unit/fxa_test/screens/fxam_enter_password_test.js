@@ -1,3 +1,6 @@
+/* global FxaModuleEnterPassword, FxaModuleErrorOverlay, FxaModuleOverlay,
+          FxaModuleUI, FxModuleServerRequest, FxaModuleStates,
+          HtmlImports, LoadElementHelper, MocksHelper, MockL10n */
 'use strict';
 
 // Helper for loading the elements
@@ -68,6 +71,7 @@ suite('Screen: Enter password', function() {
   var fxamUIDisableSpy, fxamUIEnableSpy, showErrorOverlaySpy, resetSpy;
   var inputEvent, clickEvent;
   function initFixtures(options) {
+    /* jshint validthis: true */
     FxaModuleEnterPassword.init(options);
     passwordInput = document.getElementById('fxa-pw-input');
     fxamUIDisableSpy = this.sinon.spy(FxaModuleUI, 'disableNextButton');
@@ -99,7 +103,7 @@ suite('Screen: Enter password', function() {
     resetSpy = null;
     mocksHelperForEnterPasswordModule.teardown();
     FxModuleServerRequest.resetSuccess = false;
-  };
+  }
 
   suite(' > FTU password input ', function() {
     setup(function() {
