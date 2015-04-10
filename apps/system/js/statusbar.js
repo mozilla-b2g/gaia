@@ -363,7 +363,7 @@ var StatusBar = {
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
         this._inLockScreenMode = false;
-        this.setAppearance(Service.currentApp);
+        this.setAppearance();
         break;
 
       case 'attentionopened':
@@ -573,12 +573,12 @@ var StatusBar = {
 
       case 'stackchanged':
       case 'rocketbar-deactivated':
-        this.setAppearance(Service.currentApp);
+        this.setAppearance();
         this.element.classList.remove('hidden');
         break;
 
       case 'appchromecollapsed':
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         this._updateMinimizedStatusBarWidth();
         break;
 
@@ -593,7 +593,7 @@ var StatusBar = {
           this.element.classList.toggle('fullscreen-layout',
             app.isFullScreenLayout());
         }
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
         break;
@@ -603,7 +603,7 @@ var StatusBar = {
         /* falls through */
       case 'apptitlestatechanged':
       case 'activitytitlestatechanged':
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         if (!this.isPaused()) {
           this.element.classList.remove('hidden');
         }
@@ -613,7 +613,7 @@ var StatusBar = {
         // quickly he press the home button, we might miss the
         // |sheets-gesture-end| event so we must resume the statusbar
         // if needed
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         if (this._pausedForGesture) {
           this.resumeUpdate();
           this._pausedForGesture = false;
@@ -678,7 +678,9 @@ var StatusBar = {
     download.addEventListener('statechange', handler);
   },
 
-  setAppearance: function(app) {
+  setAppearance: function() {
+    var app = Service.currentApp;
+
     // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
       this.element.classList.add('maximized');
