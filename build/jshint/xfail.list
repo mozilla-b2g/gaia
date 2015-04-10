@@ -143,7 +143,6 @@ apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
 apps/system/js/storage_watcher.js
 apps/system/js/trusted_ui.js
-apps/system/js/updatable.js
 apps/system/js/update_manager.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
@@ -210,7 +209,6 @@ apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/spin_date_picker_test.js
 apps/system/test/unit/storage_watcher_test.js
-apps/system/test/unit/updatable_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
 apps/system/test/unit/value_picker_test.js
