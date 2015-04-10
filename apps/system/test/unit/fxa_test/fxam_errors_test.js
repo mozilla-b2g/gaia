@@ -1,3 +1,4 @@
+/* global FxaModuleErrors, MockL10n */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
