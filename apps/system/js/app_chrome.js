@@ -322,6 +322,16 @@
     }
   };
 
+  AppChrome.prototype.titleClicked = function ac_titleClicked() {
+    var contextMenu = this.app.contextmenu && this.app.contextmenu.isVisible();
+    var locked = Service && Service.locked;
+
+    if (locked || contextMenu) {
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('global-search-request'));
+  };
+
   AppChrome.prototype.handleActionEvent = function ac_handleActionEvent(evt) {
     if (evt.detail.type === 'close') {
       this.app.kill();
