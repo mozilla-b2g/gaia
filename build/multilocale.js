@@ -13,9 +13,12 @@ function L10nManager(gaiaDir,
                      localesFilePath,
                      localeBasedir,
                      subject) {
-  if (arguments.length !== 4) {
+  if (arguments.length < 3 || arguments.length > 4) {
     throw new TypeError('Illegal constructor');
   }
+
+  // subject is for optional arguments and can be omitted
+  subject = subject || {};
 
   var self = this;
   var localesFile = utils.resolve(localesFilePath, gaiaDir);
