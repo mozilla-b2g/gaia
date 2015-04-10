@@ -1,3 +1,5 @@
+/* global InputAppList, KeyboardHelper, ManifestHelper,
+          MocksHelper, MockNavigatorSettings */
 // Tests the keyboard_helper.js from shared
 'use strict';
 
@@ -15,7 +17,6 @@ suite('KeyboardHelper', function() {
   var appEvents = ['applicationinstallsuccess'];
   var DEFAULT_KEY = 'keyboard.default-layouts';
   var ENABLED_KEY = 'keyboard.enabled-layouts';
-  var THIRD_PARTY_APP_ENABLED_KEY = 'keyboard.3rd-party-app.enabled';
   var keyboardAppOrigin = 'app://keyboard.gaiamobile.org';
   var keyboardAppManifestURL =
       'app://keyboard.gaiamobile.org/manifest.webapp';
@@ -674,7 +675,7 @@ suite('KeyboardHelper', function() {
       });
 
       test('default settings loaded with cs', function() {
-        expectedSettings['enabled'][keyboardAppManifestURL] =
+        expectedSettings.enabled[keyboardAppManifestURL] =
           {cs: true, number: true};
 
         assert.deepEqual(KeyboardHelper.settings.enabled,
@@ -697,7 +698,7 @@ suite('KeyboardHelper', function() {
       });
 
       test('default settings loaded with cs', function() {
-        expectedSettings['enabled'][keyboardAppManifestURL] =
+        expectedSettings.enabled[keyboardAppManifestURL] =
           {'sr-Cyrl': true, 'sr-Latn': true, number: true};
 
         assert.deepEqual(KeyboardHelper.settings.enabled,
@@ -741,14 +742,14 @@ suite('KeyboardHelper', function() {
     setup(function() {
       // reset KeyboardHelper each time
       KeyboardHelper.settings['default'] = defaultSettings['default'];
-      KeyboardHelper.settings['enabled'] = defaultSettings['default'];
+      KeyboardHelper.settings.enabled = defaultSettings['default'];
     });
 
     test('change default settings, keeping the enabled layouts', function() {
       expectedSettings['default'][keyboardAppManifestURL] = {fr: true,
                                                              number: true};
-      expectedSettings['enabled'][keyboardAppManifestURL] = {en: true, fr: true,
-                                                        number: true};
+      expectedSettings.enabled[keyboardAppManifestURL] = {en: true, fr: true,
+                                                          number: true};
 
       KeyboardHelper.changeDefaultLayouts('fr', false);
       assert.deepEqual(KeyboardHelper.settings.default,
@@ -761,8 +762,8 @@ suite('KeyboardHelper', function() {
     test('change default settings and reset enabled layouts', function() {
       expectedSettings['default'][keyboardAppManifestURL] = {es: true,
                                                              number: true};
-      expectedSettings['enabled'][keyboardAppManifestURL] = {es: true,
-                                                             number: true};
+      expectedSettings.enabled[keyboardAppManifestURL] = {es: true,
+                                                          number: true};
 
       KeyboardHelper.changeDefaultLayouts('es', true);
       assert.deepEqual(KeyboardHelper.settings.default,
@@ -777,7 +778,7 @@ suite('KeyboardHelper', function() {
       // Zhuyin is not preloaded for current config, so won't be enabled
       expectedSettings['default'][keyboardAppManifestURL] = {
         'zh-Hans-Pinyin': true, en: true, number: true};
-      expectedSettings['enabled'][keyboardAppManifestURL] = {
+      expectedSettings.enabled[keyboardAppManifestURL] = {
         'zh-Hans-Pinyin': true, en: true, number: true};
 
       KeyboardHelper.changeDefaultLayouts('zh-CN', true);
@@ -793,7 +794,7 @@ suite('KeyboardHelper', function() {
       // Zhuyin is not preloaded for current config, so won't be enabled
       expectedSettings['default'][keyboardAppManifestURL] = {
         en: true, number: true};
-      expectedSettings['enabled'][keyboardAppManifestURL] = {
+      expectedSettings.enabled[keyboardAppManifestURL] = {
         en: true, number: true};
 
       KeyboardHelper.changeDefaultLayouts('zh-TW', true);

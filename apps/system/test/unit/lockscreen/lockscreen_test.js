@@ -1,3 +1,4 @@
+/* global MockCanvas, MockCanvasRenderingContext2D, MockImage */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -19,25 +20,17 @@ requireApp('system/test/unit/mock_orientation_manager.js',
     requireApp('system/lockscreen/js/lockscreen.js');
   });
 
-if (!this.FtuLauncher) {
-  this.FtuLauncher = null;
-}
-
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
-}
-
 var mocksForLockScreen = new window.MocksHelper([
   'OrientationManager', 'AppWindowManager', 'AppWindow', 'LockScreenSlide',
   'SettingsListener', 'Image', 'Canvas'
 ]).init();
 
 requireApp('system/test/unit/mock_orientation_manager.js',
-function() {
-  window.realOrientationManager = window.OrientationManager;
-  window.OrientationManager = window.MockOrientationManager;
-  requireApp('system/lockscreen/js/lockscreen.js');
-});
+  function() {
+    window.realOrientationManager = window.OrientationManager;
+    window.OrientationManager = window.MockOrientationManager;
+    requireApp('system/lockscreen/js/lockscreen.js');
+  });
 
 suite('system/LockScreen >', function() {
   var subject;
@@ -134,6 +127,9 @@ suite('system/LockScreen >', function() {
       start: function() {},
       stop: function() {}
     };
+    realClock = window.Clock;
+    window.Clock = mockClock;
+
     subject.overlay = domOverlay;
     subject.mainScreen = domMainScreen;
     subject.camera = domCamera;
@@ -719,7 +715,7 @@ suite('system/LockScreen >', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozTelephony = realMozTelephony;
-    window.Clock = window.realClock;
+    window.Clock = realClock;
     window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
     window.SettingsListener = realSettingsListener;

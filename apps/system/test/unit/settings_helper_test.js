@@ -1,3 +1,4 @@
+/* global SettingsHelper, MockNavigatorSettings */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
