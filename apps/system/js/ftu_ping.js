@@ -107,7 +107,6 @@
         self._pingData.screenHeight = window.screen.height;
         self._pingData.screenWidth = window.screen.width;
         self._pingData.devicePixelRatio = window.devicePixelRatio;
-        self._pingData.locale = window.navigator.language;
 
         self.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
                                    FTU_PING_ENABLED,
@@ -343,17 +342,16 @@
     },
 
     ping: function fp_ping() {
-      this._pingData.pingTime = Date.now();
-
+      var pingData = this.assemblePingData();
       var request = new TelemetryRequest({
         reason: TELEMETRY_REASON,
-        deviceID: this._pingData.pingID,
+        deviceID: pingData.pingID,
         ver: TELEMETRY_VERSION,
         url: this._pingURL,
         appUpdateChannel: this._infoData['app.update.channel'],
         appVersion: this._infoData['deviceinfo.platform_version'],
         appBuildID: this._infoData['deviceinfo.platform_build_id']
-      }, this._pingData);
+      }, pingData);
 
       var self = this;
       request.send({
@@ -403,7 +401,9 @@
       return this._pingURL;
     },
 
-    getPingData: function fp_getPingData() {
+    assemblePingData: function fp_assemblePingData() {
+      this._pingData.pingTime = Date.now();
+      this._pingData.locale = window.navigator.language;
       return this._pingData;
     },
 
