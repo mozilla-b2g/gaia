@@ -133,8 +133,6 @@ apps/system/js/icc_events.js
 apps/system/js/identity.js
 apps/system/js/init_logo_handler.js
 apps/system/js/notifications.js
-apps/system/js/operator_variant/operator_variant.js
-apps/system/js/operator_variant/operator_variant_iccs.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
 apps/system/js/sheets_transition.js
@@ -186,7 +184,6 @@ apps/system/test/unit/mock_settingslistener_installer.js
 apps/system/test/unit/mock_sheets_transition.js
 apps/system/test/unit/mock_stack_manager.js
 apps/system/test/unit/mock_statusbar.js
-apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/spin_date_picker_test.js
