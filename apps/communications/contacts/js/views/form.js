@@ -861,7 +861,8 @@ contacts.Form = (function() {
 
               // List of duplicate contacts to merge (identifiers)
               var list = [];
-              Object.keys(data.data).forEach(function(id) {
+              var ids = data.data;
+              Object.keys(ids).forEach(id => {
                 list.push(results[id]);
               });
 
@@ -874,7 +875,7 @@ contacts.Form = (function() {
 
                 window.postMessage({
                   type: 'duplicate_contacts_merged',
-                  data: ''
+                  data: ids
                 }, fb.CONTACTS_APP_ORIGIN);
               });
 

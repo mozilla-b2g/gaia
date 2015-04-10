@@ -106,6 +106,7 @@ Contacts.Selectors = {
 
   editForm: '#selectable-form',
   editMenu: '#select-all-wrapper',
+  selectAllButton: '#select-all',
 
   clearOrgButton: '#clear-org',
   setIceButton: '#set-ice',
@@ -132,7 +133,9 @@ Contacts.Selectors = {
   systemMenu: 'form[data-z-index-level="action-menu"]',
 
   galleryImage: '.thumbnail img',
-  galleryDone: '#crop-done-button'
+  galleryDone: '#crop-done-button',
+
+  header: '#edit-title'
 };
 
 Contacts.prototype = {
@@ -279,6 +282,27 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
+  },
+
+  mergeContact: function(details) {
+    var selectors = Contacts.Selectors;
+
+    var addContact = this.client.findElement(selectors.formNew);
+    addContact.click();
+
+    this.enterContactDetails(details);
+
+    var duplicateFrame = this.client.findElement(selectors.duplicateFrame);
+    this.waitForSlideUp(duplicateFrame);
+    this.client.switchToFrame(duplicateFrame);
+
+    var mergeAction =
+      this.client.helper.waitForElement(selectors.duplicateMerge);
+    this.clickOn(mergeAction);
+
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Contacts.URL, 'contacts');
+    this.waitForSlideDown(duplicateFrame);
   },
 
   addContactMultipleEmails: function(details) {
