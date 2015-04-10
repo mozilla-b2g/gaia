@@ -1,8 +1,10 @@
+'use strict';
+/* jshint nonew: false */
+
 var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
     NotificationList = require('./lib/notification').NotificationList,
     Marionette = require('marionette-client'),
-    util = require('util'),
     fs = require('fs');
 
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
@@ -21,13 +23,41 @@ marionette('notification tests', function() {
     });
   });
 
+  function dispatchNotification() {
+    var details = {tag: 'test tag',
+                   title: 'test title',
+                   body: 'test body',
+                   dir: 'rtl',
+                   lang: 'en'};
+    var toaster = client.findElement('#notification-toaster');
+    new NotificationTest(client, details);
+
+    client.helper.waitFor(function() {
+      return client.findElement('#notification-toaster.displayed').displayed();
+    });
+    return toaster;
+  }
+
+  function dispatchVisibilityChangeEvent() {
+    client.executeScript(function() {
+      window.wrappedJSObject.__setDocumentVisibility(true);
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('visibilitychange'));
+    });
+  }
+
+  function fakeVibrationsNumber() {
+    return client.executeScript(function() {
+      return window.wrappedJSObject.__fakeVibrationsNo;
+    });
+  }
+
   test('fire notification', function() {
     var details = {tag: 'test tag',
                    title: 'test title',
                    body: 'test body',
                    dir: 'rtl',
                    lang: 'en'};
-    var notify = new NotificationTest(client, details);
+    new NotificationTest(client, details);
     notificationList.refresh();
     assert.ok(notificationList.contains(details),
               'Utility notification notification contains all fields');
@@ -61,14 +91,14 @@ marionette('notification tests', function() {
                       dir: 'ltr',
                       lang: 'sr-Cyrl'};
 
-    var notify = new NotificationTest(client, oldDetails);
+    new NotificationTest(client, oldDetails);
     notificationList.refresh();
     assert.ok(notificationList.contains(oldDetails),
               'Utility unreplaced notification should exist');
     assert.ok(notificationList.contains(newDetails, true),
               'Utility replaced notification should not exist');
 
-    var newNotify = new NotificationTest(client, newDetails);
+    new NotificationTest(client, newDetails);
     notificationList.refresh();
     assert.ok(notificationList.contains(oldDetails, true),
               'Utility unreplaced notification should not exist');
@@ -116,9 +146,7 @@ marionette('notification tests', function() {
     client.waitFor(screenStatusIsOff);
     client.apps.launch(urls.email);
     client.apps.switchToApp(urls.email);
-    var notify =
-          new NotificationTest(client,
-                               '123', 'test title', 'test body');
+    NotificationTest(client, '123', 'test title', 'test body');
     client.switchToFrame();
     var screenOn = screenStatusIsOn();
     assert.equal(screenOn, false, 'Screen should be off');
@@ -136,7 +164,7 @@ marionette('notification tests', function() {
 
     client.apps.launch(urls.email);
     client.apps.switchToApp(urls.email);
-    var notify = new NotificationTest(client, '123', 'test', 'test');
+    new NotificationTest(client, '123', 'test', 'test');
     client.switchToFrame();
 
     // We have to check if the phone will vibrate when it'll wake up
@@ -157,7 +185,7 @@ marionette('notification tests', function() {
 
     client.apps.launch(urls.calendar);
     client.apps.switchToApp(urls.calendar);
-    var notify = new NotificationTest(client, '123', 'test', 'test');
+    new NotificationTest(client, '123', 'test', 'test');
     client.switchToFrame();
 
     assert.equal(fakeVibrationsNumber(), 0, 'the phone should not vibrate');
@@ -168,32 +196,3 @@ marionette('notification tests', function() {
                  'the phone should have vibrated once');
   });
 });
-
-function dispatchNotification(client) {
-  var details = {tag: 'test tag',
-                 title: 'test title',
-                 body: 'test body',
-                 dir: 'rtl',
-                 lang: 'en'};
-  var toaster = client.findElement('#notification-toaster');
-  var notify = new NotificationTest(client, details);
-
-  client.helper.waitFor(function() {
-    return client.findElement('#notification-toaster.displayed').displayed();
-  });
-  return toaster;
-}
-
-function dispatchVisibilityChangeEvent() {
-  client.executeScript(function() {
-    window.wrappedJSObject.__setDocumentVisibility(true);
-    window.wrappedJSObject.dispatchEvent(new CustomEvent('visibilitychange'));
-  });
-}
-
-function fakeVibrationsNumber() {
-  return client.executeScript(function() {
-    return window.wrappedJSObject.__fakeVibrationsNo;
-  });
-}
-
