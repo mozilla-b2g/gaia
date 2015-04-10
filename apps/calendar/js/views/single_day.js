@@ -2,14 +2,15 @@ define(function(require, exports, module) {
 'use strict';
 
 var Overlap = require('utils/overlap');
-var localeFormat = require('date_format').localeFormat;
-var colorUtils = require('utils/color');
+var buildElement = require('utils/dom').buildElement;
 var dayObserver = require('day_observer');
+var isSameDate = require('calc').isSameDate;
+var localeFormat = require('date_format').localeFormat;
 var relativeDuration = require('calc').relativeDuration;
 var relativeOffset = require('calc').relativeOffset;
-var getTimeL10nLabel = require('calc').getTimeL10nLabel;
-var isSameDate = require('calc').isSameDate;
 var spanOfDay = require('calc').spanOfDay;
+var template = require('templates/multi_day');
+var timeLabel = require('calc').getTimeL10nLabel;
 
 var _id = 0;
 
@@ -32,23 +33,15 @@ SingleDay.prototype = {
   _attached: false,
 
   setup: function() {
-    this.day = document.createElement('div');
-    this.day.className = 'md__day';
-    this.day.dataset.date = this.date;
-
-    this.allday = document.createElement('div');
-    this.allday.className = 'md__allday';
-    this.allday.dataset.date = this.date;
-
-    this._dayName = document.createElement('h1');
-    this._dayName.className = 'md__day-name';
-    this._dayName.setAttribute('aria-level', '2');
-    this._dayName.id = 'md__day-name-' + this._instanceID;
-    this.allday.appendChild(this._dayName);
-
-    this._alldayEvents = document.createElement('div');
-    this._alldayEvents.className = 'md__allday-events';
-    this.allday.appendChild(this._alldayEvents);
+    this.day = buildElement(template.day.render({
+      date: this.date
+    }));
+    this.allday = buildElement(template.allday.render({
+      date: this.date,
+      id: this._instanceID
+    }));
+    this._dayName = this.allday.querySelector('.md__day-name');
+    this._alldayEvents = this.allday.querySelector('.md__allday-events');
 
     this._updateDayName();
 
@@ -56,7 +49,8 @@ SingleDay.prototype = {
   },
 
   _updateDayName: function() {
-    // we can't use [data-l10n-date-format] because format might change
+    // we can't use [data-l10n-date-format] because format might change based
+    // on locale
     var format = window.navigator.mozL10n.get('week-day');
     this._dayName.textContent = localeFormat(
       this.date,
@@ -110,29 +104,11 @@ SingleDay.prototype = {
   _renderEvent: function(record) {
     var el = this._buildEventElement(record);
 
-    var busytime = record.busytime;
-    var {startDate, endDate, _id} = busytime;
-    // Screen reader should be aware if the event spans multiple dates.
-    var format = isSameDate(startDate, endDate) ? this._oneDayLabelFormat :
-      'event-multiple-day-duration';
+    var {busytime} = record;
+    var {startDate, endDate} = busytime;
 
-    var description = document.createElement('span');
-    description.id = 'md__event-' + _id + '-description-' + this._instanceID;
-    description.setAttribute('aria-hidden', true);
-    description.setAttribute('data-l10n-id', format);
-    description.setAttribute('data-l10n-args', JSON.stringify({
-      startDate: localeFormat(startDate,
-        navigator.mozL10n.get('longDateFormat')),
-      startTime: localeFormat(startDate, navigator.mozL10n.get(
-        getTimeL10nLabel('shortTimeFormat'))),
-      endDate: localeFormat(endDate, navigator.mozL10n.get('longDateFormat')),
-      endTime: localeFormat(endDate, navigator.mozL10n.get(
-        getTimeL10nLabel('shortTimeFormat')))
-    }));
-    el.setAttribute('aria-labelledby',
-      el.getAttribute('aria-labelledby') + ' ' + description.id);
-    el.appendChild(description);
-
+    // we don't set the height on the template because we use the same markup
+    // for all day events as well
     var duration = relativeDuration(this.date, startDate, endDate);
     // we subtract border to keep a margin between consecutive events
     var hei = duration * this._hourHeight - this._borderWidth;
@@ -162,52 +138,31 @@ SingleDay.prototype = {
   },
 
   _buildEventElement: function(record) {
-    var {event, busytime, color} = record;
-    var {remote} = event;
+    var {title, location, alarms} = record.event.remote;
+    var {startDate, endDate, _id} = record.busytime;
 
-    var el = document.createElement('a');
-    el.href = '/event/show/' + busytime._id;
-    el.className = 'md__event';
-    el.style.borderColor = color;
-    el.style.backgroundColor = colorUtils.hexToBackground(color);
+    // screen reader should be aware if the event spans multiple dates and also
+    // know the event duration without having the open it
+    var _ = navigator.mozL10n.get;
+    var labelFormat = isSameDate(startDate, endDate) ? this._oneDayLabelFormat :
+      'event-multiple-day-duration';
+    var labelFormatArgs = JSON.stringify({
+      startDate: localeFormat(startDate, _('longDateFormat')),
+      startTime: localeFormat(startDate, _(timeLabel('shortTimeFormat'))),
+      endDate: localeFormat(endDate, _('longDateFormat')),
+      endTime: localeFormat(endDate, _(timeLabel('shortTimeFormat')))
+    });
 
-    var labels = [];
-
-    // we use a <bdi> element because content might be bidirectional
-    var title = document.createElement('bdi');
-    title.className = 'md__event-title';
-    title.id = 'md__event-' + busytime._id + '-title-' + this._instanceID;
-    labels.push(title.id);
-    // since we use "textContent" there is no risk of XSS
-    title.textContent = remote.title;
-    el.appendChild(title);
-
-    if (remote.location) {
-      // we use a <bdi> element because content might be bidirectional
-      var location = document.createElement('bdi');
-      location.className = 'md__event-location';
-      location.id = 'md__event-' + busytime._id + '-location-' +
-        this._instanceID;
-      labels.push(location.id);
-      // since we use "textContent" there is no risk of XSS
-      location.textContent = remote.location;
-      el.appendChild(location);
-    }
-
-    if (remote.alarms && remote.alarms.length) {
-      var icon = document.createElement('i');
-      icon.className = 'gaia-icon icon-calendar-alarm';
-      icon.style.color = color;
-      icon.setAttribute('aria-hidden', true);
-      icon.id = 'md__event-' + busytime._id + '-icon-' + this._instanceID;
-      icon.setAttribute('data-l10n-id', 'icon-calendar-alarm');
-      labels.push(icon.id);
-      el.appendChild(icon);
-      el.classList.add('has-alarms');
-    }
-
-    el.setAttribute('aria-labelledby', labels.join(' '));
-    return el;
+    return buildElement(template.event.render({
+      id: _id,
+      instance: this._instanceID,
+      title: title,
+      location: location,
+      hasAlarms: alarms && alarms.length,
+      color: record.color,
+      labelFormat: labelFormat,
+      labelFormatArgs: labelFormatArgs
+    }));
   },
 
   _renderAlldayEvent: function(record) {
