@@ -79,6 +79,12 @@ suite('system/AppChrome', function() {
     }
   };
 
+  var fakePrivateLandingPage = {
+    url: 'app://system.gaiamobile.org/private_browser.html',
+    origin: 'app://www.fake',
+    isPrivate: true
+  };
+
   var fakeAppConfigBar = {
     url: 'app://www.fake/index.html',
     chrome: {
@@ -125,6 +131,18 @@ suite('system/AppChrome', function() {
         this.sinon.stub(chrome, 'handleLocationChanged');
       chrome.handleEvent({ type: 'mozbrowserlocationchange' });
       assert.isTrue(stubHandleLocationChanged.called);
+    });
+
+    test('app location is changed - private browser landing page', function() {
+      var app = new AppWindow(fakePrivateLandingPage);
+      this.sinon.stub(app, 'isBrowser').returns(true);
+      this.sinon.stub(app, 'isPrivateBrowser').returns(true);
+
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({ type: 'mozbrowserlocationchange' });
+      assert.equal(chrome.title.dataset.l10nId, 'search-or-enter-address');
+
+
     });
 
     test('add bookmark', function() {
