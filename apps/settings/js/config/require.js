@@ -119,7 +119,8 @@ require.config({
         'main',
         'panels/root/low_priority_items',
         'modules/apps_cache',
-        'modules/bluetooth/version_detector'
+        'modules/bluetooth/version_detector',
+        'modules/addon_manager'
       ]
     },
     {
