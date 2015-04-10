@@ -3,7 +3,6 @@ define(function(require, exports, module) {
 
 var Abstract = require('./abstract');
 var Calc = require('calc');
-var TimeObserver = require('time_observer');
 var binsearch = require('binsearch');
 var compare = require('compare');
 var denodeifyAll = require('promise').denodeifyAll;
@@ -39,9 +38,6 @@ Busytime.prototype = {
   _dependentStores: ['alarms', 'busytimes'],
 
   _setupCache: function() {
-    // reset time observers
-    TimeObserver.call(this);
-
     this._byEventId = Object.create(null);
   },
 
