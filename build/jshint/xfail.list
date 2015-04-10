@@ -133,7 +133,6 @@ apps/system/js/emergency_callback_manager.js
 apps/system/js/icc.js
 apps/system/js/icc_events.js
 apps/system/js/identity.js
-apps/system/js/init_logo_handler.js
 apps/system/js/notifications.js
 apps/system/js/operator_variant/operator_variant.js
 apps/system/js/operator_variant/operator_variant_iccs.js
