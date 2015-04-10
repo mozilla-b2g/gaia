@@ -322,7 +322,10 @@
   };
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
-    if ((Service && Service.locked) || this.app.contextmenu.isVisible()) {
+    var contextMenu = this.app.contextmenu && this.app.contextmenu.isVisible();
+    var locked = Service && Service.locked;
+
+    if (locked || contextMenu) {
       return;
     }
     window.dispatchEvent(new CustomEvent('global-search-request'));
