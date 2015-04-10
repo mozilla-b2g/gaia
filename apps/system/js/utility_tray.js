@@ -465,7 +465,14 @@ window.UtilityTray = {
       if (this.showing) {
         this.hide();
       }
-      Service.currentApp.appChrome.titleClicked();
+
+      var app = Service.currentApp && Service.currentApp.getTopMostWindow();
+      var combinedView = app.appChrome && app.appChrome.useCombinedChrome();
+      var isTransitioning = app.isTransitioning();
+
+      if (!isTransitioning && combinedView && !app.appChrome.isMaximized()) {
+        app.appChrome.titleClicked();
+      }
     }
 
     this.active = false;
