@@ -1,7 +1,6 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
 var dateL10n = require('date_l10n');
 var Db = require('db');
 var ErrorController = require('controllers/error');
@@ -189,43 +188,13 @@ module.exports = {
   },
 
   _initUI: function() {
-    // quick hack for today button
-    var tablist = document.querySelector('#view-selector');
-    var today = tablist.querySelector('.today a');
-    var tabs = tablist.querySelectorAll('[role="tab"]');
-
-    this._showTodayDate();
-    this._syncTodayDate();
-    today.addEventListener('click', (e) => {
-      var date = new Date();
-      this.timeController.move(date);
-      this.timeController.selectedDay = date;
-
-      e.preventDefault();
-    });
-
-    // Handle aria-selected attribute for tabs.
-    tablist.addEventListener('click', (event) => {
-      if (event.target === today) {
-        return;
-      }
-
-      Array.prototype.forEach.call(tabs, tab => {
-        if (tab !== event.target) {
-          tab.setAttribute('aria-selected', false);
-          return;
-        }
-
-        nextTick(() => tab.setAttribute('aria-selected', true));
-      });
-    });
-
     // re-localize dates on screen
     dateL10n.init();
 
     this.timeController.move(new Date());
 
     this.view('TimeHeader', (header) => header.render());
+    this.view('ViewSelector', (tabs) => tabs.render());
 
     document.body.classList.remove('loading');
 
@@ -246,38 +215,6 @@ module.exports = {
       debug('Noticed timezone change!');
       nextTick(this.forceRestart);
     });
-  },
-
-  _setPresentDate: function() {
-    var id = Calc.getDayId(new Date());
-    var presentDate = document.querySelector(
-      '#month-view [data-date="' + id + '"]'
-    );
-    var previousDate = document.querySelector('#month-view .present');
-
-    previousDate.classList.remove('present');
-    previousDate.classList.add('past');
-    presentDate.classList.add('present');
-  },
-
-  _showTodayDate: function() {
-    var element = document.querySelector('#today .icon-calendar-today');
-    element.innerHTML = new Date().getDate();
-  },
-
-  _syncTodayDate: function() {
-    var now = new Date();
-    var midnight = new Date(
-      now.getFullYear(), now.getMonth(), now.getDate() + 1,
-      0, 0, 0
-    );
-
-    var timeout = midnight.getTime() - now.getTime();
-    setTimeout(() => {
-      this._showTodayDate();
-      this._setPresentDate();
-      this._syncTodayDate();
-    }, timeout);
   },
 
   /**

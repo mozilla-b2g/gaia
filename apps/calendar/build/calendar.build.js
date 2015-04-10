@@ -26,7 +26,8 @@
         'views/errors',
         'views/month',
         'views/month_day_agenda',
-        'views/time_header'
+        'views/time_header',
+        'views/view_selector'
       ]
     },
     {
