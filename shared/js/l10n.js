@@ -1665,9 +1665,7 @@
   }
 
   if (window.document) {
-    isPretranslated =
-      navigator.mozL10n.ctx.qps.indexOf(navigator.language) === -1 &&
-        (document.documentElement.lang === navigator.language);
+    isPretranslated = document.documentElement.lang === navigator.language;
 
     // XXX always pretranslate if data-no-complete-bug is set;  this is
     // a workaround for a netError page not firing some onreadystatechange
