@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Calc = require('calc');
-var DateL10n = require('date_l10n');
+var dateL10n = require('date_l10n');
 var Db = require('db');
 var ErrorController = require('controllers/error');
 var PendingManager = require('pending_manager');
@@ -102,36 +102,6 @@ module.exports = {
     if (navigator.mozAudioChannelManager) {
       navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
     }
-  },
-
-  /**
-   * Observes localized events and localizes elements
-   * with data-l10n-date-format should be registered
-   * after the first localized event.
-   *
-   *
-   * Example:
-   *
-   *
-   *    <span
-   *      data-date="Wed Jan 09 2013 19:25:38 GMT+0100 (CET)"
-   *      data-l10n-date-format="%x">
-   *
-   *      2013/9/19
-   *
-   *    </span>
-   *
-   */
-  observeDateLocalization: function() {
-    window.addEventListener('localized', DateL10n.localizeElements);
-    window.addEventListener('timeformatchange', () => {
-      this.setCurrentTimeFormat();
-      DateL10n.changeElementsHourFormat();
-    });
-  },
-
-  setCurrentTimeFormat: function() {
-    document.body.dataset.timeFormat = navigator.mozHour12 ? '12' : '24';
   },
 
   /**
@@ -250,9 +220,8 @@ module.exports = {
       });
     });
 
-    this.setCurrentTimeFormat();
     // re-localize dates on screen
-    this.observeDateLocalization();
+    dateL10n.init();
 
     this.timeController.move(new Date());
 
