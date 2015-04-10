@@ -68,10 +68,10 @@
     writeFolderInCardStore: function cm_writeFolderInCardStore(folder) {
       var that = this;
       return new Promise(function(resolve, reject) {
-        if (folder instanceof Folder && folder.cardsInFolder.length > 0) {
+        if (folder instanceof Folder && folder.isNotEmpty()) {
           that._asyncSemaphore.v();
           var cardEntriesInFolder =
-            folder.cardsInFolder.map(that._serializeCard.bind(that));
+            folder.getCardList().map(that._serializeCard.bind(that));
           that._cardStore.saveData(folder.folderId,
             cardEntriesInFolder).then(function() {
               folder.state = Folder.STATES.NORMAL;
@@ -144,12 +144,12 @@
             that._cardList =
               config.card_list.map(function(cardEntry) {
                 var card = that._deserializeCardEntry(cardEntry);
-                if (card instanceof Folder &&
-                    card.state === Folder.STATES.DESERIALIZING) {
-                  // to load content of folder from config file
-                  card.cardsInFolder =
-                    cardEntry.cardsInFolder.map(
-                      that._deserializeCardEntry.bind(that));
+                if (card instanceof Folder && card.isDeserializing()) {
+                  card.loadCardsInFolder({
+                    from: 'config',
+                    cardEntry: cardEntry,
+                    deserializer: that._deserializeCardEntry.bind(that)
+                  });
                 }
                 return card;
               });
@@ -184,7 +184,7 @@
     },
 
     _onFolderChange: function cm_onFolderChange(folder) {
-      if (folder && folder.state === Folder.STATES.DETACHED) {
+      if (folder && folder.isDetached()) {
         this.writeCardlistInCardStore();
       } else {
         this.writeFolderInCardStore(folder);
@@ -213,16 +213,12 @@
             // datastore 'cardList'. But we explicit save them under key
             // of folderId. So we need to retrieve them by their folderId
             // and put them back to folders where they belong.
-            if (card instanceof Folder &&
-                card.state === Folder.STATES.DESERIALIZING) {
-              // to load content of folder
-              that._cardStore.getData(card.folderId).then(
-                function(innerCardList) {
-                  innerCardList.forEach(function(innerCardEntry) {
-                    card.cardsInFolder.push(
-                      that._deserializeCardEntry(innerCardEntry));
-                  });
-                });
+            if (card instanceof Folder && card.isDeserializing()) {
+              card.loadCardsInFolder({
+                from: 'datastore',
+                datastore: that._cardStore,
+                deserializer: that._deserializeCardEntry.bind(that)
+              });
             }
             that._cardList.push(card);
           }
