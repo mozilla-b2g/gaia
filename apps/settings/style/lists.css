@@ -143,7 +143,9 @@ ul li > a:not(.info-item) span:nth-of-type(2):not(.button) {
 }
 
 /* text ellipsis */
-ul li > *, ul li > label > *, ul li > a > * {
+ul li > *,
+ul li > label > *,
+ul li > a > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -151,7 +153,9 @@ ul li > *, ul li > label > *, ul li > a > * {
 }
 
 /* sublines */
-ul li > small, ul li > label > small , ul li > a > small {
+ul li > small,
+ul li > label > small,
+ul li > a > small {
   display: block;
   font-size: 1.4rem;
   color: #505859;
@@ -252,6 +256,7 @@ ul li > label.pack-checkbox > .memory-item:before {
 ul li button {
   display: inline-block;
   margin: 1rem 0;
+  white-space: normal;
 }
 
 /******************************************************************************
