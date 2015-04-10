@@ -194,7 +194,7 @@ suite('Views.SingleDay', function() {
     assert.equal(busy.style.height, '99.9px', '1: height');
     assert.equal(busy.style.top, '200px', '1: top');
     assert.equal(busy.style.width, '50%', '1: width');
-    assert.equal(busy.style.left, '50%', '1: left');
+    assert.equal(busy.style.left, '0%', '1: left');
     assert.include(
       busy.href, '/event/show/' + data.basic[0].busytime._id, '1: href');
 
@@ -239,7 +239,7 @@ suite('Views.SingleDay', function() {
     assert.equal(busy.style.height, '49.9px', '2: height');
     assert.equal(busy.style.top, '250px', '2: top');
     assert.equal(busy.style.width, '50%', '2: width');
-    assert.equal(busy.style.left, '0%', '2: left');
+    assert.equal(busy.style.left, '50%', '2: left');
     assert.include(
       busy.href, '/event/show/' + data.basic[1].busytime._id, '2: href');
 
@@ -319,7 +319,8 @@ suite('Views.SingleDay', function() {
         makeFirstEventID('location') + ' ' +
         makeFirstEventID('description') + '" ' +
         'style="border-color: rgb(0, 255, 204); background-color: ' +
-        'rgba(0, 255, 204, 0.2); height: 49.9px; top: 250px;" ' +
+        'rgba(0, 255, 204, 0.2); height: 49.9px; top: 250px; width: 100%; ' +
+        'left: 0%;" ' +
         'class="md__event" href="/event/show/Lorem-Ipsum-5-00-6-00">' +
         '<bdi id="' + makeFirstEventID('title') + '" ' +
           'class="md__event-title">Lorem Ipsum</bdi>' +
@@ -337,7 +338,8 @@ suite('Views.SingleDay', function() {
         makeSecondEventID('icon') + ' ' +
         makeSecondEventID('description') + '" ' +
         'style="border-color: rgb(0, 255, 204); background-color: ' +
-        'rgba(0, 255, 204, 0.2); height: 549.9px; top: 300px;" ' +
+        'rgba(0, 255, 204, 0.2); height: 549.9px; top: 300px; width: 100%; ' +
+        'left: 0%;" ' +
         'class="md__event has-alarms" ' +
         'href="/event/show/Maecennas-6-00-17-00">' +
         '<bdi id="' + makeSecondEventID('title') + '" ' +

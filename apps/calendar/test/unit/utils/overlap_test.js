@@ -2,12 +2,9 @@ define(function(require) {
 'use strict';
 
 var Factory = require('test/support/factory');
-var IntervalTree = require('interval_tree');
 var Overlap = require('utils/overlap');
-var Timespan = require('timespan');
 
 suite('overlap', function() {
-  var forever;
   var subject;
   var baseDate = new Date(2012, 0, 1);
 
@@ -45,7 +42,7 @@ suite('overlap', function() {
       time(startHour, startMin),
       time(endHour, endMin)
     );
-    subject.add(rec.busytime, rec.element);
+    subject.add(rec);
     return rec;
   }
 
@@ -57,27 +54,13 @@ suite('overlap', function() {
     return records;
   }
 
-  function busytimesFromRecords(records) {
-    return records.map(function(r) {
-      return r.busytime;
-    });
-  }
-
   function conflictSpansFromRecords(records) {
-    return records.map(function(r) {
-      return subject.getConflictSpan(r.busytime);
-    });
-  }
-
-  function elementsFromRecords(records) {
-    return records.map(function(r) {
-      return subject.getElement(r.busytime);
-    });
+    return records.map(subject._getConflict, subject);
   }
 
   function widthAndLeftFromRecords(records) {
     return records.map(function(r) {
-      var el = subject.getElement(r.busytime);
+      var el = r.element;
       if (!el) {
         return [null, null];
       } else {
@@ -87,8 +70,8 @@ suite('overlap', function() {
   }
 
   function classNamesFromRecords(records) {
-    return elementsFromRecords(records)
-      .map(function(el) {
+    return records.map(function(r) {
+        var el = r.element;
         // make sure it is always in the same order
         return el ? el.className.trim().split(/\s+/).sort().join(' ') : null;
       });
@@ -96,7 +79,6 @@ suite('overlap', function() {
 
   setup(function() {
     subject = new Overlap();
-    forever = new Timespan(0, Infinity);
   });
 
   teardown(function() {
@@ -104,10 +86,13 @@ suite('overlap', function() {
   });
 
   test('initialize', function() {
-    assert.instanceOf(subject.tree, IntervalTree);
     assert.deepEqual(
-      subject.elements,
-      {}
+      subject._items,
+      []
+    );
+    assert.deepEqual(
+      subject._conflicts,
+      []
     );
   });
 
@@ -122,8 +107,8 @@ suite('overlap', function() {
         [1, 0, 2, 0]
       ]);
       assert.deepEqual(
-        subject.tree.query(forever),
-        busytimesFromRecords(records)
+        subject._items,
+        records
       );
     });
 
@@ -133,10 +118,10 @@ suite('overlap', function() {
         [2, 0, 3, 0]
       ]);
       assert.deepEqual(
-        subject.tree.query(forever),
-        busytimesFromRecords(records)
+        subject._items,
+        records
       );
-      assert.deepEqual(subject.conflicts, {});
+      assert.deepEqual(subject._conflicts, []);
     });
 
     test('2 in conflict', function() {
@@ -144,9 +129,11 @@ suite('overlap', function() {
         [1, 0, 2, 0],
         [1, 1, 2, 1]
       ]);
-      var cs1 = subject.getConflictSpan(records[0].busytime);
+      // conflicts are only built after _updateConflicts
+      subject._updateConflicts();
+      var cs1 = subject._getConflict(records[0]);
       assert.ok(cs1, 'conflict found for record 0');
-      var cs2 = subject.getConflictSpan(records[1].busytime);
+      var cs2 = subject._getConflict(records[1]);
       assert.ok(cs2, 'conflict found for record 1');
       assert.equal(cs1, cs2, 'records share the same conflict span');
       assert.equal(cs1.columns.length, 2);
@@ -158,6 +145,8 @@ suite('overlap', function() {
         [1, 1, 2, 1],
         [1, 2, 2, 2]
       ]);
+      // conflicts are only built after _updateConflicts
+      subject._updateConflicts();
       var cs = conflictSpansFromRecords(records);
       var cs0 = cs[0];
       assert.deepEqual(cs, [cs0, cs0, cs0],
@@ -171,6 +160,8 @@ suite('overlap', function() {
         [1, 30, 2, 30],
         [2, 0, 3, 0]
       ]);
+      // conflicts are only built after _updateConflicts
+      subject._updateConflicts();
       var cs = conflictSpansFromRecords(records);
       var cs0 = cs[0];
       assert.deepEqual(cs, [cs0, cs0, cs0],
@@ -185,22 +176,14 @@ suite('overlap', function() {
         [1, 0, 2, 0],
         [1, 1, 2, 1],
         [3, 0, 3, 30],
-        [3, 15, 4, 1]
+        [3, 15, 4, 1],
+        [1, 30, 3, 15]
       ]);
 
-      // Ensure there are 2 separate conflict spans.
+      // conflicts are only built after _updateConflicts
+      subject._updateConflicts();
+      // There should be one span, encompassing all events.
       var cs = conflictSpansFromRecords(records);
-      assert.equal(cs[0], cs[1]);
-      assert.equal(cs[2], cs[3]);
-      assert.notEqual(cs[0], cs[2]);
-      assert.equal(cs[0].columns.length, 2);
-      assert.equal(cs[2].columns.length, 2);
-
-      // Add an event that partly crosses the 2 spans, triggering a merge.
-      records.push(addRecord(1, 30, 3, 15));
-
-      // There should be one span, now, encompassing all events.
-      cs = conflictSpansFromRecords(records);
       cs.forEach(function(c) {
         assert.equal(c, cs[0]);
         assert.equal(c.columns.length, 3);
@@ -209,80 +192,13 @@ suite('overlap', function() {
 
   });
 
-  suite('#remove', function() {
+  suite('#render', function() {
 
     setup(function() {
       subject.reset();
     });
 
-    test('span with a gap on event removal should split', function() {
-      // Compose events such that there are 2 separate conflict spans:
-      var records = addRecords([
-        [1, 0, 2, 0],
-        [1, 1, 2, 1],
-        // The gap goes here.
-        [3, 0, 3, 30],
-        [3, 15, 4, 1]
-      ]);
-
-      // Add an event that crosses the 2 spans, triggering a merge.
-      var mergeRec = addRecord(1, 30, 3, 15);
-
-      // There should be one span, now, encompassing all events.
-      var cs = conflictSpansFromRecords(records);
-      cs.forEach(function(c) {
-        assert.equal(c, cs[0]);
-        assert.equal(c.columns.length, 3);
-      });
-
-      // Removing the event that joins 2 hunks should result in a split.
-      subject.remove(mergeRec.busytime);
-      assert.ok(!subject.tree.byId[mergeRec.busytime._id]);
-
-      // Ensure there are 2 separate conflict spans.
-      cs = conflictSpansFromRecords(records);
-      assert.notEqual(cs[0].id, cs[2].id);
-      assert.equal(cs[0], cs[1]);
-      assert.equal(cs[2], cs[3]);
-
-      // Columns in the new conflict spans should have collapsed to 2
-      assert.equal(cs[0].columns.length, 2);
-      assert.equal(cs[2].columns.length, 2);
-    });
-
-    test('span with no conflicts should self-destruct', function() {
-      // Non-conflicting events
-      var records = addRecords([
-        [1, 0, 2, 0],
-        [3, 0, 4, 0]
-      ]);
-
-      // Cause a staggered conflict.
-      var conflict = addRecord(1, 30, 3, 30);
-
-      // Ensure the conflict exists as expected.
-      var cs = conflictSpansFromRecords(records);
-      assert.equal(cs[0], cs[1]);
-      assert.notEqual(cs[0], undefined);
-
-      // Remove the event that causes all the conflict.
-      subject.remove(conflict.busytime);
-
-      // Now, none of the records should be a part of a conflict.
-      cs = conflictSpansFromRecords(records);
-      assert.deepEqual(cs, [undefined, undefined]);
-    });
-
-  });
-
-  suite('#_updateLayout', function() {
-
-    setup(function() {
-      subject.reset();
-    });
-
-    test('layout updates triggered on #add and #remove', function() {
-
+    test('layout updates on each render call', function() {
       var records = addRecords([
         [1, 0, 2, 0],
         [1, 15, 2, 15],
@@ -291,49 +207,52 @@ suite('overlap', function() {
         [3, 30, 4, 30],
         [6, 0, 7, 0]
       ]);
+      subject.render();
 
       assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['33.3333%', '33.3333%'], ['0%', '33.3333%'], ['66.6667%', '33.3333%'],
-        ['50%', '50%'], ['0%', '50%'], ['', '']
-      ]);
+        ['0%', '33.3333%'], ['33.3333%', '33.3333%'], ['66.6667%', '33.3333%'],
+        ['0%', '50%'], ['50%', '50%'], ['0%', '100%']
+      ], 'wid and left 1');
 
       assert.deepEqual(classNamesFromRecords(records), [
         'has-overlaps', 'has-overlaps', 'has-overlaps', 'has-overlaps',
         'has-overlaps', ''
-      ]);
+      ], 'has-overlaps 1');
 
       var big1 = addRecord(1, 45, 7, 45);
       records.push(big1);
-
+      subject.render();
       assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['25%', '25%'], ['0%', '25%'], ['50%', '25%'], ['25%', '25%'],
-        ['0%', '25%'], ['0%', '25%'], ['75%', '25%']
-      ]);
+        ['0%', '25%'], ['25%', '25%'], ['50%', '25%'], ['0%', '25%'],
+        ['25%', '25%'], ['0%', '25%'], ['75%', '25%']
+      ], 'width and left 2');
 
       assert.deepEqual(classNamesFromRecords(records), [
         'has-overlaps', 'has-overlaps', 'has-overlaps', 'has-overlaps',
         'has-overlaps', 'has-overlaps', 'has-overlaps'
-      ]);
+      ], 'has-overlaps 2');
 
       var big2 = addRecord(3, 45, 6, 30);
       records.push(big2);
+      subject.render();
       assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['25%', '25%'], ['0%', '25%'], ['50%', '25%'], ['25%', '25%'],
-        ['0%', '25%'], ['0%', '25%'], ['75%', '25%'], ['50%', '25%']
-      ]);
+        ['0%', '25%'], ['25%', '25%'], ['50%', '25%'], ['0%', '25%'],
+        ['25%', '25%'], ['0%', '25%'], ['75%', '25%'], ['50%', '25%']
+      ], 'width and left 3');
 
       assert.deepEqual(classNamesFromRecords(records), [
         'has-overlaps', 'has-overlaps', 'has-overlaps', 'has-overlaps',
         'has-overlaps', 'has-overlaps', 'has-overlaps', 'has-overlaps'
-      ]);
+      ], 'has-overlaps 3');
 
       var big3 = addRecord(1, 15, 3, 15);
       records.push(big3);
+      subject.render();
       assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['20%', '20%'], ['0%', '20%'], ['40%', '20%'], ['20%', '20%'],
-        ['0%', '20%'], ['0%', '20%'], ['60%', '20%'], ['40%', '20%'],
-        ['80%', '20%']
-      ]);
+        ['0%', '20%'], ['20%', '20%'], ['60%', '20%'], ['0%', '20%'],
+        ['20%', '20%'], ['0%', '20%'], ['80%', '20%'], ['40%', '20%'],
+        ['40%', '20%']
+      ], 'width and left 4');
 
       assert.deepEqual(classNamesFromRecords(records), [
         'has-overlaps many-overlaps', 'has-overlaps many-overlaps',
@@ -341,72 +260,7 @@ suite('overlap', function() {
         'has-overlaps many-overlaps', 'has-overlaps many-overlaps',
         'has-overlaps many-overlaps', 'has-overlaps many-overlaps',
         'has-overlaps many-overlaps'
-      ]);
-
-      subject.remove(big1.busytime);
-      assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['25%', '25%'], ['0%', '25%'], ['50%', '25%'], ['25%', '25%'],
-        ['0%', '25%'], ['0%', '25%'], [null, null], ['50%', '25%'],
-        ['75%', '25%']
-      ]);
-
-      assert.deepEqual(classNamesFromRecords(records), [
-        'has-overlaps', 'has-overlaps', 'has-overlaps', 'has-overlaps',
-        'has-overlaps', 'has-overlaps', null, 'has-overlaps', 'has-overlaps'
-      ]);
-
-      subject.remove(big2.busytime);
-      assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['25%', '25%'], ['0%', '25%'], ['50%', '25%'], ['25%', '25%'],
-        ['0%', '25%'], ['', ''], [null, null], [null, null], ['75%', '25%']
-      ]);
-
-      assert.deepEqual(classNamesFromRecords(records), [
-        'has-overlaps', 'has-overlaps', 'has-overlaps', 'has-overlaps',
-        'has-overlaps', '', null, null, 'has-overlaps'
-      ]);
-
-      subject.remove(big3.busytime);
-      assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['33.3333%', '33.3333%'], ['0%', '33.3333%'], ['66.6667%', '33.3333%'],
-        ['0%', '50%'], ['50%', '50%'], ['', ''],
-        [null, null], [null, null], [null, null]
-      ]);
-
-      assert.deepEqual(classNamesFromRecords(records), [
-        'has-overlaps', 'has-overlaps', 'has-overlaps', 'has-overlaps',
-        'has-overlaps', '', null, null, null
-      ]);
-
-    });
-
-    test('bug 817763 - collapse columns on conflict delete', function() {
-
-      var records = addRecords([
-        [1, 0, 1, 15],
-        [1, 30, 2, 0]
-      ]);
-
-      var to_delete = addRecord(1, 0, 2, 0);
-      records.push(to_delete);
-
-      assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['50%', '50%'], ['50%', '50%'], ['0%', '50%']
-      ]);
-
-      assert.deepEqual(classNamesFromRecords(records), [
-        'has-overlaps', 'has-overlaps', 'has-overlaps'
-      ]);
-
-      subject.remove(to_delete.busytime);
-
-      assert.deepEqual(widthAndLeftFromRecords(records), [
-        ['', ''], ['', ''], [null, null]
-      ]);
-
-      assert.deepEqual(classNamesFromRecords(records), [
-        '', '', null
-      ]);
+      ], 'has-overlaps 4');
     });
   });
 });
