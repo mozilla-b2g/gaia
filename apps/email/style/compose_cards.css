@@ -151,7 +151,7 @@ field. Bug 1127160. */
 }
 
 .cmp-body-html {
-  margin: 0 1.5rem;
+  margin: 0 1.5rem 1.5rem;
 }
 
 /* Attachment */
