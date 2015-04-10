@@ -1,12 +1,13 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
 var View = require('view');
 var nextTick = require('next_tick');
+var timeObserver = require('time_observer');
 
 function ViewSelector(opts) {
   View.call(this, opts);
+  this._showTodayDate = this._showTodayDate.bind(this);
 }
 module.exports = ViewSelector;
 
@@ -18,8 +19,9 @@ ViewSelector.prototype = {
   },
 
   render: function() {
-    this._syncTodayDate();
+    this._showTodayDate();
     this.delegate(this.element, 'click', 'a', this);
+    timeObserver.on('day', this._showTodayDate);
   },
 
   handleEvent: function(event, target) {
@@ -54,41 +56,6 @@ ViewSelector.prototype = {
   _showTodayDate: function() {
     var icon = this.element.querySelector('.icon-calendar-today');
     icon.innerHTML = (new Date()).getDate();
-  },
-
-  // FIXME: this should be handled by month view after we fix Bug 1118850
-  _setPresentDate: function() {
-    var id = Calc.getDayId(new Date());
-    var presentDate = document.querySelector(
-      '#month-view [data-date="' + id + '"]'
-    );
-    var previousDate = document.querySelector('#month-view .present');
-
-    if (previousDate) {
-      previousDate.classList.remove('present');
-      previousDate.classList.add('past');
-    }
-    if (presentDate) {
-      presentDate.classList.add('present');
-    }
-  },
-
-  // FIXME: this should be replaced when we abstract the way we listen for
-  // date/time changes (Bug 1118850)
-  _syncTodayDate: function() {
-    this._showTodayDate();
-    this._setPresentDate();
-
-    var now = new Date();
-    var midnight = new Date(
-      now.getFullYear(), now.getMonth(), now.getDate() + 1,
-      0, 0, 0
-    );
-
-    var timeout = midnight.getTime() - now.getTime();
-    setTimeout(() => {
-      this._syncTodayDate();
-    }, timeout);
   }
 };
 

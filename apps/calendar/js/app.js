@@ -18,6 +18,7 @@ var notificationsController = require('controllers/notifications');
 var performance = require('performance');
 var periodicSyncController = require('controllers/periodic_sync');
 var providerFactory = require('provider/provider_factory');
+var timeObserver = require('time_observer');
 var viewFactory = require('views/factory');
 
 var pendingClass = 'pending-operation';
@@ -188,6 +189,7 @@ module.exports = {
     // re-localize dates on screen
     dateL10n.init();
 
+    timeObserver.init();
     this.timeController.move(new Date());
 
     viewFactory.get('TimeHeader', header => header.render());
@@ -210,6 +212,8 @@ module.exports = {
     // the user has completed their selection.
     window.addEventListener('moztimechange', () => {
       debug('Noticed timezone change!');
+      // for info on why we need to restart the app when the time changes see:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1093016#c9
       nextTick(this.forceRestart);
     });
   },

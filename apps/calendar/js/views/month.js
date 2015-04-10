@@ -9,6 +9,7 @@ var dateFromId = Calc.dateFromId;
 var monthStart = Calc.monthStart;
 var performance = require('performance');
 var router = require('router');
+var timeObserver = require('time_observer');
 
 // minimum difference between X and Y axis to be considered an horizontal swipe
 var XSWIPE_OFFSET = window.innerWidth / 10;
@@ -17,6 +18,7 @@ function Month() {
   View.apply(this, arguments);
   this.frames = new Map();
   window.addEventListener('localized', this);
+  this._setPresentDate = this._setPresentDate.bind(this);
 }
 module.exports = Month;
 
@@ -93,6 +95,8 @@ Month.prototype = {
     this.controller.on('monthChange', this);
     this.delegate(this.element, 'click', '[data-date]', this);
     this.delegate(this.element, 'dbltap', '[data-date]', this);
+
+    timeObserver.on('day', this._setPresentDate);
 
     this.gd = new GestureDetector(this.element);
     this.gd.startDetecting();
@@ -187,6 +191,20 @@ Month.prototype = {
     Array.from(this.frames.keys())
     .sort((a, b) => a - b)
     .forEach(key => this.frames.get(key).append());
+  },
+
+  _setPresentDate: function() {
+    var id = Calc.getDayId(new Date());
+    var presentDate = this.element.querySelector('[data-date="' + id + '"]');
+    var previousDate = this.element.querySelector('.present');
+
+    if (previousDate) {
+      previousDate.classList.remove('present');
+      previousDate.classList.add('past');
+    }
+    if (presentDate) {
+      presentDate.classList.add('present');
+    }
   },
 
   oninactive: function() {

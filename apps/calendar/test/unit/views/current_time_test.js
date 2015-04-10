@@ -118,7 +118,7 @@ suite('Views.CurrentTime', function() {
   suite('#_maybeActivateInTheFuture', function() {
     var clock;
     var start;
-    var offset = 123456;
+    var offset = 24 * 60 * 60 * 1000;
 
     setup(function() {
       clock = sinon.useFakeTimers();
