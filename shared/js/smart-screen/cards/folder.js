@@ -48,6 +48,34 @@
     return this._cardsInFolder;
   };
 
+  Folder.prototype.isNotEmpty = function folder_isNotEmpty() {
+    return this._cardsInFolder.length > 0;
+  };
+
+  Folder.prototype.isDeserializing = function folder_isDeserializing() {
+    return this.state === Folder.STATES.DESERIALIZING;
+  };
+
+  Folder.prototype.isDetached = function folder_isDetached() {
+    return this.state === Folder.STATES.DETACHED;
+  };
+
+  Folder.prototype.loadCardsInFolder = function folder_loadCardsInFolder(opts) {
+    var that = this;
+    if (opts.from === 'config') {
+      // load content of folder from config file (e.g. in 'cardEntry' form)
+      this._cardsInFolder =
+        opts.cardEntry._cardsInFolder.map(opts.deserializer);
+    } else if (opts.from === 'datastore') {
+      // load content of folder from data store
+      opts.datastore.getData(this.folderId).then(function(innerCardList) {
+        innerCardList.forEach(function(innerCardEntry) {
+          that._cardsInFolder.push(opts.deserializer(innerCardEntry));
+        });
+      });
+    }
+  };
+
   // get index of card in folder
   Folder.prototype._indexOfCard = function folder_indexOfCard(query) {
     return this._cardsInFolder.indexOf(this.findCard(query));
