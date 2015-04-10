@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockFxAccountsUI */
 
 var MockFxAccountsUI = {
   _errorMsg: null,

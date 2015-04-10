@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockIACHandler */
 
 var MockIACPort = {
   _name: null,

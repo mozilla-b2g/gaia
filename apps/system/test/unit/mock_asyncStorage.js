@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockasyncStorage */
 
 var MockasyncStorage = {
     mItems: {},
@@ -13,8 +14,9 @@ var MockasyncStorage = {
     getItem: function(key, callback) {
       var value = this.mItems[key];
       // use '|| null' will turn a 'false' to null
-      if (value === undefined)
+      if (value === undefined) {
         value = null;
+      }
       if (typeof callback === 'function') {
         callback(value);
       }

@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockStatusBar */
+
 var MockStatusBar = {
   name: 'Statusbar',
 
@@ -25,6 +28,7 @@ var MockStatusBar = {
   },
 
   updateNotification: function(count) {
+    /* jshint -W053 */
     var number = new Number(count);
     this.notificationsCount = number.toString();
     this.methodCalled('updateNotification');

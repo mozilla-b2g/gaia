@@ -1,4 +1,7 @@
-MockKeyboardManager = {
+'use strict';
+/* exported MockKeyboardManager */
+
+var MockKeyboardManager = {
   mHeight: 0,
   init: function() {},
   mTeardown: function() {
