@@ -18,8 +18,8 @@ suite('buildtime pseudolocalizations', function() {
       var zipPath = path.join(process.cwd(), 'profile', 'webapps',
         'system.gaiamobile.org', 'application.zip');
       var zip = new AdmZip(zipPath);
-      var enUSFileInZip = zip.getEntry('locales-obj/en-US.json');
-      var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+      var enUSFileInZip = zip.getEntry('locales-obj/index.en-US.json');
+      var qpsPlocPathInZip = 'locales-obj/index.qps-ploc.json';
       var qpsPlocFileInZip = zip.getEntry(qpsPlocPathInZip);
 
       assert.isNotNull(

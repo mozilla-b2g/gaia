@@ -214,7 +214,7 @@ marionette('Contacts > ICE contacts', function() {
         .text();
 
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'ICERepeatedContact');
       assert.equal(confirmText, expectedResult);
     });
@@ -227,7 +227,7 @@ marionette('Contacts > ICE contacts', function() {
         .text();
 
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'ICEContactNoNumber');
 
       assert.equal(confirmText, expectedResult);
@@ -275,7 +275,7 @@ marionette('Contacts > ICE contacts', function() {
         var confirmBody = client.helper.waitForElement(selectors.confirmBody);
 
         var expectedResult = subject.l10n(
-          '/locales-obj/en-US.json',
+          '/locales-obj/contacts.index.en-US.json',
           'ICEContactDelTelAll');
 
         assert.equal(confirmBody.text(), expectedResult);

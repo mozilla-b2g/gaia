@@ -56,7 +56,7 @@ marionette('Vertical - Collection', function() {
     // XXX: Loading this locale file seems to no longer work.
     // Hardcode the expected value for now.
     var expected = home.l10n(
-      '/locales-obj/qps-ploc.json',
+      '/locales-obj/index.qps-ploc.json',
       // XXX: harcoded number 376 taken from the fixture
       'collection-categoryId-376'
     );
