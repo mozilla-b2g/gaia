@@ -14,6 +14,7 @@
   background: black;
 }
 
+#screen.locked #software-buttons,
 #software-buttons.no-transition {
   transition: none;
 }
