@@ -338,6 +338,7 @@
     handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
       // Clean dialog if was rendered before
       this.cleanDialog();
+      this.isFullscreenRequest = false;
       this.currentOrigin = detail.origin;
       this.currentRequestId = detail.id;
 
