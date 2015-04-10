@@ -37,7 +37,7 @@ suite('app permission list > ', function() {
     },
     removable: true,
     manifestURL: 'testManifestURL',
-    origin: 'testOrigin1'
+    origin: 'app://testOrigin1'
   };
 
   var mock_app2 = {
@@ -57,7 +57,7 @@ suite('app permission list > ', function() {
     },
     removable: true,
     manifestURL: 'testManifestURL',
-    origin: 'testOrigin2'
+    origin: 'app://testOrigin2'
   };
 
   var mock_permissionsTable = {

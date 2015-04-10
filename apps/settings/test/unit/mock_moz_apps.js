@@ -35,6 +35,9 @@ var MockMozApps = {
         }
       }
       return this.mUninstallCallback;
+    },
+    setEnabled: function(app, enabled) {
+      app.enabled = enabled;
     }
   },
   getSelf: function() {

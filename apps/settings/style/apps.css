@@ -2,6 +2,8 @@
  * Application Permissions
  */
 
+#addons ul li img,
+#addon-details ul li img,
 #appPermissions ul li img,
 #homescreens ul li img {
   -moz-margin-end: 1.4rem;
@@ -10,6 +12,8 @@
   filter: url('shadow.svg#drop-shadow');
 }
 
+#addons ul li > a,
+#addon-detail-toggle,
 #appPermissions ul li > a,
 #homescreens ul li > a  {
   flex-direction: row;
@@ -41,4 +45,29 @@
 
 .developer-infos > a > small {
   color: #00e;
+}
+
+/*
+ * styles for the addons and addon-details panels
+ */
+
+.addon-paragraph {
+  font-size: 1.7rem;
+  line-height: 1.7rem;
+  font-weight: 400;
+  font-style: italic;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.addon-paragraph img {
+  float: left;  /* RTL? */
+  margin: 0 1rem 1rem 1rem;
+  width: 6.4rem;
+  height: 6.4rem;
+  filter: url('shadow.svg#drop-shadow');
+}
+
+#addon-details header {
+  clear: both; /* because we use float:left in the description */
 }
