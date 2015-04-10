@@ -89,7 +89,7 @@
     // https://github.com/jshint/jshint/issues/2000
     /* jshint -W033 */
     return Tagged.escapeHTML `<div class="titles">
-     <h1 id="${this.titleId}" class="title">${this.title}</h1>
+     <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
      <p class="subtitle">
       <span class="subtitle-url">${this.subTitle}</span>
      </p>
