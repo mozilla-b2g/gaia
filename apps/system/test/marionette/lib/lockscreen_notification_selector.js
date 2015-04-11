@@ -96,7 +96,7 @@
       return {
         title: node.querySelector('.title-container .title')
                .innerHTML,
-        body: node.querySelector('.detail').innerHTML,
+        body: node.querySelector('.detail .detail-content').innerHTML,
         lang: node.getAttribute('lang'),
         dir: node.getAttribute('data-predefined-dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l')
