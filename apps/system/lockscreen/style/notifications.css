@@ -278,6 +278,12 @@
   margin-top: 0.2rem;
 }
 
+#notifications-lockscreen-container .notification > div.detail .detail-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #notifications-lockscreen-container .notification > .title-container .timestamp {
   margin-top: 0.1rem;
   color: rgba(255, 255, 255, 0.6);
@@ -395,4 +401,8 @@
   text-align: right;
   -moz-margin-end: unset;
   margin-left: 0.5rem;
+}
+
+:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
+  text-align: right;
 }

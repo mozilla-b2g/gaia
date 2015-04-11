@@ -344,8 +344,12 @@ suite('system/NotificationScreen >', function() {
         document.getElementsByClassName('notification')[0];
       var notificationNodeTitle =
         document.querySelector('.notification .title-container .title');
+      var notificationNodeDetail =
+        document.querySelector('.notification .detail');
       assert.equal(dir, notificationNode.dataset.predefinedDir);
       assert.equal('auto', notificationNodeTitle.dir);
+      assert.equal('auto', notificationNodeDetail
+        .querySelector('.detail-content').dir);
     }
 
     test('calling addNotification with rtl direction', function() {

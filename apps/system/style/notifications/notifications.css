@@ -245,6 +245,12 @@
   color: #858585;
 }
 
+#notifications-container .notification > div.detail .detail-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #notifications-container .notification.snapback,
 .notification-toaster.snapback {
   transition: transform 0.3s ease-out;
@@ -323,4 +329,8 @@ html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir=
   text-align: right;
   -moz-margin-end: unset;
   margin-left: 0.5rem;
+}
+
+html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
+  text-align: right;
 }

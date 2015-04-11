@@ -94,7 +94,8 @@ NotificationList.prototype = {
       details.push({
         title: document.querySelector(query + ' > .title-container .title')
           .innerHTML,
-        body: document.querySelector(query + ' > .detail').innerHTML,
+        body: document.querySelector(query + ' > .detail .detail-content')
+          .innerHTML,
         lang: document.querySelector(query).getAttribute('lang'),
         dir: document.querySelector(query).getAttribute('data-predefined-dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l'),
