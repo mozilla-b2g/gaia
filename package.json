@@ -21,7 +21,7 @@
     "grunt-contrib-clean": "0.5.0",
     "grunt-jsdoc": "0.5.1",
     "istanbul": "^0.3.2",
-    "jshint": "2.6.3",
+    "jshint": "2.7.0",
     "load-grunt-tasks": "0.4.0",
     "mail-fakeservers": "0.0.24",
     "marionette-apps": "0.3.12",
