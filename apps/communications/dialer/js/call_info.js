@@ -67,8 +67,7 @@
   }
 
   function updateCallDurations(group) {
-    var countToBeDisplayed;
-    var callInfoCount = 0;
+    var groupCalls;
     var callDurationsElt = document.getElementById('call-durations');
     callDurationsElt.innerHTML = '';
 
@@ -77,44 +76,40 @@
       return;
     }
 
-    if(_showMoreButtonClicked == false) {
-      countToBeDisplayed = 9;
-    } else if (_showMoreButtonClicked == true ) {
-      // Hide the showMoreButton once it is clicked.
+    if(!_showMoreButtonClicked) {
+      groupCalls = group.calls.slice(0,9);
+    } else if (_showMoreButtonClicked) {
+      groupCalls = group.calls;
       showMoreButton.classList.add('hide-show-more');
-      countToBeDisplayed = 100;
     }
-    group.calls.forEach(function(call) {
-      if(callInfoCount < countToBeDisplayed) {
-        var startTime = document.createElement('p');
-        startTime.classList.add('ci__grow');
-        startTime.classList.add('js-ci-start-times');
-        startTime.dataset.date = call.date;
-        startTime.textContent = Utils.prettyDate(call.date);
+    groupCalls.forEach(function(call) {
+      var startTime = document.createElement('p');
+      startTime.classList.add('ci__grow');
+      startTime.classList.add('js-ci-start-times');
+      startTime.dataset.date = call.date;
+      startTime.textContent = Utils.prettyDate(call.date);
 
-        var durationElt = document.createElement('p');
-        durationElt.classList.add('cd__duration');
-        navigator.mozL10n.once(function() {
-          if (call.duration === 0) {
-            if (group.type === 'incoming') {
-              durationElt.setAttribute('data-l10n-id', 'info-missed');
-            } else {
-              durationElt.setAttribute('data-l10n-id', 'canceled');
-            }
+      var durationElt = document.createElement('p');
+      durationElt.classList.add('cd__duration');
+      navigator.mozL10n.once(function() {
+        if (call.duration === 0) {
+          if (group.type === 'incoming') {
+            durationElt.setAttribute('data-l10n-id', 'info-missed');
           } else {
-            Utils.prettyDuration(durationElt, call.duration,
-                                 'callDurationTextFormat');
+            durationElt.setAttribute('data-l10n-id', 'canceled');
           }
-        });
+        } else {
+          Utils.prettyDuration(durationElt, call.duration,
+                               'callDurationTextFormat');
+        }
+      });
 
-        var row = document.createElement('div');
-        row.classList.add('call-duration');
-        row.appendChild(startTime);
-        row.appendChild(durationElt);
+      var row = document.createElement('div');
+      row.classList.add('call-duration');
+      row.appendChild(startTime);
+      row.appendChild(durationElt);
 
-        callDurationsElt.appendChild(row);
-        callInfoCount++;
-      }
+      callDurationsElt.appendChild(row);
     });
   }
 
