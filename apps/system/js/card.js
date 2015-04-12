@@ -85,9 +85,6 @@
    * @memberOf Card.prototype
    */
   Card.prototype.template = function() {
-    // fix a jshint issue with tagged template strings
-    // https://github.com/jshint/jshint/issues/2000
-    /* jshint -W033 */
     return Tagged.escapeHTML `<div class="titles">
      <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
      <p class="subtitle">
@@ -112,7 +109,6 @@
         style="visibility: ${this.favoriteButtonVisibility}"></button>
      </menu>
     </footer>`;
-    /* jshint +W033 */
   };
 
   /**
