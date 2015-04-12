@@ -69,7 +69,8 @@ suite('system/LockScreen >', function() {
       });
     };
 
-    window.LockScreenClockWidget = function() {
+    window.LockScreenClockWidget =
+    window.LockScreenConnectionStatesWidget = function() {
       this.stop = function() {
         return this;
       };
@@ -77,6 +78,7 @@ suite('system/LockScreen >', function() {
         return this;
       };
       this.destroy = function() {
+        console.log('>>> destroy called');
         return this;
       };
       this.next = function(cb) {
@@ -129,6 +131,8 @@ suite('system/LockScreen >', function() {
     subject.message = domMessage;
     subject.chargingStatus.elements.charging = document.createElement('div');
     subject.lockScreenClockWidget = new window.LockScreenClockWidget();
+    subject._lockscreenConnectionStatesWidget =
+      new window.LockScreenConnectionStatesWidget();
 
     var mockClock = {
       start: function() {},
@@ -166,31 +170,6 @@ suite('system/LockScreen >', function() {
     delete subject._lockscreenConnInfoManager;
   });
 
-  test('L10n initialization: it should init the conn info manager if it\'s' +
-       ' undefined', function() {
-    var stubConnInfoManager = this.sinon.stub(window,
-      'LockScreenConnInfoManager');
-    var originalMozl10n = window.navigator.mozL10n;
-    window.navigator.mozL10n = {
-      get: function() { return ''; }
-    };
-    var originalMozMobileConnections = window.navigator.mozMobileConnections;
-    window.navigator.mozMobileConnections = {};
-    assert.isTrue(!!(window.navigator.mozMobileConnections),
-                  'the first condition is not satisfied: ' +
-                   !!(window.navigator.mozMobileConnections));
-    assert.isTrue(!subject._lockscreenConnInfoManager,
-                  'the second condition is not satisfied: ' +
-                  !(subject._lockscreenConnInfoManager));
-    subject.l10nInit();
-    assert.isTrue(stubConnInfoManager.called,
-       'the l10nInit doesn\'t instantiate the conn info manager even it\'s ' +
-       'undefined');
-    window.navigator.mozMobileConnections = originalMozMobileConnections;
-    window.navigator.mozL10n = originalMozl10n;
-    delete subject._lockscreenConnInfoManager;
-  });
-
   test('Lock: can actually lock', function() {
     subject.overlay = domOverlay;
     subject.lock();
@@ -212,12 +191,19 @@ suite('system/LockScreen >', function() {
   });
 
   test('Unlock: would destroy the clock widget', function() {
-    var stubDestroy = this.sinon.stub(subject.lockScreenClockWidget, 'destroy');
+    var stubDestroy = this.sinon.stub(subject.lockScreenClockWidget, 'destroy',
+      function() {
+        return {
+          next: function(cb) {
+            cb();
+            assert.isTrue(stubDestroy.called);
+            assert.isUndefined(subject.lockScreenClockWidget);
+          }
+        };
+      });
     subject.overlay = domOverlay;
     subject.locked = true;
     subject.unlock(true);
-    assert.isTrue(stubDestroy.called);
-    assert.isUndefined(subject.lockScreenClockWidget);
   });
 
   test('Passcode: enter passcode should fire the validation event', function() {

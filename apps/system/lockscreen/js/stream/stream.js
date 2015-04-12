@@ -15,7 +15,7 @@
  * 4. Once phase becomes 'stop', no events would be received again.
  **/
 (function(exports) {
-  var Stream = function(configs) {
+  var Stream = function(configs = {}) {
     this.configs = {
       events: configs.events || [],
       interrupts: configs.interrupts || []

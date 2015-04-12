@@ -111,8 +111,15 @@
       },
       // @see: #next
       stepResults: [],
+    };
+    this.debugging = {
       // @see: #next
-      currentPhaseSteps: 0
+      currentPhaseSteps: 0,
+      colors: this.generateDebuggingColor(),
+      truncatingLimit: 64
+    };
+    this.configs = {
+      debug: false
     };
   };
 
@@ -131,6 +138,10 @@
   };
 
   Process.prototype.shift = function(prev, current) {
+    // Already in.
+    if (current === this.states.phase) {
+      return this;
+    }
     if (prev !== this.states.phase) {
       var error = new Error(`Must be ${prev} before shift to ${current},
                        but now it's ${this.states.phase}`);
@@ -155,7 +166,7 @@
       // make the chain omit this error and execute the following steps.
     });
     // At the moment of shifting, there are no steps belong to the new phase.
-    this.states.currentPhaseSteps = 0;
+    this.debugging.currentPhaseSteps = 0;
     return this;
   };
 
@@ -195,6 +206,13 @@
         throw new Error(`The task is not a function: ${task}`);
       }
       task.phase = this.states.phase;
+      if (this.configs.debug) {
+        // Must append stack information here to let debugger output
+        // it's defined in where.
+        task.tracing = {
+          stack: (new Error()).stack
+        };
+      }
     });
 
     // First, concat a 'then' to check interrupt.
@@ -227,12 +245,12 @@
       this.states.currentPromise.then(() => this.generateStep(tasks));
     this.states.currentPromise =
       this.states.currentPromise.catch(this.generateErrorLogger({
-        'nth-step': this.currentPhaseSteps
+        'nth-step': this.debugging.currentPhaseSteps
       }));
 
     // A way to know if these tasks is the first steps in the current phase,
     // and it's also convenient for debugging.
-    this.states.currentPhaseSteps += 1;
+    this.debugging.currentPhaseSteps += 1;
     return this;
 
   };
@@ -260,63 +278,75 @@
   };
 
   /**
-   * At the preemptive mode a suppressor would be installed as the final step
-   * of the previous interrupted Promise, to igore any errors since it has been
-   * interrupted.
-   */
-  Process.prototype.generateSuppressor = function() {
-    return (err) => {};
-  };
-
-  /**
    * Execute task and get Promises or plain values them return,
    * and then return the wrapped Promise as the next step of this
    * process. The name 'step' indicates the generated Promise,
    * which is one step of the main Promise of the current phase.
    */
   Process.prototype.generateStep = function(tasks) {
+    // 'taskResults' means the results of the tasks.
+    var taskResults = [];
+    if (true === this.configs.debug) {
+      this.trace(tasks);
+    }
+
     // So we unwrap the task first, and then put it in the array.
     // Since we need to give the 'currentPromise' a function as what the
-    // tasks passed here.
+    // tasks generate here.
     var chains = tasks.map((task) => {
       // Reset the registered results.
-      var stepResults = this.states.stepResults;
-      this.states.stepResults = [];
+      // 'previousResults' means the results left by the previous step.
+      var previousResults = this.states.stepResults;
       var chain;
       // If it has multiple results, means it's a task group
       // generated results.
-      if (this.states.stepResults.length > 1) {
-        chain = task(stepResults);
+      if (previousResults.length > 1) {
+        chain = task(previousResults);
       } else {
-        chain = task(stepResults[0]);
+        chain = task(previousResults[0]);
       }
-
       // Ordinary function returns 'undefine' or other things.
       if (!chain) {
         // It's a plain value.
         // Store it as one of results.
-        this.states.stepResults.push(chain);
+        taskResults.push(chain);
         return Promise.resolve(chain);
       }
 
       if (chain instanceof Process) {
         // Premise: it's a started process.
-        return chain.states.currentPromise.then((resolvedValue) => {
-          this.states.stepResults.push(resolvedValue);
+        return chain.states.currentPromise.then(() => {
+          var guestResults = chain.states.stepResults;
+          // Since we implicitly use 'Promise.all' to run
+          // multiple tasks in one step, we need to determinate if
+          // there is only one task in the task, or it actually has multiple
+          // return values from multiple tasks.
+          if (guestResults.length > 1) {
+            // We need to transfer the results from the guest Process to the
+            // host Process.
+            taskResults = taskResults.push(guestResults);
+          } else {
+            taskResults.push(chain.states.stepResults[0]);
+          }
         });
       } else if (chain.then) {
         // Ordinary promise can be concated immediately.
         return chain.then((resolvedValue) => {
-          this.states.stepResults.push(resolvedValue);
+          taskResults.push(resolvedValue);
         });
       } else {
         // It's a plain value.
         // Store it as one of results.
-        this.states.stepResults.push(chain);
+        taskResults.push(chain);
         return Promise.resolve(chain);
       }
     });
-    return Promise.all(chains);
+    return Promise.all(chains).then(() => {
+      // Because in the previous 'all' we ensure all tasks are executed,
+      // and the results of these tasks are collected, so we need
+      // to register them as the last results of the last step.
+      this.states.stepResults = taskResults;
+    });
   };
 
   /** We need this to prevent the step() throw errors.
@@ -337,7 +367,7 @@
   Process.prototype.generateErrorLogger = function(debuginfo) {
     return (err) => {
       if (!(err instanceof Process.InterruptError)) {
-        console.error(`ERROR during #${debuginfo['nth-steps']}
+        console.error(`ERROR during #${debuginfo['nth-step']}
             step executes: ${err.message}`, err);
       }
       throw err;
@@ -349,6 +379,44 @@
       return true;
     }
     return false;
+  };
+
+  Process.prototype.generateDebuggingColor = function() {
+    const colorsets = [
+      { background: 'red', foreground: 'white' },
+      { background: 'green', foreground: 'white' },
+      { background: 'blue', foreground: 'white' },
+      { background: 'saddleBrown', foreground: 'white' },
+      { background: 'cyan', foreground: 'darkSlateGray' },
+      { background: 'gold', foreground: 'darkSlateGray' },
+      { background: 'paleGreen', foreground: 'darkSlateGray' },
+      { background: 'plum', foreground: 'darkSlateGray' }
+    ];
+    var colorset = colorsets[ Math.floor(Math.random() * colorsets.length) ];
+    return colorset;
+  };
+
+  Process.prototype.trace = function(tasks) {
+    if (false === this.configs.debug) {
+      return;
+    }
+    var log = tasks.reduce((mergedMessage, task) => {
+      var source = String.substring(task.toSource(), 0,
+        this.debugging.truncatingLimit);
+      var message = ` ${ source } `;
+      return mergedMessage + message;
+    }, `%c ${ tasks[0].phase }#${ this.debugging.currentPhaseSteps } | `);
+    // Don't print those inherited functions.
+    var stackFilter = new RegExp('^(LockScreenBasic|Process|Stream)');
+    var stack = tasks[0].tracing.stack.split('\n').filter((line) => {
+      return '' !== line;
+    }).filter((line) => {
+      return !line.match(stackFilter);
+    }).join('\n');
+
+    log = log + ' | \n\r' + stack;
+    console.log(log, 'background-color: '+ this.debugging.colors.background +
+      ';' + 'color: ' + this.debugging.colors.foreground);
   };
 
   /**
@@ -369,9 +437,9 @@
   };
 
   /* Static version for mimicking Promise.all */
-  Process.wait = function(steps) {
+  Process.wait = function() {
     var process = new Process();
-    return process.wait(steps);
+    return process.start().wait.apply(process, arguments);
   };
 
   Process.InterruptError = function(message) {

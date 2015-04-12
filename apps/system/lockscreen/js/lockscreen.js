@@ -24,7 +24,7 @@
     /*
     * Lockscreen connection information manager
     */
-    _lockscreenConnInfoManager: null,
+    _lockscreenConnectionStatesWidget: null,
 
     /*
     * Boolean return true when initialized.
@@ -177,6 +177,12 @@
           this.chargingStatus.stop();
         } else {
           this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
+          // XXX: [lock] -> screen enabled, since when it's 'locked' by button,
+          //                the screen is still off, so no need to draw widgets
+          //                and make them functional
+          //      [unlock] -> slide to unlock, no problem
+          //
+          // This remains until the top-most panels get implemented.
           if (!this.lockScreenClockWidget) {
             this.createClockWidget();
           }
@@ -485,10 +491,8 @@
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
     // so we need to check if it's already initialized.
-    if (window.navigator.mozMobileConnections &&
-        !this._lockscreenConnInfoManager) {
-      this._lockscreenConnInfoManager =
-        new window.LockScreenConnInfoManager(this.connStates);
+    if (window.navigator.mozMobileConnections) {
+      this.createConnectionStatesWidget();
     }
   };
 
@@ -656,8 +660,22 @@
       return;
     }
 
-    this.lockScreenClockWidget.stop().destroy();
-    delete this.lockScreenClockWidget;
+    this.lockScreenClockWidget.stop()
+      .next(() => {
+        this.lockScreenClockWidget.destroy().next(() => {
+          delete this.lockScreenClockWidget;
+        });
+      });
+
+
+    if (window.navigator.mozMobileConnections) {
+      this._lockscreenConnectionStatesWidget.stop()
+        .next(() => {
+          this._lockscreenConnectionStatesWidget.destroy().next(() => {
+          delete this._lockscreenConnectionStatesWidget;
+        });
+      });
+    }
 
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('/resources/sounds/unlock.opus');
@@ -703,6 +721,15 @@
       // while the screen is off.
       if (!this.mainScreen.classList.contains('screenoff')) {
         this.createClockWidget();
+        if (window.navigator.mozMobileConnections) {
+          this.createConnectionStatesWidget();
+        }
+      }
+      // And connection information show render itself
+      // as earlier as better.
+      if (window.navigator.mozMobileConnections &&
+          !this._lockscreenConnectionStatesWidget) {
+        this.createConnectionStatesWidget();
       }
       if (document.mozFullScreen) {
         document.mozCancelFullScreen();
@@ -1083,6 +1110,12 @@
     this.lockScreenClockWidget = new LockScreenClockWidget(
       document.getElementById('lockscreen-clock-widget'));
     this.lockScreenClockWidget.start();
+  };
+
+  LockScreen.prototype.createConnectionStatesWidget = function() {
+    this._lockscreenConnectionStatesWidget =
+      new window.LockScreenConnectionStatesWidget(this.connStates);
+    this._lockscreenConnectionStatesWidget.start();
   };
 
   /** @exports LockScreen */

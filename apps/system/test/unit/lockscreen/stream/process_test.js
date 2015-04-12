@@ -5,6 +5,25 @@
 requireApp('system/lockscreen/js/stream/process.js');
 
 suite('Process > ', function() {
+  test(`Could execute guest Process with Promise in
+    host Process correctly`, function(done) {
+    var host = new Process();
+    host.start()
+      .next(() => { return 'foo'; })
+      .next((stepResult) => {
+        var guest = new Process();
+        return guest.start().next(() => {
+          return Promise.resolve().then(() => {
+            return stepResult + 'bar';
+          });
+        });
+      })
+      .next((finalResult) => {
+        assert.equal(finalResult, 'foobar');
+      })
+      .next(done)
+      .rescue(done);
+  });
   test(`Would execute steps until it get shifted`, function(done) {
     var process = new Process();
     process

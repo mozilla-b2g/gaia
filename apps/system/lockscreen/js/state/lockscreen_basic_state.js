@@ -3,6 +3,10 @@
 
 (function(exports) {
   var LockScreenBasicState = function(component) {
+    // A lock to prevent transferring racing. This is because most of source
+    // events are mapped into interrupts to trigger transferrings. To prevent
+    // client need to implement this again and again we put the lock here.
+    this._transferred = false;
     // Replace with the name of concrete state.
     this.configs = {
       name: 'LockScreenBasicState',
@@ -57,6 +61,17 @@
    * Or the component cannot track the last active state.
    */
   LockScreenBasicState.prototype.transferTo = function() {
+    if (this._transferred) {
+      this.logger.debug('Prevent transferring racing');
+      var nullifized = new Stream();
+      // This would return a process could be concated but would do nothing.
+      // It's better to formally provide a API from Process, like
+      // Process.maybe() or Process#nullize(), but this is a simplier solution.
+      return nullifized.start().next(() => nullifized.stop());
+    }
+    // No need to reset it again since a state instance should not be
+    // transferred to twice.
+    this._transferred = true;
     return this.component.transferTo.apply(this.component, arguments);
   };
 

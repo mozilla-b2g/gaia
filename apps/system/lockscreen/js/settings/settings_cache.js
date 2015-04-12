@@ -22,11 +22,11 @@
     var lock = navigator.mozSettings.createLock();
     var req = lock.get(entry);
     req.then(() => {
-      this.cache[entry] = req.result;
+      this.cache[entry] = req.result[entry];
       // Once it getted, monitor it to update cache.
       navigator.mozSettings
         .addObserver(entry, this.handleSettings);
-      resolve(req.result);
+      resolve(req.result[entry]);
     }).catch(() => {
       reject(req.error);
     });

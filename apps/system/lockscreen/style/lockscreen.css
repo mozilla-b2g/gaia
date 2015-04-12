@@ -198,13 +198,13 @@
   display: none;
 }
 
-#lockscreen-conn-states span:first-child {
+#lockscreen-conn-states .lockscreen-conn-states-simid {
   display: inline-block;
-  -moz-margin-end: 0.8rem;
+  -moz-margin-end: 0.4rem;
 }
 
-#lockscreen-conn-states span:last-child {
-  display: block;
+#lockscreen-conn-states .lockscreen-connstate-line {
+  display: inline-block;
 }
 
 /* For some reason display: inline-block disregards hidden attribute */

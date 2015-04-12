@@ -56,12 +56,16 @@
    *
    *  [current.stop] -> [next.start] -> (call)[previous.destroy]
    *
+   * Note this function may return a nullized process if it's transferring,
+   * so the user must detect if the return thing is a valid process
+   * could be chained, or pre-check it with the property.
    */
-  LockScreenBasicComponent.prototype.transferTo = function(clazz) {
+  LockScreenBasicComponent.prototype.transferTo = function(clazz, reason = {}) {
     var nextState = new clazz(this);
     var currentState = this._activeState;
     this._activeState = nextState;
-    this.logger.transfer(currentState.configs.name, nextState.configs.name);
+    this.logger.transfer(currentState.configs.name,
+        nextState.configs.name, reason);
     return currentState.stop()
       .next(() => nextState.start());
   };
@@ -81,7 +85,7 @@
     this.logger.start(this.configs.logger);
     if (resources) {
       for (var key in this.resources) {
-        if ('undefined' !== resources[key]) {
+        if ('undefined' !== typeof resources[key]) {
           this.resources[key] = resources[key];
         }
       }
@@ -102,12 +106,14 @@
   LockScreenBasicComponent.prototype.setup = function(component) {};
 
   LockScreenBasicComponent.prototype.stop = function() {
-    return this._activeState.stop();
+    return this._activeState.stop()
+      .next(this.waitComponents.bind(this, 'stop'));
   };
 
   LockScreenBasicComponent.prototype.destroy = function() {
     return this._activeState.destroy()
-      .next(() => { this.logger.stop(); });
+      .next(this.waitComponents.bind(this, 'destroy'))
+      .next(() => { this.logger.stop(); });  // Logger need add phase support.
   };
 
   LockScreenBasicComponent.prototype.live = function() {
@@ -116,6 +122,48 @@
 
   LockScreenBasicComponent.prototype.exist = function() {
     return this._activeState.until('destroy');
+  };
+
+  /**
+   * Can command all sub-components with one method and its arguments.
+   * For example, to 'start', or 'stop' them.
+   * Will return a Promise only be resolved after all sub-components
+   * executed the command. For example:
+   *
+   * subcomponents: {
+   *    buttons: [ButtonFoo, ButtonBar]
+   *    submit: Submit
+   * }
+   * var promised = parent.waitComponents(parent.stop.bind(parent));
+   *
+   * The promised would be resolved only after ButtonFoo, ButtonBar and Submit
+   * are all stopped.
+   *
+   * And since for states the sub-components is delegated to Component,
+   * state should only command these sub-components via this method,
+   * or access them individually via the component instance set at the
+   * setup stage.
+   */
+  LockScreenBasicComponent.prototype.waitComponents = function(method, args) {
+    if (!this._subcomponents) {
+      return Promise.resolve();
+    }
+    var waitPromises =
+    Object.keys(this._subcomponents).reduce((steps, name) => {
+      var instance = this._subcomponents[name];
+      // If the entry of the component actually contains multiple subcomponents.
+      // We need to apply the method to each one and concat all the result
+      // promises with our main array of applies.
+      if (Array.isArray(instance)) {
+        var applies = instance.map((subcomponent) => {
+          return subcomponent[method].apply(subcomponent, args);
+        });
+        return steps.concat(applies);
+      } else {
+        return steps.concat([instance[method].apply(instance, args)]);
+      }
+    }, []);
+    return Promise.all(waitPromises);
   };
 
   exports.LockScreenBasicComponent = LockScreenBasicComponent;
