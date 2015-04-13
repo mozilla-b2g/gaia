@@ -501,7 +501,6 @@
         contactObj.name = [_decodeQP(meta, values.join(' ').trim())];
       }
     }
-    contactObj.givenName = contactObj.givenName || contactObj.name;
     return contactObj;
   }
 
