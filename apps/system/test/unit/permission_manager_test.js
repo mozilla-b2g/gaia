@@ -222,6 +222,7 @@ suite('system/permission manager', function() {
       this.sinon.spy(permissionManager, 'handleFullscreenOriginChange');
       this.sinon.spy(permissionManager, 'cancelRequest');
       this.sinon.spy(permissionManager, 'showPermissionPrompt');
+      this.sinon.spy(permissionManager, 'handlePermissionPrompt');
       this.sinon.spy(navigator.mozL10n, 'get');
     });
 
@@ -247,7 +248,7 @@ suite('system/permission manager', function() {
       );
     });
 
-    test('showPermissionPrompt must used the right strings', function() {
+    test('showPermissionPrompt must use the right strings', function() {
       sendFullscreenRequest();
       // When showing the prompt we need to show the right Strings
       assert.isTrue(navigator.mozL10n.get.calledOnce);
@@ -276,6 +277,30 @@ suite('system/permission manager', function() {
       assert.isTrue(permissionManager.cancelRequest.calledOnce);
       assert.isTrue(permissionManager.cancelRequest.calledWith('fullscreen'));
       assert.isTrue(permissionManager.isFullscreenRequest);
+    });
+
+    test('other permission (e.g. geolocation) after fullscreen',
+      function(done) {
+      // Send a first dialog based on fullscreen (for example youtube video)
+      sendFullscreenRequest();
+      assert.isFalse(permissionManager.cancelRequest.called);
+      permissionManager.yes.callback = function() {
+        // If after the fullscreen scenario we have a new prompt, this must
+        // be rendered properly
+        var geolocationDetail =
+          {
+            'type': 'permission-prompt',
+            'permission': 'geolocation'
+          };
+        var evt =
+          new CustomEvent('mozChromeEvent', { detail: geolocationDetail });
+        window.dispatchEvent(evt);
+        assert.isTrue(permissionManager.handlePermissionPrompt.called);
+        assert.isFalse(permissionManager.isFullscreenRequest);
+        done();
+      };
+      permissionManager.clickHandler({target: permissionManager.yes});
+
     });
   });
 
