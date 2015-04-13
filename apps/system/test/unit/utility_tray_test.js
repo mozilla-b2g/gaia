@@ -806,6 +806,42 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  suite('mouse events', function() {
+    var evt;
+
+    setup(function() {
+      evt = {
+        type: 'mousedown',
+        target: UtilityTray.grippy,
+        preventDefault: this.sinon.spy()
+      };
+    });
+
+    test('it preventsDefault when target is this.grippy', function() {
+      evt.target = UtilityTray.grippy;
+      UtilityTray.handleEvent(evt);
+      assert.isTrue(evt.preventDefault.called);
+    });
+
+    test('it preventsDefault when target is this.statusbarIcons', function() {
+      evt.target = UtilityTray.statusbarIcons;
+      UtilityTray.handleEvent(evt);
+      assert.isTrue(evt.preventDefault.called);
+    });
+
+    test('it preventsDefault when target is this.topPanel', function() {
+      evt.target = UtilityTray.topPanel;
+      UtilityTray.handleEvent(evt);
+      assert.isTrue(evt.preventDefault.called);
+    });
+
+    test('it does not preventsDefault when target is not top', function() {
+      evt.target = UtilityTray.overlay;
+      UtilityTray.handleEvent(evt);
+      assert.isFalse(evt.preventDefault.called);
+    });
+  });
+
   suite('handle software button bar', function() {
     test('enabling/disabling soft home updates the cached height', function() {
       var adjustedHeight = UtilityTray.screenHeight - 50;
