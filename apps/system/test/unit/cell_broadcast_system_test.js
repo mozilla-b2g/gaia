@@ -79,6 +79,7 @@ suite('system/CellBroadcastSystem', function() {
       subject.show({
         message: {
           messageId: fakeMessageID,
+          cdmaServiceCategory: null,
           body: {},
           serviceId: 0
         }
@@ -92,6 +93,7 @@ suite('system/CellBroadcastSystem', function() {
       subject.show({
         message: {
           messageId: fakeMessageID,
+          cdmaServiceCategory: null,
           body: {},
           serviceId: 1
         }
@@ -101,10 +103,24 @@ suite('system/CellBroadcastSystem', function() {
       sinon.assert.called(CarrierInfoNotifier.show);
     });
 
-    test('return while message is CMAS', function() {
+    test('return while message is GSM CMAS', function() {
       subject.show({
         message: {
           messageId: 4370,
+          cdmaServiceCategory: null,
+          body: {}
+        },
+        serviceId: 0,
+      });
+
+      sinon.assert.notCalled(CarrierInfoNotifier.show);
+    });
+
+    test('return while message is CDMA CMAS', function() {
+      subject.show({
+        message: {
+          messageId: 0,
+          cdmaServiceCategory: 4096,
           body: {}
         },
         serviceId: 0,

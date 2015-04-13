@@ -1,12 +1,20 @@
 'use strict';
 
+// See reference TS in following document for GSM and CDMA:
+// [1] GSM:
+// http://www.etsi.org/deliver/etsi_ts/123000_123099/123041/11.06.00_60/ts_123041v110600p.pdf
+//       
+// [2] CDMA:
+// http://www.3gpp2.org/public_html/specs/C.R1001-G_v1.0_Param_Administration.pdf
+
 (function() {
   const CMAS_ID = 'emergency-alert-title',
         CMAS_ENABLED_KEY = 'cmas.enabled';
 
-  // See reference TS in following document, table under section 9.4.1.2.2.
-  // http://www.etsi.org/deliver/etsi_ts/123000_123099/123041/11.06.00_60/ts_123041v110600p.pdf
+  // See GSM[1] section 9.4.1.2.2 Message Identifier and
+  // CDMA[2] section 9.3.3 Commercial Mobile for thet presidential alerts
   const GSM_PRESIDENTIAL_ALERTS = [4370, 4383];
+  const CDMA_PRESIDENTIAL_ALERT = 0x1000;
 
   window.navigator.mozSetMessageHandler(
     'cellbroadcast-received',
@@ -14,14 +22,21 @@
   );
 
   /**
-   * Check if the id of the message in in CMAS specific range. Please ref
-   * http://www.etsi.org/deliver/etsi_ts/123000_123099/123041/11.06.00_60/
-   * ts_123041v110600p.pdf, chapter 9.4.1.2.2 Message Identifier for more
-   * details.
-   * @param {number} Message ID 
+   * Check if the id of the message in in CMAS specific range. Please ref link
+   * above for GSM[1] and CDMA[2]
+   *
+   * @param {number} Message
    */
-  function isEmergencyAlert(id) {
-    return (id >= 4370 && id < 4400);
+  function isEmergencyAlert(message) {
+    var messageId = message.messageId;
+    var cdmaServiceCategory = message.cdmaServiceCategory;
+    var isGSM = cdmaServiceCategory === null;
+
+    if (isGSM) {
+      return (messageId >= 4370 && messageId < 4400);
+    } else {
+      return (cdmaServiceCategory >= 0x1000 && cdmaServiceCategory <= 0x10FF);
+    }
   }
 
   function isCmasEnabledForServiceId(serviceId) {
@@ -33,7 +48,15 @@
   }
 
   function isPresidentialAlert(message) {
-    return GSM_PRESIDENTIAL_ALERTS.indexOf(message.messageId) !== -1;
+    var messageId = message.messageId;
+    var cdmaServiceCategory = message.cdmaServiceCategory;
+    var isGSM = cdmaServiceCategory === null;
+
+    if (isGSM) {
+      return GSM_PRESIDENTIAL_ALERTS.indexOf(messageId) !== -1;
+    } else {
+      return CDMA_PRESIDENTIAL_ALERT === cdmaServiceCategory;
+    }
   }
 
   /**
@@ -42,7 +65,7 @@
    * information like Identifier and body for displaying attention screen.
    */
   function onCellbroadcast(message) {
-    if (!isEmergencyAlert(message.messageId)) {
+    if (!isEmergencyAlert(message)) {
       window.close();
       return;
     }
