@@ -12,7 +12,7 @@ suite('views/preview-gallery', function() {
   });
 
   setup(function() {
-    this.view = new this.previewGalleryView();
+    this.view = new this.previewGalleryView({});
     this.clock = sinon.useFakeTimers();
   });
 
@@ -99,4 +99,69 @@ suite('views/preview-gallery', function() {
       assert.isFalse(this.view.el.classList.contains('action-menu'));
     });
   });
+
+  suite('previewGalleryView#withinRightBound', function() {
+
+    setup(function() {
+      this.view.rtl = false;
+    });
+
+    test('LRT within bounds', function() {
+      this.view.currentIndex = 2;
+      assert.isTrue(this.view.withinRightBound())
+    });
+
+    test('LRT out of bounds', function() {
+      this.view.currentIndex = 1;
+      assert.isFalse(this.view.withinRightBound())
+    });
+
+    test('RTL within bounds', function() {
+      this.view.rtl = true;
+      this.view.currentIndex = 0;
+      this.view.lastIndex = 5;
+      assert.isTrue(this.view.withinRightBound())
+    });
+
+    test('RTL out of bounds', function() {
+      this.view.rtl = true;
+      this.view.currentIndex = 5;
+      this.view.lastIndex = 5;
+      assert.isFalse(this.view.withinRightBound())
+    });
+
+  });
+
+  suite('previewGalleryView#withinLeftBound', function() {
+
+    setup(function() {
+      this.view.rtl = false;
+    });
+
+    test('LRT within bounds', function() {
+      this.view.currentIndex = 0;
+      this.view.lastIndex = 5;
+      assert.isTrue(this.view.withinLeftBound())
+    });
+
+    test('LRT out of bounds', function() {
+      this.view.currentIndex = 5;
+      this.view.lastIndex = 5;
+      assert.isFalse(this.view.withinLeftBound())
+    });
+
+    test('RTL within bounds', function() {
+      this.view.rtl = true;
+      this.view.currentIndex = 2;
+      assert.isTrue(this.view.withinLeftBound())
+    });
+
+    test('RTL out of bounds', function() {
+      this.view.rtl = true;
+      this.view.currentIndex = 1;
+      assert.isFalse(this.view.withinLeftBound())
+    });
+
+  });
+
 });

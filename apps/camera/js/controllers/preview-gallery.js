@@ -64,8 +64,9 @@ PreviewGalleryController.prototype.openPreview = function() {
   }
 
   var maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
+  var rtl = document.documentElement.dir === 'rtl';
 
-  this.view = new PreviewGalleryView();
+  this.view = new PreviewGalleryView({ rtl: rtl });
   this.view.maxPreviewSize = maxPreviewSize;
   this.view.render().appendTo(this.app.el);
 
@@ -269,11 +270,20 @@ PreviewGalleryController.prototype.updatePreviewGallery = function(index) {
  * To Do: Image Swipe Transition
  */
 PreviewGalleryController.prototype.handleSwipe = function(direction) {
-  if (direction === 'left') {
-    this.next();
+  var documentDir = document.documentElement.dir;
+  var rtl = documentDir === 'rtl';
+  if (rtl) {
+    if (direction === 'left') {
+      direction = 'right';
+    } else if (direction === 'right') {
+      direction = 'left';
+    }
   }
-  else if (direction === 'right') {
-    this.previous();
+
+  if (direction === 'left') {
+      this.next();
+  } else if (direction === 'right') {
+      this.previous();
   }
 };
 
