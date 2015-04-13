@@ -487,10 +487,13 @@ suite('system/Rocketbar', function() {
     var activeApp = {
       config: {url: 'app.url'},
       isBrowser: function() {},
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      getTopMostWindow: function() { return activeApp; },
+      broadcast: function() {}
     };
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
+    var broadcastStub = this.sinon.stub(activeApp, 'broadcast');
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate')
       .returns(Promise.resolve());
@@ -498,6 +501,7 @@ suite('system/Rocketbar', function() {
     subject.handleEvent(event);
     assert.ok(setInputStub.calledWith('app.url'));
     assert.ok(activateStub.calledOnce);
+    sinon.assert.calledWith(broadcastStub, 'inputmethod-contextchange');
   });
 
   test('handleEvent() - global-search-request: inactive app', function() {
@@ -527,7 +531,9 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      getTopMostWindow: function() { return activeApp; },
+      broadcast: function() {}
     };
     MockService.currentApp = activeApp;
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
@@ -569,7 +575,9 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      getTopMostWindow: function() { return activeApp; },
+      broadcast: function() {}
     };
     MockService.currentApp = activeApp;
 
@@ -601,7 +609,9 @@ suite('system/Rocketbar', function() {
       isPrivateBrowser: function() {
         return true;
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      getTopMostWindow: function() { return activeApp; },
+      broadcast: function() {}
     };
     MockService.currentApp = activeApp;
     this.sinon.stub(activeApp, 'isBrowser').returns(true);

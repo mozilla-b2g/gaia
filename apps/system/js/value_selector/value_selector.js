@@ -105,6 +105,10 @@
         if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
           return;
         }
+        if (evt.detail.inputType === 'blur') {
+          this.hide();
+          return;
+        }
         if (this._injected) {
           this.show(evt.detail);
         } else {
@@ -229,7 +233,7 @@
 
   ValueSelector.prototype.hide = function vs_hide() {
     this.app._setVisibleForScreenReader(true);
-    if (this.element.hidden) {
+    if (!this.element || this.element.hidden) {
       return;
     }
     this.element.blur();
