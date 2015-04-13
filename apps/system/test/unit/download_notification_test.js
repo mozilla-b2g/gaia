@@ -1,3 +1,6 @@
+/* global Download, DownloadFormatter, DownloadStore, DownloadNotification,
+          DownloadHelper, DownloadUI, MocksHelper, MockL10n, NotificationScreen,
+          mockMozActivityInstance */
 'use strict';
 
 require('/shared/js/lazy_loader.js');

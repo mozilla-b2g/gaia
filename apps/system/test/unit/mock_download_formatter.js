@@ -1,6 +1,6 @@
 
 'use strict';
-
+/* exported MockDownloadFormatter */
 var MockDownloadFormatter = {
   getUUID: function mdf_getUUID(download) {
     return download.id;

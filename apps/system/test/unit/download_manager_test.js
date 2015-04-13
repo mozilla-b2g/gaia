@@ -1,3 +1,4 @@
+/* global MocksHelper, MockDownloadNotification */
 'use strict';
 
 requireApp('system/test/unit/mock_lazy_loader.js');
