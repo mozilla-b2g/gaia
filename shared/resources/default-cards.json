@@ -10,7 +10,7 @@
       "type": "Deck",
       "deckClass": "application",
       "manifestURL": "app://app-deck.gaiamobile.org/manifest.webapp",
-      "group": "app"
+      "group": "application"
     },
     {
       "type": "Deck",

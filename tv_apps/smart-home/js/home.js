@@ -1,6 +1,6 @@
 'use strict';
-/* global Application, CardFilter, CardManager, Clock, Deck, Edit, Folder, Home,
-          KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
+/* global Application, FilterManager, CardManager, Clock, Deck, Edit, Folder,
+          Home, KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
           SharedUtils, SpatialNavigator, URL, XScrollable, Animations, Utils */
 /* jshint nonew: false */
 
@@ -16,7 +16,7 @@
 
   Home.prototype = {
     navigableIds:
-        ['search-button', 'search-input', 'settings-group'],
+        ['search-button', 'search-input', 'settings-group', 'filter-tab-group'],
 
     topElementIds: ['search-button', 'search-input', 'settings-group',
         'edit-button', 'settings-button'],
@@ -25,7 +25,7 @@
         'filter-app-button'],
 
     isNavigable: true,
-    navigableClasses: ['command-button'],
+    navigableClasses: ['filter-tab', 'command-button'],
     navigableScrollable: [],
     cardScrollable: undefined,
     folderScrollable: undefined,
@@ -33,8 +33,10 @@
     _focusScrollable: undefined,
     _folderCard: undefined,
 
-    cardFilter: undefined,
+    filterElementIds: ['filter-all-button', 'filter-tv-button',
+        'filter-dashboard-button', 'filter-device-button', 'filter-app-button'],
 
+    filterManager: undefined,
     cardListElem: document.getElementById('card-list'),
     folderListElem: document.getElementById('folder-list'),
     cardManager: undefined,
@@ -113,11 +115,13 @@
 
         that.spatialNavigator.focus();
 
-        that.cardFilter = new CardFilter();
-        that.cardFilter.start(document.getElementById('filter-tab-group'));
-        // all's icon name is filter
-        that.cardFilter.filter = CardFilter.FILTERS.ALL;
-        that.cardFilter.on('filterchanged', that.onFilterChanged.bind(that));
+        that.filterManager = new FilterManager();
+        that.filterManager.init({
+          cardListElem: that.cardListElem,
+          cardScrollable: that.cardScrollable,
+          home: that,
+          cardManager: that.cardManager
+        });
 
         that.edit = new Edit();
         that.edit.init(that.spatialNavigator, that.cardManager,
@@ -205,6 +209,7 @@
         if (this.cardScrollable.isSliding) {
           this.cardScrollable.endSlide();
         }
+        this.filterManager.resetFilter();
       }
     },
 
@@ -247,7 +252,7 @@
                 this.onCardRemoved.bind(this, this.folderScrollable));
       }
 
-      var newCardElem = this._createCardNode(card);
+      var newCardElem = this.createCardNode(card);
       var newCardButtonElem = newCardElem.firstElementChild;
       // Initial transition for new card
       newCardButtonElem.classList.add('new-card');
@@ -402,17 +407,13 @@
       SharedUtils.readColorCode(blob, 0.5, 0, checkColor);
     },
 
-    onFilterChanged: function(name) {
-      console.log('filter changed to: ' + name);
-    },
-
     onArrangeMode: function() {
       if (this._focusScrollable !== this.folderScrollable) {
         this._cleanFolderScrollable();
       }
     },
 
-    _createCardNode: function(card) {
+    createCardNode: function(card) {
       // card element would be created like this:
       // <div class="card">
       //   <smart-button>/* Card button */</smart-button>
@@ -481,7 +482,7 @@
 
     _createCardList: function(cardList) {
       cardList.forEach(function(card) {
-        this.cardListElem.appendChild(this._createCardNode(card));
+        this.cardListElem.appendChild(this.createCardNode(card));
       }.bind(this));
     },
 
@@ -509,6 +510,11 @@
       } else if (focusElem === this.editButton) {
         this._cleanFolderScrollable();
         this.edit.toggleEditMode();
+        // XXX: Reset card filter when entering edit mode
+        this.filterManager.resetFilter();
+      } else if (focusElem &&
+          this.filterElementIds.indexOf(focusElem.id) > -1) {
+        this._cleanFolderScrollable();
       } else {
         // Current focus is on a card
         var cardId = focusElem.dataset.cardId;
@@ -730,13 +736,13 @@
 
       // Build folder list
       folderList.forEach(function(card) {
-        this.folderScrollable.addNode(this._createCardNode(card));
+        this.folderScrollable.addNode(this.createCardNode(card));
       }, this);
 
-      var step = 0;
+      var isFirstFrame = true;
       var initFolderAnimation = function() {
-        if (step === 0) {
-          ++step;
+        if (isFirstFrame) {
+          isFirstFrame = false;
           // At first frame, we call setReferenceElement to move folder list
           // right under folder card. Transition should be replaced by 'none'
           // since we don't need to show this process as animation to user.

@@ -92,7 +92,7 @@
                 name: 'pin',
                 data: {
                   type: 'Application',
-                  group: 'app',
+                  group: 'application',
                   manifestURL: app.manifestURL,
                   // We use app's original icon instead of screenshot here
                   // because we are in app deck. For the case of getting

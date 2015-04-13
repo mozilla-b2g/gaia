@@ -162,6 +162,11 @@
       this._setScrollStyle();
     },
 
+    resetScroll: function() {
+      this.translateX = 0;
+      this.scrollTo(this.getItem(0));
+    },
+
     _setScrollStyle: function() {
       this.listElem.style.transform = 'translateX(' + this.translateX + 'px) ' +
                                       'scale(' + this.scale + ')';
@@ -300,6 +305,14 @@
         nodeElem = nodeElem.parentElement;
       }
       return nodeElem;
+    },
+
+    getItem: function(index) {
+      var node;
+      if (index < this.nodes.length) {
+        node = this.nodes[index];
+      }
+      return node;
     },
 
     getItemFromNode: function(nodeElem) {
