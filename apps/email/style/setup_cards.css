@@ -136,8 +136,20 @@ cards-setup-done .sup-form-btn.recommend {
   word-wrap: break-word;
   padding: 1rem 1.5rem 0;
   font-size: 1.6rem;
+}
+
+/* Copy/paste select all could reach across the whole DOM so only scope the
+  selection to the center "active" card. Bug 1152172. */
+.center .tng-signature-text {
   -moz-user-select: text;
 }
+/* This style allows newlines to be copied. This catches br tags and is
+extensible to the future where other tags could be in the contenteditable
+field. Bug 1127160. */
+.center .tng-signature-text * {
+  -moz-user-select: text;
+}
+
 
 .tng-list {
   margin: 0;
