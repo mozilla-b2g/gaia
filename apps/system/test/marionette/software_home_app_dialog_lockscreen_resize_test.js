@@ -16,7 +16,7 @@ marionette('Software Home Button - Dialog Lockscreen Resize', function() {
     apps: {
       'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
   var system, lockscreen;
 
   setup(function() {

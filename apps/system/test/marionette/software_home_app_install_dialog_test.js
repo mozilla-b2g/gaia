@@ -14,7 +14,7 @@ marionette('Software Home Button - App Install Dialog', function() {
     settings: {
       'software-button.enabled': true
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
   var appInstall, home, server, serverManifestURL, serverRootURL, system;
 
   suiteSetup(function(done) {

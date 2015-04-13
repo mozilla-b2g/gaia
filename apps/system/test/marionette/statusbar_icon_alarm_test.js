@@ -11,7 +11,7 @@ marionette('Status Bar icons - Alarm', function() {
     settings: {
       'alarm.enabled': true
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
 
   var system;
   var statusBar;

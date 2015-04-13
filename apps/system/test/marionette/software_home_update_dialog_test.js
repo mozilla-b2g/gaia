@@ -10,7 +10,7 @@ marionette('Software Home Button - Update Dialog', function() {
     settings: {
       'software-button.enabled': true
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
   var home, system;
 
   setup(function() {

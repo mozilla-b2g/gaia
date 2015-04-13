@@ -15,7 +15,7 @@ marionette('Sound manager tests', function() {
 
   var client = marionette.client({
     apps: apps
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
 
   var soundToast;
 

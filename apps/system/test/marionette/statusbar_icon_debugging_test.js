@@ -11,7 +11,7 @@ marionette('Status Bar icons - Debugging', function() {
     settings: {
       'debugger.remote-mode': 'disabled'
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
 
   var system;
   var statusBar;

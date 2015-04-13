@@ -14,7 +14,7 @@ marionette('Software Home Button - Notification Banner Test', function() {
     settings: {
       'software-button.enabled': true
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
   var appInstall, home, server, system;
 
   suiteSetup(function(done) {
