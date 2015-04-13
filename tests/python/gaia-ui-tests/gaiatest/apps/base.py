@@ -79,9 +79,6 @@ class Base(object):
             match_string)
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
-        # TODO we should find something suitable to wait for, but this goes too
-        # fast against desktop builds causing intermittent failures
-        time.sleep(0.2)
 
         li = self.wait_for_element_present(*_list_item_locator)
         # We need to keep this because the Ok button may hang over the element and stop
@@ -100,7 +97,7 @@ class Base(object):
         # fast against desktop builds causing intermittent failures
         # This sleep is necessary to make sure the select is completely faded out,
         # see bug 1148154
-        time.sleep(1)
+        time.sleep(0.2)
 
     def select(self, match_string, tap_close=True):
         # cheeky Select wrapper until Marionette has its own
