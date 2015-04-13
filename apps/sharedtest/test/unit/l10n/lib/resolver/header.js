@@ -1,4 +1,4 @@
-/* global navigator, process, exports */
+/* global navigator, exports */
 /* exported Resolver */
 
 'use strict';
@@ -9,11 +9,9 @@ if (typeof navigator !== 'undefined') {
 } else {
   var L10n = {
     PropertiesParser:
-      require('../../../lib/l20n/format/properties/parser'),
-    Resolver: process.env.L20N_COV ?
-      require('../../../build/cov/lib/l20n/resolver'):
-      require('../../../lib/l20n/resolver'),
-    getPluralRule: require('../../../lib/l20n/plurals').getPluralRule
+      require('../../../src/lib/format/properties/parser'),
+    Resolver: require('../../../src/lib/resolver'),
+    getPluralRule: require('../../../src/lib/plurals').getPluralRule
   };
 
   exports.createEntries = createEntries;
