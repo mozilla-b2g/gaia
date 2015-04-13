@@ -62,7 +62,7 @@ function moveExternalApp(webapp, source, destination) {
 }
 
 function execute(options) {
-  var webapp = options.webapp;
+  var webapp = utils.getWebapp(options.APP_DIR, options);
 
   var webappManifest = utils.getFile(webapp.buildDirectoryFilePath,
     'manifest.webapp');

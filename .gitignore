@@ -78,3 +78,4 @@ mozilla-b2g-gaia-node-modules-*
 
 venv/
 
+/all.mk

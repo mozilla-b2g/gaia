@@ -549,17 +549,20 @@ define BUILD_CONFIG
   "RAPTOR" : "$(RAPTOR)", \
   "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
   "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
-  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)" \
+  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)", \
+  "BUILDAPP" : "$(BUILDAPP)", \
+  "APP" : "$(APP)"
 }
 endef
 
 export BUILD_CONFIG
 
-# Generate profile/
-$(PROFILE_FOLDER): profile-dir app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
-ifeq ($(BUILD_APP_NAME),*)
-	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
-endif
+$(PROFILE_FOLDER): default
+
+default: profile-dir contacts extensions b2g_sdk .git/hooks/pre-commit $(STAGE_DIR)
+	@$(call $(BUILD_RUNNER),configure)
+
+-include all.mk
 
 $(STAGE_DIR):
 	mkdir -p $@
@@ -567,8 +570,7 @@ $(STAGE_DIR):
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: app
-app: b2g_sdk profile-dir
-	@$(call $(BUILD_RUNNER),app)
+app: b2g_sdk profile-dir default
 
 .PHONY: pre-app
 pre-app: b2g_sdk profile-dir
@@ -600,8 +602,8 @@ profile-dir:
 contacts: profile-dir
 ifeq ($(BUILD_APP_NAME),*)
 ifdef CONTACTS_PATH
-	@echo "Copying preload contacts to profile"
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
+	@mkdir -p $(PROFILE_FOLDER)/defaults
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)/defaults/contacts.json
 else
 	@rm -f $(PROFILE_FOLDER)/contacts.json
@@ -1051,6 +1053,7 @@ endif
 # clean out build products
 clean:
 	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox profile-raptor $(PROFILE_FOLDER) $(STAGE_DIR) docs minidumps
+	@echo '' > all.mk
 
 # clean out build products and tools
 really-clean: clean

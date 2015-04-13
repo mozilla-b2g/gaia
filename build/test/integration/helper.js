@@ -150,6 +150,7 @@ function cleanupWorkspace() {
   rmrf('profile');
   rmrf('profile-debug');
   rmrf('build_stage');
+  fs.writeFileSync('all.mk', '');
   rmrf(exports.localesDir);
 }
 

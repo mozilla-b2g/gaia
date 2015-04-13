@@ -53,6 +53,7 @@ MediaResolution.prototype.pickMediaByResolution = function(file) {
 };
 
 MediaResolution.prototype.execute = function(options) {
+  options.webapp = utils.getWebapp(options.APP_DIR, options);
   this.setOptions(options);
 
   // Sort listing by path to ensure hidpi files are processed *after* the

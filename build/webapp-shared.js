@@ -396,7 +396,8 @@ WebappShared.prototype.execute = function(options) {
 
 function execute(config) {
   var gaia = utils.gaia.getInstance(config);
-  gaia.rebuildWebapps.forEach(function(webapp) {
+  config.GAIA_APPDIRS.split(' ').forEach(function(appDir) {
+    var webapp = utils.getWebapp(appDir, config);
     (new WebappShared()).execute({
       config: config, gaia: gaia, webapp: webapp});
   });

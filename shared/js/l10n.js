@@ -41,7 +41,8 @@
         if (e.target.status === 200 || e.target.status === 0) {
           // Sinon.JS's FakeXHR doesn't have the response property
           var res = e.target.response || e.target.responseText;
-          callback(null, needParse ? JSON.parse(res) : res);
+          callback(null, (needParse && typeof res !== 'object') ?
+            JSON.parse(res) : res);
         } else {
           callback(new L10nError('Not found: ' + url));
         }

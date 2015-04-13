@@ -86,6 +86,8 @@ function buildConfigChanged(previous, current) {
 }
 
 exports.execute = function(options) {
+  var stageDir = utils.getFile(options.STAGE_DIR);
+  utils.ensureFolderExists(stageDir);
   var scanningDirs = options.GAIA_APPDIRS.split(' ');
   var sharedPath = utils.getFile(options.GAIA_DIR, 'shared').path;
   scanningDirs.push(sharedPath);

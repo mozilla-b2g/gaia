@@ -653,7 +653,7 @@ WebappOptimize.prototype.execute = function(config) {
 };
 
 function execute(options) {
-  var webapp = options.webapp;
+  var webapp = utils.getWebapp(options.APP_DIR, options);
   var locales;
   if (options.GAIA_CONCAT_LOCALES === '1') {
     locales = getLocales(options);

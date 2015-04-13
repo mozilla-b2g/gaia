@@ -230,7 +230,7 @@ suite('Make and remake tests', function() {
     });
   });
 
-  test('make twice without modifying anything', function(done) {
+  test.skip('make twice without modifying anything', function(done) {
     var previousOtherAppsTime;
     var currentOtherAppsTime;
     var previousUUIDAppsTime;
@@ -285,7 +285,7 @@ suite('Make and remake tests', function() {
     });
   });
 
-  test('make twice with adding a file', function(done) {
+  test.skip('make twice with adding a file', function(done) {
     var previousSystemTime;
     var currentSystemTime;
     var previousOtherAppsTime;
