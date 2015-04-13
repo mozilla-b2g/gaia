@@ -396,9 +396,19 @@ WebappShared.prototype.execute = function(options) {
 
 function execute(config) {
   var gaia = utils.gaia.getInstance(config);
-  gaia.rebuildWebapps.forEach(function(webapp) {
-    (new WebappShared()).execute({
-      config: config, gaia: gaia, webapp: webapp});
+  var dirs;
+  if (config.ENABLE_CONFIGURE_STEP === '1') {
+    dirs = config.GAIA_APPDIRS.split(' ');
+  } else {
+    dirs = config.rebuildAppDirs;
+  }
+
+  dirs.forEach(function(appDir) {
+    var webapp = utils.getWebapp(appDir, config);
+    if (webapp) {
+      (new WebappShared()).execute({
+        config: config, gaia: gaia, webapp: webapp});
+    }
   });
 }
 

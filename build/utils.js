@@ -286,7 +286,6 @@ var gaia = {
   }
 };
 
-
 exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.isSubjectToDeviceType = isSubjectToDeviceType;
