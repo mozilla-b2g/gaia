@@ -1,3 +1,6 @@
+/* global ValuePicker */
+'use strict';
+
 /**
  * SpinDatePicker is a html/js "widget" which enables users
  * pick a specific date. It display the date in the way based
@@ -13,8 +16,8 @@
  *    // after users pick a date
  *    var newDate = picker.value;
  */
-var SpinDatePicker = (function SpinDatePicker() {
-  'use strict';
+ /* exported SpinDatePicker */
+var SpinDatePicker = (function() {
 
   var GLOBAL_MIN_YEAR = 1900;
   var GLOBAL_MAX_YEAR = 2099;
@@ -137,8 +140,9 @@ var SpinDatePicker = (function SpinDatePicker() {
       });
     }
 
-    if (order.length != 3)
+    if (order.length != 3) {
       order = 'DMY';
+    }
 
     return order;
   }
@@ -173,7 +177,6 @@ var SpinDatePicker = (function SpinDatePicker() {
     var updateCurrentValue = (function spd_updateCurrentValue() {
       var selectedYear = this.yearPicker.getSelectedIndex() + GLOBAL_MIN_YEAR;
       var selectedMonth = this.monthPicker.getSelectedIndex();
-      var days = getDaysInMonth(selectedYear, selectedMonth);
       var selectedDate = this.datePicker.getSelectedIndex() + 1;
 
       this._value = new Date(selectedYear, selectedMonth, selectedDate);
@@ -191,13 +194,15 @@ var SpinDatePicker = (function SpinDatePicker() {
 
       if (selectedYear === _dateRange.minYear) {
         minMonth = _dateRange.minMonth;
-        if (selectedMonth === _dateRange.minMonth)
+        if (selectedMonth === _dateRange.minMonth) {
           minDate = _dateRange.minDate;
+        }
       }
       if (selectedYear === _dateRange.maxYear) {
         maxMonth = _dateRange.maxMonth;
-        if (selectedMonth === _dateRange.maxMonth)
+        if (selectedMonth === _dateRange.maxMonth) {
           maxDate = _dateRange.maxDate;
+        }
       }
 
       var days = getDaysInMonth(this.yearPicker.getSelectedIndex() +
@@ -243,8 +248,9 @@ var SpinDatePicker = (function SpinDatePicker() {
       valueDisplayedText: getYearText(),
       className: unitClassName
     };
-    if (this.yearPicker)
+    if (this.yearPicker) {
       this.yearPicker.uninit();
+    }
     this.yearPicker = new ValuePicker(yearPickerContainer, yearUnitStyle);
     this.yearPicker.onselectedindexchange = onSelectedYearChanged.bind(this);
 
@@ -253,8 +259,9 @@ var SpinDatePicker = (function SpinDatePicker() {
       valueDisplayedText: getMonthText(),
       className: unitClassName
     };
-    if (this.monthPicker)
+    if (this.monthPicker) {
       this.monthPicker.uninit();
+    }
     this.monthPicker =
       new ValuePicker(monthPickerContainer, monthUnitStyle);
     this.monthPicker.onselectedindexchange = onSelectedMonthChanged.bind(this);
@@ -264,8 +271,9 @@ var SpinDatePicker = (function SpinDatePicker() {
       valueDisplayedText: getDateText(),
       className: unitClassName
     };
-    if (this.datePicker)
+    if (this.datePicker) {
       this.datePicker.uninit();
+    }
     this.datePicker = new ValuePicker(datePickerContainer, dateUnitStyle);
     this.datePicker.onselectedindexchange =
       onSelectedDateChanged.bind(this);
@@ -351,10 +359,12 @@ var SpinDatePicker = (function SpinDatePicker() {
     },
 
     setRange: function vs_setRange(minDate, maxDate) {
-      if (!minDate)
+      if (!minDate) {
         minDate = new Date(GLOBAL_MIN_YEAR, 0, 1);
-      if (!maxDate)
+      }
+      if (!maxDate) {
         maxDate = new Date(GLOBAL_MAX_YEAR, 11, 31);
+      }
 
       _dateRange = new DateRange(minDate, maxDate);
 
@@ -364,12 +374,15 @@ var SpinDatePicker = (function SpinDatePicker() {
     },
 
     uninit: function() {
-      if (this.yearPicker)
+      if (this.yearPicker) {
         this.yearPicker.uninit();
-      if (this.monthPicker)
+      }
+      if (this.monthPicker) {
         this.monthPicker.uninit();
-      if (this.datePicker)
+      }
+      if (this.datePicker) {
         this.datePicker.uninit();
+      }
 
       this.pickerElements.forEach((function pickerElements_forEach(picker) {
         picker.removeEventListener('mousedown', this);
