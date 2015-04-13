@@ -13,6 +13,8 @@
   border: none;
   height: 10rem;
   width: 10rem;
+
+  -moz-user-select: none;
 }
 
 .attachment-draft {
