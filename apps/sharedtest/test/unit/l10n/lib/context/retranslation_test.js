@@ -1,14 +1,12 @@
 /* global it, describe, beforeEach */
-/* global navigator, process */
+/* global navigator */
 'use strict';
 
 if (typeof navigator !== 'undefined') {
   var L10n = navigator.mozL10n._getInternalAPI();
   var Context = L10n.Context;
 } else {
-  var Context = process.env.L20N_COV ?
-    require('../../../build/cov/lib/l20n/context').Context
-    : require('../../../lib/l20n/context').Context;
+  var Context = require('../../../src/lib/context').Context;
 }
 
 describe('ctx.ready', function() {

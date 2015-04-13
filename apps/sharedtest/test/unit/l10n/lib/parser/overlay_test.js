@@ -1,5 +1,5 @@
 /* global it, assert:true, describe */
-/* global navigator, process */
+/* global navigator */
 'use strict';
 
 if (typeof navigator !== 'undefined') {
@@ -7,9 +7,7 @@ if (typeof navigator !== 'undefined') {
 } else {
   var assert = require('assert');
   var L10n = {
-    PropertiesParser: process.env.L20N_COV ?
-      require('../../../build/cov/lib/l20n/parser')
-      : require('../../../lib/l20n/format/properties/parser')
+    PropertiesParser: require('../../../src/lib/format/properties/parser')
   };
 }
 

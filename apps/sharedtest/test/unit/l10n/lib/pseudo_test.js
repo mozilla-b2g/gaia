@@ -1,5 +1,5 @@
 /* global it, assert:true, describe, before, beforeEach */
-/* global navigator, process */
+/* global navigator */
 'use strict';
 
 var assert;
@@ -19,14 +19,10 @@ describe('pseudo strategy', function() {
       });
     } else {
       assert = require('assert');
-      PSEUDO = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/pseudo').PSEUDO
-        : require('../../lib/l20n/pseudo').PSEUDO;
-      walkContent = require('../../lib/l20n/util').walkContent;
-
-      PropertiesParser = process.env.L20N_COV ?
-        require('../../build/cov/lib/l20n/parser')
-        : require('../../lib/l20n/format/properties/parser');
+      PSEUDO = require('../../src/lib/pseudo').PSEUDO;
+      walkContent = require('../../src/lib/util').walkContent;
+      PropertiesParser =
+        require('../../src/lib/format/properties/parser');
       done();
     }
   });
