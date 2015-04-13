@@ -112,10 +112,11 @@ var AppInstallManager = {
     window.addEventListener('applicationready',
         this.handleApplicationReady);
 
-    window.addEventListener('home', this.handleHomeButtonPressed.bind(this));
+    window.addEventListener('home', this.cancelInstallation.bind(this));
+    window.addEventListener('holdhome', this.cancelInstallation.bind(this));
   },
 
-  handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
+  cancelInstallation: function ai_cancelInstallation() {
     this.dialog.classList.remove('visible');
     this.dispatchPromptEvent('hidden');
     this.handleInstallCancel();

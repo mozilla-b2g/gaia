@@ -339,11 +339,14 @@ suite('system/AppInstallManager >', function() {
       });
 
       test('the dialog should be hidden after press home', function() {
-        var evt = {
-          type: 'home'
-        };
         assert.equal('visible', AppInstallManager.dialog.className);
-        AppInstallManager.handleHomeButtonPressed(evt);
+        window.dispatchEvent(new CustomEvent('home'));
+        assert.notEqual('visible', AppInstallManager.dialog.className);
+      });
+
+      test('the dialog should be hidden after hold home', function() {
+        assert.equal('visible', AppInstallManager.dialog.className);
+        window.dispatchEvent(new CustomEvent('holdhome'));
         assert.notEqual('visible', AppInstallManager.dialog.className);
       });
 
@@ -523,12 +526,17 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('the dialog should be hidden after press home', function() {
-            var evt = {
-              type: 'home'
-            };
             assert.equal('visible',
               AppInstallManager.installCancelDialog.className);
-            AppInstallManager.handleHomeButtonPressed(evt);
+            window.dispatchEvent(new CustomEvent('home'));
+            assert.notEqual('visible',
+              AppInstallManager.installCancelDialog.className);
+          });
+
+          test('the dialog should be hidden after hold home', function() {
+            assert.equal('visible',
+              AppInstallManager.installCancelDialog.className);
+            window.dispatchEvent(new CustomEvent('holdhome'));
             assert.notEqual('visible',
               AppInstallManager.installCancelDialog.className);
           });
@@ -1630,7 +1638,7 @@ suite('system/AppInstallManager >', function() {
       sinon.assert.calledOnce(KeyboardHelper.saveToSettings);
     });
 
-    test('IME setup dialog should be hidden after pressing home',
+    test('IME setup dialog should be hidden after press home',
     function(done) {
       waitForEvent('installprompthidden', done);
 
@@ -1638,12 +1646,25 @@ suite('system/AppInstallManager >', function() {
       assert.isTrue(AppInstallManager.
                       setupInstalledAppDialog.classList.contains('visible'));
 
-      AppInstallManager.handleHomeButtonPressed();
+      window.dispatchEvent(new CustomEvent('home'));
       assert.isFalse(AppInstallManager.
                       setupInstalledAppDialog.classList.contains('visible'));
     });
 
-    test('IME list should be hidden after pressing home', function(done) {
+    test('IME setup dialog should be hidden after hold home',
+    function(done) {
+      waitForEvent('installprompthidden', done);
+
+      AppInstallManager.handleInstallSuccess(mockApp);
+      assert.isTrue(AppInstallManager.
+                      setupInstalledAppDialog.classList.contains('visible'));
+
+      window.dispatchEvent(new CustomEvent('holdhome'));
+      assert.isFalse(AppInstallManager.
+                      setupInstalledAppDialog.classList.contains('visible'));
+    });
+
+    test('IME list should be hidden after press home', function(done) {
       waitForEvent('installprompthidden', done);
 
       AppInstallManager.handleInstallSuccess(mockAppTwo);
@@ -1651,7 +1672,20 @@ suite('system/AppInstallManager >', function() {
       assert.isTrue(AppInstallManager.
                       imeLayoutDialog.classList.contains('visible'));
 
-      AppInstallManager.handleHomeButtonPressed();
+      window.dispatchEvent(new CustomEvent('home'));
+      assert.isFalse(AppInstallManager.
+                      imeLayoutDialog.classList.contains('visible'));
+    });
+
+    test('IME list should be hidden after hold home', function(done) {
+      waitForEvent('installprompthidden', done);
+
+      AppInstallManager.handleInstallSuccess(mockAppTwo);
+      AppInstallManager.setupConfirmButton.click();
+      assert.isTrue(AppInstallManager.
+                      imeLayoutDialog.classList.contains('visible'));
+
+      window.dispatchEvent(new CustomEvent('holdhome'));
       assert.isFalse(AppInstallManager.
                       imeLayoutDialog.classList.contains('visible'));
     });
