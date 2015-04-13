@@ -87,6 +87,7 @@ function getSharedJs(parse, appDir, exclude, onFileRead) {
 function getSharedStyles(appDir, onFileRead) {
   var sharedStyle = [];
   var sharedStyleUnstable = [];
+  var sharedElements = [];
   var files = utils.ls(utils.getFile(appDir, 'style'), true)
     .filter(function(file) {
       return /\.css$/.test(file.path);
@@ -104,7 +105,10 @@ function getSharedStyles(appDir, onFileRead) {
       if (url) {
         index = url.indexOf('/shared/');
         if (index !== -1) {
-          if (url.indexOf('style_unstable') === -1) {
+          if (url.indexOf('shared/elements') !== -1) {
+            sharedElements.push(url.substring(index + 1)
+                                    .replace(/shared\/elements\//, ''));
+          } else if (url.indexOf('style_unstable') === -1) {
             sharedStyle.push(url.substring(index + 1)
                                  .replace(/shared\/style\//, ''));
           } else {
@@ -115,7 +119,7 @@ function getSharedStyles(appDir, onFileRead) {
       }
     }
   });
-  return [sharedStyle, sharedStyleUnstable];
+  return [sharedStyle, sharedStyleUnstable, sharedElements];
 }
 
 exports.getSharedJs = getSharedJs;

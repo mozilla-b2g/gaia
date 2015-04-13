@@ -30,13 +30,13 @@ CommAppBuilder.prototype.generateAll = function() {
   importBuild.generateConfig('communications', 'contacts', this.gaia);
 };
 
-CommAppBuilder.prototype.execute = function(options, webapp) {
-  this.webapp = webapp;
+CommAppBuilder.prototype.execute = function(options) {
+  this.webapp = utils.getWebapp(options.APP_DIR, options);
   this.setOptions(options);
   this.generateAll();
 };
 
-exports.execute = function(options, webapp) {
+exports.execute = function(options) {
   utils.copyToStage(options);
-  (new CommAppBuilder()).execute(options, webapp);
+  (new CommAppBuilder()).execute(options);
 };

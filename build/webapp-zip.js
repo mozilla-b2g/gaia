@@ -162,6 +162,7 @@ WebappZip.prototype.addToZip = function(file) {
 };
 
 WebappZip.prototype.execute = function(options) {
+  options.webapp = utils.getWebapp(options.APP_DIR, options);
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (options.BUILD_APP_NAME != '*' &&
     options.webapp.sourceDirectoryName != options.BUILD_APP_NAME) {
