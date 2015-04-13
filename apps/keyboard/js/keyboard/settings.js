@@ -252,11 +252,19 @@ HandwritingPadSettings.prototype.KEYS = [
 HandwritingPadSettings.prototype.PROPERTIES= [
   'strokeWidth', 'responseTime'];
 
+var UserPressManagerSettings = function() { };
+UserPressManagerSettings.prototype = new SettingsManagerBase();
+UserPressManagerSettings.prototype.KEYS = [
+  'deviceinfo.hardware', 'deviceinfo.product_model'];
+UserPressManagerSettings.prototype.PROPERTIES = [
+  'deviceinfoHardware', 'deviceinfoProductModel'];
+
 exports.SettingsPromiseManager = SettingsPromiseManager;
 exports.SettingsManagerBase = SettingsManagerBase;
 exports.SoundFeedbackSettings = SoundFeedbackSettings;
 exports.VibrationFeedbackSettings = VibrationFeedbackSettings;
 exports.IMEngineSettings = IMEngineSettings;
 exports.HandwritingPadSettings = HandwritingPadSettings;
+exports.UserPressManagerSettings = UserPressManagerSettings;
 
 })(window);
