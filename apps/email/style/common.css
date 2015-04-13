@@ -13,12 +13,14 @@
   -moz-user-select: none;
 }
 
-/* Allow inputs to be selectable, and to allow cut/copy operations */
-input[type="email"],
-input[type="password"],
-input[type="search"],
-input[type="text"],
-input[type="url"] {
+/* Allow inputs to be selectable, and to allow cut/copy operations. Copy/paste
+select all could reach across the whole DOM so only scope the selection to the
+center "active" card. Bug 1152172. */
+.center input[type="email"],
+.center input[type="password"],
+.center input[type="search"],
+.center input[type="text"],
+.center input[type="url"] {
   -moz-user-select: text;
 }
 

@@ -404,6 +404,11 @@ html:-moz-dir(rtl) .msg-header-attachments-yes {
   font-weight: 500;
   color: #5f5f5f;
   word-wrap: break-word;
+}
+
+/* Copy/paste select all could reach across the whole DOM so only scope the
+  selection to the center "active" card. Bug 1152172. */
+.center .msg-envelope-subject {
   -moz-user-select: text;
 }
 
@@ -416,8 +421,9 @@ html:-moz-dir(rtl) .msg-header-attachments-yes {
 }
 
 /* Plain text emails with their structured DOM created for the reader should
-   all have selectable text. */
-.msg-body-container * {
+   all have selectable text. Copy/paste select all could reach across the whole
+   DOM so only scope the selection to the center "active" card. Bug 1152172. */
+.center .msg-body-container * {
   -moz-user-select: text;
 }
 
