@@ -119,6 +119,20 @@ suite('system/AppWindowFactory', function() {
     target: {}
   };
 
+  var fakeLaunchConfig8 = {
+    'isActivity': false,
+    'showApp': false,
+    'url': 'app://findmydevice.gaiamobile.org/index.html',
+    'name': 'Find my device',
+    'manifestURL': 'app://findmydevice.gaiamobile.org/manifest.webapp',
+    'origin': 'app://findmydevice.gaiamobile.org',
+    'manifest': {
+      'name': 'Find my device',
+      'role': 'system',
+    },
+    target: {}
+  };
+
   var realApplications;
 
   setup(function(done) {
@@ -170,6 +184,12 @@ suite('system/AppWindowFactory', function() {
       app.element.dispatchEvent(new CustomEvent('_opened', {
         detail: app
       }));
+      assert.isFalse(window.appWindowFactory.isLaunchingWindow());
+    });
+
+    test('Ignore background app', function() {
+      window.dispatchEvent(new CustomEvent('open-app',
+        {detail: fakeLaunchConfig8}));
       assert.isFalse(window.appWindowFactory.isLaunchingWindow());
     });
   });
