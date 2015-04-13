@@ -125,15 +125,12 @@ apps/sharedtest/test/unit/gesture_detector_test.js
 apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
 apps/system/js/browser_mixin.js
-apps/system/js/emergency_callback_manager.js
 apps/system/js/icc.js
-apps/system/js/icc_events.js
 apps/system/js/init_logo_handler.js
 apps/system/js/notifications.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
 apps/system/js/sheets_transition.js
-apps/system/js/sim_lock.js
 apps/system/js/update_manager.js
 apps/system/js/wifi.js
 apps/system/test/unit/app_install_manager_test.js
