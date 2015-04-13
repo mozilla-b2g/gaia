@@ -72,6 +72,7 @@ suite('thread_list_ui', function() {
     this.sinon.stub(MessageManager, 'on');
     this.sinon.stub(InterInstanceEventDispatcher, 'on');
 
+    ThreadListUI.readyDeferred = Utils.Promise.defer();
     ThreadListUI.init();
 
     // Clear drafts as leftovers in the profile might break the tests
@@ -1277,7 +1278,7 @@ suite('thread_list_ui', function() {
   });
 
   suite('renderThreads', function() {
-    var firstViewDone,panel;
+    var firstViewDone, panel;
     setup(function() {
       this.sinon.spy(ThreadListUI, 'setEmpty');
       this.sinon.spy(ThreadListUI, 'prepareRendering');
@@ -1305,15 +1306,13 @@ suite('thread_list_ui', function() {
         options.done();
       });
 
-      ThreadListUI.renderThreads(firstViewDone, function() {
-        done(function checks() {
-          sinon.assert.called(firstViewDone);
-          sinon.assert.called(ThreadListUI.renderDrafts);
-          sinon.assert.called(StickyHeader);
-          sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
-          assert.isTrue(panel.classList.contains('threadlist-is-empty'));
-        });
-      });
+      ThreadListUI.renderThreads(firstViewDone).then(function() {
+        sinon.assert.called(firstViewDone);
+        sinon.assert.called(ThreadListUI.renderDrafts);
+        sinon.assert.called(StickyHeader);
+        sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
+        assert.isTrue(panel.classList.contains('threadlist-is-empty'));
+      }).then(done, done);
     });
 
     test('Rendering a few threads', function(done) {
@@ -1353,30 +1352,28 @@ suite('thread_list_ui', function() {
           done && done();
         });
 
-      ThreadListUI.renderThreads(firstViewDone, function() {
-        done(function checks() {
-          sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
-          assert.isFalse(panel.classList.contains('threadlist-is-empty'));
-          sinon.assert.called(StickyHeader);
-          sinon.assert.called(ThreadListUI.sticky.refresh);
+      ThreadListUI.renderThreads(firstViewDone).then(function() {
+        sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
+        assert.isFalse(panel.classList.contains('threadlist-is-empty'));
+        sinon.assert.called(StickyHeader);
+        sinon.assert.called(ThreadListUI.sticky.refresh);
 
-          var mmsThreads = container.querySelectorAll(
-            '[data-last-message-type="mms"]'
-          );
-          var smsThreads = container.querySelectorAll(
-            '[data-last-message-type="sms"]'
-          );
+        var mmsThreads = container.querySelectorAll(
+          '[data-last-message-type="mms"]'
+        );
+        var smsThreads = container.querySelectorAll(
+          '[data-last-message-type="sms"]'
+        );
 
-          // Check that all threads have been properly inserted in the list
-          assert.equal(mmsThreads.length, 2);
-          assert.equal(smsThreads.length, 8);
+        // Check that all threads have been properly inserted in the list
+        assert.equal(mmsThreads.length, 2);
+        assert.equal(smsThreads.length, 8);
 
-          sinon.assert.calledWith(
-            Settings.setReadAheadThreadRetrieval,
-            ThreadListUI.FIRST_PANEL_THREAD_COUNT
-          );
-        });
-      });
+        sinon.assert.calledWith(
+          Settings.setReadAheadThreadRetrieval,
+          ThreadListUI.FIRST_PANEL_THREAD_COUNT
+        );
+      }).then(done, done);
     });
 
     suite('Individual thread actions', function() {
@@ -1395,12 +1392,8 @@ suite('thread_list_ui', function() {
 
       test('Sets every thread to Threads object', function(done) {
         ThreadListUI.renderThreads(() => {
-          done(function checks() {
-            threadList.forEach(
-              (thread) => assert.isTrue(Threads.has(thread.id))
-            );
-          });
-        });
+          threadList.forEach((thread) => assert.isTrue(Threads.has(thread.id)));
+        }).then(done, done);
       });
 
       test('Updates thread UI header if thread to render is currently active',
@@ -1410,11 +1403,9 @@ suite('thread_list_ui', function() {
         Navigation.isCurrentPanel.withArgs('thread', { id: threadList[0].id }).
           returns(true);
 
-        ThreadListUI.renderThreads(() => {
-          done(function checks() {
-            sinon.assert.calledOnce(ThreadUI.updateHeaderData);
-          });
-        });
+        ThreadListUI.renderThreads(
+          () => sinon.assert.calledOnce(ThreadUI.updateHeaderData)
+        ).then(done, done);
       });
     });
   });
@@ -2009,6 +2000,30 @@ suite('thread_list_ui', function() {
         MockOptionMenu.calls[0].items[1].l10nId, 'cancel'
       );
       sinon.assert.calledWith(ThreadListUI.delete, ['101']);
+    });
+  });
+
+  suite('whenReady', function() {
+    test('only resolves when all threads are rendered', function(done) {
+      this.sinon.stub(MessageManager, 'getThreads');
+
+      var firstPageRenderedStub = sinon.stub();
+      var allThreadsRenderedStub = sinon.stub();
+
+      ThreadListUI.renderThreads(firstPageRenderedStub).then(
+        allThreadsRenderedStub
+      );
+
+      var threadList = new MockThreadList({ fullList: true });
+      threadList.forEach(
+        (thread) => MessageManager.getThreads.yieldTo('each', thread)
+      );
+      MessageManager.getThreads.yieldTo('end');
+      MessageManager.getThreads.yieldTo('done');
+
+      ThreadListUI.whenReady().then(() => {
+        sinon.assert.callOrder(firstPageRenderedStub, allThreadsRenderedStub);
+      }).then(done, done);
     });
   });
 });
