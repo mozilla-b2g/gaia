@@ -23,6 +23,8 @@ function createBdiNode(content) {
 }
 
 var ThreadListUI = {
+  readyDeferred: Utils.Promise.defer(),
+
   draftLinks: null,
   draftRegistry: null,
   DRAFT_SAVED_DURATION: 5000,
@@ -551,7 +553,7 @@ var ThreadListUI = {
     Settings.setReadAheadThreadRetrieval(this.FIRST_PANEL_THREAD_COUNT);
   },
 
-  renderThreads: function thlui_renderThreads(firstViewDoneCb, allDoneCb) {
+  renderThreads: function thlui_renderThreads(firstViewDoneCb) {
     window.performance.mark('willRenderThreads');
     PerformanceTestingHelper.dispatch('will-render-threads');
 
@@ -614,17 +616,18 @@ var ThreadListUI = {
     function onDone() {
       /* jshint validthis: true */
 
+      this.readyDeferred.resolve();
+
       this.ensureReadAheadSetting();
-      allDoneCb && allDoneCb();
     }
 
-    var renderingOptions = {
+    MessageManager.getThreads({
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
       done: onDone.bind(this)
-    };
+    });
 
-    MessageManager.getThreads(renderingOptions);
+    return this.readyDeferred.promise;
   },
 
   createThread: function thlui_createThread(record) {
@@ -948,6 +951,10 @@ var ThreadListUI = {
     this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
       this.draftSavedBanner.classList.add('hide');
     }.bind(this), this.DRAFT_SAVED_DURATION);
+  },
+
+  whenReady: function() {
+    return this.readyDeferred.promise;
   }
 };
 

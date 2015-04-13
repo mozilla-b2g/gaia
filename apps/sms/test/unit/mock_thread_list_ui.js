@@ -9,7 +9,6 @@ var MockThreadListUI = {
   init: function() {},
   updateThread: function() {},
   getAllInputs: function() {},
-  getSelectedInputs: function() {},
   setContact: function() {},
   handleEvent: function() {},
   checkInputs: function() {},
@@ -21,7 +20,7 @@ var MockThreadListUI = {
   showOptions: function() {},
   startEdit: function() {},
   cancelEdit: function() {},
-  renderThreads: function() {},
+  renderThreads: () => Promise.resolve(),
   createThread: function() {},
   insertThreadContainer: function() {},
   onMessageSending: function() {},
@@ -31,5 +30,7 @@ var MockThreadListUI = {
   onDraftSaved: function() {},
   createThreadContainer: function() {},
   updateContactsInfo: function() {},
-  mark: function() {}
+  mark: function() {},
+  markReadUnread: () => {},
+  whenReady: () => Promise.resolve()
 };
