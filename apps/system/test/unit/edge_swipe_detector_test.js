@@ -10,6 +10,7 @@
 /* global MockLayoutManager, layoutManager */
 /* global MockService */
 /* global MockSoftwareButtonManager, softwareButtonManager */
+/* global MockRocketbar, rocketbar */
 
 requireApp('system/js/edge_swipe_detector.js');
 
@@ -22,6 +23,7 @@ requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
   'SheetsTransition',
@@ -32,7 +34,8 @@ var mocksForEdgeSwipeDetector = new MocksHelper([
   'TouchForwarder',
   'HomescreenLauncher',
   'FtuLauncher',
-  'LayoutManager'
+  'LayoutManager',
+  'Rocketbar'
 ]).init();
 
 suite('system/EdgeSwipeDetector >', function() {
@@ -48,6 +51,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
     window.layoutManager = new MockLayoutManager();
     window.softwareButtonManager = new MockSoftwareButtonManager();
+    window.rocketbar = new MockRocketbar();
 
     // DOM
     subject.previous = document.createElement('div');
@@ -531,6 +535,23 @@ suite('system/EdgeSwipeDetector >', function() {
         touchEnd(panel, [0], [250]);
 
         assert.isTrue(fwSpy.notCalled);
+      });
+
+      test('it should forward when rocketbar is active', function() {
+        var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
+
+        rocketbar.active = true;
+        swipe(this.sinon.clock, panel, 0, (width / 2),
+              240, 240, true);
+        this.sinon.clock.tick();
+
+        // Finishing exactly where we started
+        touchMove(panel, [0], [250]);
+        this.sinon.clock.tick();
+        touchEnd(panel, [0], [250]);
+
+        assert.isTrue(fwSpy.called);
+        rocketbar.active = false;
       });
     });
 
