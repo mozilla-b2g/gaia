@@ -13,6 +13,7 @@ define(function(require) {
         this._elements = {
           body: panel.querySelector('.addon-details-body'),
           header: panel.querySelector('.addon-details-header'),
+          gaiaHeader: panel.querySelector('gaia-header'),
           icon: panel.querySelector('.addon-details-icon'),
           description: panel.querySelector('.addon-description-text'),
           developer: panel.querySelector('.addon-developer'),
@@ -31,22 +32,41 @@ define(function(require) {
       },
 
       onBeforeShow: function(panel, options) {
-        this._curAddon = options.addon;
+        return Promise.resolve((() => {
+          if (options.addon) {
+            return options.addon;
+          } else if (options.manifestURL) {
+            return AddonManager.findAddonByManifestURL(options.manifestURL);
+          }
+        })()).then((addon) => {
+          this._curAddon = addon;
 
-        // set initial state
-        this._details.render(this._curAddon);
-        this._elements.toggle.checked = AddonManager.isEnabled(this._curAddon);
-        this._curAddon.observe('enabled', this._boundOnAppEnabledChange);
-        this._elements.deleteButton.disabled =
-          !AddonManager.canDelete(this._curAddon);
+          // set initial state
+          if (this._curAddon) {
+            this._details.render(this._curAddon);
+            this._elements.toggle.checked =
+              AddonManager.isEnabled(this._curAddon);
+            this._curAddon.observe('enabled', this._boundOnAppEnabledChange);
+            this._elements.deleteButton.disabled =
+              !AddonManager.canDelete(this._curAddon);
+            this._elements.body.hidden = false;
+          } else {
+            console.error('No valid add-on');
+            this._elements.body.hidden = true;
+          }
+
+          this._elements.gaiaHeader.hidden = false;
+        });
       },
 
       onHide: function() {
         // Scroll back to the top
         this._elements.body.scrollTop = 0;
 
-        this._curAddon.unobserve('enabled', this._boundOnAppEnabledChange);
-        this._curAddon = null;
+        if (this._curAddon) {
+          this._curAddon.unobserve('enabled', this._boundOnAppEnabledChange);
+          this._curAddon = null;
+        }
       },
 
       _onAppEnabledChange: function(enabled) {

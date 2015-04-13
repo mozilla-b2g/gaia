@@ -424,6 +424,22 @@ define(function(require) {
       });
     },
 
+    /**
+     * Return the App object that matches the given manifest url.
+     *
+     * @access public
+     * @memberOf AddonManager.prototype
+     * @param {String} manifestURL
+     * @returns {Promise App}
+     */
+    findAddonByManifestURL: function(manifestURL) {
+      return AppsCache.apps().then(() => {
+        return this._addons.array.find((addon) => {
+          return addon.instance.manifestURL === manifestURL;
+        });
+      });
+    },
+
     get length() {
       return this._addons.length;
     },

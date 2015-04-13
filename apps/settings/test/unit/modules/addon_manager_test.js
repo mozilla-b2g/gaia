@@ -46,7 +46,7 @@ suite('addons manager test > ', function() {
     manifest: {
       name: 'testAppName1',
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_app1',
     origin: 'app://testorigin1'
   };
 
@@ -54,7 +54,7 @@ suite('addons manager test > ', function() {
     manifest: {
       name: 'testAppName2',
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_app2',
     origin: 'app://testorigin2'
   };
 
@@ -63,7 +63,7 @@ suite('addons manager test > ', function() {
       type: 'privileged',
       name: 'privilegedAppName',
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_priv_app',
     origin: 'app://privilegedorigin'
   };
 
@@ -73,7 +73,7 @@ suite('addons manager test > ', function() {
       role: 'system',
       name: 'certifiedAppName',
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_cert_app',
     origin: 'app://certifiedorigin'
   };
 
@@ -82,7 +82,7 @@ suite('addons manager test > ', function() {
       role: 'addon',
       name: 'testAddonName1',
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_addon1',
     origin: 'app://testaddonorigin1'
   };
 
@@ -95,7 +95,7 @@ suite('addons manager test > ', function() {
         scripts: []
       }]
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_addon2',
     origin: 'app://testaddonorigin2'
   };
 
@@ -109,7 +109,7 @@ suite('addons manager test > ', function() {
         scripts: ['addon.js']
       }]
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_priv_addon',
     origin: 'app://privilegedaddonorigin'
   };
 
@@ -123,7 +123,7 @@ suite('addons manager test > ', function() {
         scripts: ['addon.js']
       }]
     },
-    manifestURL: 'testManifestURL',
+    manifestURL: 'testManifestURL_cert_addon',
     origin: 'app://certifiedaddonorigin'
   };
 
@@ -479,6 +479,23 @@ suite('addons manager test > ', function() {
         var wrappedAddon = MockApp(certifiedAddon);
         assert.becomes(AddonManager.getAddonDisableType(wrappedAddon), 'reboot')
           .notify(done);
+    });
+  });
+
+  suite('findAddonByManifestURL', function() {
+    test('resolves to the correct addon object when matches', function(done) {
+      var targetManifestURL = 'testManifestURL_priv_addon';
+      var privAddon = AddonManager.addons.array.find((addon) => {
+        return addon.instance.manifestURL === targetManifestURL;
+      });
+
+      assert.becomes(AddonManager
+        .findAddonByManifestURL(targetManifestURL), privAddon).notify(done);
+    });
+
+    test('resolves to undefined when no addon matches', function(done) {
+      assert.becomes(AddonManager
+        .findAddonByManifestURL('fakeManifestURL'), undefined).notify(done);
     });
   });
 });
