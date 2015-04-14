@@ -204,7 +204,11 @@
     },
 
     trackLauchingWindow: function(config) {
-      this._launchingApp = new AppWindow(config);
+      var app = new AppWindow(config);
+      if (config.stayBackground) {
+        return;
+      }
+      this._launchingApp = app;
       this._launchingApp.element.addEventListener('_opened', this);
       this._launchingApp.element.addEventListener('_terminated', this);
     },
