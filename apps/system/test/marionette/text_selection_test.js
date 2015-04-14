@@ -12,6 +12,7 @@ marionette('Text selection >', function() {
 
   suite('without lockscreen', function() {
     var fakeTextselectionApp;
+    var system;
     var client = marionette.client({
       apps: apps,
       prefs: {
@@ -22,6 +23,8 @@ marionette('Text selection >', function() {
     });
 
     setup(function() {
+      system = client.loader.getAppClass('system');
+      system.waitForStartup();
       fakeTextselectionApp = new FakeTextSelectionApp(client);
       action = new Actions(client);
     });
