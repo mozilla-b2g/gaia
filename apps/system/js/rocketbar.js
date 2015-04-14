@@ -356,6 +356,12 @@
             };
           }
 
+          // Force a blur before activation.
+          // This way app windows will clear things like value selectors,
+          // and the rocketbar will animate in nicely. Otherwise the rocketbar
+          // would animate in behind the value selector.
+          app.blur();
+
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
             app.appChrome.maximize(() => {
               this.activate().then(afterActivate);

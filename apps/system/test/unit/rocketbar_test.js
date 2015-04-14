@@ -496,7 +496,8 @@ suite('system/Rocketbar', function() {
     var activeApp = {
       config: {url: 'app.url'},
       isBrowser: function() {},
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      blur: function() {}
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
@@ -536,7 +537,8 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      blur: function() {}
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
@@ -578,7 +580,8 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      blur: function() {}
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
 
@@ -610,7 +613,8 @@ suite('system/Rocketbar', function() {
       isPrivateBrowser: function() {
         return true;
       },
-      isActive: function() { return true; }
+      isActive: function() { return true; },
+      blur: function() {}
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
