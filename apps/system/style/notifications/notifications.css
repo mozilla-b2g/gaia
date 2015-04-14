@@ -280,12 +280,10 @@
 
 /* RTL View */
 
-#notifications-container .notification[data-predefined-dir="rtl"] > div.title-container .title,
 #notifications-container .notification[data-predefined-dir="rtl"] > div.detail {
   direction: rtl;
 }
 
-#notifications-container .notification[data-predefined-dir="ltr"] > div.title-container .title,
 #notifications-container .notification[data-predefined-dir="ltr"] > div.detail {
   direction: ltr;
 }
@@ -313,4 +311,16 @@ html[dir="rtl"] #notifications-container .notification > img {
 html[dir="rtl"] #notifications-container .notification > div {
   margin-left: unset;
   margin-right: 3.7rem;
+}
+
+/*
+ * For the notification title, we need to use dir="auto" to display
+ * parenthesis and periods in their proper place. However, we still
+ * want the text to align right when in an RTL language, so we use
+ * the following override. See bug 1134453 and bug 1142925.
+ */
+html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
+  text-align: right;
+  -moz-margin-end: unset;
+  margin-left: 0.5rem;
 }

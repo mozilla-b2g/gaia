@@ -384,3 +384,15 @@
   left: unset;
   right: 0;
 }
+
+/*
+ * For the notification title, we need to use dir="auto" to display
+ * parenthesis and periods in their proper place. However, we still
+ * want the text to align right when in an RTL language, so we use
+ * the following override. See bug 1134453 and bug 1142925.
+ */
+:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
+  text-align: right;
+  -moz-margin-end: unset;
+  margin-left: 0.5rem;
+}
