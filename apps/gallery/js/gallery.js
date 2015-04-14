@@ -284,7 +284,8 @@ function fileCreated(fileinfo) {
     if (currentView === LAYOUT_MODE.fullscreen) {
       if (justSavedEditedImage) {
         var banner = $('edit-copy-save-banner');
-        showFile(0);
+        // Show latest saved file inserted at index insertPosition
+        showFile(insertPosition);
         navigator.mozL10n.setAttributes($('edit-copy-save-status'),
                                         'edit-copy-saved');
         banner.hidden = false;
