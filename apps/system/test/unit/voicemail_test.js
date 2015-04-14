@@ -339,13 +339,14 @@ suite('voicemail notification', function() {
               setTimeout((function() {
                 // display the message count as title
                 var expectedTitle = MockNavigatorMozVoicemail.mMessage;
+                var expectedNumber = '\u200E' + this.voiceNumbers[serviceId];
                 // display the voice mail number as body
                 var expectedText = 'dialNumber{"number":"' +
-                  this.voiceNumbers[serviceId] + '"}';
+                  '\u200E' + this.voiceNumbers[serviceId] + '"}';
 
                 sinon.assert.calledWithExactly(Voicemail.showNotification,
                   expectedTitle, expectedText,
-                  this.voiceNumbers[serviceId], serviceId);
+                  expectedNumber, serviceId);
 
                 done();
               }).bind(this));
@@ -361,12 +362,12 @@ suite('voicemail notification', function() {
                   var expectedTitle = 'newVoicemails{"n":' +
                     MockNavigatorMozVoicemail.mMessageCount + '}';
                   // display the voice mail number as body
-                  var expectedText = 'dialNumber{"number":"' +
+                  var expectedText = 'dialNumber{"number":"' + '\u200E' +
                     MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
                   sinon.assert.calledWithExactly(Voicemail.showNotification,
                     expectedTitle, expectedText,
-                    this.voiceNumbers[serviceId], serviceId);
+                    '\u200E' + this.voiceNumbers[serviceId], serviceId);
 
                   done();
                 }).bind(this));
@@ -382,12 +383,12 @@ suite('voicemail notification', function() {
                   // display the unknown message as title
                   var expectedTitle = 'newVoicemailsUnknown';
                   // display the voice mail number as body
-                  var expectedText = 'dialNumber{"number":"' +
+                  var expectedText = 'dialNumber{"number":"' + '\u200E' +
                     MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
                   sinon.assert.calledWithExactly(Voicemail.showNotification,
                     expectedTitle, expectedText,
-                    this.voiceNumbers[serviceId], serviceId);
+                    '\u200E' + this.voiceNumbers[serviceId], serviceId);
 
                   done();
                 }).bind(this));
@@ -429,13 +430,14 @@ suite('voicemail notification', function() {
                   setTimeout((function() {
                     // display the message as title
                     var expectedTitle = MockNavigatorMozVoicemail.mMessage;
+                    var expectedNumber = '\u200E' +
+                      this.voiceNumbers[serviceId];
                     // display the message as body
                     var expectedText = 'dialNumber{"number":"' +
-                      this.voiceNumbers[serviceId] + '"}';
+                      expectedNumber + '"}';
 
                     sinon.assert.calledWithExactly(Voicemail.showNotification,
-                      expectedTitle, expectedText,
-                      this.voiceNumbers[serviceId], serviceId);
+                      expectedTitle, expectedText, expectedNumber, serviceId);
 
                     done();
                   }).bind(this));
