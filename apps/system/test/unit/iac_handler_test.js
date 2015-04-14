@@ -1,5 +1,5 @@
+/* global IACHandler */
 'use strict';
-
 
 require('/shared/js/iac_handler.js');
 
@@ -33,7 +33,7 @@ suite('IACHandler > ', function() {
 
   suite('connect to mediacomms', function() {
     var request;
-    var fakePort = new FakePort;
+    var fakePort = new FakePort();
 
     setup(function() {
 
@@ -43,7 +43,7 @@ suite('IACHandler > ', function() {
       };
 
       // pretend Gecko call this event somewhere
-      MockMozSetMessageHandler_listeners['connection'](request);
+      MockMozSetMessageHandler_listeners.connection(request);
     });
 
     test('IACHandler can send to mediacomms successfully', function() {
@@ -61,7 +61,7 @@ suite('IACHandler > ', function() {
 
   suite('connect to ftucomms', function() {
     var request;
-    var fakePort = new FakePort;
+    var fakePort = new FakePort();
 
     setup(function() {
 
@@ -71,7 +71,7 @@ suite('IACHandler > ', function() {
       };
 
       // pretend Gecko call this event somewhere
-      MockMozSetMessageHandler_listeners['connection'](request);
+      MockMozSetMessageHandler_listeners.connection(request);
     });
 
     test('IACHandler can send to mediacomms successfully', function() {
@@ -90,7 +90,7 @@ suite('IACHandler > ', function() {
 
   suite('connect to fxa-mgmt', function() {
     var request;
-    var fakePort = new FakePort;
+    var fakePort = new FakePort();
 
     setup(function() {
 
@@ -100,7 +100,7 @@ suite('IACHandler > ', function() {
       };
 
       // pretend Gecko call this event somewhere
-      MockMozSetMessageHandler_listeners['connection'](request);
+      MockMozSetMessageHandler_listeners.connection(request);
     });
 
     test('IACHandler can send to fxa-mgmt successfully', function() {

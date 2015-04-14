@@ -137,13 +137,7 @@ apps/system/js/sim_lock.js
 apps/system/js/update_manager.js
 apps/system/js/wifi.js
 apps/system/test/unit/app_install_manager_test.js
-apps/system/test/unit/entery_sheet_test.js
-apps/system/test/unit/iac_handler_test.js
-apps/system/test/unit/keyboard_helper_test.js
-apps/system/test/unit/lockscreen/lockscreen_test.js
-apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/orientation_manager_test.js
-apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
 apps/system/test/unit/wifi_test.js

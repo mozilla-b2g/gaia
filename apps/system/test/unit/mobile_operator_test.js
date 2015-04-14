@@ -1,3 +1,4 @@
+/* global MobileOperator, MockNavigatorMozIccManager */
 /* This should live in the shared directory */
 
 'use strict';
