@@ -85,7 +85,7 @@ define(function(require) {
 
     /**
      * Watch 'ondisplaypasskeyreq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests to display 
+     * A handler to trigger when a remote bluetooth device requests to display
      * passkey on the screen during pairing process.
      *
      * @access private
@@ -96,27 +96,18 @@ define(function(require) {
         return;
       }
 
-      this._defaultAdapter.pairingReqs.ondisplaypasskeyreq = 
-        this._onDisplayPasskeyReq.bind(this);
-    },
-
-    /**
-     * A handler to handle 'ondisplaypasskeyreq' event while it's coming.
-     *
-     * @access private
-     * @memberOf PairManager
-     */
-    _onDisplayPasskeyReq: function(evt) {
-      Debug('ondisplaypasskeyreq(): Pairing request from ' + 
-            evt.deviceName + ': display passkey = ' + evt.handle.passkey);
-      // TODO: Display passkey to user if user story is required.
-      throw new Error('Received pairing method "ondisplaypasskeyreq". ' + 
-                      'It would need to implement if user story is required!!');
+      this._defaultAdapter.pairingReqs.addEventListener('displaypasskeyreq',
+        (evt) => {
+        this._handlePairingRequest({
+          method: 'displaypasskey',
+          evt: evt
+        });
+      });
     },
 
     /**
      * Watch 'onenterpincodereq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests user enter 
+     * A handler to trigger when a remote bluetooth device requests user enter
      * PIN code during pairing process.
      *
      * @access private
@@ -127,32 +118,19 @@ define(function(require) {
         return;
       }
 
-      this._defaultAdapter.pairingReqs.onenterpincodereq =
-        this._onEnterPinCodeReq.bind(this);
-    },
-
-    /**
-     * A handler to handle 'onenterpincodereq' event while it's coming.
-     *
-     * @access private
-     * @memberOf PairManager
-     */
-    _onEnterPinCodeReq: function(evt) {
-      Debug('onenterpincodereq(): Pairing request from ' + 
-            evt.deviceName + ': enter pin code..');
-      
-      // inform user to enter pin code
-      var pairingInfo = {
-        method: 'pincode',
-        evt: evt
-      };
-      this._onRequestPairing(pairingInfo);
+      this._defaultAdapter.pairingReqs.addEventListener('enterpincodereq',
+        (evt) => {
+        this._handlePairingRequest({
+          method: 'enterpincode',
+          evt: evt
+        });
+      });
     },
 
     /**
      * Watch 'onpairingconfirmationreq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests user 
-     * confirm passkey during pairing process. Applications may prompt passkey 
+     * A handler to trigger when a remote bluetooth device requests user
+     * confirm passkey during pairing process. Applications may prompt passkey
      * to user for confirmation, or confirm the passkey for user proactively.
      *
      * @access private
@@ -163,29 +141,19 @@ define(function(require) {
         return;
       }
 
-      this._defaultAdapter.pairingReqs.onpairingconfirmationreq =
-        this._onPairingConfirmationReq.bind(this);
-    },
-
-    /**
-     * A handler to handle 'onpairingconfirmationreq' event while it's coming.
-     *
-     * @access private
-     * @memberOf PairManager
-     */
-    _onPairingConfirmationReq: function(evt) {
-      // display passkey for user confirm
-      var pairingInfo = {
-        method: 'confirmation',
-        evt: evt
-      };
-      this._onRequestPairing(pairingInfo);
+      this._defaultAdapter.pairingReqs.addEventListener(
+        'pairingconfirmationreq', (evt) => {
+        this._handlePairingRequest({
+          method: 'confirmation',
+          evt: evt
+        });
+      });
     },
 
     /**
      * Watch 'onpairingconsentreq' dom event for pairing.
-     * A handler to trigger when a remote bluetooth device requests user 
-     * confirm pairing during pairing process. Applications may prompt user 
+     * A handler to trigger when a remote bluetooth device requests user
+     * confirm pairing during pairing process. Applications may prompt user
      * for confirmation or confirm for user proactively.
      *
      * @access private
@@ -196,27 +164,18 @@ define(function(require) {
         return;
       }
 
-      this._defaultAdapter.pairingReqs.onpairingconsentreq = 
-        this._onPairingConsentReq.bind(this);
-    },
-
-    /**
-     * A handler to handle 'onpairingconsentreq' event while it's coming.
-     *
-     * @access private
-     * @memberOf PairManager
-     */
-    _onPairingConsentReq: function(evt) {
-      Debug('onpairingconsentreq(): Pairing request from ' + 
-            evt.deviceName + ': pairing consent');
-      // TODO: Notify user of just-work pairing if user story is required.
-      throw new Error('Received pairing method "onpairingconsentreq". ' + 
-                      'It would need to implement if user story is required!!');
+      this._defaultAdapter.pairingReqs.addEventListener('pairingconsentreq',
+        (evt) => {
+        this._handlePairingRequest({
+          method: 'consent',
+          evt: evt
+        });
+      });
     },
 
     /**
      * Watch 'onpairingaborted' dom event for pairing aborted.
-     * A handler to trigger when pairing fails due to one of 
+     * A handler to trigger when pairing fails due to one of
      * following conditions:
      * - authentication fails
      * - remote device down (bluetooth ACL becomes disconnected)
@@ -229,7 +188,7 @@ define(function(require) {
       if (!this._defaultAdapter) {
         return;
       }
-      
+
       this._defaultAdapter.addEventListener('pairingaborted',
         this._onPairingAborted.bind(this));
     },
@@ -285,9 +244,9 @@ define(function(require) {
      * @param {Object} pairingInfo.method - method of this pairing request
      * @param {Object} pairingInfo.evt - DOM evt of this pairing request
      */
-    _onRequestPairing: function(pairingInfo) {
-      Debug('_onRequestPairing():' + 
-            ' pairingInfo.method = ' + pairingInfo.method + 
+    _handlePairingRequest: function(pairingInfo) {
+      Debug('_onRequestPairing():' +
+            ' pairingInfo.method = ' + pairingInfo.method +
             ' pairingInfo.evt = ' + pairingInfo.evt);
 
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
