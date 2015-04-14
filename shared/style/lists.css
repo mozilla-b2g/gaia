@@ -1,24 +1,24 @@
 /* ----------------------------------
  * Lists
  * ---------------------------------- */
-[data-type="list"] {
+.-s-list-container {
   font-weight: 400;
   padding: 0 1.5rem;
 }
 
-[data-type="list"] ul {
+.-s-list-ul {
   list-style: none;
   margin: 0;
   padding: 0;
   overflow: hidden;
 }
 
-[data-type="list"] strong {
+.-s-list-strong {
   font-weight: 500;
 }
 
 /* Title divisors */
-[data-type="list"] header {
+.-s-list-header {
   padding: 0 1.5rem;
   margin: 0;
   font-size: 1.6rem;
@@ -33,7 +33,7 @@
 }
 
 /* List items */
-[data-type="list"] li {
+.-s-list-li {
   width: 100%;
   height: 6rem;
   box-sizing: border-box;
@@ -44,16 +44,16 @@
   position: relative;
 }
 
-[data-type="list"] li:last-child {
+.-s-list-li:last-child {
   border: none;
 }
 
 /* Pressed State */
-li a:active {
+.-s-list-a:active {
   background-color: transparent; /* remove default color for active state */
 }
 
-[data-type="list"] li > a {
+.-s-list-a {
   text-decoration: none;
   color: #333;
   display: block;
@@ -63,8 +63,8 @@ li a:active {
   outline: none;
 }
 
-[data-type="list"].active li:after,
-[data-type="list"] li > a:after {
+.-s-list-active:after,
+.-s-list-a:after {
   content: "";
   pointer-events: none;
   position: absolute;
@@ -74,20 +74,20 @@ li a:active {
   bottom: 0;
 }
 
-[data-type="list"].active li:active:after,
-[data-type="list"] li > a:active:after {
+.-s-list-active-li-active:after,
+.-s-list-a-active:after {
   background-color: rgba(0,213,255,0.3);
 }
 
 /* Disabled */
-[data-type="list"] li[aria-disabled="true"] {
+.-s-list-li-disabled {
   pointer-events: none;
   opacity: 0.2;
   border-color: #888;
 }
 
 /* Graphic content */
-[data-type="list"] aside {
+.-s-list-aside {
   float: left;
   margin: 0;
   -moz-margin-end: 0.5rem;
@@ -95,19 +95,18 @@ li a:active {
   position: relative;
 }
 
-[data-type="list"] li > a aside,
-[data-type="list"] li > a aside.icon {
+.-s-list-aside-transparent {
   background-color: transparent;
 }
 
-[data-type="list"] aside.pack-end {
+.-s-list-pack-end {
   float: right;
   margin: 0;
   -moz-margin-start: 0.5rem;
   text-align: end;
 }
 
-[data-type="list"] aside.icon {
+.-s-list-aside-icon {
   width: 3rem;
   height: 6rem;
   background: #fff no-repeat left center / 100% auto;
@@ -116,8 +115,7 @@ li a:active {
   overflow: hidden;
 }
 
-[data-type="list"] aside span[data-type=img],
-[data-type="list"] aside img {
+.-s-list-img {
   display: block;
   overflow: hidden;
   width: 5rem;
@@ -132,11 +130,11 @@ li a:active {
   image-rendering: -moz-crisp-edges;
 }
 
-[data-type="list"] [data-icon] {
+.-s-list-icon {
   font-size: 0;
 }
 
-[data-type="list"] [data-icon]:before {
+.-s-list-icon:before {
   line-height: 6rem;
   text-align: center;
   width: 3rem;
@@ -144,7 +142,7 @@ li a:active {
 }
 
 /* Text content */
-[data-type="list"] li p {
+.-s-list-p {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -156,32 +154,30 @@ li a:active {
   line-height: 2rem;
 }
 
-[data-type="list"] li p:first-of-type {
+.-s-list-p:first-of-type {
   font-size: 1.8rem;
   line-height: 2.2rem;
   color: #333;
   padding: 1rem 0 0;
 }
 
-[data-type="list"] li p:only-child,
-[data-type="list"] li p:first-of-type:last-of-type {
+.-s-list-p:only-child,
+.-s-list-p:first-of-type:last-of-type {
   line-height: 4rem;
 }
 
-[data-type="list"] li p em {
+.-s-list-em {
   font-size: 1.5rem;
   font-style: normal;
 }
 
-[data-type="list"] li p time {
+.-s-list-time {
   -moz-margin-end: 0.3rem;
   text-transform: uppercase;
 }
 
 /* Checkable content */
-[data-type="list"] li > .pack-checkbox,
-[data-type="list"] li > .pack-radio,
-[data-type="list"] li > .pack-switch {
+.-s-list-pack {
   pointer-events: none;
   position: absolute;
   top: -0.1rem;
@@ -194,9 +190,7 @@ li a:active {
   height: auto;
 }
 
-[data-type="list"] li > .pack-checkbox input ~ span:after,
-[data-type="list"] li > .pack-radio input ~ span:after,
-[data-type="list"] li > .pack-switch input ~ span:after {
+.-s-list-pack-span:after {
   /* because width is set in switches.css, the conflict between left/right will
    * be resolved in favor of "left" in LTR and "right" in RTL */
   left: 0;
@@ -205,42 +199,40 @@ li a:active {
 }
 
 /* Edit mode */
-[data-type="list"] [data-type="edit"] li {
+.-s-list-edit-li {
   -moz-padding-start: 4rem;
 }
 
-[data-type="list"] [data-type="edit"] li > .pack-checkbox,
-[data-type="list"] [data-type="edit"] li > .pack-radio,
-[data-type="list"] [data-type="edit"] li > .pack-switch {
+.-s-list-edit-pack {
   pointer-events: auto;
   left: 0;
   right: 0;
 }
 
-[data-type="list"] [data-type="edit"] li > a {
+.-s-list-edit-a {
   pointer-events: none;
 }
 
-[data-type="list"] [data-type="edit"] li > a:active:after,
-[data-type="list"] [data-type="edit"] li > a:hover:after {
+.-s-list-edit-a:active:after,
+.-s-list-edit-a:hover:after {
   display: none;
 }
 
-[data-type="list"] [data-type="edit"] aside.pack-end {
+.-s-list-edit-pack-end {
   display: none;
 }
 
 /* Themes */
-.skin-comms [data-type="list"] header {
+.-s-list-themes-header {
   color: #4997a7;
 }
 
 /* RTL View */
-html[dir="rtl"] [data-type="list"] aside {
+html[dir="rtl"] .-s-list-aside {
   float: right;
 }
 
-html[dir="rtl"] [data-type="list"] aside.pack-end {
+html[dir="rtl"] .-s-list-pack-end {
   float: left;
 }
 
