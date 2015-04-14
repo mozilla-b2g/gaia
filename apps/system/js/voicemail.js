@@ -65,6 +65,10 @@ var Voicemail = {
       }
 
       if (number) {
+        // To prevent '+' sign for displaying on the wrong side of
+        // international numbers in RTL mode we add the LRM character.
+        // We can remove this when bug 1154438 is fixed.
+        number = '\u200E' + number;
         text = _('dialNumber', { number: number });
       }
 
