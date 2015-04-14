@@ -373,7 +373,7 @@ suite('suggestion Bar', function() {
 
         setupExactMatch();
 
-        assert.isTrue(domSuggestionBar.classList.contains('hide'));
+        assert.isFalse(domSuggestionBar.classList.contains('hide'));
         assert.equal(tel.textContent, mockNumber);
       });
 
