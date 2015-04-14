@@ -1586,7 +1586,7 @@ suite('thread_list_ui', function() {
     test('display the picture of a contact', function(done) {
       var contactInfo = MockContact.list();
       contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-      Contacts.findByAddress.yields(contactInfo);
+      Contacts.findByAddress.returns(Promise.resolve(contactInfo));
 
       ThreadListUI.setContact(thread.node).then(() => {
         assert.include(thread.node.dataset.photoUrl, 'blob:');
@@ -1610,7 +1610,7 @@ suite('thread_list_ui', function() {
     });
 
     test('display correctly a contact without a picture', function(done) {
-      Contacts.findByAddress.yields(MockContact.list());
+      Contacts.findByAddress.returns(Promise.resolve(MockContact.list()));
 
       ThreadListUI.setContact(thread.node).then(() => {
         assert.isTrue(
@@ -1623,9 +1623,9 @@ suite('thread_list_ui', function() {
         sinon.assert.notCalled(Contacts.addUnknown);
       }).then(done, done);
     });
-    
+
     test('correctly revokes old contact image blob URL', function(done) {
-      Contacts.findByAddress.yields(MockContact.list());
+      Contacts.findByAddress.returns(Promise.resolve(MockContact.list()));
 
       // Doesn't revoke anything if nothing to revoke
       thread.node.dataset.photoUrl = '';
@@ -1636,7 +1636,7 @@ suite('thread_list_ui', function() {
         thread.node.dataset.photoUrl = 'blob://data#1';
         var contactInfo = MockContact.list();
         contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-        Contacts.findByAddress.yields(contactInfo);
+        Contacts.findByAddress.returns(Promise.resolve(contactInfo));
 
         return ThreadListUI.setContact(thread.node);
       }).then(() => {
@@ -1644,7 +1644,7 @@ suite('thread_list_ui', function() {
 
         // Call revoke if we had image before, but don't have it now
         thread.node.dataset.photoUrl = 'blob://data#2';
-        Contacts.findByAddress.yields(MockContact.list());
+        Contacts.findByAddress.returns(Promise.resolve(MockContact.list()));
 
         return ThreadListUI.setContact(thread.node);
       }).then(() => {
@@ -1654,7 +1654,7 @@ suite('thread_list_ui', function() {
     });
 
     test('display correctly an unknown number', function(done) {
-      Contacts.findByAddress.yields([]);
+      Contacts.findByAddress.returns(Promise.resolve([]));
 
       ThreadListUI.setContact(thread.node).then(() => {
         assert.equal(thread.picture.style.backgroundImage, '');
@@ -1675,15 +1675,19 @@ suite('thread_list_ui', function() {
       });
       ThreadListUI.init();
 
-      Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
-        givenName: ['James'],
-        familyName: ['Bond']
-      }]));
+      Contacts.findByAddress.withArgs('555').returns(Promise.resolve(
+        MockContact.list([{
+          givenName: ['James'],
+          familyName: ['Bond']
+        }])
+      ));
 
-      Contacts.findByAddress.withArgs('666').yields(MockContact.list([{
-        givenName: ['Bond'],
-        familyName: ['James']
-      }]));
+      Contacts.findByAddress.withArgs('666').returns(Promise.resolve(
+        MockContact.list([{
+          givenName: ['Bond'],
+          familyName: ['James']
+        }])
+      ));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
         var threadTitleNode = groupThread.node.querySelector(
@@ -1719,10 +1723,12 @@ suite('thread_list_ui', function() {
       });
       ThreadListUI.init();
 
-      Contacts.findByAddress.withArgs('555').yields(MockContact.list([{
-        givenName: ['James'],
-        familyName: ['Bond']
-      }]));
+      Contacts.findByAddress.withArgs('555').returns(Promise.resolve(
+        MockContact.list([{
+          givenName: ['James'],
+          familyName: ['Bond']
+        }])
+      ));
 
       ThreadListUI.setContact(groupThread.node).then(() => {
         var threadTitleNode = groupThread.node.querySelector(
@@ -1779,7 +1785,7 @@ suite('thread_list_ui', function() {
 
       var contactInfo = MockContact.list();
       contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-      Contacts.findByAddress.yields(contactInfo);
+      Contacts.findByAddress.returns(Promise.resolve(contactInfo));
 
       ThreadListUI.setContact(node).then(() => {
         assert.include(node.dataset.photoUrl, 'blob:');
@@ -1800,7 +1806,7 @@ suite('thread_list_ui', function() {
     function(done) {
       MockSettings.supportEmailRecipient = true;
       var contactInfo = MockContact.list();
-      Contacts.findByAddress.yields(contactInfo);
+      Contacts.findByAddress.returns(Promise.resolve(contactInfo));
 
       ThreadListUI.setContact(node).then(() => {
         assert.isTrue(pictureContainer.classList.contains('default-picture'));

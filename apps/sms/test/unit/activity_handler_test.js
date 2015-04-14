@@ -343,23 +343,29 @@ suite('ActivityHandler', function() {
     suite('contact retrieved (after getSelf)', function() {
       var contactName = '<&>'; // testing potentially unsafe characters
       var sendSpy;
+      var findByPromise;
+
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{name: [contactName]}]);
+        findByPromise = Promise.resolve(
+          [ { name: [contactName] } ]
+        );
+        this.sinon.stub(Contacts, 'findByAddress').returns(findByPromise);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
-      test('passes contact name in plain text', function() {
-        sinon.assert.called(sendSpy);
-        var notification = sendSpy.firstCall.thisValue;
-        assert.equal(notification.title, contactName);
+      test('passes contact name in plain text', function(done) {
+        findByPromise.then(() => {
+          sinon.assert.called(sendSpy);
+          var notification = sendSpy.firstCall.thisValue;
+          assert.equal(notification.title, contactName);
+        }).then(done, done);
       });
     });
 
     suite('null sms received', function() {
-      var sendSpy;
+      var sendSpy, contactSpy;
 
       setup(function(done) {
         message.body = null;
@@ -368,11 +374,14 @@ suite('ActivityHandler', function() {
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
         checkSilentPromise.then(() => done());
         sendSpy = this.sinon.spy(window, 'Notification');
+        contactSpy = this.sinon.spy(Contacts, 'findByAddress');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
-      test('null notification', function() {
-        sinon.assert.calledWithMatch(sendSpy, 'Pepito O\'Hare', { body: '' });
+      test('null notification', function(done) {
+        contactSpy.lastCall.returnValue.then(() => {
+          sinon.assert.calledWithMatch(sendSpy, 'Pepito O\'Hare', { body: '' });
+        }).then(done, done);
       });
     });
 
@@ -380,15 +389,17 @@ suite('ActivityHandler', function() {
       var phoneNumber = '+1111111111';
       var sendSpy;
 
-      setup(function() {
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
         message.sender = phoneNumber;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            tel: {'value': phoneNumber}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          tel: {'value': phoneNumber}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('phone in notification title when contact without name', function() {
@@ -402,15 +413,17 @@ suite('ActivityHandler', function() {
       var emailAddress = 'a@b.com';
       var sendSpy;
 
-      setup(function() {
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
         message.sender = emailAddress;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            email: {'value': emailAddress}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          email: {'value': emailAddress}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('email in notification title when contact without name', function() {
@@ -421,10 +434,12 @@ suite('ActivityHandler', function() {
     });
 
     suite('after getSelf', function() {
-      var sendSpy;
-      setup(function() {
+      var sendSpy, contactSpy;
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
+        contactSpy = this.sinon.spy(Contacts, 'findByAddress');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+        contactSpy.lastCall.returnValue.then(() => done(), done);
       });
 
       test('a notification is sent', function() {
@@ -477,14 +492,18 @@ suite('ActivityHandler', function() {
         sinon.assert.notCalled(closeSpy);
       });
 
-      test('In target thread view and view is hidden', function() {
+      test('In target thread view and view is hidden', function(done) {
         isDocumentHidden = true;
         this.sinon.stub(Threads, 'currentId', message.threadId);
+        var contactSpy = this.sinon.spy(Contacts, 'findByAddress');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.called(document.addEventListener);
-        sinon.assert.notCalled(closeSpy);
-        document.addEventListener.yield();
-        sinon.assert.called(closeSpy);
+
+        contactSpy.lastCall.returnValue.then(() => {
+          sinon.assert.called(document.addEventListener);
+          sinon.assert.notCalled(closeSpy);
+          document.addEventListener.yield();
+          sinon.assert.called(closeSpy);
+        }).then(done, done);
       });
     });
 
@@ -587,11 +606,14 @@ suite('ActivityHandler', function() {
 
     suite('contact retrieved (after getSelf)', function() {
       var contactName = 'contact';
-      setup(function() {
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{name: [contactName]}]);
+      setup(function(done) {
+        var contactPromise = Promise.resolve([{name: [contactName]}]);
+
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('prefix the contact name with the SIM information', function() {
@@ -604,14 +626,16 @@ suite('ActivityHandler', function() {
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
 
-      setup(function() {
+      setup(function(done) {
         message.sender = phoneNumber;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            tel: {value: phoneNumber}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          tel: {value: phoneNumber}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('phone in notification title when contact without name', function() {
@@ -624,14 +648,16 @@ suite('ActivityHandler', function() {
     suite('[Email]contact without name (after getSelf)', function() {
       var emailAddress = 'a@b.com';
 
-      setup(function() {
+      setup(function(done) {
         message.sender = emailAddress;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            email: {value: emailAddress}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          email: {value: emailAddress}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('email in notification title when contact without name', function() {
@@ -861,8 +887,9 @@ suite('ActivityHandler', function() {
       threadDeferred.reject(new Error('No thread for this test'));
 
       Contacts.findByPhoneNumber.restore();
-      this.sinon.stub(Contacts, 'findByAddress')
-        .callsArgWith(1, [{ name: ['foo'] }]);
+      this.sinon.stub(Contacts, 'findByAddress').returns(
+        Promise.resolve([{ name: ['foo'] }])
+      );
 
       onceNewActivityCompleted().then(function() {
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
