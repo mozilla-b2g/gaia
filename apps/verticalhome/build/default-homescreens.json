@@ -17,7 +17,7 @@
       ["apps", "video"],
       ["apps", "fm"],
       ["apps", "settings"],
-      ["apps", "clock"],
+      ["outoftree_apps", "clock"],
       ["apps", "email"],
       ["apps", "calendar"],
       ["apps", "costcontrol"]

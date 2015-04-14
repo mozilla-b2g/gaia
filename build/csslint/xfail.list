@@ -12,9 +12,6 @@ apps/camera/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/camera/style/notification.css 1 0
 apps/camera/style/overlay.css 0 4
 apps/camera/style/preview-gallery.css 0 2
-apps/clock/style/onring.css 0 1
-apps/clock/style/picker/picker.css 0 1
-apps/clock/style/alarm.css 0 4
 apps/communications/contacts/style/app.css 0 6
 apps/communications/contacts/style/contacts.css 0 6
 apps/communications/contacts/style/matching_contacts.css 0 3

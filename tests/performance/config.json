@@ -23,7 +23,6 @@
     "mozLaunch": [
       "camera",
       "calendar",
-      "clock",
       "costcontrol",
       "communications/contacts",
       "communications/dialer",

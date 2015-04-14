@@ -1,6 +1,7 @@
 {
   "L10N_OPTIMIZATION_BLACKLIST": {
-    "pdfjs": "*"
+    "pdfjs": "*",
+    "clock": "*"
   },
   "JS_AGGREGATION_BLACKLIST": {
   },
