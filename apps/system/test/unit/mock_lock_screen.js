@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockLockScreen */
 
 var MockLockScreen = {
   locked: false,

@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockAppsMgmt */
+
 var MockAppsMgmt = {
   getAll: function mam_getAll() {
     var request = {};
@@ -33,14 +36,15 @@ var MockAppsMgmt = {
   },
 
   mTriggerOninstall: function mam_mTriggerOninstall(app) {
+    var evt;
     if (this.oninstall) {
-      var evt = {
+      evt = {
         application: app
       };
       this.oninstall(evt);
     }
 
-    var evt = document.createEvent('CustomEvent');
+    evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('applicationinstall',
       true, false,
       { application: app });
@@ -48,14 +52,15 @@ var MockAppsMgmt = {
   },
 
   mTriggerOnuninstall: function mam_mTriggerOnuninstall(app) {
+    var evt;
     if (this.onuninstall) {
-      var evt = {
+      evt = {
         application: app
       };
       this.onuninstall(evt);
     }
 
-    var evt = document.createEvent('CustomEvent');
+    evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('applicationuninstall',
       true, false,
       { application: app });
@@ -67,18 +72,19 @@ var MockAppsMgmt = {
   },
 
   getSelf: function mam_getSelf() {
+    var evt;
     var request = {};
 
     var self = this;
     setTimeout((function nextTick() {
       if (request.onerror && !self._app) {
-        var evt = {
+        evt = {
           'cause': 'No mock app set'
         };
         request.onerror(evt);
       }
       else if (request.onsuccess && self._app) {
-        var evt = {
+        evt = {
           target: {
             result: self._app
           }
