@@ -4,7 +4,7 @@
 /* global loadBodyHTML, MockL10n, MessageDB, MockNavigatormozApps,
           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
           MockNavigatorSettings, MockNotification, MocksHelper, Notification,
-          WapPushManager, MockParsedProvisioningDoc, SiSlScreenHelper */
+          WapPushManager, SiSlScreenHelper */
 
 'use strict';
 
