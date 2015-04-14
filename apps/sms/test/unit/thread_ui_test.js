@@ -150,7 +150,7 @@ suite('thread_ui.js >', function() {
       ),
       AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
         (blob) => testVideoBlob = blob
-      ),
+      )
     ];
 
     Promise.all(blobPromises).then(() => {
@@ -6217,7 +6217,7 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(Drafts, 'store').returns(Drafts);
       this.sinon.spy(ThreadUI.recipients, 'add');
       this.sinon.spy(ThreadUI, 'updateHeaderData');
-      this.sinon.spy(Contacts, 'findByAddress');
+      this.sinon.stub(Contacts, 'findByAddress');
     });
 
     teardown(function() {
@@ -6234,10 +6234,31 @@ suite('thread_ui.js >', function() {
     });
 
     test('with recipients', function(done) {
-      ThreadUI.draft.recipients = ['800 732 0872', '800 555 1212'];
+      ThreadUI.draft.recipients = ['800 732 0872', '+346578888888'];
+
+      Contacts.findByAddress.withArgs('800 732 0872').returns(
+        Promise.resolve([])
+      );
+
+      Contacts.findByAddress.withArgs('+346578888888').returns(
+        Promise.resolve([new MockContact()])
+      );
+
       ThreadUI.handleDraft();
       Contacts.findByAddress.lastCall.returnValue.then(() => {
-        sinon.assert.calledTwice(ThreadUI.recipients.add);
+        sinon.assert.calledWith(ThreadUI.recipients.add, {
+          number: '800 732 0872',
+          source: 'manual'
+        });
+
+        sinon.assert.calledWith(ThreadUI.recipients.add, {
+          carrier: 'TEF',
+          name: 'Pepito O\'Hare',
+          number: '+346578888888',
+          source: 'contacts',
+          type: 'Mobile'
+        });
+
         sinon.assert.notCalled(ThreadUI.updateHeaderData);
       }).then(done, done);
     });

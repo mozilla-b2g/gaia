@@ -737,15 +737,18 @@ var ThreadUI = {
       // Otherwise find them from draft recipient numbers
       draft.recipients.forEach(function(number) {
         Contacts.findByAddress(number).then(function(contacts) {
+          var recipient;
           if (contacts.length) {
-            this.recipients.add(
-              Utils.basicContact(number, contacts[0])
-            );
+            recipient = Utils.basicContact(number, contacts[0]);
+            recipient.source = 'contacts';
           } else {
-            this.recipients.add({
-              number: number
-            });
+            recipient = {
+              number: number,
+              source: 'manual'
+            };
           }
+
+          this.recipients.add(recipient);
         }.bind(this));
       }, this);
 
