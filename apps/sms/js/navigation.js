@@ -117,6 +117,10 @@ var Navigation = {
     return true;
   },
 
+  getCurrentPanel: function n_getCurrentPanel() {
+    return Object.assign({}, currentPanel);
+  },
+
   /**
    * Ensures that current panel is correctly set, if no current panel set and
    * we're not in the process of transitioning then set default panel as current
@@ -190,7 +194,7 @@ var Navigation = {
       return Promise.resolve();
     }
 
-    var transitionArgs = args || {};
+    var transitionArgs = Object.assign({}, args);
 
     document.activeElement.blur();
 

@@ -3,7 +3,9 @@
 
 /*global Utils, MessageManager, Compose, NotificationHelper,
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
-         ThreadUI, Notification, Settings, Navigation */
+         ThreadUI, Notification, Settings, Navigation,
+         InterInstanceEventDispatcher
+*/
 /*exported ActivityHandler */
 
 'use strict';
@@ -361,16 +363,6 @@ var ActivityHandler = {
     }
 
     function dispatchNotification(needManualRetrieve) {
-      // The SMS app is already displayed
-      if (!document.hidden) {
-        if (Navigation.isCurrentPanel('thread', { id: threadId })) {
-          Notify.ringtone();
-          Notify.vibrate();
-          releaseWakeLock();
-          return;
-        }
-      }
-
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
         var iconURL = NotificationHelper.getIconURI(app);
@@ -473,9 +465,17 @@ var ActivityHandler = {
     }
 
     function handleNotification(isSilent) {
-      if (isSilent) {
+      var currentThreadIsDisplayed = !document.hidden &&
+        Navigation.isCurrentPanel('thread', { id: threadId });
+
+      // If app is visible and target thread is opened, then just release wake
+      // lock as vibration and sound are produced by Thread panel
+      if (isSilent || currentThreadIsDisplayed) {
         releaseWakeLock();
-      } else {
+        return;
+      }
+
+      function showNotification() {
         // If message type is mms and pending on server, ignore the notification
         // because it will be retrieved from server automatically. Handle other
         // manual/error status as manual download and dispatch notification.
@@ -485,10 +485,11 @@ var ActivityHandler = {
         if (message.type === 'sms') {
           dispatchNotification();
         } else {
-          // Here we can only have one sender, so deliveryInfo[0].deliveryStatus
-          // => message status from sender.
+          // Here we can only have one sender, so
+          // deliveryInfo[0].deliveryStatus => message status from sender.
           var status = message.deliveryInfo[0].deliveryStatus;
           if (status === 'pending') {
+            releaseWakeLock();
             return;
           }
 
@@ -497,7 +498,31 @@ var ActivityHandler = {
           dispatchNotification(status !== 'success');
         }
       }
+
+      // If app is visible, but target thread panel isn't active, we should show
+      // notification, otherwise check if other app instances (eg. activities)
+      // are opened and target thread panel is active there
+      if (!document.hidden) {
+        return showNotification();
+      }
+
+      InterInstanceEventDispatcher.query('info').then((result) => {
+        var isThreadVisible = result.some((instance) => {
+          return instance.visible &&
+                 instance.currentPanel.panel === 'thread' &&
+                 instance.currentPanel.args.id === threadId;
+        });
+
+        // If thread is visible in any not hidden instance it should vibrate
+        // and produce sound signal by itself
+        if (!isThreadVisible) {
+          showNotification();
+        } else {
+          releaseWakeLock();
+        }
+      });
     }
+
     SilentSms.checkSilentModeFor(message.sender).then(handleNotification);
   },
 

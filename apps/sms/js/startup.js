@@ -54,6 +54,13 @@ var Startup = {
 
       InterInstanceEventDispatcher.connect();
 
+      InterInstanceEventDispatcher.onQuery('info', (query) => {
+        query.postResult({
+          visible: !document.hidden,
+          currentPanel: Navigation.getCurrentPanel()
+        });
+      });
+
       // dispatch moz-content-interactive when all the modules initialized
       SilentSms.init();
       ActivityHandler.init();
