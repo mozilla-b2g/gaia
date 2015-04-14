@@ -345,6 +345,11 @@
             };
           }
 
+          // Try to blur the active app before activating.
+          Service.currentApp.getTopMostWindow()
+            .broadcast('inputmethod-contextchange',
+            {inputType: 'blur'});
+
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
             app.appChrome.maximize(() => {
               this.activate().then(afterActivate);
