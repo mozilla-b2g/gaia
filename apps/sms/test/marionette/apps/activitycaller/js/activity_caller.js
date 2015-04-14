@@ -51,20 +51,22 @@
     var shareImageButton = document.getElementById('share-image');
 
     shareImageButton.addEventListener('click', function() {
-      var activity = new MozActivity({
-        name: 'share',
-        data: {
-          type: 'image/*',
-          number: 1,
-          blobs: [new Blob()],
-          filenames: 'image.png',
-          filepaths: 'image.png'
-        }
-      });
+      generateImageBlob(100, 100, 'image/jpeg').then(function(blob) {
+        var activity = new MozActivity({
+          name: 'share',
+          data: {
+            type: 'image/*',
+            number: 1,
+            blobs: [blob],
+            filenames: 'image.jpg',
+            filepaths: 'image.jpg'
+          }
+        });
 
-      activity.onerror = function() {
-        console.warn('share activity error:', activity.error.name);
-      };
+        activity.onerror = function() {
+          console.warn('share activity error:', activity.error.name);
+        };
+      });
     });
 
     var sendMessageButton = document.getElementById('send-message');

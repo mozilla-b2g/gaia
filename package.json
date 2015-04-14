@@ -24,7 +24,7 @@
     "jshint": "2.7.0",
     "load-grunt-tasks": "0.4.0",
     "mail-fakeservers": "0.0.24",
-    "marionette-apps": "0.3.12",
+    "marionette-apps": "git://github.com/azasypkin/marionette-apps.git#bug-1140344-switch-to-activity",
     "marionette-client": "1.7.1",
     "marionette-content-script": "0.0.4",
     "marionette-device-host": "1.0.0",
