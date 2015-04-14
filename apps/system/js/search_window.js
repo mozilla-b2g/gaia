@@ -3,6 +3,7 @@
 /* global AppWindow */
 /* global BrowserConfigHelper */
 /* global SettingsListener */
+/* global Service */
 
 (function(exports) {
 
@@ -59,9 +60,11 @@
            </div>`;
   };
 
-  // The search window orientation depends on the orientation of the
-  // current displayed app. So don't do anything here.
+  // The search window orientation depends on the orientation of
+  // current root app.
   SearchWindow.prototype.lockOrientation = function() {
+    var currentApp = Service.currentApp;
+    currentApp.setOrientation();
   };
 
   // We don't need to wait.
