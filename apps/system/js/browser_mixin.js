@@ -224,7 +224,6 @@
           topWindow.getActiveElement() === topWindow.browser.element) {
         topWindow.browser.element.blur();
       }
-      this.valueSelector && this.valueSelector.hide();
     },
 
     back: function bm_back() {

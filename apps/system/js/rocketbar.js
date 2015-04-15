@@ -360,7 +360,7 @@
           // This way app windows will clear things like value selectors,
           // and the rocketbar will animate in nicely. Otherwise the rocketbar
           // would animate in behind the value selector.
-          app.blur();
+          app.valueSelector && app.valueSelector.hide();
 
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
             app.appChrome.maximize(() => {

@@ -497,17 +497,22 @@ suite('system/Rocketbar', function() {
       config: {url: 'app.url'},
       isBrowser: function() {},
       isActive: function() { return true; },
-      blur: function() {}
+      valueSelector: {
+        hide: function() {}
+      }
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate')
       .returns(Promise.resolve());
+    var valueSelectorHideStub = this.sinon.stub(activeApp.valueSelector,
+      'hide');
     var event = {type: 'global-search-request'};
     subject.handleEvent(event);
     assert.ok(setInputStub.calledWith('app.url'));
     assert.ok(activateStub.calledOnce);
+    assert.ok(valueSelectorHideStub.calledOnce);
   });
 
   test('handleEvent() - global-search-request: inactive app', function() {
@@ -537,8 +542,7 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; },
-      blur: function() {}
+      isActive: function() { return true; }
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
@@ -580,8 +584,7 @@ suite('system/Rocketbar', function() {
         maximize: function() {},
         isMaximized: function() {}
       },
-      isActive: function() { return true; },
-      blur: function() {}
+      isActive: function() { return true; }
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
 
@@ -613,8 +616,7 @@ suite('system/Rocketbar', function() {
       isPrivateBrowser: function() {
         return true;
       },
-      isActive: function() { return true; },
-      blur: function() {}
+      isActive: function() { return true; }
     };
     MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
