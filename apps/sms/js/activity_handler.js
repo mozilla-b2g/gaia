@@ -373,16 +373,6 @@ var ActivityHandler = {
 
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
-
-        // Stashing the number at the end of the icon URL to make sure
-        // we get it back even via system message
-        iconURL += '?';
-        iconURL += [
-          'threadId=' + threadId,
-          'number=' + encodeURIComponent(number),
-          'id=' + id
-        ].join('&');
 
         function goToMessage() {
           app.launch();
@@ -400,9 +390,10 @@ var ActivityHandler = {
           }
 
           var options = {
-            icon: iconURL,
+            icon: NotificationHelper.getIconURI(app),
             body: body,
-            tag: 'threadId:' + threadId
+            tag: 'threadId:' + threadId,
+            data: { id, threadId }
           };
 
           var notification = new Notification(title, options);
@@ -501,16 +492,7 @@ var ActivityHandler = {
     SilentSms.checkSilentModeFor(message.sender).then(handleNotification);
   },
 
-  onNotification: function ah_onNotificationClick(message) {
-    // The "message" argument object does not have
-    // the necessary information we need, so we'll
-    // extract it from the imageURL string
-    //
-    // NOTE: In 1.2, use the arbitrary string allowed by
-    // the new notification spec.
-    //
-    var params = Utils.params(message.imageURL);
-
+  onNotification: function ah_onNotificationClick(notification) {
     // When notification is removed from notification tray, notification system
     // message will still be fired, but "clicked" property will be equal to
     // false. This should change once bug 1139363 is landed.
@@ -518,7 +500,7 @@ var ActivityHandler = {
     // first to notify app that notification is clicked and then, once we show
     // Thread panel to the user, we remove that notification from the tray that
     // causes the second system message with "clicked" set to false.
-    if (!message.clicked) {
+    if (!notification.clicked) {
       // When app is run via notification system message there is no valid
       // current panel set hence app is in the invalid state, so let's fix this.
       Navigation.ensureCurrentPanel();
@@ -530,16 +512,8 @@ var ActivityHandler = {
 
       app.launch();
 
-      // the type param is only set for class0 messages
-      if (params.type === 'class0') {
-        Utils.alert({ raw: message.body }, { raw: message.title });
-        return;
-      }
-
-      ActivityHandler.handleMessageNotification({
-        id: params.id,
-        threadId: params.threadId
-      });
+      // At the moment notification.data is { id, threadId }
+      ActivityHandler.handleMessageNotification(notification.data);
     };
   }
 };

@@ -446,9 +446,11 @@ suite('ActivityHandler', function() {
         sinon.assert.called(sendSpy);
         var notification = sendSpy.firstCall.thisValue;
         assert.equal(notification.body, message.body);
-        var expectedicon = 'sms?threadId=' + message.threadId + '&number=' +
-          message.sender + '&id=' + message.id;
-        assert.equal(notification.icon, expectedicon);
+        assert.deepEqual(notification.data, {
+          id: message.id,
+          threadId: message.threadId
+        });
+        assert.equal(notification.icon, 'sms');
       });
 
       test('the lock is released', function() {
@@ -680,15 +682,21 @@ suite('ActivityHandler', function() {
 
     suite('normal message', function() {
       setup(function() {
-        var message = {
+        var notification = {
           title: title,
           body: body,
-          imageURL: 'url?id=' + messageId + '&threadId=' + threadId,
+          imageURL: 'url',
           tag: 'threadId:' + threadId,
-          clicked: true
+          clicked: true,
+          data: {
+            id: messageId,
+            threadId: threadId
+          }
         };
 
-        MockNavigatormozSetMessageHandler.mTrigger('notification', message);
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'notification', notification
+        );
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
@@ -726,33 +734,6 @@ suite('ActivityHandler', function() {
           done();
         });
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
-      });
-    });
-
-    suite('class-0 message', function() {
-      setup(function() {
-        var notification = {
-          title: title,
-          body: body,
-          imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
-            '&type=class0',
-          tag: 'threadId:' + threadId,
-          clicked: true
-        };
-
-        MockNavigatormozSetMessageHandler.mTrigger(
-          'notification', notification
-        );
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-      });
-
-      test('an alert is displayed', function() {
-        sinon.assert.calledWith(Utils.alert, { raw: body }, { raw: title });
-      });
-
-      test('handleMessageNotification is not called', function() {
-        var spied = ActivityHandler.handleMessageNotification;
-        assert.isFalse(spied.called);
       });
     });
   });
