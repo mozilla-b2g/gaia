@@ -162,8 +162,6 @@ shared/js/dialer/contacts.js
 shared/js/fb/fb_data_reader.js
 shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
-shared/js/fxa_iac_client.js
-apps/system/fxa/test/marionette/test-fxa-client/js/fxa_iac_client.js
 shared/js/keyboard_helper.js
 shared/js/lockscreen_slide.js
 shared/js/mediadb.js
