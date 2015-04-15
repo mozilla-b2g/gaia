@@ -110,11 +110,7 @@ suite('push-to-device.js', function() {
         GAIA_DIR: 'testGaia',
         PROFILE_DIR: 'testProfileFolder',
         GAIA_INSTALL_PARENT: '/system/b2g',
-        GAIA_DOMAIN: 'testDomain',
-        DEFAULT_KEYBOAD_SYMBOLS_FONT:
-          'shared/style/keyboard_symbols/Keyboard-Symbols.ttf',
-        DEFAULT_GAIA_ICONS_FONT:
-          'shared/elements/gaia-icons/fonts/gaia-icons.ttf'
+        GAIA_DOMAIN: 'testDomain'
       };
       appID = '999';
       mockUtils.getFile = function() {

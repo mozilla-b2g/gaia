@@ -183,14 +183,14 @@ function execute(options) {
   }).then(function() {
     if (buildAppName === '*') {
       return sh.run(['-c', adb + ' push ' +
-        options.DEFAULT_GAIA_ICONS_FONT +
-        ' //system/fonts/hidden/gaia-icons.ttf']);
+        '"shared/elements/gaia-icons/fonts/gaia-icons.ttf" ' +
+        '//system/fonts/hidden/gaia-icons.ttf']);
     }
   }).then(function() {
     if (buildAppName === '*') {
       return sh.run(['-c', adb + ' push ' +
-        options.DEFAULT_KEYBOAD_SYMBOLS_FONT +
-        ' //system/fonts/hidden/Keyboard-Symbols.ttf']);
+        '"shared/style/keyboard_symbols/Keyboard-Symbols.ttf" ' +
+        '//system/fonts/hidden/Keyboard-Symbols.ttf']);
     }
   }).then(function() {
     if (buildAppName === '*' || restartB2g) {
