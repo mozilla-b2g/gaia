@@ -50,6 +50,7 @@
       'configure': function ah_configureHandler(activitySource) {
         var targetPanelId = activitySource.data.section || 'root';
         var targetPanel = document.getElementById(targetPanelId);
+        var panelTheme = activitySource.data.theme || 'default';
 
         // Validate if the section exists
         if (!targetPanel || targetPanel.tagName !== 'SECTION') {
@@ -75,6 +76,11 @@
         } else {
           // Mark the desired panel as a dialog
           targetPanel.dataset.dialog = true;
+        }
+
+        if (panelTheme !== 'default') {
+          var themeMeta = document.head.querySelector('meta[name="theme-color"]');
+          themeMeta.setAttribute('content', panelTheme);
         }
 
         return targetPanelId;

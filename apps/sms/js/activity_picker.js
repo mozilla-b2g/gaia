@@ -81,7 +81,8 @@ var ActivityPicker = {
       name: 'configure',
       data: {
         target: 'device',
-        section: 'messaging'
+        section: 'messaging',
+        theme: '#00b7b7'
       }
     }), onsuccess, onerror);
   }
