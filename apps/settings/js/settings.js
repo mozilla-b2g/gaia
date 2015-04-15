@@ -64,7 +64,15 @@ var Settings = {
       panelID = panelID.substring(1);
     }
 
-    this.SettingsService.navigate(panelID);
+    this.SettingsService.navigate(panelID, this._initialOptions);
+  },
+
+  get _initialOptions() {
+    // After initial navigation, initial panel options are not necessary.
+    delete this._initialOptions;
+    // If initial panel has options, use them once at initial navigation.
+    return window.LaunchContext.activityHandler &&
+      window.LaunchContext.activityHandler.targetPanelOptions;
   },
 
   init: function settings_init(options) {
