@@ -6,6 +6,7 @@ Keyboards['bn-Avro'] = {
   alternateLayoutKey: '?১২৩',
   basicLayoutKey: 'কখগ',
   types: ['text', 'url'],
+  lang: 'bn',
   alt: {
     a: 'A',
     b: 'B',

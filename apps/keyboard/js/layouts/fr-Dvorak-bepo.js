@@ -6,6 +6,7 @@ Keyboards['fr-Dvorak-bepo'] = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'fr',
   autoCorrectPunctuation: false,
+  lang: 'fr',
   alt: {
     a: 'àâæáãäåā',
     c: 'çćč',

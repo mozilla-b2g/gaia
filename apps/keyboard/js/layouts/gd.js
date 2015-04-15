@@ -4,6 +4,7 @@ Keyboards.gd = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'gd',
+  lang: 'gd',
   menuLabel: 'Gàidhlig',
   alt: {
     a: 'àáâäåãāæ',
