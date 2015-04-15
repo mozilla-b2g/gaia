@@ -62,8 +62,12 @@ suite('system/UtilityTray', function() {
     window.softwareButtonManager = window.MocksoftwareButtonManager;
 
     Service.currentApp = {
+      isTransitioning: function() {},
+      getTopMostWindow: function() { return this },
       appChrome: {
-        titleClicked: function() {}
+        titleClicked: function() {},
+        useCombinedChrome: function() {},
+        isMaximized: function() {}
       }
     };
 
@@ -175,15 +179,48 @@ suite('system/UtilityTray', function() {
 
   suite('onTouch', function() {
     suite('taping the left corner', function() {
+      var appChrome, titleStub, app;
+
+      setup(function() {
+        app = Service.currentApp;
+        appChrome = app.appChrome;
+        titleStub = this.sinon.stub(appChrome, 'titleClicked');
+      });
+
       teardown(function() {
         fakeTransitionEnd();
       });
 
       test('should call to titleClicked', function() {
-        var appChrome = Service.currentApp.appChrome;
-        var titleStub = this.sinon.stub(appChrome, 'titleClicked');
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
+        this.sinon.stub(appChrome, 'isMaximized').returns(false);
+        this.sinon.stub(app, 'isTransitioning').returns(false);
         fakeTouches(0, 2);
         assert.isTrue(titleStub.called);
+      });
+
+      test('should not call to titleClicked if isTransitioning', function() {
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
+        this.sinon.stub(appChrome, 'isMaximized').returns(false);
+        this.sinon.stub(app, 'isTransitioning').returns(true);
+        fakeTouches(0, 2);
+        assert.isFalse(titleStub.called);
+      });
+
+      test('should not call to titleClicked if !combinedView', function() {
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(false);
+        this.sinon.stub(appChrome, 'isMaximized').returns(false);
+        this.sinon.stub(app, 'isTransitioning').returns(false);
+        fakeTouches(0, 2);
+        assert.isFalse(titleStub.called);
+      });
+
+      test('should not call to titleClicked if is maximized', function() {
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
+        this.sinon.stub(appChrome, 'isMaximized').returns(true);
+        this.sinon.stub(app, 'isTransitioning').returns(false);
+        fakeTouches(0, 2);
+        assert.isFalse(titleStub.called);
       });
 
       test('should hide the Utility tray', function() {
