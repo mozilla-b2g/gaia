@@ -1,0 +1,23 @@
+{
+  "name": "Fake Gallery Activity Caller",
+  "description": "Fake Gallery activity caller app",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "share": {
+      "href": "/index.html#activity-share",
+      "filters": {
+        "type": ["image/*"],
+        "number": {
+          "max": 5
+        }
+       },
+      "disposition": "inline",
+      "returnValue": true
+    }
+  }
+}

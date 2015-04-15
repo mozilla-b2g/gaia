@@ -26,6 +26,7 @@ Gallery.Selector = Object.freeze({
   thumbnailsDeleteButton: '#thumbnails-delete-button',
   fullscreenBackButton: '#fullscreen-back-button-tiny',
   editButton: '#fullscreen-edit-button-tiny',
+  shareButton: '#fullscreen-share-button-tiny',
   confirmButton: '#confirm-ok',
   overlayView: '#overlay',
   editView: '#edit-view',
@@ -43,7 +44,10 @@ Gallery.Selector = Object.freeze({
   editToolApplyButton: '#edit-tool-apply-button',
   editHeader: '#edit-view gaia-header',
   fullscreenFrame2: '#frame2',
-  fullscreenFrame3: '#frame3'
+  fullscreenFrame3: '#frame3',
+  cropDoneButton: '#crop-done-button',
+  editCropCanvas: '#edit-crop-canvas',
+  actionMenu: 'form[data-z-index-level="action-menu"]'
 });
 
 Gallery.prototype = {
@@ -125,6 +129,13 @@ Gallery.prototype = {
    */
   get editButton() {
     return this.client.helper.waitForElement(Gallery.Selector.editButton);
+  },
+
+  /**
+   * @return {Marionette.Element} Element to click for sharing image.
+   */
+  get shareButton() {
+    return this.client.helper.waitForElement(Gallery.Selector.shareButton);
   },
 
   /**
@@ -240,6 +251,42 @@ Gallery.prototype = {
   },
 
   /**
+   * @return {Marionette.Element} Done Button to finish crop and pick image.
+   */
+  get cropDoneButton() {
+    return this.client.helper.waitForElement(Gallery.Selector.cropDoneButton);
+  },
+
+  /**
+   * @return {Marionette.Element} edit crop canvas showing crop overlay.
+   */
+  get editCropCanvas() {
+    return this.client.helper.waitForElement(Gallery.Selector.editCropCanvas);
+  },
+
+  /**
+   * @return {Marionette.Element} that shows menu options on using web activity.
+   */
+  get actionMenu() {
+    // Switch to the system app first.
+    client.switchToFrame();
+    return this.client.helper.waitForElement(Gallery.Selector.actionMenu);
+  },
+
+  /**
+   * @return {Marionette.Element} menu option that has same text as appName.
+   */
+  menuOptionButton: function(appName) {
+    var options = this.actionMenu.findElements('button');
+    for (var i = 0; i < options.length; i++) {
+      var menuOption = options[i];
+      if (menuOption.text() === appName) {
+        return menuOption;
+      }
+    }
+  },
+
+  /**
    * Read the translateX style and return its integer value.
    */
   getFrameTranslation: function(frame) {
@@ -308,6 +355,35 @@ Gallery.prototype = {
       return this.editEnhanceButton
                         .getAttribute('class').split(' ').indexOf('on') < 0;
     }.bind(this));
+  },
+
+  switchToGalleryFrame: function() {
+    var galleryFrame = this.client.findElement('iframe[src*="' +
+                                          Gallery.ORIGIN + '"]');
+    this.waitFor(galleryFrame);
+    this.client.switchToFrame(galleryFrame);
+  },
+
+  tapFirstThumbnail: function() {
+    this.waitFor(Gallery.Selector.thumbnail);
+    var thumbnails = this.thumbnails;
+    this.waitFor(thumbnails[0]);
+    thumbnails[0].click();
+  },
+
+  selectImage: function() {
+    this.switchToGalleryFrame();
+    this.tapFirstThumbnail();
+  },
+
+  shareImage: function(appName) {
+    this.waitFor(Gallery.Selector.shareButton).tap();
+    this.menuOptionButton(appName).tap();
+  },
+
+  switchTo: function() {
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Gallery.ORIGIN);
   },
 
   /**
