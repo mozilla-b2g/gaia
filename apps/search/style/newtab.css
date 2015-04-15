@@ -96,7 +96,7 @@ h2 span {
 }
 
 #history .result .description {
-  width: calc(100% - 1.6rem);
+  width: calc(100% - 1.8rem);
 }
 
 #history .icon {
@@ -147,7 +147,10 @@ html[dir="rtl"] .top-site {
   float: right;
 }
 
+html[dir="rtl"] #history .description {
+  text-align: right;
+}
+
 html[dir="rtl"] #history .meta {
   direction: ltr;
-  float: right;
 }

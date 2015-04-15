@@ -254,7 +254,13 @@
   function formatTopResult(result) {
     var div = document.createElement('div');
     var span = document.createElement('span');
-    span.textContent = result.title || result.url;
+    if (result.title) {
+      span.setAttribute('dir', 'auto');
+      span.textContent = result.title;
+    } else {
+      span.setAttribute('dir', 'ltr');
+      span.textContent = result.url;
+    }
     div.dataset.url = result.url;
     div.classList.add('top-site');
     div.appendChild(span);
