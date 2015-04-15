@@ -102,7 +102,7 @@ suite('system/EdgeSwipeDetector >', function() {
     window.dispatchEvent(evt);
   }
 
-  function launchDownloadDialogEvent(type) {
+  function launchEvent(type) {
     window.dispatchEvent(new CustomEvent(type));
   }
 
@@ -446,6 +446,24 @@ suite('system/EdgeSwipeDetector >', function() {
           touchEnd(panel, [(width / 2)], [240]);
 
           assert.isTrue(fwSpy.notCalled);
+        });
+      });
+
+      suite('if the edge are disabled mid way', function() {
+        test('it should snap in place', function() {
+          var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
+          swipe(this.sinon.clock, panel, 0, 2, 240, 240, true);
+          launchEvent('rocketbar-deactivating');
+          assert.isTrue(snapSpy.calledOnce);
+        });
+
+        test('and ignore the rest of the gesture', function() {
+          swipe(this.sinon.clock, panel, 0, 2, 240, 240, 10, true);
+          launchEvent('rocketbar-activating');
+          var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+          this.sinon.clock.tick(1);
+          touchMove(panel, [width / 2], [240]);
+          assert.isTrue(moveSpy.notCalled);
         });
       });
 
@@ -994,15 +1012,15 @@ suite('system/EdgeSwipeDetector >', function() {
       MockService.currentApp = null;
     });
 
-    function testPromptEvent(prefix) {
-      test('the edges should be disabled on ' + prefix + 'shown', function() {
-        launchDownloadDialogEvent(prefix + 'shown');
+    function testLifecycleEvents(opt) {
+      test('the edges should be disabled on ' + opt.on, function() {
+        launchEvent(opt.on);
         assert.isTrue(subject.previous.classList.contains('disabled'));
         assert.isTrue(subject.next.classList.contains('disabled'));
       });
 
-      test('the edges should be enabled on ' + prefix + 'hidden', function() {
-        launchDownloadDialogEvent(prefix + 'hidden');
+      test('the edges should be enabled on ' + opt.off, function() {
+        launchEvent(opt.off);
         assert.isFalse(subject.previous.classList.contains('disabled'));
         assert.isFalse(subject.next.classList.contains('disabled'));
       });
@@ -1011,17 +1029,27 @@ suite('system/EdgeSwipeDetector >', function() {
         function() {
           subject.lifecycleEnabled = false;
           MockService.currentApp.isHomescreen = true;
-          launchDownloadDialogEvent(prefix + 'shown');
+          launchEvent(opt.on);
           assert.isTrue(subject.previous.classList.contains('disabled'));
           assert.isTrue(subject.next.classList.contains('disabled'));
-          launchDownloadDialogEvent(prefix + 'hidden');
+          launchEvent(opt.off);
           assert.isTrue(subject.previous.classList.contains('disabled'));
           assert.isTrue(subject.next.classList.contains('disabled'));
       });
     }
 
-    testPromptEvent('updateprompt');
-    testPromptEvent('installprompt');
+    testLifecycleEvents({
+      on: 'updatepromptshown',
+      off: 'updateprompthidden'
+    });
+    testLifecycleEvents({
+      on: 'installpromptshown',
+      off: 'installprompthidden'
+    });
+    testLifecycleEvents({
+      on: 'rocketbar-activating',
+      off: 'rocketbar-deactivated'
+    });
   });
 
 });

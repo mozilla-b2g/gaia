@@ -44,6 +44,8 @@
       window.addEventListener('updateprompthidden', this);
       window.addEventListener('installpromptshown', this);
       window.addEventListener('installprompthidden', this);
+      window.addEventListener('rocketbar-activating', this);
+      window.addEventListener('rocketbar-deactivated', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -124,6 +126,7 @@
           }
           break;
         case 'homescreenopened':
+        case 'rocketbar-activating':
           this.lifecycleEnabled = false;
           break;
         case 'cardviewclosed':
@@ -151,6 +154,7 @@
           break;
         case 'updateprompthidden':
         case 'installprompthidden':
+        case 'rocketbar-deactivated':
           if (Service.currentApp && !Service.currentApp.isHomescreen) {
             this.lifecycleEnabled = true;
           }
@@ -166,6 +170,11 @@
       var enabled = this._lifecycleEnabled && this._settingEnabled;
       this.previous.classList.toggle('disabled', !enabled);
       this.next.classList.toggle('disabled', !enabled);
+
+      if (!enabled && this._touchStartEvt) {
+        this._touchStartEvt = null; // we ignore the rest of the gesture
+        SheetsTransition.snapInPlace();
+      }
     },
 
     _touchStartEvt: null,
@@ -214,6 +223,9 @@
     },
 
     _touchMove: function esd_touchMove(e) {
+      if (!this._touchStartEvt) {
+        return;
+      }
       var touch = e.touches[0];
       this._updateProgress(touch);
       var delta = Math.max(Math.abs(this._deltaX), Math.abs(this._deltaY));
@@ -254,6 +266,9 @@
     },
 
     _touchEnd: function esd_touchEnd(e) {
+      if (!this._touchStartEvt) {
+        return;
+      }
       var touch = e.changedTouches[0];
       this._updateProgress(touch);
 
