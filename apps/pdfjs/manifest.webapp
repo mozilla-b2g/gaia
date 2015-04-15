@@ -24,7 +24,7 @@
       "filters": {
         "type": "application/pdf"
       },
-      "disposition": "window",
+      "disposition": "inline",
       "href": "/content/web/viewer.html",
       "returnValue": true
     },
