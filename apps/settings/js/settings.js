@@ -104,34 +104,8 @@ var Settings = {
       if (this.isTabletAndLandscape()) {
         this.currentPanel = this.initialPanelForTablet;
       }
-
-      window.addEventListener('keydown', this.handleSpecialKeys);
     }).bind(this));
 
     PerformanceTestingHelper.dispatch('startup-path-done');
-  },
-
-  /**
-   * back button = close dialog || back to the root page
-   * + prevent the [Return] key to validate forms
-   */
-  handleSpecialKeys: function settings_handleSpecialKeys(event) {
-    if (Settings.currentPanel != '#root' &&
-        event.keyCode === event.DOM_VK_ESCAPE) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      var dialog = document.querySelector('#dialogs .active');
-      if (dialog) {
-        dialog.classList.remove('active');
-        document.body.classList.remove('dialog');
-      } else {
-        Settings.currentPanel = '#root';
-      }
-    } else if (event.keyCode === event.DOM_VK_RETURN) {
-      event.target.blur();
-      event.stopPropagation();
-      event.preventDefault();
-    }
   }
 };
