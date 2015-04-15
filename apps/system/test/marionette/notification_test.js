@@ -120,37 +120,11 @@ marionette('notification tests', function() {
               'notification should not be in list after calling close');
   });
 
-  // function to check if screen status is enabled/disabled
   var urls = {
     system: 'app://system.gaiamobile.org',
     email: 'app://email.gaiamobile.org',
     calendar: 'app://calendar.gaiamobile.org'
   };
-  var screenStatusIs = function(enabled) {
-    return client.executeScript(function(enabled) {
-      return enabled ?
-        window.wrappedJSObject.ScreenManager.screenEnabled :
-        !window.wrappedJSObject.ScreenManager.screenEnabled;
-    }, [enabled]);
-  };
-  var screenStatusIsOn = screenStatusIs.bind(null, true);
-  var screenStatusIsOff = screenStatusIs.bind(null, false);
-
-  // skipping this test until we can figure out why we see intermittent oranges
-  // see also: bug 916730
-  test.skip('email notification should not wake screen', function() {
-    client.switchToFrame();
-    client.executeScript(function() {
-      window.wrappedJSObject.ScreenManager.turnScreenOff(true);
-    });
-    client.waitFor(screenStatusIsOff);
-    client.apps.launch(urls.email);
-    client.apps.switchToApp(urls.email);
-    NotificationTest(client, '123', 'test title', 'test body');
-    client.switchToFrame();
-    var screenOn = screenStatusIsOn();
-    assert.equal(screenOn, false, 'Screen should be off');
-  });
 
   test('email notif should not vibrate the phone while asleep', function() {
     client.switchToFrame();
