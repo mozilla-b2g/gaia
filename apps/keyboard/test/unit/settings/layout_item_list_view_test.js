@@ -17,6 +17,9 @@ suite('LayoutItemListView', function() {
   var containerElStub;
   var layoutItemListStub;
 
+  var dialogElStub;
+  var toastStub;
+
   setup(function() {
     layoutItemListStub =
       this.sinon.stub(LayoutItemList.prototype);
@@ -41,12 +44,23 @@ suite('LayoutItemListView', function() {
       appendChild: this.sinon.stub()
     };
 
+    dialogElStub = document.createElement('div');
+    dialogElStub.appendChild(document.createElement('p'));
+    dialogElStub.hidden = true;
+
+    toastStub = document.createElement('div');
+    toastStub.show = this.sinon.stub();
+    toastStub.hide = this.sinon.stub();
+
     listView = new LayoutItemListView(app);
 
     this.sinon.stub(document, 'getElementById')
       .withArgs(listView.CONTAINER_ID).returns(containerElStub)
       .withArgs(listView.INSTALLED_LIST_ID).returns(installedListElStub)
-      .withArgs(listView.INSTALLABLE_LIST_ID).returns(installableListElStub);
+      .withArgs(listView.INSTALLABLE_LIST_ID).returns(installableListElStub)
+      .withArgs('installable-keyboards-removal-dialog').returns(dialogElStub)
+      .withArgs('installable-keyboards-download-error-toast')
+        .returns(toastStub);
 
     listView.start();
 
@@ -72,7 +86,8 @@ suite('LayoutItemListView', function() {
     assert.isFalse(containerElStub.hidden);
     var i = 0;
     items.forEach(function(item, id) {
-      assert.isTrue(window.LayoutItemView.getCall(i).calledWith(item));
+      assert.isTrue(
+        window.LayoutItemView.getCall(i).calledWith(listView, item));
       var viewStub = window.LayoutItemView.getCall(i).returnValue;
       assert.isTrue(viewStub.start.calledOnce);
       assert.equal(installedListElStub.appendChild.getCall(i).args[0],
@@ -115,5 +130,59 @@ suite('LayoutItemListView', function() {
 
     assert.isTrue(containerElStub.hidden);
     assert.isFalse(window.LayoutItemView.calledOnce);
+  });
+
+  suite('confirmRemoval', function() {
+    var itemView;
+
+    setup(function() {
+      itemView = {
+        confirmRemoveItem: this.sinon.stub()
+      };
+
+      listView.confirmRemoval(itemView, 'Foo');
+
+      assert.isFalse(dialogElStub.hidden);
+      assert.equal(dialogElStub.firstElementChild.dataset.l10nArgs,
+        '{"keyboard":"Foo"}');
+    });
+
+    test('cancel', function() {
+      dialogElStub.dispatchEvent(new CustomEvent('cancel'));
+
+      assert.isTrue(dialogElStub.hidden);
+      assert.isFalse(itemView.confirmRemoveItem.calledOnce);
+    });
+
+    test('confirm', function() {
+      dialogElStub.dispatchEvent(new CustomEvent('confirm'));
+
+      assert.isTrue(dialogElStub.hidden);
+      assert.isTrue(itemView.confirmRemoveItem.calledOnce);
+    });
+  });
+
+  suite('showDownloadErrorToast', function() {
+    test('call before the panel is shown', function() {
+      listView.showDownloadErrorToast();
+
+      assert.isFalse(toastStub.show.calledOnce);
+    });
+
+    test('call after the panel is shown', function() {
+      listView.beforeShow();
+      listView.show();
+
+      listView.showDownloadErrorToast();
+
+      assert.isTrue(toastStub.show.calledOnce);
+    });
+
+    test('hide the panel', function() {
+      listView.beforeHide();
+      listView.hide();
+
+      assert.isTrue(toastStub.hide.calledOnce);
+    });
   });
 });

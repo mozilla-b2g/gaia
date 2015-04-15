@@ -1,15 +1,18 @@
 'use strict';
 
-/* global LayoutItemView, LayoutItem */
+/* global LayoutItemListView, LayoutItemView, LayoutItem, LayoutItemErrorInfo */
 
 require('/js/settings/base_view.js');
 
 require('/js/settings/layout_item.js');
 require('/js/settings/layout_item_view.js');
+require('/js/settings/layout_item_list_view.js');
 
-suite('LayoutItemListView', function() {
+suite('LayoutItemView', function() {
   var view;
+
   var itemStub;
+  var listViewStub;
 
   var labelEl;
   var statusEl;
@@ -25,7 +28,9 @@ suite('LayoutItemListView', function() {
     itemStub.fileSize = 24601;
     itemStub.state = itemStub.STATE_PRELOADED;
 
-    view = new LayoutItemView(itemStub);
+    listViewStub = this.sinon.stub(Object.create(LayoutItemListView.prototype));
+
+    view = new LayoutItemView(listViewStub, itemStub);
 
     var templateEl = document.createElement('template');
     templateEl.innerHTML =
@@ -90,6 +95,20 @@ suite('LayoutItemListView', function() {
       '"totalSize":"24.02","totalSizeUnit":"l10n_get_byteUnit-KB"}');
     assert.isFalse(progressEl.classList.contains('hide'));
     assert.equal(progressEl.value, '1234');
+    assert.equal(progressEl.max, '24601');
+
+    itemStub.downloadLoadedSize = 2345;
+
+    itemStub.onprogress();
+
+    assert.equal(view.oninlistchange.callCount, 1);
+    assert.equal(view.container.dataset.enabledAction, 'cancel-download');
+    assert.equal(statusEl.dataset.l10nId, 'downloadingStatus');
+    assert.equal(statusEl.dataset.l10nArgs,
+      '{"loadedSize":"2.29","loadedSizeUnit":"l10n_get_byteUnit-KB",' +
+      '"totalSize":"24.02","totalSizeUnit":"l10n_get_byteUnit-KB"}');
+    assert.isFalse(progressEl.classList.contains('hide'));
+    assert.equal(progressEl.value, '2345');
     assert.equal(progressEl.max, '24601');
   });
 
@@ -164,7 +183,7 @@ suite('LayoutItemListView', function() {
       assert.isTrue(itemStub.cancelInstall.calledOnce);
     });
 
-    test('cancelDownload', function() {
+    test('remove', function() {
       var evt = {
         type: 'click',
         target: {
@@ -175,7 +194,42 @@ suite('LayoutItemListView', function() {
       };
       view.handleEvent(evt);
 
-      assert.isTrue(itemStub.remove.calledOnce);
+      assert.isTrue(listViewStub.confirmRemoval.calledWith(view, 'Pig Latin'));
+    });
+  });
+
+  test('confirmRemoveItem', function() {
+    view.confirmRemoveItem();
+
+    assert.isTrue(itemStub.remove.calledOnce);
+  });
+
+  suite('onerror', function() {
+    test('ERROR_DOWNLOADERROR', function() {
+      var errorInfo = Object.create(LayoutItemErrorInfo.prototype);
+      errorInfo.error = errorInfo.ERROR_DOWNLOADERROR;
+
+      itemStub.onerror(errorInfo);
+
+      assert.isTrue(listViewStub.showDownloadErrorToast.calledOnce);
+    });
+
+    test('ERROR_INSTALLERROR', function() {
+      var errorInfo = Object.create(LayoutItemErrorInfo.prototype);
+      errorInfo.error = errorInfo.ERROR_INSTALLERROR;
+
+      itemStub.onerror(errorInfo);
+
+      assert.isFalse(listViewStub.showDownloadErrorToast.calledOnce);
+    });
+
+    test('ERROR_REMOVEERROR', function() {
+      var errorInfo = Object.create(LayoutItemErrorInfo.prototype);
+      errorInfo.error = errorInfo.ERROR_REMOVEERROR;
+
+      itemStub.onerror(errorInfo);
+
+      assert.isFalse(listViewStub.showDownloadErrorToast.calledOnce);
     });
   });
 });
