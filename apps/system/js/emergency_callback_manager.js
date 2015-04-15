@@ -1,4 +1,4 @@
-/* global LazyLoader, EmergencyCallbackIcon, BaseModule */
+/* global LazyLoader, EmergencyCallbackIcon, BaseModule, UtilityTray */
 'use strict';
 
 (function() {
