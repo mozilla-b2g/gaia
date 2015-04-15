@@ -549,6 +549,7 @@
 
         var nameEl = document.createElement('span');
         nameEl.className = 'title';
+        nameEl.setAttribute('dir', 'auto');
 
         nameContainerEl.appendChild(nameEl);
 
