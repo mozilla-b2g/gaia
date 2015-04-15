@@ -50,7 +50,6 @@ gaia-confirm[hidden] {
   -moz-box-sizing: padding-box;
   width: 100%;
   display: inline-block;
-  overflow-y: scroll;
   max-height: 100%;
   vertical-align: middle;
   white-space: normal;
