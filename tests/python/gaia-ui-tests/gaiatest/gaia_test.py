@@ -8,12 +8,9 @@ import shutil
 import tempfile
 import time
 
-from marionette import (MarionetteTestCase,
-                        B2GTestCaseMixin)
+from marionette import MarionetteTestCase, B2GTestCaseMixin
 from marionette_driver import expected, By, Wait
-from marionette_driver.errors import (NoSuchElementException,
-                                      StaleElementException,
-                                      InvalidResponseException)
+from marionette_driver.errors import NoSuchElementException, StaleElementException
 
 from environment import GaiaTestEnvironment
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
@@ -746,7 +743,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def setUp(self):
         try:
             MarionetteTestCase.setUp(self)
-        except (InvalidResponseException, IOError):
+        except IOError:
             if self.restart:
                 pass
 
