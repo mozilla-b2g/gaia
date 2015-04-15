@@ -312,7 +312,10 @@ html[dir="rtl"] #suggestions-provider-dropdown {
   transform: scaleX(-1);
 }
 
+html[dir="rtl"] #places .description {
+  text-align: right;
+}
+
 html[dir="rtl"] #places .meta {
   direction: ltr;
-  float: right;
 }
