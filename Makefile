@@ -754,11 +754,12 @@ ifndef APPS
   endif
 endif
 
-b2g: node_modules/.bin/mozilla-download
+b2g: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
 	--product b2g-desktop \
 	--branch mozilla-central \
 	$(shell pwd)
+	touch -c $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
