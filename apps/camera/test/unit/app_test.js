@@ -171,6 +171,9 @@ suite('app', function() {
 
   suite('App#boot()', function() {
     setup(function() {
+      window.performance = {
+        mark: sinon.stub()
+      };
       this.app.boot();
     });
 

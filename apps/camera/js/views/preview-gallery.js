@@ -38,7 +38,8 @@ return View.extend({
   name: 'preview-gallery',
   className: 'offscreen',
 
-  initialize: function() {
+  initialize: function(options) {
+    this.rtl = options.rtl;
     debug('initialized');
   },
 
@@ -159,7 +160,7 @@ return View.extend({
 
     // Should we move to the previous item?
     if (swipeAmount > 0 && swipeVelocity > 0 &&     // Same sign and
-        this.currentIndex > 1 &&                    // has previous item and
+        this.withinRightBound() &&                    // has previous item and
         (swipeAmount > SWIPE_DISTANCE_THRESHOLD ||  // distance big enough or
          swipeVelocity > SWIPE_VELOCITY_THRESHOLD)) // speed fast enough
     {
@@ -168,7 +169,7 @@ return View.extend({
     }
     // Should we move to the next item?
     else if (swipeAmount <= 0 && swipeVelocity <= 0 &&
-             this.currentIndex < this.lastIndex &&
+             this.withinLeftBound() &&
              (swipeAmount < -SWIPE_DISTANCE_THRESHOLD ||
               swipeVelocity < -SWIPE_VELOCITY_THRESHOLD)) {
       direction = 'left';
@@ -349,6 +350,20 @@ return View.extend({
         this.optionsMenuContainer);
       this.optionsMenuContainer = null;
     }
+  },
+
+  withinRightBound: function() {
+    if (this.rtl) {
+      return this.currentIndex < this.lastIndex;
+    }
+    return this.currentIndex > 1;
+  },
+
+  withinLeftBound: function() {
+    if (this.rtl) {
+      return this.currentIndex > 1;
+    }
+    return this.currentIndex < this.lastIndex;
   },
 
   optionTemplate: function() {

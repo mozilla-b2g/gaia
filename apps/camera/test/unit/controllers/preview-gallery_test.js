@@ -368,7 +368,7 @@ suite('controllers/preview-gallery', function() {
 
   suite('PreviewGalleryController#closePreview()', function() {
     setup(function() {
-      this.controller.view = new this.PreviewGalleryView();
+      this.controller.view = new this.PreviewGalleryView({});
       this.previewGalleryView = this.controller.view;
       this.controller.view.close = sinon.spy();
       this.controller.view.destroy = sinon.spy();
@@ -384,13 +384,45 @@ suite('controllers/preview-gallery', function() {
 
   suite('PreviewGalleryController#onPreviewOptionClick()', function() {
     setup(function() {
-     this.controller.view = new this.PreviewGalleryView();
+     this.controller.view = new this.PreviewGalleryView({});
      this.controller.view.showOptionsMenu = sinon.spy();
      this.controller.onOptionsClick();
     });
 
     test('Should open previewOption on onPreviewOptionClick', function() {
       assert.isTrue(this.controller.view.showOptionsMenu.called);
+    });
+  });
+
+  suite('RTL', function() {
+    setup(function() {
+      sinon.stub(this.controller, 'previewItem');
+      this.controller.next = sinon.spy();
+      this.controller.previous = sinon.spy();
+    });
+
+    test('Swipping Left on LTR mode', function() {
+      document.documentElement.dir = 'ltr';
+      this.controller.handleSwipe('left');
+      assert.ok(this.controller.next.called);
+    });
+
+    test('Swipping Right on LTR mode', function() {
+      document.documentElement.dir = 'ltr';
+      this.controller.handleSwipe('right');
+      assert.ok(this.controller.previous.called);
+    });
+
+    test('Swipping Left on RTL mode', function() {
+      document.documentElement.dir = 'rtl';
+      this.controller.handleSwipe('left');
+      assert.ok(this.controller.previous.called);
+    });
+
+    test('Swipping Right on RTL mode', function() {
+      document.documentElement.dir = 'rtl';
+      this.controller.handleSwipe('right');
+      assert.ok(this.controller.next.called);
     });
   });
 
