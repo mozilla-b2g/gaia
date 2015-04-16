@@ -69,7 +69,7 @@ section {
 }
 
 .card {
-  margin: 0 1.6rem 0 1.6rem;
+  margin: 0;
   left: 0;
   top: 0;
   position: absolute;
@@ -130,6 +130,36 @@ section {
 
 .card.focused {
   z-index: 100;
+}
+
+/**
+ * folder list
+ */
+
+#folder-viewer {
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+#folder-list-frame {
+  position: absolute;
+  width: 100%;
+  height: 33.6rem;
+  top: calc(32.41% + 32.3rem);
+  overflow: visible;
+}
+
+#folder-list {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.2s ease;
+  transform-origin: 0 50%;
 }
 
 /**

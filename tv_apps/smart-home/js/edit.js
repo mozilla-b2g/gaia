@@ -16,6 +16,7 @@
 
     regularNavElements: undefined,
     editNavElements: undefined,
+    currentNode: undefined,
 
     init: function(spatialNavigator, cardManager, cardScrollable) {
       this.spatialNavigator = spatialNavigator;
@@ -28,7 +29,6 @@
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
 
-      this.cardScrollable.on('focus', this.handleCardFocus.bind(this));
       this.cardScrollable.on('listTransformEnd',
                                   this.handleListTransformEnd.bind(this));
       this.cardScrollable.on('nodeTransformEnd',
@@ -256,9 +256,6 @@
       var panel = this._getPanel(nodeElem);
       scrollable.spatialNavigator.remove(panel.renameBtn);
       scrollable.spatialNavigator.remove(panel.deleteBtn);
-      if (!scrollable.spatialNavigator.getFocusedElement()) {
-        scrollable.spatialNavigator.focus(scrollable.getItemFromNode(nodeElem));
-      }
     },
 
     handleFocus: function(elem) {
@@ -269,9 +266,8 @@
     },
 
     handleUnfocus: function(elem) {
-      if (this.mode === 'edit' && elem.CLASS_NAME === 'XScrollable') {
-        this.handleCardUnfocus(
-                elem, elem.currentItem, elem.getNodeFromItem(elem.currentItem));
+      if (this.mode === 'edit' && elem === this.currentScrollable) {
+        this._concealPanel(this.currentScrollable, this.currentNode);
       }
     },
 
@@ -288,8 +284,7 @@
       // node element. We need to "unfocus" the node only when user really move
       // to another card. So here we call handleCardUnfocus manually.
       if (this.currentNode != nodeElem) {
-        this.handleCardUnfocus(this.currentScrollable,
-                          this.currentScrollable.currentItem, this.currentNode);
+        this._concealPanel(this.currentScrollable, this.currentNode);
 
         this.currentNode = nodeElem;
         this.currentScrollable = scrollable;
@@ -297,11 +292,6 @@
       this._revealPanel(scrollable, nodeElem);
       itemElem.focus();
       nodeElem.classList.add('focused');
-    },
-
-    handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
-      this._concealPanel(scrollable, nodeElem);
-      nodeElem.classList.remove('focused');
     },
 
     handleListTransformEnd: function() {

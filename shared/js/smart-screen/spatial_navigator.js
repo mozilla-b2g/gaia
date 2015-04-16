@@ -463,6 +463,26 @@
      * @memberof SpatialNavigator.prototype
      */
     focus: function snFocus(elem) {
+      if (this.focusSilently(elem)) {
+        this.fire('focus', this._focus);
+        return true;
+      } else {
+        return false;
+      }
+    },
+
+    /**
+     * Move focus to an existing element but without firing any events. Can be
+     * used on initializing.
+     *
+     * @param  {SpatialNavigatorElement} [elem]
+     *         when omitted, it focused the first element.
+     *
+     * @return {Boolean} true if succeed. false if element doesn't exist.
+     *
+     * @memberof SpatialNavigator.prototype
+     */
+    focusSilently: function snFocusSliently(elem) {
       if (!this._collection) {
         return false;
       }
@@ -475,7 +495,6 @@
 
       this.unfocus();
       this._focus = elem;
-      this.fire('focus', elem);
       return true;
     },
 
