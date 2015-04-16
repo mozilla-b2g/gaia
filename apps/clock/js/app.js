@@ -131,6 +131,11 @@ var App = {
             }.bind(null, this.currentPanel));
           }
           this.currentPanel = panel;
+          var id = instance.element.getAttribute('aria-labelledby');
+          var tab = document.querySelector('ul#clock-tabs #' + id);
+          if (tab && tab.getAttribute('aria-selected') !== 'true') {
+            tab.click();
+          }
           callback && callback();
         }.bind(this));
       } else {
