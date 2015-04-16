@@ -2260,7 +2260,8 @@ contacts.List = (function() {
         remove(id);
       }
     });
-    Cache.evict();
+    Cache.evict(false /* undo applied cache */,
+                true /* instant eviction */);
   }
 
   window.onmessage = (e) => {

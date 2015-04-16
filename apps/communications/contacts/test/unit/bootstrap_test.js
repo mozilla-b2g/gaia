@@ -365,8 +365,10 @@ suite('Bootstrap - Valid cache, one contact', function() {
     });
 
     test('Cache content should be applied to the DOM', function() {
-      var contactSection = fakeContainer.querySelector('.section-group-D');
-      assert.isDefined(contactSection);
+      var contactsListD =
+        fakeContainer.querySelector('ol#contacts-list-D');
+      assert.isDefined(contactsListD);
+      assert.equal(contactsListD.children.length, 1);
     });
 
     test('Evicting cache should remove cache from disk and memory',
@@ -544,6 +546,116 @@ suite('Bootstrap - Valid cache, multiple contacts, favorites', function() {
         assert.deepEqual(Cache.headers, {});
       };
       Cache.evict();
+    });
+  });
+});
+
+suite('Bootstrap - Evict and undo cache', function() {
+  var fakeContainer;
+
+  suiteSetup(function() {
+    fakeContainer = document.createElement('div');
+    fakeContainer.id = 'groups-list';
+    document.body.appendChild(fakeContainer);
+  });
+
+  suiteTeardown(function() {
+    Cache.cleanup();
+    localStorage.removeItem('firstChunk');
+    document.body.removeChild(fakeContainer);
+  });
+
+  suite('Evict and undo cache', function() {
+    var alreadyDone;
+    var spy;
+    setup(function(done) {
+      localStorage.setItem('firstChunk',
+                           JSON.stringify(VALID_CACHE_ONE_CONTACT));
+      applyCache('firstChunk').then(done);
+      spy = sinon.spy(window, 'setTimeout');
+    });
+
+    teardown(function() {
+      spy.restore();
+    });
+
+    test('Cache content should be applied to the DOM', function() {
+      var contactsListD =
+        fakeContainer.querySelector('ol#contacts-list-D');
+      assert.equal(contactsListD.children.length, 1);
+    });
+
+    test('Evicting cache should remove cache from disk and memory ' +
+         'and from the DOM', function(done) {
+      assert.isDefined(localStorage.getItem('firstChunk'));
+      Cache.oneviction = () => {
+        // We will be evicting the cache again in following tests
+        // and we don't want to run this again.
+        if (alreadyDone) {
+          return;
+        }
+        assert.isNull(localStorage.getItem('firstChunk'));
+        assert.isNull(Cache.contacts);
+        assert.isNull(Cache.favorites);
+        assert.deepEqual(Cache.headers, {});
+        var contactsListD =
+          fakeContainer.querySelector('ol#contacts-list-D');
+        assert.equal(contactsListD.children.length, 0);
+        assert.isTrue(spy.called);
+        alreadyDone = true;
+        done();
+      };
+      Cache.evict(true /* undo */, false /* inmediate */);
+    });
+  });
+});
+
+suite('Bootstrap - Evict cache right away', function() {
+  var fakeContainer;
+
+  suiteSetup(function() {
+    fakeContainer = document.createElement('div');
+    fakeContainer.id = 'groups-list';
+    document.body.appendChild(fakeContainer);
+  });
+
+  suiteTeardown(function() {
+    Cache.cleanup();
+    localStorage.removeItem('firstChunk');
+    document.body.removeChild(fakeContainer);
+  });
+
+  suite('Evict now!', function() {
+    var spy;
+    setup(function(done) {
+      localStorage.setItem('firstChunk',
+                           JSON.stringify(VALID_CACHE_ONE_CONTACT));
+      applyCache('firstChunk').then(done);
+      spy = sinon.spy(window, 'setTimeout');
+    });
+
+    teardown(function() {
+      spy.restore();
+    });
+
+    test('Cache content should be applied to the DOM', function() {
+      var contactsListD =
+        fakeContainer.querySelector('ol#contacts-list-D');
+      assert.equal(contactsListD.children.length, 1);
+    });
+
+    test('Evicting cache should remove cache from disk and memory ' +
+         'and from the DOM', function(done) {
+      assert.isDefined(localStorage.getItem('firstChunk'));
+      Cache.oneviction = () => {
+        assert.isNull(localStorage.getItem('firstChunk'));
+        assert.isNull(Cache.contacts);
+        assert.isNull(Cache.favorites);
+        assert.deepEqual(Cache.headers, {});
+        assert.isFalse(spy.called);
+        done();
+      };
+      Cache.evict(false /* undo */, true /* inmediate */);
     });
   });
 });
