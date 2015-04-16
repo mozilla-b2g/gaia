@@ -31,8 +31,7 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled [role="dialog"].generic-dialog,
   #screen.software-button-enabled > #dialog-screen,
-  #screen.software-button-enabled + #downloadConfirmUI,
-  #screen.software-button-enabled > #dialog-overlay {
+  #screen.software-button-enabled + #downloadConfirmUI {
     right: var(--software-home-button-height);
   }
 
