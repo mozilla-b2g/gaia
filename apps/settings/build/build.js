@@ -2,6 +2,9 @@
 
 /* global require, exports, dump */
 var utils = require('utils');
+var jsmin = require('jsmin');
+
+var jsSuffix = /\.js$/;
 
 function hasGitCommand() {
   return utils.getEnvPath().some(function(path) {
@@ -83,17 +86,40 @@ SettingsAppBuilder.prototype.writeEuRoamingJSON = function(options) {
 };
 
 SettingsAppBuilder.prototype.executeRjs = function(options) {
-  var optimize = 'optimize=' +
-    (options.GAIA_OPTIMIZE === '1' ? 'uglify2' : 'none');
+  var deferred = utils.Q.defer();
+
   var configFile = utils.getFile(options.APP_DIR, 'build',
     'settings.build.jslike');
   var r = require('r-wrapper').get(options.GAIA_DIR);
-  r.optimize([configFile.path, optimize], function() {
-    dump('require.js optimize ok\n');
+  // Simply use r.js for merging scripts as it does not support es6 syntax.
+  // Minifying will be done by other tools later.
+  r.optimize([configFile.path, 'optimize=none'], function() {
+    dump('r.js optimize ok\n');
+    deferred.resolve();
   }, function(err) {
-    dump('require.js optmize failed:\n');
+    dump('r.js optmize failed:\n');
     dump(err + '\n');
+    deferred.resolve();
   });
+
+  return deferred.promise;
+};
+
+SettingsAppBuilder.prototype.executeJsmin = function(options) {
+  if (options.GAIA_OPTIMIZE === '1') {
+    utils.listFiles(options.STAGE_APP_DIR, utils.FILE_TYPE_FILE, true).forEach(
+      function(filePath) {
+        if (jsSuffix.test(filePath)) {
+          try {
+            var file = utils.getFile(filePath);
+            var content = utils.getFileContent(file);
+            utils.writeContent(file, jsmin(content).code);
+          } catch(e) {
+            utils.log('Error minifying content: ' + filePath);
+          }
+        }
+    });
+  }
 };
 
 SettingsAppBuilder.prototype.writeGitCommit = function(options) {
@@ -147,14 +173,17 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
 };
 
 SettingsAppBuilder.prototype.execute = function(options) {
-  this.executeRjs(options);
   this.writeGitCommit(options);
   this.writeDeviceFeaturesJSON(options);
   this.writeSupportsJSON(options);
   this.writeFindMyDeviceConfigJSON(options);
   this.writeEuRoamingJSON(options);
+
+  return this.executeRjs(options).then(function() {
+    this.executeJsmin(options);
+  }.bind(this));
 };
 
 exports.execute = function(options) {
-  (new SettingsAppBuilder()).execute(options);
+  return (new SettingsAppBuilder()).execute(options);
 };
