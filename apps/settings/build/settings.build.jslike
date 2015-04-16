@@ -69,6 +69,17 @@
     mangle: true
   },
 
+  // Rewrite the waitSeconds directive so that we never time out
+  // waiting for modules to load when DEBUG=1 is not set. See
+  // js/config/require.js for more details.
+  onBuildWrite: function(id, url, contents) {
+    if (id === 'config/require') {
+      return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
+    } else {
+      return contents;
+    }
+  },
+
   fileExclusionRegExp: /^\.|^test$|^build$/,
 
   // Keeping build dir since Makefile cleans it up and
