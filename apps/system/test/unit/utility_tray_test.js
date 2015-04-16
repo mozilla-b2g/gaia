@@ -1,4 +1,4 @@
-/* global MocksHelper, UtilityTray */
+/* global MocksHelper, Service, UtilityTray */
 
 'use strict';
 
@@ -19,8 +19,6 @@ mocksHelperForUtilityTray.init();
 suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
-  var fakeElement;
-  var originalLocked;
   var originalSoftwareButtonManager;
   mocksHelperForUtilityTray.attachTestHelpers();
 
@@ -63,7 +61,7 @@ suite('system/UtilityTray', function() {
 
     Service.mTopMostWindow = {
       isTransitioning: function() {},
-      getTopMostWindow: function() { return this },
+      getTopMostWindow: function() { return this; },
       appChrome: {
         titleClicked: function() {},
         useCombinedChrome: function() {},
@@ -150,7 +148,7 @@ suite('system/UtilityTray', function() {
       assert.equal(UtilityTray.shown, true);
     });
 
-    test("Test screen element's class list", function() {
+    test('Test screen element\'s class list', function() {
       assert.equal(UtilityTray.screen.classList.contains('utility-tray'), true);
     });
   });
@@ -170,7 +168,7 @@ suite('system/UtilityTray', function() {
       assert.equal(UtilityTray.startY, undefined);
     });
 
-    test("Test screen element's class list", function() {
+    test('Test screen element\'s class list', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
     });

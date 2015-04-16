@@ -7,6 +7,7 @@
   ScreenManager,
   MockNavigatorMozTelephony,
   MockCall,
+  MockService,
   Service
  */
 
