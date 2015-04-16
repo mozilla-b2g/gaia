@@ -66,8 +66,8 @@
       'SecureWindowManager',
       'LockScreenWindowManager',
       'UtilityTray',
-      'SystemDialogManager',
       'Rocketbar',
+      'SystemDialogManager',
       'ActionMenu',
       'AppWindowManager',
       'TaskManager'
