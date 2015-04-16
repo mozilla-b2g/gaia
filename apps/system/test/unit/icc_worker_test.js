@@ -117,7 +117,34 @@ suite('STK (icc_worker) >', function() {
             }
           }
         }
-      }
+      },
+
+      STK_CMD_SET_UP_CALL: {
+         iccId: '1010011010',
+         command: {
+           commandNumber: 1,
+           typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_CALL,
+           commandQualifier: 0,
+           options: {
+             address:'800',
+             confirmMessage:{
+               text:'TestService'
+             }
+           }
+         }
+       },
+
+       STK_CMD_SET_UP_CALL_NO_CONFIRM_MSG: {
+         iccId: '1010011010',
+         command: {
+           commandNumber: 1,
+           typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_CALL,
+           commandQualifier: 0,
+           options: {
+             address:'800'
+           }
+         }
+       }
     };
   });
 
@@ -204,6 +231,34 @@ suite('STK (icc_worker) >', function() {
       fakeNotification.onshow();
     });
   });
+
+  test('STK_CMD_SET_UP_CALL', function(done) {
+    window.icc.asyncConfirm = function(stkMsg, message, icons, callback) {
+       assert.equal(stkTestCommands.STK_CMD_SET_UP_CALL.
+         command.options.confirmMessage.text,
+         message);
+       callback(false);
+     };
+     window.icc.onresponse = function(message, response) {
+       assert.equal(response.resultCode,
+         navigator.mozIccManager.STK_RESULT_OK);
+       done();
+     };
+     launchStkCommand(stkTestCommands.STK_CMD_SET_UP_CALL);
+   });
+
+   test('STK_CMD_SET_UP_CALL (No Confirm Message)', function(done) {
+     window.icc.asyncConfirm = function(stkMsg, message, icons, callback) {
+       assert.equal('icc-confirmCall-defaultmessage', message);
+       callback(false);
+     };
+     window.icc.onresponse = function(message, response) {
+       assert.equal(response.resultCode,
+         navigator.mozIccManager.STK_RESULT_OK);
+       done();
+     };
+     launchStkCommand(stkTestCommands.STK_CMD_SET_UP_CALL_NO_CONFIRM_MSG);
+   });
 
   test('STK_CMD_REFRESH', function() {
     var spy = this.sinon.spy(icc_worker, '0x1');

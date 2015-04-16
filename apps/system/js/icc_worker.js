@@ -73,10 +73,10 @@ var icc_worker = {
       if (STKHelper.isIconSelfExplanatory(options.confirmMessage)) {
         confirmMessage = '';
       }
-      icc.asyncConfirm(message, confirmMessage, options.confirmMessage.icons,
-        function(confirmed) {
-          stkSetupCall(confirmed, callMessage);
-        });
+      var icons = options.confirmMessage ? options.confirmMessage.icons : null;
+      icc.asyncConfirm(message, confirmMessage, icons, function(confirmed) {
+        stkSetupCall(confirmed, callMessage);
+      });
     } else {
       stkSetupCall(true, callMessage);
     }
@@ -149,7 +149,8 @@ var icc_worker = {
     if (!STKHelper.isIconSelfExplanatory(options.confirmMessage)) {
       text = STKHelper.getMessageText(options.confirmMessage);
     }
-    icc.showURL(message, options.url, options.confirmMessage.icons, text);
+    var icons = options.confirmMessage ? options.confirmMessage.icons : null;
+    icc.showURL(message, options.url, icons, text);
   },
 
   // STK_CMD_PLAY_TONE
