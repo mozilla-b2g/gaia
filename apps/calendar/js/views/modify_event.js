@@ -10,6 +10,7 @@ var dateFormat = require('date_format');
 var getTimeL10nLabel = require('calc').getTimeL10nLabel;
 var nextTick = require('next_tick');
 var router = require('router');
+var viewFactory = require('./factory');
 
 require('dom!modify-event-view');
 
@@ -413,7 +414,7 @@ ModifyEvent.prototype = {
           //   /week -> /event/view -> /event/save -> /event/view
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
-          self.app.view('ViewEvent', function(view) {
+          viewFactory.get('ViewEvent', function(view) {
             router.go(view.returnTop(), state);
           });
 
@@ -446,7 +447,7 @@ ModifyEvent.prototype = {
           //   /week -> /event/view -> /event/save -> /event/view
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
-          self.app.view('ViewEvent', function(view) {
+          viewFactory.get('ViewEvent', function(view) {
             router.go(view.returnTop());
           });
         });
