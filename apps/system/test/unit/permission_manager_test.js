@@ -1,5 +1,5 @@
 /* global PermissionManager, Applications, MocksHelper, MockL10n,
-          MockApplications, Service */
+          MockApplications, MockService, Service */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
