@@ -1,4 +1,5 @@
-/* global Service */
+/* global LazyLoader, MediaPlaybackWidget, ScreenManager, Service,
+          SettingsListener, SettingsURL, toneUpgrader */
 'use strict';
 
 
@@ -695,11 +696,12 @@ var NotificationScreen = {
 
   removeLockScreenNotification:
   function ns_removeLockScreenNotification(notificationId) {
+    var lockScreenNotificationNode;
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
     this.lockScreenContainer = this.getLockScreenContainer();
     if (this.lockScreenContainer) {
-      var lockScreenNotificationNode =
-          this.lockScreenContainer.querySelector(notifSelector);
+      lockScreenNotificationNode =
+        this.lockScreenContainer.querySelector(notifSelector);
     }
 
     if (lockScreenNotificationNode) {
@@ -825,7 +827,7 @@ SettingsListener.observe(
 });
 
 SettingsListener.observe('audio.volume.notification', 7, function(value) {
-  NotificationScreen.silent = (value == 0);
+  NotificationScreen.silent = (value === 0);
 });
 
 SettingsListener.observe('vibration.enabled', true, function(value) {
