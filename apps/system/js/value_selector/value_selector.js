@@ -146,10 +146,68 @@
   };
 
   ValueSelector.prototype.view = function vs_view() {
-    var template = new Template('value-selector-template');
-    return template.interpolate({
-      id: this.CLASS_NAME + this.instanceID
-    });
+    var id = this.CLASS_NAME + this.instanceID;
+    return Tagged.escapeHTML `
+      <div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
+        <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
+          <section class="value-selector-container">
+            <h1 class="value-selector-options-title" data-l10n-id="choose-option"></h1>
+            <ol class="value-selector-options-container" role="listbox"></ol>
+          </section>
+          <menu class="value-selector-select-options-buttons value-selector-buttons">
+            <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok"></button>
+          </menu>
+        </form>
+        <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
+          <h1 data-l10n-id="select-time">Select time</h1>
+          <div class="value-selector-time-picker">
+            <div class="value-selector-time-picker-container picker-container">
+              <div class="picker-bar-background"></div>
+              <div class="value-picker-hours-wrapper">
+                <div class="value-picker-hours animation-on"></div>
+              </div>
+              <div class="value-picker-minutes-wrapper">
+                <div class="value-picker-minutes animation-on"></div>
+              </div>
+              <div class="value-picker-hour24-wrapper">
+                <div class="value-picker-hour24-state animation-on"></div>
+              </div>
+              <div class="value-indicator">
+                <div aria-hidden="true" class="value-indicator-colon hours-minutes-separator">:</div>
+              </div>
+            </div>
+          </div>
+          <menu class="value-selector-time-picker-buttons value-selector-buttons" data-items="2">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel"></button>
+            <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok"></button>
+          </menu>
+        </div>
+        <div role="dialog" data-type="date-selector" class="value-selector-spin-date-picker-popup" hidden>
+          <h1 data-l10n-id="select-day">Select day</h1>
+          <div class="value-selector-spin-date-picker">
+            <div class="picker-container">
+              <div class="picker-bar-background"></div>
+              <div class="value-picker-date-wrapper">
+                <div class="value-picker-date animation-on"></div>
+                <div class="value-picker-date animation-on"></div>
+                <div class="value-picker-date animation-on"></div>
+                <div class="value-picker-date animation-on"></div>
+              </div>
+              <div class="value-picker-month-wrapper">
+                <div class="value-picker-month animation-on"></div>
+              </div>
+              <div class="value-picker-year-wrapper">
+                <div class="value-picker-year animation-on"></div>
+              </div>
+              <div class="value-indicator"></div>
+            </div>
+          </div>
+          <menu class="value-selector-spin-date-picker-buttons value-selector-buttons" data-items="2">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel"></button>
+            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok"></button>
+          </menu>
+        </div>
+      </div>`;
   };
 
   ValueSelector.prototype._registerEvents = function vs__registerEvents() {
@@ -383,7 +441,6 @@
     }
 
     var groupTemplate = new Template('value-selector-groupoption-template');
-    var template = new Template('value-selector-option-template');
 
     // Add ARIA property to notify if this is a multi-select or not.
     this.elements.optionsContainer.setAttribute('aria-multiselectable',
@@ -396,13 +453,16 @@
             text: option.text
           }));
       } else {
+        var index = option.optionIndex.toString(10);
+        var checked = option.selected.toString();
+        var gaiaOption = 'gaia-option-' + option.optionIndex;
+
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          template.interpolate({
-            index: option.optionIndex.toString(10),
-            checked: option.selected.toString(),
-            for: 'gaia-option-' + option.optionIndex,
-            text: option.text
-          }));
+          `<li role="option" data-option-index="${index}" aria-selected="${checked}" dir="auto">
+            <label role="presentation" for="${gaiaOption}">
+              <span>${option.text}</span>
+            </label>
+          </li>`
       }
     }, this);
 
