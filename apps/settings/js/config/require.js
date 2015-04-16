@@ -133,7 +133,15 @@ require.config({
         'modules/bluetooth/version_detector',
         'modules/app_storage',
         'modules/battery',
-        'modules/wifi_context'
+        'modules/wifi_context',
+        'modules/sim_security'
+      ]
+    },
+    {
+      name: 'panels/simpin/panel',
+      exclude: [
+        'main',
+        'modules/sim_security'
       ]
     },
     {
