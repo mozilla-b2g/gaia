@@ -90,6 +90,7 @@
 }
 
 #updates-viaDataConnection-dialog,
+#updates-Details-dialog,
 #updates-download-dialog {
   /* Increasing padding size form 1.5 to 3.5rem for confirm dialogs with statusbar active */
   padding-top: 3.5rem;
@@ -97,12 +98,14 @@
 }
 
 #screen.software-button-enabled #updates-viaDataConnection-dialog,
+#screen.software-button-enabled #updates-Details-dialog,
 #screen.software-button-enabled #updates-download-dialog {
   bottom: var(--software-home-button-height);
 }
 
 @media (orientation: landscape) {
   #screen.software-button-enabled #updates-viaDataConnection-dialog,
+  #screen.software-button-enabled #updates-Details-dialog,
   #screen.software-button-enabled #updates-download-dialog {
     bottom: 0;
     right: var(--software-home-button-height);
@@ -110,6 +113,7 @@
 }
 
 #updates-viaDataConnection-dialog.visible,
+#updates-Details-dialog.visible,
 #updates-download-dialog.visible {
   display: inline-block;
   pointer-events: auto;
@@ -240,6 +244,29 @@
   background-size: 7.6rem;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/* System update release notes */
+
+#update-Details-relnote p {
+  font-size: 1.2rem;
+  word-wrap: break-word;
+}
+
+#update-Details-relnote, /* Show by default, to expose loading */
+#update-Details-relnote[data-relnotes="true"], /* Show when sucessfully fetched */
+#update-Details-relnote[data-relnotes="true"] p, /* Show text once fetched */
+#update-Details-relnote span /* Show loading until fetched */
+{
+  visibility: visible;
+  display: block;
+}
+
+#update-Details-relnote p, /* Hide until fetched */
+#update-Details-relnote[data-relnotes="true"] span /* Hide once fetched */
+{
+  visibility: hidden;
+  display: none;
 }
 
 /* RTL View */
