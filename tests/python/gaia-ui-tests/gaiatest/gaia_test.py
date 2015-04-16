@@ -1147,3 +1147,27 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)
+
+
+class PasscodeTestCase(GaiaTestCase):
+
+    def set_passcode_to_1337(self):
+        """Set the passcode (but neither disable nor enable it)."""
+        SET_DIGEST_VALUE = 'lockscreen.passcode-lock.digest.value'
+        SET_DIGEST_SALT = 'lockscreen.passcode-lock.digest.salt'
+        SET_DIGEST_ITERATIONS = 'lockscreen.passcode-lock.digest.iterations'
+        SET_DIGEST_ALGORITHM = 'lockscreen.passcode-lock.digest.algorithm'
+
+        digestNums = [195, 174, 33, 98, 39, 43, 135, 112,
+                      126, 176, 82, 150, 236, 112, 87, 54,
+                      96, 60, 208, 18, 86, 178, 19, 20,
+                      129, 91, 168, 134, 241, 138, 59, 210]
+
+        settings = {}
+        settings[SET_DIGEST_VALUE] = digestNums
+        settings[SET_DIGEST_SALT] = [4, 8, 15, 16, 23, 42, 108, 0]
+        settings[SET_DIGEST_ITERATIONS] = 1000
+        settings[SET_DIGEST_ALGORITHM] = 'SHA-1'
+
+        for setting, value in settings.iteritems():
+            self.data_layer.set_setting(setting, value)
