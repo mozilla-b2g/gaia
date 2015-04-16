@@ -254,13 +254,33 @@ var SuggestionBar = {
   },
 
   _setItem: function sb_setItem(node, tel, type, name) {
-    var _ = navigator.mozL10n.get;
+    var phoneTypes = [
+      'mobile',
+      'home',
+      'work',
+      'personal',
+      'faxHome',
+      'faxOffice',
+      'faxOther',
+      'other'
+    ];
     var typeTag = node.querySelector('.js-tel-type');
     var telTag = node.querySelector('.js-tel');
     var nameTag = node.querySelector('.js-name');
     nameTag.textContent = name ? name : null;
-    typeTag.textContent = _(type) || type;
     telTag.innerHTML = tel ? tel : null;
+
+    if (type) {
+      if (phoneTypes.some(element => element == type)) {
+        navigator.mozL10n.setAttributes(typeTag, type);
+      } else {
+        // No localization found, use the type string as-is
+        typeTag.removeAttribute('data-l10n-id');
+        typeTag.textContent = type;
+      }
+    } else {
+      typeTag.textContent = null;
+    }
   },
 
   clear: function sb_clear(isHardClear) {
