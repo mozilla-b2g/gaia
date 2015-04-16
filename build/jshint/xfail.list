@@ -124,7 +124,6 @@ apps/sharedtest/test/unit/gesture_detector_test.js
 apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
 apps/system/js/browser_mixin.js
-apps/system/js/icc.js
 apps/system/js/notification_screen.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
