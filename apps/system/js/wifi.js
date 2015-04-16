@@ -1,4 +1,5 @@
-/* global Service, LazyLoader */
+/* global LazyLoader, ScreenManager, Service, SettingsListener,
+          WifiIcon, WifiWakeLockManager */
 
 'use strict';
 
@@ -31,8 +32,9 @@ var Wifi = {
   },
 
   init: function wf_init() {
-    if (!window.navigator.mozSettings)
+    if (!window.navigator.mozSettings) {
       return;
+    }
 
     if (!window.navigator.mozWifiManager) {
       return;
@@ -61,8 +63,9 @@ var Wifi = {
     var name = 'wifi.disabled_by_wakelock';
     var req = SettingsListener.getSettingsLock().get(name);
     req.onsuccess = function gotWifiDisabledByWakelock() {
-      if (!req.result[name])
+      if (!req.result[name]) {
         return;
+      }
 
       // Re-enable wifi and reset wifi.disabled_by_wakelock
       // SettingsListener.getSettingsLock() always return invalid lock
@@ -147,15 +150,17 @@ var Wifi = {
       }
 
       clearTimeout(self._scanTimer);
-      if (!value)
+      if (!value) {
         return;
+      }
 
       // If wifi is enabled but disconnected.
       // we would need to call getNetworks() continuously
       // so we could join known wifi network
       self._scanTimer = setInterval(function wifi_scan() {
-        if (wifiManager.connection.status == 'disconnected')
+        if (wifiManager.connection.status == 'disconnected') {
           wifiManager.getNetworks();
+        }
       });
     });
   },
@@ -226,7 +231,7 @@ var Wifi = {
 
       // When user wants to allow wifi off then start with a timer,
       // only turn off wifi till timeout.
-      if (this.wifiSleepMode == true) {
+      if (this.wifiSleepMode === true) {
         var date = new Date(Date.now() + this.screenOffTimeout);
         var self = this;
         var req = navigator.mozAlarms.add(date, 'ignoreTimezone', 'wifi-off');
@@ -318,21 +323,23 @@ var Wifi = {
     // Keep this value in disk so if the phone reboots we'll
     // be able to turn the wifi back on.
     request = lock.set({ 'wifi.disabled_by_wakelock': true });
-    request.onsuccess = function() { wakeLockForSettings.unlock() };
+    request.onsuccess = function() { wakeLockForSettings.unlock(); };
     request.onerror = request.onsuccess;
   },
 
   // Register for handling system message,
   // this cannot be done during |init()| because of bug 797803
   setSystemMessageHandler: function wifi_setSystemMessageHandler() {
-    if (this._systemMessageHandlerRegistered)
+    if (this._systemMessageHandlerRegistered) {
       return;
+    }
 
     this._systemMessageHandlerRegistered = true;
     var self = this;
     navigator.mozSetMessageHandler('alarm', function gotAlarm(message) {
-      if (message.data !== 'wifi-off')
+      if (message.data !== 'wifi-off') {
         return;
+      }
 
       self.sleep();
     });
