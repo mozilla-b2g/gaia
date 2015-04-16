@@ -125,7 +125,6 @@ apps/sharedtest/test/unit/mediadb_test.js
 apps/sharedtest/test/unit/tag_visibility_monitor_test.js
 apps/system/js/browser_mixin.js
 apps/system/js/orientation_manager.js
-apps/system/js/payment.js
 apps/system/js/sheets_transition.js
 apps/system/js/update_manager.js
 apps/system/js/wifi.js
