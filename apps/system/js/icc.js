@@ -1,4 +1,4 @@
-/* global LazyLoader, DUMP, inputWindowManager, Service */
+/* global DUMP, LazyLoader, icc_worker, MozActivity, Service, STKHelper */
 'use strict';
 
 var icc = {
@@ -41,7 +41,6 @@ var icc = {
     this.protectForms();
     this.getIccInfo();
 
-    var self = this;
     // Update displayTextTimeout with settings parameter
     var reqDisplayTimeout = window.navigator.mozSettings.createLock().get(
       'icc.displayTextTimeout');
@@ -331,8 +330,6 @@ var icc = {
       return;
     }
     this.icc_view.style.top = Service.query('StatusBar.height') + 'px';
-    var height = Service.query('LayoutManager.height') -
-      Service.query('StatusBar.height');
   },
 
   alert: function icc_alert(stkMessage, message, icons) {
@@ -526,16 +523,17 @@ var icc = {
         // Our url doesn't contains the protocol
         url = 'http://' + url;
       }
+      /* jshint nonew: false */
       new MozActivity({
         name: 'view',
         data: { type: 'url', url: url }
       });
     }
-    if (url == null || url.length == 0) {
+    if (url === null || url.length === 0) {
       url = this._defaultURL;
     }
     DUMP('Final URL to open: ' + url);
-    if (url != null || url.length != 0) {
+    if (url !== null || url.length !== 0) {
       if (icons || confirmMessage) {
         this.asyncConfirm(stkMessage, confirmMessage, icons, function(res) {
           if (res) {
