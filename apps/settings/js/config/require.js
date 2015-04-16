@@ -5,6 +5,9 @@ require.config({
     'panels': 'panels',
     'shared': '../shared/js'
   },
+  // This is the default value of the loading timeout, we will disable the
+  // timeout in the production build
+  waitSeconds: 7,
   shim: {
     'connectivity': {
       exports: 'Connectivity'
