@@ -2490,7 +2490,10 @@ var ThreadUI = {
         message: message,
         onerror: function onError(error) {
           var errorName = error.name;
-          this.showMessageSendingError(errorName);
+          this.showMessageSendingError(
+            errorName,
+            { recipients: error.data.receivers || [error.data.receiver] }
+          );
         }.bind(this),
         onsuccess: function() {
            this.onMessageSendRequestCompleted();
