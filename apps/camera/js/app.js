@@ -514,13 +514,9 @@ App.prototype.setSharingState = function(state) {
 
   this._sharingIsActive = isActive;
   if (this._sharingIsActive) {
-    debug('set sharing as active');
+    debug('sharing is now active');
   } else {
-    debug('set sharing as inactive');
-    if (!this.hidden && state !== 'sharing-canceled') {
-      debug('sharing now inactive, reloading');
-      this.onReboot();
-    }
+    debug('sharing is now inactive');
   }
 };
 

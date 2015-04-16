@@ -164,7 +164,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
     };
     activity.onerror = function(e) {
       console.warn('Share activity error:', activity.error.name);
-      self.app.setSharingState('sharing-canceled');
+      self.app.setSharingState('not-sharing');
     };
   };
 
@@ -386,7 +386,9 @@ PreviewGalleryController.prototype.onHidden = function() {
     this.configure();          // Forget all stored images
     this.updateThumbnail();    // Get rid of any thumbnail
   }
-  this.closePreview();
+  if (!this.app.isSharingActive()) {
+    this.closePreview();       // Only close Preview when not sharing
+  }
 };
 
 PreviewGalleryController.prototype.updateThumbnail = function() {
