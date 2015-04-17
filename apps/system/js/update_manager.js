@@ -1,4 +1,5 @@
-/* global Service */
+/* global AppUpdatable, NotificationScreen, Service, SettingsListener,
+          SystemBanner, SystemUpdatable, UtilityTray */
 
 'use strict';
 
@@ -64,6 +65,7 @@ var UpdateManager = {
     this._mgmt.getAll().onsuccess = (function gotAll(evt) {
       var apps = evt.target.result;
       apps.forEach(function appIterator(app) {
+        /* jshint nonew: false */
         new AppUpdatable(app);
       });
     }).bind(this);
@@ -157,7 +159,7 @@ var UpdateManager = {
   },
 
   cancelAllDownloads: function um_cancelAllDownloads() {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
 
     // We're emptying the array while iterating
     while (this.downloadsQueue.length) {
@@ -168,8 +170,9 @@ var UpdateManager = {
   },
 
   requestErrorBanner: function um_requestErrorBanner() {
-    if (this._errorTimeout)
+    if (this._errorTimeout) {
       return;
+    }
 
     var _ = navigator.mozL10n.get;
     var self = this;
@@ -262,8 +265,6 @@ var UpdateManager = {
   },
 
   containerClicked: function um_containerClicker() {
-    var _ = navigator.mozL10n.get;
-
     if (this._downloading) {
       if (this._uncompressing) {
         // If notification was clicked during uncompression, do nothing.
@@ -279,16 +280,12 @@ var UpdateManager = {
         callback: this.cancelAllDownloads.bind(this)
       };
 
-      var screen = document.getElementById('screen');
-
-      CustomDialog.show(
+      Service.request('showCustomDialog',
         'cancelAllDownloads',
         'wantToCancelAll',
         cancel,
-        confirm,
-        screen
-      )
-      .setAttribute('data-z-index-level', 'system-dialog');
+        confirm
+      );
     } else {
       this.showDownloadPrompt();
     }
@@ -298,34 +295,30 @@ var UpdateManager = {
 
   showForbiddenDownload: function um_showForbiddenDownload() {
     //Close any dialog if there is any open
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     var ok = {
       title: 'ok',
       callback: this.cancelPrompt.bind(this)
     };
 
-    var screen = document.getElementById('screen');
     window.dispatchEvent(new CustomEvent('updatepromptshown'));
 
-    CustomDialog
-      .show('systemUpdate', 'downloadUpdatesVia2GForbidden3', ok, null, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
+    Service.request('showCustomDialog',
+      'systemUpdate', 'downloadUpdatesVia2GForbidden3', ok, null);
   },
 
   showPromptNoConnection: function um_showPromptNoConnection() {
     //Close any dialog if there is any open
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     var ok = {
       title: 'ok',
       callback: this.cancelPrompt.bind(this)
     };
 
-    var screen = document.getElementById('screen');
     window.dispatchEvent(new CustomEvent('updatepromptshown'));
 
-    CustomDialog
-      .show('systemUpdate', 'downloadOfflineWarning2', ok, null, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
+    Service.request('showCustomDialog',
+      'systemUpdate', 'downloadOfflineWarning2', ok, null);
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
@@ -336,19 +329,21 @@ var UpdateManager = {
       n: this.updatesQueue.length
     });
 
-    var updateList = '';
-
     // System update should always be on top
     this.updatesQueue.sort(function sortUpdates(updatable, otherUpdatable) {
-      if (!updatable.app)
+      if (!updatable.app) {
         return -1;
-      if (!otherUpdatable.app)
+      }
+      if (!otherUpdatable.app) {
         return 1;
+      }
 
-      if (updatable.name < otherUpdatable.name)
+      if (updatable.name < otherUpdatable.name) {
         return -1;
-      if (updatable.name > otherUpdatable.name)
+      }
+      if (updatable.name > otherUpdatable.name) {
         return 1;
+      }
       return 0;
     });
 
@@ -422,12 +417,12 @@ var UpdateManager = {
   },
 
   cancelPrompt: function um_cancelPrompt() {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     this._closeDownloadDialog();
   },
 
   cancelDataConnectionUpdatesPrompt: function um_cancelDCUpdatesPrompt() {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     this.downloadViaDataConnectionDialog.classList.remove('visible');
     this._closeDownloadDialog();
   },
@@ -475,7 +470,7 @@ var UpdateManager = {
   showPrompt3GAdditionalCostIfNeeded:
     function um_showPrompt3GAdditionalCostIfNeeded() {
     this._openDownloadViaDataDialog();
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
   },
 
   showPromptWifiPrioritized:
@@ -499,17 +494,15 @@ var UpdateManager = {
 
     this._closeDownloadDialog();
 
-    var screen = document.getElementById('screen');
     window.dispatchEvent(new CustomEvent('updatepromptshown'));
 
     UtilityTray.hide();
-    CustomDialog.show(
+    Service.request('showCustomDialog',
       'systemUpdate',
       messageL10n,
       notNow,
-      download,
-      screen
-    ).setAttribute('data-z-index-level', 'system-dialog');
+      download
+    );
   },
 
   downloadProgressed: function um_downloadProgress(bytes) {
@@ -561,8 +554,9 @@ var UpdateManager = {
 
   removeFromAll: function um_removeFromAll(updatableApp) {
     var removeIndex = this.updatableApps.indexOf(updatableApp);
-    if (removeIndex === -1)
+    if (removeIndex === -1) {
       return;
+    }
 
     var removedApp = this.updatableApps[removeIndex];
     this.removeFromUpdatesQueue(removedApp);
@@ -618,8 +612,9 @@ var UpdateManager = {
 
   removeFromUpdatesQueue: function um_removeFromUpdatesQueue(updatable) {
     var removeIndex = this.updatesQueue.indexOf(updatable);
-    if (removeIndex === -1)
+    if (removeIndex === -1) {
       return;
+    }
 
     this.updatesQueue.splice(removeIndex, 1);
     this.lastUpdatesAvailable = this.updatesQueue.length;
@@ -658,8 +653,9 @@ var UpdateManager = {
 
   removeFromDownloadsQueue: function um_removeFromDownloadsQueue(updatable) {
     var removeIndex = this.downloadsQueue.indexOf(updatable);
-    if (removeIndex === -1)
+    if (removeIndex === -1) {
       return;
+    }
 
     this.downloadsQueue.splice(removeIndex, 1);
 
@@ -710,7 +706,8 @@ var UpdateManager = {
 
   oninstall: function um_oninstall(evt) {
     var app = evt.application;
-    var updatableApp = new AppUpdatable(app);
+    /* jshint nonew: false */
+    new AppUpdatable(app);
   },
 
   onuninstall: function um_onuninstall(evt) {
@@ -726,8 +723,9 @@ var UpdateManager = {
   },
 
   handleEvent: function um_handleEvent(evt) {
-    if (!evt.type)
+    if (!evt.type) {
       return;
+    }
 
     switch (evt.type) {
       case 'applicationinstall':
@@ -748,12 +746,13 @@ var UpdateManager = {
        case 'lockscreen-appopened':
         this.downloadViaDataConnectionDialog.classList.remove('visible');
         this._closeDownloadDialog();
-        CustomDialog.hide();
+        Service.request('hideCustomDialog');
         break;
     }
 
-    if (evt.type !== 'mozChromeEvent')
+    if (evt.type !== 'mozChromeEvent') {
       return;
+    }
 
     var detail = evt.detail;
 
@@ -870,8 +869,9 @@ var UpdateManager = {
     var _ = navigator.mozL10n.get;
     var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
 
-    if (!bytes)
+    if (!bytes){
       return '0.00 ' + _(units[0]);
+    }
 
     var e = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +

@@ -15,7 +15,7 @@ marionette('Software Home Button - Secure Fullscreen App', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('ensures button is visible', function() {

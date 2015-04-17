@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-/* globals CustomEvent, MozActivity, Service,
+/* globals CustomEvent, MozActivity,
            NfcUtils, NDEF, ScreenManager, BaseModule, NfcIcon,
-           LazyLoader */
+           LazyLoader, Service */
 
 'use strict';
 
@@ -44,7 +44,7 @@
    * detects NFC Handover requests and passes them to NfcHandoverManager for
    * handling.
    * @class NfcManager
-   * @requires Service
+   * @requires BaseModule
    * @requires ScreenManager
    * @requires MozActivity
    * @requires NDEF
@@ -74,6 +74,7 @@
 
   BaseModule.create(NfcManager, {
     name: 'NfcManager',
+    DEBUG: false,
 
     /**
      * Current NFC Hardware state
@@ -269,9 +270,9 @@
      */
     _checkP2PRegistration: function nm_checkP2PRegistration() {
       var nfc = window.navigator.mozNfc;
-      var activeApp = window.Service.currentApp;
-      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.Service.manifestURL;
+      var activeApp = this.service.query('getTopMostWindow');
+      var manifestURL = activeApp.manifestURL ||
+        this.service.manifestURL;
 
       // Do not allow shrinking if we are on the private browser landing page.
       if (activeApp.isPrivateBrowser() &&
@@ -326,9 +327,9 @@
      */
     _dispatchP2PUserResponse: function nm_dispatchP2PUserResponse() {
       var nfc = window.navigator.mozNfc;
-      var activeApp = window.Service.currentApp;
-      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
-        window.Service.manifestURL;
+      var activeApp = this.service.query('getTopMostWindow');
+      var manifestURL = activeApp.manifestURL ||
+        this.service.manifestURL;
 
       nfc.notifyUserAcceptedP2P(manifestURL);
     },

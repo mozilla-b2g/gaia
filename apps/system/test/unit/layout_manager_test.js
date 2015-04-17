@@ -1,19 +1,12 @@
-/* global MocksHelper, LayoutManager, InputWindowManager,
-          MocksoftwareButtonManager, MockLockScreen,
-          MockService, inputWindowManager */
+/* global MocksHelper, LayoutManager, MockService, MockAppWindow */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/layout_manager.js');
-requireApp('system/test/unit/mock_lock_screen.js');
-requireApp('system/test/unit/mock_software_button_manager.js');
 require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_attention_window.js');
-require('/js/input_window_manager.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'softwareButtonManager',
-  'LockScreen',
   'Service',
   'AttentionWindow'
 ]).init();
@@ -23,14 +16,9 @@ suite('system/LayoutManager >', function() {
 
   var layoutManager;
   setup(function() {
-    MockService.currentApp = {
-      isFullScreenLayout: function() {
-        return false;
-      }
-    };
-    window.lockScreen = MockLockScreen;
-    window.inputWindowManager =
-      this.sinon.stub(Object.create(InputWindowManager.prototype));
+    MockService.mTopMostWindow = new MockAppWindow();
+    this.sinon.stub(MockService.mTopMostWindow, 'isFullScreenLayout')
+        .returns(false);
     layoutManager = new LayoutManager();
     layoutManager.start();
   });
@@ -219,11 +207,11 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button',
     function() {
       var _w = document.documentElement.clientWidth;
-      inputWindowManager.getHeight.returns(100);
-      MocksoftwareButtonManager.height = 50;
+      MockService.mInputWindowManager_getHeight = 100;
+      MockService.mSoftwareButtonManager_height = 50;
       layoutManager.keyboardEnabled = true;
-      assert.equal(layoutManager.height, H - 100 - 50);
-      assert.equal(layoutManager.width, W);
+      assert.equal(layoutManager.height(), H - 100 - 50);
+      assert.equal(layoutManager.width(), W);
       assert.equal(layoutManager.clientWidth, _w);
       assert.isTrue(layoutManager.match(W, H - 100 - 50));
     });
@@ -231,14 +219,15 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button with' +
          'full screen layout',
       function() {
-        this.sinon.stub(MockService.currentApp, 'isFullScreenLayout')
+        MockService.mTopMostWindow = new MockAppWindow();
+        this.sinon.stub(MockService.mTopMostWindow, 'isFullScreenLayout')
           .returns(true);
         var _w = document.documentElement.clientWidth;
-        inputWindowManager.getHeight.returns(100);
-        MocksoftwareButtonManager.height = 50;
+        MockService.mInputWindowManager_getHeight = 100;
+        MockService.mSoftwareButtonManager_height = 50;
         layoutManager.keyboardEnabled = true;
-        assert.equal(layoutManager.height, H - 100);
-        assert.equal(layoutManager.width, W);
+        assert.equal(layoutManager.height(), H - 100);
+        assert.equal(layoutManager.width(), W);
         assert.equal(layoutManager.clientWidth, _w);
         assert.isTrue(layoutManager.match(W, H - 100));
       });
@@ -246,14 +235,15 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button with' +
          'full screen layout',
       function() {
-        this.sinon.stub(MockService.currentApp, 'isFullScreenLayout')
+        MockService.mTopMostWindow = new MockAppWindow();
+        this.sinon.stub(MockService.mTopMostWindow, 'isFullScreenLayout')
           .returns(true);
         var _w = document.documentElement.clientWidth;
-        inputWindowManager.getHeight.returns(100);
-        MocksoftwareButtonManager.height = 50;
+        MockService.mInputWindowManager_getHeight = 100;
+        MockService.mSoftwareButtonManager_height = 50;
         layoutManager.keyboardEnabled = true;
-        assert.equal(layoutManager.height, H - 100);
-        assert.equal(layoutManager.width, W);
+        assert.equal(layoutManager.height(), H - 100);
+        assert.equal(layoutManager.width(), W);
         assert.equal(layoutManager.clientWidth, _w);
         assert.isTrue(layoutManager.match(W, H - 100));
       });
@@ -262,19 +252,20 @@ suite('system/LayoutManager >', function() {
          'full screen layout, but screen is locked',
       function() {
         MockService.locked = true;
-        this.sinon.stub(MockService.currentApp, 'isFullScreenLayout')
+        MockService.mTopMostWindow = new MockAppWindow();
+        this.sinon.stub(MockService.mTopMostWindow, 'isFullScreenLayout')
           .returns(true);
-        inputWindowManager.getHeight.returns(100);
-        MocksoftwareButtonManager.height = 50;
+        MockService.mInputWindowManager_getHeight = 100;
+        MockService.mSoftwareButtonManager_height = 50;
         layoutManager.keyboardEnabled = true;
         // Even though the software home button is enabled and reports a height
         // its height should not affect the lockscreen
-        assert.equal(layoutManager.height, H - 100);
+        assert.equal(layoutManager.height(), H - 100);
       });
 
     test('should return integral values in device pixels', function() {
       stubDPX = 1.5;
-      assert.equal((layoutManager.height * stubDPX) % 1, 0);
+      assert.equal((layoutManager.height() * stubDPX) % 1, 0);
     });
   });
 
@@ -284,45 +275,45 @@ suite('system/LayoutManager >', function() {
       H = window.innerHeight;
       W = window.innerWidth;
       _w = document.documentElement.clientWidth;
-      inputWindowManager.getHeight.returns(100);
-      MocksoftwareButtonManager.height = 50;
-      MocksoftwareButtonManager.width = 50;
+      MockService.mInputWindowManager_getHeight = 100;
+      MockService.mSoftwareButtonManager_height = 50;
+      MockService.mSoftwareButtonManager_width = 50;
     });
 
     test('height calculation with keyboard enabled', () => {
       layoutManager.keyboardEnabled = true;
-      assert.equal(layoutManager.height, H - 100 - 50);
+      assert.equal(layoutManager.height(), H - 100 - 50);
       assert.isTrue(layoutManager.match(W - 50, H - 100 - 50));
     });
 
     test('height calculation with keyboard disabled', () => {
       layoutManager.keyboardEnabled = false;
-      assert.equal(layoutManager.height, H - 50);
+      assert.equal(layoutManager.height(), H - 50);
       assert.isTrue(layoutManager.match(W - 50, H - 50));
     });
 
     test('width calculation', () => {
-      assert.equal(layoutManager.width, W - 50);
+      assert.equal(layoutManager.width(), W - 50);
       assert.equal(layoutManager.clientWidth, _w);
     });
   });
 
   suite('getHeightFor()', function() {
     setup(function() {
-      MocksoftwareButtonManager.height = 50;
+      MockService.mSoftwareButtonManager_height = 50;
       MockService.locked = false;
-      inputWindowManager.getHeight.returns(100);
+      MockService.mInputWindowManager_getHeight = 100;
       layoutManager.keyboardEnabled = true;
     });
 
     test('should return the height for regular windows', function() {
-      assert.equal(layoutManager.height, layoutManager.getHeightFor({}));
+      assert.equal(layoutManager.height(), layoutManager.getHeightFor({}));
     });
 
     test('should return the height for regular windows on lockscreen',
       function() {
         MockService.locked = true;
-        assert.equal(layoutManager.height, layoutManager.getHeightFor({}));
+        assert.equal(layoutManager.height(), layoutManager.getHeightFor({}));
       });
 
     test('should consider SHB on attention windows and lockscreen', function() {
@@ -334,12 +325,12 @@ suite('system/LayoutManager >', function() {
 
     test('should not consider keyboard when ignoreKeyboard', function() {
       var attentionWindow = new window.AttentionWindow();
-      assert.equal(layoutManager.height + 100,
+      assert.equal(layoutManager.height() + 100,
         layoutManager.getHeightFor(attentionWindow, true));
     });
 
     test('should not consider keyboard when ignoreKeyboard', function() {
-      assert.equal(layoutManager.height + 100,
+      assert.equal(layoutManager.height() + 100,
         layoutManager.getHeightFor({}, true));
     });
   });

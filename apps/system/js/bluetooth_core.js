@@ -16,20 +16,22 @@
   BaseModule.create(BluetoothCore, {
     name: 'BluetoothCore',
 
-    start: function() {
-      // Init Bluetooth module by API version.
-      if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
-        'undefined') { // APIv1
-        LazyLoader.load(['js/bluetooth.js'], function() {
-          window.Bluetooth = Bluetooth1;
-          window.Bluetooth.init();
-        });
-      } else { // APIv2
-        LazyLoader.load(['js/bluetooth_v2.js'], function() {
-          window.Bluetooth = new Bluetooth2();
-          window.Bluetooth.start();
-        });
-      }
+    _start: function() {
+      LazyLoader.load(['shared/js/mime_mapper.js']).then(function() {
+        // Init Bluetooth module by API version.
+        if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
+          'undefined') { // APIv1
+          LazyLoader.load(['js/bluetooth.js'], function() {
+            window.Bluetooth = Bluetooth1;
+            window.Bluetooth.start();
+          });
+        } else { // APIv2
+          LazyLoader.load(['js/bluetooth_v2.js'], function() {
+            window.Bluetooth = new Bluetooth2();
+            window.Bluetooth.start();
+          });
+        }
+      });
     }
   });
 }());

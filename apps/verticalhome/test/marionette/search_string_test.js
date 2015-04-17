@@ -27,7 +27,7 @@ marionette('Vertical - Search Terms: URI scheme', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   function searchAndVerifyBrowser(searchTerms) {

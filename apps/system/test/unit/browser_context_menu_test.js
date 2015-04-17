@@ -1,5 +1,5 @@
 /*global MocksHelper, MockL10n, AppWindow, BrowserContextMenu,
-  MockMozActivity, MozActivity, MockAppWindowHelper, Browser */
+  MockMozActivity, MozActivity, MockAppWindowHelper */
 
 'use strict';
 
@@ -11,7 +11,6 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_context_menu_view.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/js/browser_config_helper.js');
-require('/js/browser.js');
 
 var mocksForAppModalDialog = new MocksHelper([
   'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView'
@@ -42,8 +41,6 @@ suite('system/BrowserContextMenu', function() {
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
     MozActivity.mSetup();
-    window.browser = new Browser();
-    window.browser.start();
   });
 
   teardown(function() {

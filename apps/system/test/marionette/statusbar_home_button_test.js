@@ -19,7 +19,7 @@ marionette('Closing statusbar via home button >', function() {
     actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
     client.switchToFrame();
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   function getScrollTop() {
@@ -52,6 +52,8 @@ marionette('Closing statusbar via home button >', function() {
            .moveByOffset(0, height / 2)
            .release()
            .perform();
+
+    client.helper.wait(2000);
 
     // click home button
     system.tapHome();

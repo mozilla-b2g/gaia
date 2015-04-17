@@ -1,3 +1,4 @@
+/* global OrientationManager, MocksHelper */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -8,7 +9,6 @@ var mocksForOrientationManager = new MocksHelper([
 ]).init();
 
 suite('system/OrientationManager >', function() {
-  var originalLocked;
   mocksForOrientationManager.attachTestHelpers();
   setup(function(done) {
     window.Service.locked = false;
