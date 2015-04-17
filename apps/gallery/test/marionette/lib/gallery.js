@@ -47,7 +47,12 @@ Gallery.Selector = Object.freeze({
   fullscreenFrame3: '#frame3',
   cropDoneButton: '#crop-done-button',
   editCropCanvas: '#edit-crop-canvas',
-  actionMenu: 'form[data-z-index-level="action-menu"]'
+  actionMenu: 'form[data-z-index-level="action-menu"]',
+  open: {
+      title: '#filename',
+      image: '#frame > div.image-view',
+      saveButton: '#save'
+    }
 });
 
 Gallery.prototype = {
@@ -264,6 +269,30 @@ Gallery.prototype = {
     return this.client.helper.waitForElement(Gallery.Selector.editCropCanvas);
   },
 
+   /**
+   * @return {Marionette.Element} element to display image opened using
+   * gallery app open activity.
+   */
+  get openActivityImage() {
+    return this.client.helper.waitForElement(Gallery.Selector.open.image);
+  },
+
+  /**
+   * @return {Marionette.Element} header element showing file name opened using
+   * gallery app open activity.
+   */
+  get openActivityImageTitle() {
+    return this.client.helper.waitForElement(Gallery.Selector.open.title);
+  },
+
+  /**
+   * @return {Marionette.Element} save button that saves image opened using
+   * gallery app open activity.
+   */
+  get openActivitySaveButton() {
+    return this.client.helper.waitForElement(Gallery.Selector.open.saveButton);
+  },
+
   /**
    * @return {Marionette.Element} that shows menu options on using web activity.
    */
@@ -379,6 +408,16 @@ Gallery.prototype = {
   shareImage: function(appName) {
     this.waitFor(Gallery.Selector.shareButton).tap();
     this.menuOptionButton(appName).tap();
+  },
+
+  /**
+  * For gallery app open activity, check CSS style background-image
+  * is set with blob URL
+  */
+  hasBackgroundImageBlobURL: function() {
+    var url = 'blob:app://gallery.gaiamobile.org/';
+    return this.openActivityImage
+               .getAttribute('style').indexOf(url) > -1;
   },
 
   switchTo: function() {

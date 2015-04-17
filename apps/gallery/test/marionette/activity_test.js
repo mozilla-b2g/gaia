@@ -87,4 +87,44 @@ marionette('Gallery Pick and Share Activity', function() {
     var sharedImageType = activityCallerApp.sharedImageType.text();
     assert.strictEqual(sharedImageType, imageInfo.type);
   });
+
+
+  test('open image using gallery open activity', function() {
+    activityCallerApp.launch();
+    // Initiate pick activity by clicking pick image button
+    activityCallerApp.pickImage();
+
+    // Select image from thumbnail list in gallery app
+    galleryApp.selectImage();
+
+    client.waitFor(function(){
+      return galleryApp.editCropCanvas.displayed();
+    });
+
+    galleryApp.cropDoneButton.click();
+    activityCallerApp.switchTo();
+
+    client.waitFor(function(){
+      return activityCallerApp.pickedImageName.displayed();
+    });
+
+    // Tap picked image to view image using gallery open activity
+    activityCallerApp.tapPickedImage();
+    galleryApp.switchTo();
+
+    // Check if the filename displayed in titlebar matches
+    // data sent by the initiating app
+    var title = galleryApp.openActivityImageTitle.text();
+    assert.strictEqual(title, 'firefoxOS.png');
+
+    // Check if save button is displayed
+    assert.ok(galleryApp.openActivitySaveButton.displayed());
+
+    client.waitFor(function(){
+      return galleryApp.openActivityImage.displayed();
+    });
+
+    // Check if passed blob is set as background in displayed image
+    assert.ok(galleryApp.hasBackgroundImageBlobURL());
+  });
 });

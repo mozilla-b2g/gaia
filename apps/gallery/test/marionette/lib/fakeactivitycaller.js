@@ -72,6 +72,10 @@
         pickImage: function() {
           client.helper.waitForElement(SELECTORS.pickImageButton).tap();
           this.pickWithGalleryButton.tap();
+        },
+
+        tapPickedImage: function() {
+          client.helper.waitForElement(SELECTORS.pickedImage).click();
         }
       };
     }
