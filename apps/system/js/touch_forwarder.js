@@ -22,7 +22,7 @@
     var touch;
 
     // Should not forward to a frame that's not displayed
-    if (iframe.getAttribute('aria-hidden')) {
+    if (iframe.getAttribute('aria-hidden') == 'true') {
       return;
     }
 
