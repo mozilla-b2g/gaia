@@ -96,12 +96,32 @@ function decorateTask(task, options) {
   output.task.scopes.push('docker-worker:image:' + IMAGE + '*');
 
   if (process.env.TREEHERDER_PROJECT && process.env.TREEHERDER_REVISION) {
+    // defaults to 'tc-treeherder' only so existing tasks need not be changed
+    var prefixes = ['tc-treeherder'];
+
+    if (output.task.extra) {
+      if (output.task.extra.treeherderEnv) {
+        prefixes = [];
+        if (output.task.extra.treeherderEnv.indexOf('staging') != -1) {
+          prefixes.push('tc-treeherder-stage');
+        }
+        if (output.task.extra.treeherderEnv.indexOf('production') != -1) {
+          prefixes.push('tc-treeherder');
+        }
+        // treeherderEnv not staging or production, default to staging
+        if (prefixes.length === 0) {
+          prefixes.push('tc-treeherder-stage');
+        }
+      }
+    }
+
     output.task.routes = output.task.routes || [];
-    output.task.routes.push(
-      'tc-treeherder.' +
-      process.env.TREEHERDER_PROJECT + '.' +
-      process.env.TREEHERDER_REVISION
-    );
+    prefixes.forEach(function(prefix) {
+      output.task.routes.push(
+        [prefix, process.env.TREEHERDER_PROJECT, 
+        process.env.TREEHERDER_REVISION].join('.')
+      );
+    });
   }
 
   return output;
