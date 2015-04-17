@@ -671,6 +671,16 @@
     findCardFromCardList: function cm_findCardFromCardList(query) {
       var found;
       this._cardList.some(function(card) {
+        if (card instanceof Folder) {
+          // XXX: findCard() shares almost the same logic as
+          // findCardFromCardList. We should consolidate them. See
+          // http://bugzil.la/1156726
+          found = card.findCard(query);
+          if (found) {
+            return true;
+          }
+        }
+
         if (card.cardId === query.cardId) {
           found = card;
           return true;
