@@ -390,6 +390,20 @@ suite('system/Activities', function() {
       subject = new Activities();
     });
 
+    teardown(function() {
+      subject.destroy();
+    });
+
+    test('correctly handles apps without activities', function() {
+      var appWithoutActivities = {
+        'manifest': {}
+      };
+
+      assert.doesNotThrow(
+        () => subject._onNewAppInstalled(appWithoutActivities)
+      );
+    });
+
     test('manages the default launch for the app\'s activities', function() {
       DefaultActivityHelper.getDefaultAction
         .returns({ // instead of Promise.resolve() to return in same cycle
