@@ -1,39 +1,22 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications */
+/* global applications, ContextMenuView */
 
 (function(window) {
   'use strict';
 
   var _ = navigator.mozL10n.get;
-  var _id = 0;
   /**
    * The ContextMenu of the AppWindow.
    *
    * @class BrowserContextMenu
    * @param {AppWindow} app The app window instance
    *                        where this dialog should popup.
-   * @extends BaseUI
    */
   var BrowserContextMenu = window.BrowserContextMenu = function(app) {
     this.app = app;
-    this.containerElement = app.element;
-    // One to one mapping.
-    this.instanceID = _id++;
-    this._injected = false;
+    this._view = new ContextMenuView(app);
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
     return this;
-  };
-
-  BrowserContextMenu.prototype = Object.create(window.BaseUI.prototype);
-  BrowserContextMenu.prototype.CLASS_NAME = 'BrowserContextMenu';
-  BrowserContextMenu.prototype.ELEMENT_PREFIX = 'contextmenu-';
-
-  BrowserContextMenu.prototype.customID = function am_customID() {
-    if (this.app) {
-      return '[' + this.app.origin + ']';
-    } else {
-      return '';
-    }
   };
 
   BrowserContextMenu.prototype.handleEvent = function bcm_handleEvent(evt) {
@@ -42,48 +25,6 @@
         this.show(evt);
         break;
     }
-  };
-
-  BrowserContextMenu.prototype._fetchElements = function bcm__fetchElements() {
-    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
-    this.elements = {};
-
-    var toCamelCase = function toCamelCase(str) {
-      return str.replace(/\-(.)/g, function replacer(str, p1) {
-        return p1.toUpperCase();
-      });
-    };
-
-    this.elementClasses = ['header', 'list'];
-
-    // Loop and add element with camel style name to Modal Dialog attribute.
-    this.elementClasses.forEach(function createElementRef(name) {
-      this.elements[toCamelCase(name)] =
-        this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
-    }, this);
-    var cancel = document.createElement('button');
-    cancel.id = 'ctx-cancel-button';
-    cancel.dataset.action = 'cancel';
-    cancel.setAttribute('data-l10n-id', 'cancel');
-    this.elements.cancel = cancel;
-  };
-
-  BrowserContextMenu.prototype._registerEvents = function() {
-    this.elements.cancel.addEventListener('click', this.hide.bind(this));
-  };
-
-  BrowserContextMenu.prototype.view = function() {
-    var id = this.CLASS_NAME + this.instanceID;
-    var content = `<form class="contextmenu" role="dialog" tabindex="-1"
-              data-type="action" id="${id}">
-              <header class="contextmenu-header"></header>
-              <menu class="contextmenu-list"></menu>
-            </form>`;
-    return content;
-  };
-
-  BrowserContextMenu.prototype.kill = function() {
-    this.containerElement.removeChild(this.element);
   };
 
   BrowserContextMenu.prototype.show = function(evt) {
@@ -115,42 +56,7 @@
     // Notify the embedder we are handling the context menu
     evt.preventDefault();
     evt.stopPropagation();
-    this.showMenu(items);
-  };
-
-  BrowserContextMenu.prototype.showMenu = function(menu) {
-    if (!this._injected) {
-      this.render();
-    }
-    this._injected = true;
-    this.buildMenu(menu);
-    this.app && this.app.blur();
-    this.element.classList.add('visible');
-  },
-
-  BrowserContextMenu.prototype.buildMenu = function(items) {
-    var self = this;
-    this.elements.list.innerHTML = '';
-    items.forEach(function traveseItems(item) {
-      var action = document.createElement('button');
-      action.dataset.id = item.id;
-      action.dataset.value = item.value;
-      action.textContent = item.label;
-
-      if (item.icon) {
-        action.classList.add(item.iconClass || 'icon');
-        action.style.backgroundImage = 'url(' + item.icon + ')';
-      }
-
-      action.addEventListener('click', function(evt) {
-        self.hide(evt);
-        item.callback();
-      });
-
-      this.elements.list.appendChild(action);
-    }, this);
-
-    this.elements.list.appendChild(this.elements.cancel);
+    this._view.show(items);
   };
 
   BrowserContextMenu.prototype._listItems = function(detail) {
@@ -168,7 +74,7 @@
             detail.contextMenuItemSelected(choice.id);
           }
         });
-      });
+      }, this);
     }
 
     if (detail.systemTargets) {
@@ -182,24 +88,16 @@
     return items;
   };
 
-  BrowserContextMenu.prototype.isVisible = function() {
-    return this.element && this.element.classList.contains('visible');
+  BrowserContextMenu.prototype.isShown = function() {
+    return this._view.isShown();
   };
 
-  BrowserContextMenu.prototype.hide = function(evt) {
-    if (!this.element) {
+  BrowserContextMenu.prototype.hide = function() {
+    if (!this._view.isShown()) {
       return;
     }
 
-    if (evt) {
-      evt.preventDefault();
-    }
-
-    this.element.blur();
-    this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
-    }
+    this._view.hide();
   };
 
   BrowserContextMenu.prototype.openUrl = function(url, isPrivate) {
@@ -338,7 +236,7 @@
       var menuData = [];
 
       var finish = () => {
-        this.showMenu(menuData);
+        this._view.show(menuData);
         resolve();
       };
 

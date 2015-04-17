@@ -321,7 +321,7 @@
   };
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
-    var contextMenu = this.app.contextmenu && this.app.contextmenu.isVisible();
+    var contextMenu = this.app.contextmenu && this.app.contextmenu.isShown();
     var locked = Service && Service.locked;
 
     if (locked || contextMenu) {

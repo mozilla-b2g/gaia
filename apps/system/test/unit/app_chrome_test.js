@@ -39,7 +39,7 @@ suite('system/AppChrome', function() {
     requireApp('system/js/app_chrome.js', function() {
       app = new AppWindow(fakeWebSite);
       app.contextmenu = {
-        isVisible: function() {return false;}
+        isShown: function() {return false;}
       };
       chrome = new AppChrome(app);
       done();
@@ -713,7 +713,7 @@ suite('system/AppChrome', function() {
 
     test('When a contextmenu is shown, do not dispatch.', function() {
       MockService.locked = false;
-      this.sinon.stub(chrome.app.contextmenu, 'isVisible').returns(true);
+      this.sinon.stub(chrome.app.contextmenu, 'isShown').returns(true);
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isFalse(stubDispatch.called);
     });

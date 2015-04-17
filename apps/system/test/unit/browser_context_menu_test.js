@@ -8,12 +8,13 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_icons_helper.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_context_menu_view.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/js/browser_config_helper.js');
 require('/js/browser.js');
 
 var mocksForAppModalDialog = new MocksHelper([
-  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper'
+  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView'
 ]).init();
 
 suite('system/BrowserContextMenu', function() {
@@ -149,27 +150,20 @@ suite('system/BrowserContextMenu', function() {
   test('New', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
-    assert.isDefined(md1.instanceID);
+    assert.isDefined(md1._view);
   });
 
   test('launch menu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
-    this.sinon.stub(app1, 'blur');
+    this.sinon.stub(md1._view, 'show');
+
     var stubStopPropagation =
       this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
 
     md1.handleEvent(fakeContextMenuEvent);
-    assert.isTrue(app1.blur.called);
+    assert.isTrue(md1._view.show.called);
     assert.isTrue(stubStopPropagation.called);
-    assert.isTrue(md1.element.classList.contains('visible'));
-    assert.equal(
-      md1.elements.list.querySelector('button:first-child').textContent,
-      fakeContextMenuEvent.detail.contextmenu.items[0].label);
-    assert.equal(
-      md1.elements.list.querySelector('button:first-child').
-        style.backgroundImage,
-      'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
   });
 
   suite('manually launch menu', function() {
@@ -263,8 +257,8 @@ suite('system/BrowserContextMenu', function() {
     var app2 = new AppWindow(fakeBrowserConfig);
     var md2 = new BrowserContextMenu(app2);
 
-    var md1ShowStub = this.sinon.stub(md1, 'showMenu');
-    var md2ShowStub = this.sinon.stub(md2, 'showMenu');
+    var md1ShowStub = this.sinon.stub(md1._view, 'show');
+    var md2ShowStub = this.sinon.stub(md2._view, 'show');
     Promise.all([
       md1.showDefaultMenu(),
       md2.showDefaultMenu()
