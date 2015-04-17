@@ -180,30 +180,6 @@ suite('FindMyDevice Launcher >', function(done) {
     }
   );
 
-  test('send LOGIN wakeup message on FxA login', function() {
-    window.dispatchEvent(
-      new CustomEvent('mozFxAccountsUnsolChromeEvent',
-      {detail: {eventName: 'onlogin'}}));
-    sinon.assert.calledWith(window.wakeUpFindMyDevice,
-      IAC_API_WAKEUP_REASON_LOGIN);
-  });
-
-  test('send LOGIN wakeup message on FxA verified', function() {
-    window.dispatchEvent(
-      new CustomEvent('mozFxAccountsUnsolChromeEvent',
-      {detail: {eventName: 'onverified'}}));
-    sinon.assert.calledWith(window.wakeUpFindMyDevice,
-      IAC_API_WAKEUP_REASON_LOGIN);
-  });
-
-  test('send LOGOUT wakeup message on FxA logout', function() {
-    window.dispatchEvent(
-      new CustomEvent('mozFxAccountsUnsolChromeEvent',
-      {detail: {eventName: 'onlogout'}}));
-    sinon.assert.calledWith(window.wakeUpFindMyDevice,
-      IAC_API_WAKEUP_REASON_LOGOUT);
-  });
-
   // bug 1062558 - FMD should not wake up if it's disabled
   suite('When FMD is disabled > ', function() {
     setup(function() {
@@ -224,23 +200,91 @@ suite('FindMyDevice Launcher >', function(done) {
       sinon.assert.notCalled(window.wakeUpFindMyDevice);
     });
 
-    test('do not wake FMD app if the Firefox Accounts login status changes',
-    function() {
-      window.dispatchEvent(
-        new CustomEvent('mozFxAccountsUnsolChromeEvent',
-        {detail: {eventName: 'onlogin'}}));
-      window.dispatchEvent(
-        new CustomEvent('mozFxAccountsUnsolChromeEvent',
-        {detail: {eventName: 'onverified'}}));
-      window.dispatchEvent(
-        new CustomEvent('mozFxAccountsUnsolChromeEvent',
-        {detail: {eventName: 'onlogout'}}));
-      sinon.assert.notCalled(window.wakeUpFindMyDevice);
-    });
-
     test('do not wake FMD app when the lockscreen is unlocked', function() {
       window.dispatchEvent(new CustomEvent('lockscreen-appclosed'));
       sinon.assert.notCalled(window.wakeUpFindMyDevice);
+    });
+  });
+
+  suite('Firefox Accounts login status changes > ', function() {
+    var fmdLoggedinKey = 'findmydevice.logged-in';
+    var fxaLoginEvent = new CustomEvent('mozFxAccountsUnsolChromeEvent',
+                                        {detail: {eventName: 'onlogin'}});
+    var fxaLogoutEvent = new CustomEvent('mozFxAccountsUnsolChromeEvent',
+                                         {detail: {eventName: 'onlogout'}});
+    var fxaVerifyEvent = new CustomEvent('mozFxAccountsUnsolChromeEvent',
+                                         {detail: {eventName: 'onverified'}});
+
+    suite('When FMD is enabled > ', function() {
+      setup(function() {
+        MockSettingsHelper('findmydevice.enabled').set(true);
+      });
+
+      test('send LOGIN wakeup message on FxA login',
+        function() {
+          MockSettingsHelper(fmdLoggedinKey).set(false);
+
+          window.dispatchEvent(fxaLoginEvent);
+          sinon.assert.calledOnce(window.wakeUpFindMyDevice);
+          sinon.assert.calledWith(window.wakeUpFindMyDevice,
+            IAC_API_WAKEUP_REASON_LOGIN);
+          assert.isTrue(MockSettingsHelper.instances[fmdLoggedinKey].value);
+      });
+
+      test('send LOGIN wakeup message on FxA verified',
+        function() {
+          MockSettingsHelper(fmdLoggedinKey).set(false);
+
+          window.dispatchEvent(fxaVerifyEvent);
+          sinon.assert.calledOnce(window.wakeUpFindMyDevice);
+          sinon.assert.calledWith(window.wakeUpFindMyDevice,
+            IAC_API_WAKEUP_REASON_LOGIN);
+          assert.isTrue(MockSettingsHelper.instances[fmdLoggedinKey].value);
+      });
+
+      test('send LOGOUT wakeup message on FxA logout',
+        function() {
+          MockSettingsHelper(fmdLoggedinKey).set(true);
+
+          window.dispatchEvent(fxaLogoutEvent);
+          sinon.assert.calledOnce(window.wakeUpFindMyDevice);
+          sinon.assert.calledWith(window.wakeUpFindMyDevice,
+            IAC_API_WAKEUP_REASON_LOGOUT);
+          assert.isFalse(MockSettingsHelper.instances[fmdLoggedinKey].value);
+      });
+    });
+
+    suite('When FMD is disabled > ', function() {
+      setup(function() {
+        MockSettingsHelper('findmydevice.enabled').set(false);
+      });
+
+      test('do not send wakeup message on FxA login',
+        function() {
+          MockSettingsHelper(fmdLoggedinKey).set(false);
+
+          window.dispatchEvent(fxaLoginEvent);
+          sinon.assert.notCalled(window.wakeUpFindMyDevice);
+          assert.isTrue(MockSettingsHelper.instances[fmdLoggedinKey].value);
+      });
+
+      test('do not send LOGIN wakeup message on FxA verified',
+        function() {
+          MockSettingsHelper(fmdLoggedinKey).set(false);
+
+          window.dispatchEvent(fxaVerifyEvent);
+          sinon.assert.notCalled(window.wakeUpFindMyDevice);
+          assert.isTrue(MockSettingsHelper.instances[fmdLoggedinKey].value);
+      });
+
+      test('do not send LOGOUT wakeup message on FxA logout',
+        function() {
+          MockSettingsHelper(fmdLoggedinKey).set(true);
+
+          window.dispatchEvent(fxaLogoutEvent);
+          sinon.assert.notCalled(window.wakeUpFindMyDevice);
+          assert.isFalse(MockSettingsHelper.instances[fmdLoggedinKey].value);
+      });
     });
   });
 });

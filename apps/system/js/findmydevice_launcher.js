@@ -97,23 +97,6 @@ function onLockscreenClosed(event) {
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
 }
 
-function onFxAChromeEvent(event) {
-  if (!event || !event.detail) {
-    return;
-  }
-
-  var eventName = event.detail.eventName;
-  var loggedInHelper = SettingsHelper('findmydevice.logged-in');
-  DUMP('findmydevice received ' + eventName + ' FxA event in the System app');
-  if (eventName === 'onlogin' || eventName === 'onverified') {
-    loggedInHelper.set(true);
-    wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOGIN);
-  } else if (eventName === 'onlogout') {
-    loggedInHelper.set(false);
-    wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOGOUT);
-  }
-}
-
 function onFMDEnabledChange(enabled) {
   if (enabled) {
     navigator.mozSettings.addObserver('findmydevice.retry-count',
@@ -121,15 +104,12 @@ function onFMDEnabledChange(enabled) {
     navigator.mozSettings.addObserver('geolocation.enabled',
       onGeoEnabledChanged);
     window.addEventListener('lockscreen-appclosed', onLockscreenClosed);
-    window.addEventListener('mozFxAccountsUnsolChromeEvent', onFxAChromeEvent);
   } else {
     navigator.mozSettings.removeObserver('findmydevice.retry-count',
       onRetryCountChanged);
     navigator.mozSettings.removeObserver('geolocation.enabled',
       onGeoEnabledChanged);
     window.removeEventListener('lockscreen-appclosed', onLockscreenClosed);
-    window.removeEventListener('mozFxAccountsUnsolChromeEvent',
-      onFxAChromeEvent);
   }
 }
 
@@ -143,6 +123,34 @@ navigator.mozSettings.addObserver('findmydevice.enabled', function(event) {
   // make sure Find My Device is registered if it's enabled,
   // and that it notifies the server if disabled
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
+});
+
+window.addEventListener('mozFxAccountsUnsolChromeEvent', function(event) {
+  if (!event || !event.detail) {
+    return;
+  }
+
+  var eventName = event.detail.eventName;
+  var loggedInHelper = SettingsHelper('findmydevice.logged-in');
+  DUMP('findmydevice received ' + eventName + ' FxA event in the System app');
+
+  // We need to persist FxA login state in `findmydevice.logged-in` settings,
+  // but only launch findmydevice when it's enabled.
+  if (eventName === 'onlogin' || eventName === 'onverified') {
+    loggedInHelper.set(true);
+    fmdEnabledSetting.get(function(enabled) {
+      if (enabled) {
+        wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOGIN);
+      }
+    });
+  } else if (eventName === 'onlogout') {
+    loggedInHelper.set(false);
+    fmdEnabledSetting.get(function(enabled) {
+      if (enabled) {
+        wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOGOUT);
+      }
+    });
+  }
 });
 
 // ensure resent notifications are handled correctly
