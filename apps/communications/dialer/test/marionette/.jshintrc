@@ -9,6 +9,7 @@
     "suiteTeardown",
     "marionette",
     "marionetteScriptFinished",
+    "module",
     "require",
     "define",
     "requireApp",
