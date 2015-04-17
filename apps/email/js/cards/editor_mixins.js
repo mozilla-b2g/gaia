@@ -22,6 +22,12 @@ define(function(require) {
           frag.appendChild(document.createTextNode(lines[i]));
         }
       }
+
+      // Need at least one text node for tapping and keyboard display to work.
+      if (!frag.childNodes.length) {
+        frag.appendChild(document.createTextNode(''));
+      }
+
       this._editorNode.appendChild(frag);
     },
 
