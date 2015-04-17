@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Abstraction around dialer app.
  * @constructor
@@ -46,15 +48,6 @@ Dialer.Selectors = {
 
   addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]'
 };
-
-/**
- * @private
- * @param {Marionette.Client} client for selector.
- * @param {String} name of selector [its a key in Dialer.Selectors].
- */
-function findElement(client, name) {
-  return client.findElement(Dialer.Selectors[name]);
-}
 
 Dialer.prototype = {
   /**

@@ -1,6 +1,3 @@
-apps/communications/dialer/test/marionette/lib/dialer.js
-apps/communications/dialer/test/marionette/navigation_test.js
-apps/communications/dialer/test/unit/mock_icc_helper.js
 apps/communications/facebook/js/console.js
 apps/communications/facebook/js/fb_sync.js
 apps/communications/facebook/js/fb_sync_init.js

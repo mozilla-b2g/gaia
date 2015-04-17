@@ -1,3 +1,4 @@
+'use strict';
 var Dialer = require('./lib/dialer');
 
 marionette('Dialer > Navigation', function() {
