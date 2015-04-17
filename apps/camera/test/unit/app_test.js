@@ -517,61 +517,41 @@ suite('app', function() {
 
     test('It should be true', function() {
       assert.ok(this.app.isSharingActive());
-      sinon.assert.notCalled(this.app.onReboot);
     });
   });
 
-  suite('App#setSharingState("sharing" --> "sharing-canceled")', function() {
+  suite('App#setSharingState("not-sharing")', function() {
     setup(function() {
-      this.app.onReboot = sinon.spy();
-      this.app.setSharingState('sharing');
-      this.app.setSharingState('sharing-canceled');
-    });
-
-    test('It should be false and not called', function() {
-      assert.ok(!this.app.isSharingActive());
-      sinon.assert.notCalled(this.app.onReboot);
-    });
-  });
-
-  suite('App#setSharingState("sharing-canceled")', function() {
-    setup(function() {
-      this.app.onReboot = sinon.spy();
-      this.app.setSharingState('sharing-canceled');
-    });
-
-    test('It should be false and not called', function() {
-      assert.ok(!this.app.isSharingActive());
-      sinon.assert.notCalled(this.app.onReboot);
-    });
-  });
-
-  suite(
-    'App#setSharingState("sharing" --> "sharing-canceled" --> "not-sharing")',
-    function() {
-    setup(function() {
-      this.app.onReboot = sinon.spy();
-      this.app.setSharingState('sharing');
-      this.app.setSharingState('sharing-canceled');
       this.app.setSharingState('not-sharing');
     });
 
-    test('It should be false and not called', function() {
+    test('It should be false', function() {
       assert.ok(!this.app.isSharingActive());
-      sinon.assert.notCalled(this.app.onReboot);
     });
   });
 
   suite('App#setSharingState("sharing" --> "not-sharing")', function() {
     setup(function() {
-      this.app.onReboot = sinon.spy();
       this.app.setSharingState('sharing');
       this.app.setSharingState('not-sharing');
     });
 
-    test('It should be false and called', function() {
+    test('It should be false', function() {
       assert.ok(!this.app.isSharingActive());
-      sinon.assert.calledOnce(this.app.onReboot);
+    });
+  });
+
+  suite(
+    'App#setSharingState("sharing" --> "not-sharing" --> "not-sharing")',
+    function() {
+    setup(function() {
+      this.app.setSharingState('sharing');
+      this.app.setSharingState('not-sharing');
+      this.app.setSharingState('not-sharing');
+    });
+
+    test('It should be false', function() {
+      assert.ok(!this.app.isSharingActive());
     });
   });
 });
