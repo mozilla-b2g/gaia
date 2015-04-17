@@ -83,7 +83,7 @@ suite('Nfc Manager Functions', function() {
     window.navigator.mozNfc = MockNfc;
 
     nfcUtils = new NfcUtils();
-    MockService.currentApp = fakeApp;
+    MockService.mTopMostWindow = fakeApp;
     nfcManager = BaseModule.instantiate('NfcManager');
     nfcManager.service = MockService;
     nfcManager.start();
@@ -1042,9 +1042,9 @@ suite('Nfc Manager Functions', function() {
       var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
                                          () => fakePromise);
 
-      MockService.currentApp = new window.AppWindow(fakePrivateLandingPage);
+      MockService.mTopMostWindow = new window.AppWindow(fakePrivateLandingPage);
 
-      this.sinon.stub(MockService.currentApp, 'isPrivateBrowser')
+      this.sinon.stub(MockService.mTopMostWindow, 'isPrivateBrowser')
         .returns(true);
 
       // Should not shrink on the landing page.
@@ -1052,7 +1052,7 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubCheckP2P.notCalled);
 
       // Able to share pages after navigating.
-      MockService.currentApp.config.url = 'http://mozilla.org';
+      MockService.mTopMostWindow.config.url = 'http://mozilla.org';
       nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.calledOnce);
     });

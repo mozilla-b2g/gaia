@@ -182,7 +182,8 @@ var Payment = {
 
     // The payment flow is shown within the trusted UI with the name of
     // the mozPay caller application as title.
-    var title = Service.currentApp.manifest.name;
+    var app = Service.query('getTopMostWindow');
+    var title = app ? app.manifest.name : null;
     title = title ? title : navigator.mozL10n.get('payment-flow');
 
     window.dispatchEvent(new CustomEvent('launchtrusted', {

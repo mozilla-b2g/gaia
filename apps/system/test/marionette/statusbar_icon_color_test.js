@@ -32,7 +32,7 @@ marionette('Statusbar colors', function() {
     system = client.loader.getAppClass('system');
     utilityTray = new UtilityTray(client);
     bookmark = new Bookmark(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   suiteSetup(function(done) {

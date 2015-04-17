@@ -37,32 +37,32 @@
     var getWindowName = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject.core
-                     .hierarchyManager.getTopMostWindow().name;
+        return window.wrappedJSObject.Service.query('getTopMostWindow').name;
       });
     };
 
     var getActiveAppWindowState = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject
-                     .appWindowManager.getActiveWindow().isActive();
+        return window.wrappedJSObject.Service
+                     .query('AppWindowManager.getActiveWindow').isActive();
       });
     };
 
     var getWindowType = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject.core
-                     .hierarchyManager.getTopMostWindow().CLASS_NAME;
+        return window.wrappedJSObject.Service.query('getTopMostWindow')
+                     .CLASS_NAME;
       });
     };
 
     var getActiveAppWindowAriaHidden = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject
-                     .appWindowManager.getActiveWindow().getTopMostWindow()
+        return window.wrappedJSObject.Service
+                     .query('AppWindowManager.getActiveWindow')
+                     .getTopMostWindow()
                      .element.getAttribute('aria-hidden');
       });
     };
@@ -70,7 +70,7 @@
     var getTopMost = function() {
       client.switchToFrame();
       return client.executeScript(function() {
-        return window.wrappedJSObject.core.hierarchyManager.getTopMostUI().name;
+        return window.wrappedJSObject.Service.query('getTopMostUI').name;
       });
     };
 
@@ -87,7 +87,7 @@
       setup(function() {
         utilityTray = new UtilityTray(client);
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 
@@ -167,7 +167,7 @@
     suite('home event', function() {
       setup(function() {
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 
@@ -189,7 +189,7 @@
     suite('holdhome event', function() {
       setup(function() {
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 
@@ -213,7 +213,7 @@
     suite('Value selector', function() {
       setup(function() {
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 
@@ -248,7 +248,7 @@
     suite('Keyboard resize', function() {
       setup(function() {
         system = client.loader.getAppClass('system');
-        system.waitForStartup();
+        system.waitForFullyLoaded();
         lockscreen.unlock();
       });
 

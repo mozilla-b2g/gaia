@@ -16,7 +16,7 @@ marionette('Status Bar icons - Network Activity', function() {
   setup(function() {
     system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     statusBar.networkActivity.hide();
   });
 

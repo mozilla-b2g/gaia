@@ -17,7 +17,7 @@ marionette('notification tests', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     client.waitFor(function() {
       return system.activeHomescreenFrame.displayed();
     });

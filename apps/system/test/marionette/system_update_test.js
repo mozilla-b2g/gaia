@@ -7,7 +7,7 @@ marionette('System update - Splash screen', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Show splash after accepting system update', function() {

@@ -1,4 +1,4 @@
-/* global IACHandler, appWindowManager, Service */
+/* global IACHandler, Service */
 
 'use strict';
 
@@ -212,7 +212,7 @@ MediaPlaybackWidget.prototype = {
       var evt = new CustomEvent('displayapp', {
         bubbles: true,
         cancelable: true,
-        detail: appWindowManager.getApp(this.origin)
+        detail: Service.query('getApp', this.origin)
       });
       window.dispatchEvent(evt);
     }

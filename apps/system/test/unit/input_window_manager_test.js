@@ -328,7 +328,7 @@ suite('InputWindowManager', function() {
           removeFocus: this.sinon.stub()
         };
 
-        MockService.currentApp = {
+        MockService.mTopMostWindow = {
           blur: this.sinon.stub()
         };
       });
@@ -345,7 +345,7 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isFalse(navigator.mozInputMethod.removeFocus.called);
-          assert.isFalse(MockService.currentApp.blur.called);
+          assert.isFalse(MockService.mTopMostWindow.blur.called);
         });
 
         test(evtType + ' remove focus if there is active keyboard', function() {
@@ -354,7 +354,7 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isTrue(navigator.mozInputMethod.removeFocus.called);
-          assert.isTrue(MockService.currentApp.blur.called);
+          assert.isTrue(MockService.mTopMostWindow.blur.called);
         });
       };
 

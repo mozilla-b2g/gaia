@@ -1,5 +1,6 @@
 'use strict';
-/* global ActionMenu, applications, ManifestHelper, DefaultActivityHelper */
+/* global ActionMenu, applications, ManifestHelper, DefaultActivityHelper,
+          LazyLoader */
 
 (function(exports) {
 
@@ -13,6 +14,14 @@
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('appopened', this);
     window.addEventListener('applicationinstall', this);
+    // XXX: See bug 1150350
+    // We should move DefaultActivityHelper back to system app
+    // and use Service to read/write Settings instead of one
+    // more settings library here.
+    LazyLoader.load([
+      'shared/js/default_activity_helper.js',
+      'shared/js/settings_helper.js'
+    ]);
     this.actionMenu = null;
   }
 

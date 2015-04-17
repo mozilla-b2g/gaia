@@ -15,13 +15,12 @@ marionette('Software Home Button - Secure Fullscreen App', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('ensures button is visible', function() {
     client.executeScript(function() {
-      window.wrappedJSObject.dispatchEvent(
-        new CustomEvent('lockscreenslide-activate-left'));
+      window.wrappedJSObject.Service.request('unlock');
     });
     client.waitFor(function() {
       return system.softwareHome.displayed();

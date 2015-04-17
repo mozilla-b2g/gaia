@@ -1,15 +1,20 @@
 'use strict';
 /* global BrowserSettings, MockNavigatormozApps,
-   MockNavigatorSettings, MockPlaces */
+   MockNavigatorSettings, MockService, MocksHelper */
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/test/unit/mock_places.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
+
+
+var mocksForBrowserSettings = new MocksHelper([
+  'Service'
+]).init();
 
 suite('system/BrowserSettings', function() {
+  mocksForBrowserSettings.attachTestHelpers();
   var realNavigatorSettings;
   var realNavigatormozApps;
-  var realPlaces;
   var browserSettings;
 
   suiteSetup(function(done) {
@@ -18,9 +23,6 @@ suite('system/BrowserSettings', function() {
 
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-
-    realPlaces = window.places;
-    window.places = new MockPlaces();
 
     requireApp('system/js/browser_settings.js', function() {
       browserSettings = new BrowserSettings();
@@ -35,20 +37,15 @@ suite('system/BrowserSettings', function() {
 
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
-
-    window.places = realPlaces;
-    realPlaces = null;
   });
 
   suite('check for settings-based procedure handlers', function() {
     test('setting clear.browser.history should clear places database',
       function() {
-        var clearPlacesStub = sinon.stub(window.places, 'clear');
-
+        this.sinon.spy(MockService, 'request');
         navigator.mozSettings.createLock().set({'clear.browser.history': true});
-        assert.isTrue(clearPlacesStub.called,
+        assert.isTrue(MockService.request.calledWith('Places:clear'),
                       'Places database clear should be requested');
-        clearPlacesStub.restore();
       }
     );
 

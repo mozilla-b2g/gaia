@@ -53,7 +53,7 @@ suite('system/BluetoothCore', function() {
     // instanciate bluetooth module
     window.Bluetooth = window.Bluetooth1;
     window.BluetoothTransfer = { start: function() {} };
-    Bluetooth.init();
+    Bluetooth.start();
   });
 
   test('Should lazy load icons', function() {

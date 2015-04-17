@@ -22,8 +22,8 @@ marionette('Bookmark -', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     bookmark = new Bookmark(client, server);
-    system.waitForStartup();
   });
 
   test('Install app from page', function() {

@@ -61,7 +61,7 @@
           win.removeEventListener('utility-tray-overlayopened', wait);
           marionetteScriptFinished();
         });
-        win.UtilityTray.show(true);
+        win.Service.request('UtilityTray:show', true);
       });
     },
 
@@ -72,7 +72,7 @@
           win.removeEventListener('utility-tray-overlayclosed', wait);
           marionetteScriptFinished();
         });
-        win.UtilityTray.hide();
+        win.Service.request('UtilityTray:hide');
       });
     },
 
