@@ -121,6 +121,7 @@
    "lockscreen.unlock-sound.enabled": false,
    "message.sent-sound.enabled": true,
    "moz.b2g.version": "3.0",
+   "mms.debugging.enabled": false,
    "network.debugging.enabled": false,
    "nfc.enabled": false,
    "nfc.suspended": false,
