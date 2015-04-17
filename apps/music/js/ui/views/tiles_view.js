@@ -1,7 +1,7 @@
 /* exported TilesView */
-/* global musicdb, AlbumArtCache, SearchView, ModeManager,
-          MODE_SEARCH_FROM_TILES, IDBKeyRange, MODE_PLAYER, PlayerView,
-          musicdb, TYPE_LIST, LazyLoader, showImage */
+/* global AlbumArtCache, Database, IDBKeyRange, LazyLoader, ModeManager,
+          MODE_PLAYER, MODE_SEARCH_FROM_TILES, PlayerView, SearchView,
+          showImage, TYPE_LIST */
 'use strict';
 
 var TilesView = {
@@ -61,11 +61,11 @@ var TilesView = {
 
     // Cancel a pending enumeration before starting a new one.
     if (this.handle) {
-      musicdb.cancelEnumeration(this.handle);
+      Database.cancelEnumeration(this.handle);
     }
 
-    this.handle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
-                                       function(songs) {
+    this.handle = Database.enumerateAll('metadata.album', null, 'nextunique',
+                                        function(songs) {
       TilesView.clean();
       songs.forEach(function(song) {
         TilesView._addItem(song);
@@ -210,7 +210,7 @@ var TilesView = {
         // we have to get all the song data first
         // because the shuffle option might be ON
         // and we have create shuffled list and play in shuffle order
-        PlayerView.handle = musicdb.enumerateAll(key, range, direction,
+        PlayerView.handle = Database.enumerateAll(key, range, direction,
           function tv_enumerateAll(dataArray) {
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = dataArray;
