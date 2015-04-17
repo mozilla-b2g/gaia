@@ -229,6 +229,15 @@ suite('system/HierarchyManager', function() {
         subject.focus(fakeAppWindowManager);
         assert.isFalse(fakeAppWindowManager.setHierarchy.calledOnce);
       });
+
+    test('should focus top most without a module', function() {
+      this.sinon.stub(fakeAppWindowManager, 'setHierarchy');
+      this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
+      // use registerHierarchy to update top most
+      subject.registerHierarchy(fakeAppWindowManager);
+      subject.focus();
+      assert.isTrue(fakeAppWindowManager.setHierarchy.called);
+    });
   });
 
   suite('unregisterHierarchy', function() {

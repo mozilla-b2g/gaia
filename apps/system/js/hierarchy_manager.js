@@ -137,10 +137,11 @@
     },
 
     focus: function(module) {
-      if (this._topMost !== module) {
-        return;
+      if (!module) {
+        this._topMost.setHierarchy(true);
+      } else if (this._topMost === module) {
+        module.setHierarchy(true);
       }
-      module.setHierarchy(true);
     },
 
     updateTopMostWindow: function() {

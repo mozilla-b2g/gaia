@@ -1145,10 +1145,17 @@ suite('system/AppWindow', function() {
         app1.contextmenu = {
           isShown: function() {
             return true;
+          },
+          focus: function() {
+
           }
         };
+
+        var stubContextMenuFocus = this.sinon.stub(app1.contextmenu, 'focus');
         app1.focus();
         assert.isFalse(stubFocus.called);
+        assert.isTrue(stubContextMenuFocus.called);
+        stubContextMenuFocus.restore();
       });
     });
 
