@@ -98,6 +98,7 @@ endif
 
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
+NODE_MODULES_CACHEDIR=modules_tar_cachedir
 
 # GAIA_DEVICE_TYPE customization
 # phone - default
@@ -705,9 +706,13 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
-modules.tar: gaia_node_modules.revision
-	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
-	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+modules.tar: gaia_node_modules.revision $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)
+	-cp -f "$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)" "$(NODE_MODULES_SRC)"
+
+$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV): gaia_node_modules.revision
+	@echo Downloading latest node_modules package. This may take several minutes...
+	mkdir -p "$(NODE_MODULES_CACHEDIR)"
+	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
@@ -1040,7 +1045,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
