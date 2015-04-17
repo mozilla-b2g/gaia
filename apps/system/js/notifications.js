@@ -470,7 +470,11 @@ var NotificationScreen = {
 
     var message = document.createElement('div');
     message.classList.add('detail');
-    message.textContent = detail.text;
+    var messageContent = document.createElement('div');
+    messageContent.classList.add('detail-content');
+    messageContent.textContent = detail.text;
+    messageContent.setAttribute('dir', 'auto');
+    message.appendChild(messageContent);
     notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
