@@ -1,10 +1,3 @@
-apps/fl/js/binary_string_view.js
-apps/fl/js/constants.js
-apps/fl/js/db.js
-apps/fl/js/download.js
-apps/fl/js/pick.js
-apps/fl/js/utils.js
-apps/fl/test/unit/binary_string_view_test.js
 apps/keyboard/js/imes/jshangul/jshangul.js
 apps/keyboard/js/imes/jskanji/jskanji.js
 apps/keyboard/js/imes/jspinyin/empinyin_files.js

@@ -1,3 +1,38 @@
+'use strict';
+/* exported
+  DEBUG,
+  DOWNLOAD_ERROR,
+  ERR_BAD_DESCRIPTOR,
+  ERR_DESCRIPTOR_DOWNLOAD_FAILED,
+  ERR_TOO_BIG,
+  ERR_UNSUPPORTED_TYPE,
+  ERR_BAD_TYPE,
+  ERR_CONTENT_DOWNLOAD_FAILED,
+  ERR_BAD_DRM_MESSAGE,
+  ERR_BAD_IMAGE,
+  ERR_BAD_AUDIO,
+  ERR_NO_SPACE,
+  ERR_NO_SDCARD,
+  ERR_SDCARD_IN_USE,
+  ERR_DB_STORE_FAILURE,
+  ERR_DS_SAVE_FAILURE,
+  INSTALL_ERROR,
+  MAX_DOWNLOAD_SIZE,
+  MimeTypeAliases,
+  OMADownloadStatus,
+  RINGTONE,
+  RINGTONE_KEY,
+  RINGTONE_NAME_KEY,
+  SONG,
+  SUCCESS_RINGTONE,
+  SUCCESS_SONG,
+  SUCCESS_WALLPAPER,
+  SupportedImageTypes,
+  SupportedAudioTypes,
+  systemXHR,
+  WALLPAPER,
+  WALLPAPER_KEY
+*/
 const DEBUG = true;
 
 //
@@ -71,9 +106,9 @@ const MimeTypeAliases = Object.freeze({
 });
 
 // SettingsDB keys for ringtones and wallpaper
-RINGTONE_KEY = 'dialer.ringtone';
-RINGTONE_NAME_KEY = 'dialer.ringtone.name';
-WALLPAPER_KEY = 'wallpaper.image';
+const RINGTONE_KEY = 'dialer.ringtone';
+const RINGTONE_NAME_KEY = 'dialer.ringtone.name';
+const WALLPAPER_KEY = 'wallpaper.image';
 
 // These three constants define the possible uses of the media we download.
 // Different values require different handling after download. See the

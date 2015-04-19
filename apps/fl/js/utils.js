@@ -1,8 +1,18 @@
+'use strict';
+
+/* global DEBUG */
+/* exported
+  $,
+  debug,
+  showDialog */
+
 function debug(...args) {
-  if (!DEBUG)
+  if (!DEBUG) {
     return;
-  if (!debug.startTime)
+  }
+  if (!debug.startTime) {
     debug.startTime = Date.now();
+  }
   args.unshift('[Locked Content]', Date.now() - debug.startTime);
   console.log.apply(console, args);
 }
@@ -15,6 +25,16 @@ function _(id, args) {
 
 // Show a dialog with one or two buttons
 function showDialog(options) {
+
+  function close(e) {
+    document.body.removeChild(dialog);
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  var cancelButton;
+  var okButton;
+
   var dialog = document.createElement('form');
   dialog.setAttribute('role', 'dialog');
   dialog.dataset.type = 'confirm';
@@ -48,7 +68,7 @@ function showDialog(options) {
 
   // Add the cancel button if there is one
   if (options.cancelCallback) {
-    var cancelButton = document.createElement('button');
+    cancelButton = document.createElement('button');
     menu.appendChild(cancelButton);
     cancelButton.textContent = options.cancelText || _('cancel');
     cancelButton.onclick = function(e) {
@@ -58,7 +78,7 @@ function showDialog(options) {
   }
 
   if (options.okCallback) {
-    var okButton = document.createElement('button');
+    okButton = document.createElement('button');
     menu.appendChild(okButton);
     okButton.textContent = options.okText || _('ok');
     if (options.danger) {
@@ -74,17 +94,13 @@ function showDialog(options) {
   }
 
   // If there is only one button, make it full-size
-  if (okButton && !cancelButton)
+  if (okButton && !cancelButton) {
     okButton.classList.add('full');
-  if (cancelButton && !okButton)
+  }
+  if (cancelButton && !okButton) {
     cancelButton.classList.add('full');
+  }
 
   // show the dialog
   document.body.appendChild(dialog);
-
-  function close(e) {
-    document.body.removeChild(dialog);
-    e.preventDefault();
-    e.stopPropagation();
-  }
 }

@@ -1,3 +1,7 @@
+'use strict';
+/* global indexedDB */
+/* exported objectStore */
+
 var objectStore = (function() {
   const DBNAME = 'LOCKEDCONTENT';
   const DBVERSION = 1;
@@ -5,8 +9,9 @@ var objectStore = (function() {
   var db;
 
   function getStore(access, storeName, callback) {
-    if (STORENAMES.indexOf(storeName) === -1)
+    if (STORENAMES.indexOf(storeName) === -1) {
       throw Error('unknown object store name:', storeName);
+    }
 
     if (db) {
       callback(db.transaction(storeName, access).objectStore(storeName));
