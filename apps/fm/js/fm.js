@@ -203,9 +203,23 @@ function updateFrequencyBarUI() {
 
 function updateEnablingState(enablingState) {
   enabling = enablingState;
+
+  if (enablingState) {
+    $('static').play();
+  } else {
+    $('static').pause();
+  }
+
   updatePowerUI();
   updateFrequencyBarUI();
 }
+
+// Set up an <audio> element for listening for
+// 'mozinterruptbegin' events.
+var mozinterruptListener = document.createElement('audio');
+mozinterruptListener.mozAudioChannelType = 'content';
+mozinterruptListener.loop = true;
+document.body.appendChild(mozinterruptListener);
 
 var airplaneModeEnabled = false;
 function enableFMRadio(frequency) {
@@ -219,6 +233,12 @@ function enableFMRadio(frequency) {
   };
 
   updateEnablingState(true);
+  mozinterruptListener.play();
+}
+
+function disableFMRadio() {
+  mozFMRadio.disable();
+  mozinterruptListener.pause();
 }
 
 /**
@@ -782,7 +802,7 @@ function init() {
 
   $('power-switch').addEventListener('click', function toggle_fm() {
     if (mozFMRadio.enabled) {
-      mozFMRadio.disable();
+      disableFMRadio();
     } else {
       enableFMRadio(frequencyDialer.getFrequency());
     }
@@ -829,7 +849,7 @@ function init() {
       // Remember the current state of the FM radio
       window._previousFMRadioState = mozFMRadio.enabled;
       window._previousEnablingState = enabling;
-      mozFMRadio.disable();
+      disableFMRadio();
     }
   };
 
@@ -888,29 +908,59 @@ function init() {
       // An attention screen is in the process of opening. Save the
       // current state of the radio and disable.
       if (event.settingValue) {
-        window._previousFMRadioState = mozFMRadio.enabled;
-        window._previousEnablingState = enabling;
-        window._previousSpeakerForcedState = speakerManager.speakerforced;
-        mozFMRadio.disable();
+        saveStateAndDisable();
       }
 
       // An attention screen is closing.
       else {
-        // If the radio was previously enabled or was in the process
-        // of becoming enabled, re-enable the radio.
-        if (!!window._previousFMRadioState || !!window._previousEnablingState) {
-          // Ensure the antenna is still available before re-starting
-          // the radio.
-          if (mozFMRadio.antennaAvailable) {
-            enableFMRadio(frequencyDialer.getFrequency());
-          }
-
-          // Re-enable the speaker if it was previously forced.
-          speakerManager.forcespeaker = !!window._previousSpeakerForcedState;
-        }
+        restoreState();
       }
     }
   );
+
+  // Listen for `mozinterruptbegin` events and save the current state
+  // and disable the FM radio when one is received.
+  mozinterruptListener.addEventListener('mozinterruptbegin', function(evt) {
+    saveStateAndDisable();
+  });
+
+  document.addEventListener('visibilitychange', function(evt) {
+    // If the app has gained visibility (returned from the background),
+    // resume listening for audio interrupts and restore the previous
+    // app state (if any).
+    if (!document.hidden) {
+      restoreState();
+    }
+  });
+
+  // Saves the state of the FM radio and disables it.
+  function saveStateAndDisable() {
+    window._previousFMRadioState = mozFMRadio.enabled;
+    window._previousEnablingState = enabling;
+    window._previousSpeakerForcedState = speakerManager.speakerforced;
+    disableFMRadio();
+  }
+
+  // Restores the state of the FM radio, if it was
+  // previously saved, and clears the saved state.
+  function restoreState() {
+    // If the radio was previously enabled or was in the process
+    // of becoming enabled, re-enable the radio.
+    if (!!window._previousFMRadioState || !!window._previousEnablingState) {
+      // Ensure the antenna is still available before re-starting
+      // the radio.
+      if (mozFMRadio.antennaAvailable) {
+        enableFMRadio(frequencyDialer.getFrequency());
+      }
+
+      // Re-enable the speaker if it was previously forced.
+      speakerManager.forcespeaker = !!window._previousSpeakerForcedState;
+    }
+
+    delete window._previousFMRadioState;
+    delete window._previousEnablingState;
+    delete window._previousSpeakerForcedState;
+  }
 }
 
 window.addEventListener('load', function(e) {
@@ -942,7 +992,7 @@ window.addEventListener('load', function(e) {
 
 // Turn off radio immediately when window is unloaded.
 window.addEventListener('unload', function(e) {
-  mozFMRadio.disable();
+  disableFMRadio();
 }, false);
 
 // PERFORMANCE EVENT (1): moz-chrome-dom-loaded

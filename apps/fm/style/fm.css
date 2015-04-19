@@ -27,6 +27,10 @@ a:active {
   background-color: #00ABCD;
 }
 
+audio {
+  display: none;
+}
+
 .hidden-block {
   visibility: hidden;
 }
