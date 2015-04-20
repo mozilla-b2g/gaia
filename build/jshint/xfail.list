@@ -18,14 +18,6 @@ apps/email/test/marionette/notification_disable_test.js
 apps/email/test/marionette/notification_set_interval_test.js
 apps/email/test/marionette/reply_imap_email_test.js
 apps/email/test/marionette/send_imap_email_test.js
-apps/email/test/unit/app_messages_test.js
-apps/email/test/unit/header_cursor_test.js
-apps/email/test/unit/mail_app_test.js
-apps/email/test/unit/mix_test.js
-apps/email/test/unit/mock_api.js
-apps/email/test/unit/model_test.js
-apps/email/test/unit/query_string_test.js
-apps/email/test/unit/setup_manual_config_protocol_dropdown_test.js
 apps/fl/js/binary_string_view.js
 apps/fl/js/constants.js
 apps/fl/js/db.js
