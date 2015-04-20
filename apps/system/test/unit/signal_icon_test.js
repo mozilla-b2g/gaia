@@ -177,10 +177,10 @@ suite('system/SignalIcon', function() {
       this.sinon.stub(subject, 'hide');
       this.sinon.stub(subject.manager, 'isAbsent').returns(true);
       subject.update();
-      assert.equal(subject.element.dataset.inactive, 'true');
+      assert.equal(dataset.inactive, 'true');
       assert.isTrue(subject.hide.called);
-      assert.isUndefined(subject.element.dataset.level);
-      assert.isUndefined(subject.element.dataset.searching);
+      assert.isUndefined(dataset.level);
+      assert.isUndefined(dataset.searching);
     });
 
     test('SIM card is locked', function() {
@@ -208,7 +208,7 @@ suite('system/SignalIcon', function() {
       this.sinon.stub(subject, 'show');
       subject.update();
       assert.isTrue(subject.show.called);
-      assert.equal(subject.element.dataset.level, 4);
+      assert.equal(dataset.level, 4);
     });
 
     test('Has active call at current sim slot', function() {
@@ -219,8 +219,8 @@ suite('system/SignalIcon', function() {
       this.sinon.stub(subject, 'show');
       subject.update();
       assert.isTrue(subject.show.called);
-      assert.equal(subject.element.dataset.level, 1);
-      assert.notEqual(dataset.searching, 'true');
+      assert.equal(dataset.level, 1);
+      assert.isUndefined(dataset.searching);
     });
 
     test('Data is connected', function() {
@@ -233,16 +233,18 @@ suite('system/SignalIcon', function() {
       this.sinon.stub(subject, 'show');
       subject.update();
       assert.isTrue(subject.show.called);
-      assert.equal(subject.element.dataset.level, 4);
+      assert.equal(dataset.level, 4);
     });
 
     test('Emergency call only', function() {
       subject.manager.conn.voice.state = 'searching';
+      this.sinon.stub(subject, 'updateSignal');
       this.sinon.stub(subject, 'show');
       subject.update();
+      assert.isTrue(subject.updateSignal.called);
       assert.isTrue(subject.show.called);
-      assert.equal(subject.element.dataset.level, -1);
-      assert.equal(subject.element.dataset.searching, 'true');
+      assert.equal(dataset.level, -1);
+      assert.equal(dataset.searching, 'true');
     });
   });
 
@@ -333,7 +335,7 @@ suite('system/SignalIcon', function() {
     subject.update();
 
     assert.isUndefined(dataset.level);
-    assert.notEqual(dataset.searching, 'true');
+    assert.isUndefined(dataset.searching);
   });
 
   test('no network without sim, searching', function() {
@@ -353,7 +355,7 @@ suite('system/SignalIcon', function() {
     subject.update();
 
     assert.isUndefined(dataset.level);
-    assert.notEqual(dataset.searching, 'true');
+    assert.isUndefined(dataset.searching);
   });
 
   test('no network with sim, sim locked', function() {
@@ -392,8 +394,8 @@ suite('system/SignalIcon', function() {
 
     subject.update();
 
-    assert.equal(dataset.level, -1);
-    assert.equal(dataset.searching, 'true');
+    assert.equal(dataset.level, 0);
+    assert.isUndefined(dataset.searching);
   });
 
   test('emergency calls only, no sim', function() {
@@ -413,7 +415,7 @@ suite('system/SignalIcon', function() {
     subject.update();
 
     assert.isUndefined(dataset.level);
-    assert.notEqual(dataset.searching, 'true');
+    assert.isUndefined(dataset.searching);
   });
 
   test('emergency calls only, with sim', function() {
@@ -453,7 +455,7 @@ suite('system/SignalIcon', function() {
     subject.update();
 
     assert.equal(dataset.level, 4);
-    assert.notEqual(dataset.searching, 'true');
+    assert.isUndefined(dataset.searching);
   });
 
   test('EVDO connection, show data call signal strength', function() {
@@ -499,22 +501,22 @@ suite('system/SignalIcon', function() {
 
     test('should set the data-level attribute', function() {
       subject.updateSignal(connInfo);
-      assert.equal(subject.element.dataset.level, 4);
+      assert.equal(dataset.level, 4);
     });
 
     test('should remove the searching dataset', function() {
-      subject.element.dataset.searching = true;
+      dataset.searching = true;
       subject.updateSignal(connInfo);
-      assert.isTrue(!subject.element.dataset.searching);
+      assert.isUndefined(dataset.searching);
     });
 
     test('should set l10nId and l10nArgs', function() {
-      subject.element.dataset.searching = true;
+      dataset.searching = true;
       subject.updateSignal(connInfo);
       assert.equal(MockL10n.getAttributes(subject.element).id,
         'statusbarSignalRoaming');
       assert.deepEqual(MockL10n.getAttributes(subject.element).args, {
-        level: subject.element.dataset.level,
+        level: dataset.level,
         operator: connInfo.network && connInfo.network.shortName
       });
     });
