@@ -1,4 +1,6 @@
-var Gallery = require('./lib/gallery.js'),
+'use strict';
+
+var Gallery = require('../lib/gallery.js'),
     Marionette = require('marionette-client'),
     assert = require('assert');
 

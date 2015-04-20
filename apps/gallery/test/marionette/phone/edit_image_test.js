@@ -1,10 +1,12 @@
-var Gallery = require('./lib/gallery.js'),
+'use strict';
+
+var Gallery = require('../lib/gallery.js'),
     Marionette = require('marionette-client'),
     assert = require('assert');
 
 marionette('editing an image', function() {
 
-  var app, actions, client, chrome;
+  var app, actions, client;
 
   client = marionette.client({
     prefs: {
