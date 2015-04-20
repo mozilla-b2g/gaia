@@ -1,4 +1,4 @@
-/*global ActivityPicker, ThreadUI */
+/*global ActivityPicker, ConversationView */
 
 (function(exports) {
   'use strict';
@@ -20,14 +20,14 @@
       }
 
       if (action === 'email-link') {
-        ThreadUI.prompt({
+        ConversationView.prompt({
           email: dataset.email,
           inMessage: true
         });
       }
 
       if (action === 'dial-link') {
-        ThreadUI.promptContact({
+        ConversationView.promptContact({
           number: dataset.dial,
           inMessage: true
         });

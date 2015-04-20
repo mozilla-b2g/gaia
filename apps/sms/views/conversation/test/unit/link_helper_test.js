@@ -5,7 +5,7 @@
 */
 'use strict';
 
-requireApp('sms/js/link_helper.js');
+require('/views/conversation/js/link_helper.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');

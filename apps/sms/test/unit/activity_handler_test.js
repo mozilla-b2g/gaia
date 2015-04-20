@@ -1,5 +1,5 @@
 /*global Notify, Compose, MocksHelper, ActivityHandler, Contacts,
-         Attachment, ThreadUI, Settings, Notification,
+         Attachment, ConversationView, Settings, Notification,
          Threads, Navigation, Promise, MessageManager, Utils  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock,
@@ -27,7 +27,7 @@ requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
+require('/test/unit/mock_conversation.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_notify.js');
 require('/test/unit/mock_navigation.js');
@@ -50,7 +50,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'SettingsURL',
   'SilentSms',
   'Threads',
-  'ThreadUI',
+  'ConversationView',
   'Utils',
   'Navigation'
 ]).init();
@@ -913,7 +913,7 @@ suite('ActivityHandler', function() {
       this.sinon.stub(Navigation, 'toPanel');
       this.sinon.stub(Compose, 'clear');
       this.sinon.stub(Compose, 'isEmpty').returns(true);
-      this.sinon.stub(ThreadUI, 'cleanFields');
+      this.sinon.stub(ConversationView, 'cleanFields');
     });
 
     test('when message belongs to currently active thread', function() {
@@ -941,7 +941,7 @@ suite('ActivityHandler', function() {
 
         getMessagePromise.then(() => confirmPromise).catch(() => {
           sinon.assert.notCalled(Compose.clear);
-          sinon.assert.notCalled(ThreadUI.cleanFields);
+          sinon.assert.notCalled(ConversationView.cleanFields);
           sinon.assert.calledWith(
             Utils.confirm,
             'discard-new-message',
@@ -958,7 +958,7 @@ suite('ActivityHandler', function() {
         ActivityHandler.handleMessageNotification(message);
 
         getMessagePromise.then(() => confirmPromise).then(() => {
-          sinon.assert.called(ThreadUI.cleanFields);
+          sinon.assert.called(ConversationView.cleanFields);
           sinon.assert.calledWith(
             Utils.confirm,
             'discard-new-message',

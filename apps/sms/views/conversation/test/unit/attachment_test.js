@@ -5,7 +5,7 @@
 
 'use strict';
 
-require('/js/attachment.js');
+require('/views/conversation/js/attachment.js');
 require('/js/utils.js');
 
 require('/test/unit/mock_attachment_renderer.js');

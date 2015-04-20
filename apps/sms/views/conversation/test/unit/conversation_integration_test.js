@@ -1,4 +1,4 @@
-/*global MocksHelper, MockL10n, ThreadUI,
+/*global MocksHelper, MockL10n, ConversationView,
          loadBodyHTML, Compose, MessageManager, Navigation */
 
 'use strict';
@@ -18,14 +18,14 @@ requireApp('sms/test/unit/mock_activity_handler.js');
 require('/test/unit/mock_navigation.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/settings.js');
-require('/js/subject_composer.js');
-require('/js/compose.js');
+require('/views/conversation/js/subject_composer.js');
+require('/views/conversation/js/compose.js');
 requireApp('sms/js/contacts.js');
-requireApp('sms/js/recipients.js');
+require('/views/conversation/js/recipients.js');
 requireApp('sms/js/threads.js');
-requireApp('sms/js/thread_list_ui.js');
-requireApp('sms/js/thread_ui.js');
-requireApp('sms/js/attachment.js');
+require('/views/inbox/js/inbox.js');
+require('/views/conversation/js/conversation.js');
+require('/views/conversation/js/attachment.js');
 requireApp('sms/js/contact_renderer.js');
 require('/js/navigation.js');
 
@@ -37,7 +37,7 @@ var mHelperIntegration = new MocksHelper([
   'Navigation'
 ]).init();
 
-suite('ThreadUI Integration', function() {
+suite('ConversationView Integration', function() {
   var realMozL10n;
   var recipients;
   var children;
@@ -57,7 +57,7 @@ suite('ThreadUI Integration', function() {
 
     loadBodyHTML('/index.html');
     Navigation.init();
-    ThreadUI.init();
+    ConversationView.init();
   });
 
   suiteTeardown(function() {
@@ -79,8 +79,8 @@ suite('ThreadUI Integration', function() {
     };
 
 
-    ThreadUI.recipients = null;
-    ThreadUI.initRecipients();
+    ConversationView.recipients = null;
+    ConversationView.initRecipients();
   });
 
   teardown(function() {
@@ -91,7 +91,7 @@ suite('ThreadUI Integration', function() {
   suite('Search Contact Events', function() {
 
     setup(function() {
-      this.sinon.spy(ThreadUI, 'searchContact');
+      this.sinon.spy(ConversationView, 'searchContact');
     });
 
     test('toFieldInput handler, successful', function() {
@@ -102,10 +102,10 @@ suite('ThreadUI Integration', function() {
         }
       };
 
-      ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
+      ConversationView.toFieldInput.call(ConversationView, fakeEvent);
 
-      sinon.assert.calledOnce(ThreadUI.searchContact);
-      sinon.assert.calledWith(ThreadUI.searchContact, 'abc');
+      sinon.assert.calledOnce(ConversationView.searchContact);
+      sinon.assert.calledWith(ConversationView.searchContact, 'abc');
     });
 
     test('toFieldInput handler, unsuccessful', function() {
@@ -116,17 +116,17 @@ suite('ThreadUI Integration', function() {
         }
       };
 
-      ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
+      ConversationView.toFieldInput.call(ConversationView, fakeEvent);
 
-      sinon.assert.called(ThreadUI.searchContact);
-      sinon.assert.calledWith(ThreadUI.searchContact, '');
+      sinon.assert.called(ConversationView.searchContact);
+      sinon.assert.calledWith(ConversationView.searchContact, '');
 
       fakeEvent.target.textContent = 'abd';
       fakeEvent.target.isPlaceholder = false;
 
-      ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
+      ConversationView.toFieldInput.call(ConversationView, fakeEvent);
 
-      assert.isFalse(ThreadUI.searchContact.calledTwice);
+      assert.isFalse(ConversationView.searchContact.calledTwice);
     });
   });
 
@@ -135,41 +135,41 @@ suite('ThreadUI Integration', function() {
 
       // Assert initial state: #messages-recipients-list is singleline
       assert.isFalse(
-        ThreadUI.recipientsList.classList.contains('multiline')
+        ConversationView.recipientsList.classList.contains('multiline')
       );
       assert.isTrue(
-        ThreadUI.recipientsList.classList.contains('singleline')
+        ConversationView.recipientsList.classList.contains('singleline')
       );
 
       // Modify state
-      ThreadUI.recipients.visible('multiline');
+      ConversationView.recipients.visible('multiline');
 
       // Assert modified state: #messages-recipients-list is multiline
       assert.isTrue(
-        ThreadUI.recipientsList.classList.contains('multiline')
+        ConversationView.recipientsList.classList.contains('multiline')
       );
       assert.isFalse(
-        ThreadUI.recipientsList.classList.contains('singleline')
+        ConversationView.recipientsList.classList.contains('singleline')
       );
 
       // Reset state
-      ThreadUI.initRecipients();
+      ConversationView.initRecipients();
 
       // Assert initial/reset state: #messages-recipients-list is singleline
       assert.isFalse(
-        ThreadUI.recipientsList.classList.contains('multiline')
+        ConversationView.recipientsList.classList.contains('multiline')
       );
       assert.isTrue(
-        ThreadUI.recipientsList.classList.contains('singleline')
+        ConversationView.recipientsList.classList.contains('singleline')
       );
     });
 
     test('Typing in list will switch to singline mode', function(done) {
-      var toField = ThreadUI.toField;
-      var recipientsList = ThreadUI.recipientsList;
+      var toField = ConversationView.toField;
+      var recipientsList = ConversationView.recipientsList;
 
       children = recipientsList.children;
-      recipients = ThreadUI.recipients;
+      recipients = ConversationView.recipients;
 
       // Fill the recipients list with enough recipients to
       // enable the "pan" event
@@ -229,11 +229,11 @@ suite('ThreadUI Integration', function() {
     });
 
     test('Clicking in list will switch to singline mode', function(done) {
-      var toField = ThreadUI.toField;
-      var recipientsList = ThreadUI.recipientsList;
+      var toField = ConversationView.toField;
+      var recipientsList = ConversationView.recipientsList;
 
       children = recipientsList.children;
-      recipients = ThreadUI.recipients;
+      recipients = ConversationView.recipients;
 
       // Fill the recipients list with enough recipients to
       // enable the "multiline" view
@@ -298,12 +298,12 @@ suite('ThreadUI Integration', function() {
 
     test('Assimilate stranded recipients (message input)', function() {
 
-      ThreadUI.recipients.add({
+      ConversationView.recipients.add({
         number: '999'
       });
 
-      children = ThreadUI.recipientsList.children;
-      recipients = ThreadUI.recipients;
+      children = ConversationView.recipientsList.children;
+      recipients = ConversationView.recipients;
 
       // There are one recipients...
       assert.equal(recipients.length, 1);
@@ -337,12 +337,12 @@ suite('ThreadUI Integration', function() {
 
     test('Assimilate stranded recipients (attachButton)', function() {
 
-      ThreadUI.recipients.add({
+      ConversationView.recipients.add({
         number: '777'
       });
 
-      children = ThreadUI.recipientsList.children;
-      recipients = ThreadUI.recipients;
+      children = ConversationView.recipientsList.children;
+      recipients = ConversationView.recipients;
 
       // There are one recipients...
       assert.equal(recipients.length, 1);
@@ -380,13 +380,13 @@ suite('ThreadUI Integration', function() {
       Compose.append('foo');
 
       // 2. Create a recipient
-      ThreadUI.recipients.add({
+      ConversationView.recipients.add({
         number: '999'
       });
 
 
-      children = ThreadUI.recipientsList.children;
-      recipients = ThreadUI.recipients;
+      children = ConversationView.recipientsList.children;
+      recipients = ConversationView.recipients;
 
       // There are one recipients...
       assert.equal(recipients.length, 1);
@@ -403,8 +403,8 @@ suite('ThreadUI Integration', function() {
       children[1].textContent = '000';
 
       // Simulate sendButton click
-      ThreadUI.onSendClick();
-      ThreadUI.simSelectedCallback(undefined, 0);
+      ConversationView.onSendClick();
+      ConversationView.simSelectedCallback(undefined, 0);
 
       // Ensure that the "unaccepted" recipient was assimilated
       // and included in the recipients list when message was sent
@@ -422,23 +422,23 @@ suite('ThreadUI Integration', function() {
       Compose.append('foo');
 
       // 2. Create a recipient
-      ThreadUI.recipients.add({
+      ConversationView.recipients.add({
         number: '111'
       });
 
-      children = ThreadUI.recipientsList.children;
-      recipients = ThreadUI.recipients;
+      children = ConversationView.recipientsList.children;
+      recipients = ConversationView.recipients;
 
       // Set text in the placeholder, as if the user has typed
       // something before jumping to the input field
       children[1].textContent = '222';
 
       // Simulate contact pick
-      ThreadUI.requestContact();
+      ConversationView.requestContact();
 
       // Simulate the picker activity success
       setTimeout(function onsuccess() {
-        ThreadUI.recipients.add({
+        ConversationView.recipients.add({
           number: '333'
         });
 
@@ -460,8 +460,8 @@ suite('ThreadUI Integration', function() {
     test('Lone ";" are not recipients', function() {
 
 
-      children = ThreadUI.recipientsList.children;
-      recipients = ThreadUI.recipients;
+      children = ConversationView.recipientsList.children;
+      recipients = ConversationView.recipients;
 
       // Set ";" in the placeholder, as if the user has typed
       children[0].textContent = ';';
@@ -477,14 +477,14 @@ suite('ThreadUI Integration', function() {
       // The the ";" has been removed from the
       // recipients list
       assert.equal(
-        ThreadUI.recipientsList.children[0].textContent, ''
+        ConversationView.recipientsList.children[0].textContent, ''
       );
     });
 
     test('Taps on in-progress recipients do nothing special', function() {
 
-      children = ThreadUI.recipientsList.children;
-      recipients = ThreadUI.recipients;
+      children = ConversationView.recipientsList.children;
+      recipients = ConversationView.recipients;
 
       // Set text in the placeholder, as if the user has typed
       children[0].textContent = '9999999999';
@@ -525,20 +525,20 @@ suite('ThreadUI Integration', function() {
         return event;
       }
 
-      ThreadUI.recipients = new Recipients({
+      ConversationView.recipients = new Recipients({
         outer: 'messages-to-field',
         inner: 'messages-recipients-list',
         template: new Template('messages-recipient-tmpl')
       });
 
-      ThreadUI.recipients.add({
+      ConversationView.recipients.add({
         source: 'contacts',
         name: 'Rick',
         number: '99999'
       });
 
-      children = ThreadUI.recipientsList.children;
-      recipients = ThreadUI.recipients;
+      children = ConversationView.recipientsList.children;
+      recipients = ConversationView.recipients;
 
       // Simulate backspace on the current placeholder
       backspace(children[1]);

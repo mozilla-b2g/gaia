@@ -3,7 +3,7 @@
 
 /*global Utils, MessageManager, Compose, NotificationHelper,
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
-         ThreadUI, Notification, Settings, Navigation */
+         ConversationView, Notification, Settings, Navigation */
 /*exported ActivityHandler */
 
 'use strict';
@@ -251,7 +251,7 @@ var ActivityHandler = {
         'unsent-message-title',
         { text: 'unsent-message-option-discard', className: 'danger' }
       ).then(() => {
-        ThreadUI.cleanFields();
+        ConversationView.cleanFields();
         ActivityHandler.toView(message);
       });
     }, function onGetMessageError() {

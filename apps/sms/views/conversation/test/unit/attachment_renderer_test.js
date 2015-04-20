@@ -6,7 +6,7 @@
 
 'use strict';
 
-require('/js/attachment_renderer.js');
+require('/views/conversation/js/attachment_renderer.js');
 require('/js/utils.js');
 
 require('/shared/js/image_utils.js');

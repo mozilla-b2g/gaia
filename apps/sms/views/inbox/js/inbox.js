@@ -3,14 +3,14 @@
 
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MessageManager, TimeHeaders,
-         Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
+         Drafts, Thread, ConversationView, OptionMenu, ActivityPicker,
          StickyHeader, Navigation,
          InterInstanceEventDispatcher,
          SelectionHandler,
          Settings,
          LazyLoader
 */
-/*exported ThreadListUI */
+/*exported InboxView */
 (function(exports) {
 'use strict';
 
@@ -22,7 +22,7 @@ function createBdiNode(content) {
   return bdi;
 }
 
-var ThreadListUI = {
+var InboxView = {
   readyDeferred: Utils.Promise.defer(),
 
   draftLinks: null,
@@ -36,13 +36,13 @@ var ThreadListUI = {
   },
 
   // Used to track the current number of rendered
-  // threads. Updated in ThreadListUI.renderThreads
+  // threads. Updated in InboxView.renderThreads
   count: 0,
 
   // Set to |true| when in edit mode
   inEditMode: false,
 
-  init: function thlui_init() {
+  init: function inbox_init() {
     this.tmpl = {
       thread: Template('messages-thread-tmpl')
     };
@@ -108,7 +108,7 @@ var ThreadListUI = {
     );
 
     this.draftLinks = new Map();
-    ThreadListUI.draftRegistry = {};
+    InboxView.draftRegistry = {};
 
     MessageManager.on('message-sending', this.onMessageSending.bind(this));
     MessageManager.on('message-received', this.onMessageReceived.bind(this));
@@ -129,24 +129,24 @@ var ThreadListUI = {
     this.sticky = null;
   },
 
-  initStickyHeader: function thlui_initStickyHeader() {
+  initStickyHeader: function inbox_initStickyHeader() {
     if (!this.sticky) {
       this.sticky =
         new StickyHeader(this.container, document.getElementById('sticky'));
     }
   },
 
-  beforeLeave: function thlui_beforeLeave() {
+  beforeLeave: function inbox_beforeLeave() {
     // This should be in afterLeave, but the edit mode interface does not seem
     // to slide correctly. Bug 1009541
     this.cancelEdit();
   },
 
-  getIdIterator: function thlui_getIdIterator() {
+  getIdIterator: function inbox_getIdIterator() {
     return Threads.keys();
   },
 
-  setContact: function thlui_setContact(node) {
+  setContact: function inbox_setContact(node) {
     // TODO Bug 1014226 will introduce a draftId instead of threadId for
     // drafts, this will allow removing the test with is-draft here.
     var threadOrDraft = node.classList.contains('is-draft') ?
@@ -169,7 +169,7 @@ var ThreadListUI = {
     }
 
     function* updateThreadNode(number) {
-      var contact = yield ThreadListUI.findContact(number, { photoURL: true });
+      var contact = yield InboxView.findContact(number, { photoURL: true });
       var isContact = !!contact.isContact;
 
       picture.classList.toggle('has-picture', isContact);
@@ -222,7 +222,7 @@ var ThreadListUI = {
       while (i < numbers.length && threadTitleLength < titleMaxLength) {
         number = numbers[i++];
 
-        contactTitle = (yield ThreadListUI.findContact(number)).title || number;
+        contactTitle = (yield InboxView.findContact(number)).title || number;
 
         if (threadTitleLength > 0) {
           groupTitle.appendChild(separatorNode.cloneNode(true));
@@ -256,7 +256,7 @@ var ThreadListUI = {
     });
   },
 
-  handleEvent: function thlui_handleEvent(event) {
+  handleEvent: function inbox_handleEvent(event) {
     var draftId;
     var parent = event.target.parentNode;
     var parentThreadId = parent.dataset.threadId;
@@ -270,7 +270,7 @@ var ThreadListUI = {
 
         if ((draftId = this.draftLinks.get(event.target))) {
           // TODO: Bug 1010216: remove this
-          ThreadUI.draft = Drafts.get(draftId);
+          ConversationView.draft = Drafts.get(draftId);
         }
 
         if (parentThreadId) {
@@ -334,13 +334,13 @@ var ThreadListUI = {
     }
   },
 
-  launchComposer: function thui_launchComposer(e) {
+  launchComposer: function inbox_launchComposer(e) {
     // prevent following the link, see also bug 1014219
     e.preventDefault();
     Navigation.toPanel('composer');
   },
 
-  updateSelectionStatus: function thlui_updateSelectionStatus() {
+  updateSelectionStatus: function inbox_updateSelectionStatus() {
     var selected = this.selectionHandler;
 
     if (this.selectionHandler.allSelected()) {
@@ -385,7 +385,7 @@ var ThreadListUI = {
     }
   },
 
-  markReadUnread: function thlui_markReadUnread(selected, isRead) {
+  markReadUnread: function inbox_markReadUnread(selected, isRead) {
     selected.forEach((id) => {
       var thread  = Threads.get(id);
       var markable =
@@ -402,7 +402,7 @@ var ThreadListUI = {
     this.cancelEdit();
   },
 
-  removeThread: function thlui_removeThread(threadId) {
+  removeThread: function inbox_removeThread(threadId) {
     var li = document.getElementById('thread-' + threadId);
     var parent, draftId;
     var photoUrl = li && li.dataset.photoUrl;
@@ -441,7 +441,7 @@ var ThreadListUI = {
   // Since removeThread will revoke list photoUrl at the end of deletion,
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
-  delete: function thlui_delete(selected) {
+  delete: function inbox_delete(selected) {
     function performDeletion() {
     /* jshint validthis: true */
 
@@ -450,7 +450,7 @@ var ThreadListUI = {
           threadCountToDelete = 0;
 
       function exitEditMode() {
-        ThreadListUI.cancelEdit();
+        InboxView.cancelEdit();
         WaitingScreen.hide();
       }
 
@@ -459,7 +459,7 @@ var ThreadListUI = {
           MessageManager.deleteMessages(messageIdsToDelete);
 
           threadIdsToDelete.forEach(function(threadId) {
-            ThreadListUI.deleteThread(threadId);
+            InboxView.deleteThread(threadId);
           });
 
           messageIdsToDelete = threadIdsToDelete = null;
@@ -481,7 +481,7 @@ var ThreadListUI = {
         var threadId = +value;
 
         if (Threads.get(threadId).isDraft) {
-          ThreadListUI.deleteThread(threadId);
+          InboxView.deleteThread(threadId);
         } else {
           list.push(threadId);
         }
@@ -519,14 +519,14 @@ var ThreadListUI = {
     ).then(performDeletion.bind(this));
   },
 
-  setEmpty: function thlui_setEmpty(empty) {
+  setEmpty: function inbox_setEmpty(empty) {
     var panel = document.getElementById('thread-list');
 
     // Hide the container when threadlist is empty.
     panel.classList.toggle('threadlist-is-empty', !!empty);
   },
 
-  showOptions: function thlui_options() {
+  showOptions: function inbox_options() {
     var params = {
       items: [{
         l10nId: 'selectThreads-label',
@@ -545,7 +545,7 @@ var ThreadListUI = {
     new OptionMenu(params).show();
   },
 
-  startEdit: function thlui_edit() {
+  startEdit: function inbox_edit() {
     function editModeSetup() {
       /*jshint validthis:true */
       this.inEditMode = true;
@@ -572,16 +572,16 @@ var ThreadListUI = {
     }
   },
 
-  isInEditMode: function thlui_isInEditMode() {
+  isInEditMode: function inbox_isInEditMode() {
     return this.inEditMode;
   },
 
-  cancelEdit: function thlui_cancelEdit() {
+  cancelEdit: function inbox_cancelEdit() {
     this.inEditMode = false;
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderDrafts: function thlui_renderDrafts(force) {
+  renderDrafts: function inbox_renderDrafts(force) {
     // Request and render all threads with drafts
     // or thread-less drafts.
     return Drafts.request(force).then(() => {
@@ -613,16 +613,16 @@ var ThreadListUI = {
     });
   },
 
-  prepareRendering: function thlui_prepareRendering() {
+  prepareRendering: function inbox_prepareRendering() {
     this.container.innerHTML = '';
     this.renderDrafts();
   },
 
-  startRendering: function thlui_startRenderingThreads() {
+  startRendering: function inbox_startRenderingThreads() {
     this.setEmpty(false);
   },
 
-  finalizeRendering: function thlui_finalizeRendering(empty) {
+  finalizeRendering: function inbox_finalizeRendering(empty) {
     if (empty) {
       this.setEmpty(true);
     }
@@ -634,11 +634,11 @@ var ThreadListUI = {
     this.sticky && this.sticky.refresh();
   },
 
-  ensureReadAheadSetting: function thlui_ensureReadAheadSettting() {
+  ensureReadAheadSetting: function inbox_ensureReadAheadSettting() {
     Settings.setReadAheadThreadRetrieval(this.FIRST_PANEL_THREAD_COUNT);
   },
 
-  renderThreads: function thlui_renderThreads(firstViewDoneCb) {
+  renderThreads: function inbox_renderThreads(firstViewDoneCb) {
     window.performance.mark('willRenderThreads');
 
     var hasThreads = false;
@@ -663,7 +663,7 @@ var ThreadListUI = {
       // update the header immediately
       // TODO: Revise necessity of this code in bug 1050823
       if (Navigation.isCurrentPanel('thread', { id: thread.id })) {
-        ThreadUI.updateHeaderData();
+        ConversationView.updateHeaderData();
       }
 
       if (!hasThreads) {
@@ -712,7 +712,7 @@ var ThreadListUI = {
     return this.readyDeferred.promise;
   },
 
-  createThread: function thlui_createThread(record) {
+  createThread: function inbox_createThread(record) {
     // Create DOM element
     var li = document.createElement('li');
     var timestamp = +record.timestamp;
@@ -798,7 +798,7 @@ var ThreadListUI = {
     TimeHeaders.update(li.querySelector('time'));
 
     if (draftId) {
-      // Used in handleEvent to set the ThreadUI.draft object
+      // Used in handleEvent to set the ConversationView.draft object
       this.draftLinks.set(
         li.querySelector('a'), draftId
       );
@@ -821,23 +821,23 @@ var ThreadListUI = {
   },
 
   insertThreadContainer:
-    function thlui_insertThreadContainer(group, timestamp) {
+    function inbox_insertThreadContainer(group, timestamp) {
     // We look for placing the group in the right place.
-    var headers = ThreadListUI.container.getElementsByTagName('header');
+    var headers = InboxView.container.getElementsByTagName('header');
     var groupFound = false;
     for (var i = 0; i < headers.length; i++) {
       if (timestamp >= headers[i].dataset.time) {
         groupFound = true;
-        ThreadListUI.container.insertBefore(group, headers[i].parentNode);
+        InboxView.container.insertBefore(group, headers[i].parentNode);
         break;
       }
     }
     if (!groupFound) {
-      ThreadListUI.container.appendChild(group);
+      InboxView.container.appendChild(group);
     }
   },
 
-  updateThread: function thlui_updateThread(record, options) {
+  updateThread: function inbox_updateThread(record, options) {
     var thread = Thread.create(record, options);
     var threadUINode = document.getElementById('thread-' + thread.id);
     var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
@@ -872,11 +872,11 @@ var ThreadListUI = {
     }
   },
 
-  onMessageSending: function thlui_onMessageSending(e) {
+  onMessageSending: function inbox_onMessageSending(e) {
     this.updateThread(e.message);
   },
 
-  onMessageReceived: function thlui_onMessageReceived(e) {
+  onMessageReceived: function inbox_onMessageReceived(e) {
     // If user currently in the same thread, then mark thread as read
     var markAsRead = Navigation.isCurrentPanel('thread', {
       id: e.message.threadId
@@ -885,7 +885,7 @@ var ThreadListUI = {
     this.updateThread(e.message, { unread: !markAsRead });
   },
 
-  onThreadsDeleted: function thlui_onThreadDeleted(e) {
+  onThreadsDeleted: function inbox_onThreadDeleted(e) {
     e.ids.forEach(function(threadId) {
       if (Threads.has(threadId)) {
         this.deleteThread(threadId);
@@ -900,7 +900,7 @@ var ThreadListUI = {
    *
    * @return Boolean true if a time container was created, false otherwise
    */
-  appendThread: function thlui_appendThread(thread) {
+  appendThread: function inbox_appendThread(thread) {
     if (navigator.mozL10n.readyState !== 'complete') {
       navigator.mozL10n.once(this.appendThread.bind(this, thread));
       return;
@@ -928,11 +928,11 @@ var ThreadListUI = {
     if (!threadsContainer) {
       // We create the wrapper with a 'header' & 'ul'
       var threadsContainerWrapper =
-        ThreadListUI.createThreadContainer(timestamp);
+        InboxView.createThreadContainer(timestamp);
       // Update threadsContainer with the new value
       threadsContainer = threadsContainerWrapper.childNodes[1];
       // Place our new content in the DOM
-      ThreadListUI.insertThreadContainer(threadsContainerWrapper, timestamp);
+      InboxView.insertThreadContainer(threadsContainerWrapper, timestamp);
       // We had to create a container, so this will be the first thread in it.
       firstThreadInContainer = true;
     }
@@ -963,7 +963,7 @@ var ThreadListUI = {
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createThreadContainer: function thlui_createThreadContainer(timestamp) {
+  createThreadContainer: function inbox_createThreadContainer(timestamp) {
     var threadContainer = document.createElement('div');
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
@@ -990,10 +990,10 @@ var ThreadListUI = {
   },
 
   // Method for updating all contact info after creating a contact
-  updateContactsInfo: function thlui_updateContactsInfo() {
+  updateContactsInfo: function inbox_updateContactsInfo() {
     Contacts.clearUnknown();
     // Prevents cases where updateContactsInfo method is called
-    // before ThreadListUI.container exists (as observed by errors
+    // before InboxView.container exists (as observed by errors
     // in the js console)
     if (!this.container) {
       return;
@@ -1004,7 +1004,7 @@ var ThreadListUI = {
     [].forEach.call(threads, this.setContact.bind(this));
   },
 
-  mark: function thlui_mark(id, current) {
+  mark: function inbox_mark(id, current) {
     var li = document.getElementById('thread-' + id);
     var remove = 'read';
 
@@ -1018,7 +1018,7 @@ var ThreadListUI = {
     }
   },
 
-  onDraftSaved: function thlui_onDraftSaved() {
+  onDraftSaved: function inbox_onDraftSaved() {
     this.draftSavedBanner.classList.remove('hide');
 
     clearTimeout(this.timeouts.onDraftSaved);
@@ -1034,6 +1034,6 @@ var ThreadListUI = {
   }
 };
 
-exports.ThreadListUI = ThreadListUI;
+exports.InboxView = InboxView;
 
 }(this));

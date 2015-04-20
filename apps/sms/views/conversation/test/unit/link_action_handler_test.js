@@ -1,18 +1,20 @@
-/*global MocksHelper, MockL10n, LinkActionHandler, ActivityPicker, ThreadUI,
-         Contacts */
+/*global MocksHelper, MockL10n, LinkActionHandler, ActivityPicker,
+         ConversationView,
+         Contacts
+*/
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
-requireApp('sms/js/link_action_handler.js');
+require('/views/conversation/js/link_action_handler.js');
 requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_activity_picker.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
+require('/test/unit/mock_conversation.js');
 requireApp('sms/test/unit/mock_utils.js');
 
 var mocksHelperLAH = new MocksHelper([
@@ -20,7 +22,7 @@ var mocksHelperLAH = new MocksHelper([
   'Contacts',
   'MozActivity',
   'OptionMenu',
-  'ThreadUI',
+  'ConversationView',
   'Utils'
 ]).init();
 
@@ -91,7 +93,7 @@ suite('LinkActionHandler', function() {
     });
 
     test('dial-link: (known) delegates to promptContact ', function() {
-      this.sinon.stub(ThreadUI, 'promptContact');
+      this.sinon.stub(ConversationView, 'promptContact');
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, [{
           name: ['Huey'],
@@ -102,7 +104,7 @@ suite('LinkActionHandler', function() {
 
       LinkActionHandler.onClick(events.phone);
 
-      assert.deepEqual(ThreadUI.promptContact.args[0][0], {
+      assert.deepEqual(ConversationView.promptContact.args[0][0], {
         number: '999',
         inMessage: true
       });
@@ -112,13 +114,13 @@ suite('LinkActionHandler', function() {
     });
 
     test('dial-link: (unknown) delegates to promptContact ', function() {
-      this.sinon.stub(ThreadUI, 'promptContact');
+      this.sinon.stub(ConversationView, 'promptContact');
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, []);
 
       LinkActionHandler.onClick(events.phone);
 
-      assert.deepEqual(ThreadUI.promptContact.args[0][0], {
+      assert.deepEqual(ConversationView.promptContact.args[0][0], {
         number: '999',
         inMessage: true
       });
@@ -128,12 +130,12 @@ suite('LinkActionHandler', function() {
     });
 
     test('email-link: delegates to prompt ', function() {
-      this.sinon.stub(ThreadUI, 'prompt');
+      this.sinon.stub(ConversationView, 'prompt');
 
       LinkActionHandler.onClick(events.email);
 
-      assert.ok(ThreadUI.prompt.called);
-      assert.deepEqual(ThreadUI.prompt.args[0][0], {
+      assert.ok(ConversationView.prompt.called);
+      assert.deepEqual(ConversationView.prompt.args[0][0], {
         email: 'a@b.com',
         inMessage: true
       });

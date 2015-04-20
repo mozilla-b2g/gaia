@@ -34,7 +34,7 @@ marionette('Messages Drafts', function() {
 
     setup(function() {
       messagesApp.launch();
-      messagesApp.ThreadList.navigateToComposer();
+      messagesApp.Inbox.navigateToComposer();
     });
 
     test('Drafts are correctly saved', function() {
@@ -56,9 +56,11 @@ marionette('Messages Drafts', function() {
       messagesApp.performHeaderAction();
 
       messagesApp.selectAppMenuOption('Save as Draft');
-      var firstThread = messagesApp.ThreadList.firstThread;
-      assert.ok(firstThread.getAttribute('class').indexOf('draft') !== -1);
-      firstThread.tap();
+      var firstConversation = messagesApp.Inbox.firstConversation;
+      assert.ok(
+        firstConversation.getAttribute('class').indexOf('draft') !== -1
+      );
+      firstConversation.tap();
 
       assert.ok(composer.attachment);
     });

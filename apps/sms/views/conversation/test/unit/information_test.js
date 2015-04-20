@@ -1,5 +1,6 @@
 /*global Information, loadBodyHTML, MockContact, MockL10n, MocksHelper,
-         ThreadUI, MessageManager, ContactRenderer, Utils, Template, Threads,
+         ConversationView, MessageManager, ContactRenderer, Utils, Template,
+         Threads,
          MockMessages, Settings, Navigation,
          AssetsHelper,
          Contacts
@@ -9,7 +10,7 @@
 
 require('/js/utils.js');
 require('/test/unit/mock_utils.js');
-require('/test/unit/mock_thread_ui.js');
+require('/test/unit/mock_conversation.js');
 require('/test/unit/mock_threads.js');
 require('/test/unit/mock_contact.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -20,7 +21,7 @@ require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_contact_renderer.js');
-require('/js/information.js');
+require('/views/conversation/js/information.js');
 
 
 var mocksHelperForInformation = new MocksHelper([
@@ -29,7 +30,7 @@ var mocksHelperForInformation = new MocksHelper([
   'MessageManager',
   'Navigation',
   'Settings',
-  'ThreadUI',
+  'ConversationView',
   'Threads',
   'Utils'
 ]).init();
@@ -62,7 +63,7 @@ suite('Information view', function() {
     loadBodyHTML('/index.html');
     this.sinon.spy(navigator.mozL10n, 'setAttributes');
     this.sinon.stub(MessageManager, 'on');
-    this.sinon.spy(ThreadUI, 'setHeaderContent');
+    this.sinon.spy(ConversationView, 'setHeaderContent');
     this.sinon.spy(Contacts, 'findByAddress');
     contact = MockContact();
   });
@@ -1093,14 +1094,14 @@ suite('Information view', function() {
           deliveryStatus: 'error'
         };
 
-        this.sinon.stub(ThreadUI, 'resendMessage');
+        this.sinon.stub(ConversationView, 'resendMessage');
         reportView.id = 1;
         reportView.render();
       });
 
-      test('ThreadUI resend function called', function() {
+      test('ConversationView resend function called', function() {
         reportView.resendBtn.click();
-        sinon.assert.calledWith(ThreadUI.resendMessage, reportView.id);
+        sinon.assert.calledWith(ConversationView.resendMessage, reportView.id);
         assert.isTrue(reportView.messageResending);
       });
     });
@@ -1224,7 +1225,7 @@ suite('Information view', function() {
 
     suite('Set event listener', function() {
       setup(function(){
-        this.sinon.stub(ThreadUI, 'promptContact');
+        this.sinon.stub(ConversationView, 'promptContact');
       });
 
       test('Contact prompt is called when clicked on contactList', function() {
@@ -1236,7 +1237,7 @@ suite('Information view', function() {
         groupView.contactList.appendChild(item);
         item.dispatchEvent(event);
         sinon.assert.calledWith(
-          ThreadUI.promptContact,
+          ConversationView.promptContact,
           { number : item.dataset.number }
         );
       });

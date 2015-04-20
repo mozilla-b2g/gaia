@@ -10,7 +10,7 @@
 
 require('/shared/js/event_dispatcher.js');
 
-require('/js/subject_composer.js');
+require('/views/conversation/js/subject_composer.js');
 
 suite('SubjectComposer >', function() {
   var node, subjectComposer, input;

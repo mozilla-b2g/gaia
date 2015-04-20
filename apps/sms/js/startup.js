@@ -3,7 +3,7 @@
 
 'use strict';
 
-/*global ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
+/*global ActivityHandler, ConversationView, InboxView, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information, SilentSms,
          App, Navigation, EventDispatcher, LocalizationHelper,
          InterInstanceEventDispatcher
@@ -25,20 +25,20 @@ var Startup = {
     'js/errors.js',
     'js/dialog.js',
     'js/error_dialog.js',
-    'js/link_helper.js',
-    'js/link_action_handler.js',
+    'views/conversation/js/link_helper.js',
+    'views/conversation/js/link_action_handler.js',
     'js/contact_renderer.js',
     'js/activity_picker.js',
-    'js/information.js',
+    'views/conversation/js/information.js',
     'js/shared_components.js',
     'js/task_runner.js',
     'js/silent_sms.js',
-    'js/recipients.js',
-    'js/attachment.js',
-    'js/attachment_renderer.js',
-    'js/thread_ui.js',
-    'js/subject_composer.js',
-    'js/compose.js',
+    'views/conversation/js/recipients.js',
+    'views/conversation/js/attachment.js',
+    'views/conversation/js/attachment_renderer.js',
+    'views/conversation/js/conversation.js',
+    'views/conversation/js/subject_composer.js',
+    'views/conversation/js/compose.js',
     'js/wbmp.js',
     'js/smil.js',
     'js/notify.js',
@@ -58,7 +58,7 @@ var Startup = {
 
       // Init UI Managers
       TimeHeaders.init();
-      ThreadUI.init();
+      ConversationView.init();
       Information.initDefaultViews();
 
       // Dispatch post-initialize event for continuing the pending action
@@ -91,8 +91,8 @@ var Startup = {
     function initializeDefaultPanel(firstPageLoadedCallback) {
       Navigation.off('navigated', initializeDefaultPanel);
 
-      ThreadListUI.init();
-      ThreadListUI.renderThreads(firstPageLoadedCallback).then(() => {
+      InboxView.init();
+      InboxView.renderThreads(firstPageLoadedCallback).then(() => {
         window.performance.mark('fullyLoaded');
         App.setReady();
       });

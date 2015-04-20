@@ -5,7 +5,7 @@ var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
 
-marionette('Thread Panel Tests', function() {
+marionette('Conversation Panel Tests', function() {
   var apps = {};
 
   var client = marionette.client({
@@ -69,14 +69,14 @@ marionette('Thread Panel Tests', function() {
         var pageSize = 10;
         var loadedPage = 1;
 
-        messagesApp.ThreadList.firstThread.tap();
+        messagesApp.Inbox.firstConversation.tap();
 
         // Composer panel should always be visible
         assertIsDisplayed(messagesApp.Composer.sendButton);
         assertIsDisplayed(messagesApp.Composer.messageInput);
 
         thread.messages.forEach(function(message, index) {
-          var messageNode = messagesApp.Thread.findMessage(message.id);
+          var messageNode = messagesApp.Conversation.findMessage(message.id);
 
           // If current page is loaded, then message node should be visible
           if (index < pageSize * loadedPage) {
@@ -84,7 +84,7 @@ marionette('Thread Panel Tests', function() {
           } else {
             // Otherwise, node may not be visible and we should scroll up to
             // see it
-            messagesApp.Thread.scrollUp();
+            messagesApp.Conversation.scrollUp();
             loadedPage++;
 
             client.helper.waitForElement(messageNode);
@@ -102,7 +102,7 @@ marionette('Thread Panel Tests', function() {
       messagesApp.launch();
       // Set empty as message/thread storage.
       messagesApp.setStorage();
-      messagesApp.ThreadList.navigateToComposer();
+      messagesApp.Inbox.navigateToComposer();
 
       // Create new thread from the scratch
       messagesApp.addRecipient('+1');
@@ -111,16 +111,16 @@ marionette('Thread Panel Tests', function() {
     });
 
     test('Header should be updated accordingly', function() {
-      client.helper.waitForElement(messagesApp.Thread.message);
+      client.helper.waitForElement(messagesApp.Conversation.message);
 
       assert.equal(
-        messagesApp.Thread.headerTitle.text(),
+        messagesApp.Conversation.headerTitle.text(),
         '+1',
         'Header title should display contact phone number'
       );
 
       // Forward message
-      messagesApp.contextMenu(messagesApp.Thread.message);
+      messagesApp.contextMenu(messagesApp.Conversation.message);
       messagesApp.selectAppMenuOption('Forward');
       // Wait for message to be forwarded to fill out composer fields
       client.waitFor(function() {
@@ -128,7 +128,7 @@ marionette('Thread Panel Tests', function() {
       });
 
       assert.equal(
-        messagesApp.Thread.headerTitle.text(),
+        messagesApp.Conversation.headerTitle.text(),
         'New message',
         'Header title should indicate that we are composing new message'
       );

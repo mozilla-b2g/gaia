@@ -299,7 +299,7 @@ var MessageManager = {
    * - recipients (string or array of string): recipients for this message
    * - subject (optional string): subject for this message
    * - content (array of SMIL slides): this is the content for the message (see
-   *   ThreadUI for more information)
+   *   ConversationView for more information)
    * - serviceId (optional long or string): the SIM that should be used for
    *   sending this message. If this is not the current default configuration
    *   for sending MMS, then we'll first switch the configuration to this

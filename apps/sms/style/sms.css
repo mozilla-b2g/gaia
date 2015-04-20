@@ -149,7 +149,7 @@ form[role="dialog"][data-type="edit"] > menu {
 
 .threadlist-item .default-picture > span[data-type=img],
 .threadlist-item .group-picture > span[data-type=img] {
-  /* Please keep this image in sync with what is used in JS/ThreadListUI */
+  /* Please keep this image in sync with what is used in js/inbox.js */
   background-image: url('images/default_contact_image.png');
   background-position: top left;
 }
