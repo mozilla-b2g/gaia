@@ -28,211 +28,11 @@
 ====================================*/
 
 'use strict';
+/* global monitorTagVisibility */
 
 require('/shared/js/tag_visibility_monitor.js');
 
 suite('tag_visibility_monitor', function() {
-
-  function run() {
-
-    //===================
-    //  simpleContainerScroll test
-    //===================
-
-    //having a border makes it easier to test visually
-    var style = document.createElement('style');
-    style.innerHTML =
-      'div > div {' +
-      '  border: 1px solid black;' +
-      '  -moz-box-sizing: border-box;' +
-      '  padding-left: 10px;' +
-      '  background: white;' +
-      '}';
-    document.head.appendChild(style);
-
-    //===================
-    // testing basic scrolling, rm, add
-    //===================
-
-    test('basics', function(done) {
-
-      var childHeight = 10;
-      var containerHeight = 100;
-      var numChildren = 20;
-
-      var instance = setup(numChildren, childHeight, containerHeight);
-
-      instance.testInStages(
-        [
-            'scroll ' + childHeight * 3,
-            'scroll ' + 0,
-            'scroll ' + 10000,
-            'scroll ' + 0,
-            'rm 0',
-            'addbefore 0 1',
-            'rm 0',
-            'rm 1',
-            'rm 2',
-            'rm 3',
-            'rm 4',
-            'rm 5',
-            'addbefore 5 6',
-            'addafter 20 19',
-            'rm 14'
-        ],
-        function doneTesting(logger) {
-          var o = {};
-          for (var i = 0; i < 10; i++) { o[i] = 'on'; }
-          assert.deepEqual(logger.data[0], o);
-
-          assert.deepEqual(logger.data[1], {
-            0: 'off',
-            1: 'off',
-            2: 'off',
-            10: 'on',
-            11: 'on',
-            12: 'on'
-          });
-
-          assert.deepEqual(logger.data[2], {
-            0: 'on',
-            1: 'on',
-            2: 'on',
-            10: 'off',
-            11: 'off',
-            12: 'off'
-          });
-
-          var o = {};
-          for (var i = 0; i < 10; i++) { o[i] = 'off'; }
-          for (var i = 10; i < 20; i++) { o[i] = 'on'; }
-
-          assert.deepEqual(logger.data[3], o);
-
-          var o = {};
-          for (var i = 0; i < 10; i++) { o[i] = 'on'; }
-          for (var i = 10; i < 20; i++) { o[i] = 'off'; }
-          assert.deepEqual(logger.data[4], o);
-
-          assert.deepEqual(logger.data[5], { 10: 'on' }); // first rm 0
-          assert.deepEqual(logger.data[6], { 0: 'on', 10: 'off' });
-          assert.deepEqual(logger.data[7], { 10: 'on' });
-          assert.deepEqual(logger.data[8], { 11: 'on' });
-          assert.deepEqual(logger.data[9], { 12: 'on' });
-          assert.deepEqual(logger.data[10], { 13: 'on' });
-          assert.deepEqual(logger.data[11], { 14: 'on' });
-          assert.deepEqual(logger.data[12], { 15: 'on' });
-
-          assert.deepEqual(logger.data[13], { 5: 'on', 15: 'off' });
-
-          assert.deepEqual(logger.data[14], undefined);
-
-          assert.deepEqual(logger.data[15], { 15: 'on' });
-
-          for (var i = 16; i < logger.data.length; i++) {
-            console.log(logger.data[i]);
-          }
-          instance.container.parentNode.removeChild(instance.container);
-          done();
-      });
-    });
-
-    test('multiop', function(done) {
-
-      var childHeight = 10;
-      var containerHeight = 100;
-      var numChildren = 20;
-
-      var instance = setup(numChildren, childHeight, containerHeight);
-
-      instance.testInStages(
-        [
-          'scroll 50',
-          [
-            'rm 0',
-            'rm 1',
-            'rm 2',
-            'rm 3',
-            'rm 4',
-            'rm 5',
-            'rm 6',
-            'rm 7',
-            'rm 8',
-            'rm 9',
-            'rm 10',
-            'rm 11',
-            'rm 12',
-            'rm 13',
-            'rm 14'
-          ]
-        ],
-        function doneTesting(logger) {
-
-          var o = {};
-          for (var i = 0; i < 10; i++) { o[i] = 'on'; }
-          assert.deepEqual(logger.data[0], o);
-
-          var o = {};
-          for (var i = 0; i < 5; i++) { o[i] = 'off'; }
-          for (var i = 10; i < 15; i++) { o[i] = 'on'; }
-          assert.deepEqual(logger.data[1], o);
-
-          var o = {};
-          for (var i = 15; i < 20; i++) { o[i] = 'on'; }
-          assert.deepEqual(logger.data[2], o);
-
-          for (var i = 3; i < logger.data.length; i++) {
-            console.log(logger.data[i]);
-          }
-          instance.container.parentNode.removeChild(instance.container);
-          done();
-      });
-    });
-
-    test('addRemoveContainer', function(done) {
-
-      var childHeight = 10;
-      var containerHeight = 100;
-
-      var instance = setup(0, childHeight, containerHeight);
-
-      var testStages = [];
-      testStages.push('add 0', 'rm 0');
-      for (var i = 0; i < 50; i++) {
-        testStages.push('add ' + i);
-      }
-      for (var i = 0; i < 50; i++) {
-        testStages.push('rm ' + i);
-      }
-
-      instance.testInStages(
-        testStages,
-        function doneTesting(logger) {
-
-          var c = 4;
-          for (var i = 1; i < 10; i++, c++) {
-            var o = {};
-            o[i] = 'on';
-            assert.deepEqual(logger.data[c], o);
-          }
-          for (var i = 0; i < 50 - 10; i++, c++) {
-            assert.deepEqual(logger.data[c], undefined);
-          }
-          for (var i = 10; i < 50; i++, c++) {
-            var o = {};
-            o[i] = 'on';
-            assert.deepEqual(logger.data[c], o);
-          }
-
-          for (c; c < logger.data.length; c++) {
-            console.log(logger.data[c]);
-          }
-
-          instance.container.parentNode.removeChild(instance.container);
-          done();
-      });
-    });
-  }
 
   //===================
   //  helpers
@@ -277,6 +77,8 @@ suite('tag_visibility_monitor', function() {
           var addAfterMatch = test.match(/addafter ([0-9,]+) ([0-9,]+)/);
           var addBeforeMatch = test.match(/addbefore ([0-9,]+) ([0-9,]+)/);
           var addMatch = test.match(/add ([0-9,]+)/);
+          var prev;
+          var child;
           if (scrollMatch) {
             container.scrollTop = scrollMatch[1];
           }
@@ -286,21 +88,21 @@ suite('tag_visibility_monitor', function() {
             div.parentNode.removeChild(div);
           }
           else if (addAfterMatch) {
-            var prev = getChildByIndexProp(container, '' + addAfterMatch[2]);
-            var child = document.createElement('div');
+            prev = getChildByIndexProp(container, '' + addAfterMatch[2]);
+            child = document.createElement('div');
             child.style.height = childHeight + 'px';
             child.index = '' + addAfterMatch[1];
             prev.parentNode.insertBefore(child, prev.nextSibling);
           }
           else if (addBeforeMatch) {
-            var prev = getChildByIndexProp(container, '' + addBeforeMatch[2]);
-            var child = document.createElement('div');
+            prev = getChildByIndexProp(container, '' + addBeforeMatch[2]);
+            child = document.createElement('div');
             child.style.height = childHeight + 'px';
             child.index = '' + addBeforeMatch[1];
             prev.parentNode.insertBefore(child, prev);
           }
           else if (addMatch) {
-            var child = document.createElement('div');
+            child = document.createElement('div');
             child.style.height = childHeight + 'px';
             child.index = '' + addMatch[1];
             container.appendChild(child);
@@ -311,8 +113,9 @@ suite('tag_visibility_monitor', function() {
         if (i < tests.length) {
           var test = tests[i];
           if (test.push) {
-            for (var j = 0; j < test.length; j++)
+            for (var j = 0; j < test.length; j++) {
               runTest(test[j]);
+            }
           }
           else {
             runTest(test);
@@ -364,10 +167,6 @@ suite('tag_visibility_monitor', function() {
     return null;
   }
 
-  function putOnEventQueue(fn) {
-    setTimeout(fn, 0);
-  }
-
   function VisibilityLogger() {
     this.currentStep = 0;
     this.data = [];
@@ -375,8 +174,9 @@ suite('tag_visibility_monitor', function() {
 
   VisibilityLogger.prototype = {
     log: function(index, type) {
-      if (this.data[this.currentStep] === undefined)
+      if (this.data[this.currentStep] === undefined) {
         this.data[this.currentStep] = {};
+      }
       this.data[this.currentStep][index] = type;
     },
     nextStep: function() {
@@ -384,8 +184,211 @@ suite('tag_visibility_monitor', function() {
     }
   };
 
+  function run() {
+
+    //===================
+    //  simpleContainerScroll test
+    //===================
+
+    //having a border makes it easier to test visually
+    var style = document.createElement('style');
+    style.innerHTML =
+      'div > div {' +
+      '  border: 1px solid black;' +
+      '  -moz-box-sizing: border-box;' +
+      '  padding-left: 10px;' +
+      '  background: white;' +
+      '}';
+    document.head.appendChild(style);
+
+    //===================
+    // testing basic scrolling, rm, add
+    //===================
+
+    test('basics', function(done) {
+
+      var childHeight = 10;
+      var containerHeight = 100;
+      var numChildren = 20;
+
+      var instance = setup(numChildren, childHeight, containerHeight);
+
+      instance.testInStages(
+        [
+            'scroll ' + childHeight * 3,
+            'scroll ' + 0,
+            'scroll ' + 10000,
+            'scroll ' + 0,
+            'rm 0',
+            'addbefore 0 1',
+            'rm 0',
+            'rm 1',
+            'rm 2',
+            'rm 3',
+            'rm 4',
+            'rm 5',
+            'addbefore 5 6',
+            'addafter 20 19',
+            'rm 14'
+        ],
+        function doneTesting(logger) {
+          var o = {};
+          var i;
+          for (i = 0; i < 10; i++) { o[i] = 'on'; }
+          assert.deepEqual(logger.data[0], o);
+
+          assert.deepEqual(logger.data[1], {
+            0: 'off',
+            1: 'off',
+            2: 'off',
+            10: 'on',
+            11: 'on',
+            12: 'on'
+          });
+
+          assert.deepEqual(logger.data[2], {
+            0: 'on',
+            1: 'on',
+            2: 'on',
+            10: 'off',
+            11: 'off',
+            12: 'off'
+          });
+
+          o = {};
+          for (i = 0; i < 10; i++) { o[i] = 'off'; }
+          for (i = 10; i < 20; i++) { o[i] = 'on'; }
+
+          assert.deepEqual(logger.data[3], o);
+
+          o = {};
+          for (i = 0; i < 10; i++) { o[i] = 'on'; }
+          for (i = 10; i < 20; i++) { o[i] = 'off'; }
+          assert.deepEqual(logger.data[4], o);
+
+          assert.deepEqual(logger.data[5], { 10: 'on' }); // first rm 0
+          assert.deepEqual(logger.data[6], { 0: 'on', 10: 'off' });
+          assert.deepEqual(logger.data[7], { 10: 'on' });
+          assert.deepEqual(logger.data[8], { 11: 'on' });
+          assert.deepEqual(logger.data[9], { 12: 'on' });
+          assert.deepEqual(logger.data[10], { 13: 'on' });
+          assert.deepEqual(logger.data[11], { 14: 'on' });
+          assert.deepEqual(logger.data[12], { 15: 'on' });
+
+          assert.deepEqual(logger.data[13], { 5: 'on', 15: 'off' });
+
+          assert.deepEqual(logger.data[14], undefined);
+
+          assert.deepEqual(logger.data[15], { 15: 'on' });
+
+          for (i = 16; i < logger.data.length; i++) {
+            console.log(logger.data[i]);
+          }
+          instance.container.parentNode.removeChild(instance.container);
+          done();
+      });
+    });
+
+    test('multiop', function(done) {
+
+      var childHeight = 10;
+      var containerHeight = 100;
+      var numChildren = 20;
+
+      var instance = setup(numChildren, childHeight, containerHeight);
+
+      instance.testInStages(
+        [
+          'scroll 50',
+          [
+            'rm 0',
+            'rm 1',
+            'rm 2',
+            'rm 3',
+            'rm 4',
+            'rm 5',
+            'rm 6',
+            'rm 7',
+            'rm 8',
+            'rm 9',
+            'rm 10',
+            'rm 11',
+            'rm 12',
+            'rm 13',
+            'rm 14'
+          ]
+        ],
+        function doneTesting(logger) {
+
+          var i;
+          var o = {};
+          for (i = 0; i < 10; i++) { o[i] = 'on'; }
+          assert.deepEqual(logger.data[0], o);
+
+          o = {};
+          for (i = 0; i < 5; i++) { o[i] = 'off'; }
+          for (i = 10; i < 15; i++) { o[i] = 'on'; }
+          assert.deepEqual(logger.data[1], o);
+
+          o = {};
+          for (i = 15; i < 20; i++) { o[i] = 'on'; }
+          assert.deepEqual(logger.data[2], o);
+
+          for (i = 3; i < logger.data.length; i++) {
+            console.log(logger.data[i]);
+          }
+          instance.container.parentNode.removeChild(instance.container);
+          done();
+      });
+    });
+
+    test('addRemoveContainer', function(done) {
+
+      var childHeight = 10;
+      var containerHeight = 100;
+
+      var instance = setup(0, childHeight, containerHeight);
+
+      var testStages = [];
+      testStages.push('add 0', 'rm 0');
+      var i;
+      for (i = 0; i < 50; i++) {
+        testStages.push('add ' + i);
+      }
+      for (i = 0; i < 50; i++) {
+        testStages.push('rm ' + i);
+      }
+
+      instance.testInStages(
+        testStages,
+        function doneTesting(logger) {
+          var i;
+          var o;
+          var c = 4;
+          for (i = 1; i < 10; i++, c++) {
+            o = {};
+            o[i] = 'on';
+            assert.deepEqual(logger.data[c], o);
+          }
+          for (i = 0; i < 50 - 10; i++, c++) {
+            assert.deepEqual(logger.data[c], undefined);
+          }
+          for (i = 10; i < 50; i++, c++) {
+            o = {};
+            o[i] = 'on';
+            assert.deepEqual(logger.data[c], o);
+          }
+
+          for (c; c < logger.data.length; c++) {
+            console.log(logger.data[c]);
+          }
+
+          instance.container.parentNode.removeChild(instance.container);
+          done();
+      });
+    });
+  }
+
   run();
 
 });
-
-
