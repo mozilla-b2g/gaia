@@ -40,6 +40,20 @@ body[data-mode="put"] #edit-bookmark-header {
   margin-bottom: 2.4rem;
 }
 
+#bookmark-url {
+  font-size: 1.4rem;
+  color: rgb(95, 95, 95);
+  width: 100%;
+  margin-bottom: 1.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 1.5rem;
+  font-style: italic;
+}
+
 
 /* App Installation section */
 
