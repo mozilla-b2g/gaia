@@ -28,6 +28,18 @@ html, body {
 /*
   Override BB. Some CSS tweaks for having a better confirm readability
 */
+
+/* undo toast */
+section[role="status"] p {
+  margin: 0rem 3rem;
+  line-height: 4.4rem;
+  display: inline;
+}
+
+section[role="status"] #undo-button {
+  float: right;
+}
+
 form[role="dialog"][data-type="confirm"] p {
   white-space: pre-line;
 }
