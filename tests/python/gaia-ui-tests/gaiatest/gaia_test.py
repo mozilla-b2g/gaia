@@ -936,6 +936,27 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
 
     def modify_settings(self, settings):
+        """Hook to modify the default settings before they're applied.
+
+        :param settings: dictionary of the settings that would be applied.
+        :returns: modified dictionary of the settings to be applied.
+
+        This method provides tha ability for test cases to override the default
+        settings before they're applied. To use it, define the method in your
+        test class and return a modified dictionary of settings:
+
+        .. code-block:: python
+
+            class TestModifySettings(GaiaTestCase):
+
+                def modify_settings(self, settings):
+                    settings['foo'] = 'bar'
+                    return settings
+
+                def test_modify_settings(self):
+                    self.assertEqual('bar', self.data_layer.get_setting('foo'))
+
+        """
         return settings
 
     def set_defaults(self):
