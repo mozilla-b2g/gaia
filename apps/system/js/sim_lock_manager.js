@@ -18,7 +18,8 @@
     'simlockskip',
     'simlockback',
     'simlockrequestclose',
-    'airplanemode-enabled'
+    'airplanemode-enabled',
+    'rocketbar-activating'
   ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
@@ -163,6 +164,11 @@
     },
 
     '_handle_airplanemode-enabled': function(evt) {
+      this.simLockSystemDialog.close();
+      this._alreadyShown = false;
+    },
+
+    '_handle_rocketbar-activating': function(evt) {
       this.simLockSystemDialog.close();
       this._alreadyShown = false;
     },
