@@ -38,6 +38,20 @@ suite('STK (icc_worker) >', function() {
   });
 
   setup(function() {
+    var sampleIcons = [{
+      pixels:[
+        4294967295, 4294967295, 4294967295, 4294967295,
+        4294967295, 4294967295, 4294967295, 255,
+        4294967295, 4294967295, 4294967295, 255,
+        4294967295, 255, 4294967295, 4294967295,
+        4294967295, 255, 4294967295, 4294967295,
+        4294967295, 4294967295, 4294967295, 4294967295,
+        4294967295
+      ],
+      codingScheme:'basic',
+      width:5,
+      height:5
+    }];
     stkTestCommands = {
       STK_CMD_DISPLAY_TEXT: {
         iccId: '1010011010',
@@ -49,6 +63,25 @@ suite('STK (icc_worker) >', function() {
             text: 'stk display test text',
             userClear: true,
             responseNeeded: false,
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+              timeInterval: 5
+            }
+          }
+        }
+      },
+
+      STK_CMD_DISPLAY_TEXT_with_icons: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_DISPLAY_TEXT,
+          commandQualifier: 0,
+          options: {
+            text: 'stk display test text',
+            userClear: true,
+            responseNeeded: false,
+            icons: sampleIcons,
             duration: {
               timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
               timeInterval: 5
@@ -76,6 +109,26 @@ suite('STK (icc_worker) >', function() {
         }
       },
 
+      STK_CMD_GET_INPUT_with_icons: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_GET_INPUT,
+          commandQualifier: 0,
+          options: {
+            text: 'stk Input test text',
+            icons: sampleIcons,
+            duration:{
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+              timeInterval: 5
+            },
+            minLength: 2,
+            maxLength: 10,
+            defaultText: 'default'
+          }
+        }
+      },
+
       STK_CMD_SET_UP_IDLE_MODE_TEXT: {
         iccId: '1010011010',
         command: {
@@ -83,6 +136,19 @@ suite('STK (icc_worker) >', function() {
           typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_IDLE_MODE_TEXT,
           commandQualifier: 0,
           options: {
+            text: 'STK_CMD_SET_UP_IDLE_MODE_TEXT Unit Test'
+          }
+        }
+      },
+
+      STK_CMD_SET_UP_IDLE_MODE_TEXT_with_icons: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_IDLE_MODE_TEXT,
+          commandQualifier: 0,
+          options: {
+            icons:sampleIcons,
             text: 'STK_CMD_SET_UP_IDLE_MODE_TEXT Unit Test'
           }
         }
@@ -107,6 +173,24 @@ suite('STK (icc_worker) >', function() {
           options: {
             text: 'abc',
             tone: '\u0001',
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_SECOND,
+              timeInterval: 5
+            }
+          }
+        }
+      },
+
+      STK_CMD_PLAY_TONE_with_icons: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_PLAY_TONE,
+          commandQualifier: 0,
+          options: {
+            text: 'abc',
+            tone: '\u0001',
+            icons: sampleIcons,
             duration: {
               timeUnit: navigator.mozIccManager.STK_TIME_UNIT_SECOND,
               timeInterval: 5
@@ -144,6 +228,15 @@ suite('STK (icc_worker) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
   });
 
+  test('STK_CMD_DISPLAY_TEXT (With icons)', function(done) {
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode,
+        navigator.mozIccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT_with_icons);
+  });
+
   test('STK_CMD_DISPLAY_TEXT (Timeout)', function(done) {
     window.icc.confirm = function(stkMsg, message, timeout, callback) {
       callback(false);
@@ -169,6 +262,20 @@ suite('STK (icc_worker) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_GET_INPUT);
   });
 
+  test('STK_CMD_GET_INPUT (With icons)', function(done) {
+    var stkResponse = 'stk introduced text';
+    window.icc.input = function(stkMsg, message, timeout, options, callback) {
+      callback(true, stkResponse);
+    };
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode,
+        navigator.mozIccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED);
+      assert.equal(response.input, stkResponse);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_GET_INPUT_with_icons);
+  });
+
   test('STK_CMD_GET_INPUT (Timeout)', function(done) {
     window.icc.input = function(stkMsg, message, timeout, options, callback) {
       callback(false);
@@ -188,6 +295,17 @@ suite('STK (icc_worker) >', function() {
       done();
     };
     launchStkCommand(stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT);
+    MockNotifications[0].onshow();
+  });
+
+  test('STK_CMD_SET_UP_IDLE_MODE_TEXT (With icons)', function(done) {
+    window.icc.onresponse = function(message, response) {
+      // Notification showed
+      assert.equal(response.resultCode,
+        navigator.mozIccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT_with_icons);
     MockNotifications[0].onshow();
   });
 

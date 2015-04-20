@@ -412,8 +412,14 @@
 
   function onSelectOption(message, event) {
     var identifier = event.target.getAttribute('stk-select-option-identifier');
+    var options = message.command.options;
+    var hasIcon = options.items && options.items.some(function(item) {
+      return item.icons || item.iconSelfExplanatory;
+    });
     responseSTKCommand(message, {
-      resultCode: iccManager.STK_RESULT_OK,
+      resultCode: ((options.iconSelfExplanatory || options.icons || hasIcon) ?
+        iccManager.STK_RESULT_PRFRMD_ICON_NOT_DISPLAYED :
+        iccManager.STK_RESULT_OK),
       itemIdentifier: identifier
     });
     stkLastSelectedText = event.target.textContent;
