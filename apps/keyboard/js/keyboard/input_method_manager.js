@@ -199,7 +199,7 @@ InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
 
   var promise;
 
-  this.app.console.info('inputContext.sendKey()');
+  this.app.console.info('inputContext.sendKey(), code:' + keyCode);
   switch (keyCode) {
     case KeyEvent.DOM_VK_BACK_SPACE:
       promise = this.app.inputContext.sendKey(keyCode, 0, 0, isRepeat);
@@ -252,11 +252,6 @@ InputMethodGlue.prototype.setUpperCase = function(state) {
     return;
   }
   this.app.upperCaseStateManager.switchUpperCaseState(state);
-};
-
-InputMethodGlue.prototype.isCapitalized = function() {
-  this.app.console.trace();
-  return this.app.upperCaseStateManager.isUpperCase;
 };
 
 InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
