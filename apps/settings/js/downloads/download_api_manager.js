@@ -1,6 +1,5 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global DownloadStore, DownloadFormatter, DownloadHelper,
+          DownloadUI, DownloadStore */
 'use strict';
 
 (function(exports) {
@@ -23,10 +22,6 @@
 
   function _deleteFromDownloadsCache(id) {
     delete downloadsCache[id];
-  }
-
-  function _resetDownloadsCache() {
-    downloadsCache = {};
   }
 
   function _getTypeFromOperation(operation) {

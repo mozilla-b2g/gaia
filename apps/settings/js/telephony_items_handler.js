@@ -1,13 +1,11 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global AirplaneModeHelper */
 'use strict';
 
 /**
  * Singleton object that helps to enable/disable and to show card state
  * information for telephony-related items from the root in the setting app.
  */
-var TelephonyItemsHandler = (function() {
+window.TelephonyItemsHandler = (function() {
   var DATA_TYPE_SETTING = 'operatorResources.data.icon';
 
   var dataTypeMapping = {
@@ -66,11 +64,10 @@ var TelephonyItemsHandler = (function() {
     } catch (e) {
       console.error('Error loading ' + DATA_TYPE_SETTING + ' settings. ' + e);
     }
-  };
+  }
 
   var _iccManager;
   var _mobileConnections;
-  var _;
 
   /**
    * Init function.
@@ -99,7 +96,7 @@ var TelephonyItemsHandler = (function() {
     ];
 
     if (AirplaneModeHelper.getStatus() !== 'disabled') {
-      tih_showICCCardDetails(CARD_STATE_MAPPING['null']);
+      tih_showICCCardDetails(CARD_STATE_MAPPING.null);
       return;
     }
 
@@ -113,7 +110,7 @@ var TelephonyItemsHandler = (function() {
       ];
       if (!_mobileConnections[0].iccId) {
         // There is no ICC card.
-        tih_showICCCardDetails(CARD_STATE_MAPPING['absent']);
+        tih_showICCCardDetails(CARD_STATE_MAPPING.absent);
         return;
       }
 
@@ -170,7 +167,7 @@ var TelephonyItemsHandler = (function() {
       if (!_mobileConnections[0].iccId &&
           !_mobileConnections[1].iccId) {
         // There is no ICC cards.
-        tih_showICCCardDetails(CARD_STATE_MAPPING['absent']);
+        tih_showICCCardDetails(CARD_STATE_MAPPING.absent);
       } else {
         // There is ICC card.
         tih_showICCCardDetails('');

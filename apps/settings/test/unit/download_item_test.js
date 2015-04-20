@@ -1,3 +1,5 @@
+/* global MockL10n, MocksHelper, MockDownload, DownloadItem,
+          DownloadFormatter */
 
 'use strict';
 
@@ -75,9 +77,9 @@ suite('Download item', function() {
       var infoElement = downloadElement.querySelector('.info');
       assert.ok(infoElement);
       var fileNameElement = downloadElement.querySelector('.fileName');
-      assert.ok(infoElement);
+      assert.ok(fileNameElement);
       var progress = downloadElement.querySelector('progress');
-      assert.ok(infoElement);
+      assert.ok(progress);
     });
 
     test(' > check progress', function() {

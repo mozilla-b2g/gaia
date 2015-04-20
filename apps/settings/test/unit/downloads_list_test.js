@@ -1,4 +1,6 @@
-/*global loadBodyHTML*/
+/* global loadBodyHTML, MocksHelper, MockL10n, MockMozDownloads, HtmlImports,
+          MockDownloadStore, DownloadsList, MockMozDownloads, MockDownload,
+          DownloadUI, DownloadHelper */
 
 'use strict';
 
