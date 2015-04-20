@@ -182,12 +182,17 @@ LayoutItemView.prototype.handleEvent = function(evt) {
 
   // This is intentionally kept at minimum. We do not check if the currect state
   // is applicable for certain action, nor we keep the returned promise and
-  // react on it. UI updates are all tie to state updates,
-  // and state updates only.
+  // react on it.
+  // UI updates are all tie to state updates, and state updates only.
+  // We do, however, wire confirmation dialog here.
   var p;
   switch (el.dataset.action) {
     case 'download':
-      p = this._model.install();
+      p = this.list.confirmDownload().then(function(confirmed) {
+        if (confirmed) {
+          return this._model.install();
+        }
+      }.bind(this));
 
       break;
 
@@ -197,7 +202,11 @@ LayoutItemView.prototype.handleEvent = function(evt) {
       break;
 
     case 'remove':
-      p = this.list.confirmRemoval(this, this._model.name);
+      p = this.list.confirmRemoval(this._model.name).then(function(confirmed) {
+        if (confirmed) {
+          return this._model.remove();
+        }
+      }.bind(this));
 
       break;
   }
@@ -207,10 +216,6 @@ LayoutItemView.prototype.handleEvent = function(evt) {
       e && console.error(e);
     });
   }
-};
-
-LayoutItemView.prototype.confirmRemoveItem = function() {
-  this._model.remove();
 };
 
 LayoutItemView.prototype.stop = function() {

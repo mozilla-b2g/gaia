@@ -8,6 +8,13 @@ require('/js/settings/layout_item.js');
 require('/js/settings/layout_item_view.js');
 require('/js/settings/layout_item_list_view.js');
 
+var Deferred = function() {
+  this.promise = new Promise(function(resolve, reject) {
+    this.resolve = resolve;
+    this.reject = reject;
+  }.bind(this));
+};
+
 suite('LayoutItemView', function() {
   var view;
 
@@ -17,6 +24,9 @@ suite('LayoutItemView', function() {
   var labelEl;
   var statusEl;
   var progressEl;
+
+  var confirmRemovalDeferred;
+  var confirmDownloadDeferred;
 
   setup(function() {
     navigator.mozL10n = {
@@ -28,7 +38,12 @@ suite('LayoutItemView', function() {
     itemStub.fileSize = 24601;
     itemStub.state = itemStub.STATE_PRELOADED;
 
+    confirmRemovalDeferred = new Deferred();
+    confirmDownloadDeferred = new Deferred();
+
     listViewStub = this.sinon.stub(Object.create(LayoutItemListView.prototype));
+    listViewStub.confirmRemoval.returns(confirmRemovalDeferred.promise);
+    listViewStub.confirmDownload.returns(confirmDownloadDeferred.promise);
 
     view = new LayoutItemView(listViewStub, itemStub);
 
@@ -155,18 +170,34 @@ suite('LayoutItemView', function() {
   });
 
   suite('handleEvent', function() {
-    test('download', function() {
-      var evt = {
-        type: 'click',
-        target: {
-          dataset: {
-            action: 'download'
+    suite('download', function() {
+      setup(function() {
+        var evt = {
+          type: 'click',
+          target: {
+            dataset: {
+              action: 'download'
+            }
           }
-        }
-      };
-      view.handleEvent(evt);
+        };
+        view.handleEvent(evt);
 
-      assert.isTrue(itemStub.install.calledOnce);
+        assert.isTrue(listViewStub.confirmDownload.calledOnce);
+      });
+
+      test('confirmed', function(done) {
+        confirmDownloadDeferred.resolve(true);
+        confirmDownloadDeferred.promise.then(function() {
+          assert.isTrue(itemStub.install.calledOnce);
+        }).then(done, done);
+      });
+
+      test('cancelled', function(done) {
+        confirmDownloadDeferred.resolve(false);
+        confirmDownloadDeferred.promise.then(function() {
+          assert.isFalse(itemStub.install.calledOnce);
+        }).then(done, done);
+      });
     });
 
     test('cancelDownload', function() {
@@ -183,25 +214,36 @@ suite('LayoutItemView', function() {
       assert.isTrue(itemStub.cancelInstall.calledOnce);
     });
 
-    test('remove', function() {
-      var evt = {
-        type: 'click',
-        target: {
-          dataset: {
-            action: 'remove'
+    suite('remove', function() {
+      setup(function() {
+        var evt = {
+          type: 'click',
+          target: {
+            dataset: {
+              action: 'remove'
+            }
           }
-        }
-      };
-      view.handleEvent(evt);
+        };
+        view.handleEvent(evt);
 
-      assert.isTrue(listViewStub.confirmRemoval.calledWith(view, 'Pig Latin'));
+        assert.isTrue(
+          listViewStub.confirmRemoval.calledWith('Pig Latin'));
+      });
+
+      test('confirmed', function(done) {
+        confirmRemovalDeferred.resolve(true);
+        confirmRemovalDeferred.promise.then(function() {
+          assert.isTrue(itemStub.remove.calledOnce);
+        }).then(done, done);
+      });
+
+      test('cancelled', function(done) {
+        confirmRemovalDeferred.resolve(false);
+        confirmRemovalDeferred.promise.then(function() {
+          assert.isFalse(itemStub.remove.calledOnce);
+        }).then(done, done);
+      });
     });
-  });
-
-  test('confirmRemoveItem', function() {
-    view.confirmRemoveItem();
-
-    assert.isTrue(itemStub.remove.calledOnce);
   });
 
   suite('onerror', function() {
