@@ -20,6 +20,15 @@
     /** @lends Activities */
 
     /**
+     * Remove all event listeners. This is mainly used in unit tests.
+     */
+    destroy: function() {
+      window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('appopened', this);
+      window.removeEventListener('applicationinstall', this);
+    },
+
+    /**
     * General event handler interface.
     * Updates the overlay with as we receive load events.
     * @memberof Activities.prototype
@@ -48,6 +57,9 @@
 
     _onNewAppInstalled: function(app) {
       var activities = app && app.manifest && app.manifest.activities;
+      if (!activities) {
+        return;
+      }
 
       Object.keys(activities).forEach(function(activity) {
         var filters = activities[activity].filters;
