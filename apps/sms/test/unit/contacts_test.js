@@ -527,10 +527,10 @@ suite('Contacts', function(done) {
     });
 
     test('The mozContacts find() call returned an error', function(done) {
-      Contacts.findByPhoneNumber('callonerror').then(
-        () => done(new Error('The promise should be rejected.')),
-        () => done()
-      );
+      Contacts.findByPhoneNumber('callonerror').then((results) => {
+        assert.isArray(results);
+        assert.lengthOf(results, 0);
+      }).then(done, done);
     });
 
     test('Local number found.', function(done) {
@@ -578,10 +578,10 @@ suite('Contacts', function(done) {
     });
 
     test('The mozContacts find() call returned an error', function(done) {
-      Contacts.findByAddress('callonerror').then(
-        () => done(new Error('The promise should be rejected.')),
-        () => done()
-      );
+      Contacts.findByAddress('callonerror').then((results) => {
+        assert.isArray(results);
+        assert.lengthOf(results, 0);
+      }).then(done, done);
     });
 
     test('Local number found.', function(done) {

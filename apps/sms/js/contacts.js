@@ -201,7 +201,7 @@
         return results;
       }).catch((e) => {
         console.error('Got an error while looking up contacts.', e.name, e);
-        return Promise.reject(e);
+        return null;
       });
     },
 
