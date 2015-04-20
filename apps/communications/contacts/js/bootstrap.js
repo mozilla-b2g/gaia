@@ -391,10 +391,29 @@
       }
     },
 
-    evict: function(aUndo) {
+    _doEvict: function(aUndo) {
+      _cacheEvictionTimer = null;
+      if (aUndo) {
+        undoCache(FIRST_CHUNK);
+      }
+      deleteCache(FIRST_CHUNK);
+      this.cleanup();
+      notifyObservers('oneviction');
+    },
+
+    evict: function(aUndo, aInstant) {
       if (!CACHE_ENABLED) {
         return;
       }
+
+      // There are cases where we need to evict the cache
+      // inmediately, like in web activities, where we can be closed
+      // before doing the eviction.
+      if (aInstant) {
+        this._doEvict(aUndo);
+        return;
+      }
+
       // Evicting the cache means accessing localStorage.
       // Use the following logic to evict the cache in a moderate pattern.
       // 1. When a request to evict the cache is received, start a timer.
@@ -407,13 +426,7 @@
       }
 
       _cacheEvictionTimer = setTimeout(() => {
-        _cacheEvictionTimer = null;
-        if (aUndo) {
-          undoCache(FIRST_CHUNK);
-        }
-        deleteCache(FIRST_CHUNK);
-        this.cleanup();
-        notifyObservers('oneviction');
+        this._doEvict(aUndo);
       }, 1000);
     },
 
