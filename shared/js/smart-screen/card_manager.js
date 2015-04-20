@@ -168,7 +168,7 @@
 
     _onCardStoreChange: function cm_onCardStoreChange(evt) {
       var that = this;
-      if (evt.id === 'cardList' && evt.operation === 'updated') {
+      if (evt.operation === 'updated') {
         that._asyncSemaphore.v();
         // When we receives 'cardlist-changed' in readonly mode, it means
         // Smart-Home app has change cardList. We'd better re-fetch cardList
@@ -184,8 +184,10 @@
     },
 
     _onFolderChange: function cm_onFolderChange(folder) {
-      if (folder && folder.isDetached()) {
+      if (folder.isDetached()) {
         this.writeCardlistInCardStore();
+      } else if (folder.isEmpty()) {
+        this.writeCardlistInCardStore({cleanEmptyFolder: true});
       } else {
         this.writeFolderInCardStore(folder);
       }
@@ -430,6 +432,15 @@
           this._cardList.splice(index, 1);
           this.writeCardlistInCardStore().then(function() {
             that.fire('card-removed', [index]);
+          });
+        } else {
+          // the card is not in _cardList, then it could probably be in folder
+          this._cardList.forEach(function(card) {
+            if (card instanceof Folder) {
+              // don't bother to fire card-removed event because the folder
+              // itself will fire this event
+              card.removeCard(item);
+            }
           });
         }
       }, this);

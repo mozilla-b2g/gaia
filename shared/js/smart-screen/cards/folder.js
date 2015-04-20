@@ -8,7 +8,7 @@
     this.name = options.name;
     // folderId is used in cardStore as key
     this.folderId = options.folderId || uuid.v4();
-    this.state = options.state || Folder.STATES.NORMAL;
+    this._state = options.state || Folder.STATES.NORMAL;
     Card.prototype.constructor.call(this);
   };
 
@@ -44,8 +44,22 @@
 
   Folder.prototype.constructor = Folder;
 
+  Object.defineProperty(Folder.prototype, 'state', {
+    get: function() {
+      return this._state;
+    },
+    set: function(state) {
+      this._state = state;
+      this.fire('state-changed', this._state);
+    }
+  });
+
   Folder.prototype.getCardList = function folder_getCardList() {
     return this._cardsInFolder;
+  };
+
+  Folder.prototype.isEmpty = function folder_isEmpty() {
+    return this._cardsInFolder.length === 0;
   };
 
   Folder.prototype.isNotEmpty = function folder_isNotEmpty() {
@@ -53,11 +67,11 @@
   };
 
   Folder.prototype.isDeserializing = function folder_isDeserializing() {
-    return this.state === Folder.STATES.DESERIALIZING;
+    return this._state === Folder.STATES.DESERIALIZING;
   };
 
   Folder.prototype.isDetached = function folder_isDetached() {
-    return this.state === Folder.STATES.DETACHED;
+    return this._state === Folder.STATES.DETACHED;
   };
 
   Folder.prototype.loadCardsInFolder = function folder_loadCardsInFolder(opts) {
@@ -66,12 +80,14 @@
       // load content of folder from config file (e.g. in 'cardEntry' form)
       this._cardsInFolder =
         opts.cardEntry._cardsInFolder.map(opts.deserializer);
+      this.state = Folder.STATES.NORMAL;
     } else if (opts.from === 'datastore') {
       // load content of folder from data store
       opts.datastore.getData(this.folderId).then(function(innerCardList) {
         innerCardList.forEach(function(innerCardEntry) {
           that._cardsInFolder.push(opts.deserializer(innerCardEntry));
         });
+        that.state = Folder.STATES.NORMAL;
       });
     }
   };
@@ -129,8 +145,9 @@
   };
 
   Folder.prototype._setDirty = function folder_setDirty() {
-    if (this.state !== Folder.STATES.DETACHED) {
-      this.state = Folder.STATES.DIRTY;
+    if (this._state !== Folder.STATES.DETACHED) {
+      this._state = Folder.STATES.DIRTY;
+      this.fire('state-changed', this._state);
     }
     this.fire('folder-changed', this);
   };
