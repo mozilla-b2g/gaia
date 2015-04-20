@@ -7,11 +7,6 @@
   display: none;
 }
 
-.modal-dialog-alert.generic-dialog[role="dialog"] h3 {
-  line-height: 2rem;
-  padding: 1.5rem;
-}
-
 #modal-dialog input {
   border-radius: 0.2rem;
   height: 4rem;
