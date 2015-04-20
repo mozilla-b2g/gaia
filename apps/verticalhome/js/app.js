@@ -9,6 +9,9 @@
     'system', 'input', 'homescreen', 'theme', 'addon', 'langpack'
   ];
 
+  const EDIT_MODE_TRANSITION_STYLE =
+    'transform 0.25s ease 0s, height 0s ease 0.5s';
+
   function App() {
     window.performance.mark('navigationLoaded');
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
@@ -20,6 +23,8 @@
     this.grid.addEventListener('gaiagrid-resize', this);
     this.grid.addEventListener('cached-icons-rendered', this);
     this.grid.addEventListener('edititem', this);
+    this.grid.addEventListener('editmode-start', this);
+    this.grid.addEventListener('editmode-end', this);
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('online', this.retryFailedIcons.bind(this));
@@ -47,6 +52,7 @@
   App.prototype = {
 
     HIDDEN_ROLES: HIDDEN_ROLES,
+    EDIT_MODE_TRANSITION_STYLE: EDIT_MODE_TRANSITION_STYLE,
 
     /**
      * Showing the correct icon is ideal but sometimes not possible if the
@@ -298,6 +304,24 @@
         case 'gaiagrid-layout-ready':
           this.layoutReady = true;
           window.removeEventListener('gaiagrid-layout-ready', this);
+          break;
+
+        case 'editmode-start':
+          // The below property in verticalhome's stylesheet is
+          // always overriden by a scoped style.
+          // Only inline-style can get higher specificity than a scoped style,
+          // so the property is written as inline way.
+          //
+          // 'transform 0.25s' is from the original property in gaia-grid.
+          // ( shared/elements/gaia_grid/style.css )
+          //
+          // 'height 0s 0.5s' is to apply collapsing animation in edit mode.
+          this.grid.style.transition = this.EDIT_MODE_TRANSITION_STYLE;
+          break;
+
+        case 'editmode-end':
+          // Retore the blank transtion property back.
+          this.grid.style.transition = '';
           break;
 
         // A hashchange event means that the home button was pressed.
