@@ -54,7 +54,8 @@
 
     Thread: {
       message: '.message .bubble',
-      headerTitle: '#messages-header-text'
+      headerTitle: '#messages-header-text',
+      container: '#messages-container'
     },
 
     Message: {
@@ -165,6 +166,16 @@
             return client.helper.waitForElement(
               message.findElement(SELECTORS.Message.content)
             );
+          },
+
+          findMessage: function(id) {
+            return client.findElement('.message[data-message-id="' + id + '"]');
+          },
+
+          scrollUp: function() {
+            actions.flick(
+              client.findElement(SELECTORS.Thread.container), 50, 50, 50, 350
+            ).perform();
           }
         },
 
@@ -350,6 +361,35 @@
             event.initEvent('action', true, true);
             header.dispatchEvent(event);
           });
+        },
+
+        /**
+         * Sets pre-populated thread/message storage.
+         * @param {Array.<Thread>} threads List of the thread to pre-populate
+         * storage with.
+         * @param {Number} uniqueMessageIdCounter Start value for the unique
+         * message id counter, it's used to avoid message "id" collision between
+         * message ids from predefined store and message ids that can be
+         * generated during test (e.g. send or receive new message).
+         */
+        setStorage: function(threads, uniqueMessageIdCounter) {
+          client.executeScript(function(threads, uniqueMessageIdCounter) {
+            var recipientToThreadId = new Map();
+
+            var threadMap = new Map(threads.map(function(thread) {
+              recipientToThreadId.set(thread.participants[0], thread.id);
+
+              return [thread.id, thread];
+            }));
+
+            window.wrappedJSObject.TestStorages.setStorage('messagesDB', {
+              threads: threadMap,
+              recipientToThreadId: recipientToThreadId,
+              uniqueMessageIdCounter: uniqueMessageIdCounter
+            });
+
+            window.wrappedJSObject.TestStorages.setStorageReady('messagesDB');
+          }, [threads || [], uniqueMessageIdCounter || 0]);
         }
       };
     },
