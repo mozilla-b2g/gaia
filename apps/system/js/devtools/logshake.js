@@ -118,9 +118,20 @@
       this._shakeId = null;
     },
 
+    getDeviceStorage: function() {
+      var storageName = 'sdcard';
+      var storages = navigator.getDeviceStorages(storageName);
+      for (var i = 0; i < storages.length; i++) {
+        if (storages[i].storageName === storageName) {
+          return storages[i];
+	}
+      }
+      return navigator.getDeviceStorage('sdcard');
+    },
+
     triggerShareLogs: function(logFilenames, notif) {
       var logFiles = [];
-      var storage = navigator.getDeviceStorage('sdcard');
+      var storage = this.getDeviceStorage();
       var requestsRemaining = logFilenames.length;
       var self = this;
 

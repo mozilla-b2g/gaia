@@ -332,6 +332,39 @@ suite('system/LogShake', function() {
     });
   });
 
+  suite('Use sdcard device storage', function() {
+    var sdcard, sdcard1, extsdcard;
+    var expected = 'sdcard';
+
+    suiteSetup(function() {
+      sdcard = { storageName: 'sdcard' };
+      sdcard1 = { storageName: 'sdcard1' };
+      extsdcard = { storageName: 'extsdcard' };
+    });
+
+    suite('only one device storage', function() {
+      setup(function() {
+        this.sinon.stub(navigator, 'getDeviceStorages')
+          .withArgs('sdcard').returns([sdcard]);
+      });
+
+      test('device storage name is sdcard', function() {
+        assert.equal(expected, logshake.getDeviceStorage().storageName);
+      });
+    });
+
+    suite('multiple device storages', function() {
+      setup(function() {
+        this.sinon.stub(navigator, 'getDeviceStorages')
+          .withArgs('sdcard').returns([sdcard, sdcard1, extsdcard]);
+      });
+
+      test('device storage name is sdcard', function() {
+        assert.equal(expected, logshake.getDeviceStorage().storageName);
+      });
+    });
+  });
+
   suite('System message notification >', function() {
     var serviceSpy;
 
