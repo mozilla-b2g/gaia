@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global StatusBar */
+/* global StatusBar, Service */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -13,6 +13,9 @@ var ModalDialog = {
   // Used for element id access.
   // e.g., 'modal-dialog-alert-ok'
   prefix: 'modal-dialog-',
+
+  // Used in hierarchy manager.
+  name: 'ModalDialog',
 
   // DOM
   elements: {},
@@ -77,6 +80,8 @@ var ModalDialog = {
         elements[id].addEventListener('click', this);
       }
     }
+
+    Service.request('registerHierarchy', this);
   },
 
   // Default event handler
@@ -245,6 +250,9 @@ var ModalDialog = {
     }
 
     this.updateHeight();
+
+    this.active = true;
+    this.publish('-activated');
   },
 
   hide: function md_hide() {
@@ -256,6 +264,52 @@ var ModalDialog = {
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
     this.elements[type].classList.remove('visible');
+    this.active = false;
+    this.publish('-deactivated');
+  },
+
+  /**
+   * Prefix added to the modal dialog published event.
+   * @memberof ModalDialog
+   */
+  EVENT_PREFIX: 'modaldialog',
+
+  /**
+   * Publish relevant modal dialog events.
+   * @param {String} eventName name of the event.
+   * @memberof ModalDialog
+   */
+  publish: function md_publish(eventName) {
+    var event = new CustomEvent(this.EVENT_PREFIX + eventName);
+    window.dispatchEvent(event);
+  },
+
+  /**
+   * Indicates if modal dialog is active.
+   * @return {Boolean} action menu active flag.
+   * @memberof ModalDialog
+   */
+  isActive: function md_isActive() {
+    return this.active;
+  },
+
+  /**
+   * Sets modal dialog hierarchy.
+   * @memberof ModalDialog
+   */
+  setHierarchy: function md_setHierarchy() {
+    return true;
+  },
+
+  /**
+   * Handle hierarchy based event.
+   * @memberof ModalDialog
+   */
+  respondToHierarchyEvent: function md_respondToHierarchyEvent(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    }
+    return true;
   },
 
   setTitle: function md_setTitle(type, title) {
@@ -293,6 +347,9 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
+
+    this.active = false;
+    this.publish('-deactivated');
 
     this.processNextEvent();
   },
@@ -337,6 +394,9 @@ var ModalDialog = {
       evt.detail.unblock();
     }
 
+    this.active = false;
+    this.publish('-deactivated');
+
     this.processNextEvent();
   },
 
@@ -357,6 +417,9 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
+
+    this.active = false;
+    this.publish('-deactivated');
 
     this.processNextEvent();
   },
