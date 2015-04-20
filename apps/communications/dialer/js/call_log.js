@@ -9,7 +9,6 @@ var CallLog = {
   _initialized: false,
   _headersInterval: null,
   _empty: true,
-  _dbupgrading: false,
   _contactCache: false,
 
   init: function cl_init() {
@@ -50,10 +49,7 @@ var CallLog = {
         'edit-mode-header',
         'header-edit-mode-text',
         'missed-filter',
-        'select-all-threads',
-        'call-log-upgrading',
-        'call-log-upgrade-progress',
-        'call-log-upgrade-percent'
+        'select-all-threads'
       ];
 
       mainNodes.forEach(function(id) {
@@ -101,24 +97,6 @@ var CallLog = {
         self.becameVisible();
       });
     });
-
-    // Listen for database upgrade events.
-    CallLogDBManager.onupgradeneeded = function onupgradeneeded() {
-      // Show a progress bar letting the user know that the database is being
-      // upgraded.
-      self.showUpgrading();
-      self._dbupgrading = true;
-    };
-
-    CallLogDBManager.onupgradeprogress = function onupgradeprogress(progress) {
-      self.updateUpgradeProgress(progress);
-    };
-
-    CallLogDBManager.onupgradedone = function onupgradedone() {
-      self.hideUpgrading();
-      self._dbupgrading = false;
-      self.render();
-    };
   },
 
   /**
@@ -222,9 +200,6 @@ var CallLog = {
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
       if (!cursor.value) {
-        if (self._dbupgrading) {
-          return;
-        }
         if (chunk.length === 0) {
           self.renderEmptyCallLog();
           self.disableEditModeButton();
@@ -660,19 +635,6 @@ var CallLog = {
     for (i = 0, l = logItems.length; i < l; i++) {
       logItems[i].setAttribute('aria-selected', false);
     }
-  },
-
-  showUpgrading: function cl_showUpgrading() {
-    this.callLogUpgrading.classList.remove('hide');
-  },
-
-  hideUpgrading: function cl_hideUpgrading() {
-    this.callLogUpgrading.classList.add('hide');
-  },
-
-  updateUpgradeProgress: function cl_updateUpgradeProgress(progress) {
-    this.callLogUpgradeProgress.setAttribute('value', progress);
-    this.callLogUpgradePercent.textContent = progress + '%';
   },
 
   // In case we are in edit mode, just update the counter of selected rows.

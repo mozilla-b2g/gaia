@@ -9,58 +9,9 @@ var CallLogDBManager = {
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',
   _dbGroupsStore: 'dialerGroups',
-  _dbVersion: 5,
+  _dbVersion: 6,
   _maxNumberOfGroups: 200,
   _numberOfGroupsToDelete: 30,
-
-  _observers: {},
-
-  /**
-   * Add a observer of the 'upgradeneeded' event, which is fired as soon as the
-   * indexedDB API fires an 'onupgradeneeded' event while trying to open the
-   * database.
-   * We need to notify the UI about a database upgrade so the proper feedback
-   * can be provided to the user. Database upgrades can be quite large.
-   */
-  set onupgradeneeded(callback) {
-    this._addObserver('upgradeneeded', callback);
-  },
-
-  /**
-   * Add a observer of the 'upgradedone' event, which is fired as soon as we
-   * push the latest upgraded record into the upgraded object stores.
-   */
-  set onupgradedone(callback) {
-    this._addObserver('upgradedone', callback);
-  },
-
-  /**
-   * Add a observer of 'upgradeprogress' events that are fired every 10% of
-   * the database upgrade process if the amount of work required is known.
-   */
-  set onupgradeprogress(callback) {
-    this._addObserver('upgradeprogress', callback);
-  },
-
-  _addObserver: function _addObserver(message, callback) {
-    if (!this._observers[message]) {
-      this._observers[message] = [];
-    }
-    this._observers[message].push(callback);
-  },
-
-  _notifyObservers: function _notifyObservers(message, value) {
-    var observers = this._observers[message];
-    if (!observers) {
-      return;
-    }
-
-    for (var callback in observers) {
-      if (observers[callback] && typeof observers[callback] === 'function') {
-        observers[callback](value);
-      }
-    }
-  },
 
   _asyncReturn: function _asyncReturn(callback, result) {
     if (callback && callback instanceof Function) {
@@ -111,9 +62,6 @@ var CallLogDBManager = {
         };
 
         request.onupgradeneeded = function onupgradeneeded(event) {
-          // Notify the UI about the need to upgrade the database.
-          self._notifyObservers('upgradeneeded');
-
           var db = event.target.result;
           var txn = event.target.transaction;
           var currentVersion = event.oldVersion;
@@ -138,10 +86,12 @@ var CallLogDBManager = {
                 self._upgradeSchemaVersion5(next);
                 break;
               case 5:
+                self._upgradeSchemaVersion6(db, txn, next);
+                break;
+              case 6:
                 // we have finished the upgrades. please keep this
                 // in sync for future upgrades, since otherwise it
                 // will call the default: and abort the transaction :(
-                self._notifyObservers('upgradedone');
                 break;
               default:
                 event.target.transaction.abort();
@@ -220,8 +170,7 @@ var CallLogDBManager = {
   },
   /**
    * Upgrade schema to version 2. Create an object store to host groups of
-   * calls and populate this store with the already existing recent calls
-   * data.
+   * calls.
    *
    * param db
    *        Database instance.
@@ -280,183 +229,7 @@ var CallLogDBManager = {
   _upgradeSchemaVersion4:
     function upgradeSchemaVersion4(db, transaction, next) {
 
-    var self = this;
-
-    var waitForAsyncCall = 0;
-    var cursorDone = false;
-
-    var groups = {};
-    var recentsCount = 0;
-    var groupCount = 0;
-
-    function onGroupsDone() {
-      if (!cursorDone || waitForAsyncCall) {
-        return;
-      }
-
-      if (groupCount === 0) {
-        next();
-        return;
-      }
-
-      // Once we built all the group of calls we can push them to the
-      // groups object store and notify the UI about it.
-      self._newTxn('readwrite', [self._dbGroupsStore],
-                   function(error, txn, store) {
-        if (error) {
-          console.log('Error upgrading the database ' + error);
-          return;
-        }
-
-        var onPutSuccess = function onsuccess() {
-            groupCount--;
-            if (groupCount === 0) {
-              next();
-            }
-          };
-        for (var group in groups) {
-          store.put(groups[group]).onsuccess = onPutSuccess;
-          delete groups[group];
-        }
-      });
-    }
-
-    // Populate quick group view with already existing calls information.
-    function populateGroups() {
-      // We send 'upgradeprogress' events from two different places:
-      // 1- For each 15% of the recentsStore cursor requests completed.
-      //    We increment the progress by 10%, leaving the total amount
-      //    in 60%.
-      // 2- For each 25% of the Contacts API requests completed. We
-      //    also increment the progress by 10%, leaving the total
-      //    amount in 90%.
-      // The final progress 100% event is avoided as we send a 'upgradedone'
-      // event instead.
-      var percent = parseInt(recentsCount * 0.15);
-      var countToProgressEvent = percent;
-      var percent2 = parseInt(recentsCount * 0.25);
-      var countToProgressEvent2 = percent2;
-      var progress = 0;
-
-      recentsStore.openCursor().onsuccess = function onsuccess(event) {
-        if (countToProgressEvent === 0) {
-          countToProgressEvent = percent;
-          progress += 10;
-          self._notifyObservers('upgradeprogress', progress);
-        } else {
-          countToProgressEvent--;
-        }
-
-        var cursor = event.target.result;
-        if (!cursor) {
-          // As soon as the cursor is done, we bail out. We still need to wait
-          // for all the async calls to retrieve the contacts information to
-          // finish before pushing the data to the groups object store. We will
-          // notify the UI about that so it can request the data again.
-          cursorDone = true;
-          onGroupsDone();
-          return;
-        }
-
-        var record = cursor.value;
-        var type = '';
-        var status;
-        // Get group type and status.
-        switch (record.type) {
-          case 'incoming-connected':
-            type = 'incoming';
-            status = 'connected';
-            break;
-          case 'incoming-refused':
-            type = 'incoming';
-            break;
-          default:
-            if (record.type && record.type.indexOf('dialing') != -1) {
-              type = 'dialing';
-            }
-            break;
-        }
-
-        // Create the id and a temporary unique key for the group.
-        var id = self._getGroupId({
-          date: record.date,
-          number: record.number,
-          type: type,
-          status: status
-        });
-        var date = new Date(record.date);
-        var key = date.getDate() + date.getMonth() + date.getFullYear() +
-                  record.number + type;
-        if (status) {
-          key += status;
-        }
-
-        // Get the contact information associated with the number.
-        waitForAsyncCall++;
-        Contacts.findByNumber(record.number,
-                              function(contact, matchingTel) {
-          if (countToProgressEvent2 === 0) {
-            countToProgressEvent2 = percent2;
-            progress += 10;
-            self._notifyObservers('upgradeprogress', progress);
-          } else {
-            countToProgressEvent2--;
-          }
-
-          // Store the group or increment the 'retryCount' field if we already
-          // created a group for this call.
-          if (key in groups) {
-            // Groups should have the date of the newest call.
-            if (groups[key].lastEntryDate <= record.date) {
-              groups[key].lastEntryDate = record.date;
-            }
-            groups[key].retryCount++;
-          } else {
-            var group = {
-              id: id,
-              number: record.number,
-              lastEntryDate: record.date,
-              retryCount: 1
-            };
-            if (contact && contact !== null) {
-              group.contactId = contact.id;
-              var photo = ContactPhotoHelper.getThumbnail(contact);
-              if (photo) {
-                group.contactPhoto = photo;
-              }
-              if (matchingTel) {
-                var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
-                                                                  contact);
-                if (Array.isArray(primaryInfo)) {
-                  primaryInfo = primaryInfo[0];
-                }
-                group.contactPrimaryInfo = String(primaryInfo);
-                if (Array.isArray(matchingTel.type) && matchingTel.type[0]) {
-                  group.contactMatchingTelType = String(matchingTel.type[0]);
-                }
-                if (matchingTel.carrier) {
-                  group.contactMatchingTelCarrier = String(matchingTel.carrier);
-                }
-              }
-            }
-            groups[key] = group;
-            groupCount++;
-          }
-          waitForAsyncCall--;
-          onGroupsDone();
-        });
-        cursor.continue();
-      };
-    }
-
-    transaction.objectStore(self._dbGroupsStore);
-    // First of all we delete the old groups object store.
-    db.deleteObjectStore(self._dbGroupsStore);
-
-    // We recreate the object store that can be used to quickly construct a
-    // group view of the recent calls database.
-    var groupsStore = db.createObjectStore(self._dbGroupsStore,
-                                           { keyPath: 'id' });
+    var groupsStore = transaction.objectStore(this._dbGroupsStore);
 
     // We create indexes for 'contact-id', 'number' and 'lastEntryDate'
     // as we will be searching by number, contact and date.
@@ -467,14 +240,7 @@ var CallLogDBManager = {
     groupsStore.createIndex('contactId', 'contactId');
     groupsStore.createIndex('lastEntryDate', 'lastEntryDate');
 
-    // We get the number of calls stored in the database so we can send
-    // progress events with the appropriate percentage of upgrade process
-    // completed.
-    var recentsStore = transaction.objectStore(self._dbRecentsStore);
-    recentsStore.count().onsuccess = function(event) {
-      recentsCount = event.target.result;
-      populateGroups();
-    };
+    next();
   },
   /**
    * Nothing to be done for version 5 since 'voicemail' and 'emergency' boolean
@@ -482,6 +248,16 @@ var CallLogDBManager = {
    * already existent data.
    */
   _upgradeSchemaVersion5: function upgradeSchemaVersion5(next) {
+    next();
+  },
+  /**
+   * Remove the `dialerRecents' store as it's not used anymore.
+   */
+  _upgradeSchemaVersion6:
+    function upgradeSchemaVersion6(db, transaction, next) {
+    // Remove the unused dialerRecents store
+    db.deleteObjectStore(this._dbRecentsStore);
+
     next();
   },
   /**
@@ -654,15 +430,12 @@ var CallLogDBManager = {
     }
 
     var self = this;
-    this._newTxn('readwrite', [this._dbRecentsStore, this._dbGroupsStore],
-                 function(error, txn, stores) {
+    this._newTxn('readwrite', this._dbGroupsStore,
+                 function(error, txn, groupsStore) {
       if (error) {
         self._asyncReturn(callback, error);
         return;
       }
-
-      var recentsStore = stores[0];
-      var groupsStore = stores[1];
 
       var groupId = self._getGroupId(recentCall);
 
@@ -680,9 +453,6 @@ var CallLogDBManager = {
           // use it again.
           self._createNewGroup(groupId, recentCall, callback);
         }
-
-        recentCall.groupId = groupId;
-        recentsStore.put(recentCall);
       };
     });
   },
@@ -801,8 +571,6 @@ var CallLogDBManager = {
    * param groupId
    *        Identifier of the group to be deleted. We expect a group object or
    *        its identifier.
-   *
-   * return (via callback) count of deleted calls or error if needed.
    */
   deleteGroup: function deleteGroup(group, groupId, callback) {
     // Valid group doesn't need to contain number, we can receive
@@ -815,38 +583,23 @@ var CallLogDBManager = {
 
     var self = this;
 
-    this._newTxn('readwrite', [this._dbGroupsStore, this._dbRecentsStore],
-                 function(error, txn, stores) {
+    this._newTxn('readwrite', this._dbGroupsStore,
+                 function(error, txn, groupsStore) {
       if (error) {
         self._asyncReturn(callback, error);
         return;
       }
 
-      var groupsStore = stores[0];
-      var recentsStore = stores[1];
-
       if (!groupId) {
         groupId = self._getGroupId(group);
       }
 
-      var deleted = 0;
-
       txn.oncomplete = function() {
-        self._asyncReturn(callback, deleted);
+        self._asyncReturn(callback);
       };
 
-      // We delete the given group and all its corresponding calls.
-      groupsStore.delete(groupId).onsuccess = function onsuccess() {
-        recentsStore.index('groupId').openCursor(groupId)
-                    .onsuccess = function onsuccess(event) {
-          var cursor = event.target.result;
-          if (cursor) {
-            cursor.delete();
-            deleted++;
-            cursor.continue();
-          }
-        };
-      };
+      // We delete the given group.
+      groupsStore.delete(groupId);
     });
   },
   /**
@@ -854,18 +607,8 @@ var CallLogDBManager = {
    *
    * param groupList
    *        Array of group objects to be deleted.
-   * param deletedCount
-   *        Accumulator of the number of deleted groups of calls.
-   *
-   * return (via callback) count of deleted calls or an error message if
-   *                       needed.
    */
-  deleteGroupList: function deleteGroupList(groupList, callback,
-                                            deletedCount) {
-    if (!deletedCount) {
-      deletedCount = 0;
-    }
-
+  deleteGroupList: function deleteGroupList(groupList, callback) {
     var self = this;
 
     if (groupList.length > 0) {
@@ -878,17 +621,17 @@ var CallLogDBManager = {
       var ondeleted = function ondeleted(result) {
         // We expect a number. Otherwise that means that we got an error
         // message.
-        if (typeof result !== 'number') {
+        if (result) {
           self._asyncReturn(callback, result);
           return;
         }
-        deletedCount += result;
-        self.deleteGroupList(groupList, callback, deletedCount);
+
+        self.deleteGroupList(groupList, callback);
       };
 
       self.deleteGroup(itemToDelete, null, ondeleted);
     } else {
-      self._asyncReturn(callback, deletedCount);
+      self._asyncReturn(callback);
     }
   },
   /**
@@ -901,23 +644,18 @@ var CallLogDBManager = {
    */
   deleteAll: function deleteAll(callback) {
     var self = this;
-    this._newTxn('readwrite', [this._dbRecentsStore, this._dbGroupsStore],
-                 function(error, txn, stores) {
+    this._newTxn('readwrite', this._dbGroupsStore,
+                 function(error, txn, groupsStore) {
       if (error) {
         self._asyncReturn(callback, error);
         return;
       }
 
-      var recentsStore = stores[0];
-      var groupsStore = stores[1];
-
       txn.oncomplete = function() {
         self._asyncReturn(callback);
       };
 
-      recentsStore.clear().onsuccess = function onsuccess() {
-        groupsStore.clear();
-      };
+      groupsStore.clear();
     });
   },
   /**
@@ -1036,31 +774,6 @@ var CallLogDBManager = {
         }
       };
     });
-  },
-  /**
-   * Get the list of recent calls.
-   *
-   * param callback
-   *        Function to be called after getting the list of recent calls or
-   *        the IDB cursor in case of 'getCursor' param is true.
-   * param sortedBy
-   *        Field to sort by. Take into account that sorting by not indexed
-   *        fields is quite slow.
-   * param prev
-   *        Boolean flag to get the list in reverse order.
-   * param getCursor
-   *        Boolean flag to request an IDB cursor instead of the whole list of
-   *        records.
-   * param limit
-   *        Maximum number of records to be fetched from the database.
-   *
-   * return (via callback) the whole list of recent calls, a cursor or an
-   *                        error message if needed.
-   */
-  getRecentList: function getRecentList(callback, sortedBy, prev,
-                                        getCursor, limit) {
-    this._getList(this._dbRecentsStore, callback, sortedBy, prev, getCursor,
-                  limit);
   },
   /**
    * Get the list of groups of calls.
@@ -1189,54 +902,22 @@ var CallLogDBManager = {
   },
 
   /**
-   * Get the call with the most recent date.
-   *
-   * param callback
-   *        Function to be called with the last call or an error message if
-   *        needed.
-   *
-   * return (via callback) the last call or an error message if needed.
-   */
-  getLastCall: function getLastCall(callback) {
-    if (!callback || !(callback instanceof Function)) {
-      return;
-    }
-
-    this._newTxn('readonly', [this._dbRecentsStore],
-                 function(error, txn, store) {
-      if (error) {
-        callback(error);
-        return;
-      }
-
-      var cursor = store.openCursor(null, 'prev');
-      cursor.onsuccess = function onsuccess(event) {
-        var item = event.target.result;
-        if (item && item.value) {
-          callback(item.value);
-        } else {
-          callback(null);
-        }
-      };
-      cursor.onerror = function onerror(event) {
-        callback(event.target.error.name);
-      };
-    });
-  },
-
-  /**
    * We store a revision number for the contacts data local cache that we need
    * to keep synced with the Contacts API database.
    * This method stores the revision of the Contacts API database and it will
    * be called after refresing the local cache because of a contact updated, a
    * contact deletion or a cache sync.
+   *
+   * @param {Function} callback A callback to be invoked when the operation is
+   *        complete.
    */
-  _updateCacheRevision: function _updateCacheRevision() {
+  _updateCacheRevision: function _updateCacheRevision(callback) {
     Contacts.getRevision(function(contactsRevision) {
       if (contactsRevision) {
         window.asyncStorage.setItem('contactCacheRevision',
                                     contactsRevision);
       }
+      callback();
     });
   },
 
@@ -1275,7 +956,9 @@ var CallLogDBManager = {
       }
 
       txn.oncomplete = function() {
-        self._asyncReturn(callback, result);
+        self._updateCacheRevision(function() {
+          self._asyncReturn(callback, result);
+        });
       };
 
       var count = 0;
@@ -1310,7 +993,6 @@ var CallLogDBManager = {
           cursor.continue();
         } else {
           result = count;
-          self._updateCacheRevision();
         }
       };
       req.onerror = function onerror(event) {
@@ -1357,8 +1039,9 @@ var CallLogDBManager = {
       var count = 0;
 
       txn.oncomplete = function() {
-        self._asyncReturn(callback, count);
-        self._updateCacheRevision();
+        self._updateCacheRevision(function() {
+          self._asyncReturn(callback, count);
+        });
       };
       txn.onerror = function(event) {
         self._asyncReturn(callback, event.target.error);
@@ -1538,8 +1221,9 @@ var CallLogDBManager = {
         }
 
         txn.oncomplete = function onContactsUpdated() {
-          self._updateCacheRevision();
-          self._asyncReturn(callback);
+          self._updateCacheRevision(function() {
+            self._asyncReturn(callback);
+          });
         };
         txn.onerror = function(event) {
           self._asyncReturn(callback, event.target.error);
