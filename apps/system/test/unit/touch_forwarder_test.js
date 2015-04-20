@@ -38,7 +38,7 @@ suite('system/TouchForwarder >', function() {
 
   var ariaHidden;
   setup(function() {
-    ariaHidden = false;
+    ariaHidden = 'false';
     iframe = {
       getAttribute: function() { return ariaHidden; },
       sendTouchEvent: function() {},
@@ -61,7 +61,7 @@ suite('system/TouchForwarder >', function() {
     });
 
     test('it should not forward to an aria-hidden frame', function() {
-      ariaHidden = true;
+      ariaHidden = 'true';
       this.sinon.spy(iframe, 'sendTouchEvent');
       subject.forward(forgeTouch('touchstart', 3, 20));
       sinon.assert.notCalled(iframe.sendTouchEvent);
@@ -137,7 +137,7 @@ suite('system/TouchForwarder >', function() {
     });
 
     test('it should not forward taps to an aria-hidden frame', function() {
-      ariaHidden = true;
+      ariaHidden = 'true';
       this.sinon.spy(iframe, 'sendMouseEvent');
       simpleTap();
       sinon.assert.notCalled(iframe.sendMouseEvent);
