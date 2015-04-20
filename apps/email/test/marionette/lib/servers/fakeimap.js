@@ -1,3 +1,6 @@
+'use strict';
+/* jshint node: true */
+
 var server = require('mail-fakeservers');
 
 var DEFAULT_OPTIONS = Object.freeze({

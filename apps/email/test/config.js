@@ -1,3 +1,4 @@
+'use strict';
 /*global requirejs, define, TestUrlResolver */
 // Test config. config.js has the non-test, runtime config
 (function(global) {
@@ -47,8 +48,9 @@
     });
 
     req.config(baseConfig);
-    if (config)
+    if (config) {
       req.config(config);
+    }
 
     // Tears down the context.
     if (suiteTeardown) {
@@ -91,17 +93,20 @@
 
     if (ids) {
       req(ids, function() {
-        if (callback)
+        if (callback) {
           callback.apply(null, Array.slice(arguments));
-        if (done)
+        }
+        if (done) {
           done();
+        }
       }, function(err) {
-        if (done)
+        if (done) {
           done(err);
+        }
       });
     }
 
     return req;
   };
-}(this));
+}(window));
 

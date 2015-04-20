@@ -1,5 +1,6 @@
+'use strict';
+
 var Email = require('./lib/email');
-var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
 
 marionette('send email via IMAP', function() {

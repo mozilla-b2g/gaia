@@ -1,8 +1,8 @@
+'use strict';
 /*jshint node: true */
 /*global marionette */
-'use strict';
+
 var Email = require('./lib/email');
-var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
 
 marionette('activity create email account', function() {

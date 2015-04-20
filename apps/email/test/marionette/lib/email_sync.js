@@ -1,3 +1,4 @@
+'use strict';
 /*jshint node: true, browser: true */
 var SHARED_PATH = __dirname + '/../../../../../shared/test/integration';
 
@@ -25,7 +26,6 @@ EmailSync.prototype = {
     // trigger sync in Email App
     this.client.executeScript(function() {
       var interval = 1000;
-      var date = new Date(Date.now() + interval).getTime();
       var task = {
         data: {
           accountIds: ['0', '1'],

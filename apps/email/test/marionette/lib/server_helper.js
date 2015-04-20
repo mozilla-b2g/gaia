@@ -30,6 +30,9 @@
  */
 //function serverSetup(options) {};
 
+'use strict';
+/* jshint node: true */
+
 /**
  * Expose a server lifecycle to a given test.
  *
