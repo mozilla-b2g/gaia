@@ -1,3 +1,6 @@
+'use strict';
+/* global testConfig */
+
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 

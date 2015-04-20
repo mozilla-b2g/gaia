@@ -1,6 +1,7 @@
+'use strict';
 /*jshint browser: true */
 /*global requireApp, suite, setup, testConfig, test, assert,
-  teardown, suiteSetup, suiteTeardown */
+  suiteSetup, suiteTeardown */
 
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
@@ -34,7 +35,7 @@ suite('model', function() {
 
     setup(function(done) {
       model.init();
-      model.latestOnce('foldersSlice', function(foldersSlice) {
+      model.latestOnce('foldersSlice', function() {
         account = model.account;
         acctsSlice = model.acctsSlice;
         foldersSlice = model.foldersSlice;
