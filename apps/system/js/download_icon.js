@@ -30,6 +30,7 @@
         // we are likely to miss paused or errored downloads being restarted
         case 'finalized':
           download.onstatechange = null;
+          this.update();
           break;
         // All other state changes indicate the download is no longer
         // active, if we were previously tracking the download as active
