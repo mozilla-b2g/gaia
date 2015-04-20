@@ -13,8 +13,8 @@ View.prototype = {
         return this.client.findElement(rootSelector);
     },
     //From the root, find a child element based on selector.
-    findElement: function (rootSelector, elementSelector) {
-        return this.getRootElement(rootSelector).findElement(elementSelector);
+    findElement: function (selectorObject) {
+        return this.getRootElement(selectorObject.root).findElement(selectorObject.element);
     },
     //Return whether or not the root element is displayed.
     rootDisplayed: function () {
@@ -33,9 +33,9 @@ View.prototype = {
         });
     },
     //Tap on an element.
-    tap: function (rootSelector, elementSelector) {
-        this.actions.tap(this.findElement(rootSelector, elementSelector)).perform();
-        this.actions.wait(10).perform();
+    tap: function (selectorObject) {
+        this.actions.tap(this.findElement(selectorObject)).perform();
+        this.actions.wait(2).perform();
     },
     launch: function (origin) {
         var client = this.client;
@@ -44,6 +44,12 @@ View.prototype = {
 
         // Wait for the document body to know we're really 'launched'.
         this.client.helper.waitForElement('body');
+    },
+    sendKeys: function(selectorObject,string) {
+        this.findElement(selectorObject).sendKeys(string);
+    },
+    switchToSystemApp: function() {
+        this.client.apps.switchToApp();
     }
 };
 

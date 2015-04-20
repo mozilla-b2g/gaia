@@ -11,6 +11,7 @@ marionette('Clock Acceptence Suite', function(){
     var client;
     var alarmFlow;
     var app;
+    var alarmInfo = {};
     client = marionette.client({
         prefs: {
             // we need to disable the keyboard to avoid intermittent failures on
@@ -32,8 +33,15 @@ marionette('Clock Acceptence Suite', function(){
 
     });
     suite('my first suites', function() {
-        test('Always pass', function() {
-            alarmFlow.setNewAlarm();
+        test('Create New Alarm for One Minute Later', function() {
+            alarmInfo.name = "TestAlarm";
+            alarmInfo.hour = "9";
+            alarmInfo.minute = "35";
+            alarmInfo.timeOfDay = "PM";
+            alarmInfo.sound = "Humming Waves";
+            alarmInfo.vibrate = true;
+            alarmInfo.snooze = "20 minutes";
+            alarmFlow.setNewAlarm(alarmInfo);
             expect(true).to.be.true
         });
     });

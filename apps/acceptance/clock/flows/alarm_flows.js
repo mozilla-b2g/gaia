@@ -9,8 +9,8 @@ function AlarmFlows(client) {
 AlarmFlows.prototype = Object.create(Alarm.prototype);
 AlarmFlows.prototype.constructor = AlarmFlows;
 
-AlarmFlows.prototype.setNewAlarm = function(name, hour, minute, timeOfDay, sound, repeat, vibrate, snooze) {
-    Alarm.prototype.createNewAlarm.call(this);
+AlarmFlows.prototype.setNewAlarm = function(alarmInfo) {
+    Alarm.prototype.createNewAlarm.call(this, alarmInfo);
 };
 
 module.exports = AlarmFlows;
