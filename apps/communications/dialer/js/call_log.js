@@ -116,14 +116,12 @@ var CallLog = {
        * db revision. If both values differ, we need to update the contact cache
        * and its revision and directly query the Contacts API to render the
        * appropriate information while the cache is being rebuilt. */
-      window.asyncStorage.getItem('contactCacheRevision',
-      function onItem(cacheRevision) {
-        Contacts.getRevision(function(contactsRevision) {
+      Contacts.getRevision().then(function(contactsRevision) {
+        CallLogDBManager.updateCacheRevision(contactsRevision).then(
+        function(cacheRevision) {
           /* We don't need to sync if this is the first time that we use the
            * call log. */
           if (!cacheRevision || cacheRevision > contactsRevision) {
-            window.asyncStorage.setItem('contactCacheRevision',
-                                        contactsRevision);
             self._contactCache = true;
             resolve();
             return;

@@ -153,7 +153,6 @@ apps/video/test/unit/thumbnail_list_test.js
 apps/video/test/unit/video_test.js
 apps/video/test/unit/video_utils_test.js
 shared/js/blobview.js
-shared/js/dialer/contacts.js
 shared/js/fb/fb_data_reader.js
 shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
