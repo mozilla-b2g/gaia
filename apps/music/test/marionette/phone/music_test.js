@@ -1,12 +1,13 @@
 /* global require, marionette, setup, suite, test, __dirname */
 'use strict';
 
-var Music = require('./lib/music.js');
-var FakeActivityCaller = require('./lib/fakeactivitycaller.js');
+var Music = require('../lib/music.js');
+var FakeActivityCaller = require('../lib/fakeactivitycaller.js');
 
 marionette('Music ui tests', function() {
   var apps = {};
-  apps[FakeActivityCaller.DEFAULT_ORIGIN] = __dirname + '/fakeactivitycaller';
+  apps[FakeActivityCaller.DEFAULT_ORIGIN] =
+    __dirname + '/../fakeactivitycaller';
 
   var client = marionette.client({
     prefs: {

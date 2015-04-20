@@ -2,8 +2,8 @@
 'use strict';
 
 var assert = require('assert');
-var Music = require('./lib/music.js');
-var ListviewHelper = require('./lib/listviewhelper.js');
+var Music = require('../lib/music.js');
+var ListviewHelper = require('../lib/listviewhelper.js');
 
 marionette('Music player metadata', function() {
   var apps = {};

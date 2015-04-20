@@ -2,7 +2,7 @@
 'use strict';
 
 var assert = require('assert');
-var Music = require('./lib/music.js');
+var Music = require('../lib/music.js');
 
 marionette('Music files loading', function() {
   var apps = {};

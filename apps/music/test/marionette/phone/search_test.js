@@ -2,16 +2,16 @@
 'use strict';
 
 var assert = require('assert');
-var Music = require('./lib/music.js');
-var FakeRingtones = require('./lib/fakeringtones.js');
-var FakeControls = require('./lib/fakecontrols.js');
-var SearchHelper = require('./lib/searchhelper.js');
+var Music = require('../lib/music.js');
+var FakeRingtones = require('../lib/fakeringtones.js');
+var FakeControls = require('../lib/fakecontrols.js');
+var SearchHelper = require('../lib/searchhelper.js');
 /*var Statusbar = require('./lib/statusbar.js');*/
 
 marionette('Music player search', function() {
   var apps = {};
-  apps[FakeRingtones.DEFAULT_ORIGIN] = __dirname + '/fakeringtones';
-  apps[FakeControls.DEFAULT_ORIGIN] = __dirname + '/fakecontrols';
+  apps[FakeRingtones.DEFAULT_ORIGIN] = __dirname + '/../fakeringtones';
+  apps[FakeControls.DEFAULT_ORIGIN] = __dirname + '/../fakecontrols';
 
   var client = marionette.client({
     prefs: {
