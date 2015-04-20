@@ -3325,6 +3325,7 @@ suite('thread_ui.js >', function() {
         this.sinon.stub(MessageManager, 'deleteMessages').callsArgWith(1, true);
         this.sinon.stub(MessageManager, 'resendMessage');
         this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
+        this.sinon.spy(ThreadUI, 'showMessageSendingError');
       }).then(done, done);
     });
 
@@ -3375,7 +3376,13 @@ suite('thread_ui.js >', function() {
 
     test('does not invoke onMessageSendRequestCompleted on failed send request',
       function() {
-      MessageManager.resendMessage.yieldsTo('onerror', new Error('failed'));
+      var mockError = {
+        name: 'fakeError',
+        data: {
+          receiver: '12345'
+        }
+      };
+      MessageManager.resendMessage.yieldsTo('onerror', mockError);
 
       ThreadUI.resendMessage(23);
 
@@ -3383,6 +3390,11 @@ suite('thread_ui.js >', function() {
       this.getMessageReq.onsuccess();
 
       sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
+      sinon.assert.calledWith(
+        ThreadUI.showMessageSendingError,
+        mockError.name,
+        {recipients: [mockError.data.receiver]}
+      );
     });
   });
 
