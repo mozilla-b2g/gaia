@@ -1,3 +1,4 @@
+'use strict';
 /*jshint node: true, browser: true */
 /*global marionetteScriptFinished */
 

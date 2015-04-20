@@ -1,3 +1,5 @@
+'use strict';
+
 var Email = require('./lib/email'),
     assert = require('assert'),
     serverHelper = require('./lib/server_helper');
@@ -6,9 +8,6 @@ var EMAIL_ADDRESS = 'firefox-os-drafts@example.com',
     EMAIL_SUBJECT = 'I still have a dream';
 
 marionette('local draft', function() {
-  // Only test here is disabled, setup is still timing out.
-  return;
-
   var app;
   var client = marionette.client();
   var server = serverHelper.use(null, this);
@@ -47,12 +46,12 @@ marionette('local draft', function() {
   });
 
   test('should maintain formatting', function() {
-    const NAME = 'FireFox OS';
-    const EMAIL_ADDRESS = 'firefox-os-drafts@example.com';
-    const MAILBOX = NAME + ' <' + EMAIL_ADDRESS + '>';
-    const EMAIL_SUBJECT = 'I still have a linebreak';
-    const SPACE = ' ';
-    const BODY = '   many spaces:  newline:\nmoar newlines:\n\n\nyeah!\n' +
+    var NAME = 'FireFox OS';
+    var EMAIL_ADDRESS = 'firefox-os-drafts@example.com';
+    var MAILBOX = NAME + ' <' + EMAIL_ADDRESS + '>';
+    var EMAIL_SUBJECT = 'I still have a linebreak';
+    var SPACE = ' ';
+    var BODY = '   many spaces:  newline:\nmoar newlines:\n\n\nyeah!\n' +
             'and unicodes: Sssś Lałalalala\n' +
             'say no to <b><i>HTML</b>';
 
