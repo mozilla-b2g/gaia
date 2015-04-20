@@ -176,6 +176,7 @@ var CarrierSettings = (function(window, document, undefined) {
     });
     // We need to disable data roaming when data connection is disabled.
     _settings.addObserver(DATA_KEY, function observerCb(event) {
+      dataToggle.checked = event.settingValue;
       if (_restartingDataConnection) {
         return;
       }
