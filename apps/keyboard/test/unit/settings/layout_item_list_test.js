@@ -13,6 +13,7 @@ suite('LayoutItemList', function() {
 
   var dbGetItemConfigDeferred;
   var dbSetItemDeferred;
+  var app;
 
   var fakeXhr;
 
@@ -38,8 +39,9 @@ suite('LayoutItemList', function() {
     this.sinon.stub(window, 'LayoutDictionaryList')
       .returns(layoutDictionaryListStub);
 
+    var PromiseStoragePrototype = PromiseStorage.prototype;
     promiseStorageStub =
-      this.sinon.stub(Object.create(PromiseStorage.prototype));
+      this.sinon.stub(Object.create(PromiseStoragePrototype));
     this.sinon.stub(window, 'PromiseStorage')
       .returns(promiseStorageStub);
 
@@ -62,8 +64,9 @@ suite('LayoutItemList', function() {
       requests.push(request);
     };
 
-    var app = {
-      closeLockManager: { stub: 'closeLockManager' }
+    app = {
+      closeLockManager: { stub: 'closeLockManager' },
+      preferencesStore: sinon.stub(Object.create(PromiseStoragePrototype))
     };
 
     list = new LayoutItemList(app);
@@ -210,5 +213,121 @@ suite('LayoutItemList', function() {
         throw (e || 'Should not reject.');
       })
       .then(done, done);
+  });
+
+  suite('DownloadPreference', function() {
+    suite('getCurrentState', function() {
+      teardown(function() {
+        delete navigator.mozMobileConnections;
+      });
+
+      test('not using data connection', function(done) {
+        navigator.mozMobileConnections = {
+          '0': { data: { connected: false } },
+          '1': { data: { connected: false } },
+          length: 2 };
+
+        list.downloadPreference.getCurrentState().then(function(val) {
+          assert.equal(val, list.downloadPreference.STATE_ALLOW);
+        }).then(done, done);
+      });
+
+      test('data connection not avail', function(done) {
+        list.downloadPreference.getCurrentState().then(function(val) {
+          assert.equal(val, list.downloadPreference.STATE_ALLOW);
+        }).then(done, done);
+      });
+
+      suite('w/ data connection', function() {
+        var getItemDeferred;
+
+        setup(function() {
+          navigator.mozMobileConnections = {
+            '0': { data: { connected: true } },
+            '1': { data: { connected: false } },
+            length: 2 };
+
+          getItemDeferred = new Deferred();
+          app.preferencesStore.getItem.returns(getItemDeferred.promise);
+        });
+
+        test('preferences unset', function(done) {
+          getItemDeferred.resolve(undefined);
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_PROMPT);
+          }).then(done, done);
+        });
+
+        test('preferences set to always allow', function(done) {
+          getItemDeferred.resolve(true);
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_ALLOW);
+          }).then(done, done);
+        });
+
+        test('preferences set to always deny', function(done) {
+          getItemDeferred.resolve(false);
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_DENY);
+          }).then(done, done);
+        });
+
+        test('preferences store rejects', function(done) {
+          getItemDeferred.reject('Mocked Error');
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_PROMPT);
+          }).then(done, done);
+        });
+      });
+    });
+
+    suite('setDataConnectionDownloadState', function() {
+      var p;
+      setup(function() {
+        p = { stub: 'promise' };
+
+        app.preferencesStore.deleteItem.returns(p);
+        app.preferencesStore.setItem.returns(p);
+      });
+
+      test('set to prompt', function() {
+        var r = list.downloadPreference.setDataConnectionDownloadState(
+          list.downloadPreference.STATE_PROMPT);
+
+        assert.isTrue(app.preferencesStore.deleteItem.calledWith(
+          'download.prompt-on-data-connection'));
+        assert.equal(r, p);
+      });
+
+      test('set to allow', function() {
+        var r = list.downloadPreference.setDataConnectionDownloadState(
+          list.downloadPreference.STATE_ALLOW);
+
+        assert.isTrue(app.preferencesStore.setItem.calledWith(
+          'download.prompt-on-data-connection', true));
+        assert.equal(r, p);
+      });
+
+      test('set to deny', function() {
+        var r = list.downloadPreference.setDataConnectionDownloadState(
+          list.downloadPreference.STATE_DENY);
+
+        assert.isTrue(app.preferencesStore.setItem.calledWith(
+          'download.prompt-on-data-connection', false));
+        assert.equal(r, p);
+      });
+    });
   });
 });

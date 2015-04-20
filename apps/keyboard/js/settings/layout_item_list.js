@@ -4,9 +4,94 @@
 
 (function(exports) {
 
+var DownloadPreference = function(app) {
+  this.app = app;
+};
+
+DownloadPreference.prototype.STATE_PROMPT = 0;
+DownloadPreference.prototype.STATE_ALLOW = 1;
+DownloadPreference.prototype.STATE_DENY = 2;
+
+DownloadPreference.prototype.PREF_DOWNLOAD_ON_DATA_CONNTECION =
+  'download.prompt-on-data-connection';
+
+DownloadPreference.prototype.start = function() {
+  // noop
+};
+
+DownloadPreference.prototype.stop = function() {
+  // noop
+};
+
+DownloadPreference.prototype.getCurrentState = function() {
+  if (!this._isUsingDataConnection()) {
+    return Promise.resolve(this.STATE_ALLOW);
+  }
+
+  return this.app.preferencesStore
+    .getItem(this.PREF_DOWNLOAD_ON_DATA_CONNTECION)
+    .then(function(val) {
+      switch (val) {
+        case undefined:
+          return this.STATE_PROMPT;
+
+        case true:
+          return this.STATE_ALLOW;
+
+        case false:
+          return this.STATE_DENY;
+
+        default:
+          console.error('DownloadPreference: Unknown preference.', val);
+          return this.STATE_PROMPT;
+      }
+    }.bind(this), function(e) {
+      e && console.error(e);
+
+      return this.STATE_PROMPT;
+    }.bind(this));
+};
+
+DownloadPreference.prototype.setDataConnectionDownloadState = function(state) {
+  switch (state) {
+    case this.STATE_PROMPT:
+      return this.app.preferencesStore
+        .deleteItem(this.PREF_DOWNLOAD_ON_DATA_CONNTECION);
+    case this.STATE_ALLOW:
+      return this.app.preferencesStore
+        .setItem(this.PREF_DOWNLOAD_ON_DATA_CONNTECION, true);
+    case this.STATE_DENY:
+      return this.app.preferencesStore
+        .setItem(this.PREF_DOWNLOAD_ON_DATA_CONNTECION, false);
+    default:
+      throw new Error('DownloadPreference: Unknown state.');
+  }
+};
+
+DownloadPreference.prototype._isUsingDataConnection = function() {
+  if (!navigator.mozMobileConnections) {
+    console.warn('DownloadPreference: mozMobileConnections is not available. ' +
+      'Assuming no data charges.');
+
+    return false;
+  }
+
+  // The assumption here is that if any data connection is in connected state,
+  // the connection will be the default route and we will be consuming data.
+  var mobileDataConnected =
+    Array.prototype.some.call(navigator.mozMobileConnections, function(conn) {
+      return (conn.data && conn.data.connected);
+    });
+
+  return mobileDataConnected;
+};
+
 var LayoutItemList = function(app) {
+  this.app = app;
+
   this.closeLockManager = app.closeLockManager;
   this.dictionaryList = null;
+  this.downloadPreference = null;
   this.dbStore = null;
   this._layoutConfigQueue = null;
 
@@ -30,6 +115,9 @@ LayoutItemList.prototype.start = function() {
 
   this.dictionaryList = new LayoutDictionaryList(this);
   this.dictionaryList.start();
+
+  this.downloadPreference = new DownloadPreference(this.app);
+  this.downloadPreference.start();
 
   this.layoutItems = new Map();
 
@@ -62,6 +150,9 @@ LayoutItemList.prototype.stop = function() {
 
   this.dictionaryList.stop();
   this.dictionaryList = null;
+
+  this.downloadPreference.stop();
+  this.downloadPreference = null;
 
   this._layoutConfigQueue = null;
   this._installedLayoutListSet = null;
@@ -171,5 +262,6 @@ LayoutItemList.prototype._createLayoutItemsFromLayouts = function(layouts) {
 };
 
 exports.LayoutItemList = LayoutItemList;
+exports.DownloadPreference = DownloadPreference;
 
 }(window));
