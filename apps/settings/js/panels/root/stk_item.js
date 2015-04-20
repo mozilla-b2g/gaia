@@ -130,6 +130,10 @@ define(function(require) {
         function icc_getApplications(event) {
           var json = event.settingValue;
           var menu = json && JSON.parse(json);
+          window.DUMP('STK Settings.currentPanel ' +  Settings.currentPanel);
+          if (Settings && Settings.currentPanel === '#icc') {
+             Settings.currentPanel = '#root';
+          }
           showStkEntries(menu);
         });
 
@@ -154,6 +158,6 @@ define(function(require) {
   };
 
   return function ctor_stk_item(elements) {
-    return new STKItem(elements); 
+    return new STKItem(elements);
   };
 });
