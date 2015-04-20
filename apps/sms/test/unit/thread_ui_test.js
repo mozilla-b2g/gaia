@@ -6775,7 +6775,7 @@ suite('thread_ui.js >', function() {
       });
 
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-      this.sinon.stub(ThreadListUI, 'mark');
+      this.sinon.stub(ThreadListUI, 'markReadUnread');
       this.sinon.stub(MessageManager, 'markThreadRead');
       this.sinon.stub(ThreadUI, 'renderMessages');
       this.sinon.stub(Threads, 'get').returns({});
@@ -6861,12 +6861,18 @@ suite('thread_ui.js >', function() {
           .returns(true);
       });
 
-      test('we mark messages as read', function() {
+      test('mark thread as read when ThreadList is loaded', function(done) {
         ThreadUI.afterEnter(transitionArgs);
 
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
-        this.sinon.clock.tick();
-        sinon.assert.calledWith(MessageManager.markThreadRead, threadId);
+        sinon.assert.notCalled(ThreadListUI.markReadUnread);
+
+        ThreadListUI.whenReady().then(() => {
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            ThreadListUI.markReadUnread, [threadId], /* isRead */ true
+          );
+        }).then(done, done);
       });
 
       test('renders messages', function() {
@@ -6969,8 +6975,16 @@ suite('thread_ui.js >', function() {
         sinon.assert.notCalled(ThreadUI.renderMessages);
       });
 
-      test('calls ThreadListUI.mark', function() {
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      test('calls ThreadListUI.markReadUnread', function(done) {
+        sinon.assert.notCalled(ThreadListUI.markReadUnread);
+
+        ThreadListUI.whenReady().then(() => {
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            ThreadListUI.markReadUnread, [threadId], /* isRead */ true
+          );
+        }).then(done, done);
       });
 
       test('does not recall draft', function() {
@@ -7005,8 +7019,16 @@ suite('thread_ui.js >', function() {
         sinon.assert.notCalled(ThreadUI.renderMessages);
       });
 
-      test('calls ThreadListUI.mark', function() {
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      test('calls ThreadListUI.markReadUnread', function(done) {
+        sinon.assert.notCalled(ThreadListUI.markReadUnread);
+
+        ThreadListUI.whenReady().then(() => {
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            ThreadListUI.markReadUnread, [threadId], /* isRead */ true
+          );
+        }).then(done, done);
       });
 
       test('does not recall draft', function() {
@@ -7040,8 +7062,16 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWith(ThreadUI.renderMessages, threadId);
       });
 
-      test('calls ThreadListUI.mark', function() {
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      test('calls ThreadListUI.markReadUnread', function(done) {
+        sinon.assert.notCalled(ThreadListUI.markReadUnread);
+
+        ThreadListUI.whenReady().then(() => {
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            ThreadListUI.markReadUnread, [threadId], /* isRead */ true
+          );
+        }).then(done, done);
       });
 
       test('removes "new" class from messages container', function() {
