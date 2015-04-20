@@ -512,7 +512,7 @@ section ul.operate-certificate {
 #cb-passcode-def {
   display: block;
   border: 0;
-  padding-left: 3.5rem;
+  -moz-padding-start: 3.5rem;
   line-height: 2rem;
   font-size: 1.4rem;
   font-weight: lighter;
@@ -527,7 +527,7 @@ section ul.operate-certificate {
   clear: both;
   display: none;
   height: 4.2rem;
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   color: red;
   font-size: 1.5rem;
   line-height: 4.2rem;
