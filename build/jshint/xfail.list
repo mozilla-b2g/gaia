@@ -33,8 +33,6 @@ apps/fl/js/download.js
 apps/fl/js/pick.js
 apps/fl/js/utils.js
 apps/fl/test/unit/binary_string_view_test.js
-apps/fm/js/fm.js
-apps/fm/test/unit/fm_test.js
 apps/ftu/js/wifi.js
 apps/ftu/test/unit/data_mobile_test.js
 apps/ftu/test/unit/mock_data_mobile.js
