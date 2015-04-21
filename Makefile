@@ -807,7 +807,7 @@ test-perf:
 
 .PHONY: raptor
 raptor: node_modules
-	RAPTOR=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+	RAPTOR=1 GAIA_OPTIMIZE=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
 
 .PHONY: tests
 tests: app offline
