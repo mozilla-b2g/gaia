@@ -2,7 +2,7 @@
 'use strict';
 
 var assert = require('chai').assert;
-
+var ThreadGenerator = require('./generators/thread');
 var Messages = require('./lib/messages.js');
 var Storage = require('./lib/storage.js');
 
@@ -41,33 +41,12 @@ marionette('Conversation Panel Tests', function() {
     suite('Long SMS thread', function() {
       var thread;
       setup(function() {
-        thread = {
-          id: 1,
-          body: 'Thread message content',
-          lastMessageType: 'sms',
-          timestamp: Date.now(),
-          messages: [],
-          participants: ['+123']
-        };
-
-        var uniqueIdCounter;
-        for (uniqueIdCounter = 1; uniqueIdCounter < 50; uniqueIdCounter++) {
-          thread.messages.push({
-            id: uniqueIdCounter,
-            iccId: null,
-            threadId: thread.id,
-            sender: null,
-            receiver: 'TestMan',
-            type: 'sms',
-            delivery: 'sent',
-            body: 'Thread message content ' + uniqueIdCounter,
-            timestamp: Date.now()
-          });
-        }
-
+        thread = ThreadGenerator.generate({
+          numberOfMessages: 50
+        });
         messagesApp.launch();
 
-        storage.setMessagesStorage([thread], uniqueIdCounter);
+        storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
         // Set empty contacts store.
         storage.setContactsStorage();
       });
@@ -151,44 +130,22 @@ marionette('Conversation Panel Tests', function() {
   });
 
   suite('Action links in messages', function() {
-    var messages;
+    var threads;
     setup(function() {
-      var uniqueIdCounter = 0;
+      threads = [];
+      threads.push(ThreadGenerator.generate({
+        participants: ['+100000'],
+        body: 'Use these numbers: +200000, +300000 or +400000'
+      }));
 
-      messages = [{
-        id: ++uniqueIdCounter,
-        iccId: null,
-        threadId: 1,
-        sender: null,
-        receiver: '+100000',
-        type: 'sms',
-        delivery: 'sent',
-        body: 'Use these numbers: +200000, +300000 or +400000',
-        timestamp: Date.now()
-      }, {
-        id: ++uniqueIdCounter,
-        iccId: null,
-        threadId: 2,
-        sender: null,
-        receiver: '+400000',
-        type: 'sms',
-        delivery: 'sent',
-        body: 'Call +400000 or send message to mozilla@mozilla.org',
-        timestamp: Date.now()
-      }];
+      threads.push(ThreadGenerator.generate({
+        participants: ['+400000'],
+        body: 'Call +400000 or send message to mozilla@mozilla.org'
+      }));
 
       messagesApp.launch();
 
-      storage.setMessagesStorage(messages.map(function(message) {
-        return {
-          id: message.threadId,
-          body: message.body,
-          lastMessageType: message.type,
-          timestamp: message.timestamp,
-          messages: [message],
-          participants: [message.receiver]
-        };
-      }), uniqueIdCounter);
+      storage.setMessagesStorage(threads, ThreadGenerator.uniqueMessageId);
 
       storage.setContactsStorage([{
         name: ['Alan Turing'],
@@ -261,7 +218,7 @@ marionette('Conversation Panel Tests', function() {
       var message = messagesApp.Conversation.message;
       assert.equal(
         messagesApp.Conversation.getMessageContent(message).text(),
-        messages[1].body
+        threads[1].messages[0].body
       );
 
       assertIsFocused(

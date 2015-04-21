@@ -1,6 +1,10 @@
+'use strict';
+
 /* global module */
+var InboxAccessor = require('./views/inbox/accessors');
+var ConversationAccessor = require('./views/conversation/accessors');
+
 (function(module) {
-  'use strict';
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
   var MANIFEST_URL= ORIGIN_URL + '/manifest.webapp';
@@ -53,25 +57,10 @@
       messageConvertNotice: '#messages-convert-notice'
     },
 
-    Conversation: {
-      main: '#thread-messages',
-      message: '.message .bubble',
-      headerTitle: '#messages-header-text',
-      container: '#messages-container'
-    },
-
     Message: {
       content: '.message-content > p:first-child',
       vcardAttachment: '[data-attachment-type="vcard"]',
       fileName: '.file-name'
-    },
-
-    Inbox: {
-      main: '#thread-list',
-      firstConversation: '.threadlist-item',
-      smsConversation: '.threadlist-item[data-last-message-type="sms"]',
-      mmsConversation: '.threadlist-item[data-last-message-type="mms"]',
-      navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
     Report: {
@@ -158,69 +147,9 @@
           }
         },
 
-        Conversation: {
-          get message() {
-            return client.helper.waitForElement(SELECTORS.Conversation.message);
-          },
+        Conversation: new ConversationAccessor(client),
 
-          get headerTitle() {
-            return client.helper.waitForElement(
-              SELECTORS.Conversation.headerTitle
-            );
-          },
-
-          getMessageContent: function(message) {
-            return client.helper.waitForElement(
-              message.findElement(SELECTORS.Message.content)
-            );
-          },
-
-          findMessage: function(id) {
-            return client.findElement('.message[data-message-id="' + id + '"]');
-          },
-
-          scrollUp: function() {
-            var conversationContainer = client.findElement(
-              SELECTORS.Conversation.container
-            );
-
-            actions.flick(conversationContainer, 50, 50, 50, 350).perform();
-          },
-
-          waitToAppear: function() {
-            return client.helper.waitForElement(SELECTORS.Conversation.main);
-          }
-        },
-
-        Inbox: {
-          get firstConversation() {
-            return client.helper.waitForElement(
-              SELECTORS.Inbox.firstConversation
-            );
-          },
-
-          get smsConversation() {
-            return client.helper.waitForElement(
-              SELECTORS.Inbox.smsConversation
-            );
-          },
-
-          get mmsConversation() {
-            return client.helper.waitForElement(
-              SELECTORS.Inbox.mmsConversation
-            );
-          },
-
-          waitToAppear: function() {
-            return client.helper.waitForElement(SELECTORS.Inbox.main);
-          },
-
-          navigateToComposer: function() {
-            client.helper.waitForElement(
-              SELECTORS.Inbox.navigateToComposerHeaderButton
-            ).tap();
-          }
-        },
+        Inbox: new InboxAccessor(client),
 
         Report: {
           get main() {

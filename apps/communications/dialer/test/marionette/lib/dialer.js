@@ -54,13 +54,24 @@ Dialer.prototype = {
    */
   launch: function() {
     this.client.apps.launch(Dialer.URL, 'dialer');
-    this.client.apps.switchToApp(Dialer.URL, 'dialer');
+    this.switchTo();
     this.client.helper.waitForElement('body');
   },
 
   relaunch: function() {
     this.client.apps.close(Dialer.URL, 'dialer');
     this.launch();
+  },
+
+  switchTo: function() {
+    this.client.switchToFrame();
+    // switchToApp already waits for the app to be displayed
+    this.client.apps.switchToApp(Dialer.URL, 'dialer');
+  },
+
+  get phoneNumber() {
+    return this.client.helper.waitForElement(Dialer.Selectors.phoneNumber)
+                             .getAttribute('value');
   }
 };
 
