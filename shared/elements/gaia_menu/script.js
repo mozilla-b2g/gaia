@@ -28,8 +28,9 @@ window.GaiaMenu = (function(win) {
   };
 
   proto.localize = function() {
-    this.shadowRoot.querySelector('button').setAttribute('data-l10n-id' ,
-      'gaia-menu-cancel');
+    navigator.mozL10n.formatValue('gaia-menu-cancel').then(value => {
+      this.shadowRoot.querySelector('button').textContent = value;
+    });
   };
 
   proto.show = function() {
