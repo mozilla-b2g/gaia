@@ -3,7 +3,7 @@
 
 var assert = require('chai').assert;
 
-var CostControl = require('./lib/costcontrol.js');
+var CostControl = require('../lib/costcontrol.js');
 
 marionette('First Time Experience View', function() {
   var client = marionette.client({
@@ -22,13 +22,13 @@ marionette('First Time Experience View', function() {
     costControlApp = CostControl.create(client);
 
     client.contentScript.inject(
-      __dirname + '/mocks/navigator_moz_icc_manager.js'
+      __dirname + '/../mocks/navigator_moz_icc_manager.js'
     );
     client.contentScript.inject(
-      __dirname + '/mocks/navigator_moz_mobile_connections.js'
+      __dirname + '/../mocks/navigator_moz_mobile_connections.js'
     );
     client.contentScript.inject(
-      __dirname + '/mocks/navigator_moz_network_stats.js'
+      __dirname + '/../mocks/navigator_moz_network_stats.js'
     );
   });
 
@@ -64,7 +64,7 @@ marionette('First Time Experience View', function() {
   suite('Pre-configured SIM flow', function() {
     setup(function() {
       // Make current SIM as pre-configured
-      client.contentScript.inject(__dirname + '/mocks/configure_icc.js');
+      client.contentScript.inject(__dirname + '/../mocks/configure_icc.js');
       costControlApp.launch();
     });
 
