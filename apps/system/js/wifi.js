@@ -203,7 +203,7 @@ var Wifi = {
     var lock = SettingsListener.getSettingsLock();
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
-    if (!ScreenManager.screenEnabled && !battery.charging) {
+    if (!Service.query('screenEnabled') && !battery.charging) {
       if (!this.wifiEnabled && this._wakeLockManager.isHeld) {
         lock.set({ 'wifi.enabled': true });
         window.addEventListener('wifi-enabled', function() {

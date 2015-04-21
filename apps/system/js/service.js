@@ -235,14 +235,6 @@
     },
 
     /**
-     * XXX: applications should register a service
-     * for ready check by Service.register('ready', applications).
-     */
-    get applicationReady() {
-      return window.applications && window.applications.ready;
-    },
-
-    /**
      * Record the start time of the system for later debugging usage.
      * @access private
      * @type {Number}

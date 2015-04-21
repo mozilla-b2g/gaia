@@ -33,8 +33,6 @@
     'launchapp',
     'appcreated',
     'appterminated',
-    'ftuskip',
-    'ftuopen',
     'appopened',
     'apprequestopen',
     'apprequestclose',
@@ -411,7 +409,7 @@
       }
 
       this.service.request('registerHierarchy', this);
-      this.loadWhenIdle([
+      return this.loadWhenIdle([
         'StackManager',
         'SheetsTransition',
         'EdgeSwipeDetector',
@@ -553,20 +551,6 @@
 
     '_handle_reset-orientation': function() {
       this._activeApp && this._activeApp.setOrientation();
-    },
-
-    // XXX: workaround ftu might be killed during test.
-    _handle_ftuopen: function() {
-      this.service.query('getHomescreen', true);
-    },
-
-    _handle_ftuskip: function() {
-      if (this._activeApp && !this._activeApp.isHomescreen) {
-        return;
-      }
-      if (!this.service.query('locked')) {
-        this.display();
-      }
     },
 
     _handle_appopening: function(evt) {

@@ -14,7 +14,9 @@
     'homescreen.manifestURL',
     'deviceinfo.previous_os',
     'deviceinfo.os',
-    'lockscreen.enabled'
+    'lockscreen.enabled',
+    'wallpaper.image',
+    'wallpaper.image.valid'
   ];
   Launcher.STATES = [
     'justUpgraded'
@@ -31,11 +33,16 @@
         this.readSetting('ftu.manifestURL'),
         this.readSetting('deviceinfo.os'),
         this.readSetting('deviceinfo.previous_os'),
-        this.readSetting('lockscreen.enabled')
+        this.readSetting('lockscreen.enabled'),
+        this.readSetting('wallpaper.image'),
+        this.readSetting('wallpaper.image.valid')
       ]).then(function(results) {
         var [ftuEnabled, homescreenManifestURL, ftuManifestURL,
-             osVersion, previousOsVersion, lockscreenEnabled] = results;
+             osVersion, previousOsVersion, lockscreenEnabled,
+             wallpaper, wallpaperValid] = results;
         this.lockscreenEnabled = lockscreenEnabled;
+        this.wallpaper = wallpaper;
+        this.wallpaperValid = wallpaperValid;
         this.debug('Ftu enabled = ' + ftuEnabled +
           '; ftuManifestURL = ' + ftuManifestURL +
           '; osVersion = ' + osVersion +
@@ -44,11 +51,13 @@
           '; lockscreenEnabled = ' + lockscreenEnabled);
         if (this.checkUpgrading(osVersion, previousOsVersion)) {
           this.debug('upgrading boot');
-          this.launchFtuThenHomescreen(ftuManifestURL, homescreenManifestURL);
+          this.launchFtuThenHomescreen(ftuManifestURL,
+            homescreenManifestURL);
         } else {
           if (ftuEnabled !== false && ftuManifestURL) {
             this.debug('clean boot');
-            this.launchFtuThenHomescreen(ftuManifestURL, homescreenManifestURL);
+            this.launchFtuThenHomescreen(ftuManifestURL,
+              homescreenManifestURL);
           } else {
             this.debug('normal boot');
             if (lockscreenEnabled) {
@@ -73,37 +82,56 @@
       return isUpgrade;
     },
     launchHomescreenAndStandbyLockscreen: function(homescreenManifestURL) {
-      // We still need to tell FtuLauncher to skip to process some tasks.
-      this.service.request('FtuLauncher:skip');
-      this.service.request('HomescreenLauncher:launch',
-        homescreenManifestURL).then(() => {
-          this.service.request('LogoManager:animatePoweronLogo');
-        }).catch(function(err) {
-          console.error(err);
-        });
-      this.service.request('LockScreenLauncher:standby');
+      Promise.all([
+        // We still need to tell FtuLauncher to skip to process some tasks.
+        this.service.request('FtuLauncher:skip'),
+        this.service.request('WallpaperManager:initializeWallpaper',
+          this.wallpaper, this.wallpaperValid),
+        this.service.request('LockScreenLauncher:standby'),
+        this.service.request('HomescreenLauncher:launch',
+          homescreenManifestURL, true).then(() => {
+            this.service.request('LogoManager:animatePoweronLogo');
+            this.scheduler.release();
+          })
+      ]).catch((err) => {
+        console.error(err);
+      });
     },
     launchLockscreenThenHomescreen: function(homescreenManifestURL) {
-      // We still need to tell FtuLauncher to skip to process some tasks.
-      this.service.request('FtuLauncher:skip');
-      this.service.request('LockScreenLauncher:launch').then(() => {
-        this.service.request('LogoManager:animatePoweronLogo');
-        this.service.request('HomescreenLauncher:launch',
-          homescreenManifestURL);
-      }).catch(function(err) {
+      Promise.all([
+        // We still need to tell FtuLauncher to skip to process some tasks.
+        this.service.request('FtuLauncher:skip'),
+        this.service.request('WallpaperManager:initializeWallpaper',
+          this.wallpaper, this.wallpaperValid).then(() => {
+          return this.service.request('LockScreenLauncher:launch');
+        }).then(() => {
+          this.service.request('LogoManager:animatePoweronLogo');
+          this.service.request('HomescreenLauncher:launch',
+            homescreenManifestURL);
+          this.scheduler.release();
+        })
+      ]).catch((err) => {
         console.error(err);
       });
     },
     launchFtuThenHomescreen: function(ftuManifestURL, homescreenManifestURL) {
-      this.service.request('FtuLauncher:launch',
-        ftuManifestURL).then(() => {
-          this.service.request('HomescreenLauncher:launch',
-            homescreenManifestURL);
-          this.service.request('LogoManager:animatePoweronLogo');
-        });
-
-      this.service.request('stepReady', 'done').then(() => {
-        this.service.request('LockScreenLauncher:standby');
+      Promise.all([
+        this.service.request('FtuLauncher:launch',
+          ftuManifestURL).then(() => {
+            this.service.request('HomescreenLauncher:launch',
+              homescreenManifestURL);
+            this.service.request('LogoManager:animatePoweronLogo');
+            this.scheduler.release();
+          }).catch(function(err) {
+            console.error(err);
+          }),
+        this.service.request('WallpaperManager:initializeWallpaper',
+          this.wallpaper, this.wallpaperValid),
+        this.service.request('stepReady', 'done').then(() => {
+          this.service.request('LockScreenLauncher:standby');
+        })
+      ]).catch((err) => {
+        console.error(err);
       });
     },
     readFtu: function() {

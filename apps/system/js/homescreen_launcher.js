@@ -75,16 +75,6 @@
     },
 
     /**
-     * Start process
-     * ![Homescreen launch process](http://i.imgur.com/JZ1ibkc.png)
-     *
-     * @memberOf HomescreenLauncher.prototype
-     */
-    _start: function hl_start() {
-      window.performance.mark('homescreenLauncherStart');
-    },
-
-    /**
      * Stop process
      *
      * @memberOf HomescreenLauncher.prototype
@@ -143,8 +133,10 @@
     /**
      * This service will be requested by Launcher.
      * @param  {String} manifestURL The manifest URL of homescreen
+     * @param  {Boolean} openOnStart If this is true,
+     *                               we will open the window right away
      */
-    launch: function(manifestURL) {
+    launch: function(manifestURL, openOnStart) {
       return new Promise((resolve) => {
         this._currentManifestURL = manifestURL;
         this.getHomescreen();
@@ -152,6 +144,7 @@
           this._instance.element.removeEventListener('_loaded', loaded);
           resolve();
         }.bind(this));
+        openOnStart && this._instance.open();
       });
     },
 
@@ -170,7 +163,6 @@
       }
       if (typeof this._instance == 'undefined') {
         this._instance = new window.HomescreenWindow(this._currentManifestURL);
-        window.performance.mark('launchHomescreen');
         return this._instance;
       } else {
         if (ensure) {

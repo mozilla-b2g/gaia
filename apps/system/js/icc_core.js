@@ -2,7 +2,7 @@
 'use strict';
 
 (function() {
-  // Responsible to load and init the sub system for mozApps.
+  // Responsible to load and init all modules for mozIccManager.
   var IccCore = function(icc, core) {
     this.core = core;
     this.icc = icc;

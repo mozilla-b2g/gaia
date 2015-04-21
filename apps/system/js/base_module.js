@@ -104,28 +104,13 @@
 
   var SubmoduleMixin = {
     loadWhenIdle: function(modules) {
-      return this.service.request('schedule', () => {
-        this.constructor.SUB_MODULES =
-          this.constructor.SUB_MODULES.concat(modules);
-        this._startSubModules();
+      return new Promise((resolve, reject) => {
+        this.service.request('schedule', () => {
+          this.constructor.SUB_MODULES =
+            this.constructor.SUB_MODULES.concat(modules);
+          this._startSubModules().then(resolve).catch(reject);
+        });
       });
-    },
-    // We could dynamically add and load new modules on demand.
-    loadWhenIdle2: function(modules, time) {
-      return new Promise(function(resolve) {
-        this.constructor.SUB_MODULES =
-          this.constructor.SUB_MODULES.concat(modules);
-        var self = this;
-        var idleObserver = {
-          time: time || 5,
-          onidle: function() {
-            navigator.removeIdleObserver(idleObserver);
-            self._startSubModules();
-            resolve();
-          }
-        };
-        navigator.addIdleObserver(idleObserver);
-      }.bind(this));
     },
     /**
      * Helper function to load and start the submodules defined in
@@ -134,7 +119,7 @@
     _startSubModules: function() {
       if (!this.constructor.SUB_MODULES ||
           this.constructor.SUB_MODULES.length === 0) {
-        return;
+        return Promise.resolve();
       }
 
       var submodules = this.constructor.SUB_MODULES.slice();
@@ -157,16 +142,20 @@
 
       this.debug('lazy loading submodules: ' +
         unloaded.concat());
-      BaseModule.lazyLoad(unloaded).then(function() {
-        this.debug('lazy loaded submodules: ' +
-          unloaded.concat());
-        unloaded.forEach(function(module) {
-          var moduleName = BaseModule.lowerCapital(module);
-          if (!this[moduleName]) {
-            this._initialSubModule(moduleName, module);
-          }
-        }, this);
-      }.bind(this));
+      return new Promise((resolve, reject) => {
+        BaseModule.lazyLoad(unloaded).then(() => {
+          var promises = [];
+          this.debug('lazy loaded submodules: ' +
+            unloaded.concat());
+          unloaded.forEach(function(module) {
+            var moduleName = BaseModule.lowerCapital(module);
+            if (!this[moduleName]) {
+              promises.push(this._initialSubModule(moduleName, module));
+            }
+          }, this);
+          Promise.all(promises).then(resolve).catch(reject);
+        });
+      });
     },
 
     _initialSubModule: function(moduleName, module) {
@@ -177,10 +166,13 @@
         // If there is a custom submodule loaded handler, call it.
         // Otherwise we will start the submodule right away.
         if (typeof(this['_' + moduleName + '_loaded']) == 'function') {
-          this['_' + moduleName + '_loaded']();
+          return this['_' + moduleName + '_loaded']();
         } else if (this.lifeCycleState !== 'stopped') {
-          this[moduleName].start && this[moduleName].start();
+          return this[moduleName].start && this[moduleName].start();
         }
+      } else {
+        // For the module which does not become class yet
+        return constructor && constructor.init && constructor.init();
       }
     },
 
@@ -282,7 +274,7 @@
           return;
         }
       } else {
-        console.log('no handle event pre found. skip');
+        this.debug('no handle event pre found. skip');
       }
       if (typeof(this['_handle_' + evt.type]) == 'function') {
         this.debug('handling ' + evt.type);
@@ -387,9 +379,8 @@
     if (constructor.STATES) {
       BaseModule.mixin(constructor.prototype, StateMixin);
     }
-    if (constructor.SUB_MODULES) {
-      BaseModule.mixin(constructor.prototype, SubmoduleMixin);
-    }
+    // Inject this anyway.
+    BaseModule.mixin(constructor.prototype, SubmoduleMixin);
     if (prototype) {
       BaseModule.mixin(constructor.prototype, prototype);
       if (prototype.name) {
@@ -617,38 +608,31 @@
      * @memberOf BaseModule.prototype
      */
     start: function() {
-      return new Promise(function(resolve, reject) {
-        if (this.lifeCycleState !== 'stopped') {
-          this.warn('already started');
-          reject();
-          return;
-        }
-        this.switchLifeCycle('starting', resolve, reject);
-        this.imports();
-      }.bind(this));
+      if (this.lifeCycleState !== 'stopped') {
+        this.warn('already started');
+        return Promise.reject();
+      }
+      this.switchLifeCycle('starting');
+      return this.imports();
     },
 
     __imported: function() {
       // Do nothing if we are stopped.
       if (this.lifeCycleState === 'stopped') {
         this.warn('already stopped');
-        return;
+        return Promise.resolve();
       }
-      // Parent module needs to know the events from the submodule.
-      this._subscribeEvents && this._subscribeEvents();
-      this._startSubModules && this._startSubModules();
-      var ret = this._start();
-      this._observeSettings && this._observeSettings();
-      this._registerServices && this._registerServices();
-      this._registerStates && this._registerStates();
-      
-      if (ret && ret.then) {
-        ret.then(function() {
-          this.switchLifeCycle('started');
-        }.bind(this));
-      } else {
+      this.debug('in imported');
+      return Promise.all([
+        // Parent module needs to know the events from the submodule.
+        this._subscribeEvents && this._subscribeEvents(),
+        this._startSubModules && this._startSubModules(),
+        this._start(),
+        this._observeSettings && this._observeSettings(),
+        this._registerServices && this._registerServices(),
+        this._registerStates && this._registerStates()]).then(() => {
         this.switchLifeCycle('started');
-      }
+      });
     },
 
     /**
@@ -681,22 +665,6 @@
       this.debug('life cycle state change: ' +
         this.lifeCycleState + ' -> ' + state);
       this.lifeCycleState = state;
-      switch (state) {
-        case 'starting':
-          this.launchingPromise = {
-            resolve: resolve,
-            reject: reject
-          };
-          break;
-        case 'started':
-          this.launchingPromise && this.launchingPromise.resolve();
-          break;
-        case 'stopped':
-        case 'stopping':
-          this.launchingPromise && this.launchingPromise.reject();
-          this.launchingPromise = {};
-          break;
-      }
       this.publish(state);
     },
 
@@ -704,14 +672,15 @@
       if (!this.constructor.IMPORTS ||
           typeof(this.constructor.IMPORTS) == 'undefined' ||
           this.constructor.IMPORTS.length === 0) {
-        this.__imported();
-        return;
+        return this.__imported();
       }
       this.debug(this.constructor.IMPORTS);
       this.debug('import loading.');
-        LazyLoader.load(this.constructor.IMPORTS, function() {
-          this.__imported();
-        }.bind(this));
+      return LazyLoader.load(this.constructor.IMPORTS)
+        .then(() => {
+          this.debug('imported..');
+          return this.__imported();
+        });
     }
   };
 

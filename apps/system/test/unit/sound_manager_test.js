@@ -1,7 +1,7 @@
 'use strict';
 
 /* global MocksHelper, MockL10n, SoundManager, MockSettingsListener, MockLock,
-          MockScreenManager, MockNavigatorSettings, MockasyncStorage,
+          MockNavigatorSettings, MockasyncStorage,
           MockCustomDialog, MockLazyLoader, MockService */
 
 requireApp('system/shared/test/unit/mocks/mock_service.js');
@@ -27,7 +27,6 @@ requireApp('system/js/sound_manager.js');
 var mocksForSoundManager = new MocksHelper([
   'asyncStorage',
   'CustomDialog',
-  'ScreenManager',
   'SettingsListener',
   'LazyLoader',
   'Service'
@@ -52,6 +51,7 @@ suite('system/sound manager', function() {
   }
 
   setup(function() {
+    MockService.mockQueryWith('screenEnabled', true);
     this.sinon.stub(MockService, 'request', function(action) {
       if (action === 'showCustomDialog') {
         MockCustomDialog.show(arguments[1], arguments[2],
@@ -300,7 +300,7 @@ suite('system/sound manager', function() {
       });
 
       test('handleVolumeKey: screen-off and channel none', function() {
-        MockScreenManager.screenEnabled = false;
+        MockService.mockQueryWith('screenEnabled', false);
         soundManager.currentChannel = 'none';
         window.dispatchEvent(new CustomEvent('volumeup'));
         checkVolume({
@@ -310,7 +310,6 @@ suite('system/sound manager', function() {
           'notification': 5,
           'telephony': 5
         });
-        MockScreenManager.screenEnabled = true;
       });
 
       test('handleVolumeKey: headset connected and channel-normal', function() {

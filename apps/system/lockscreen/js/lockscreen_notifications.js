@@ -1,8 +1,6 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
-/* global LockScreenNotificationBuilder */
+/* global LockScreenNotificationBuilder, LazyLoader */
 
 (function(exports) {
   /**
@@ -18,9 +16,12 @@
   function lsn_start(lockScreen, container){
     this._lockScreen = lockScreen;
     this.container = container;
-    this._lockScreenNotificationBuilder =
-      new LockScreenNotificationBuilder(this.container);
-    this._lockScreenNotificationBuilder.start();
+    LazyLoader.load(['lockscreen/js/lockscreen_notification_builder.js'])
+      .then(() => {
+        this._lockScreenNotificationBuilder =
+          new LockScreenNotificationBuilder(this.container);
+        this._lockScreenNotificationBuilder.start();
+      });
     this.arrow =
       document.getElementById('lockscreen-notification-arrow');
     // The 'scroll' event can't be forwarded via 'window'.

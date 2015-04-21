@@ -14,7 +14,7 @@
  */
 
 /* globals CustomEvent, MozActivity,
-           NfcUtils, NDEF, ScreenManager, BaseModule, NfcIcon,
+           NfcUtils, NDEF, BaseModule, NfcIcon,
            LazyLoader, Service */
 
 'use strict';
@@ -128,8 +128,9 @@
     },
 
     _handle_screenchange: function(evt) {
-      var nfcEvt = ScreenManager.screenEnabled && !Service.query('locked') ?
-                    'enable-polling' : 'disable-polling';
+      var nfcEvt = Service.query('screenEnabled') &&
+                  !Service.query('locked') ?
+                  'enable-polling' : 'disable-polling';
       this._doNfcStateTransition(nfcEvt);
     },
 

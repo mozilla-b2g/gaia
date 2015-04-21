@@ -93,10 +93,11 @@
 
     // We have new default ringtones in 2.0, so check if the version is upgraded
     // then execute the necessary migration.
-    Service.query('justUpgraded') && LazyLoader.load('js/tone_upgrader.js',
-      function() {
+    if (Service.query('justUpgraded')) {
+      LazyLoader.load('js/tone_upgrader.js').then(() => {
         toneUpgrader.perform('ringtone');
       });
+    }
 
     SettingsListener.observe('vibration.enabled', true, function(value) {
       this._shouldVibrate = !!value;

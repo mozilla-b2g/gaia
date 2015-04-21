@@ -1,4 +1,4 @@
-/* global NotificationScreen, SystemBanner, MozActivity */
+/* global NotificationScreen, SystemBanner, MozActivity, LazyLoader */
 /* jshint nonew: false */
 /**
  * DeviceStorageWatcher listens for nsIDOMDeviceStorage.onchange events
@@ -73,8 +73,10 @@
       } else {
         notification = msg + this._('unknown-free-space');
       }
-      var systemBanner = new SystemBanner();
-      systemBanner.show(notification);
+      LazyLoader.load(['js/system_banner.js']).then(() => {
+        var systemBanner = new SystemBanner();
+        systemBanner.show(notification);
+      });
 
       this._message.textContent = msg;
       this.updateAvailableSpace(space);
