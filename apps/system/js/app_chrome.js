@@ -450,6 +450,9 @@
   // Name has priority over the rest
   AppChrome.prototype.handleNameChanged =
     function ac_handleNameChanged(evt) {
+      if (this._fixedTitle) {
+        return;
+      }
       this.title.textContent = this.app.name;
       this._gotName = true;
     };
