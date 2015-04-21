@@ -39,13 +39,16 @@ suite('system/launcher', function() {
   });
 
   function setLaunchConfig(shouldFtu, ftuManifest,
-    osVersion, preOsVersion, homeManifest, enableLockscreen) {
+    osVersion, preOsVersion, homeManifest, enableLockscreen,
+    wallpaper, valid) {
     asyncStorage.mItems['ftu.enabled'] = shouldFtu;
     MockNavigatorSettings.mSettings['lockscreen.enabled'] = enableLockscreen;
     MockNavigatorSettings.mSettings['ftu.manifestURL'] = ftuManifest;
     MockNavigatorSettings.mSettings['homescreen.manifestURL'] = homeManifest;
     MockNavigatorSettings.mSettings['deviceinfo.os'] = osVersion;
     MockNavigatorSettings.mSettings['deviceinfo.previous_os'] = preOsVersion;
+    MockNavigatorSettings.mSettings['wallpaper.image'] = wallpaper;
+    MockNavigatorSettings.mSettings['wallpaper.image.valid'] = valid;
   }
 
   test('should read settings', function(done) {
@@ -92,7 +95,8 @@ suite('system/launcher', function() {
         setLaunchConfig(false, 'ftu', null, null, 'home', true);
         subject.start().then(function() {
           assert.isTrue(
-            subject.service.request.calledWith('LockScreenLauncher:launch'));
+            subject.service.request.calledWith(
+              'WallpaperManager:initializeWallpaper'));
           // Not able to test the promise chain here.
           done();
         });

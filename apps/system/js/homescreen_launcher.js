@@ -75,16 +75,6 @@
     },
 
     /**
-     * Start process
-     * ![Homescreen launch process](http://i.imgur.com/JZ1ibkc.png)
-     *
-     * @memberOf HomescreenLauncher.prototype
-     */
-    _start: function hl_start() {
-      window.performance.mark('homescreenLauncherStart');
-    },
-
-    /**
      * Stop process
      *
      * @memberOf HomescreenLauncher.prototype
@@ -170,7 +160,6 @@
       }
       if (typeof this._instance == 'undefined') {
         this._instance = new window.HomescreenWindow(this._currentManifestURL);
-        window.performance.mark('launchHomescreen');
         return this._instance;
       } else {
         if (ensure) {

@@ -66,6 +66,7 @@
       'shared/js/screen_layout.js'
     ],
     start: function() {
+      window.performance.mark('loadEnd');
       this._lazyLoad();
     },
     bootstrap: function() {
@@ -73,7 +74,6 @@
         return;
       }
       this._booted = true;
-      window.performance.mark('loadEnd');
       window.settingsCore = BaseModule.instantiate('SettingsCore');
       window.settingsCore.start();
       window.launcher = BaseModule.instantiate('Launcher');

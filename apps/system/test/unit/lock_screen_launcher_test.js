@@ -1,7 +1,6 @@
 /* global MocksHelper, BaseModule */
 'use strict';
 
-
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');

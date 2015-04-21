@@ -394,6 +394,7 @@
     //   and the lockscreen would initialize into empty wallpaper
     // so we need to see if there is already a wallpaper blob available
     if (Service.query('getWallpaper')) {
+      console.log('wallpaper found on init');
       var wallpaperURL = Service.query('getWallpaper');
       if (wallpaperURL) {
         this.updateBackground(wallpaperURL);
@@ -401,6 +402,8 @@
       }
     }
     window.addEventListener('wallpaperchange', (function(evt) {
+
+      console.log('wallpaper changed');
       this.updateBackground(evt.detail.url);
       this.overlay.classList.remove('uninit');
     }).bind(this));
