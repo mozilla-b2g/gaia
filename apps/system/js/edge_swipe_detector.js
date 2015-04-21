@@ -46,6 +46,8 @@
       window.addEventListener('installprompthidden', this);
       window.addEventListener('rocketbar-activating', this);
       window.addEventListener('rocketbar-deactivated', this);
+      window.addEventListener('shrinking-start', this);
+      window.addEventListener('shrinking-stop', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -127,6 +129,7 @@
           break;
         case 'homescreenopened':
         case 'rocketbar-activating':
+        case 'shrinking-start':
           this.lifecycleEnabled = false;
           break;
         case 'cardviewclosed':
@@ -155,6 +158,7 @@
         case 'updateprompthidden':
         case 'installprompthidden':
         case 'rocketbar-deactivated':
+        case 'shrinking-stop':
           if (Service.currentApp && !Service.currentApp.isHomescreen) {
             this.lifecycleEnabled = true;
           }
