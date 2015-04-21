@@ -1,3 +1,4 @@
+/* global MediaUtils,VideoUtils */
 /**
  * ThumbnailItem is view object for a single video data. It renders video with
  * the ThumbnailItem.Template. Before use it, The template should be
@@ -38,6 +39,8 @@
  * Global Variables:
  *   titleMaxLines: the maximum lines of title field. The default value is 2.
  */
+'use strict';
+
 function ThumbnailItem(videoData) {
   if (!videoData) {
     throw new Error('videoData should not be null or undefined.');

@@ -1,3 +1,18 @@
+/* global clearTimeout:true,currentVideo:true,storageState:true,
+  thumbnailList:true,LazyLoader:true,pendingPick:true,isPhone:true,
+  firstScanEnded:true,metadataQueue:true,MediaDB:true,isPortrait:true,
+  currentLayoutMode:true,playerShowing:true,processingQueue:true,
+  pendingUpdateTitleText:true,controlShowing:true,touchStartID:true,
+  selectedFileNames:true,selectedFileNamesToBlobs:true,dragging:true,
+  sliderRect:true,updateVideoControlSlider:true,setControlsVisibility:true,
+  controlFadeTimeout:true,handleSliderTouchMove:true */
+/* global handleScreenLayoutChange,HAVE_NOTHING,handleSliderKeypress,
+  hideOptionsView,MockLazyLoader,MockVideoPlayer,ThumbnailList,
+  toggleVideoControls,showOptionsView,ScreenLayout,MocksHelper,dom,
+  MockThumbnailGroup,MediaUtils,showInfoView,hideInfoView,
+  updateSelection,setButtonPaused,handleSliderTouchStart,MockMediaDB,
+  handleSliderTouchEnd,loadingChecker,MockL10n,VideoUtils,
+  updateDialog,LAYOUT_MODE,showPlayer,hidePlayer,MockThumbnailItem */
 'use strict';
 
 require('/shared/js/lazy_loader.js');

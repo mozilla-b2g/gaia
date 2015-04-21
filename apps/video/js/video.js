@@ -1,5 +1,12 @@
+/* global VideoLoadingChecker,stopParsingMetadata,startParsingMetadata,
+  ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
+  ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
+  MozActivity,MediaDB,metadataQueue,processingQueue,PerformanceTestingHelper,
+  LazyLoader,Dialogs,captureFrame,VideoStats,Template,noMoreWorkCallback:true */
+/* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
+  showThrobber,hideThrobber,$ */
 'use strict';
-
+ 
 // Layout Mode Transition:
 // list <-> selection
 // list <-> fullscreen player
@@ -36,6 +43,7 @@ ids.forEach(function createElementRef(name) {
 dom.player.mozAudioChannelType = 'content';
 
 function $(id) { return document.getElementById(id); }
+
 var playing = false;
 
 // if this is true then the video tag is showing
@@ -96,8 +104,6 @@ var pendingUpdateTitleText = false;
 
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
-
-var videoControlsAutoHidingMsOverride;
 
 // We have a single instance of the loading checker because it is used
 // across functions
@@ -280,7 +286,7 @@ function addEventListeners(selector, type, listener) {
   }
 }
 
-function toggleFullscreenPlayer(e) {
+function toggleFullscreenPlayer() {
   if (currentLayoutMode === LAYOUT_MODE.list) {
     switchLayout(LAYOUT_MODE.fullscreenPlayer);
     scheduleVideoControlsAutoHiding();
@@ -528,8 +534,9 @@ function updateSelection(videodata) {
   else {
     delete selectedFileNamesToBlobs[filename];
     var i = selectedFileNames.indexOf(filename);
-    if (i !== -1)
+    if (i !== -1) {
       selectedFileNames.splice(i, 1);
+    }
   }
 
   // Now update the UI based on the number of selected thumbnails
@@ -549,6 +556,15 @@ function launchCameraApp() {
       type: 'videos'
     }
   });
+
+  a.onerror = function() {
+    if (a.error.name === 'NO_PROVIDER') {
+      var msg = navigator.mozL10n.get('share-noprovider');
+      alert(msg);
+    } else {
+      console.warn('share activity error:', a.error.name);
+    }
+  };
 }
 
 // We need to call resetCurrentVideo before deleting a video. The variable
@@ -575,8 +591,9 @@ function resetCurrentVideo() {
 }
 
 function deleteSelectedItems() {
-  if (selectedFileNames.length === 0)
+  if (selectedFileNames.length === 0) {
     return;
+  }
   LazyLoader.load('shared/style/confirm.css', function() {
     document.body.classList.add('confirm-dialog');
     Dialogs.confirm({
@@ -629,8 +646,9 @@ function shareSelectedItems() {
 
 // function from gallery/js/gallery.js
 function share(blobs) {
-  if (blobs.length === 0)
+  if (blobs.length === 0) {
     return;
+  }
 
   var names = [], fullpaths = [];
 
@@ -664,7 +682,7 @@ function share(blobs) {
 
   a.onsuccess = restoreVideo;
 
-  a.onerror = function(e) {
+  a.onerror = function() {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
@@ -746,14 +764,6 @@ function thumbnailClickHandler(videodata) {
   }
 }
 
-function setPosterImage(dom, poster) {
-  if (dom.dataset.uri) {
-    URL.revokeObjectURL(dom.dataset.uri);
-  }
-  dom.dataset.uri = URL.createObjectURL(poster);
-  dom.style.backgroundImage = 'url(' + dom.dataset.uri + ')';
-}
-
 function showOverlay(id) {
   LazyLoader.load('shared/style/confirm.css', function() {
     currentOverlay = id;
@@ -764,9 +774,7 @@ function showOverlay(id) {
       return;
     }
 
-    var _ = navigator.mozL10n.get;
     var text, title;
-
     if (pendingPick || id === 'empty') {
       dom.overlayMenu.classList.remove('hidden');
       dom.overlayActionButton.classList.remove('hidden');
@@ -933,8 +941,9 @@ function handleSliderTouchStart(event) {
   sliderRect = dom.sliderWrapper.getBoundingClientRect();
 
   // We can't do anything if we don't know our duration
-  if (dom.player.duration === Infinity)
+  if (dom.player.duration === Infinity) {
     return;
+  }
 
   if (!isPausedWhileDragging) {
     dom.player.pause();
@@ -965,8 +974,9 @@ function setVideoUrl(player, video, callback) {
       var url = URL.createObjectURL(file);
       loadVideo(url);
 
-      if (pendingPick)
+      if (pendingPick) {
         currentVideoBlob = file;
+      }
     });
   } else if ('url' in video) {
     loadVideo(video.url);
@@ -1252,7 +1262,7 @@ function timeUpdated() {
   // a timeout a half a second after we'd expect an ended event.
   if (!endedTimer) {
     if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
-      var timeUntilEnd = (dom.player.duration - dom.player.currentTime + .5);
+      var timeUntilEnd = (dom.player.duration - dom.player.currentTime + 0.5);
       endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
     }
   } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
