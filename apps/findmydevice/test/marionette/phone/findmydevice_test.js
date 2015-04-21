@@ -12,7 +12,7 @@ marionette('Find My Device lock >', function() {
     },
     apps: {
       'test-findmydevice.gaiamobile.org':
-        __dirname + '/fixtures/test-findmydevice',
+        __dirname + '/../fixtures/test-findmydevice',
     }
   });
 
