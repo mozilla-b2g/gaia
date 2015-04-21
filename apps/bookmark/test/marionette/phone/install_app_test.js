@@ -2,15 +2,16 @@
 /* global __dirname, require, marionette, suiteSetup, suiteTeardown */
 /* global   setup, test */
 
-var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
-var Server = require('../../../../shared/test/integration/server');
+var Bookmark = require(
+  '../../../../../apps/system/test/marionette/lib/bookmark');
+var Server = require('../../../../../shared/test/integration/server');
 
 marionette('Bookmark -', function() {
   var client = marionette.client(require(__dirname + '/client_options.js'));
   var bookmark, server, system;
 
   suiteSetup(function(done) {
-    Server.create(__dirname + '/fixtures/', function(err, _server) {
+    Server.create(__dirname + '/../fixtures/', function(err, _server) {
       server = _server;
       done();
     });
