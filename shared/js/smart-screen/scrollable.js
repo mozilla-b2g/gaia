@@ -64,7 +64,7 @@
 
     this.listElem.addEventListener('transitionend', this);
 
-    this.scale = 1;
+    this.scale = param.scale || 1;
     this._setNodesPosition();
 
     var defaultItem = this.listElem.dataset.defaultItem;
@@ -77,6 +77,9 @@
     this.setScale();
 
     this.isSliding = false;
+    this.isHovering = false;
+    this.hoveringItem = null;
+    this.hoveredItem = null;
   }
 
   XScrollable.prototype = evt({
@@ -375,9 +378,14 @@
 
       var newFocus = this.getItemFromNode(this.nodes[newFocusIdx]);
       this.nodes = newNodes;
-      this._setNodesPosition();
-
-      this.spatialNavigator.focus(newFocus);
+      if (!this.isHovering) {
+        this._setNodesPosition();
+        this.spatialNavigator.focus(newFocus);
+      } else {
+        this.spatialNavigator.focusSilently(this.hoveredItem);
+        this.fire('hovering-node-removed', this.hoveringItem, this.hoveredItem);
+        this.unhoverSilently();
+      }
     },
 
     insertNodeBefore: function(newNode, startNode) {
@@ -429,6 +437,10 @@
       }
     },
 
+    setNodesPosition: function() {
+      this._setNodesPosition();
+    },
+
     _setNodePosition: function(idx) {
       this.nodes[idx].dataset.idx = idx;
       this.getNodeFromItem(this.nodes[idx]).style.transform =
@@ -457,6 +469,63 @@
       // TODO: handle cases that one of the swapped nodes is focused.
       // ... should we really need to handle this case?
       return true;
+    },
+
+    hover: function(item1, item2) {
+      var node1 = this.getNodeFromItem(item1);
+      var node2 = this.getNodeFromItem(item2);
+
+      if (!node1 || !node2) {
+        return false;
+      }
+
+      var idx1 = parseInt(node1.dataset.idx, 10);
+      var idx2 = parseInt(node2.dataset.idx, 10);
+
+      node1.style.transform = 'translateX(calc((100% + ' +
+                            this.spacing + 'rem) * ' + (idx1 + idx2) / 2 + '))';
+
+      node2.style.transform = 'translateX(calc((100% + ' +
+                            this.spacing + 'rem) * ' + (idx1 + idx2) / 2 + '))';
+
+      this.fire('hover', this);
+      this.isHovering = true;
+      item1.classList.add('hover');
+      item2.classList.add('hovered');
+      node1.classList.add('hover');
+      node2.classList.add('hovered');
+      this.hoveringItem = item1;
+      this.hoveredItem = item2;
+
+      return true;
+    },
+
+    unhover: function(shouldResetCardPositions) {
+      var node1 = this.getNodeFromItem(this.hoveringItem);
+      var node2 = this.getNodeFromItem(this.hoveredItem);
+
+      if (shouldResetCardPositions) {
+        this._setNodesPosition();
+      }
+
+      this.fire('unhover', this);
+      this.isHovering = false;
+      this.hoveringItem.classList.remove('hover');
+      this.hoveredItem.classList.remove('hovered');
+      node1.classList.remove('hover');
+      node2.classList.remove('hovered');
+      this.hoveringItem = null;
+      this.hoveredItem = null;
+    },
+
+    unhoverSilently: function() {
+      var node = this.getNodeFromItem(this.hoveredItem);
+
+      this.isHovering = false;
+      this.hoveredItem.classList.remove('hovered');
+      node.classList.remove('hovered');
+      this.hoveringItem = null;
+      this.hoveredItem = null;
     },
 
     getTargetItem: function(direction) {

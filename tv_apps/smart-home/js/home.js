@@ -72,9 +72,8 @@
                 frameElem: 'folder-list-frame',
                 listElem: 'folder-list',
                 itemClassName: 'app-button',
-                leftMargin: CARDLIST_LEFT_MARGIN});
-        that.folderScrollable.setScale(0.68);
-
+                leftMargin: CARDLIST_LEFT_MARGIN,
+                scale: 0.68});
 
         that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
         var collection = that.getNavigateElements();
@@ -91,7 +90,8 @@
         that.cardListElem.addEventListener('transitionend',
                                       that.determineFolderExpand.bind(that));
 
-        that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
+        that.cardManager.on('card-inserted',
+                          that.onCardInserted.bind(that, that.cardScrollable));
         that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
         that.cardManager.on('card-updated', that.onCardUpdated.bind(that));
 
@@ -99,9 +99,11 @@
         that.spatialNavigator.on('unfocus', that.handleUnfocus.bind(that));
         var handleCardFocusBound = that.handleCardFocus.bind(that);
         var handleCardUnfocusBound = that.handleCardUnfocus.bind(that);
+        var handleCardUnhoverBound = that.handleCardUnhover.bind(that);
         that.navigableScrollable.forEach(function(scrollable) {
           scrollable.on('focus', handleCardFocusBound);
           scrollable.on('unfocus', handleCardUnfocusBound);
+          scrollable.on('unhover', handleCardUnhoverBound);
           if (scrollable.isEmpty()) {
             that.spatialNavigator.remove(scrollable);
           }
@@ -116,8 +118,9 @@
         that.cardFilter.on('filterchanged', that.onFilterChanged.bind(that));
 
         that.edit = new Edit();
-        that.edit.init(
-                  that.spatialNavigator, that.cardManager, that.cardScrollable);
+        that.edit.init(that.spatialNavigator, that.cardManager,
+                       that.cardScrollable, that.folderScrollable);
+        that.edit.on('arrange', that.onArrangeMode.bind(that));
 
         // In some case, we can do action at keydown which is translated as
         // onEnter in home.js. But in button click case, we need to listen
@@ -140,6 +143,13 @@
         if (document.visibilityState === 'visible') {
           that.onVisibilityChange();
         }
+
+        cardList.forEach(function(card) {
+          if (card instanceof Folder) {
+            card.on('card-inserted',
+                        that.onCardInserted.bind(that, that.folderScrollable));
+          }
+        });
       });
     },
 
@@ -225,7 +235,12 @@
       }
     },
 
-    onCardInserted: function(card, idx) {
+    onCardInserted: function(scrollable, card, idx) {
+      if (card instanceof Folder) {
+        card.on('card-inserted',
+                this.onCardInserted.bind(this, this.folderScrollable));
+      }
+
       var newCardElem = this._createCardNode(card);
       var newCardButtonElem = newCardElem.firstElementChild;
       // Initial transition for new card
@@ -240,15 +255,15 @@
 
       // insert new card into cardScrollable
       this.isNavigable = false;
-      this.cardScrollable.on('slideEnd', function() {
+      scrollable.on('slideEnd', function() {
         newCardButtonElem.classList.remove('new-card');
-        if (this.cardScrollable.nodes.indexOf(newCardElem) ===
-            this.cardScrollable.nodes.length - 1) {
+        if (scrollable.nodes.indexOf(newCardElem) ===
+            scrollable.nodes.length - 1) {
           newCardButtonElem.classList.add('last-card');
         }
         this.isNavigable = true;
       }.bind(this));
-      this.cardScrollable.insertNodeBefore(newCardElem, idx);
+      scrollable.insertNodeBefore(newCardElem, idx);
     },
 
     onCardUpdated: function(card, idx) {
@@ -379,6 +394,12 @@
 
     onFilterChanged: function(name) {
       console.log('filter changed to: ' + name);
+    },
+
+    onArrangeMode: function() {
+      if (this._focusScrollable !== this.folderScrollable) {
+        this._cleanFolderScrollable();
+      }
     },
 
     _createCardNode: function(card) {
@@ -628,7 +649,8 @@
       itemElem.focus();
       nodeElem.classList.add('focused');
       if(scrollable === this.cardScrollable && this._folderCard &&
-                        itemElem.dataset.cardId !== this._folderCard.cardId) {
+                        itemElem.dataset.cardId !== this._folderCard.cardId &&
+                        !this.cardScrollable.isHovering) {
         this._cleanFolderScrollable();
       }
     },
@@ -640,26 +662,39 @@
       this.spatialNavigator.remove(this.folderScrollable);
       this.folderScrollable.clean();
       this._folderCard = undefined;
+      this.edit.isFolderReady = false;
     },
 
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
       nodeElem.classList.remove('focused');
     },
 
+    handleCardUnhover: function(scrollable, itemElem, nodeElem) {
+      this._cleanFolderScrollable();
+    },
+
     determineFolderExpand: function(evt) {
       // Folder expansion is performed on only when user moves cursor onto a
-      // folder and it finished its focus transition.
-      if (this.focusScrollable !== this.cardScrollable ||
-        // Listen to 'outline-width' rather than 'transform' here since it also
-        // applies to edit mode when user moves from panel button back to card.
-        evt.propertyName !== 'outline-width' ||
-        !evt.originalTarget.classList.contains('app-button') ||
-        !evt.originalTarget.classList.contains('focused') ||
-        (this._folderCard &&
-        this._folderCard.cardId === evt.originalTarget.dataset.cardId)) {
-        return;
+      // folder or hover a folder in edit mode and it finished its focus
+      // transition.
+      if (this.focusScrollable === this.cardScrollable &&
+        evt.originalTarget.classList.contains('app-button') &&
+        (!this._folderCard ||
+          this._folderCard.cardId !== evt.originalTarget.dataset.cardId) &&
+        (evt.originalTarget.classList.contains('focused') &&
+          // Listen to 'outline-width' rather than 'transform' here since it
+          // also applies to edit mode when user moves from panel button back
+          // to card.
+          evt.propertyName === 'outline-width' &&
+          document.getElementById('main-section').dataset.mode !== 'arrange' ||
+          // Folder needs to be expanded when hovered as well.
+          evt.originalTarget.classList.contains('hovered'))) {
+        this.buildFolderList(evt.originalTarget);
       }
-      var cardId = evt.originalTarget.dataset.cardId;
+    },
+
+    buildFolderList: function(target) {
+      var cardId = target.dataset.cardId;
       var card = this.cardManager.findCardFromCardList({cardId: cardId});
       if (!(card instanceof Folder)) {
         return;
@@ -682,10 +717,11 @@
             // right under folder card. Transition should be replaced by 'none'
             // since we don't need to show this process as animation to user.
             this.folderListElem.style.transition = 'none';
-            this.folderScrollable.setReferenceElement(evt.originalTarget);
+            this.folderScrollable.setReferenceElement(target);
             this.skipFolderBubble = Animations.doBubbleAnimation(
                           this.folderListElem, '.app-button', 100, function() {
                 this.spatialNavigator.add(this.folderScrollable);
+                this.edit.isFolderReady = true;
                 this.skipFolderBubble = undefined;
               }.bind(this));
 
@@ -696,6 +732,8 @@
           }
         }.bind(this);
         window.requestAnimationFrame(initFolderAnimation);
+      } else {
+        this.edit.isFolderReady = true;
       }
     },
 
