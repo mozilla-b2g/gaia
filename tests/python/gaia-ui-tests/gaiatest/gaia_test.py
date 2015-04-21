@@ -639,14 +639,26 @@ class GaiaDevice(object):
             };""", script_args=[n_times])
 
     def turn_screen_off(self):
-        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+        apps = GaiaApps(self.marionette)
+        self.marionette.switch_to_frame()
+        ret = self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+        apps.switch_to_displayed_app()
+        return ret
 
     def turn_screen_on(self):
-        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
+        apps = GaiaApps(self.marionette)
+        self.marionette.switch_to_frame()
+        ret = self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
+        apps.switch_to_displayed_app()
+        return ret
 
     @property
     def is_screen_enabled(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
+        apps = GaiaApps(self.marionette)
+        self.marionette.switch_to_frame()
+        ret = self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
+        apps.switch_to_displayed_app()
+        return ret
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
