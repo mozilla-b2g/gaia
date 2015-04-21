@@ -15,6 +15,7 @@ params:
 # All task definitions
 definitions:
   build_unit:
+
   build_integration:
     chunks: 10
 
