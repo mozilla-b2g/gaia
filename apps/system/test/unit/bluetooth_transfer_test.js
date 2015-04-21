@@ -18,12 +18,14 @@ require('/test/unit/mock_nfc_handover_manager.js');
 require('/test/unit/mock_activity.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksForBluetoothTransfer = new MocksHelper([
   'NotificationHelper',
   'MozActivity',
   'UtilityTray',
-  'Service'
+  'Service',
+  'LazyLoader'
 ]).init();
 
 suite('system/bluetooth_transfer', function() {

@@ -17,18 +17,18 @@
     name: 'BluetoothCore',
 
     _start: function() {
-      LazyLoader.load(['shared/js/mime_mapper.js']).then(function() {
+      return new Promise((resolve) => {
         // Init Bluetooth module by API version.
         if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
           'undefined') { // APIv1
           LazyLoader.load(['js/bluetooth.js'], function() {
             window.Bluetooth = Bluetooth1;
-            window.Bluetooth.start();
+            window.Bluetooth.start().then(resolve);
           });
         } else { // APIv2
           LazyLoader.load(['js/bluetooth_v2.js'], function() {
             window.Bluetooth = new Bluetooth2();
-            window.Bluetooth.start();
+            window.Bluetooth.start().then(resolve);
           });
         }
       });

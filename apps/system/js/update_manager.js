@@ -174,9 +174,11 @@ var UpdateManager = {
     var _ = navigator.mozL10n.get;
     var self = this;
     this._errorTimeout = setTimeout(function waitForMore() {
-      var systemBanner = new SystemBanner();
-      systemBanner.show(_('downloadError'));
-      self._errorTimeout = null;
+      LazyLoader.load(['js/system_banner.js']).then(function() {
+        var systemBanner = new SystemBanner();
+        systemBanner.show(_('downloadError'));
+        self._errorTimeout = null;
+      }.bind(this));
     }, this.NOTIFICATION_BUFFERING_TIMEOUT);
   },
 

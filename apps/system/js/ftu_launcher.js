@@ -20,19 +20,18 @@
   FtuLauncher.STATES = [
     'isFtuUpgrading',
     'isFtuRunning',
-    'getFtuOrigin'
+    'getFtuOrigin',
+    'isFinished'
   ];
   FtuLauncher.SERVICES = [
     'stepReady',
     'skip',
     'launch'
   ];
-  FtuLauncher.SUB_MODULES = [
-    'NewsletterManager'
-  ];
   FtuLauncher.SETTINGS = [
     'ftu.manifestURL'
   ];
+  FtuLauncher.SUB_MODULES = [];
   BaseModule.create(FtuLauncher, {
     name: 'FtuLauncher',
     DEBUG: false,
@@ -104,6 +103,10 @@
         }
       }, this);
       this._storedStepRequest = remainingRequest;
+    },
+
+    isFinished: function() {
+      return this._done || this._skipped;
     },
 
     isStepFinished: function(step) {

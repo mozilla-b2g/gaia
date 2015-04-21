@@ -1,4 +1,4 @@
-/* global BaseModule, ScreenManager, LazyLoader, RemoteDebugger,
+/* global BaseModule, LazyLoader, RemoteDebugger,
           DeveloperHud */
 'use strict';
 
@@ -10,9 +10,6 @@
    */
   var Core = function() {
   };
-  Core.IMPORTS = [
-    'js/media_playback.js'
-  ];
 
   Core.SUB_MODULES = [
     'SleepMenu',
@@ -23,6 +20,7 @@
     'WallpaperManager',
     'LayoutManager',
     'SoftwareButtonManager',
+    'ScreenManager',
     'AppCore'
   ];
 
@@ -54,7 +52,6 @@
     },
 
     _start: function() {
-      ScreenManager && ScreenManager.turnScreenOn();
       // We need to be sure to get the focus in order to wake up the screen
       // if the phone goes to sleep before any user interaction.
       // Apparently it works because no other window
@@ -70,79 +67,84 @@
         type: 'system-message-listener-ready'
       }, true);
 
-      this.loadWhenIdle([
-        'CameraTrigger',
-        'NotificationScreen',
-        'AirplaneMode',
-        'NotificationsSystemMessage',
-        'Accessibility',
-        'AlarmMonitor',
-        'DebuggingMonitor',
-        'TimeCore',
-        'GeolocationCore',
-        'TetheringMonitor',
-        'UsbCore',
-        'TextSelectionDialog',
-        'ExternalStorageMonitor',
-        'DeviceStorageWatcher',
-        'AppUsageMetrics',
-        'CellBroadcastSystem',
-        // This should be loaded by MobileConnectionCore.
-        // However, the integration test is testing this on desktop b2g
-        // which has no navigator.mozMobileConnections.
-        'CpuManager',
-        'HomeGesture',
-        'SourceView',
-        'TtlView',
-        'MediaRecording',
-        'QuickSettings',
-        'UsbStorage',
-        'MobileIdManager',
-        'FindmydeviceLauncher',
-        'FxAccountsManager',
-        'FxAccountsUI',
-        'NetworkActivity',
-        'CrashReporter',
-        'Screenshot',
-        'SoundManager',
-        'CustomDialogService',
-        'CarrierInfoNotifier'
-        // XXX: We should move this into mobileConnectionCore,
-        // but integration tests running on desktop without mobileConnection
-        // is testing this.
-      ]).then(function() {
-        this.startAPIHandlers();
-        return Promise.resolve();
-      }.bind(this)).then(function() {
-        return LazyLoader.load([
-          'js/download/download_manager.js',
-          'js/payment.js',
-          'js/identity.js',
-          'js/devtools/logshake.js',
-          'js/devtools/remote_debugger.js',
-          'js/devtools/developer_hud.js',
-          'shared/js/date_time_helper.js'
-        ]);
-      }.bind(this)).then(function() {
-        this.remoteDebugger = new RemoteDebugger();
-        this.developerHud = new DeveloperHud();
-        this.developerHud.start();
-      }.bind(this)).catch(function(err) {
-        console.error(err);
+      return new Promise((resolve, reject) => {
+        this.loadWhenIdle([
+          'Statusbar',
+          'HardwareButtons',
+          'CameraTrigger',
+          'NotificationScreen',
+          'AirplaneMode',
+          'NotificationsSystemMessage',
+          'Accessibility',
+          'AlarmMonitor',
+          'DebuggingMonitor',
+          'TimeCore',
+          'GeolocationCore',
+          'TetheringMonitor',
+          'UsbCore',
+          'TextSelectionDialog',
+          'ExternalStorageMonitor',
+          'DeviceStorageWatcher',
+          'AppUsageMetrics',
+          'CellBroadcastSystem',
+          // This should be loaded by MobileConnectionCore.
+          // However, the integration test is testing this on desktop b2g
+          // which has no navigator.mozMobileConnections.
+          'CpuManager',
+          'HomeGesture',
+          'SourceView',
+          'TtlView',
+          'MediaRecording',
+          'QuickSettings',
+          'UsbStorage',
+          'MobileIdManager',
+          'FindmydeviceLauncher',
+          'FxAccountsManager',
+          'FxAccountsUI',
+          'NetworkActivity',
+          'CrashReporter',
+          'Screenshot',
+          'SoundManager',
+          'CustomDialogService',
+          'CarrierInfoNotifier'
+          // XXX: We should move this into mobileConnectionCore,
+          // but integration tests running on desktop without mobileConnection
+          // is testing this.
+        ]).then(() => {
+          Promise.all([
+            this.startAPIHandlers(),
+            LazyLoader.load([
+              'js/download/download_manager.js',
+              'js/payment.js',
+              'js/identity.js',
+              'js/devtools/logshake.js',
+              'js/devtools/remote_debugger.js',
+              'js/devtools/developer_hud.js',
+              'shared/js/date_time_helper.js'
+            ])
+          ]).then(() => {
+            this.remoteDebugger = new RemoteDebugger();
+            this.developerHud = new DeveloperHud();
+            this.developerHud.start();
+            resolve();
+          });
+        });
       });
     },
 
     startAPIHandlers: function() {
+      var promises = [];
       for (var api in this.REGISTRY) {
         this.debug('Detecting API: ' + api +
           ' and corresponding module: ' + this.REGISTRY[api]);
         if (navigator[api]) {
           this.debug('API: ' + api + ' found, starting the handler.');
-          this.startAPIHandler(api, this.REGISTRY[api]);
+          promises.push(this.startAPIHandler(api, this.REGISTRY[api]));
         } else {
           this.debug('API: ' + api + ' not found, skpping the handler.');
         }
       }
+      return Promise.all(promises);
     },
 
     startAPIHandler: function(api, handler) {
@@ -159,8 +161,7 @@
             reject();
             return;
           }
-          this[moduleName].start && this[moduleName].start();
-          resolve();
+          this[moduleName].start && this[moduleName].start().then(resolve);
         }.bind(this));
       }.bind(this));
     },

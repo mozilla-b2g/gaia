@@ -135,6 +135,9 @@
 
     <!--Shared
     <!-- Lazy loaded shared --
+     <script defer src="shared/js/settings_listener.js"></script>
+     <script defer src="shared/js/async_storage.js"></script>
+     <script defer src="shared/js/manifest_helper.js"></script>
      <script defer src="shared/js/findmydevice_iac_api.js"></script>
      <script defer src="shared/js/settings_helper.js"></script>
      <script defer src="shared/js/default_activity_helper.js"></script>
@@ -913,25 +916,12 @@
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
 
     </div> <!-- end of #screen -->
+    <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/logo_loader.js"></script>
     <script defer src="js/service.js"></script>
     <script defer src="js/base_module.js"></script>
     <script defer src="js/logo_manager.js"></script>
-
-    <script defer src="shared/js/settings_listener.js"></script>
-    <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/manifest_helper.js"></script>
-    <script defer src="shared/js/lazy_loader.js"></script>
-
-    <script defer src="js/wake_lock_manager.js"></script>
-    <script defer src="js/base_ui.js"></script>
-    <script defer src="js/base_icon.js"></script>
-    <script defer src="js/browser_config_helper.js"></script>
-    <script defer src="js/browser_frame.js"></script>
-    <script defer src="js/app_window.js"></script>
-    <script defer src="js/attention_window.js"></script>
-    <script defer src="js/system_dialog.js"></script>
-    <script defer src="js/action_menu.js"></script>
-    <script defer src="js/startup.js"></script>
+    <script defer src="js/app.js"></script>
+    <script defer src="js/bootstrap.js"></script>
   </body>
 </html>

@@ -430,33 +430,6 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(app1.instanceID in subject._apps);
     });
 
-    test('FTU is skipped', function() {
-      injectRunningApps();
-      var stubDisplay = this.sinon.stub(subject, 'display');
-
-      subject.handleEvent({ type: 'ftuskip' });
-      assert.isTrue(stubDisplay.calledWith());
-    });
-
-    test('FTU is skipped when lockscreen is active', function() {
-      MockService.mockQueryWith('locked', true);
-      injectRunningApps();
-      var stubDisplay = this.sinon.stub(subject, 'display');
-
-      subject.handleEvent({ type: 'ftuskip' });
-      assert.isFalse(stubDisplay.called);
-      MockService.mockQueryWith('locked', false);
-    });
-
-    test('FTU is skipped when active app is not homescreen', function() {
-      injectRunningApps(app1);
-      subject._activeApp = app1;
-      var stubDisplay = this.sinon.stub(subject, 'display');
-
-      subject.handleEvent({ type: 'ftuskip' });
-      assert.isFalse(stubDisplay.calledWith());
-    });
-
     test('System resize', function() {
       subject._activeApp = app1;
       var stubResize = this.sinon.stub(app1, 'resize');

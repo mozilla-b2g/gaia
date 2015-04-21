@@ -1,6 +1,6 @@
 'use strict';
 /* global BaseModule */
-/* global ScreenManager */
+/* global Service */
 /* global BatteryIcon */
 /* global LazyLoader */
 
@@ -97,7 +97,7 @@
             this._wasEmptyBatteryNotificationDisplayed = false;
 
             if (!this._screenOn) {
-              ScreenManager.turnScreenOn();
+              Service.request('turnScreenOn');
             }
           } else {
             this.displayIfNecessary();
