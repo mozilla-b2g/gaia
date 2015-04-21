@@ -24,7 +24,6 @@ require('/dialer/test/unit/mock_call_group_menu.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_keypad.js');
-require('/dialer/test/unit/mock_performance_testing_helper.js');
 require('/dialer/test/unit/mock_phone_number_action_menu.js');
 
 var mocksHelperForCallLog = new MocksHelper([
@@ -33,7 +32,6 @@ var mocksHelperForCallLog = new MocksHelper([
   'Contacts',
   'AccessibilityHelper',
   'CallGroupMenu',
-  'PerformanceTestingHelper',
   'LazyLoader',
   'Notification',
   'StickyHeader',
