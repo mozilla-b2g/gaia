@@ -1,8 +1,8 @@
 'use strict';
 /* global MozActivity */
 
-var Contacts = require('./lib/contacts');
-var Sms = require('./lib/sms');
+var Contacts = require('../lib/contacts');
+var Sms = require('../lib/sms');
 var assert = require('assert');
 var fs = require('fs');
 
@@ -40,7 +40,8 @@ marionette('Contacts > MultipleSelect', function() {
             allowSave: true
           }
         });
-      }, [fs.readFileSync(__dirname + '/data/vcard_21_multiple.vcf', 'utf8')]);
+      }, [fs.readFileSync(__dirname + '/../data/vcard_21_multiple.vcf',
+                          'utf8')]);
 
       client.switchToFrame();
       client.apps.switchToApp(Contacts.URL, 'contacts');

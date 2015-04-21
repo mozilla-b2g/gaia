@@ -1,6 +1,6 @@
 'use strict';
 
-var Contacts = require('./lib/contacts');
+var Contacts = require('../lib/contacts');
 
 marionette('Contacts > Delete', function() {
   var client = marionette.client(Contacts.config);

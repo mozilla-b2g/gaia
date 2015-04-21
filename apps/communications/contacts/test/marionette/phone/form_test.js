@@ -1,11 +1,11 @@
 'use strict';
 
-var Contacts = require('./lib/contacts'),
-    ContactsData = require('./lib/contacts_data'),
-    Dialer = require('../../../dialer/test/marionette/lib/dialer'),
+var Contacts = require('../lib/contacts'),
+    ContactsData = require('../lib/contacts_data'),
+    Dialer = require('../../../../dialer/test/marionette/lib/dialer'),
     assert = require('assert'),
     /*jshint -W079 */
-    System = require('../../../../system/test/marionette/lib/system');
+    System = require('../../../../../system/test/marionette/lib/system');
 
     // XXX Bug 1139799 - Enable test for Bug 1116889
     // Gallery = require('../../../../gallery/test/marionette/lib/gallery');

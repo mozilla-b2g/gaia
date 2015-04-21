@@ -1,7 +1,7 @@
 'use strict';
 
-var Contacts = require('./lib/contacts');
-var ContactsData = require('./lib/contacts_data');
+var Contacts = require('../lib/contacts');
+var ContactsData = require('../lib/contacts_data');
 var assert = require('assert');
 
 marionette('Contacts > Details', function() {

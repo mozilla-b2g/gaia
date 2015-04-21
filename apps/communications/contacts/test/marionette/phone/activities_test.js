@@ -1,9 +1,9 @@
 'use strict';
 /* global MozActivity */
 
-var Contacts = require('./lib/contacts');
-var Dialer = require('../../../dialer/test/marionette/lib/dialer');
-var Sms = require('./lib/sms');
+var Contacts = require('../lib/contacts');
+var Dialer = require('../../../../dialer/test/marionette/lib/dialer');
+var Sms = require('../lib/sms');
 var assert = require('assert');
 var fs = require('fs');
 
@@ -72,7 +72,7 @@ marionette('Contacts > Activities', function() {
             blob: new Blob([vCardFile], {type: 'text/vcard'})
           }
         });
-      }, [fs.readFileSync(__dirname + '/data/vcard_4.vcf', 'utf8')]);
+      }, [fs.readFileSync(__dirname + '/../data/vcard_4.vcf', 'utf8')]);
 
       client.switchToFrame();
       client.apps.switchToApp(Contacts.URL, 'contacts');
