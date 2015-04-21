@@ -11,7 +11,6 @@
 
   function App() {
     window.performance.mark('navigationLoaded');
-    window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
     this.grid = document.getElementById('icons');
 
     this.grid.addEventListener('iconblobdecorated', this);
@@ -46,7 +45,6 @@
     document.addEventListener('visibilitychange', this);
 
     window.performance.mark('navigationInteractive');
-    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
   }
 
   App.prototype = {
@@ -112,9 +110,7 @@
         }
 
         window.performance.mark('visuallyLoaded');
-        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
         window.performance.mark('contentInteractive');
-        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
         window.addEventListener('localized', this.onLocalized.bind(this));
         LazyLoader.load(['shared/elements/gaia-header/dist/gaia-header.js',
@@ -122,7 +118,6 @@
                          '/shared/js/homescreens/confirm_dialog_helper.js'],
           function() {
             window.performance.mark('fullyLoaded');
-            window.dispatchEvent(new CustomEvent('moz-app-loaded'));
           });
       }.bind(this));
     },
