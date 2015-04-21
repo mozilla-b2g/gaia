@@ -10,7 +10,7 @@ marionette('Vertical Home - Hosted App Install', function() {
   var client = marionette.client(require(__dirname + '/client_options.js'));
   var server;
   setup(function(done) {
-    var app = __dirname + '/../fixtures/template_app';
+    var app = __dirname + '/fixtures/template_app';
     createAppServer(app, client, function(err, _server) {
       server = _server;
       done(err);
