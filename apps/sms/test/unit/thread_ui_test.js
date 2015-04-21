@@ -5737,7 +5737,7 @@ suite('thread_ui.js >', function() {
 
           // Assert the correct menu items were displayed
           assert.equal(items[0].l10nId, 'save-as-draft');
-          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[1].l10nId, 'delete-draft');
           assert.equal(items[2].l10nId, 'cancel');
         }).then(done, done);
       });
@@ -5755,7 +5755,7 @@ suite('thread_ui.js >', function() {
 
           // Assert the correct menu items were displayed
           assert.equal(items[0].l10nId, 'save-as-draft');
-          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[1].l10nId, 'delete-draft');
           assert.equal(items[2].l10nId, 'cancel');
         }).then(done, done);
       });
@@ -5772,7 +5772,7 @@ suite('thread_ui.js >', function() {
 
           // Assert the correct menu items were displayed
           assert.equal(items[0].l10nId, 'save-as-draft');
-          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[1].l10nId, 'delete-draft');
           assert.equal(items[2].l10nId, 'cancel');
         }).then(done, done);
       });
@@ -5847,7 +5847,7 @@ suite('thread_ui.js >', function() {
 
               // Assert the correct menu items were displayed
               assert.equal(items[0].l10nId, 'replace-draft');
-              assert.equal(items[1].l10nId, 'discard-message');
+              assert.equal(items[1].l10nId, 'delete-draft');
               assert.equal(items[2].l10nId, 'cancel');
             }).then(done, done);
           });
@@ -5864,7 +5864,7 @@ suite('thread_ui.js >', function() {
 
               // Assert the correct menu items were displayed
               assert.equal(items[0].l10nId, 'replace-draft');
-              assert.equal(items[1].l10nId, 'discard-message');
+              assert.equal(items[1].l10nId, 'delete-draft');
               assert.equal(items[2].l10nId, 'cancel');
             }).then(done, done);
           });
@@ -5881,7 +5881,7 @@ suite('thread_ui.js >', function() {
 
               // Assert the correct menu items were displayed
               assert.equal(items[0].l10nId, 'replace-draft');
-              assert.equal(items[1].l10nId, 'discard-message');
+              assert.equal(items[1].l10nId, 'delete-draft');
               assert.equal(items[2].l10nId, 'cancel');
             }).then(done, done);
           });

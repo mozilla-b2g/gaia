@@ -1208,7 +1208,7 @@ var ThreadUI = {
             }.bind(this)
           },
           {
-            l10nId: 'discard-message',
+            l10nId: 'delete-draft',
             method: function onDiscard() {
               this.discardDraft();
               resolve();
