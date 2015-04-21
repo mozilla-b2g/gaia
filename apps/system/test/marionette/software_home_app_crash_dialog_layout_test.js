@@ -14,7 +14,7 @@ marionette('Software Home Button - App Crash Report Layout', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
   });
 
@@ -28,7 +28,7 @@ marionette('Software Home Button - App Crash Report Layout', function() {
       // This is not needed to show the dialog, but is nice to have as it
       // sets the proper title in the dialog, and might be more future-proof.
       var win = window.wrappedJSObject;
-      var app = win.Service.currentApp;
+      var app = win.Service.query('getTopMostWindow');
       app.element.dispatchEvent(new CustomEvent('mozbrowsererror', {
         detail: {
           type: 'fatal'

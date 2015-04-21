@@ -300,7 +300,8 @@ suite('Nfc Handover Manager Functions', function() {
 
     teardown(function() {
       MockBluetooth.enabled = false;
-      MockService.mIsFileTransferInProgress = false;
+      MockService.mockQueryWith('BluetoothTransfer.isFileTransferInProgress',
+        false);
 
       spySendNDEF.restore();
       nfcHandoverManager.sendFileQueue = [];
@@ -337,7 +338,8 @@ suite('Nfc Handover Manager Functions', function() {
     test('Sending aborts when another file is transmitted concurrently',
       function() {
 
-      MockService.mIsFileTransferInProgress = true;
+      MockService.mockQueryWith('BluetoothTransfer.isFileTransferInProgress',
+        true);
 
       var stubShowNotification = this.sinon.stub(nfcHandoverManager,
                                                  '_showTryAgainNotification');
@@ -483,7 +485,8 @@ suite('Nfc Handover Manager Functions', function() {
     var mockFileRequest;
 
     setup(function() {
-      MockService.mIsSendFileQueueEmpty = true;
+      MockService.mockQueryWith('BluetoothTransfer.isSendFileQueueEmpty',
+        true);
       this.sinon.useFakeTimers();
       mockFileRequest = {
           peer: MockMozNfc.MockNFCPeer,
@@ -495,7 +498,8 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     teardown(function() {
-      MockService.mIsSendFileQueueEmpty = false;
+      MockService.mockQueryWith('BluetoothTransfer.isSendFileQueueEmpty',
+        false);
       nfcHandoverManager.stop();
       spySendNDEF.restore();
     });
@@ -554,7 +558,8 @@ suite('Nfc Handover Manager Functions', function() {
       initiateFileTransfer();
       assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
               true);
-      MockService.mIsSendFileQueueEmpty = false;
+      MockService.mockQueryWith('BluetoothTransfer.isSendFileQueueEmpty',
+        false);
       finalizeFileTransfer();
 
       // Now finalize the second transfer (the one not initiated
@@ -562,7 +567,8 @@ suite('Nfc Handover Manager Functions', function() {
       var details = {received: false,
                      success: true,
                      viaHandover: false};
-      MockService.mIsSendFileQueueEmpty = true;
+      MockService.mockQueryWith('BluetoothTransfer.isSendFileQueueEmpty',
+        true);
       nfcHandoverManager.transferComplete({
         detail: details
       });

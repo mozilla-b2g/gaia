@@ -1,4 +1,4 @@
-/* global layoutManager, SettingsListener */
+/* global SettingsListener, Service */
 'use strict';
 (function(exports) {
   var DEBUG = false;
@@ -440,8 +440,10 @@
     function tsd_calculateDialogPostion() {
       var numOfSelectOptions = this.numOfSelectOptions;
       var detail = this.textualmenuDetail;
-      var frameHeight = layoutManager.height;
-      var frameWidth = layoutManager.width;
+      var frameHeight = Service.query('LayoutManager.height') ||
+        window.innerHeight;
+      var frameWidth = Service.query('LayoutManager.width') ||
+        window.innerWidth;
       var selectOptionWidth = this.TEXTDIALOG_WIDTH;
       var selectOptionHeight = this.TEXTDIALOG_HEIGHT;
 

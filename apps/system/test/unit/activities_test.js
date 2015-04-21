@@ -6,13 +6,14 @@
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_default_activity_helper.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/js/manifest_helper.js');
 requireApp('system/js/action_menu.js');
 requireApp('system/js/activities.js');
 
 var mocksForActivities = new MocksHelper([
-  'Applications'
+  'Applications', 'LazyLoader'
 ]).init();
 
 suite('system/Activities', function() {

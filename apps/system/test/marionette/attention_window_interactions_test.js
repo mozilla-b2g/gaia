@@ -18,7 +18,7 @@ marionette('AttentionWindow interactions', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     utilityTray = new UtilityTray(client);
 
     fakeLoop = new FakeLoopApp(client);

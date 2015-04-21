@@ -18,7 +18,7 @@ marionette('mozApps', function() {
 
   suite('CellBroadcastSystem', function() {
     setup(function() {
-      system.waitForStartup();
+      system.waitForFullyLoaded();
       event = {
         message: {
           body: 'test'
@@ -66,7 +66,7 @@ marionette('mozApps - lockscreen enabled', function() {
 
   suite('CellBroadcastSystem', function() {
     setup(function() {
-      system.waitForStartup();
+      system.waitForFullyLoaded();
       event = {
         message: {
           body: 'test'
@@ -85,7 +85,7 @@ marionette('mozApps - lockscreen enabled', function() {
 
       // Show utility tray and tap on first notification
       client.executeScript(function() {
-        window.wrappedJSObject.UtilityTray.show(true);
+        window.wrappedJSObject.Service.request('UtilityTray:show', true);
       });
       notificationList.refresh();
       notificationList.tap(notificationList.notifications[0]);

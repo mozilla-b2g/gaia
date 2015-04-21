@@ -1,5 +1,5 @@
-/* global Card, eventSafety, SettingsListener, layoutManager,
-          Service, homescreenLauncher, StackManager, OrientationManager */
+/* global Card, eventSafety, SettingsListener, LazyLoader,
+          Service, StackManager */
 
 (function(exports) {
   'use strict';
@@ -10,7 +10,8 @@
    * Represent a stack of apps as cards
    * @class TaskManager
    */
-  function TaskManager() {
+  function TaskManager(appWindowManager) {
+    this.appWindowManager = appWindowManager;
     this.stack = null;
     this.cardsByAppID = {};
   }
@@ -156,7 +157,7 @@
     this.setActive(true);
 
     var screenElement = this.screenElement;
-    var activeApp = Service.currentApp;
+    var activeApp = Service.query('AppWindowManager.getActiveWindow');
     if (!activeApp) {
       screenElement.classList.add('cards-view');
       return;
@@ -330,11 +331,21 @@
       windowWidth: this.windowWidth,
       windowHeight: this.windowHeight
     };
+    LazyLoader.load(['js/card.js', 'js/cards_helper.js',
+      'shared/js/tagged.js']).then(function() {
+      this.instantiateCard(config);
+    }.bind(this))['catch'](function (err) {
+      console.error(err);
+    });
+  };
+
+  TaskManager.prototype.instantiateCard = function(config) {
     var card = new Card(config);
-    this.cardsByAppID[app.instanceID] = card;
+    this.cardsByAppID[config.app.instanceID] = card;
     this.cardsList.appendChild(card.render());
 
-    if (position <= this.position - 2 || position >= this.position + 2) {
+    if (config.position <= this.position - 2 ||
+        config.position >= this.position + 2) {
       card.element.style.visibility = 'hidden';
     }
   };
@@ -369,7 +380,7 @@
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
     var cardsLength = cardNodes.length;
     if (!cardsLength) {
-      var homescreen = homescreenLauncher.getHomescreen(true);
+      var homescreen = Service.query('getHomescreen', true);
       this.exitToApp(homescreen);
     }
 
@@ -442,12 +453,11 @@
     this.screenElement.classList.remove('cards-view');
 
     if (this._shouldGoBackHome) {
-      app = app || homescreenLauncher.getHomescreen(true);
+      app = app || Service.query('getHomescreen', true);
     } else if (!app) {
       app = this.stack ? this.stack[this.position] :
-                         homescreenLauncher.getHomescreen(true);
+                         Service.query('getHomescreen', true);
     }
-
     // to know if position has changed we need index into original stack,
     var position = this.unfilteredStack ? this.unfilteredStack.indexOf(app) :
                                           -1;
@@ -527,10 +537,9 @@
       filter = (evt.detail && evt.detail.filter) || null;
     }
 
-
-    var shouldResize = (OrientationManager.defaultOrientation !=
-                        OrientationManager.fetchCurrentOrientation());
-    var shouldHideKeyboard = layoutManager.keyboardEnabled;
+    var shouldResize = (Service.query('defaultOrientation') !=
+                        Service.query('fetchCurrentOrientation'));
+    var shouldHideKeyboard = Service.query('keyboardEnabled');
 
     this.publish('cardviewbeforeshow'); // Will hide the keyboard if needed
 
@@ -544,7 +553,7 @@
         return;
       }
 
-      screen.mozLockOrientation(OrientationManager.defaultOrientation);
+      screen.mozLockOrientation(Service.query('defaultOrientation'));
       if (shouldResize) {
         window.addEventListener('resize', function resized() {
           window.removeEventListener('resize', resized);
@@ -554,11 +563,11 @@
         return;
       }
 
-      var app = Service.currentApp;
+      var app = Service.query('AppWindowManager.getActiveWindow');
       if (app && !app.isHomescreen) {
         app.getScreenshot(function onGettingRealtimeScreenshot() {
           this.show(filter);
-        }.bind(this), 0, 0, 300);
+        }.bind(this), 0, 0, 400);
       } else {
         this.show(filter);
       }
@@ -823,7 +832,7 @@
   TaskManager.prototype.onTouchStart = function cs_onTouchStart(evt) {
     // If there is no card in the cardsView, go back to home screen
     if (this.element.classList.contains('empty')) {
-      var homescreen = homescreenLauncher.getHomescreen(true);
+      var homescreen = Service.query('getHomescreen', true);
       this.exitToApp(homescreen);
       return;
     }

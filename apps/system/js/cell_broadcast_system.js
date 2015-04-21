@@ -1,6 +1,7 @@
 'use strict';
 /* global CarrierInfoNotifier */
 /* global MobileOperator */
+/* global Service */
 
 (function(exports) {
 
@@ -13,6 +14,7 @@
   function CellBroadcastSystem() {}
 
   CellBroadcastSystem.prototype = {
+    name: 'CellBroadcastSystem',
 
     /**
      * Whether or not the cellbroadcast setting is enabled or disabled.
@@ -46,6 +48,7 @@
 
       settings.addObserver(
         this._settingsKey, this.settingsChangedHandler.bind(this));
+      Service.register('show', this);
     },
 
     /**
@@ -80,7 +83,7 @@
         return;
       }
 
-      if (conn &&
+      if (conn && conn.voice && conn.voice.network &&
           conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
           id === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
         var evt = new CustomEvent('cellbroadcastmsgchanged',

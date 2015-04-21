@@ -181,6 +181,9 @@
 
     registerState: function(state, provider) {
       this._states.set(provider.name, provider);
+      if (!provider.name) {
+        console.warn(provider);
+      }
       this._statesByState.set(state, provider);
     },
 
@@ -236,19 +239,6 @@
     },
 
     /**
-     * Indicates the system is busy doing something.
-     * Now it stands for the foreground app is not loaded yet.
-     *
-     * XXX: AppWindowManager should register a service
-     * for isBusyLoading query by
-     * Service.register('isBusyLoading', appWindowManager).
-     */
-    isBusyLoading: function() {
-      var app = this.currentApp;
-      return app && !app.loaded;
-    },
-
-    /**
      * Record the start time of the system for later debugging usage.
      * @access private
      * @type {Number}
@@ -273,39 +263,8 @@
       }
     },
 
-    /**
-     * XXX: FtuLauncher should register 'isFtuRunning' service.
-     */
-    get runningFTU() {
-      if ('undefined' === typeof window.FtuLauncher) {
-        return false;
-      } else {
-        return window.FtuLauncher.isFtuRunning();
-      }
-    },
-
-    /**
-     * XXX: LockscreenWindowManager should register 'locked' service.
-     */
-    get locked() {
-      // Someone ask this state too early.
-      if ('undefined' === typeof window.lockScreenWindowManager) {
-        return false;
-      } else {
-        return window.lockScreenWindowManager.isActive();
-      }
-    },
-
     get manifestURL() {
       return window.location.href.replace('index.html', 'manifest.webapp');
-    },
-
-    get currentApp() {
-      if ('undefined' === typeof window.appWindowManager) {
-        return null;
-      } else {
-        return window.appWindowManager.getActiveApp();
-      }
     }
   };
 })(window);
