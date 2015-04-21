@@ -1,8 +1,8 @@
 /* global require, marionette, setup, suite, teardown, test */
 'use strict';
 
-var Calendar = require('./lib/calendar'),
-    Radicale = require('./lib/radicale'),
+var Calendar = require('../lib/calendar'),
+    Radicale = require('../lib/radicale'),
     assert = require('chai').assert,
     debug = require('debug')('marionette:server_test');
 

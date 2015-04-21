@@ -1,6 +1,6 @@
 'use strict';
 
-var Calendar = require('./lib/calendar'),
+var Calendar = require('../lib/calendar'),
     assert = require('chai').assert;
 
 marionette('day view', function() {

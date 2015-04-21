@@ -1,9 +1,9 @@
 'use strict';
 
-var Calendar = require('./lib/calendar'),
+var Calendar = require('../lib/calendar'),
     assert = require('chai').assert;
 
-var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
+var SHARED_PATH = __dirname + '/../../../../../shared/test/integration';
 
 marionette('alarm', function() {
   var app;

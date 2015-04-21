@@ -1,7 +1,7 @@
 'use strict';
 
-var Calendar = require('./lib/calendar'),
-    Radicale = require('./lib/radicale'),
+var Calendar = require('../lib/calendar'),
+    Radicale = require('../lib/radicale'),
     assert = require('chai').assert,
     dateFormat = require('dateformat');
 
