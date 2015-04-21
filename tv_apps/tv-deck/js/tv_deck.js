@@ -1,4 +1,5 @@
-/* global ChannelManager, KeyNavigationAdapter, SimpleKeyNavigation */
+/* global ChannelManager, KeyNavigationAdapter, SimpleKeyNavigation,
+          asyncStorage, Promise */
 
 'use strict';
 
@@ -18,8 +19,9 @@
     // Initialize TVDeck. Fetch initial (tuner, source, channel) values from
     // either URL hash or localStorage, and then scan all available tuners,
     // sources and channels.
-    this.fetchSettingFromHash();
-    this.scanTuners();
+    this.fetchSettingFromHash().then(function() {
+      this.scanTuners();
+    }.bind(this));
   }
 
   var proto = {};
@@ -163,18 +165,30 @@
    * empty, then fetch settings from localStorage.
    */
   proto.fetchSettingFromHash = function td_fetchSettingFromHash() {
-    var hash;
-    hash = window.location.hash.substring(1);
-    if (hash.length === 0) {
-      hash = window.localStorage.getItem('TV_Hash');
-    }
+    return new Promise(function(resolve, reject) {
+      var hash;
+      var fetch = function() {
+        if(hash) {
+          hash = hash.split(',');
+          this.playingTunerId = hash[0];
+          this.playingSourceType = hash[1];
+          this.playingChannelNumber = hash[2];
+        }
+      }.bind(this);
 
-    if(hash) {
-      hash = hash.split(',');
-      this.playingTunerId = hash[0];
-      this.playingSourceType = hash[1];
-      this.playingChannelNumber = hash[2];
-    }
+      hash = window.location.hash.substring(1);
+      if (hash.length === 0) {
+        asyncStorage.getItem('TV_Hash', function(item) {
+          hash = item;
+          fetch();
+          resolve();
+        });
+        return;
+      }
+
+      fetch();
+      resolve();
+    }.bind(this));
   };
 
   /**
@@ -191,40 +205,42 @@
       this.simpleKeyNavigation.stop();
     }
 
-    this.fetchSettingFromHash();
+    this.fetchSettingFromHash().then(function() {
 
-    // Cancel onPanelTimeout function, otherwise, panels will be hidden after 3
-    // seconds.
-    clearTimeout(this.panelTimeoutId);
-    if (!this.playingTuner) {
-      this.scanTuners();
-    } else if (!this.playingSource) {
-      this.scanSources();
-    } else if (!this.playingChannel) {
-      this.scanChannels();
-    } else {
-      this._rotateLoadingIcon();
-      this.updateChannelInfo();
-      this.setPlayingSource(function() {
-        // When an user swiches back and forth very fast, we only have to handle
-        // the last hash. Since setPlayingSource is an async function, id is
-        // used to record the last change.
-        if (id === this.lastChannelId) {
-          this.buttonGroupPanel.classList.remove('hidden');
-          this.overlay.classList.remove('visible');
-          this.channelManager.updatePinButton();
-          this.bubbleElement.play([this.pinButton, this.menuButton]);
-          this.simpleKeyNavigation.start(
-            [this.pinButton, this.menuButton],
-            SimpleKeyNavigation.DIRECTION.HORIZONTAL
-          );
+      // Cancel onPanelTimeout function, otherwise, panels will be hidden
+      // after 3 seconds.
+      clearTimeout(this.panelTimeoutId);
+      if (!this.playingTuner) {
+        this.scanTuners();
+      } else if (!this.playingSource) {
+        this.scanSources();
+      } else if (!this.playingChannel) {
+        this.scanChannels();
+      } else {
+        this._rotateLoadingIcon();
+        this.updateChannelInfo();
+        this.setPlayingSource(function() {
+          // When an user swiches back and forth very fast, we only have to
+          // handle the last hash. Since setPlayingSource is an async function,
+          // id is used to record the last change.
+          if (id === this.lastChannelId) {
+            this.buttonGroupPanel.classList.remove('hidden');
+            this.overlay.classList.remove('visible');
+            this.channelManager.updatePinButton();
+            this.bubbleElement.play([this.pinButton, this.menuButton]);
+            this.simpleKeyNavigation.start(
+              [this.pinButton, this.menuButton],
+              SimpleKeyNavigation.DIRECTION.HORIZONTAL
+            );
 
-          this.panelTimeoutId =
-            setTimeout(this._onPanelTimeout.bind(this), this.panelTimeoutDelay);
-        }
-      }.bind(this));
-    }
-    window.localStorage.setItem('TV_Hash', window.location.hash.substring(1));
+            this.panelTimeoutId =
+              setTimeout(
+                      this._onPanelTimeout.bind(this), this.panelTimeoutDelay);
+          }
+        }.bind(this));
+      }
+      asyncStorage.setItem('TV_Hash', window.location.hash.substring(1));
+    }.bind(this));
   };
 
   /**
