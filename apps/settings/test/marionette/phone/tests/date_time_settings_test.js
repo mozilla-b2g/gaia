@@ -1,5 +1,5 @@
 'use strict';
-var Settings = require('../app/app');
+var Settings = require('../../app/app');
 
 marionette('manipulate date time settings', function() {
   var client = marionette.client();

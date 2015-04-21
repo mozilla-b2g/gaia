@@ -1,5 +1,5 @@
 'use strict';
-var Settings = require('../app/app'),
+var Settings = require('../../app/app'),
   assert = require('assert');
 
 marionette('check device information settings', function() {

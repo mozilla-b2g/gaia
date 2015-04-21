@@ -1,5 +1,5 @@
 'use strict';
-var Settings = require('../app/app'),
+var Settings = require('../../app/app'),
     assert = require('assert');
 
 marionette('check root panel settings', function() {
@@ -21,9 +21,9 @@ marionette('check root panel settings', function() {
       // We need to inject the script before launching settings app because it
       // access to the objects upon starting up.
       client.contentScript.inject(__dirname +
-        '/../mocks/mock_navigator_moz_wifi_manager.js');
+        '/../../mocks/mock_navigator_moz_wifi_manager.js');
       client.contentScript.inject(__dirname +
-        '/../mocks/mock_navigator_moz_bluetooth.js');
+        '/../../mocks/mock_navigator_moz_bluetooth.js');
 
       client.settings.set('devtools.qps.enabled', true);
 
@@ -135,9 +135,9 @@ marionette('check root panel settings', function() {
     suite('single sim tests', function() {
       setup(function() {
         client.contentScript.inject(__dirname +
-          '/../mocks/mock_navigator_moz_mobile_connections.js');
+          '/../../mocks/mock_navigator_moz_mobile_connections.js');
         client.contentScript.inject(__dirname +
-          '/../mocks/mock_navigator_moz_telephony.js');
+          '/../../mocks/mock_navigator_moz_telephony.js');
 
         settingsApp.launch();
         rootPanel = settingsApp.rootPanel;
@@ -155,9 +155,9 @@ marionette('check root panel settings', function() {
     suite('multiple sim tests', function() {
       setup(function() {
         client.contentScript.inject(__dirname +
-          '/../mocks/mock_navigator_moz_mobile_connections_multi.js');
+          '/../../mocks/mock_navigator_moz_mobile_connections_multi.js');
         client.contentScript.inject(__dirname +
-          '/../mocks/mock_navigator_moz_telephony.js');
+          '/../../mocks/mock_navigator_moz_telephony.js');
 
         settingsApp.launch();
         rootPanel = settingsApp.rootPanel;

@@ -1,5 +1,5 @@
 'use strict';
-var Settings = require('../app/app');
+var Settings = require('../../app/app');
 var assert = require('assert');
 
 marionette('Uninstall an ime app', function() {
@@ -8,7 +8,8 @@ marionette('Uninstall an ime app', function() {
 
   var preloadApps = {};
   // And a testing 3rd-party IME app
-  preloadApps[IME_TEST_APP_ORIGIN] = __dirname + '/../../fixtures/imetestapp';
+  preloadApps[IME_TEST_APP_ORIGIN] =
+    __dirname + '/../../../fixtures/imetestapp';
 
   var client = marionette.client({
     apps: preloadApps

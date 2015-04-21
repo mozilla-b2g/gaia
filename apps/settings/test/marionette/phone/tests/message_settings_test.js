@@ -1,6 +1,6 @@
 'use strict';
 
-var Settings = require('../app/app');
+var Settings = require('../../app/app');
 var assert = require('assert');
 
 marionette('message settings', function() {

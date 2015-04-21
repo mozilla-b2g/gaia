@@ -2,7 +2,7 @@
 
 /* global Event */
 
-var Settings = require('../app/app'),
+var Settings = require('../../app/app'),
     assert = require('assert');
 
 marionette('manipulate language settings', function() {

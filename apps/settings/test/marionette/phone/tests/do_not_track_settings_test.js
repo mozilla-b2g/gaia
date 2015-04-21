@@ -1,6 +1,6 @@
 'use strict';
 
-var Settings = require('../app/app'),
+var Settings = require('../../app/app'),
     assert = require('assert');
 
 marionette('manipulate do not track settings', function() {

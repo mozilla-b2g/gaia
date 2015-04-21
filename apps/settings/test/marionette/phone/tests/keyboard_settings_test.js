@@ -1,6 +1,6 @@
 'use strict';
-var Settings = require('../app/app');
-var KeyboardApp = require('../app/keyboard_app');
+var Settings = require('../../app/app');
+var KeyboardApp = require('../../app/keyboard_app');
 var assert = require('assert');
 
 marionette('manipulate keyboard settings', function() {

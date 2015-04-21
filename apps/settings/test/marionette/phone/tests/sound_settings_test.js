@@ -1,5 +1,5 @@
 'use strict';
-var Settings = require('../app/app'),
+var Settings = require('../../app/app'),
     assert = require('assert');
 
 marionette('manipulate sound settings', function() {
@@ -11,7 +11,7 @@ marionette('manipulate sound settings', function() {
     settingsApp = new Settings(client);
 
     client.contentScript.inject(__dirname +
-      '/../mocks/mock_navigator_moz_telephony.js');
+      '/../../mocks/mock_navigator_moz_telephony.js');
 
     settingsApp.launch();
     // Navigate to the sound menu

@@ -1,7 +1,7 @@
 'use strict';
 
-var Settings = require('../app/app'),
-    SystemApp = require('../app/system_app'),
+var Settings = require('../../app/app'),
+    SystemApp = require('../../app/system_app'),
     assert = require('assert');
 
 marionette('manipulate display settings', function() {
