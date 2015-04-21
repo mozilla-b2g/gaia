@@ -1,6 +1,7 @@
 /* globals AudioCompetingHelper, CallsHandler, CallScreen,
            ConferenceGroupHandler, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer */
+           FontSizeManager, FontSizeUtils, LazyL10n, Utils, Voicemail,
+           TonePlayer */
 
 'use strict';
 
@@ -331,16 +332,29 @@ HandledCall.prototype.remove = function hc_remove() {
   CallScreen.stopTicker(this.durationNode);
   var currentDuration = ConferenceGroupHandler.isGroupDetailsShown() ?
     ConferenceGroupHandler.currentDuration : this.durationChildNode.textContent;
+  this.node.classList.add('ended');
+  this.durationNode.classList.remove('isTimer');
+
+  /* Force the node to be translated so we can resize the font to fit into
+   * the element without ellipsizing or trunacting the string. */
+  navigator.mozL10n.setAttributes(this.durationChildNode, 'callEnded');
+  navigator.mozL10n.translateFragment(this.durationChildNode);
+
+  /* XXX: This shouldn't be hardcoded but taken from the CSS code,
+   * unfortunately with the current layou this is impossible to do. */
+  var computedStyle = window.getComputedStyle(this.durationChildNode);
+  var fontFamily = computedStyle.fontFamily;
+  var allowedSizes = [ 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 ];
+  var info = FontSizeUtils.getMaxFontSizeInfo(
+    this.durationChildNode.textContent, allowedSizes, fontFamily, 180);
+
+  this.durationChildNode.style.fontSize = info.fontSize + 'px';
+
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
   var totalDuration = !!currentDuration.match(/\d+/g) ? currentDuration : '';
   this.totalDurationNode.textContent = totalDuration;
-  this.node.classList.add('ended');
-
-  LazyL10n.get(function localized(_) {
-    self.durationNode.classList.remove('isTimer');
-    self.durationChildNode.textContent = _('callEnded');
-  });
+  this.totalDurationNode.style.fontSize = info.fontSize + 'px';
 
   setTimeout(function(evt) {
     CallScreen.removeCall(self.node);

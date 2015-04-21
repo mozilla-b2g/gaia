@@ -573,18 +573,6 @@
     text-shadow: 0 0.2rem 0.1rem rgba(0,0,0,0.3);
   }
 
-  /* A smaller font is required to display the call ended string in
-   * certain locales. We also have to force the layout in block mode to enable
-   * displaying the ellipsis if the text is too long. */
-  #calls.big-duration > section.ended .duration > span {
-    font-size: 2.0rem;
-    max-width: 18rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: bottom;
-  }
-
   #calls.big-duration > section .duration.isTimer > span {
     font-size: 5.9rem;
     font-feature-settings: "tnum";
@@ -600,7 +588,7 @@
 
   #calls.big-duration > section.ended .total-duration {
     display: inline;
-    font-size: 2.0rem;
+    font-size: 2.7rem;
     margin-left: 0.5rem;
   }
 
