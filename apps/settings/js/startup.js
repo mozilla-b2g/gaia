@@ -463,12 +463,10 @@
         // Since the settings app contains its chrome already existing in the
         // DOM, we can fire that it's loaded as soon as the DOM is localized
         window.performance.mark('navigationLoaded');
-        window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
         // Since the settings app has no functional chrome, we can fire the
         // interactive event now because there are no events to bind
         window.performance.mark('navigationInteractive');
-        window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
       });
 
       var initialPanelId;
@@ -490,7 +488,6 @@
         // Initial panel handler registers basic events for interaction so we
         // can fire the content interactive evnet here.
         window.performance.mark('contentInteractive');
-        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
         this._createLaunchContext(initialPanelId, initialPanelHandler,
           window.ActivityHandler);
