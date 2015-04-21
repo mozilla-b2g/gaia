@@ -1,5 +1,4 @@
 /* global SimManager, LazyLoader, asyncStorage, ConfigManager, MocksHelper*/
-/* exported PerformanceTestingHelper */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
