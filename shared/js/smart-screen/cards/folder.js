@@ -81,8 +81,9 @@
     return this._cardsInFolder.indexOf(this.findCard(query));
   };
 
-  // TODO: This is almost the same as CardManager.findCardFromCardList()
-  // We should merge and generalize them into one
+  // XXX: this method shares almost the same logic as
+  // findCardFromCardList in CardManager. We should consolidate them. See
+  // http://bugzil.la/1156726
   // There are three types of query:
   // 1. query by cardId
   // 2. query by manifestURL and optionally launchURL
