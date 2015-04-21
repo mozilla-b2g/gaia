@@ -4,7 +4,7 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation,
+         StickyHeader, Navigation,
          InterInstanceEventDispatcher,
          SelectionHandler,
          Settings,
@@ -640,7 +640,6 @@ var ThreadListUI = {
 
   renderThreads: function thlui_renderThreads(firstViewDoneCb) {
     window.performance.mark('willRenderThreads');
-    PerformanceTestingHelper.dispatch('will-render-threads');
 
     var hasThreads = false;
     var firstPanelCount = this.FIRST_PANEL_THREAD_COUNT;
@@ -674,10 +673,9 @@ var ThreadListUI = {
 
       this.appendThread(thread);
       if (--firstPanelCount === 0) {
-        // dispatch visually-complete and content-interactive when rendered
-        // threads could fill up the top of the visiable area
+        // dispatch visuallyLoaded and contentInteractive when rendered
+        // threads could fill up the top of the visible area
         window.performance.mark('visuallyLoaded');
-        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
         firstViewDone();
       }
     }
@@ -690,10 +688,9 @@ var ThreadListUI = {
       this.finalizeRendering(!(hasThreads || Drafts.size));
 
       if (firstPanelCount > 0) {
-        // dispatch visually-complete and content-interactive when rendering
-        // ended but threads could not fill up the top of the visiable area
+        // dispatch visuallyLoaded and contentInteractive when rendering
+        // ended but threads could not fill up the top of the visible area
         window.performance.mark('visuallyLoaded');
-        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
         firstViewDone();
       }
     }
