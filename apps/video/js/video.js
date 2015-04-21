@@ -1,8 +1,8 @@
 /* global VideoLoadingChecker,stopParsingMetadata,startParsingMetadata,
   ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
   ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
-  MozActivity,MediaDB,metadataQueue,processingQueue,PerformanceTestingHelper,
-  LazyLoader,Dialogs,captureFrame,VideoStats,Template,noMoreWorkCallback:true */
+  MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
+  captureFrame,VideoStats,Template,noMoreWorkCallback:true */
 /* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
   showThrobber,hideThrobber,$ */
 'use strict';
@@ -143,13 +143,11 @@ navigator.mozL10n.once(function() {
 
   // Tell performance monitors that our chrome is visible
   window.performance.mark('navigationLoaded');
-  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
   init();
 
   // Tell performance monitors that our chrome is ready to interact with.
   window.performance.mark('navigationInteractive');
-  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 });
 
 // we don't need to wait for l10n ready to have correct css layout.
@@ -727,7 +725,6 @@ function updateLoadingSpinner() {
     noMoreWorkCallback = updateLoadingSpinner;
   } else {
     window.performance.mark('scanEnd');
-    PerformanceTestingHelper.dispatch('scan-finished');
     dom.spinnerOverlay.classList.add('hidden');
     setDisabled(dom.playerView, false);
     if (thumbnailList.count) {
