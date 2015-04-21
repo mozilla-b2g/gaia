@@ -3,10 +3,10 @@
 'use strict';
 
 var assert = require('assert');
-var sd_card = require('./lib/sd_card');
-var Ringtones = require('./lib/ringtones');
-var Settings = require('../../../settings/test/marionette/app/app');
-var Music = require('../../../music/test/marionette/lib/music');
+var sd_card = require('../lib/sd_card');
+var Ringtones = require('../lib/ringtones');
+var Settings = require('../../../../settings/test/marionette/app/app');
+var Music = require('../../../../music/test/marionette/lib/music');
 
 function assert_sorted(array, message) {
   if (array.length === 0) {

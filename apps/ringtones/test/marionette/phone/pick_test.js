@@ -2,10 +2,10 @@
 /* global marionette, setup, suite, test*/
 'use strict';
 
-var Ringtones = require('./lib/ringtones');
-var Settings = require('../../../settings/test/marionette/app/app');
+var Ringtones = require('../lib/ringtones');
+var Settings = require('../../../../settings/test/marionette/app/app');
 var assert = require('assert');
-var sd_card = require('./lib/sd_card');
+var sd_card = require('../lib/sd_card');
 
 function assert_sorted(array, message) {
   if (array.length === 0) {
@@ -39,7 +39,7 @@ marionette('Ringtone picker', function() {
     client.fileManager.removeAllFiles();
 
     client.contentScript.inject(__dirname +
-      '/lib/mocks/mock_navigator_moz_telephony.js');
+      '/../lib/mocks/mock_navigator_moz_telephony.js');
 
     settingsApp.launch();
     soundPanel = settingsApp.soundPanel;

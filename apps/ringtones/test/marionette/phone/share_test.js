@@ -3,9 +3,9 @@
 'use strict';
 
 var assert = require('assert');
-var Ringtones = require('./lib/ringtones');
-var Settings = require('../../../settings/test/marionette/app/app');
-var Music = require('../../../music/test/marionette/lib/music');
+var Ringtones = require('../lib/ringtones');
+var Settings = require('../../../../settings/test/marionette/app/app');
+var Music = require('../../../../music/test/marionette/lib/music');
 
 marionette('Share as ringtone', function() {
 
