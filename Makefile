@@ -15,8 +15,6 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
-# MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
-#                                                                             #
 # MARIONETTE_RUNNER_HOST : ie marionette-device-host                          #
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
@@ -183,7 +181,6 @@ endif
 REPORTER?=spec
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
-MOZPERFOUT?=""
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -811,15 +808,6 @@ caldav-server-install:
 				export LC_ALL=en_US.UTF-8; \
 				export LANG=en_US.UTF-8; \
 				pip install radicale;
-
-.PHONY: test-perf
-test-perf:
-	APPS="$(APPS)" \
-	GAIA_DIR="`pwd`" \
-	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) \
-	MOZPERFOUT="$(MOZPERFOUT)" \
-	REPORTER=$(REPORTER) \
-	./bin/gaia-perf-marionette
 
 .PHONY: raptor
 raptor: node_modules
