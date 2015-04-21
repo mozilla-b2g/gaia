@@ -581,8 +581,18 @@ var PlayerView = {
         this.setAudioSrc(this.dataSource);
       }.bind(this));
     } else {
-      // If we reach here, the player is paused so resume it
-      this.audio.play();
+      // If we reach here, the player is paused so resume it.
+      // But we're very close to the end of the song, then just
+      // skip to the next song rather than finishing this one.
+      // (This works around a bug where if we're within a fraction of
+      // a second of the end of a .m4a file, it takes a long time to
+      // get an ended event and move to the next song)
+      if (this.audio.duration - this.audio.currentTime < 1) {
+        this.next();
+      }
+      else {
+        this.audio.play();
+      }
     }
   },
 
