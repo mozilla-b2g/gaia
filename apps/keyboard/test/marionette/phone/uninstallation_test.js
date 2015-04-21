@@ -6,9 +6,9 @@
 
 'use strict';
 
-var KeyboardTestApp = require('./lib/keyboard_test_app');
-var ImeTestApp = require('./lib/ime_test_app');
-var Keyboard = require('./lib/keyboard');
+var KeyboardTestApp = require('../lib/keyboard_test_app');
+var ImeTestApp = require('../lib/ime_test_app');
+var Keyboard = require('../lib/keyboard');
 var assert = require('assert');
 
 marionette('Show Keyboard App after uninstallation', function() {
@@ -22,10 +22,10 @@ marionette('Show Keyboard App after uninstallation', function() {
   var confirmDialog = null;
 
   // Pre-install keyboard testing app
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/../keyboardtestapp';
 
   // And a testing 3rd-party IME app
-  apps[ImeTestApp.ORIGIN] = __dirname + '/imetestapp';
+  apps[ImeTestApp.ORIGIN] = __dirname + '/../imetestapp';
 
   var keyboardSettings = {};
   keyboardSettings[Keyboard.MANIFEST_URL] = {

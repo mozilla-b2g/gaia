@@ -1,7 +1,7 @@
 'use strict';
 
-var KeyboardTestApp = require('./lib/keyboard_test_app'),
-    Keyboard = require('./lib/keyboard'),
+var KeyboardTestApp = require('../lib/keyboard_test_app'),
+    Keyboard = require('../lib/keyboard'),
     assert = require('assert');
 
 marionette('Input with Keyboard APP', function() {
@@ -11,7 +11,7 @@ marionette('Input with Keyboard APP', function() {
   var keyboard = null;
   var client = null;
 
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/../keyboardtestapp';
 
   client = marionette.client({
     apps: apps,

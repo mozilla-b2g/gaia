@@ -1,8 +1,8 @@
 'use strict';
 
-var KeyboardTestApp = require('./lib/keyboard_test_app');
-var ImeTestApp = require('./lib/ime_test_app');
-var Keyboard = require('./lib/keyboard');
+var KeyboardTestApp = require('../lib/keyboard_test_app');
+var ImeTestApp = require('../lib/ime_test_app');
+var Keyboard = require('../lib/keyboard');
 var assert = require('assert');
 
 marionette('switch Keyboard App', function() {
@@ -15,10 +15,10 @@ marionette('switch Keyboard App', function() {
   var apps = {};
 
   // Pre-install keyboard testing app
-  apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
+  apps[KeyboardTestApp.ORIGIN] = __dirname + '/../keyboardtestapp';
 
   // And a testing 3rd-party IME app
-  apps[ImeTestApp.ORIGIN] = __dirname + '/imetestapp';
+  apps[ImeTestApp.ORIGIN] = __dirname + '/../imetestapp';
 
   var keyboardSettings = {};
   keyboardSettings[Keyboard.MANIFEST_URL] = {
