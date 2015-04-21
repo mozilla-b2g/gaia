@@ -1,17 +1,6 @@
-
-/*
-  Common styles. Shared by apps
-*/
-
 /*
   Structure of app
 */
-
-.header-group {
-  width: 100%;
-  height: 5rem;
-  overflow: hidden;
-}
 
 .view-body {
   overflow-y: auto;
@@ -24,9 +13,13 @@
   will-change: scroll-position;
 }
 
-/*
-  Style of hightlight text.
-*/
+/* Style of highlighted text. */
 .highlight {
   background-color: #b2f2ff;
 }
+
+/* Hidden elements */
+.hide, [data-template] {
+  display: none !important;
+}
+

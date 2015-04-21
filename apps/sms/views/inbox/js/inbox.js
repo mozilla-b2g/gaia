@@ -197,7 +197,7 @@ var InboxView = {
         // what defined in CSS (sms.css/.threadlist-item-picture)
         picture.firstElementChild.style.backgroundImage = [
           'url(' + contact.photoURL + ')',
-          'url(style/images/default_contact_image.png)'
+          'url(/views/inbox/style/images/default_contact_image.png)'
         ].join(', ');
       } else {
         picture.firstElementChild.style.backgroundImage = null;
