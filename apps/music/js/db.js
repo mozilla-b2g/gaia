@@ -207,7 +207,6 @@ function initDB() {
     if (!firstScanDone) {
       firstScanDone = true;
       window.performance.mark('fullyLoaded');
-      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
     }
   };
 

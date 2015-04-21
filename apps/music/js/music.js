@@ -21,7 +21,6 @@ var App = (function() {
     navigator.mozL10n.once(function onLocalizationInit() {
       // Tell performance monitors that our chrome is visible.
       window.performance.mark('navigationLoaded');
-      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       initDB();
 
@@ -40,9 +39,8 @@ var App = (function() {
 
         if (!chromeInteractive) {
           chromeInteractive = true;
-          // Tell performance monitors that our chrome is interactible.
+          // Tell performance monitors that our chrome is interactive.
           window.performance.mark('navigationInteractive');
-          window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
         }
       });
     });
@@ -222,16 +220,14 @@ var App = (function() {
           });
 
           // Tell performance monitors that the content is displayed and is
-          // ready to interact with. We won't send the final moz-app-loaded
-          // event until we're completely stable and have finished scanning.
+          // ready to interact with. We won't send the final fullyLoaded
+          // mark until we're completely stable and have finished scanning.
           //
-          // XXX: Maybe we could emit these events earlier, when we've just
+          // XXX: Maybe we could emit these marks earlier, when we've just
           // finished the "above the fold" content. That's hard to do on
           // arbitrary screen resolutions, though.
           window.performance.mark('visuallyLoaded');
-          window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
           window.performance.mark('contentInteractive');
-          window.dispatchEvent(new CustomEvent('moz-content-interactive'));
           // For performance optimization, we disable the font-fit logic in
           // gaia-header to speed up the startup times, and here we have to
           // remove the no-font-fit attribute to trigger the font-fit logic.
