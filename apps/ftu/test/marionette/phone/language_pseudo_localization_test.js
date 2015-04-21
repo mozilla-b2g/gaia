@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var Ftu = require('./lib/ftu');
+var Ftu = require('../lib/ftu');
 
 marionette('First Time Use > Pseudo Localization', function() {
   var ftu;

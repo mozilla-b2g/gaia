@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var Ftu = require('./lib/ftu');
+var Ftu = require('../lib/ftu');
 
 marionette('First Time Use > Wifi Hidden Network Test', function() {
   var ftu;

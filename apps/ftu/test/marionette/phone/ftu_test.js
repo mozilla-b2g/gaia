@@ -1,6 +1,6 @@
 'use strict';
 
-var Ftu = require('./lib/ftu');
+var Ftu = require('../lib/ftu');
 
 marionette('First Time Use >', function() {
   var ftu;
