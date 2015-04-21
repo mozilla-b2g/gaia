@@ -2,12 +2,13 @@
 /*global marionette, setup, test */
 'use strict';
 
-var Email = require('./lib/email');
-var EmailSync = require('./lib/email_sync');
-var NotificationLib = require('./lib/notification');
-var serverHelper = require('./lib/server_helper');
+var Email = require('../lib/email');
+var EmailSync = require('../lib/email_sync');
+var assert = require('assert');
+var NotificationLib = require('../lib/notification');
+var serverHelper = require('../lib/server_helper');
 
-marionette('email notifications, click', function() {
+marionette('email notifications, foreground', function() {
   var app, sync, notification,
       client = marionette.client(),
       server1 = serverHelper.use({
@@ -60,26 +61,43 @@ marionette('email notifications, click', function() {
     app.launch();
   });
 
-  test('show message_reader for 1 message notification', function() {
+  test('should have 1 message notification in the different account',
+  function() {
     configureAndSend(1);
 
     sync.triggerSync();
 
-    notification.triggerFirstNotification();
-
-    // Since a single message notification, should go to message_reader.
-    app.waitForMessageReader();
+    assert(notification
+           .getFirstNotificationData().data.type === 'message_reader');
   });
 
-  test('show message_list for multiple message notification',
+  test('should have bulk message notification in the different account',
   function() {
     configureAndSend(2);
 
     sync.triggerSync();
 
-    notification.triggerFirstNotification();
+    assert(notification
+           .getFirstNotificationData().data.type === 'message_list');
+  });
 
-    // Since a single message notification, should go to message_reader.
-    app.waitForMessageList();
+  test('should not get a notification for same account', function() {
+    configureAndSend(1);
+
+    // Switch back to testy1 account in the UI
+    app.tapFolderListButton();
+    app.tapAccountListButton();
+    // switch to the testy1 account
+    app.switchAccount(1);
+    // hide the folder list page
+    app.tapFolderListCloseButton();
+
+    // Now sync
+    sync.triggerSync();
+
+    // Go back to system app
+    client.switchToFrame();
+
+    notification.assertNoNotification();
   });
 });

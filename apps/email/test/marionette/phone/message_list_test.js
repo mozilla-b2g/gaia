@@ -1,8 +1,8 @@
 'use strict';
 
-var Email = require('./lib/email');
+var Email = require('../lib/email');
 var assert = require('assert');
-var serverHelper = require('./lib/server_helper');
+var serverHelper = require('../lib/server_helper');
 
 marionette('email message list edit mode', function() {
   var app;

@@ -2,8 +2,8 @@
 /*jshint node: true */
 /*global marionette */
 
-var Email = require('./lib/email');
-var serverHelper = require('./lib/server_helper');
+var Email = require('../lib/email');
+var serverHelper = require('../lib/server_helper');
 
 marionette('activity create email account', function() {
   var app,
@@ -19,7 +19,7 @@ marionette('activity create email account', function() {
     app = new Email(client);
 
     client.contentScript.inject(__dirname +
-      '/lib/mocks/mock_navigator_moz_set_message_handler_activity.js');
+      '/../lib/mocks/mock_navigator_moz_set_message_handler_activity.js');
 
     app.launch();
   });

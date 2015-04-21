@@ -1,9 +1,9 @@
 'use strict';
 
-var Email = require('./lib/email');
+var Email = require('../lib/email');
 var assert = require('assert');
 var format = require('util').format;
-var serverHelper = require('./lib/server_helper');
+var serverHelper = require('../lib/server_helper');
 
 /**
  * Test that, upon receiving an e-mail, the user can click the "Reply"

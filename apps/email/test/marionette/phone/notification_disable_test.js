@@ -2,11 +2,11 @@
 /*jshint node: true */
 /*global marionette, setup, test, Notification:true */
 
-var Email = require('./lib/email');
-var EmailData = require('./lib/email_data');
-var EmailSync = require('./lib/email_sync');
-var Notification = require('./lib/notification');
-var serverHelper = require('./lib/server_helper');
+var Email = require('../lib/email');
+var EmailData = require('../lib/email_data');
+var EmailSync = require('../lib/email_sync');
+var Notification = require('../lib/notification');
+var serverHelper = require('../lib/server_helper');
 
 marionette('email notifications, disable', function() {
   var app, sync,

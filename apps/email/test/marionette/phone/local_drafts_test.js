@@ -1,8 +1,8 @@
 'use strict';
 
-var Email = require('./lib/email'),
+var Email = require('../lib/email'),
     assert = require('assert'),
-    serverHelper = require('./lib/server_helper');
+    serverHelper = require('../lib/server_helper');
 
 var EMAIL_ADDRESS = 'firefox-os-drafts@example.com',
     EMAIL_SUBJECT = 'I still have a dream';

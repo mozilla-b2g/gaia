@@ -2,10 +2,10 @@
 /*jshint node: true */
 /*global marionette, setup, test */
 
-var Email = require('./lib/email');
-var EmailData = require('./lib/email_data');
+var Email = require('../lib/email');
+var EmailData = require('../lib/email_data');
 var assert = require('assert');
-var serverHelper = require('./lib/server_helper');
+var serverHelper = require('../lib/server_helper');
 
 marionette('email notifications, set interval', function() {
   var app,
