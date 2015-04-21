@@ -7,7 +7,7 @@ marionette('Zoom', function() {
 
   var assert = require('assert');
   var client = marionette.client();
-  var camera = new (require('./lib/camera'))(client);
+  var camera = new (require('../lib/camera'))(client);
 
   setup(function() {
     camera.launch();
