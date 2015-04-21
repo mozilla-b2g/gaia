@@ -97,12 +97,11 @@ var NotificationScreen = {
 
     // set up the media playback widget, but only if |MediaPlaybackWidget| is
     // defined (we don't define it in tests)
-    if (typeof MediaPlaybackWidget !== 'undefined') {
+    LazyLoader.load(['js/media_playback.js']).then(function() {
       this.mediaPlaybackWidget = new MediaPlaybackWidget(
         document.getElementById('media-playback-container'),
-        {nowPlayingAction: 'openapp'}
-      );
-    }
+        {nowPlayingAction: 'openapp'});
+    }.bind(this));
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
@@ -510,9 +509,8 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (!behavior.noscreen && typeof(ScreenManager) !== 'undefined' &&
-        !ScreenManager.screenEnabled) {
-      ScreenManager.turnScreenOn();
+    if (!behavior.noscreen && !Service.query('screenEnabled')) {
+      Service.request('turnScreenOn');
     }
 
     var notify = !('noNotify' in detail) &&

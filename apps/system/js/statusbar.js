@@ -156,8 +156,12 @@ var StatusBar = {
     window.addEventListener('iconhidden', this);
     window.addEventListener('iconchanged', this);
     window.addEventListener('iconwidthchanged', this);
-    window.addEventListener('ftuskip', this);
-    window.addEventListener('ftudone', this);
+    if (Service.query('FtuLauncher.isFinished')) {
+      this.finishInit();
+    } else {
+      window.addEventListener('ftuskip', this);
+      window.addEventListener('ftudone', this);
+    }
     Service.registerState('height', this);
   },
 
@@ -291,7 +295,7 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-        var app = Service.query('getTopMostWindow');
+        app = Service.query('getTopMostWindow');
         if (app) {
           this.element.classList.toggle('fullscreen',
             app.isFullScreen());

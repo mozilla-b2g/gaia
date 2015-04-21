@@ -365,8 +365,8 @@ var GaiaApps = {
    * as we return what frame the user is interacting with
    */
   getDisplayedApp: function() {
-    let app = window.wrappedJSObject.Service.query('getTopMostWindow') ||
-              window.wrappedJSObject.Service.query('AppWindowManager.getActiveWindow');
+    let app = window.wrappedJSObject.Service
+              .query('AppWindowManager.getActiveWindow').getTopMostWindow();
 
     let origin = app.origin;
     console.log('app with origin \'' + origin + '\' is displayed');

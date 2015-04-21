@@ -4,7 +4,6 @@
   MockNavigatorSettings,
   MocksHelper,
   NotificationScreen,
-  ScreenManager,
   MockNavigatorMozTelephony,
   MockCall,
   MockService
@@ -33,7 +32,6 @@ var mocksForNotificationScreen = new MocksHelper([
   'StatusBar',
   'GestureDetector',
   'NavigatorMozChromeNotifications',
-  'ScreenManager',
   'NavigatorSettings',
   'SettingsListener',
   'SettingsURL',
@@ -80,6 +78,7 @@ suite('system/NotificationScreen >', function() {
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function(done) {
+    window.MediaPlaybackWidget = function() {};
     fakeDesktopNotifContainer = document.createElement('div');
     fakeDesktopNotifContainer.id = 'desktop-notifications-container';
     Object.defineProperty(fakeDesktopNotifContainer, 'clientWidth', {
@@ -154,6 +153,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   teardown(function() {
+    delete window.MediaPlaybackWidget;
     // real document.hidden is in a prototype, so we can just delete it.
     delete document.hidden;
 
@@ -596,21 +596,20 @@ suite('system/NotificationScreen >', function() {
     var turnOnScreenSpy;
 
     setup(function() {
-      ScreenManager.turnScreenOff();
-      turnOnScreenSpy = this.sinon.spy(ScreenManager, 'turnScreenOn');
+      turnOnScreenSpy = this.sinon.spy(MockService, 'request');
     });
 
     test('calendar notifications should wake the screen', function() {
       details.manifestURL = CALENDAR_MANIFEST;
       NotificationScreen.addNotification(details);
-      sinon.assert.calledOnce(ScreenManager.turnScreenOn);
+      sinon.assert.calledOnce(MockService.request.withArgs('turnScreenOn'));
     });
 
     test('email notifications should not wake screen', function() {
       details.mozbehavior = { noscreen: true };
       details.manifestURL = EMAIL_MANIFEST;
       NotificationScreen.addNotification(details);
-      sinon.assert.notCalled(ScreenManager.turnScreenOn);
+      sinon.assert.notCalled(MockService.request.withArgs('turnScreenOn'));
     });
 
     test('download progress notifications should not wake screen', function() {
@@ -618,7 +617,7 @@ suite('system/NotificationScreen >', function() {
       details.manifestURL = null;
       details.type = 'download-notification-downloading';
       NotificationScreen.addNotification(details);
-      sinon.assert.notCalled(ScreenManager.turnScreenOn);
+      sinon.assert.notCalled(MockService.request);
     });
 
     test('download complete notifications should wake screen', function() {
@@ -626,7 +625,7 @@ suite('system/NotificationScreen >', function() {
       details.manifestURL = null;
       details.type = 'download-notification-complete';
       NotificationScreen.addNotification(details);
-      sinon.assert.calledOnce(ScreenManager.turnScreenOn);
+      sinon.assert.calledOnce(MockService.request);
     });
   });
 

@@ -1,7 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/*global Service, ScreenManager*/
+/* global Service */
 
 'use strict';
 
@@ -13,8 +10,7 @@
    * SourceView displays source of current page in an iframe as an overlay on
    * top of mozapps.
    * @class SourceView
-   * @requires AppWindowManager
-   * @requires ScreenManager
+   * @requires Service
    */
   function SourceView() {
     var self = this;
@@ -129,7 +125,7 @@
    * @memberof SourceView.prototype
    */
   SourceView.prototype.toggle = function sv_toggle() {
-    if (ScreenManager.screenEnabled) {
+    if (Service.query('screenEnabled')) {
       this.active ? this.hide() : this.show();
     }
   };

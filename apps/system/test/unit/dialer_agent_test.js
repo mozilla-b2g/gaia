@@ -1,7 +1,8 @@
 'use strict';
 
 /* global DialerAgent, MocksHelper, MockNavigatorMozTelephony,
-          MockSettingsListener, MockSettingsURL, MockAudio, MockApplications */
+          MockSettingsListener, MockSettingsURL, MockAudio, MockApplications,
+          MockService */
 
 require('/js/dialer_agent.js');
 require('/test/unit/mock_app_window.js');
@@ -70,6 +71,17 @@ suite('system/DialerAgent', function() {
     this.addEventListener = function() {};
     this.removeEventListener = function() {};
   }
+
+  test('Should load tone player if just upgraded', function() {
+    window.toneUpgrader = {
+      perform: this.sinon.spy()
+    };
+    subject.stop();
+    MockService.mockQueryWith('justUpgraded', true);
+    subject.start();
+    assert.isTrue(window.toneUpgrader.perform.calledWith('ringtone'));
+    delete window.toneUpgrader;
+  });
 
   suite('Audio element setup', function() {
     var mockAudio;

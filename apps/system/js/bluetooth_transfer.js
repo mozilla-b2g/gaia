@@ -2,7 +2,7 @@
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
-/* global MimeMapper, Service,
+/* global MimeMapper, Service, LazyLoader,
           MozActivity, NotificationHelper, UtilityTray */
 /* exported BluetoothTransfer */
 (function(exports) {
@@ -592,57 +592,59 @@ var BluetoothTransfer = {
     var storage = navigator.getDeviceStorage(storageType);
     var getreq = storage.get(filePath);
 
-    getreq.onerror = () => {
-      var msg = 'failed to get file:' +
-                filePath + getreq.error.name +
-                getreq.error.name;
-      this.debug(msg);
-    };
-
-    getreq.onsuccess = () => {
-      var file = getreq.result;
-      // When we got the file by storage type of "sdcard"
-      // use the file.type to replace the empty fileType which is given by API
-      var fileName = file.name;
-      var extension = fileName.split('.').pop();
-      var originalType = file.type || contentType;
-      var mappedType = (MimeMapper.isSupportedType(originalType)) ?
-        originalType : MimeMapper.guessTypeFromExtension(extension);
-
-      var a = new MozActivity({
-        name: mappedType == 'text/vcard' ? 'import' : 'open',
-        data: {
-          type: mappedType,
-          blob: file,
-          // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=812098
-          // Pass the file name for Music APP since it can not open blob
-          filename: fileName
-        }
-      });
-
-      a.onerror = (e) => {
-        var msg = 'open activity error:' + a.error.name;
-        this.debug(msg);
-        switch (a.error.name) {
-        case 'NO_PROVIDER':
-          UtilityTray.hide();
-          // Cannot identify MIMETYPE
-          // So, show cannot open file dialog with unknow media type
-          this.showUnknownMediaPrompt(fileName);
-          return;
-        case 'ActivityCanceled':
-          return;
-        case 'USER_ABORT':
-          return;
-        default:
-          return;
-        }
-      };
-      a.onsuccess = (e) => {
-        var msg = 'open activity onsuccess';
+    LazyLoader.load(['shared/js/mime_mapper.js']).then(() => {
+      getreq.onerror = () => {
+        var msg = 'failed to get file:' +
+                  filePath + getreq.error.name +
+                  getreq.error.name;
         this.debug(msg);
       };
-    };
+
+      getreq.onsuccess = () => {
+        var file = getreq.result;
+        // When we got the file by storage type of "sdcard"
+        // use the file.type to replace the empty fileType which is given by API
+        var fileName = file.name;
+        var extension = fileName.split('.').pop();
+        var originalType = file.type || contentType;
+        var mappedType = (MimeMapper.isSupportedType(originalType)) ?
+          originalType : MimeMapper.guessTypeFromExtension(extension);
+
+        var a = new MozActivity({
+          name: mappedType == 'text/vcard' ? 'import' : 'open',
+          data: {
+            type: mappedType,
+            blob: file,
+            // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=812098
+            // Pass the file name for Music APP since it can not open blob
+            filename: fileName
+          }
+        });
+
+        a.onerror = (e) => {
+          var msg = 'open activity error:' + a.error.name;
+          this.debug(msg);
+          switch (a.error.name) {
+          case 'NO_PROVIDER':
+            UtilityTray.hide();
+            // Cannot identify MIMETYPE
+            // So, show cannot open file dialog with unknow media type
+            this.showUnknownMediaPrompt(fileName);
+            return;
+          case 'ActivityCanceled':
+            return;
+          case 'USER_ABORT':
+            return;
+          default:
+            return;
+          }
+        };
+        a.onsuccess = (e) => {
+          var msg = 'open activity onsuccess';
+          this.debug(msg);
+        };
+      };
+    });
   },
 
   showUnknownMediaPrompt: function bt_showUnknownMediaPrompt(fileName) {

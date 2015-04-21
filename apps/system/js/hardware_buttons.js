@@ -1,6 +1,6 @@
 'use strict';
 
-/* global ScreenManager, SettingsListener, BrowserKeyEventManager */
+/* global Service, SettingsListener, BrowserKeyEventManager, LazyLoader */
 
 (function(exports) {
 
@@ -85,7 +85,7 @@
    * hardwareButtons.stop();  // Deattach the event listeners.
    *
    * @class    HardwareButtons
-   * @requires ScreenManager
+   * @requires Service
    * @requires BrowserKeyEventManager
    **/
   var HardwareButtons = function HardwareButtons() {
@@ -133,8 +133,10 @@
     // Kick off the FSM in the base state
     this.state = new HardwareButtonsBaseState(this);
 
-    // initiate BrowserKeyEventManager submodule
-    this.browserKeyEventManager = new BrowserKeyEventManager();
+    LazyLoader.load(['js/browser_key_event_manager.js']).then(() => {
+      // initiate BrowserKeyEventManager submodule
+      this.browserKeyEventManager = new BrowserKeyEventManager();
+    });
 
     window.addEventListener('softwareButtonEvent', this);
 
@@ -273,7 +275,7 @@
          * @event HardwareButtonsBaseState#wake
          */
         // XXX: Unresolved dependency to screenManager
-        if (!ScreenManager.screenEnabled) {
+        if (!Service.query('screenEnabled')) {
           this.hardwareButtons.publish('wake');
           this.hardwareButtons.setState('wake', type);
         } else {
@@ -287,7 +289,7 @@
          * @event HardwareButtonsBaseState#wake
          */
         // XXX: Unresolved dependency to screenManager
-        if (!ScreenManager.screenEnabled) {
+        if (!Service.query('screenEnabled')) {
           this.hardwareButtons.publish('wake');
           this.hardwareButtons.setState('wake', type);
         } else {
@@ -799,13 +801,6 @@
     }
     this.hardwareButtons.setState('base', type);
   };
-
-  /*
-   * Start the hardware buttons events.
-   * XXX: To be moved.
-   */
-  exports.hardwareButtons = new HardwareButtons();
-  exports.hardwareButtons.start();
 
   exports.HardwareButtons = HardwareButtons;
 }(window));
