@@ -42,6 +42,7 @@ function setWallpaper(settings, config) {
       utils.joinPath('build', 'config', 'wallpaper.jpg'),
       config.GAIA_DIR);
   }
+  // Use some wallpaper.
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
