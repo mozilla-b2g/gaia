@@ -1,8 +1,8 @@
 'use strict';
 
-var Dialer = require('./lib/dialer');
+var Dialer = require('../lib/dialer');
 var ReflowHelper =
-  require('../../../../../tests/js-marionette/reflow_helper.js');
+  require('../../../../../../tests/js-marionette/reflow_helper.js');
 
 marionette('Dialer > Keypad', function() {
   var assert = require('assert');

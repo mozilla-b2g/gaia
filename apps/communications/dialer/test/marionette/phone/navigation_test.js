@@ -1,5 +1,5 @@
 'use strict';
-var Dialer = require('./lib/dialer');
+var Dialer = require('../lib/dialer');
 
 marionette('Dialer > Navigation', function() {
   var assert = require('assert');

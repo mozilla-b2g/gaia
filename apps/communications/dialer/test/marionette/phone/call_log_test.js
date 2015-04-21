@@ -1,8 +1,8 @@
 'use strict';
 
-var Dialer = require('./lib/dialer');
+var Dialer = require('../lib/dialer');
 var ReflowHelper =
-  require('../../../../../tests/js-marionette/reflow_helper.js');
+  require('../../../../../../tests/js-marionette/reflow_helper.js');
 
 marionette('Dialer > Keypad', function() {
   var assert = require('assert');
@@ -25,9 +25,9 @@ marionette('Dialer > Keypad', function() {
     actions.tap(tabItem).perform();
 
     subject.client.helper.waitForElement(selectors.callLogTabs);
-    
+
     subject.client.helper.waitForElement(selectors.callLogNoResultsContainer);
-    
+
     reflowHelper = new ReflowHelper(client);
   });
 
@@ -39,7 +39,7 @@ marionette('Dialer > Keypad', function() {
       https://bugzilla.mozilla.org/show_bug.cgi?id=991062#c13 */
   test.skip('Entering the edit mode hides the filters', function() {
     reflowHelper.startTracking(Dialer.URL + '/manifest.webapp');
-    
+
     var addEntryToCallLog = function() {
       window.wrappedJSObject.CallLog.sticky = {
         refresh: function() {}
@@ -63,14 +63,14 @@ marionette('Dialer > Keypad', function() {
     };
     subject.client.executeScript(addEntryToCallLog);
     subject.client.helper.waitForElement(selectors.callLogItem);
-    
+
     subject.client.findElement(selectors.callLogEditButton).tap();
-    
+
     subject.client.helper.waitForElement(selectors.callLogEditForm);
-    
+
     var filters = subject.client.findElement(selectors.callLogTabs);
     assert.isFalse(filters.displayed());
-    
+
     var reflowCount = reflowHelper.getCount();
     assert.equal(reflowCount, 16, 'you need more than 16 reflows for that?');
     reflowHelper.stopTracking();
