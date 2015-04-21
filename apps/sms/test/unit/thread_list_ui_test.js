@@ -571,6 +571,8 @@ suite('thread_list_ui', function() {
 
   suite('markReadUnread', function() {
     setup(function() {
+      this.sinon.stub(ThreadListUI, 'performMarkReadUnread');
+
       var threads = [{
         id: 1,
         date: new Date(2013, 1, 2),
@@ -614,7 +616,7 @@ suite('thread_list_ui', function() {
       var firstThreadNode = document.getElementById('thread-1'),
           secondThreadNode = document.getElementById('thread-2');
 
-      ThreadListUI.selectionHandler.selected = new Set(['1', '2']);
+      ThreadListUI.selectionHandler.selected = new Set([1, 2]);
 
       ThreadListUI.checkInputs();
       ThreadListUI.markReadUnread(
@@ -624,13 +626,16 @@ suite('thread_list_ui', function() {
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
+      sinon.assert.calledWith(
+        ThreadListUI.performMarkReadUnread, [1, 2], true
+      );
     });
 
     test('both Threads are unread', function() {
       var firstThreadNode = document.getElementById('thread-3'),
           secondThreadNode = document.getElementById('thread-4');
 
-      ThreadListUI.selectionHandler.selected = new Set(['3', '4']);
+      ThreadListUI.selectionHandler.selected = new Set([3, 4]);
 
       ThreadListUI.checkInputs();
       ThreadListUI.markReadUnread(
@@ -640,13 +645,16 @@ suite('thread_list_ui', function() {
 
       assert.isFalse(firstThreadNode.classList.contains('unread'));
       assert.isFalse(secondThreadNode.classList.contains('unread'));
+      sinon.assert.calledWith(
+        ThreadListUI.performMarkReadUnread, [3, 4], true
+      );
     });
 
     test('both Threads are read', function() {
      var firstThreadNode = document.getElementById('thread-5'),
          secondThreadNode = document.getElementById('thread-6');
 
-      ThreadListUI.selectionHandler.selected = new Set(['5', '6']);
+      ThreadListUI.selectionHandler.selected = new Set([5, 6]);
 
       ThreadListUI.checkInputs();
       ThreadListUI.markReadUnread(
@@ -656,6 +664,9 @@ suite('thread_list_ui', function() {
 
       assert.isTrue(firstThreadNode.classList.contains('unread'));
       assert.isTrue(secondThreadNode.classList.contains('unread'));
+      sinon.assert.calledWith(
+        ThreadListUI.performMarkReadUnread, [5, 6], false
+      );
     });
   });
 
@@ -771,7 +782,6 @@ suite('thread_list_ui', function() {
           assert.isNull(document.getElementById('thread-200'));
 
           sinon.assert.called(Drafts.store);
-          sinon.assert.called(WaitingScreen.hide);
           sinon.assert.notCalled(MessageManager.getMessages);
           sinon.assert.notCalled(MessageManager.deleteMessages);
         });
@@ -869,9 +879,9 @@ suite('thread_list_ui', function() {
             assert.isTrue(Drafts.byThreadId(id).length === 0);
           });
 
-          assert.isNotNull(document.getElementById('thread-1'));
-          assert.isNotNull(document.getElementById('thread-2'));
-          assert.isNotNull(document.getElementById('thread-3'));
+          assert.isNull(document.getElementById('thread-1'));
+          assert.isNull(document.getElementById('thread-2'));
+          assert.isNull(document.getElementById('thread-3'));
           assert.isNull(document.getElementById('thread-100'));
           assert.isNull(document.getElementById('thread-200'));
 
@@ -1864,7 +1874,7 @@ suite('thread_list_ui', function() {
         }];
 
     setup(function(done) {
-      this.sinon.stub(MessageManager, 'markThreadRead');
+      this.sinon.stub(ThreadListUI, 'performMarkReadUnread');
       this.sinon.stub(ThreadListUI, 'delete');
 
       threads.forEach((threadInfo) => {
@@ -1921,7 +1931,7 @@ suite('thread_list_ui', function() {
       assert.equal(
         MockOptionMenu.calls[0].items[2].l10nId, 'cancel'
       );
-      sinon.assert.calledWith(MessageManager.markThreadRead, 1, true);
+      sinon.assert.calledWith(ThreadListUI.performMarkReadUnread, [1], true);
     });
 
     //mark as unread action on thread
@@ -1946,7 +1956,7 @@ suite('thread_list_ui', function() {
       assert.equal(
         MockOptionMenu.calls[0].items[2].l10nId, 'cancel'
       );
-      sinon.assert.calledWith(MessageManager.markThreadRead, 2, false);
+      sinon.assert.calledWith(ThreadListUI.performMarkReadUnread, [2], false);
     });
 
     //delete action on thread
