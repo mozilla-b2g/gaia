@@ -82,8 +82,8 @@ apps/video/js/video_utils.js
 apps/video/js/view.js
 apps/video/test/marionette/lib/mocks/mock_window_mozactivity.js
 apps/video/test/marionette/lib/video.js
-apps/video/test/marionette/overlay_test.js
-apps/video/test/marionette/video_list_test.js
+apps/video/test/marionette/phone/overlay_test.js
+apps/video/test/marionette/phone/video_list_test.js
 apps/video/test/unit/mock_thumbnail_group.js
 apps/video/test/unit/mock_thumbnail_item.js
 apps/video/test/unit/thumbnail_date_group_test.js

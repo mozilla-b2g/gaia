@@ -1,4 +1,4 @@
-var Video = require('./lib/video');
+var Video = require('../lib/video');
 
 marionette('video overlay', function() {
   var assert = require('assert');

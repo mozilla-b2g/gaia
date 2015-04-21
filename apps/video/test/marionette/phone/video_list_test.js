@@ -1,4 +1,4 @@
-var Video = require('./lib/video'),
+var Video = require('../lib/video'),
     assert = require('assert');
 
 marionette('video list', function() {
@@ -30,7 +30,7 @@ marionette('video list', function() {
   setup(function() {
     // inject MozActivity to get activity details
     client.contentScript.inject(__dirname +
-                                '/lib/mocks/mock_window_mozactivity.js');
+                                '/../lib/mocks/mock_window_mozactivity.js');
     // Remove all files in temp device storage.
     client.fileManager.removeAllFiles();
 
