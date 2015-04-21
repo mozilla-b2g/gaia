@@ -1,5 +1,5 @@
-/* global AsyncSemaphore, ScreenManager,
-          SettingsListener, Service, HeadphoneIcon, PlayingIcon, MuteIcon,
+/* global AsyncSemaphore, SettingsListener, Service,
+          HeadphoneIcon, PlayingIcon, MuteIcon,
           LazyLoader */
 
 (function(exports) {
@@ -10,7 +10,6 @@
    * @class SoundManager
    * @requires AsyncSemaphore
    * @requires Service
-   * @requires ScreenManager
    */
   function SoundManager() {
   }
@@ -247,7 +246,11 @@
    * @returns {SoundManager}
    */
   SoundManager.prototype.start = function sm_start() {
-    this.pendingRequest = new AsyncSemaphore();
+    LazyLoader.load(['shared/js/async_semaphore.js']).then(() => {
+      this.pendingRequest = new AsyncSemaphore();
+    }).catch((err) => {
+      console.error(err);
+    });
     this.element = document.getElementById('volume');
     this.screen = document.getElementById('screen');
     this.overlay = document.getElementById('system-overlay');
@@ -399,7 +402,7 @@
    * @param {Number} offset the offset which will be added to volume value.
    */
   SoundManager.prototype.handleVolumeKey = function sm_handleVolumeKey(offset) {
-    if (!ScreenManager.screenEnabled && this.currentChannel === 'none') {
+    if (!Service.query('screenEnabled') && this.currentChannel === 'none') {
       return;
     }
 

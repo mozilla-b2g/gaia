@@ -14,20 +14,24 @@
     DEBUG: false,
     name: 'LockScreenLauncher',
     launch: function() {
-      return BaseModule.lazyLoad(['LockScreenWindowManager']).then(() => {
-        this.debug('open right away');
-        this.lockScreenWindowManager = new LockScreenWindowManager();
-        this.lockScreenWindowManager.start();
-        this.lockScreenWindowManager.openApp();
-        return Promise.resolve();
+      return new Promise((resolve) => {
+        BaseModule.lazyLoad(['LockScreenWindowManager']).then(() => {
+          this.debug('open right away');
+          this.lockScreenWindowManager = new LockScreenWindowManager();
+          this.lockScreenWindowManager.start();
+          this.lockScreenWindowManager.openApp();
+          resolve();
+        });
       });
     },
     standby: function() {
-      return BaseModule.lazyLoad(['LockScreenWindowManager']).then(() => {
-        this.debug('standby mode');
-        this.lockScreenWindowManager = new LockScreenWindowManager();
-        this.lockScreenWindowManager.start();
-        return Promise.resolve();
+      return new Promise((resolve) => {
+        BaseModule.lazyLoad(['LockScreenWindowManager']).then(() => {
+          this.debug('standby mode');
+          this.lockScreenWindowManager = new LockScreenWindowManager();
+          this.lockScreenWindowManager.start();
+          resolve();
+        });
       });
     }
   });

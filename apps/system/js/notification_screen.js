@@ -97,26 +97,33 @@ var NotificationScreen = {
 
     // set up the media playback widget, but only if |MediaPlaybackWidget| is
     // defined (we don't define it in tests)
-    if (typeof MediaPlaybackWidget !== 'undefined') {
+    LazyLoader.load(['js/media_playback.js']).then(function() {
       this.mediaPlaybackWidget = new MediaPlaybackWidget(
         document.getElementById('media-playback-container'),
-        {nowPlayingAction: 'openapp'}
-      );
-    }
+        {nowPlayingAction: 'openapp'});
+    }.bind(this))['catch'](function(err) {
+      console.error(err);
+    });
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
       LazyLoader.load(['shared/js/settings_url.js']).then(function() {
-        self.ringtoneURL = new SettingsURL();
+        if (!self.ringtoneURL) {
+          self.ringtoneURL = new SettingsURL();
+        }
         self._sound = self.ringtoneURL.set(value);
+      })['catch'](function(err) {
+        console.error(err);
       });
     });
 
     // We have new default ringtones in 2.0, so check if the version is upgraded
     // then execute the necessary migration.
     if (Service.query('justUpgraded')) {
-      LazyLoader.load('js/tone_upgrader.js', function() {
+      LazyLoader.load('js/tone_upgrader.js').then(function() {
         toneUpgrader.perform('alerttone');
+      })['catch'](function(err) {
+        console.error(err);
       });
     }
     Service.register('clearAll', this);
@@ -510,9 +517,8 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (!behavior.noscreen && typeof(ScreenManager) !== 'undefined' &&
-        !ScreenManager.screenEnabled) {
-      ScreenManager.turnScreenOn();
+    if (!behavior.noscreen && !Service.query('screenEnabled')) {
+      Service.request('turnScreenOn');
     }
 
     var notify = !('noNotify' in detail) &&

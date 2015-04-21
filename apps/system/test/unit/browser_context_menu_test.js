@@ -1,4 +1,4 @@
-/* global MocksHelper, MockL10n, AppWindow,
+/* global MocksHelper, MockL10n, AppWindow, BaseModule,
           MockMozActivity, MozActivity, MockAppWindowHelper */
 
 'use strict';
@@ -12,6 +12,8 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_context_menu_view.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/js/browser_config_helper.js');
+require('/js/service.js');
+require('/js/base_module.js');
 
 var mocksForAppModalDialog = new MocksHelper([
   'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView'

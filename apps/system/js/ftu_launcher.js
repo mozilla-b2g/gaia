@@ -20,19 +20,18 @@
   FtuLauncher.STATES = [
     'isFtuUpgrading',
     'isFtuRunning',
-    'getFtuOrigin'
+    'getFtuOrigin',
+    'isFinished'
   ];
   FtuLauncher.SERVICES = [
     'stepReady',
     'skip',
     'launch'
   ];
-  FtuLauncher.SUB_MODULES = [
-    'NewsletterManager'
-  ];
   FtuLauncher.SETTINGS = [
     'ftu.manifestURL'
   ];
+  FtuLauncher.SUB_MODULES = [];
   BaseModule.create(FtuLauncher, {
     name: 'FtuLauncher',
     DEBUG: false,
@@ -60,14 +59,10 @@
     _start: function() {
       this._stepsList = [];
       this._storedStepRequest = [];
-      if (!this._ftuPing) {
-        LazyLoader.load(['js/ftu_ping.js']).then(function() {
-          this._ftuPing = new FtuPing();
-          this._ftuPing.ensurePing();
-        }.bind(this));
-      } else {
+      return LazyLoader.load(['js/ftu_ping.js']).then(() => {
+        this._ftuPing = new FtuPing();
         this._ftuPing.ensurePing();
-      }
+      });
     },
 
     isFtuRunning: function fl_isFtuRunning() {
@@ -104,6 +99,10 @@
         }
       }, this);
       this._storedStepRequest = remainingRequest;
+    },
+
+    isFinished: function() {
+      return this._done || this._skipped;
     },
 
     isStepFinished: function(step) {
@@ -207,6 +206,8 @@
       // so we dont try and handle upgrade again
       LazyLoader.load(['shared/js/version_helper.js']).then(function() {
         VersionHelper.updatePrevious();
+      }).catch((err) => {
+        console.error(err);
       });
       this.updateStep('done');
       this.publish('done');
@@ -230,6 +231,8 @@
       LazyLoader.load(['js/migrators/settings_migrator.js']).then(function() {
         var settingsMigrator = new SettingsMigrator();
         settingsMigrator.start();
+      }).catch((err) => {
+        console.error(err);
       });
     }
   });

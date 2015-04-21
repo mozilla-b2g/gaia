@@ -1,13 +1,17 @@
 'use strict';
 
-/* global HardwareButtons, MocksHelper, ScreenManager, MockSettingsListener */
+/* global HardwareButtons, MocksHelper, MockService, MockSettingsListener */
 
-require('/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_service.js');
+require('/js/browser_key_event_manager.js');
+require('/js/hardware_buttons.js');
 
 var mocksForHardwareButtons = new MocksHelper([
   'SettingsListener',
-  'ScreenManager'
+  'LazyLoader',
+  'Service'
 ]).init();
 
 suite('system/HardwareButtons', function() {
@@ -40,21 +44,6 @@ suite('system/HardwareButtons', function() {
     hardwareButtons.handleEvent(evt);
   };
 
-  suiteSetup(function(done) {
-    require('/js/browser_key_event_manager.js');
-    /**
-     * Since the script initializes itself, mocks needs to be in it's right
-     * places before we could load the script. We also want to stop() the
-     * "global" instance so it will not be responsive in our tests here.
-     */
-    require('/js/hardware_buttons.js', function() {
-      window.hardwareButtons.stop();
-      window.hardwareButtons = null;
-
-      done();
-    });
-  });
-
   setup(function() {
     hardwareButtons = new HardwareButtons();
     hardwareButtons.start();
@@ -67,12 +56,12 @@ suite('system/HardwareButtons', function() {
     stubSetTimeout = this.sinon.stub(window, 'setTimeout');
     stubSetTimeout.returns(++i);
     stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
+    MockService.mockQueryWith('screenEnabled', true);
   });
 
   teardown(function() {
     hardwareButtons.stop();
 
-    ScreenManager.screenEnabled = true;
     window.CustomEvent = CustomEvent;
   });
 
@@ -93,7 +82,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and release home (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Home', false);
     fireHardwareKeyEvent('mozbrowserbeforekeyup', 'Home', false);
 
@@ -128,7 +117,7 @@ suite('system/HardwareButtons', function() {
 
   test('press and release home ' +
       '(system app focused and screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('keydown', 'Home', false);
     fireHardwareKeyEvent('keyup', 'Home', false);
 
@@ -170,7 +159,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and release sleep (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Power', false);
     fireHardwareKeyEvent('mozbrowserbeforekeyup', 'Power', false);
 
@@ -217,7 +206,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('hold volume-down and press sleep (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Power', false);
     fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeDown', false);
 
@@ -259,7 +248,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('hold sleep and press volume-down (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Power', false);
     fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeDown', false);
 
@@ -304,7 +293,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and hold home (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Home', false);
 
     assert.isTrue(stubSetTimeout.calledOnce);
@@ -345,7 +334,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and hold sleep (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Power', false);
 
     assert.isTrue(stubSetTimeout.calledOnce);
@@ -383,7 +372,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and release volume up (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeUp', false);
     fireHardwareKeyEvent('mozbrowserafterkeyup', 'VolumeUp', false);
 
@@ -428,7 +417,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and hold volume up (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeUp', false);
 
     assert.isTrue(stubSetTimeout.calledOnce);
@@ -473,7 +462,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and release volume down (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeDown', false);
     fireHardwareKeyEvent('mozbrowserafterkeyup', 'VolumeDown', false);
 
@@ -518,7 +507,7 @@ suite('system/HardwareButtons', function() {
   });
 
   test('press and hold volume down (screen disabled)', function() {
-    ScreenManager.screenEnabled = false;
+    MockService.mockQueryWith('screenEnabled', false);
     fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeDown', false);
 
     assert.isTrue(stubSetTimeout.calledOnce);

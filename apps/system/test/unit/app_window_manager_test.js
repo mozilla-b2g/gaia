@@ -396,14 +396,14 @@ suite('system/AppWindowManager', function() {
     test('Press home on home not displayed and shrinking ui is active',
       function() {
         injectRunningApps(home, app1);
-        var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-        appWindowManager._activeApp = app1;
-        appWindowManager.shrinkingUI = new MockShrinkingUI();
-        this.sinon.stub(appWindowManager.shrinkingUI,
+        var stubDisplay = this.sinon.stub(subject, 'display');
+        subject._activeApp = app1;
+        subject.shrinkingUI = new MockShrinkingUI();
+        this.sinon.stub(subject.shrinkingUI,
           'respondToHierarchyEvent').returns(true);
         this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent')
           .returns(true);
-        appWindowManager.respondToHierarchyEvent({ type: 'home' });
+        subject.respondToHierarchyEvent({ type: 'home' });
         assert.isFalse(stubDisplay.called);
       });
 
@@ -428,33 +428,6 @@ suite('system/AppWindowManager', function() {
 
       subject.handleEvent({ type: 'appcreated', detail: app1 });
       assert.isTrue(app1.instanceID in subject._apps);
-    });
-
-    test('FTU is skipped', function() {
-      injectRunningApps();
-      var stubDisplay = this.sinon.stub(subject, 'display');
-
-      subject.handleEvent({ type: 'ftuskip' });
-      assert.isTrue(stubDisplay.calledWith());
-    });
-
-    test('FTU is skipped when lockscreen is active', function() {
-      MockService.mockQueryWith('locked', true);
-      injectRunningApps();
-      var stubDisplay = this.sinon.stub(subject, 'display');
-
-      subject.handleEvent({ type: 'ftuskip' });
-      assert.isFalse(stubDisplay.called);
-      MockService.mockQueryWith('locked', false);
-    });
-
-    test('FTU is skipped when active app is not homescreen', function() {
-      injectRunningApps(app1);
-      subject._activeApp = app1;
-      var stubDisplay = this.sinon.stub(subject, 'display');
-
-      subject.handleEvent({ type: 'ftuskip' });
-      assert.isFalse(stubDisplay.calledWith());
     });
 
     test('System resize', function() {

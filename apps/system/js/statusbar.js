@@ -156,8 +156,12 @@ var StatusBar = {
     window.addEventListener('iconhidden', this);
     window.addEventListener('iconchanged', this);
     window.addEventListener('iconwidthchanged', this);
-    window.addEventListener('ftuskip', this);
-    window.addEventListener('ftudone', this);
+    if (Service.query('FtuLauncher.isFinished')) {
+      this.finishInit();
+    } else {
+      window.addEventListener('ftuskip', this);
+      window.addEventListener('ftudone', this);
+    }
     Service.registerState('height', this);
   },
 
@@ -210,7 +214,10 @@ var StatusBar = {
     this.statusbarIcons.addEventListener('wheel', this);
 
     LazyLoader.load(['js/utility_tray.js']).then(function() {
+      this.utilityTray = UtilityTray;
       UtilityTray.init();
+    }.bind(this)).catch((err) => {
+      console.error(err);
     });
   },
 
@@ -290,7 +297,6 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-      case 'rocketbar-deactivated':
         this.setAppearance();
         this.element.classList.remove('hidden');
         break;

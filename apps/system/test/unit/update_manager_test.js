@@ -11,6 +11,7 @@ requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/service.js');
 requireApp('system/test/unit/mock_notification_screen.js');
@@ -31,7 +32,8 @@ var mocksForUpdateManager = new MocksHelper([
   'SystemUpdatable',
   'AppUpdatable',
   'SettingsListener',
-  'asyncStorage'
+  'asyncStorage',
+  'LazyLoader'
 ]).init();
 
 suite('system/UpdateManager', function() {

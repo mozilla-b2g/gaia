@@ -1,5 +1,5 @@
 'use strict';
-/* global ScreenManager, DevToolsAuthDialog */
+/* global Service, DevToolsAuthDialog */
 
 (function(exports) {
 
@@ -62,9 +62,7 @@
     start: function() {
       // We want the user's attention, so we need to turn the screen on if it's
       // off.
-      if (!ScreenManager.screenEnabled) {
-        ScreenManager.turnScreenOn();
-      }
+      Service.request('turnScreenOn');
 
       this.dialog.show();
 

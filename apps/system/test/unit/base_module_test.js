@@ -35,6 +35,15 @@ suite('system/BaseModule', function() {
     stubLoad.yield();
   });
 
+  var Deferred = function() {
+    this.promise = new Promise(function(resolve, reject) {
+      this.resolve = resolve;
+      this.reject = reject;
+    }.bind(this));
+
+    return this;
+  };
+
   suite('Launching promise', function() {
     test('start should resolve right away', function(done) {
       var LaunchingPromiseTester = function() {};
@@ -44,7 +53,7 @@ suite('system/BaseModule', function() {
       var lpt = BaseModule.instantiate('LaunchingPromiseTester');
       lpt.start().then(function() {
         done();
-      });
+      }).catch((e) => {throw e || 'Should not throw'; }).then(done, done);
     });
 
     test('custom start', function(done) {
@@ -60,7 +69,7 @@ suite('system/BaseModule', function() {
       var lpt = BaseModule.instantiate('LaunchingPromiseTester');
       lpt.start().then(function() {
         done();
-      });
+      }).catch((e) => {throw e || 'Should not throw'; }).then(done, done);
     });
   });
 
@@ -474,6 +483,41 @@ suite('system/BaseModule', function() {
     });
   });
 
+  suite('Start chain', function() {
+    var chainTester;
+    var chainTester_startDeferred, cModule_startDeferred;
+    setup(function() {
+      chainTester_startDeferred = new Deferred();
+      cModule_startDeferred = new Deferred();
+      var ChainTester = function() {};
+      var CModule = function() {};
+      BaseModule.create(CModule, {
+        name: 'CModule',
+        DEBUG: true,
+        _start: sinon.spy(function() {
+          return cModule_startDeferred.promise;
+        })
+      });
+      ChainTester.SUB_MODULES = ['CModule'];
+      BaseModule.create(ChainTester, {
+        name: 'ChainTester',
+        DEBUG: true,
+        _start: sinon.spy(function() {
+          return chainTester_startDeferred.promise;
+        })
+      });
+      chainTester = new ChainTester();
+    });
+    test('Should wait until child start', function(done) {
+      var p = chainTester.start();
+      assert.isTrue(chainTester._start.calledOnce);
+      assert.isTrue(chainTester.cModule._start.calledOnce);
+      p.then(done, done);
+      chainTester_startDeferred.resolve();
+      cModule_startDeferred.resolve();
+    });
+  });
+
   suite('Import', function() {
     var importTester;
     setup(function() {
@@ -491,12 +535,14 @@ suite('system/BaseModule', function() {
     });
 
     test('Module start will be executed until import loaded', function() {
-      var stubLoad = this.sinon.stub(MockLazyLoader, 'load');
+      var p = new MockPromise();
+      this.sinon.stub(MockLazyLoader, 'load', function() {
+        return p;
+      });
       var stubCustomStart = this.sinon.stub(importTester, '_start');
       importTester.start();
-      assert.isTrue(stubLoad.called);
       assert.isFalse(stubCustomStart.called);
-      stubLoad.yield();
+      p.mFulfillToValue();
       assert.isTrue(stubCustomStart.called);
     });
   });

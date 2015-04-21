@@ -148,13 +148,11 @@ var MobileIdManager = {
       }.bind(this)
     };
 
-    if (!MobileIdDialog) {
-      LazyLoader.load(['js/mobileid_dialog.js']).then(function() {
-        this.dialog = new MobileIdDialog(dialogOptions);
-      }.bind(this));
-    } else {
+    LazyLoader.load(['js/mobileid_dialog.js']).then(() => {
       this.dialog = new MobileIdDialog(dialogOptions);
-    }
+    }).catch((err) => {
+      console.error(err);
+    });
   }
 };
 

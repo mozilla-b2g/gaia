@@ -3,7 +3,8 @@
 /* globals MocksHelper, MockNavigatorSettings, NDEF, Service, MockLazyLoader,
            MockL10n, NDEFUtils, BaseModule, MockMozNfc, NfcUtils,
            MockNavigatormozSetMessageHandler, MockDOMRequest, MockPromise,
-           MockMozBluetooth, MockBTAdapter, NfcConnectSystemDialog */
+           MockMozBluetooth, MockBTAdapter, NfcConnectSystemDialog,
+           MockService */
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_moz_nfc.js');
@@ -421,7 +422,7 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('nfc/system_nfc_connect_dialog is loaded', function() {
-      this.sinon.stub(MockLazyLoader, 'load');
+      this.sinon.spy(MockLazyLoader, 'load');
       nfcHandoverManager.nfcConnectSystemDialog = null;
       var btssp = {mac: '', localname: ''};
       nfcHandoverManager._onRequestConnect(btssp);

@@ -26,7 +26,11 @@ var AppInstallManager = {
   },
 
   init: function ai_init() {
-    this.systemBanner = new SystemBanner();
+    LazyLoader.load(['js/system_banner.js']).then(() => {
+      this.systemBanner = new SystemBanner();
+    }).catch((err) => {
+      console.error(err);
+    });
     this.dialog = document.getElementById('app-install-dialog');
     this.msg = document.getElementById('app-install-message');
     this.size = document.getElementById('app-install-size');

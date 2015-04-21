@@ -23,6 +23,9 @@ suite('system/BluetoothCore', function() {
   mocksForBluetoothCore.attachTestHelpers();
 
   setup(function(done) {
+    window.Bluetooth1 = {
+      start: this.sinon.spy()
+    };
     MockLazyLoader.mLoadRightAway = true;
     this.sinon.spy(MockLazyLoader, 'load');
 
@@ -33,6 +36,7 @@ suite('system/BluetoothCore', function() {
   });
 
   teardown(function() {
+    delete window.Bluetooth1;
     switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
   });
 
@@ -46,11 +50,11 @@ suite('system/BluetoothCore', function() {
       subject.stop();
     });
 
-    test('read', function() {
-      subject.start();
-      assert.isTrue(MockLazyLoader.load.calledWith(
-        ['js/bluetooth.js']
-      ));
+    test('Start', function(done) {
+      subject.start().then(() => {
+        assert.isTrue(window.Bluetooth1.start.called);
+        done();
+      });
     });
   });
 });

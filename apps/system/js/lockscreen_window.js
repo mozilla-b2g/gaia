@@ -1,4 +1,4 @@
-/* globals LockScreenAgent */
+/* globals LockScreenAgent, LazyLoader */
 /* global Service */
 'use strict';
 
@@ -31,10 +31,16 @@
     };
     this.iframe = this.createFrame();
 
-    this.lockScreenAgent = new LockScreenAgent(this.iframe);
-    this.lockScreenAgent.start();
+    LazyLoader.load(['js/lockscreen_agent.js']).then(() => {
+      this.lockScreenAgent = new LockScreenAgent(this.iframe);
+      this.lockScreenAgent.start();
+    }).catch((err) => {
+      console.error(err);
+    });
     AppWindow.call(this, this.configs);
-    window.dispatchEvent(new CustomEvent('lockscreen-frame-bootstrap'));
+    window.dispatchEvent(new CustomEvent('lockscreen-frame-bootstrap', {
+      detail: this
+    }));
   };
 
   /**

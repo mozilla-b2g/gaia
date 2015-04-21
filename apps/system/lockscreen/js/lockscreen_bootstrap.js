@@ -16,17 +16,18 @@
 /* global LockScreen, LockScreenNotifications, LockScreenFrameAgent */
 'use strict';
 (function() {
-  window.addEventListener('lockscreen-frame-bootstrap', function startup() {
+  window.addEventListener('lockscreen-frame-bootstrap', function startup(evt) {
+    var parent = evt.detail || window;
     // XXX: Because we don't have real app bootstraping yet.
-    window.lockScreenFrameAgent = new LockScreenFrameAgent(window.parent);
-    window.lockScreenFrameAgent.start();
-    this.lockscreen = new LockScreen();
-    window.lockScreen = this.lockscreen;
-    window.lockScreenStateManager = new window.LockScreenStateManager();
-    window.lockScreenStateManager.start(window.lockScreen);
-    this.lockscreen.init();
-    window.lockScreenNotifications = new LockScreenNotifications();
-    window.lockScreenNotifications.start(this.lockscreen,
-      this.lockscreen.notificationsContainer);
+    parent.lockScreenFrameAgent = new LockScreenFrameAgent(window.parent);
+    parent.lockScreenFrameAgent.start();
+    this.lockScreen = new LockScreen();
+    parent.lockScreen = this.lockScreen;
+    parent.lockScreenStateManager = new window.LockScreenStateManager();
+    parent.lockScreenStateManager.start(this.lockScreen);
+    this.lockScreen.init();
+    parent.lockScreenNotifications = new LockScreenNotifications();
+    parent.lockScreenNotifications.start(this.lockScreen,
+      parent.lockScreen.notificationsContainer);
   });
 })();

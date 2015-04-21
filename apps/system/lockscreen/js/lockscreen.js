@@ -335,7 +335,7 @@
      */
     LazyLoader.load(['shared/js/lockscreen_slide.js']).then(() => {
       this._unlocker = new LockScreenSlide({useNewStyle: true});
-    });
+    }).catch(function(err) {console.error(err);});
     this.getAllElements();
     this.notificationsContainer =
       document.getElementById('notifications-lockscreen-container');
@@ -507,7 +507,7 @@
       ['shared/js/lockscreen_connection_info_manager.js']).then(() => {
         this._lockscreenConnInfoManager =
           new LockScreenConnInfoManager(this.connStates);
-      });
+      }).catch(function(err) {console.error(err);});
   };
 
   /*

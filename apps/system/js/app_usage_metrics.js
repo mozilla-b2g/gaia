@@ -725,8 +725,7 @@
     }
 
     function send(data, urlInfo) {
-      var info = data.deviceinfo;
-      LazyLoader.load(['shared/js/telemetry.js']).then(function() {
+      LazyLoader.load('shared/js/telemetry.js').then(() => {
         var request = new TelemetryRequest({
           reason: AUM.TELEMETRY_REASON,
           deviceID: self.deviceID,
@@ -738,7 +737,8 @@
         }, data);
 
         // We don't actually have to do anything if the data is transmitted
-        // successfully. We are already set up to collect the next batch of data.
+        // successfully.
+        // We are already set up to collect the next batch of data.
         function onload() {
           debug('Transmitted app usage data to', request.url);
         }
@@ -765,6 +765,8 @@
           onabort: retry,
           ontimeout: retry
         });
+      }).catch((err) => {
+        console.error(err);
       });
     }
   };

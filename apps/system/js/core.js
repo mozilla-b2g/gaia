@@ -1,4 +1,4 @@
-/* global BaseModule, ScreenManager, LazyLoader, RemoteDebugger,
+/* global BaseModule, LazyLoader, RemoteDebugger,
           DeveloperHud */
 'use strict';
 
@@ -10,9 +10,6 @@
    */
   var Core = function() {
   };
-  Core.IMPORTS = [
-    'js/media_playback.js'
-  ];
 
   Core.SUB_MODULES = [
     'SleepMenu',
@@ -23,6 +20,7 @@
     'WallpaperManager',
     'LayoutManager',
     'SoftwareButtonManager',
+    'ScreenManager',
     'AppCore'
   ];
 
@@ -54,7 +52,6 @@
     },
 
     _start: function() {
-      ScreenManager && ScreenManager.turnScreenOn();
       // We need to be sure to get the focus in order to wake up the screen
       // if the phone goes to sleep before any user interaction.
       // Apparently it works because no other window
@@ -70,7 +67,9 @@
         type: 'system-message-listener-ready'
       }, true);
 
-      this.loadWhenIdle([
+      return this.loadWhenIdle([
+        'Statusbar',
+        'HardwareButtons',
         'CameraTrigger',
         'NotificationScreen',
         'AirplaneMode',
@@ -107,62 +106,58 @@
         'SoundManager',
         'CustomDialogService',
         'CarrierInfoNotifier'
-        // XXX: We should move this into mobileConnectionCore,
+        // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
         // but integration tests running on desktop without mobileConnection
         // is testing this.
-      ]).then(function() {
-        this.startAPIHandlers();
-        return Promise.resolve();
-      }.bind(this)).then(function() {
-        return LazyLoader.load([
-          'js/download/download_manager.js',
-          'js/payment.js',
-          'js/identity.js',
-          'js/devtools/logshake.js',
-          'js/devtools/remote_debugger.js',
-          'js/devtools/developer_hud.js',
-          'shared/js/date_time_helper.js'
-        ]);
-      }.bind(this)).then(function() {
-        this.remoteDebugger = new RemoteDebugger();
-        this.developerHud = new DeveloperHud();
-        this.developerHud.start();
-      }.bind(this)).catch(function(err) {
-        console.error(err);
+      ]).then(() => {
+        return Promise.all([
+          this.startAPIHandlers(),
+          LazyLoader.load([
+            'js/download/download_manager.js',
+            'js/payment.js',
+            'js/identity.js',
+            'js/devtools/logshake.js',
+            'js/devtools/remote_debugger.js',
+            'js/devtools/developer_hud.js'
+          ])
+        ]).then(() => {
+          this.remoteDebugger = new RemoteDebugger();
+          this.developerHud = new DeveloperHud();
+          return Promise.resolve(this.developerHud.start());
+        });
       });
     },
 
     startAPIHandlers: function() {
+      var promises = [];
       for (var api in this.REGISTRY) {
         this.debug('Detecting API: ' + api +
           ' and corresponding module: ' + this.REGISTRY[api]);
         if (navigator[api]) {
           this.debug('API: ' + api + ' found, starting the handler.');
-          this.startAPIHandler(api, this.REGISTRY[api]);
+          promises.push(this.startAPIHandler(api, this.REGISTRY[api]));
         } else {
           this.debug('API: ' + api + ' not found, skpping the handler.');
         }
       }
+      return Promise.all(promises);
     },
 
     startAPIHandler: function(api, handler) {
-      return new Promise(function(resolve, reject) {
-        BaseModule.lazyLoad([handler]).then(function() {
-          var moduleName = BaseModule.lowerCapital(handler);
-          if (window[handler] && typeof(window[handler]) === 'function') {
-            this[moduleName] = new window[handler](navigator[api], this);
-          } else {
-            this[moduleName] =
-              BaseModule.instantiate(handler, navigator[api], this);
-          }
-          if (!this[moduleName]) {
-            reject();
-            return;
-          }
-          this[moduleName].start && this[moduleName].start();
-          resolve();
-        }.bind(this));
-      }.bind(this));
+      return BaseModule.lazyLoad([handler]).then(() => {
+        var moduleName = BaseModule.lowerCapital(handler);
+        if (window[handler] && typeof(window[handler]) === 'function') {
+          this[moduleName] = new window[handler](navigator[api], this);
+        } else if (BaseModule.defined(handler)) {
+          this[moduleName] =
+            BaseModule.instantiate(handler, navigator[api], this);
+        } else if (window[handler]) {
+          this[moduleName] = window[handler];
+        } else {
+          return Promise.reject('Cannot find handler for ' + api);
+        }
+        return this[moduleName].start();
+      });
     },
 
     _stop: function() {

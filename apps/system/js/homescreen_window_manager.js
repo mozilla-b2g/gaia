@@ -19,26 +19,12 @@
     'HomescreenLauncher'
   ];
   HomescreenWindowManager.STATES = [
-    'ready',
     'getHomescreen'
   ];
 
   BaseModule.create(HomescreenWindowManager, {
     DEBUG: false,
     name: 'HomescreenWindowManager',
-
-    /**
-     * Homescreen Window Manager depends on the ready state of homescreen
-     * launcher. It is ready only when all of the homescreen launchers are
-     * ready.
-     *
-     * @access public
-     * @memberOf HomescreenWindowManager.prototype
-     * @type {boolean}
-     */
-    ready: function() {
-      return this.homescreenLauncher && this.homescreenLauncher.ready;
-    },
 
     _handle_appswitching: function() {
       this.getHomescreen().fadeOut();

@@ -187,9 +187,7 @@ FxA.prototype = {
       this.client.helper.waitForElement(panelId);
 
       if (buttonId) {
-        this.client.log('waiting button ' + buttonId);
         var button = this.client.helper.waitForElement(buttonId);
-        this.client.log('clicking....');
         button.click();
       }
     },

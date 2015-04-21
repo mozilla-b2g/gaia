@@ -1,10 +1,8 @@
-/* global BaseModule, MockPromise, MocksHelper, MockScreenManager,
-          MockWifiManager */
+/* global BaseModule, MockPromise, MocksHelper, MockWifiManager */
 'use strict';
 
 
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
-requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/js/service.js');
@@ -13,7 +11,7 @@ requireApp('system/js/core.js');
 
 
 var mocksForCore = new MocksHelper([
-  'ScreenManager', 'LazyLoader'
+  'LazyLoader'
 ]).init();
 
 suite('system/Core', function() {
@@ -25,12 +23,6 @@ suite('system/Core', function() {
 
   teardown(function() {
     core.stop();
-  });
-
-  test('Should turn on screen on start', function() {
-    this.sinon.stub(MockScreenManager, 'turnScreenOn');
-    core.start();
-    assert.isTrue(MockScreenManager.turnScreenOn.called);
   });
 
   suite('Start handler', function() {
@@ -48,7 +40,10 @@ suite('system/Core', function() {
       navigator.newapi = {};
       this.sinon.stub(BaseModule, 'lazyLoad').returns(fakePromise);
       core.startAPIHandler('newapi', 'NewApiHandler');
-      window.NewApiHandler = this.sinon.spy();
+      window.NewApiHandler = function() {};
+      this.sinon.stub(window, 'NewApiHandler').returns({
+        start: this.sinon.spy()
+      });
       fakePromise.mFulfillToValue();
       assert.isTrue(window.NewApiHandler.calledWithNew());
       assert.isTrue(window.NewApiHandler.calledWith(navigator.newapi, core));
@@ -78,14 +73,7 @@ suite('system/Core', function() {
       this.sinon.stub(core, 'startAPIHandler');
       core.startAPIHandlers();
       assert.isTrue(
-        core.startAPIHandler.calledWith('mozWifiManager', 'Wifi'));
-    });
-
-    test('Start the API handler for settings', function(done) {
-      core.startAPIHandler('mozSettings', 'SettingsCore').then(function() {
-        assert.isDefined(core.settingsCore);
-        done();
-      });
+        core.startAPIHandler.called);
     });
   });
 

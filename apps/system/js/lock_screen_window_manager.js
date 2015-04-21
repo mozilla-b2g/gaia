@@ -1,6 +1,6 @@
 'use strict';
 /* global Service, LockScreenWindow, LockScreenInputWindow */
-/* global LockScreenPasscodeValidator, BaseModule */
+/* global LockScreenPasscodeValidator, BaseModule, LazyLoader */
 
 (function(exports) {
   /**
@@ -238,7 +238,7 @@
    */
   LockScreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
-      var enabledListener = this['_observe_lockscreen.enabled'].bind(this);
+      var enabledListener = this.handleEnable.bind(this);
 
       // FIXME(ggp) this is currently used by Find My Device to force locking.
       // Should be replaced by a proper IAC API in bug 992277.
@@ -377,7 +377,11 @@
       var app = new LockScreenWindow();
       // XXX: Before we can use real InputWindow and InputWindowManager,
       // we need this to 
-      app.inputWindow = new LockScreenInputWindow();
+      LazyLoader.load(['js/lockscreen_input_window.js']).then(() => {
+        app.inputWindow = new LockScreenInputWindow();
+      }).catch((err) => {
+        console.error(err);
+      });
       this.states.windowCreating = false;
       return app;
     };
@@ -390,7 +394,7 @@
    * @this {LockScreenWindowManager}
    * @memberof LockScreenWindowManager
    */
-  LockScreenWindowManager.prototype['_observe_lockscreen.enabled'] =
+  LockScreenWindowManager.prototype.handleEnable =
     function(enabled) {
       this.states.ready = true;
       if (typeof(enabled) === String) {

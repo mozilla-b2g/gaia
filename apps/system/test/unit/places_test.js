@@ -7,6 +7,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
@@ -15,7 +16,8 @@ requireApp('system/js/places.js');
 var mocksHelperForPlaces = new MocksHelper([
   'asyncStorage',
   'SettingsListener',
-  'Datastore'
+  'Datastore',
+  'LazyLoader'
 ]).init();
 
 suite('system/Places', function() {

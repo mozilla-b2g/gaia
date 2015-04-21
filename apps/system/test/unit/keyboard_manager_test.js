@@ -1,9 +1,10 @@
 /*global KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
   MocksHelper, MockNavigatorSettings, Applications, MockL10n,
-  MockImeMenu, InputWindowManager, inputWindowManager, TYPE_GROUP_MAPPING,
+  MockImeMenu, inputWindowManager, TYPE_GROUP_MAPPING,
   InputLayouts, MockPromise */
 'use strict';
 
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -14,7 +15,7 @@ require('/test/unit/mock_homescreen_launcher.js');
 require('/test/unit/mock_ime_switcher.js');
 require('/test/unit/mock_ime_menu.js');
 require('/js/input_layouts.js');
-require('/js/input_window_manager.js');
+require('/test/unit/mock_input_window_manager.js');
 require('/js/keyboard_manager.js');
 
 
@@ -24,7 +25,9 @@ var mocksHelperForKeyboardManager = new MocksHelper([
     'Applications',
     'IMESwitcher',
     'ImeMenu',
-    'L10n'
+    'L10n',
+    'Service',
+    'InputWindowManager'
 ]).init();
 
 suite('KeyboardManager', function() {
@@ -80,10 +83,6 @@ suite('KeyboardManager', function() {
     // trigger out of the blue when sinon fake timer advances
     this.sinon.stub(KeyboardManager, '_tryLaunchOnBoot');
 
-    window.inputWindowManager =
-      this.sinon.stub(Object.create(InputWindowManager.prototype));
-    inputWindowManager.getLoadedManifestURLs.returns([]);
-
     // we test these InputLayouts methods separately in input_layouts_test.js
     this.sinon.stub(InputLayouts.prototype, '_getSettings');
     stubGetGroupCurrentActiveLayoutIndexAsync =
@@ -91,6 +90,14 @@ suite('KeyboardManager', function() {
                       'getGroupCurrentActiveLayoutIndexAsync');
 
     KeyboardManager.init();
+    this.sinon.stub(
+      window.inputWindowManager, 'getLoadedManifestURLs').returns([]);
+
+    this.sinon.stub(
+      window.inputWindowManager, '_onInputLayoutsRemoved').returns(null);
+    this.sinon.stub(window.inputWindowManager, 'showInputWindow');
+    this.sinon.stub(window.inputWindowManager, 'hideInputWindow');
+    this.sinon.stub(window.inputWindowManager, 'preloadInputWindow');
 
     window.applications = Applications;
     window.applications.mRegisterMockApp({

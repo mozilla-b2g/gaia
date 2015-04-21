@@ -2,20 +2,17 @@
 
 /* globals MockPromise, MockNfc, MockBluetooth, MocksHelper, NDEF,
            MockService, NfcUtils, MozActivity, NfcHandoverManager,
-           MockNfcHandoverManager, BaseModule, MockLazyLoader,
-           MockScreenManager */
+           MockNfcHandoverManager, BaseModule, MockLazyLoader */
 
 requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_promise.js');
-require('/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_nfc_handover_manager.js');
-requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_module.js');
@@ -27,7 +24,6 @@ requireApp('system/js/nfc_manager.js');
 var mocksForNfcManager = new MocksHelper([
   'AppWindow',
   'MozActivity',
-  'ScreenManager',
   'SettingsListener',
   'NfcHandoverManager',
   'Service',
@@ -222,11 +218,11 @@ suite('Nfc Manager Functions', function() {
     });
 
     test('screenchange -> enable-polling/disable-polling', function() {
-      MockScreenManager.screenEnabled = false;
+      MockService.mockQueryWith('screenEnabled', false);
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubDoTransition.withArgs('disable-polling').calledOnce);
 
-      MockScreenManager.screenEnabled = true;
+      MockService.mockQueryWith('screenEnabled', true);
       MockService.mockQueryWith('locked', true);
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubDoTransition.withArgs('disable-polling').calledTwice);
