@@ -31,19 +31,19 @@
     "apps/settings/test/marionette/phone/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/phone/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
     "apps/settings/test/marionette/phone/tests/message_settings_test.js": "",
-    "apps/system/test/marionette/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
-    "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
-    "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
-    "apps/system/test/marionette/global_overlay_window_test.js": "Bug 1117125 - Update b2g desktop in tbpl after bug 1101029 lands",
-    "apps/system/test/marionette/statusbar_home_button_test.js": "Bug 1154405 - TEST-UNEXPECTED-FAIL | Closing statusbar via home button > Home screen keeps scroll position AssertionError: false == true",
-    "apps/system/test/marionette/software_home_file_open_error_test.js": "Bug 1119079 - Intermittent software_home_file_open_error_test.js | Software Home Button - File Open Error Proper layout for file error dialog",
+    "apps/system/test/marionette/phone/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
+    "apps/system/test/marionette/phone/statusbar_icon_color_test.js": "Bug 1134018",
+    "apps/system/fxa/test/marionette/phone/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
+    "apps/system/test/marionette/phone/global_overlay_window_test.js": "Bug 1117125 - Update b2g desktop in tbpl after bug 1101029 lands",
+    "apps/system/test/marionette/phone/statusbar_home_button_test.js": "Bug 1154405 - TEST-UNEXPECTED-FAIL | Closing statusbar via home button > Home screen keeps scroll position AssertionError: false == true",
+    "apps/system/test/marionette/phone/software_home_file_open_error_test.js": "Bug 1119079 - Intermittent software_home_file_open_error_test.js | Software Home Button - File Open Error Proper layout for file error dialog",
     "apps/verticalhome/test/marionette/phone/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/phone/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
     "apps/verticalhome/test/marionette/phone/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
     "apps/verticalhome/test/marionette/phone/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",
     "apps/communications/contacts/test/marionette/phone/ice_test.js": "Bug 1147601 - Intermittent failures",
-    "apps/system/test/marionette/hierarchy_test.js": "Bug 1147618 - Disable intermittent test",
-    "apps/system/test/marionette/keyboard_edge_resize_test.js": "Bug 1147618",
-    "apps/system/test/marionette/notification_behavior_test.js": "Bug 1148336"
+    "apps/system/test/marionette/phone/hierarchy_test.js": "Bug 1147618 - Disable intermittent test",
+    "apps/system/test/marionette/phone/keyboard_edge_resize_test.js": "Bug 1147618",
+    "apps/system/test/marionette/phone/notification_behavior_test.js": "Bug 1148336"
   }
 }
