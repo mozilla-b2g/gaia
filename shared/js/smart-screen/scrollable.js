@@ -64,7 +64,7 @@
 
     this.listElem.addEventListener('transitionend', this);
 
-    this.scale = 1;
+    this.scale = param.scale || 1;
     this._setNodesPosition();
 
     var defaultItem = this.listElem.dataset.defaultItem;
@@ -77,6 +77,7 @@
     this.setScale();
 
     this.isSliding = false;
+    this.isHovering = false;
   }
 
   XScrollable.prototype = evt({
@@ -375,9 +376,13 @@
 
       var newFocus = this.getItemFromNode(this.nodes[newFocusIdx]);
       this.nodes = newNodes;
-      this._setNodesPosition();
-
-      this.spatialNavigator.focus(newFocus);
+      if (!this.isHovering) {
+        this._setNodesPosition();
+        this.spatialNavigator.focus(newFocus);
+      } else {
+        this.isHovering = false;
+        this.fire('hovering-node-removed');
+      }
     },
 
     insertNodeBefore: function(newNode, startNode) {
@@ -429,6 +434,10 @@
       }
     },
 
+    setNodesPosition: function() {
+      this._setNodesPosition();
+    },
+
     _setNodePosition: function(idx) {
       this.nodes[idx].dataset.idx = idx;
       this.getNodeFromItem(this.nodes[idx]).style.transform =
@@ -457,6 +466,40 @@
       // TODO: handle cases that one of the swapped nodes is focused.
       // ... should we really need to handle this case?
       return true;
+    },
+
+    hover: function(node1, node2) {
+      if (typeof node1 === 'number') {
+        node1 = this.nodes[node1];
+      }
+      if (typeof node2 === 'number') {
+        node2 = this.nodes[node2];
+      }
+      if (!node1 || !node2) {
+        return false;
+      }
+
+      var idx1 = parseInt(node1.dataset.idx, 10);
+      var idx2 = parseInt(node2.dataset.idx, 10);
+
+      node1.style.transform = 'translateX(calc((100% + ' +
+                              this.spacing + 'rem) * ' + (idx1 + idx2)/2 + '))';
+
+      node2.style.transform = 'translateX(calc((100% + ' +
+                              this.spacing + 'rem) * ' + (idx1 + idx2)/2 + '))';
+
+      this.fire('hover', this);
+      this.isHovering = true;
+
+      return true;
+    },
+
+    unhover: function(shouldResetCardPositions) {
+      if (shouldResetCardPositions) {
+        this._setNodesPosition();
+      }
+      this.fire('unhover', this);
+      this.isHovering = false;
     },
 
     getTargetItem: function(direction) {
