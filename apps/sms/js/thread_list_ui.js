@@ -6,7 +6,7 @@
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
          PerformanceTestingHelper, StickyHeader, Navigation,
          InterInstanceEventDispatcher,
-         SelectionHandler,
+         SelectionHandler, UndoManager
          Settings,
          LazyLoader
 */
@@ -398,8 +398,6 @@ var ThreadListUI = {
   },
 
   markReadUnreadUI: function thlui_markReadUnreadUI(selected, isRead) {
-    var threadToMark, toastMessage;
-
     function filterIds(id) {
       var thread  = Threads.get(id);
       var markable = thread && (!thread.hasDrafts || isRead) && !(thread.unreadCount ^ isRead);
@@ -411,16 +409,22 @@ var ThreadListUI = {
       return markable;
     }
 
-    threadToMark = selected.filter(filterIds);
-    this.exitEditMode();
+    var threadToMark = selected.filter(filterIds);
+    var toastMessage = threadToMark.length +  ' marked as ' + (isRead ? 'read' : 'unread');
+    var undoMethod = UndoManager.readUnreadUndo.bind(UndoManager, threadToMark, isRead);
 
-    toastMessage = threadToMark.length +  ' marked as ' + (isRead ? 'read' : 'unread');
     navigator.mozL10n.setAttributes(this.undoBanner.firstElementChild, 'undo-toast', {
       n: toastMessage
     })
 
-    ThreadListUI.threadUndoBanner('readUnread', threadToMark, isRead);
-    this.undoCheck = 1;
+    this.cancelEdit();
+    this.undoBanner.classList.remove('hide');
+    this.undoBanner.lastElementChild.addEventListener('click', undoMethod);
+    
+    UndoManager.timeouts.onUndo = setTimeout(function hideUndoBanner() {
+      UndoManager.hidetoast(undoMethod);
+      this.markReadUnread(threadToMark, isRead);
+    }.bind(this), this.UNDO_DURATION);
   },
 
   markReadUnread: function thlui_markReadUnread(threadToMark, isRead) {
@@ -502,15 +506,22 @@ var ThreadListUI = {
       });
     }
 
-    this.exitEditMode();
-
     var toastMessage = draftIds.length + threadIds.length + ' deleted';
+    var undoMethod = UndoManager.threadDeleteUndo.bind(UndoManager, draftIds, threadIds);
+    
     navigator.mozL10n.setAttributes(this.undoBanner.firstElementChild, 'undo-toast', {
       n: toastMessage
     });
-
-    ThreadListUI.threadUndoBanner('delete', draftIds, threadIds, selected);
-    this.undoCheck = 1;
+    
+    this.cancelEdit();
+    this.undoBanner.classList.remove('hide');
+    
+    this.undoBanner.lastElementChild.addEventListener('click', undoMethod);
+    
+    UndoManager.timeouts.onUndo = setTimeout(function hideUndoBanner() {
+      UndoManager.hidetoast(undoMethod);
+      this.deleteThreadDraft(selected, draftIds, threadIds);
+    }.bind(this), this.UNDO_DURATION);
   },
 
   deleteThreadDraft:

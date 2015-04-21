@@ -106,7 +106,7 @@ var ThreadUI = {
       'new-message-notice', 'edit-mode', 'edit-form', 'header-text',
       'max-length-notice', 'convert-notice', 'resize-notice',
       'new-message-notice', 'subject-max-length-notice', 'sms-counter-notice',
-      'recipient-suggestions'
+      'recipient-suggestions', 'undo-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -1907,16 +1907,21 @@ var ThreadUI = {
 
     var threadEmpty = ThreadUI.container.firstElementChild ? false : true;
     var toastMessage = delNumList.length + ' deleted';
-    if (threadEmpty) {
-      var toast = document.getElementById('threads-undo-banner');
-    } else {
-      var toast = document.getElementById('messages-undo-banner');
-    }
+    var toast = threadEmpty ? ThreadListUI.undoBanner : this.undoBanner;
+    var undoMethod = UndoManager.messageDeleteUndo.bind(delNumList, threadEmpty);
 
     navigator.mozL10n.setAttributes(toast.firstElementChild, 'undo-toast', {
         n: toastMessage
       }
     );
+
+    toast.classList.remove('hide');
+    toast.lastElementChild.addEventListener('click', undoMethod);
+    
+    UndoManager.timeouts.onUndo = setTimeout(function hideUndoBanner() {
+      UndoManager.hidetoast(UndoManager.messageDeleteUndo(delNumList, threadEmpty));
+      MessageManager.deleteMessages(delNumList);
+    }.bind(this), this.UNDO_DURATION);
 
     function undoAction () {
       clearTimeout(ThreadUI.timeouts.onUndo);
