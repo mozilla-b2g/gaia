@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var RootPanel = require('./lib/panels/root');
+var RootPanel = require('../lib/panels/root');
 
 marionette('root panel', function() {
   var client = marionette.client({

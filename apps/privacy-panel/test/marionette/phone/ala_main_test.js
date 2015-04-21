@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var AlaMainPanel = require('./lib/panels/ala_main');
+var AlaMainPanel = require('../lib/panels/ala_main');
 
 marionette('adjustable location accuracy panel', function() {
   var client = marionette.client({

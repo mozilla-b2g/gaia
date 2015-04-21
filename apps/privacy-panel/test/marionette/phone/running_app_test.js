@@ -1,6 +1,6 @@
 'use strict';
 
-var SettingsApp = require('./lib/panels/settings_app');
+var SettingsApp = require('../lib/panels/settings_app');
 
 marionette('settings app', function() {
   var client = marionette.client({

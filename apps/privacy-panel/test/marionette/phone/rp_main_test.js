@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var RpMainPanel = require('./lib/panels/rp_main');
+var RpMainPanel = require('../lib/panels/rp_main');
 
 marionette('remote protection main panel', function() {
   var client = marionette.client({

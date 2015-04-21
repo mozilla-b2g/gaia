@@ -2,7 +2,7 @@
 'use strict';
 
 var assert = require('assert');
-var TcMainPanel = require('./lib/panels/tc_main');
+var TcMainPanel = require('../lib/panels/tc_main');
 
 /**
  * For this test, we're using these three fake apps:
@@ -28,9 +28,9 @@ marionette('transparency control panels', function() {
       'focusmanager.testmode': true
     },
     apps: {
-      'mighty.duck.com':     __dirname + '/apps/mighty-duck',
-      'chubby.unicorn.com':  __dirname + '/apps/chubby-unicorn',
-      'flying.platypus.com': __dirname + '/apps/flying-platypus'
+      'mighty.duck.com':     __dirname + '/../apps/mighty-duck',
+      'chubby.unicorn.com':  __dirname + '/../apps/chubby-unicorn',
+      'flying.platypus.com': __dirname + '/../apps/flying-platypus'
     }
   });
 

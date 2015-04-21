@@ -1,6 +1,6 @@
 'use strict';
 
-var GtPanels = require('./lib/panels/guided_tour');
+var GtPanels = require('../lib/panels/guided_tour');
 
 marionette('guided tour panels', function() {
   var client = marionette.client({
