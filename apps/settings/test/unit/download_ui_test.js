@@ -1,3 +1,5 @@
+/* global MocksHelper, MockL10n, MockDownload, DownloadUI, DownloadFormatter */
+
 
 'use strict';
 

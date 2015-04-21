@@ -1,3 +1,4 @@
+/* global DownloadFormatter */
 'use strict';
 
 /**
@@ -16,7 +17,7 @@
  *         href="/shared/locales/download/download.{locale}.properties">
  */
 
-var DownloadItem = (function DownloadItem() {
+window.DownloadItem = (function DownloadItem() {
 
   // Generates the following DOM, take into account that
   // the css needed for the classes above is in settings app:
@@ -104,10 +105,10 @@ var DownloadItem = (function DownloadItem() {
     var _ = navigator.mozL10n.get;
     var state = getDownloadState(download);
     if (state === 'downloading') {
-      domNodes['progress'].value =
+      domNodes.progress.value =
         DownloadFormatter.getPercentage(download);
 
-      navigator.mozL10n.setAttributes(domNodes['info'], 'partialResult', {
+      navigator.mozL10n.setAttributes(domNodes.info, 'partialResult', {
         partial: DownloadFormatter.getDownloadedSize(download),
         total: DownloadFormatter.getTotalSize(download)
       });
@@ -124,7 +125,7 @@ var DownloadItem = (function DownloadItem() {
           break;
       }
       DownloadFormatter.getDate(download, function(date) {
-        navigator.mozL10n.setAttributes(domNodes['info'], 'summary', {
+        navigator.mozL10n.setAttributes(domNodes.info, 'summary', {
           date: date,
           status: status
         });
@@ -140,16 +141,12 @@ var DownloadItem = (function DownloadItem() {
   var getElements = function getElements(domElement) {
     var domNodes = {};
 
-    var asides = domElement.querySelectorAll('aside');
-    domNodes['asideStatus'] = domElement.querySelector('aside:not(pack-end)');
-    domNodes['asideAction'] = domElement.querySelector('aside.pack-end');
-
-    domNodes['progress'] = domElement.getElementsByTagName('progress')[0];
-
+    domNodes.asideStatus = domElement.querySelector('aside:not(pack-end)');
+    domNodes.asideAction = domElement.querySelector('aside.pack-end');
+    domNodes.progress = domElement.getElementsByTagName('progress')[0];
     // Should never change with current UI specs
-    domNodes['fileName'] = domElement.querySelector('p.fileName');
-
-    domNodes['info'] = domElement.querySelector('p.info');
+    domNodes.fileName = domElement.querySelector('p.fileName');
+    domNodes.info = domElement.querySelector('p.info');
 
     return domNodes;
   };

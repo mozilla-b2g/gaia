@@ -1,4 +1,3 @@
-/* global TelephonySettingHelper */
 'use strict';
 
 /**
@@ -7,7 +6,7 @@
  * `uncaught exception: 2147500033' message (= 0x80004001).
  */
 
-var Settings = {
+window.Settings = {
   get mozSettings() {
     // return navigator.mozSettings when properly supported, null otherwise
     // (e.g. when debugging on a browser...)
@@ -106,6 +105,6 @@ var Settings = {
       }
     }).bind(this));
 
-    PerformanceTestingHelper.dispatch('startup-path-done');
+    window.PerformanceTestingHelper.dispatch('startup-path-done');
   }
 };

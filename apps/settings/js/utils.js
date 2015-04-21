@@ -1,6 +1,7 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global MozActivity, LazyLoader, DsdsSettings, SupportedNetworkTypeHelper */
+/* exported reopenSettings, openLink, openDialog,
+            openIncompatibleSettingsDialog, DeviceStorageHelper,
+            sanitizeAddress, getIccByIndex */
 'use strict';
 
 /**
@@ -19,6 +20,7 @@ function reopenSettings() {
  */
 
 function openLink(url) {
+  /* jshint -W031 */
   if (url.startsWith('tel:')) { // dial a phone number
     new MozActivity({
       name: 'dial',
@@ -39,8 +41,9 @@ function openLink(url) {
  */
 
 function openDialog(dialogID, onSubmit, onReset) {
-  if ('#' + dialogID == Settings.currentPanel)
+  if ('#' + dialogID === Settings.currentPanel) {
     return;
+  }
 
   var origin = Settings.currentPanel;
 
@@ -51,8 +54,9 @@ function openDialog(dialogID, onSubmit, onReset) {
   var submit = dialog.querySelector('[type=submit]');
   if (submit) {
     submit.onclick = function onsubmit() {
-      if (typeof onSubmit === 'function')
+      if (typeof onSubmit === 'function') {
         (onSubmit.bind(dialog))();
+      }
       Settings.currentPanel = origin; // hide dialog box
     };
   }
@@ -60,8 +64,9 @@ function openDialog(dialogID, onSubmit, onReset) {
   var reset = dialog.querySelector('[type=reset]');
   if (reset) {
     reset.onclick = function onreset() {
-      if (typeof onReset === 'function')
+      if (typeof onReset === 'function') {
         (onReset.bind(dialog))();
+      }
       Settings.currentPanel = origin; // hide dialog box
     };
   }
@@ -91,12 +96,11 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
   var messageL10n =
     messageL10nMap[newSetting] && messageL10nMap[newSetting][oldSetting];
 
-  var dialogElement = document.querySelector('.incompatible-settings-dialog'),
-    dialogHead = document.querySelector('.is-warning-head'),
-    dialogMessage = document.querySelector('.is-warning-message'),
-    okBtn = document.querySelector('.incompatible-settings-ok-btn'),
-    cancelBtn = document.querySelector('.incompatible-settings-cancel-btn'),
-    mozL10n = navigator.mozL10n;
+  var dialogElement = document.querySelector('.incompatible-settings-dialog');
+  var dialogHead = document.querySelector('.is-warning-head');
+  var dialogMessage = document.querySelector('.is-warning-message');
+  var okBtn = document.querySelector('.incompatible-settings-ok-btn');
+  var cancelBtn = document.querySelector('.incompatible-settings-cancel-btn');
 
   dialogHead.setAttribute('data-l10n-id', headerL10n);
   dialogMessage.setAttribute('data-l10n-id', messageL10n);
@@ -153,8 +157,9 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
 
 var FileSizeFormatter = (function FileSizeFormatter(fixed) {
   function getReadableFileSize(bytes, digits) { // in: size in Bytes
-    if (bytes === undefined)
+    if (bytes === undefined) {
       return {};
+    }
 
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     var size, e;
