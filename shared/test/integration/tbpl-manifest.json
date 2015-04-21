@@ -11,7 +11,7 @@
     "apps/camera/test/marionette/phone/hud_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/phone/settings_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/phone/zoom_test.js": "device only - missing desktop shims",
-    "apps/clock/test/marionette/alarm_test.js": "Bug 1035930 - TEST-UNEXPECTED-FAIL | Alarm System statusbar shows an icon when an alarm is active",
+    "apps/clock/test/marionette/phone/alarm_test.js": "Bug 1035930 - TEST-UNEXPECTED-FAIL | Alarm System statusbar shows an icon when an alarm is active",
     "apps/email/test/marionette/phone/activity_create_email_account_complete_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/phone/local_drafts_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/phone/manual_setup_outgoing_credentials_test.js": "Bug 975588 - Re-enable email marionette js tests",

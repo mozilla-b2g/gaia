@@ -2,7 +2,7 @@ marionette('Stopwatch', function() {
   'use strict';
 
   var assert = require('assert');
-  var actions = new (require('./lib/actions'))();
+  var actions = new (require('../lib/actions'))();
   var stopwatch = actions.stopwatch;
 
   setup(function() {

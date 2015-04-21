@@ -2,9 +2,9 @@ marionette('Alarm', function() {
   'use strict';
 
   var assert = require('assert');
-  var $ = require('./lib/mquery');
-  var utils = require('./lib/utils');
-  var actions = new (require('./lib/actions'))();
+  var $ = require('../lib/mquery');
+  var utils = require('../lib/utils');
+  var actions = new (require('../lib/actions'))();
   var alarm = actions.alarm;
 
   setup(function() {
