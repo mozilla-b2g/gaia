@@ -999,7 +999,7 @@ suite('system/EdgeSwipeDetector >', function() {
     });
   });
 
-  suite('handleEvent: prompt events', function() {
+  suite('handleEvent: lifecycle events', function() {
     setup(function() {
       subject.lifecycleEnabled = true;
       MockService.currentApp = {
@@ -1049,6 +1049,10 @@ suite('system/EdgeSwipeDetector >', function() {
     testLifecycleEvents({
       on: 'rocketbar-activating',
       off: 'rocketbar-deactivated'
+    });
+    testLifecycleEvents({
+      on: 'shrinking-start',
+      off: 'shrinking-stop'
     });
   });
 
