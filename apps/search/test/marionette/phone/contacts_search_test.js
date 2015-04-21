@@ -1,8 +1,8 @@
 'use strict';
 
-var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
+var Rocketbar = require('../../../../system/test/marionette/lib/rocketbar.js');
 var Contacts = require(
-  '../../../communications/contacts/test/marionette/lib/contacts');
+  '../../../../communications/contacts/test/marionette/lib/contacts');
 var assert = require('assert');
 
 marionette('Search - Contact search', function() {

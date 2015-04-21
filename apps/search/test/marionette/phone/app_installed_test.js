@@ -1,11 +1,11 @@
 'use strict';
 
 var AppInstall =
-  require('../../../../apps/system/test/marionette/lib/app_install');
+  require('../../../../../apps/system/test/marionette/lib/app_install');
 var Rocketbar =
-  require('../../../system/test/marionette/lib/rocketbar.js');
+  require('../../../../system/test/marionette/lib/rocketbar.js');
 var createAppServer =
-  require('../../../verticalhome/test/marionette/server/parent');
+  require('../../../../verticalhome/test/marionette/server/parent');
 
 marionette('Search - Installed Apps Test', function() {
   var clientOptions = require(__dirname + '/client_options.js');

@@ -1,7 +1,7 @@
 'use strict';
 
-var Server = require('../../../../shared/test/integration/server');
-var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
+var Server = require('../../../../../shared/test/integration/server');
+var Rocketbar = require('../../../../system/test/marionette/lib/rocketbar.js');
 
 var assert = require('chai').assert;
 

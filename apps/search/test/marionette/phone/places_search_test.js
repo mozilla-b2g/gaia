@@ -1,7 +1,7 @@
 'use strict';
 
-var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
-var Server = require('../../../../shared/test/integration/server');
+var Rocketbar = require('../../../../system/test/marionette/lib/rocketbar.js');
+var Server = require('../../../../../shared/test/integration/server');
 var assert = require('assert');
 
 marionette('Places tests', function() {

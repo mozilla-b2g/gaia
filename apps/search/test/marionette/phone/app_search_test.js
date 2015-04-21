@@ -1,6 +1,6 @@
 'use strict';
 
-var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
+var Rocketbar = require('../../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - App search', function() {
   var client = marionette.client(require(__dirname + '/client_options.js'));

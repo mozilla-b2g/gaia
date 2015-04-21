@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
+var Rocketbar = require('../../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - Home Button Press', function() {
   var client = marionette.client(require(__dirname + '/client_options.js'));

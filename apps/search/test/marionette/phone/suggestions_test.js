@@ -1,9 +1,9 @@
 'use strict';
 
-var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
-var Server = require('../../../../shared/test/integration/server');
+var Rocketbar = require('../../../../system/test/marionette/lib/rocketbar.js');
+var Server = require('../../../../../shared/test/integration/server');
 
-marionette('Search - Suggestions disabled', function() {
+marionette('Search - Suggestions Test', function() {
 
   var client = marionette.client(require(__dirname + '/client_options.js'));
   var home, search, rocketbar, system, server;
@@ -31,41 +31,35 @@ marionette('Search - Suggestions disabled', function() {
           title: 'first',
           searchUrl: server.url('sample.html'),
           suggestUrl: server.url('suggestions_one.json')
-        },
-        'second': {
-          title: 'second',
-          searchUrl: server.url('sample.html'),
-          suggestUrl: server.url('suggestions_two.json')
         }
       }
     };
 
-    client.settings.set('search.suggestions.enabled', false);
+    client.settings.set('search.suggestions.enabled', true);
     client.settings.set('search.cache', providers);
     client.settings.set('search.provider', 'first');
   });
 
-  test('Test switching suggestion provider', function() {
+  test('Test suggestions', function() {
 
     home.waitForLaunch();
-
     home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
 
+    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('sometext');
     search.goToResults();
+
+    // Ensure we get 2 results (hardcoded in the provider results)
     client.waitFor(function() {
-      return client.findElements(search.Selectors.suggestions).length === 1;
+      return client.findElements(search.Selectors.suggestions).length === 2;
     });
 
-    var select = search.switchProvidersSelect;
-    client.helper.tapSelectOption(select, 'second');
+    // Ensure clicking on a result opens the browser correctly
+    var first = client.helper.waitForElement('#suggestions li');
+    first.click();
 
     client.switchToFrame();
-    search.goToResults();
-    client.waitFor(function() {
-      return client.findElements(search.Selectors.suggestions).length === 1;
-    });
+    rocketbar.switchToBrowserFrame(providers.providers.first.searchUrl);
   });
 
 });
