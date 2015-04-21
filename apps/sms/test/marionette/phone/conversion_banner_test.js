@@ -4,7 +4,7 @@
 
 var assert = require('chai').assert;
 
-var Messages = require('./lib/messages.js');
+var Messages = require('../lib/messages.js');
 
 marionette('Message Type Conversion Banner', function() {
   var apps = {};
@@ -47,10 +47,10 @@ marionette('Message Type Conversion Banner', function() {
     threadList = messagesApp.ThreadList;
 
     client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
+      __dirname + '/../mocks/mock_navigator_moz_icc_manager.js'
     );
     client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
+      __dirname + '/../mocks/mock_navigator_moz_mobile_message.js'
     );
   });
 

@@ -3,13 +3,13 @@
 
 var assert = require('chai').assert;
 
-var Messages = require('./lib/messages.js');
-var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
+var Messages = require('../lib/messages.js');
+var MessagesActivityCaller = require('../lib/messages_activity_caller.js');
 
 marionette('Messages Drafts', function() {
   var apps = {};
 
-  apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
+  apps[MessagesActivityCaller.ORIGIN] = __dirname + '/../apps/activitycaller';
 
   var client = marionette.client({
     prefs: {
@@ -26,7 +26,7 @@ marionette('Messages Drafts', function() {
     activityCallerApp = MessagesActivityCaller.create(client);
 
     client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
+      __dirname + '/../mocks/mock_navigator_moz_mobile_message.js'
     );
   });
 

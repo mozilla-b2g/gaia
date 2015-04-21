@@ -3,7 +3,7 @@
 
 var assert = require('chai').assert;
 
-var Messages = require('./lib/messages.js');
+var Messages = require('../lib/messages.js');
 
 marionette('Thread Panel Tests', function() {
   var apps = {};
@@ -22,13 +22,13 @@ marionette('Thread Panel Tests', function() {
     messagesApp = Messages.create(client);
 
     client.contentScript.inject(
-      __dirname + '/mocks/mock_test_storages.js'
+      __dirname + '/../mocks/mock_test_storages.js'
     );
     client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
+      __dirname + '/../mocks/mock_navigator_moz_icc_manager.js'
     );
     client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
+      __dirname + '/../mocks/mock_navigator_moz_mobile_message.js'
     );
   });
 
