@@ -47,6 +47,7 @@
         case 'appopened':
           if (this.actionMenu) {
             this.actionMenu.hide();
+            this.actionMenu = null;
           }
           break;
         case 'applicationinstall':
