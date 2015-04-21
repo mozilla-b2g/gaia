@@ -317,7 +317,7 @@ suite('thread_list_ui', function() {
           body: message.body,
           lastMessageSubject: message.lastMessageSubject,
           lastMessageType: 'sms',
-          messages: [],
+          messages: sinon.match.instanceOf(Map),
           participants: ['sender'],
           timestamp: message.timestamp,
           unreadCount: 0
@@ -544,14 +544,6 @@ suite('thread_list_ui', function() {
         Threads.set.reset();
       });
 
-      test('Threads.has is called', function() {
-
-        ThreadListUI.updateThread({
-          id: 1
-        });
-        assert.isTrue(Threads.has.calledOnce);
-      });
-
       test('Threads.set is called', function() {
         ThreadListUI.updateThread({
           id: 1
@@ -559,12 +551,11 @@ suite('thread_list_ui', function() {
         assert.isTrue(Threads.set.calledOnce);
       });
 
-      test('Threads.set is not called when id has no match', function() {
+      test('Threads.set is called even id has no match', function() {
         ThreadListUI.updateThread({
           id: 2
         });
-        assert.isTrue(Threads.has.calledOnce);
-        assert.isFalse(Threads.set.calledOnce);
+        assert.isTrue(Threads.set.calledOnce);
       });
     });
   });
@@ -616,7 +607,7 @@ suite('thread_list_ui', function() {
 
       ThreadListUI.selectionHandler.selected = new Set(['1', '2']);
 
-      ThreadListUI.checkInputs();
+      ThreadListUI.updateSelectionStatus();
       ThreadListUI.markReadUnread(
         ThreadListUI.selectionHandler.selectedList,
         true
@@ -632,7 +623,7 @@ suite('thread_list_ui', function() {
 
       ThreadListUI.selectionHandler.selected = new Set(['3', '4']);
 
-      ThreadListUI.checkInputs();
+      ThreadListUI.updateSelectionStatus();
       ThreadListUI.markReadUnread(
         ThreadListUI.selectionHandler.selectedList,
         true
@@ -648,7 +639,7 @@ suite('thread_list_ui', function() {
 
       ThreadListUI.selectionHandler.selected = new Set(['5', '6']);
 
-      ThreadListUI.checkInputs();
+      ThreadListUI.updateSelectionStatus();
       ThreadListUI.markReadUnread(
         ThreadListUI.selectionHandler.selectedList,
         false
@@ -675,10 +666,12 @@ suite('thread_list_ui', function() {
           timestamp: Date.now(),
           type: 'sms'
         });
+        var thread = Thread.create(draft);
 
         Drafts.add(draft);
+        Threads.set(draft.id, thread);
 
-        return Thread.create(draft);
+        return thread;
       });
 
       var threads = threadIds.map((id) => {
@@ -943,6 +936,7 @@ suite('thread_list_ui', function() {
         body: payload,
         timestamp: Date.now()
       };
+      Threads.set(o.id, o);
       return o;
     }
 
@@ -954,6 +948,7 @@ suite('thread_list_ui', function() {
         body: payload,
         timestamp: Date.now()
       };
+      Threads.set(o.id, o);
       return o;
     }
 
@@ -1147,7 +1142,7 @@ suite('thread_list_ui', function() {
   suite('appendThread', function() {
     setup(function() {
       this.sinon.stub(ThreadListUI, 'setContact');
-      this.sinon.stub(ThreadListUI, 'checkInputs');
+      this.sinon.stub(ThreadListUI, 'updateSelectionStatus');
     });
 
     suite('new thread and new message in a day', function() {
@@ -1164,6 +1159,7 @@ suite('thread_list_ui', function() {
         });
 
         thread = Thread.create(message);
+        Threads.set(thread.id, thread);
       });
 
       test('show up in a new container', function() {
@@ -1212,6 +1208,7 @@ suite('thread_list_ui', function() {
         });
 
         thread = Thread.create(message);
+        Threads.set(thread.id, thread);
       });
 
       test('show up in same container', function() {

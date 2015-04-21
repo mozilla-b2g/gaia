@@ -1,7 +1,9 @@
+'use strict';
+
 suite('DeviceStorage', function() {
   // If the API hasn't landed yet, then don't test it.
   if (!navigator.getDeviceStorage) {
-    test("navigator.getDeviceStorage() doesn't exist; not running tests",
+    test('navigator.getDeviceStorage() doesn\'t exist; not running tests',
          function() {});
     return;
   }
@@ -26,12 +28,11 @@ suite('DeviceStorage', function() {
 */
   }
 
-  var storage = storageAreas[0];
-
 /*
 // These tests are currently failing and have been temporarily disabled as per
 // Bug 838993. They should be fixed and re-enabled as soon as possible as per
 // Bug 840493.
+  var storage = storageAreas[0];
   test('write, read, enumerate and delete a file', function(done) {
     var directory = 'test';
     var filename = Math.random().toString();

@@ -1,3 +1,5 @@
+'use strict';
+/* global asyncStorage */
 require('/shared/js/async_storage.js');
 
 suite('asyncStorage', function() {
@@ -45,7 +47,7 @@ suite('asyncStorage', function() {
       generator.next();
     }
 
-    var generator = (function() {
+    var generator = (function*() {
       yield asyncStorage.setItem('myobj', object, next);
 
       yield asyncStorage.getItem('myobj', function(value) {

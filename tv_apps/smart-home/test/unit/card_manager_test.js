@@ -16,6 +16,109 @@ require('/shared/js/smart-screen/cards/application.js');
 
 suite('smart-home/CardManager', function() {
   var realPipedPromise;
+  var decks;
+  var apps;
+  var folders;
+
+  suiteSetup(function(done) {
+    realPipedPromise = window.PipedPromise;
+    // real PipedPromise will make test failed because it waits for
+    // last promise to be resolved. But we need to call done in the last
+    // promise. So we use a MockPipedPromise (which is just a genuine native
+    // Promise) instead.
+    window.PipedPromise = MockPipedPromise;
+
+    decks = {
+      dashboard: new Deck({
+        name: {
+          raw: 'Dashboard'
+        },
+        nativeApp: {
+          name: 'Dashboard',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
+        }
+      }),
+      tv: new Deck({
+        name: {
+          raw: 'TV'
+        },
+        nativeApp: {
+          name: 'TV',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
+        }
+      })
+    };
+
+    apps = {
+      music: new Application({
+        name: {
+          raw: 'Music'
+        },
+        nativeApp: {
+          name: 'Music',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
+        }
+      }),
+      video: new Application({
+        name: {
+          raw: 'Video'
+        },
+        nativeApp: {
+          name: 'Video',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://video.gaiamobile.org/manifest.webapp'
+        }
+      }),
+      gallery: new Application({
+        name: {
+          raw: 'Gallery'
+        },
+        nativeApp: {
+          name: 'Gallery',
+          removable: false,
+          manifest: {},
+          manifestURL: 'app://gallery.gaiamobile.org/manifest.webapp'
+        }
+      })
+    };
+
+    folders = {
+      emptyOne: new Folder({
+        name: {
+          raw: 'New Empty Folder'
+        }
+      }),
+      emptyTwo: new Folder({
+        name: {
+          raw: 'New Empty Folder 2'
+        }
+      }),
+      nonEmpty: new Folder({
+        name: {
+          raw: 'Non Empty'
+        },
+        _cardsInFolder: [apps.video, apps.gallery]
+      })
+    };
+
+    require('/shared/js/smart-screen/card_manager.js', function() {
+      done();
+    });
+  });
+
+  suiteTeardown(function() {
+    decks = undefined;
+    apps = undefined;
+    folders = undefined;
+    window.PipedPromise = realPipedPromise;
+  });
 
   function prepareCardManagerForTesting() {
     var result = new CardManager();
@@ -25,33 +128,10 @@ suite('smart-home/CardManager', function() {
     result._cardStore = MockCardStore;
 
     result._cardList = [
-      new Deck({
-        name: 'Dashboard',
-        nativeApp: {
-          name: 'Dashboard',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-        }
-      }),
-      new Application({
-        name: 'Music',
-        nativeApp: {
-          name: 'Music',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
-        }
-      }),
-      new Deck({
-        name: 'TV',
-        nativeApp: {
-          name: 'TV',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
-        }
-      })
+      decks.dashboard,
+      apps.music,
+      decks.tv,
+      folders.nonEmpty
     ];
 
     result.installedApps = {
@@ -72,27 +152,23 @@ suite('smart-home/CardManager', function() {
         removable: false,
         manifest: {},
         manifestURL: 'app://tv-deck.gaiamobile.org/manifest.webapp'
-      }
+      },
+      'app://video.gaiamobile.org/manifest.webapp': {
+        name: 'Video',
+        removable: false,
+        manifest: {},
+        manifestURL: 'app://video.gaiamobile.org/manifest.webapp'
+      },
+      'app://gallery.gaiamobile.org/manifest.webapp': {
+        name: 'Gallery',
+        removable: false,
+        manifest: {},
+        manifestURL: 'app://gallery.gaiamobile.org/manifest.webapp'
+      },
     };
 
     return result;
   }
-
-  suiteSetup(function(done) {
-    realPipedPromise = window.PipedPromise;
-    // real PipedPromise will make test failed because it waits for
-    // last promise to be resolved. But we need to call done in the last
-    // promise. So we use a MockPipedPromise (which is just a genuine native
-    // Promise) instead.
-    window.PipedPromise = MockPipedPromise;
-    require('/shared/js/smart-screen/card_manager.js', function() {
-      done();
-    });
-  });
-
-  suiteTeardown(function() {
-    window.PipedPromise = realPipedPromise;
-  });
 
   suite('_bestMatchingIcon()', function() {
     var cardManager;
@@ -218,21 +294,34 @@ suite('smart-home/CardManager', function() {
   suite('findCardFromCardList()', function() {
     var cardManager;
     var dashboardCardId;
+    var folderCardId;
+
     setup(function() {
       cardManager = prepareCardManagerForTesting();
       dashboardCardId = cardManager._cardList[0].cardId;
+      folderCardId = cardManager._cardList[3].cardId;
     });
 
     teardown(function() {
       MockCardStore.mClearData();
       cardManager = undefined;
+      dashboardCardId = undefined;
+      folderCardId = undefined;
     });
 
     test('should find card based on cardId', function() {
       var card = cardManager.findCardFromCardList({
         cardId: dashboardCardId
       });
-      assert.equal(card.name, 'Dashboard');
+      assert.equal(card.name.raw, 'Dashboard');
+    });
+
+    test('should find folder based on cardId', function() {
+      var card = cardManager.findCardFromCardList({
+        cardId: folderCardId
+      });
+      assert.isTrue(card instanceof Folder);
+      assert.equal(card.name.raw, 'Non Empty');
     });
 
     test('should return undefined by querying non-existing launchURL',
@@ -252,6 +341,21 @@ suite('smart-home/CardManager', function() {
       assert.isUndefined(card);
     });
 
+    test('should find card inside of folder', function() {
+      var card = cardManager.findCardFromCardList({
+        manifestURL: 'app://video.gaiamobile.org/manifest.webapp'
+      });
+      assert.equal(card.name.raw, 'Video');
+    });
+
+    test('should be able to find folder by querying via cardEntry', function() {
+      var folderEntry = folders.nonEmpty.serialize();
+      var card = cardManager.findCardFromCardList({
+        cardEntry: folderEntry
+      });
+      assert.equal(card, folders.nonEmpty);
+    });
+
   });
 
   suite('insertNewFolder()', function() {
@@ -263,17 +367,7 @@ suite('smart-home/CardManager', function() {
       // Instead we need to prepare necessary properties of cardManager
       cardManager._asyncSemaphore = new AsyncSemaphore();
       cardManager._cardStore = MockCardStore;
-      cardManager._cardList = [
-        new Deck({
-          name: 'Dashboard',
-          nativeApp: {
-            name: 'Dashboard',
-            removable: false,
-            manifest: {},
-            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-          }
-        })
-      ];
+      cardManager._cardList = [decks.dashboard];
       cardManager.installedApps = {
         'app://dashboard.gaiamobile.org/manifest.webapp': {
           name: 'Dashboard',
@@ -316,15 +410,7 @@ suite('smart-home/CardManager', function() {
       var newFolder =
         cardManager.insertNewFolder('a test folder', targetLocation);
       assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
-      newFolder.addCard(new Application({
-        name: 'Music',
-        nativeApp: {
-          name: 'Music',
-          removable: false,
-          manifest: {},
-          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
-        }
-      }));
+      newFolder.addCard(apps.music);
 
       assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
       assert.equal(cardManager._cardList[targetLocation], newFolder);
@@ -373,7 +459,6 @@ suite('smart-home/CardManager', function() {
 
   suite('writeCardlistInCardStore()', function() {
     var cardManager;
-    var emptyFolder, secondEmptyFolder;
 
     setup(function() {
       cardManager = new CardManager();
@@ -382,35 +467,11 @@ suite('smart-home/CardManager', function() {
       cardManager._asyncSemaphore = new AsyncSemaphore();
       cardManager._cardStore = MockCardStore;
 
-      emptyFolder = new Folder({
-        name: 'New Folder'
-      });
-
-      secondEmptyFolder = new Folder({
-        name: 'New Folder 2'
-      });
-
       cardManager._cardList = [
-        new Deck({
-          name: 'Dashboard',
-          nativeApp: {
-            name: 'Dashboard',
-            removable: false,
-            manifest: {},
-            manifestURL: 'app://dashboard.gaiamobile.org/manifest.webapp'
-          }
-        }),
-        emptyFolder,
-        secondEmptyFolder,
-        new Application({
-          name: 'Music',
-          nativeApp: {
-            name: 'Music',
-            removable: false,
-            manifest: {},
-            manifestURL: 'app://music.gaiamobile.org/manifest.webapp'
-          }
-        })
+        decks.dashbaord,
+        folders.emptyOne,
+        folders.emptyTwo,
+        apps.music
       ];
 
       cardManager.installedApps = {
@@ -443,7 +504,7 @@ suite('smart-home/CardManager', function() {
           cleanEmptyFolder: true
         }).then(function() {
           assert.equal(cardManager._cardList.length, expectedLength);
-          assert.isTrue(cardManager._cardList.indexOf(emptyFolder) < 0);
+          assert.isTrue(cardManager._cardList.indexOf(folders.emptyOne) < 0);
         }).then(done, done);
       });
   });

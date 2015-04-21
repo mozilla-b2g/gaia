@@ -1,4 +1,6 @@
-
+/* global MocksHelper, MockMozDownloads, MockDownloadHelper, MockDownload,
+          DownloadApiManager, MockDownloadStore, MockMozDownloads,
+          DownloadUI, DownloadHelper */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_download.js');
@@ -26,7 +28,7 @@ suite('DownloadApiManager', function() {
     'DownloadStore',
     'DownloadUI'
   ]);
-  var realMozDownloads, realDatastore, realDownloadHelper;
+  var realMozDownloads, realDownloadHelper;
   suiteSetup(function() {
     realMozDownloads = navigator.mozDownloadManager;
     navigator.mozDownloadManager = MockMozDownloads;

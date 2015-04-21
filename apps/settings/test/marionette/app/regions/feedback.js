@@ -1,3 +1,5 @@
+'use strict';
+
 var Base = require('../base');
 
 /**
@@ -72,8 +74,8 @@ FeedbackPanel.prototype = {
     var chooseFeedbackPanel =
       this.waitForElement('chooseFeedbackPanel');
     this.client.waitFor(function() {
-      return chooseFeedbackPanel.location()['x'] +
-        chooseFeedbackPanel.size()['width'] == 0;
+      return chooseFeedbackPanel.location().x +
+        chooseFeedbackPanel.size().width === 0;
     });
   },
 

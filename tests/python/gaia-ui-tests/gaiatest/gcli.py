@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from marionette_driver import Marionette
+from marionette_driver.marionette import Marionette
 
 import gaiatest
 

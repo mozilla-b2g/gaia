@@ -282,4 +282,8 @@
     });
   };
 
+  BrowserContextMenu.prototype.focus = function() {
+    this._view.focus();
+  };
+
 }(this));

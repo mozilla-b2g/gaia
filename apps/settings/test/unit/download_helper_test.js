@@ -1,3 +1,7 @@
+/* global MocksHelper, MockL10n, MockGetDeviceStorages, MockMozDownloads,
+          MockDownload, DownloadHelper, MockGetDeviceStorage,
+          DownloadFormatter  */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -97,7 +101,9 @@ suite('DownloadHelper', function() {
         'get' : function(path) {
           return {
             set onsuccess(cb) {},
-            set onerror(cb) {setTimeout(cb, 0)},
+            set onerror(cb) {
+              setTimeout(cb, 0);
+            },
             error: { 'name': 'custom error' }
           };
         },

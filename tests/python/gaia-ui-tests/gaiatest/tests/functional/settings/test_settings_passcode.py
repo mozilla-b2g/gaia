@@ -16,6 +16,7 @@ class TestSettingsPasscode(GaiaTestCase):
         settings.launch()
         screen_lock_settings = settings.open_screen_lock_settings()
 
+        screen_lock_settings.enable_lockscreen()
         screen_lock_settings.enable_passcode_lock()
         screen_lock_settings.create_passcode(self._input_passcode)
 

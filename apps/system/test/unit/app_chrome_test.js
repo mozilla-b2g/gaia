@@ -294,6 +294,13 @@ suite('system/AppChrome', function() {
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
     });
 
+    test('namechanged - does not set when we have a fixed title', function() {
+      chrome._fixedTitle = true;
+      chrome.title.textContent = 'foo';
+      chrome.handleEvent({ type: '_namechanged' });
+      assert.equal(chrome.title.textContent, 'foo');
+    });
+
     test('titlechange', function() {
 
       assert.equal(chrome.title.textContent, '');

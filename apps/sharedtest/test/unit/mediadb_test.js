@@ -1,3 +1,5 @@
+'use strict';
+
 require('/shared/js/device_storage/enumerate_all.js');
 require('/shared/js/mediadb.js');
 
@@ -9,6 +11,10 @@ suite('MediaDB', function() {
     return;
   }
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840493.
   var directory = 'mediadbtests/1/';
 
   // These are the file names, and file content we'll use
@@ -20,7 +26,6 @@ suite('MediaDB', function() {
     '111.png': {word: 'one hundred and eleven', number: 5, x: 0},
     'sub/1.png': {word: 'subdirectory', x: 0}
   };
-
 
   // Create a fake png file
   function createFile(directory, name, content, callback) {
@@ -65,10 +70,6 @@ suite('MediaDB', function() {
     cursor.onerror = callback;
   }
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840493.
   test('API existence tests', function() {
     // Check that MediaDB exists
     assert.ok(MediaDB);

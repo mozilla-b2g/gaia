@@ -4,6 +4,7 @@
 
 import json
 import os
+import posixpath
 import shutil
 import tempfile
 import time
@@ -11,9 +12,39 @@ import time
 from marionette import MarionetteTestCase, B2GTestCaseMixin
 from marionette_driver import expected, By, Wait
 from marionette_driver.errors import NoSuchElementException, StaleElementException
+import mozfile
 
 from environment import GaiaTestEnvironment
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
+
+DEFAULT_SETTINGS = {
+    'airplaneMode.enabled': False,  # disable airplane mode
+    'audio.volume.alarm': 0,  # mute alarm audio
+    'audio.volume.content': 0,  # mute content audio
+    'audio.volume.notification': 0,  # mute audio notifications
+    'camera.sound.enabled': False,  # mute camera sounds
+    'edgesgesture.enabled': False,  # disable edge gestures
+    'ftu.manifestURL': None,  # disable the first time usage app
+    'keyboard.autocorrect': False,  # disable auto-correction of keyboard
+    'keyboard.clicksound': False,  # mute keyboard click sound
+    'keyboard.enabled-layouts': str({
+        'app://keyboard.gaiamobile.org/manifest.webapp': {
+            'en': True, 'number': True}}),  # reset keyboard layouts
+    'keyboard.vibration': False,  # disable keyboard vibration
+    'language.current': 'en-US',  # reset language to en-US
+    'lockscreen.enabled': False,  # disable lockscreen
+    'lockscreen.passcode-lock.code': '1111',
+    'lockscreen.passcode-lock.enabled': False,  # disable lockscreen passcode
+    'lockscreen.unlock-sound.enabled': False,  # mute unlock sound
+    'message.sent-sound.enabled': False,  # mute message sent sound
+    'phone.ring.keypad': False,  # mute dial pad sounds
+    'privacy.donottrackheader.value': -1,  # reset do not track
+    'ril.data.roaming_enabled': False,  # disable roaming
+    'search.suggestions.enabled': False,  # disable search suggestions
+    'screen.brightness': 0.1,  # reduce screen brightness
+    'screen.timeout': 0,  # disable screen timeout
+    'vibration.enabled': False,  # disable vibration
+}
 
 
 class GaiaApp(object):
@@ -639,14 +670,26 @@ class GaiaDevice(object):
             };""", script_args=[n_times])
 
     def turn_screen_off(self):
-        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+        apps = GaiaApps(self.marionette)
+        self.marionette.switch_to_frame()
+        ret = self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+        apps.switch_to_displayed_app()
+        return ret
 
     def turn_screen_on(self):
-        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
+        apps = GaiaApps(self.marionette)
+        self.marionette.switch_to_frame()
+        ret = self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
+        apps.switch_to_displayed_app()
+        return ret
 
     @property
     def is_screen_enabled(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
+        apps = GaiaApps(self.marionette)
+        self.marionette.switch_to_frame()
+        ret = self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
+        apps.switch_to_displayed_app()
+        return ret
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
@@ -688,6 +731,7 @@ class GaiaDevice(object):
         return self.marionette.execute_script('return window.wrappedJSObject.Service.locked')
 
     def lock(self):
+        GaiaData(self.marionette).set_setting('lockscreen.enabled', True)
         self.turn_screen_off()
         self.turn_screen_on()
         assert self.is_locked, 'The screen is not locked'
@@ -697,6 +741,7 @@ class GaiaDevice(object):
         self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
+        GaiaData(self.marionette).set_setting('lockscreen.enabled', False)
         assert result, 'Unable to unlock screen'
 
     def change_orientation(self, orientation):
@@ -755,9 +800,13 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
-            if self.device.is_android_build:
-                self.cleanup_data()
-            self.device.start_b2g()
+            try:
+                if self.device.is_android_build:
+                    self.cleanup_data()
+                self.set_defaults()
+            finally:
+                # make sure we restart to avoid leaving us in a bad state
+                self.device.start_b2g()
 
         # Run the fake update checker
         FakeUpdateChecker(self.marionette).check_updates()
@@ -833,40 +882,23 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                     self.device.file_manager.remove('/'.join([path, item]))
 
     def cleanup_gaia(self, full_reset=True):
+        # kill the FTU and any open, user-killable apps
+        self.apps.kill_all()
+
         # unlock
         if self.data_layer.get_setting('lockscreen.enabled'):
             self.device.unlock()
 
-        # kill the FTU and any open, user-killable apps
-        self.apps.kill_all()
-
         if full_reset:
-            # disable passcode
-            self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
-            self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
-
-            # change language back to english
-            self.data_layer.set_setting("language.current", "en-US")
-
-            # reset keyboard to default values
-            self.data_layer.set_setting("keyboard.enabled-layouts",
-                                        "{'app://keyboard.gaiamobile.org/manifest.webapp': {'en': True, 'number': True}}")
-
-            # reset do not track
-            self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
-
-            if self.data_layer.get_setting('airplaneMode.enabled'):
-                # enable the device radio, disable airplane mode
-                self.data_layer.set_setting('airplaneMode.enabled', False)
-
-            # Re-set edge gestures pref to False
-            self.data_layer.set_setting('edgesgesture.enabled', False)
+            defaults = DEFAULT_SETTINGS.copy()
+            defaults.update(self.testvars.get('settings', {}))
+            defaults = self.modify_settings(defaults)
+            for name, value in defaults.items():
+                self.data_layer.set_setting(name, value)
 
             # disable carrier data connection
             if self.device.has_mobile_connection:
                 self.data_layer.disable_cell_data()
-
-            self.data_layer.disable_cell_roaming()
 
             if self.device.has_wifi:
                 # Bug 908553 - B2G Emulator: support wifi emulation
@@ -880,18 +912,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
             # reset to home screen
             self.device.touch_home_button()
-
-        # disable sound completely
-        self.data_layer.set_volume(0)
-
-        # disable search suggestions
-        self.data_layer.set_setting('search.suggestions.enabled', False)
-
-        # disable auto-correction of keyboard
-        self.data_layer.set_setting('keyboard.autocorrect', False)
-
-        # restore settings from testvars
-        [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
         # restore prefs from testvars
         for name, value in self.testvars.get('prefs', {}).items():
@@ -926,6 +946,58 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
     def resource(self, filename):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
+
+    def modify_settings(self, settings):
+        """Hook to modify the default settings before they're applied.
+
+        :param settings: dictionary of the settings that would be applied.
+        :returns: modified dictionary of the settings to be applied.
+
+        This method provides tha ability for test cases to override the default
+        settings before they're applied. To use it, define the method in your
+        test class and return a modified dictionary of settings:
+
+        .. code-block:: python
+
+            class TestModifySettings(GaiaTestCase):
+
+                def modify_settings(self, settings):
+                    settings['foo'] = 'bar'
+                    return settings
+
+                def test_modify_settings(self):
+                    self.assertEqual('bar', self.data_layer.get_setting('foo'))
+
+        """
+        return settings
+
+    def set_defaults(self):
+        filename = 'settings.json'
+        defaults = DEFAULT_SETTINGS.copy()
+        defaults.update(self.testvars.get('settings', {}))
+        defaults = self.modify_settings(defaults)
+
+        if self.device.is_desktop_b2g:
+            directory = self.marionette.instance.profile_path
+            path = os.path.join(directory, filename)
+        else:
+            directory = '/system/b2g/defaults'
+            path = posixpath.join(directory, filename)
+
+        settings = json.loads(self.device.file_manager.pull_file(path))
+        for name, value in defaults.items():
+            self.logger.debug('Setting %s to %s' % (name, value))
+            settings[name] = value
+        td = tempfile.mkdtemp()
+        try:
+            tf = os.path.join(td, filename)
+            with open(tf, 'w') as f:
+                json.dump(settings, f)
+            if not self.device.is_desktop_b2g:
+                self.device.manager.remount()
+            self.device.file_manager.push_file(tf, directory)
+        finally:
+            mozfile.remove(td)
 
     def wait_for_element_present(self, by, locator, timeout=None):
         return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(

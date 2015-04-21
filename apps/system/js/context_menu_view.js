@@ -1,5 +1,5 @@
 /* exported ContextMenuView */
-/* global BaseUI */
+/* global BaseUI, Service */
 (function(exports) {
   'use strict';
 
@@ -81,8 +81,9 @@
     }
 
     this.buildMenu(menu);
-    this.app && this.app.blur();
     this.element.classList.add('visible');
+    // The focus switch should be after this module is already shown.
+    Service.request('focus');
   };
 
   ContextMenuView.prototype.hide = function(evt) {
@@ -94,11 +95,10 @@
       evt.preventDefault();
     }
 
-    this.element.blur();
     this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
-    }
+    // We should request focus after removing visible because others may check
+    // if this view is visible.
+    Service.request('focus');
   };
 
   ContextMenuView.prototype.buildMenu = function(items) {
@@ -123,6 +123,13 @@
     }, this);
 
     this.elements.list.appendChild(this.elements.cancel);
+  };
+
+  ContextMenuView.prototype.focus = function() {
+    setTimeout(function() {
+      document.activeElement.blur();
+      this.elements.cancel.focus();
+    }.bind(this));
   };
 
   exports.ContextMenuView = ContextMenuView;

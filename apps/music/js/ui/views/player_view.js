@@ -1095,8 +1095,7 @@ var PlayerView = {
         // If we're within 1 second of the end of the song, register
         // a timeout to skip to the next song one second after the song ends
         if (this.audio.currentTime >= this.audio.duration - 1 &&
-            this.endedTimer == null &&
-            this.playStatus !== PLAYSTATUS_PAUSED) {
+            this.endedTimer == null) {
           var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
           this.endedTimer = setTimeout(function() {
                                          this.next(true);
@@ -1107,7 +1106,7 @@ var PlayerView = {
       case 'ended':
         // Because of the workaround above, we have to ignore real ended
         // events if we already have a timer set to emulate them
-        if (!this.endedTimer && this.playStatus !== PLAYSTATUS_PAUSED) {
+        if (!this.endedTimer) {
           this.next(true);
         }
         break;

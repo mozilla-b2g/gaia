@@ -58,6 +58,7 @@ tv_apps/notification-sender/bower_components/**
 tv_apps/smart-home/bower_components/**
 tv_apps/smart-settings/bower_components/**
 tv_apps/smart-system/bower_components/**
+tv_apps/tv-deck/bower_components/**
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
 tests/performance/getappname_atom.js

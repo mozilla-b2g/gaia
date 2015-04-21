@@ -1,13 +1,11 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global DsdsSettings */
 'use strict';
 
 /**
  * Singleton object that helps to populate and manage the 'Select a SIM card'
  * panel in the cell and data settings panel.
  */
-var IccHandlerForCarrierSettings = (function() {
+window.IccHandlerForCarrierSettings = (function() {
   /** Card state mapping const. */
   var CARDSTATE_MAPPING = {
    'pinRequired' : 'simCardLockedMsg',

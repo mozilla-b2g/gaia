@@ -1,3 +1,5 @@
+/* global getIccByIndex, SettingsHelper */
+/* jshint -W083 */
 'use strict';
 
 require([
@@ -7,7 +9,6 @@ require([
   'panels/call/task_scheduler',
   'dsds_settings'
 ], function(
-  exports,
   SettingsCache,
   DialogService,
   CallConstant,
@@ -247,7 +248,7 @@ require([
       var element = document.getElementById(elementId);
       for (var i = 0; i < rules.length; i++) {
         if (rules[i].active &&
-            ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
+            ((_voiceServiceClassMask & rules[i].serviceClass) !== 0)) {
           navigator.mozL10n.setAttributes(element,
             'callForwardingForwardingVoiceToNumber',
             { number: rules[i].number });
@@ -391,7 +392,7 @@ require([
                 var hasValidRule = false;
                 for (var i = 0; i < rules.length; i++) {
                   if (rules[i].active &&
-                    ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
+                    ((_voiceServiceClassMask & rules[i].serviceClass) !== 0)) {
                     _cfReasonStates[
                       CallConstant.CALL_FORWARD_REASON_MAPPING[settingKey]] = 1;
                     asyncOpChecker.runTask(
@@ -469,12 +470,12 @@ require([
         return;
       } else {
         var mozMobileCFInfo = {};
-        mozMobileCFInfo['action'] = enabled ?
+        mozMobileCFInfo.action = enabled ?
           CallConstant.CALL_FORWARD_ACTION.REGISTRATION :
           CallConstant.CALL_FORWARD_ACTION.DISABLE;
-        mozMobileCFInfo['reason'] =
+        mozMobileCFInfo.reason =
           CallConstant.CALL_FORWARD_REASON_MAPPING[key];
-        mozMobileCFInfo['serviceClass'] = _voiceServiceClassMask;
+        mozMobileCFInfo.serviceClass = _voiceServiceClassMask;
 
         if (!cs_isPhoneNumberValid(number)) {
           DialogService.alert('callForwardingInvalidNumberError', {
@@ -486,9 +487,9 @@ require([
           cs_enableTapOnCallForwardingItems(false);
           cs_updateCallForwardingSubpanels();
         } else {
-          mozMobileCFInfo['number'] = number;
-          mozMobileCFInfo['timeSeconds'] =
-            mozMobileCFInfo['reason'] !=
+          mozMobileCFInfo.number = number;
+          mozMobileCFInfo.timeSeconds =
+            mozMobileCFInfo.reason !=
               CallConstant.CALL_FORWARD_REASON.NO_REPLY ? 0 : 20;
 
           var req = _mobileConnection.setCallForwardingOption(
@@ -501,7 +502,7 @@ require([
 
           req.onsuccess = function() {
             cs_updateCallForwardingSubpanels(null, true, key,
-              mozMobileCFInfo['action']);
+              mozMobileCFInfo.action);
           };
           req.onerror = function() {
             DialogService.alert('callForwardingSetError', {
@@ -521,7 +522,7 @@ require([
       var l10nId;
       for (var i = 0; i < rules.length; i++) {
         if (rules[i].active &&
-            ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
+            ((_voiceServiceClassMask & rules[i].serviceClass) !== 0)) {
           var disableAction =
             action === CallConstant.CALL_FORWARD_ACTION.DISABLE;
           l10nId = disableAction ?
@@ -567,10 +568,10 @@ require([
                 submitButton: 'continue'
               });
             }
-            cs_displayRule(cfOptions['unconditional'], 'cfu-desc');
-            cs_displayRule(cfOptions['mobilebusy'], 'cfmb-desc');
-            cs_displayRule(cfOptions['noreply'], 'cfnrep-desc');
-            cs_displayRule(cfOptions['notreachable'], 'cfnrea-desc');
+            cs_displayRule(cfOptions.unconditional, 'cfu-desc');
+            cs_displayRule(cfOptions.mobilebusy, 'cfmb-desc');
+            cs_displayRule(cfOptions.noreply, 'cfnrep-desc');
+            cs_displayRule(cfOptions.notreachable, 'cfnrea-desc');
             _getCallForwardingOptionSuccess = true;
             cs_enableTapOnCallerIdItem(true);
             cs_enableTapOnCallWaitingItem(true);
@@ -633,23 +634,26 @@ require([
           // is undefined. This is fine, we want this, and in this case we will
           // just display an error message for all the matching requests.
           if (req.result) {
-            switch (req.result['m']) {
+            switch (req.result.m) {
               case 1: // Permanently provisioned
               case 3: // Temporary presentation disallowed
               case 4: // Temporary presentation allowed
-                switch (req.result['n']) {
+                switch (req.result.n) {
                   case 1: // CLIR invoked, CLIR_INVOCATION
                   case 2: // CLIR suppressed, CLIR_SUPPRESSION
                   case 0: // Network default, CLIR_DEFAULT
-                    value = req.result['n']; //'CLIR_INVOCATION'
+                    value = req.result.n; //'CLIR_INVOCATION'
                     break;
                   default:
                     value = 0; //CLIR_DEFAULT
                     break;
                 }
                 break;
-              case 0: // Not Provisioned
-              case 2: // Unknown (network error, etc)
+              case 0:
+                // Not Provisioned
+              case 2:
+                // Unknown (network error, etc)
+                /* falls through */
               default:
                 value = 0; //CLIR_DEFAULT
                 break;
@@ -706,6 +710,7 @@ require([
               value = 'CLIR_SUPPRESSION';
               break;
             case 0: // Network default
+              /* falls through */
             default:
               value = 'CLIR_DEFAULT';
               break;
@@ -1145,4 +1150,4 @@ require([
     };
     navigator.addIdleObserver(idleObserver);
   });
-}.bind(null, this));
+});

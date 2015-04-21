@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, Navigation, Promise, LazyLoader,
+         MultiSimActionButton, Navigation, Promise, LazyLoader,
          SharedComponents,
          Errors,
          EventDispatcher,
@@ -405,14 +405,8 @@ var ThreadUI = {
     }
   },
 
-  getAllInputs: function thui_getAllInputs() {
-    if (this.container) {
-      return Array.prototype.slice.call(
-        this.container.querySelectorAll('input[type=checkbox]')
-      );
-    } else {
-      return [];
-    }
+  getIdIterator: function thui_getIdIterator() {
+    return Threads.active.messages.keys();
   },
 
   setHeaderAction: function thui_setHeaderAction(icon) {
@@ -844,7 +838,7 @@ var ThreadUI = {
   // is detected
   onMessage: function onMessage(message) {
     // Update the stored thread data
-    Threads.set(message.threadId, Thread.create(message));
+    Threads.registerMessage(message);
 
     this.appendMessage(message);
     TimeHeaders.updateAll('header[data-time-update]');
@@ -1505,6 +1499,7 @@ var ThreadUI = {
       }
       taskQueue.push(() => {
         if (!this._stopRenderingNextStep) {
+          Threads.registerMessage(message);
           return this.appendMessage(message,/*hidden*/ true);
         }
         return false;
@@ -1747,7 +1742,7 @@ var ThreadUI = {
       this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
       if (this.inEditMode) {
-        this.checkInputs();
+        this.updateSelectionStatus();
       }
 
       if (!hidden) {
@@ -1845,8 +1840,8 @@ var ThreadUI = {
           container: this.container,
           checkUncheckAllButton: this.checkUncheckAllButton,
           // Methods
-          checkInputs: this.checkInputs.bind(this),
-          getAllInputs: this.getAllInputs.bind(this),
+          updateSelectionStatus: this.updateSelectionStatus.bind(this),
+          getIdIterator: this.getIdIterator.bind(this),
           isInEditMode: this.isInEditMode.bind(this)
         });
         editModeSetup.call(this);
@@ -1873,6 +1868,7 @@ var ThreadUI = {
 
     // Removing from DOM all messages to delete
     for (var i = 0, l = list.length; i < l; i++) {
+      Threads.unregisterMessage(list[i]);
       ThreadUI.removeMessageDOM(
         document.getElementById('message-' + list[i])
       );
@@ -1943,20 +1939,17 @@ var ThreadUI = {
     }
   },
 
-  checkInputs: function thui_checkInputs() {
+  updateSelectionStatus: function thui_updateSelectionStatus() {
     var selected = this.selectionHandler.selectedCount;
-    var allInputs = this.allInputs;
-
-    var isAnySelected = selected > 0;
 
     // Manage buttons enabled\disabled state
-    if (selected === allInputs.length) {
+    if (this.selectionHandler.allSelected()) {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
     } else {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
     }
 
-    if (isAnySelected) {
+    if (selected > 0) {
       this.deleteButton.disabled = false;
       navigator.mozL10n.setAttributes(this.editMode, 'selected-messages',
         {n: selected});
@@ -2433,6 +2426,7 @@ var ThreadUI = {
     button.setAttribute('data-l10n-id', 'downloading-attachment');
 
     request.onsuccess = (function retrieveMMSSuccess() {
+      Threads.unregisterMessage(id);
       this.removeMessageDOM(messageDOM);
     }).bind(this);
 
@@ -2508,6 +2502,7 @@ var ThreadUI = {
            this.onMessageSendRequestCompleted();
         }.bind(this)
       };
+      Threads.unregisterMessage(id);
       this.removeMessageDOM(messageDOM);
       MessageManager.resendMessage(resendOpts);
     }).bind(this);
@@ -3073,12 +3068,6 @@ var ThreadUI = {
     window.getSelection().selectAllChildren(node);
   }
 };
-
-Object.defineProperty(ThreadUI, 'allInputs', {
-  get: function() {
-    return this.getAllInputs();
-  }
-});
 
 Object.defineProperty(exports, 'ThreadUI', {
   get: function () {

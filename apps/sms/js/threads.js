@@ -4,6 +4,7 @@
   'use strict';
 
   var threads = new Map();
+  var messageMap = new Map();
 
   function Thread(thread) {
     var length = Thread.FIELDS.length;
@@ -14,12 +15,12 @@
       this[key] = thread[key];
     }
 
-    this.messages = [];
+    this.messages = new Map();
   }
 
   Thread.FIELDS = [
     'body', 'id', 'lastMessageSubject', 'lastMessageType',
-    'participants', 'timestamp', 'unreadCount'
+    'participants', 'timestamp', 'unreadCount', 'isDraft'
   ];
 
   Thread.fromMessage = function(record, options) {
@@ -40,7 +41,8 @@
       body: record.body,
       timestamp: record.timestamp,
       unreadCount: (options && options.unread) ? 1 : 0,
-      lastMessageType: record.type || 'sms'
+      lastMessageType: record.type || 'sms',
+      isDraft: false
     });
   };
 
@@ -61,7 +63,8 @@
       body: body,
       timestamp: new Date(record.timestamp),
       unreadCount: (options && options.unread) ? 1 : 0,
-      lastMessageType: record.type || 'sms'
+      lastMessageType: record.type || 'sms',
+      isDraft: true
     });
   };
 
@@ -86,12 +89,23 @@
 
   var Threads = exports.Threads = {
     registerMessage: function(message) {
-      var thread = Thread.create(message);
-      var threadId = message.threadId;
+      var threadId = +message.threadId;
+      var messageId = +message.id;
+
       if (!this.has(threadId)) {
-        this.set(threadId, thread);
+        this.set(threadId, Thread.create(message));
       }
-      this.get(threadId).messages.push(message);
+      this.get(threadId).messages.set(messageId, message);
+      messageMap.set(messageId, threadId);
+    },
+    unregisterMessage: function(id) {
+      id = +id;
+      var threadId = messageMap.get(id);
+
+      if (this.has(threadId)) {
+        this.get(threadId).messages.delete(id);
+      }
+      messageMap.delete(id);
     },
     set: function(id, thread) {
       var old, length, key;
@@ -120,10 +134,12 @@
 
       var thread = this.get(id);
 
-      if (thread && thread.hasDrafts) {
-        Drafts.delete({
-          threadId: id
-        });
+      if (thread && (thread.hasDrafts || thread.isDraft)) {
+        var draft = thread.isDraft ?
+          Drafts.get(id) :
+          { threadId: id };
+
+        Drafts.delete(draft);
         Drafts.store();
       }
       return threads.delete(id);
@@ -135,6 +151,9 @@
       threads.forEach(function(v, k) {
         callback(v, k);
       });
+    },
+    keys: function() {
+      return threads.keys();
     },
     get size() {
       // support: gecko 18 - size might be a function

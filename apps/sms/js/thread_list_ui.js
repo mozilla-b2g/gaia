@@ -142,14 +142,8 @@ var ThreadListUI = {
     this.cancelEdit();
   },
 
-  getAllInputs: function thlui_getAllInputs() {
-    if (this.container) {
-      return Array.prototype.slice.call(
-        this.container.querySelectorAll('input[type=checkbox]')
-      );
-    } else {
-      return [];
-    }
+  getIdIterator: function thlui_getIdIterator() {
+    return Threads.keys();
   },
 
   setContact: function thlui_setContact(node) {
@@ -314,7 +308,7 @@ var ThreadListUI = {
 
         var thread = Threads.get(+parentThreadId);
 
-        if (typeof thread !== 'undefined') {
+        if (!thread.isDraft) {
           var isRead = thread.unreadCount > 0;
           var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
 
@@ -346,10 +340,10 @@ var ThreadListUI = {
     Navigation.toPanel('composer');
   },
 
-  checkInputs: function thlui_checkInputs() {
+  updateSelectionStatus: function thlui_updateSelectionStatus() {
     var selected = this.selectionHandler;
 
-    if (selected.selectedCount === ThreadListUI.allInputs.length) {
+    if (this.selectionHandler.allSelected()) {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
     } else {
       this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
@@ -370,7 +364,7 @@ var ThreadListUI = {
       });
 
       var allDraft = selected.selectedList.every((id) => {
-        return (typeof Threads.get(id) === 'undefined');
+        return (Threads.get(id).isDraft);
       });
 
       if (allDraft) {
@@ -394,7 +388,8 @@ var ThreadListUI = {
   markReadUnread: function thlui_markReadUnread(selected, isRead) {
     selected.forEach((id) => {
       var thread  = Threads.get(id);
-      var markable = thread && (isRead || !thread.hasDrafts);
+      var markable =
+        thread && (isRead || !thread.hasDrafts) && (!thread.isDraft);
 
       if (markable) {
         thread.unreadCount = isRead ? 0 : 1;
@@ -484,22 +479,15 @@ var ThreadListUI = {
         // Coerce the threadId back to a number MobileMessageFilter and all
         // other platform APIs expect this value to be a number.
         var threadId = +value;
-        var isDraft = typeof Threads.get(threadId) === 'undefined';
 
-        if (isDraft) {
-          Drafts.delete(Drafts.get(threadId));
-          ThreadListUI.removeThread(threadId);
+        if (Threads.get(threadId).isDraft) {
+          ThreadListUI.deleteThread(threadId);
         } else {
           list.push(threadId);
         }
 
         return list;
       }, []);
-
-      // That means that we've just removed some drafts
-      if (threadIdsToDelete.length !== selected.length) {
-        Drafts.store();
-      }
 
       if (!threadIdsToDelete.length) {
         exitEditMode();
@@ -573,8 +561,8 @@ var ThreadListUI = {
           checkUncheckAllButton: this.checkUncheckAllButton,
 
           // Methods
-          checkInputs: this.checkInputs.bind(this),
-          getAllInputs: this.getAllInputs.bind(this),
+          updateSelectionStatus: this.updateSelectionStatus.bind(this),
+          getIdIterator: this.getIdIterator.bind(this),
           isInEditMode: this.isInEditMode.bind(this)
         });
         editModeSetup.call(this);
@@ -598,12 +586,14 @@ var ThreadListUI = {
     // or thread-less drafts.
     return Drafts.request(force).then(() => {
       Drafts.forEach(function(draft, threadId) {
+        var thread;
         if (threadId) {
           // Find draft-containing threads that have already been rendered
           // and update them so they mark themselves appropriately
           var el = document.getElementById('thread-' + threadId);
           if (el) {
-            this.updateThread(Threads.get(threadId));
+            thread = Threads.get(threadId);
+            this.updateThread(thread);
           }
         } else {
           // Safely assume there is a threadless draft
@@ -612,9 +602,9 @@ var ThreadListUI = {
           // If there is currently no list item rendered for this
           // draft, then proceed.
           if (!this.draftRegistry[draft.id]) {
-            this.appendThread(
-              Thread.create(draft)
-            );
+            thread = Thread.create(draft);
+            Threads.set(draft.id, thread);
+            this.appendThread(thread);
           }
         }
       }, this);
@@ -739,12 +729,12 @@ var ThreadListUI = {
     var iconLabel = '';
 
     // A new conversation "is" a draft
-    var isDraft = typeof thread === 'undefined';
+    var isDraft = thread.isDraft;
 
     // A an existing conversation "has" a draft
     // (or it doesn't, depending on the value
     // returned by thread.hasDrafts)
-    var hasDrafts = isDraft ? false : thread.hasDrafts;
+    var hasDrafts = thread.hasDrafts;
 
     if (hasDrafts) {
       draft = Drafts.byThreadId(thread.id).latest;
@@ -856,13 +846,7 @@ var ThreadListUI = {
     var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
     var recordTime = +thread.timestamp;
 
-    // For legitimate in-memory thread objects, update the stored
-    // Thread instance with the newest data. This check prevents
-    // draft objects from inadvertently creating bogus thread
-    // objects.
-    if (Threads.has(thread.id)) {
-      Threads.set(thread.id, thread);
-    }
+    Threads.set(thread.id, thread);
 
     // Edge case: if we just received a message that is older than the latest
     // one in the thread, we only need to update the 'unread' status.
@@ -975,7 +959,7 @@ var ThreadListUI = {
       // Remove the new added thread id from the selection handler
       this.selectionHandler.unselect(thread.id);
 
-      this.checkInputs();
+      this.updateSelectionStatus();
     }
 
     return firstThreadInContainer;
@@ -1052,12 +1036,6 @@ var ThreadListUI = {
     return this.readyDeferred.promise;
   }
 };
-
-Object.defineProperty(ThreadListUI, 'allInputs', {
-  get: function() {
-    return this.getAllInputs();
-  }
-});
 
 exports.ThreadListUI = ThreadListUI;
 
