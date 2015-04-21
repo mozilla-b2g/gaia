@@ -1,12 +1,13 @@
-/* global MocksHelper, AppWindow, ContextMenuView */
+/* global MocksHelper, AppWindow, ContextMenuView, Service */
 
 'use strict';
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/context_menu_view.js');
 
 var mocksForAppModalDialog = new MocksHelper([
-  'AppWindow'
+  'AppWindow', 'Service'
 ]).init();
 
 suite('ContextMenuView', function() {
@@ -41,11 +42,11 @@ suite('ContextMenuView', function() {
   });
 
   test('show(fakeMenus)', function() {
-    this.sinon.stub(fakeApp, 'blur');
+    var requestStub = this.sinon.stub(Service, 'request');
 
     contextMenu.show([fakeMenuItem1, fakeMenuItem2]);
 
-    assert.isTrue(fakeApp.blur.called);
+
     assert.isTrue(contextMenu.isShown());
     assert.isTrue(contextMenu.element.classList.contains('visible'));
     // validate first menu item
@@ -58,9 +59,27 @@ suite('ContextMenuView', function() {
     assert.equal(menu2.textContent, fakeMenuItem2.label);
     assert.equal(menu2.style.backgroundImage,
                  'url("' + fakeMenuItem2.icon + '")');
+    assert.isTrue(requestStub.calledWith('focus'));
+
+    requestStub.restore();
+  });
+
+  test('focus context menu', function() {
+    var fakeClock = this.sinon.useFakeTimers();
+    // document.activeElement will not be null. Just stub it.
+    var blurStub = this.sinon.stub(document.activeElement, 'blur');
+
+    contextMenu.show([fakeMenuItem1, fakeMenuItem2]);
+    contextMenu.focus();
+    fakeClock.tick(10);
+
+    assert.isTrue(blurStub.called);
+    blurStub.restore();
+    fakeClock.restore();
   });
 
   test('click menu', function() {
+    var requestStub = this.sinon.stub(Service, 'request');
     contextMenu.show([fakeMenuItem1, fakeMenuItem2]);
     assert.isTrue(contextMenu.element.classList.contains('visible'));
 
@@ -69,14 +88,20 @@ suite('ContextMenuView', function() {
     contextMenu.elements.list.querySelector('button:first-child').click();
     assert.isTrue(callbackStub.called);
     assert.isFalse(contextMenu.isShown());
+    assert.isTrue(requestStub.calledWith('focus'));
 
     callbackStub.restore();
+    requestStub.restore();
   });
 
   test('click cancel', function() {
+    var requestStub = this.sinon.stub(Service, 'request');
     contextMenu.show([fakeMenuItem1, fakeMenuItem2]);
     contextMenu.element.querySelector('#ctx-cancel-button').click();
     assert.isFalse(contextMenu.isShown());
+    assert.isTrue(requestStub.calledWith('focus'));
+
+    requestStub.restore();
   });
 
 });
