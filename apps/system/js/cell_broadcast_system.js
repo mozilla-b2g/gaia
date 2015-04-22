@@ -68,6 +68,12 @@
     show: function cbs_show(event) {
       var msg = event.message;
       var serviceId = msg.serviceId || 0;
+
+      // Early return if CB display option is disabled
+      if (this._settingsDisabled[serviceId]) {
+        return;
+      }
+
       var conn = window.navigator.mozMobileConnections[serviceId];
       var id = msg.messageId;
 
