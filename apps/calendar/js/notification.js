@@ -70,15 +70,17 @@ function launch(url) {
   // Notification instance onclick listener (Bug 1132336)
   closeNotifications(url);
 
-  if (performance.isComplete('moz-app-loaded')) {
+  if (performance.isComplete('fullyLoaded')) {
     return foreground(url);
   }
 
   // If we're not fully loaded, wait for that to happen to foreground
   // ourselves and navigate to the target url so the user
   // experiences less flickering.
-  window.addEventListener('moz-app-loaded', function onMozAppLoaded() {
-    window.removeEventListener('moz-app-loaded', onMozAppLoaded);
+  // XXX: Look into removing this event once PerformanceObserver becomes
+  // standardized
+  window.addEventListener('fullyLoaded', function onMozAppLoaded() {
+    window.removeEventListener('fullyLoaded', onMozAppLoaded);
     return foreground(url);
   });
 }
