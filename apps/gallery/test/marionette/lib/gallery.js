@@ -1,3 +1,6 @@
+/*jshint node: true */
+'use strict';
+
 /**
  * @constructor
  * @param {Marionette.Client} client Marionette client to use.
