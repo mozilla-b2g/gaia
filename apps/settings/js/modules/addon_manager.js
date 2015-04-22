@@ -39,7 +39,9 @@ define(function(require) {
     addEventListener: addListener,
     removeEventListener: removeListener,
     // returns an addon with matching manifest URL
-    findAddonByManifestURL: findAddonByManifestURL
+    findAddonByManifestURL: findAddonByManifestURL,
+    // pass an app, returns a promise that resolves when the addon is renamed
+    renameAddon: renameAddon
   };
 
   function getManifest(app) {
@@ -102,6 +104,119 @@ define(function(require) {
       request.onerror = function() {
         reject();
       };
+    });
+  }
+
+  function renameAddon(addon, name) {
+    if (!name) {
+      return Promise.reject('no name given');
+    }
+
+    if (!isAddon(addon)) {
+      return Promise.reject('not an addon');
+    }
+
+    var manifest = getManifest(addon);
+    if (name === manifest.name) {
+      return Promise.reject('name is unchanged');
+    }
+
+    var newManifest, addonBlob;
+    // To rename an addon we are creating a new DOMApplication that will have
+    // an updated name. Other manifest attributes are preserved.
+    // Export an add-on as a blob.
+    return addon.export().then(function(blob) {
+      addonBlob = blob;
+      // Copy over manifest object.
+      newManifest = Object.assign({}, manifest);
+      newManifest.name = name;
+      // Delete original add-on.
+      return deleteAddon(addon);
+    }).then(function() {
+      // Covert exported add-on into an Array Buffer.
+      return blobToArrayBuffer(addonBlob);
+    }).then(unpackScript).then(function(script) {
+      // Generate a new add-on using the original manifest and a new name.
+      return generate(newManifest, script);
+    }).then(install);
+  }
+
+  function unpackScript(arrayBuffer) {
+    return getJSZip().then(function(JSZip) {
+      var zip = new JSZip();
+      zip.load(arrayBuffer);
+
+      var applicationZipFile = zip.file('application.zip');
+      if (!applicationZipFile) { return; }
+
+      var applicationZip = new JSZip();
+      applicationZip.load(applicationZipFile.asArrayBuffer());
+
+      var scriptFile = applicationZip.file('main.js');
+      if (!scriptFile) { return; }
+
+      return(scriptFile.asText());
+    });
+  }
+
+  function generate(manifest, script) {
+    return getJSZip().then(function(JSZip) {
+      var id = 'addon' + Math.round(Math.random() * 100000000);
+      var applicationZip = new JSZip();
+
+      // Ensure that we are creating an addon with a new id.
+      manifest.role = 'addon';
+      manifest.type = 'certified';
+      manifest.origin = 'app://' + id + '.gaiamobile.org';
+      manifest.activities = manifest.activities || {};
+
+      applicationZip.file('manifest.webapp', JSON.stringify(manifest));
+      applicationZip.file('main.js', script);
+
+      var packageZip = new JSZip();
+      packageZip.file('metadata.json', JSON.stringify({
+        installOrigin: 'http://gaiamobile.org',
+        manifestURL: 'app://' + id + '.gaiamobile.org/update.webapp',
+        version: 1
+      }));
+      packageZip.file('update.webapp', JSON.stringify({
+        name: manifest.name,
+        package_path: '/application.zip'
+      }));
+      packageZip.file('application.zip',
+        applicationZip.generate({ type: 'arraybuffer' }));
+
+      return new Blob([packageZip.generate({ type: 'arraybuffer' })],
+        { type: 'application/zip' });
+    });
+  }
+
+  function blobToArrayBuffer(blob) {
+    return new Promise(function(resolve, reject) {
+      var fileReader = new FileReader();
+      fileReader.onload = function() {
+        resolve(fileReader.result);
+      };
+      fileReader.onerror = function(reason) {
+        reject(reason);
+      };
+      fileReader.readAsArrayBuffer(blob);
+    });
+  }
+
+  function getJSZip() {
+    // Lazily require jszip. It is currently used only for renaming Add-ons.
+    return new Promise(function(resolve) {
+      require(['jszip'], resolve);
+    });
+  }
+
+  function install(blob) {
+    // Import the addon using memory-backed blob.
+    return navigator.mozApps.mgmt.import(blob).then(function (addon) {
+      // Enable the addon by default.
+      enableAddon(addon);
+      return addon;
     });
   }
 

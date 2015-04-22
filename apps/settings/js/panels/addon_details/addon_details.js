@@ -5,12 +5,15 @@ define(function(require) {
   var ManifestHelper = require('shared/manifest_helper');
   var AppIconHelper = require('modules/app_icon_helper');
   var AddonManager = require('modules/addon_manager');
+  var DialogService = require('modules/dialog_service');
 
   function AddonDetails(panel) {
     this.panel = panel;
   }
 
   AddonDetails.prototype.render = function render(options) {
+    // Renaming should only be available from activity.
+    this.isActivity = !options.addon;
     if (options.addon) {
       this.renderAddon(options.addon);
     } else if (options.manifestURL) {
@@ -23,6 +26,7 @@ define(function(require) {
   AddonDetails.prototype.renderAddon = function renderAddon(app) {
     var l10n = navigator.mozL10n;
     this.app = app;
+    this.noRename = !this.isActivity || !AddonManager.canDelete(app);
     var manifest = new ManifestHelper(app.manifest || app.updateManifest);
 
     // Utility function for finding elements in the panel
@@ -31,14 +35,17 @@ define(function(require) {
 
     // Scroll back to the top
     var detailsBody = $('#addon-details-body');
+    detailsBody.classList.toggle('no-rename', this.noRename);
     detailsBody.scrollTop = 0;
     detailsBody.hidden = false;
 
     // Display the name of the add-on in the panel header
     var appnameArgs = { appName: manifest.name };
     var header = $('#addon-details-header');
-    l10n.setAttributes(header, 'addon-details-header', appnameArgs);
+    l10n.setAttributes(header, 'addon-details-name', appnameArgs);
     header.hidden = false;
+    var name = $('#addon-name');
+    l10n.setAttributes(name, 'addon-details-name', appnameArgs);
 
     // Put an icon next to the description
     var iconElement = $('#addon-detail-icon');
@@ -128,6 +135,40 @@ define(function(require) {
         }
       });
     };
+
+    // Hook up the rename button
+    if (!this.noRename) {
+      var self = this;
+      $('#addon-rename').onclick = function onclick() {
+        DialogService.prompt('addon-rename-desc', {
+          title: 'addon-rename-input',
+          defaultValue: manifest.name,
+          submitButton: 'ok',
+          cancelButton: 'cancel'
+        }).then(function(result) {
+          var type = result.type;
+          if (type !== 'submit') { return; }
+
+          var value = result.value.trim();
+          if (!value) { return; }
+
+          AddonManager.renameAddon(app, value).then(function(addon) {
+            // Renaming succeeded, only update the name where necessary.
+            // Addon manager will update the list automatically.
+            self.app = app = addon;
+            manifest = new ManifestHelper(app.manifest || app.updateManifest);
+
+            var appnameArgs = { appName: manifest.name };
+            l10n.setAttributes(header, 'addon-details-name', appnameArgs);
+            l10n.setAttributes(name, 'addon-details-name', appnameArgs);
+            l10n.setAttributes(iconElement, 'accessible-app-icon', appnameArgs);
+          }).catch(function(reason) {
+            // Renaming failed
+            console.error('Addon renaming failed:', reason);
+          });
+        });
+      };
+    }
 
     // Hook up the delete button
     var deleteButton = $('#addon-delete');

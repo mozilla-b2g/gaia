@@ -2,7 +2,7 @@
   <template>
 
     <gaia-header action="back" data-href="#addons">
-      <h1 id="addon-details-header" hidden data-l10n-id="addon-details-header"></h1>
+      <h1 id="addon-details-header" hidden data-l10n-id="addon-details-name"></h1>
     </gaia-header>
 
     <div id="addon-details-body" hidden>
@@ -18,11 +18,16 @@
       <header>
         <h2 data-l10n-id="addon-description-header"></h2>
       </header>
-      <p class="addon-paragraph">
+      <span class="addon-paragraph addon-description-container">
         <img id="addon-detail-icon">
-        <span id="addon-description-text"></span>
-      </p>
-      <p class="addon-paragraph" id="addon-developer"></p>
+        <span class="addon-description">
+          <span id="addon-name"></span>
+          <span id="addon-developer"></span>
+        </span>
+        <button id="addon-rename" data-l10n-id="addon-rename" class="addon-rename"></button>
+      </span>
+
+      <p id="addon-description-text" class="addon-paragraph"></p>
 
       <header>
         <h2 data-l10n-id="addon-targets"></h2>
