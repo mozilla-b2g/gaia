@@ -133,6 +133,31 @@ this.asyncStorage = (function() {
     });
   }
 
+  function size(callback) {
+    var req;
+    var size = 0;
+    withStore('readonly', function lengthBody(store) {
+      req = store.openCursor();
+      req.onsuccess = function keyOnSuccess() {
+        var cursor = req.result;
+        if (!cursor) {
+          // this means there weren't enough keys
+          return;
+        }
+
+        var storedObject = cursor.value;
+        var json = JSON.stringify(storedObject);
+        size += json.length;
+        cursor.continue();
+      };
+      req.onerror = function lengthOnError() {
+        console.error('Error in asyncStorage.size(): ', req.error.name);
+      };
+    }, function onComplete() {
+      callback(size);
+    });
+  }
+
   function key(n, callback) {
     if (n < 0) {
       callback(null);
@@ -174,6 +199,7 @@ this.asyncStorage = (function() {
     removeItem: removeItem,
     clear: clear,
     length: length,
+    size: size,
     key: key
   };
 }());
