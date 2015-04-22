@@ -368,12 +368,14 @@ gaia-buttons.forward-only .icon-previous {
 #wifi [data-type="list"] li > p {
   pointer-events: none;
   -moz-padding-end: 6.2rem;
+  line-height: 1.33;
 }
 
 #wifi li {
-  padding: 0 1.5rem;
+  padding: 0 1.5rem 0.5rem 1.5rem;
   display: flex;
   flex-direction: column;
+  -moz-box-sizing: padding-box;
 }
 #wifi li.connected p {
   color: #00AACC;
