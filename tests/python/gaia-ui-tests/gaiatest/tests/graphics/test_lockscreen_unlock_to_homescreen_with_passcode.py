@@ -40,6 +40,7 @@ class TestLockScreen(GaiaImageCompareTestCase):
 
         # 2nd try
         self.device.turn_screen_on()
+        lock_screen.switch_to_frame()
         passcode_pad = lock_screen.unlock_to_passcode_pad()
         homescreen = passcode_pad.type_passcode(self._input_passcode)
 
