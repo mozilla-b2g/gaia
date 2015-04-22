@@ -70,28 +70,6 @@ var nextYear = new Date(Date.now());
 nextYear.setFullYear(nextYear.getFullYear() + 1);
 nextYear = nextYear.toJSON();
 
-var currentTaskId = process.env.TASK_ID;
-var currentRunId = process.env.RUN_ID;
-
-//////////////////////
-// Boostrap the graph
-//////////////////////
-taskIdMap['bootstrap'] = slugid.v4();
-var packageUrl = 'https://queue.taskcluster.net/v1/task/' + currentTaskId +
-                 '/runs/' + currentRunId + '/artifacts/public/package.json';
-var bootstrapTask = loadTask('../bootstrap', params(config.params, {
-  process: process,
-  nextYear: nextYear,
-  packageUrl: packageUrl,
-  taskId: taskIdMap['bootstrap']
-}));
-bootstrapTask.taskId = taskIdMap['bootstrap'];
-graph.tasks.push(bootstrapTask);
-
-///////////////////////
-// Add dependent tasks
-///////////////////////
-
 // Expand all tasks based on the `tasks.yml` file...
 Object.keys(config.definitions).forEach(function(name) {
   var definition = config.definitions[name];
@@ -106,7 +84,6 @@ Object.keys(config.definitions).forEach(function(name) {
       nextYear: nextYear
     }));
     task.taskId = taskIdMap[name];
-    task.requires = [taskIdMap['bootstrap']];
     graph.tasks.push(task);
     return;
   }
@@ -126,7 +103,6 @@ Object.keys(config.definitions).forEach(function(name) {
       chunk: chunk,
       totalChunks: definition.chunks
     }));
-    task.requires = [taskIdMap['bootstrap']];
     graph.tasks.push(task);
   }
 });
@@ -134,6 +110,7 @@ Object.keys(config.definitions).forEach(function(name) {
 graph.tasks = graph.tasks.map(function(task) {
   return template(task, { tasks: taskIdMap });
 });
+
 
 // Output the entire task graph for extension....
 process.stdout.write(JSON.stringify(graph, null, 2));
