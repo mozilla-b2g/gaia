@@ -7,51 +7,6 @@ window.plog = function(msg) {
   console.log(msg + ' ' + (performance.now() - _xstart));
 };
 
-(function() {
-  // START COPY performance_testing_helper.js
-  // A copy instead of a separate script because the gaia build system is not
-  // set up to inline this with our main script element, and we want this work
-  // to be done after the cache restore, but want to trigger the events that
-  // may be met by the cache right away without waiting for another script
-  // load after html_cache_restore.
-  function dispatch(name) {
-    if (!window.mozPerfHasListener) {
-      return;
-    }
-
-    var now = window.performance.now();
-    var epoch = Date.now();
-
-    setTimeout(function() {
-      var detail = {
-        name: name,
-        timestamp: now,
-        epoch: epoch
-      };
-      var event = new CustomEvent('x-moz-perf', { detail: detail });
-
-      window.dispatchEvent(event);
-    });
-  }
-
-  ([
-    'moz-chrome-dom-loaded',
-    'moz-chrome-interactive',
-    'moz-app-visually-complete',
-    'moz-content-interactive',
-    'moz-app-loaded'
-  ].forEach(function(eventName) {
-      window.addEventListener(eventName, function mozPerfLoadHandler() {
-        dispatch(eventName);
-      }, false);
-    }));
-
-  window.PerformanceTestingHelper = {
-    dispatch: dispatch
-  };
-  // END COPY performance_testing_helper.js
-}());
-
 /**
  * Apparently the event catching done for the startup events from
  * performance_testing_helper record the last event received of that type as
@@ -448,9 +403,7 @@ window.appDispatchedMessage = false;
 
     if (window.startupCacheEventsSent) {
       window.performance.mark('navigationLoaded');
-      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
       window.performance.mark('visuallyLoaded');
-      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
     }
   }
 
