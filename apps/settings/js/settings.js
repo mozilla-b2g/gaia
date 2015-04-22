@@ -105,6 +105,6 @@ window.Settings = {
       }
     }).bind(this));
 
-    window.PerformanceTestingHelper.dispatch('startup-path-done');
+    window.performance.mark('startupPathEnd');
   }
 };

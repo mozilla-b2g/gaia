@@ -1,5 +1,3 @@
-/* global PerformanceTestingHelper */
-
 define(function(require) {
   'use strict';
 
@@ -115,7 +113,6 @@ define(function(require) {
         }.bind(this));
 
         window.performance.mark('wifiListStart');
-        PerformanceTestingHelper.dispatch('start-wifi-list-test');
       },
       onBeforeShow: function() {
         this._wifiSectionVisible = true;
