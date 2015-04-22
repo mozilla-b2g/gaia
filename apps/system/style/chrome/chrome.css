@@ -46,7 +46,7 @@
   pointer-events: auto;
   background-color: transparent;
   position: absolute;
-  top: calc(var(--statusbar-height) + .3rem);
+  bottom: 0.1rem;
   width: 100%;
   font-size: 0;
 }
@@ -120,8 +120,13 @@
   color: inherit;
   overflow: hidden;
   background-color: transparent;
-  -moz-margin-start: .5rem;
-  position: absolute;
+  float: left;
+  -moz-margin-start: 0.5rem;
+}
+
+.collapsible .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
+.collapsible .chrome .controls button:not([disabled]) + .urlbar {
+  -moz-margin-start: 0;
 }
 
 .maximized .controls .urlbar {
@@ -191,32 +196,26 @@
 
 .controls .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8rem);
-  transform: translateX(3.5rem);
 }
 
 .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 8rem);
-  transform: translateX(3.5rem);
 }
 
 .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
-  transform: translateX(7.5rem);
 }
 
 .appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 4.5rem);
-  transform: translateX(3.5rem);
 }
 
 .appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 4.5rem);
-  transform: translateX(3.5rem);
 }
 
 .appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8.5rem);
-  transform: translateX(7.5rem);
 }
 
 .controls .urlbar {
@@ -313,11 +312,11 @@
 /* Handle urlbar sizing when back or forward buttons are disabled */
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
 .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale));
+  transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
 }
 
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(var(--rocketbar-scale));
+  transform: scaleX(var(--rocketbar-scale)) translateX(-12rem);
 }
 
 
@@ -372,12 +371,6 @@
 .controls > button {
   position: relative;
   top: -0.2rem;
-}
-
-.controls > button.menu-button,
-.controls > button.windows-button {
-  position: absolute;
-  offset-inline-end: 0;
 }
 
 .controls .reload-button[disabled],
