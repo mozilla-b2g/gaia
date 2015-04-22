@@ -49,13 +49,12 @@ suite('Dialog', function() {
 
   test('Appending to DOM', function() {
     var previouslyDefinedForms = document.getElementsByTagName('form').length;
-    // In this case we have several forms pre-defined (6):
+    // In this case we have several forms pre-defined (5):
     // - "messages-compose-form"
     // - "messages-edit-form"
     // - "loading"
-    // - "attachment"
     // - "threads-edit-form"
-    assert.equal(previouslyDefinedForms, 5);
+    assert.equal(previouslyDefinedForms, 4);
     // Now we create the new element
     var dialog = new Dialog(params);
     // We check if the object is appended to the DOM
@@ -63,7 +62,7 @@ suite('Dialog', function() {
     // Is appended properly?
     var currentlyDefinedForms = document.getElementsByTagName('form');
     var currentlyDefinedFormsLength = currentlyDefinedForms.length;
-    assert.equal(currentlyDefinedFormsLength, 6);
+    assert.equal(currentlyDefinedFormsLength, 5);
     // We check the type
     var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
     assert.equal(dialogForm.dataset.type, 'confirm');

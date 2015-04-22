@@ -1,4 +1,4 @@
-/*global MocksHelper, MockL10n, loadBodyHTML, Attachment, AttachmentMenu,
+/*global MocksHelper, MockL10n, Attachment,
          AttachmentRenderer, MimeMapper, MockMozActivity, Promise, Utils,
          AssetsHelper
 */
@@ -8,7 +8,6 @@
 require('/js/attachment.js');
 require('/js/utils.js');
 
-require('/test/unit/mock_attachment_menu.js');
 require('/test/unit/mock_attachment_renderer.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
@@ -16,7 +15,6 @@ require('/test/unit/mock_moz_activity.js');
 require('/test/unit/mock_mime_mapper.js');
 
 var MocksHelperForAttachment = new MocksHelper([
-  'AttachmentMenu',
   'Utils',
   'MozActivity',
   'MimeMapper',
@@ -46,15 +44,6 @@ suite('attachment_test.js', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = this.realMozL10n;
-  });
-
-  setup(function() {
-    loadBodyHTML('/index.html');
-    AttachmentMenu.init('attachment-options-menu');
-  });
-
-  teardown(function() {
-    document.body.textContent = '';
   });
 
   test('Name property defaults to a string value', function() {

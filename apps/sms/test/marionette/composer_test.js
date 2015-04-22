@@ -220,7 +220,7 @@ marionette('Messages Composer', function() {
       client.helper.wait(600);
 
       composer.attachment.tap();
-      messagesApp.selectAttachmentMenuOption('Remove image');
+      messagesApp.selectAppMenuOption('Remove image');
 
       client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);

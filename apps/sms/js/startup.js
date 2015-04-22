@@ -36,7 +36,6 @@ var Startup = {
     'js/recipients.js',
     'js/attachment.js',
     'js/attachment_renderer.js',
-    'js/attachment_menu.js',
     'js/thread_ui.js',
     'js/subject_composer.js',
     'js/compose.js',

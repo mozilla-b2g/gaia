@@ -34,7 +34,6 @@
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
-    attachmentMenu: '#attachment-options',
 
     Composer: {
       toField: '#messages-to-field',
@@ -245,10 +244,6 @@
           return client.helper.waitForElement(SELECTORS.optionMenu);
         },
 
-        get attachmentMenu() {
-          return client.helper.waitForElement(SELECTORS.attachmentMenu);
-        },
-
         launch: function() {
           client.switchToFrame();
           client.apps.launch(ORIGIN_URL);
@@ -271,10 +266,6 @@
 
         selectAppMenuOption: function(text) {
           this.selectMenuOption(this.optionMenu, text);
-        },
-
-        selectAttachmentMenuOption: function(text) {
-          this.selectMenuOption(this.attachmentMenu, text);
         },
 
         selectSystemMenuOption: function(text) {

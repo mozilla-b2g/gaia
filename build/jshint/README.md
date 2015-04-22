@@ -74,7 +74,7 @@ We suggest keeping your global definitions alphabetically ordered, one line for 
 
 ```js
 // example of too many globals - use commas to separate, whitespace is not sufficient
-/* global ActivityHandler, ActivityPicker, Attachment, AttachmentMenu, Compose,
+/* global ActivityHandler, ActivityPicker, Attachment, Compose,
     Contacts, Dialog, LinkActionHandler, LinkHelper, MessageManager,
     MozActivity, OptionMenu, Recipients, SMIL, Settings,
     Template, ThreadListUI, Threads, TimeHeaders URL, Utils, WaitingScreen */

@@ -33,7 +33,6 @@ require('/js/task_runner.js');
 require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_link_action_handler.js');
 require('/test/unit/mock_attachment.js');
-require('/test/unit/mock_attachment_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_link_helper.js');
@@ -69,7 +68,6 @@ require('/shared/test/unit/mocks/mock_option_menu.js');
 var mocksHelperForThreadUI = new MocksHelper([
   'asyncStorage',
   'Attachment',
-  'AttachmentMenu',
   'Utils',
   'Settings',
   'Recipients',
