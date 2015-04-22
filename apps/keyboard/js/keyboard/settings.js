@@ -31,7 +31,7 @@ SettingsPromiseManager.prototype._cleanLock = function(type) {
       throw new Error('SettingsPromiseManager: Not such type.');
   }
 
-  // If there is a close lock, remove it.
+  // If there is a closed lock, remove it.
   if (this[propName] && this[propName].closed) {
     this[propName] = null;
   }
@@ -134,6 +134,36 @@ SettingsPromiseManager.prototype.setOne = function(key, value) {
   var obj = {};
   obj[key] = value;
   return this.set(obj);
+};
+
+// Update the value in the database.
+// You should use this method instead of get() & set() because we will
+// be using the same lock to make sure value will not be overwritten.
+//
+// The callback should take one argument (the current value) and returns
+// the updated value. You must not use the callback for flow control purpose.
+SettingsPromiseManager.prototype.updateOne = function(key, callback) {
+  var promise = new Promise(function(resolve, reject) {
+    var lock = this._getWriteLock();
+    var req = lock.get(key);
+    req.onsuccess = function() {
+      var newValue = callback(req.result[key]);
+      var obj = {};
+      obj[key] = newValue;
+
+      resolve(lock.set(obj));
+    }.bind(this);
+    req.onerror = function() {
+      reject(req.error);
+    }.bind(this);
+  }.bind(this)).then(function() {
+    this._cleanLock('write');
+  }.bind(this), function(e) {
+    this._cleanLock('write');
+    throw e;
+  }.bind(this));
+
+  return promise;
 };
 
 var SettingsManagerBase = function() {
