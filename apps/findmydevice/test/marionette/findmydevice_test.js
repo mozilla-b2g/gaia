@@ -5,6 +5,7 @@ marionette('Find My Device lock >', function() {
   var assert = require('assert');
 
   var FINDMYDEVICE_TEST_APP = 'app://test-findmydevice.gaiamobile.org';
+  var SETTINGS_DIGEST_VALUE = 'lockscreen.passcode-lock.digest.value';
 
   var client = marionette.client({
     prefs: {
@@ -28,6 +29,7 @@ marionette('Find My Device lock >', function() {
     var messageInput = client.findElement('input[name="message"]');
     messageInput.sendKeys(messageText);
 
+    var oldDigest = client.settings.get(SETTINGS_DIGEST_VALUE);
     var passcode = '4567';
     var passcodeInput = client.findElement('input[name="code"]');
     passcodeInput.sendKeys(passcode);
@@ -60,12 +62,14 @@ marionette('Find My Device lock >', function() {
       'lockscreen.passcode-lock.enabled': true,
       'lockscreen.notifications-preview.enabled': false,
       'lockscreen.lock-message': messageText,
-      'lockscreen.passcode-lock.code': passcode
     };
 
     for (var s in settings) {
       assert.equal(client.settings.get(s), settings[s]);
     }
+    // checking if passcode was changed:
+    var newDigest = client.settings.get(SETTINGS_DIGEST_VALUE);
+    assert.notEqual(newDigest, oldDigest);
 
     client.switchToFrame();
 

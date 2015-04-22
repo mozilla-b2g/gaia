@@ -5,12 +5,13 @@
 from marionette_driver import Wait
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
+from gaiatest import PasscodeTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
 
-class TestLockScreen(GaiaImageCompareTestCase):
+class TestLockScreen(GaiaImageCompareTestCase, PasscodeTestCase):
 
-    _input_passcode = '7931'
+    _input_passcode = '1337'
     _seconds_since_epoch = 1357043430
 
     def setUp(self):
@@ -23,15 +24,14 @@ class TestLockScreen(GaiaImageCompareTestCase):
         self.data_layer.set_time(self._seconds_since_epoch * 1000)
         self.data_layer.set_setting('time.timezone', 'Atlantic/Reykjavik')
 
-        # set passcode-lock
-        self.data_layer.set_setting('lockscreen.passcode-lock.code', self._input_passcode)
+        self.setPasscodeTo1337()
+
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
 
         # this time we need it locked!
         self.device.lock()
 
         # 1st try
-
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()
         lock_screen.unlock_to_passcode_pad()
