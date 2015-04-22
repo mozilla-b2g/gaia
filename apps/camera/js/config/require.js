@@ -8,7 +8,6 @@ requirejs.config({
     'l10n_date': '../shared/js/l10n_date',
     'asyncStorage': '../shared/js/async_storage',
     'getVideoRotation': '../shared/js/media/get_video_rotation',
-    'performance-testing-helper': '../shared/js/performance_testing_helper',
     'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
     'downsample': '../shared/js/media/downsample',
     'getImageSize': '../shared/js/media/image_size',
@@ -69,9 +68,6 @@ requirejs.config({
     },
     'asyncStorage': {
       exports: 'asyncStorage'
-    },
-    'performance-testing-helper': {
-      exports: 'PerformanceTestingHelper'
     },
     'jpegMetaDataParser': {
       deps: ['BlobView'],
