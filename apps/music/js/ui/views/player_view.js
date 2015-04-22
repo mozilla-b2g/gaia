@@ -142,10 +142,6 @@ var PlayerView = {
     // bug 894744 once we have better solution.
     window.addEventListener('storage', this._handleInterpageMessage.bind(this));
 
-    // A timer we use to work around
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-    this.endedTimer = null;
-
     // Listen to language changes to update the language direction accordingly
     navigator.mozL10n.ready(this.updateL10n.bind(this));
   },
@@ -405,11 +401,6 @@ var PlayerView = {
     // due to b2g cannot get some mp3's duration
     // and the seekBar can still show 00:00 to -00:00
     this.setSeekBar(0, 0, 0);
-
-    if (this.endedTimer) {
-      clearTimeout(this.endedTimer);
-      this.endedTimer = null;
-    }
   },
 
   updateRemoteMetadata: function pv_updateRemoteMetadata() {
@@ -590,8 +581,19 @@ var PlayerView = {
         this.setAudioSrc(this.dataSource);
       }.bind(this));
     } else {
-      // If we reach here, the player is paused so resume it
-      this.audio.play();
+      // If we reach here, the player is paused so resume it.
+      // But if we're very close to the end of the song (and if the song
+      // is not really short) then just skip to the next song rather than
+      // finishing this one. (This works around Bug 1157118 where if we're
+      // within a fraction of a second of the end of a .m4a file, it takes
+      // a long time to get an ended event and move to the next song.)
+      if (this.audio.duration > 20 &&
+          this.audio.duration - this.audio.currentTime < 1) {
+        this.next(true);
+      }
+      else {
+        this.audio.play();
+      }
     }
   },
 
@@ -1088,27 +1090,9 @@ var PlayerView = {
         if (evt.type === 'durationchange' || this.audio.currentTime === 0) {
           this.updateRemoteMetadata();
         }
-
-        // Since we don't always get reliable 'ended' events, see if
-        // we've reached the end this way.
-        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-        // If we're within 1 second of the end of the song, register
-        // a timeout to skip to the next song one second after the song ends
-        if (this.audio.currentTime >= this.audio.duration - 1 &&
-            this.endedTimer == null) {
-          var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
-          this.endedTimer = setTimeout(function() {
-                                         this.next(true);
-                                       }.bind(this),
-                                       timeToNext * 1000);
-        }
         break;
       case 'ended':
-        // Because of the workaround above, we have to ignore real ended
-        // events if we already have a timer set to emulate them
-        if (!this.endedTimer) {
-          this.next(true);
-        }
+        this.next(true);
         break;
 
       case 'visibilitychange':
