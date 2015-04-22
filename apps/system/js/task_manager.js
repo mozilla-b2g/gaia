@@ -135,6 +135,8 @@
     }
     this.calculateDimensions();
     this.newStackPosition = null;
+    // start listening for the various events we need to handle while
+    // the card view is showing
     this._registerShowingEvents();
 
     if (this.filter(filterName)) {
@@ -198,7 +200,13 @@
   };
 
 
+  TaskManager.prototype._showingEventsRegistered = false;
+
   TaskManager.prototype._registerShowingEvents = function() {
+    if (this._showingEventsRegistered) {
+      return;
+    }
+    this._showingEventsRegistered = true;
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('appopen', this);
@@ -212,16 +220,21 @@
   };
 
   TaskManager.prototype._unregisterShowingEvents = function() {
+    if (!this._showingEventsRegistered) {
+      return;
+    }
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
     window.removeEventListener('appterminated', this);
     window.removeEventListener('wheel', this);
     window.removeEventListener('resize', this);
-
-    this.element.removeEventListener('touchstart', this);
-    this.element.removeEventListener('touchmove', this);
-    this.element.removeEventListener('touchend', this);
+    if (this.element) {
+      this.element.removeEventListener('touchstart', this);
+      this.element.removeEventListener('touchmove', this);
+      this.element.removeEventListener('touchend', this);
+    }
+    this._showingEventsRegistered = false;
   };
 
   /**
@@ -440,6 +453,8 @@
     // The cards view class is removed here in order to let the window
     // manager repaints everything.
     this.screenElement.classList.remove('cards-view');
+    // immediately stop listening for input events
+    this._unregisterShowingEvents();
 
     if (this._shouldGoBackHome) {
       app = app || homescreenLauncher.getHomescreen(true);
@@ -461,6 +476,7 @@
         this.element.classList.remove('to-home');
         this.hide();
       };
+      eventSafety(app.element, '_opened', finish, 400);
 
       if (app.isHomescreen) {
         this.element.classList.add('to-home');
@@ -468,9 +484,8 @@
       } else {
         app.open('from-cardview');
       }
-
-      eventSafety(app.element, '_opened', finish, 400);
     }, 100);
+
   };
 
   /**
