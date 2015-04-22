@@ -277,8 +277,7 @@ gaia-grid {
   border-width: 0 1rem 1rem 1rem;
   border-color: transparent transparent rgba(45, 45, 45, 0.94) transparent;
   top: -1rem;
-  offset-inline-start: 50%;
-  -moz-margin-start: -1rem;
+  -moz-margin-start: calc(50% - 1rem);
   z-index: -1;
 }
 
