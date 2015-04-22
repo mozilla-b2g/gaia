@@ -287,9 +287,10 @@ define(function(require) {
           format = '%H:%M';
           return d.toLocaleFormat(format);
         } else {
+          var f = new navigator.mozL10n.DateTimeFormat();
           format = (this.currentHour12 === true) ?
              _('shortTimeFormat12') : _('shortTimeFormat24');
-          return d.toLocaleFormat(format);
+          return f.localeFormat(d, format);
         }
       } else {
         if (d.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
