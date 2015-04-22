@@ -35,7 +35,8 @@ class System(Base):
     def wait_for_status_bar_displayed(self):
         Wait(self.marionette).until(expected.element_displayed(*self._status_bar_locator))
 
-    def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
+    # A lot of tests, like mail or call received, need a longer timeout here
+    def wait_for_notification_toaster_displayed(self, timeout=30, message=None):
         Wait(self.marionette, timeout).until(
             expected.element_displayed(*self._notification_toaster_locator), message=message)
 
