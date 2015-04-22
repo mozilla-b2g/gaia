@@ -53,93 +53,159 @@ LayoutItemDownloadErrorToastView.prototype.showToast = function() {
   this.container.show();
 };
 
-var LayoutItemRemovalConfirmationDialogView = function() {
-  BaseView.apply(this);
+var Deferred = function() {
+  this.promise = new Promise(function(resolve, reject) {
+    this.resolve = resolve;
+    this.reject = reject;
+  }.bind(this));
 };
 
-LayoutItemRemovalConfirmationDialogView.prototype.isShown = false;
+var ConfirmationDialogBaseView = function() {
+  BaseView.apply(this);
 
-LayoutItemRemovalConfirmationDialogView.prototype =
+  this.deferred = null;
+};
+
+ConfirmationDialogBaseView.prototype.isShown = false;
+
+ConfirmationDialogBaseView.prototype =
   Object.create(BaseView.prototype);
 
-LayoutItemRemovalConfirmationDialogView.prototype.CONTAINER_ID =
-  'installable-keyboards-removal-dialog';
+ConfirmationDialogBaseView.prototype.CONTAINER_ID = undefined;
 
-LayoutItemRemovalConfirmationDialogView.prototype.oncancel = null;
-LayoutItemRemovalConfirmationDialogView.prototype.onconfirm = null;
+ConfirmationDialogBaseView.prototype.start = function() {
+  if (!this.CONTAINER_ID) {
+    throw new Error('ConfirmationDialogBaseView: CONTAINER_ID unset.');
+  }
 
-LayoutItemRemovalConfirmationDialogView.prototype.start = function() {
   BaseView.prototype.start.call(this);
 
   this.container.addEventListener('confirm', this);
   this.container.addEventListener('cancel', this);
 };
 
-LayoutItemRemovalConfirmationDialogView.prototype.stop = function() {
+ConfirmationDialogBaseView.prototype.stop = function() {
   this.container.removeEventListener('confirm', this);
   this.container.removeEventListener('cancel', this);
 
   BaseView.prototype.stop.call(this);
 };
 
-LayoutItemRemovalConfirmationDialogView.prototype.handleEvent = function(evt) {
+ConfirmationDialogBaseView.prototype.handleEvent = function(evt) {
   switch (evt.type) {
     case 'confirm':
-      if (typeof this.onconfirm === 'function') {
-        this.onconfirm();
-      } else {
-        console.error('LayoutItemRemovalConfirmationDialog: ' +
-          'onconfirm callback should call but no callback attached.');
-      }
-      this.hideDialog();
+      this.hideDialog(true);
 
       break;
 
     case 'cancel':
-      if (typeof this.oncancel === 'function') {
-        this.oncancel();
-      }
-      this.hideDialog();
+      this.hideDialog(false);
 
       break;
 
     default:
-      throw new Error('LayoutItemRemovalConfirmationDialog: Unknown event.');
+      throw new Error('ConfirmationDialogBaseView: Unknown event.');
   }
 };
 
-LayoutItemRemovalConfirmationDialogView.prototype.showDialog = function(label) {
+ConfirmationDialogBaseView.prototype.showDialog = function() {
   if (this.isShown) {
     throw new Error(
-      'LayoutItemRemovalConfirmationDialog: showDialog() called twice.');
+      'ConfirmationDialogBaseView: showDialog() called twice.');
   }
-  this.container.firstElementChild.dataset.l10nArgs =
-    JSON.stringify({ keyboard: label });
 
   this.container.hidden = false;
   this.isShown = true;
+  this.deferred = new Deferred();
+
+  return this.deferred.promise;
 };
 
-LayoutItemRemovalConfirmationDialogView.prototype.beforeHide = function() {
+ConfirmationDialogBaseView.prototype.beforeHide = function() {
   if (this.isShown) {
-    if (typeof this.oncancel === 'function') {
-      this.oncancel();
-    }
-
-    this.hideDialog();
+    this.hideDialog(false);
   }
 
   BaseView.prototype.beforeHide.call(this);
 };
 
-LayoutItemRemovalConfirmationDialogView.prototype.hideDialog = function() {
+ConfirmationDialogBaseView.prototype.hideDialog = function(confirmed) {
   if (!this.isShown) {
     throw new Error(
-      'LayoutItemRemovalConfirmationDialog: hide() called twice.');
+      'ConfirmationDialogBaseView: hideDialog() called twice.');
   }
+
+  this.deferred.resolve(confirmed);
 
   this.container.hidden = true;
   this.isShown = false;
+  this.deferred = null;
+};
+
+var LayoutItemRemovalConfirmationDialogView = function() {
+  ConfirmationDialogBaseView.apply(this);
+};
+
+LayoutItemRemovalConfirmationDialogView.prototype =
+  Object.create(ConfirmationDialogBaseView.prototype);
+
+LayoutItemRemovalConfirmationDialogView.prototype.CONTAINER_ID =
+  'installable-keyboards-removal-dialog';
+
+// override
+LayoutItemRemovalConfirmationDialogView.prototype.showDialog = function(label) {
+  if (this.isShown) {
+    throw new Error(
+      'LayoutItemRemovalConfirmationDialogView: showDialog() called twice.');
+  }
+
+  this.container.firstElementChild.dataset.l10nArgs =
+    JSON.stringify({ keyboard: label });
+
+  return ConfirmationDialogBaseView.prototype.showDialog.call(this, label);
+};
+
+var LayoutItemDataConnectionConfirmationDialogView = function() {
+  ConfirmationDialogBaseView.apply(this);
+
+  this.rememberMyChoiceElement = null;
+};
+
+LayoutItemDataConnectionConfirmationDialogView.prototype =
+  Object.create(ConfirmationDialogBaseView.prototype);
+
+LayoutItemDataConnectionConfirmationDialogView.prototype.CONTAINER_ID =
+  'installable-keyboards-mobile-download-dialog';
+
+LayoutItemDataConnectionConfirmationDialogView.prototype.REMEMBER_MY_CHOICE_ID =
+  'installable-keyboards-remember';
+
+// override
+LayoutItemDataConnectionConfirmationDialogView.prototype.start = function() {
+  ConfirmationDialogBaseView.prototype.start.apply(this);
+
+  this.rememberMyChoiceElement =
+    document.getElementById(this.REMEMBER_MY_CHOICE_ID);
+};
+
+// override
+LayoutItemDataConnectionConfirmationDialogView.prototype.stop = function() {
+  ConfirmationDialogBaseView.prototype.stop.apply(this);
+
+  this.rememberMyChoiceElement = null;
+};
+
+// override
+LayoutItemDataConnectionConfirmationDialogView
+.prototype.showDialog = function() {
+  this.rememberMyChoiceElement.checked = false;
+
+  return ConfirmationDialogBaseView.prototype.showDialog.call(this);
+};
+
+LayoutItemDataConnectionConfirmationDialogView
+.prototype.shouldRemember = function() {
+  return this.rememberMyChoiceElement.checked;
 };
 
 var LayoutItemListView = function(app) {
@@ -171,6 +237,9 @@ LayoutItemListView.prototype.start = function() {
   this.childViews.downloadErrorToast =
     new LayoutItemDownloadErrorToastView();
   this.childViews.downloadErrorToast.start();
+  this.childViews.dataConnectionDialog =
+    new LayoutItemDataConnectionConfirmationDialogView();
+  this.childViews.dataConnectionDialog.start();
 
   this._installedListContainer =
     document.getElementById(this.INSTALLED_LIST_ID);
@@ -178,22 +247,44 @@ LayoutItemListView.prototype.start = function() {
     document.getElementById(this.INSTALLABLE_LIST_ID);
 };
 
-LayoutItemListView.prototype.confirmRemoval = function(view, layoutName) {
+LayoutItemListView.prototype.confirmDownload = function() {
+  var downloadPreference = this._model.downloadPreference;
+  return downloadPreference.getCurrentState()
+    .then(function(state) {
+      switch (state) {
+        case downloadPreference.STATE_PROMPT:
+          return this._showConfirmDownloadDialog();
+        case downloadPreference.STATE_ALLOW:
+          return true;
+        case downloadPreference.STATE_DENY:
+          return false;
+      }
+    }.bind(this));
+};
+
+LayoutItemListView.prototype._showConfirmDownloadDialog = function() {
+  // Here we assume our safety with UI, i.e. the confirm dialog is an overlay
+  // on top of other views so that this method will never get called twice
+  // before the previous dialog is confirmed/canceled.
+  var downloadPreference = this._model.downloadPreference;
+  var dataConnectionDialog = this.childViews.dataConnectionDialog;
+  return dataConnectionDialog.showDialog()
+    .then(function(confirmed) {
+      if (confirmed && dataConnectionDialog.shouldRemember()) {
+        downloadPreference
+          .setDataConnectionDownloadState(downloadPreference.STATE_ALLOW)
+          .catch(function(e) { e && console.error(e); });
+      }
+
+      return confirmed;
+    }.bind(this));
+};
+
+LayoutItemListView.prototype.confirmRemoval = function(layoutName) {
   // Here we assume our safety with UI, i.e. the removal dialog is an overlay
   // on top of other views so that this method will never get called twice
   // before the previous dialog is confirmed/canceled.
-  this.childViews.removeDialog.onconfirm = function() {
-    view.confirmRemoveItem();
-    this.childViews.removeDialog.onconfirm = null;
-    this.childViews.removeDialog.oncancel = null;
-  }.bind(this);
-
-  this.childViews.removeDialog.oncancel = function() {
-    this.childViews.removeDialog.onconfirm = null;
-    this.childViews.removeDialog.oncancel = null;
-  }.bind(this);
-
-  this.childViews.removeDialog.showDialog(layoutName);
+  return this.childViews.removeDialog.showDialog(layoutName);
 };
 
 LayoutItemListView.prototype.showDownloadErrorToast = function() {

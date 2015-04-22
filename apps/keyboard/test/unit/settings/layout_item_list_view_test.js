@@ -1,12 +1,20 @@
 'use strict';
 
-/* global LayoutItemListView, LayoutItemList, LayoutItemView */
+/* global LayoutItemListView, LayoutItemList, LayoutItemView,
+          DownloadPreference */
 
 require('/js/settings/base_view.js');
 require('/js/settings/layout_item_list_view.js');
 
 require('/js/settings/layout_item_list.js');
 require('/js/settings/layout_item_view.js');
+
+var Deferred = function() {
+  this.promise = new Promise(function(resolve, reject) {
+    this.resolve = resolve;
+    this.reject = reject;
+  }.bind(this));
+};
 
 suite('LayoutItemListView', function() {
   var listView;
@@ -15,15 +23,31 @@ suite('LayoutItemListView', function() {
   var installedListElStub;
   var installableListElStub;
   var containerElStub;
+  var rememberMyChoiceElStub;
   var layoutItemListStub;
 
-  var dialogElStub;
+  var removeDialogElStub;
+  var downloadDialogStub;
   var toastStub;
+
+  var downloadPreferenceGetCurrentStateDeferred;
+  var downloadPreferenceSetDataConnectionDownloadStateDeferred;
 
   setup(function() {
     layoutItemListStub =
       this.sinon.stub(LayoutItemList.prototype);
+    layoutItemListStub.downloadPreference =
+      this.sinon.stub(DownloadPreference.prototype);
     this.sinon.stub(window, 'LayoutItemList').returns(layoutItemListStub);
+
+    downloadPreferenceGetCurrentStateDeferred = new Deferred();
+    layoutItemListStub.downloadPreference.getCurrentState
+      .returns(downloadPreferenceGetCurrentStateDeferred.promise);
+
+    downloadPreferenceSetDataConnectionDownloadStateDeferred = new Deferred();
+    layoutItemListStub.downloadPreference.setDataConnectionDownloadState
+      .returns(
+        downloadPreferenceSetDataConnectionDownloadStateDeferred.promise);
 
     var LayoutItemViewPrototype = LayoutItemView.prototype;
     this.sinon.stub(window, 'LayoutItemView', function() {
@@ -44,13 +68,20 @@ suite('LayoutItemListView', function() {
       appendChild: this.sinon.stub()
     };
 
-    dialogElStub = document.createElement('div');
-    dialogElStub.appendChild(document.createElement('p'));
-    dialogElStub.hidden = true;
+    removeDialogElStub = document.createElement('div');
+    removeDialogElStub.appendChild(document.createElement('p'));
+    removeDialogElStub.hidden = true;
+
+    downloadDialogStub = document.createElement('div');
+    downloadDialogStub.appendChild(document.createElement('p'));
+    downloadDialogStub.hidden = true;
 
     toastStub = document.createElement('div');
     toastStub.show = this.sinon.stub();
     toastStub.hide = this.sinon.stub();
+
+    rememberMyChoiceElStub = document.createElement('input');
+    rememberMyChoiceElStub.type = 'checkbox';
 
     listView = new LayoutItemListView(app);
 
@@ -58,9 +89,14 @@ suite('LayoutItemListView', function() {
       .withArgs(listView.CONTAINER_ID).returns(containerElStub)
       .withArgs(listView.INSTALLED_LIST_ID).returns(installedListElStub)
       .withArgs(listView.INSTALLABLE_LIST_ID).returns(installableListElStub)
-      .withArgs('installable-keyboards-removal-dialog').returns(dialogElStub)
+      .withArgs('installable-keyboards-removal-dialog')
+        .returns(removeDialogElStub)
       .withArgs('installable-keyboards-download-error-toast')
-        .returns(toastStub);
+        .returns(toastStub)
+      .withArgs('installable-keyboards-mobile-download-dialog')
+        .returns(downloadDialogStub)
+      .withArgs('installable-keyboards-remember')
+        .returns(rememberMyChoiceElStub);
 
     listView.start();
 
@@ -133,32 +169,139 @@ suite('LayoutItemListView', function() {
   });
 
   suite('confirmRemoval', function() {
-    var itemView;
+    var p;
 
     setup(function() {
-      itemView = {
-        confirmRemoveItem: this.sinon.stub()
-      };
+      p = listView.confirmRemoval('Foo');
 
-      listView.confirmRemoval(itemView, 'Foo');
-
-      assert.isFalse(dialogElStub.hidden);
-      assert.equal(dialogElStub.firstElementChild.dataset.l10nArgs,
+      assert.isFalse(removeDialogElStub.hidden);
+      assert.equal(removeDialogElStub.firstElementChild.dataset.l10nArgs,
         '{"keyboard":"Foo"}');
     });
 
-    test('cancel', function() {
-      dialogElStub.dispatchEvent(new CustomEvent('cancel'));
+    test('cancel', function(done) {
+      removeDialogElStub.dispatchEvent(new CustomEvent('cancel'));
 
-      assert.isTrue(dialogElStub.hidden);
-      assert.isFalse(itemView.confirmRemoveItem.calledOnce);
+      p.then(function(val) {
+        assert.isTrue(removeDialogElStub.hidden);
+        assert.isFalse(val);
+      }).then(done, done);
     });
 
-    test('confirm', function() {
-      dialogElStub.dispatchEvent(new CustomEvent('confirm'));
+    test('confirm', function(done) {
+      removeDialogElStub.dispatchEvent(new CustomEvent('confirm'));
 
-      assert.isTrue(dialogElStub.hidden);
-      assert.isTrue(itemView.confirmRemoveItem.calledOnce);
+      p.then(function(val) {
+        assert.isTrue(removeDialogElStub.hidden);
+        assert.isTrue(val);
+      }).then(done, done);
+    });
+  });
+
+  suite('confirmDownload', function() {
+    var p;
+
+    setup(function() {
+      p = listView.confirmDownload('Foo');
+
+      assert.isTrue(
+        layoutItemListStub.downloadPreference.getCurrentState.calledOnce);
+    });
+
+    suite('STATE_PROMPT', function() {
+      setup(function(done) {
+        downloadPreferenceGetCurrentStateDeferred
+          .resolve(layoutItemListStub.downloadPreference.STATE_PROMPT);
+
+        downloadPreferenceGetCurrentStateDeferred.promise.then(function() {
+          assert.isFalse(downloadDialogStub.hidden);
+        }).then(done, done);
+      });
+
+      suite('remember my choice checked', function() {
+        setup(function() {
+          rememberMyChoiceElStub.checked = true;
+        });
+
+        test('cancel', function(done) {
+          downloadDialogStub.dispatchEvent(new CustomEvent('cancel'));
+
+          p.then(function(val) {
+            assert.isFalse(layoutItemListStub.downloadPreference
+              .setDataConnectionDownloadState.calledOnce,
+              'Should not remember cancelled dialog.');
+            assert.isTrue(downloadDialogStub.hidden);
+            assert.isFalse(val);
+          }).then(done, done);
+        });
+
+        test('confirm', function(done) {
+          downloadDialogStub.dispatchEvent(new CustomEvent('confirm'));
+
+          p.then(function(val) {
+            assert.isTrue(layoutItemListStub.downloadPreference
+              .setDataConnectionDownloadState.calledWith(
+                layoutItemListStub.downloadPreference.STATE_ALLOW));
+
+            // Should not be blocked by setDataConnectionDownloadState promise.
+            assert.isTrue(downloadDialogStub.hidden);
+            assert.isTrue(val);
+
+            // Resolve the promise.
+            downloadPreferenceSetDataConnectionDownloadStateDeferred.resolve();
+            return downloadPreferenceSetDataConnectionDownloadStateDeferred
+              .promise;
+          }).then(done, done);
+        });
+      });
+
+      suite('remember my choice not checked', function() {
+        setup(function() {
+          rememberMyChoiceElStub.checked = false;
+        });
+
+        test('cancel', function(done) {
+          downloadDialogStub.dispatchEvent(new CustomEvent('cancel'));
+
+          p.then(function(val) {
+            assert.isFalse(layoutItemListStub.downloadPreference
+              .setDataConnectionDownloadState.calledOnce);
+            assert.isTrue(downloadDialogStub.hidden);
+            assert.isFalse(val);
+          }).then(done, done);
+        });
+
+        test('confirm', function(done) {
+          downloadDialogStub.dispatchEvent(new CustomEvent('confirm'));
+
+          p.then(function(val) {
+            assert.isFalse(layoutItemListStub.downloadPreference
+              .setDataConnectionDownloadState.calledOnce);
+            assert.isTrue(downloadDialogStub.hidden);
+            assert.isTrue(val);
+          }).then(done, done);
+        });
+      });
+    });
+
+    test('STATE_ALLOW', function(done) {
+      downloadPreferenceGetCurrentStateDeferred
+        .resolve(layoutItemListStub.downloadPreference.STATE_ALLOW);
+
+      p.then(function(val) {
+        assert.isTrue(downloadDialogStub.hidden);
+        assert.isTrue(val);
+      }).then(done, done);
+    });
+
+    test('STATE_DENY', function(done) {
+      downloadPreferenceGetCurrentStateDeferred
+        .resolve(layoutItemListStub.downloadPreference.STATE_DENY);
+
+      p.then(function(val) {
+        assert.isTrue(downloadDialogStub.hidden);
+        assert.isFalse(val);
+      }).then(done, done);
     });
   });
 

@@ -50,6 +50,7 @@
   <script defer src="js/settings/layout_item_view.js"></script>
   <script defer src="js/settings/layout_item_list_view.js"></script>
 
+  <script defer src="js/settings/keyboard_preferences.js"></script>
   <script defer src="js/settings/keyboard_settings_app.js"></script>
   <script defer src="js/settings/bootstrap.js"></script>
 </head>
@@ -138,6 +139,19 @@
             <gaia-buttons skin="dark">
               <button data-l10n-id="removePromptCancel" class="cancel"></button>
               <button data-l10n-id="removePromptRemove" class="confirm danger"></button>
+            </gaia-buttons>
+          </gaia-confirm>
+          <gaia-confirm id="installable-keyboards-mobile-download-dialog" hidden>
+            <p data-l10n-id="dataConnectionPrompt"></p>
+            <p>
+              <label>
+                <input type="checkbox" id="installable-keyboards-remember">
+                <span data-l10n-id="rememberMyChoice"></span>
+              </label>
+            </p>
+            <gaia-buttons skin="dark">
+              <button data-l10n-id="dataConnectionPromptCancel" class="cancel"></button>
+              <button data-l10n-id="dataConnectionPromptContinue" class="confirm"></button>
             </gaia-buttons>
           </gaia-confirm>
           <gaia-toast id="installable-keyboards-download-error-toast" data-l10n-id="downloadFailed"></gaia-toast>
