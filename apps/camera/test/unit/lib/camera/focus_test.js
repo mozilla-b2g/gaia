@@ -657,4 +657,21 @@ suite('lib/camera/focus', function() {
     });
   });
 
+  suite('Focus#resumeCamera', function() {
+    setup(function() {
+      this.sandbox.spy(this.focus, 'onAutoFocusChanged');
+    });
+
+    teardown(function() {
+      this.sandbox.restore();
+    });
+
+    test('should call onAutoFocusChanged after pause', function() {
+      this.focus.focusState = 'focusing';
+      this.focus.pause();
+      this.focus.updateFocusState('focusing');
+      assert.ok(this.focus.onAutoFocusChanged.calledWith('focusing'));
+    });
+  });
+
 });
