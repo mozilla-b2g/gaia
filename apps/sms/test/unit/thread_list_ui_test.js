@@ -30,7 +30,6 @@ require('/test/unit/thread_list_mockup.js');
 require('/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
-require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
@@ -48,7 +47,6 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'ThreadUI',
   'ContactPhotoHelper',
   'OptionMenu',
-  'PerformanceTestingHelper',
   'StickyHeader',
   'Navigation',
   'InterInstanceEventDispatcher',

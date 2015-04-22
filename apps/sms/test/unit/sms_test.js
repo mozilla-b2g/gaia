@@ -13,7 +13,6 @@ require('/shared/js/event_dispatcher.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
-require('/shared/js/performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');

@@ -5,8 +5,7 @@
 
 /*global ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information, SilentSms,
-         PerformanceTestingHelper, App, Navigation, EventDispatcher,
-         LocalizationHelper,
+         App, Navigation, EventDispatcher, LocalizationHelper,
          InterInstanceEventDispatcher
 */
 
@@ -54,7 +53,7 @@ var Startup = {
 
       InterInstanceEventDispatcher.connect();
 
-      // dispatch moz-content-interactive when all the modules initialized
+      // dispatch contentInteractive when all the modules initialized
       SilentSms.init();
       ActivityHandler.init();
 
@@ -66,13 +65,11 @@ var Startup = {
       // Dispatch post-initialize event for continuing the pending action
       Startup.emit('post-initialize');
       window.performance.mark('contentInteractive');
-      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
       // Fetch mmsSizeLimitation and max concat
       Settings.init();
 
       window.performance.mark('objectsInitEnd');
-      PerformanceTestingHelper.dispatch('objects-init-finished');
     });
     this._initHeaders();
     return lazyLoadPromise;
@@ -98,7 +95,6 @@ var Startup = {
       ThreadListUI.init();
       ThreadListUI.renderThreads(firstPageLoadedCallback).then(() => {
         window.performance.mark('fullyLoaded');
-        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
         App.setReady();
       });
     }
@@ -107,7 +103,6 @@ var Startup = {
       window.removeEventListener('DOMContentLoaded', loaded);
 
       window.performance.mark('navigationLoaded');
-      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       MessageManager.init();
       Navigation.init();
@@ -125,10 +120,9 @@ var Startup = {
         initializeDefaultPanel(this._lazyLoadInit.bind(this));
       }
 
-      // dispatch chrome-interactive when thread list related modules
+      // dispatch navigationInteractive when thread list related modules
       // initialized
       window.performance.mark('navigationInteractive');
-      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
     }.bind(this);
 
     window.addEventListener('DOMContentLoaded', loaded);
