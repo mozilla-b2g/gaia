@@ -73,6 +73,8 @@ var PlayerView = {
   init: function pv_init() {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
+    this.artistText = document.querySelector('#player-cover-artist bdi');
+    this.albumText = document.querySelector('#player-cover-album bdi');
 
     this.timeoutID;
     this.cover = document.getElementById('player-cover');
@@ -228,19 +230,21 @@ var PlayerView = {
         this.album.classList.remove('hidden-cover-share');
       }
     } else {
-      var titleBar = document.getElementById('title-text');
+      // we can't use TitleBar here as if we are in the activity
+      // it will not be initialised.
+      var titleBar = document.querySelector('#title-text bdi');
 
       titleBar.textContent =
         metadata.title || navigator.mozL10n.get('unknownTitle');
       titleBar.dataset.l10nId = metadata.title ? '' : 'unknownTitle';
     }
 
-    this.artist.textContent =
+    this.artistText.textContent =
       metadata.artist || navigator.mozL10n.get('unknownArtist');
-    this.artist.dataset.l10nId = metadata.artist ? '' : 'unknownArtist';
-    this.album.textContent =
+    this.artistText.dataset.l10nId = metadata.artist ? '' : 'unknownArtist';
+    this.albumText.textContent =
       metadata.album || navigator.mozL10n.get('unknownAlbum');
-    this.album.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
+    this.albumText.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
 
     this.setCoverImage(fileinfo);
   },
