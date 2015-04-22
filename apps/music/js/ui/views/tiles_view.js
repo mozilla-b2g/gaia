@@ -188,19 +188,8 @@ var TilesView = {
           this.hideSearch();
           evt.preventDefault();
         } else if (target.dataset.index) {
-          var handler;
-          var index = target.dataset.index;
-
-          var data = this.dataSource[index];
-          handler = tv_playAlbum.bind(this, data, index);
-
-          if (evt.mozInputSource === MouseEvent.MOZ_SOURCE_UNKNOWN) {
-            // A scripted click from screen reader event won't have a
-            // transition effect.
-            handler();
-          } else {
-            target.addEventListener('transitionend', handler);
-          }
+          tv_playAlbum(this.dataSource[target.dataset.index],
+                       target.dataset.index);
         }
 
         break;
@@ -260,8 +249,6 @@ var TilesView = {
           }
         );
       });
-
-      target.removeEventListener('transitionend', handler);
     }
   }
 };
