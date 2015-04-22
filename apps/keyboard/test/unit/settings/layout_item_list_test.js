@@ -9,10 +9,9 @@ require('/js/shared/promise_storage.js');
 
 suite('LayoutItemList', function() {
   var layoutDictionaryListStub;
-  var promiseStorageStub;
-
   var dbGetItemConfigDeferred;
   var dbSetItemDeferred;
+
   var app;
 
   var fakeXhr;
@@ -39,24 +38,10 @@ suite('LayoutItemList', function() {
     this.sinon.stub(window, 'LayoutDictionaryList')
       .returns(layoutDictionaryListStub);
 
-    var PromiseStoragePrototype = PromiseStorage.prototype;
-    promiseStorageStub =
-      this.sinon.stub(Object.create(PromiseStoragePrototype));
-    this.sinon.stub(window, 'PromiseStorage')
-      .returns(promiseStorageStub);
-
     var LayoutItemPrototype = LayoutItem.prototype;
     this.sinon.stub(window, 'LayoutItem', function() {
       return this.sinon.stub(Object.create(LayoutItemPrototype));
     }.bind(this));
-
-    dbGetItemConfigDeferred = new Deferred();
-    promiseStorageStub.getItem
-      .withArgs(LayoutItemList.prototype.ENABLED_LAYOUT_KEY)
-      .returns(dbGetItemConfigDeferred.promise);
-
-    dbSetItemDeferred = new Deferred();
-    promiseStorageStub.setItem.returns(dbSetItemDeferred.promise);
 
     var requests = [];
     fakeXhr = sinon.useFakeXMLHttpRequest();
@@ -66,8 +51,16 @@ suite('LayoutItemList', function() {
 
     app = {
       closeLockManager: { stub: 'closeLockManager' },
-      preferencesStore: sinon.stub(Object.create(PromiseStoragePrototype))
+      preferencesStore: sinon.stub(Object.create(PromiseStorage.prototype))
     };
+
+    dbGetItemConfigDeferred = new Deferred();
+    app.preferencesStore.getItem
+      .withArgs(LayoutItemList.prototype.ENABLED_LAYOUT_KEY)
+      .returns(dbGetItemConfigDeferred.promise);
+
+    dbSetItemDeferred = new Deferred();
+    app.preferencesStore.setItem.returns(dbSetItemDeferred.promise);
 
     list = new LayoutItemList(app);
     list.onready = this.sinon.stub();
@@ -79,10 +72,8 @@ suite('LayoutItemList', function() {
     assert.isTrue(layoutDictionaryListStub.start.calledOnce);
     assert.equal(list.dictionaryList, layoutDictionaryListStub);
 
-    assert.isTrue(window.PromiseStorage.calledWith(list.DATABASE_NAME));
-    assert.isTrue(promiseStorageStub.start.calledOnce);
     assert.isTrue(
-      promiseStorageStub.getItem.calledWith(list.ENABLED_LAYOUT_KEY));
+      app.preferencesStore.getItem.calledWith(list.ENABLED_LAYOUT_KEY));
     dbGetItemConfigDeferred.resolve(['fr']);
 
     var request = requests[0];
@@ -186,7 +177,7 @@ suite('LayoutItemList', function() {
 
     Promise.resolve()
       .then(function() {
-        assert.isTrue(promiseStorageStub.setItem
+        assert.isTrue(app.preferencesStore.setItem
           .calledWith(list.ENABLED_LAYOUT_KEY, ['fr', 'fr-CA']));
         dbSetItemDeferred.resolve();
 
@@ -203,7 +194,7 @@ suite('LayoutItemList', function() {
 
     Promise.resolve()
       .then(function() {
-        assert.isTrue(promiseStorageStub.setItem
+        assert.isTrue(app.preferencesStore.setItem
           .calledWith(list.ENABLED_LAYOUT_KEY, []));
         dbSetItemDeferred.resolve();
 
