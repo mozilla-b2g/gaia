@@ -11,7 +11,7 @@ var tngAccountSettingsServerNode =
     ConfirmDialog = require('confirm_dialog');
 
 return [
-  require('./base')(require('template!./settings_account.html')),
+  require('./base_card')(require('template!./settings_account.html')),
   require('./account_prefs_mixins'),
   {
     onArgs: function(args) {

@@ -77,7 +77,8 @@ if (navigator.mozAudioChannelManager) {
 // case, html_cache_restore needs to know the model state, if there is an
 // account, before proceeding with the startup view to select.
 if (window.startupOnModelLoaded) {
-  requirejs(['console_hook', 'model'], function(hook, model) {
+  requirejs(['console_hook', 'model_create'], function(hook, modelCreate) {
+    var model = modelCreate.defaultModel;
     model.init();
     window.startupOnModelLoaded(model, function() {
       require(['mail_app']);

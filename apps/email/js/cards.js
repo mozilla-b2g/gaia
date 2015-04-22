@@ -435,10 +435,10 @@ var cards = {
 
   // Filter is an optional paramater. It is a function that returns
   // true if the folder passed to it should be included in the selector
-  folderSelector: function(callback, filter) {
+  folderSelector: function(model, callback, filter) {
     var self = this;
 
-    require(['model', 'value_selector'], function(model, ValueSelector) {
+    require(['value_selector'], function(ValueSelector) {
       // XXX: Unified folders will require us to make sure we get the folder
       //      list for the account the message originates from.
       if (!self.folderPrompt) {

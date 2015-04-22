@@ -1,0 +1,81 @@
+<!-- Search header -->
+<section data-prop="searchHeader"
+         class="msg-search-header"
+         role="region">
+  <form role="search" data-event="submit:onSearchSubmit">
+    <button data-event="click:onCancelSearch"
+            class="msg-search-cancel" type="submit"
+            data-l10n-id="message-search-cancel"></button>
+    <p>
+      <input data-prop="searchInput" data-event="input:onSearchTextChange"
+             type="text" required="required" class="msg-search-text"
+             autocorrect="off"
+             inputmode="verbatim"
+             x-inputmode="verbatim"
+             dir="auto"
+             data-l10n-id="message-search-input" />
+      <button type="reset"
+              data-l10n-id="form-clear-input"
+              data-event="click:onClearSearch"></button>
+    </p>
+  </form>
+  <!-- Search filter switcher -->
+  <header class="msg-search-controls-bar">
+    <ul role="tablist" class="bb-tablist filter" data-type="filter">
+      <li role="presentation" class="msg-search-from msg-search-filter"
+          data-filter="author">
+        <a data-l10n-id="message-search-from" role="tab"
+          aria-selected="false"></a></li>
+      <li role="presentation" class="msg-search-to msg-search-filter"
+          data-filter="recipients">
+        <a data-l10n-id="message-search-to" role="tab"
+          aria-selected="false"></a></li>
+      <li role="presentation" class="msg-search-subject msg-search-filter"
+           data-filter="subject">
+        <a data-l10n-id="message-search-subject" role="tab"
+          aria-selected="false"></a>
+      </li>
+      <li role="presentation" class="msg-search-body msg-search-filter"
+           data-filter="body">
+        <a data-l10n-id="message-search-body" role="tab"
+          aria-selected="false"></a></li>
+      <li role="presentation" class="msg-search-body msg-search-filter"
+          data-filter="all">
+        <a data-l10n-id="message-search-all" role="tab"
+          aria-selected="true"></a></li>
+    </ul>
+  </header>
+</section>
+
+<!-- Multi-edit state header -->
+<lst-edit-header data-prop="editHeader"
+                       data-event="editHeaderClose"></lst-edit-header>
+
+<!-- Scroll region -->
+<div data-prop="scrollContainer" class="msg-list-scrollouter">
+  <!-- exists so we can force a minimum height -->
+  <div class="msg-list-scrollinner">
+    <lst-msg-vscroll data-prop="msgVScroll"
+                     data-event="messageClick:onClickMessage"
+                     data-empty-l10n-id="messages-search-empty">
+    </lst-msg-vscroll>
+  </div>
+</div>
+
+<!-- New email notification bar -->
+<div class="message-list-topbar"></div>
+
+<!-- Toolbar for non-multi-edit state -->
+<ul data-prop="normalToolbar" class="bb-tablist msg-list-action-toolbar"
+    role="toolbar">
+  <li role="presentation">
+    <button data-prop="editBtn" data-event="click:setEditModeStart"
+            class="icon msg-edit-btn" data-l10n-id="edit-button"></button>
+  </li>
+</ul>
+
+<lst-edit-toolbar data-prop="editToolbar"
+                  data-event="onDeleteMessages,onStarMessages,
+                              onMarkMessagesRead,onMoveMessages">
+</lst-edit-toolbar>
+

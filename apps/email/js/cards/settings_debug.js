@@ -17,7 +17,8 @@ if (!_secretDebug) {
 }
 
 return [
-  require('./base')(require('template!./settings_debug.html')),
+  require('./base_card')
+         (require('template!./settings_debug.html')),
   {
     createdCallback: function() {
       this.loggingSelect.value = MailAPI.config.debugLogging || '';

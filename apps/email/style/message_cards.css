@@ -5,6 +5,39 @@
   will-change: scroll-position;
 }
 
+/**
+ * message list cards: toggle card UI state based on show-edit class
+ */
+cards-message-list lst-edit-header,
+cards-message-list lst-edit-toolbar,
+cards-message-list-search lst-edit-header,
+cards-message-list-search lst-edit-toolbar {
+  display: none;
+}
+cards-message-list.show-edit lst-edit-header,
+cards-message-list.show-edit lst-edit-toolbar,
+cards-message-list-search.show-edit lst-edit-header,
+cards-message-list-search.show-edit lst-edit-toolbar {
+  display: block;
+}
+cards-message-list.show-edit .msg-list-header,
+cards-message-list.show-edit .msg-list-action-toolbar,
+cards-message-list-search.show-edit .msg-search-header,
+cards-message-list-search.show-edit .msg-list-action-toolbar {
+  display: none;
+}
+
+cards-message-list-search .msg-list-scrollouter {
+  height: calc(100% - 12rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  will-change: scroll-position;
+}
+
+cards-message-list-search.show-edit .msg-list-scrollouter {
+  height: calc(100% - 9.5rem);
+}
+
 .msg-list-scrollinner {
   /* Give it a z-index of 0 so that all its contents are forced into a single stacking
      context. This simplifies display list construction because our many positioned
@@ -58,10 +91,6 @@ section[role="region"] > header:first-child h1.msg-list-header-folder-label {
 cards-message-list-search .msg-search-header form,
 cards-message-list-search .msg-search-header .bb-tablist {
   z-index: 10;
-}
-
-cards-message-list-search .msg-search-tease-bar {
-  display: none;
 }
 
 /* For search filters, make sure the contents do not line break and overflow
@@ -730,8 +759,10 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 /* Scrollable Area has to have a solid
   * opaque background to optimize Gecko.
   * See Bug 962699. */
-.msg-messages-container {
+lst-msg-vscroll,
+.msg-vscroll-container {
   position: relative;
+  display: block;
   background-color: #fff;
   overflow: hidden;
 }
@@ -753,34 +784,34 @@ html:-moz-dir(rtl) .msg-attachment-filesize {
 }
 
 /* Message list edit mode layout control */
-.msg-messages-container label.negative {
+.msg-vscroll-container label.negative {
   height: 8rem;
   width: 4rem;
   display: none;
   pointer-events: none;
 }
-.msg-messages-container.show-edit label.negative {
+.show-edit .msg-vscroll-container label.negative {
   display: inline-block;
 }
 
-.msg-messages-container.show-edit .msg-header-unread-section {
+.show-edit .msg-vscroll-container .msg-header-unread-section {
   left: 3.9rem;
 }
-html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-unread-section {
+html:-moz-dir(rtl) .show-edit .msg-vscroll-container .msg-header-unread-section {
   right: 3.9rem;
   left: auto;
 }
 
-.msg-messages-container.show-edit .msg-header-syncing-section {
+.show-edit .msg-vscroll-container .msg-header-syncing-section {
   left: 3.5rem;
 }
 
-html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-syncing-section {
+html:-moz-dir(rtl) .show-edit .msg-vscroll-container .msg-header-syncing-section {
   right: 3.5rem;
   left: auto;
 }
 
-.msg-messages-container.show-edit .msg-header-details-section {
+.show-edit .msg-vscroll-container .msg-header-details-section {
   -moz-padding-start: 4.5rem;
 }
 
@@ -788,12 +819,9 @@ html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-syncing-section
   Empty message-list container
 */
 .msg-list-empty-container {
-  position: absolute;
-  top: 9rem;
-  left: 1.5rem;
-  right: 1.5rem;
   width: calc(100% - 3rem);
   height: 20rem;
+  margin: 0 auto;
 }
 
 .msg-list-empty-message-text {
@@ -808,7 +836,6 @@ html:-moz-dir(rtl) .msg-messages-container.show-edit .msg-header-syncing-section
 }
 
 cards-message-list-search .msg-list-empty-message-text {
-  top: 0;
   border-top: 0;
 }
 

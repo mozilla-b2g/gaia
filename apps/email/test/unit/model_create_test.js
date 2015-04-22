@@ -6,7 +6,7 @@
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 
-suite('model', function() {
+suite('model_create', function() {
   var model;
 
   suiteSetup(function(done) {
@@ -15,9 +15,9 @@ suite('model', function() {
         suiteTeardown: suiteTeardown,
         done: done
       },
-      ['model'],
-      function(m) {
-        model = m;
+      ['model_create'],
+      function(mc) {
+        model = mc.defaultModel;
       }
     );
   });

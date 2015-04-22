@@ -15,10 +15,10 @@ suite('model acctsSlice, startup', function() {
         suiteTeardown: suiteTeardown,
         done: done
       },
-      ['api', 'model'],
-      function(a, m) {
+      ['api', 'model_create'],
+      function(a, mc) {
         api = a;
-        model = m;
+        model = mc.defaultModel;
       }
     );
   });
