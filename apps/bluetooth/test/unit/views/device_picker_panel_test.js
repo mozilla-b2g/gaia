@@ -44,7 +44,7 @@ suite('DevicePickerPanel', function() {
       hasPairedDevice: false,
       state: 'disabled',
       discovering: false,
-      startDiscovery: function() {},
+      startDiscovery: function() {return Promise.resolve();},
       pair: function() {}
     };
 
@@ -79,12 +79,14 @@ suite('DevicePickerPanel', function() {
       devicePickerPanel._pairedDevicesListView = null;
       devicePickerPanel._foundDevicesListView = null;
       this.sinon.stub(devicePickerPanel, '_initItemsState');
+      this.sinon.stub(btContext, 'startDiscovery').returns(Promise.resolve());
     });
 
     test('The close button of header should be regedit action callback, ' +
          'search button should be regedit onclick callback, ' +
          'paired/found list view should be defined, ' +
-         '_initItemsState() should be called ', function() {
+         '_initItemsState() should be called ' +
+         'BtContext.startDiscovery() should be called ', function() {
       devicePickerPanel._init();
       // close button
       assert.equal(
@@ -104,6 +106,7 @@ suite('DevicePickerPanel', function() {
       assert.isDefined(devicePickerPanel._pairedDevicesListView);
       assert.isDefined(devicePickerPanel._foundDevicesListView);
       assert.isTrue(devicePickerPanel._initItemsState.called);
+      assert.isTrue(btContext.startDiscovery.called);
     });
   });
 

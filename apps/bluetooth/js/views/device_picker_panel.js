@@ -134,6 +134,14 @@ define(function(require) {
 
       // Init items state.
       this._initItemsState();
+
+      // search devices automatically while the panel is inited.
+      BtContext.startDiscovery().then(() => {
+        Debug('_init(): startDiscovery successfully');
+      }, (reason) => {
+        Debug('_init(): startDiscovery failed, ' +
+              'reason = ' + reason);
+      });
     },
 
     /**
