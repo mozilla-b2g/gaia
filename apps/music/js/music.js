@@ -232,6 +232,10 @@ var App = (function() {
           window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
           window.performance.mark('contentInteractive');
           window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+          // For performance optimization, we disable the font-fit logic in
+          // gaia-header to speed up the startup times, and here we have to
+          // remove the no-font-fit attribute to trigger the font-fit logic.
+          TitleBar.view.removeAttribute('no-font-fit');
 
           if (callback) {
             callback();
