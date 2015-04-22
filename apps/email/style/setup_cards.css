@@ -130,6 +130,7 @@ cards-setup-done .sup-form-btn.recommend {
   color: #333;
   border: none;
   box-shadow: none;
+  box-sizing: border-box;
   background: white;
   outline: 0;
   white-space: pre-wrap;
