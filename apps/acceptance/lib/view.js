@@ -21,9 +21,11 @@ View.prototype = {
         return this.getRootElement().displayed();
     },
     //Wait for an element to become visible
-    waitForDisplay: function () {
+    waitForDisplay: function (selectorObject) {
         var self = this;
-        return this.client.waitFor(self.displayed)
+        return this.client.waitFor(function() {
+            return self.findElement(selectorObject).displayed();
+        });
     },
     //Wait for an element to be hidden
     waitForHide: function () {
@@ -49,7 +51,8 @@ View.prototype = {
         this.findElement(selectorObject).sendKeys(string);
     },
     switchToSystemApp: function() {
-        this.client.apps.switchToApp();
+        var client = this.client;
+        client.switchToFrame();
     }
 };
 
