@@ -23,13 +23,10 @@ const UUID_FILENAME = 'uuid.json';
  *
  * @param  {nsIFile} dir       directory to read.
  * @param  {boolean} recursive set to true in order to walk recursively.
- * @param  {RegExp}  filter    optional filter for file names.
- * @param  {boolean} include   set to true in order to include file matched by
- *                             filter, set to false to exclude.
  *
  * @returns {Array}            list of nsIFile's.
  */
-function ls(dir, recursive, pattern, include) {
+function ls(dir, recursive) {
   let results = [];
   if (!dir || !dir.exists()) {
     return results;
@@ -38,17 +35,11 @@ function ls(dir, recursive, pattern, include) {
   let files = dir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    //  include |  pattern.test()  |  result
-    //    true  |     false        |   false
-    //    true  |     true         |   true
-    //    false |     false        |   true
-    //    false |     true         |   false
-    if (!pattern || !(include ^ pattern.test(file.leafName))) {
-      results.push(file);
-      if (recursive && file.isDirectory()) {
-        results = results.concat(ls(file, true, pattern, include));
-      }
+    results.push(file);
+    if (recursive && file.isDirectory()) {
+      results = results.concat(ls(file, true));
     }
+    
   }
   return results;
 }
