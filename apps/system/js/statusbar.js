@@ -759,7 +759,7 @@ var StatusBar = {
   },
 
   _updateIconVisibility: function sb_updateIconVisibility() {
-    if (this._paused !== 0) {
+    if (this.isPaused()) {
       return;
     }
 

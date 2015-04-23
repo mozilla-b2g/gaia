@@ -477,7 +477,7 @@ window.UtilityTray = {
     this.isTap = false;
   },
 
-  hide: function ut_hide(instant) {
+  hide: function ut_hide(instant = false) {
     if (!this.active) {
       window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
     }
@@ -536,7 +536,11 @@ window.UtilityTray = {
     this.publish('-deactivated');
   },
 
-  show: function ut_show(instant) {
+  show: function ut_show(instant = false) {
+    if (!this.active) {
+      window.dispatchEvent(new CustomEvent('utilitytraywillshow'));
+    }
+
     var transition = instant ? '' :
       'transform linear ' + this.animationTime + 's';
     this.animationTime = this.DEFAULT_ANIMATION_TIME;
