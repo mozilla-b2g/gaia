@@ -79,9 +79,20 @@ define(function(require) {
       // Show connection status
       icon.classList.add('wifi-signal');
       if (WifiHelper.isConnected(network)) {
-        small.setAttribute('data-l10n-id', 'shortStatus-connected');
-        icon.classList.add('connected');
-        li.classList.add('active');
+        var conStatus = WifiHelper.getConnectionStatus(network);
+        if (conStatus === 'connected') {
+          small.setAttribute('data-l10n-id', 'shortStatus-connected');
+          icon.classList.add('connected');
+          li.classList.add('active');
+        } else if (conStatus === 'connecting') {
+          small.setAttribute('data-l10n-id', 'shortStatus-connecting');
+        } else if (conStatus === 'associated') {
+          small.setAttribute('data-l10n-id', 'shortStatus-associated');
+        } else if (conStatus === 'connectingfailed') {
+          small.setAttribute('data-l10n-id', 'shortStatus-connectingfailed');
+        } else if (conStatus === 'disconnected') {
+          small.setAttribute('data-l10n-id', 'shortStatus-disconnected');
+        }
       }
 
       // bind connection callback
