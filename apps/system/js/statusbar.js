@@ -336,6 +336,7 @@ var StatusBar = {
   },
 
   handleEvent: function sb_handleEvent(evt) {
+    var app;
     switch (evt.type) {
       case 'emergencycallbackstatechanged':
         this.updateEmergencyCbNotification(evt.detail);
@@ -573,6 +574,14 @@ var StatusBar = {
 
       case 'stackchanged':
       case 'rocketbar-deactivated':
+        app = Service.currentApp;
+
+        if (app) {
+          this.element.classList.toggle('fullscreen',
+            app.isFullScreen());
+          this.element.classList.toggle('fullscreen-layout',
+            app.isFullScreenLayout());
+        }
         this.setAppearance();
         this.element.classList.remove('hidden');
         break;
@@ -585,7 +594,7 @@ var StatusBar = {
       case 'appopened':
       case 'hierarchytopmostwindowchanged':
       case 'appchromeexpanded':
-        var app = evt.detail.getTopMostWindow();
+        app = evt.detail.getTopMostWindow();
 
         if (app) {
           this.element.classList.toggle('fullscreen',
@@ -695,8 +704,8 @@ var StatusBar = {
       );
     }
 
-    this.element.classList.toggle('maximized', app.isHomescreen ||
-      !!(app.appChrome && app.appChrome.isMaximized()));
+    this.element.classList.toggle('maximized',
+      app.isHomescreen || !!(app.appChrome && app.appChrome.isMaximized()));
   },
 
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {

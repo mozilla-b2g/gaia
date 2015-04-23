@@ -411,6 +411,24 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
       assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
     });
+
+    test('stackchanged', function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
+      var event = new CustomEvent('stackchanged');
+      StatusBar.handleEvent(event);
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
+
+    test('rocketbar-deactivated', function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
+      var event = new CustomEvent('rocketbar-deactivated');
+      StatusBar.handleEvent(event);
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
+    });
   });
 
   suite('system-downloads', function() {
@@ -2220,7 +2238,10 @@ suite('system/Statusbar', function() {
     }
 
     setup(function() {
-      app = {};
+      app = {
+        isFullScreen: function() {},
+        isFullScreenLayout: function() {}
+      };
       MockService.currentApp = app;
       setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       pauseUpdateStub = this.sinon.stub(StatusBar, 'pauseUpdate');
@@ -2229,18 +2250,26 @@ suite('system/Statusbar', function() {
     });
 
     test('stackchanged', function() {
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(false);
       StatusBar.element.classList.add('hidden');
       var event = new CustomEvent('stackchanged');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
       assert.isTrue(setAppearanceStub.called);
     });
 
     test('rocketbar-deactivated', function() {
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      this.sinon.stub(app, 'isFullScreenLayout').returns(false);
       StatusBar.element.classList.add('hidden');
       var event = new CustomEvent('rocketbar-deactivated');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen'));
+      assert.isFalse(StatusBar.element.classList.contains('fullscreen-layout'));
       assert.isTrue(setAppearanceStub.called);
     });
 
