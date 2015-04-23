@@ -150,13 +150,6 @@ suite('bookmark_editor.js >', function() {
     test('Bookmarks with blank title should not be saved >', function() {
       assert.isTrue(BookmarkEditor.saveButton.disabled,
                 'Blank title, add button should be disabled');
-
-      var saveSpy = sinon.spy(BookmarkEditor, 'save');
-
-      BookmarkEditor.form.dispatchEvent(new CustomEvent('submit'));
-      assert.equal(saveSpy.callCount, 0);
-
-      BookmarkEditor.save.restore();
     });
 
     test('Check save button typing website name ', function() {
