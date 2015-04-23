@@ -20,6 +20,7 @@ define(function(require) {
           targetsList: panel.querySelector('.addon-targets'),
           noTargetsMsg: panel.querySelector('.addon-no-targets'),
           toggle: panel.querySelector('.addon-enabled'),
+          shareButton: panel.querySelector('.addon-share'),
           deleteButton: panel.querySelector('.addon-delete')
         };
         this._details = AddonDetails(this._elements);
@@ -27,6 +28,8 @@ define(function(require) {
 
         // Hook up the enable/disable toggle button
         this._elements.toggle.onchange = this._onToggleChange.bind(this);
+        // Hook up the share button
+        this._elements.shareButton.onclick = this._onShare.bind(this);
         // Hook up the delete button
         this._elements.deleteButton.onclick = this._onDelete.bind(this);
       },
@@ -101,6 +104,16 @@ define(function(require) {
         } else {
           AddonManager.disableAddon(this._curAddon);
         }
+      },
+
+      _onShare: function() {
+        AddonManager.shareAddon(this._curAddon).catch(reason => {
+          if (reason === 'NO_PROVIDER') {
+            navigator.mozL10n.setAttributes(this._elements.shareButton,
+              'addon-share-no-provider');
+            this._elements.shareButton.disabled = true;
+          }
+        });
       },
 
       _onDelete: function() {
