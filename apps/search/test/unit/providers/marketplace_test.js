@@ -33,7 +33,7 @@ suite('search/providers/marketplace', function() {
     navigator.mozSettings = MockNavigatorSettings;
 
     navigator.mozSettings.createLock().set({
-      'search.marketplace.url': 'http://localhost'
+      'search.marketplace.url': 'http://localhost?{q}'
     });
 
     fakeElement = document.createElement('div');
@@ -73,7 +73,17 @@ suite('search/providers/marketplace', function() {
     });
 
     teardown(function() {
+      subject.request = null;
       xhr.restore();
+    });
+
+    test('escapes search terms', function(done) {
+      subject.search('foo#');
+
+      setTimeout(function() {
+        assert.equal(requests[0].url, 'http://localhost?foo%23');
+        done();
+      });
     });
 
     test('renders all results', function(done) {
