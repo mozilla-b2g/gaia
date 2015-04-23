@@ -1,11 +1,13 @@
 'use strict';
 
-/* global LayoutItem, LayoutDictionaryList, LayoutItemList, PromiseStorage */
+/* global LayoutItem, LayoutDictionaryList, LayoutItemList, PromiseStorage,
+          SettingsPromiseManager */
 
 require('/js/settings/layout_item.js');
 require('/js/settings/layout_item_list.js');
 require('/js/settings/layout_dictionary_list.js');
 require('/js/shared/promise_storage.js');
+require('/js/keyboard/settings.js');
 
 suite('LayoutItemList', function() {
   var layoutDictionaryListStub;
@@ -51,7 +53,9 @@ suite('LayoutItemList', function() {
 
     app = {
       closeLockManager: { stub: 'closeLockManager' },
-      preferencesStore: sinon.stub(Object.create(PromiseStorage.prototype))
+      preferencesStore: sinon.stub(Object.create(PromiseStorage.prototype)),
+      settingsPromiseManager:
+        this.sinon.stub(Object.create(SettingsPromiseManager.prototype))
     };
 
     dbGetItemConfigDeferred = new Deferred();
@@ -318,6 +322,70 @@ suite('LayoutItemList', function() {
         assert.isTrue(app.preferencesStore.setItem.calledWith(
           'download.prompt-on-data-connection', false));
         assert.equal(r, p);
+      });
+    });
+
+    suite('LayoutEnabler', function() {
+      var appManifestURL;
+      setup(function() {
+        appManifestURL =
+          location.protocol + '//' + location.hostname + '/manifest.webapp';
+      });
+
+      test('enableLayout', function(done) {
+        var deferred = new Deferred();
+
+        app.settingsPromiseManager.updateOne.returns(deferred.promise);
+
+        var p = list.layoutEnabler.enableLayout('foo');
+
+        assert.isTrue(app.settingsPromiseManager.updateOne.calledWith(
+          list.layoutEnabler.SETTING_ENABLE_LAYOUT_KEY));
+
+        var obj = {};
+        obj[appManifestURL] = {};
+
+        var refObj = {};
+        refObj[appManifestURL] = {};
+        refObj[appManifestURL].foo = true;
+
+        var returnedObj =
+          app.settingsPromiseManager.updateOne.firstCall.args[1](obj);
+
+        assert.deepEqual(returnedObj, refObj);
+        deferred.resolve();
+
+        p.catch(function(e) { throw e || 'Should not reject.'; })
+          .then(done, done);
+      });
+
+      test('disableLayout', function(done) {
+        var deferred = new Deferred();
+
+        app.settingsPromiseManager.updateOne.returns(deferred.promise);
+
+        var p = list.layoutEnabler.disableLayout('foo');
+
+        assert.isTrue(app.settingsPromiseManager.updateOne.calledWith(
+          list.layoutEnabler.SETTING_ENABLE_LAYOUT_KEY));
+
+        var obj = {};
+        obj[appManifestURL] = {};
+        obj[appManifestURL].foo = true;
+        obj[appManifestURL].bar = true;
+
+        var refObj = {};
+        refObj[appManifestURL] = {};
+        refObj[appManifestURL].bar = true;
+
+        var returnedObj =
+          app.settingsPromiseManager.updateOne.firstCall.args[1](obj);
+
+        assert.deepEqual(returnedObj, refObj);
+        deferred.resolve();
+
+        p.catch(function(e) { throw e || 'Should not reject.'; })
+          .then(done, done);
       });
     });
   });
