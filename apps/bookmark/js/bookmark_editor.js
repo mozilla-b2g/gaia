@@ -131,7 +131,9 @@ var BookmarkEditor = {
    */
   _submit: function(event) {
     event.preventDefault();
-    this.save();
+    if (!this.saveButton.disabled) {
+      this.save();
+    }
   },
 
   _clearTitle: function bookmarkEditor_clearTitle(event) {
