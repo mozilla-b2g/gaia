@@ -597,15 +597,6 @@ section[role="region"].new > gaia-header h1 {
 /*
   Loading screen while deleting
 */
-
-#loading.show-loading {
-  display: block;
-}
-
-#loading {
-  display: none;
-}
-
 .loading-header {
   text-align: start;
 }

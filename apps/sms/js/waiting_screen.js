@@ -6,18 +6,16 @@
 'use strict';
 
 var WaitingScreen = {
-  get loading() {
-    delete this.loading;
-    return (this.loading = document.getElementById('loading'));
-  },
-  get loadingHeader() {
-    delete this.loadingHeader;
-    return (this.loadingHeader = document.getElementById('loading-header'));
-  },
   show: function ws_show() {
-    this.loading.classList.add('show-loading');
+    var link = document.querySelector(
+      'link[rel="import"][href="waiting-screen.html"]'
+    );
+    var content = link.import;
+    var el = content.querySelector('#loading');
+
+    document.body.appendChild(el.cloneNode(true));
   },
   hide: function ws_hide() {
-    this.loading.classList.remove('show-loading');
+    document.body.removeChild(document.querySelector('#loading'));
   }
 };
