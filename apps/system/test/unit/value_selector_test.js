@@ -14,7 +14,7 @@ var mocksForValueSelector = new MocksHelper([
 ]).init();
 
 suite('value selector/value selector', function() {
-  var realL10n, realKeyboard, stubMozl10nGet, app, fragment, vs;
+  var realL10n, realKeyboard, stubMozl10nGet, app, fragment, vs, rafStub;
 
   var fakeAppConfig = {
     url: 'app://www.fake/index.html',
@@ -57,6 +57,9 @@ suite('value selector/value selector', function() {
     realKeyboard = window.navigator.mozInputMethod;
     window.navigator.mozInputMethod = sinon.stub();
 
+    rafStub = sinon.stub(window, 'requestAnimationFrame',
+                         function(callback) { callback(); });
+
     loadBodyHTML('/index.html');
 
     requireApp('system/js/service.js');
@@ -78,6 +81,7 @@ suite('value selector/value selector', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     window.navigator.mozInputMethod = realKeyboard;
+    rafStub.restore();
     document.body.innerHTML = '';
     fragment = null;
     vs = null;
