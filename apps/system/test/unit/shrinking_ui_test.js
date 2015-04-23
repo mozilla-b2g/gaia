@@ -67,37 +67,28 @@ suite('system/shrinkingUI', function() {
     shrinkingUI.DEBUG = oldDebug;
   });
 
-  var homeAndHoldhomeTestFactory = function(type_) {
-    return function() {
-      shrinkingUI.start();
-      var evt = {
-        type: type_,
-        stopImmediatePropagation: this.sinon.spy()
-      };
-      var stubState = this.sinon.stub(shrinkingUI, 'isActive').returns(true);
-      shrinkingUI.handleEvent(evt);
-
-      assert.isTrue(stubState.called);
-      assert.isTrue(evt.stopImmediatePropagation.called);
-
-      stubState.reset();
-      evt.stopImmediatePropagation.reset();
-
-      stubState.returns(false);
-      shrinkingUI.handleEvent(evt);
-      assert.isTrue(stubState.called);
-      assert.isFalse(evt.stopImmediatePropagation.called);
-    };
-  };
-
   test('Start', function() {
     var stubStartTilt = this.sinon.stub(shrinkingUI, 'startTilt');
     shrinkingUI.start();
     assert.isTrue(stubStartTilt.calledOnce);
   });
 
-  test('Handle "home" event', homeAndHoldhomeTestFactory('home'));
-  test('Handle "holdhome" event', homeAndHoldhomeTestFactory('holdhome'));
+  test('Response to hierachy event', function() {
+    shrinkingUI.state.shrinking = true;
+    assert.isTrue(shrinkingUI.respondToHierarchyEvent({ type: 'home' }),
+      'should return true if receive home event from hierachy and ' +
+      'it is active');
+    assert.isTrue(shrinkingUI.respondToHierarchyEvent({ type: 'holdhome' }),
+      'should return true if receive holdhome event from hierachy and ' +
+      'it is active');
+    shrinkingUI.state.shrinking = false;
+    assert.isFalse(shrinkingUI.respondToHierarchyEvent({ type: 'home' }),
+      'should return false if receive home event from hierachy and it is not' +
+      ' active');
+    assert.isFalse(shrinkingUI.respondToHierarchyEvent({ type: 'holdhome' }),
+      'should return false if receive holdhome event from hierachy and it is' +
+      ' not active');
+  });
 
   test('Handle "shrinking-receiving" event', function() {
     shrinkingUI.start();
@@ -230,7 +221,6 @@ suite('system/shrinkingUI', function() {
 
     shrinkingUI.state.shrinking = true;
     assert.isTrue(shrinkingUI.isActive());
-
   });
 
   test('Shrinking UI SetState', function() {
@@ -242,7 +232,6 @@ suite('system/shrinkingUI', function() {
     shrinkingUI._setState(123);
 
     assert.isTrue(stubSetAttribute.calledWith('data-shrinking-state', '123'));
-
   });
 
   test('Shrinking UI Update Slide Transition', function() {

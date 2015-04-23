@@ -457,6 +457,10 @@
     },
 
     _handle_home: function(evt) {
+      // When shrinkingUI is enabled, home should be locked.
+      if (this.shrinkingUI && this.shrinkingUI.respondToHierarchyEvent(evt)) {
+        return false;
+      }
       // XXX: FtuLauncher should become submodule of AppWindowManager.
       if (FtuLauncher.respondToHierarchyEvent(evt)) {
         if (!homescreenWindowManager.ready ||
@@ -471,6 +475,10 @@
     },
 
     _handle_holdhome: function(evt) {
+      // When shrinkingUI is enabled, hold home should be locked.
+      if (this.shrinkingUI && this.shrinkingUI.respondToHierarchyEvent(evt)) {
+        return false;
+      }
       // XXX: FtuLauncher should become submodule of AppWindowManager.
       var ret = FtuLauncher.respondToHierarchyEvent(evt);
       return ret;
