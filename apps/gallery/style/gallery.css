@@ -898,7 +898,11 @@ html[dir="rtl"] .sliderlabel {
   text-align: center;
   top: 0.9rem;
   width: 1rem;
-  -moz-margin-start: calc(-50%  + 0.1rem);
+  margin: 0 calc(-50% + 0.1rem);
+
+  /* Slider labels are numbers */
+  direction: ltr;
+  unicode-bidi: -moz-isolate;
 }
 
 #slider-3 {
