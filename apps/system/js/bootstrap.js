@@ -3,7 +3,7 @@
 
 /*global ActivityHandler, ActivityWindowManager, Browser, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
-         FtuLauncher, SourceView, ScreenManager, Places, Activities,
+         FtuLauncher, SourceView, ScreenManager, Places,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, TaskManager, Import,
          SuspendingAppPriorityManager, TTLView,
@@ -138,7 +138,6 @@ window.addEventListener('load', function startup() {
   window.homescreenWindowManager.start();
 
   // Please sort it alphabetically
-  window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
   window.appMigrator = new AppMigrator();

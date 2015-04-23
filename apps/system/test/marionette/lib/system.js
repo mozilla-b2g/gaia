@@ -68,8 +68,8 @@ System.Selector = Object.freeze({
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
-  visibleForm: '#screen > form.visible',
-  cancelActivity: 'form.visible button[data-action="cancel"]',
+  visibleForm: '#action-menu > form.visible',
+  cancelActivity: '#action-menu form.visible button[data-action="cancel"]',
   nfcIcon: '.statusbar-nfc',
   activeKeyboard: '.inputWindow.active'
 });
