@@ -52,9 +52,6 @@ require.config({
     'shared/settings_url': {
       exports: 'SettingsURL'
     },
-    'shared/settings_helper': {
-      exports: 'SettingsHelper'
-    },
     'shared/omadrm/fl': {
       exports: 'ForwardLock'
     },
@@ -69,6 +66,9 @@ require.config({
     },
     'shared/sim_settings_helper': {
       exports: 'SimSettingsHelper'
+    },
+    'shared/settings_helper': {
+      exports: 'SettingsHelper'
     },
     'shared/tz_select': {
       exports: 'tzSelect',
@@ -281,6 +281,21 @@ require.config({
     {
       name: 'panels/wifi_wps/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/operator_settings/panel',
+      exclude: [
+        'main',
+        'dsds_settings',
+        'modules/defer',
+        'modules/base/module',
+        'modules/state_model',
+        'modules/mvvm/observable',
+        'modules/mvvm/observable_array',
+        'modules/mvvm/list_view',
+        'modules/dialog_service',
+        'modules/customized_network_type_map'
+      ]
     },
     {
       name: 'panels/date_time/panel',
