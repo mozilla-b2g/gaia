@@ -41,6 +41,11 @@
   opacity: 0;
 }
 
+.value-selector[hidden] [role="listbox"],
+.value-selector.transitioning [role="listbox"] {
+  overflow: hidden;
+}
+
 .value-selector-container li > label {
   pointer-events: none;
 }
