@@ -537,8 +537,8 @@
 
         case 'appterminated':
           var app = evt.detail; // jshint ignore:line
-          var instanceID = evt.detail.instanceID;
-          if (activeApp && app.instanceID === activeApp.instanceID) {
+          var instanceID = app.instanceID;
+          if (activeApp && instanceID === activeApp.instanceID) {
             activeApp = null;
           }
           delete this._apps[instanceID];

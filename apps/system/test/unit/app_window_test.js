@@ -1,6 +1,7 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager, MockService,
       LayoutManager, MocksHelper, MockContextMenu, layoutManager, Service,
-      MockAppTransitionController, MockPermissionSettings, DocumentFragment,
+      MockAppTransitionController, MockAudioChannelController,
+      MockPermissionSettings, DocumentFragment,
       AppChrome */
 'use strict';
 
@@ -14,6 +15,7 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_app_transition_controller.js');
+requireApp('system/test/unit/mock_audio_channel_controller.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
@@ -2526,6 +2528,33 @@ suite('system/AppWindow', function() {
 
     assert.ok(app1.reConfig.calledOnce);
     assert.ok(app1.element.classList.contains('browser'));
+  });
+
+  suite('Sub component', function() {
+    var app;
+    setup(function() {
+      window.AudioChannelController = MockAudioChannelController;
+      app = new AppWindow(fakeAppConfig1);
+      app.browser.element.allowedAudioChannels = [
+        { name: 'normal' }, { name: 'content' }
+      ];
+      app.installSubComponents();
+    });
+
+    teardown(function() {
+      delete window.AudioChannelController;
+    });
+
+    test('installSubComponents', function() {
+      assert.equal(app.audioChannels.size, 2);
+      assert.equal(app.audioChannels.get('normal').name, 'normal');
+      assert.equal(app.audioChannels.get('content').name, 'content');
+    });
+
+    test('uninstallSubComponents', function() {
+      app.uninstallSubComponents();
+      assert.deepEqual(app.audioChannels, null);
+    });
   });
 
   suite('fadeOut', function() {
