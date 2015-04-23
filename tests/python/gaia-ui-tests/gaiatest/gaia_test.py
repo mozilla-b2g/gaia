@@ -808,8 +808,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 # make sure we restart to avoid leaving us in a bad state
                 self.device.start_b2g()
 
-
-                # Run the fake update checker
+        # Run the fake update checker
         FakeUpdateChecker(self.marionette).check_updates()
 
         # We need to set the default timeouts because we may have a new session
@@ -854,16 +853,16 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.cleanup_gaia(full_reset=True)
 
     def cleanup_data(self):
-        #self.device.file_manager.remove('/cache/*')
-        #self.device.file_manager.remove('/data/b2g/mozilla')
-        #self.device.file_manager.remove('/data/local/debug_info_trigger')
-        #self.device.file_manager.remove('/data/local/indexedDB')
-        #self.device.file_manager.remove('/data/local/OfflineCache')
-        #self.device.file_manager.remove('/data/local/permissions.sqlite')
-        #self.device.file_manager.remove('/data/local/storage/permanent')
-        #self.device.file_manager.remove('/data/local/storage/persistent')
-        #self.device.file_manager.remove('/data/local/storage/default')
-        #self.device.file_manager.remove('/data/local/webapps')
+        self.device.file_manager.remove('/cache/*')
+        self.device.file_manager.remove('/data/b2g/mozilla')
+        self.device.file_manager.remove('/data/local/debug_info_trigger')
+        self.device.file_manager.remove('/data/local/indexedDB')
+        self.device.file_manager.remove('/data/local/OfflineCache')
+        self.device.file_manager.remove('/data/local/permissions.sqlite')
+        self.device.file_manager.remove('/data/local/storage/permanent')
+        self.device.file_manager.remove('/data/local/storage/persistent')
+        self.device.file_manager.remove('/data/local/storage/default')
+        self.device.file_manager.remove('/data/local/webapps')
         # remove remembered networks
         self.device.file_manager.remove('/data/misc/wifi/wpa_supplicant.conf')
 
