@@ -93,8 +93,10 @@ var TilesView = {
     titleBar.className = 'tile-title-bar';
     var artistName = document.createElement('div');
     artistName.className = 'tile-title-artist';
+    artistName.dir = "auto";
     var albumName = document.createElement('div');
     albumName.className = 'tile-title-album';
+    albumName.dir = "auto";
     artistName.textContent =
       result.metadata.artist || navigator.mozL10n.get('unknownArtist');
     artistName.dataset.l10nId =
@@ -139,7 +141,7 @@ var TilesView = {
     if (!result.metadata.picture) {
       container.appendChild(titleBar);
     } else {
-      container.setAttribute('aria-label', artistName.textContent + ' ' + 
+      container.setAttribute('aria-label', artistName.textContent + ' ' +
                                            albumName.textContent);
     }
 
