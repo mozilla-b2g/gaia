@@ -53,6 +53,7 @@
     },
 
     Thread: {
+      main: '#thread-messages',
       message: '.message .bubble',
       headerTitle: '#messages-header-text'
     },
@@ -64,6 +65,7 @@
     },
 
     ThreadList: {
+      main: '#thread-list',
       firstThread: '.threadlist-item',
       smsThread: '.threadlist-item[data-last-message-type="sms"]',
       mmsThread: '.threadlist-item[data-last-message-type="mms"]',
@@ -163,6 +165,10 @@
             return client.helper.waitForElement(
               message.findElement(SELECTORS.Message.content)
             );
+          },
+
+          waitToAppear: function() {
+            return client.helper.waitForElement(SELECTORS.Thread.main);
           }
         },
 
@@ -183,6 +189,10 @@
             return client.helper.waitForElement(
               SELECTORS.ThreadList.mmsThread
             );
+          },
+
+          waitToAppear: function() {
+            return client.helper.waitForElement(SELECTORS.ThreadList.main);
           },
 
           navigateToComposer: function() {
