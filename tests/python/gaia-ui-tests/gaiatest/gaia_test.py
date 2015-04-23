@@ -883,6 +883,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                     self.device.file_manager.remove('/'.join([path, item]))
 
     def cleanup_gaia(self, full_reset=True):
+
+        self.device.turn_screen_off()
+        self.device.turn_screen_on()
+        
         # kill the FTU and any open, user-killable apps
         self.apps.kill_all()
 
