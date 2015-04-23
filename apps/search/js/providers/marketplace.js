@@ -42,7 +42,7 @@
         }
 
         var req = new XMLHttpRequest();
-        req.open('GET', apiUrl.replace('{q}', input), true);
+        req.open('GET', apiUrl.replace('{q}', encodeURIComponent(input)), true);
         req.onload = (function onload() {
           var results = JSON.parse(req.responseText);
           if (!results.length) {
