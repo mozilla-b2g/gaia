@@ -58,6 +58,7 @@ LayoutItem.prototype.STATE_REMOVING = 6;
 LayoutItem.prototype.onerror = null;
 LayoutItem.prototype.onstatechange = null;
 LayoutItem.prototype.onprogress = null;
+LayoutItem.prototype.oninstall = null;
 
 LayoutItem.prototype.id = '';
 LayoutItem.prototype.name = '';
@@ -123,6 +124,10 @@ LayoutItem.prototype.install = function() {
       this._userCancelled = undefined;
       openLock.unlock();
       this._changeState(this.STATE_INSTALLED);
+
+      if (typeof this.oninstall === 'function') {
+        this.oninstall();
+      }
     }.bind(this))
     .catch(function(e) {
       if (!this._userCancelled) {

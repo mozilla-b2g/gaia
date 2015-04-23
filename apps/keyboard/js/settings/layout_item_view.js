@@ -35,6 +35,7 @@ LayoutItemView.prototype.start = function() {
   this._model.onerror = this._showError.bind(this);
   this._model.onprogress = this._updateProgress.bind(this);
   this._model.onstatechange = this._updateUI.bind(this);
+  this._model.oninstall = this._showEnableDialog.bind(this);
 
   var template = document.getElementById(this.TEMPLATE_ID);
   var el = this.container =
@@ -156,6 +157,16 @@ LayoutItemView.prototype._updateUI = function() {
   }
 };
 
+LayoutItemView.prototype._showEnableDialog = function() {
+  this.list.confirmEnable(this._model.name).then(function(confirmed) {
+    if (confirmed) {
+      return this.list.enableLayout(this._model.id);
+    }
+  }.bind(this)).catch(function(e) {
+    e && console.error(e);
+  });
+};
+
 LayoutItemView.prototype._showError = function(errorInfo) {
   switch (errorInfo.error) {
     case errorInfo.ERROR_DOWNLOADERROR:
@@ -203,9 +214,14 @@ LayoutItemView.prototype.handleEvent = function(evt) {
 
     case 'remove':
       p = this.list.confirmRemoval(this._model.name).then(function(confirmed) {
-        if (confirmed) {
-          return this._model.remove();
+        if (!confirmed) {
+          return;
         }
+
+        return this.list.disableLayout(this._model.id)
+          .then(function() {
+            return this._model.remove();
+          }.bind(this));
       }.bind(this));
 
       break;

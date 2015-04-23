@@ -62,6 +62,8 @@ var Deferred = function() {
   }.bind(this));
 };
 
+// DialogInfo holds the information of one showDialog() call so we could
+// work on that request when we actually do so.
 var DialogInfo = function(args) {
   this.args = args;
   this.deferred = new Deferred();
@@ -255,6 +257,25 @@ LayoutItemDataConnectionConfirmationDialogView
   return this.rememberMyChoiceElement.checked;
 };
 
+var LayoutItemEnableConfirmationDialogView = function() {
+  ConfirmationDialogBaseView.apply(this);
+};
+
+LayoutItemEnableConfirmationDialogView.prototype =
+  Object.create(ConfirmationDialogBaseView.prototype);
+
+LayoutItemEnableConfirmationDialogView.prototype.CONTAINER_ID =
+  'installable-keyboards-enable-dialog';
+
+// override
+LayoutItemEnableConfirmationDialogView.prototype.beforeShowDialog =
+function(label) {
+  ConfirmationDialogBaseView.prototype.beforeShowDialog(this);
+
+  this.container.firstElementChild.dataset.l10nArgs =
+    JSON.stringify({ keyboard: label });
+};
+
 var LayoutItemListView = function(app) {
   BaseView.apply(this);
 
@@ -287,6 +308,9 @@ LayoutItemListView.prototype.start = function() {
   this.childViews.dataConnectionDialog =
     new LayoutItemDataConnectionConfirmationDialogView();
   this.childViews.dataConnectionDialog.start();
+  this.childViews.enableDialog =
+    new LayoutItemEnableConfirmationDialogView();
+  this.childViews.enableDialog.start();
 
   this._installedListContainer =
     document.getElementById(this.INSTALLED_LIST_ID);
@@ -326,6 +350,18 @@ LayoutItemListView.prototype._showConfirmDownloadDialog = function() {
 
 LayoutItemListView.prototype.confirmRemoval = function(layoutName) {
   return this.childViews.removeDialog.showDialog(layoutName);
+};
+
+LayoutItemListView.prototype.confirmEnable = function(layoutName) {
+  return this.childViews.enableDialog.showDialog(layoutName);
+};
+
+LayoutItemListView.prototype.disableLayout = function(id) {
+  return this._model.layoutEnabler.disableLayout(id);
+};
+
+LayoutItemListView.prototype.enableLayout = function(id) {
+  return this._model.layoutEnabler.enableLayout(id);
 };
 
 LayoutItemListView.prototype.showDownloadErrorToast = function() {
