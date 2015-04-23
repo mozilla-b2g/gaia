@@ -15,7 +15,7 @@
       ["apps", "settings"]
     ], [
       ["apps", "calendar"],
-      ["apps", "clock"]
+      ["outoftree_apps", "clock"]
     ]
   ]
 }

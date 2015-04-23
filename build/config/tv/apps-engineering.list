@@ -11,7 +11,6 @@ tv_apps/notification-receiver
 apps/bluetooth
 apps/calendar
 apps/camera
-apps/clock
 apps/email
 apps/fl
 apps/gallery

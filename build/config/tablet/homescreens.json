@@ -9,7 +9,7 @@
       ["apps", "music"],
       ["apps", "video"],
       ["apps", "settings"],
-      ["apps", "clock"],
+      ["outoftree_apps", "clock"],
       ["apps", "email"],
       ["apps", "calendar"]
     ]
