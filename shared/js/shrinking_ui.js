@@ -79,8 +79,6 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI.prototype.start = function su_start() {
-    window.addEventListener('home', this);
-    window.addEventListener('holdhome', this);
     window.addEventListener('shrinking-receiving', this);
     this.startTilt();
   };
@@ -94,8 +92,6 @@
     if (this.isActive()) {
       this.stopTilt();
     }
-    window.removeEventListener('home', this);
-    window.removeEventListener('holdhome', this);
     window.removeEventListener('shrinking-receiving', this);
   };
 
@@ -107,18 +103,6 @@
    */
   ShrinkingUI.prototype.handleEvent = function su_handleEvent(evt) {
       switch (evt.type) {
-        // Mimic what the lockscreen does: stop home key event
-        // be passed to the AppWindowManager, which would fade out
-        // the current app and show the homescreen.
-        //
-        // This require that the shrinking file must be loaded before
-        // the AppWindowManager.
-        case 'home':
-        case 'holdhome':
-          if (this.isActive()) {
-            evt.stopImmediatePropagation();
-          }
-          break;
         case 'shrinking-receiving':
           // It should be launched, then received.
           // So we'll get a new app.
@@ -136,6 +120,21 @@
       }
     };
 
+  ShrinkingUI.prototype.respondToHierarchyEvent =
+    function su_respondToHierarchyEvent(evt) {
+      if (this['_handle_' + evt.type]) {
+        return this['_handle_' + evt.type](evt);
+      }
+      return true;
+    };
+
+  ShrinkingUI.prototype._handle_holdhome = function su__handle_holdhome(evt) {
+    return this.isActive();
+  };
+
+  ShrinkingUI.prototype._handle_home = function su__handle_home(evt) {
+    return this.isActive();
+  };
   /**
    * Start tilting the app window.
    *
