@@ -107,7 +107,7 @@ TargetHandlersManager.prototype._callTargetAction = function(action,
   }
 
   this.promiseQueue = this.promiseQueue.then(function() {
-    handler[action](press);
+    return handler[action](press);
   }).catch(function(e) {
     console.warn('TargetHandlersManager: ' +
         'Error occurred for ' + action + ': ', e);

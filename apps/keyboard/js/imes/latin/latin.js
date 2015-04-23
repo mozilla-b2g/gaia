@@ -146,14 +146,6 @@
   // order to take precedence over built-in dictionary predictions
   var USER_DICT_PREDICTION_BUMP_THRESHOLD = 1;
 
-  /*
-   * Since inputContext.sendKey is an async fuction that will return a promise,
-   * and we need to update the current state (capitalization, input value)
-   * after the promise is resolved, we need to have an queue for each click,
-   * or the key would be sent with a wrong state.
-   */
-  var inputSequencePromise = Promise.resolve();
-
   // If this promise exists, that means we are
   // currently loading the new dictionary.
   var getDictionaryDataPromise = null;
@@ -452,57 +444,47 @@
    *
    * Update the capitalization state, if we're capitalizing
    */
-  function click(keyCode, upperKeyCode, repeat) {
-    // Wait for the previous keys have been resolved and then handle the next
-    // key.
+  function click(keyCode, repeat) {
+    // If the key is anything other than a backspace, forget about any
+    // previous changes that we would otherwise revert.
+    if (keyCode !== BACKSPACE) {
+      revertTo = revertFrom = '';
+      disableOnRevert = false;
+    }
 
-    var nextKeyPromise = inputSequencePromise.then(function() {
-      keyCode = keyboard.isCapitalized() && upperKeyCode ? upperKeyCode :
-                                                           keyCode;
+    var handler;
 
-      // If the key is anything other than a backspace, forget about any
-      // previous changes that we would otherwise revert.
-      if (keyCode !== BACKSPACE) {
-        revertTo = revertFrom = '';
-        disableOnRevert = false;
-      }
-
-      var handler;
-
-      if (selection) {
-        // If there is selected text, don't do anything fancy here.
-        handler = handleKey(keyCode);
-      }
-      else {
-        switch (keyCode) {
-          case SPACE:     // This list of characters matches the WORDSEP regexp
-            case RETURN:
-            case PERIOD:
-            case QUESTION:
-            case EXCLAMATION:
-            case COMMA:
-            case COLON:
-            case SEMICOLON:
-            case DOUBLEQUOTE:
-            case CLOSEPAREN:
-            // These keys may trigger word or punctuation corrections
-            handler = handleCorrections(keyCode);
+    if (selection) {
+      // If there is selected text, don't do anything fancy here.
+      handler = handleKey(keyCode);
+    } else {
+      switch (keyCode) {
+        case SPACE:     // This list of characters matches the WORDSEP regexp
+        case RETURN:
+        case PERIOD:
+        case QUESTION:
+        case EXCLAMATION:
+        case COMMA:
+        case COLON:
+        case SEMICOLON:
+        case DOUBLEQUOTE:
+        case CLOSEPAREN:
+          // These keys may trigger word or punctuation corrections
+          handler = handleCorrections(keyCode);
           correctionDisabled = false;
           break;
 
-          case BACKSPACE:
-            handler = handleBackspace(repeat);
+        case BACKSPACE:
+          handler = handleBackspace(repeat);
           break;
 
-          default:
-            handler = handleKey(keyCode);
-        }
+        default:
+          handler = handleKey(keyCode);
       }
-      return handler;
-    });
+    }
 
     // After the next key is resolved, we could update the state here.
-    inputSequencePromise = nextKeyPromise.then(function() {
+    return handler.then(function() {
       // handleCorrections() above or it is now out of date, so clear it
       // so it doesn't get used later
       autoCorrection = null;
@@ -536,10 +518,6 @@
       // Print the error and make sure inputSequencePromise always resolves.
       console.error(e);
     });
-
-    // Need to return the promise, so that the caller could know
-    // what to process next.
-    return inputSequencePromise;
   }
 
   // Handle any key (including backspace) and do the right thing even if

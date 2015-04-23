@@ -267,10 +267,9 @@ suite('latin.js', function() {
     };
 
     var constructTest =
-    function constructTest(input, type, mode, statename, options) {
+    function constructTest(input, type, mode, statename) {
       var modeTitle = '-' + (mode ? mode : 'default');
-      var optionsTitle = options ? '-' + JSON.stringify(options) : '';
-      var testname = type + modeTitle + '-' + statename + optionsTitle +
+      var testname = type + modeTitle + '-' + statename +
                      '-' + input;
       var state = contentStates[statename];
       var expected =
@@ -293,35 +292,21 @@ suite('latin.js', function() {
 
         // Wait for getData() to resolve.
         Promise.resolve().then(function() {
-          if (options && options.continuous) {
-            var lastPromise;
-            input.split('').forEach(function(c) {
-              lastPromise =
-                engine.click(c.charCodeAt(0), c.toUpperCase().charCodeAt(0));
+          var promise = Promise.resolve();
+          input.split('').forEach(function(c) {
+            promise = promise.then(function() {
+              if (glue.mIsUpperCase) {
+                c = c.toUpperCase();
+              }
+              return engine.click(c.charCodeAt(0));
             });
+          });
 
-            return lastPromise.then(function() {
-              assert.equal(
-                glue.mOutput, expected,
-                'expected "' + expected + '" for input "' + input + '"');
-            }, function(e) {
-              throw e || 'should not reject';
-            });
-          } else {
-            var promise = Promise.resolve();
-            input.split('').forEach(function(c) {
-              promise = promise.then(function() {
-                return engine.click(
-                  c.charCodeAt(0), c.toUpperCase().charCodeAt(0));
-              });
-            });
-
-            return promise.then(function() {
-              assert.equal(
-                glue.mOutput, expected,
-                'expected "' + expected + '" for input "' + input + '"');
-            });
-          }
+          return promise.then(function() {
+            assert.equal(
+              glue.mOutput, expected,
+              'expected "' + expected + '" for input "' + input + '"');
+          });
         }).then(done, done);
       });
     };
@@ -346,20 +331,6 @@ suite('latin.js', function() {
           for (var statename in contentStates) {
             for (var input in inputs) {
               constructTest(input, type, mode, statename);
-            }
-          }
-        }
-      }
-    });
-
-    suite('Input keys continuously', function() {
-      for (var t = 0; t < types.length; t++) {
-        var type = types[t];
-        for (var m = 0; m < modes.length; m++) {
-          var mode = modes[m];
-          for (var statename in contentStates) {
-            for (var input in inputs) {
-              constructTest(input, type, mode, statename, {continuous: true});
             }
           }
         }

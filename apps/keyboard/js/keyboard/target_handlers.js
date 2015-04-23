@@ -54,24 +54,13 @@ DefaultTargetHandler.prototype.commit = function() {
   var engine = this.app.inputMethodManager.currentIMEngine;
 
   /*
-   * XXX: A hack to send both keycode and uppercase keycode to latin IME,
-   * since latin IME would maintain a promise queue for each key, and
-   * send correct keycode based on the current capitalization state.
-   * See bug 1013570 and bug 987809 for details.
-   * This hack should be removed and the state/input queue should be
-   * maintained out of latin.js.
+   * Return promise here, and rely on the action queue in TargetHandlerManager
+   * to make sure the key code is sent with the right capitalization state.
    */
-  var promise;
-  if (this.app.layoutManager.currentPage.imEngine === 'latin') {
-    this.app.console.log('DefaultTargetHandler.commit()::latin::engine.click',
-      keyCode, keyCodeUpper);
-    promise = Promise.resolve(engine.click(keyCode, keyCodeUpper));
-  } else {
-    var code =
-      this.app.upperCaseStateManager.isUpperCase ? keyCodeUpper : keyCode;
-    this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
-    promise = Promise.resolve(engine.click(code));
-  }
+  var code =
+    this.app.upperCaseStateManager.isUpperCase ? keyCodeUpper : keyCode;
+  this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
+  var promise = Promise.resolve(engine.click(code));
 
   this.app.visualHighlightManager.hide(this.target);
 
