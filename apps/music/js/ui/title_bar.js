@@ -9,7 +9,7 @@ var TitleBar = {
   },
 
   get titleText() {
-    return document.getElementById('title-text');
+    return document.querySelector('#title-text bdi');
   },
 
   get playerIcon() {
