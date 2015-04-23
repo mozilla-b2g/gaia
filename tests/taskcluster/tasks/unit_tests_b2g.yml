@@ -1,4 +1,3 @@
-reruns: 4
 task:
   metadata:
     name: Gaia unit tests in b2g-desktop chunk {{chunk}}
