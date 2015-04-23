@@ -146,29 +146,34 @@ function showSimInfo(element, iccId) {
     return;
   }
 
-  var info = [];
+  var simInfoElement = element.querySelector('.sim-detail');
   var simId = Settings.getServiceIdByIccId(iccId);
-  var operator = Settings.getOperatorByIccId(iccId);
-  var number = iccManager.getIccById(iccId).iccInfo.msisdn;
-  var data = {};
-  var l10nId;
 
-  info = [operator, number].filter(function(value) {
-    return value;
-  });
+  if (simId === null) {
+    navigator.mozL10n.setAttributes(
+      simInfoElement,
+      'dsds-unknown-sim'
+    );
+  } else {
+    var operator = Settings.getOperatorByIccId(iccId);
+    var icc = iccManager.getIccById(iccId);
+    var number = icc && icc.iccInfo.msisdn;
 
-  var detailString = info.join(', ');
+    var data = {};
+    var l10nId;
 
-  if (simId !== null) {
+    var info = [operator, number].filter(function(value) {
+      return value;
+    });
+
+    var detailString = info.join(', ');
     l10nId = info.length ?  'sim-detail' : 'sim-id-label';
     data = { id: simId + 1, detailString: detailString };
     navigator.mozL10n.setAttributes(
-      element.querySelector('.sim-detail'),
+      simInfoElement,
       l10nId,
       data
     );
-  } else {
-    element.querySelector('.sim-detail').textContent = detailString;
   }
 
   element.classList.remove('hide');
