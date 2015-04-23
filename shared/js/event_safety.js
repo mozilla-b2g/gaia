@@ -15,7 +15,13 @@
 function eventSafety(obj, event, callback, timeout) {
   var finishTimeout;
 
-  function done() {
+  function done(e) {
+
+    // transitionend events bubble by default, so we filter them by element.
+    if (e && e.type === 'transitionend' && e.target !== obj) {
+      return;
+    }
+
     clearTimeout(finishTimeout);
     obj.removeEventListener(event, done);
     /*jshint validthis:true */
