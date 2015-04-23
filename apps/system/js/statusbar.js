@@ -729,7 +729,7 @@ var StatusBar = {
     // Get the actual width of the rocketbar, and determine the remaining
     // width for the minimized statusbar.
     var element = appChrome && appChrome.element &&
-      appChrome.element.querySelector('.urlbar .title');
+      appChrome.element.querySelector('.urlbar .chrome-title-container');
 
     if (element) {
       this._minimizedStatusBarWidth = Math.round(
