@@ -501,8 +501,9 @@ class Accessibility(object):
         return self._run_async_script('getRole', [element])
 
     def dispatchEvent(self):
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new CustomEvent(" +
-                                       "'accessibility-action'));")
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new CustomEvent('accessibility-action'));")
 
     def _run_async_script(self, func, args):
         result = self.marionette.execute_async_script(
