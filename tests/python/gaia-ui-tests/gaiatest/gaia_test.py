@@ -886,6 +886,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # kill the FTU and any open, user-killable apps
         self.apps.kill_all()
 
+        # Per bug 1156445, ensure the screen is on prior to running the test.
+        # When the bootup takes long time, the screen times out when homescreen is opened.
+        self.device.turn_screen_off()
+        self.device.turn_screen_on()
+
         # unlock
         if self.data_layer.get_setting('lockscreen.enabled'):
             self.device.unlock()
