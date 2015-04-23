@@ -115,6 +115,16 @@ document.addEventListener('visibilitychange', function visibilityChange() {
   }
   else {
     if (playerShowing) {
+      // Bug 1151775
+      // If the app is coming to the foreground before a sharing activity is
+      // complete, restore the video (the video will have been released before
+      // initiating the sharing activity and is only restored when the sharing
+      // activity is completed). When the sharing activity is complete and
+      // restoreVideo is again called, the restoreVideo function takes care of
+      // not restoring the video when it doesn't need to be restored.
+      if (videoHardwareReleased) {
+        restoreVideo();
+      }
       setControlsVisibility(true);
     } else {
       // We only start parsing metadata when player is not shown.
