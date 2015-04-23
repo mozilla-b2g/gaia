@@ -172,6 +172,9 @@ suite('LayoutItemListView', function() {
     var p;
 
     setup(function() {
+      listView.beforeShow();
+      listView.show();
+
       p = listView.confirmRemoval('Foo');
 
       assert.isFalse(removeDialogElStub.hidden);
@@ -202,6 +205,9 @@ suite('LayoutItemListView', function() {
     var p;
 
     setup(function() {
+      listView.beforeShow();
+      listView.show();
+
       p = listView.confirmDownload('Foo');
 
       assert.isTrue(
