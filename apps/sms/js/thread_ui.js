@@ -598,16 +598,10 @@ var ThreadUI = {
       });
     }
 
-    // Let's mark thread only when thread list is fully rendered and target node
-    // is in the DOM tree.
-    ThreadListUI.whenReady().then(function() {
-      // We use setTimeout (macrotask) here to allow reflow happen as soon as
-      // possible and to not interrupt it with non-critical task since Promise
-      // callback only (microtask) won't help here.
-      setTimeout(
-        () =>ThreadListUI.markReadUnread([threadId], /* isRead */ true)
-      );
-    });
+    ThreadListUI.mark(threadId, 'read');
+
+    // nothing urgent, let's do it when the main thread has some time
+    setTimeout(MessageManager.markThreadRead.bind(MessageManager, threadId));
 
     // Enable notifications redirected from composer only after the user enters.
     if (prevPanel === 'composer') {

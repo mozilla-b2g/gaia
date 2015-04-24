@@ -2,14 +2,12 @@
          MocksHelper,
          Navigation,
          LazyLoader,
-         ThreadListUI,
-         App
+         ThreadListUI
 */
 
 'use strict';
 
 require('/js/event_dispatcher.js');
-require('/js/app.js');
 
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_navigation.js');
@@ -45,10 +43,9 @@ suite('Startup >', function() {
     this.sinon.stub(MessageManager, 'init');
     this.sinon.stub(Navigation, 'init');
     this.sinon.stub(ThreadListUI, 'init');
-    this.sinon.spy(ThreadListUI, 'renderThreads');
+    this.sinon.stub(ThreadListUI, 'renderThreads');
     this.sinon.stub(Navigation, 'on');
     this.sinon.stub(Navigation, 'off');
-    this.sinon.stub(App, 'setReady');
 
     container = document.createElement('div');
     container.innerHTML = `
@@ -89,7 +86,7 @@ suite('Startup >', function() {
     );
   });
 
-  test('if first panel is not default one', function(done) {
+  test('if first panel is not default one', function() {
     this.sinon.stub(Navigation, 'getPanelName').returns('composer');
     window.addEventListener.withArgs('DOMContentLoaded').yield();
 
@@ -120,12 +117,8 @@ suite('Startup >', function() {
 
     // Since we've already run lazy loading we don't need to do anything once
     // first page is loaded, so no need in corresponding callback.
-    sinon.assert.calledWith(ThreadListUI.renderThreads, undefined);
-
-    // App is marked is ready only when all threads are loaded
-    sinon.assert.notCalled(App.setReady);
-    ThreadListUI.renderThreads.lastCall.returnValue.then(() => {
-      sinon.assert.calledOnce(App.setReady);
-    }).then(done, done);
+    sinon.assert.calledWith(
+      ThreadListUI.renderThreads, undefined, sinon.match.func
+    );
   });
 });

@@ -6,6 +6,7 @@
 require('/test/unit/mock_recipients.js');
 
 var MockThreadUI = {
+  LAST_MESSSAGES_BUFFERING_TIME: 600000,
   CHUNK_SIZE: 10,
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
@@ -25,6 +26,7 @@ var MockThreadUI = {
   headerText: document.createElement('h1'),
 
   inEditMode: false,
+  inThread: false,
   init: function() {},
   initRecipients: function() {
     this.recipients = new MockRecipients({
@@ -36,16 +38,24 @@ var MockThreadUI = {
   on: function() {},
   initSentAudio: function() {},
   getAllInputs: function() {},
+  getSelectedInputs: function() {},
   messageComposerInputHandler: function() {},
   assimilateRecipients: function() {},
+  messageComposerTypeHandler: function() {},
+  subheaderMutationHandler: function() {},
   resizeHandler: function() {},
   requestContact: function() {},
   updateComposerHeader: function() {},
   isScrolledManually: false,
   manageScroll: function() {},
   scrollViewToBottom: function() {},
+  updateInputMaxHeight: function() {},
   back: function() {},
   isKeyboardDisplayed: function() {},
+  updateSmsSegmentLimit: function() {},
+  updateCounter: function() {},
+  updateCounterForMms: function() {},
+  updateElementsHeight: function() {},
   getMessageContainer: function() {},
   updateHeaderData: function() {},
   initializeRendering: function() {},
@@ -65,6 +75,7 @@ var MockThreadUI = {
   startEdit: function() {},
   delete: function() {},
   cancelEdit: function() {},
+  chooseMessage: function() {},
   checkInputs: function() {},
   handleMessageClick: function() {},
   handleEvent: function() {},
@@ -78,10 +89,12 @@ var MockThreadUI = {
   removeMessageDOM: function() {},
   retrieveMMS: function() {},
   resendMessage: function() {},
+  renderContact: function() {},
   toFieldKeypress: function() {},
   toFieldInput: function() {},
   searchContact: function() {},
   onHeaderActivation: function() {},
+  onParticipantClick: function() {},
   promptContact: function() {},
   prompt: function() {},
   saveDraft: function() {},
@@ -93,6 +106,7 @@ var MockThreadUI = {
   },
   mSetup: function() {
     this.isShowMessageErrorCalledTimes = 0;
+    this.inThread = false;
   },
 
   mTeardown: function() {
