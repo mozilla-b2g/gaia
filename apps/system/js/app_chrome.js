@@ -738,14 +738,7 @@
     if (!callback) {
       return;
     }
-
-    var finish = function(evt) {
-      if (evt && evt.target !== element) {
-        return;
-      }
-      callback();
-    };
-    eventSafety(element, 'transitionend', finish, 250);
+    eventSafety(element, 'transitionend', callback, 250);
   };
 
   AppChrome.prototype.collapse = function ac_collapse() {
