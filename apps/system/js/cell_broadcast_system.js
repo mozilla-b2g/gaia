@@ -70,13 +70,23 @@
       var serviceId = msg.serviceId || 0;
       var conn = window.navigator.mozMobileConnections[serviceId];
       var id = msg.messageId;
+      var cdmaCategory = msg.cdmaServiceCategory;
 
       // Early return CMAS messsage and let network alert app handle it. Please
       // ref http://www.etsi.org/deliver/etsi_ts/123000_123099/123041/
       // 11.06.00_60/ts_123041v110600p.pdf, chapter 9.4.1.2.2 Message identifier
-      // Message id from range 4370 to 4399(1112 hex to 112f hex) should be CMAS
-      // message and network alert will display detail information.
-      if (id >= 4370 && id < 4400) {
+      // for GSM and http://www.3gpp2.org/public_html/specs/
+      // C.R1001-G_v1.0_Param_Administration.pdf for CDMA.
+      // GSM Message id from range 4370 to 4399(1112 hex to 112f hex) and 
+      // CDMA service category from range 4096 to 4351(1000 hex to 10ff hex)
+      // should be CMAS and network alert will display detail information.
+
+      var isGSM = cdmaCategory === null;
+      var isGSMCmas = isGSM && (id >= 4370 && id < 4400);
+      var isCDMACmas = !isGSM &&
+        (cdmaCategory >= 0x1000 && cdmaCategory <= 0x10FF);
+
+      if (isGSMCmas || isCDMACmas) {
         return;
       }
 
