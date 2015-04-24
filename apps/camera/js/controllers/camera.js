@@ -493,7 +493,7 @@ CameraController.prototype.onCameraClosed = function(reason) {
 CameraController.prototype.onGalleryClosed = function(reason) {
   if (this.app.hidden) { return; }
   this.app.showSpinner();
-  this.camera.load(this.app.clearSpinner);
+  this.camera.load();
 };
 
 /**
