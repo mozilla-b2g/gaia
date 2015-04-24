@@ -69,7 +69,7 @@ marionette('Homescreen navigation >', function() {
     launchSettings();
 
     var count = reflowHelper.getCount();
-    assert.equal(count, 0, 'we got ' + count + ' reflows instead of 0');
+    assert.equal(count, 2, 'we got ' + count + ' reflows instead of 2');
     reflowHelper.stopTracking();
   });
 });
