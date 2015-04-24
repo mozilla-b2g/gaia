@@ -546,12 +546,6 @@ suite('controllers/camera', function() {
       sinon.assert.called(this.camera.load);
     });
 
-    test('It clears loading after the camera has loaded', function() {
-      this.controller.onGalleryClosed();
-      this.camera.load.args[0][0]();
-      sinon.assert.called(this.app.clearSpinner);
-    });
-
     test('It doesn\'t load the camera if the app is hidden', function() {
       this.app.hidden = true;
       this.controller.onGalleryClosed();
