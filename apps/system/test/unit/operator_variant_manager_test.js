@@ -82,21 +82,70 @@ suite('Operator variant manager', function() {
     });
   });
 
-  test('handle simslotupdated', function() {
-    var spy = this.sinon.spy();
-    this.sinon.stub(window, 'OperatorVariantHandler').returns({
-      start: spy
+  ['simslot-updated', 'simslot-iccinfochange'].forEach(function(eventName) {
+    test('handle ' + eventName, function() {
+      var fakeSIMSlot = {};
+      this.sinon.stub(subject, '_updateOperatorVariantHandler');
+      subject.start();
+      window.dispatchEvent(new CustomEvent(eventName, {
+        detail: fakeSIMSlot
+      }));
+      assert.isTrue(
+        subject._updateOperatorVariantHandler.calledWith(fakeSIMSlot));
     });
-    var fakeSIMSlot =
-      new MockSIMSlot(MockNavigatorMozMobileConnections[0], 0);
-    subject.start();
-    window.dispatchEvent(new CustomEvent('simslotupdated', {
-      detail: fakeSIMSlot
-    }));
-    assert.isTrue(window.OperatorVariantHandler.calledWithNew());
-    assert.isTrue(window.OperatorVariantHandler.calledWith(
-      fakeSIMSlot.simCard.iccInfo.iccid, fakeSIMSlot.index, subject));
-    assert.isTrue(spy.called);
+  });
+
+  suite('_updateOperatorVariantHandler', function() {
+    test('clear the operator variant handler when no simcard', function() {
+      var targetIndex = 0;
+      subject.operatorVariantHandlers[targetIndex] = {};
+      subject._updateOperatorVariantHandler({
+        index: targetIndex,
+        simcard: null
+      });
+      assert.isNull(subject.operatorVariantHandlers[targetIndex]);
+    });
+
+    test('clear the operator variant handler when no iccinfo', function() {
+      var targetIndex = 0;
+      subject.operatorVariantHandlers[targetIndex] = {};
+      subject._updateOperatorVariantHandler({
+        index: targetIndex,
+        simcard: {
+          iccInfo: null
+        }
+      });
+      assert.isNull(subject.operatorVariantHandlers[targetIndex]);
+    });
+
+    test('clear the operator variant handler when no iccid', function() {
+      var targetIndex = 0;
+      subject.operatorVariantHandlers[targetIndex] = {};
+      subject._updateOperatorVariantHandler({
+        index: targetIndex,
+        simcard: {
+          iccInfo: {
+            iccid: null
+          }
+        }
+      });
+      assert.isNull(subject.operatorVariantHandlers[targetIndex]);
+    });
+
+    test('create and start a new operator variant handler when possible',
+      function() {
+        var fakeSIMSlot =
+          new MockSIMSlot(MockNavigatorMozMobileConnections[0], 0);
+        var spy = this.sinon.spy();
+        this.sinon.stub(window, 'OperatorVariantHandler').returns({
+          start: spy
+        });
+        subject._updateOperatorVariantHandler(fakeSIMSlot);
+        assert.isTrue(window.OperatorVariantHandler.calledWithNew());
+        assert.isTrue(window.OperatorVariantHandler.calledWith(
+          fakeSIMSlot.simCard.iccInfo.iccid, fakeSIMSlot.index, subject));
+        assert.isTrue(spy.called);
+    });
   });
 
   test('init', function() {
