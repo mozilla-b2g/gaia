@@ -56,6 +56,7 @@ class TestReceiveCallFromKnownContactNotification(GaiaTestCase):
 
         # Check if the screen is turned on
         self.assertTrue(self.device.is_screen_enabled)
+        lock_screen.switch_to_frame()
 
         # Verify the user sees a missed call notification message
         # and the known contacts info is shown.
