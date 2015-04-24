@@ -1,11 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, Browser, SecureWindowFactory,
+/*global ActivityHandler, ActivityWindowManager, Browser, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, TaskManager,
+         VisibilityManager, UsbStorage, TaskManager, Import,
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
@@ -243,5 +243,9 @@ window.addEventListener('wallpaperchange', function(evt) {
 
 window.browser = new Browser();
 window.browser.start();
+window.import = new Import();
+window.import.start();
+window.activityHandler = new ActivityHandler();
+window.activityHandler.start();
 window.browserSettings = new BrowserSettings();
 window.browserSettings.start();
