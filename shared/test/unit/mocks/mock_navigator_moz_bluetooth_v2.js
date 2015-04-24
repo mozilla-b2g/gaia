@@ -34,16 +34,20 @@
     disconnectSco: function mba_disconnectSco() {},
     enable: function mba_enable() {},
     disable: function mba_disable() {},
-
-    onscostatuschanged: null,
-    onhfpstatuschanged: null,
-    ona2dpstatuschanged: null,
     addEventListener: mba_addEventListener,
     removeEventListener: mba_removeEventListener,
     confirmReceivingFile: function mba_confirmReceivingFile() {},
     sendFile: function mba_sendFile() {},
     stopSendingFile: function mba_stopSendingFile() {},
-    pair: function mba_pair() {}
+    pair: function mba_pair() {},
+    isScoConnected: function mba_isScoConnected() {},
+    sendMediaMetaData: function mba_sendMediaMetaData() {},
+    sendMediaPlayStatus: function mba_sendMediaPlayStatus() {},
+
+    onscostatuschanged: null,
+    onhfpstatuschanged: null,
+    ona2dpstatuschanged: null,
+    onrequestmediaplaystatus: null,
   };
 
   var mManagerEventListeners = [];

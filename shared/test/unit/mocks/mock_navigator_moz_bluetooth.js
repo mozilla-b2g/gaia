@@ -20,9 +20,14 @@
     sendFile: function mba_sendFile() {},
     stopSendingFile: function mba_stopSendingFile() {},
     pair: function mba_pair() {},
+    isScoConnected: function mba_isScoConnected() {},
+    sendMediaMetaData: function mba_sendMediaMetaData() {},
+    sendMediaPlayStatus: function mba_sendMediaPlayStatus() {},
 
     onscostatuschanged: null,
-    ona2dpstatuschanged: null
+    onhfpstatuschanged: null,
+    ona2dpstatuschanged: null,
+    onrequestmediaplaystatus: null
   };
 
   var mEventListeners = [];
