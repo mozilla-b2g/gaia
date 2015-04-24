@@ -150,9 +150,10 @@ var StatusBar = {
 
   /* For other modules to acquire */
   get height() {
+    var current = Service.currentApp && Service.currentApp.getTopMostWindow();
     if (document.mozFullScreen ||
-               (Service.currentApp &&
-                Service.currentApp.isFullScreen())) {
+               (current &&
+                current.isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||

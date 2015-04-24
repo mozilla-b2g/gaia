@@ -161,6 +161,9 @@
         var isFullScreen = appWindow && appWindow.isFullScreen();
         var container = this.elements.containerElement;
         container.classList.toggle('fullscreen', isFullScreen);
+        if (this.states.activeDialog) {
+          this.states.activeDialog.resize();
+        }
         break;
       case 'system-dialog-requestfocus':
       case 'simlockrequestfocus':
