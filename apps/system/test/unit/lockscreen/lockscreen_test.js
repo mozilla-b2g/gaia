@@ -162,27 +162,77 @@ suite('system/LockScreen >', function() {
     delete subject._lockscreenConnInfoManager;
   });
 
-  test('When checkPassCodeTimeout, it would check screen off interval',
+  test('When checkPassCodeTimeout, it would check intervals',
   function() {
     var method = window.LockScreen.prototype.checkPassCodeTimeout;
     var mockThis = {
-      passCodeRequestTimeout: 60
+      passCodeRequestTimeout: 60,
+      fetchLockedInterval: function() {},
+      fetchUnlockedInterval: function() {}
     };
-    mockThis._screenOffTime = 0;
-    mockThis._unlockedInterval = 0;
-    assert.isTrue(method.call(mockThis),
-      'it return false after locked but screen off a long while ');
+    var stubFetchLockedInterval = this.sinon.stub().returns(61 * 1000);
+    var stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isTrue(method.call(mockThis));
+    stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
+    stubFetchUnlockedInterval = this.sinon.stub().returns(61 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isTrue(method.call(mockThis));
+    stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
+    stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isFalse(method.call(mockThis));
+  });
 
-    // So they're very closed.
-    mockThis._screenOffTime = new Date().getTime();
-    mockThis._unlockedInterval = 70 * 1000;
-    assert.isTrue(method.call(mockThis),
-      'it return false after screen on but unlocked a long while');
+  test('Fetch locked interval update the interval when it\'s still locked',
+  function() {
+    var method = window.LockScreen.prototype.fetchLockedInterval;
+    var mockThis = {
+      locked: true,
+      _lastLockedInterval: -1,
+      _lastLockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.isTrue(mockThis._lastLockedInterval > -1);
+  });
 
-    mockThis._screenOffTime = new Date().getTime();
-    mockThis._unlockedInterval = 50 * 1000;
-    assert.isFalse(method.call(mockThis),
-      'it return true after screen on but unlocked a short while');
+  test('Fetch locked interval update no interval after it\'s unlocked',
+  function() {
+    var method = window.LockScreen.prototype.fetchLockedInterval;
+    var mockThis = {
+      locked: false,
+      _lastLockedInterval: -1,
+      _lastLockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.equal(mockThis._lastLockedInterval, -1);
+  });
+
+  test('Fetch unlocked interval update the interval when it\'s still unlocked',
+  function() {
+    var method = window.LockScreen.prototype.fetchUnlockedInterval;
+    var mockThis = {
+      locked: false,
+      _lastUnlockedInterval: -1,
+      _lastUnlockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.isTrue(mockThis._lastUnlockedInterval > -1);
+  });
+
+  test('Fetch unlocked interval update no interval after it\'s locked',
+  function() {
+    var method = window.LockScreen.prototype.fetchUnlockedInterval;
+    var mockThis = {
+      locked: true,
+      _lastUnlockedInterval: -1,
+      _lastUnlockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.equal(mockThis._lastUnlockedInterval, -1);
   });
 
   test('L10n initialization: it should init the conn info manager if it\'s' +
@@ -211,9 +261,18 @@ suite('system/LockScreen >', function() {
   });
 
   test('Lock: can actually lock', function() {
+    subject._lastUnlockedInterval = -1;
+    subject._lastUnlockedTimeStamp = 0;
+    subject._lastLockedTimeStamp = -1;
+
     subject.overlay = domOverlay;
+    subject.locked = false;
     subject.lock();
     assert.isTrue(subject.locked);
+    assert.isTrue(subject._lastUnlockedInterval > -1,
+    'it didn\'t update "_lastUnlockedInterval" when ends the unlocked session');
+    assert.isTrue(subject._lastLockedTimeStamp > -1,
+    'it didn\'t update "_lastLockedTimeStamp" when it locks');
   });
 
   test('Lock: would create the clock widget', function() {
@@ -225,9 +284,17 @@ suite('system/LockScreen >', function() {
   });
 
   test('Unlock: can actually unlock', function() {
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
     subject.overlay = domOverlay;
     subject.unlock(true);
     assert.isFalse(subject.locked);
+    assert.isTrue(subject._lastLockedInterval > -1,
+    'it didn\'t update "_lastLockedInterval" when it ends the locked session');
+    assert.isTrue(subject._lastUnlockedTimeStamp > -1,
+    'it didn\'t update "_lastUnlockedTimeStamp" when it unlocks');
   });
 
   test('Unlock: would destroy the clock widget', function() {
