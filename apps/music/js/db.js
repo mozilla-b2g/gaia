@@ -110,11 +110,11 @@ function initDB() {
     }
   }
 
-  musicdb.onready = function() {
-    // Hide the nocard or pluggedin overlay if it is displayed
-    if (App.currentOverlay === 'nocard' || App.currentOverlay === 'pluggedin' ||
-        App.currentOverlay === 'upgrade')
-    {
+  musicdb.onenumerable = startupOnEnumerable;
+
+  function startupOnEnumerable() {
+    // If we've been upgrading, hide that now
+    if (App.currentOverlay === 'upgrade') {
       App.showOverlay(null);
     }
 
@@ -124,17 +124,52 @@ function initDB() {
       // Hide the  spinner once we've displayed the initial screen
       document.getElementById('spinner-overlay').classList.add('hidden');
 
-      // Concurrently, start scanning for new music
-      musicdb.scan();
-
       // Only init the communication when music is not in picker mode.
       if (document.URL.indexOf('#pick') === -1) {
         // We need to wait to init the music comms until the UI is fully loaded
         // because the init of music comms could slow down the startup time.
         MusicComms.init();
       }
+
+      if (musicdb.state === MediaDB.READY) {
+        startupOnReady();
+      }
+      else {
+        musicdb.onready = startupOnReady;
+      }
     });
-  };
+  }
+
+  // This function gets called when we're first launched, after
+  // startupOnEnumerable has run and when or after the mediadb has
+  // reached the ready state.
+  function startupOnReady() {
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (App.currentOverlay === 'nocard' || App.currentOverlay === 'pluggedin') {
+      App.showOverlay(null);
+    }
+
+    // Start scanning for new music
+    musicdb.scan();
+
+    // Now we need to set up a new onready event handler that will handle
+    // any subsequent ready events we get. (If the user mounts and unmounts
+    // usb mass storage, for example.)
+    musicdb.onready = postStartupOnReady;
+  }
+
+  function postStartupOnReady() {
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (App.currentOverlay === 'nocard' || App.currentOverlay === 'pluggedin') {
+      App.showOverlay(null);
+    }
+
+    // Display music that we already know about
+    App.showCurrentView(function() {
+      // Start scanning for new music
+      musicdb.scan();
+    });
+  }
 
   var filesDeletedWhileScanning = 0;
   var filesFoundWhileScanning = 0;
