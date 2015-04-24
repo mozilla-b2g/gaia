@@ -763,27 +763,14 @@ var PlayerView = {
       this.audio.currentTime = Math.floor(seekTime);
     }
 
-    var startTime = this.audio.startTime;
-
-    var endTime;
-    // The audio element's duration might be NaN or 'Infinity' if it's not ready
-    // We should get the duration from the buffered parts before the duration
-    // is ready, and be sure to get the buffered parts if there is data in it.
-    if (isNaN(this.audio.duration)) {
-      endTime = 0;
-    } else if (this.audio.duration === Infinity) {
-      endTime = (this.audio.buffered.length > 0) ?
-        this.audio.buffered.end(this.audio.buffered.length - 1) : 0;
-    } else {
-      endTime = this.audio.duration;
-    }
-
-    var currentTime = this.audio.currentTime;
-
-    this.setSeekBar(startTime, endTime, currentTime);
+    this.setSeekBar(0, this.audio.duration, this.audio.currentTime);
   },
 
   setSeekBar: function pv_setSeekBar(startTime, endTime, currentTime) {
+    if (!isFinite(endTime)) {
+      endTime = Math.max(this.seekBar.max, currentTime);
+    }
+
     if (this.seekBar.max != endTime) {
       // Duration changed, update accessibility label.
       navigator.mozL10n.setAttributes(this.seekSlider,
