@@ -224,32 +224,6 @@ suite('tv-deck/tv_deck', function() {
       assert.equal(tunerCount, 2);
     });
 
-    test('Should add new tuner to currentTuners when ontunerchanged event' +
-         'with added operation is triggered', function() {
-      var newTuner = new MockTVManager();
-      newTuner.id = 'tuner3';
-      tvDeck.scanTuners();
-      navigator.tv.ontunerchanged({
-        operation: 'added',
-        tuner: newTuner
-      });
-      assert(tvDeck.currentTuners.tuner3);
-    });
-
-    test('Should show error when ontunerchanged event with removed operation' +
-         'is triggered, and removed tuner is current tuner', function() {
-      var showErrorState = this.sinon.stub(tvDeck, '_showErrorState');
-      var oldTuner = new MockTVManager();
-      oldTuner.id = 'tuner1';
-      tvDeck.scanTuners();
-      navigator.tv.ontunerchanged({
-        operation: 'removed',
-        tuner: oldTuner
-      });
-      assert.isNull(tvDeck.currentTuners.tuner1);
-      assert.isTrue(showErrorState.called);
-    });
-
     suite('Scan with empty initial playingTunerId value', function() {
       setup(function() {
         tvDeck.playingTunerId = null;
@@ -430,12 +404,6 @@ suite('tv-deck/tv_deck', function() {
       tvDeck.playingSource.source.isScanning = true;
       tvDeck.scanChannels();
       assert.isFalse(startScanning.called);
-    });
-
-    test('onscanningstatechanged should be assigned', function() {
-      tvDeck.playingSource.source.onscanningstatechanged = null;
-      tvDeck.scanChannels();
-      assert(tvDeck.playingSource.source.onscanningstatechanged);
     });
 
     test('channels in playingSource should be clear', function() {

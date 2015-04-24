@@ -4,6 +4,9 @@
   'use strict';
 
   function MockTVSource() {
+
+    var handlers = {};
+
     this.channels = [];
     this.currentChannel = null;
 
@@ -33,9 +36,15 @@
     this.channels.push(channel);
 
     this.startScanning = function() {
-      this.onscanningstatechanged({
-        state: 'completed'
-      });
+      var handler = handlers.scanningstatechanged;
+      var name;
+      for (name in handler) {
+        if (handler[name]) {
+          handler[name]({
+            state: 'completed'
+          });
+        }
+      }
     };
 
     this.getChannels = function() {
@@ -53,6 +62,19 @@
           callback();
         }.bind(this)
       };
+    };
+
+    this.addEventListener = function(name, fn) {
+      if (!handlers[name]) {
+        handlers[name] = {};
+      }
+      handlers[name][fn.name] = fn;
+    };
+
+    this.removeEventListener = function(name, fn) {
+      if (handlers[name]) {
+        handlers[name][fn.name] = null;
+      }
     };
   }
 

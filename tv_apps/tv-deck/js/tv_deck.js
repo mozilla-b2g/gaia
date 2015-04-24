@@ -110,29 +110,6 @@
         this.manifestURL = evt.target.result.manifestURL;
       }
     }.bind(this);
-
-    // Set the 'ontunerchanged' event handler.
-    navigator.tv.ontunerchanged = function(event) {
-      var operation = event.operation;
-      var changedTuner = event.tuner;
-
-      switch (operation) {
-        case 'added':
-          this.currentTuners[changedTuner.id] = {
-            tuner: changedTuner,
-            sources: {}
-          };
-          break;
-        case 'removed':
-          this.currentTuners[changedTuner.id] = null;
-          if (this.playingTunerId === changedTuner.id) {
-            this._showErrorState();
-          }
-          break;
-        default:
-          break;
-      }
-    }.bind(this);
   };
 
   proto._fetchElements = function td__fetchElements() {
@@ -313,21 +290,22 @@
       return;
     }
 
-    if (!source.onscanningstatechanged) {
-      // XXX: May change to event listener
-      source.onscanningstatechanged = function onscanningstatechanged(event) {
-        var state = event.state;
-        switch (state) {
-          case 'completed':
-          /* falls through */
-          case 'stopped':
-            this._onScanningCompleted();
-            break;
-          default:
-            break;
-        }
-      }.bind(this);
-    }
+    var onscanningstatechanged = function(event) {
+      var state = event.state;
+      switch (state) {
+        case 'completed':
+        /* falls through */
+        case 'stopped':
+          this._onScanningCompleted();
+          source.removeEventListener(
+                                'scanningstatechanged', onscanningstatechanged);
+          break;
+        default:
+          break;
+      }
+    }.bind(this);
+
+    source.addEventListener('scanningstatechanged', onscanningstatechanged);
 
     source.startScanning({
       isRescanned: true
