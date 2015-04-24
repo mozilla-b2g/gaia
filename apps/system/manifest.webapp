@@ -76,6 +76,16 @@
     "284": "/style/icons/system_284.png"
   },
   "activities": {
+    "import": {
+      "filters": {
+        "type": "app",
+        "blob": {
+          "required": true
+        }
+      },
+      "disposition": "inline",
+      "returnValue": true
+    },
     "view": {
       "filters": {
         "type": "url",
