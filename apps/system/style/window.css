@@ -1,6 +1,6 @@
 .appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.attentionWindow):not(.lockScreenInputWindow) {
   opacity: 0;
-  transform: none;
+  transform: translateX(0);
 }
 
 #screen.utility-tray #windows > .appWindow {
@@ -71,7 +71,6 @@
 }
 
 .appWindow.from-cardview {
-  overflow: hidden;
   animation: openAppFromCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -180,7 +179,6 @@
 }
 
 .appWindow.to-cardview {
-  overflow: hidden;
   animation: closeAppTowardsCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -218,7 +216,7 @@
 }
 
 .appWindow.restored {
-  transform: none;
+  transform: translateX(0);
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -572,7 +570,7 @@
 #screen #windows > .appWindow.will-become-active,
 #screen #windows > .appWindow.inside-edges {
   opacity: 1;
-  transform: none;
+  transform: translateX(0);
 }
 
 #screen #windows > .appWindow.outside-edges-left {
