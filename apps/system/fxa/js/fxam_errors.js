@@ -91,7 +91,10 @@
 
         this.entrySheet = new EntrySheet(
           window.top.document.getElementById('screen'),
-          coppaUrl,
+          // Prefix url with LRM character
+          // This ensures truncation occurs correctly in an RTL document
+          // We can remove this when bug 1154438 is fixed.
+          '\u200E URL:' + coppaUrl,
           new BrowserFrame({
             url: coppaUrl,
             oop: true

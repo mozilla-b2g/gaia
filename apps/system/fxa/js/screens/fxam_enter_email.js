@@ -121,7 +121,10 @@ var FxaModuleEnterEmail = (function() {
       }
       this.entrySheet = new EntrySheet(
         window.top.document.getElementById('screen'),
-        url,
+        // Prefix url with LRM character
+        // This ensures truncation occurs correctly in an RTL document
+        // We can remove this when bug 1154438 is fixed.
+        '\u200E' + url,
         new BrowserFrame({
           url: url,
           oop: true
