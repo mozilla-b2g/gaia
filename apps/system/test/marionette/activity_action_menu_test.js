@@ -38,5 +38,24 @@
       client.switchToFrame();
       system.waitForActivityMenu();
     });
+
+    test('[tv] works after opening an app', function() {
+      messagesApp.launch();
+      messagesApp.ThreadList.navigateToComposer();
+      var composer = messagesApp.Composer;
+
+      client.waitFor(function() {
+        return composer.attachButton.enabled();
+      });
+      composer.attachButton.tap();
+      client.switchToFrame();
+      system.waitForActivityMenu();
+      utilityTray.open();
+      utilityTray.quickSettings.click();
+      messagesApp.launch();
+      composer.attachButton.tap();
+      client.switchToFrame();
+      system.waitForActivityMenu();
+    });
   });
 }());

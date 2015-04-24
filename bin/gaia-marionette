@@ -108,6 +108,12 @@ fi
 # find xpcshell and put it in the path
 XPCSHELL_DIR=$(dirname "$XPCSHELLSDK")
 
+MOCHA_GREP_OPTS=""
+if [ -z "$GAIA_DEVICE_TYPE" ] || [ "$GAIA_DEVICE_TYPE" = "phone" ]; then
+  MOCHA_GREP_OPTS="--invert --grep \[tablet\]|\[tv\]"
+else
+  MOCHA_GREP_OPTS="--grep \[$GAIA_DEVICE_TYPE\]"
+fi
 
 VERBOSE_OPTS=""
 if [ "$VERBOSE" ]; then
@@ -173,5 +179,6 @@ $TARGET \
   $RUNTIME_OPTS \
   $DEVICE_OPTS \
   $BUILDAPP_OPTS \
+  $MOCHA_GREP_OPTS \
   $TEST_FILES \
   $@
