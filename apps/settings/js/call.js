@@ -477,7 +477,8 @@ require([
           CallConstant.CALL_FORWARD_REASON_MAPPING[key];
         mozMobileCFInfo.serviceClass = _voiceServiceClassMask;
 
-        if (!cs_isPhoneNumberValid(number)) {
+        // // Skip the phone number checking when disabling call forwarding.
+        if (enabled && !cs_isPhoneNumberValid(number)) {
           DialogService.alert('callForwardingInvalidNumberError', {
             title: 'callForwardingConfirmTitle',
             submitButtonText: 'continue'
