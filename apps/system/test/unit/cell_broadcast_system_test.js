@@ -69,6 +69,7 @@ suite('system/CellBroadcastSystem', function() {
           window.navigator.mozMobileConnections[0].voice.network.mcc,
         BRAZIL_CELLBROADCAST_CHANNEL: fakeMessageID
       };
+      subject._settingsDisabled = [false, false];
     });
 
     teardown(function() {
@@ -99,6 +100,20 @@ suite('system/CellBroadcastSystem', function() {
 
       sinon.assert.notCalled(window.dispatchEvent);
       sinon.assert.called(CarrierInfoNotifier.show);
+    });
+
+    test('if SIM2 is disabled, no notification nor event sent ', function() {
+      subject._settingsDisabled = [false, true];
+      subject.show({
+        message: {
+          messageId: fakeMessageID,
+          body: {},
+          serviceId: 1
+        }
+      });
+
+      sinon.assert.notCalled(window.dispatchEvent);
+      sinon.assert.notCalled(CarrierInfoNotifier.show);
     });
 
     test('return while message is CMAS', function() {
