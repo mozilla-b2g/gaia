@@ -470,20 +470,32 @@ define(function(require) {
         enabled = false;
       }
 
+      // Update state
+      this.state = state;
+      Debug('_updateStatus(): set state = ' + state);
+
+      // Update enabled
+      this.enabled = enabled;
+      Debug('_updateStatus(): set enabled = ' + enabled);
+
       // Sync with settings key
+      this._syncWithSettingsKey(enabled);
+    },
+
+    /**
+     * The function provides to set booleans to update the 'bluetooth.enabled'
+     * settings key if the value is not sync.
+     *
+     * @access private
+     * @memberOf BluetoothContext
+     * @param {Boolean} enabled
+     */
+    _syncWithSettingsKey: function btc__syncWithSettingsKey(enabled) {
       SettingsCache.getSettings((results) => {
         var btEnabled = results['bluetooth.enabled'];
         if (btEnabled !== enabled) {
           settings.createLock().set({'bluetooth.enabled': enabled});
         }
-
-        // Update state
-        this.state = state;
-        Debug('_updateStatus(): set state = ' + state);
-
-        // Update enabled
-        this.enabled = enabled;
-        Debug('_updateStatus(): set enabled = ' + enabled);
       });
     },
 

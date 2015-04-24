@@ -553,69 +553,120 @@ suite('BluetoothContext', function() {
   suite('_updateStatus > ', function() {
     suite('enabled = false, state = "disabled", ' +
       '_updateStatus with "enabled" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = false;
         btContext.state = 'disabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = true, state = "enabled" ', function() {
         btContext._updateStatus('enabled');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'enabled');
         assert.isTrue(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
       });
     });
 
     suite('enabled = false, state = "disabled", ' +
       '_updateStatus with "enabling" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = false;
         btContext.state = 'disabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = false, state = "enabling"', function() {
         btContext._updateStatus('enabling');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'enabling');
         assert.isFalse(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
       });
     });
 
     suite('enabled = true, state = "enabled", ' +
       '_updateStatus with "disabled" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = true;
         btContext.state = 'enabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = false, state = "disabled"', function() {
         btContext._updateStatus('disabled');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'disabled');
         assert.isFalse(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
       });
     });
 
     suite('enabled = true, state = "enabled", ' +
       '_updateStatus with "disabling" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = true;
         btContext.state = 'enabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = false, state = "disabled"', function() {
         btContext._updateStatus('disabling');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'disabling');
         assert.isTrue(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
+      });
+    });
+  });
+
+  suite('_syncWithSettingsKey > ', function() {
+    var settingsSetSpy, mockEnabled;
+    suite('set with different state ', function() {
+      setup(function() {
+        mockEnabled = true;
+        mockSettingsCache.mockSettings({'bluetooth.enabled': !mockEnabled});
+        settingsSetSpy = this.sinon.spy();
+        var newCreateLock = function() {
+          return {
+            set: settingsSetSpy
+          };
+        };
+        this.sinon.stub(navigator.mozSettings, 'createLock', newCreateLock);
+      });
+
+      teardown(function() {
+        mockSettingsCache.mTeardown();
+      });
+
+      test('"bluetooth.enabled" settings key should be set with new state ',
+      function() {
+        btContext._syncWithSettingsKey(mockEnabled);
+        assert.isTrue(settingsSetSpy.calledWith(
+          {'bluetooth.enabled': mockEnabled}));
+      });
+    });
+    
+    suite('set with same state ', function() {
+      setup(function() {
+        mockEnabled = true;
+        mockSettingsCache.mockSettings({'bluetooth.enabled': mockEnabled});
+        settingsSetSpy = this.sinon.spy();
+        var newCreateLock = function() {
+          return {
+            set: settingsSetSpy
+          };
+        };
+        this.sinon.stub(navigator.mozSettings, 'createLock', newCreateLock);
+      });
+
+      teardown(function() {
+        mockSettingsCache.mTeardown();
+      });
+
+      test('"bluetooth.enabled" settings key should not be set ', function() {
+        btContext._syncWithSettingsKey(mockEnabled);
+        assert.isFalse(settingsSetSpy.called);
       });
     });
   });
