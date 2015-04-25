@@ -54,9 +54,7 @@ suite('Make and remake tests', function() {
     var cwd = process.cwd();
     var apps = [];
     var filter = function(file, dir) {
-      // There are other folders we could avoid but walking the node_modules
-      // folder can be problematic when using pre-built caches (and it's slow).
-      if (dir && (file.indexOf(cwd + '/node_modules') !== 0)) {
+      if (dir) {
         return true;
       }
       var pattern = new RegExp(

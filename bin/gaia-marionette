@@ -151,7 +151,12 @@ if [ "$DUMP_PATH" ]; then
   DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
 fi
 
-TARGET=$DIR/../node_modules/.bin/marionette-mocha
+TARGET=""
+if [[ $@ == *"mocha-tbpl-reporter"* ]]; then
+  TARGET=$DIR/gaia_marionette_retry.js
+else
+  TARGET=$DIR/../node_modules/.bin/marionette-mocha
+fi
 
 export PATH=$XPCSHELL_DIR:$PATH
 
