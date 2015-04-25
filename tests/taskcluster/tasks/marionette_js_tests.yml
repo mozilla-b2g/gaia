@@ -1,6 +1,6 @@
 # Chunking task for marionette js tests...
 ---
-reruns: 2
+reruns: 4
 task:
   metadata:
     name: 'Marionette JS tests chunk {{chunk}}'
