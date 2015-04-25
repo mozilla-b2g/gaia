@@ -256,7 +256,7 @@ var WifiUI = {
     var joinButton = UIManager.wifiJoinButton;
 
     joinButton.disabled = true;
-    passwordInput.addEventListener('keyup', function validatePassword() {
+    passwordInput.addEventListener('input', function validatePassword() {
       // disable the "Join" button if the password is on wrong format
       joinButton.disabled =
         !WifiHelper.isValidInput(WifiHelper.getKeyManagement(selectedNetwork),
