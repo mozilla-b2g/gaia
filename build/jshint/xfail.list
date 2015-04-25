@@ -61,7 +61,6 @@ apps/keyboard/js/settings/settings.js
 apps/keyboard/test/unit/imes/jspinyin/jspinyin_test.js
 apps/keyboard/test/unit/imes/latin/worker_test.js
 apps/keyboard/test/unit/setup_engine.js
-apps/music/js/metadata.js
 apps/system/js/browser_mixin.js
 apps/system/js/icc.js
 apps/system/js/init_logo_handler.js
