@@ -1,3 +1,4 @@
+/* exported MockFbGraphData */
 'use strict';
 
 var MockFbGraphData = {

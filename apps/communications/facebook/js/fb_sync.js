@@ -1,3 +1,4 @@
+/* global utils */
 'use strict';
 
 var fb = window.fb || {};
@@ -217,9 +218,9 @@ if (!fb.sync) {
       }
       else {
         debug('Friend is not linked: ', contactId);
-        var req = fbContact.remove();
-        req.onsuccess = onsuccessCb;
-        req.onerror = function() {
+        var fbContactReq = fbContact.remove();
+        fbContactReq.onsuccess = onsuccessCb;
+        fbContactReq.onerror = function() {
           window.console.error('FB. Error while removing contact: ',
                                contactId);
           // The counter has to be increased anyway
