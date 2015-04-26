@@ -1,7 +1,6 @@
 {
   "network-alerts": {
-    "src": ["apps/network-alerts/js/**/*.js",
-            "!apps/network-alerts/js/attention/attention.js"],
+    "src": ["apps/network-alerts/js/**/*.js"],
     "options": {
       "destination": "docs/network-alerts"
     }

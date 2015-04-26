@@ -1070,7 +1070,7 @@ build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
 
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
-	grunt docs
+	gulp docs
 
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
