@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockNavigatorMozWifiManager */
 
 var MockNavigatorMozWifiManager = {
 

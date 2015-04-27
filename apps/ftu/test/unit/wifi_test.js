@@ -1,5 +1,6 @@
 /* global MockL10n, MockMozWifiNetwork, MockNavigatorMozWifiManager,
-          MockFxAccountsIACHelper, WifiHelper */
+          MockFxAccountsIACHelper, MocksHelper, UIManager, utils,
+          WifiHelper, WifiManager, WifiUI */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -518,8 +519,7 @@ suite('wifi > ', function() {
   suite('Join a network >', function() {
     var testSSID,
         testUser,
-        testPassword,
-        testSecurity;
+        testPassword;
 
     setup(function() {
       testSSID = 'Mozilla-G';

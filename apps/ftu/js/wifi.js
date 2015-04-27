@@ -1,4 +1,4 @@
-/* global utils, UIManager, WifiHelper */
+/* global utils, UIManager, WifiHelper, WifiUI:true */
 /* exported WifiManager, WifiUI */
 'use strict';
 
@@ -249,7 +249,6 @@ var WifiUI = {
 
     // Update network values
     var ssidHeader = document.getElementById('wifi_ssid');
-    var userLabel = document.getElementById('label_wifi_user');
     var userInput = document.getElementById('wifi_user');
     var passwordInput = document.getElementById('wifi_password');
     var showPassword = document.querySelector('input[name=show_password]');
