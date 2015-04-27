@@ -814,6 +814,12 @@ aside.connecting {
   margin-top: 1.6rem;
 }
 
+#import_contacts [data-type="list"] li p {
+  text-overflow: unset;
+  overflow: unset;
+  white-space: unset;
+}
+
 
 #fb_after_import1 {
   background: url('images/import_fb.png') no-repeat center left / 3rem;
@@ -1061,6 +1067,10 @@ i.hack-first-child {
 
 [data-type="list"]:first-child {
   padding-top: 1.5rem;
+}
+
+[data-type="list"] li p:last-of-type {
+  padding-bottom: 1rem;
 }
 
 [data-type="list"] li > a {
