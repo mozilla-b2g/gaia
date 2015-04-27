@@ -23,7 +23,7 @@
     'UsbCore',
     'CameraTrigger',
     'FeatureDetector',
-    'AudioChannelManager'
+    'AudioChannelService'
   ];
 
   Core.SERVICES = [
