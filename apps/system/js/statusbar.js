@@ -573,7 +573,6 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-      case 'rocketbar-deactivated':
         app = Service.currentApp;
 
         if (app) {
@@ -582,6 +581,8 @@ var StatusBar = {
           this.element.classList.toggle('fullscreen-layout',
             app.isFullScreenLayout());
         }
+      /* falls through */
+      case 'rocketbar-deactivated':
         this.setAppearance();
         this.element.classList.remove('hidden');
         break;
