@@ -1,12 +1,12 @@
-/* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
-          HomescreenWindow, MocksHelper, MockSettingsListener, Service,
-          MockRocketbar, rocketbar, homescreenWindowManager,
-          MockTaskManager, MockFtuLauncher, MockService, MockAppWindowFactory,
-          MockWrapperFactory */
+/* global AppWindow, MockShrinkingUI, HomescreenWindow, MocksHelper,
+          MockRocketbar, MockTaskManager, MockFtuLauncher, MockWrapperFactory,
+          MockAppWindowFactory,
+          MockService, MockNavigatorSettings, BaseModule */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -22,27 +22,43 @@ requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_wrapper_factory.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
+requireApp('shared/js/lazy_loader.js');
+requireApp('system/js/service.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/app_window_manager.js');
+requireApp('system/js/settings_core.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow', 'ShrinkingUI',
-  'Applications', 'SettingsListener', 'HomescreenWindowManager',
+  'Applications',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'Service', 'NfcHandler',
-  'TaskManager', 'FtuLauncher'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'NfcHandler',
+  'TaskManager', 'NavigatorSettings', 'LazyLoader'
 ]).init();
 
 suite('system/AppWindowManager', function() {
   mocksForAppWindowManager.attachTestHelpers();
-  var stubById;
   var app1, app2, app3, app4, app5, app6, app7, browser1, home;
+  var subject;
+  var settingsCore, realMozSettings;
 
   var screenElement = document.createElement('div');
 
-  setup(function(done) {
-    stubById = this.sinon.stub(document, 'getElementById', function(id) {
+  suiteSetup(function() {
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+    MockNavigatorSettings.mSyncRepliesOnly = true;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
+  });
+
+  setup(function() {
+    this.sinon.stub(document, 'getElementById', function(id) {
       if (id === 'screen') {
         return screenElement;
       }
@@ -54,12 +70,7 @@ suite('system/AppWindowManager', function() {
     window.mediaRecording = { isRecording: false };
 
     home = new HomescreenWindow('fakeHome');
-    window.homescreenWindowManager = new HomescreenWindowManager();
-    window.homescreenWindowManager.start();
-    window.homescreenWindowManager.mHomescreenWindow = home;
-
-    window.rocketbar = new MockRocketbar();
-    window.taskManager = new MockTaskManager();
+    MockService.mockQueryWith('getHomescreen', home);
 
     app1 = new AppWindow(fakeAppConfig1);
     app2 = new AppWindow(fakeAppConfig2);
@@ -70,19 +81,19 @@ suite('system/AppWindowManager', function() {
     app7 = new AppWindow(fakeAppConfig7Activity);
     browser1 = new AppWindow(fakeBrowserConfig);
 
-    requireApp('system/js/app_window_manager.js', function() {
-      window.appWindowManager = new window.AppWindowManager();
-      window.appWindowManager.start();
-      done();
-    });
+    settingsCore = BaseModule.instantiate('SettingsCore');
+    settingsCore.start();
+
+    subject = BaseModule.instantiate('AppWindowManager');
+    subject.start();
+    subject.service = MockService;
   });
 
   teardown(function() {
-    appWindowManager.stop();
+    subject.stop();
+    settingsCore.stop();
     delete window.layoutManager;
     delete window.mediaRecording;
-    delete window.homescreenWindowManager;
-    stubById.restore();
   });
 
   var fakeFTUConfig = {
@@ -155,24 +166,24 @@ suite('system/AppWindowManager', function() {
   };
 
   function injectRunningApps() {
-    appWindowManager._apps = {};
+    subject._apps = {};
     Array.slice(arguments).forEach(function iterator(app) {
-      appWindowManager._apps[app.instanceID] = app;
+      subject._apps[app.instanceID] = app;
     });
   }
 
   test('Get active app when _activeApp is null', function() {
-    appWindowManager._activeApp = null;
-    assert.deepEqual(appWindowManager.getActiveApp(), home,
+    subject._activeApp = null;
+    assert.deepEqual(subject.getActiveApp(), home,
       'should return home app');
   });
 
   suite('Handle events', function() {
     test('hierarchytopmostwindowchanged', function() {
       this.sinon.stub(app1, 'setNFCFocus');
-      appWindowManager._activeApp = app1;
-      MockService.mTopMostUI = appWindowManager;
-      appWindowManager.handleEvent({
+      subject._activeApp = app1;
+      MockService.mockQueryWith('getTopMostUI', subject);
+      subject.handleEvent({
         type: 'hierarchytopmostwindowchanged'
       });
       assert.isTrue(app1.setNFCFocus.calledWith(true));
@@ -180,9 +191,9 @@ suite('system/AppWindowManager', function() {
 
     test('should not setNFCFocus when top most is not us', function() {
       this.sinon.stub(app3, 'setNFCFocus');
-      appWindowManager._activeApp = app3;
-      MockService.mTopMostUI = MockRocketbar;
-      appWindowManager.handleEvent({
+      subject._activeApp = app3;
+      MockService.mockQueryWith('getTopMostUI', MockRocketbar);
+      subject.handleEvent({
         type: 'hierarchytopmostwindowchanged'
       });
       assert.isFalse(app3.setNFCFocus.calledWith(true));
@@ -190,8 +201,8 @@ suite('system/AppWindowManager', function() {
 
     test('localized event should be broadcasted.', function() {
       var stubBroadcastMessage =
-        this.sinon.stub(appWindowManager, 'broadcastMessage');
-      appWindowManager.handleEvent({
+        this.sinon.stub(subject, 'broadcastMessage');
+      subject.handleEvent({
         type: 'localized'
       });
       assert.ok(stubBroadcastMessage.calledWith('localized'));
@@ -203,18 +214,18 @@ suite('system/AppWindowManager', function() {
           chromeId: 'testchromeid'
         }
       });
-      var stubLaunchTrustedWindow = this.sinon.stub(appWindowManager,
+      var stubLaunchTrustedWindow = this.sinon.stub(subject,
         '_launchTrustedWindow');
-      appWindowManager.handleEvent(testEvt);
+      subject.handleEvent(testEvt);
       assert.isTrue(stubLaunchTrustedWindow.calledWith(testEvt));
     });
 
     test('Active app should be updated once any app is opening.', function() {
-      var stub_updateActiveApp = this.sinon.stub(appWindowManager,
+      var stub_updateActiveApp = this.sinon.stub(subject,
         '_updateActiveApp');
       injectRunningApps(app1, app2);
-      appWindowManager._activeApp = app1;
-      appWindowManager.handleEvent({
+      subject._activeApp = app1;
+      subject.handleEvent({
         type: 'appopening',
         detail: app2
       });
@@ -222,11 +233,11 @@ suite('system/AppWindowManager', function() {
     });
 
     test('Active app should be updated once any app is opened.', function() {
-      var stub_updateActiveApp = this.sinon.stub(appWindowManager,
+      var stub_updateActiveApp = this.sinon.stub(subject,
         '_updateActiveApp');
       injectRunningApps(app1, app2);
-      appWindowManager._activeApp = app1;
-      appWindowManager.handleEvent({
+      subject._activeApp = app1;
+      subject.handleEvent({
         type: 'appopened',
         detail: app2
       });
@@ -234,11 +245,11 @@ suite('system/AppWindowManager', function() {
     });
 
     test('Active app should be updated once homescreen is opened.', function() {
-      var stub_updateActiveApp = this.sinon.stub(appWindowManager,
+      var stub_updateActiveApp = this.sinon.stub(subject,
         '_updateActiveApp');
       injectRunningApps(app1, home);
-      appWindowManager._activeApp = app1;
-      appWindowManager.handleEvent({
+      subject._activeApp = app1;
+      subject.handleEvent({
         type: 'homescreenopened',
         detail: home
       });
@@ -252,8 +263,8 @@ suite('system/AppWindowManager', function() {
           type: 'inputmethod-contextchange'
         };
         this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
-        appWindowManager._activeApp = app1;
-        appWindowManager.respondToHierarchyEvent({
+        subject._activeApp = app1;
+        subject.respondToHierarchyEvent({
           type: 'mozChromeEvent',
           detail: detail
         });
@@ -264,57 +275,53 @@ suite('system/AppWindowManager', function() {
     test('When receiving shrinking-start, we need to blur the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
-        MockService.mTopMostUI = appWindowManager;
-        appWindowManager._activeApp = app1;
-        appWindowManager.handleEvent({
-          type: 'shrinking-start'
-        });
-        assert.deepEqual(appWindowManager.shrinkingUI.elements
+        MockService.mockQueryWith('getTopMostUI', subject);
+        subject._activeApp = app1;
+
+        window.dispatchEvent(new CustomEvent('shrinking-start'));
+        assert.deepEqual(subject.shrinkingUI.elements
           .foregroundElement, app1.getBottomMostWindow().element);
-        assert.deepEqual(appWindowManager.shrinkingUI.elements
+        assert.deepEqual(subject.shrinkingUI.elements
           .backgroundElement, app1.getBottomMostWindow().element.parentNode);
-        assert.isTrue(appWindowManager.shrinkingUI.mStarted);
+        assert.isTrue(subject.shrinkingUI.mStarted);
         assert.isTrue(stubFocus.calledWith('shrinkingstart'));
       });
 
     test('When receiving shrinking-start and top-most ui is not ' +
-         'appWindowManager',
+         'subject',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
-        appWindowManager._activeApp = app1;
-        appWindowManager.handleEvent({
-          type: 'shrinking-start'
+        subject._activeApp = app1;
+        MockService.mockQueryWith('getTopMostUI', {
+          name: 'UtilityTray'
         });
+        window.dispatchEvent(new CustomEvent('shrinking-start'));
         assert.isFalse(stubFocus.calledWith('shrinkingstart'));
       });
 
     test('When receiving shrinking-stop, we need to focus the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
-        appWindowManager._activeApp = app1;
-        appWindowManager.shrinkingUI = new MockShrinkingUI();
-        appWindowManager.shrinkingUI.mActive = true;
-        appWindowManager.handleEvent({
-          type: 'shrinking-stop'
-        });
+        subject._activeApp = app1;
+        subject.shrinkingUI = new MockShrinkingUI();
+        subject.shrinkingUI.mActive = true;
+        window.dispatchEvent(new CustomEvent('shrinking-stop'));
         assert.isTrue(stubFocus.calledWith('shrinkingstop'));
       });
 
     test('When permission dialog is closed, we need to focus the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
-        appWindowManager._activeApp = app1;
-        appWindowManager.handleEvent({
-          type: 'permissiondialoghide'
-        });
+        subject._activeApp = app1;
+        window.dispatchEvent(new CustomEvent('permissiondialoghide'));
         assert.isTrue(stubFocus.calledWith('focus'));
       });
 
     test('If cardview will open, keyboard should be dismissed', function() {
       var stubBlur = this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
-      appWindowManager._activeApp = app1;
-      appWindowManager.handleEvent({
+      subject._activeApp = app1;
+      subject.handleEvent({
         type: 'cardviewbeforeshow'
       });
       assert.isTrue(stubBlur.called);
@@ -322,128 +329,98 @@ suite('system/AppWindowManager', function() {
 
     test('Should broadcast cardview events to apps', function() {
       var stubBroadcastMessage =
-        this.sinon.stub(appWindowManager, 'broadcastMessage');
+        this.sinon.stub(subject, 'broadcastMessage');
 
-      appWindowManager.handleEvent({ type: 'cardviewbeforeshow' });
+      subject.handleEvent({ type: 'cardviewbeforeshow' });
       assert.isTrue(stubBroadcastMessage.calledWith('cardviewbeforeshow'));
 
-      appWindowManager.handleEvent({ type: 'cardviewshown' });
+      subject.handleEvent({ type: 'cardviewshown' });
       assert.isTrue(stubBroadcastMessage.calledWith('cardviewshown'));
 
-      appWindowManager.handleEvent({ type: 'cardviewclosed' });
+      subject.handleEvent({ type: 'cardviewclosed' });
       assert.isTrue(stubBroadcastMessage.calledWith('cardviewclosed'));
     });
 
     test('Home Gesture enabled', function() {
       var stubBroadcastMessage =
-        this.sinon.stub(appWindowManager, 'broadcastMessage');
-      appWindowManager.handleEvent({ type: 'homegesture-enabled' });
+        this.sinon.stub(subject, 'broadcastMessage');
+      subject.handleEvent({ type: 'homegesture-enabled' });
       assert.isTrue(stubBroadcastMessage.calledWith('homegesture-enabled'));
     });
 
     test('Home Gesture disabled', function() {
       var stubBroadcastMessage =
-        this.sinon.stub(appWindowManager, 'broadcastMessage');
-      appWindowManager.handleEvent({ type: 'homegesture-disabled' });
+        this.sinon.stub(subject, 'broadcastMessage');
+      subject.handleEvent({ type: 'homegesture-disabled' });
       assert.isTrue(stubBroadcastMessage.calledWith('homegesture-disabled'));
     });
 
     test('Orientation change', function() {
-      Service.mTopMostUI = appWindowManager;
+      MockService.mockQueryWith('getTopMostUI', subject);
       var stubBroadcastMessage =
-        this.sinon.stub(appWindowManager, 'broadcastMessage');
-      appWindowManager.handleEvent({ type: 'orientationchange' });
+        this.sinon.stub(subject, 'broadcastMessage');
+      subject.handleEvent({ type: 'orientationchange' });
       assert.isTrue(stubBroadcastMessage.calledWith('orientationchange', true));
     });
 
     test('Press home on home displayed', function() {
       injectRunningApps(home);
-      var stubGetHomescreen = this.sinon.stub(homescreenWindowManager,
-                                              'getHomescreen');
-      appWindowManager._activeApp = homescreenWindowManager.mHomescreenWindow;
+      subject._activeApp = home;
+      this.sinon.stub(subject, 'switchApp');
       this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent').returns(true);
-      appWindowManager.respondToHierarchyEvent({ type: 'home' });
-      assert.isTrue(stubGetHomescreen.called,
-        'press home on home displayed should still call getHomescreen()');
-      // check the first argument of first call.
-      assert.isTrue(stubGetHomescreen.calledWith(true),
-        'getHomescreen should be called with true as argument in this case.');
+      subject.respondToHierarchyEvent({ type: 'home' });
+      assert.isFalse(subject.switchApp.called);
     });
 
     test('Press home on home not displayed', function() {
       injectRunningApps(home, app1);
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-      appWindowManager._activeApp = app1;
+      var stubDisplay = this.sinon.stub(subject, 'display');
+      subject._activeApp = app1;
+      subject.ftuLauncher = MockFtuLauncher;
       this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent').returns(true);
-      appWindowManager.respondToHierarchyEvent({ type: 'home' });
+      subject.respondToHierarchyEvent({ type: 'home' });
       assert.isTrue(stubDisplay.called);
     });
 
     test('Press home but ftu launcher blocks it', function() {
       injectRunningApps(home, app1);
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-      appWindowManager._activeApp = app1;
+      var stubDisplay = this.sinon.stub(subject, 'display');
+      subject._activeApp = app1;
+      subject.ftuLauncher = MockFtuLauncher;
       this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent')
           .returns(false);
-      appWindowManager.respondToHierarchyEvent({ type: 'home' });
+      subject.respondToHierarchyEvent({ type: 'home' });
       assert.isFalse(stubDisplay.called);
     });
 
     test('app is killed at background', function() {
       injectRunningApps(app1, app2);
-      appWindowManager._activeApp = app2;
+      subject._activeApp = app2;
 
-      appWindowManager.handleEvent({ type: 'appterminated', detail: app2 });
-      assert.isFalse(app2.instanceID in appWindowManager._apps);
+      subject.handleEvent({ type: 'appterminated', detail: app2 });
+      assert.isFalse(app2.instanceID in subject._apps);
     });
 
     test('app is killed at foreground', function() {
       injectRunningApps(app1, app2);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
 
-      appWindowManager.handleEvent({ type: 'appterminated', detail: app1 });
-      assert.isFalse(app1.instanceID in appWindowManager._apps);
+      subject.handleEvent({ type: 'appterminated', detail: app1 });
+      assert.isFalse(app1.instanceID in subject._apps);
     });
 
     test('new app instance is created', function() {
       injectRunningApps();
 
-      appWindowManager.handleEvent({ type: 'appcreated', detail: app1 });
-      assert.isTrue(app1.instanceID in appWindowManager._apps);
-    });
-
-    test('FTU is skipped', function() {
-      injectRunningApps();
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-
-      appWindowManager.handleEvent({ type: 'ftuskip' });
-      assert.isTrue(stubDisplay.calledWith());
-    });
-
-    test('FTU is skipped when lockscreen is active', function() {
-      Service.locked = true;
-      injectRunningApps();
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-
-      appWindowManager.handleEvent({ type: 'ftuskip' });
-      assert.isFalse(stubDisplay.calledWith());
-      Service.locked = false;
-    });
-
-    test('FTU is skipped when active app is not homescreen', function() {
-      injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-
-      appWindowManager.handleEvent({ type: 'ftuskip' });
-      assert.isFalse(stubDisplay.calledWith());
+      subject.handleEvent({ type: 'appcreated', detail: app1 });
+      assert.isTrue(app1.instanceID in subject._apps);
     });
 
     test('System resize', function() {
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubResize = this.sinon.stub(app1, 'resize');
 
-      appWindowManager.respondToHierarchyEvent({ type: 'system-resize' });
+      subject.respondToHierarchyEvent({ type: 'system-resize' });
       assert.isTrue(stubResize.called);
     });
 
@@ -468,7 +445,7 @@ suite('system/AppWindowManager', function() {
       test('should exit fullscreen when the sheet gesture begins',
       function() {
         var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
-        appWindowManager.handleEvent({ type: 'sheets-gesture-begin' });
+        subject.handleEvent({ type: 'sheets-gesture-begin' });
         sinon.assert.calledOnce(cancelSpy);
       });
     });
@@ -477,48 +454,48 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(app1);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
 
-      appWindowManager.handleEvent({ type: 'apprequestclose', detail: app1 });
+      subject.handleEvent({ type: 'apprequestclose', detail: app1 });
       assert.isTrue(stubDisplay.calledWith());
     });
 
     test('app request to open', function() {
       injectRunningApps(app1);
 
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
 
-      appWindowManager.handleEvent({ type: 'apprequestopen', detail: app1 });
+      subject.handleEvent({ type: 'apprequestopen', detail: app1 });
       assert.isTrue(stubDisplay.calledWith(app1));
     });
 
     test('homescreen is created', function() {
       injectRunningApps();
 
-      appWindowManager.handleEvent({ type: 'homescreencreated', detail: home });
+      subject.handleEvent({ type: 'homescreencreated', detail: home });
       assert.isTrue(home.instanceID in
-        appWindowManager._apps);
+        subject._apps);
     });
 
     test('homescreen is changed', function() {
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
 
-      appWindowManager.handleEvent(
+      subject.handleEvent(
         { type: 'homescreen-changed', detail: app1 });
       assert.isTrue(stubDisplay.calledWith());
     });
 
     test('kill app', function() {
-      var stubKill = this.sinon.stub(appWindowManager, 'kill');
+      var stubKill = this.sinon.stub(subject, 'kill');
 
-      appWindowManager.handleEvent({ type: 'killapp', detail: app1 });
+      subject.handleEvent({ type: 'killapp', detail: app1 });
       assert.isTrue(stubKill.called);
     });
 
     test('app uninstalled', function() {
-      var stubKill = this.sinon.stub(appWindowManager, 'kill');
+      var stubKill = this.sinon.stub(subject, 'kill');
 
-      appWindowManager.handleEvent({ type: 'applicationuninstall',
+      subject.handleEvent({ type: 'applicationuninstall',
         detail: {
           application: app1
         }
@@ -529,28 +506,28 @@ suite('system/AppWindowManager', function() {
     test('display app', function() {
       injectRunningApps(app1);
 
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
 
-      appWindowManager.handleEvent({ type: 'displayapp', detail: app1 });
+      subject.handleEvent({ type: 'displayapp', detail: app1 });
       assert.isTrue(stubDisplay.calledWith(app1));
 
     });
 
     test('Launch app', function() {
       var stubLaunch =
-        this.sinon.stub(appWindowManager, 'launch');
+        this.sinon.stub(subject, 'launch');
 
-      appWindowManager.handleEvent(
+      subject.handleEvent(
         { type: 'launchapp', detail: fakeAppConfig1 });
       assert.isTrue(stubLaunch.calledWith(fakeAppConfig1));
     });
 
     test('Show top window', function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
 
-      appWindowManager.handleEvent({
+      subject.handleEvent({
         type: 'showwindow'
       });
 
@@ -560,13 +537,13 @@ suite('system/AppWindowManager', function() {
     test('Show top window than fire activity when there is an request',
     function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       var stubActivity = this.sinon.stub();
       var originalActivity = window.MozActivity;
       window.MozActivity = stubActivity;
 
-      appWindowManager.handleEvent({
+      subject.handleEvent({
         type: 'showwindow',
         detail: {
           activity: {
@@ -587,7 +564,7 @@ suite('system/AppWindowManager', function() {
     test('Show top window than fire notification event when the request comes',
     function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent'),
           stubInitCustomEvent =
           function(type, flag1, flag2, content) {
@@ -612,7 +589,7 @@ suite('system/AppWindowManager', function() {
           });
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
 
-      appWindowManager.handleEvent({
+      subject.handleEvent({
         type: 'showwindow',
         detail: {
           notificationId: 'foobar'
@@ -627,10 +604,10 @@ suite('system/AppWindowManager', function() {
 
     test('Hide top window', function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
-      appWindowManager.handleEvent({
+      subject.handleEvent({
         type: 'hidewindow',
         detail: app2
       });
@@ -640,11 +617,11 @@ suite('system/AppWindowManager', function() {
 
     test('Show for screen reader top window', function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubSetVisibleForScreenReader = this.sinon.stub(app1,
         'setVisibleForScreenReader');
 
-      appWindowManager.handleEvent({
+      subject.handleEvent({
         type: 'showwindowforscreenreader'
       });
 
@@ -654,28 +631,28 @@ suite('system/AppWindowManager', function() {
     test('Sends sheetsgesturebegin and sheetsgestureend when expected',
     function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
 
       var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
       // Should send sheetsgesturebegin.
-      appWindowManager.handleEvent({ type: 'sheets-gesture-begin' });
+      subject.handleEvent({ type: 'sheets-gesture-begin' });
       assert.isTrue(stubBroadcast.calledWith('sheetsgesturebegin'));
       stubBroadcast.reset();
 
       // Should send sheetsgestureend.
-      appWindowManager.handleEvent({type: 'sheets-gesture-end'});
+      subject.handleEvent({type: 'sheets-gesture-end'});
       assert.isTrue(stubBroadcast.calledWith('sheetsgestureend'));
       stubBroadcast.reset();
     });
 
     test('Hide for screen reader top window', function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubSetVisibleForScreenReader = this.sinon.stub(app1,
         'setVisibleForScreenReader');
 
-      appWindowManager.handleEvent({
+      subject.handleEvent({
         type: 'hidewindowforscreenreader'
       });
 
@@ -684,21 +661,21 @@ suite('system/AppWindowManager', function() {
 
     test('Overlay start on top of in process app', function() {
       injectRunningApps(app6);
-      appWindowManager._activeApp = app6;
+      subject._activeApp = app6;
       var stubIsOOP = this.sinon.stub(app6, 'isOOP');
       stubIsOOP.returns(false);
       var stubSetVisible = this.sinon.stub(app6, 'setVisible');
 
-      appWindowManager.handleEvent({ type: 'attentionopened' });
+      subject.handleEvent({ type: 'attentionopened' });
       assert.isTrue(stubSetVisible.calledWith(false));
     });
 
     test('Overlay start on top of OOP app', function() {
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubBlur = this.sinon.stub(app1, 'blur');
 
-      appWindowManager.handleEvent({ type: 'attentionopened' });
+      subject.handleEvent({ type: 'attentionopened' });
       assert.isTrue(stubBlur.called);
     });
   });
@@ -708,41 +685,41 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(app1);
       var stubKill = this.sinon.stub(app1, 'kill');
 
-      appWindowManager.kill(app1.origin);
+      subject.kill(app1.origin);
       assert.isTrue(stubKill.called);
     });
   });
 
   suite('updateActiveApp()', function() {
     test('update', function() {
-      var spyPublish= this.sinon.spy(appWindowManager, 'publish');
+      var spyPublish= this.sinon.spy(subject, 'publish');
       injectRunningApps(app1, app2, app3, app4);
-      appWindowManager.shrinkingUI = new MockShrinkingUI();
-      var stubStart = this.sinon.stub(appWindowManager.shrinkingUI, 'start');
-      appWindowManager.shrinkingUI.mActive = true;
-      appWindowManager._activeApp = app2;
-      appWindowManager._updateActiveApp(app1.instanceID);
+      subject.shrinkingUI = new MockShrinkingUI();
+      var stubStart = this.sinon.stub(subject.shrinkingUI, 'start');
+      subject.shrinkingUI.mActive = true;
+      subject._activeApp = app2;
+      subject._updateActiveApp(app1.instanceID);
       assert.equal(spyPublish.firstCall.args[0], 'activeappchanged');
-      assert.deepEqual(appWindowManager._activeApp, app1);
+      assert.deepEqual(subject._activeApp, app1);
       assert.isFalse(stubStart.calledOnce);
     });
 
     test('should not publish activeappchanged if activeApp is the same',
       function() {
-        var spyPublish= this.sinon.spy(appWindowManager, 'publish');
+        var spyPublish= this.sinon.spy(subject, 'publish');
         injectRunningApps(app1);
-        appWindowManager._activeApp = app1;
-        appWindowManager._updateActiveApp(app1.instanceID);
+        subject._activeApp = app1;
+        subject._updateActiveApp(app1.instanceID);
         assert.isFalse(spyPublish.calledWith('activeappchanged'));
       });
 
 
     test('should resize the new active app', function() {
       injectRunningApps(app1, app2, app3, app4);
-      appWindowManager._activeApp = app2;
+      subject._activeApp = app2;
 
       var resizeSpy = this.sinon.spy(app1, 'resize');
-      appWindowManager._updateActiveApp(app1.instanceID);
+      subject._updateActiveApp(app1.instanceID);
       sinon.assert.calledOnce(resizeSpy);
     });
   });
@@ -751,23 +728,23 @@ suite('system/AppWindowManager', function() {
     test('FTU', function() {
       var app = new AppWindow(fakeFTUConfig);
       injectRunningApps(app);
-      appWindowManager._activeApp = null;
+      subject._activeApp = null;
       var stubReady = this.sinon.stub(app, 'ready');
-      appWindowManager.display(app);
+      subject.display(app);
       stubReady.yield();
-      assert.equal(appWindowManager._activeApp, app);
+      assert.equal(subject._activeApp, app);
     });
 
     test('app to app', function() {
-      var stub_updateActiveApp = this.sinon.stub(appWindowManager,
+      var stub_updateActiveApp = this.sinon.stub(subject,
         '_updateActiveApp');
       injectRunningApps(app1, app2);
-      appWindowManager._activeApp = app1;
-      var stubSwitchApp = this.sinon.stub(appWindowManager, 'switchApp');
-      var spySendStopRecording = this.sinon.spy(appWindowManager,
-                                                'sendStopRecordingRequest');
+      subject._activeApp = app1;
+      var stubSwitchApp = this.sinon.stub(subject, 'switchApp');
+      var spySendStopRecording = this.sinon.spy(subject,
+                                                'stopRecording');
 
-      appWindowManager.display(app2);
+      subject.display(app2);
       assert.isTrue(spySendStopRecording.calledOnce);
       assert.isTrue(stubSwitchApp.called);
       assert.deepEqual(stubSwitchApp.getCall(0).args[0], app1);
@@ -777,39 +754,40 @@ suite('system/AppWindowManager', function() {
 
     test('Continunous app open requests', function() {
       injectRunningApps(home, app1, app2);
-      appWindowManager._activeApp = home;
+      subject._activeApp = home;
 
-      appWindowManager.display(app1);
-      appWindowManager.display(app2);
+      subject.display(app1);
+      subject.display(app2);
 
-      assert.deepEqual(appWindowManager._activeApp, app2);
+      assert.deepEqual(subject._activeApp, app2);
     });
 
     test('Ensuring the rocketbar transition', function() {
       injectRunningApps(home, app1, app2);
-      appWindowManager._activeApp = home;
-      appWindowManager.display(app1);
+      subject._activeApp = home;
+      subject.display(app1);
 
-      rocketbar.active = true;
-      this.sinon.spy(appWindowManager, 'switchApp');
-      appWindowManager.display(app2);
-      sinon.assert.notCalled(appWindowManager.switchApp);
+      subject.rocketbar = new MockRocketbar();
+      subject.rocketbar.active = true;
+      this.sinon.spy(subject, 'switchApp');
+      subject.display(app2);
+      sinon.assert.notCalled(subject.switchApp);
       window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
-      sinon.assert.calledOnce(appWindowManager.switchApp);
+      sinon.assert.calledOnce(subject.switchApp);
     });
   });
 
   suite('Switch app', function() {
     test('home to app', function() {
       injectRunningApps(home, app1);
-      appWindowManager._activeApp = home;
+      subject._activeApp = home;
 
 
       this.sinon.stub(app1, 'reviveBrowser');
       var stubReady = this.sinon.stub(app1, 'ready');
       var stubAppNextOpen = this.sinon.stub(app1, 'open');
       var stubAppCurrentClose = this.sinon.stub(home, 'close');
-      appWindowManager.switchApp(home, app1);
+      subject.switchApp(home, app1);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
@@ -818,14 +796,14 @@ suite('system/AppWindowManager', function() {
 
     test('home to an app killed while opening', function() {
       injectRunningApps(home, app1);
-      appWindowManager._activeApp = home;
+      subject._activeApp = home;
       this.sinon.stub(app1, 'isDead').returns(true);
 
-      var stub_updateActiveApp = this.sinon.stub(appWindowManager,
+      var stub_updateActiveApp = this.sinon.stub(subject,
         '_updateActiveApp');
       var stubReady = this.sinon.stub(app1, 'ready');
       var stubAppCurrentClose = this.sinon.stub(home, 'close');
-      appWindowManager.switchApp(home, app1);
+      subject.switchApp(home, app1);
       stubReady.yield();
       assert.isFalse(stubAppCurrentClose.called);
       assert.isTrue(stub_updateActiveApp.called);
@@ -833,11 +811,11 @@ suite('system/AppWindowManager', function() {
 
     test('app to home', function() {
       injectRunningApps(home, app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubReady = this.sinon.stub(home, 'ready');
       var stubAppNextOpen = this.sinon.stub(home, 'open');
       var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-      appWindowManager.switchApp(app1, home);
+      subject.switchApp(app1, home);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
@@ -845,35 +823,33 @@ suite('system/AppWindowManager', function() {
 
     test('app to home, and home is dead', function() {
       injectRunningApps(home, app1);
-      appWindowManager._activeApp = app1;
-      var stubGetHomescreen =
-        this.sinon.stub(homescreenWindowManager, 'getHomescreen');
-      stubGetHomescreen.returns(home);
+      subject._activeApp = app1;
       var stubReady = this.sinon.stub(home, 'ready');
 
       this.sinon.stub(home, 'isDead').returns(true);
-      appWindowManager.switchApp(app1, home);
+      this.sinon.stub(home, 'ensure');
+      subject.switchApp(app1, home);
       stubReady.yield();
-      assert.isTrue(stubGetHomescreen.called);
+      assert.isTrue(home.ensure.called);
     });
 
     test('lockscreen to home', function() {
       injectRunningApps(home);
-      appWindowManager._activeApp = null;
+      subject._activeApp = null;
       var stubReady = this.sinon.stub(home, 'ready');
       var stubAppNextOpen = this.sinon.stub(home, 'open');
-      appWindowManager.switchApp(null, home);
+      subject.switchApp(null, home);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.calledWith('immediate'));
     });
 
     test('app to app', function() {
       injectRunningApps(app1, app2);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubReady = this.sinon.stub(app2, 'ready');
       var stubAppNextOpen = this.sinon.stub(app2, 'open');
       var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-      appWindowManager.switchApp(app1, app2, true);
+      subject.switchApp(app1, app2, true);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
@@ -883,11 +859,11 @@ suite('system/AppWindowManager', function() {
 
     test('close app to cardsview', function() {
       injectRunningApps(app1, home);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubReady = this.sinon.stub(home, 'ready');
       var stubAppNextOpen = this.sinon.stub(home, 'open');
       var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-      appWindowManager.switchApp(app1, home, false, null, 'to-cardview');
+      subject.switchApp(app1, home, false, null, 'to-cardview');
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.calledWith('to-cardview'));
@@ -895,11 +871,11 @@ suite('system/AppWindowManager', function() {
 
     test('open app from cardsview', function() {
       injectRunningApps(app1, home);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       var stubReady = this.sinon.stub(app1, 'ready');
       var stubAppNextOpen = this.sinon.stub(app1, 'open');
       var stubAppCurrentClose = this.sinon.stub(home, 'close');
-      appWindowManager.switchApp(home, app1, false, 'from-cardview', null);
+      subject.switchApp(home, app1, false, 'from-cardview', null);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.calledWith('from-cardview'));
       assert.isTrue(stubAppCurrentClose.called);
@@ -912,7 +888,7 @@ suite('system/AppWindowManager', function() {
       var stubApp1broadcast = this.sinon.stub(app1, 'broadcast');
       var stubApp2broadcast = this.sinon.stub(app2, 'broadcast');
       var stubApp3broadcast = this.sinon.stub(app3, 'broadcast');
-      appWindowManager.broadcastMessage('fake-message');
+      subject.broadcastMessage('fake-message');
       assert.isTrue(stubApp1broadcast.called);
       assert.isTrue(stubApp2broadcast.calledWith('fake-message', undefined));
       assert.isTrue(stubApp3broadcast.calledWith('fake-message', undefined));
@@ -921,56 +897,56 @@ suite('system/AppWindowManager', function() {
 
   test('launchTrustedWindow', function() {
     var testDetail = 'testdetail';
-    appWindowManager._activeApp = app1;
+    subject._activeApp = app1;
     var stubBroadcast = this.sinon.stub(app1, 'broadcast');
-    appWindowManager._launchTrustedWindow({ detail: testDetail});
+    subject._launchTrustedWindow({ detail: testDetail});
     assert.isTrue(stubBroadcast.calledWith('launchtrusted', testDetail));
   });
 
   suite('Launch()', function() {
     test('Launch app1', function() {
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
       injectRunningApps();
-      appWindowManager.launch(fakeAppConfig1);
+      subject.launch(fakeAppConfig1);
       assert.isTrue(stubDisplay.called);
     });
 
     test('Launch app1 which is already launched', function() {
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
       injectRunningApps(app1);
-      appWindowManager.launch(fakeAppConfig1);
+      subject.launch(fakeAppConfig1);
       assert.isTrue(stubDisplay.called);
     });
 
     test('Launch background app', function() {
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
       injectRunningApps();
-      appWindowManager.launch(fakeAppConfig4Background);
+      subject.launch(fakeAppConfig4Background);
       assert.isFalse(stubDisplay.called);
     });
 
     test('Launch app is running and change URL', function() {
       injectRunningApps(app5);
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+      var stubDisplay = this.sinon.stub(subject, 'display');
       var stubChangeURL = this.sinon.stub(app5, 'modifyURLatBackground');
-      appWindowManager.launch(fakeAppConfig5Background);
+      subject.launch(fakeAppConfig5Background);
       assert.isTrue(stubChangeURL.called);
       assert.isFalse(stubDisplay.called);
     });
 
     test('Launch app is not running and change URL', function() {
       injectRunningApps(app1, app2, app3, app5);
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-      appWindowManager.launch(fakeAppConfig5Background);
+      var stubDisplay = this.sinon.stub(subject, 'display');
+      subject.launch(fakeAppConfig5Background);
       assert.isFalse(stubDisplay.called);
     });
 
     test('Launch an activity app', function() {
       injectRunningApps(app1, app7);
-      appWindowManager._updateActiveApp(app1.instanceID);
+      subject._updateActiveApp(app1.instanceID);
 
-      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-      appWindowManager.launch(fakeAppConfig7Activity);
+      var stubDisplay = this.sinon.stub(subject, 'display');
+      subject.launch(fakeAppConfig7Activity);
 
       assert.isTrue(stubDisplay.called);
       assert.equal(app7.callerWindow, app1);
@@ -981,14 +957,16 @@ suite('system/AppWindowManager', function() {
   suite('Settings change', function() {
     test('app-suspending.enabled', function() {
       var stubBroadcastMessage =
-        this.sinon.stub(appWindowManager, 'broadcastMessage');
-      MockSettingsListener.mCallbacks['app-suspending.enabled'](false);
+        this.sinon.stub(subject, 'broadcastMessage');
+      MockNavigatorSettings.mTriggerObservers('app-suspending.enabled',
+        { settingValue: false });
       assert.ok(stubBroadcastMessage.calledWith('kill_suspended'));
     });
 
     test('continuous-transition.enabled', function() {
-      MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
-      assert.isTrue(appWindowManager.continuousTransition);
+      MockNavigatorSettings.mTriggerObservers('continuous-transition.enabled',
+        { settingValue: true });
+      assert.isTrue(subject.continuousTransition);
     });
   });
 
@@ -997,21 +975,20 @@ suite('system/AppWindowManager', function() {
 
     setup(function() {
       // we fake getHomescreen as app2
-      this.sinon.stub(homescreenWindowManager, 'getHomescreen').returns(app2);
+      MockService.mockQueryWith('getHomescreen', app2);
     });
 
     test('Whatever caller is, we would go back to original app',
       function() {
         // callee is app7, caller is app2
         injectRunningApps(app7);
-        appWindowManager._activeApp = app1;
+        subject._activeApp = app1;
         this.sinon.stub(app1, 'getTopMostWindow').returns(app2);
 
-        appWindowManager.linkWindowActivity(fakeAppConfig);
+        subject.linkWindowActivity(fakeAppConfig);
 
         assert.deepEqual(app2.calleeWindow, app7);
         assert.deepEqual(app7.callerWindow, app2);
-        assert.isFalse(homescreenWindowManager.getHomescreen.called);
     });
 
     test('If there is a direct circular activity, ' +
@@ -1019,14 +996,14 @@ suite('system/AppWindowManager', function() {
       function() {
         // callee is app1, caller is app3(a front window)
         injectRunningApps(app1);
-        appWindowManager._activeApp = app1;
+        subject._activeApp = app1;
         fakeAppConfig.parentApp = '';
         app1.frontWindow = app3;
         this.sinon.stub(app1, 'getTopMostWindow').returns(app3);
         this.sinon.stub(app3, 'getBottomMostWindow').returns(app1);
         var stubKill = this.sinon.stub(app3, 'kill');
 
-        appWindowManager.linkWindowActivity(fakeAppConfig1);
+        subject.linkWindowActivity(fakeAppConfig1);
 
         assert.isTrue(stubKill.called);
         assert.isUndefined(app1.callerWindow);
@@ -1036,20 +1013,20 @@ suite('system/AppWindowManager', function() {
 
   test('getApp', function() {
     injectRunningApps(app1, app2, app3, app4);
-    assert.deepEqual(appWindowManager.getApp('app://www.fake2'), app2);
-    assert.isNull(appWindowManager.getApp('app://no-this-origin'));
+    assert.deepEqual(subject.getApp('app://www.fake2'), app2);
+    assert.isNull(subject.getApp('app://no-this-origin'));
   });
 
   test('new browser window for getApp', function() {
     injectRunningApps(app5);
-    var newApp1 = appWindowManager.getApp(fakeAppConfig5Background.origin);
+    var newApp1 = subject.getApp(fakeAppConfig5Background.origin);
     assert.deepEqual(newApp1.config, fakeAppConfig5Background);
 
-    var newApp2 = appWindowManager.getApp(fakeBrowserConfig.origin);
+    var newApp2 = subject.getApp(fakeBrowserConfig.origin);
     assert.deepEqual(newApp2, null);
 
     injectRunningApps(browser1);
-    newApp2 = appWindowManager.getApp(fakeBrowserConfig.origin);
+    newApp2 = subject.getApp(fakeBrowserConfig.origin);
     assert.deepEqual(newApp2.config, fakeBrowserConfig);
   });
 
@@ -1059,46 +1036,46 @@ suite('system/AppWindowManager', function() {
     var url2 = 'http://mozilla.org/page2';
 
     injectRunningApps(browser1);
-    assert.deepEqual(appWindowManager.getAppByURL(url1), browser1);
-    assert.isNull(appWindowManager.getAppByURL('app://no-this-origin'));
+    assert.deepEqual(subject.getAppByURL(url1), browser1);
+    assert.isNull(subject.getAppByURL('app://no-this-origin'));
 
     // Change url in the browser and ensure we can find it again
     browser1.config.url = url2;
 
-    assert.deepEqual(appWindowManager.getAppByURL(url2), browser1);
-    assert.isNull(appWindowManager.getAppByURL(url1));
+    assert.deepEqual(subject.getAppByURL(url2), browser1);
+    assert.isNull(subject.getAppByURL(url1));
   });
 
   suite('Hierarchy functions', function() {
     setup(function() {
-      window.appWindowFactory = MockAppWindowFactory;
+      subject.appWindowFactory = MockAppWindowFactory;
       window.WrapperFactory = MockWrapperFactory;
     });
 
     teardown(function() {
-      window.appWindowFactory = null;
       window.WrapperFactory = null;
     });
 
     test('getActiveWindow', function() {
-      appWindowManager._activeApp = app1;
-      assert.equal(appWindowManager.getActiveWindow(), app1);
+      subject._activeApp = app1;
+      assert.equal(subject.getActiveWindow(), app1);
+      subject.ftuLauncher = MockFtuLauncher;
     });
 
     test('setHierarchy', function() {
       this.sinon.stub(MockWrapperFactory, 'isLaunchingWindow').returns(false);
       this.sinon.stub(MockAppWindowFactory, 'isLaunchingWindow').returns(false);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       this.sinon.stub(app1, 'focus');
       this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'setVisibleForScreenReader');
       this.sinon.stub(app1, 'setNFCFocus');
-      appWindowManager.setHierarchy(true);
+      subject.setHierarchy(true);
       assert.isTrue(app1.focus.called);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
       assert.isTrue(app1.setNFCFocus.calledWith(true));
 
-      appWindowManager.setHierarchy(false);
+      subject.setHierarchy(false);
       assert.isTrue(app1.blur.calledOnce);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
     });
@@ -1106,74 +1083,82 @@ suite('system/AppWindowManager', function() {
     test('setHierarchy(true) while launching a new window', function() { 
       this.sinon.stub(MockWrapperFactory, 'isLaunchingWindow').returns(true);
       this.sinon.stub(MockAppWindowFactory, 'isLaunchingWindow').returns(false);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       this.sinon.stub(app1, 'focus');
 
-      appWindowManager.setHierarchy(true);
+      subject.setHierarchy(true);
       assert.isFalse(app1.focus.called);
     });
       
     test('setHierarchy', function() {
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       this.sinon.stub(app1, 'focus');
       this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'setVisibleForScreenReader');
       this.sinon.stub(app1, 'setNFCFocus');
-      appWindowManager.setHierarchy(true);
+      subject.setHierarchy(true);
       assert.isTrue(app1.focus.called);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
       assert.isTrue(app1.setNFCFocus.calledWith(true));
 
-      appWindowManager.setHierarchy(false);
+      subject.setHierarchy(false);
       assert.isTrue(app1.blur.calledOnce);
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
     });
 
     test('focus is redirected', function() {
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       this.sinon.stub(app1, 'focus');
-      appWindowManager.focus();
+      subject.focus();
       assert.isTrue(app1.focus.called);
     });
 
     test('Should publish activated', function() {
-      this.sinon.stub(appWindowManager, 'publish');
+      this.sinon.stub(subject, 'publish');
       injectRunningApps(app1);
-      appWindowManager._activeApp = null;
+      subject._activeApp = null;
       window.dispatchEvent(new CustomEvent('appopened', {
         detail: app1
       }));
-      assert.isTrue(appWindowManager.publish.calledWith(
-        appWindowManager.EVENT_PREFIX + '-activated'));
+      assert.isTrue(subject.publish.calledWith('-activated'));
     });
 
     test('Should publish deactivated', function() {
-      this.sinon.stub(appWindowManager, 'publish');
+      this.sinon.stub(subject, 'publish');
       injectRunningApps(app1);
-      appWindowManager._activeApp = app1;
+      subject._activeApp = app1;
       window.dispatchEvent(new CustomEvent('taskmanager-activated'));
-      assert.isTrue(appWindowManager.publish.calledWith(
-        appWindowManager.EVENT_PREFIX + '-deactivated'));
+      assert.isTrue(subject.publish.calledWith('-deactivated'));
     });
 
     suite('isActive', function() {
+      setup(function() {
+        subject.taskManager = new MockTaskManager();
+      });
+
       test('No active app', function() {
-        appWindowManager._activeApp = null;
-        assert.isFalse(appWindowManager.isActive());
+        subject._activeApp = null;
+        assert.isFalse(subject.isActive());
       });
 
       test('There is active app', function() {
-        appWindowManager._activeApp = app1;
+        subject._activeApp = app1;
         this.sinon.stub(app1, 'isActive').returns(true);
-        assert.isTrue(appWindowManager.isActive());
+        assert.isTrue(subject.isActive());
       });
 
       test('There is active app but it is closed', function() {
-        appWindowManager._activeApp = app1;
+        subject._activeApp = app1;
         this.sinon.stub(app1, 'isActive').returns(false);
-        this.sinon.stub(window.taskManager, 'isActive').returns(true);
-        assert.isFalse(appWindowManager.isActive());
+        this.sinon.stub(subject.taskManager, 'isActive').returns(true);
+        assert.isFalse(subject.isActive());
       });
     });
+  });
+
+  test('busy loading', function() {
+    subject._activeApp = app1;
+    app1.loaded = false;
+    assert.isTrue(subject.isBusyLoading());
   });
 });

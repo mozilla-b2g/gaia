@@ -40,6 +40,7 @@ var Wifi = {
 
     this.wifiManager = window.navigator.mozWifiManager;
 
+    LazyLoader.load(['js/captive_portal.js']);
     Service.request('stepReady', '#wifi').then(function() {
       return LazyLoader.load(['js/wifi_icon.js']);
     }.bind(this)).then(function() {
@@ -202,7 +203,7 @@ var Wifi = {
     var lock = SettingsListener.getSettingsLock();
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
-    if (!ScreenManager.screenEnabled && !battery.charging) {
+    if (!Service.query('screenEnabled') && !battery.charging) {
       if (!this.wifiEnabled && this._wakeLockManager.isHeld) {
         lock.set({ 'wifi.enabled': true });
         window.addEventListener('wifi-enabled', function() {

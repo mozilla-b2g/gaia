@@ -2,7 +2,7 @@
           MockNavigatorGetDeviceStorage, MockSystemBanner */
 'use strict';
 
-requireApp('system/js/storage_watcher.js');
+requireApp('system/js/device_storage_watcher.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_banner.js');

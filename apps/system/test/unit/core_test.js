@@ -1,13 +1,21 @@
-/* global BaseModule, MockPromise */
+/* global BaseModule, MockPromise, MocksHelper, MockWifiManager */
 'use strict';
 
 
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/core.js');
 
+
+var mocksForCore = new MocksHelper([
+  'LazyLoader'
+]).init();
+
 suite('system/Core', function() {
+  mocksForCore.attachTestHelpers();
   var core;
   setup(function() {
     core = new BaseModule.instantiate('Core');
@@ -40,10 +48,10 @@ suite('system/Core', function() {
   });
 
   suite('API handler bootstrap', function() {
-    var realSettings, fakeSettings = {};
+    var realWifiManager;
     setup(function() {
-      realSettings = navigator.mozSettings;
-      navigator.mozSettings = fakeSettings;
+      realWifiManager = navigator.mozWifiManager;
+      navigator.mozWifiManager = MockWifiManager;
       this.sinon.stub(BaseModule, 'lazyLoad', function(args) {
         return Promise.resolve();
       });
@@ -55,21 +63,14 @@ suite('system/Core', function() {
       });
     });
     teardown(function() {
-      navigator.mozSettings = realSettings;
+      navigator.mozWifiManager = realWifiManager;
     });
 
-    test('simple launch with Settings API', function() {
+    test('simple launch with Wifi API', function() {
       this.sinon.stub(core, 'startAPIHandler');
-      core.start();
+      core.startAPIHandlers();
       assert.isTrue(
-        core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
-    });
-
-    test('Start the API handler for settings', function(done) {
-      core.startAPIHandler('mozSettings', 'SettingsCore').then(function() {
-        assert.isDefined(core.settingsCore);
-        done();
-      });
+        core.startAPIHandler.called);
     });
   });
 

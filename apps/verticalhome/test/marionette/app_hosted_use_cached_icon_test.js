@@ -27,7 +27,7 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     subject.waitForLaunch();
   });
 

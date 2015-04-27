@@ -23,7 +23,7 @@ marionette('Software Home Button - File Open Error', function() {
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     actions = client.loader.getActions();
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   suiteSetup(function(done) {

@@ -157,7 +157,7 @@ var UpdateManager = {
   },
 
   cancelAllDownloads: function um_cancelAllDownloads() {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
 
     // We're emptying the array while iterating
     while (this.downloadsQueue.length) {
@@ -174,9 +174,11 @@ var UpdateManager = {
     var _ = navigator.mozL10n.get;
     var self = this;
     this._errorTimeout = setTimeout(function waitForMore() {
-      var systemBanner = new SystemBanner();
-      systemBanner.show(_('downloadError'));
-      self._errorTimeout = null;
+      LazyLoader.load(['js/system_banner.js']).then(function() {
+        var systemBanner = new SystemBanner();
+        systemBanner.show(_('downloadError'));
+        self._errorTimeout = null;
+      }.bind(this));
     }, this.NOTIFICATION_BUFFERING_TIMEOUT);
   },
 
@@ -279,16 +281,12 @@ var UpdateManager = {
         callback: this.cancelAllDownloads.bind(this)
       };
 
-      var screen = document.getElementById('screen');
-
-      CustomDialog.show(
+      Service.request('showCustomDialog',
         'cancelAllDownloads',
         'wantToCancelAll',
         cancel,
-        confirm,
-        screen
-      )
-      .setAttribute('data-z-index-level', 'system-dialog');
+        confirm
+      );
     } else {
       this.showDownloadPrompt();
     }
@@ -298,34 +296,30 @@ var UpdateManager = {
 
   showForbiddenDownload: function um_showForbiddenDownload() {
     //Close any dialog if there is any open
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     var ok = {
       title: 'ok',
       callback: this.cancelPrompt.bind(this)
     };
 
-    var screen = document.getElementById('screen');
     window.dispatchEvent(new CustomEvent('updatepromptshown'));
 
-    CustomDialog
-      .show('systemUpdate', 'downloadUpdatesVia2GForbidden3', ok, null, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
+    Service.request('showCustomDialog',
+      'systemUpdate', 'downloadUpdatesVia2GForbidden3', ok, null);
   },
 
   showPromptNoConnection: function um_showPromptNoConnection() {
     //Close any dialog if there is any open
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     var ok = {
       title: 'ok',
       callback: this.cancelPrompt.bind(this)
     };
 
-    var screen = document.getElementById('screen');
     window.dispatchEvent(new CustomEvent('updatepromptshown'));
 
-    CustomDialog
-      .show('systemUpdate', 'downloadOfflineWarning2', ok, null, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
+    Service.request('showCustomDialog',
+      'systemUpdate', 'downloadOfflineWarning2', ok, null);
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
@@ -422,12 +416,12 @@ var UpdateManager = {
   },
 
   cancelPrompt: function um_cancelPrompt() {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     this._closeDownloadDialog();
   },
 
   cancelDataConnectionUpdatesPrompt: function um_cancelDCUpdatesPrompt() {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     this.downloadViaDataConnectionDialog.classList.remove('visible');
     this._closeDownloadDialog();
   },
@@ -475,7 +469,7 @@ var UpdateManager = {
   showPrompt3GAdditionalCostIfNeeded:
     function um_showPrompt3GAdditionalCostIfNeeded() {
     this._openDownloadViaDataDialog();
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
   },
 
   showPromptWifiPrioritized:
@@ -499,17 +493,15 @@ var UpdateManager = {
 
     this._closeDownloadDialog();
 
-    var screen = document.getElementById('screen');
     window.dispatchEvent(new CustomEvent('updatepromptshown'));
 
     UtilityTray.hide();
-    CustomDialog.show(
+    Service.request('showCustomDialog',
       'systemUpdate',
       messageL10n,
       notNow,
-      download,
-      screen
-    ).setAttribute('data-z-index-level', 'system-dialog');
+      download
+    );
   },
 
   downloadProgressed: function um_downloadProgress(bytes) {
@@ -748,7 +740,7 @@ var UpdateManager = {
        case 'lockscreen-appopened':
         this.downloadViaDataConnectionDialog.classList.remove('visible');
         this._closeDownloadDialog();
-        CustomDialog.hide();
+        Service.request('hideCustomDialog');
         break;
     }
 

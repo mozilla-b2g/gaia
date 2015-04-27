@@ -61,7 +61,7 @@
      */
     PRIORITIES: [
       'OverlayWindowManager',
-      'InitLogoHandler',
+      'LogoManager',
       'AttentionWindowManager',
       'SecureWindowManager',
       'LockScreenWindowManager',

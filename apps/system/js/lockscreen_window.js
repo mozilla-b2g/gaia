@@ -1,6 +1,5 @@
-/* globals LockScreenAgent */
-/* global softwareButtonManager */
-/* global OrientationManager */
+/* globals LockScreenAgent, LazyLoader */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -32,8 +31,10 @@
     };
     this.iframe = this.createFrame();
 
-    this.lockScreenAgent = new LockScreenAgent(this.iframe);
-    this.lockScreenAgent.start();
+    LazyLoader.load(['js/lockscreen_agent.js']).then(() => {
+      this.lockScreenAgent = new LockScreenAgent(this.iframe);
+      this.lockScreenAgent.start();
+    });
     AppWindow.call(this, this.configs);
     window.dispatchEvent(new CustomEvent('lockscreen-frame-bootstrap'));
   };
@@ -46,9 +47,11 @@
 
   LockScreenWindow.prototype.constructor = LockScreenWindow;
 
+  LockScreenWindow.prototype.isLockscreen = true;
+
   LockScreenWindow.SUB_COMPONENTS = {
-    'transitionController': window.AppTransitionController,
-    'statusbar': window.AppStatusbar
+    'transitionController': 'AppTransitionController',
+    'statusbar': 'AppStatusbar'
   };
 
   LockScreenWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
@@ -102,8 +105,8 @@
     var height, width;
 
     // We want the lockscreen to go below the StatusBar
-    height = self.layoutManager.height;
-    width = self.layoutManager.width;
+    height = Service.query('LayoutManager.height') || window.innerHeight;
+    width = Service.query('LayoutManager.width') || window.innerWidth;
 
     this.width = width;
     this.height = height;
@@ -216,7 +219,7 @@
         return window.innerHeight;
       }
       var softwareButtonHeight = this.isActive()  ?
-        0 : softwareButtonManager.height;
+        0 : (Service.query('SoftwareButtonManager.height') || 0);
       var inputWindowHeight = 0;
       if (this.states.instance && this.states.instance.inputWindow.isActive()) {
         inputWindowHeight = this.configs.inputWindow.height;
@@ -255,7 +258,7 @@
           this.orientationLockID = null;
         }
       };
-      if (OrientationManager.isOnRealDevice()) {
+      if (Service.query('isOnRealDevice')) {
         if (this.orientationLockID) {
           // The previous one still present and was not cleared,
           // so do nothing.
