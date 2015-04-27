@@ -42,6 +42,7 @@ requireApp('system/js/global_overlay_window_manager.js');
 requireApp('system/js/rocketbar.js');
 requireApp('system/js/home_gesture.js');
 requireApp('system/js/homescreen_launcher.js');
+requireApp('system/js/import.js');
 requireApp('system/js/internet_sharing.js');
 requireApp('system/js/input_window_manager.js');
 requireApp('system/js/layout_manager.js');

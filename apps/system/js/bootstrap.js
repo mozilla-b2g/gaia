@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, Browser, SecureWindowFactory,
+/*global ActivityWindowManager, Browser, SecureWindowFactory, Import,
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
@@ -245,3 +245,5 @@ window.browser = new Browser();
 window.browser.start();
 window.browserSettings = new BrowserSettings();
 window.browserSettings.start();
+window.import = new Import();
+window.import.start();
