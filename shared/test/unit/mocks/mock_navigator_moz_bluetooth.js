@@ -10,6 +10,7 @@
     toggleCalls: function mba_toggleCalls() {},
     getConnectedDevices: function mba_getConnectedDevices() {},
     getPairedDevices: function mba_getPairedDevices() {},
+    connect: function mba_connect() {},
     connectSco: function mba_connectSco() {},
     disconnectSco: function mba_disconnectSco() {},
     setPairingConfirmation: function mba_setPairingConfirmation() {},
@@ -18,6 +19,7 @@
     confirmReceivingFile: function mba_confirmReceivingFile() {},
     sendFile: function mba_sendFile() {},
     stopSendingFile: function mba_stopSendingFile() {},
+    pair: function mba_pair() {},
 
     onscostatuschanged: null,
     ona2dpstatuschanged: null

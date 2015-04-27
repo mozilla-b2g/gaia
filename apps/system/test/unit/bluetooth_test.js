@@ -1,10 +1,13 @@
-/* global MockMozBluetooth, Bluetooth, MockBTAdapter,
-          MockNavigatormozSetMessageHandler, MocksHelper, MockLazyLoader */
+/* global MockMozBluetooth, Bluetooth, MockBTAdapter, MockDOMRequest,
+          MockNavigatormozSetMessageHandler, MocksHelper,
+          MockLazyLoader, Service */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
+require('/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
@@ -27,7 +30,7 @@ var mocksForBluetooth = new MocksHelper([
   'LazyLoader'
 ]).init();
 
-suite('system/BluetoothCore', function() {
+suite('system/Bluetooth_v1', function() {
   var realMozBluetooth, realSetMessageHandler;
   mocksForBluetooth.attachTestHelpers();
 
@@ -94,5 +97,36 @@ suite('system/BluetoothCore', function() {
     assert.isTrue(Bluetooth.headphoneIcon.update.called);
     MockBTAdapter.ona2dpstatuschanged({status: false});
     assert.isTrue(Bluetooth.headphoneIcon.update.calledTwice);
+  });
+
+  suite('service requests', function() {
+    test('request the adapter', function() {
+      Bluetooth.defaultAdapter = MockBTAdapter;
+      Service.request('Bluetooth:adapter').then(function(value) {
+        assert.equal(value, Bluetooth._adapter);
+      });
+    });
+
+    test('request pair', function() {
+      Bluetooth._adapter = MockBTAdapter;
+      var mac = '01:23:45:67:89:AB';
+      this.sinon.stub(MockBTAdapter, 'pair', function() {
+        return new MockDOMRequest();
+      });
+      Service.request('Bluetooth:pair', mac).then(function() {
+        assert.ok(MockBTAdapter.pair.calledWith(mac));
+      });
+    });
+
+    test('request getPairedDevices', function() {
+      Bluetooth._adapter = MockBTAdapter;
+      this.sinon.stub(MockBTAdapter, 'getPairedDevices', function() {
+        return new MockDOMRequest();
+      });
+      Service.request('Bluetooth:getPairedDevices')
+        .then(function() {
+          assert.ok(MockBTAdapter.getPairedDevices.called);
+      });
+    });
   });
 });

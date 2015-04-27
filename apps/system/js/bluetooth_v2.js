@@ -171,7 +171,11 @@ Bluetooth.prototype = {
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
       this._oppTransferCompleteHandler.bind(this));
 
-    // expose isEnabled function to Service.query
+    // expose functions to Service.request
+    Service.register('adapter', this);
+    Service.register('pair', this);
+    Service.register('getPairedDevices', this);
+    // expose functions to Service.query
     Service.registerState('isEnabled', this);
     Service.registerState('getAdapter', this);
     Service.registerState('isOPPProfileConnected', this);
@@ -432,6 +436,50 @@ Bluetooth.prototype = {
     } else {
       window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
     }
+  },
+
+  /**
+   * Get adapter from bluetooth through promise interface.
+   * XXX: the function abstract the Bluetooth API difference.
+   * We can remove it and use service query once BTv1 is deprecated.
+   *
+   * @public
+   * @return {Promise} A promise that resolve the Bluetooth Adapter
+   */
+  adapter: function bt__adapter() {
+    return new Promise((resolve, reject) => {
+      if (this._adapter !== null) {
+        resolve(this._adapter);
+      } else {
+        this.debug('No BT adapter retrieved');
+        reject();
+      }
+    });
+  },
+
+  /**
+   * Return device pairing result.
+   * XXX: the function abstract the Bluetooth API difference.
+   *
+   * @public
+   * @param {string} mac target device address
+   * @return {Promise} A promise that resolve when pair successfully,
+   *                   reject when pair failed
+   */
+  pair: function bt__pair(mac) {
+    return this._adapter.pair(mac);
+  },
+
+  /**
+   * Return paired devices list.
+   * XXX: the function abstract the Bluetooth API difference.
+   * We can use service query to return list once BTv1 is deprecated.
+   *
+   * @public
+   * @returns {Object[]} sequence of BluetoothDevice
+   */
+  getPairedDevices: function bt__getPairedDevices() {
+    return this._adapter.getPairedDevices();
   },
 
   /**
