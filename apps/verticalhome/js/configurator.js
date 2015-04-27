@@ -206,6 +206,9 @@
 
       conf.grid.forEach(function forEachSection(section) {
         section.forEach(function forEachItem(item) {
+          if (!item) {
+            return;
+          }
           if (item.role === role) {
             items[item.id] = item;
           }
