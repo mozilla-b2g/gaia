@@ -367,4 +367,3 @@ exports.jsComparator = jsComparator;
 exports.NodeHelper = utils.NodeHelper;
 exports.relativePath = utils.relativePath;
 exports.normalizePath = utils.normalizePath;
-exports.getMD5hash = utils.getMD5hash;
