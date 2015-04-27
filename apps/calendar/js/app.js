@@ -10,16 +10,15 @@ var router = require('router');
 var ServiceController = require('controllers/service');
 var SyncController = require('controllers/sync');
 var TimeController = require('controllers/time');
-var Views = {};
 var dayObserver = require('day_observer');
 var debug = require('debug')('app');
 var messageHandler = require('message_handler');
 var nextTick = require('next_tick');
 var notificationsController = require('controllers/notifications');
-var periodicSyncController = require('controllers/periodic_sync');
 var performance = require('performance');
+var periodicSyncController = require('controllers/periodic_sync');
 var providerFactory = require('provider/provider_factory');
-var snakeCase = require('snake_case');
+var viewFactory = require('views/factory');
 
 var pendingClass = 'pending-operation';
 
@@ -41,12 +40,10 @@ module.exports = {
   configure: function(db) {
     debug('Configure calendar with db.');
     this.db = db;
-    router.app = this;
+    viewFactory.app = this;
 
     providerFactory.app = this;
 
-    this._views = Object.create(null);
-    this._routeViewFn = Object.create(null);
     this._pendingManager = new PendingManager();
 
     var loadedLazyStyles = false;
@@ -193,8 +190,8 @@ module.exports = {
 
     this.timeController.move(new Date());
 
-    this.view('TimeHeader', (header) => header.render());
-    this.view('ViewSelector', (tabs) => tabs.render());
+    viewFactory.get('TimeHeader', header => header.render());
+    viewFactory.get('ViewSelector', tabs => tabs.render());
 
     document.body.classList.remove('loading');
 
@@ -204,7 +201,7 @@ module.exports = {
 
     this._routes();
 
-    nextTick(() => this.view('Errors'));
+    nextTick(() => viewFactory.get('Errors'));
 
     // Restart the calendar when the timezone changes.
     // We do this on a timer because this event may fire
@@ -240,57 +237,6 @@ module.exports = {
       // we init the UI after the db.load to increase perceived performance
       // (will feel like busytimes are displayed faster)
       navigator.mozL10n.once(() => this._initUI());
-    });
-  },
-
-  _initView: function(name) {
-    var view = new Views[name]({ app: this });
-    this._views[name] = view;
-  },
-
-  /**
-   * Initializes a view and stores
-   * a internal reference so when
-   * view is called a second
-   * time the same view is used.
-   *
-   * Makes an asynchronous call to
-   * load the script if we do not
-   * have the view cached.
-   *
-   *    // for example if you have
-   *    // a calendar view Foo
-   *
-   *    Calendar.Views.Foo = Klass;
-   *
-   *    app.view('Foo', function(view) {
-   *      (view instanceof Calendar.Views.Foo) === true
-   *    });
-   *
-   * @param {String} name view name.
-   * @param {Function} view loaded callback.
-   */
-  view: function(name, cb) {
-    if (name in this._views) {
-      debug('Found view named ', name);
-      var view = this._views[name];
-      return cb && nextTick(() => cb.call(this, view));
-    }
-
-    if (name in Views) {
-      debug('Must initialize view', name);
-      this._initView(name);
-      return this.view(name, cb);
-    }
-
-    var snake = snakeCase(name);
-    debug('Will try to load view', name);
-    // we need to grab the global `require` because the async require is not
-    // part of the AMD spec and is not implemented by all loaders
-    window.require([ 'views/' + snake ], (aView) => {
-      debug('Loaded view', name);
-      Views[name] = aView;
-      return this.view(name, cb);
     });
   },
 
