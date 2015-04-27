@@ -25,9 +25,12 @@
 
   SearchWindow.SUB_COMPONENTS = {
     'childWindowFactory': window.ChildWindowFactory,
-    'contextmenu': window.BrowserContextMenu,
     'transitionController': window.AppTransitionController,
     'valueSelector': window.ValueSelector
+  };
+
+  SearchWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   SearchWindow.prototype = Object.create(AppWindow.prototype);

@@ -1,17 +1,19 @@
-/*global MocksHelper, MockL10n, AppWindow, BrowserContextMenu,
-  MockMozActivity, MozActivity, MockAppWindowHelper, Browser */
+/* global MocksHelper, MockL10n, AppWindow, MockMozActivity, MozActivity,
+          MockAppWindowHelper, Browser, BaseModule */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_icons_helper.js');
+require('/shared/test/unit/mocks/mock_moz_activity.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_context_menu_view.js');
-require('/shared/test/unit/mocks/mock_moz_activity.js');
-require('/js/browser_config_helper.js');
-require('/js/browser.js');
+requireApp('system/js/browser_config_helper.js');
+requireApp('system/js/browser.js');
+requireApp('system/js/base_module.js');
+requireApp('system/js/service.js');
 
 var mocksForAppModalDialog = new MocksHelper([
   'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper', 'ContextMenuView'
@@ -36,8 +38,14 @@ suite('system/BrowserContextMenu', function() {
       }
     };
 
-    requireApp('system/js/service.js');
-    requireApp('system/js/base_ui.js');
+    this.sinon.stub(BaseModule, 'lazyLoad', function() {
+      return {
+          'then': function(callback) {
+            callback();
+          }
+        };
+    });
+
     requireApp('system/js/browser_context_menu.js', done);
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
@@ -149,20 +157,23 @@ suite('system/BrowserContextMenu', function() {
 
   test('New', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
-    assert.isDefined(md1._view);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+    assert.isDefined(md1);
+    assert.isDefined(md1.contextMenuView);
   });
 
   test('launch menu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
-    this.sinon.stub(md1._view, 'show');
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+    this.sinon.stub(md1.contextMenuView, 'show');
 
     var stubStopPropagation =
       this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
 
     md1.handleEvent(fakeContextMenuEvent);
-    assert.isTrue(md1._view.show.called);
+    assert.isTrue(md1.contextMenuView.show.called);
     assert.isTrue(stubStopPropagation.called);
   });
 
@@ -171,7 +182,8 @@ suite('system/BrowserContextMenu', function() {
 
     setup(function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      md1 = new BrowserContextMenu(app1);
+      md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+      md1.start();
       md1.showDefaultMenu();
     });
 
@@ -187,7 +199,8 @@ suite('system/BrowserContextMenu', function() {
 
   test('Check that a context menu containing items is prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
 
     md1.handleEvent(fakeContextMenuEvent);
     assert.isTrue(fakeContextMenuEvent.defaultPrevented);
@@ -195,7 +208,8 @@ suite('system/BrowserContextMenu', function() {
 
   test('Check that an empty context menu is not prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
 
     md1.handleEvent(fakeEmptyContextMenuEvent);
     assert.isTrue(!fakeEmptyContextMenuEvent.defaultPrevented);
@@ -203,7 +217,8 @@ suite('system/BrowserContextMenu', function() {
 
   test('Check that a context menu without items is not prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
 
     md1.handleEvent(fakeNoItemsContextMenuEvent);
     assert.isTrue(!fakeNoItemsContextMenuEvent.defaultPrevented);
@@ -212,7 +227,8 @@ suite('system/BrowserContextMenu', function() {
 
   test('Check that a system menu without items is prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
 
     app1.isBrowser = function() {
       return true;
@@ -228,7 +244,8 @@ suite('system/BrowserContextMenu', function() {
 
   test('Check that an app with system menu is not prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
 
     app1.isCertified = function() {
       return true;
@@ -244,7 +261,9 @@ suite('system/BrowserContextMenu', function() {
 
   test('newWindow() - private browser', function() {
     var app1 = new AppWindow(fakePrivateConfig);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+
     md1.newWindow('http://search.gaiamobile.org/manifest.webapp', true);
 
     var app = MockAppWindowHelper.mLatest;
@@ -253,12 +272,14 @@ suite('system/BrowserContextMenu', function() {
 
   test('bookmark/share buttons hidden in private browser', function(done) {
     var app1 = new AppWindow(fakePrivateConfig);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
     var app2 = new AppWindow(fakeBrowserConfig);
-    var md2 = new BrowserContextMenu(app2);
+    var md2 = BaseModule.instantiate('BrowserContextMenu', app2);
+    md2.start();
 
-    var md1ShowStub = this.sinon.stub(md1._view, 'show');
-    var md2ShowStub = this.sinon.stub(md2._view, 'show');
+    var md1ShowStub = this.sinon.stub(md1.contextMenuView, 'show');
+    var md2ShowStub = this.sinon.stub(md2.contextMenuView, 'show');
     Promise.all([
       md1.showDefaultMenu(),
       md2.showDefaultMenu()
@@ -274,7 +295,9 @@ suite('system/BrowserContextMenu', function() {
 
   test('openUrl()', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+
     md1.openUrl('http://example.com');
     assert.equal(MozActivity.calls.length, 1);
     assert.equal(MozActivity.calls[0].name, 'view');
@@ -285,7 +308,9 @@ suite('system/BrowserContextMenu', function() {
 
   test('openUrl() - private browser', function() {
     var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new BrowserContextMenu(app1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+
     md1.openUrl('http://example.com', true);
     assert.equal(MozActivity.calls.length, 1);
     assert.equal(MozActivity.calls[0].name, 'view');

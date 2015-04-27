@@ -37,7 +37,10 @@ suite('ContextMenuView', function() {
 
   setup(function() {
     fakeApp = new AppWindow(fakeAppConfig);
-    contextMenu = new ContextMenuView(fakeApp);
+    contextMenu = new ContextMenuView({
+      'app': fakeApp,
+      'containerElement': fakeApp.element
+    });
   });
 
   test('show(fakeMenus)', function() {

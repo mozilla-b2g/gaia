@@ -1,5 +1,6 @@
 /* globals AttentionWindow, MocksHelper, AppWindow, MockApplications,
-            MockL10n, MockLayoutManager, MockManifestHelper */
+           MockL10n, MockLayoutManager, MockManifestHelper, BaseModule,
+           MockContextMenu */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -9,6 +10,7 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
+requireApp('system/test/unit/mock_context_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForAttentionWindow = new MocksHelper([
@@ -60,9 +62,17 @@ suite('system/AttentionWindow', function() {
     });
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
+    requireApp('system/js/base_module.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/browser_mixin.js');
-    requireApp('system/js/attention_window.js', done);
+    requireApp('system/js/attention_window.js', function() {
+      this.sinon.stub(BaseModule, 'instantiate', function(name) {
+        if (name === 'BrowserContextMenu') {
+          return MockContextMenu;
+        }
+      });
+      done();
+    }.bind(this));
   });
 
   teardown(function() {

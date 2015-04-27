@@ -1,4 +1,4 @@
-/* global PopupWindow, MocksHelper, AppWindow */
+/* global PopupWindow, MocksHelper, AppWindow, BaseModule, MockContextMenu */
 
 'use strict';
 
@@ -7,6 +7,7 @@ requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_chrome.js');
+requireApp('system/test/unit/mock_context_menu.js');
 
 requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
@@ -52,9 +53,17 @@ suite('system/PopupWindow', function() {
     requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
+    requireApp('system/js/base_module.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/browser_mixin.js');
-    requireApp('system/js/popup_window.js', done);
+    requireApp('system/js/popup_window.js', function() {
+      this.sinon.stub(BaseModule, 'instantiate', function(name) {
+        if (name === 'BrowserContextMenu') {
+          return MockContextMenu;
+        }
+      });
+      done();
+    }.bind(this));
   });
 
   teardown(function() {

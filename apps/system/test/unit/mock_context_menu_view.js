@@ -2,7 +2,7 @@
 
 (function(exports) {
   /* exported MockContextMenuView */
-  function MockContextMenuView(app) {
+  function MockContextMenuView(parentModule) {
     this._shown = false;
   }
 

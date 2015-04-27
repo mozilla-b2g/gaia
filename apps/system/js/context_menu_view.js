@@ -8,13 +8,13 @@
    * The ContextMenu UI for BrowserContextMenu.
    *
    * @class ContextMenuView
-   * @param {AppWindow} app The app window instance
-   *                        where this dialog should popup.
+   * @param {BaseModule} parentModule The BrowserContextMenu instance
+   *                                  where this dialog should popup.
    * @extends BaseUI
    */
-  function ContextMenuView(app) {
-    this.app = app;
-    this.containerElement = app.element;
+  function ContextMenuView(parentModule) {
+    this.parentModule = parentModule;
+    this.containerElement = parentModule.containerElement;
     this.instanceID = _id++;
     this._injected = false;
   }
@@ -81,7 +81,7 @@
     }
 
     this.buildMenu(menu);
-    this.app && this.app.blur();
+    this.parentModule.app && this.parentModule.app.blur();
     this.element.classList.add('visible');
   };
 
@@ -96,8 +96,8 @@
 
     this.element.blur();
     this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
+    if (this.parentModule.app) {
+      this.parentModule.app.focus();
     }
   };
 
