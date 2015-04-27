@@ -18,8 +18,5 @@
     this._shown = false;
   };
 
-  MockContextMenuView.prototype.focus = function() {
-  };
-
   exports.MockContextMenuView = MockContextMenuView;
 })(window);

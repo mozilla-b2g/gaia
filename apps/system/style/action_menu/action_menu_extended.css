@@ -49,7 +49,7 @@ form[role="dialog"][data-type="object"] {
 
   visibility: hidden;
   transform: translateY(100%);
-  transition: transform ease-in-out .3s;
+  transition: transform ease-in-out .3s, visibility .3s;
   pointer-events: none;
 }
 
