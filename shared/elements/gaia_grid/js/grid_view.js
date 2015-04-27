@@ -483,7 +483,7 @@
       var nextDivider = null;
       var oddDivider = true;
       var isRTL = (document.documentElement.dir === 'rtl');
-      for (var idx = 0; idx <= this.items.length - 1; idx++) {
+      for (var idx = 0; idx < this.items.length; idx++) {
         var item = this.items[idx];
 
         // Remove the element if we are re-rendering.
@@ -564,7 +564,7 @@
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
-        if (x >= this.layout.cols) {
+        if ((x >= this.layout.cols) && (idx < this.items.length - 1)) {
           step(item);
         }
       }
