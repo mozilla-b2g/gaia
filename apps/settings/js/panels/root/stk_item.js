@@ -1,5 +1,6 @@
 define(function(require) {
   'use strict';
+
   var STKHelper = require('shared/stk_helper');
 
   function STKItem(elements) {
