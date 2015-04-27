@@ -244,6 +244,7 @@ fb.sync = Sync;
         icon: iconURL
       };
 
+      /*jshint unused:false*/
       var notification = new Notification(params.title, options);
 
       if (typeof params.callback === 'function') {
