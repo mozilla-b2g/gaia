@@ -14,7 +14,9 @@ definitions:
   build_integration:
     chunks: 10
 
-  gaia_ui_tests:
+  gaia_ui_tests_unit:
+  gaia_ui_tests_accessibility:
+  gaia_ui_tests_functional:
     chunks: 30
 
   csslint:

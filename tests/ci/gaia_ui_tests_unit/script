@@ -1,0 +1,10 @@
+#! /bin/bash -vex
+mkdir -p artifacts/logs/gaia_ui_tests_gecko/
+./bin/gaia-ui-tests \
+    --gecko-log artifacts/gaia_ui_tests_gecko/ \
+    --html-output artifacts/gaia_ui_tests_report.html \
+    --this-chunk=${THIS_CHUNK:=1} \
+    --total-chunks=${TOTAL_CHUNKS:=1} \
+    tests/python/gaia-ui-tests/gaiatest/tests/unit/manifest.ini
+
+ls -lah artifacts
