@@ -58,35 +58,50 @@ suite('Views.MultiDay', function() {
     });
   });
 
-  test('localized', function() {
-    var sidebar = subject.sidebar;
-    subject._visibleRange = 123;
-    subject.handleEvent({type: 'localized'});
+  suite('localized and timeformatchange', function() {
+    var sidebar;
 
-    // make sure we rebuild all hours during localize
-    var i = -1, date = new Date(0), hour;
-    while (++i < 24) {
-      date.setHours(i, 0, 0, 0);
-      hour = sidebar.querySelector('.md__hour-' + i);
-      assert.equal(hour.textContent, i, 'display hour');
+    setup(function() {
+      sidebar = subject.sidebar;
+      subject._visibleRange = 123;
+    });
+
+    function assertTimeRefresh() {
+      // make sure we rebuild all hours during localize
+      var i = -1, date = new Date(0), hour;
+      while (++i < 24) {
+        date.setHours(i, 0, 0, 0);
+        hour = sidebar.querySelector('.md__hour-' + i);
+        assert.equal(hour.textContent, i, 'display hour');
+        assert.equal(
+          hour.querySelector('.md__display-hour').dataset.date,
+          date,
+          'date data'
+        );
+      }
+
+      // make sure we update the current time
+      assert.ok(
+        subject._currentTime.refresh.calledOnce,
+        'called refresh'
+      );
+
       assert.equal(
-        hour.querySelector('.md__display-hour').dataset.date,
-        date,
-        'date data'
+        subject._currentTime.timespan,
+        subject._visibleRange,
+        'current time timespan matches the _visibleRange'
       );
     }
 
-    // make sure we update the current time
-    assert.ok(
-      subject._currentTime.refresh.calledOnce,
-      'called refresh'
-    );
+    test('localized', function() {
+      subject.handleEvent({type: 'localized'});
+      assertTimeRefresh();
+    });
 
-    assert.equal(
-      subject._currentTime.timespan,
-      subject._visibleRange,
-      'current time timespan matches the _visibleRange'
-    );
+    test('timeformatchange', function() {
+      subject.handleEvent({type: 'timeformatchange'});
+      assertTimeRefresh();
+    });
   });
 
   test('#_updateBaseDateAfterScroll', function() {

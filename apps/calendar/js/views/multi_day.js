@@ -120,6 +120,7 @@ MultiDay.prototype = {
     // we keep the localized listener even when view is inactive to avoid
     // rebuilding the hours/dates every time we switch between views
     window.addEventListener('localized', this);
+    window.addEventListener('timeformatchange', this);
     // When screen reader is used, scrolling is done using wheel events.
     this.element.addEventListener('wheel', this);
   },
@@ -184,6 +185,7 @@ MultiDay.prototype = {
         this._onDayChange(e.data[0]);
         break;
       case 'localized':
+      case 'timeformatchange':
         this._localize();
         break;
       case 'wheel':
