@@ -27,7 +27,6 @@ function BatteryController(app) {
   this.battery = app.battery || navigator.battery || navigator.mozBattery;
   this.levels = app.settings.battery.get('levels');
   this.notification = app.views.notification;
-  this.l10nGet = app.l10nGet;
   this.bindEvents();
   this.updateStatus();
   debug('initialized');
@@ -116,7 +115,7 @@ BatteryController.prototype.displayNotification = function(status) {
   if (!notification) { return; }
 
   this.lastNotification = this.notification.display({
-    text: this.l10nGet(notification.text),
+    text: notification.text,
     className: notification.className,
     attrs: notification.attrs,
     persistent: notification.persistent
