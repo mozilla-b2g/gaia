@@ -96,7 +96,7 @@ var Startup = {
       Navigation.off('navigated', initializeDefaultPanel);
 
       ThreadListUI.init();
-      ThreadListUI.renderThreads(firstPageLoadedCallback, function() {
+      ThreadListUI.renderThreads(firstPageLoadedCallback).then(() => {
         window.performance.mark('fullyLoaded');
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
         App.setReady();

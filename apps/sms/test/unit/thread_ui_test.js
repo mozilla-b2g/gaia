@@ -2222,7 +2222,7 @@ suite('thread_ui.js >', function() {
         return ThreadUI.buildMessageDOM(sendingMessage);
       }).then((node) => {
         assert.isNotNull(node.querySelector('.message-status'));
-        assert.isTrue(node.classList.contains('sending'));  
+        assert.isTrue(node.classList.contains('sending'));
       }).then(done, done);
     });
 
@@ -6692,12 +6692,23 @@ suite('thread_ui.js >', function() {
           .returns(true);
       });
 
-      test('we mark messages as read', function() {
+      test('mark thread as read when ThreadList is loaded', function(done) {
         ThreadUI.afterEnter(transitionArgs);
 
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
-        this.sinon.clock.tick();
-        sinon.assert.calledWith(MessageManager.markThreadRead, threadId);
+        sinon.assert.notCalled(ThreadListUI.mark);
+
+        ThreadListUI.whenReady().then(() => {
+          sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+
+          // We should perform message manager call in the next macro task.
+          sinon.assert.notCalled(MessageManager.markThreadRead);
+
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            MessageManager.markThreadRead, threadId
+          );
+        }).then(done, done);
       });
 
       test('renders messages', function() {
@@ -6800,8 +6811,21 @@ suite('thread_ui.js >', function() {
         sinon.assert.notCalled(ThreadUI.renderMessages);
       });
 
-      test('calls ThreadListUI.mark', function() {
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      test('calls ThreadListUI.mark', function(done) {
+        sinon.assert.notCalled(ThreadListUI.mark);
+
+        ThreadListUI.whenReady().then(() => {
+          sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+
+          // We should perform message manager call in the next macro task.
+          sinon.assert.notCalled(MessageManager.markThreadRead);
+
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            MessageManager.markThreadRead, threadId
+          );
+        }).then(done, done);
       });
 
       test('does not recall draft', function() {
@@ -6836,8 +6860,21 @@ suite('thread_ui.js >', function() {
         sinon.assert.notCalled(ThreadUI.renderMessages);
       });
 
-      test('calls ThreadListUI.mark', function() {
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      test('calls ThreadListUI.mark', function(done) {
+        sinon.assert.notCalled(ThreadListUI.mark);
+
+        ThreadListUI.whenReady().then(() => {
+          sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+
+          // We should perform message manager call in the next macro task.
+          sinon.assert.notCalled(MessageManager.markThreadRead);
+
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            MessageManager.markThreadRead, threadId
+          );
+        }).then(done, done);
       });
 
       test('does not recall draft', function() {
@@ -6871,8 +6908,21 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWith(ThreadUI.renderMessages, threadId);
       });
 
-      test('calls ThreadListUI.mark', function() {
-        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      test('calls ThreadListUI.mark', function(done) {
+        sinon.assert.notCalled(ThreadListUI.mark);
+
+        ThreadListUI.whenReady().then(() => {
+          sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+
+          // We should perform message manager call in the next macro task.
+          sinon.assert.notCalled(MessageManager.markThreadRead);
+
+          this.sinon.clock.tick();
+
+          sinon.assert.calledWithExactly(
+            MessageManager.markThreadRead, threadId
+          );
+        }).then(done, done);
       });
 
       test('removes "new" class from messages container', function() {
