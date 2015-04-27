@@ -1,4 +1,4 @@
-/* global MocksHelper, UtilityTray */
+/* global MocksHelper, UtilityTray, Service */
 
 'use strict';
 
@@ -19,8 +19,6 @@ mocksHelperForUtilityTray.init();
 suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
-  var fakeElement;
-  var originalLocked;
   var originalSoftwareButtonManager;
   mocksHelperForUtilityTray.attachTestHelpers();
 
@@ -63,7 +61,7 @@ suite('system/UtilityTray', function() {
 
     Service.currentApp = {
       isTransitioning: function() {},
-      getTopMostWindow: function() { return this },
+      getTopMostWindow: function() { return this; },
       appChrome: {
         titleClicked: function() {},
         useCombinedChrome: function() {},
@@ -150,7 +148,7 @@ suite('system/UtilityTray', function() {
       assert.equal(UtilityTray.shown, true);
     });
 
-    test("Test screen element's class list", function() {
+    test('Test screen element\'s class list', function() {
       assert.equal(UtilityTray.screen.classList.contains('utility-tray'), true);
     });
   });
@@ -170,7 +168,7 @@ suite('system/UtilityTray', function() {
       assert.equal(UtilityTray.startY, undefined);
     });
 
-    test("Test screen element's class list", function() {
+    test('Test screen element\'s class list', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
     });
@@ -681,6 +679,17 @@ suite('system/UtilityTray', function() {
       fakeTransitionEnd();
     }
 
+    test('utilitytraywillhide is dispatched when inactive', function(done) {
+      window.addEventListener('utilitytraywillhide',
+        function gotIt() {
+          window.removeEventListener('utilitytraywillhide', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      UtilityTray.active = false;
+      doAction(true);
+    });
+
     test('utility-tray-overlayclosed is correctly dispatched', function(done) {
       window.addEventListener('utility-tray-overlayclosed',
         function gotIt() {
@@ -728,6 +737,16 @@ suite('system/UtilityTray', function() {
       UtilityTray.show();
       fakeTransitionEnd();
     }
+
+    test('utilitytraywillshow is dispatched when inactive', function(done) {
+      window.addEventListener('utilitytraywillshow', function gotIt() {
+          window.removeEventListener('utilitytraywillshow', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      UtilityTray.active = false;
+      doAction(false);
+    });
 
     test('utility-tray-overlayopened is correctly dispatched', function(done) {
       window.addEventListener('utility-tray-overlayopened',
