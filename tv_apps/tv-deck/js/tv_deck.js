@@ -1,5 +1,5 @@
 /* global ChannelManager, KeyNavigationAdapter, SimpleKeyNavigation,
-          asyncStorage, Promise */
+          asyncStorage, MozActivity, PinCard */
 
 'use strict';
 
@@ -12,68 +12,30 @@
    * handled by onhashchange handler.
    */
   function TVDeck() {
-
-    this._init();
-    this._fetchElements();
-
-    // Initialize TVDeck. Fetch initial (tuner, source, channel) values from
-    // either URL hash or localStorage, and then scan all available tuners,
-    // sources and channels.
-    this.fetchSettingFromHash().then(function() {
-      this.scanTuners();
-    }.bind(this));
+    navigator.mozApps.getSelf().onsuccess = function(evt){
+      if (evt.target && evt.target.result) {
+        this.selfApp = evt.target.result;
+        this._fetchElements();
+        this._init();
+        // Initialize TVDeck. Fetch initial (tuner, source, channel) values from
+        // either URL hash or asyncStorage, and then scan all available tuners,
+        // sources and channels.
+        this.channelManager.fetchSettingFromHash().then(function() {
+          this.channelManager.scanTuners();
+        }.bind(this));
+      }
+    }.bind(this);
   }
 
   var proto = {};
-
-  // Current tuner object playing by TV (we may have another tuner for recording
-  // in the future).
-  Object.defineProperty(proto, 'playingTuner', {
-    get: function() {
-      return this.currentTuners[this.playingTunerId];
-    }
-  });
-
-  // Current source object playing by TV (we may have another source for
-  // recording in the future).
-  Object.defineProperty(proto, 'playingSource', {
-    get: function() {
-      if (!this.playingTuner || !this.playingTuner.sources) {
-        return null;
-      }
-      return this.playingTuner.sources[this.playingSourceType];
-    }
-  });
-
-  // Current channel object playing by TV (we may have another source for
-  // recording in the future).
-  Object.defineProperty(proto, 'playingChannel', {
-    get: function() {
-      var playingSource = this.playingSource;
-      var index = playingSource.channelIndexHash[this.playingChannelNumber];
-      if (!playingSource || !playingSource.channelIndexHash) {
-        return null;
-      }
-      return playingSource.channels[index];
-    }
-  });
-
-  // Current hash
-  Object.defineProperty(proto, 'currentHash', {
-    get: function() {
-      return this.playingTunerId + ',' + this.playingSourceType +
-             ',' + this.playingChannelNumber;
-    }
-  });
 
   proto._init = function td__init() {
 
     // lastChannelId maintains number of channel-switching user did.
     this.lastChannelId = 0;
-    this.manifestURL = null;
-    this.origin = null;
-    this.currentTuners = {};
     this.channelManager = new ChannelManager(this);
+    this.channelManager.on('tuned', this.setHash.bind(this));
+    this.channelManager.on('error', this._showErrorState.bind(this));
 
     // enterNumberTimeoutDelay determines the waiting time for switching TV
     // channel according to the number user entered.
@@ -101,15 +63,15 @@
 
     this.simpleKeyNavigation = new SimpleKeyNavigation();
 
+    this.pinCard = new PinCard(this.selfApp);
+    this.pinCard.on('update-pin-button', this.updatePinButton.bind(this));
+
     // Event listeners setup
     window.addEventListener('hashchange', this._onHashChange.bind(this));
     document.addEventListener('keyup', this._onEnterNumber.bind(this));
-    navigator.mozApps.getSelf().onsuccess = function(evt){
-      if (evt.target && evt.target.result) {
-        this.origin = evt.target.result.origin;
-        this.manifestURL = evt.target.result.manifestURL;
-      }
-    }.bind(this);
+
+    // Determine whether a card should be pinned or unpinned.
+    document.addEventListener('contextmenu', this.updatePinButton.bind(this));
   };
 
   proto._fetchElements = function td__fetchElements() {
@@ -138,291 +100,86 @@
   };
 
   /**
-   * Fetch tuner, source and channel settings from URL hash. If URL hash is
-   * empty, then fetch settings from localStorage.
-   */
-  proto.fetchSettingFromHash = function td_fetchSettingFromHash() {
-    return new Promise(function(resolve, reject) {
-      var hash;
-      var fetch = function() {
-        if(hash) {
-          hash = hash.split(',');
-          this.playingTunerId = hash[0];
-          this.playingSourceType = hash[1];
-          this.playingChannelNumber = hash[2];
-        }
-      }.bind(this);
-
-      hash = window.location.hash.substring(1);
-      if (hash.length === 0) {
-        asyncStorage.getItem('TV_Hash', function(item) {
-          hash = item;
-          fetch();
-          resolve();
-        });
-        return;
-      }
-
-      fetch();
-      resolve();
-    }.bind(this));
-  };
-
-  /**
    * Handles onhashchange event. If the hash is valid, then set current source
    * and channel to the new value.
    */
   proto._onHashChange = function td_onHashChange() {
     this.lastChannelId++;
+
     var id = this.lastChannelId;
+    var hash = window.location.hash;
+
     this.buttonGroupPanel.classList.add('hidden');
     this.overlay.classList.add('visible');
     this.channelPanel.classList.remove('hidden');
     if (this.simpleKeyNavigation.target) {
       this.simpleKeyNavigation.stop();
+      this.channelPanel.focus();
     }
 
-    this.fetchSettingFromHash().then(function() {
+    this.channelManager.fetchSettingFromHash(hash).then(function() {
 
       // Cancel onPanelTimeout function, otherwise, panels will be hidden
       // after 3 seconds.
       clearTimeout(this.panelTimeoutId);
-      if (!this.playingTuner) {
-        this.scanTuners();
-      } else if (!this.playingSource) {
-        this.scanSources();
-      } else if (!this.playingChannel) {
-        this.scanChannels();
+      if (!this.channelManager.getTuner()) {
+        this.channelManager.scanTuners();
+      } else if (!this.channelManager.getSource()) {
+        this.channelManager.scanSources();
+      } else if (!this.channelManager.getChannel()) {
+        this.channelManager.scanChannels();
       } else {
         this._rotateLoadingIcon();
-        this.updateChannelInfo();
-        this.setPlayingSource(function() {
+        this._updateChannelInfo();
+        this.channelManager.setPlayingSource(function() {
           // When an user swiches back and forth very fast, we only have to
           // handle the last hash. Since setPlayingSource is an async function,
           // id is used to record the last change.
           if (id === this.lastChannelId) {
             this.buttonGroupPanel.classList.remove('hidden');
             this.overlay.classList.remove('visible');
-            this.channelManager.updatePinButton();
+            this.updatePinButton();
             this.bubbleElement.play([this.pinButton, this.menuButton]);
             this.simpleKeyNavigation.start(
               [this.pinButton, this.menuButton],
               SimpleKeyNavigation.DIRECTION.HORIZONTAL
             );
 
-            this.panelTimeoutId =
-              setTimeout(
-                      this._onPanelTimeout.bind(this), this.panelTimeoutDelay);
+            this.panelTimeoutId = setTimeout(this._onPanelTimeout.bind(this),
+                                             this.panelTimeoutDelay);
+
+            var newStream = this.channelManager.getTuner().tuner.stream;
+            if (this.tvStreamElement.src !== newStream) {
+              this.tvStreamElement.src = newStream;
+              this.tvStreamElement.play();
+            }
           }
         }.bind(this));
       }
-      asyncStorage.setItem('TV_Hash', window.location.hash.substring(1));
+      asyncStorage.setItem('TV_Hash', window.location.hash);
     }.bind(this));
   };
 
-  /**
-   * Retrieve all the currently available TV tuners.
-   */
-  proto.scanTuners = function td_scanTuners() {
-    navigator.tv.getTuners().then(function onsuccess(tuners) {
-      this.currentTuners = {};
-      tuners.forEach(function initTuner(tuner) {
-        this.currentTuners[tuner.id] = {
-          tuner: tuner,
-          sources: {}
-        };
-      }.bind(this));
-
-      if (!this.playingTunerId) {
-        this.playingTunerId = tuners[0].id;
-      }
-
-      if (!this.playingTuner) {
-        this._showErrorState();
-        return;
-      }
-
-      this.scanSources();
-    }.bind(this));
-  };
-
-  /**
-   * Retrieve all the currently available TV sources from current TV tuner.
-   */
-  proto.scanSources = function td_scanSources() {
-    this.playingTuner.tuner.getSources().then(function getSources(sources) {
-      this.playingTuner.sources = {};
-      if (sources.length === 0) {
-        console.log('Error, no source found!');
-        return;
-      }
-
-      sources.forEach(function initSource(source) {
-        this.playingTuner.sources[source.type] = {
-          source: source,
-          channels: [],
-          channelIndexHash: {}
-        };
-      }.bind(this));
-
-      if (!this.playingSourceType) {
-        this.playingSourceType = sources[0].type;
-      }
-
-      if (!this.playingSource) {
-        this._showErrorState();
-        return;
-      }
-
-      this.scanChannels();
-    }.bind(this));
-  };
-
-  /**
-   * Retrieve all the currently available TV channels from current TV source.
-   * We have to scan the channels before calling getChannels.
-   */
-  proto.scanChannels = function td_scanChannels() {
-    var source = this.playingSource.source;
-    this.playingSource.channels = [];
-    this.playingSource.channelIndexHash = {};
-    if (source.isScanning) {
-      return;
-    }
-
-    var onscanningstatechanged = function(event) {
-      var state = event.state;
-      switch (state) {
-        case 'completed':
-        /* falls through */
-        case 'stopped':
-          this._onScanningCompleted();
-          source.removeEventListener(
-                                'scanningstatechanged', onscanningstatechanged);
-          break;
-        default:
-          break;
-      }
-    }.bind(this);
-
-    source.addEventListener('scanningstatechanged', onscanningstatechanged);
-
-    source.startScanning({
-      isRescanned: true
-    });
-  };
-
-  /**
-   * Retrieve all the currently available TV channels from current TV source.
-   * Sort channels for channel switching.
-   */
-  proto._onScanningCompleted = function td_onScanningCompleted() {
-    this.playingSource.source.getChannels().then(function onsuccess(channels) {
-      if (channels.length === 0) {
-        console.log('Error, no channel found!');
-        return;
-      }
-
-      // Sort channels. Channel number can be XX-XX-XX
-      channels.sort(function(channelA, channelB) {
-        return this._compareChannel(channelA.number, channelB.number);
-      }.bind(this));
-
-      var i;
-      for (i = 0; i < channels.length; i++) {
-        this.playingSource.channelIndexHash[channels[i].number] = i;
-        this.playingSource.channels[i] = {
-          channel: channels[i],
-          programs: {},
-        };
-      }
-
-      if (!this.playingChannelNumber) {
-        this.playingChannelNumber = channels[0].number;
-      }
-
-      if (!this.playingChannel) {
-        this._showErrorState();
-        return;
-      }
-
-      this.setHash();
-    }.bind(this), function onerror(error) {
-      alert(error);
-    });
-  };
-
-  proto.setPlayingSource = function td_setPlayingSource(callback) {
-    if (this.playingTuner.tuner.currentSource === this.playingSource.source) {
-      this.setPlayingChannel(callback);
-      return;
-    }
-
-    this.playingTuner.tuner.setCurrentSource(this.playingSourceType)
-      .then(function() {
-        this.setPlayingChannel(callback);
-      }.bind(this), function() {
-        alert('Source not found');
-      });
-  };
-
-  proto.setPlayingChannel = function td_setPlayingChannel(callback) {
-    this.playingSource.source.setCurrentChannel(this.playingChannelNumber)
-      .then(function() {
-        /* jshint maxlen:false */
-        var newStream = this.playingTuner.tuner.stream;
-        if (this.tvStreamElement.src !== newStream) {
-          this.tvStreamElement.src = newStream;
-          this.tvStreamElement.play();
-        }
-        if (callback) {
-          callback();
-        }
-      }.bind(this), function() {
-        alert('Channel not found');
-      });
-  };
-
-  proto._compareChannel = function td__compareChannel(channelA, channelB) {
-    var dashIndexA = channelA.indexOf('-');
-    var dashIndexB = channelB.indexOf('-');
-    var numberA = (dashIndexA >= 0) ?
-                        channelA.substring(0, dashIndexA) : channelA;
-    var numberB = (dashIndexB >= 0) ?
-                        channelB.substring(0, dashIndexB) : channelB;
-    numberA = parseInt(numberA, 10);
-    numberB = parseInt(numberB, 10);
-
-    if (numberA === numberB) {
-      if (dashIndexA === -1 && dashIndexB === -1) {
-        return 0;
-      } else if (dashIndexA !== -1 && dashIndexB === -1) {
-        return 1;
-      } else if (dashIndexA === -1 && dashIndexB !== -1) {
-        return -1;
-      }
-
-      channelA = channelA.substring(dashIndexA + 1);
-      channelB = channelB.substring(dashIndexB + 1);
-      return this._compareChannel(channelA, channelB);
-    }
-    return numberA - numberB;
-  };
-
-  proto.updateChannelInfo = function td_updateChannelInfo(title, number) {
-    this.channelTitle.textContent = title || this.playingChannel.channel.name;
-    this.channelNumber.textContent = number || this.playingChannelNumber;
+  proto._updateChannelInfo = function td__updateChannelInfo(title, number) {
+    this.channelTitle.textContent =
+                      title || this.channelManager.getChannel().channel.name;
+    this.channelNumber.textContent =
+                      number || this.channelManager.playingState.channelNumber;
   };
 
   proto.setHash = function td_setHash() {
-    if (this.currentHash === window.location.hash.substring(1)) {
-      // When initizlizing TVDeck, if either URL hash or localStorage is not
+    if (!this.channelManager.isReady) {
+      return;
+    }
+
+    if (this.channelManager.currentHash === window.location.hash) {
+      // When initizlizing TVDeck, if either URL hash or asyncStorage is not
       // null, the URL will be set to the same value in _onScanningCompleted
       // function. However, we still have to call onHashChange function in order
       // to switch to the correct channel.
       this._onHashChange();
     }
-    window.location.hash = this.currentHash;
+    window.location.hash = this.channelManager.currentHash;
   };
 
   /**
@@ -430,23 +187,10 @@
    * for navigating buttons in button-group.
    */
   proto._onSwitch = function td__onSwitch(direction) {
-    var channelList = this.playingSource.channels;
-    var channelIndex = this.playingSource
-                           .channelIndexHash[this.playingChannelNumber];
-    var clearEnterNumber = function() {
-      clearTimeout(this.enterNumberTimeoutId);
-      this.enterNumberTimeoutId = null;
-      this.channelNumber.textContent = this.playingChannelNumber;
-    }.bind(this);
-
     switch(direction) {
       case 'up':
-        channelIndex++;
-        clearEnterNumber();
-        break;
       case 'down':
-        channelIndex--;
-        clearEnterNumber();
+        this.channelManager.switchChannel(direction);
         break;
       case 'left':
       case 'right':
@@ -461,16 +205,8 @@
         return;
     }
 
-    channelIndex = (channelIndex < 0) ? channelList.length - 1 : channelIndex;
-    channelIndex = (channelIndex > channelList.length - 1) ? 0 : channelIndex;
-
-    // If a channel is not found, add flash animation.
-    if (!channelList[channelIndex]) {
-      this.channelPanel.classList.add('flash');
-      return;
-    }
-
-    this.playingChannelNumber = channelList[channelIndex].channel.number;
+    clearTimeout(this.enterNumberTimeoutId);
+    this.enterNumberTimeoutId = null;
     this.setHash();
   };
 
@@ -504,6 +240,7 @@
    * triggerred either by pressing enter key or enterNumebrTimeout.
    */
   proto._onEnter = function td__onEnter() {
+    var channelNumberContent = this.channelNumber.textContent;
     if (this.enterNumberTimeoutId) {
       clearTimeout(this.enterNumberTimeoutId);
       this.enterNumberTimeoutId = null;
@@ -513,25 +250,26 @@
             setTimeout(this._onPanelTimeout.bind(this), this.panelTimeoutDelay);
 
       var newNumber = this.channelNumber.textContent;
+      var newIndex =
+                  this.channelManager.getSource().channelIndexHash[newNumber];
 
       // reset back to current channel number if the number entered
       // is not valid.
-      if (this.playingSource.channelIndexHash[newNumber] !== 0 &&
-          !this.playingSource.channelIndexHash[newNumber]) {
-        this.channelNumber.textContent = this.playingChannelNumber;
+      if (newIndex !== 0 && !newIndex) {
+        this.channelNumber.textContent = channelNumberContent;
         this.channelPanel.classList.add('flash');
         this.simpleKeyNavigation.focus();
         return;
       }
 
-      this.playingChannelNumber = newNumber;
+      this.channelManager.playingState.channelNumber = newNumber;
       this.setHash();
     }
   };
 
   proto._showErrorState = function td__showErrorState() {
-    this.updateChannelInfo('---', '--');
-    this.tvStreamElement.src = null;
+    this._updateChannelInfo('---', '--');
+    this.tvStreamElement.removeAttribute('src');
     this.tvStreamElement.load();
   };
 
@@ -554,7 +292,59 @@
     this.buttonGroupPanel.classList.add('hidden');
     this.channelPanel.classList.add('hidden');
     this.simpleKeyNavigation.stop();
+    this.channelPanel.focus();
     this.panelTimeoutId = null;
+  };
+
+    /**
+   * Update pin button in button-group-panel and contextmenu.
+   */
+  proto.updatePinButton = function td_updatePinButton() {
+    if (this.pinCard.pinnedChannels[this.channelManager.currentHash]) {
+      // Show unpin button if current channel is pinned.
+      this.pinButtonContextmenu.setAttribute('data-l10n-id', 'unpin-from-home');
+      this.pinButtonContextmenu.onclick = this._unpinFromHome.bind(this);
+      this.pinButton.onclick = this._unpinFromHome.bind(this);
+    } else {
+      // Show pin button if current channel is not pinned yet.
+      this.pinButtonContextmenu.setAttribute('data-l10n-id', 'pin-to-home');
+      this.pinButtonContextmenu.onclick = this._pinToHome.bind(this);
+      this.pinButton.onclick = this._pinToHome.bind(this);
+    }
+  };
+
+  proto._pinToHome = function td__pinToHome() {
+
+    var number = window.location.hash.split(',')[2];
+
+    /* jshint nonew:false */
+    new MozActivity({
+      name: 'pin',
+      data: {
+        type: 'Application',
+        group: 'tv',
+        name: {raw: 'CH ' + number},
+        manifestURL: this.selfApp.manifestURL,
+        launchURL: window.location.href
+      }
+    });
+  };
+
+  proto._unpinFromHome = function td__unpinFromHome() {
+
+    var message = {
+      type: 'unpin',
+      data: {
+        manifestURL: this.selfApp.manifestURL,
+        launchURL: window.location.href
+      }
+    };
+
+    this.selfApp.connect('appdeck-channel').then(function (ports) {
+      ports.forEach(function(port) {
+        port.postMessage(message);
+      });
+    });
   };
 
   exports.TVDeck = TVDeck;
