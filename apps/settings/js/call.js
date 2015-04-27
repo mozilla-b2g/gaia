@@ -282,6 +282,8 @@ require([
      */
     function cs_displayRule(rules, elementId) {
       var element = document.getElementById(elementId);
+
+      element.innerHTML = '';
       for (var i = 0; i < rules.length; i++) {
         if (rules[i].active &&
             ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
@@ -337,14 +339,20 @@ require([
      * Display information relevant to the SIM card state.
      */
     function cs_displayInfoForAll(l10nId) {
-      document.getElementById('cfu-desc').
-        setAttribute('data-l10n-id', l10nId);
-      document.getElementById('cfmb-desc').
-        setAttribute('data-l10n-id', l10nId);
-      document.getElementById('cfnrep-desc').
-        setAttribute('data-l10n-id', l10nId);
-      document.getElementById('cfnrea-desc').
-        setAttribute('data-l10n-id', l10nId);
+      var cfuDesc = document.getElementById('cfu-desc');
+      var cfmbDesc = document.getElementById('cfmb-desc');
+      var cfnrepDesc = document.getElementById('cfnrep-desc');
+      var cfnreaDesc = document.getElementById('cfnrea-desc');
+
+      cfuDesc.innerHTML = '';
+      cfmbDesc.innerHTML = '';
+      cfnrepDesc.innerHTML = '';
+      cfnreaDesc.innerHTML = '';
+
+      cfuDesc.setAttribute('data-l10n-id', l10nId);
+      cfmbDesc.setAttribute('data-l10n-id', l10nId);
+      cfnrepDesc.setAttribute('data-l10n-id', l10nId);
+      cfnreaDesc.setAttribute('data-l10n-id', l10nId);
     }
 
     /**
@@ -520,7 +528,8 @@ require([
           mozMobileCFInfo['reason'] = _cfReasonMapping[key];
           mozMobileCFInfo['serviceClass'] = _voiceServiceClassMask;
 
-          if (!cs_isPhoneNumberValid(textInput.value)) {
+          // Skip the phone number checking when disabling call forwarding.
+          if (event.settingValue && !cs_isPhoneNumberValid(textInput.value)) {
             DialogService.alert('callForwardingInvalidNumberError', {
               title: 'callForwardingConfirmTitle',
               submitButton: 'continue'
