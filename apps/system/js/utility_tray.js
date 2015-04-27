@@ -49,7 +49,13 @@ window.UtilityTray = {
   blur: function() {},
 
   init: function ut_init() {
-    var touchEvents = ['touchstart', 'touchmove', 'touchend'];
+    var touchEvents = [
+      'touchstart',
+      'touchmove',
+      'touchend',
+      'mousedown'
+    ];
+
     touchEvents.forEach(function bindEvents(name) {
       this.overlay.addEventListener(name, this);
       this.statusbarIcons.addEventListener(name, this);
@@ -158,6 +164,11 @@ window.UtilityTray = {
     var detail = evt.detail;
 
     switch (evt.type) {
+      case 'mousedown':
+        if (this._shouldPrevent(target)) {
+          evt.preventDefault();
+        }
+        break;
       case 'cardviewbeforeshow':
         this.hide(true);
         break;
@@ -220,14 +231,12 @@ window.UtilityTray = {
       case 'keyboardimeswitchershow':
         this.overlay.addEventListener('mousedown', this._pdIMESwitcherShow);
         this.statusbar.addEventListener('mousedown', this._pdIMESwitcherShow);
-        this.topPanel.addEventListener('mousedown', this._pdIMESwitcherShow);
         break;
 
       case 'keyboardimeswitcherhide':
         this.overlay.removeEventListener('mousedown', this._pdIMESwitcherShow);
         this.statusbar.removeEventListener('mousedown',
                                            this._pdIMESwitcherShow);
-        this.topPanel.removeEventListener('mousedown', this._pdIMESwitcherShow);
         break;
 
       case 'screenchange':
@@ -259,7 +268,7 @@ window.UtilityTray = {
           return;
         }
 
-        if (target === this.statusbarIcons || target === this.grippy) {
+        if (this._shouldPrevent(target)) {
           evt.preventDefault();
         }
 
@@ -267,7 +276,7 @@ window.UtilityTray = {
         break;
 
       case 'touchmove':
-        if (target === this.statusbarIcons || target === this.grippy) {
+        if (this._shouldPrevent(target)) {
           evt.preventDefault();
         }
 
@@ -275,7 +284,7 @@ window.UtilityTray = {
         break;
 
       case 'touchend':
-        if (target === this.statusbarIcons || target === this.grippy) {
+        if (this._shouldPrevent(target)) {
           evt.preventDefault();
         }
 
@@ -608,5 +617,12 @@ window.UtilityTray = {
     if (evt.target.id !== 'rocketbar-input') {
       evt.preventDefault();
     }
+  },
+
+  _shouldPrevent: function ut_shouldPrevent(currentTarget) {
+    var targeted = [this.grippy, this.statusbarIcons, this.topPanel];
+    return targeted.some(function(target) {
+      return target === currentTarget;
+    });
   }
 };
