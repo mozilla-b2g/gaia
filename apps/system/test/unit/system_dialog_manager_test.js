@@ -34,6 +34,7 @@ suite('system/SystemDialogManager', function() {
     dialogFake = new window.SystemDialog(optionsFake);
     window.systemDialogManager = new window.SystemDialogManager();
     window.systemDialogManager.init();
+    this.sinon.stub(dialogFake, 'resize');
   });
 
   teardown(function() {
@@ -60,12 +61,14 @@ suite('system/SystemDialogManager', function() {
 
     test('Launch a fullscreen app', function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
+      window.systemDialogManager.states.activeDialog = dialogFake;
       var event = new CustomEvent('hierarchytopmostwindowchanged', {
         detail: app
       });
       window.dispatchEvent(event);
       assert.isTrue(window.systemDialogManager.elements.containerElement
                     .classList.contains('fullscreen'));
+      assert.isTrue(dialogFake.resize.called);
     });
   });
 
@@ -153,20 +156,18 @@ suite('system/SystemDialogManager', function() {
     });
 
     test('Resize dialog while received "system-resize" event', function() {
-      var stubResize = this.sinon.stub(dialogFake, 'resize');
       window.systemDialogManager.handleEvent({type: 'system-dialog-created',
         detail: dialogFake});
       window.systemDialogManager.handleEvent({type: 'system-dialog-show',
         detail: dialogFake});
       window.systemDialogManager.respondToHierarchyEvent(
         new CustomEvent('system-resize'));
-      assert.isTrue(stubResize.called,
+      assert.isTrue(dialogFake.resize.called,
         'the dialog was not "resize" after received "system-resize" event');
       var isContainDialog =
         window.systemDialogManager.elements.screen.classList.contains('dialog');
       assert.isTrue(isContainDialog,
         'the "dialog" was not in screen stylesheet after resize a dialog');
-      stubResize.restore();
     });
 
     test('Deactivate dialog while received ' +
