@@ -69,7 +69,7 @@ suite('ObservableArray', function() {
       this.spies = {};
       events.forEach(function(event) {
         this.spies[event] = this.sinon.spy();
-        this.observable.observe(event, this.spies[event]);
+        this.observable.addEventListener(event, this.spies[event]);
       }, this);
     });
 
@@ -80,9 +80,10 @@ suite('ObservableArray', function() {
       checkSpies({ remove: 1 });
       checkArgs('remove', {
         type: 'remove',
-        data: {
+        detail: {
           index: methods.length - 1,
-          count: 1
+          count: 1,
+          items: ['observe']
         }
       });
       test('modifies array', function() {
@@ -99,7 +100,7 @@ suite('ObservableArray', function() {
       checkSpies({ insert: 1 });
       checkArgs('insert', {
         type: 'insert',
-        data: {
+        detail: {
           index: methods.length,
           count: 1,
           items: ['test']
@@ -119,9 +120,10 @@ suite('ObservableArray', function() {
       checkSpies({ remove: 1 });
       checkArgs('remove', {
         type: 'remove',
-        data: {
+        detail: {
           index: 1,
-          count: 2
+          count: 2,
+          items: ['push', 'pop']
         }
       });
       test('modifies array', function() {
@@ -138,14 +140,15 @@ suite('ObservableArray', function() {
       checkSpies({ remove: 1, insert: 1 });
       checkArgs('remove', {
         type: 'remove',
-        data: {
+        detail: {
           index: 1,
-          count: 2
+          count: 2,
+          items: ['push', 'pop']
         }
       });
       checkArgs('insert', {
         type: 'insert',
-        data: {
+        detail: {
           index: 1,
           count: 2,
           items: [3, 4]
@@ -165,7 +168,7 @@ suite('ObservableArray', function() {
       checkSpies({ insert: 1 });
       checkArgs('insert', {
         type: 'insert',
-        data: {
+        detail: {
           index: 2,
           count: 1,
           items: [2]
@@ -185,7 +188,7 @@ suite('ObservableArray', function() {
       checkSpies({ replace: 1 });
       checkArgs('replace', {
         type: 'replace',
-        data: {
+        detail: {
           index: 7,
           oldValue: methods[7],
           newValue: true
@@ -206,7 +209,7 @@ suite('ObservableArray', function() {
       checkSpies({ reset: 1 });
       checkArgs('reset', {
         type: 'reset',
-        data: {
+        detail: {
           items: testArray
         }
       });
@@ -223,53 +226,6 @@ suite('ObservableArray', function() {
       });
       // no events expected
       checkSpies({});
-    });
-
-    suite('unobserve', function() {
-      setup(function() {
-        // bind some listeners
-        this.spies = [this.sinon.spy(), this.sinon.spy()];
-        events.forEach(function(event) {
-          this.observable.observe(event, this.spies[0]);
-          this.observable.observe(event, this.spies[1]);
-        }, this);
-      });
-      test('(property, handler)', function() {
-        // remove handler for property
-        this.observable.unobserve('insert', this.spies[0]);
-        // insert, only other handler should be called
-        this.observable.push({});
-        assert.equal(this.spies[0].callCount, 0);
-        assert.equal(this.spies[1].callCount, 1);
-        // remove, both handlers should be called
-        this.observable.pop();
-        assert.equal(this.spies[0].callCount, 1);
-        assert.equal(this.spies[1].callCount, 2);
-      });
-      test('(handler)', function() {
-        // remove handler for all properties
-        this.observable.unobserve(this.spies[0]);
-        // insert, only other handler should be called
-        this.observable.push({});
-        assert.equal(this.spies[0].callCount, 0);
-        assert.equal(this.spies[1].callCount, 1);
-        // remove, only other handler should be called
-        this.observable.pop();
-        assert.equal(this.spies[0].callCount, 0);
-        assert.equal(this.spies[1].callCount, 2);
-      });
-      test('(property)', function() {
-        // remove handler for all properties
-        this.observable.unobserve('insert');
-        // insert, neither handler should be called
-        this.observable.push({});
-        assert.equal(this.spies[0].callCount, 0);
-        assert.equal(this.spies[1].callCount, 0);
-        // remove, both handlers should be called
-        this.observable.pop({});
-        assert.equal(this.spies[0].callCount, 1);
-        assert.equal(this.spies[1].callCount, 1);
-      });
     });
   });
 });
