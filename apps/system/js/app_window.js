@@ -1,6 +1,7 @@
 /* global AppChrome */
 /* global AudioChannelController */
 /* global applications */
+/* global BaseModule */
 /* global BrowserFrame */
 /* global layoutManager */
 /* global ManifestHelper */
@@ -805,9 +806,12 @@
     'modalDialog': window.AppModalDialog,
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
     'statusbar': window.AppStatusbar
+  };
+
+  AppWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -836,6 +840,16 @@
           this[componentName] =
             new this.constructor.SUB_COMPONENTS[componentName](this);
           this[componentName].start && this[componentName].start();
+        }
+      }
+
+      if (this.constructor.SUB_MODULES) {
+        for (var propertyName in this.constructor.SUB_MODULES) {
+          var moduleName = this.constructor.SUB_MODULES[propertyName];
+          if (moduleName) {
+            this[propertyName] = BaseModule.instantiate(moduleName, this);
+            this[propertyName].start();
+          }
         }
       }
 

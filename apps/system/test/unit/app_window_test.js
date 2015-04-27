@@ -1,8 +1,7 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager, MockService,
       LayoutManager, MocksHelper, MockContextMenu, layoutManager, Service,
       MockAppTransitionController, MockAudioChannelController,
-      MockPermissionSettings, DocumentFragment,
-      AppChrome */
+      MockPermissionSettings, DocumentFragment, AppChrome, BaseModule */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -67,8 +66,16 @@ suite('system/AppWindow', function() {
     requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
+    requireApp('system/js/base_module.js');
     requireApp('system/js/app_window.js');
-    requireApp('system/js/browser_mixin.js', done);
+    requireApp('system/js/browser_mixin.js', function() {
+      this.sinon.stub(BaseModule, 'instantiate', function(name) {
+        if (name === 'BrowserContextMenu') {
+          return MockContextMenu;
+        }
+      });
+      done();
+    }.bind(this));
   });
 
   teardown(function() {
