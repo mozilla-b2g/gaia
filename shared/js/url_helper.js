@@ -4,13 +4,8 @@ var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::(?:\/\/)?)/i;
 
 var UrlHelper = {
 
-  // Placeholder anchor tag to format URLs.
-  a: null,
-
   getUrlFromInput: function urlHelper_getUrlFromInput(input) {
-    this.a = this.a || document.createElement('a');
-    this.a.href = input;
-    return this.a.href;
+    return new URL(input, document.location).href;
   },
 
   _getScheme: function(input) {
