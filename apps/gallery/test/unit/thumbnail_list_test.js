@@ -2,6 +2,11 @@
  * Thumbnail List and getFileIndex method in gallery Unit tests
  */
 'use strict';
+/* global
+  getFileIndex,
+  MockThumbnailGroup,
+  ThumbnailList
+*/
 
 require('/shared/js/l10n.js');
 requireApp('/gallery/js/gallery.js');
@@ -16,7 +21,7 @@ suite('Thumbnail List Unit Tests', function() {
   });
 
   suiteTeardown(function() {
-    thumbnailList = nativeThumbnailList;
+    window.thumbnailList = nativeThumbnailList;
   });
 
   suite('#constructor tests', function() {
@@ -27,12 +32,14 @@ suite('Thumbnail List Unit Tests', function() {
     });
 
     test('normal', function() {
+      /* jshint nonew: false */
       new ThumbnailList(MockThumbnailGroup, dummyContainer);
       assert.ok('everything should be ok');
     });
 
     test('missing arguments', function() {
       try {
+        /* jshint nonew: false */
         new ThumbnailList(MockThumbnailGroup);
         assert.fail('it should throws an error.');
       } catch (ex) {
@@ -40,6 +47,7 @@ suite('Thumbnail List Unit Tests', function() {
       }
 
       try {
+        /* jshint nonew: false */
         new ThumbnailList();
         assert.fail('it should throws an error.');
       } catch (ex) {

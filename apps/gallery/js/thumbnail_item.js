@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * ThumbnailItem is view object for a single gallery item data. It renders file
  * in listitem object.

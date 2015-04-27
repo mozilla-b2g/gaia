@@ -1,5 +1,6 @@
+'use strict';
+
 var Gallery = require('./lib/gallery.js'),
-    Marionette = require('marionette-client'),
     assert = require('assert');
 
 marionette('using the gallery menu', function() {
@@ -23,7 +24,6 @@ marionette('using the gallery menu', function() {
       filePath: 'test_media/Pictures/firefoxOS.png'
     });
     app = new Gallery(client);
-    actions = new Marionette.Actions(client);
     app.launch();
   });
 

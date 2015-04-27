@@ -1,5 +1,28 @@
 // This file contains Gallery code for editing images
 'use strict';
+/* global
+  $,
+  CONFIG_MAX_EDIT_PIXEL_SIZE,
+  CONFIG_MAX_IMAGE_PIXEL_SIZE,
+  cropResizeRotate,
+  currentFileIndex,
+  Downsample,
+  editedPhotoIndex:true,
+  GestureDetector,
+  ImageData,
+  ImageProcessorThread,
+  files,
+  justSavedEditedImage:true,
+  KeyEvent,
+  LAYOUT_MODE,
+  photodb,
+  setView,
+  showFile,
+  Spinner
+*/
+/* exported
+  editPhotoIfCardNotFull
+*/
 
 var editedPhotoURL; // The blob URL of the photo we're currently editing
 var editSettings; // Settings object to perform edits and initialize the UI
@@ -28,6 +51,37 @@ $('edit-save-button').onclick = saveEditedImage;
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 editAspectMoreButtons.forEach(function(b) {b.onclick = editAspectMoreHandler;});
 
+/*
+ * These arrays represent matricies for image processing effects. They
+ * are passed to the ImageProcessor.setMatrix() method to specify color
+ * transformations of an image. The property names in this object are
+ * linked to the Gallery editor UX: if they are changed here, they also
+ * must be changed in the HTML.
+ */
+var Effects = {
+  none: null,
+  bw: [
+    0.65, 0.25, 0.10, 0,
+    0.65, 0.25, 0.10, 0,
+    0.65, 0.25, 0.10, 0
+  ],
+  sepia: [
+    0.393, 0.769, 0.189, 0,
+    0.349, 0.686, 0.168, 0,
+    0.272, 0.534, 0.131, 0
+  ],
+  bluesteel: [
+    1, 0.25, 0.65, 0,
+    0.1, 1, 0.65, 0,
+    0.1, 0.25, 1, 0.1
+  ],
+  faded: [
+    1, 0.2, 0.2, 0.03,
+    0.2, 0.7, 0.2, 0.05,
+    0.1, 0, 0.8, 0
+  ]
+};
+
 // Ensure there is enough space to store an edited copy of photo n
 // and if there is, call editPhoto to do so
 function editPhotoIfCardNotFull(n) {
@@ -45,6 +99,126 @@ function editPhotoIfCardNotFull(n) {
   });
 }
 
+
+/*
+ * This is the exposure slider component for edit tool.  This ought to be
+ * converted into a reusable slider module, but for now this is a
+ * custom version that hardcodes things like the -3 to +3 range of values.
+ */
+var exposureSlider = (function() {
+  var slider = document.getElementById('exposure-slider');
+  var bar = document.getElementById('sliderline');
+  var thumb = document.getElementById('sliderthumb');
+  var currentExposure = 0;
+  var dragStart = null;
+  // prepare gesture detector for slider
+  var gestureDetector = new GestureDetector(thumb);
+  gestureDetector.startDetecting();
+
+  thumb.addEventListener('pan', function(e) {
+    // Handle delta so that slider moves correct way
+    // when user drags it for RTL locales
+    var delta = navigator.mozL10n.language.direction === 'ltr' ?
+                e.detail.absolute.dx : - e.detail.absolute.dx;
+
+    var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
+    // For the firt time of pan event triggered
+    // set start value to current value.
+    if (!dragStart) {
+      dragStart = currentExposure;
+    }
+
+    setExposure(dragStart + exposureDelta);
+    e.preventDefault();
+  });
+  thumb.addEventListener('swipe', function(e) {
+    // when stopping we init the dragStart to be null
+    // this way we avoid a 'panstart' event
+    dragStart = null;
+    e.preventDefault();
+  });
+  thumb.addEventListener('touchstart', function(e) {
+    thumb.classList.add('active');
+  });
+  thumb.addEventListener('touchend', function(e) {
+    thumb.classList.remove('active');
+  });
+  slider.addEventListener('keypress', function(e) {
+    // screen reader sends key arrow up/down events for adjusting the slider.
+    if (e.keyCode == KeyEvent.DOM_VK_DOWN) {
+      setExposure(currentExposure - 0.25);
+    } else if (e.keyCode == KeyEvent.DOM_VK_UP) {
+      setExposure(currentExposure + 0.25);
+    }
+  });
+
+  function resize() {
+    forceSetExposure(currentExposure);
+  }
+
+  // Set the thumb position between -3 and +3
+  function setExposure(exposure) {
+    // Make sure it is not out of bounds
+    if (exposure < -3) {
+      exposure = -3;
+    } else if (exposure > 3) {
+      exposure = 3;
+    }
+
+    // Round to the closest sixteenth
+    exposure = Math.round(exposure * 16) / 16;
+
+    if (exposure === currentExposure) {
+      return;
+    }
+
+    forceSetExposure(exposure);
+  }
+
+  function forceSetExposure(exposure) {
+    // Remove left/right 4 pixels of margin
+    var barWidth = parseInt(bar.clientWidth, 10) - 4 * 2;
+    var thumbWidth = parseInt(thumb.clientWidth, 10);
+    var offset = bar.offsetLeft + 4;
+
+    // Convert exposure value to a unit coefficient position of thumb center
+    var unitCoef = (exposure + 3) / 6;
+
+    // Convert unitCoef to pixel position of thumb center
+    var pixel = offset + barWidth * unitCoef;
+
+    // Compute pixel position of left edge of thumb
+    pixel -= thumbWidth / 2;
+
+    // Move the thumb to that position
+    thumb.style.MozMarginStart = pixel + 'px';
+
+    // Display exposure value in thumb
+    thumb.textContent = exposure;
+
+    // Don't need to update the currentExposure and dispatch the event if they
+    // are the same.
+    if (currentExposure === exposure) {
+      return;
+    }
+    // Remember the new exposure value
+    currentExposure = exposure;
+
+    // Set value for ARIA widget
+    slider.setAttribute('aria-valuenow', exposure);
+
+    // Dispatch an event to actually change the image
+    slider.dispatchEvent(new Event('change', {bubbles: true}));
+  }
+
+  return {
+    resize: resize,
+    forceSetExposure: forceSetExposure,
+    setExposure: setExposure,
+    getExposure: function() { return currentExposure; }
+  };
+})();
+
 function resizeHandler() {
   exposureSlider.resize();
   imageEditor.resize();
@@ -55,6 +229,36 @@ function localizeHandler() {
   // then we need to re-position slider thumb for respective locale.
   exposureSlider.forceSetExposure(exposureSlider.getExposure());
 }
+
+// Handle changes on the slider and turn them into calls to edit the image
+(function() {
+  var requestId = null;
+
+  $('exposure-slider').onchange = function() {
+    if (!imageEditor) {  // If it has not been created yet
+      return;
+    }
+
+    // If there is already a pending request, it will take care of this change
+    // and we don't have to request a new one.
+    if (requestId !== null) {
+      return;
+    }
+
+    requestId = requestAnimationFrame(function() {
+      requestId = null;
+      var stops = exposureSlider.getExposure();
+
+      // Convert the exposure compensation stops gamma correction value.
+      var factor = -1;  // Adjust this factor to get something reasonable.
+      var gamma = Math.pow(2, stops * factor);
+      editSettings.exposure.gamma = gamma;
+      editSettings.exposure.sliderThumbPos = stops;
+      enableSaveAndApplyButtons();
+      imageEditor.edit();
+    });
+  };
+}());
 
 function editPhoto(n) {
   editedPhotoIndex = n;
@@ -174,6 +378,7 @@ var editCropSelectedAspectRatio;
 
 // Crop and Effect buttons call this
 function editOptionsHandler() {
+  /* jshint validthis: true */
   // First, unhighlight all buttons in this group and then
   // highlight the button that has just been chosen. These
   // buttons have radio behavior
@@ -193,15 +398,15 @@ function editOptionsHandler() {
       $('edit-crop-options').getElementsByClassName('selected')[0].id;
   }
 
-  if (this === $('edit-crop-aspect-free'))
+  if (this === $('edit-crop-aspect-free')) {
     imageEditor.setCropAspectRatio();
-  else if (this === $('edit-crop-aspect-portrait'))
+  } else if (this === $('edit-crop-aspect-portrait')) {
     imageEditor.setCropAspectRatio(2, 3);
-  else if (this === $('edit-crop-aspect-landscape'))
+  } else if (this === $('edit-crop-aspect-landscape')) {
     imageEditor.setCropAspectRatio(3, 2);
-  else if (this === $('edit-crop-aspect-square'))
+  } else if (this === $('edit-crop-aspect-square')) {
     imageEditor.setCropAspectRatio(1, 1);
-  else if (this === $('edit-crop-aspect-more')) {
+  } else if (this === $('edit-crop-aspect-more')) {
     $('aspect-ratio-options-view').classList.remove('hidden');
   }
   else if (this.dataset.effect) {
@@ -212,13 +417,14 @@ function editOptionsHandler() {
 }
 
 function editAspectMoreHandler() {
-  if (this === $('edit-crop-aspect-3x4'))
+  /* jshint validthis: true */
+  if (this === $('edit-crop-aspect-3x4')) {
     imageEditor.setCropAspectRatio(3, 4);
-  else if (this === $('edit-crop-aspect-4x3'))
+  } else if (this === $('edit-crop-aspect-4x3')) {
     imageEditor.setCropAspectRatio(4, 3);
-  else if (this === $('edit-crop-aspect-16x9'))
+  } else if (this === $('edit-crop-aspect-16x9')) {
     imageEditor.setCropAspectRatio(16, 9);
-  else if (this === $('aspect-ratio-options-cancel')) {
+  } else if (this === $('aspect-ratio-options-cancel')) {
     // On cancel in aspect more options view, update selected crop mode id
     // in editSettings object and highlight previous selected option node.
     selectEditOption($('edit-crop-aspect-more'), false);
@@ -228,150 +434,6 @@ function editAspectMoreHandler() {
   enableSaveAndApplyButtons();
   $('aspect-ratio-options-view').classList.add('hidden');
 }
-
-/*
- * This is the exposure slider component for edit tool.  This ought to be
- * converted into a reusable slider module, but for now this is a
- * custom version that hardcodes things like the -3 to +3 range of values.
- */
-var exposureSlider = (function() {
-  var slider = document.getElementById('exposure-slider');
-  var bar = document.getElementById('sliderline');
-  var thumb = document.getElementById('sliderthumb');
-  var currentExposure = 0;
-  var dragStart = null;
-  // prepare gesture detector for slider
-  var gestureDetector = new GestureDetector(thumb);
-  gestureDetector.startDetecting();
-
-  thumb.addEventListener('pan', function(e) {
-    // Handle delta so that slider moves correct way
-    // when user drags it for RTL locales
-    var delta = navigator.mozL10n.language.direction === 'ltr' ?
-                e.detail.absolute.dx : - e.detail.absolute.dx;
-
-    var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
-    // For the firt time of pan event triggered
-    // set start value to current value.
-    if (!dragStart)
-      dragStart = currentExposure;
-
-    setExposure(dragStart + exposureDelta);
-    e.preventDefault();
-  });
-  thumb.addEventListener('swipe', function(e) {
-    // when stopping we init the dragStart to be null
-    // this way we avoid a 'panstart' event
-    dragStart = null;
-    e.preventDefault();
-  });
-  thumb.addEventListener('touchstart', function(e) {
-    thumb.classList.add('active');
-  });
-  thumb.addEventListener('touchend', function(e) {
-    thumb.classList.remove('active');
-  });
-  slider.addEventListener('keypress', function(e) {
-    // screen reader sends key arrow up/down events for adjusting the slider.
-    if (e.keyCode == KeyEvent.DOM_VK_DOWN) {
-      setExposure(currentExposure - 0.25);
-    } else if (e.keyCode == KeyEvent.DOM_VK_UP) {
-      setExposure(currentExposure + 0.25);
-    }
-  });
-
-  function resize() {
-    forceSetExposure(currentExposure);
-  }
-
-  // Set the thumb position between -3 and +3
-  function setExposure(exposure) {
-    // Make sure it is not out of bounds
-    if (exposure < -3)
-      exposure = -3;
-    else if (exposure > 3)
-      exposure = 3;
-
-    // Round to the closest sixteenth
-    exposure = Math.round(exposure * 16) / 16;
-
-    if (exposure === currentExposure)
-      return;
-
-    forceSetExposure(exposure);
-  }
-
-  function forceSetExposure(exposure) {
-    // Remove left/right 4 pixels of margin
-    var barWidth = parseInt(bar.clientWidth, 10) - 4 * 2;
-    var thumbWidth = parseInt(thumb.clientWidth, 10);
-    var offset = bar.offsetLeft + 4;
-
-    // Convert exposure value to a unit coefficient position of thumb center
-    var unitCoef = (exposure + 3) / 6;
-
-    // Convert unitCoef to pixel position of thumb center
-    var pixel = offset + barWidth * unitCoef;
-
-    // Compute pixel position of left edge of thumb
-    pixel -= thumbWidth / 2;
-
-    // Move the thumb to that position
-    thumb.style.MozMarginStart = pixel + 'px';
-
-    // Display exposure value in thumb
-    thumb.textContent = exposure;
-
-    // Don't need to update the currentExposure and dispatch the event if they
-    // are the same.
-    if (currentExposure === exposure) {
-      return;
-    }
-    // Remember the new exposure value
-    currentExposure = exposure;
-
-    // Set value for ARIA widget
-    slider.setAttribute('aria-valuenow', exposure);
-
-    // Dispatch an event to actually change the image
-    slider.dispatchEvent(new Event('change', {bubbles: true}));
-  }
-
-  return {
-    resize: resize,
-    forceSetExposure: forceSetExposure,
-    setExposure: setExposure,
-    getExposure: function() { return currentExposure; }
-  };
-})();
-
-// Handle changes on the slider and turn them into calls to edit the image
-(function() {
-  var requestId = null;
-
-  $('exposure-slider').onchange = function() {
-    if (!imageEditor)  // If it has not been created yet
-      return;
-
-    // If there is already a pending request, it will take care of this change
-    // and we don't have to request a new one.
-    if (requestId !== null)
-      return;
-
-    requestId = requestAnimationFrame(function() {
-      requestId = null;
-      var stops = exposureSlider.getExposure();
-
-      // Convert the exposure compensation stops gamma correction value.
-      var factor = -1;  // Adjust this factor to get something reasonable.
-      var gamma = Math.pow(2, stops * factor);
-      editSettings.exposure.gamma = gamma;
-      editSettings.exposure.sliderThumbPos = stops;
-      enableSaveAndApplyButtons();
-      imageEditor.edit();
-    });
-  };
-}());
 
 // Set editTool to respective edit modes on click
 // of crop, exposure, effect, enhance.
@@ -661,6 +723,7 @@ function saveEditedImage() {
     // XXX: this loop is O(n^2) and slow if the user saves many edits
     // of the same image.
     filename = basename + '.edit' + version + extension;
+    /* jshint loopfunc: true */
     while (files.some(function(i) { return i.name === filename; })) {
       version++;
       filename = basename + '.edit' + version + extension;
@@ -753,8 +816,9 @@ function ImageEditor(imageBlob, container, edits, ready, croponly) {
     this.preview.src = this.imageURL;
     this.preview.onload = function() {
       self.displayCropOnlyPreview();
-      if (ready)
+      if (ready) {
         ready();
+      }
     };
   }
   else {
@@ -771,8 +835,9 @@ function ImageEditor(imageBlob, container, edits, ready, croponly) {
       // Display an edited preview of it
       self.edit(function() {
         // If the constructor had a ready callback argument, call it now
-        if (ready)
+        if (ready) {
           ready();
+        }
       });
     };
   }
@@ -803,8 +868,6 @@ ImageEditor.prototype.displayCropOnlyPreview = function() {
 };
 
 ImageEditor.prototype.generateNewPreview = function(callback) {
-  var self = this;
-
   // infer the previewHeight such that the aspect ratio stays the same
   var scalex = this.previewCanvas.width / this.source.width;
   var scaley = this.previewCanvas.height / this.source.height;
@@ -1034,8 +1097,6 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   const NUM_THREADS = 2;
   const NUM_TILES = 24;
 
-  var self = this;
-
   if (progress) {  // Get the progress bar to appear right away
     progress(0.01);
   }
@@ -1067,10 +1128,12 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
       x = 0;
       while (x < imageWidth) {
         var tile = {x: x, y: y, w: tileWidth, h: tileHeight};
-        if (x + tileWidth > imageWidth)
+        if (x + tileWidth > imageWidth) {
           tile.w = imageWidth - x;
-        if (y + tileHeight > imageHeight)
+        }
+        if (y + tileHeight > imageHeight) {
           tile.h = imageHeight - y;
+        }
         tiles.push(tile);
         x += tileWidth;
       }
@@ -1198,14 +1261,15 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
 
   // Start off with a crop region that is the one passed in, if it is not null.
   // Otherwise, it should be the entire preview canvas
+  var region;
   if (newRegion) {
-    var region = this.cropOverlayRegion;
+    region = this.cropOverlayRegion;
     region.left = newRegion.left;
     region.top = newRegion.top;
     region.right = newRegion.right;
     region.bottom = newRegion.bottom;
   } else {
-    var region = this.cropOverlayRegion;
+    region = this.cropOverlayRegion;
     var dpr = window.devicePixelRatio;
     region.left = 0;
     region.top = 0;
@@ -1406,28 +1470,29 @@ ImageEditor.prototype.cropStart = function(ev) {
             y0 > y - 25 && y0 < y + 25);
   }
 
-  if (hit((left + right) / 2, top))
+  if (hit((left + right) / 2, top)) {
     drag('n');
-  else if (hit(right, (top + bottom) / 2))
+  } else if (hit(right, (top + bottom) / 2)) {
     drag('e');
-  else if (hit((left + right) / 2, bottom))
+  } else if (hit((left + right) / 2, bottom)) {
     drag('s');
-  else if (hit(left, (top + bottom) / 2))
+  } else if (hit(left, (top + bottom) / 2)) {
     drag('w');
-  else if (!aspectRatio) {
-    if (hit(right, top))
+  } else if (!aspectRatio) {
+    if (hit(right, top)) {
       drag('ne');
-    else if (hit(right, bottom))
+    } else if (hit(right, bottom)) {
       drag('se');
-    else if (hit(left, bottom))
+    } else if (hit(left, bottom)) {
       drag('sw');
-    else if (hit(left, top))
+    } else if (hit(left, top)) {
       drag('nw');
-    else
+    } else {
       drag(); // with no argument, do a pan instead of a drag
-  }
-  else
+    }
+  } else {
     drag(); // pan
+  }
 
   function drag(handle) {
     window.addEventListener('pan', move, true);
@@ -1508,8 +1573,9 @@ ImageEditor.prototype.cropStart = function(ev) {
       // Now if the new region is out of bounds then bail out without
       // changing the region at all and ignore this move event
       if (newtop < 0 || newleft < 0 ||
-          newright > dest.width || newbottom > dest.height)
+          newright > dest.width || newbottom > dest.height) {
         return;
+      }
 
       // Don't let the crop region become smaller than 100x100. If it does
       // then the sensitive regions of the crop handles start to intersect.
@@ -1517,20 +1583,24 @@ ImageEditor.prototype.cropStart = function(ev) {
       // one dimension will be 100 and will be larger in the other.
       var minWidth = 100, minHeight = 100;
       if (aspectRatio) {
-        if (aspectRatio > 1)
+        if (aspectRatio > 1) {
           minWidth = Math.round(minWidth * aspectRatio);
-        else if (aspectRatio < 1)
+        } else if (aspectRatio < 1) {
           minHeight = Math.round(minHeight / aspectRatio);
+        }
       }
 
       // if the width is less than the minimum allowed (due to orientation
       // change), only allow the crop region to get bigger
       var newWidth = newright - newleft;
-      if ((newWidth < (region.right - region.left)) && (newWidth < minWidth))
+      if ((newWidth < (region.right - region.left)) && (newWidth < minWidth)) {
         return;
+      }
       var newHeight = newbottom - newtop;
-      if ((newHeight < (region.bottom - region.top)) && (newHeight < minHeight))
+      if ((newHeight < (region.bottom - region.top)) &&
+          (newHeight < minHeight)) {
         return;
+      }
 
       // Otherwise, all is well, so update the crop region and redraw
       region.left = newleft;
@@ -1542,14 +1612,18 @@ ImageEditor.prototype.cropStart = function(ev) {
     }
 
     function pan(dx, dy) {
-      if (dx > 0)
+      if (dx > 0) {
         dx = Math.min(dx, dest.width - right);
-      if (dx < 0)
+      }
+      if (dx < 0) {
         dx = Math.max(dx, -left);
-      if (dy > 0)
+      }
+      if (dy > 0) {
         dy = Math.min(dy, dest.height - bottom);
-      if (dy < 0)
+      }
+      if (dy < 0) {
         dy = Math.max(dy, -top);
+      }
 
       region.left = left + dx;
       region.right = right + dx;
@@ -1700,7 +1774,6 @@ ImageEditor.prototype.getCropOverlayRegion = function(cropSettings) {
 
 ImageEditor.prototype.autoEnhancement = function(callback) {
   var self = this;
-  var enhanced = false;
   if (!this.edits.enhance.autoLevels) { // if not already enhanced
     this.getAutoLevels().then(setEnhancement);
   } else {
@@ -1804,7 +1877,7 @@ ImageEditor.prototype.getAutoLevels = function() {
     }
 
     // How many pixels do we need to see to count as the minimum or maximum
-    var threshold = thresholdPercent / 100 * total;
+    threshold = thresholdPercent / 100 * total;
 
     // Find the minimum level
     total = 0;
@@ -1831,35 +1904,4 @@ ImageEditor.prototype.getAutoLevels = function() {
       max: max
     };
   }
-};
-
-/*
- * These arrays represent matricies for image processing effects. They
- * are passed to the ImageProcessor.setMatrix() method to specify color
- * transformations of an image. The property names in this object are
- * linked to the Gallery editor UX: if they are changed here, they also
- * must be changed in the HTML.
- */
-var Effects = {
-  none: null,
-  bw: [
-    0.65, 0.25, 0.10, 0,
-    0.65, 0.25, 0.10, 0,
-    0.65, 0.25, 0.10, 0
-  ],
-  sepia: [
-    0.393, 0.769, 0.189, 0,
-    0.349, 0.686, 0.168, 0,
-    0.272, 0.534, 0.131, 0
-  ],
-  bluesteel: [
-    1, 0.25, 0.65, 0,
-    0.1, 1, 0.65, 0,
-    0.1, 0.25, 1, 0.1
-  ],
-  faded: [
-    1, 0.2, 0.2, 0.03,
-    0.2, 0.7, 0.2, 0.05,
-    0.1, 0, 0.8, 0
-  ]
 };

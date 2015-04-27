@@ -1,3 +1,9 @@
+'use strict';
+/* global
+  MediaUtils,
+  ThumbnailItem
+*/
+
 /**
  * ThumbnailDateGroup is a grouping mechanism supported in gallery app. It
  * groups file data by its year and month. The grouping
