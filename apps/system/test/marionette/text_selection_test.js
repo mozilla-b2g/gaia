@@ -66,9 +66,10 @@ marionette('Text selection >', function() {
       test('copy and paste', function() {
         fakeTextselectionApp.copyTo('FunctionalitySourceInput',
           'FunctionalityTargetInput');
+
         assert.equal(
           fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
-          'testvalue');
+          'test');
       });
 
       test('cut and paste', function() {
@@ -79,7 +80,7 @@ marionette('Text selection >', function() {
           '');
         assert.equal(
           fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
-          'testvalue');
+          'test');
       });
 
       test('select all and cut', function() {
