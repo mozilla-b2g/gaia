@@ -60,15 +60,24 @@
           client.helper.waitForElement(SELECTORS.pickContactButton).tap();
         },
 
-        sendMessage: function(number, body) {
+        /**
+         * Forces app to issue "websms/sms" new activity request with phone
+         * number and body.
+         * @param {{number: Number, body: string }} parameters Object that
+         * contains parameters to pass to "websms/sms" new activity.
+         */
+        sendMessage: function(parameters) {
           var button = client.helper.waitForElement(
             SELECTORS.sendMessageButton
           );
 
-          button.scriptWith(function(element, number, body) {
-            element.dataset.number = number;
-            element.dataset.body = body;
-          }, [number, body]);
+          // We set button dataset attributes, that will be used by test
+          // activity app as "websms/sms" activity parameters.
+          button.scriptWith(function(element, parameters) {
+            Object.keys(parameters).forEach(function(parameterKey) {
+              element.dataset[parameterKey] = parameters[parameterKey];
+            });
+          }, [parameters]);
 
           button.tap();
         }
