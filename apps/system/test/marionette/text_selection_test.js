@@ -73,7 +73,7 @@ marionette('Text selection >', function() {
 
         assert.equal(
           fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
-          'test');
+          'testvalue');
       });
 
       test('cut and paste', function() {
