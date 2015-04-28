@@ -1,4 +1,19 @@
 'use strict';
+/* global
+  CONFIG_MAX_IMAGE_PIXEL_SIZE,
+  CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT,
+  CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
+  cropResizeRotate,
+  Downsample,
+  getImageSize,
+  getVideoRotation,
+  isPhone,
+  parseJPEGMetadata,
+  videostorage
+*/
+/* exported
+  metadataParser
+*/
 
 //
 // This file defines a single metadataParsers object. The two
@@ -30,7 +45,7 @@ var metadataParser = (function() {
   };
 
   // Don't try to decode image files of unknown type if bigger than this
-  var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
+  var MAX_UNKNOWN_IMAGE_FILE_SIZE = 0.5 * 1024 * 1024; // half a megabyte
 
   // An <img> element for loading images
   var offscreenImage = new Image();
@@ -418,8 +433,9 @@ var metadataParser = (function() {
       // XXX: When bug 854795 is fixed, we'll be able to create previews
       // for large images without using so much memory, and we can remove
       // this flag then.
-      if (iw * ih > 2 * 1024 * 1024 && bigFile)
+      if (iw * ih > 2 * 1024 * 1024 && bigFile) {
         bigFile();
+      }
 
       // If the image was already thumbnail size, it is its own thumbnail
       // and it does not need a preview
@@ -485,7 +501,7 @@ var metadataParser = (function() {
             // something like /sdcard/DCIM/100MZLLA/IMG_0001.jpg).
             var slashIndex = file.name.indexOf('/', 1);
             if (slashIndex < 0) {
-              error("savePreview: Bad filename: '" + file.name + "'");
+              error('savePreview: Bad filename: \'' + file.name + '\'');
               return;
             }
             filename =
