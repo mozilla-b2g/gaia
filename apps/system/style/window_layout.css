@@ -48,6 +48,8 @@
 
   background-repeat: no-repeat;
   background-position: center center;
+
+  overflow: hidden;
 }
 
 #screen.software-button-enabled #windows > .appWindow:not(.lockScreenWindow):not(.lockScreenInputWindow),
