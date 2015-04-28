@@ -28,6 +28,7 @@ suite('AppStoragePanel', function() {
     this.MockAppStorage = {
       isMock: true,
       enabled: true,
+      updateInfo: function () {},
       storage: {
         usedPercentage: 1,
         totalSize: 1,
