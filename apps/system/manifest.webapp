@@ -76,9 +76,8 @@
     "284": "/style/icons/system_284.png"
   },
   "activities": {
-    "import": {
+    "import-app": {
       "filters": {
-        "type": "app",
         "blob": {
           "required": true
         }
