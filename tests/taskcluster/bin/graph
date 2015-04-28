@@ -45,7 +45,7 @@ var graph = {
 // task graph can be submitted.
 if (process.argv[2] == '--full') {
   graph.scopes = [
-    'docker-worker:cache:resources',
+    'docker-worker:cache:gaia-misc-caches',
 
     util.format(
       'queue:define-task:%s/%s',
