@@ -1,3 +1,9 @@
+/* global videodb:true,storageState:true,firstScanEnded:true,
+  MediaDB,updateDialog,playerShowing,hidePlayer,updateLoadingSpinner,
+  addToMetadataQueue,thumbnailList,currentVideo,resetCurrentVideo,
+  hideSelectView,thumbnailClickHandler */
+/* exported initDB */
+'use strict';
 //
 // This file is part of the Gaia Video app.  It uses the MediaDB libarary
 // and the code in metadata.js to ensure that the videos[] array is up to date.
@@ -28,8 +34,9 @@ function initDB() {
   // when the user pulls the sdcard out. If we're playing a video when that
   // happens, we need to stop or risk a crash.
   videodb.oncardremoved = function() {
-    if (playerShowing)
+    if (playerShowing) {
       hidePlayer(true);
+    }
   };
 
   videodb.onready = function() {
@@ -65,8 +72,9 @@ var enumerated = false;
 // This function runs once when the app starts up. It gets all known videos
 // from the MediaDB and handles the appropriately
 function enumerateDB() {
-  if (enumerated)
+  if (enumerated) {
     return;
+  }
   enumerated = true;
   var firstBatchDisplayed = false;
 

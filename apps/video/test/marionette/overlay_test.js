@@ -1,3 +1,5 @@
+'use strict';
+
 var Video = require('./lib/video');
 
 marionette('video overlay', function() {

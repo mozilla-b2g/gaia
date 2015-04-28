@@ -1,3 +1,4 @@
+/* global MediaUtils,ThumbnailItem */
 /**
  * ThumbnailDateGroup is a grouping mechanism supported in video app. It
  * groups video data by its year and month, see bug 908380. The grouping
@@ -43,6 +44,7 @@
  *   compareGroupID
  *
  */
+'use strict';
 function ThumbnailDateGroup(item) {
   if (!item) {
     throw new Error('item should not be null or undefined.');

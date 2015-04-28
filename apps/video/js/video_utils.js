@@ -1,3 +1,6 @@
+/* exported VideoUtils */
+'use strict';
+
 var VideoUtils = {
   /**
    * fit the video player to the container. This function aspects the video
@@ -14,8 +17,9 @@ var VideoUtils = {
 
     // Don't do anything if we don't know our size.
     // This could happen if we get a resize event before our metadata loads
-    if (!player.videoWidth || !player.videoHeight)
+    if (!player.videoWidth || !player.videoHeight) {
       return;
+    }
 
     var width, height; // The size the video will appear, after rotation
     var rotation = videoRotation || 0;

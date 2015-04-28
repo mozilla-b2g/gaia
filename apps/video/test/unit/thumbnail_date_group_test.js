@@ -1,3 +1,5 @@
+/* global ThumbnailItem: true,MockThumbnailItem,MockL10n,MediaUtils,
+  ThumbnailDateGroup,Template */
 /*
  *  Thumbnail Date Group tests
  */
@@ -56,7 +58,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
   suite('#test object creation', function() {
     test('#empty video object', function() {
       try {
-        new ThumbnailDateGroup();
+        new ThumbnailDateGroup(); // jshint ignore:line
         assert.fail('undefined or null videoitem should not be ok.');
       } catch (ex) {
         assert.ok('correct behavior caught');
@@ -66,7 +68,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
     test('#no template', function() {
       try {
         delete ThumbnailDateGroup.Template;
-        new ThumbnailDateGroup({date: 1375873140000});
+        new ThumbnailDateGroup({date: 1375873140000}); // jshint ignore:line
         assert.fail('new object without template is not allowed.');
       } catch (ex) {
         assert.ok('correct behavior caught');
@@ -79,7 +81,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
         dummyDiv.innerHTML = '<!-- empty -->';
 
         ThumbnailDateGroup.Template = new Template(dummyDiv);
-        new ThumbnailDateGroup({date: 1375873140000});
+        new ThumbnailDateGroup({date: 1375873140000}); // jshint ignore:line
         assert.fail('empty template is not allowed.');
       } catch (ex) {
         assert.ok('correct behavior caught');
@@ -88,9 +90,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
   });
 
   suite('#error handling', function() {
-    var dateGroup;
     var videoData;
-    var domNode;
 
     suiteSetup(function() {
       videoData = {date: 1375873140000};
@@ -99,7 +99,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
     test('#render without template', function() {
       try {
-        var dateGroup = new ThumbnailDateGroup(videoData, 'test-id');
+        new ThumbnailDateGroup(videoData, 'test-id'); // jshint ignore:line
         assert.fail('render() should throw error without template');
       } catch (ex) {
         assert.ok('expected error caught.');
@@ -206,8 +206,8 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
     test('#removeItem, unknown thumbnail', function() {
 
-      var thumbnail1 = dateGroup.addItem({date: 1375873140004});
-      var thumbnail2 = dateGroup.addItem({date: 1375873140003});
+      dateGroup.addItem({date: 1375873140004});
+      dateGroup.addItem({date: 1375873140003});
 
       var dummyThumbnail = new ThumbnailItem({});
       dateGroup.removeItem(dummyThumbnail);

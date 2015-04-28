@@ -1,3 +1,4 @@
+/* global MockL10n,MockThumbnailGroup,ThumbnailList */
 /*
  * Thumbnail List tests
  */
@@ -28,20 +29,20 @@ suite('Thumbnail List Unit Tests', function() {
     });
 
     test('normal', function() {
-      new ThumbnailList(MockThumbnailGroup, dummyContainer);
+      new ThumbnailList(MockThumbnailGroup, dummyContainer); //jshint ignore:line
       assert.ok('everything should be ok');
     });
 
     test('missing arguments', function() {
       try {
-        new ThumbnailList(MockThumbnailGroup);
+        new ThumbnailList(MockThumbnailGroup); //jshint ignore:line
         assert.fail('it should throws an error.');
       } catch (ex) {
         assert.ok('everything should be ok');
       }
 
       try {
-        new ThumbnailList();
+        new ThumbnailList(); //jshint ignore:line
         assert.fail('it should throws an error.');
       } catch (ex) {
         assert.ok('everything should be ok');

@@ -1,3 +1,6 @@
+/* global getStorageIfAvailable,getVideoRotation,VideoUtils,
+  ForwardRewindController,MimeMapper,getUnusedFilename,MediaUtils,
+  VideoLoadingChecker,MediaError */
 'use strict';
 
 /*
@@ -18,12 +21,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var dragging = false;
   var data = activity.source.data;
   var blob = data.blob;
-  var type = data.type;
   var url = data.url;
   var title = data.title || '';
   var storage;       // A device storage object used by the save button
   var saved = false; // Did we save it?
-  var endedTimer;    // The workaround of bug 783512.
   var videoRotation = 0;
   // touch start id is the identifier of touch event. we only need to process
   // events related to this id.
@@ -235,8 +236,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     sliderRect = dom.sliderWrapper.getBoundingClientRect();
 
     // We can't do anything if we don't know our duration
-    if (dom.player.duration === Infinity)
+    if (dom.player.duration === Infinity) {
       return;
+    }
 
     if (!isPausedWhileDragging) {
       dom.player.pause();
@@ -398,7 +400,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // a timeout a half a second after we'd expect an ended event.
     if (!endedTimer) {
       if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
-        var timeUntilEnd = (dom.player.duration - dom.player.currentTime + .5);
+        var timeUntilEnd = (dom.player.duration - dom.player.currentTime + 0.5);
         endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
       }
     } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
@@ -454,8 +456,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
 
     var percent = (dom.player.currentTime / dom.player.duration) * 100;
-    if (isNaN(percent)) // this happens when we end the activity
+    if (isNaN(percent)) { // this happens when we end the activity
       return;
+    }
     percent += '%';
 
     dom.elapsedText.textContent = MediaUtils.formatDuration(
@@ -549,8 +552,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // Strip directories and just return the base filename
   function baseName(filename) {
-    if (!filename)
+    if (!filename) {
       return '';
+    }
     return filename.substring(filename.lastIndexOf('/') + 1);
   }
 

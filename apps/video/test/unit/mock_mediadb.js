@@ -1,4 +1,3 @@
-/* jshint unused: true */
 /* exported MockMediaDB, MediaDB */
 'use strict';
 
