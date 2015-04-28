@@ -734,6 +734,13 @@ aside.connecting {
   font-size: 1.4rem;
   font-weight: 500;
   margin: auto;
+  box-sizing: content-box;
+  display: inline-block;
+  width: auto;
+  min-width: 4.5rem;
+  max-width: 40%;
+  padding: 0 0.8rem;
+  -moz-padding-end: 1.8rem;
 }
 
 
