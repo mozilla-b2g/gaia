@@ -29,6 +29,15 @@ marionette('Contacts > Form', function() {
     system = new System(client);
   });
 
+  teardown(function() {
+    subject = null;
+    contactsData = null;
+    selectors = null;
+    dialerSubject = null;
+    dialerSelectors = null;
+    system = null;
+  });
+
   var contactData = {
     givenName: ['Jose'],
     familyName: ['Cantera'],
