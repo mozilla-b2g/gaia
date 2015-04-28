@@ -38,7 +38,7 @@ var config = {
     params: {
       provisionerId: 'aws-provisioner',
       workerType: 'gaia',
-      raptorRuns: 30,
+      raptorRuns: 15,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_BASE_REV,
       raptorTimeout: 600000,
@@ -51,7 +51,7 @@ var config = {
     params: {
       provisionerId: 'aws-provisioner',
       workerType: 'gaia',
-      raptorRuns: 30,
+      raptorRuns: 15,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_HEAD_REV,
       raptorTimeout: 600000,
