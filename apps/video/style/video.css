@@ -155,28 +155,6 @@ span.line-break {
 }
 
 /*
- * When the user holds their finger over a thumbnail, change the background
- * color to highlight it
- */
-.thumbnail:active {
-  background-color: #0ac;
-}
-
-/*
- * And make all the children translucent so the color shows through
- */
-.thumbnail:active div {
-  opacity: 0.85;
-}
-
-/*
- * And make all the text color to white while selection
- */
-.thumbnail:active span {
-  color: #FFF;
-}
-
-/*
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
  * for normal thumbnails-list case, it is 4rem at bottom.
