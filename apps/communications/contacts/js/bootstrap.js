@@ -17,7 +17,7 @@
   const FIRST_CHUNK = 'firstChunk';
   const l10nStrings = {
     'title': {
-      query: 'gaia-header h1#app-title',
+      query: 'gaia-header h1#app-title[data-l10n-id="contacts"]',
       container: 'textContent'
     },
     'search': {
