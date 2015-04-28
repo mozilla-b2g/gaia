@@ -21,6 +21,10 @@ System.Selector = Object.freeze({
     'gaia-header',
   appAuthDialogLogin: '.appWindow.active .authentication-dialog.visible ' +
     'button.authentication-dialog-http-authentication-ok',
+  appAuthDialogUsername: '.appWindow.active .authentication-dialog.visible ' +
+    '.authentication-dialog-http-username-input',
+  appAuthDialogPassword: '.appWindow.active .authentication-dialog.visible ' +
+    '.authentication-dialog-http-password-input',
   appContextMenuSaveLink:
     '.appWindow.active .contextmenu [data-id="save-link"]',
   appWindow: '.appWindow',
@@ -108,6 +112,16 @@ System.prototype = {
   get appAuthDialogLogin() {
     return this.client.helper.waitForElement(
       System.Selector.appAuthDialogLogin);
+  },
+
+  get appAuthDialogUsername() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogUsername);
+  },
+
+  get appAuthDialogPassword() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogPassword);
   },
 
   get appContextMenuSaveLink() {

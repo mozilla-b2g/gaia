@@ -53,7 +53,9 @@ Server.prototype = {
         }
 
         // Handle protected URLs.
-        if (server.authUrls[fullUrl]) {
+        // Users can login with 'username' and 'password'
+        if (server.authUrls[fullUrl] &&
+            req.headers.authorization !== 'Basic dXNlcm5hbWU6cGFzc3dvcmQ=') {
           res.writeHead(401, {
             'WWW-Authenticate': 'Basic realm="login required"'
           });
