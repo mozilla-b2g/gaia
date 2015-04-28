@@ -10,40 +10,42 @@
 var LayoutItemDownloadErrorToastView = function() {
   BaseView.apply(this);
 
-  this.isVisible = false;
-  this.showDeferred = false;
+  // This property keeps the visibility state of the view,
+  // so we would know whether or not to delay the toast to show.
+  this._isVisible = false;
+  this._showDelayed = false;
 };
 LayoutItemDownloadErrorToastView.prototype = Object.create(BaseView.prototype);
 LayoutItemDownloadErrorToastView.prototype.CONTAINER_ID =
   'installable-keyboards-download-error-toast';
 LayoutItemDownloadErrorToastView.prototype.start = function() {
   BaseView.prototype.start.call(this);
-  this.isVisible = false;
-  this.showDeferred = false;
+  this._isVisible = false;
+  this._showDelayed = false;
 };
 LayoutItemDownloadErrorToastView.prototype.stop = function() {
   BaseView.prototype.stop.call(this);
-  this.isVisible = false;
-  this.showDeferred = false;
+  this._isVisible = false;
+  this._showDelayed = false;
 };
 LayoutItemDownloadErrorToastView.prototype.show = function() {
   BaseView.prototype.show.call(this);
 
-  this.isVisible = true;
-  if (this.showDeferred) {
+  this._isVisible = true;
+  if (this._showDelayed) {
     this.container.show();
-    this.showDeferred = false;
+    this._showDelayed = false;
   }
 };
 LayoutItemDownloadErrorToastView.prototype.beforeHide = function() {
   BaseView.prototype.beforeHide.call(this);
 
-  this.isVisible = false;
+  this._isVisible = false;
   this.container.hide();
 };
 LayoutItemDownloadErrorToastView.prototype.showToast = function() {
-  if (!this.isVisible) {
-    this.showDeferred = true;
+  if (!this._isVisible) {
+    this._showDelayed = true;
 
     return;
   }
@@ -60,13 +62,28 @@ var Deferred = function() {
   }.bind(this));
 };
 
+// DialogInfo holds the information of one showDialog() call so we could
+// work on that request when we actually do so.
+var DialogInfo = function(args) {
+  this.args = args;
+  this.deferred = new Deferred();
+};
+
+// This is a wrapper that wraps <gaia-confirm> into our view management.
+// The reason we did this is because we need to defer the toast from showing,
+// if our containing view is not visible.
+// We also want to queue the showDialog requests.
 var ConfirmationDialogBaseView = function() {
   BaseView.apply(this);
 
-  this.deferred = null;
-};
+  // This property keeps the visibility state of the view,
+  // so we would know whether or not to delay the dialog to show.
+  this._isVisible = false;
+  this._isShown = undefined;
 
-ConfirmationDialogBaseView.prototype.isShown = false;
+  this._currentDialogInfo = null;
+  this._delayedDialogInfo = null;
+};
 
 ConfirmationDialogBaseView.prototype =
   Object.create(BaseView.prototype);
@@ -80,6 +97,10 @@ ConfirmationDialogBaseView.prototype.start = function() {
 
   BaseView.prototype.start.call(this);
 
+  this._delayedDialogInfo = [];
+  this.container.hidden = true;
+  this._isShown = false;
+
   this.container.addEventListener('confirm', this);
   this.container.addEventListener('cancel', this);
 };
@@ -88,7 +109,20 @@ ConfirmationDialogBaseView.prototype.stop = function() {
   this.container.removeEventListener('confirm', this);
   this.container.removeEventListener('cancel', this);
 
+  // Reject unhandled promises.
+  this._delayedDialogInfo.forEach(function(info) {
+    info.deferred.reject('stopped');
+  });
+  this._delayedDialogInfo = null;
+
   BaseView.prototype.stop.call(this);
+};
+
+ConfirmationDialogBaseView.prototype.show = function() {
+  BaseView.prototype.show.call(this);
+
+  this._isVisible = true;
+  this._maybeShowNextDelayedDialog();
 };
 
 ConfirmationDialogBaseView.prototype.handleEvent = function(evt) {
@@ -109,20 +143,37 @@ ConfirmationDialogBaseView.prototype.handleEvent = function(evt) {
 };
 
 ConfirmationDialogBaseView.prototype.showDialog = function() {
-  if (this.isShown) {
-    throw new Error(
-      'ConfirmationDialogBaseView: showDialog() called twice.');
+  var info = new DialogInfo(Array.prototype.slice.call(arguments));
+  this._delayedDialogInfo.push(info);
+  this._maybeShowNextDelayedDialog();
+
+  return info.deferred.promise;
+};
+
+// noop, to be overriden, will be called when the dialog actually shown,
+// with whatever arguments passed to showDialog originally.
+ConfirmationDialogBaseView.prototype.beforeShowDialog = function() {
+};
+
+ConfirmationDialogBaseView.prototype._maybeShowNextDelayedDialog = function() {
+  if (!this._delayedDialogInfo.length ||
+      !this._isVisible ||
+      this._isShown) {
+    return;
   }
 
-  this.container.hidden = false;
-  this.isShown = true;
-  this.deferred = new Deferred();
+  var info = this._delayedDialogInfo.shift();
+  this.beforeShowDialog.apply(this, info.args);
 
-  return this.deferred.promise;
+  this.container.hidden = false;
+  this._isShown = true;
+  this._currentDialogInfo = info;
 };
 
 ConfirmationDialogBaseView.prototype.beforeHide = function() {
-  if (this.isShown) {
+  this._isVisible = false;
+
+  if (this._isShown) {
     this.hideDialog(false);
   }
 
@@ -130,16 +181,18 @@ ConfirmationDialogBaseView.prototype.beforeHide = function() {
 };
 
 ConfirmationDialogBaseView.prototype.hideDialog = function(confirmed) {
-  if (!this.isShown) {
+  if (!this._isShown) {
     throw new Error(
-      'ConfirmationDialogBaseView: hideDialog() called twice.');
+      'ConfirmationDialogBaseView: hideDialog() called when not shown.');
   }
 
-  this.deferred.resolve(confirmed);
+  this._currentDialogInfo.deferred.resolve(confirmed);
 
   this.container.hidden = true;
-  this.isShown = false;
-  this.deferred = null;
+  this._isShown = false;
+  this._currentDialogInfo = null;
+
+  this._maybeShowNextDelayedDialog();
 };
 
 var LayoutItemRemovalConfirmationDialogView = function() {
@@ -153,16 +206,12 @@ LayoutItemRemovalConfirmationDialogView.prototype.CONTAINER_ID =
   'installable-keyboards-removal-dialog';
 
 // override
-LayoutItemRemovalConfirmationDialogView.prototype.showDialog = function(label) {
-  if (this.isShown) {
-    throw new Error(
-      'LayoutItemRemovalConfirmationDialogView: showDialog() called twice.');
-  }
+LayoutItemRemovalConfirmationDialogView.prototype.beforeShowDialog =
+function(label) {
+  ConfirmationDialogBaseView.prototype.beforeShowDialog(this);
 
   this.container.firstElementChild.dataset.l10nArgs =
     JSON.stringify({ keyboard: label });
-
-  return ConfirmationDialogBaseView.prototype.showDialog.call(this, label);
 };
 
 var LayoutItemDataConnectionConfirmationDialogView = function() {
@@ -196,16 +245,35 @@ LayoutItemDataConnectionConfirmationDialogView.prototype.stop = function() {
 };
 
 // override
-LayoutItemDataConnectionConfirmationDialogView
-.prototype.showDialog = function() {
-  this.rememberMyChoiceElement.checked = false;
+LayoutItemDataConnectionConfirmationDialogView.prototype.beforeShowDialog =
+function() {
+  ConfirmationDialogBaseView.prototype.beforeShowDialog(this);
 
-  return ConfirmationDialogBaseView.prototype.showDialog.call(this);
+  this.rememberMyChoiceElement.checked = false;
 };
 
 LayoutItemDataConnectionConfirmationDialogView
 .prototype.shouldRemember = function() {
   return this.rememberMyChoiceElement.checked;
+};
+
+var LayoutItemEnableConfirmationDialogView = function() {
+  ConfirmationDialogBaseView.apply(this);
+};
+
+LayoutItemEnableConfirmationDialogView.prototype =
+  Object.create(ConfirmationDialogBaseView.prototype);
+
+LayoutItemEnableConfirmationDialogView.prototype.CONTAINER_ID =
+  'installable-keyboards-enable-dialog';
+
+// override
+LayoutItemEnableConfirmationDialogView.prototype.beforeShowDialog =
+function(label) {
+  ConfirmationDialogBaseView.prototype.beforeShowDialog(this);
+
+  this.container.firstElementChild.dataset.l10nArgs =
+    JSON.stringify({ keyboard: label });
 };
 
 var LayoutItemListView = function(app) {
@@ -240,6 +308,9 @@ LayoutItemListView.prototype.start = function() {
   this.childViews.dataConnectionDialog =
     new LayoutItemDataConnectionConfirmationDialogView();
   this.childViews.dataConnectionDialog.start();
+  this.childViews.enableDialog =
+    new LayoutItemEnableConfirmationDialogView();
+  this.childViews.enableDialog.start();
 
   this._installedListContainer =
     document.getElementById(this.INSTALLED_LIST_ID);
@@ -263,9 +334,6 @@ LayoutItemListView.prototype.confirmDownload = function() {
 };
 
 LayoutItemListView.prototype._showConfirmDownloadDialog = function() {
-  // Here we assume our safety with UI, i.e. the confirm dialog is an overlay
-  // on top of other views so that this method will never get called twice
-  // before the previous dialog is confirmed/canceled.
   var downloadPreference = this._model.downloadPreference;
   var dataConnectionDialog = this.childViews.dataConnectionDialog;
   return dataConnectionDialog.showDialog()
@@ -281,10 +349,19 @@ LayoutItemListView.prototype._showConfirmDownloadDialog = function() {
 };
 
 LayoutItemListView.prototype.confirmRemoval = function(layoutName) {
-  // Here we assume our safety with UI, i.e. the removal dialog is an overlay
-  // on top of other views so that this method will never get called twice
-  // before the previous dialog is confirmed/canceled.
   return this.childViews.removeDialog.showDialog(layoutName);
+};
+
+LayoutItemListView.prototype.confirmEnable = function(layoutName) {
+  return this.childViews.enableDialog.showDialog(layoutName);
+};
+
+LayoutItemListView.prototype.disableLayout = function(id) {
+  return this._model.layoutEnabler.disableLayout(id);
+};
+
+LayoutItemListView.prototype.enableLayout = function(id) {
+  return this._model.layoutEnabler.enableLayout(id);
 };
 
 LayoutItemListView.prototype.showDownloadErrorToast = function() {

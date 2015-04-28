@@ -86,12 +86,62 @@ DownloadPreference.prototype._isUsingDataConnection = function() {
   return mobileDataConnected;
 };
 
+// This reimplements a subset of KeyboardHelper so that we don't need to
+// import it.
+// It enables or disables the layout with given id.
+//
+// Eventually we should provide this to app with a DOM API instead of writing
+// to mozSettings directly.
+var LayoutEnabler = function(app) {
+  this.app = app;
+  this.appManifestURL = '';
+};
+
+LayoutEnabler.prototype.SETTING_ENABLE_LAYOUT_KEY =
+  'keyboard.enabled-layouts';
+
+LayoutEnabler.prototype.start = function() {
+  this.appManifestURL =
+    location.protocol + '//' + location.hostname + '/manifest.webapp';
+};
+
+LayoutEnabler.prototype.stop = function() {
+  this.appManifestURL = null;
+};
+
+LayoutEnabler.prototype.enableLayout = function(id) {
+  return this.app.settingsPromiseManager
+    .updateOne(this.SETTING_ENABLE_LAYOUT_KEY, function(obj) {
+      if (!obj[this.appManifestURL]) {
+        obj[this.appManifestURL] = {};
+      }
+
+      obj[this.appManifestURL][id] = true;
+
+      return obj;
+    }.bind(this));
+};
+
+LayoutEnabler.prototype.disableLayout = function(id) {
+  return this.app.settingsPromiseManager
+    .updateOne(this.SETTING_ENABLE_LAYOUT_KEY, function(obj) {
+      if (!obj[this.appManifestURL]) {
+        obj[this.appManifestURL] = {};
+      }
+
+      delete obj[this.appManifestURL][id];
+
+      return obj;
+    }.bind(this));
+};
+
 var LayoutItemList = function(app) {
   this.app = app;
 
   this.closeLockManager = app.closeLockManager;
   this.dictionaryList = null;
   this.downloadPreference = null;
+  this.layoutEnabler = null;
   this._layoutConfigQueue = null;
 
   // This set stores the ids of enabled layouts.
@@ -113,6 +163,9 @@ LayoutItemList.prototype.start = function() {
 
   this.downloadPreference = new DownloadPreference(this.app);
   this.downloadPreference.start();
+
+  this.layoutEnabler = new LayoutEnabler(this.app);
+  this.layoutEnabler.start();
 
   this.layoutItems = new Map();
 
@@ -145,6 +198,9 @@ LayoutItemList.prototype.stop = function() {
 
   this.downloadPreference.stop();
   this.downloadPreference = null;
+
+  this.layoutEnabler.stop();
+  this.layoutEnabler = null;
 
   this._layoutConfigQueue = null;
   this._installedLayoutListSet = null;
@@ -256,5 +312,6 @@ LayoutItemList.prototype._createLayoutItemsFromLayouts = function(layouts) {
 
 exports.LayoutItemList = LayoutItemList;
 exports.DownloadPreference = DownloadPreference;
+exports.LayoutEnabler = LayoutEnabler;
 
 }(window));

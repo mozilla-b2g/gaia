@@ -131,6 +131,7 @@ suite('LayoutItem', function() {
       item = new LayoutItem(layoutItemListStub, layout);
       item.onstatechange = this.sinon.stub();
       item.onprogress = this.sinon.stub();
+      item.oninstall = this.sinon.stub();
       item.onerror = this.sinon.stub();
       item.start();
 
@@ -197,6 +198,8 @@ suite('LayoutItem', function() {
         assert.equal(item.state, item.STATE_INSTALLED);
         assert.isTrue(closeLockStub.unlock.calledOnce);
 
+        assert.isTrue(item.oninstall.calledOnce);
+
         assert.isFalse(item.onerror.called);
       }).then(done, done);
     });
@@ -223,6 +226,7 @@ suite('LayoutItem', function() {
         assert.equal(item.state, item.STATE_INSTALLABLE);
 
         assert.isTrue(item.onerror.calledOnce);
+        assert.isFalse(item.oninstall.calledOnce);
         assert.equal(
           item.onerror.firstCall.args[0].error,
           item.onerror.firstCall.args[0].ERROR_DOWNLOADERROR);
@@ -267,6 +271,7 @@ suite('LayoutItem', function() {
         assert.equal(item.downloadTotalSize, 0);
 
         assert.isTrue(item.onerror.calledOnce);
+        assert.isFalse(item.oninstall.calledOnce);
         assert.equal(
           item.onerror.firstCall.args[0].error,
           item.onerror.firstCall.args[0].ERROR_INSTALLERROR);
@@ -314,6 +319,7 @@ suite('LayoutItem', function() {
         assert.isTrue(closeLockStub.unlock.calledOnce);
 
         assert.isTrue(item.onerror.calledOnce);
+        assert.isFalse(item.oninstall.calledOnce);
         assert.equal(
           item.onerror.firstCall.args[0].error,
           item.onerror.firstCall.args[0].ERROR_INSTALLERROR);

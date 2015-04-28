@@ -27,6 +27,9 @@ suite('LayoutItemView', function() {
 
   var confirmRemovalDeferred;
   var confirmDownloadDeferred;
+  var confirmEnableDeferred;
+  var disableLayoutDeferred;
+  var enableLayoutDeferred;
 
   setup(function() {
     navigator.mozL10n = {
@@ -34,16 +37,23 @@ suite('LayoutItemView', function() {
     };
 
     itemStub = this.sinon.stub(LayoutItem.prototype);
+    itemStub.id = 'foo';
     itemStub.name = 'Pig Latin';
     itemStub.fileSize = 24601;
     itemStub.state = itemStub.STATE_PRELOADED;
 
     confirmRemovalDeferred = new Deferred();
     confirmDownloadDeferred = new Deferred();
+    confirmEnableDeferred = new Deferred();
+    disableLayoutDeferred = new Deferred();
+    enableLayoutDeferred = new Deferred();
 
     listViewStub = this.sinon.stub(Object.create(LayoutItemListView.prototype));
     listViewStub.confirmRemoval.returns(confirmRemovalDeferred.promise);
     listViewStub.confirmDownload.returns(confirmDownloadDeferred.promise);
+    listViewStub.confirmEnable.returns(confirmEnableDeferred.promise);
+    listViewStub.disableLayout.returns(disableLayoutDeferred.promise);
+    listViewStub.enableLayout.returns(enableLayoutDeferred.promise);
 
     view = new LayoutItemView(listViewStub, itemStub);
 
@@ -233,6 +243,11 @@ suite('LayoutItemView', function() {
       test('confirmed', function(done) {
         confirmRemovalDeferred.resolve(true);
         confirmRemovalDeferred.promise.then(function() {
+          assert.isTrue(listViewStub.disableLayout.calledWith('foo'));
+          disableLayoutDeferred.resolve();
+
+          return disableLayoutDeferred.promise;
+        }).then(function() {
           assert.isTrue(itemStub.remove.calledOnce);
         }).then(done, done);
       });
@@ -240,9 +255,34 @@ suite('LayoutItemView', function() {
       test('cancelled', function(done) {
         confirmRemovalDeferred.resolve(false);
         confirmRemovalDeferred.promise.then(function() {
+          assert.isFalse(listViewStub.disableLayout.calledOnce);
           assert.isFalse(itemStub.remove.calledOnce);
         }).then(done, done);
       });
+    });
+  });
+
+  suite('oninstall', function() {
+    setup(function() {
+      itemStub.oninstall();
+      assert.isTrue(listViewStub.confirmEnable.calledWith('Pig Latin'));
+    });
+
+    test('confirmed', function(done) {
+      confirmEnableDeferred.resolve(true);
+      confirmEnableDeferred.promise.then(function() {
+        assert.isTrue(listViewStub.enableLayout.calledWith('foo'));
+        enableLayoutDeferred.resolve();
+
+        return enableLayoutDeferred.promise;
+      }).then(done, done);
+    });
+
+    test('cancelled', function(done) {
+      confirmEnableDeferred.resolve(false);
+      confirmEnableDeferred.promise.then(function() {
+        assert.isFalse(listViewStub.enableLayout.calledOnce);
+      }).then(done, done);
     });
   });
 
