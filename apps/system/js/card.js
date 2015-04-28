@@ -8,6 +8,11 @@
 
   var _id = 0;
 
+  /* Corresponds to the icon size in the footer.
+   * Used to determine the proper icon size from the manifest.
+   */
+  const CARD_FOOTER_ICON_SIZE = 40;
+
   /**
    * A card in a card view, representing a single app
    *
@@ -139,9 +144,10 @@
 
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
-    var iconURI = CardsHelper.getIconURIForApp(this.app);
+    var size = CARD_FOOTER_ICON_SIZE * window.devicePixelRatio;
+    var iconURI = CardsHelper.getIconURIForApp(this.app, size);
     if (iconURI) {
-        this.iconValue = 'url(' + iconURI + ')';
+      this.iconValue = 'url(' + iconURI + ')';
     }
 
     var origin = app.origin;
