@@ -9,17 +9,14 @@
       "curl": "github:cujojs/curl/0.8.12#src/curl.js",
       "eventemitter2": "github:asyncly/EventEmitter2/0.4.14#lib/eventemitter2.js",
       "ical": "github:mozilla-comm/ical.js/v0.0.2#build/ical.js",
-      "page": "github:visionmedia/page.js/1.3.2#index.js",
-      "threads": "github:gaia-components/threads/master#threads.js",
+      "page": "github:tj/page.js/1.3.2#index.js",
       "uuid": "github:broofa/node-uuid/v1.4.1"
     }
   },
   "webide": {
     "prepackage": {
       "command": "make",
-      "env": [
-        "APP=calendar"
-      ],
+      "env": ["APP=calendar"],
       "cwd": "../.."
     },
     "packageDir": "../../build_stage/calendar/"
