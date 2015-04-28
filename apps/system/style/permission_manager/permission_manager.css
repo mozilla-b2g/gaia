@@ -58,6 +58,10 @@
   word-wrap: break-word;
 }
 
+html[dir="rtl"] #permission-message {
+  background-position: right 0 top 50%;
+}
+
 #permission-more-info-link.hidden {
   display: none;
 }
@@ -110,7 +114,7 @@
 }
 
 #permission-screen[data-type] #permission-message {
-  padding-left: 7rem;
+  -moz-padding-start: 7rem;
 }
 
 #permission-remember-section label {
@@ -122,7 +126,10 @@
 #permission-device-selector {
   font-size: 1.8rem;
   font-weight: 300;
-  padding: 3rem 0 2rem 1.2rem;
+  padding-top: 3rem;
+  padding-bottom: 1.5rem;
+  -moz-padding-start: 1.2rem;
+  -moz-padding-end: 1.2rem;
 }
 
 #permission-device-selector.hidden {
@@ -137,6 +144,8 @@
 #permission-devices li.device-cell {
   position: relative;
   list-style-type: none;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 #permission-devices li.device-cell > a:active {
@@ -157,12 +166,17 @@
 
 #permission-devices input[type="checkbox"] + span {
   position: absolute;
-  top: 0.3rem;
+  top: 1.3rem;
   right: 1.5rem;
   margin: 0;
   background: url(images/alarm_off.png) no-repeat center top / 3.4rem;
   width: 3.4rem;
   height: 3.4rem;
+}
+
+html[dir="rtl"] #permission-devices input[type="checkbox"] + span {
+  right: unset;
+  left: 1.5rem;
 }
 
 #permission-devices input[type="checkbox"]:checked + span {
