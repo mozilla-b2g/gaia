@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global KeyboardManager */
+/* global KeyboardManager, Tagged */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -367,16 +367,14 @@ var ModalDialog = {
       return;
     }
 
-    var itemsHTML = [];
+    var itemsHTML = '';
     for (var i = 0; i < data.options.length; i++) {
-      itemsHTML.push('<li><button id="');
-      itemsHTML.push(data.options[i].id);
-      itemsHTML.push('">');
-      itemsHTML.push(data.options[i].text);
-      itemsHTML.push('</button></li>');
+      itemsHTML += Tagged.escapeHTML `<li>
+        <button id="${data.options[i].id}">${data.options[i].text}</button>
+      </li>`;
     }
 
-    elements.selectOneMenu.innerHTML = itemsHTML.join('');
+    elements.selectOneMenu.innerHTML = itemsHTML;
   },
 
   /**
