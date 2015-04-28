@@ -7,7 +7,7 @@
   "tags": {},
   "tasks": [
     {
-      "reruns": 3,
+      "reruns": 2,
       "task": {
         "metadata": {
           "name": "Gaia Taskcluster Decision Task"
@@ -16,18 +16,34 @@
         "workerType": "gaia-decision",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches",
-          "docker-worker:image:quay.io/mozilla/gaia-taskenv:*"
+          "docker-worker:image:quay.io/mozilla/gaia-taskenv:*",
+          "docker-worker:image:quay.io/mozilla/npm-cache:*",
+          "queue:define-task:aws-provisioner/gaia",
+          "queue:create-task:aws-provisioner/gaia"
         ],
         "payload": {
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
-          "image": "quay.io/mozilla/gaia-taskenv:0.8.0",
+          "image": "quay.io/mozilla/gaia-taskenv:0.8.9",
           "command": [
             "entrypoint",
-            "echo 'what' && make node_modules && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
+            "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
           ],
-          "graphs": ["/graph.json"]
+          "env": {
+            "NODE_MODULES_SRC": "npm-cache"
+          },
+          "graphs": ["/graph.json"],
+          "artifacts": {
+            "public/package.json": {
+              "type": "file",
+              "path": "/home/tester/git_checkout/package.json",
+              "expires": "2016-03-30T11:59:00.000Z"
+            }
+          },
+          "features": {
+            "taskclusterProxy": true
+          }
         },
         "extra": {
           "treeherder": {

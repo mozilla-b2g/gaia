@@ -1,4 +1,4 @@
-reruns: 4
+reruns: 2
 task:
   metadata:
     name: Gaia build tests
@@ -10,17 +10,22 @@ task:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
     - docker-worker:cache:gaia-misc-caches
+    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
+    image: quay.io/mozilla/gaia-taskenv:0.8.9
     cache:
       gaia-misc-caches: /home/tester/caches/
 
     env:
       REPORTER: 'mocha-tbpl-reporter'
+      DEBUG: '*'
+      NODE_MODULES_SRC: npm-cache
 
     command:
       - entrypoint
       - ./bin/ci run build_unit
+
   extra:
     treeherder:
       groupSymbol: GB
