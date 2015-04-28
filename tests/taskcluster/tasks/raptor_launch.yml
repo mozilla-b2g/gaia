@@ -24,7 +24,7 @@ task:
       RAPTOR_GAIA_REV: '{{gaiaRev}}'
       RAPTOR_TIMEOUT: '{{raptorTimeout}}'
       RAPTOR_BOOT_SLEEP: '{{raptorBootSleep}}'
-      RAPTOR_LAUNCH_DELAY: 10000
+      RAPTOR_LAUNCH_DELAY: 6000
     command:
       - entrypoint
 
