@@ -71,37 +71,86 @@ define(function(require) {
         li.appendChild(anchor);
 
         anchor.onclick = () => {
-          DialogService.show('wifi-enterCertificateNickname', {
-            certificateName: certificateName
-          }).then((result) => {
-            var type = result.type;
-            var value = result.value;
-
-            if (type === 'submit') {
-              var certRequest =
-                wifiManager.importCert(file, '', value.nickname);
-
-              // Gray out all item of certificate files
-              // since we are importing other file.
-              this._setCertificateItemsEnabled(false);
-              certRequest.onsuccess = () => {
-                // direct dialog to "wifi-manageCertificates"
-                SettingsService.navigate('wifi-manageCertificates');
-              };
-
-              certRequest.onerror = () => {
-                DialogService.alert('certificate-import-failed-description', {
-                  title: 'certificate-import-failed'
-                }).then(() => {
-                  // Re-enable all items of certificate files
-                  // since import file process is completed.
-                  this._setCertificateItemsEnabled(true);
-                });
-              };
-            }
-          });
+          this._importCertificate(file);
         };
         return li;
+      },
+      _importCertificate: function(file) {
+        var certificateName = this._parseFilename(file.name);
+        var isPasswordRequired =
+          this._isPasswordRequired(this._parseExtension(file.name));
+        var password, nickname;
+
+        (() => {
+          this._setCertificateItemsEnabled(false);
+          if (isPasswordRequired) {
+            return this._requestPassword();
+          } else {
+            return Promise.resolve(null);
+          }
+        })().then((result) => {
+          if (isPasswordRequired && !result) {
+            return Promise.reject('invalid-password');
+          } else {
+            password = result;
+            return this._requestNickName(certificateName);
+          }
+        }).then((result) => {
+          nickname = result;
+          return new Promise((resolve, reject) => {
+            var req = wifiManager.importCert(file, password, nickname);
+            req.onsuccess = resolve;
+            req.reject = onerror;
+          });
+        }).then(() => {
+          SettingsService.navigate('wifi-manageCertificates');
+        }).catch((error) => {
+          if (error === 'cancel') {
+            return;
+          } else if (error === 'invalid-password') {
+            // should use specific warning message
+            return DialogService.alert(
+              'certificate-import-failed-description', {
+                title: 'certificate-import-failed'
+            });
+          } else {
+            return DialogService.alert(
+              'certificate-import-failed-description', {
+                title: 'certificate-import-failed'
+            });
+          }
+        }).then(() => {
+          this._setCertificateItemsEnabled(true);
+        });
+      },
+      _requestNickName: function(certificateName) {
+        return DialogService.show('wifi-enterCertificateNickname', {
+          certificateName: certificateName
+        }).then((result) => {
+          var type = result.type;
+          var value = result.value;
+          if (type === 'submit') {
+            return value.nickname;
+          } else {
+            return Promise.reject('cancel');
+          }
+        });
+      },
+      _requestPassword: function() {
+        return DialogService.prompt(null, {
+          title: 'enterCertificatePassowrd',
+          defaultValue: '',
+          submitButton: 'ok',
+          cancelButton: 'cancel'
+        }).then((result) => {
+          var type = result.type;
+          var value = result.value;
+          if (type === 'submit') {
+            return value;
+          } else {
+            return Promise.reject('cancel');
+          }
+        });
       },
       _parseFilename: function(path) {
         return path.slice(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
@@ -111,7 +160,11 @@ define(function(require) {
         return array.length > 1 ? array.pop() : '';
       },
       _isCertificateFile: function(extension) {
-        var cerExtension = ['cer', 'crt', 'pem', 'der'];
+        var cerExtension = ['cer', 'crt', 'pem', 'der', 'pfx', 'p12'];
+        return cerExtension.indexOf(extension) > -1;
+      },
+      _isPasswordRequired: function(extension) {
+        var cerExtension = ['pfx', 'p12'];
         return cerExtension.indexOf(extension) > -1;
       },
     });
