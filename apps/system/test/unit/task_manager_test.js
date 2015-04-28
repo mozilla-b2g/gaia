@@ -1280,15 +1280,18 @@ suite('system/TaskManager >', function() {
     // ensure lockscreen-appopened and attentionopened cause
     // exit to last app
     ['lockscreen-appopened', 'attentionopened'].forEach(function(name) {
-      test('exit to last app on ' + name, function() {
-        this.sinon.stub(sms, 'open');
+      test('exit to last app on ' + name, function(done) {
         this.sinon.spy(taskManager, 'exitToApp');
+        this.sinon.stub(sms, 'open', function() {
+          done(function() {
+            assert.isTrue(taskManager.exitToApp.calledWith(sms),
+                          name + ' exitToApp called with last app');
+            assert.isTrue(sms.open.calledOnce,
+                          name + ' resulted in opening last app');
+          });
+        });
         var evt = new CustomEvent(name, { });
         window.dispatchEvent(evt);
-        assert.isTrue(taskManager.exitToApp.calledWith(sms),
-                      name + ' exitToApp called with last app');
-        assert.isTrue(sms.open.called,
-                      name + ' resulted in opening last app');
       });
     }, this);
 
