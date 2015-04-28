@@ -120,7 +120,7 @@
           waitOver();
         };
         backdrop.classList.remove('hidden');
-        eventSafety(backdrop, 'transitionend', finishTransition, 300);
+        eventSafety(backdrop, 'transitionend', finishTransition, 200);
 
         this.loadSearchApp().then(() => {
           if (this.input.value.length) {
@@ -171,7 +171,7 @@
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
           self.publish('-deactivated');
           self.isClosing = false;
-        }, 300);
+        }, 200);
       };
 
       if (this.focused) {

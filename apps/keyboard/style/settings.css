@@ -22,7 +22,8 @@ section[role="region"], section[role="dialog"] {
 }
 
 section[role="region"] {
-  transition: transform 0.4s ease, visibility 0.4s;
+  transition: transform var(--transition-duration) ease,
+              visibility var(--transition-duration);
   transform: translateX(100%);
   visibility: hidden;
 }
@@ -38,7 +39,8 @@ section[role="region"].current {
 }
 
 section[role="dialog"] {
-  transition: visibility 0.5s, opacity 0.5s ease;
+  transition: visibility var(--transition-duration),
+              opacity var(--transition-duration) ease;
   opacity: 0;
   visibility: hidden;
 }

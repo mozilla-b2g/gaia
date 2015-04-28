@@ -84,7 +84,7 @@ marionette('switch Keyboard App', function() {
     var imeSwitchingKey = keyboard.imeSwitchingKey;
 
     // Long press to show IME menu
-    actions.longPress(imeSwitchingKey, 1.0).perform();
+    actions.longPress(imeSwitchingKey, 0.7).perform();
 
     // switch back to system
     client.switchToFrame();

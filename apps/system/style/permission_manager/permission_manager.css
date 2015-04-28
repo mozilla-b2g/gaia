@@ -5,7 +5,7 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.4);
-  -moz-transition: opacity 0.5s ease;
+  -moz-transition: opacity var(--transition-duration) ease;
   pointer-events: none;
   display: none;
 }

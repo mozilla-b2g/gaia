@@ -4,7 +4,8 @@
   height: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height));
   transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
   transform-origin: top left;
-  transition: transform 0.2s ease-in-out, background-color 0.5s ease;
+  transition: transform var(--transition-duration) ease-in-out,
+              background-color var(--transition-duration) ease;
 
   background-color: black;
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));

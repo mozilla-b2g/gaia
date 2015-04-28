@@ -11,7 +11,7 @@
   border-width: 0;
   background: #000; /* opaque */
   z-index: 100;     /* on top of all the camera stuff */
-  transition: transform 0.5s linear;
+  transition: transform var(--transition-duration) linear;
   overflow: hidden;
   transform-origin: 0 0;
 }

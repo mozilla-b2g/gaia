@@ -90,8 +90,8 @@
   AppTransitionController.prototype._waitingForLoad = false;
   AppTransitionController.prototype.openAnimation = 'enlarge';
   AppTransitionController.prototype.closeAnimation = 'reduce';
-  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 350;
-  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 350;
+  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 200;
+  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 200;
   AppTransitionController.prototype.SLOW_TRANSITION_TIMEOUT = 3500;
   AppTransitionController.prototype.changeTransitionState =
     function atc_changeTransitionState(evt) {
