@@ -65,7 +65,8 @@ Keyboard.prototype = {
       this.switchToPage(0);
       this.switchCase(true);
       keySelector  = Keyboard.Selector.upperCaseKey;
-    } else if (key >= 'a' && key <= 'z') {
+    } else if ((key >= 'a' && key <= 'z') ||
+               key == ' ') {
       this.switchToPage(0);
       this.switchCase(false);
     } else {
