@@ -1,0 +1,43 @@
+reruns: 4
+task:
+  metadata:
+    name: 'Raptor Launch Test'
+    description: Raptor performance launch test on emulator
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:tc-vcs
+    - docker-worker:image:quay.io/mozilla/raptor-tester:latest
+
+  payload:
+    maxRunTime: 3600
+    image: quay.io/mozilla/raptor-tester:latest
+    cache:
+      tc-vcs: /home/worker/.tc-vcs
+    env:
+      RAPTOR_TEST: tests/raptor/emulator_launch_test.js
+      RAPTOR_RUNS: '{{raptorRuns}}'
+      RAPTOR_APPS: '{{raptorApps}}'
+      RAPTOR_GAIA_REV: '{{gaiaRev}}'
+      RAPTOR_TIMEOUT: '{{raptorTimeout}}'
+      RAPTOR_BOOT_SLEEP: '{{raptorBootSleep}}'
+      RAPTOR_LAUNCH_DELAY: 10000
+    command:
+      - entrypoint
+
+    artifacts:
+      'public/logs':
+        type: directory
+        path: '/home/worker/logs'
+        expires: '{{nextYear}}'
+
+  extra:
+    treeherder:
+      groupSymbol: Rpt
+      groupName: "Raptor Performance Tests"
+      symbol: '{{treeherderSym}}'
+    treeherderEnv:
+      - production

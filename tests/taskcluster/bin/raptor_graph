@@ -1,0 +1,140 @@
+#! /usr/bin/env node
+
+/**
+Entrypoint for the task graph extension / decisions for gaia raptor tests.
+*/
+
+var decorate = require('../lib/decorate_task');
+var yaml = require('js-yaml');
+var fs = require('fs');
+var fsPath = require('path');
+var slugid = require('slugid');
+var util = require('util');
+var template = require('json-templater/object');
+
+// Cache for task definitions...
+var TASK_DEFINITIONS = {};
+function loadTask(name, parameters) {
+  if (!TASK_DEFINITIONS[name]) {
+    var path = fsPath.resolve(__dirname + '/../tasks/' + name + '.yml');
+    TASK_DEFINITIONS[name] = yaml.safeLoad(fs.readFileSync(path));
+  }
+  return decorate(TASK_DEFINITIONS[name], parameters);
+}
+
+function params() {
+  return Array.prototype.slice.call(arguments).reduce(function(target, props) {
+    for (var key in props) target[key] = props[key];
+    return target;
+  }, {});
+}
+
+// Map of task ids to task names.
+var taskIdMap = {};
+
+var config = {
+  task1: {
+    definition: 'raptor_launch',
+    params: {
+      provisionerId: 'aws-provisioner',
+      workerType: 'emulator-ics',
+      raptorRuns: 30,
+      raptorApps: 'settings',
+      gaiaRev: process.env.GITHUB_BASE_REV,
+      raptorTimeout: 600000,
+      raptorBootSleep: 180,
+      treeherderSym: 'se1'
+    }
+  },
+  task2: {
+    definition: 'raptor_launch',
+    params: {
+      provisionerId: 'aws-provisioner',
+      workerType: 'emulator-ics',
+      raptorRuns: 30,
+      raptorApps: 'settings',
+      gaiaRev: process.env.GITHUB_HEAD_REV,
+      raptorTimeout: 600000,
+      raptorBootSleep: 180,
+      treeherderSym: 'se2'
+    }
+  },
+  task3: {
+    definition: 'raptor_result',
+    params: {
+      completedBranchTask: '',
+      completedPatchTask: '',
+      provisionerId: 'aws-provisioner',
+      workerType: 'gaia',
+      treeherderSym: 'se'
+    }
+  }
+};
+
+// Final task graph definition place holder...
+var raptorGraph = {
+  tasks: []
+};
+
+// XXX: When extending the task graph the scopes and metadata fields are invalid
+// according to the schema so for local testing we need the --full option so the
+// task graph can be submitted.
+if (process.argv[2] == '--full') {
+  raptorGraph.scopes = [
+    'docker-worker:cache:resources',
+
+    util.format(
+      'queue:define-task:%s/%s',
+      //config.params.provisionerId, config.params.workerType
+      config.task1.params.provisionerId, config.task1.params.workerType
+    ),
+
+    util.format(
+      'queue:create-task:%s/%s',
+      //config.params.provisionerId, config.params.workerType
+      config.task1.params.provisionerId, config.task1.params.workerType
+    ),
+  ];
+
+  raptorGraph.metadata = {
+    source: process.env.GITHUB_HEAD_GIT + '/blob/tests/taskcluster/bin/raptor_graph',
+    owner: 'rwood@mozilla.com', // TODO: Obviously change this...
+    description: 'Generated task graph for gaia raptor',
+    name: 'Gaia Raptor'
+  };
+}
+
+var nextYear = new Date(Date.now());
+nextYear.setFullYear(nextYear.getFullYear() + 1);
+nextYear = nextYear.toJSON();
+
+// Expand all tasks based on the config object
+Object.keys(config).forEach(function(raptorTask) {
+  var definition = config[raptorTask].definition;
+  if (definition == 'raptor_result') {
+    config[raptorTask].params.completedBranchTask = raptorGraph.tasks[0].taskId;
+    config[raptorTask].params.completedPatchTask = raptorGraph.tasks[1].taskId;
+  }
+
+  taskIdMap[raptorTask] = slugid.v4();
+  var task = loadTask(definition, params(config[raptorTask].params, {
+    // Useful for environment variables.
+    process: process,
+    // For dependencies.
+    nextYear: nextYear
+  }));
+  task.taskId = taskIdMap[raptorTask];
+  if (definition == 'raptor_result') {
+    task.requires = [raptorGraph.tasks[0].taskId, raptorGraph.tasks[1].taskId];
+  }
+  raptorGraph.tasks.push(task);
+
+  return;
+});
+
+raptorGraph.tasks = raptorGraph.tasks.map(function(task) {
+  return template(task, { tasks: taskIdMap });
+});
+
+// Output the entire task graph for extension....
+process.stdout.write(JSON.stringify(raptorGraph, null, 2));

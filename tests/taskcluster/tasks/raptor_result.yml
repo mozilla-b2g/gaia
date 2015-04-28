@@ -1,0 +1,37 @@
+reruns: 4
+task:
+  metadata:
+    name: 'Raptor Result Task'
+    description: Compare raptor results and detect performance regression
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    - docker-worker:image:quay.io/mozilla/raptor-results:latest
+
+  payload:
+    maxRunTime: 600
+    image: quay.io/mozilla/raptor-results:latest
+    env:
+      RAPTOR_COMPLETED_BRANCH: '{{completedBranchTask}}'
+      RAPTOR_COMPLETED_PATCH: '{{completedPatchTask}}'
+      RAPTOR_REGRESSION_METRIC: coldlaunch.visuallyLoaded
+      RAPTOR_REGRESSION_COMPARATOR: p95
+      RAPTOR_REGRESSION_THRESHOLD: 15
+      RAPTOR_LOG_ARTIFACT: public/logs/raptor.log
+    command:
+      - entrypoint
+
+    artifacts:
+      'public/logs':
+        type: directory
+        path: '/home/worker/logs'
+        expires: '{{nextYear}}'
+
+  extra:
+    treeherder:
+      groupSymbol: Rpt
+      groupName: "Raptor Performance Tests"
+      symbol: '{{treeherderSym}}'
+    treeherderEnv:
+      - production
