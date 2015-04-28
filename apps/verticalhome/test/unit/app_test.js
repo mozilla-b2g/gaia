@@ -76,6 +76,14 @@ suite('app.js > ', function() {
     window.dispatchEvent(new CustomEvent('context-menu-close'));
   });
 
+  test('Transition property in edit-mode', function() {
+    app.grid.dispatchEvent(new CustomEvent('editmode-start'));
+    assert.equal(app.grid.style.transition, app.EDIT_MODE_TRANSITION_STYLE);
+
+    app.grid.dispatchEvent(new CustomEvent('editmode-end'));
+    assert.equal(app.grid.style.transition, '');
+  });
+
   test('Hashchange event without dragdrop', function() {
     var oldDragdrop = app.grid._grid.dragdrop;
     app.grid._grid.dragdrop = undefined;
