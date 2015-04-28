@@ -37,7 +37,6 @@
         return Promise.resolve();
       }
       this._booted = true;
-      console.log('1111');
       window.settingsCore = BaseModule.instantiate('SettingsCore');
       window.settingsCore.start();
       window.launcher = BaseModule.instantiate('Launcher');
