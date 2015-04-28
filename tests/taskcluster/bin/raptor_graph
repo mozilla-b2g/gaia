@@ -37,7 +37,7 @@ var config = {
     definition: 'raptor_launch',
     params: {
       provisionerId: 'aws-provisioner',
-      workerType: 'emulator-ics',
+      workerType: 'gaia',
       raptorRuns: 30,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_BASE_REV,
@@ -50,7 +50,7 @@ var config = {
     definition: 'raptor_launch',
     params: {
       provisionerId: 'aws-provisioner',
-      workerType: 'emulator-ics',
+      workerType: 'gaia',
       raptorRuns: 30,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_HEAD_REV,
