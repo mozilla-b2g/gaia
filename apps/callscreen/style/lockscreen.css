@@ -80,7 +80,7 @@
 
 #lockscreen-masked-background {
   background-size: 100% 100%;
-  transition: background-image 0.3s ease, background-color 0.3s ease;
+  transition: background-image 0.2s ease, background-color 0.2s ease;
 }
 
 #lockscreen-masked-background.blank {
@@ -101,7 +101,7 @@
   height: 10rem;
   position: absolute;
   border-style: none;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.2s ease;
 }
 
 .lockscreen-icon {

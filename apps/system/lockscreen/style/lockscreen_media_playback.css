@@ -60,7 +60,7 @@
 }
 
 #lockscreen .media-playback-controls > div {
-  transition: 0s 0.3s; /* Delay transition post tap by some milliseconds. */
+  transition: 0s 0.2s; /* Delay transition post tap by some milliseconds. */
 }
 
 [role="dialog"] #lockscreen .media-playback-controls > div:active,

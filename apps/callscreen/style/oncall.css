@@ -128,7 +128,7 @@
   }
 
   body.showKeypad #views {
-    transition: transform 0.3s ease, visibility 0.3s;
+    transition: transform 0.2s ease, visibility 0.2s;
     transform: translateY(-100%);
     visibility: visible;
     z-index: 500;
@@ -154,12 +154,12 @@
 
   body.showKeypad .duration,
   body.showKeypad .sim  {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
     opacity: 0;
   }
 
   body.showKeypad #call-options {
-    transition: transform 0.3s ease, opacity 0.3s;
+    transition: transform 0.2s ease, opacity 0.2s;
     transform: translateY(16rem);
     opacity: 0;
   }
@@ -380,7 +380,7 @@
     height: 8rem;
     font-size: 1.8rem;
     background-color: #00adad;
-    transition: background-color 0.3s linear;
+    transition: background-color 0.2s linear;
     opacity: 1;
     color: white;
   }
@@ -439,7 +439,7 @@
   #calls.big-duration > section .numberWrapper,
   #calls.big-duration > section .additionalContactInfo {
     background: rgba(255,255,255,0.85);
-    transition: background-color 0.3s linear;
+    transition: background-color 0.2s linear;
   }
 
   #calls.big-duration > section .numberWrapper .number {
@@ -753,7 +753,7 @@
     bottom: 0;
     width: 100%;
     transform: translateY(100%);
-    transition: transform 0.3s ease-in-out, visibility 0.3s;
+    transition: transform 0.2s ease-in-out, visibility 0.2s;
     z-index: 500;
     visibility: hidden;
   }
@@ -911,7 +911,7 @@
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    transition: opacity 0.3s linear;
+    transition: opacity 0.2s linear;
   }
 
   #bluetooth-menu {

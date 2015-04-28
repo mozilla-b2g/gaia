@@ -58,7 +58,7 @@ textarea,
 }
 
 #screen > div#poweroff-splash.step1 {
-  animation: poweroff-splash-fade-in 0.5s;
+  animation: poweroff-splash-fade-in 0.2s;
 }
 
 @keyframes poweroff-splash-fade-in {

@@ -5,7 +5,7 @@
   bottom: 0;
   left: 0;
   position: absolute;
-  transition: visibility 0.5s, opacity 0.5s;
+  transition: visibility 0.2s, opacity 0.2s;
   display: block;
 }
 

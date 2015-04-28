@@ -31,7 +31,7 @@
 }
 
 #zoom .arrows.zooming {
-  transition: transform 0.5s;
+  transition: transform 0.2s;
 }
 
 #zoom .arrows.grow {

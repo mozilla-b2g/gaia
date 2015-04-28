@@ -20,7 +20,7 @@ gaia-menu {
   font-size: 0;
   color: #fff;
   display: block;
-  transition: transform ease-in-out 0.3s, visibility 0.3s;
+  transition: transform ease-in-out 0.2s, visibility 0.2s;
 }
 
 gaia-menu[hidden] {

@@ -339,7 +339,7 @@ form[role="dialog"][data-type="edit"] .bb-tablist > li {
   width: 100%;
   height: 100%;
 
-  transition: transform 0.4s ease;
+  transition: transform 0.2s ease;
 }
 
 .default-panel {
@@ -552,7 +552,7 @@ section[role="region"].new > gaia-header h1 {
 
 /* transition in and out edit mode, both for LTR and RTL contexts */
 .message .bubble {
-  transition: transform 0.4s ease 0s;
+  transition: transform 0.2s ease 0s;
 }
 
 /*

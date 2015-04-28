@@ -68,7 +68,7 @@ input.error {
 /* Hide/show tab panel when other views show up */
 
 #tabpanel {
-  transition: visibility 0.5s;
+  transition: visibility 0.2s;
 }
 
 #tabpanel.behind {
@@ -93,9 +93,9 @@ gaia-header [data-icon]:before {
   top: 9.3rem;
   background: #f4f4f4;
   transform: translate(0, 0);
-  transition: transform 0.5s ease,
+  transition: transform 0.2s ease,
               opacity 0.2s ease,
-              visibility 0.5s;
+              visibility 0.2s;
 }
 
 #balance-tab,
@@ -235,9 +235,9 @@ section.graph canvas {
 
 .fade.in {
   opacity: 1;
-  transition: opacity 0.3s linear;
+  transition: opacity 0.2s linear;
 }
 
 .fade.out {
-  transition: opacity 0.3s linear;
+  transition: opacity 0.2s linear;
 }

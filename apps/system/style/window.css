@@ -63,7 +63,7 @@
 }
 
 .appWindow.enlarge {
-  animation: openApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: openApp 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.transition-closing.perpendicular {
@@ -72,7 +72,7 @@
 
 .appWindow.from-cardview {
   overflow: hidden;
-  animation: openAppFromCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: openAppFromCardView 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
@@ -83,7 +83,7 @@
 
 .appWindow.zoom-in {
   transform: scale(1);
-  animation: zoom-in 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: zoom-in 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-in {
@@ -97,11 +97,11 @@
 }
 
 .appWindow.invoked {
-  animation: invokedApp .3s forwards linear;
+  animation: invokedApp 0.2s forwards linear;
 }
 
 .appWindow.invoking {
-  animation: invokingApp .3s forwards linear;
+  animation: invokingApp 0.2s forwards linear;
 }
 
 /* Invoking app moves out */
@@ -117,11 +117,11 @@
 }
 
 .appWindow.fade-in {
-  animation: fadeInApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: fadeInApp 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.fade-out {
-  animation: fadeOutApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: fadeOutApp 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Invoking secure app moves out */
@@ -150,11 +150,11 @@
 
 #windows.slow-transition .appWindow.transition-closing,
 #windows.slow-transition .appWindow.transition-opening {
-  animation-duration: 3s;
+  animation-duration: 2s;
 }
 
 .appWindow.reduce {
-  animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: closeApp 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.transition-opening.perpendicular {
@@ -171,7 +171,7 @@
  */
 .appWindow.zoom-out {
   transform: scale(3);
-  animation: zoom-out 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: zoom-out 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-out {
@@ -181,7 +181,7 @@
 
 .appWindow.to-cardview {
   overflow: hidden;
-  animation: closeAppTowardsCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: closeAppTowardsCardView 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes closeApp {
@@ -447,39 +447,39 @@
 }
 
 .appWindow.slideleft {
-  animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideLeft 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slideright {
-  animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideRight 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-from-bottom {
-  animation: slideFromDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideFromDown 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-to-bottom {
-  animation: slideToDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideToDown 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-from-top {
-  animation: slideFromUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideFromUp 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #windows.slow-transition .appWindow.slide-from-top {
-  animation: slideFromUp 3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideFromUp 2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-to-top {
-  animation: slideToUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideToUp 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.in-from-left {
-  animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: inFromLeft 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.out-to-right {
-  animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: outToRight 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes slideLeft {
@@ -508,7 +508,7 @@
 }
 
 .appWindow.slidedown {
-  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideDown 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes slideFromDown {
@@ -600,7 +600,7 @@
 
 #windows .appWindow.active iframe {
   transition-property: transform;
-  transition-duration: 0.5s;
+  transition-duration: 0.2s;
 }
 
 #screen.locked #windows .appWindow.active iframe {

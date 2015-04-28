@@ -109,7 +109,7 @@ html[dir="rtl"] [data-type="list"] aside.pack-end {
 }
 
 section[role="status"] {
-  transition: opacity 0.6s ease 0s;
+  transition: opacity 0.2s ease 0s;
   opacity: 0;
 }
 

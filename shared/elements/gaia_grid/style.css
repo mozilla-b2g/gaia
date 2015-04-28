@@ -78,7 +78,7 @@
   width: calc(100% - 0.4rem);
   box-sizing: border-box;
   vertical-align: top;
-  transition: opacity 0.5s;
+  transition: opacity 0.2s;
 }
 
 /* We allow more space for text in the search app by hooking into the text-rows attribute on gaia-grid. */
@@ -128,7 +128,7 @@
   margin: 0 25%;
   width: 50%;
   height: 0.2rem;
-  transition: opacity 0.5s;
+  transition: opacity 0.2s;
 }
 
 .dragging .icon.active:not(.hidden) {
@@ -139,7 +139,7 @@
 .dragging .divider:not(.group),
 .icon:not(.active),
 .dropped {
-  transition: transform 0.5s, opacity 0.5s;
+  transition: transform 0.2s, opacity 0.2s;
 }
 
 .icon.active {
@@ -204,11 +204,11 @@ instead of the context menu.
   display: block;
   position: absolute;
   width: 100%;
-  transition: background-color 0.5s, opacity 0.5s;
+  transition: background-color 0.2s, opacity 0.2s;
 }
 
 .group:not(.active):not(.newly-created) > span {
-  transition: background-color 0.5s, opacity 0.5s, transform 0.5s;
+  transition: background-color 0.2s, opacity 0.2s, transform 0.2s;
 }
 
 .group.active > span {
