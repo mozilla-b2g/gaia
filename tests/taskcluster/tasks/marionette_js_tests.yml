@@ -12,8 +12,10 @@ task:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
     - docker-worker:cache:gaia-misc-caches
+    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
+    image: quay.io/mozilla/gaia-taskenv:0.8.9
     maxRunTime: 7200
     cache:
       gaia-misc-caches: /home/tester/caches/
@@ -24,10 +26,12 @@ task:
       NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
       TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
+      NODE_MODULES_SRC: npm-cache
 
     command:
       - entrypoint
       - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
+
 
     artifacts:
       'public/marionette_js_tests':
