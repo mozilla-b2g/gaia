@@ -9,13 +9,13 @@
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
 require('/views/conversation/js/recipients.js');
-require('/js/shared_components.js');
-requireApp('sms/js/utils.js');
+require('/views/shared/js/shared_components.js');
+require('/views/shared/js/utils.js');
 
-requireApp('sms/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/test/unit/mock_navigation.js');
-require('/test/unit/mock_settings.js');
+require('/views/shared/test/unit/mock_navigation.js');
+require('/views/shared/test/unit/mock_settings.js');
 
 var mocksHelperForRecipients = new MocksHelper([
   'GestureDetector',

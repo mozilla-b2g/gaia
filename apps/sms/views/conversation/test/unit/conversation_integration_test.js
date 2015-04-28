@@ -10,24 +10,24 @@ require('/shared/js/event_dispatcher.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
-requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_message_manager.js');
-requireApp('sms/test/unit/mock_moz_activity.js');
-requireApp('sms/test/unit/mock_information.js');
-requireApp('sms/test/unit/mock_activity_handler.js');
-require('/test/unit/mock_navigation.js');
-requireApp('sms/js/utils.js');
-requireApp('sms/js/settings.js');
+require('/views/shared/test/unit/mock_contact.js');
+require('/services/test/unit/mock_message_manager.js');
+require('/views/shared/test/unit/mock_moz_activity.js');
+require('/views/shared/test/unit/mock_information.js');
+require('/views/shared/test/unit/mock_activity_handler.js');
+require('/views/shared/test/unit/mock_navigation.js');
+require('/views/shared/js/utils.js');
+require('/views/shared/js/settings.js');
 require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
-requireApp('sms/js/contacts.js');
+require('/views/shared/js/contacts.js');
 require('/views/conversation/js/recipients.js');
-requireApp('sms/js/threads.js');
+require('/services/js/threads.js');
 require('/views/inbox/js/inbox.js');
 require('/views/conversation/js/conversation.js');
 require('/views/conversation/js/attachment.js');
-requireApp('sms/js/contact_renderer.js');
-require('/js/navigation.js');
+require('/views/shared/js/contact_renderer.js');
+require('/views/shared/js/navigation.js');
 
 var mHelperIntegration = new MocksHelper([
   'MessageManager',

@@ -1833,7 +1833,7 @@ var ConversationView = {
     }
 
     if (!this.selectionHandler) {
-      LazyLoader.load('js/selection_handler.js', () => {
+      LazyLoader.load('views/shared/js/selection_handler.js', () => {
         this.selectionHandler = new SelectionHandler({
           // Elements
           container: this.container,

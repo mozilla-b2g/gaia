@@ -9,13 +9,13 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
 require('/views/conversation/js/link_action_handler.js');
-requireApp('sms/js/utils.js');
+require('/views/shared/js/utils.js');
 
-requireApp('sms/test/unit/mock_activity_picker.js');
-requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_moz_activity.js');
-require('/test/unit/mock_conversation.js');
-requireApp('sms/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_activity_picker.js');
+require('/views/shared/test/unit/mock_contacts.js');
+require('/views/shared/test/unit/mock_moz_activity.js');
+require('/views/shared/test/unit/mock_conversation.js');
+require('/views/shared/test/unit/mock_utils.js');
 
 var mocksHelperLAH = new MocksHelper([
   'ActivityPicker',

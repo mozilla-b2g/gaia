@@ -44,8 +44,8 @@ apps/settings/style/settings.css 0 9
 apps/settings/style/settings_large.css 1 1
 apps/settings/style/screen_lock.css 0 2
 apps/settings/style/downloads.css 0 3
-apps/sms/style/common.css 0 1
-apps/sms/style/sms.css 0 2
+apps/sms/views/shared/style/common.css 0 1
+apps/sms/views/shared/style/sms.css 0 2
 apps/sms/views/inbox/style/inbox.css 0 2
 apps/system/mobile_id/style/mobile_id.css 0 16
 apps/system/style/modal_dialog/modal_dialog.css 0 1
