@@ -8,6 +8,7 @@
 function HandledCall(aCall) {
   this.photo = null;
   this._leftGroup = false;
+  this._resizeAllowed = false;
   this.call = aCall;
 
   aCall.addEventListener('statechange', this);
@@ -335,26 +336,31 @@ HandledCall.prototype.remove = function hc_remove() {
   this.node.classList.add('ended');
   this.durationNode.classList.remove('isTimer');
 
-  /* Force the node to be translated so we can resize the font to fit into
-   * the element without ellipsizing or trunacting the string. */
   navigator.mozL10n.setAttributes(this.durationChildNode, 'callEnded');
-  navigator.mozL10n.translateFragment(this.durationChildNode);
-
-  /* XXX: This shouldn't be hardcoded but taken from the CSS code,
-   * unfortunately with the current layou this is impossible to do. */
-  var computedStyle = window.getComputedStyle(this.durationChildNode);
-  var fontFamily = computedStyle.fontFamily;
-  var allowedSizes = [ 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 ];
-  var info = FontSizeUtils.getMaxFontSizeInfo(
-    this.durationChildNode.textContent, allowedSizes, fontFamily, 180);
-
-  this.durationChildNode.style.fontSize = info.fontSize + 'px';
 
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
   var totalDuration = !!currentDuration.match(/\d+/g) ? currentDuration : '';
   this.totalDurationNode.textContent = totalDuration;
-  this.totalDurationNode.style.fontSize = info.fontSize + 'px';
+
+  /* XXX: The code below is required to dynamically resize the call ended
+   * string however it relize on hardcoded container sizes; they should be
+   * taken directly from the CSS styles but with the current layout this is
+   * impossible. */
+  if (this._resizeAllowed) {
+    /* Force the node to be translated so we can resize the font to fit into
+     * the element without ellipsizing or trunacting the string. */
+    navigator.mozL10n.translateFragment(this.durationChildNode);
+
+    var computedStyle = window.getComputedStyle(this.durationChildNode);
+    var fontFamily = computedStyle.fontFamily;
+    var allowedSizes = [ 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 ];
+    var info = FontSizeUtils.getMaxFontSizeInfo(
+      this.durationChildNode.textContent, allowedSizes, fontFamily, 180);
+
+    this.durationChildNode.style.fontSize = info.fontSize + 'px';
+    this.totalDurationNode.style.fontSize = info.fontSize + 'px';
+  }
 
   setTimeout(function(evt) {
     CallScreen.removeCall(self.node);
@@ -406,4 +412,12 @@ HandledCall.prototype.hide = function hc_hide() {
     this.node.hidden = true;
   }
   CallScreen.updateCallsDisplay();
+};
+
+HandledCall.prototype.visible = function hc_visible() {
+  return (this.node && !this.node.hidden);
+};
+
+HandledCall.prototype.allowResize = function hc_allowResize(value) {
+  this._resizeAllowed = value;
 };

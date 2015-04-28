@@ -405,7 +405,6 @@ suite('dialer/handled_call', function() {
         var span = subject.node.querySelector('.duration span');
         mockCall._disconnect();
         sinon.assert.calledWith(MockMozL10n.setAttributes, span, 'callEnded');
-        sinon.assert.calledWith(MockMozL10n.translateFragment, span);
       });
 
       test('should not show the total call duration', function() {
@@ -422,6 +421,22 @@ suite('dialer/handled_call', function() {
         mockCall._disconnect();
         assert.equal(subject.node.querySelector('.total-duration').textContent,
                      totalCallDuration);
+      });
+
+      test('should resize the call ended string if allowed to', function() {
+        var span = subject.node.querySelector('.duration span');
+        subject.allowResize(true);
+        mockCall._disconnect();
+        sinon.assert.calledWith(MockMozL10n.translateFragment, span);
+        sinon.assert.calledOnce(MockFontSizeUtils.getMaxFontSizeInfo);
+      });
+
+      test('should not resize the call ended string if not allowed to',
+      function() {
+        subject.allowResize(false);
+        mockCall._disconnect();
+        sinon.assert.notCalled(MockMozL10n.translateFragment);
+        sinon.assert.notCalled(MockFontSizeUtils.getMaxFontSizeInfo);
       });
 
       test('should remove listener on the call', function() {

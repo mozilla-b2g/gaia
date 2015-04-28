@@ -58,6 +58,12 @@ MockHandledCall.prototype.show = function hc_show() {
 MockHandledCall.prototype.hide = function hc_hide() {
 };
 
+MockHandledCall.prototype.visible = function hc_visible() {
+};
+
+MockHandledCall.prototype.allowResize = function hc_allowResize() {
+};
+
 // Should be called in the context of a suite
 function telephonyAddCall(mockCall, opt) {
   MockNavigatorMozTelephony.calls.push(mockCall);
