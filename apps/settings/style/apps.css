@@ -61,6 +61,28 @@
   height: 6.4rem;
 }
 
+.addon-rename {
+  background: none;
+  flex-shrink: 0;
+  width: auto;
+  color: #00aac5;
+  font-style: italic;
+  font-size: 1.4rem;
+  line-height: 1.4rem;
+  padding: 0;
+  margin: 0;
+}
+
+.addon-rename:active {
+  background: none;
+  color: #00aac5;
+  opacity: 0.5;
+}
+
+.no-rename .addon-rename {
+  display: none;
+}
+
 /******************************************************************************
  * Right-To-Left layout
  */
