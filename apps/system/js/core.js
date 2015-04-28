@@ -67,67 +67,63 @@
         type: 'system-message-listener-ready'
       }, true);
 
-      return new Promise((resolve, reject) => {
-        this.loadWhenIdle([
-          'Statusbar',
-          'HardwareButtons',
-          'CameraTrigger',
-          'NotificationScreen',
-          'AirplaneMode',
-          'NotificationsSystemMessage',
-          'Accessibility',
-          'AlarmMonitor',
-          'DebuggingMonitor',
-          'TimeCore',
-          'GeolocationCore',
-          'TetheringMonitor',
-          'UsbCore',
-          'TextSelectionDialog',
-          'ExternalStorageMonitor',
-          'DeviceStorageWatcher',
-          'AppUsageMetrics',
-          'CellBroadcastSystem',
-          // This should be loaded by MobileConnectionCore.
-          // However, the integration test is testing this on desktop b2g
-          // which has no navigator.mozMobileConnections.
-          'CpuManager',
-          'HomeGesture',
-          'SourceView',
-          'TtlView',
-          'MediaRecording',
-          'QuickSettings',
-          'UsbStorage',
-          'MobileIdManager',
-          'FindmydeviceLauncher',
-          'FxAccountsManager',
-          'FxAccountsUI',
-          'NetworkActivity',
-          'CrashReporter',
-          'Screenshot',
-          'SoundManager',
-          'CustomDialogService',
-          'CarrierInfoNotifier'
-          // XXX: We should move this into mobileConnectionCore,
-          // but integration tests running on desktop without mobileConnection
-          // is testing this.
+      return this.loadWhenIdle([
+        'Statusbar',
+        'HardwareButtons',
+        'CameraTrigger',
+        'NotificationScreen',
+        'AirplaneMode',
+        'NotificationsSystemMessage',
+        'Accessibility',
+        'AlarmMonitor',
+        'DebuggingMonitor',
+        'TimeCore',
+        'GeolocationCore',
+        'TetheringMonitor',
+        'UsbCore',
+        'TextSelectionDialog',
+        'ExternalStorageMonitor',
+        'DeviceStorageWatcher',
+        'AppUsageMetrics',
+        'CellBroadcastSystem',
+        // This should be loaded by MobileConnectionCore.
+        // However, the integration test is testing this on desktop b2g
+        // which has no navigator.mozMobileConnections.
+        'CpuManager',
+        'HomeGesture',
+        'SourceView',
+        'TtlView',
+        'MediaRecording',
+        'QuickSettings',
+        'UsbStorage',
+        'MobileIdManager',
+        'FindmydeviceLauncher',
+        'FxAccountsManager',
+        'FxAccountsUI',
+        'NetworkActivity',
+        'CrashReporter',
+        'Screenshot',
+        'SoundManager',
+        'CustomDialogService',
+        'CarrierInfoNotifier'
+        // XXX: We should move CarrierInfoNotifier into mobileConnectionCore,
+        // but integration tests running on desktop without mobileConnection
+        // is testing this.
+      ]).then(() => {
+        return Promise.all([
+          this.startAPIHandlers(),
+          LazyLoader.load([
+            'js/download/download_manager.js',
+            'js/payment.js',
+            'js/identity.js',
+            'js/devtools/logshake.js',
+            'js/devtools/remote_debugger.js',
+            'js/devtools/developer_hud.js'
+          ])
         ]).then(() => {
-          Promise.all([
-            this.startAPIHandlers(),
-            LazyLoader.load([
-              'js/download/download_manager.js',
-              'js/payment.js',
-              'js/identity.js',
-              'js/devtools/logshake.js',
-              'js/devtools/remote_debugger.js',
-              'js/devtools/developer_hud.js',
-              'shared/js/date_time_helper.js'
-            ])
-          ]).then(() => {
-            this.remoteDebugger = new RemoteDebugger();
-            this.developerHud = new DeveloperHud();
-            this.developerHud.start();
-            resolve();
-          });
+          this.remoteDebugger = new RemoteDebugger();
+          this.developerHud = new DeveloperHud();
+          return Promise.resolve(this.developerHud.start());
         });
       });
     },
@@ -148,22 +144,20 @@
     },
 
     startAPIHandler: function(api, handler) {
-      return new Promise(function(resolve, reject) {
-        BaseModule.lazyLoad([handler]).then(function() {
-          var moduleName = BaseModule.lowerCapital(handler);
-          if (window[handler] && typeof(window[handler]) === 'function') {
-            this[moduleName] = new window[handler](navigator[api], this);
-          } else {
-            this[moduleName] =
-              BaseModule.instantiate(handler, navigator[api], this);
-          }
-          if (!this[moduleName]) {
-            reject();
-            return;
-          }
-          this[moduleName].start && this[moduleName].start().then(resolve);
-        }.bind(this));
-      }.bind(this));
+      return BaseModule.lazyLoad([handler]).then(() => {
+        var moduleName = BaseModule.lowerCapital(handler);
+        if (window[handler] && typeof(window[handler]) === 'function') {
+          this[moduleName] = new window[handler](navigator[api], this);
+        } else if (BaseModule.defined(handler)) {
+          this[moduleName] =
+            BaseModule.instantiate(handler, navigator[api], this);
+        } else if (window[handler]) {
+          this[moduleName] = window[handler];
+        } else {
+          return Promise.reject('Cannot find handler for ' + api);
+        }
+        return this[moduleName].start();
+      });
     },
 
     _stop: function() {

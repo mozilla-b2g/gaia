@@ -215,6 +215,8 @@ var StatusBar = {
 
     LazyLoader.load(['js/utility_tray.js']).then(function() {
       UtilityTray.init();
+    }).catch((err) => {
+      console.error(err);
     });
   },
 

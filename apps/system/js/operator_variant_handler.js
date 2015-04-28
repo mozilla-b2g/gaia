@@ -179,6 +179,8 @@
                                 .data.type;
         LazyLoader.load(['shared/js/apn_helper.js']).then(function() {
           callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
+        }).catch((err) => {
+          console.error(err);
         });
       });
     },

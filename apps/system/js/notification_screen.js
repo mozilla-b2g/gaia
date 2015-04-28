@@ -101,21 +101,29 @@ var NotificationScreen = {
       this.mediaPlaybackWidget = new MediaPlaybackWidget(
         document.getElementById('media-playback-container'),
         {nowPlayingAction: 'openapp'});
-    }.bind(this));
+    }.bind(this))['catch'](function(err) {
+      console.error(err);
+    });
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
       LazyLoader.load(['shared/js/settings_url.js']).then(function() {
-        self.ringtoneURL = new SettingsURL();
+        if (!self.ringtoneURL) {
+          self.ringtoneURL = new SettingsURL();
+        }
         self._sound = self.ringtoneURL.set(value);
+      })['catch'](function(err) {
+        console.error(err);
       });
     });
 
     // We have new default ringtones in 2.0, so check if the version is upgraded
     // then execute the necessary migration.
     if (Service.query('justUpgraded')) {
-      LazyLoader.load('js/tone_upgrader.js', function() {
+      LazyLoader.load('js/tone_upgrader.js').then(function() {
         toneUpgrader.perform('alerttone');
+      })['catch'](function(err) {
+        console.error(err);
       });
     }
     Service.register('clearAll', this);

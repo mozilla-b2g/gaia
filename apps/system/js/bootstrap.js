@@ -6,6 +6,7 @@
   var startApp = function() {
     window.app.start().catch(function(err) {
       console.error(err);
+      console.trace();
     });
   };
   if (document.readyState !== 'loading') {

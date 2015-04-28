@@ -178,7 +178,9 @@ var UpdateManager = {
         var systemBanner = new SystemBanner();
         systemBanner.show(_('downloadError'));
         self._errorTimeout = null;
-      }.bind(this));
+      })['catch'](function(err) {
+        console.error(err);
+      });
     }, this.NOTIFICATION_BUFFERING_TIMEOUT);
   },
 

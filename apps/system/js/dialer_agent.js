@@ -88,7 +88,9 @@
         if (this._shouldRing && this._alerting) {
           this._player.play();
         }
-      }.bind(this));
+      }.bind(this)).catch((err) => {
+        console.error(err);
+      });
     }.bind(this));
 
     // We have new default ringtones in 2.0, so check if the version is upgraded

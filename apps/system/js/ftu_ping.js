@@ -346,7 +346,7 @@
       var pingData = this.assemblePingData();
       this._pingData.pingTime = Date.now();
 
-      LazyLoader.load(['shared/js/telemetry.js']).then(function() {
+      LazyLoader.load(['shared/js/telemetry.js']).then(() => {
         var request = new TelemetryRequest({
           reason: TELEMETRY_REASON,
           deviceID: pingData.pingID,
@@ -370,7 +370,9 @@
             self.pingError(this.statusText);
           }
         });
-      }.bind(this));
+      }).catch((err) => {
+        console.error(err);
+      });
     },
 
     pingSuccess: function fp_pingSuccess(result) {

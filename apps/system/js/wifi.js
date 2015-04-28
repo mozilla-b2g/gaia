@@ -30,7 +30,7 @@ var Wifi = {
     return this._enabled;
   },
 
-  init: function wf_init() {
+  start: function() {
     if (!window.navigator.mozSettings)
       return;
 
@@ -323,7 +323,7 @@ var Wifi = {
   },
 
   // Register for handling system message,
-  // this cannot be done during |init()| because of bug 797803
+  // this cannot be done during |start()| because of bug 797803
   setSystemMessageHandler: function wifi_setSystemMessageHandler() {
     if (this._systemMessageHandlerRegistered)
       return;
@@ -338,5 +338,3 @@ var Wifi = {
     });
   }
 };
-
-Wifi.init();

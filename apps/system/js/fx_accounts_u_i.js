@@ -18,6 +18,8 @@ var FxAccountsUI = {
       LazyLoader.load('js/fxa_dialog.js').then(() => {
         this.dialog = new FxAccountsDialog(dialogOptions);
         this.panel = this.dialog.getView();
+      }).catch((err) => {
+        console.error(err);
       });
     }
     this.iframe = document.createElement('iframe');

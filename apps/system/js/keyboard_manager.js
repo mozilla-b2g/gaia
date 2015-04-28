@@ -70,7 +70,10 @@ window.KeyboardManager = {
     return LazyLoader.load([
       'js/ime_switcher.js',
       'js/input_window_manager.js',
-      'js/input_layouts.js'
+      'js/input_layouts.js',
+      'js/dynamic_input_registry.js',
+      'shared/js/input_mgmt/input_app_list.js',
+      'shared/js/keyboard_helper.js'
     ]).then(() => {
       window.inputWindowManager = new InputWindowManager();
       window.inputWindowManager.start();
@@ -79,13 +82,6 @@ window.KeyboardManager = {
       this.imeSwitcher = new IMESwitcher();
       this.imeSwitcher.ontap = this._showImeMenu.bind(this);
       this.imeSwitcher.start();
-      // get enabled keyboard from mozSettings, parse their manifest
-      return LazyLoader.load([
-          'js/dynamic_input_registry.js',
-          'shared/js/input_mgmt/input_app_list.js',
-          'shared/js/keyboard_helper.js'
-        ]);
-    }).then(() => {
       // Defer the loading of DynamicInputRegistry only after
       // KeyboardHelper is present. Not that is possible we could miss some
       // mozChromeEvent because of this but let's not deal with that kind of
@@ -352,6 +348,8 @@ window.KeyboardManager = {
           this._imeMenuCallback.bind(this, showedGroup));
 
         menu.start();
+      }).catch((err) => {
+        console.error(err);
       });
 
     }.bind(this));

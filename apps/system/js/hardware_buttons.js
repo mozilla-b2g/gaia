@@ -136,6 +136,8 @@
     LazyLoader.load(['js/browser_key_event_manager.js']).then(() => {
       // initiate BrowserKeyEventManager submodule
       this.browserKeyEventManager = new BrowserKeyEventManager();
+    }).catch((err) => {
+      console.error(err);
     });
 
     window.addEventListener('softwareButtonEvent', this);

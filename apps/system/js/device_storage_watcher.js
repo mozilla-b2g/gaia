@@ -76,6 +76,8 @@
       LazyLoader.load(['js/system_banner.js']).then(() => {
         var systemBanner = new SystemBanner();
         systemBanner.show(notification);
+      }).catch((err) => {
+        console.error(err);
       });
 
       this._message.textContent = msg;

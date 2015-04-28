@@ -644,6 +644,8 @@ var BluetoothTransfer = {
           this.debug(msg);
         };
       };
+    }).catch((err) => {
+      console.error(err);
     });
   },
 

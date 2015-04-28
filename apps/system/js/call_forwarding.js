@@ -217,6 +217,8 @@
         this._slots.forEach(function(slot) {
           this._initCallForwardingState(slot);
         }, this);
+      }).catch((err) => {
+        console.error(err);
       });
     },
 

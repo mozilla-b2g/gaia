@@ -86,10 +86,10 @@ suite('battery manager >', function() {
     notifNode = document.getElementById('battery');
 
     MockNavigatorBattery.level = 1;
-    subject.start();
   });
 
   teardown(function() {
+    subject.stop();
     screenNode.parentNode.removeChild(screenNode);
   });
 
@@ -130,7 +130,7 @@ suite('battery manager >', function() {
     suite('init >', function() {
       setup(function() {
         MockNavigatorBattery.level = 0.02;
-        subject._start();
+        subject.start();
       });
 
       test('display notification', function() {
@@ -149,6 +149,7 @@ suite('battery manager >', function() {
     suite('battery goes empty >', function() {
       setup(function() {
         sendLevelChange(0.05);
+        subject.start();
       });
 
       test('display notification', function() {
@@ -210,6 +211,7 @@ suite('battery manager >', function() {
 
     suite('screen goes off > battery goes empty >', function() {
       setup(function() {
+        subject.start();
         sendScreenChange(false);
         sendLevelChange(0.05);
       });

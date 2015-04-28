@@ -347,10 +347,12 @@
       if (aDetails.eventType === 'quicknav-menu') {
         if (!this.quicknav) {
           LazyLoader.load(['js/accessibility_quick_nav_menu.js'])
-            .then(function() {
+            .then(() => {
               this.quicknav = new AccessibilityQuicknavMenu();
               this.quicknav.show();
-            }.bind(this));
+            }).catch((err) => {
+              console.error(err);
+            });
         } else {
           this.quicknav.show();
         }

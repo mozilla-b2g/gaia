@@ -1,4 +1,5 @@
-/* global MocksHelper, BaseModule, MockNavigatorSettings, asyncStorage */
+/* global MocksHelper, BaseModule, MockNavigatorSettings, asyncStorage,
+          Service */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -17,6 +18,9 @@ suite('system/launcher', function() {
   var subject, settingsCore;
   var realMozSettings;
   mocksForLauncher.attachTestHelpers();
+  var fakeFtuLauncher, fakeHomescreenLauncher, fakeLockscreenLauncher;
+  var fakeWallpaperManager, fakeLogoManager;
+  var deferreds = {};
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -28,9 +32,76 @@ suite('system/launcher', function() {
     navigator.mozSettings = realMozSettings;
   });
 
+  var Deferred = function() {
+    this.promise = new Promise(function(resolve, reject) {
+      this.resolve = resolve;
+      this.reject = reject;
+    }.bind(this));
+
+    return this;
+  };
+
   setup(function() {
+    deferreds['FtuLauncher:launch'] = new Deferred();
+    deferreds['FtuLauncher:skip'] = new Deferred();
+    deferreds['FtuLauncher:stepReady'] = new Deferred();
+    deferreds['HomescreenLauncher:launch'] = new Deferred();
+    deferreds['LockScreenLauncher:launch'] = new Deferred();
+    deferreds['LockScreenLauncher:standby'] = new Deferred();
+    deferreds['WallpaperManager:initializeWallpaper'] = new Deferred();
+    deferreds['LogoManager:animatePoweronLogo'] = new Deferred();
     settingsCore = BaseModule.instantiate('SettingsCore');
     settingsCore.start();
+    fakeFtuLauncher = {
+      name: 'FtuLauncher',
+      launch: sinon.spy(function() {
+        return deferreds['FtuLauncher:launch'].promise;
+      }),
+      skip: sinon.spy(function() {
+        return deferreds['FtuLauncher:skip'].promise;
+      }),
+      stepReady: sinon.spy(function() {
+        return deferreds['FtuLauncher:stepReady'].promise;
+      })
+    };
+    fakeHomescreenLauncher = {
+      name: 'HomescreenLauncher',
+      launch: sinon.spy(function() {
+        return deferreds['HomescreenLauncher:launch'].promise;
+      })
+    };
+    fakeLockscreenLauncher = {
+      name: 'LockScreenLauncher',
+      launch: sinon.spy(function() {
+        return deferreds['LockScreenLauncher:launch'].promise;
+      }),
+      standby: sinon.spy(function() {
+        return deferreds['LockScreenLauncher:standby'].promise;
+      })
+    };
+    fakeWallpaperManager = {
+      name: 'WallpaperManager',
+      initializeWallpaper: sinon.spy(function() {
+        return deferreds['WallpaperManager:initializeWallpaper'].promise;
+      })
+    };
+    fakeLogoManager = {
+      name: 'LogoManager',
+      animatePoweronLogo: sinon.spy(function() {
+        return deferreds['LogoManager:animatePoweronLogo'].promise;
+      })
+    };
+    Service.register('launch', fakeFtuLauncher);
+    Service.register('stepReady', fakeFtuLauncher);
+    Service.register('skip', fakeFtuLauncher);
+
+    Service.register('launch', fakeHomescreenLauncher);
+
+    Service.register('initializeWallpaper', fakeWallpaperManager);
+
+    Service.register('launch', fakeLockscreenLauncher);
+    Service.register('standby', fakeLockscreenLauncher);
+    Service.register('LogoManager', fakeLogoManager);
     subject = BaseModule.instantiate('Launcher');
   });
 
@@ -51,6 +122,52 @@ suite('system/launcher', function() {
     MockNavigatorSettings.mSettings['wallpaper.image'] = wallpaper;
     MockNavigatorSettings.mSettings['wallpaper.image.valid'] = valid;
   }
+
+  test('Should launch homescreen after ftu is launched', function(done) {
+    subject.scheduler = {
+      release: this.sinon.spy()
+    };
+    subject.launchFtuThenHomescreen('ftu', 'home').then(function() {
+      assert.isTrue(subject.scheduler.release.called);
+      done();
+    });
+    deferreds['FtuLauncher:launch'].resolve();
+    deferreds['WallpaperManager:initializeWallpaper'].resolve();
+    deferreds['HomescreenLauncher:launch'].resolve();
+    deferreds['LogoManager:animatePoweronLogo'].resolve();
+    deferreds['FtuLauncher:stepReady'].resolve();
+    deferreds['LockScreenLauncher:standby'].resolve();
+  });
+
+  test('LaunchLockscreenThenHomescreen', function(done) {
+    subject.scheduler = {
+      release: this.sinon.spy()
+    };
+    subject.launchLockscreenThenHomescreen('home').then(function() {
+      assert.isTrue(subject.scheduler.release.called);
+      done();
+    });
+    deferreds['FtuLauncher:skip'].resolve();
+    deferreds['WallpaperManager:initializeWallpaper'].resolve();
+    deferreds['LockScreenLauncher:launch'].resolve();
+    deferreds['LogoManager:animatePoweronLogo'].resolve();
+    deferreds['HomescreenLauncher:launch'].resolve();
+  });
+
+  test('launchHomescreenAndStandbyLockscreen', function(done) {
+    subject.scheduler = {
+      release: this.sinon.spy()
+    };
+    subject.launchHomescreenAndStandbyLockscreen('home').then(function() {
+      assert.isTrue(subject.scheduler.release.called);
+      done();
+    });
+    deferreds['FtuLauncher:skip'].resolve();
+    deferreds['WallpaperManager:initializeWallpaper'].resolve();
+    deferreds['LockScreenLauncher:standby'].resolve();
+    deferreds['HomescreenLauncher:launch'].resolve();
+    deferreds['LogoManager:animatePoweronLogo'].resolve();
+  });
 
   test('should read settings', function(done) {
     setLaunchConfig();

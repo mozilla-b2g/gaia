@@ -82,7 +82,9 @@
       return isUpgrade;
     },
     launchHomescreenAndStandbyLockscreen: function(homescreenManifestURL) {
-      Promise.all([
+      // We don't need to chain these promises in the big startup chain
+      // inside app.js; but that means we need to catch the errors on our own.
+      return Promise.all([
         // We still need to tell FtuLauncher to skip to process some tasks.
         this.service.request('FtuLauncher:skip'),
         this.service.request('WallpaperManager:initializeWallpaper',
@@ -90,45 +92,53 @@
         this.service.request('LockScreenLauncher:standby'),
         this.service.request('HomescreenLauncher:launch',
           homescreenManifestURL, true).then(() => {
-            this.service.request('LogoManager:animatePoweronLogo');
-            this.scheduler.release();
+            return Promise.all([
+              this.service.request('LogoManager:animatePoweronLogo'),
+              this.scheduler.release()
+            ]);
           })
       ]).catch((err) => {
         console.error(err);
       });
     },
     launchLockscreenThenHomescreen: function(homescreenManifestURL) {
-      Promise.all([
+      // We don't need to chain these promises in the big startup chain
+      // inside app.js; but that means we need to catch the errors on our own.
+      return Promise.all([
         // We still need to tell FtuLauncher to skip to process some tasks.
         this.service.request('FtuLauncher:skip'),
         this.service.request('WallpaperManager:initializeWallpaper',
           this.wallpaper, this.wallpaperValid).then(() => {
-          return this.service.request('LockScreenLauncher:launch');
-        }).then(() => {
-          this.service.request('LogoManager:animatePoweronLogo');
-          this.service.request('HomescreenLauncher:launch',
-            homescreenManifestURL);
-          this.scheduler.release();
-        })
+            return this.service.request('LockScreenLauncher:launch');
+          }).then(() => {
+            return Promise.all([
+              this.service.request('LogoManager:animatePoweronLogo'),
+              this.service.request('HomescreenLauncher:launch',
+                homescreenManifestURL),
+              this.scheduler.release()
+            ]);
+          })
       ]).catch((err) => {
         console.error(err);
       });
     },
     launchFtuThenHomescreen: function(ftuManifestURL, homescreenManifestURL) {
-      Promise.all([
+      // We don't need to chain these promises in the big startup chain
+      // inside app.js; but that means we need to catch the errors on our own.
+      return Promise.all([
         this.service.request('FtuLauncher:launch',
           ftuManifestURL).then(() => {
-            this.service.request('HomescreenLauncher:launch',
-              homescreenManifestURL);
-            this.service.request('LogoManager:animatePoweronLogo');
-            this.scheduler.release();
-          }).catch(function(err) {
-            console.error(err);
+            return Promise.all([
+              this.service.request('HomescreenLauncher:launch',
+                homescreenManifestURL),
+              this.service.request('LogoManager:animatePoweronLogo'),
+              this.scheduler.release()
+            ]);
           }),
         this.service.request('WallpaperManager:initializeWallpaper',
           this.wallpaper, this.wallpaperValid),
         this.service.request('stepReady', 'done').then(() => {
-          this.service.request('LockScreenLauncher:standby');
+          return this.service.request('LockScreenLauncher:standby');
         })
       ]).catch((err) => {
         console.error(err);

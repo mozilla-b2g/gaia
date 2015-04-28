@@ -104,12 +104,10 @@
 
   var SubmoduleMixin = {
     loadWhenIdle: function(modules) {
-      return new Promise((resolve, reject) => {
-        this.service.request('schedule', () => {
-          this.constructor.SUB_MODULES =
-            this.constructor.SUB_MODULES.concat(modules);
-          this._startSubModules().then(resolve).catch(reject);
-        });
+      return this.service.request('schedule', () => {
+        this.constructor.SUB_MODULES =
+          this.constructor.SUB_MODULES.concat(modules);
+        return this._startSubModules();
       });
     },
     /**

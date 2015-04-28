@@ -183,7 +183,7 @@
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
-    this.debug('ensuring homescreen...', this.frontWindow);
+    this.debug('ensuring homescreen...', this.frontWindow, reset);
     if (!this.element) {
       this.render();
     } else if (reset) {

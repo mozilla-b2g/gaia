@@ -31,22 +31,22 @@
       var length = this._queue.length;
       this.debug('process operations in the schedule pool: ' + length);
       this._queue.forEach(function(operation) {
-        operation.request();
+        operation.callback();
         operation.resolve();
       });
       this._queue = [];
     },
-    schedule: function(request) {
+    schedule: function(callback) {
       return new Promise((resolve) => {
         if (this._busyState) {
-          this.debug('busy loading, put request in the pool.');
+          this.debug('busy loading, put the operation in the pool.');
           this._queue.push({
             resolve: resolve,
-            request: request
+            callback: callback
           });
         } else {
           this.debug('not blocking, execute right away');
-          request();
+          callback();
           resolve();
         }
       });

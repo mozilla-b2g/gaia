@@ -133,7 +133,7 @@ suite('WiFi > ', function() {
       // Wifi.init() at the end of the wifi.js only executed once when
       // require() includes the script for real.
       if (firstRequire) {
-        Wifi.init();
+        Wifi.start();
       } else {
         firstRequire = false;
       }

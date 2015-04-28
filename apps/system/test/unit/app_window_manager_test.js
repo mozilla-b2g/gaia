@@ -396,14 +396,14 @@ suite('system/AppWindowManager', function() {
     test('Press home on home not displayed and shrinking ui is active',
       function() {
         injectRunningApps(home, app1);
-        var stubDisplay = this.sinon.stub(appWindowManager, 'display');
-        appWindowManager._activeApp = app1;
-        appWindowManager.shrinkingUI = new MockShrinkingUI();
-        this.sinon.stub(appWindowManager.shrinkingUI,
+        var stubDisplay = this.sinon.stub(subject, 'display');
+        subject._activeApp = app1;
+        subject.shrinkingUI = new MockShrinkingUI();
+        this.sinon.stub(subject.shrinkingUI,
           'respondToHierarchyEvent').returns(true);
         this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent')
           .returns(true);
-        appWindowManager.respondToHierarchyEvent({ type: 'home' });
+        subject.respondToHierarchyEvent({ type: 'home' });
         assert.isFalse(stubDisplay.called);
       });
 

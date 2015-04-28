@@ -484,10 +484,11 @@
         return;
       }
       if (!window.ShrinkingUI) {
-        LazyLoader.load(['shared/js/shrinking_ui.js']).then(
-          this.launchShrinkingUI.call(this)).catch(function(err) {
-            console.error(err);
-          });
+        LazyLoader.load(['shared/js/shrinking_ui.js']).then(() => {
+          this.launchShrinkingUI();
+        }).catch((err) => {
+          console.error(err);
+        });
       } else {
         this.launchShrinkingUI();
       }

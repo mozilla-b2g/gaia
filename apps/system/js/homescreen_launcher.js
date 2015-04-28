@@ -37,10 +37,6 @@
     'launch'
   ];
 
-  HomescreenLauncher.STATES = [
-    'getHomescreen'
-  ];
-
   /**
    * Fired when homescreen launcher detect 'homescreen.manifestURL' changed
    * @event HomescreenLauncher#homescreen-changed
@@ -166,7 +162,7 @@
         return this._instance;
       } else {
         if (ensure) {
-          this._instance.ensure();
+          this._instance.ensure(true);
         }
         return this._instance;
       }

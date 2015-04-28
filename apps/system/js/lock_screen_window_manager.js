@@ -377,6 +377,8 @@
       // we need this to 
       LazyLoader.load(['js/lockscreen_input_window.js']).then(() => {
         app.inputWindow = new LockScreenInputWindow();
+      }).catch((err) => {
+        console.error(err);
       });
       this.states.windowCreating = false;
       return app;
