@@ -343,6 +343,10 @@ function panHandler(event) {
 
 // When the user lifts their finger after panning we get this event
 function swipeHandler(event) {
+  if (transitioning) {
+    return;
+  }
+
   // If we just panned within a zoomed-in photo, and the frames are not
   // shifted at all, then we don't have to do anything here.
   if (frameOffset === 0)
@@ -564,7 +568,6 @@ function nextFile(time) {
 
   // Set a flag to ignore pan and zoom gestures during the transition.
   transitioning = true;
-  setTimeout(function() { transitioning = false; }, time);
 
   // Set transitions for the visible frames
   var transition = 'transform ' + time + 'ms ease';
@@ -588,6 +591,8 @@ function nextFile(time) {
   // When the transition is done, cleanup
   currentFrame.container.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
+
+    transitioning = false;
 
     // Reposition the item that just transitioned off the screen
     // to reset any zooming and panning
@@ -615,7 +620,6 @@ function previousFile(time) {
 
   // Set a flag to ignore pan and zoom gestures during the transition.
   transitioning = true;
-  setTimeout(function() { transitioning = false; }, time);
 
   // Set transitions for the visible frames
   var transition = 'transform ' + time + 'ms ease';
@@ -639,6 +643,9 @@ function previousFile(time) {
   // When the transition is done do some cleanup
   currentFrame.container.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
+
+    transitioning = false;
+
     // Reset the size and position of the item that just panned off
     nextFrame.reset();
   });
