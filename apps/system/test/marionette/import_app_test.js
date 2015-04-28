@@ -6,7 +6,11 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Import App', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    prefs: {
+      'dom.apps.developer_mode': true
+    }
+  });
 
   var home, server, system;
 
@@ -60,9 +64,8 @@ marionette('Import App', function() {
       // Send a moz activity to the system app with the blob.
       function sendActivity(blob) {
         var activity = new MozActivity({
-          name: 'import',
+          name: 'import-app',
           data: {
-            type: 'app',
             blob: blob
           }
         });
