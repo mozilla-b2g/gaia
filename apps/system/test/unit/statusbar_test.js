@@ -420,15 +420,6 @@ suite('system/Statusbar', function() {
       assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
       assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
     });
-
-    test('rocketbar-deactivated', function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      this.sinon.stub(app, 'isFullScreenLayout').returns(true);
-      var event = new CustomEvent('rocketbar-deactivated');
-      StatusBar.handleEvent(event);
-      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
-      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
-    });
   });
 
   suite('system-downloads', function() {
