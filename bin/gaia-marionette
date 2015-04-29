@@ -151,6 +151,13 @@ if [ "$DUMP_PATH" ]; then
   DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
 fi
 
+DEVICE_TYPE_OPT=""
+if [ -z "$GAIA_DEVICE_TYPE" ] || [ "$GAIA_DEVICE_TYPE" = "phone" ]; then
+  DEVICE_TYPE_OPT="--device-type phone"
+else
+  DEVICE_TYPE_OPT="--device-type $GAIA_DEVICE_TYPE"
+fi
+
 TARGET=""
 if [[ $@ == *"mocha-tbpl-reporter"* ]]; then
   TARGET=$DIR/gaia_marionette_retry.js
@@ -174,4 +181,5 @@ $TARGET \
   $DEVICE_OPTS \
   $BUILDAPP_OPTS \
   $TEST_FILES \
+  $DEVICE_TYPE_OPT \
   $@
