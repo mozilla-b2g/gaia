@@ -353,4 +353,3 @@ exports.cloneJSON = cloneJSON;
  * @exports jsComparator
  */
 exports.jsComparator = jsComparator;
-exports.getMD5hash = utils.getMD5hash;
