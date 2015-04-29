@@ -2,13 +2,12 @@
 
 (function(exports) {
 
-  /**
-   * Handles importing of blobs into the system app.
-   * Currently supports the 'import-app' activity, which
-   * installs a blob on the device if developer mode is enabled.
-   */
   function Import() {}
 
+  /**
+   * Opens a new private window.
+   * @param {String} url The url to navigate to
+   */
   Import.prototype = {
 
     /**
@@ -25,7 +24,7 @@
     handleActivity: function(activity) {
       var name = activity.source.name;
       switch (name) {
-        case 'import-app':
+        case 'import':
           this.importApp(activity);
           break;
       }
