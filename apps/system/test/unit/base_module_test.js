@@ -53,7 +53,7 @@ suite('system/BaseModule', function() {
       var lpt = BaseModule.instantiate('LaunchingPromiseTester');
       lpt.start().then(function() {
         done();
-      }).catch((e) => {throw e || 'Should not throw'; }).then(done, done);
+      });
     });
 
     test('custom start', function(done) {
@@ -69,7 +69,7 @@ suite('system/BaseModule', function() {
       var lpt = BaseModule.instantiate('LaunchingPromiseTester');
       lpt.start().then(function() {
         done();
-      }).catch((e) => {throw e || 'Should not throw'; }).then(done, done);
+      });
     });
   });
 

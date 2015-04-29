@@ -441,7 +441,8 @@
       // When shrinkingUI is enabled, home should be locked.
       if (this.shrinkingUI && this.shrinkingUI.respondToHierarchyEvent(evt)) {
         return false;
-      } else if (this.ftuLauncher && !this.ftuLauncher.respondToHierarchyEvent(evt)) {
+      } else if (this.ftuLauncher &&
+                 !this.ftuLauncher.respondToHierarchyEvent(evt)) {
         return false;
       } else if (this.taskManager && this.taskManager.isActive()) {
         return true;

@@ -1,8 +1,7 @@
 /* global AppWindow, ScreenLayout, MockService,
-      MocksHelper, Service,
+      MocksHelper, BaseModule, MockContextMenu,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment,
-      MockAudioChannelController
-      AppChrome */
+      MockAudioChannelController, AppChrome */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -250,7 +249,7 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, MockService.mQueries['getHeightFor']);
+      assert.equal(app1.height, MockService.mQueries.getHeightFor);
     });
 
     test('Resize if we are not fullscreen', function() {
@@ -260,7 +259,7 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, MockService.mQueries['getHeightFor']);
+      assert.equal(app1.height, MockService.mQueries.getHeightFor);
     });
 
     test('Send message to appChrome: w/o keyboard', function() {
@@ -551,7 +550,8 @@ suite('system/AppWindow', function() {
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 0);
 
-      MockService.mockQueryWith('fetchCurrentOrientation', 'portrait-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'portrait-secondary');
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 180);
 
@@ -559,7 +559,8 @@ suite('system/AppWindow', function() {
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 270);
 
-      MockService.mockQueryWith('fetchCurrentOrientation', 'landscape-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'landscape-secondary');
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 90);
     });
@@ -572,7 +573,8 @@ suite('system/AppWindow', function() {
       var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 90);
 
-      MockService.mockQueryWith('fetchCurrentOrientation', 'portrait-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'portrait-secondary');
       var angle2 = app1.determineClosingRotationDegree();
       assert.equal(angle2, 270);
 
@@ -580,7 +582,8 @@ suite('system/AppWindow', function() {
       var angle3 = app1.determineClosingRotationDegree();
       assert.equal(angle3, 0);
 
-      MockService.mockQueryWith('fetchCurrentOrientation', 'landscape-secondary');
+      MockService.mockQueryWith('fetchCurrentOrientation',
+        'landscape-secondary');
       var angle4 = app1.determineClosingRotationDegree();
       assert.equal(angle4, 180);
     });
@@ -2207,7 +2210,7 @@ suite('system/AppWindow', function() {
       assert.equal(app1.element.style.width,
         MockService.mQueries['LayoutManager.width'] + 'px');
       assert.equal(app1.element.style.height,
-        MockService.mQueries['getHeightFor'] + 'px');
+        MockService.mQueries.getHeightFor + 'px');
     });
 
     test('Orientation change event on active homescreen app', function() {

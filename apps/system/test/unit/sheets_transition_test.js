@@ -2,7 +2,6 @@
 /* global MocksHelper */
 /* global MockStackManager */
 /* global SheetsTransition */
-/* global MockService */
 
 requireApp('system/js/sheets_transition.js');
 

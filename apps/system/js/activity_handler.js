@@ -1,4 +1,4 @@
-/* global LazyLoader */
+/* global LazyLoader, Import */
 'use strict';
 
 (function(exports) {

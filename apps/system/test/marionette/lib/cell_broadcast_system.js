@@ -22,7 +22,8 @@
     show: function(event) {
       this._mockMobile();
       this.client.executeScript(function(event) {
-        window.wrappedJSObject.Service.request('CellBroadcastSystem:show', event);
+        window.wrappedJSObject.Service.request(
+          'CellBroadcastSystem:show', event);
       }, [event]);
     },
 

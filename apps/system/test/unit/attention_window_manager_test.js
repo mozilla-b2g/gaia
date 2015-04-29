@@ -259,13 +259,13 @@ suite('system/AttentionWindowManager', function() {
     test('Home button', function() {
       MockService.mockQueryWith('locked', false);
       MockService.mockQueryWith('getHomescreen', new MockHomescreenWindow());
-      this.sinon.stub(MockService.mQueries['getHomescreen'], 'ready');
+      this.sinon.stub(MockService.mQueries.getHomescreen, 'ready');
       attentionWindowManager._openedInstances =
         new Map([[att3, att3], [att2, att2]]);
       var stubCloseForAtt3 = this.sinon.stub(att3, 'close');
       var stubCloseForAtt2 = this.sinon.stub(att2, 'close');
       attentionWindowManager.respondToHierarchyEvent(new CustomEvent('home'));
-      MockService.mQueries['getHomescreen'].ready.yield();
+      MockService.mQueries.getHomescreen.ready.yield();
       assert.isTrue(stubCloseForAtt2.called);
       assert.isTrue(stubCloseForAtt3.called);
     });

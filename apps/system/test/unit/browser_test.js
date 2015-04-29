@@ -6,6 +6,7 @@
 
 require('/js/browser_config_helper.js');
 require('/shared/js/url_helper.js');
+require('/js/import.js');
 require('/js/activity_handler.js');
 require('/js/browser.js');
 

@@ -1,7 +1,7 @@
 /* global SettingsListener, Service */
 'use strict';
 
-(function(window) {
+(function(exports) {
   /**
    * OrientationManager manages the orientation.
    *
@@ -21,7 +21,7 @@
    *
    * @module OrientationManager
    */
-  window.OrientationManager = {
+  var OrientationManager = {
     name: 'OrientationManager',
 
     init: function om_init() {
@@ -173,4 +173,5 @@
   };
 
   OrientationManager.init();
-}(this));
+  exports.OrientationManager = OrientationManager;
+}(window));

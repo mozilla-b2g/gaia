@@ -30,8 +30,8 @@
       client.switchToFrame();
       return client.executeScript(function() {
         return window.wrappedJSObject.Service
-                     .query('AppWindowManager.getActiveWindow').getTopMostWindow()
-                     .element.getAttribute('aria-hidden');
+          .query('AppWindowManager.getActiveWindow').getTopMostWindow()
+          .element.getAttribute('aria-hidden');
       });
     };
 
