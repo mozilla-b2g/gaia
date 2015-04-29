@@ -1,10 +1,11 @@
+/* global Service */
 'use strict';
 
-(function(window) {
+(function(exports) {
   /**
    * @mixin BrowserMixin
    */
-  window.BrowserMixin = {
+  var BrowserMixin = {
     reload: function bm_reload() {
       if (this.browser.element) {
         this.browser.element.reload();
@@ -220,7 +221,6 @@
           'setActive' in this.browser.element) {
         this.debug('setActive on browser element:' + active);
         this.browser.element.setActive(active);
-        var topMostUI = Service.query('getTopMostUI');
       }
     },
 
@@ -300,8 +300,9 @@
           r.onerror = error;
         }
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -313,5 +314,5 @@
     }
   };
 
-  AppWindow.addMixin(BrowserMixin);
-}(this));
+  exports.AppWindow.addMixin(BrowserMixin);
+}(window));
