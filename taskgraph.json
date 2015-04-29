@@ -12,7 +12,7 @@
         "metadata": {
           "name": "Gaia Taskcluster Decision Task"
         },
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "workerType": "gaia-decision",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches",
