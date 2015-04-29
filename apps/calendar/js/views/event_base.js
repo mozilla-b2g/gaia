@@ -4,8 +4,8 @@ define(function(require, exports, module) {
 var Event = require('models/event');
 var View = require('view');
 var dayObserver = require('day_observer');
-var isToday = require('calc').isToday;
-var nextTick = require('next_tick');
+var isToday = require('common/calc').isToday;
+var nextTick = require('common/next_tick');
 var providerFactory = require('provider/provider_factory');
 var router = require('router');
 

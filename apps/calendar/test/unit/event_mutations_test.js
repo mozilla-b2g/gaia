@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var EventMutations = require('event_mutations');
 var Factory = require('test/support/factory');
 

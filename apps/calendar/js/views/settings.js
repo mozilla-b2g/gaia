@@ -3,8 +3,8 @@ define(function(require, exports, module) {
 
 var CalendarTemplate = require('templates/calendar');
 var View = require('view');
-var debug = require('debug')('views/settings');
-var forEach = require('object').forEach;
+var debug = require('common/debug')('views/settings');
+var forEach = require('common/object').forEach;
 var router = require('router');
 
 require('dom!settings');

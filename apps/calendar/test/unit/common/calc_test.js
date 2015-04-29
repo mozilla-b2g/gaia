@@ -1,8 +1,8 @@
 define(function(require) {
 'use strict';
 
-var Timespan = require('timespan');
-var Calc = require('calc');
+var Timespan = require('common/timespan');
+var Calc = require('common/calc');
 
 //Worth noting that these tests will fail
 //in horrible ways outside of US timezone.

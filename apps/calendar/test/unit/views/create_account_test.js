@@ -3,7 +3,7 @@ define(function(require) {
 
 var AccountTemplate = require('templates/account');
 var CreateAccount = require('views/create_account');
-var Presets = require('presets');
+var Presets = require('common/presets');
 
 suite('Views.CreateAccount', function() {
   var subject;

@@ -6,7 +6,7 @@
 define(function(require) {
 'use strict';
 
-var Responder = require('responder');
+var Responder = require('common/responder');
 
 suite('responder', function() {
   var subject;

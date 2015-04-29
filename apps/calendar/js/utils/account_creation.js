@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
+var Responder = require('common/responder');
 var app = require('app');
-var denodeifyAll = require('promise').denodeifyAll;
+var denodeifyAll = require('common/promise').denodeifyAll;
 
 /**
  * Helper class to create accounts.

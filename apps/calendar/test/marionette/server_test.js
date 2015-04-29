@@ -4,7 +4,7 @@
 var Calendar = require('./lib/calendar'),
     Radicale = require('./lib/radicale'),
     assert = require('chai').assert,
-    debug = require('debug')('marionette:server_test');
+    debug = require('common/debug')('marionette:server_test');
 
 var calendarName = 'firefox-os';
 

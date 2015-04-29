@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Presets = require('presets');
+var Presets = require('common/presets');
 var View = require('view');
 var template = require('templates/account');
 

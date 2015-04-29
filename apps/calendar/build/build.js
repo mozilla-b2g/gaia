@@ -4,7 +4,7 @@ var r = require('r-wrapper');
 var utils = require('utils');
 
 function createPresetsFile(options) {
-  var presetsFile = utils.getFile(options.APP_DIR, 'js', 'presets.js');
+  var presetsFile = utils.getFile(options.APP_DIR, 'js/common', 'presets.js');
 
   var config = JSON.parse(
     utils.getFileContent(

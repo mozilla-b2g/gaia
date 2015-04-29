@@ -3,7 +3,7 @@ define(function(require) {
 
 var Abstract = require('store/abstract');
 var AccountModel = require('models/account');
-var Calc = require('calc');
+var Calc = require('common/calc');
 var CalendarModel = require('models/calendar');
 var Factory = require('test/support/factory');
 var providerFactory = require('provider/provider_factory');

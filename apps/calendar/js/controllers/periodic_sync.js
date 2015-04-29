@@ -9,8 +9,8 @@
 define(function(require, exports) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('controllers/periodic_sync');
+var Responder = require('common/responder');
+var debug = require('common/debug')('controllers/periodic_sync');
 var messageHandler = require('message_handler');
 
 /**

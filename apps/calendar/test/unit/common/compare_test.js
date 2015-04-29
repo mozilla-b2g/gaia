@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var compare = require('compare');
+var compare = require('common/compare');
 
 test('compare', function() {
   assert.equal(compare(0, 1), -1);

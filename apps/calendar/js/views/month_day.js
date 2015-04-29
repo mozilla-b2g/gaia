@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var dayObserver = require('day_observer');
 
 // MonthDay represents a single day inside the Month view grid.

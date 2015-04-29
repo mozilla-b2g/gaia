@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var Responder = require('responder');
+var Responder = require('common/responder');
 var TimeController = require('controllers/time');
 
 window.page = window.page || {};

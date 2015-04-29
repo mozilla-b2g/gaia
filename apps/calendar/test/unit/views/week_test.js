@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Week = require('views/week');
 
 suite('Views.Week', function() {

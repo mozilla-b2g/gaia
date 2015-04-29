@@ -5,7 +5,7 @@ var CalendarTemplate = require('templates/calendar');
 var Factory = require('test/support/factory');
 var Settings = require('views/settings');
 var View = require('view');
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 var suiteGroup = require('test/support/suite_group');
 
 requireCommon('test/synthetic_gestures.js');

@@ -9,7 +9,7 @@
 *~
 manifest.appcache
 
-/apps/calendar/js/presets.js
+/apps/calendar/js/common/presets.js
 /apps/camera/js/config.js
 /apps/gallery/js/config.js
 /apps/findmydevice/js/config.js

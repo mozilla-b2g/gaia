@@ -46,9 +46,9 @@
 define(function(require, exports, module) {
 'use strict';
 
-var binsearch = require('binsearch');
-var compare = require('compare');
-var debug = require('debug')('interval_tree');
+var binsearch = require('common/binsearch');
+var compare = require('common/compare');
+var debug = require('common/debug')('interval_tree');
 
 const START = '_startDateMS';
 const END = '_endDateMS';

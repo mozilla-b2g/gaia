@@ -17,10 +17,10 @@ define(function(require, exports) {
 // It's way simpler to use a day-based logic for the whole calendar front-end,
 // instead of knowing how to handle months/weeks.
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var EventEmitter2 = require('ext/eventemitter2');
-var binsearch = require('binsearch');
-var compare = require('compare');
+var binsearch = require('common/binsearch');
+var compare = require('common/compare');
 var daysBetween = Calc.daysBetween;
 var debounce = require('utils/mout').debounce;
 var getDayId = Calc.getDayId;

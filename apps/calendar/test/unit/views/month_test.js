@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Month = require('views/month');
 
 requireCommon('test/synthetic_gestures.js');

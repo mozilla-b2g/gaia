@@ -1,8 +1,8 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('worker/manager');
+var Responder = require('common/responder');
+var debug = require('common/debug')('worker/manager');
 
 const IDLE_CLEANUP_TIME = 5000;
 

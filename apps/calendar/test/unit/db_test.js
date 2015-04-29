@@ -4,7 +4,7 @@ define(function(require) {
 var AccountStore = require('store/account');
 var Db = require('db');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
+var Responder = require('common/responder');
 
 suite('db', function() {
   var subject;

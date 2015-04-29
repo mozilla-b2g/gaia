@@ -2,7 +2,7 @@
 define(function(require) {
 'use strict';
 
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var EventBase = require('views/event_base');
 var Factory = require('test/support/factory');
 var InputParser = require('shared/input_parser');
@@ -10,7 +10,7 @@ var ModifyEvent = require('views/modify_event');
 var QueryString = require('querystring');
 var Template = require('template');
 var View = require('view');
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 var providerFactory = require('provider/provider_factory');
 var router = require('router');
 

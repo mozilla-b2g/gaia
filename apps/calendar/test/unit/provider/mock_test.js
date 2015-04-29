@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
 
 var Factory = require('test/support/factory');
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 var providerFactory = require('provider/provider_factory');
 
 suite('provider/mock', function() {

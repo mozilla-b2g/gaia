@@ -4,13 +4,13 @@ define(function(require, exports, module) {
 var Overlap = require('utils/overlap');
 var buildElement = require('utils/dom').buildElement;
 var dayObserver = require('day_observer');
-var isSameDate = require('calc').isSameDate;
+var isSameDate = require('common/calc').isSameDate;
 var localeFormat = require('date_format').localeFormat;
-var relativeDuration = require('calc').relativeDuration;
-var relativeOffset = require('calc').relativeOffset;
-var spanOfDay = require('calc').spanOfDay;
+var relativeDuration = require('common/calc').relativeDuration;
+var relativeOffset = require('common/calc').relativeOffset;
+var spanOfDay = require('common/calc').spanOfDay;
 var template = require('templates/multi_day');
-var timeLabel = require('calc').getTimeL10nLabel;
+var timeLabel = require('common/calc').getTimeL10nLabel;
 
 var _id = 0;
 

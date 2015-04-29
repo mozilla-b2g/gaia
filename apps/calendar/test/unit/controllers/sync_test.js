@@ -1,10 +1,10 @@
 define(function(require) {
 'use strict';
 
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var Factory = require('test/support/factory');
 var SyncController = require('controllers/sync');
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 
 suite('Controllers.Sync', function() {
   var account;
