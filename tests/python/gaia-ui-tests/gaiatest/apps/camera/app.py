@@ -6,7 +6,7 @@ import time
 
 from marionette_driver import expected, By, Wait
 from marionette_driver.marionette import Actions
-from marionette_driver.errors import FrameSendFailureError
+from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
 
 from gaiatest.apps.base import Base
 
@@ -96,7 +96,7 @@ class Camera(Base):
 
         try:
             select.tap()
-        except FrameSendFailureError:
+        except (FrameSendFailureError, NoSuchWindowException):
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass
 
