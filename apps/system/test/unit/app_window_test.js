@@ -2255,7 +2255,12 @@ suite('system/AppWindow', function() {
         // calls all the necessary methods
         (callback) => { callback(); }
       );
-      var stubShowScreenshot = this.sinon.stub(app1, '_showScreenshotOverlay');
+      this.sinon.stub(app1, '_showScreenshotOverlay')
+        .returns(new Promise(function(resolve) {
+          resolve();
+          assert.isTrue(stubSetVisible.calledWith(false),
+            'setVisble in callback');
+        }));
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
@@ -2265,9 +2270,6 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(stubBroadcast.calledWith('blur'));
       assert.isTrue(stubGetScreenshot.calledOnce, 'getScreenshot');
-      assert.isTrue(stubShowScreenshot.calledOnce,
-                    '_showScreenshotOverlay in callback');
-      assert.isTrue(stubSetVisible.calledWith(false), 'setVisble in callback');
     });
 
     test('Shrinking stop event', function() {
