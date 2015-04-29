@@ -55,7 +55,6 @@ apps/keyboard/test/unit/imes/jspinyin/jspinyin_test.js
 apps/keyboard/test/unit/imes/latin/worker_test.js
 apps/keyboard/test/unit/setup_engine.js
 apps/system/js/orientation_manager.js
-apps/system/js/sheets_transition.js
 apps/system/js/update_manager.js
 apps/system/js/wifi.js
 apps/system/test/unit/app_install_manager_test.js
