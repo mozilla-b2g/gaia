@@ -13,7 +13,7 @@
           "name": "Gaia Taskcluster Decision Task"
         },
         "provisionerId": "aws-provisioner",
-        "workerType": "gaia-decision",
+        "workerType": "gaia",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches",
           "docker-worker:image:quay.io/mozilla/gaia-taskenv:*",
