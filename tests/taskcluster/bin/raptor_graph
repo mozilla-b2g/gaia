@@ -36,7 +36,7 @@ var config = {
   task1: {
     definition: 'raptor_launch',
     params: {
-      provisionerId: 'aws-provisioner',
+      provisionerId: 'aws-provisioner2',
       workerType: 'gaia',
       raptorRuns: 15,
       raptorApps: 'settings',
@@ -49,7 +49,7 @@ var config = {
   task2: {
     definition: 'raptor_launch',
     params: {
-      provisionerId: 'aws-provisioner',
+      provisionerId: 'aws-provisioner2',
       workerType: 'gaia',
       raptorRuns: 15,
       raptorApps: 'settings',
@@ -64,7 +64,7 @@ var config = {
     params: {
       completedBranchTask: '',
       completedPatchTask: '',
-      provisionerId: 'aws-provisioner',
+      provisionerId: 'aws-provisioner2',
       workerType: 'gaia',
       treeherderSym: 'se'
     }

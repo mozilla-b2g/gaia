@@ -10,7 +10,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -48,7 +48,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -88,7 +88,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -128,7 +128,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -168,7 +168,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -208,7 +208,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -248,7 +248,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -288,7 +288,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -328,7 +328,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -368,7 +368,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -408,7 +408,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -448,7 +448,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -495,7 +495,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -542,7 +542,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -589,7 +589,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -636,7 +636,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -683,7 +683,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -730,7 +730,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -777,7 +777,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -824,7 +824,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -871,7 +871,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -918,7 +918,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -965,7 +965,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1012,7 +1012,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1059,7 +1059,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1106,7 +1106,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1153,7 +1153,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1200,7 +1200,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1247,7 +1247,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1294,7 +1294,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1341,7 +1341,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1388,7 +1388,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1435,7 +1435,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1482,7 +1482,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1529,7 +1529,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1576,7 +1576,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1623,7 +1623,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1670,7 +1670,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1717,7 +1717,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1764,7 +1764,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1811,7 +1811,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1857,7 +1857,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1892,7 +1892,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1927,7 +1927,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1962,7 +1962,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -1998,7 +1998,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2046,7 +2046,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2094,7 +2094,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2142,7 +2142,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2190,7 +2190,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2238,7 +2238,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2286,7 +2286,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2334,7 +2334,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2382,7 +2382,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2430,7 +2430,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2478,7 +2478,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2526,7 +2526,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2574,7 +2574,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2622,7 +2622,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2670,7 +2670,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2718,7 +2718,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2766,7 +2766,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2814,7 +2814,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2862,7 +2862,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2910,7 +2910,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -2958,7 +2958,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3006,7 +3006,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3054,7 +3054,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3102,7 +3102,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3150,7 +3150,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3198,7 +3198,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3246,7 +3246,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3294,7 +3294,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3342,7 +3342,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3390,7 +3390,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3438,7 +3438,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3485,7 +3485,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3532,7 +3532,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3579,7 +3579,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3626,7 +3626,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3673,7 +3673,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3720,7 +3720,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3767,7 +3767,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3814,7 +3814,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3861,7 +3861,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3908,7 +3908,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -3955,7 +3955,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4002,7 +4002,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4049,7 +4049,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4096,7 +4096,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4143,7 +4143,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4190,7 +4190,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4237,7 +4237,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4284,7 +4284,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4331,7 +4331,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4378,7 +4378,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4425,7 +4425,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4472,7 +4472,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4519,7 +4519,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4566,7 +4566,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4613,7 +4613,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4660,7 +4660,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4707,7 +4707,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4754,7 +4754,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -4801,7 +4801,7 @@
           "owner": "dev-gaia@lists.mozilla.org"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner2",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
