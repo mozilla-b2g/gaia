@@ -5,7 +5,7 @@
    HomescreenLauncher,
    appWindowFactory,
    MockAppWindow,
-   Service
+   MockService
  */
 
 'use strict';

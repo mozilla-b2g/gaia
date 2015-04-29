@@ -1,4 +1,8 @@
-/* global Service */
+/* global AppInstallManager, KeyboardHelper, Service, Template,
+          MockApp, MockApplications, MockChromeEvent, MockNavigatormozApps,
+          MockNavigatorWakeLock, MocksHelper, MockL10n, MockModalDialog,
+          MockNotificationScreen, MockService,
+          MockSystemBanner, MockUtilityTray */
 
 'use strict';
 
@@ -1519,7 +1523,7 @@ suite('system/AppInstallManager >', function() {
       assert.deepEqual(l10nAttrs.args, {appName: mockAppName});
       AppInstallManager.setupCancelButton.click();
       AppInstallManager.handleInstallSuccess(mockAppTwo);
-      var l10nAttrs = MockL10n.getAttributes(
+      l10nAttrs = MockL10n.getAttributes(
         AppInstallManager.setupAppName);
       assert.equal(l10nAttrs.id, 'app-install-success');
       assert.deepEqual(l10nAttrs.args, {appName: mockAppTwoName});
