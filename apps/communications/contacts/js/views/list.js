@@ -1690,6 +1690,7 @@ contacts.List = (function() {
       return;
     }
     iceGroup = null;
+    ICELoaded = false;
     utils.dom.removeChildNodes(groupsList);
     headers = {};
     loadedContacts = {};
