@@ -14,8 +14,14 @@ define(function(require) {
   var ListView = require('modules/mvvm/list_view');
   var SettingsPanel = require('modules/settings_panel');
 
-  const MAX_DEVICE_NAME_LENGTH = 20;
-  const VISIBLE_TIMEOUT_TIME = 120000;  // Visibility will timeout after 2 mins.
+  var L10n = window.navigator.mozL10n;
+  var Settings = window.navigator.mozSettings;
+
+  // A timeout which is defined in system app to set discoverable property false
+  // after 2 mins.
+  const DISCOVERABLE_TIMEOUT_TIME = 120000;
+  // Interval update discoverable remaining time.
+  const INTERVAL_UPDATE_DISCOVERABLE_REMAINING_TIME = 1000;
 
   var _debug = false;
   var Debug = function() {};
@@ -24,6 +30,8 @@ define(function(require) {
       console.log('--> [Bluetooth][Panel]: ' + msg);
     };
   }
+
+  var Localize = L10n.setAttributes;
 
   return function ctor_bluetooth() {
     var elements;
@@ -38,17 +46,22 @@ define(function(require) {
 
         // Init state for checking left app or not.
         this._leftApp = false;
-        // Init an instance to maintain visibility timeout.
-        this._visibleTimeout = null;
+        // Init an instance to maintain interval of visibility remaining time.
+        this._visibleInterval = null;
+        // Init an variable to maintain the disable timestamp.
+        // The timestamp is set from system app.
+        this._disableTimestamp = null;
         // Init bounding instances for observe/un-observe property.
         this._boundUpdateEnableCheckbox = this._updateEnableCheckbox.bind(this);
         this._boundUpdateVisibleItem = this._updateVisibleItem.bind(this);
         this._boundUpdateVisibleCheckbox =
           this._updateVisibleCheckbox.bind(this);
-        this._boundUpdateVisibilityTimer =
-          this._updateVisibilityTimer.bind(this);
-        this._boundUpdateVisibleName = this._updateVisibleName.bind(this);
+        this._boundUpdateVisibilityDisabledMsg =
+          this._updateVisibilityDisabledMsg.bind(this);
+        this._boundUpdateVisibilityEnabledCountdownMsg =
+          this._updateVisibilityEnabledCountdownMsg.bind(this);
         this._boundUpdateRenameItem = this._updateRenameItem.bind(this);
+        this._boundUpdateRenameDesc = this._updateRenameDesc.bind(this);
         this._boundUpdatePairedDevicesHeader =
          this._updatePairedDevicesHeader.bind(this);
         this._boundUpdatePairedDevicesList =
@@ -64,12 +77,14 @@ define(function(require) {
           enableCheckboxMsg: panel.querySelector('.bluetooth-enable-msg'),
           visible: {
             visibleItem: panel.querySelector('.device-visible'),
-            visibleName: panel.querySelector('.bluetooth-device-name'),
-            visibleCheckBox: panel.querySelector('.device-visible input')
+            visibleCheckBox: panel.querySelector('.device-visible input'),
+            visibleMsg: panel.querySelector('.bluetooth-visibility-msg')
           },
           rename: {
             renameItem: panel.querySelector('.bluetooth-rename'),
-            renameButton: panel.querySelector('.rename-device')
+            renameMenu: panel.querySelector('.menuItem-rename'),
+            renameDescription:
+              panel.querySelector('.bluetooth-device-name-desc')
           },
           paired: {
             pairedDevicesHeader: panel.querySelector('.bluetooth-paired-title'),
@@ -100,8 +115,8 @@ define(function(require) {
         elements.visible.visibleCheckBox.addEventListener('click',
           this._onVisibleCheckBoxClick.bind(this));
 
-        elements.rename.renameButton.addEventListener('click',
-          this._onRenameButtonClick.bind(this));
+        elements.rename.renameMenu.addEventListener('click',
+          this._onRenameMenuClick.bind(this));
 
         elements.search.searchButton.addEventListener('click',
           this._onSearchButtonClick.bind(this));
@@ -139,15 +154,19 @@ define(function(require) {
         BtContext.observe('discoverable', this._boundUpdateVisibleCheckbox);
         this._updateVisibleCheckbox(BtContext.discoverable);
 
-        BtContext.observe('discoverable', this._boundUpdateVisibilityTimer);
-        this._updateVisibilityTimer(BtContext.discoverable);
+        BtContext.observe('discoverable',
+          this._boundUpdateVisibilityDisabledMsg);
+        this._updateVisibilityDisabledMsg(BtContext.discoverable);
 
-        BtContext.observe('name', this._boundUpdateVisibleName);
-        this._updateVisibleName(BtContext.name);
+        Settings.addObserver('bluetooth.discoverable.disableTimestamp',
+          this._boundUpdateVisibilityEnabledCountdownMsg);
 
         // rename
         BtContext.observe('state', this._boundUpdateRenameItem);
         this._updateRenameItem(BtContext.state);
+
+        BtContext.observe('name', this._boundUpdateRenameDesc);
+        this._updateRenameDesc(BtContext.name);
 
         // paired devices header
         BtContext.observe('hasPairedDevice',
@@ -195,9 +214,12 @@ define(function(require) {
         BtContext.unobserve('state', this._boundUpdateEnableCheckbox);
         BtContext.unobserve('state', this._boundUpdateVisibleItem);
         BtContext.unobserve('discoverable', this._boundUpdateVisibleCheckbox);
-        BtContext.unobserve('discoverable', this._boundUpdateVisibilityTimer);
-        BtContext.unobserve('name', this._boundUpdateVisibleName);
+        BtContext.unobserve('discoverable',
+          this._boundUpdateVisibilityDisabledMsg);
+        Settings.removeObserver('bluetooth.discoverable.disableTimestamp',
+          this._boundUpdateVisibilityEnabledCountdownMsg);
         BtContext.unobserve('state', this._boundUpdateRenameItem);
+        BtContext.unobserve('name', this._boundUpdateRenameDesc);
         BtContext.unobserve('hasPairedDevice',
           this._boundUpdatePairedDevicesHeader);
         BtContext.unobserve('state', this._boundUpdatePairedDevicesList);
@@ -250,73 +272,9 @@ define(function(require) {
         });
       },
 
-      _onRenameButtonClick: function() {
-        var messageL10nId = 'change-phone-name-desc';
-        var titleL10nId = 'change-device-name';
-        var myDeviceName = BtContext.name;
-        Debug('_onRenameButtonClick(): myDeviceName = ' + myDeviceName);
-        DialogService.prompt(messageL10nId, {
-          title: titleL10nId,
-          defaultValue: myDeviceName,
-          submitButton: 'ok',
-          cancelButton: 'cancel'
-        }).then((result) => {
-          var type = result.type;
-          var value = result.value;
-          if (type === 'submit') {
-            this._onRenameSubmit(value);
-          }
-        });
-      },
-
-      _onRenameSubmit: function(nameEntered) {
-        Debug('_onRenameSubmit(): nameEntered = ' + nameEntered);
-        // Before set the entered name to platform, we check length of name is 
-        // over threshold or not.
-        nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
-        if (nameEntered.length > MAX_DEVICE_NAME_LENGTH) {
-          this._confirmNameEnteredOverLength();
-          // Early return here since name entered is over threshold.
-          return;
-        }
-
-        // Only set non-empty string to be new name. 
-        // Otherwise, set name by product model.
-        if (nameEntered !== '') {
-          Debug('_onRenameSubmit(): set new name = ' + nameEntered);
-          BtContext.setName(nameEntered).then(() => {
-            Debug('_onRenameSubmit(): setName = ' +
-                  nameEntered + ' successfully');
-          }, (reason) => {
-            Debug('_onRenameSubmit(): setName = ' +
-                  nameEntered + ' failed, reason = ' + reason);
-          });
-        } else {
-          Debug('_onRenameSubmit(): set name by product model');
-          BtContext.setNameByProductModel();
-        }
-      },
-
-      _confirmNameEnteredOverLength: function() {
-        var messageL10nId = {
-          id: 'bluetooth-name-maxlength-alert',
-          args: {'length': MAX_DEVICE_NAME_LENGTH}
-        };
-        var titleL10nId = 'settings';
-
-        DialogService.confirm(messageL10nId, {
-          title: titleL10nId,
-          submitButton: 'ok',
-          cancelButton: 'cancel'
-        }).then((result) => {
-          var type = result.type;
-          if (type === 'submit') {
-            this._onRenameButtonClick();
-          } else {
-            // Just return here since user give up to set name.
-            return;
-          }
-        });
+      _onRenameMenuClick: function() {
+        Debug('_onRenameMenuClick():');
+        DialogService.show('bluetooth-renameSettings');
       },
 
       _updateEnableCheckbox: function(state) {
@@ -347,31 +305,85 @@ define(function(require) {
         elements.visible.visibleCheckBox.checked = discoverable;
       },
 
-      _updateVisibilityTimer: function(discoverable) {
-        Debug('_updateVisibilityTimer(): ' +
+      _updateVisibilityDisabledMsg: function(discoverable) {
+        Debug('_updateVisibilityDisabledMsg(): ' +
               'callback from observe "discoverable" = ' + discoverable);
-        // Visibility will time out after 2 mins.
-        if (discoverable && !this._visibleTimeout) {
-          Debug('_updateVisibilityTimer(): setTimeout to disable visibility ' +
-                'after 2 minutes');
-          this._visibleTimeout = setTimeout(() => {
-            BtContext.setDiscoverable(false);
-          }, VISIBLE_TIMEOUT_TIME);
-          // Early return here since already set timeout.
-          return;
-        }
-
-        if (!discoverable && this._visibleTimeout) {
-          Debug('_updateVisibilityTimer(): clearTimeout');
-          clearTimeout(this._visibleTimeout);
-          this._visibleTimeout = null;
+        if (!discoverable) {
+          Localize(elements.visible.visibleMsg,
+                   'bluetooth-visibility-enable-msg');
         }
       },
 
-      _updateVisibleName: function(name) {
-        Debug('_updateVisibleName(): ' +
-              'callback from observe "name" = ' + name);
-        elements.visible.visibleName.textContent = name;
+      _updateVisibilityEnabledCountdownMsg: function(event) {
+        Debug('_updateVisibilityEnabledCountdownMsg(): disableTimestamp = ' +
+              event.settingValue);
+        var disableTimestamp = event.settingValue;
+        if (disableTimestamp === null) {
+          this._setIntervalToUpdateRemainingTime(false);
+          this._disableTimestamp = null;
+          Localize(elements.visible.visibleMsg,
+                   'bluetooth-visibility-enable-msg');
+          return;
+        }
+
+        // Set interval to update remaining time.
+        this._disableTimestamp = disableTimestamp;
+        this._setIntervalToUpdateRemainingTime(true);
+      },
+
+      _setIntervalToUpdateRemainingTime: function(enabled) {
+        Debug('_setIntervalToUpdateRemainingTime(): enabled = ' + enabled);
+        // Remaining time will be updated per 1 second.
+        if (enabled && !this._visibleInterval) {
+          Debug('_setIntervalToUpdateRemainingTime(): set interval ' +
+                'to update remaining time per 1 second');
+
+          this._visibleInterval = setInterval(() => {
+            // Update remaining time.
+            this._updateVisibilityRemainingTime();
+          }, INTERVAL_UPDATE_DISCOVERABLE_REMAINING_TIME);
+          // Early return here since already set interval.
+          return;
+        }
+
+        // Clear interval for disabled.
+        if (!enabled && this._visibleInterval) {
+          Debug('_setIntervalToUpdateRemainingTime(): clearInterval');
+          clearInterval(this._visibleInterval);
+          this._visibleInterval = null;
+        }
+      },
+
+      _updateVisibilityRemainingTime: function() {
+        Debug('_updateVisibilityRemainingTime(): ');
+        if (this._disableTimestamp === null) {
+          // Early return if disable timestamp is not set.
+          return;
+        }
+
+        var remaining = DISCOVERABLE_TIMEOUT_TIME -
+          ((new Date()).getTime() - this._disableTimestamp);
+        var remainingTimeText = this._formatToMS(Math.round(remaining / 1000));
+        Debug('_updateVisibilityRemainingTime(): remainingTimeText = ' +
+              remainingTimeText);
+        Localize(elements.visible.visibleMsg,
+                 'bluetooth-visibility-disable-countdown-msg',
+                 {remainingTime: remainingTimeText});
+      },
+
+      _formatToMS: function(sec, format) {
+        var min = 0;
+        if (sec >= 3600) {
+          return 'unexpected';
+        }
+
+        if (sec >= 60) {
+          min = Math.floor(sec / 60);
+          sec -= min * 60;
+        }
+
+        sec = (sec < 10) ? '0' + sec : sec;
+        return min + ':' + sec;
       },
 
       _updateRenameItem: function(state) {
@@ -379,8 +391,12 @@ define(function(require) {
               'callback from observe "state" = ' + state);
         elements.rename.renameItem.hidden =
           ((state === 'enabled') || (state === 'enabling')) ? false : true;
-        elements.rename.renameButton.disabled =
-          (state === 'enabled') ? false : true;
+      },
+
+      _updateRenameDesc: function(name) {
+        Debug('_updateRenameDesc(): ' +
+              'callback from observe "name" = ' + name);
+        elements.rename.renameDescription.textContent = name;
       },
 
       _updatePairedDevicesHeader: function(hasPairedDevice) {

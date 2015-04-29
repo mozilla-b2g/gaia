@@ -16,15 +16,18 @@
             Turn Bluetooth on to view devices in the area.
           </p>
         </li>
-        <li hidden class="device-visible">
+        <li hidden class="device-visible hint">
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
             <span data-l10n-id="bluetooth-visible-to-all">Visible to all</span>
-            <small class="bluetooth-device-name"></small>
           </label>
+          <p class="bluetooth-visibility-msg explanation"></p>
         </li>
         <li hidden class="bluetooth-rename">
-          <button data-l10n-id="rename-device" class="rename-device" disabled>Rename My Device</button>
+          <a class="menu-item menuItem-rename" href="#">
+            <span data-l10n-id="bluetooth-rename-device">Rename Device</span>
+            <small class="bluetooth-device-name-desc"></small>
+          </a>
         </li>
       </ul>
 

@@ -1,0 +1,26 @@
+<element name="bluetooth-renameSettings" extends="section">
+  <template>
+
+    <gaia-header>
+      <button type="reset"><span data-icon="close"></span></button>
+      <h1 data-l10n-id="bluetooth-rename-device-header"></h1>
+      <button type="submit"><span data-l10n-id="ok"></span></button>
+    </gaia-header>
+
+    <div>
+      <ul>
+        <li>
+          <p data-l10n-id="bluetooth-device-name"></p>
+          <input type="text" class="new-device-name" value="" dir="auto"></input>
+        </li>
+        <div class="bluetooth-rename-dialog">
+          <div data-l10n-id="bluetooth-rename-overlength-error-msg" dir="auto" 
+          class="bluetooth-rename-overlength-error-msg error" hidden>Device name too long (max 20 characters).</div>
+          <div data-l10n-id="bluetooth-rename-msg" class="bluetooth-rename-msg">This name will appear in other devices when your device is visible.</div>
+        </div>
+      </ul>
+    </div>
+
+    <panel data-path="panels/bluetooth_rename_settings/panel"></panel>
+  </template>
+</element>

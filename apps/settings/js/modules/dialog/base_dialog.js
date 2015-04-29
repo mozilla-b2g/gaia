@@ -34,7 +34,6 @@ define(function(require) {
 
   BaseDialog.prototype.bindEvents = function bd_bindEvent() {
     var self = this;
-
     this.getSubmitButton().onclick = function() {
       self._options.onWrapSubmit();
     };
