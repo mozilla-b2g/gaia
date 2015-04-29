@@ -1,9 +1,10 @@
-/* global openLink */
 /**
  * Handle support panel functionality with SIM and without SIM
  */
 define(function(require) {
   'use strict';
+
+  var SettingsUtils = require('modules/settings_utils');
   var SettingsCache = require('modules/settings_cache');
   var LazyLoader = require('shared/lazy_loader');
 
@@ -23,8 +24,9 @@ define(function(require) {
        */
       this._callSupportInfo = null;
       var url = 'http://support.mozilla.org/products/firefox-os';
-      this._elements.userGuide.onclick =
-        function openUserGuide() { openLink(url); };
+      this._elements.userGuide.onclick = function openUserGuide() {
+        SettingsUtils.openLink(url);
+      };
 
       // parse support information from data
       this._getSupportInfo(this._displaySupportInfo.bind(this));

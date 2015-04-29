@@ -5,7 +5,6 @@ require(['config/require'], function() {
     // The following are the scripts used by many other scripts. We load them
     // at once here. These should be move to the dependency of each panel in the
     // future.
-    require('utils');
     require('shared/settings_listener');
 
     var SettingsService = require('modules/settings_service');

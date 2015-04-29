@@ -1,8 +1,7 @@
-/* global openIncompatibleSettingsDialog */
-
 define(function(require) {
   'use strict';
 
+  var SettingsUtils = require('modules/settings_utils');
   var DialogService = require('modules/dialog_service');
   var SettingsPanel = require('modules/settings_panel');
   var Hotspot = require('panels/hotspot/hotspot');
@@ -140,19 +139,25 @@ define(function(require) {
           // We must check if there is two incompatibilities
           // (usb hotspot case) or just one
           if (bothConflicts) {
-            openIncompatibleSettingsDialog(this._incompatibleSettingsDialog,
+            SettingsUtils.openIncompatibleSettingsDialog(
+              this._incompatibleSettingsDialog,
               hotspot.tetheringUsbKey, hotspot.tetheringWifiKey,
-              this._openSecondWarning.bind(this));
+              this._openSecondWarning.bind(this)
+            );
           } else {
-            openIncompatibleSettingsDialog(this._incompatibleSettingsDialog,
-              newSetting, oldSetting, null);
+            SettingsUtils.openIncompatibleSettingsDialog(
+              this._incompatibleSettingsDialog,
+              newSetting, oldSetting, null
+            );
           }
       },
 
       _openSecondWarning: function() {
-        openIncompatibleSettingsDialog(this._incompatibleSettingsDialog,
-            hotspot.tetheringUsbKey, hotspot.usbStorageKey,
-            null);
+        SettingsUtils.openIncompatibleSettingsDialog(
+          this._incompatibleSettingsDialog,
+          hotspot.tetheringUsbKey, hotspot.usbStorageKey,
+          null
+        );
       },
 
       _updateUI: function() {

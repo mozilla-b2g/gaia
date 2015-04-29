@@ -1,4 +1,3 @@
-/* global openLink, openDialog */
 /**
  * PanelUtils is a singleton that defines panel related utility functions.
  *
@@ -8,6 +7,7 @@ define(function(require) {
   'use strict';
 
   var Settings = require('settings');
+  var SettingsUtils = require('modules/settings_utils');
   var SettingsCache = require('modules/settings_cache');
   var LazyLoader = require('shared/lazy_loader');
 
@@ -100,7 +100,7 @@ define(function(require) {
     }
 
     reset(); // preset all fields before opening the dialog
-    openDialog(dialogID, submit);
+    SettingsUtils.openDialog(dialogID, submit);
   };
 
   return {
@@ -131,9 +131,9 @@ define(function(require) {
         }
         var href = this.dataset.href;
         if (!href.startsWith('#')) { // external link
-          openLink(href);
+          SettingsUtils.openLink(href);
         } else if (!href.endsWith('Settings')) { // generic dialog
-          openDialog(href.substr(1));
+          SettingsUtils.openDialog(href.substr(1));
         } else { // Settings-specific dialog box
           _openDialog(href.substr(1));
         }
