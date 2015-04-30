@@ -256,6 +256,14 @@ suite('system/UtilityTray', function() {
         assert.isTrue(publishStub.calledWith('-overlayopening'));
       });
 
+      test('should add utility-tray-in-transition class with drag from top',
+        function() {
+          fakeTouches(0, 100);
+          assert.isTrue(UtilityTray.screen.classList.contains(
+            'utility-tray-in-transition'));
+        }
+      );
+
       test('should send a touchcancel to the oop active app' +
            'since the subsequent events will be swallowed', function() {
         UtilityTray.screen.classList.remove('utility-tray');
@@ -320,6 +328,14 @@ suite('system/UtilityTray', function() {
         fakeTouches(480, 380, UtilityTray.softwareButtons);
         assert.equal(UtilityTray.showing, false);
       });
+
+      test('should add utility-tray-in-transition class on drag from bottom',
+        function() {
+          fakeTouches(480, 380, UtilityTray.grippy);
+          assert.isTrue(UtilityTray.screen.classList.contains(
+            'utility-tray-in-transition'));
+        }
+      );
     });
   });
 
@@ -651,12 +667,18 @@ suite('system/UtilityTray', function() {
   suite('handleEvent: transitionend', function() {
     setup(function() {
       UtilityTray.hide();
+      UtilityTray.screen.classList.add('utility-tray-in-transition');
       fakeTransitionEnd();
     });
 
     test('Test utilitytrayhide is correcly dispatched', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
+    });
+
+    test('Ensure utility-tray-in-transition class is removed', function() {
+      assert.isFalse(UtilityTray.screen.classList.contains(
+        'utility-tray-in-transition'));
     });
   });
 
