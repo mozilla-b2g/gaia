@@ -340,6 +340,7 @@ exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.removeFiles = utils.removeFiles;
+exports.getMD5hash = utils.getMD5hash;
 exports.getAppNameRegex = getAppNameRegex;
 exports.serializeDocument = serializeDocument;
 /**

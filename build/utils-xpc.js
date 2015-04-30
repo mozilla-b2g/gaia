@@ -309,7 +309,31 @@ function getUUIDMapping(config) {
   }
   return UUID_MAPPING;
 }
-exports.getUUIDMapping = getUUIDMapping;
+
+function getMD5hash(filePath) {
+  var file = getFile(filePath);
+  var istream = Cc['@mozilla.org/network/file-input-stream;1']
+    .createInstance(Ci.nsIFileInputStream);
+    istream.init(file, 0x01, 0o444, 0);
+  var hasher = Cc['@mozilla.org/security/hash;1']
+    .createInstance(Ci.nsICryptoHash);
+  hasher.init(hasher.MD5);
+
+  const PR_UINT32_MAX = 0xffffffff;
+  hasher.updateFromStream(istream, PR_UINT32_MAX);
+
+  function toHexString(charCode) {
+    return ('0' + charCode.toString(16)).slice(-2);
+  }
+
+  let data = hasher.finish(false);
+  let hash = [];
+  for (let i in data) {
+    hash.push(toHexString(data.charCodeAt(i)));
+  }
+
+  return hash.join('');
+}
 
 /**
  * Get an app's detail in an object. For example:
@@ -1336,3 +1360,5 @@ exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
 exports.removeFiles = removeFiles;
 exports.scriptLoader = scriptLoader;
+exports.getUUIDMapping = getUUIDMapping;
+exports.getMD5hash = getMD5hash;
