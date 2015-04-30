@@ -74,7 +74,7 @@ marionette('Message Type Conversion Banner', function() {
       // Force it to be MMS
       messagesApp.addRecipient('a@b.c');
       // Without waiting for the banner to disappear, return to thread list
-      exitThread('Discard');
+      exitThread('Delete Draft');
       // Create another new message
       threadList.navigateToComposer();
 

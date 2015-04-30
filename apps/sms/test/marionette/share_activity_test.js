@@ -47,7 +47,7 @@ marionette('Messages as share target', function() {
 
         // Exit from activity and verify that Messages is dismissed
         messagesApp.performHeaderAction();
-        messagesApp.selectAppMenuOption('Discard');
+        messagesApp.selectAppMenuOption('Delete Draft');
         messagesApp.waitForAppToDisappear();
       });
 
