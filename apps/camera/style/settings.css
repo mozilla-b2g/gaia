@@ -158,6 +158,10 @@
 /** Title
  ---------------------------------------------------------*/
 
+/**
+ * 1. In case of the title being longer than the header
+ *    we show ellipsis and prevent line wrapping
+ */
 .settings_title {
   padding: 0 1.5rem;
   font-size: 2.4rem;
@@ -168,6 +172,7 @@
   pointer-events: none;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap; /* 1 */
 }
 
 /**
