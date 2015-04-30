@@ -508,31 +508,59 @@ var ThreadUI = {
   },
 
   beforeEnterThread: function thui_beforeEnterThread(args) {
-    // TODO should we implement hooks to Navigation so that Threads could
-    // get an event whenever the panel changes?
-    Threads.currentId = args.id;
+    console.log('beforeEnterThread', args);
 
-    var prevPanel = args.meta.prev && args.meta.prev.panel;
+    function getMessageForThread(threadId) {
+      var defer = Utils.Promise.defer();
+      MessageManager.getMessages({
+        each: function(message) {
+          defer.resolve(message);
+          return false;
+        },
+        done: function() {
+          defer.reject(new Error('found no message'));
+        },
+        filter: { threadId: threadId }
+      });
 
-    // If transitioning from composer, we don't need to notify about type
-    // conversion but only after the type of the thread is set
-    // (afterEnterThread)
-    if (prevPanel !== 'composer') {
-      this.enableConvertNoticeBanners();
+      return defer.promise;
     }
 
-    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
-      this.initializeRendering();
+    var id = +args.id;
+    var promise = Promise.resolve();
+    if (!Threads.has(id)) {
+      promise = getMessageForThread(id)
+        .then((message) => Threads.registerMessage(message));
     }
 
-    // Call button should be shown only for non-email single-participant thread
-    if (Threads.active.participants.length === 1 &&
-        (!Settings.supportEmailRecipient ||
-         !Utils.isEmailAddress(Threads.active.participants[0]))) {
-      this.callNumberButton.classList.remove('hide');
-    }
+    return promise.then(() => {
+      // TODO should we implement hooks to Navigation so that Threads could
+      // get an event whenever the panel changes?
+      Threads.currentId = +args.id;
 
-    return this.updateHeaderData();
+      var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+      // If transitioning from composer, we don't need to notify about type
+      // conversion but only after the type of the thread is set
+      // (afterEnterThread)
+      if (prevPanel !== 'composer') {
+        this.enableConvertNoticeBanners();
+      }
+
+      if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+        this.initializeRendering();
+      }
+
+      // Call button should be shown only for non-email single-participant
+      // thread
+      if (Threads.active.participants.length === 1 &&
+          (!Settings.supportEmailRecipient ||
+          !Utils.isEmailAddress(Threads.active.participants[0]))) {
+        this.callNumberButton.classList.remove('hide');
+      }
+
+      return this.updateHeaderData();
+    });
   },
 
   afterEnter: function thui_afterEnter(args) {

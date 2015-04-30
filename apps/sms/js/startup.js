@@ -61,6 +61,7 @@ var Startup = {
       ThreadUI.init();
       Information.initDefaultViews();
 
+      console.log('will emit post initialize');
       // Dispatch post-initialize event for continuing the pending action
       Startup.emit('post-initialize');
       window.performance.mark('contentInteractive');
