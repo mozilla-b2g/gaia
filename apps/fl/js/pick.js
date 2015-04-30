@@ -1,3 +1,12 @@
+'use strict';
+/* global
+  _,
+  $,
+  ForwardLock,
+  objectStore,
+  RINGTONE_NAME_KEY
+*/
+
 // Wait until we're loaded, localized, and get an activity request
 window.addEventListener('load', function() {
   navigator.mozL10n.once(function() {
@@ -80,8 +89,9 @@ function pickRingtone(activity) {
           cursor.result.continue();
         }
         else { // we reached the end of the enumeration
-          if (numRingtones === 0)
+          if (numRingtones === 0) {
             displayError(activity, 'no-installed-ringtones');
+          }
         }
       };
     });
@@ -112,8 +122,9 @@ function pickRingtone(activity) {
   function play(ringtone) {
     // We create blob urls as needed. Since this app is always short-lived
     // we don't bother releasing them.
-    if (!ringtone.url)
+    if (!ringtone.url) {
       ringtone.url = URL.createObjectURL(ringtone.blob);
+    }
     player.src = ringtone.url;
     player.play();
   }
@@ -140,8 +151,9 @@ function pickWallpaper(activity) {
         cursor.result.continue();
       }
       else { // we reached the end of the enumeration
-        if (numWallpapers === 0)
+        if (numWallpapers === 0) {
           displayError(activity, 'no-installed-wallpaper');
+        }
       }
     };
   });
@@ -149,10 +161,10 @@ function pickWallpaper(activity) {
   function addWallpaper(wallpaper) {
     var blob = wallpaper.blob;
     var url = URL.createObjectURL(blob);
-    var wallpaper = template.content.cloneNode(true).firstElementChild;
-    container.appendChild(wallpaper);
-    wallpaper.style.backgroundImage = 'url(' + url + ')';
-    wallpaper.onclick = function() {
+    var wallpaperEl = template.content.cloneNode(true).firstElementChild;
+    container.appendChild(wallpaperEl);
+    wallpaperEl.style.backgroundImage = 'url(' + url + ')';
+    wallpaperEl.onclick = function() {
       ForwardLock.getKey(function(secret) {
         ForwardLock.lockBlob(secret, blob, {}, function(lockedBlob) {
           activity.postResult({ blob: lockedBlob });
