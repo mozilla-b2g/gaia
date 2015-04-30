@@ -410,6 +410,36 @@ suite('system/ScreenManager', function() {
       assert.isTrue(ScreenManager.turnScreenOn.calledOnce);
       assert.isTrue(powerOffSpy.withArgs(false).calledOnce);
     });
+
+    suite('Testing lockscreen opened event', function() {
+      setup(function() {
+        MockService.locked = true;
+        var stubSecureWindowManager = {
+          isActive: function() {
+            return false;
+          }
+        };
+        switchProperty(window, 'secureWindowManager',
+          stubSecureWindowManager, reals);
+        this.sinon.spy(ScreenManager, '_setIdleTimeout');
+        window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+      });
+
+      teardown(function() {
+        restoreProperty(window, 'secureWindowManager', reals);
+      });
+
+      test('Set 10 seconds timeout', function() {
+        assert.ok(ScreenManager._setIdleTimeout
+          .withArgs(ScreenManager.LOCKING_TIMEOUT, true).calledOnce);
+      });
+
+      test('Remove the event listener', function() {
+        this.sinon.spy(ScreenManager, '_reconfigScreenTimeout');
+        window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+        assert.ok(ScreenManager._reconfigScreenTimeout.notCalled);
+      });
+    });
   });
 
   suite('turnScreenOff()', function() {

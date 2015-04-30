@@ -2,6 +2,7 @@
 'use strict';
 var MockService = {
   mTeardown: function() {
+    this.locked = false;
     this.runningFTU = false;
     this.mUpgrading = false;
     this.mBtEnabled = false;
