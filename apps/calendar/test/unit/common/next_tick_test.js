@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 
 test('nextTick', function(done) {
   var inc = 0;

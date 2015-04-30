@@ -4,13 +4,13 @@ define(function(require) {
 var AbstractProvider = require('provider/abstract');
 var CaldavProvider = require('provider/caldav');
 var CaldavPullEvents = require('provider/caldav_pull_events');
-var CalendarError = require('error');
-var Calc = require('calc');
+var CalendarError = require('common/error');
+var Calc = require('common/calc');
 var Factory = require('test/support/factory');
 var ICAL = require('ext/ical');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var ServiceSupport = require('test/service/helper');
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 
 suite('provider/caldav', function() {
   var subject;

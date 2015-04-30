@@ -1,8 +1,8 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
-var Timespan = require('timespan');
+var Calc = require('common/calc');
+var Timespan = require('common/timespan');
 
 suite('timespan', function() {
   var subject;

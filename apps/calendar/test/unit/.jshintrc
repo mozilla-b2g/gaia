@@ -5,6 +5,7 @@
     "IDBTransaction",
     "assert",
     "define",
+    "expect",
     "require",
     "requirejs",
     "requireCommon",

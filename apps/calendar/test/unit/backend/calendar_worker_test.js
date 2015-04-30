@@ -9,7 +9,7 @@ suite('calendar service', function() {
 
   setup(function() {
     thread = threads.create({
-      src: '/js/backend/calendar_service.js',
+      src: '/js/backend/calendar_worker.js',
       type: 'worker'
     });
 
@@ -20,8 +20,13 @@ suite('calendar service', function() {
     thread.destroy();
   });
 
-  mochaPromise(test, 'client can connect', function() {
-    return client.method('start').then(() => assert.ok(client.connected));
+  mochaPromise(test, 'calling service method', function() {
+    var call = client.method('echo', 'foo', 'bar', 'baz');
+    return expect(call).to.eventually.deep.equal([
+      'foo',
+      'bar',
+      'baz'
+    ]);
   });
 });
 

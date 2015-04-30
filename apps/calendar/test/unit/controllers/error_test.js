@@ -1,11 +1,11 @@
 define(function(require) {
 'use strict';
 
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var ErrorController = require('controllers/error');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
-var nextTick = require('next_tick');
+var Responder = require('common/responder');
+var nextTick = require('common/next_tick');
 var notification = require('notification');
 
 suite('controllers/error', function() {

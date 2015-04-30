@@ -3,9 +3,9 @@ define(function(require) {
 
 var Factory = require('test/support/factory');
 var IntervalTree = require('interval_tree');
-var Timespan = require('timespan');
-var binsearch = require('binsearch');
-var compare = require('compare');
+var Timespan = require('common/timespan');
+var binsearch = require('common/binsearch');
+var compare = require('common/compare');
 
 suite('interval_tree', function() {
   var subject;

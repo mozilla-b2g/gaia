@@ -2,10 +2,10 @@ define(function(require, exports, module) {
 'use strict';
 
 var Parent = require('view');
-var createDay = require('calc').createDay;
+var createDay = require('common/calc').createDay;
 var dateFormat = require('date_format');
 var dayObserver = require('day_observer');
-var isAllDay = require('calc').isAllDay;
+var isAllDay = require('common/calc').isAllDay;
 var performance = require('performance');
 var template = require('templates/month_day_agenda');
 

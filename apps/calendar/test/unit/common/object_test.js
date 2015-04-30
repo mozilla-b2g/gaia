@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var object = require('object');
+var object = require('common/object');
 
 suite('Object', function() {
   var subject;

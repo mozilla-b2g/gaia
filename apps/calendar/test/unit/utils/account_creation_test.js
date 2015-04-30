@@ -3,7 +3,7 @@ define(function(require) {
 
 var AccountCreation = require('utils/account_creation');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var providerFactory = require('provider/provider_factory');
 
 suite('Utils.AccountCreation', function() {

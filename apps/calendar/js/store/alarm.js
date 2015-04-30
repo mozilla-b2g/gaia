@@ -2,12 +2,12 @@ define(function(require, exports, module) {
 'use strict';
 
 var Abstract = require('./abstract');
-var Calc = require('calc');
-var createDOMPromise = require('create_dom_promise');
-var debug = require('debug')('store/alarm');
-var denodeifyAll = require('promise').denodeifyAll;
+var Calc = require('common/calc');
+var createDOMPromise = require('common/create_dom_promise');
+var debug = require('common/debug')('store/alarm');
+var denodeifyAll = require('common/promise').denodeifyAll;
 var notificationsController = require('controllers/notifications');
-var object = require('object');
+var object = require('common/object');
 
 /**
  * The alarm store can be thought of as a big queue.

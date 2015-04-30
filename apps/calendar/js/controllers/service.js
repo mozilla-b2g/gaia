@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Manager = require('worker/manager');
-var debug = require('debug')('controllers/service');
+var debug = require('common/debug')('controllers/service');
 
 function Service() {
   Manager.call(this);

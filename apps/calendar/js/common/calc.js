@@ -1,7 +1,7 @@
 define(function(require, exports) {
 'use strict';
 
-var Timespan = require('timespan');
+var Timespan = require('./timespan');
 
 const SECOND = 1000;
 const MINUTE = (SECOND * 60);
@@ -571,8 +571,10 @@ exports.isAllDay = function(baseDate, startDate, endDate) {
   return (startBefore && endsAfter) || Number(startDate) === Number(endDate);
 };
 
-window.addEventListener('localized', function changeStartDay() {
-  exports.startDay = parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10);
-});
+if (typeof(window) !== 'undefined') {
+  window.addEventListener('localized', () => {
+    exports.startDay = parseInt(navigator.mozL10n.get('firstDayOfTheWeek'), 10);
+  });
+}
 
 });

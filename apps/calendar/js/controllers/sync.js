@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
+var Responder = require('common/responder');
 
 /**
  * Handles all synchronization related

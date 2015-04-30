@@ -2,9 +2,9 @@ define(function(require) {
 'use strict';
 
 var Abstract = require('store/abstract');
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var notificationsController = require('controllers/notifications');
 
 suite('store/alarm', function() {

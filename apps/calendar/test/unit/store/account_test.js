@@ -3,7 +3,7 @@ define(function(require) {
 
 var Abstract = require('store/abstract');
 var AccountModel = require('models/account');
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var CalendarModel = require('models/calendar');
 var CalendarStore = require('store/calendar');
 var Factory = require('test/support/factory');

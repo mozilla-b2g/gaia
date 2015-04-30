@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
 
 var Factory = require('test/support/factory');
-var Timespan = require('timespan');
+var Timespan = require('common/timespan');
 
 suite('store/busytime', function() {
   var app;

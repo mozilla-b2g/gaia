@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var View = require('view');
-var nextTick = require('next_tick');
+var nextTick = require('common/next_tick');
 var timeObserver = require('time_observer');
 
 function ViewSelector(opts) {

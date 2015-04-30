@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 var Account = require('models/account');
 var AccountCreation = require('utils/account_creation');
 var OAuthWindow = require('oauth_window');
-var Presets = require('presets');
+var Presets = require('common/presets');
 var URI = require('utils/uri');
 var View = require('view');
 var router = require('router');

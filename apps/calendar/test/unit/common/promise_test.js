@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var promise = require('promise');
+var promise = require('common/promise');
 
 function errorOrFive(shouldError, callback) {
   var error;

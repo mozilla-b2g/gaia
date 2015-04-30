@@ -1,9 +1,9 @@
 define(function(require, exports) {
 'use strict';
 
-var calc = require('calc');
+var calc = require('common/calc');
 var dateFormat = require('date_format');
-var debug = require('debug')('controllers/notifications');
+var debug = require('common/debug')('controllers/notifications');
 var messageHandler = require('message_handler');
 var notification = require('notification');
 

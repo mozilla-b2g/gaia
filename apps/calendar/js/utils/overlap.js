@@ -9,7 +9,7 @@ define(function(require, exports, module) {
  */
 var ConflictSpan = require('conflict_span');
 var IntervalTree = require('interval_tree');
-var Timespan = require('timespan');
+var Timespan = require('common/timespan');
 
 function Overlap() {
   this.reset();

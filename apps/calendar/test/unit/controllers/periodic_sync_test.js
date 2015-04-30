@@ -7,7 +7,7 @@
 define(function(require) {
 'use strict';
 
-var createDOMPromise = require('create_dom_promise');
+var createDOMPromise = require('common/create_dom_promise');
 var mockAlarms = require('test/support/mock_alarms');
 var periodicSync = require('controllers/periodic_sync');
 

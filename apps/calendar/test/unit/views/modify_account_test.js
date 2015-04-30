@@ -7,8 +7,8 @@ var Factory = require('test/support/factory');
 var FakePage = require('test/support/fake_page');
 var ModifyAccount = require('views/modify_account');
 var OAuthWindow = require('oauth_window');
-var Presets = require('presets');
-var nextTick = require('next_tick');
+var Presets = require('common/presets');
+var nextTick = require('common/next_tick');
 var router = require('router');
 
 require('/shared/elements/gaia-header/dist/gaia-header.js');

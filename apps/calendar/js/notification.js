@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var NotificationHelper = require('shared/notification_helper');
-var debug = require('debug')('notification');
+var debug = require('common/debug')('notification');
 var performance = require('performance');
 var router = require('router');
 

@@ -15,7 +15,7 @@ build/esomin/escodegen.js
 build/esomin/esprima.js
 build/jsmin.js
 apps/communications/contacts/oauth2/js/parameters.js
-apps/calendar/js/presets.js
+apps/calendar/js/common/presets.js
 apps/email/js/alameda.js
 apps/email/js/tmpl_builder.js
 apps/clock/js/alameda.js

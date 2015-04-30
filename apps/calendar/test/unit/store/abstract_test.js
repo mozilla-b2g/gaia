@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var Abstract = require('store/abstract');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
+var Responder = require('common/responder');
 
 suite('store/abstract', function() {
   var subject;

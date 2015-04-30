@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('controllers/recurring_events');
-var nextTick = require('next_tick');
+var Responder = require('common/responder');
+var debug = require('common/debug')('controllers/recurring_events');
+var nextTick = require('common/next_tick');
 var providerFactory = require('provider/provider_factory');
 
 function RecurringEvents(app) {

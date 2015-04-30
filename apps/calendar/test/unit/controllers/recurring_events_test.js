@@ -3,8 +3,8 @@ define(function(require) {
 
 var Factory = require('test/support/factory');
 var RecurringEvents = require('controllers/recurring_events');
-var Responder = require('responder');
-var nextTick = require('next_tick');
+var Responder = require('common/responder');
+var nextTick = require('common/next_tick');
 var providerFactory = require('provider/provider_factory');
 
 suite('Controllers.RecurringEvents', function() {

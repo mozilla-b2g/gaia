@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var create = require('template').create;
 var dateFormat = require('date_format');
 

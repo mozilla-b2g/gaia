@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var MonthDay = require('./month_day');
 var View = require('view');
 var daysBetween = Calc.daysBetween;

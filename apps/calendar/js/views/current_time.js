@@ -2,9 +2,9 @@ define(function(require, exports, module) {
 'use strict';
 
 var View = require('view');
-var createDay = require('calc').createDay;
+var createDay = require('common/calc').createDay;
 var dateFormat = require('date_format');
-var getTimeL10nLabel = require('calc').getTimeL10nLabel;
+var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
 var timeObserver = require('time_observer');
 
 var activeClass = View.ACTIVE;

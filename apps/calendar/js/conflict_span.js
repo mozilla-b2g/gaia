@@ -6,7 +6,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var IntervalTree = require('interval_tree');
-var Timespan = require('timespan');
+var Timespan = require('common/timespan');
 
 // Smallest gap interval to use in splitting conflict spans
 var MIN_SPLIT_INTERVAL = 5 * 60 * 1000;  // 5 minutes

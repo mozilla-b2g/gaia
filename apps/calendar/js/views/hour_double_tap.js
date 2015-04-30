@@ -8,7 +8,7 @@ define(function(require, exports, module) {
 var QueryString = require('querystring');
 var absoluteOffsetTop = require('utils/dom').absoluteOffsetTop;
 var closest = require('utils/dom').closest;
-var createDay = require('calc').createDay;
+var createDay = require('common/calc').createDay;
 
 function HourDoubleTap(options) {
   this.app = options.app;

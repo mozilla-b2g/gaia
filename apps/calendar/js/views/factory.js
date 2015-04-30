@@ -1,8 +1,8 @@
 define(function(require, exports, module) {
 'use strict';
 
-var debug = require('debug')('viewFactory');
-var nextTick = require('next_tick');
+var debug = require('common/debug')('viewFactory');
+var nextTick = require('common/next_tick');
 var snakeCase = require('snake_case');
 
 // FIXME: app is injected later, we can only remove this after Bug 1154988

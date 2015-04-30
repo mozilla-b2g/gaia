@@ -3,13 +3,14 @@ define(function(require, exports, module) {
 'use strict';
 
 var Account = require('models/account');
-var Presets = require('presets');
+var Presets = require('common/presets');
 var Local = require('provider/local');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var Store = require('store/store');
-var debug = require('debug')('db');
-var nextTick = require('next_tick');
-var probablyParseInt = require('probably_parse_int');
+var debug = require('common/debug')('db');
+var denodeifyAll = require('common/promise').denodeifyAll;
+var nextTick = require('common/next_tick');
+var probablyParseInt = require('common/probably_parse_int');
 var uuid = require('ext/uuid');
 
 var idb = window.indexedDB;
@@ -32,6 +33,8 @@ function Db(name, app) {
   this._stores = Object.create(null);
   Responder.call(this);
   this._upgradeOperations = [];
+
+  denodeifyAll(this, ['load']);
 }
 module.exports = Db;
 

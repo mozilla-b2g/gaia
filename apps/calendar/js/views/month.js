@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var GestureDetector = require('shared/gesture_detector');
 var SingleMonth = require('./single_month');
 var View = require('view');

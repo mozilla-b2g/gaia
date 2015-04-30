@@ -7,8 +7,8 @@ var InputParser = require('shared/input_parser');
 var Local = require('provider/local');
 var QueryString = require('querystring');
 var dateFormat = require('date_format');
-var getTimeL10nLabel = require('calc').getTimeL10nLabel;
-var nextTick = require('next_tick');
+var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
+var nextTick = require('common/next_tick');
 var router = require('router');
 var viewFactory = require('./factory');
 

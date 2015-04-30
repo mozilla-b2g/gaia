@@ -5,7 +5,7 @@ var AccountModel = require('models/account');
 var CalendarModel = require('models/calendar');
 var CaldavPullEvents = require('provider/caldav_pull_events');
 var CaldavService = require('service/caldav');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var Factory = require('test/support/factory');
 var ServiceSupport = require('test/service/helper');
 

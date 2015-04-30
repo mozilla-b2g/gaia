@@ -1,15 +1,15 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var CurrentTime = require('./current_time');
 var HourDoubleTap = require('./hour_double_tap');
 var Pan = require('./pan');
 var SingleDay = require('./single_day');
-var Timespan = require('timespan');
+var Timespan = require('common/timespan');
 var View = require('view');
 var animatedScroll = require('utils/animated_scroll');
-var createDay = require('calc').createDay;
+var createDay = require('common/calc').createDay;
 var template = require('templates/multi_day');
 var throttle = require('utils/mout').throttle;
 

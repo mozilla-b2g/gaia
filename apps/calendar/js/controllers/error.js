@@ -1,10 +1,10 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Authentication = require('error').Authentication;
-var InvalidServer = require('error').InvalidServer;
-var Responder = require('responder');
-var nextTick = require('next_tick');
+var Authentication = require('common/error').Authentication;
+var InvalidServer = require('common/error').InvalidServer;
+var Responder = require('common/responder');
+var nextTick = require('common/next_tick');
 var notification = require('notification');
 
 /**
