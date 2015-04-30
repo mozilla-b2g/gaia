@@ -163,21 +163,19 @@ MediaPlaybackWidget.prototype = {
 
       if (title) {
         var titleNode = document.createTextNode(title);
-        var titleBdiNode = document.createElement('bdi');
-        titleBdiNode.appendChild(titleNode);
-        this.track.appendChild(titleBdiNode);
+        this.track.appendChild(titleNode);
       }
 
       if (title && artist) {
         var emDashNode = document.createTextNode(' — '); // Using a &mdash;
-        this.track.appendChild(emDashNode);
-      }
-
-      if (artist) {
         var artistNode = document.createTextNode(artist);
         var artistBdiNode = document.createElement('bdi');
+        this.track.appendChild(emDashNode);
         artistBdiNode.appendChild(artistNode);
         this.track.appendChild(artistBdiNode);
+      }
+      else if (artist) { // but no title
+        this.track.appendChild(document.createTextNode(artist));
       }
     } else {
       this.track.setAttribute('data-l10n-id', 'UnknownTrack');
