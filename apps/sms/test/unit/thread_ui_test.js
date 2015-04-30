@@ -6035,13 +6035,33 @@ suite('thread_ui.js >', function() {
       });
     });
 
-    suite('opens from existing message', function() {
+    suite('opens from existing message with existing contact', function() {
       var options;
+      var fakeContactOne;
+
       setup(function() {
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
+        fakeContactOne = {
+          name: ['TestName'],
+          tel: [{ value: '+1111' }]
+        };
+
+        this.sinon.stub(
+          MockContacts, 'findByAddress', function(phone, fn) {
+          if(phone === fakeContactOne.tel[0].value) {
+            fn([fakeContactOne]);
+          }
+        });
+
+        Threads.set(1, {
+          participants: ['+1111']
+        });
+
+        Threads.currentId = 1;
+        ThreadUI.updateHeaderData();
         ThreadUI.showOptions();
         options = MockOptionMenu.calls[0].items;
       });
@@ -6054,6 +6074,56 @@ suite('thread_ui.js >', function() {
       });
       test('should show option for selecting messages', function() {
         assert.equal(options[1].l10nId, 'selectMessages-label');
+      });
+      test('should show option for viewing the contact', function() {
+        assert.equal(options[2].l10nId, 'viewContact');
+      });
+      test('should not show any additional options', function() {
+        assert.equal(options.length, 4);
+      });
+    });
+
+    suite('opens from existing message with non-contact', function() {
+      var options;
+
+      setup(function() {
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+        this.sinon.stub(
+          MockContacts, 'findByAddress', function(phone, fn) {
+            fn([]);
+          }
+        );
+
+        Threads.set(1, {
+          participants: ['+2222']
+        });
+
+        Threads.currentId = 1;
+        ThreadUI.updateHeaderData();
+        ThreadUI.showOptions();
+        options = MockOptionMenu.calls[0].items;
+      });
+
+      test('should show options overlay', function() {
+        assert.equal(MockOptionMenu.calls.length, 1);
+      });
+      test('should show option for adding subject', function() {
+        assert.equal(options[0].l10nId, 'add-subject');
+      });
+      test('should show option for selecting messages', function() {
+        assert.equal(options[1].l10nId, 'selectMessages-label');
+      });
+      test('should show option for creating a new contact', function() {
+        assert.equal(options[2].l10nId, 'createNewContact');
+      });
+      test('should show option for adding to existing contact', function() {
+        assert.equal(options[3].l10nId, 'addToExistingContact');
+      });
+      test('should not show any additional options', function() {
+        assert.equal(options.length, 5);
       });
     });
   });

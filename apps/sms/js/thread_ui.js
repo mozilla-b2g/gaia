@@ -1814,13 +1814,79 @@ var ThreadUI = {
       });
     }
 
-    // Last item is the Cancel button
-    params.items.push({
-      l10nId: 'cancel',
-      incomplete: true
-    });
+    var participants = Threads.active && Threads.active.participants;
 
-    new OptionMenu(params).show();
+    if (participants && participants.length === 1) {
+      var number = this.headerText.dataset.number;
+      var email, tel;
+      if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
+        email = number;
+      } else {
+        tel = number;
+      }
+
+      Contacts.findByAddress(number, function(results) {
+        var isContact = results && results.length;
+        var props;
+
+        if (isContact) {
+          var contact = results[0];
+          props = [{ id: contact.id }];
+
+          params.items.push({
+            l10nId: 'viewContact',
+            method: function oView(param) {
+              ActivityPicker.viewContact(
+                param
+              );
+            },
+            params: props
+          });
+        } else {
+          props = [
+            tel ? {tel: tel} : {email: email}
+          ];
+
+          params.items.push({
+              l10nId: 'createNewContact',
+              method: function oCreate(param) {
+                ActivityPicker.createNewContact(
+                  param, ThreadUI.onCreateContact
+                );
+              },
+              params: props
+            },
+            {
+              l10nId: 'addToExistingContact',
+              method: function oAdd(param) {
+                ActivityPicker.addToExistingContact(
+                  param, ThreadUI.onCreateContact
+                );
+              },
+              params: props
+            }
+          );
+        }
+
+        // Last item is the Cancel button
+        params.items.push({
+          l10nId: 'cancel',
+          incomplete: true
+        });
+
+        new OptionMenu(params).show();
+      }.bind(this));
+
+    } else {
+      // Last item is the Cancel button
+      params.items.push({
+        l10nId: 'cancel',
+        incomplete: true
+      });
+
+      new OptionMenu(params).show();
+    }
+
   },
 
   startEdit: function thui_edit() {
