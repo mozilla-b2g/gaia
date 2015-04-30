@@ -1,6 +1,6 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu, Draft, Blob,
+         Draft, Blob,
          Threads,
          ThreadUI, SMIL,
          InputEvent,
@@ -9,7 +9,8 @@
          Promise,
          AssetsHelper,
          FocusEvent,
-         SubjectComposer
+         SubjectComposer,
+         MockOptionMenu
 */
 
 /*jshint strict:false */
@@ -20,13 +21,13 @@
 require('/shared/js/event_dispatcher.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_option_menu.js');
 
 require('/js/compose.js');
 require('/js/utils.js');
 require('/js/drafts.js');
 
 require('/test/unit/mock_attachment.js');
-require('/test/unit/mock_attachment_menu.js');
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_threads.js');
 require('/test/unit/mock_navigation.js');
@@ -40,7 +41,6 @@ require('/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'asyncStorage',
-  'AttachmentMenu',
   'MessageManager',
   'Threads',
   'Navigation',
@@ -51,7 +51,8 @@ var mocksHelperForCompose = new MocksHelper([
   'Attachment',
   'ThreadUI',
   'SMIL',
-  'SubjectComposer'
+  'SubjectComposer',
+  'OptionMenu'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -61,12 +62,36 @@ suite('compose_test.js', function() {
       smallImageBlob;
   var clock;
   var UPDATE_DELAY = 500;
+  var TYPE_DATA = {
+    'image': {
+      mimeType: 'image/jpeg',
+      name: 'image.jpg'
+    },
+    'video': {
+      mimeType: 'video/mp4',
+      name: 'video.mp4'
+    },
+    'audio': {
+      mimeType: 'audio/ogg',
+      name: 'audio.oga'
+    },
+    'other': {
+      mimeType: 'text/other',
+      name: 'other'
+    }
+  };
 
-  function mockAttachment(size) {
+  function mockAttachment(opts) {
+    var size = (opts && opts.size) || 12345;
+    var type = (opts && opts.type) || 'audio';
+    var data = TYPE_DATA[type];
+    var mimeType = data.mimeType;
+    var name = data.name;
+
     var attachment = new MockAttachment({
-      type: 'audio/ogg',
-      size: size || 12345
-    }, { name: 'audio.oga' });
+      type: mimeType,
+      size: size
+    }, { name: name });
     return attachment;
   }
 
@@ -139,10 +164,12 @@ suite('compose_test.js', function() {
     this.sinon.stub(SubjectComposer.prototype, 'on');
     this.sinon.stub(SubjectComposer.prototype, 'isVisible').returns(false);
     this.sinon.stub(SubjectComposer.prototype, 'getValue').returns('');
+    MockOptionMenu.mSetup();
   });
 
   teardown(function() {
     this.sinon.clock.tick(UPDATE_DELAY);
+    MockOptionMenu.mTeardown();
   });
 
   suite('Compose init without recipients', function() {
@@ -644,7 +671,7 @@ suite('compose_test.js', function() {
       });
 
       test('Changing attachments', function() {
-        Compose.append(mockAttachment(12345));
+        Compose.append(mockAttachment({ size: 12345 }));
         assert.isTrue(ThreadUI.draft.isEdited);
       });
     });
@@ -661,8 +688,7 @@ suite('compose_test.js', function() {
       });
       test('Invokes the provided "onsuccess" handler with an appropriate ' +
         'Attachment instance', function(done) {
-        var req = Compose.requestAttachment();
-        req.onsuccess = function(attachment) {
+        Compose.requestAttachment().then((attachment) => {
           assert.instanceOf(attachment, Attachment);
 
           // TODO: Move these assertions to a higher-level test suite that
@@ -670,9 +696,7 @@ suite('compose_test.js', function() {
           // See: Bug 868056
           assert.equal(attachment.name, activity.result.name);
           assert.equal(attachment.blob, activity.result.blob);
-
-          done();
-        };
+        }).then(done, done);
 
         // Simulate a successful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
@@ -684,19 +708,28 @@ suite('compose_test.js', function() {
       });
       test('Invokes the provided "failure" handler when the MozActivity fails',
         function(done) {
-        var req = Compose.requestAttachment();
-        req.onerror = function() {
-          assert.ok(true);
-          done();
-        };
+        var mockError = new Error();
+        Compose.requestAttachment().then(() => {
+          throw new Error('Success callback should not be called!');
+        }).catch((err) => {
+          assert.equal(err, mockError);
+        }).then(done, done);
 
         // Simulate an unsuccessful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
+        activity.error = mockError;
         activity.onerror();
       });
       test('Triggers a "file too large" error when the returned file ' +
         'exceeds the maxmium MMS size limit', function(done) {
-        var req = Compose.requestAttachment();
+        Compose.requestAttachment().then(() => {
+          throw new Error('Success callback should not be called!');
+        }).catch((err) => {
+          assert.instanceOf(err, Error);
+          assert.equal(err.message, 'file too large');
+          Settings.mmsSizeLimitation = origLimit;
+        }).then(done, done);
+
         var activity = MockMozActivity.instances[0];
         var origLimit = Settings.mmsSizeLimitation;
         var largeBlob;
@@ -705,13 +738,6 @@ suite('compose_test.js', function() {
         largeBlob = new Blob([
           new Array(Settings.mmsSizeLimitation + 3).join('a')
         ]);
-
-        req.onerror = function(err) {
-          assert.instanceOf(err, Error);
-          assert.equal(err.message, 'file too large');
-          Settings.mmsSizeLimitation = origLimit;
-          done();
-        };
 
         // Simulate a successful 'pick' MozActivity
         activity.result = {
@@ -738,7 +764,7 @@ suite('compose_test.js', function() {
       test('text and attachment', function() {
         Compose.append('test');
         assert.equal(Compose.size, 4);
-        Compose.append(mockAttachment(12345));
+        Compose.append(mockAttachment({ size: 12345 }));
         assert.equal(Compose.size, 12349);
         Compose.append('test');
         assert.equal(Compose.size, 12353);
@@ -1041,48 +1067,63 @@ suite('compose_test.js', function() {
     });
 
     suite('attach button', function() {
-      var request;
       setup(function() {
-        request = {};
-        this.sinon.stub(Compose, 'requestAttachment').returns(request);
+        this.sinon.stub(Compose, 'requestAttachment');
         this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
         this.sinon.stub(Compose, 'append');
         this.sinon.stub(console, 'warn');
-
-        attachButton.click();
       });
 
       test('request an attachment', function() {
+        Compose.requestAttachment.returns(Promise.resolve());
+        attachButton.click();
+
         sinon.assert.called(Compose.requestAttachment);
       });
 
-      test('onsuccess', function() {
+      test('onsuccess', function(done) {
         var attachment = mockAttachment();
-        request.onsuccess(attachment);
-        sinon.assert.calledWith(Compose.append, attachment);
+        var requestPromise = Promise.resolve(attachment);
+        Compose.requestAttachment.returns(requestPromise);
+
+        attachButton.click();
+        requestPromise.then(function() {
+          sinon.assert.calledWith(Compose.append, attachment);
+        }).then(done, done);
       });
 
       suite('onerror,', function() {
-        test('file too large', function() {
-          request.onerror(new Error('file too large'));
+        test('file too large', function(done) {
+          var requestPromise = Promise.reject(new Error('file too large'));
 
-          sinon.assert.calledWith(
-            Utils.alert, {
-              id: 'attached-files-too-large',
-              args: { n: 1, mmsSize: '295' }
-            }
-          );
+          Compose.requestAttachment.returns(requestPromise);
+          attachButton.click();
+
+          requestPromise.catch(() => {
+            sinon.assert.calledWith(
+              Utils.alert, {
+                id: 'attached-files-too-large',
+                args: { n: 1, mmsSize: '295' }
+              }
+            );
+          }).then(done, done);
         });
 
-        test('other errors are logged', function() {
+        test('other errors are logged', function(done) {
           var err = 'other error';
-          request.onerror(new Error(err));
-          sinon.assert.notCalled(Utils.alert);
-          sinon.assert.calledWith(
-            console.warn,
-            'Unhandled error: ',
-            new Error(err)
-          );
+          var requestPromise = Promise.reject(new Error(err));
+
+          Compose.requestAttachment.returns(requestPromise);
+          attachButton.click();
+
+          requestPromise.catch(() => {
+            sinon.assert.notCalled(Utils.alert);
+            sinon.assert.calledWith(
+              console.warn,
+              'Unhandled error: ',
+              new Error(err)
+            );
+          }).then(done, done);
         });
       });
     });
@@ -1149,9 +1190,9 @@ suite('compose_test.js', function() {
 
         test('disabled when oversized', function() {
           Settings.mmsSizeLimitation = 1024;
-          Compose.append(mockAttachment(512));
+          Compose.append(mockAttachment({ size: 512 }));
           Compose.append('sigh');
-          Compose.append(mockAttachment(512));
+          Compose.append(mockAttachment({ size: 512 }));
           assert.isTrue(sendButton.disabled);
         });
       });
@@ -1222,7 +1263,7 @@ suite('compose_test.js', function() {
             ThreadUI.recipients.add({ number: '999' });
             Settings.mmsSizeLimitation = 1024;
 
-            Compose.append(mockAttachment(1024));
+            Compose.append(mockAttachment({ size: 1024 }));
 
             assert.isFalse(sendButton.disabled);
           });
@@ -1299,7 +1340,7 @@ suite('compose_test.js', function() {
             test('when message input size is at the maximum', function() {
               Settings.mmsSizeLimitation = 1024;
 
-              Compose.append(mockAttachment(1024));
+              Compose.append(mockAttachment({ size: 1024 }));
 
               assert.isFalse(sendButton.disabled);
             });
@@ -1317,7 +1358,7 @@ suite('compose_test.js', function() {
               number: '999'
             });
 
-            Compose.append(mockAttachment(295 * 1024));
+            Compose.append(mockAttachment({ size: 295*1024 }));
 
             assert.isFalse(sendButton.disabled);
             Compose.append('Hola');
@@ -1419,9 +1460,9 @@ suite('compose_test.js', function() {
 
           test('oversized message', function() {
             Settings.mmsSizeLimitation = 1024;
-            Compose.append(mockAttachment(512));
+            Compose.append(mockAttachment({ size: 512 }));
             Compose.append('sigh');
-            Compose.append(mockAttachment(512));
+            Compose.append(mockAttachment({ size: 512 }));
             assert.isTrue(sendButton.disabled);
           });
         });
@@ -1454,156 +1495,175 @@ suite('compose_test.js', function() {
     });
   });
 
-  suite('Attachment pre-send menu', function() {
+  // generate checks for image, video, audio, and unknown button texts
+  ['image', 'video', 'audio', 'other'].forEach(function(type) {
+    suite(type + ' attachment pre-send menu display', function() {
+      setup(function() {
+        this.attachment = mockAttachment({ type: type });
+        Compose.clear();
+        Compose.append(this.attachment);
+        this.attachmentSize = Compose.size;
+        this.sinon.stub(window.URL, 'revokeObjectURL');
+
+        // trigger a click on attachment
+        this.attachment.mNextRender.click();
+      });
+      test('show called with correct options', function() {
+        assert.equal(MockOptionMenu.calls.length, 1);
+        var call = MockOptionMenu.calls[0];
+        assert.equal(call.header, TYPE_DATA[type].name);
+        assert.equal(call.items[0].l10nId, 'view-attachment-' + type);
+        assert.equal(call.items[1].l10nId, 'remove-attachment-' + type);
+        assert.equal(call.items[2].l10nId, 'replace-attachment-' + type);
+        assert.equal(call.items[3].l10nId, 'cancel');
+      });
+    });
+  });
+
+  suite('Attachment pre-send menu methods', function() {
+    var call;
+
     setup(function() {
       this.attachment = mockImgAttachment();
       Compose.clear();
       Compose.append(this.attachment);
       this.attachmentSize = Compose.size;
-      this.sinon.stub(AttachmentMenu, 'open');
-      this.sinon.stub(AttachmentMenu, 'close');
       this.sinon.stub(window.URL, 'revokeObjectURL');
 
       // trigger a click on attachment
       this.attachment.mNextRender.click();
+      call = MockOptionMenu.calls[0];
     });
 
-    test('click opens menu', function() {
-      assert.isTrue(AttachmentMenu.open.called);
+    suite('view', function() {
+      setup(function() {
+        this.sinon.stub(this.attachment, 'view');
+        call.items[0].method();
+      });
+      test('clicking on view calls attachment.view', function() {
+        sinon.assert.called(this.attachment.view);
+      });
     });
-    test('open called with correct attachment', function() {
-      assert.ok(AttachmentMenu.open.calledWith(this.attachment));
+
+    suite('remove', function() {
+      setup(function() {
+        call.items[1].method();
+      });
+      test('removes the original attachment', function() {
+        sinon.assert.calledWith(
+          window.URL.revokeObjectURL,
+          this.attachment.mNextRender.dataset.thumbnail
+        );
+        assert.isFalse(document.body.contains(this.attachment.mNextRender));
+      });
+      test('recalculates size', function() {
+        assert.equal(Compose.size, 0, 'size should be 0 after remove');
+        assert.notEqual(Compose.size, this.attachmentSize,
+          'size is changed after removing attachment');
+      });
     });
-    suite('clicking on buttons', function() {
-      suite('view', function() {
-        setup(function() {
-          this.sinon.stub(this.attachment, 'view');
 
-          // trigger click on view
-          document.getElementById('attachment-options-view').click();
-        });
-        test('clicking on view calls attachment.view', function() {
-          assert.isTrue(this.attachment.view.called);
-        });
+    suite('replace', function() {
+      var requestPromise;
+
+      setup(function() {
+        this.replacement = mockImgAttachment(true);
+        this.sinon.stub(Compose, 'requestAttachment');
+        this.sinon.stub(Utils, 'getResizedImgBlob');
       });
 
-      suite('remove', function() {
+      suite('onsuccess', function() {
         setup(function() {
-          // trigger click on remove
-          document.getElementById('attachment-options-remove').click();
-        });
-        test('removes the original attachment', function() {
-          sinon.assert.calledWith(
-            window.URL.revokeObjectURL,
-            this.attachment.mNextRender.dataset.thumbnail
-          );
-          assert.isFalse(document.body.contains(this.attachment.mNextRender));
-        });
-        test('closes the menu', function() {
-          assert.isTrue(AttachmentMenu.close.called);
-        });
-        test('recalculates size', function() {
-          assert.equal(Compose.size, 0, 'size should be 0 after remove');
-          assert.notEqual(Compose.size, this.attachmentSize,
-            'size is changed after removing attachment');
-        });
-      });
-
-      suite('cancel', function() {
-        setup(function() {
-          // trigger click on close
-          document.getElementById('attachment-options-cancel').click();
-        });
-        test('closes the menu', function() {
-          assert.isTrue(AttachmentMenu.close.called);
-        });
-      });
-
-      suite('replace', function() {
-        var request;
-
-        setup(function() {
-          this.replacement = mockImgAttachment(true);
-          request = {};
-          this.sinon.stub(Compose, 'requestAttachment').returns(request);
-          this.sinon.stub(Utils, 'getResizedImgBlob');
-
+          requestPromise = Promise.resolve(this.replacement);
+          Compose.requestAttachment.returns(requestPromise);
           // trigger click on replace
-          document.getElementById('attachment-options-replace').click();
+          call.items[2].method();
         });
 
-        suite('onsuccess', function() {
-          setup(function() {
-            request.onsuccess(this.replacement);
-          });
-
-          test('clicking on replace requests an attachment', function() {
-            assert.isTrue(Compose.requestAttachment.called);
-          });
-          test('removes the original attachment', function() {
+        test('clicking on replace requests an attachment', function() {
+           sinon.assert.called(Compose.requestAttachment);
+        });
+        test('removes the original attachment', function(done) {
+          requestPromise.then(() => {
             sinon.assert.calledWith(
               window.URL.revokeObjectURL,
               this.attachment.mNextRender.dataset.thumbnail
             );
             assert.isFalse(document.body.contains(this.attachment.mNextRender));
-          });
-          test('inserts the new attachment', function() {
-            assert.ok(this.replacement.mNextRender.parentNode);
-          });
-          test('closes the menu', function() {
-            assert.isTrue(AttachmentMenu.close.called);
-          });
-          test('recalculates size', function() {
+          }).then(done, done);
+        });
+        test('inserts the new attachment', function(done) {
+          requestPromise.then(() => {
+            assert.isTrue(document.body.contains(this.replacement.mNextRender));
+          }).then(done, done);
+        });
+        test('recalculates size', function(done) {
+          requestPromise.then(() => {
             assert.notEqual(Compose.size, this.attachmentSize,
               'Size was recalculated to be the new size');
+          }).then(done, done);
+        });
+        test('resizes image', function(done) {
+          requestPromise.then(() => {
+            sinon.assert.called(Utils.getResizedImgBlob);
+          }).then(done, done);
+        });
+        suite('after resize', function() {
+          var replacementSize;
+          setup(function() {
+            replacementSize = Compose.size;
+            Utils.getResizedImgBlob.yield(smallImageBlob);
           });
-          test('resizes image', function() {
-            assert.ok(Utils.getResizedImgBlob.called);
-          });
-          suite('after resize', function() {
-            var replacementSize;
-            setup(function() {
-              replacementSize = Compose.size;
-              Utils.getResizedImgBlob.yield(smallImageBlob);
-            });
 
-            test('recalculates size again', function() {
-              assert.notEqual(Compose.size, replacementSize);
-            });
+          test('recalculates size again', function() {
+            assert.notEqual(Compose.size, replacementSize);
           });
         });
+      });
 
-        suite('onerror,', function() {
-          setup(function() {
-            this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
-            this.sinon.stub(console, 'warn');
-          });
+      suite('onerror,', function() {
+        setup(function() {
+          this.sinon.stub(Utils, 'alert').returns(Promise.resolve());
+          this.sinon.stub(console, 'warn');
+        });
 
-          test('file too large', function() {
-            request.onerror(new Error('file too large'));
+        test('file too large', function(done) {
+          var requestPromise = Promise.reject(new Error('file too large'));
+
+          Compose.requestAttachment.returns(requestPromise);
+          // trigger click on replace
+          call.items[2].method();
+
+          requestPromise.catch(() => {
+            sinon.assert.notCalled(window.URL.revokeObjectURL);
+            assert.isTrue(document.body.contains(this.attachment.mNextRender));
             sinon.assert.calledWith(
               Utils.alert, {
                 id: 'attached-files-too-large',
                 args: { n: 1, mmsSize: '295' }
               }
             );
-          });
+          }).then(done, done);
+        });
 
-          test('does not remove original attachment', function() {
+        test('other errors are logged', function(done) {
+          var err = new Error('other error');
+          var requestPromise = Promise.reject(err);
+
+          Compose.requestAttachment.returns(requestPromise);
+          // trigger click on replace
+          call.items[2].method();
+
+          requestPromise.catch(() => {
             sinon.assert.notCalled(window.URL.revokeObjectURL);
             assert.isTrue(document.body.contains(this.attachment.mNextRender));
-          });
-
-          test('other errors are logged', function() {
-            var err = new Error('other error');
-            request.onerror(err);
             sinon.assert.notCalled(Utils.alert);
             sinon.assert.calledWithExactly(
               console.warn,
               'Unhandled error: ',
               sinon.match.same(err)
             );
-          });
+          }).then(done, done);
         });
       });
     });
@@ -1611,8 +1671,6 @@ suite('compose_test.js', function() {
 
   suite('Image attachment pre-send menu', function() {
     setup(function() {
-      this.sinon.stub(AttachmentMenu, 'open');
-      this.sinon.stub(AttachmentMenu, 'close');
       this.sinon.stub(Utils, 'getResizedImgBlob');
     });
     test('click opens menu while resizing and resize complete', function(done) {
@@ -1623,15 +1681,16 @@ suite('compose_test.js', function() {
           done(function() {
             Compose.off('input', onInput);
             imageAttachment.mNextRender.click();
-            sinon.assert.called(AttachmentMenu.open, 'Menu should popup');
+            assert.equal(MockOptionMenu.calls.length, 1, 'Menu should popup');
           });
         }
       }
       Compose.on('input', onInput);
       Compose.append(imageAttachment);
       imageAttachment.mNextRender.click();
-      sinon.assert.notCalled(
-        AttachmentMenu.open,
+      assert.equal(
+        MockOptionMenu.calls.length,
+        0,
         'Menu could not be opened while ressizing'
       );
 

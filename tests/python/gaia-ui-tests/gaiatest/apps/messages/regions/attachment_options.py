@@ -9,22 +9,25 @@ from gaiatest.apps.base import Base
 
 class AttachmentOptions(Base):
 
-    _attachment_options_locator = (By.CSS_SELECTOR, '#attachment-options[data-type="action"]')
-    _view_button_locator = (By.ID, 'attachment-options-view')
-    _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
-    _cancel_button_locator = (By.ID, 'attachment-options-cancel')
+    _attachment_options_locator = (By.CSS_SELECTOR, 'form.visible[role="dialog"][data-subtype="menu"]')
+    _view_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="view-attachment-image"]')
+    _cancel_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="cancel"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        element = self.marionette.find_element(*self._attachment_options_locator)
-        Wait(self.marionette).until(lambda m: element.location['y'] == 0)
+        root_element = self.root_element
+        Wait(self.marionette).until(lambda m: root_element.location['y'] == 0)
 
     def tap_cancel(self):
-        element = self.marionette.find_element(*self._attachment_options_locator)
-        self.marionette.find_element(*self._cancel_button_locator).tap()
-        Wait(self.marionette).until(expected.element_not_displayed(element))
+        root_element = self.root_element
+        root_element.find_element(*self._cancel_button_locator).tap()
+        Wait(self.marionette).until(expected.element_not_displayed(root_element))
 
     def tap_view_button(self):
-        self.marionette.find_element(*self._view_button_locator).tap()
+        self.root_element.find_element(*self._view_button_locator).tap()
         from gaiatest.apps.gallery.regions.view_image import ViewImage
         return ViewImage(self.marionette)
+
+    @property
+    def root_element(self):
+         return self.marionette.find_element(*self._attachment_options_locator)

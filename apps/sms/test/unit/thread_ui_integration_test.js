@@ -18,7 +18,6 @@ requireApp('sms/test/unit/mock_activity_handler.js');
 require('/test/unit/mock_navigation.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/settings.js');
-requireApp('sms/js/attachment_menu.js');
 require('/js/subject_composer.js');
 require('/js/compose.js');
 requireApp('sms/js/contacts.js');

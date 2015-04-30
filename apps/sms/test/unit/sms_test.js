@@ -21,7 +21,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 require('/test/unit/mock_contact.js');
 require('/test/unit/mock_time_headers.js');
-require('/test/unit/mock_attachment_menu.js');
 require('/test/unit/mock_information.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_inter_instance_event_dispatcher.js');
@@ -51,7 +50,6 @@ require('/js/task_runner.js');
 var MocksHelperForSmsUnitTest = new MocksHelper([
   'asyncStorage',
   'Settings',
-  'AttachmentMenu',
   'TimeHeaders',
   'Information',
   'ContactPhotoHelper',

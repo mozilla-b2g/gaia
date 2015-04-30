@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
+/*global Compose, Recipients, Utils, Template, Settings,
          SMIL, ErrorDialog, MessageManager, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
@@ -95,8 +95,6 @@ var ThreadUI = {
       'header',
       'group-header'
     ];
-
-    AttachmentMenu.init('attachment-options-menu');
 
     // Fields with 'messages' label
     [

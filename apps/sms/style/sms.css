@@ -8,23 +8,6 @@ html, body {
   overflow-y: hidden !important;
 }
 
-
-/* Style for the attachment options menu, mimics style for shared
- * options menu element.
- * TODO: We should remove this once we used the shared options menu for the
- *       attachment menu.
- */
-#attachment-options {
-  visibility: hidden;
-  transform: translateY(100%);
-  transition: transform ease-in-out .3s, visibility .3s;
-}
-
-#attachment-options.visible {
-  visibility: visible;
-  transform: translateY(0);
-}
-
 /*
   Override BB. Some CSS tweaks for having a better confirm readability
 */

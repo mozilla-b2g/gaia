@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
+/*global Settings, Utils, Attachment, MozActivity, SMIL,
         MessageManager,
         SubjectComposer,
         Navigation,
@@ -9,11 +9,14 @@
         ThreadUI,
         Threads,
         EventDispatcher,
-        DOMError
+        DOMError,
+        OptionMenu
 */
 /*exported Compose */
 
 'use strict';
+
+const TYPES = ['image', 'audio', 'video'];
 
 /**
  * Handle UI specifics of message composition. Namely,
@@ -326,7 +329,6 @@ var Compose = (function() {
       dom.message = document.getElementById('messages-input');
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
-      dom.optionsMenu = document.getElementById('attachment-options-menu');
       dom.counter = dom.form.querySelector('.js-message-counter');
       dom.messagesAttach = dom.form.querySelector('.messages-attach-container');
       dom.composerButton = dom.form.querySelector('.composer-button-container');
@@ -348,9 +350,6 @@ var Compose = (function() {
 
       dom.message.addEventListener('click',
         this.onAttachmentClick.bind(this));
-
-      dom.optionsMenu.addEventListener('click',
-        this.onAttachmentMenuClick.bind(this));
 
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
@@ -735,52 +734,58 @@ var Compose = (function() {
     },
 
     onAttachClick: function thui_onAttachClick(event) {
-      var request = this.requestAttachment();
-      request.onsuccess = this.append.bind(this);
-      request.onerror = this._onAttachmentRequestError;
+      this.requestAttachment().then(
+        this.append.bind(this),
+        this._onAttachmentRequestError
+      );
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
-      if (event.target.classList.contains(attachmentClass) && !state.resizing) {
-        this.currentAttachmentDOM = event.target;
-        this.currentAttachment = attachments.get(event.target);
-        AttachmentMenu.open(this.currentAttachment);
+      if (!event.target.classList.contains(attachmentClass) || state.resizing) {
+        return;
       }
-    },
 
-    onAttachmentMenuClick: function thui_onAttachmentMenuClick(event) {
-      event.preventDefault();
-      switch (event.target.id) {
-        case 'attachment-options-view':
-          this.currentAttachment.view();
-          break;
-        case 'attachment-options-remove':
-          dom.message.removeChild(this.currentAttachmentDOM);
-          disposeAttachmentNode(this.currentAttachmentDOM);
+      var currentAttachmentDOM = event.target;
+      var currentAttachment = attachments.get(event.target);
+      var name = currentAttachment.name;
+      var blob = currentAttachment.blob;
+      var options = {
+        header: name.substr(name.lastIndexOf('/') + 1)
+      };
 
-          state.size = null;
-          onContentChanged();
-          AttachmentMenu.close();
-          break;
-        case 'attachment-options-replace':
-          var request = this.requestAttachment();
-          request.onsuccess = (function replaceAttachmentWith(newAttachment) {
-            var fragment = insert(newAttachment);
+      // Localize the name of the file type
+      var mimeFirstPart = blob.type.substr(0, blob.type.indexOf('/'));
+      var fileType = (TYPES.indexOf(mimeFirstPart) > -1) ?
+        mimeFirstPart: 'other';
 
-            dom.message.insertBefore(fragment, this.currentAttachmentDOM);
+      var onView = () => { currentAttachment.view(); };
 
-            dom.message.removeChild(this.currentAttachmentDOM);
-            disposeAttachmentNode(this.currentAttachmentDOM);
-
-            onContentChanged(newAttachment);
-            AttachmentMenu.close();
-          }).bind(this);
-          request.onerror = this._onAttachmentRequestError;
-          break;
-        case 'attachment-options-cancel':
-          AttachmentMenu.close();
-          break;
+      function onRemove() {
+        dom.message.removeChild(currentAttachmentDOM);
+        disposeAttachmentNode(currentAttachmentDOM);
+        state.size = null;
+        onContentChanged();
       }
+
+      var onReplace = () => {
+        this.requestAttachment().then((newAttachment) => {
+          var fragment = insert(newAttachment);
+
+          dom.message.insertBefore(fragment, currentAttachmentDOM);
+          dom.message.removeChild(currentAttachmentDOM);
+          disposeAttachmentNode(currentAttachmentDOM);
+          onContentChanged(newAttachment);
+        }, this._onAttachmentRequestError);
+      };
+
+      options.items = [
+        { l10nId: `view-attachment-${fileType}`, method: onView },
+        { l10nId: `remove-attachment-${fileType}`, method: onRemove },
+        { l10nId: `replace-attachment-${fileType}`, method: onReplace },
+        { l10nId: 'cancel' }
+      ];
+
+      new OptionMenu(options).show();
     },
 
     onTypeChange: function c_onTypeChange() {
@@ -813,18 +818,18 @@ var Compose = (function() {
 
     /** Initiates a 'pick' MozActivity allowing the user to create an
      * attachment
-     * @return {Object} requestProxy A proxy for the underlying DOMRequest API.
-     *                               An "onsuccess" and/or "onerror" callback
-     *                               method may optionally be defined on this
-     *                               object.
+     * @return {Promise}  A Promise for the underlying DOMRequest API.
+     *                    Resolve will be triggered when activity returns
+     *                    successfully with result blob size smaller than limit.
+     *                    Reject will be triggered when activity returns error
+     *                    or blob size exceeds limit.
      */
     requestAttachment: function() {
-      // Mimick the DOMRequest API
-      var requestProxy = {};
       var activityData = {
         type: ['image/*', 'audio/*', 'video/*', 'text/vcard']
       };
       var activity;
+      var defer = Utils.Promise.defer();
 
       if (Settings.mmsSizeLimitation) {
         activityData.maxFileSizeBytes = Settings.mmsSizeLimitation;
@@ -841,28 +846,22 @@ var Compose = (function() {
         if (Settings.mmsSizeLimitation &&
           result.blob.size > Settings.mmsSizeLimitation &&
           Utils.typeFromMimeType(result.blob.type) !== 'img') {
-          if (typeof requestProxy.onerror === 'function') {
-            requestProxy.onerror(new Error('file too large'));
-          }
-          return;
+
+          defer.reject(new Error('file too large'));
         }
 
-        if (typeof requestProxy.onsuccess === 'function') {
-          requestProxy.onsuccess(new Attachment(result.blob, {
-            name: result.name,
-            isDraft: true
-          }));
-        }
+        defer.resolve(new Attachment(result.blob, {
+          name: result.name,
+          isDraft: true
+        }));
       };
 
       // Re-throw Gecko-level errors
-      activity.onerror = function() {
-        if (typeof requestProxy.onerror === 'function') {
-          requestProxy.onerror.call(requestProxy, activity.error);
-        }
+      activity.onerror = () => {
+        defer.reject(activity.error);
       };
 
-      return requestProxy;
+      return defer.promise;
     }
 
   };
