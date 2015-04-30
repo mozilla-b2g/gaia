@@ -40,6 +40,11 @@ marionette('Text selection >', function() {
         var caretPositionOfSourceInput =
           fakeTextselectionApp.FunctionalitySourceInput
           .selectionHelper.selectionLocationHelper();
+
+        // add a tap to avoid two successive calls of longpress,
+        // which has a possibility to change the selection range.
+        // See Bug 1159601
+        fakeTextselectionApp.FunctionalityTargetInput.tap();
         fakeTextselectionApp.copy('FunctionalitySourceInput');
 
         fakeTextselectionApp.FunctionalitySourceInput.tap();
@@ -67,13 +72,12 @@ marionette('Text selection >', function() {
       });
 
       test('copy and paste', function() {
-        fakeTextselectionApp.longPress('FunctionalitySourceInput');
         fakeTextselectionApp.copyTo('FunctionalitySourceInput',
           'FunctionalityTargetInput');
 
         assert.equal(
           fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
-          'test');
+          'testvalue');
       });
 
       test('cut and paste', function() {
@@ -84,7 +88,7 @@ marionette('Text selection >', function() {
           '');
         assert.equal(
           fakeTextselectionApp.FunctionalityTargetInput.getAttribute('value'),
-          'test');
+          'testvalue');
       });
 
       test('select all and cut', function() {
