@@ -1,5 +1,18 @@
 'use strict';
-
+/* global
+  MockIccHelper,
+  MockImportNavigationHTML,
+  MockL10n,
+  MockNavigatormozApps,
+  MockNavigatorMozMobileConnections,
+  MockNavigatorSettings,
+  MocksHelper,
+  Navigation,
+  numSteps,
+  SimManager,
+  steps,
+  UIManager
+*/
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');

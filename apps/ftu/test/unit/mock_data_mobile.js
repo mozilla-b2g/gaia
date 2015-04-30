@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockDataMobile */
 
 var MockDataMobile = {
   init: function() {},
