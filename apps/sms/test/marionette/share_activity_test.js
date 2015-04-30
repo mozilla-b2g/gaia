@@ -39,7 +39,7 @@ marionette('Messages as share target', function() {
         messagesApp.switchTo();
       });
 
-      test('Should close activity if in Composer panel', function() {
+      test.skip('Should close activity if in Composer panel', function() {
         assert.ok(
           messagesApp.Composer.header.getAttribute('action') === 'close',
           'Close activity button should be visible'
@@ -51,7 +51,7 @@ marionette('Messages as share target', function() {
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should close activity if in Thread panel', function() {
+      test.skip('Should close activity if in Thread panel', function() {
         // Send message to be forwarded to Thread panel afterwards
         messagesApp.addRecipient('+1');
         messagesApp.send();
@@ -66,7 +66,7 @@ marionette('Messages as share target', function() {
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should return to Thread panel if in Report panel', function() {
+      test.skip('Should return to Thread panel if in Report panel', function() {
         // Send message to be forwarded to Thread panel afterwards
         messagesApp.addRecipient('+1');
         messagesApp.send();
@@ -95,7 +95,7 @@ marionette('Messages as share target', function() {
         messagesApp.waitForAppToDisappear();
       });
 
-      test('Should return to Thread panel if in Participants panel',
+      test.skip('Should return to Thread panel if in Participants panel',
       function() {
         // Send group MMS message
         messagesApp.addRecipient('+1');
