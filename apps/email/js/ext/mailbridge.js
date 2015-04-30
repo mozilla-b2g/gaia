@@ -967,12 +967,16 @@ MailBridge.prototype = {
 
         if (msg.mode === 'reply') {
           var rTo, rCc, rBcc;
-          // clobber the sender's e-mail with the reply-to
-          var effectiveAuthor = {
-            name: msg.refAuthor.name,
-            address: (header.replyTo && header.replyTo.address) ||
-                     msg.refAuthor.address,
-          };
+          // Clobber the sender's e-mail with the reply-to address if provided.
+          // The Reply-To header can contain multiple addresses, but we only
+          // reply to the first. In the event of a reply-to address, we clobber
+          // both the name and address with the provided value; notably, if the
+          // reply-to header doesn't contain a display name, we leave the
+          // display name blank as intended. A quick survey of some mailings
+          // indicates that most Reply-To headers include a display name
+          // identical to the From header anyway.
+          var replyToAddress = header.replyTo && header.replyTo[0];
+          var effectiveAuthor = replyToAddress || msg.refAuthor;
           switch (msg.submode) {
             case 'list':
               // XXX we can't do this without headers we're not retrieving,

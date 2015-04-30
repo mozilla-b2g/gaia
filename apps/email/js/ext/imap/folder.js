@@ -634,7 +634,7 @@ ImapFolderConn.prototype = {
           if (missingRange.startTS <= date - fuzz &&
               missingRange.endTS >= date + fuzz) {
             logic(scope, 'unambiguously-deleted-uid',
-                  { uid: uid, missingRange: missingRange });
+                  { uid: uid, date: date, fuzz: fuzz, missingRange: missingRange });
             storage.deleteMessageHeaderAndBodyUsingHeader(localHeader);
             numDeleted++;
           }
