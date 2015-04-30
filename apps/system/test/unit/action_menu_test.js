@@ -1,13 +1,18 @@
 'use strict';
-/* global ActionMenu, Event, MockL10n, MockService */
+/* global ActionMenu, Event, MockL10n, MocksHelper */
 
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('system/js/action_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 
+var mocksForActionMenu = new MocksHelper([
+  'Service'
+]).init();
+
 suite('ActionMenu', function() {
-  var activitiesMockup, realL10n, genericActionsMockup, rafStub, realService;
+  mocksForActionMenu.attachTestHelpers();
+  var activitiesMockup, realL10n, genericActionsMockup, rafStub;
   var iconUrl = 'images/icon.png', title = 'Title';
   var screenElement;
 
@@ -56,9 +61,6 @@ suite('ActionMenu', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    realService = window.Service;
-    window.Service = MockService;
-
     rafStub = sinon.stub(window, 'requestAnimationFrame',
                          function(callback) { callback(); });
 
@@ -68,7 +70,6 @@ suite('ActionMenu', function() {
   suiteTeardown(function() {
     rafStub.restore();
     navigator.mozL10n = realL10n;
-    window.Service = realService;
     document.body.innerHTML = '';
   });
 

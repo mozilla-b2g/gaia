@@ -322,7 +322,7 @@
 
   AppChrome.prototype.titleClicked = function ac_titleClicked() {
     var contextMenu = this.app.contextmenu && this.app.contextmenu.isShown();
-    var locked = Service && Service.locked;
+    var locked = Service && Service.query('locked');
 
     if (locked || contextMenu) {
       return;
@@ -362,9 +362,11 @@
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.useCombinedChrome()) {
-      LazyLoader.load('shared/js/bookmarks_database.js', function() {
+      LazyLoader.load('shared/js/bookmarks_database.js').then(() => {
         this.updateAddToHomeButton();
-      }.bind(this));
+      }).catch((err) => {
+        console.error(err);
+      });
       LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
 
       this.stopButton.addEventListener('click', this);
@@ -777,7 +779,7 @@
     }
     var url = this._currentURL;
 
-    LazyLoader.load('shared/js/icons_helper.js', (function() {
+    LazyLoader.load('shared/js/icons_helper.js').then(() => {
       IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
         var activity = new MozActivity({
           name: 'save-bookmark',
@@ -796,7 +798,9 @@
           }.bind(this);
         }
       });
-    }).bind(this));
+    }).catch((err) => {
+      console.error(err);
+    });
   };
 
   AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {

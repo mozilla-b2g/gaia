@@ -16,7 +16,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('hosted app /w chrome', function() {

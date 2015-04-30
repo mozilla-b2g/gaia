@@ -1,8 +1,6 @@
 /* jshint moz:true */
 /* global ConfirmDialogHelper */
-/* global FtuLauncher */
 /* global KeyboardHelper */
-/* global inputWindowManager */
 /* global LazyLoader */
 /* global ManifestHelper */
 /* global ModalDialog */
@@ -28,7 +26,11 @@ var AppInstallManager = {
   },
 
   init: function ai_init() {
-    this.systemBanner = new SystemBanner();
+    LazyLoader.load(['js/system_banner.js']).then(() => {
+      this.systemBanner = new SystemBanner();
+    }).catch((err) => {
+      console.error(err);
+    });
     this.dialog = document.getElementById('app-install-dialog');
     this.msg = document.getElementById('app-install-message');
     this.size = document.getElementById('app-install-size');
@@ -292,7 +294,8 @@ var AppInstallManager = {
 
     // We must stop 3rd-party keyboard app from being installed
     // if the feature is not enabled.
-    if (role === 'input' && !inputWindowManager.isOutOfProcessEnabled) {
+    if (role === 'input' &&
+        !Service.query('isOutOfProcessEnabled')) {
       navigator.mozApps.mgmt.uninstall(app);
 
       return;
@@ -311,7 +314,7 @@ var AppInstallManager = {
   },
 
   showInstallSuccess: function ai_showInstallSuccess(app) {
-    if (FtuLauncher.isFtuRunning()) {
+    if (Service.query('isFtuRunning')) {
       return;
     }
     var manifest = app.manifest || app.updateManifest;

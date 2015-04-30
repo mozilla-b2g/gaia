@@ -1,5 +1,5 @@
 'use strict';
-/* global MocksHelper, MockSettingsListener, UsbStorage */
+/* global MocksHelper, MockSettingsListener, UsbStorage, MockService */
 
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -44,7 +44,7 @@ suite('system/USB Storage', function() {
 
     test('Leaves UMS disabled when locked', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = true;
+      MockService.mockQueryWith('locked', true);
       subject = new UsbStorage();
       subject._mode = subject.automounterDisable;
       subject._protocol = '0'; // UMS
@@ -55,7 +55,7 @@ suite('system/USB Storage', function() {
 
     test('Enables UMS when unlocked (and previously disabled)', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       subject = new UsbStorage();
       subject._mode = subject.automounterDisable;
       subject._protocol = '0'; // UMS
@@ -67,7 +67,7 @@ suite('system/USB Storage', function() {
     test('Enables UMS when unlocked (and previously disableWhenUnplugged)',
          function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       subject = new UsbStorage();
       subject._mode = subject.automounterDisableWhenUnplugged;
       subject._protocol = '0'; // UMS
@@ -78,7 +78,7 @@ suite('system/USB Storage', function() {
 
     test('If active, set UMS disableWhenUnplugged when locked', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = true;
+      MockService.mockQueryWith('locked', true);
       subject = new UsbStorage();
       subject._mode = subject.automounterUmsEnable;
       subject._protocol = '0'; // UMS
@@ -91,7 +91,7 @@ suite('system/USB Storage', function() {
     test('If active, set UMS disableWhenUnplugged when user disables',
          function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       subject = new UsbStorage();
       subject._mode = subject.automounterUmsEnable;
       subject._protocol = '0'; // UMS
@@ -103,7 +103,7 @@ suite('system/USB Storage', function() {
 
     test('Leaves MTP disabled when locked', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = true;
+      MockService.mockQueryWith('locked', true);
       subject = new UsbStorage();
       subject._mode = subject.automounterDisable;
       subject._protocol = '1'; // MTP
@@ -114,7 +114,7 @@ suite('system/USB Storage', function() {
 
     test('Enables MTP when unlocked (and previously disabled)', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       subject = new UsbStorage();
       subject._mode = subject.automounterDisable;
       subject._protocol = '1'; // MTP
@@ -126,7 +126,7 @@ suite('system/USB Storage', function() {
     test('Enables MTP when unlocked (and previously disableWhenUnplugged)',
          function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       subject = new UsbStorage();
       subject._mode = subject.automounterDisableWhenUnplugged;
       subject._protocol = '1'; // MTP
@@ -137,7 +137,7 @@ suite('system/USB Storage', function() {
 
     test('If active, set MTP disableWhenUnplugged when locked', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = true;
+      MockService.mockQueryWith('locked', true);
       subject = new UsbStorage();
       subject._mode = subject.automounterMtpEnable;
       subject._protocol = '1'; // MTP
@@ -149,7 +149,7 @@ suite('system/USB Storage', function() {
 
     test('If active, set MTP disabled when user disables', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       subject = new UsbStorage();
       subject._mode = subject.automounterMtpEnable;
       subject._protocol = '1'; // MTP
@@ -162,7 +162,7 @@ suite('system/USB Storage', function() {
   suite('handleEvent', function() {
     test('lock calls _setMode', function() {
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = true;
+      MockService.mockQueryWith('locked', true);
       subject = new UsbStorage();
       subject._mode = subject.automounterUmsEnable;
       subject._protocol = '0'; // UMS
@@ -177,7 +177,7 @@ suite('system/USB Storage', function() {
     test('unlock calls _setMode', function() {
       // Not a real value, but tests that it passes through
       var setModeStub = this.sinon.stub(UsbStorage.prototype, '_setMode');
-      window.Service.locked = false;
+      MockService.mockQueryWith('locked', false);
       subject = new UsbStorage();
       subject._mode = subject.automounterDisableWhenUnplugged;
       subject._protocol = '0'; // UMS

@@ -30,7 +30,7 @@ var Wifi = {
     return this._enabled;
   },
 
-  init: function wf_init() {
+  start: function() {
     if (!window.navigator.mozSettings)
       return;
 
@@ -40,6 +40,7 @@ var Wifi = {
 
     this.wifiManager = window.navigator.mozWifiManager;
 
+    LazyLoader.load(['js/captive_portal.js']);
     Service.request('stepReady', '#wifi').then(function() {
       return LazyLoader.load(['js/wifi_icon.js']);
     }.bind(this)).then(function() {
@@ -202,7 +203,7 @@ var Wifi = {
     var lock = SettingsListener.getSettingsLock();
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
-    if (!ScreenManager.screenEnabled && !battery.charging) {
+    if (!Service.query('screenEnabled') && !battery.charging) {
       if (!this.wifiEnabled && this._wakeLockManager.isHeld) {
         lock.set({ 'wifi.enabled': true });
         window.addEventListener('wifi-enabled', function() {
@@ -322,7 +323,7 @@ var Wifi = {
   },
 
   // Register for handling system message,
-  // this cannot be done during |init()| because of bug 797803
+  // this cannot be done during |start()| because of bug 797803
   setSystemMessageHandler: function wifi_setSystemMessageHandler() {
     if (this._systemMessageHandlerRegistered)
       return;
@@ -337,5 +338,3 @@ var Wifi = {
     });
   }
 };
-
-Wifi.init();

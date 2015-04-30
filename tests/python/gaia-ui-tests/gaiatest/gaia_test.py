@@ -462,12 +462,12 @@ class GaiaData(object):
         self.marionette.execute_script('new Notification("%s", %s);' % (title, json.dumps(options)))
 
     def clear_notifications(self):
-        self.marionette.execute_script('window.wrappedJSObject.NotificationScreen.clearAll();')
+        self.marionette.execute_script("window.wrappedJSObject.Service.request('NotificationScreen:clearAll');")
 
     @property
     def current_audio_channel(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script("return window.wrappedJSObject.soundManager.currentChannel;")
+        return self.marionette.execute_script("return window.wrappedJSObject.Service.query('currentChannel');")
 
 
 class Accessibility(object):
@@ -617,10 +617,6 @@ class GaiaDevice(object):
         self._set_storage_path()
 
     def wait_for_b2g_ready(self, timeout=120):
-        # Wait for the homescreen to finish loading
-        Wait(self.marionette, timeout).until(expected.element_present(
-            By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
-
         # Wait for logo to be hidden
         self.marionette.set_search_timeout(0)
         try:
@@ -673,14 +669,14 @@ class GaiaDevice(object):
     def turn_screen_off(self):
         apps = GaiaApps(self.marionette)
         self.marionette.switch_to_frame()
-        ret = self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+        ret = self.marionette.execute_script("window.wrappedJSObject.Service.request('turnScreenOff', true)")
         apps.switch_to_displayed_app()
         return ret
 
     def turn_screen_on(self):
         apps = GaiaApps(self.marionette)
         self.marionette.switch_to_frame()
-        ret = self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
+        ret = self.marionette.execute_script("window.wrappedJSObject.Service.request('turnScreenOn', true)")
         apps.switch_to_displayed_app()
         return ret
 
@@ -688,7 +684,7 @@ class GaiaDevice(object):
     def is_screen_enabled(self):
         apps = GaiaApps(self.marionette)
         self.marionette.switch_to_frame()
-        ret = self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
+        ret = self.marionette.execute_script('return window.wrappedJSObject.Service.query("screenEnabled")')
         apps.switch_to_displayed_app()
         return ret
 
@@ -729,7 +725,7 @@ class GaiaDevice(object):
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.Service.locked')
+        return self.marionette.execute_script("return window.wrappedJSObject.Service.query('locked')")
 
     def lock(self):
         GaiaData(self.marionette).set_setting('lockscreen.enabled', True)

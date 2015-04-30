@@ -1,5 +1,5 @@
 'use strict';
-/* global BatteryOverlay */
+/* global BaseModule */
 /* global MocksHelper */
 /* global MockL10n */
 /* global MockNavigatorBattery */
@@ -14,6 +14,7 @@ requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/js/service.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/battery_icon.js');
@@ -55,7 +56,7 @@ suite('battery manager >', function() {
   });
 
   setup(function() {
-    subject = window.batteryOverlay = new BatteryOverlay();
+    subject = BaseModule.instantiate('BatteryOverlay');
     realBattery = subject._battery;
     subject._battery = MockNavigatorBattery;
     // must be big enough, otherwise the BatteryOverlay timeout occurs
@@ -85,10 +86,10 @@ suite('battery manager >', function() {
     notifNode = document.getElementById('battery');
 
     MockNavigatorBattery.level = 1;
-    subject.start();
   });
 
   teardown(function() {
+    subject.stop();
     screenNode.parentNode.removeChild(screenNode);
   });
 
@@ -148,6 +149,7 @@ suite('battery manager >', function() {
     suite('battery goes empty >', function() {
       setup(function() {
         sendLevelChange(0.05);
+        subject.start();
       });
 
       test('display notification', function() {
@@ -209,6 +211,7 @@ suite('battery manager >', function() {
 
     suite('screen goes off > battery goes empty >', function() {
       setup(function() {
+        subject.start();
         sendScreenChange(false);
         sendLevelChange(0.05);
       });

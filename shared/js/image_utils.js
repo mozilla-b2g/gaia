@@ -45,6 +45,7 @@
 
   ImageUtils.getSizeAndType = function getSizeAndType(imageBlob) {
     if (!(imageBlob instanceof Blob)) {
+      console.log('not blob');
       return Promise.reject(new TypeError('argument is not a Blob'));
     }
 
