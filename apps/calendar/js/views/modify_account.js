@@ -7,6 +7,8 @@ var OAuthWindow = require('oauth_window');
 var Presets = require('common/presets');
 var URI = require('utils/uri');
 var View = require('view');
+var core = require('core');
+var isOffline = require('common/is_offline');
 var router = require('router');
 
 require('dom!modify-account-view');
@@ -28,7 +30,7 @@ function ModifyAccount(options) {
   this.hideHeaderAndForm = this.hideHeaderAndForm.bind(this);
   this.cancelDelete = this.cancelDelete.bind(this);
 
-  this.accountHandler = new AccountCreation(this.app);
+  this.accountHandler = new AccountCreation();
   this.accountHandler.on('authorizeError', this);
 
   // bound so we can add remove listeners
@@ -163,9 +165,8 @@ ModifyAccount.prototype = {
       e.preventDefault();
     }
 
-    var app = this.app;
     var id = this.model._id;
-    var store = app.store('Account');
+    var store = core.storeFactory.get('Account');
 
     // begin the removal (which will emit the preRemove event) but don't wait
     // for it to complete...
@@ -204,7 +205,7 @@ ModifyAccount.prototype = {
     var list = this.element.classList;
     var self = this;
 
-    if (this.app.offline()) {
+    if (isOffline()) {
       this.showErrors([{name: 'offline'}]);
       return;
     }
@@ -414,7 +415,7 @@ ModifyAccount.prototype = {
     }
 
     if (params.id) {
-      this.app.store('Account').get(params.id, displayModel);
+      core.storeFactory.get('Account').get(params.id, displayModel);
     } else if (params.preset) {
       displayModel(null, this._createModel(params.preset));
     }

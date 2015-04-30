@@ -4,14 +4,9 @@ define(function(require) {
 var CurrentTime = require('views/current_time');
 
 suite('Views.CurrentTime', function() {
-  var app;
   var subject;
   var container;
   var timespan;
-
-  suiteSetup(function() {
-    app = testSupport.calendar.app();
-  });
 
   setup(function() {
     var startOfDay = new Date();

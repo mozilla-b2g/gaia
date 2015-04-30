@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var AlarmTemplate = require('templates/alarm');
 var View = require('view');
-var providerFactory = require('provider/provider_factory');
+var core = require('core');
 var router = require('router');
 var template = require('templates/account');
 
@@ -78,13 +78,14 @@ AdvancedSettings.prototype = {
   },
 
   _displayAccount: function(account) {
-    var provider = providerFactory.get(account.providerType);
+    var provider = core.providerFactory.get(account.providerType);
     return provider.hasAccountSettings;
   },
 
   _initEvents: function() {
-    var account = this.app.store('Account');
-    var setting = this.app.store('Setting');
+    var storeFactory = core.storeFactory;
+    var account = storeFactory.get('Account');
+    var setting = storeFactory.get('Setting');
 
     account.on('add', this._addAccount.bind(this));
     account.on('update', this._updateAccount.bind(this));
@@ -108,7 +109,7 @@ AdvancedSettings.prototype = {
   },
 
   handleSettingUiChange: function(type, value) {
-    var store = this.app.store('Setting');
+    var store = core.storeFactory.get('Setting');
     // basic conversions
     if (value === 'null') {
       value = null;
@@ -243,8 +244,9 @@ AdvancedSettings.prototype = {
 
     this.header.runFontFitSoon();
 
-    var settings = this.app.store('Setting');
-    var accounts = this.app.store('Account');
+    var storeFactory = core.storeFactory;
+    var settings = storeFactory.get('Setting');
+    var accounts = storeFactory.get('Account');
 
     settings.getValue('syncFrequency', renderSyncFrequency);
     settings.getValue('standardAlarmDefault', renderAlarmDefault('standard'));

@@ -4,14 +4,15 @@ define(function(require) {
 var Factory = require('test/support/factory');
 var mockRequestWakeLock = require('test/support/mock_request_wake_lock');
 var controller = require('controllers/notifications');
+var core = require('core');
 var notification = require('notification');
 var waitFor = require('test/support/wait_for');
 
 suite('controllers/notifications', function() {
   var alarm;
-  var app;
   var db;
   var sendNotification;
+  var storeFactory;
 
   setup(function() {
     mockRequestWakeLock.setup();
@@ -19,8 +20,8 @@ suite('controllers/notifications', function() {
   });
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    storeFactory = core.storeFactory;
+    db = core.db;
     db.open(done);
   });
 
@@ -55,11 +56,9 @@ suite('controllers/notifications', function() {
       _id: 'alarm-one'
     });
 
-    var eventStore = db.getStore('Event');
-    eventStore.app = app;
-    var busytimeStore = db.getStore('Busytime');
-    busytimeStore.app = app;
-    var alarmStore = db.getStore('Alarm');
+    var eventStore = storeFactory.get('Event');
+    var busytimeStore = storeFactory.get('Busytime');
+    var alarmStore = storeFactory.get('Alarm');
 
     Promise.all([
       eventStore.persist(event),

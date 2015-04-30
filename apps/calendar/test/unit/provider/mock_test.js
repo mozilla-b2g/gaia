@@ -3,15 +3,13 @@ define(function(require) {
 
 var Factory = require('test/support/factory');
 var nextTick = require('common/next_tick');
-var providerFactory = require('provider/provider_factory');
 
 suite('provider/mock', function() {
-  var app;
   var subject;
 
   setup(function() {
-    app = testSupport.calendar.app();
-    subject = providerFactory.get('Mock');
+    var core = testSupport.calendar.core();
+    subject = core.providerFactory.get('Mock');
   });
 
   test('staged data events', function(done) {

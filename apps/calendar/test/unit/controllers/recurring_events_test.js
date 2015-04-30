@@ -4,21 +4,23 @@ define(function(require) {
 var Factory = require('test/support/factory');
 var RecurringEvents = require('controllers/recurring_events');
 var Responder = require('common/responder');
+var core = require('core');
 var nextTick = require('common/next_tick');
-var providerFactory = require('provider/provider_factory');
 
 suite('Controllers.RecurringEvents', function() {
-  var subject;
-  var app;
-  var timeController;
   var db;
+  var storeFactory;
+  var subject;
+  var syncController;
+  var timeController;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    db = core.db;
+    storeFactory = core.storeFactory;
+    syncController = core.syncController;
+    timeController = core.timeController;
 
-    subject = new RecurringEvents(app);
-    timeController = app.timeController;
+    subject = new RecurringEvents();
     db.open(done);
   });
 
@@ -36,7 +38,6 @@ suite('Controllers.RecurringEvents', function() {
   });
 
   test('initialization', function() {
-    assert.equal(subject.app, app, 'sets app');
     assert.instanceOf(subject, Responder);
   });
 
@@ -61,7 +62,7 @@ suite('Controllers.RecurringEvents', function() {
     setup(function(done) {
       subject.observe();
       subject.waitBeforeMove = 10;
-      app.timeController.move(date);
+      timeController.move(date);
 
       subject.once('expandComplete', done);
     });
@@ -70,11 +71,11 @@ suite('Controllers.RecurringEvents', function() {
 
       subject.queueExpand = function(date) {
         done(function() {
-          assert.deepEqual(app.timeController.position, date);
+          assert.deepEqual(timeController.position, date);
         });
       };
 
-      app.syncController.emit('syncComplete');
+      syncController.emit('syncComplete');
     });
 
 /*
@@ -205,8 +206,8 @@ suite('Controllers.RecurringEvents', function() {
           _id: id || type
         });
 
-        provider = providerFactory.get(type);
-        app.store('Account').persist(account, done);
+        provider = core.providerFactory.get(type);
+        storeFactory.get('Account').persist(account, done);
       });
     }
 

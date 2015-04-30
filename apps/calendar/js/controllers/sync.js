@@ -2,6 +2,8 @@ define(function(require, exports, module) {
 'use strict';
 
 var Responder = require('common/responder');
+var core = require('core');
+var isOffline = require('common/is_offline');
 
 /**
  * Handles all synchronization related
@@ -11,8 +13,7 @@ var Responder = require('common/responder');
  * controller will decide when to actually
  * tell the stores when to sync.
  */
-function Sync(app) {
-  this.app = app;
+function Sync() {
   this.pending = 0;
 
   Responder.call(this);
@@ -59,13 +60,13 @@ Sync.prototype = {
       this.once('syncComplete', callback);
     }
 
-    if (this.app.offline()) {
+    if (isOffline()) {
       this.emit('offline');
       this.emit('syncComplete');
       return;
     }
 
-    var account = this.app.store('Account');
+    var account = core.storeFactory.get('Account');
 
     account.all(function(err, list) {
 
@@ -89,7 +90,7 @@ Sync.prototype = {
    * @param {Function} [callback] optional callback.
    */
   calendar: function(account, calendar, callback) {
-    var store = this.app.store('Calendar');
+    var store = core.storeFactory.get('Calendar');
     var self = this;
 
     this._incrementPending();
@@ -112,8 +113,9 @@ Sync.prototype = {
    * @param {Function} [callback] optional callback.
   */
   account: function(account, callback) {
-    var accountStore = this.app.store('Account');
-    var calendarStore = this.app.store('Calendar');
+    var storeFactory = core.storeFactory;
+    var accountStore = storeFactory.get('Account');
+    var calendarStore = storeFactory.get('Calendar');
 
     var self = this;
 
@@ -165,7 +167,7 @@ Sync.prototype = {
       return callback(err);
     }
 
-    this.app.errorController.dispatch(err);
+    core.errorController.dispatch(err);
   }
 };
 

@@ -2,22 +2,20 @@ define(function(require) {
 'use strict';
 
 var MultiDay = require('views/multi_day');
+var core = require('core');
 
 suite('Views.MultiDay', function() {
-  var app;
   var subject;
-
-  suiteSetup(function() {
-    app = testSupport.calendar.app();
-  });
+  var timeController;
 
   setup(function() {
-    subject = new MultiDay({app: app});
+    subject = new MultiDay();
     subject.element = document.createElement('div');
     subject.element.innerHTML = '<div class="md__sidebar"></div>';
     subject._currentTime = {
       refresh: this.sinon.spy()
     };
+    timeController = core.timeController;
   });
 
   suite('#onactive', function() {
@@ -49,7 +47,7 @@ suite('Views.MultiDay', function() {
     });
 
     test('Do not scroll when come back from other screen', function() {
-      subject.baseDate = subject.timeController.position;
+      subject.baseDate = timeController.position;
       subject.seen = true;
       subject.onactive();
       assert.isFalse(stubOnFirstSeen.called);
@@ -112,12 +110,12 @@ suite('Views.MultiDay', function() {
     subject._updateBaseDateAfterScroll(-3);
     var expected = (new Date(2014, 6, 20)).toISOString();
     assert.equal(
-      subject.timeController.position.toISOString(),
+      timeController.position.toISOString(),
       expected,
       'position'
     );
     assert.equal(
-      subject.timeController.selectedDay.toISOString(),
+      timeController.selectedDay.toISOString(),
       expected,
       'selectedDay'
     );

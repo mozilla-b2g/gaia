@@ -9,6 +9,8 @@ var CalendarError = require('common/error');
 var InvalidServer = require('common/error').InvalidServer;
 var Local = require('./local');
 var ServerFailure = require('common/error').ServerFailure;
+var core = require('core');
+var isOffline = require('common/is_offline');
 var mutations = require('event_mutations');
 var nextTick = require('common/next_tick');
 
@@ -33,13 +35,12 @@ function mapError(error, detail) {
 function CaldavProvider() {
   Abstract.apply(this, arguments);
 
-  // TODO: Get rid of this when app global is gone.
-  mutations.app = this.app;
-  this.service = this.app.serviceController;
-  this.accounts = this.app.store('Account');
-  this.busytimes = this.app.store('Busytime');
-  this.events = this.app.store('Event');
-  this.icalComponents = this.app.store('IcalComponent');
+  var storeFactory = core.storeFactory;
+  this.service = core.serviceController;
+  this.accounts = storeFactory.get('Account');
+  this.busytimes = storeFactory.get('Busytime');
+  this.events = storeFactory.get('Event');
+  this.icalComponents = storeFactory.get('IcalComponent');
 }
 module.exports = CaldavProvider;
 
@@ -50,6 +51,9 @@ CaldavProvider.prototype = {
   useCredentials: true,
   canSync: true,
   canExpandRecurringEvents: true,
+
+  // allow us to test the offline behavior
+  isOffline: isOffline,
 
   /**
    * Number of dates in the past to sync.
@@ -159,7 +163,7 @@ CaldavProvider.prototype = {
       });
 
     } else {
-      var calendarStore = this.app.store('Calendar');
+      var calendarStore = core.storeFactory.get('Calendar');
 
       calendarStore.get(event.calendarId, function(err, calendar) {
         if (err) {
@@ -274,12 +278,11 @@ CaldavProvider.prototype = {
     );
 
     var pull = new CaldavPullEvents(stream, {
-      app: this.app,
       account: account,
       calendar: calendar
     });
 
-    var calendarStore = this.app.store('Calendar');
+    var calendarStore = core.storeFactory.get('Calendar');
     var syncStart = new Date();
 
     var self = this;
@@ -324,7 +327,7 @@ CaldavProvider.prototype = {
    * @param {Function} callback node style [err, results].
    */
   _cachedEventsFor: function(calendar, callback) {
-    var store = this.app.store('Event');
+    var store = core.storeFactory.get('Event');
 
     store.eventsForCalendar(calendar._id, function(err, results) {
       if (err) {
@@ -431,7 +434,7 @@ CaldavProvider.prototype = {
       function next(err, pull) {
         pullGroups.push(pull);
         if (!(--pending)) {
-          var trans = self.app.db.transaction(
+          var trans = core.db.transaction(
             ['icalComponents', 'alarms', 'busytimes'],
             'readwrite'
           );
@@ -464,7 +467,7 @@ CaldavProvider.prototype = {
   },
 
   _expandComponents: function(calendarId, comps, options, callback) {
-    var calStore = this.app.store('Calendar');
+    var calStore = core.storeFactory.get('Calendar');
 
     calStore.ownersOf(calendarId, function(err, owners) {
       if (err) {
@@ -486,7 +489,6 @@ CaldavProvider.prototype = {
         {
           account: account,
           calendar: calendar,
-          app: this.app,
           stores: [
             'busytimes', 'alarms', 'icalComponents'
           ]
@@ -696,7 +698,7 @@ CaldavProvider.prototype = {
       this.offlineMessage = window.navigator.mozL10n.get('error-offline');
     }
 
-    var ret = this.app.offline() && callback;
+    var ret = this.isOffline() && callback;
     if (ret) {
       var error = new Error();
       error.name = 'offline';

@@ -3,12 +3,12 @@ define(function(require) {
 
 var Calc = require('common/calc');
 var SingleDay = require('views/single_day');
+var core = require('core');
 var dayObserver = require('day_observer');
 
 suite('Views.SingleDay', function() {
   var alldaysHolder;
   var allDayIcon;
-  var app;
   var date;
   var dayId;
   var daysHolder;
@@ -19,7 +19,6 @@ suite('Views.SingleDay', function() {
   }
 
   setup(function(done) {
-    app = testSupport.calendar.app();
     daysHolder = document.createElement('div');
     alldaysHolder = document.createElement('div');
     allDayIcon = document.createElement('span');
@@ -42,7 +41,7 @@ suite('Views.SingleDay', function() {
     this.sinon.spy(window, 'removeEventListener');
     this.sinon.spy(subject, 'onactive');
     this.sinon.spy(subject, 'oninactive');
-    app.db.open(done);
+    core.db.open(done);
   });
 
   teardown(function() {
@@ -53,7 +52,7 @@ suite('Views.SingleDay', function() {
     subject.onactive.restore();
     subject.oninactive.restore();
     subject.destroy();
-    app.db.close();
+    core.db.close();
   });
 
   test('#setup', function() {

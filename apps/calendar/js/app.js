@@ -1,15 +1,15 @@
 define(function(require, exports, module) {
 'use strict';
 
-var dateL10n = require('date_l10n');
 var Db = require('db');
 var ErrorController = require('controllers/error');
 var PendingManager = require('pending_manager');
 var RecurringEventsController = require('controllers/recurring_events');
-var router = require('router');
 var ServiceController = require('controllers/service');
 var SyncController = require('controllers/sync');
 var TimeController = require('controllers/time');
+var core = require('core');
+var dateL10n = require('date_l10n');
 var dayObserver = require('day_observer');
 var debug = require('common/debug')('app');
 var messageHandler = require('message_handler');
@@ -17,18 +17,16 @@ var nextTick = require('common/next_tick');
 var notificationsController = require('controllers/notifications');
 var performance = require('performance');
 var periodicSyncController = require('controllers/periodic_sync');
-var providerFactory = require('provider/provider_factory');
+var providerFactory = require('provider/factory');
+var router = require('router');
+var storeFactory = require('store/factory');
 var timeObserver = require('time_observer');
 var viewFactory = require('views/factory');
 
 var pendingClass = 'pending-operation';
 
 /**
- * Focal point for state management
- * within calendar application.
- *
- * Contains tools for routing and central
- * location to reference database.
+ * Initialize the application and wire all the instances used through the app
  */
 module.exports = {
   startingURL: window.location.href,
@@ -38,12 +36,8 @@ module.exports = {
    * must be called at least once before
    * using other methods.
    */
-  configure: function(db) {
-    debug('Configure calendar with db.');
-    this.db = db;
-    viewFactory.app = this;
-
-    providerFactory.app = this;
+  configure: function() {
+    debug('Configure calendar');
 
     this._pendingManager = new PendingManager();
 
@@ -76,29 +70,34 @@ module.exports = {
       document.body.classList.add(pendingClass);
     };
 
-    messageHandler.app = this;
     messageHandler.start();
-    this.timeController = new TimeController(this);
-    this.syncController = new SyncController(this);
-    this.serviceController = new ServiceController(this);
-    this.errorController = new ErrorController(this);
-    notificationsController.app = this;
-    periodicSyncController.app = this;
 
-    dayObserver.busytimeStore = this.store('Busytime');
-    dayObserver.calendarStore = this.store('Calendar');
-    dayObserver.eventStore = this.store('Event');
-    dayObserver.syncController = this.syncController;
-    dayObserver.timeController = this.timeController;
+    this._setupCore();
 
     // observe sync events
-    this.observePendingObject(this.syncController);
+    this.observePendingObject(core.syncController);
 
     // Tell audio channel manager that we want to adjust the notification
     // channel if the user press the volumeup/volumedown buttons in Calendar.
     if (navigator.mozAudioChannelManager) {
       navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
     }
+  },
+
+  _setupCore: function(dbName) {
+    if (core.db) {
+      return;
+    }
+    core.db = new Db(dbName || 'b2g-calendar');
+    core.errorController = new ErrorController();
+    core.notificationsController = notificationsController;
+    core.periodicSyncController = periodicSyncController;
+    core.providerFactory = providerFactory;
+    core.serviceController = new ServiceController();
+    core.storeFactory = storeFactory;
+    core.syncController = new SyncController();
+    core.timeController = new TimeController();
+    core.viewFactory = viewFactory;
   },
 
   /**
@@ -169,12 +168,12 @@ module.exports = {
     // controllers can only be initialized after db.load
 
     // start the workers
-    this.serviceController.start(false);
+    core.serviceController.start(false);
 
     notificationsController.observe();
     periodicSyncController.observe();
 
-    var recurringEventsController = new RecurringEventsController(this);
+    var recurringEventsController = new RecurringEventsController();
     this.observePendingObject(recurringEventsController);
     recurringEventsController.observe();
     this.recurringEventsController = recurringEventsController;
@@ -182,7 +181,7 @@ module.exports = {
     // turn on the auto queue this means that when
     // alarms are added to the database we manage them
     // transparently. Defaults to off for tests.
-    this.store('Alarm').autoQueue = true;
+    core.storeFactory.get('Alarm').autoQueue = true;
   },
 
   _initUI: function() {
@@ -190,7 +189,7 @@ module.exports = {
     dateL10n.init();
 
     timeObserver.init();
-    this.timeController.move(new Date());
+    core.timeController.move(new Date());
 
     viewFactory.get('TimeHeader', header => header.render());
     viewFactory.get('ViewSelector', tabs => tabs.render());
@@ -226,40 +225,22 @@ module.exports = {
 
     this.forceRestart = this.forceRestart.bind(this);
 
-    if (!this.db) {
-      this.configure(new Db('b2g-calendar', this));
+    if (!core.db) {
+      this.configure();
     }
 
-    this.db.load(() => {
+    core.db.load(() => {
       this._initControllers();
       // it should only start listening for month change after we have the
       // calendars data, otherwise we might display events from calendars that
       // are not visible. this also makes sure we load the calendars as soon as
       // possible
-      this.store('Calendar').all(() => dayObserver.init());
+      core.storeFactory.get('Calendar').all(() => dayObserver.init());
 
       // we init the UI after the db.load to increase perceived performance
       // (will feel like busytimes are displayed faster)
       navigator.mozL10n.once(() => this._initUI());
     });
-  },
-
-  /**
-   * Pure convenience function for
-   * referencing a object store.
-   *
-   * @param {String} name store name. (e.g events).
-   * @return {Calendar.Store.Abstact} store.
-   */
-  store: function(name) {
-    return this.db.getStore(name);
-  },
-
-  /**
-   * Returns the offline status.
-   */
-  offline: function() {
-    return (navigator && 'onLine' in navigator) ? !navigator.onLine : true;
   }
 };
 

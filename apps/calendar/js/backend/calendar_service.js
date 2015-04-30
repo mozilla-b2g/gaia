@@ -1,21 +1,25 @@
-define(function(require, exports, module) {
+define(function(require, exports) {
 'use strict';
 
 var Db = require('db');
 var co = require('ext/co');
+var core = require('core');
 //var object = require('common/object');
 var threads = require('ext/threads');
 
-var db = new Db('b2g-calendar');
 var service = threads.service('calendar');
 var loadDb;
+
+core.db = new Db('b2g-calendar');
+core.providerFactory = require('provider/factory');
+core.storeFactory = require('store/factory');
 
 function start() {
   if (loadDb != null) {
     return loadDb;
   }
 
-  loadDb = db.load();
+  loadDb = core.db.load();
   return loadDb;
 }
 
@@ -48,7 +52,7 @@ function echo() {
  */
 function saveAccount(details) {
   return co(function *() {
-    var store = db.getStore('Account');
+    var store = core.storeFactory.get('Account');
     var account;
     try {
       account = yield store.verifyAndPersist(details);
@@ -63,7 +67,7 @@ function saveAccount(details) {
 
 function removeAccount(id) {
   return co(function *() {
-    var store = db.getStore('Account');
+    var store = core.storeFactory.get('Account');
     yield store.remove(id);
   });
 }
@@ -77,7 +81,7 @@ function syncAccount(account) {
   console.log('syncAccount', account);
   /*
   return co(function *() {
-    var store = db.getStore('Calendar');
+    var store = core.storeFactory.get('Calendar');
     var calendars;
     try {
       calendars = yield store.remotesByAccount(account._id);
@@ -93,7 +97,7 @@ function syncAccount(account) {
 
 function saveEvent(exists, event) {
   return co(function *() {
-    var store = db.getStore('Event');
+    var store = core.storeFactory.get('Event');
     var provider = yield store.providerFor(event);
     var capabilities;
     try {
@@ -118,7 +122,7 @@ function saveEvent(exists, event) {
 
 function removeEvent(event) {
   return co(function *() {
-    var store = db.getStore('Event');
+    var store = core.storeFactory.get('Event');
     var provider = yield store.providerFor(event);
     var capabilities;
     try {
@@ -136,7 +140,7 @@ function removeEvent(event) {
 }
 
 function setSetting(key, value) {
-  var store = db.getStore('Setting');
+  var store = core.storeFactory.get('Setting');
   return store.set(key, value);
 }
 

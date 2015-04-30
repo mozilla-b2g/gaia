@@ -3,16 +3,16 @@ define(function(require, exports, module) {
 
 var Event = require('models/event');
 var View = require('view');
+var core = require('core');
 var dayObserver = require('day_observer');
 var isToday = require('common/calc').isToday;
 var nextTick = require('common/next_tick');
-var providerFactory = require('provider/provider_factory');
 var router = require('router');
 
 function EventBase(options) {
   View.apply(this, arguments);
 
-  this.store = this.app.store('Event');
+  this.store = core.storeFactory.get('Event');
 
   this._els = Object.create(null);
   this._changeToken = 0;
@@ -139,7 +139,7 @@ EventBase.prototype = {
 
     function fetchOwners(err, owners) {
       self.originalCalendar = owners.calendar;
-      self.provider = providerFactory.get(owners.account.providerType);
+      self.provider = core.providerFactory.get(owners.account.providerType);
       self.provider.eventCapabilities(
         self.event,
         fetchEventCaps
@@ -320,7 +320,7 @@ EventBase.prototype = {
     } else {
       classList.add(this.CREATE);
 
-      var controller = this.app.timeController;
+      var controller = core.timeController;
       this.event = this._createModel(controller.mostRecentDay);
       this._updateUI();
 

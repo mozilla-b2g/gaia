@@ -3,18 +3,17 @@ define(function(require) {
 
 var Responder = require('common/responder');
 var TimeController = require('controllers/time');
+var core = require('core');
 
 window.page = window.page || {};
 
 suite('Controllers.Time', function() {
   var subject;
-  var app;
   var busytimeStore;
   var db;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    subject = new TimeController(app);
+    subject = new TimeController();
 
     subject.calendarStore = {
       shouldDisplayCalendar: function(id) {
@@ -23,8 +22,8 @@ suite('Controllers.Time', function() {
       on: function() {}
     };
 
-    busytimeStore = app.store('Busytime');
-    db = app.db;
+    busytimeStore = core.storeFactory.get('Busytime');
+    db = core.db;
 
     db.open(function() {
       done();
@@ -33,18 +32,17 @@ suite('Controllers.Time', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['events', 'busytimes', 'alarms'],
       done
     );
   });
 
   teardown(function() {
-    app.db.close();
+    core.db.close();
   });
 
   test('initialize', function() {
-    assert.equal(subject.app, app);
     assert.instanceOf(subject, Responder);
   });
 

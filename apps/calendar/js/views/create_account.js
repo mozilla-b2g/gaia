@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 var Presets = require('common/presets');
 var View = require('view');
+var core = require('core');
 var template = require('templates/account');
 
 require('dom!create-account-view');
@@ -38,7 +39,7 @@ CreateAccount.prototype = {
 
   _initEvents: function() {
     var self = this;
-    var store = this.app.store('Account');
+    var store = core.storeFactory.get('Account');
 
     // Here instead of bind
     // for inheritance / testing reasons.
@@ -54,7 +55,7 @@ CreateAccount.prototype = {
 
   render: function() {
     var presets = this.presets;
-    var store = this.app.store('Account');
+    var store = core.storeFactory.get('Account');
     var listElement = this.accounts;
     var currentToken = ++this._changeToken;
 

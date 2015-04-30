@@ -5,10 +5,8 @@ var Alarm = require('templates/alarm');
 
 suite('Templates.Alarm', function() {
   var subject;
-  var app;
 
   suiteSetup(function() {
-    app = testSupport.calendar.app();
     subject = Alarm;
   });
 

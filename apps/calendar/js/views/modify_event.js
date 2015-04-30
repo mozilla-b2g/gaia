@@ -6,6 +6,7 @@ var EventBase = require('./event_base');
 var InputParser = require('shared/input_parser');
 var Local = require('provider/local');
 var QueryString = require('querystring');
+var core = require('core');
 var dateFormat = require('date_format');
 var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
 var nextTick = require('common/next_tick');
@@ -54,7 +55,7 @@ ModifyEvent.prototype = {
   _initEvents: function() {
     EventBase.prototype._initEvents.apply(this, arguments);
 
-    var calendars = this.app.store('Calendar');
+    var calendars = core.storeFactory.get('Calendar');
 
     calendars.on('add', this._addCalendarId.bind(this));
     calendars.on('preRemove', this._removeCalendarId.bind(this));
@@ -167,7 +168,7 @@ ModifyEvent.prototype = {
     // than 1% of the time)
     this.getEl('calendarId').classList.add(self.LOADING);
 
-    var calendarStore = this.app.store('Calendar');
+    var calendarStore = core.storeFactory.get('Calendar');
     calendarStore.all(function(err, calendars) {
       if (err) {
         return console.error('Could not build list of calendars');
@@ -203,7 +204,7 @@ ModifyEvent.prototype = {
   _updateCalendarId: function(id, calendar) {
     var element = this.getEl('calendarId');
     var option = element.querySelector('[value="' + id + '"]');
-    var store = this.app.store('Calendar');
+    var store = core.storeFactory.get('Calendar');
 
     store.providerFor(calendar, function(err, provider) {
       var caps = provider.calendarCapabilities(
@@ -233,7 +234,7 @@ ModifyEvent.prototype = {
    * @param {Calendar.Model.Calendar} calendar calendar to add.
    */
   _addCalendarId: function(id, calendar, callback) {
-    var store = this.app.store('Calendar');
+    var store = core.storeFactory.get('Calendar');
     store.providerFor(calendar, function(err, provider) {
       var caps = provider.calendarCapabilities(
         calendar
@@ -398,10 +399,10 @@ ModifyEvent.prototype = {
         }
 
         // move the position in the calendar to the added/edited day
-        self.app.timeController.move(moveDate);
+        core.timeController.move(moveDate);
         // order is important the above method triggers the building
         // of the dom elements so selectedDay must come after.
-        self.app.timeController.selectedDay = moveDate;
+        core.timeController.selectedDay = moveDate;
 
         // we pass the date so we are able to scroll to the event on the
         // day/week views
@@ -800,7 +801,7 @@ ModifyEvent.prototype = {
       }
     }
 
-    var settings = this.app.store('Setting');
+    var settings = core.storeFactory.get('Setting');
     var layout = isAllDay ? 'allday' : 'standard';
     settings.getValue(layout + 'AlarmDefault', next.bind(this));
 

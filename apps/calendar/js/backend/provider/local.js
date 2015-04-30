@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Abstract = require('./abstract');
+var core = require('core');
 var mutations = require('event_mutations');
 var uuid = require('ext/uuid');
 
@@ -10,11 +11,10 @@ var LOCAL_CALENDAR_ID = 'local-first';
 function Local() {
   Abstract.apply(this, arguments);
 
-  // TODO: Get rid of this when app global is gone.
-  mutations.app = this.app;
-  this.events = this.app.store('Event');
-  this.busytimes = this.app.store('Busytime');
-  this.alarms = this.app.store('Alarm');
+  var storeFactory = core.storeFactory;
+  this.events = storeFactory.get('Event');
+  this.busytimes = storeFactory.get('Busytime');
+  this.alarms = storeFactory.get('Alarm');
 }
 module.exports = Local;
 
@@ -103,7 +103,8 @@ Local.prototype = {
       busytime = null;
     }
 
-    this.app.store('Event').remove(event._id, callback);
+    var storeFactory = core.storeFactory;
+    storeFactory.get('Event').remove(event._id, callback);
   },
 
   /**
