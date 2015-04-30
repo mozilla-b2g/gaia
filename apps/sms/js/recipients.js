@@ -1,5 +1,12 @@
-/*global GestureDetector, Navigation, SharedComponents, Utils,
-         Settings */
+/*global
+
+  GestureDetector,
+  Navigation,
+  RecipientValidator,
+  Settings,
+  SharedComponents,
+  Utils
+*/
 
 (function(exports) {
   'use strict';
@@ -57,7 +64,10 @@
 
     if (this.isEmail) {
       this.className += ' email';
-    } else if (this.source === 'manual' && !rdigit.test(number)) {
+    } else if (
+      opts.isQuestionable === undefined &&
+      this.source === 'manual' && !rdigit.test(number)
+    ) {
       this.isQuestionable = true;
     }
 
@@ -108,6 +118,14 @@
     'name', 'number', 'email', 'editable', 'source',
     'type', 'carrier', 'isQuestionable', 'isInvalid', 'isLookupable'
   ];
+
+  Recipient.cast = function(wannabeRecipient) {
+    if (wannabeRecipient instanceof Recipient) {
+      return wannabeRecipient;
+    }
+
+    return new Recipient(wannabeRecipient);
+  };
 
   /**
    * Recipients
@@ -184,6 +202,8 @@
     data.set(this, list);
     events.set(this, { add: [], remove: [], modechange: [] });
     view.set(this, new Recipients.View(this, setup));
+
+    this.validator = RecipientValidator.for(this);
   }
 
   /**
@@ -267,8 +287,6 @@
    * @return {Recipients} return the recipients list.
    */
   Recipients.prototype.add = function(entry) {
-    var list = data.get(this);
-    var added;
     /*
     Entry {
       name, number [, editable, source ]
@@ -290,45 +308,21 @@
       }
     });
 
-    // Don't bother rejecting duplicates, always add every
-    // entry to the recipients list. For reference, see:
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=880628
-    list.push(added = new Recipient(entry));
+    var recipient = new Recipient(entry);
 
-    // XXX: Workaround for cleaning search result while duplicate
-    //      Dispatch add event no matter duplicate or not.
-    //
-    //      Send a "clone" of the added recipient, this protects
-    //      the actual Recipient object from being written to
-    //      directly.
-    this.emit('add', list.length, added.clone());
+    this.validator.validate(recipient).then((validatedRecipient) => {
+      var list = data.get(this);
 
-    // Render the view
-    this.render();
+      // Don't bother rejecting duplicates, always add every
+      // entry to the recipients list. For reference, see:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=880628
+      list.push(Recipient.cast(validatedRecipient));
+
+      this.render();
+      this.emit('add');
+    });
 
     return this;
-  };
-
-  /**
-   * update Update/replace a recipient at a specific index in the list.
-   *
-   * @param  {Number} recipOrIndex Recipient or Index to update.
-   * @param  {Object} entry { name: '', number: '' }.
-   *
-   * @return {Recipients} return the recipients list.
-   */
-  Recipients.prototype.update = function(recipOrIndex, entry) {
-    var list = data.get(this);
-    var index = typeof recipOrIndex === 'number' ?
-      recipOrIndex : list.indexOf(recipOrIndex);
-
-    if (index > -1) {
-      // Use the normalization of new Recipient() to
-      // correct any missing, but required fields.
-      list[index].set(new Recipient(entry));
-    }
-
-    return this.render();
   };
 
   Recipients.prototype.remove = function(recipOrIndex) {
@@ -341,7 +335,7 @@
     }
 
     list.splice(index, 1);
-    this.emit('remove', list.length);
+    this.emit('remove');
 
     return this.render(index);
   };
@@ -361,6 +355,13 @@
   Recipients.prototype.visible = function(type, opts) {
     view.get(this).visible(type, opts || {});
     return this;
+  };
+
+  Recipients.prototype.has = function(number) {
+    return this.list.some(function(recipient) {
+      var value = recipient.number || recipient.email;
+      return (!recipient.isInvalid && value === number);
+    });
   };
 
   /**
@@ -977,7 +978,7 @@
               // when they are finished editting and have
               // "accepted" the recipient entry
               data.get(view.owner).pop();
-              view.owner.emit('remove', data.get(view.owner).length);
+              view.owner.emit('remove');
             }
           }
         }
@@ -1013,23 +1014,21 @@
         break;
     }
 
-    if (isAcceptedRecipient) {
-      if (typed) {
-        // Push the accepted input into the recipients list
-        view.owner.add({
-          name: typed,
-          number: typed,
-          editable: editable,
-          source: 'manual',
-          role: editable ? 'textbox' : 'button',
-          isLookupable: isLookupable
-        });
+    if (isAcceptedRecipient && typed) {
+      // Push the accepted input into the recipients list
+      view.owner.add({
+        name: typed,
+        number: typed,
+        editable: editable,
+        source: 'manual',
+        role: editable ? 'textbox' : 'button',
+        isLookupable: isLookupable
+      }).focus();
 
-        // Clear the displayed list
-        // Render the recipients as a fresh list
-        // Set focus on the very placeholder item.
-        this.render().focus();
-      }
+      // Clear the displayed list
+      // Render the recipients as a fresh list
+      // Set focus on the very placeholder item.
+      this.render().focus();
     }
 
     if (isDeletingRecipient) {

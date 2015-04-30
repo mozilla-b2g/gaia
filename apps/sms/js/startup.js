@@ -43,7 +43,8 @@ var Startup = {
     'js/smil.js',
     'js/notify.js',
     'js/activity_handler.js',
-    'js/localization_helper.js'
+    'js/localization_helper.js',
+    'js/recipient_validator.js'
   ],
 
   _lazyLoadInit: function() {
