@@ -190,6 +190,27 @@ var Compose = (function() {
       state.size = null;
       compose.unlock();
     }
+    if (e.which === 8) {
+      var selection = window.getSelection();
+      if (!selection.isCollapsed) {
+        return;
+      }
+      if (selection.anchorNode.nodeType !== Node.TEXT_NODE) {
+        return;
+      }
+
+      selection.modify('extend', 'backward', 'word');
+      var node;
+      var nodes = [...attachments.keys()];
+      if ((node = nodes.find(node => selection.containsNode(node, false)))) {
+        e.preventDefault();
+        var index = Array.from(dom.message.childNodes).indexOf(node);
+        selection.collapse(dom.message, index+1);
+        dom.message.focus();
+      } else {
+        selection.collapseToEnd();
+      }
+    }
   }
 
   function insert(item) {
