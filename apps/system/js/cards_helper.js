@@ -9,16 +9,7 @@
    * @module CardsHelper
    */
 
-  var HVGA;
-
-  function isHVGA() {
-    if (undefined === HVGA) {
-      HVGA = document.documentElement.clientWidth < 480;
-    }
-    return HVGA;
-  }
-
-  function getIconURIForApp(app) {
+  function getIconURIForApp(app, maxSize) {
     if (!app) {
       return null;
     }
@@ -32,8 +23,16 @@
 
       sizes.sort(function(x, y) { return y - x; });
 
-      var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-      iconPath = icons[index];
+      iconPath = icons[0]; // The biggest icon available
+      for (var i = 0; i < sizes.length; i++) {
+        var size = sizes[i];
+
+        if (size < maxSize) {
+          break;
+        }
+
+        iconPath = icons[size];
+      }
     } else {
       iconPath = app.icon;
     }
@@ -100,8 +99,7 @@
   exports.CardsHelper = {
     getIconURIForApp: getIconURIForApp,
     getOffOrigin: getOffOrigin,
-    escapeHTML: escapeHTML,
-    isHVGA: isHVGA
+    escapeHTML: escapeHTML
   };
 
 })(window);
