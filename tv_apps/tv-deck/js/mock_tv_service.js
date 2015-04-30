@@ -22,7 +22,7 @@
       number: '3'
     }, {
       name: 'Fox',
-      number: '5'
+      number: '25'
     }, {
       name: 'ABC',
       number: '8'
@@ -34,7 +34,7 @@
       number: '10'
     }, {
       name: 'MTV',
-      number: '10-1'
+      number: '15'
     }, {
       name: 'TNT',
       number: '10-2'
@@ -46,7 +46,7 @@
       number: '14'
     }, {
       name: 'Lifetime',
-      number: '15'
+      number: '10-1'
     }, {
       name: 'AXN',
       number: '19'
@@ -55,7 +55,7 @@
       number: '20'
     }, {
       name: 'Mozilla',
-      number: '25'
+      number: '5'
     }
   ];
 
@@ -78,7 +78,9 @@
   TVSource.prototype.getChannels = function() {
     return {
       then: function(success) {
-        success(channels);
+        setTimeout(function() {
+          success(channels);
+        }, 2000);
       }
     };
   };

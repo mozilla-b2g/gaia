@@ -1,112 +1,303 @@
-/* global CardManager, MozActivity */
+/* global evt, Promise, asyncStorage */
 
 'use strict';
 
 (function(exports) {
 
-  /**
-   * ChannelManager implements pin/unpin card to/from home funcitons and
-   * update pin button information in both button-group-panel and contextmenu.
-   */
-  function ChannelManager(tvDeck) {
+  function ChannelManager() {
 
-    this._tvDeck = tvDeck;
-    // Maintain a list of pinned channels.
-    this.pinnedChannels = {};
-    this.cardManager = new CardManager();
-    this.cardManager.init('readonly')
-                    .then(this.updatePinnedChannels.bind(this));
-
-    // Determine whether a card should be pinned or unpinned.
-    document.addEventListener('contextmenu', this.updatePinButton.bind(this));
-
-    // Update pinnedChannels when card-list changed
-    this.cardManager.on(
-                'cardlist-changed', this.updatePinnedChannels.bind(this));
+    this.isReady = false;
+    this.currentTuners = {};
+    this.playingState = {};
   }
 
-  var proto = {};
+  var proto = Object.create(new evt());
+
+  // Current hash
+  Object.defineProperty(proto, 'currentHash', {
+    get: function() {
+      var state = this.playingState;
+      var currentHash = '#';
+      currentHash += state.tunerId;
+      currentHash += (',' + state.sourceType);
+      currentHash += (',' + state.channelNumber);
+      return currentHash;
+    }
+  });
+
+  proto.getTuner = function cm_getTuner(tunerId) {
+    tunerId = tunerId || this.playingState.tunerId;
+    return this.currentTuners[tunerId];
+  };
+
+  proto.getSource = function cm_getSource(sourceType) {
+    sourceType = sourceType || this.playingState.sourceType;
+    var tuner = this.getTuner();
+    if (!tuner || !tuner.sources) {
+      return null;
+    }
+    return tuner.sources[sourceType];
+  };
+
+  proto.getChannel = function cm_getChannel(channelNumber) {
+    channelNumber = channelNumber || this.playingState.channelNumber;
+    var source = this.getSource();
+    if (!source || !source.channelIndexHash) {
+      return null;
+    }
+    var index = source.channelIndexHash[channelNumber];
+    return source.channels[index];
+  };
 
   /**
-   * Retrieve latest TV card list from card manager and update pin button
-   * information.
+   * Fetch tuner, source and channel settings from URL hash. If URL hash is
+   * empty, then fetch settings from asyncStorage.
    */
-  proto.updatePinnedChannels = function cm_updatePinnedChannels() {
-    this.pinnedChannels = {};
-    this.cardManager.getCardList().then(function(cardList) {
-      cardList.forEach(function(card) {
-        var url = card.launchURL;
-        if (url && url.match(new RegExp(this._tvDeck.origin))) {
-          var channelHash = url.substring(url.indexOf('#') + 1);
-          this.pinnedChannels[channelHash] = true;
-          return true;
+  proto.fetchSettingFromHash = function cm_fetchSettingFromHash(hash) {
+    return new Promise(function(resolve, reject) {
+      var fetch = function(hash) {
+        if(hash) {
+          hash = hash.substring(1).split(',');
+          this.playingState = {
+            tunerId: hash[0],
+            sourceType: hash[1],
+            channelNumber: hash[2]
+          };
         }
-        return false;
-      }.bind(this));
-      this.updatePinButton();
+      }.bind(this);
+
+      if (hash) {
+        fetch(hash);
+        resolve();
+      } else {
+        asyncStorage.getItem('TV_Hash', function(item) {
+          fetch(item);
+          resolve();
+        });
+      }
     }.bind(this));
   };
 
   /**
-   * Update pin button in button-group-panel and contextmenu.
+   * Retrieve all the currently available TV tuners.
    */
-  proto.updatePinButton = function cm_updatePinButton() {
-    if (this.pinnedChannels[this._tvDeck.currentHash]) {
-      // Show unpin button if current channel is pinned.
-      this._tvDeck.pinButtonContextmenu.setAttribute(
-                                           'data-l10n-id', 'unpin-from-home');
-      this._tvDeck.pinButtonContextmenu.onclick =
-                                           this.unpinFromHome.bind(this);
-      this._tvDeck.pinButton.onclick = this.unpinFromHome.bind(this);
-    } else {
-      // Show pin button if current channel is not pinned yet.
-      this._tvDeck.pinButtonContextmenu.setAttribute(
-                                           'data-l10n-id', 'pin-to-home');
-      this._tvDeck.pinButtonContextmenu.onclick = this.pinToHome.bind(this);
-      this._tvDeck.pinButton.onclick = this.pinToHome.bind(this);
-    }
+  proto.scanTuners = function cm_scanTuners() {
+    navigator.tv.getTuners().then(function onsuccess(tuners) {
+      this.currentTuners = {};
+      tuners.forEach(function initTuner(tuner) {
+        this.currentTuners[tuner.id] = {
+          tuner: tuner,
+          sources: {}
+        };
+      }.bind(this));
+
+      if (!this.playingState.tunerId) {
+        this.playingState.tunerId = tuners[0].id;
+      }
+
+      if (!this.getTuner()) {
+        this.fire('error');
+        return;
+      }
+
+      this.scanSources();
+    }.bind(this));
   };
 
-  proto.pinToHome = function cm_pinToHome() {
-    if (!this._tvDeck.playingTunerId) {
+  /**
+   * Retrieve all the currently available TV sources from current TV tuner.
+   */
+  proto.scanSources = function cm_scanSources() {
+    var tunerObject = this.getTuner();
+    tunerObject.tuner.getSources().then(function getSources(sources) {
+      tunerObject.sources = {};
+      if (sources.length === 0) {
+        console.error('Error, no source found!');
+        return;
+      }
+
+      sources.forEach(function initSource(source) {
+        tunerObject.sources[source.type] = {
+          source: source,
+          channels: [],
+          channelIndexHash: {}
+        };
+      }.bind(this));
+
+      if (!this.playingState.sourceType) {
+        this.playingState.sourceType = sources[0].type;
+      }
+
+      if (!this.getSource()) {
+        this.fire('error');
+        return;
+      }
+
+      this.scanChannels();
+    }.bind(this));
+  };
+
+  /**
+   * Retrieve all the currently available TV channels from current TV source.
+   * We have to scan the channels before calling getChannels.
+   */
+  proto.scanChannels = function cm_scanChannels() {
+    var sourceObject = this.getSource();
+    var source = sourceObject.source;
+
+    sourceObject.channels = [];
+    sourceObject.channelIndexHash = {};
+    if (source.isScanning) {
       return;
     }
 
-    var number = window.location.hash.split(',')[2];
-
-    /* jshint nonew:false */
-    new MozActivity({
-      name: 'pin',
-      data: {
-        type: 'Application',
-        group: 'tv',
-        name: {raw: 'CH ' + number},
-        manifestURL: this._tvDeck.manifestURL,
-        launchURL: window.location.href
+    var onscanningstatechanged = function(event) {
+      var state = event.state;
+      switch (state) {
+        case 'completed':
+        /* falls through */
+        case 'stopped':
+          this._onScanningCompleted();
+          source.removeEventListener(
+                                'scanningstatechanged', onscanningstatechanged);
+          break;
+        default:
+          break;
       }
+    }.bind(this);
+
+    source.addEventListener('scanningstatechanged', onscanningstatechanged);
+
+    source.startScanning({
+      isRescanned: true
     });
   };
 
-  proto.unpinFromHome = function cm_unpinFromHome() {
-
-    var message = {
-      type: 'unpin',
-      data: {
-        manifestURL: this._tvDeck.manifestURL,
-        launchURL: window.location.href
+  /**
+   * Retrieve all the currently available TV channels from current TV source.
+   * Sort channels for channel switching.
+   */
+  proto._onScanningCompleted = function cm_onScanningCompleted() {
+    var sourceObject = this.getSource();
+    sourceObject.source.getChannels().then(function onsuccess(channels) {
+      if (channels.length === 0) {
+        console.error('Error, no channel found!');
+        return;
       }
-    };
 
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var selfApp = evt.target.result;
-      selfApp.connect('appdeck-channel').then(function (ports) {
-        ports.forEach(function(port) {
-          port.postMessage(message);
-        });
-      });
-    }.bind(this);
+      // Sort channels. Channel number can be XX-XX-XX
+      channels.sort(this._compareChannel.bind(this));
+
+      var i;
+      for (i = 0; i < channels.length; i++) {
+        sourceObject.channelIndexHash[channels[i].number] = i;
+        sourceObject.channels[i] = {
+          channel: channels[i],
+          programs: {},
+        };
+      }
+
+      if (!this.playingState.channelNumber) {
+        this.playingState.channelNumber = channels[0].number;
+      }
+
+      if (!this.getChannel()) {
+        this.fire('error');
+        return;
+      }
+
+      this.isReady = true;
+      this.fire('tuned');
+    }.bind(this), function onerror(error) {
+      console.error(error);
+    });
   };
 
+  proto.setPlayingSource = function cm_setPlayingSource(callback) {
+    var tunerObject = this.getTuner();
+    if (tunerObject.tuner.currentSource === this.getSource().source) {
+      this.setPlayingChannel(callback);
+      return;
+    }
+
+    tunerObject.tuner.setCurrentSource(this.playingState.sourceType)
+      .then(function() {
+        this.setPlayingChannel(callback);
+      }.bind(this), function() {
+        console.error('Source not found');
+      });
+  };
+
+  proto.setPlayingChannel = function cm_setPlayingChannel(callback) {
+    if (this.getSource().source.isScanning) {
+      if (callback) {
+        callback();
+      }
+      console.error('Source is still scanning.');
+      return;
+    }
+
+    this.getSource().source.setCurrentChannel(this.playingState.channelNumber)
+      .then(function() {
+        if (callback) {
+          callback();
+        }
+      }.bind(this), function() {
+        console.error('Channel not found');
+      });
+  };
+
+  proto._compareChannel = function cm__compareChannel(channelA, channelB) {
+    var numberA = channelA.number.split('-');
+    var numberB = channelB.number.split('-');
+    for(var i = 0; i < Math.max(numberA.length, numberB.length); i++) {
+      numberA[i] = parseInt(numberA[i], 10);
+      numberB[i] = parseInt(numberB[i], 10);
+
+      if (numberA[i] !== 0 && !numberA[i]) {
+        return -1;
+      } else if (numberB[i] !== 0 && !numberB[i]) {
+        return 1;
+      } else if (numberA[i] < numberB[i]) {
+        return -1;
+      } else if (numberA[i] > numberB[i]) {
+        return 1;
+      }
+    }
+    return 0;
+  };
+
+  proto.switchChannel = function cm_switchChannel(direction) {
+    if (!this.getChannel() || !this.isReady) {
+      return false;
+    }
+
+    var channelList = this.getSource().channels;
+    var channelIndex = this.getSource()
+                           .channelIndexHash[this.playingState.channelNumber];
+    if (channelIndex!== 0 && !channelIndex) {
+      return false;
+    }
+
+    switch(direction) {
+      case ChannelManager.KEY_UP:
+        channelIndex++;
+        break;
+      case ChannelManager.KEY_DOWN:
+        channelIndex--;
+        break;
+      default:
+        return;
+    }
+
+    channelIndex = (channelIndex < 0) ? channelList.length - 1 : channelIndex;
+    channelIndex = (channelIndex > channelList.length - 1) ? 0 : channelIndex;
+    this.playingState.channelNumber = channelList[channelIndex].channel.number;
+    return true;
+  };
+
+  ChannelManager.KEY_UP = 'up';
+  ChannelManager.KEY_DOWN = 'down';
   ChannelManager.prototype = proto;
   exports.ChannelManager = ChannelManager;
 })(window);
