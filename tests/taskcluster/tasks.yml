@@ -8,7 +8,7 @@
 params:
   # Default properties
   provisionerId: 'aws-provisioner-v1'
-  workerType: gaia
+  workerType: b2gtest
   # Location in image where we store the gaia contents.
   gaia: '/home/tester/git_checkout'
 
