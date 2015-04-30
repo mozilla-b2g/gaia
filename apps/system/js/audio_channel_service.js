@@ -4,27 +4,27 @@
 
 (function() {
   /**
-   * AudioChannelManager manages audio channels in apps.
+   * AudioChannelService manages audio channels in apps.
    * It could allow or deny a audio channel to play in some specific cases.
    * For example, Music app would like to play when FM app is already playing.
    * It will allow Music app to play, and pause FM app.
    *
-   * @class AudioChannelManager
+   * @class AudioChannelService
    */
-  var AudioChannelManager = function() {};
+  var AudioChannelService = function() {};
 
-  AudioChannelManager.EVENTS = [
+  AudioChannelService.EVENTS = [
     'audiochannelstatechanged',
     'audiochanneldestroyed',
     'hierarchytopmostwindowchanged'
   ];
 
-  AudioChannelManager.SUB_MODULES = [
+  AudioChannelService.SUB_MODULES = [
     'AudioChannelPolicy'
   ];
 
-  BaseModule.create(AudioChannelManager, {
-    name: 'AudioChannelManager',
+  BaseModule.create(AudioChannelService, {
+    name: 'AudioChannelService',
     DEBUG: false,
     // A map contains playing audio channels.
     _activeAudioChannels: null,

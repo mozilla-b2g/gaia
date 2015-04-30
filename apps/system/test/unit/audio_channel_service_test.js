@@ -4,13 +4,13 @@
 
 requireApp('system/test/unit/mock_audio_channel_controller.js');
 requireApp('system/js/base_module.js');
-requireApp('system/js/audio_channel_manager.js');
+requireApp('system/js/audio_channel_service.js');
 
-suite('system/AudioChannelManager', function() {
+suite('system/AudioChannelService', function() {
   var subject;
 
   setup(function() {
-    subject = BaseModule.instantiate('AudioChannelManager');
+    subject = BaseModule.instantiate('AudioChannelService');
     subject.audioChannelPolicy = {
       applyPolicy: function() {}
     };
