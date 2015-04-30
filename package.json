@@ -26,7 +26,7 @@
     "load-grunt-tasks": "0.4.0",
     "mail-fakeservers": "0.0.24",
     "marionette-apps": "0.3.12",
-    "marionette-client": "1.7.4",
+    "marionette-client": "1.7.5",
     "marionette-content-script": "0.0.4",
     "marionette-device-host": "1.0.0",
     "marionette-file-manager": "0.0.4",
