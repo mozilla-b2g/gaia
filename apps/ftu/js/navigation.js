@@ -2,7 +2,7 @@
           SdManager, UIManager, WifiManager, WifiUI,
           ImportIntegration,
           OperatorVariant,
-          getLocalizedLink */
+          localizeLink */
 /* exported Navigation */
 'use strict';
 /*
@@ -236,11 +236,9 @@ var Navigation = {
       case '#welcome_browser':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         var welcome = document.getElementById('browser_os_welcome');
-        navigator.mozL10n.setAttributes(welcome, 'htmlWelcome2',
-          getLocalizedLink('htmlWelcome'));
+        localizeLink(welcome, 'htmlWelcome2');
         var improve = document.getElementById('browser_os_improve');
-        navigator.mozL10n.setAttributes(improve, 'helpImprove2',
-          getLocalizedLink('helpImprove'));
+        localizeLink(improve, 'helpImprove2');
 
         // Initialize the share checkbox according to the preset value
         // of debug.performance_data.shared
@@ -257,8 +255,7 @@ var Navigation = {
       case '#browser_privacy':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         var linkPrivacy = document.getElementById('external-link-privacy');
-        navigator.mozL10n.setAttributes(linkPrivacy, 'learn-more-privacy2',
-          getLocalizedLink('learn-more-privacy'));
+        localizeLink(linkPrivacy, 'learn-more-privacy2');
         break;
       case '#SIM_mandatory':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'SIM_mandatory');
@@ -272,11 +269,9 @@ var Navigation = {
         UIManager.mainTitle.setAttribute('data-l10n-id', 'aboutBrowser');
         UIManager.navBar.classList.add('back-only');
         var linkTelemetry = document.getElementById('external-link-telemetry');
-        navigator.mozL10n.setAttributes(linkTelemetry, 'learn-more-telemetry2',
-          getLocalizedLink('learn-more-telemetry'));
+        localizeLink(linkTelemetry, 'learn-more-telemetry2');
         var linkInfo = document.getElementById('external-link-information');
-        navigator.mozL10n.setAttributes(linkInfo, 'learn-more-information2',
-          getLocalizedLink('learn-more-information'));
+        localizeLink(linkInfo, 'learn-more-information2');
         break;
     }
 

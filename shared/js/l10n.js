@@ -900,6 +900,14 @@
                             value.length + ', max allowed is ' +
                             MAX_PLACEABLE_LENGTH + ')');
       }
+
+      if (navigator.mozL10n.language.direction == 'rtl' ||
+          /[^\u0001-\u00FF\u2013\u2014]/.test(value)) {
+        const FSI = '\u2068';
+        const PDI = '\u2069';
+        res[1] = FSI + value + PDI;
+      }
+
       return res;
     }
 
