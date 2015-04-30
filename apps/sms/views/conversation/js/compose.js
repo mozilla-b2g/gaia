@@ -6,7 +6,7 @@
         SubjectComposer,
         Navigation,
         Promise,
-        ThreadUI,
+        ConversationView,
         Threads,
         EventDispatcher,
         DOMError,
@@ -111,8 +111,8 @@ var Compose = (function() {
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
     // Track when content is edited for draft replacement case
-    if (ThreadUI.draft) {
-      ThreadUI.draft.isEdited = true;
+    if (ConversationView.draft) {
+      ConversationView.draft.isEdited = true;
     }
 
     // if the duck is an image attachment or object, handle resizes
@@ -152,8 +152,8 @@ var Compose = (function() {
 
   function onSubjectChanged() {
     // Track when content is edited for draft replacement case
-    if (ThreadUI.draft) {
-      ThreadUI.draft.isEdited = true;
+    if (ConversationView.draft) {
+      ConversationView.draft.isEdited = true;
     }
 
     Compose.updateEmptyState();
@@ -361,13 +361,13 @@ var Compose = (function() {
       this.on('type', this.updateMessageCounter.bind(this));
       this.on('segmentinfochange', this.updateMessageCounter.bind(this));
 
-      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
-       * property */
-      ThreadUI.on('recipientschange', this.updateSendButton.bind(this));
+      /* Bug 1040144: replace ConversationView direct invocation by a
+       * instantiation-tim property */
+      ConversationView.on('recipientschange', this.updateSendButton.bind(this));
       // Bug 1026384: call updateType as well when the recipients change
 
       if (Settings.supportEmailRecipient) {
-        ThreadUI.on('recipientschange', this.updateType.bind(this));
+        ConversationView.on('recipientschange', this.updateType.bind(this));
       }
 
       var onInteracted = this.emit.bind(this, 'interact');
@@ -497,7 +497,7 @@ var Compose = (function() {
 
     /**
      * Unlock composer when size is decreased again.
-     */    
+     */
     unlock: function() {
       state.locked = false;
       dom.attachButton.disabled = false;
@@ -649,12 +649,12 @@ var Compose = (function() {
       var isTextTooLong =
         state.segmentInfo.segments > Settings.maxConcatenatedMessages;
 
-      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
-       * property
+      /* Bug 1040144: replace ConversationView direct invocation by a
+       * instantiation-time property
        */
       var recipients = Threads.active ?
         Threads.active.participants :
-        ThreadUI.recipients && ThreadUI.recipients.numbers;
+        ConversationView.recipients && ConversationView.recipients.numbers;
       var hasEmailRecipient = recipients ?
         recipients.some(Utils.isEmailAddress) :
         false;
@@ -684,9 +684,9 @@ var Compose = (function() {
       var disableSendMessage = state.empty || state.resizing;
       var messageNotLong = compose.size <= Settings.mmsSizeLimitation;
 
-      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
-       * property */
-      var recipients = ThreadUI.recipients;
+      /* Bug 1040144: replace ConversationView direct invocation by a
+       * instantiation-time property */
+      var recipients = ConversationView.recipients;
       var recipientsValue = recipients && recipients.inputValue;
       var hasRecipients = false;
 
@@ -733,14 +733,14 @@ var Compose = (function() {
       }
     },
 
-    onAttachClick: function thui_onAttachClick(event) {
+    onAttachClick: function c_onAttachClick(event) {
       this.requestAttachment().then(
         this.append.bind(this),
         this._onAttachmentRequestError
       );
     },
 
-    onAttachmentClick: function thui_onAttachmentClick(event) {
+    onAttachmentClick: function c_onAttachmentClick(event) {
       if (!event.target.classList.contains(attachmentClass) || state.resizing) {
         return;
       }

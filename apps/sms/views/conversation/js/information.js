@@ -1,5 +1,5 @@
-/*global Utils, Template, Threads, ThreadUI, MessageManager, ContactRenderer,
-         Contacts, Settings, Navigation
+/*global Utils, Template, Threads, ConversationView, MessageManager,
+         ContactRenderer, Contacts, Settings, Navigation
  */
 
 /*exported Information */
@@ -11,11 +11,11 @@
   Information view module is a subpanel belongs to TheadUI panel. This
   module provide some default  method for thiw view module:
 
-  show: Reuse the ThreadUI page for information view. Hiding unrelated icon,
+  show: Reuse the conversation view for information view. Hiding unrelated icon,
     reset the header, and render container for  showing the view.
 
   reset: Hide the view container, clean up the contact list and resume the
-    icons/header for ThreadUI.
+    icons/header for ConversationView.
 
   renderContactList(participants, options): Rendering group-view style contact
     list inside the page. Participants is an array of contact number and option
@@ -221,7 +221,7 @@ var VIEWS = {
 
         var target = event.target;
 
-        ThreadUI.promptContact({
+        ConversationView.promptContact({
           number: target.dataset.number
         });
       });
@@ -330,7 +330,7 @@ var VIEWS = {
     setEventListener: function report_setEventListener() {
       this.resendBtn.addEventListener('click', () => {
         this.messageResending = true;
-        ThreadUI.resendMessage(this.id);
+        ConversationView.resendMessage(this.id);
       });
     },
 

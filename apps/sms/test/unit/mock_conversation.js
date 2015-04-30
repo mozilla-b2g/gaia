@@ -1,11 +1,11 @@
 /*global MockRecipients, Template */
-/*exported MockThreadUI */
+/*exported MockConversationView */
 
 'use strict';
 
 require('/test/unit/mock_recipients.js');
 
-var MockThreadUI = {
+var MockConversationView = {
   CHUNK_SIZE: 10,
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
@@ -15,7 +15,8 @@ var MockThreadUI = {
   },
   recipientsList: document.createElement('div'),
 
-  // For Information view testing. Need to be updated with ThreadUI layout
+  // For Information view testing. Need to be updated with Conversation View
+  // layout.
   optionsButton: document.createElement('button'),
   callNumberButton: document.createElement('button'),
   attachButton: document.createElement('button'),

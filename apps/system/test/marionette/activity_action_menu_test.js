@@ -22,7 +22,7 @@
 
     test('works after opening an app', function() {
       messagesApp.launch();
-      messagesApp.ThreadList.navigateToComposer();
+      messagesApp.Inbox.navigateToComposer();
       var composer = messagesApp.Composer;
 
       client.waitFor(function() {

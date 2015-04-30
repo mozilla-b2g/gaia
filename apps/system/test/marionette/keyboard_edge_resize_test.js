@@ -52,7 +52,7 @@ marionette('Keyboard and edge gestures >', function() {
     var initialHeight = client.executeScript(function() {
       return window.wrappedJSObject.innerHeight;
     });
-    smsLib.ThreadList.navigateToComposer();
+    smsLib.Inbox.navigateToComposer();
     var composer = smsLib.Composer;
     composer.messageInput.tap();
 

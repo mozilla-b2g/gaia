@@ -3,7 +3,7 @@
 
 /*global Compose, Recipients, Utils, Template, Settings,
          SMIL, ErrorDialog, MessageManager, LinkHelper,
-         ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
+         ActivityPicker, InboxView, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
          MultiSimActionButton, Navigation, Promise, LazyLoader,
@@ -13,14 +13,14 @@
          SelectionHandler,
          TaskRunner
 */
-/*exported ThreadUI */
+/*exported ConversationView */
 
 (function(exports) {
 'use strict';
 
 var attachmentMap = new WeakMap();
 
-function thui_mmsAttachmentClick(target) {
+function conv_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
   if (!attachment) {
     return false;
@@ -35,7 +35,7 @@ function thui_mmsAttachmentClick(target) {
 
 // reduce the Composer.getContent() into slide format used by SMIL.generate some
 // day in the future, we should make the SMIL and Compose use the same format
-function thui_generateSmilSlides(slides, content) {
+function conv_generateSmilSlides(slides, content) {
   var length = slides.length;
   if (typeof content === 'string') {
     if (!length || slides[length - 1].text) {
@@ -54,7 +54,7 @@ function thui_generateSmilSlides(slides, content) {
   return slides;
 }
 
-var ThreadUI = {
+var ConversationView = {
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
@@ -84,7 +84,7 @@ var ThreadUI = {
   },
 
   multiSimActionButton: null,
-  init: function thui_init() {
+  init: function conv_init() {
     var templateIds = [
       'message',
       'message-sim-information',
@@ -265,7 +265,7 @@ var ThreadUI = {
     this.onMessageTypeChange = this.onMessageTypeChange.bind(this);
   },
 
-  onVisibilityChange: function thui_onVisibilityChange(e) {
+  onVisibilityChange: function conv_onVisibilityChange(e) {
     // If we leave the app and are in a thread or compose window
     // save a message draft if necessary
     if (document.hidden) {
@@ -274,13 +274,14 @@ var ThreadUI = {
       var isAutoSaveRequired = false;
 
       if (Navigation.isCurrentPanel('composer')) {
-        isAutoSaveRequired = !Compose.isEmpty() || !!ThreadUI.recipients.length;
+        isAutoSaveRequired = !Compose.isEmpty() ||
+          !!ConversationView.recipients.length;
       } else if (Navigation.isCurrentPanel('thread')) {
         isAutoSaveRequired = !Compose.isEmpty();
       }
 
       if (isAutoSaveRequired) {
-        ThreadUI.saveDraft({preserve: true, autoSave: true});
+        ConversationView.saveDraft({preserve: true, autoSave: true});
       }
     }
   },
@@ -290,7 +291,7 @@ var ThreadUI = {
    *
    * @private
    */
-  onHeaderAction: function thui_onHeaderAction() {
+  onHeaderAction: function conv_onHeaderAction() {
     this.backOrClose();
   },
 
@@ -300,7 +301,7 @@ var ThreadUI = {
    *
    * @private
    */
-  backOrClose: function thui_backOrClose() {
+  backOrClose: function conv_backOrClose() {
     var inActivity = ActivityHandler.isInActivity();
     var isComposer = Navigation.isCurrentPanel('composer');
     var isThread = Navigation.isCurrentPanel('thread');
@@ -309,7 +310,7 @@ var ThreadUI = {
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
-  initRecipients: function thui_initRecipients() {
+  initRecipients: function conv_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
       if (this.draft) {
         this.draft.isEdited = true;
@@ -372,7 +373,7 @@ var ThreadUI = {
     this.toggleRecipientSuggestions();
   },
 
-  initSentAudio: function thui_initSentAudio() {
+  initSentAudio: function conv_initSentAudio() {
     if (this.sentAudio) {
       return;
     }
@@ -403,15 +404,15 @@ var ThreadUI = {
     }
   },
 
-  getIdIterator: function thui_getIdIterator() {
+  getIdIterator: function conv_getIdIterator() {
     return Threads.active.messages.keys();
   },
 
-  setHeaderAction: function thui_setHeaderAction(icon) {
+  setHeaderAction: function conv_setHeaderAction(icon) {
     this.header.setAttribute('action', icon);
   },
 
-  messageComposerInputHandler: function thui_messageInputHandler(event) {
+  messageComposerInputHandler: function conv_messageInputHandler(event) {
     if (Compose.type === 'sms') {
       this.hideMaxLengthNotice();
       return;
@@ -438,7 +439,7 @@ var ThreadUI = {
     }
   },
 
-  showMaxLengthNotice: function thui_showMaxLengthNotice(opts) {
+  showMaxLengthNotice: function conv_showMaxLengthNotice(opts) {
     Compose.lock();
     navigator.mozL10n.setAttributes(
       this.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
@@ -446,12 +447,12 @@ var ThreadUI = {
     this.maxLengthNotice.classList.remove('hide');
   },
 
-  hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
+  hideMaxLengthNotice: function conv_hideMaxLengthNotice() {
     Compose.unlock();
     this.maxLengthNotice.classList.add('hide');
   },
 
-  showSubjectMaxLengthNotice: function thui_showSubjectMaxLengthNotice() {
+  showSubjectMaxLengthNotice: function conv_showSubjectMaxLengthNotice() {
     this.subjectMaxLengthNotice.classList.remove('hide');
 
     if (this.timeouts.subjectLengthNotice) {
@@ -463,7 +464,7 @@ var ThreadUI = {
     );
   },
 
-  hideSubjectMaxLengthNotice: function thui_hideSubjectMaxLengthNotice() {
+  hideSubjectMaxLengthNotice: function conv_hideSubjectMaxLengthNotice() {
     this.subjectMaxLengthNotice.classList.add('hide');
     this.timeouts.subjectLengthNotice &&
       clearTimeout(this.timeouts.subjectLengthNotice);
@@ -474,7 +475,7 @@ var ThreadUI = {
    * panel. This way it can change things in the panel before the panel is
    * visible.
    */
-  beforeEnter: function thui_beforeEnter(args) {
+  beforeEnter: function conv_beforeEnter(args) {
     this.clearConvertNoticeBanners();
     this.setHeaderAction(ActivityHandler.isInActivity() ? 'close' : 'back');
 
@@ -507,7 +508,7 @@ var ThreadUI = {
     }
   },
 
-  beforeEnterThread: function thui_beforeEnterThread(args) {
+  beforeEnterThread: function conv_beforeEnterThread(args) {
     // TODO should we implement hooks to Navigation so that Threads could
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
@@ -535,7 +536,7 @@ var ThreadUI = {
     return this.updateHeaderData();
   },
 
-  afterEnter: function thui_afterEnter(args) {
+  afterEnter: function conv_afterEnter(args) {
     var next = args.meta.next.panel;
     switch (next) {
       case 'composer':
@@ -551,7 +552,7 @@ var ThreadUI = {
     }
   },
 
-  afterEnterComposer: function thui_afterEnterComposer(args) {
+  afterEnterComposer: function conv_afterEnterComposer(args) {
     // TODO Bug 1010223: should move to beforeEnter
     if (args.activity) {
       this.handleActivity(args.activity);
@@ -568,7 +569,7 @@ var ThreadUI = {
     return Promise.resolve();
   },
 
-  afterEnterThread: function thui_afterEnterThread(args) {
+  afterEnterThread: function conv_afterEnterThread(args) {
     var threadId = +args.id;
 
     var prevPanel = args.meta.prev && args.meta.prev.panel;
@@ -592,12 +593,12 @@ var ThreadUI = {
 
     // Let's mark thread only when thread list is fully rendered and target node
     // is in the DOM tree.
-    ThreadListUI.whenReady().then(function() {
+    InboxView.whenReady().then(function() {
       // We use setTimeout (macrotask) here to allow reflow happen as soon as
       // possible and to not interrupt it with non-critical task since Promise
       // callback only (microtask) won't help here.
       setTimeout(
-        () =>ThreadListUI.markReadUnread([threadId], /* isRead */ true)
+        () => InboxView.markReadUnread([threadId], /* isRead */ true)
       );
     });
 
@@ -613,7 +614,7 @@ var ThreadUI = {
     return Utils.closeNotificationsForThread(threadId);
   },
 
-  beforeLeave: function thui_beforeLeave(args) {
+  beforeLeave: function conv_beforeLeave(args) {
     this.disableConvertNoticeBanners();
 
     var nextPanel = args.meta.next && args.meta.next.panel;
@@ -638,7 +639,7 @@ var ThreadUI = {
     }
   },
 
-  afterLeave: function thui_afterLeave(args) {
+  afterLeave: function conv_afterLeave(args) {
     if (Navigation.isCurrentPanel('thread-list')) {
       this.container.textContent = '';
       this.cleanFields();
@@ -660,14 +661,14 @@ var ThreadUI = {
     }
   },
 
-  handleForward: function thui_handleForward(forward) {
+  handleForward: function conv_handleForward(forward) {
     var request = MessageManager.getMessage(+forward.messageId);
 
     request.onsuccess = (function() {
       Compose.fromMessage(request.result);
 
       Recipients.View.isFocusable = true;
-      ThreadUI.recipients.focus();
+      ConversationView.recipients.focus();
     }).bind(this);
 
     request.onerror = function() {
@@ -675,7 +676,7 @@ var ThreadUI = {
     };
   },
 
-  handleActivity: function thui_handleActivity(activity) {
+  handleActivity: function conv_handleActivity(activity) {
     /**
      * Choose the appropriate contact resolver:
      *  - if we have a phone number and no contact, rely on findByAddress
@@ -724,7 +725,7 @@ var ThreadUI = {
 
   // recalling draft for composer only
   // Bug 1010216 might use it for thread drafts too
-  handleDraft: function thui_handleDraft(threadId) {
+  handleDraft: function conv_handleDraft(threadId) {
     // TODO Bug 1010216: remove this.draft
     var draft = this.draft ||
       Drafts.get(threadId || Threads.currentId);
@@ -764,7 +765,7 @@ var ThreadUI = {
     }
   },
 
-  beforeEnterComposer: function thui_beforeEnterComposer(args) {
+  beforeEnterComposer: function conv_beforeEnterComposer(args) {
     this.enableConvertNoticeBanners();
 
     // TODO add the activity/forward/draft stuff here
@@ -781,7 +782,7 @@ var ThreadUI = {
     return Promise.resolve();
   },
 
-  assimilateRecipients: function thui_assimilateRecipients() {
+  assimilateRecipients: function conv_assimilateRecipients() {
     var isNew = Navigation.isCurrentPanel('composer');
     var node = this.recipientsList.lastChild;
     var typed;
@@ -842,7 +843,7 @@ var ThreadUI = {
     TimeHeaders.updateAll('header[data-time-update]');
   },
 
-  isCurrentThread: function thui_isCurrentThread(threadId) {
+  isCurrentThread: function conv_isCurrentThread(threadId) {
     return Navigation.isCurrentPanel('thread', { id: threadId }) ||
       Navigation.isCurrentPanel('report-view', {
         threadId: threadId
@@ -852,7 +853,7 @@ var ThreadUI = {
       });
   },
 
-  onMessageReceived: function thui_onMessageReceived(e) {
+  onMessageReceived: function conv_onMessageReceived(e) {
     var message = e.message;
 
     // If user currently in other thread then there is nothing to do here
@@ -869,7 +870,7 @@ var ThreadUI = {
     }
   },
 
-  onMessageSending: function thui_onMessageReceived(e) {
+  onMessageSending: function conv_onMessageReceived(e) {
     var message = e.message;
     if (this.isCurrentThread(message.threadId)) {
       this.onMessage(message);
@@ -882,7 +883,7 @@ var ThreadUI = {
     }
   },
 
-  onNewMessageNoticeClick: function thui_onNewMessageNoticeClick(event) {
+  onNewMessageNoticeClick: function conv_onNewMessageNoticeClick(event) {
     event.preventDefault();
     this.hideNewMessageNotice();
     this.forceScrollViewToBottom();
@@ -903,7 +904,7 @@ var ThreadUI = {
   },
 
   // Message composer type changed:
-  onMessageTypeChange: function thui_onMessageTypeChange() {
+  onMessageTypeChange: function conv_onMessageTypeChange() {
     var message = 'converted-to-' + Compose.type;
     var messageContainer = this.convertNotice.querySelector('p');
     messageContainer.setAttribute('data-l10n-id', message);
@@ -919,19 +920,19 @@ var ThreadUI = {
     );
   },
 
-  clearConvertNoticeBanners: function thui_clearConvertNoticeBanner() {
+  clearConvertNoticeBanners: function conv_clearConvertNoticeBanner() {
     this.convertNotice.classList.add('hide');
   },
 
-  enableConvertNoticeBanners: function thui_enableConvertNoticeBanner() {
+  enableConvertNoticeBanners: function conv_enableConvertNoticeBanner() {
     Compose.on('type', this.onMessageTypeChange);
   },
 
-  disableConvertNoticeBanners: function thui_disableConvertNoticeBanner() {
+  disableConvertNoticeBanners: function conv_disableConvertNoticeBanner() {
     Compose.off('type', this.onMessageTypeChange);
   },
 
-  onSubjectChange: function thui_onSubjectChange() {
+  onSubjectChange: function conv_onSubjectChange() {
     if (Compose.isSubjectVisible && Compose.isSubjectMaxLength()) {
       this.showSubjectMaxLengthNotice();
     } else {
@@ -940,7 +941,7 @@ var ThreadUI = {
   },
 
   // Triggered when the onscreen keyboard appears/disappears.
-  resizeHandler: function thui_resizeHandler() {
+  resizeHandler: function conv_resizeHandler() {
     // Scroll to bottom
     this.scrollViewToBottom();
     // Make sure the caret in the "Compose" area is visible
@@ -948,7 +949,7 @@ var ThreadUI = {
   },
 
   // Create a recipient from contacts activity.
-  requestContact: function thui_requestContact() {
+  requestContact: function conv_requestContact() {
     // assimilate stranded string before picking a contact.
     this.assimilateRecipients();
 
@@ -1001,7 +1002,7 @@ var ThreadUI = {
   },
 
   // Method for updating the header when needed
-  updateComposerHeader: function thui_updateComposerHeader() {
+  updateComposerHeader: function conv_updateComposerHeader() {
     var recipientCount = this.recipients.numbers.length;
     if (recipientCount > 0) {
       this.setHeaderContent({
@@ -1018,7 +1019,7 @@ var ThreadUI = {
   isScrolledManually: false,
 
   // We define an edge for showing the following chunk of elements
-  manageScroll: function thui_manageScroll(oEvent) {
+  manageScroll: function conv_manageScroll(oEvent) {
     var scrollTop = this.container.scrollTop;
     var scrollHeight = this.container.scrollHeight;
     var clientHeight = this.container.clientHeight;
@@ -1044,7 +1045,7 @@ var ThreadUI = {
     }
   },
 
-  scrollViewToBottom: function thui_scrollViewToBottom() {
+  scrollViewToBottom: function conv_scrollViewToBottom() {
     if (!this.isScrolledManually &&
         this.container.lastElementChild &&
         Navigation.isCurrentPanel('thread')) {
@@ -1052,12 +1053,12 @@ var ThreadUI = {
     }
   },
 
-  forceScrollViewToBottom: function thui_forceScrollViewToBottom() {
+  forceScrollViewToBottom: function conv_forceScrollViewToBottom() {
     this.isScrolledManually = false;
     this.scrollViewToBottom();
   },
 
-  showNewMessageNotice: function thui_showNewMessageNotice(message) {
+  showNewMessageNotice: function conv_showNewMessageNotice(message) {
     Contacts.findByPhoneNumber(message.sender).then((contacts) => {
       var sender = message.sender;
       if (contacts && contacts.length) {
@@ -1079,13 +1080,13 @@ var ThreadUI = {
     });
   },
 
-  hideNewMessageNotice: function thui_hideNewMessageNotice() {
+  hideNewMessageNotice: function conv_hideNewMessageNotice() {
     this.isNewMessageNoticeShown = false;
     //Hide the new message's banner
     this.newMessageNotice.classList.add('hide');
   },
 
-  close: function thui_close() {
+  close: function conv_close() {
     return this._onNavigatingBack().then(() => {
       this.cleanFields();
       ActivityHandler.leaveActivity();
@@ -1098,7 +1099,7 @@ var ThreadUI = {
     });
   },
 
-  back: function thui_back() {
+  back: function conv_back() {
     return this._onNavigatingBack().then(function() {
       Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
@@ -1172,7 +1173,7 @@ var ThreadUI = {
     }.bind(this));
   },
 
-  isKeyboardDisplayed: function thui_isKeyboardDisplayed() {
+  isKeyboardDisplayed: function conv_isKeyboardDisplayed() {
     /* XXX: Detect if the keyboard is visible. The keyboard minimal height is
      * 150px; when in reduced attention screen mode however the difference
      * between window height and the screen height will be larger than 150px
@@ -1224,7 +1225,7 @@ var ThreadUI = {
     }.bind(this));
   },
 
-  onSegmentInfoChange: function thui_onSegmentInfoChange() {
+  onSegmentInfoChange: function conv_onSegmentInfoChange() {
     var currentSegment = Compose.segmentInfo.segments;
 
     var isValidSegment = currentSegment > 0;
@@ -1248,7 +1249,7 @@ var ThreadUI = {
     }
   },
 
-  checkMessageSize: function thui_checkMessageSize() {
+  checkMessageSize: function conv_checkMessageSize() {
     // Counter should be updated when image resizing complete
     if (Compose.isResizing) {
       return false;
@@ -1275,7 +1276,7 @@ var ThreadUI = {
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   getMessageContainer:
-    function thui_getMessageContainer(messageTimestamp, hidden) {
+    function conv_getMessageContainer(messageTimestamp, hidden) {
     var startOfDayTimestamp = Utils.getDayDate(messageTimestamp);
     var messageDateGroup = document.getElementById('mc_' + startOfDayTimestamp);
 
@@ -1315,7 +1316,7 @@ var ThreadUI = {
     return messageContainer;
   },
 
-  updateCarrier: function thui_updateCarrier(thread, contacts) {
+  updateCarrier: function conv_updateCarrier(thread, contacts) {
     var carrierTag = document.getElementById('contact-carrier');
     var threadMessages = this.threadMessages;
     var number = thread.participants[0];
@@ -1348,7 +1349,7 @@ var ThreadUI = {
   },
 
   // Method for updating the header with the info retrieved from Contacts API
-  updateHeaderData: function thui_updateHeaderData() {
+  updateHeaderData: function conv_updateHeaderData() {
     var thread, number;
 
     thread = Threads.active;
@@ -1398,7 +1399,7 @@ var ThreadUI = {
    * Should be either safe HTML string or l10n properties.
    * @public
    */
-  setHeaderContent: function thui_setHeaderContent(contentL10n) {
+  setHeaderContent: function conv_setHeaderContent(contentL10n) {
     if (typeof contentL10n === 'string') {
       contentL10n = { id: contentL10n };
     }
@@ -1420,7 +1421,7 @@ var ThreadUI = {
     }
   },
 
-  initializeRendering: function thui_initializeRendering() {
+  initializeRendering: function conv_initializeRendering() {
     // Clean fields
     this.cleanFields();
 
@@ -1433,12 +1434,12 @@ var ThreadUI = {
   },
 
   // Method for stopping the rendering when clicking back
-  stopRendering: function thui_stopRendering() {
+  stopRendering: function conv_stopRendering() {
     this._stopRenderingNextStep = true;
   },
 
   // Method for rendering the first chunk at the beginning
-  showFirstChunk: function thui_showFirstChunk() {
+  showFirstChunk: function conv_showFirstChunk() {
     // Show chunk of messages
     this.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
@@ -1447,7 +1448,7 @@ var ThreadUI = {
     this.scrollViewToBottom();
   },
 
-  createMmsContent: function thui_createMmsContent(dataArray) {
+  createMmsContent: function conv_createMmsContent(dataArray) {
     var container = document.createDocumentFragment();
 
     dataArray.forEach(function(messageData) {
@@ -1476,7 +1477,7 @@ var ThreadUI = {
   },
 
   // Method for rendering the list of messages using infinite scroll
-  renderMessages: function thui_renderMessages(threadId, callback) {
+  renderMessages: function conv_renderMessages(threadId, callback) {
     // Use taskRunner to make sure message appended in proper order
     var taskQueue = new TaskRunner();
     var onMessagesRendered = (function messagesRendered() {
@@ -1533,7 +1534,7 @@ var ThreadUI = {
   // generates the html for not-downloaded messages - pushes class names into
   // the classNames array also passed in, returns an HTML string
   _createNotDownloadedHTML:
-  function thui_createNotDownloadedHTML(message, classNames) {
+  function conv_createNotDownloadedHTML(message, classNames) {
     // default strings:
     var messageL10nId = 'tobedownloaded-attachment';
     var downloadL10nId = 'download-attachment';
@@ -1573,7 +1574,7 @@ var ThreadUI = {
   // Check deliveryStatus for both single and multiple recipient case.
   // In multiple recipient case, we return true only when all the recipients
   // deliveryStatus set to success.
-  shouldShowDeliveryStatus: function thui_shouldShowDeliveryStatus(message) {
+  shouldShowDeliveryStatus: function conv_shouldShowDeliveryStatus(message) {
     if (message.delivery !== 'sent') {
       return false;
     }
@@ -1590,7 +1591,7 @@ var ThreadUI = {
   // Check readStatus for both single and multiple recipient case.
   // In multiple recipient case, we return true only when all the recipients
   // deliveryStatus set to success.
-  shouldShowReadStatus: function thui_shouldShowReadStatus(message) {
+  shouldShowReadStatus: function conv_shouldShowReadStatus(message) {
     // Only mms message has readStatus
     if (message.delivery !== 'sent' || message.type === 'sms' ||
       !message.deliveryInfo) {
@@ -1602,7 +1603,7 @@ var ThreadUI = {
     });
   },
 
-  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
+  buildMessageDOM: function conv_buildMessageDOM(message, hidden) {
     var messageDOM = document.createElement('li'),
         bodyHTML = '';
 
@@ -1701,7 +1702,7 @@ var ThreadUI = {
     return Promise.resolve(messageDOM);
   },
 
-  mmsContentParser: function thui_mmsContentParser(message) {
+  mmsContentParser: function conv_mmsContentParser(message) {
     return new Promise((resolver) => {
       SMIL.parse(message, (slideArray) => {
         resolver(this.createMmsContent(slideArray));
@@ -1716,7 +1717,7 @@ var ThreadUI = {
       }) : '';
   },
 
-  appendMessage: function thui_appendMessage(message, hidden) {
+  appendMessage: function conv_appendMessage(message, hidden) {
     var timestamp = +message.timestamp;
 
     // look for an old message and remove it first - prevent anything from ever
@@ -1769,7 +1770,7 @@ var ThreadUI = {
     container.insertBefore(nodeToInsert, currentNode || null);
   },
 
-  showChunkOfMessages: function thui_showChunkOfMessages(number) {
+  showChunkOfMessages: function conv_showChunkOfMessages(number) {
     var elements = this.container.getElementsByClassName('hidden');
 
     Array.slice(elements, -number).forEach((element) => {
@@ -1780,7 +1781,7 @@ var ThreadUI = {
     });
   },
 
-  showOptions: function thui_showOptions() {
+  showOptions: function conv_showOptions() {
     /**
       * Different situations depending on the state
       * - 'Add Subject' if there's none, 'Delete subject' if already added
@@ -1823,7 +1824,7 @@ var ThreadUI = {
     new OptionMenu(params).show();
   },
 
-  startEdit: function thui_edit() {
+  startEdit: function conv_edit() {
     function editModeSetup() {
       /*jshint validthis:true */
       this.inEditMode = true;
@@ -1849,14 +1850,14 @@ var ThreadUI = {
     }
   },
 
-  isInEditMode: function thui_isInEditMode() {
+  isInEditMode: function conv_isInEditMode() {
     return this.inEditMode;
   },
 
-  deleteUIMessages: function thui_deleteUIMessages(list, callback) {
+  deleteUIMessages: function conv_deleteUIMessages(list, callback) {
     // Strategy:
     // - Delete message/s from the DOM
-    // - Update the thread in thread-list without re-rendering
+    // - Update the thread in inbox without re-rendering
     // the entire list
     // - move to thread list if needed
 
@@ -1867,7 +1868,7 @@ var ThreadUI = {
     // Removing from DOM all messages to delete
     for (var i = 0, l = list.length; i < l; i++) {
       Threads.unregisterMessage(list[i]);
-      ThreadUI.removeMessageDOM(
+      ConversationView.removeMessageDOM(
         document.getElementById('message-' + list[i])
       );
     }
@@ -1875,21 +1876,20 @@ var ThreadUI = {
     callback = typeof callback === 'function' ? callback : function() {};
 
     // Do we remove all messages of the Thread?
-    if (!ThreadUI.container.firstElementChild) {
-      // Remove the thread from DOM and go back to the thread-list
-      ThreadListUI.removeThread(Threads.currentId);
+    if (!ConversationView.container.firstElementChild) {
+      // Remove the thread from DOM and go back to the inbox
+      InboxView.removeThread(Threads.currentId);
       callback();
       this.backOrClose();
     } else {
       // Retrieve latest message in the UI
-      var lastMessage = ThreadUI.container.lastElementChild.querySelector(
-        'li:last-child'
-      );
-      // We need to make Thread-list to show the same info
+      var lastDateGroup = ConversationView.container.lastElementChild;
+      var lastMessage = lastDateGroup.querySelector('li:last-child');
+      // We need to make thread-list to show the same info
       var request = MessageManager.getMessage(+lastMessage.dataset.messageId);
       request.onsuccess = function() {
         callback();
-        ThreadListUI.updateThread(request.result, { deleted: true });
+        InboxView.updateThread(request.result, { deleted: true });
       };
       request.onerror = function() {
         console.error('Error when updating the list of threads');
@@ -1898,7 +1898,7 @@ var ThreadUI = {
     }
   },
 
-  delete: function thui_delete() {
+  delete: function conv_delete() {
     function performDeletion() {
       /* jshint validthis: true */
 
@@ -1909,8 +1909,8 @@ var ThreadUI = {
       // Complete deletion in DB and in UI
       MessageManager.deleteMessages(delNumList,
         function onDeletionDone() {
-          ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
-            ThreadUI.cancelEdit();
+          ConversationView.deleteUIMessages(delNumList, function() {
+            ConversationView.cancelEdit();
             WaitingScreen.hide();
           });
         }
@@ -1930,14 +1930,14 @@ var ThreadUI = {
     ).then(performDeletion.bind(this));
   },
 
-  cancelEdit: function thlui_cancelEdit() {
+  cancelEdit: function conv_cancelEdit() {
     if (this.inEditMode) {
       this.inEditMode = false;
       this.mainWrapper.classList.remove('edit');
     }
   },
 
-  updateSelectionStatus: function thui_updateSelectionStatus() {
+  updateSelectionStatus: function conv_updateSelectionStatus() {
     var selected = this.selectionHandler.selectedCount;
 
     // Manage buttons enabled\disabled state
@@ -1957,7 +1957,7 @@ var ThreadUI = {
     }
   },
 
-  handleMessageClick: function thui_handleMessageClick(evt) {
+  handleMessageClick: function conv_handleMessageClick(evt) {
     var currentNode = evt.target;
     var elems = {};
 
@@ -2010,7 +2010,7 @@ var ThreadUI = {
    * Given an element of a message, this function will dive into
    * the DOM for getting the bubble container of this message.
    */
-  getMessageBubble: function thui_getMessageContainer(element) {
+  getMessageBubble: function conv_getMessageContainer(element) {
     var node = element;
     var bubble;
 
@@ -2038,7 +2038,7 @@ var ThreadUI = {
     return null;
   },
 
-  handleEvent: function thui_handleEvent(evt) {
+  handleEvent: function conv_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
         if (this.inEditMode) {
@@ -2046,7 +2046,7 @@ var ThreadUI = {
         }
 
         // if the click wasn't on an attachment check for other clicks
-        if (!thui_mmsAttachmentClick(evt.target)) {
+        if (!conv_mmsAttachmentClick(evt.target)) {
           this.handleMessageClick(evt);
           LinkActionHandler.onClick(evt);
         }
@@ -2112,7 +2112,7 @@ var ThreadUI = {
                 { text: 'delete', className: 'danger' }
               ).then(() => {
                 MessageManager.deleteMessages(
-                  messageId, () => ThreadUI.deleteUIMessages(messageId)
+                  messageId, () => ConversationView.deleteUIMessages(messageId)
                 );
               });
             },
@@ -2143,7 +2143,7 @@ var ThreadUI = {
     }
   },
 
-  cleanFields: function thui_cleanFields() {
+  cleanFields: function conv_cleanFields() {
     this.previousSegment = 0;
 
     if (this.recipients) {
@@ -2153,7 +2153,7 @@ var ThreadUI = {
     Compose.clear();
   },
 
-  onSendClick: function thui_onSendClick() {
+  onSendClick: function conv_onSendClick() {
     if (Compose.isEmpty()) {
       return;
     }
@@ -2169,7 +2169,7 @@ var ThreadUI = {
   },
 
   // FIXME/bug 983411: phoneNumber not needed.
-  simSelectedCallback: function thui_simSelected(phoneNumber, cardIndex) {
+  simSelectedCallback: function conv_simSelected(phoneNumber, cardIndex) {
     if (Compose.isEmpty()) {
       return;
     }
@@ -2182,7 +2182,7 @@ var ThreadUI = {
     this.sendMessage({ serviceId: cardIndex });
   },
 
-  sendMessage: function thui_sendMessage(opts) {
+  sendMessage: function conv_sendMessage(opts) {
     var content = Compose.getContent(),
         subject = Compose.getSubject(),
         messageType = Compose.type,
@@ -2212,7 +2212,7 @@ var ThreadUI = {
     // If there was a draft, it just got sent
     // so delete it
     if (this.draft) {
-      ThreadListUI.removeThread(this.draft.id);
+      InboxView.removeThread(this.draft.id);
       Drafts.delete(this.draft).store();
       this.draft = null;
     }
@@ -2264,7 +2264,7 @@ var ThreadUI = {
       }
 
     } else {
-      var smilSlides = content.reduce(thui_generateSmilSlides, []);
+      var smilSlides = content.reduce(conv_generateSmilSlides, []);
       var mmsOpts = {
         recipients: recipients,
         subject: subject,
@@ -2286,7 +2286,7 @@ var ThreadUI = {
     Compose.focus();
   },
 
-  onMessageSent: function thui_onMessageSent(e) {
+  onMessageSent: function conv_onMessageSent(e) {
     this.setMessageStatus(e.message.id, 'sent');
   },
 
@@ -2294,14 +2294,14 @@ var ThreadUI = {
    * Fires once message (both SMS and MMS) send/resend request initiated by the
    * current application instance is successfully completed.
    */
-  onMessageSendRequestCompleted: function thui_onMessageSendRequestCompleted() {
+  onMessageSendRequestCompleted: function conv_onMessageSendRequestCompleted() {
     // Play the audio notification
     if (this.sentAudioEnabled) {
       this.sentAudio.play();
     }
   },
 
-  onMessageFailed: function thui_onMessageFailed(e) {
+  onMessageFailed: function conv_onMessageFailed(e) {
     var message = e.message;
     var serviceId = Settings.getServiceIdByIccId(message.iccId);
 
@@ -2331,7 +2331,7 @@ var ThreadUI = {
     }
   },
 
-  onDeliverySuccess: function thui_onDeliverySuccess(e) {
+  onDeliverySuccess: function conv_onDeliverySuccess(e) {
     var message = e.message;
     // We need to make sure all the recipients status got success event.
     if (!this.shouldShowDeliveryStatus(message)) {
@@ -2341,7 +2341,7 @@ var ThreadUI = {
     this.setMessageStatus(message.id, 'delivered');
   },
 
-  onReadSuccess: function thui_onReadSuccess(e) {
+  onReadSuccess: function conv_onReadSuccess(e) {
     var message = e.message;
     // We need to make sure all the recipients status got success event.
     if (!this.shouldShowReadStatus(message)) {
@@ -2353,7 +2353,7 @@ var ThreadUI = {
 
   // Some error return from sending error need some specific action instead of
   // showing the error prompt directly.
-  showMessageSendingError: function thui_showMsgSendingError(errorName, opts) {
+  showMessageSendingError: function conv_showMsgSendingError(errorName, opts) {
     // TODO: We handle NonActiveSimCard error in onMessageFailed because we
     // could not get message id from this error handler. Need to be removed when
     // bug 824717 is landed.
@@ -2368,12 +2368,12 @@ var ThreadUI = {
     this.showMessageError(errorName, opts);
   },
 
-  showMessageError: function thui_showMessageOnError(errorCode, opts) {
+  showMessageError: function conv_showMessageOnError(errorCode, opts) {
     var dialog = new ErrorDialog(Errors.get(errorCode), opts);
     dialog.show();
   },
 
-  removeMessageDOM: function thui_removeMessageDOM(messageDOM) {
+  removeMessageDOM: function conv_removeMessageDOM(messageDOM) {
     var messagesContainer = messageDOM.parentNode;
 
     messageDOM.remove();
@@ -2411,7 +2411,7 @@ var ThreadUI = {
     }
   },
 
-  retrieveMMS: function thui_retrieveMMS(messageDOM) {
+  retrieveMMS: function conv_retrieveMMS(messageDOM) {
     // force a number
     var id = +messageDOM.dataset.messageId;
     var iccId = messageDOM.dataset.iccId;
@@ -2473,7 +2473,7 @@ var ThreadUI = {
     }).bind(this);
   },
 
-  resendMessage: function thui_resendMessage(id) {
+  resendMessage: function conv_resendMessage(id) {
     // force id to be a number
     id = +id;
 
@@ -2525,11 +2525,11 @@ var ThreadUI = {
     this.emit('recipientschange');
   },
 
-  exactContact: function thui_exactContact(fValue) {
+  exactContact: function conv_exactContact(fValue) {
     return Contacts.findExact(fValue);
   },
 
-  searchContact: function thui_searchContact(fValue) {
+  searchContact: function conv_searchContact(fValue) {
     if (!fValue) {
       // In cases where searchContact was invoked for "input"
       // that was actually a "delete" that removed the last
@@ -2541,7 +2541,7 @@ var ThreadUI = {
     return Contacts.findByString(fValue);
   },
 
-  validateContact: function thui_validateContact(source, fValue, contacts) {
+  validateContact: function conv_validateContact(source, fValue, contacts) {
     var isInvalid = true;
     var index = this.recipients.length - 1;
     var last = this.recipientsList.lastElementChild;
@@ -2650,7 +2650,7 @@ var ThreadUI = {
     }
   },
 
-  listContacts: function thui_listContacts(fValue, contacts) {
+  listContacts: function conv_listContacts(fValue, contacts) {
     this.toggleRecipientSuggestions();
 
     // If the user has cleared the typed input before the
@@ -2689,7 +2689,7 @@ var ThreadUI = {
     this.toggleRecipientSuggestions(suggestionList);
   },
 
-  onHeaderActivation: function thui_onHeaderActivation() {
+  onHeaderActivation: function conv_onHeaderActivation() {
     // Do nothing while in participants list view.
     if (!Navigation.isCurrentPanel('thread')) {
       return;
@@ -2727,7 +2727,7 @@ var ThreadUI = {
     }
   },
 
-  promptContact: function thui_promptContact(opts) {
+  promptContact: function conv_promptContact(opts) {
     opts = opts || {};
 
     var inMessage = opts.inMessage || false;
@@ -2770,7 +2770,7 @@ var ThreadUI = {
     }.bind(this));
   },
 
-  prompt: function thui_prompt(opt) {
+  prompt: function conv_prompt(opt) {
     var complete = (function complete() {
       if (!Navigation.isCurrentPanel('thread')) {
         Navigation.toPanel('thread', { id: Threads.currentId });
@@ -2870,7 +2870,7 @@ var ThreadUI = {
           l10nId: 'createNewContact',
           method: function oCreate(param) {
             ActivityPicker.createNewContact(
-              param, ThreadUI.onCreateContact
+              param, ConversationView.onCreateContact
             );
           },
           params: props
@@ -2879,7 +2879,7 @@ var ThreadUI = {
           l10nId: 'addToExistingContact',
           method: function oAdd(param) {
             ActivityPicker.addToExistingContact(
-              param, ThreadUI.onCreateContact
+              param, ConversationView.onCreateContact
             );
           },
           params: props
@@ -2917,25 +2917,25 @@ var ThreadUI = {
     new OptionMenu(params).show();
   },
 
-  onCreateContact: function thui_onCreateContact() {
-    ThreadListUI.updateContactsInfo();
+  onCreateContact: function conv_onCreateContact() {
+    InboxView.updateContactsInfo();
     // Update Header if needed
     if (Navigation.isCurrentPanel('thread')) {
-      ThreadUI.updateHeaderData();
+      ConversationView.updateHeaderData();
     }
   },
 
-  discardDraft: function thui_discardDraft() {
+  discardDraft: function conv_discardDraft() {
     // If we were tracking a draft
     // properly update the Drafts object
-    // and ThreadList entries
+    // and InboxView entries
     if (this.draft) {
       Drafts.delete(this.draft).store();
       if (Threads.active) {
         Threads.active.timestamp = Date.now();
-        ThreadListUI.updateThread(Threads.active);
+        InboxView.updateThread(Threads.active);
       } else {
-        ThreadListUI.removeThread(this.draft.id);
+        InboxView.removeThread(this.draft.id);
       }
       this.draft = null;
     }
@@ -2956,7 +2956,7 @@ var ThreadUI = {
    *                  - preserve, boolean whether or not to preserve draft.
    *                  - autoSave, boolean whether this is an auto save.
    */
-  saveDraft: function thui_saveDraft(opts) {
+  saveDraft: function conv_saveDraft(opts) {
     var content, draft, recipients, subject, thread, threadId, type;
 
     content = Compose.getContent();
@@ -2992,9 +2992,9 @@ var ThreadUI = {
       // the drafts timestamp.
       thread.timestamp = draft.timestamp;
 
-      ThreadListUI.updateThread(thread);
+      InboxView.updateThread(thread);
     } else {
-      ThreadListUI.updateThread(draft);
+      InboxView.updateThread(draft);
     }
 
     // Clear the MessageManager draft if
@@ -3013,7 +3013,7 @@ var ThreadUI = {
     // Show draft saved banner if not an
     // auto save operation
     if (!opts || (opts && !opts.autoSave)) {
-      ThreadListUI.onDraftSaved();
+      InboxView.onDraftSaved();
     }
   },
 
@@ -3067,12 +3067,13 @@ var ThreadUI = {
   }
 };
 
-Object.defineProperty(exports, 'ThreadUI', {
+Object.defineProperty(exports, 'ConversationView', {
   get: function () {
-    delete exports.ThreadUI;
+    delete exports.ConversationView;
 
     var allowedEvents = ['recipientschange'];
-    return (exports.ThreadUI = EventDispatcher.mixin(ThreadUI, allowedEvents));
+    return (exports.ConversationView =
+      EventDispatcher.mixin(ConversationView, allowedEvents));
   },
   configurable: true,
   enumerable: true

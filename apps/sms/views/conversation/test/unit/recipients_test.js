@@ -8,7 +8,7 @@
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
-requireApp('sms/js/recipients.js');
+require('/views/conversation/js/recipients.js');
 require('/js/shared_components.js');
 requireApp('sms/js/utils.js');
 

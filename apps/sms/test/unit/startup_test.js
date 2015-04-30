@@ -2,7 +2,7 @@
          MocksHelper,
          Navigation,
          LazyLoader,
-         ThreadListUI,
+         InboxView,
          App
 */
 
@@ -13,7 +13,7 @@ require('/js/app.js');
 
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_navigation.js');
-require('/test/unit/mock_thread_list_ui.js');
+require('/test/unit/mock_inbox.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
@@ -21,7 +21,7 @@ var mocksHelper = new MocksHelper([
   'MessageManager',
   'LazyLoader',
   'Navigation',
-  'ThreadListUI'
+  'InboxView'
 ]).init();
 
 suite('Startup >', function() {
@@ -44,8 +44,8 @@ suite('Startup >', function() {
     this.sinon.stub(LazyLoader, 'load').returns(Promise.reject());
     this.sinon.stub(MessageManager, 'init');
     this.sinon.stub(Navigation, 'init');
-    this.sinon.stub(ThreadListUI, 'init');
-    this.sinon.spy(ThreadListUI, 'renderThreads');
+    this.sinon.stub(InboxView, 'init');
+    this.sinon.spy(InboxView, 'renderThreads');
     this.sinon.stub(Navigation, 'on');
     this.sinon.stub(Navigation, 'off');
     this.sinon.stub(App, 'setReady');
@@ -68,8 +68,8 @@ suite('Startup >', function() {
     sinon.assert.callOrder(
       MessageManager.init,
       Navigation.init,
-      ThreadListUI.init,
-      ThreadListUI.renderThreads
+      InboxView.init,
+      InboxView.renderThreads
     );
     sinon.assert.notCalled(LazyLoader.load);
     assert.isTrue(
@@ -78,7 +78,7 @@ suite('Startup >', function() {
     );
 
     // First page of threads loaded
-    ThreadListUI.renderThreads.callArg(0);
+    InboxView.renderThreads.callArg(0);
 
     // Lazy load the rest of scripts only once first page of threads is loaded
     sinon.assert.called(LazyLoader.load);
@@ -98,8 +98,8 @@ suite('Startup >', function() {
       Navigation.init,
       LazyLoader.load
     );
-    sinon.assert.notCalled(ThreadListUI.init);
-    sinon.assert.notCalled(ThreadListUI.renderThreads);
+    sinon.assert.notCalled(InboxView.init);
+    sinon.assert.notCalled(InboxView.renderThreads);
 
     sinon.assert.calledOnce(LazyLoader.load);
 
@@ -116,15 +116,15 @@ suite('Startup >', function() {
       Navigation.on.withArgs('navigated').getCall(0).args[1];
     sinon.assert.calledWith(Navigation.off, 'navigated', onNavigatedHandler);
 
-    sinon.assert.callOrder(ThreadListUI.init, ThreadListUI.renderThreads);
+    sinon.assert.callOrder(InboxView.init, InboxView.renderThreads);
 
     // Since we've already run lazy loading we don't need to do anything once
     // first page is loaded, so no need in corresponding callback.
-    sinon.assert.calledWith(ThreadListUI.renderThreads, undefined);
+    sinon.assert.calledWith(InboxView.renderThreads, undefined);
 
     // App is marked is ready only when all threads are loaded
     sinon.assert.notCalled(App.setReady);
-    ThreadListUI.renderThreads.lastCall.returnValue.then(() => {
+    InboxView.renderThreads.lastCall.returnValue.then(() => {
       sinon.assert.calledOnce(App.setReady);
     }).then(done, done);
   });

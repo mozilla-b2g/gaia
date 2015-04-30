@@ -42,17 +42,17 @@ var Navigation = {
 
   panels: {
     'thread': {
-      behaviour: 'ThreadUI',
+      behaviour: 'ConversationView',
       wrapperPosition: 'left',
       container: 'thread-messages'
     },
     'thread-list': {
-      behaviour: 'ThreadListUI',
+      behaviour: 'InboxView',
       wrapperPosition: 'right',
       container: 'thread-list'
     },
     'composer': {
-      behaviour: 'ThreadUI',
+      behaviour: 'ConversationView',
       wrapperPosition: 'left',
       container: 'thread-messages'
     },

@@ -51,7 +51,7 @@
       messageConvertNotice: '#messages-convert-notice'
     },
 
-    Thread: {
+    Conversation: {
       main: '#thread-messages',
       message: '.message .bubble',
       headerTitle: '#messages-header-text',
@@ -64,11 +64,11 @@
       fileName: '.file-name'
     },
 
-    ThreadList: {
+    Inbox: {
       main: '#thread-list',
-      firstThread: '.threadlist-item',
-      smsThread: '.threadlist-item[data-last-message-type="sms"]',
-      mmsThread: '.threadlist-item[data-last-message-type="mms"]',
+      firstConversation: '.threadlist-item',
+      smsConversation: '.threadlist-item[data-last-message-type="sms"]',
+      mmsConversation: '.threadlist-item[data-last-message-type="mms"]',
       navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
@@ -154,13 +154,15 @@
           }
         },
 
-        Thread: {
+        Conversation: {
           get message() {
-            return client.helper.waitForElement(SELECTORS.Thread.message);
+            return client.helper.waitForElement(SELECTORS.Conversation.message);
           },
 
           get headerTitle() {
-            return client.helper.waitForElement(SELECTORS.Thread.headerTitle);
+            return client.helper.waitForElement(
+              SELECTORS.Conversation.headerTitle
+            );
           },
 
           getMessageContent: function(message) {
@@ -174,42 +176,44 @@
           },
 
           scrollUp: function() {
-            actions.flick(
-              client.findElement(SELECTORS.Thread.container), 50, 50, 50, 350
-            ).perform();
+            var conversationContainer = client.findElement(
+              SELECTORS.Conversation.container
+            );
+
+            actions.flick(conversationContainer, 50, 50, 50, 350).perform();
           },
 
           waitToAppear: function() {
-            return client.helper.waitForElement(SELECTORS.Thread.main);
+            return client.helper.waitForElement(SELECTORS.Conversation.main);
           }
         },
 
-        ThreadList: {
-          get firstThread() {
+        Inbox: {
+          get firstConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.firstThread
+              SELECTORS.Inbox.firstConversation
             );
           },
 
-          get smsThread() {
+          get smsConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.smsThread
+              SELECTORS.Inbox.smsConversation
             );
           },
 
-          get mmsThread() {
+          get mmsConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.mmsThread
+              SELECTORS.Inbox.mmsConversation
             );
           },
 
           waitToAppear: function() {
-            return client.helper.waitForElement(SELECTORS.ThreadList.main);
+            return client.helper.waitForElement(SELECTORS.Inbox.main);
           },
 
           navigateToComposer: function() {
             client.helper.waitForElement(
-              SELECTORS.ThreadList.navigateToComposerHeaderButton
+              SELECTORS.Inbox.navigateToComposerHeaderButton
             ).tap();
           }
         },
@@ -322,8 +326,8 @@
           }.bind(this));
           this.Composer.sendButton.tap();
 
-          // Wait when after send we're redirected to Thread panel
-          client.helper.waitForElement(this.Thread.message);
+          // Wait when after send we're redirected to Conversation panel
+          client.helper.waitForElement(this.Conversation.message);
         },
 
         showSubject: function() {

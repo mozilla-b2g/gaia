@@ -2,7 +2,7 @@
          Compose, Attachment, MockMozActivity, Settings, Utils,
          Draft, Blob,
          Threads,
-         ThreadUI, SMIL,
+         ConversationView, SMIL,
          InputEvent,
          MessageManager,
          Navigation,
@@ -23,7 +23,7 @@ require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
-require('/js/compose.js');
+require('/views/conversation/js/compose.js');
 require('/js/utils.js');
 require('/js/drafts.js');
 
@@ -35,7 +35,7 @@ require('/test/unit/mock_recipients.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_moz_activity.js');
-require('/test/unit/mock_thread_ui.js');
+require('/test/unit/mock_conversation.js');
 require('/test/unit/mock_smil.js');
 require('/test/unit/mock_subject_composer.js');
 
@@ -49,7 +49,7 @@ var mocksHelperForCompose = new MocksHelper([
   'Utils',
   'MozActivity',
   'Attachment',
-  'ThreadUI',
+  'ConversationView',
   'SMIL',
   'SubjectComposer',
   'OptionMenu'
@@ -176,15 +176,15 @@ suite('compose_test.js', function() {
     var mockRecipients;
 
     setup(function() {
-      this.sinon.stub(ThreadUI, 'on');
+      this.sinon.stub(ConversationView, 'on');
       loadBodyHTML('/index.html');
-      mockRecipients = ThreadUI.recipients;
+      mockRecipients = ConversationView.recipients;
       Settings.supportEmailRecipient = true;
-      ThreadUI.recipients = null;
+      ConversationView.recipients = null;
     });
 
     teardown(function() {
-      ThreadUI.recipients = mockRecipients;
+      ConversationView.recipients = mockRecipients;
     });
 
     test('Should be initializable without recipients', function() {
@@ -196,11 +196,11 @@ suite('compose_test.js', function() {
     var message, sendButton, attachButton, form;
 
     setup(function() {
-      this.sinon.stub(ThreadUI, 'on');
+      this.sinon.stub(ConversationView, 'on');
 
       loadBodyHTML('/index.html');
       // this needs a proper DOM
-      ThreadUI.initRecipients();
+      ConversationView.initRecipients();
       Settings.supportEmailRecipient = true;
       Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
@@ -648,31 +648,31 @@ suite('compose_test.js', function() {
     suite('Changing content marks draft as edited', function() {
 
       setup(function() {
-        ThreadUI.draft = new Draft({
+        ConversationView.draft = new Draft({
           isEdited: false
         });
       });
 
       test('Changing message', function() {
         Compose.append('Message');
-        assert.isTrue(ThreadUI.draft.isEdited);
+        assert.isTrue(ConversationView.draft.isEdited);
       });
 
       test('Changing subject', function() {
         SubjectComposer.prototype.on.withArgs('change').yield();
 
-        assert.isTrue(ThreadUI.draft.isEdited);
+        assert.isTrue(ConversationView.draft.isEdited);
       });
 
       test('Hiding or showing subject', function() {
         SubjectComposer.prototype.on.withArgs('visibility-change').yield();
 
-        assert.isTrue(ThreadUI.draft.isEdited);
+        assert.isTrue(ConversationView.draft.isEdited);
       });
 
       test('Changing attachments', function() {
         Compose.append(mockAttachment({ size: 12345 }));
-        assert.isTrue(ThreadUI.draft.isEdited);
+        assert.isTrue(ConversationView.draft.isEdited);
       });
     });
 
@@ -952,12 +952,12 @@ suite('compose_test.js', function() {
 
       test('Message switches type when there is an e-mail among the recipients',
       function() {
-        ThreadUI.recipients.add({
+        ConversationView.recipients.add({
           number: 'foo@bar.com',
           isEmail: true
         });
 
-        ThreadUI.on.withArgs('recipientschange').yield();
+        ConversationView.on.withArgs('recipientschange').yield();
 
         sinon.assert.calledOnce(typeChangeStub);
         assert.equal(Compose.type, 'mms');
@@ -1202,14 +1202,14 @@ suite('compose_test.js', function() {
           Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
           Compose.clear();
-          ThreadUI.recipients.length = 0;
-          ThreadUI.recipients.inputValue = '';
+          ConversationView.recipients.length = 0;
+          ConversationView.recipients.inputValue = '';
         });
 
         teardown(function() {
           Compose.clear();
-          ThreadUI.recipients.length = 0;
-          ThreadUI.recipients.inputValue = '';
+          ConversationView.recipients.length = 0;
+          ConversationView.recipients.inputValue = '';
         });
 
         suite('enabled', function() {
@@ -1224,43 +1224,43 @@ suite('compose_test.js', function() {
             });
 
             test('and recipient field value is valid ', function() {
-              ThreadUI.recipients.inputValue = '999';
+              ConversationView.recipients.inputValue = '999';
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isFalse(sendButton.disabled);
             });
 
             test('after adding a valid recipient ', function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: '999'
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isFalse(sendButton.disabled);
             });
 
             test('after adding valid & questionable recipients ', function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: 'foo',
                 isQuestionable: true
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: '999'
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isFalse(sendButton.disabled);
             });
           });
 
           test('when message input size is at the maximum', function() {
-            ThreadUI.recipients.add({ number: '999' });
+            ConversationView.recipients.add({ number: '999' });
             Settings.mmsSizeLimitation = 1024;
 
             Compose.append(mockAttachment({ size: 1024 }));
@@ -1278,36 +1278,36 @@ suite('compose_test.js', function() {
             });
 
             test('and recipient field value is valid ', function() {
-              ThreadUI.recipients.inputValue = '999';
+              ConversationView.recipients.inputValue = '999';
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isFalse(sendButton.disabled);
             });
 
             test('after adding a valid recipient ', function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: '999'
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isFalse(sendButton.disabled);
             });
 
             test('after adding valid & questionable recipients ', function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: 'foo',
                 isQuestionable: true
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: '999'
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isFalse(sendButton.disabled);
             });
@@ -1315,11 +1315,11 @@ suite('compose_test.js', function() {
 
           suite('when a valid recipient exists...', function() {
             setup(function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: '999'
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
             });
 
             test('after adding message input ', function() {
@@ -1354,7 +1354,7 @@ suite('compose_test.js', function() {
           });
 
           test('when message is over data limit ', function() {
-            ThreadUI.recipients.add({
+            ConversationView.recipients.add({
               number: '999'
             });
 
@@ -1380,20 +1380,20 @@ suite('compose_test.js', function() {
             });
 
             test('recipient field value is questionable ', function() {
-              ThreadUI.recipients.inputValue = 'a';
+              ConversationView.recipients.inputValue = 'a';
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isTrue(sendButton.disabled);
             });
 
             test('after adding a questionable recipient ', function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: 'foo',
                 isQuestionable: true
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isFalse(sendButton.disabled);
             });
@@ -1416,30 +1416,30 @@ suite('compose_test.js', function() {
             });
 
             test('recipient field value is questionable ', function() {
-              ThreadUI.recipients.inputValue = 'a';
+              ConversationView.recipients.inputValue = 'a';
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isTrue(sendButton.disabled);
             });
 
             test('after adding a questionable recipient ', function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: 'foo',
                 isQuestionable: true
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isTrue(sendButton.disabled);
             });
 
             test('there is recipient, but subject field is hidden', function() {
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: '999'
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isTrue(sendButton.disabled);
             });
@@ -1448,11 +1448,11 @@ suite('compose_test.js', function() {
           suite('when a valid recipient exists...', function() {
             test('there is no message input ', function() {
 
-              ThreadUI.recipients.add({
+              ConversationView.recipients.add({
                 number: 'foo'
               });
 
-              ThreadUI.on.withArgs('recipientschange').yield();
+              ConversationView.on.withArgs('recipientschange').yield();
 
               assert.isTrue(sendButton.disabled);
             });
@@ -1473,11 +1473,11 @@ suite('compose_test.js', function() {
 
           this.sinon.stub(Utils, 'getResizedImgBlob');
 
-          ThreadUI.recipients.add({
+          ConversationView.recipients.add({
             number: '999'
           });
 
-          ThreadUI.on.withArgs('recipientschange').yield();
+          ConversationView.on.withArgs('recipientschange').yield();
 
           function onInput() {
             if (!Compose.isResizing) {

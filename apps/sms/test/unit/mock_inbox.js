@@ -1,8 +1,8 @@
-/*exported MockThreadListUI */
+/*exported MockInboxView */
 
 'use strict';
 
-var MockThreadListUI = {
+var MockInboxView = {
   count: 0,
   inEditMode: false,
   container: document.createElement('div'),
