@@ -586,8 +586,7 @@
     }
   };
 
-  TaskManager.prototype.exitToApp = function(app,
-                                             openAnimation) {
+  TaskManager.prototype.exitToApp = function(app, openAnimation, defer) {
     // Tell all applications we're about to leave task manager.
     debug('exitToApp: ' + (app ? app.title : 'null'));
     this.unfilteredStack && this.unfilteredStack.forEach(function(app) {
@@ -607,7 +606,17 @@
       this.newStackPosition = position;
     }
     debug('exitToApp, opening app: ' + app.title);
-    app.open(openAnimation || 'from-cardview');
+
+    if(defer) {
+      // XXX: This workaround is for Bug 1157133 to avoid calling
+      // "app.requestForeground()" before "System.locked" is set properly.
+      setTimeout(function() {
+        app.open(openAnimation || 'from-cardview');
+      });
+    } else {
+      app.open(openAnimation || 'from-cardview');
+    }
+
     this.hide();
   };
 
@@ -851,7 +860,7 @@
           app = this.stack[this.currentPosition];
         }
         // no need to animate while in background
-        this.exitToApp(app, 'immediately');
+        this.exitToApp(app, 'immediately', evt.type == 'lockscreen-appopened');
         break;
 
       case 'taskmanagershow':
