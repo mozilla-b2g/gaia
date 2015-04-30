@@ -34,6 +34,13 @@ var FLAVORS = {
       main: 'contact-suggestion-tmpl'
     }
   },
+  suggestionPartial: {
+    renderAll: false,
+    shouldHighlight: true,
+    templates: {
+      main: 'contact-suggestion-tmpl'
+    }
+  },
   suggestionUnknown: {
     renderAll: true,
     shouldHighlight: true,
@@ -229,7 +236,7 @@ ContactRenderer.prototype = {
       // input value when not rendering all values. If the tel
       // record value _doesn't_ match, then continue.
       //
-      if (!renderAll && !Utils.probablyMatches(current.value, input)) {
+      if (!renderAll && !Utils.telProbablyMatches(current.value, input)) {
         return;
       }
 

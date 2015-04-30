@@ -228,6 +228,31 @@
       return a === b || a.slice(-7) === b.slice(-7);
     },
 
+    telProbablyMatches: function ut_telProbablyMatches(a, b) {
+      var service = navigator.mozPhoneNumberService;
+
+      // String comparison starts here
+      if (typeof a !== 'string' || typeof b !== 'string') {
+        return false;
+      }
+
+      if (Settings.supportEmailRecipient &&
+          Utils.isEmailAddress(a) &&
+          Utils.isEmailAddress(b)) {
+        return a === b;
+      }
+
+      if (service && service.normalize) {
+        a = service.normalize(a);
+        b = service.normalize(b);
+      } else {
+        a = Utils.removeNonDialables(a);
+        b = Utils.removeNonDialables(b);
+      }
+
+      return a.contains(b);
+    },
+
     /**
      * multiRecipientMatch
      *

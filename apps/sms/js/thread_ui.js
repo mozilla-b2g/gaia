@@ -2669,6 +2669,7 @@ var ThreadUI = {
 
     // Render each contact in the contacts results
     var renderer = ContactRenderer.flavor('suggestion');
+    var telRenderer = ContactRenderer.flavor('suggestionPartial');
     var unknownContactsRenderer = ContactRenderer.flavor('suggestionUnknown');
 
     contacts.forEach(function(contact) {
@@ -2678,7 +2679,20 @@ var ThreadUI = {
         target: suggestionList,
         skip: this.recipients.numbers
       };
-      if (contact.source != 'unknown') {
+
+      //Check if this contact was matched on 'tel'
+      var matchedOnTel;
+
+      for (var i = 0; i < contact.tel.length; i++) {
+        if (contact.tel[i].value.indexOf(fValue) != -1){
+            matchedOnTel = true;
+        }
+      }
+      //If this contact was matched on tel, use a different renderer
+      if (matchedOnTel) {
+        telRenderer.render(rendererArg);
+      }
+      else if (contact.source != 'unknown') {
         renderer.render(rendererArg);
       }
       else {
