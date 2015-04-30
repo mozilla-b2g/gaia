@@ -109,6 +109,8 @@ ViewManager.prototype.render = function (layout, flags, callback) {
     if (flags.showCandidatePanel) {
       this.showCandidates([]);
     }
+  } else if (typeof pageView.refresh === 'function') {
+    pageView.refresh();
   }
 
   // Make sure the container is switched to the current uppercase state.
@@ -338,6 +340,8 @@ ViewManager.prototype._createPageView = function (layout, options) {
 
   if (layout.panelKeys) {
     pageView = new SwipeablePageView(layout, options, this);
+  } else if (layout.dynamicPanelKeys) {
+    pageView = new DynamicPageView(layout, options, this);
   } else {
     pageView = new LayoutPageView(layout, options, this);
   }

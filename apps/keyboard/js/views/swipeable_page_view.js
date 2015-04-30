@@ -18,6 +18,8 @@ SwipeablePageView.prototype.render = function() {
   var layout = this.layout;
 
   var container = document.createElement('div');
+  this.element = container;
+
   if (this.options.classNames) {
     container.classList.add.apply(container.classList, this.options.classNames);
   }
@@ -32,6 +34,17 @@ SwipeablePageView.prototype.render = function() {
   swipeablePanel.render();
 
   container.appendChild(swipeablePanel.element);
+
+  this._renderKeys();
+
+  // XXX: need this so that the switching keys would be visible.
+  if (!layout.secondLayout) {
+    container.classList.add('uppercase-only');
+  }
+};
+
+SwipeablePageView.prototype._renderKeys = function() {
+  var layout = this.layout;
 
   // Render the bottom row for switching different type of emojis
   layout.keys.forEach(function buildKeyboardRow(row) {
@@ -62,15 +75,8 @@ SwipeablePageView.prototype.render = function() {
       kbRow.appendChild(keyView.element);
     }, this);
 
-    container.appendChild(kbRow);
+    this.element.appendChild(kbRow);
   }, this);
-
-  // XXX: need this so that the switching keys would be visible.
-  if (!layout.secondLayout) {
-    container.classList.add('uppercase-only');
-  }
-
-  this.element = container;
 };
 
 SwipeablePageView.prototype.getHeight = function() {
