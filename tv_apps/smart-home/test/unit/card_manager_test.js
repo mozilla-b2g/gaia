@@ -457,6 +457,48 @@ suite('smart-home/CardManager', function() {
 
   });
 
+  suite('removeCard()', function() {
+    var cardManager;
+    setup(function() {
+      cardManager = prepareCardManagerForTesting();
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('should be able to remove card with index specified', function() {
+      assert.ok(
+        cardManager.findCardFromCardList({
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'})
+      );
+
+      cardManager.removeCard(1); // remove card of 'Music' app
+
+      assert.isUndefined(
+        cardManager.findCardFromCardList({
+          manifestURL: 'app://music.gaiamobile.org/manifest.webapp'})
+      );
+    });
+
+    test('should be able to remove card within folder', function(done) {
+      assert.ok(
+        cardManager.findCardFromCardList({
+          manifestURL: 'app://video.gaiamobile.org/manifest.webapp'})
+      );
+
+      cardManager.getCardList().then(function(cardList) {
+        cardManager.removeCard(cardList[3].getCardList()[0]);
+
+        assert.isUndefined(
+          cardManager.findCardFromCardList({
+            manifestURL: 'app://video.gaiamobile.org/manifest.webapp'})
+        );
+      }).then(done, done);
+    });
+  });
+
   suite('writeCardlistInCardStore()', function() {
     var cardManager;
 
