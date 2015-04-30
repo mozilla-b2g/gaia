@@ -613,15 +613,6 @@ var ThreadListUI = {
     });
   },
 
-  prepareRendering: function thlui_prepareRendering() {
-    this.container.innerHTML = '';
-    this.renderDrafts();
-  },
-
-  startRendering: function thlui_startRenderingThreads() {
-    this.setEmpty(false);
-  },
-
   finalizeRendering: function thlui_finalizeRendering(empty) {
     if (empty) {
       this.setEmpty(true);
@@ -644,7 +635,7 @@ var ThreadListUI = {
     var hasThreads = false;
     var firstPanelCount = this.FIRST_PANEL_THREAD_COUNT;
 
-    this.prepareRendering();
+    this.renderDrafts();
 
     var firstViewDone = function firstViewDone() {
       this.initStickyHeader();
@@ -659,16 +650,8 @@ var ThreadListUI = {
       // Register all threads to the Threads object.
       Threads.set(thread.id, thread);
 
-      // If one of the requested threads is also the currently displayed thread,
-      // update the header immediately
-      // TODO: Revise necessity of this code in bug 1050823
-      if (Navigation.isCurrentPanel('thread', { id: thread.id })) {
-        ThreadUI.updateHeaderData();
-      }
-
       if (!hasThreads) {
         hasThreads = true;
-        this.startRendering();
       }
 
       this.appendThread(thread);
@@ -823,17 +806,20 @@ var ThreadListUI = {
   insertThreadContainer:
     function thlui_insertThreadContainer(group, timestamp) {
     // We look for placing the group in the right place.
-    var headers = ThreadListUI.container.getElementsByTagName('header');
-    var groupFound = false;
-    for (var i = 0; i < headers.length; i++) {
-      if (timestamp >= headers[i].dataset.time) {
-        groupFound = true;
-        ThreadListUI.container.insertBefore(group, headers[i].parentNode);
+    var headers = this.container.getElementsByTagName('header');
+    var targetIdx = -1;
+    var lastIdx = headers.length - 1;
+    for (var i = lastIdx; i >= 0; i--) {
+      if (timestamp < headers[i].dataset.time) {
+        targetIdx = i;
         break;
       }
     }
-    if (!groupFound) {
-      ThreadListUI.container.appendChild(group);
+
+    if (targetIdx === lastIdx) {
+      this.container.appendChild(group);
+    } else {
+      this.container.insertBefore(group, headers[targetIdx + 1]);
     }
   },
 
@@ -928,28 +914,30 @@ var ThreadListUI = {
     if (!threadsContainer) {
       // We create the wrapper with a 'header' & 'ul'
       var threadsContainerWrapper =
-        ThreadListUI.createThreadContainer(timestamp);
+        this.createThreadContainer(timestamp);
       // Update threadsContainer with the new value
       threadsContainer = threadsContainerWrapper.childNodes[1];
       // Place our new content in the DOM
-      ThreadListUI.insertThreadContainer(threadsContainerWrapper, timestamp);
+      this.insertThreadContainer(threadsContainerWrapper, timestamp);
       // We had to create a container, so this will be the first thread in it.
       firstThreadInContainer = true;
     }
 
     // Where have I to place the new thread?
     var threads = threadsContainer.getElementsByTagName('li');
-    var threadFound = false;
-    for (var i = 0, l = threads.length; i < l; i++) {
-      if (timestamp > threads[i].dataset.time) {
-        threadFound = true;
-        threadsContainer.insertBefore(node, threads[i]);
+    var targetIdx = -1;
+    var lastIdx = threads.length - 1;
+    for (var i = lastIdx; i >= 0; i--) {
+      if (timestamp < threads[i].dataset.time) {
+        targetIdx = i;
         break;
       }
     }
 
-    if (!threadFound) {
+    if (targetIdx === lastIdx) {
       threadsContainer.appendChild(node);
+    } else {
+      threadsContainer.insertBefore(node, threads[targetIdx + 1]);
     }
 
     if (this.inEditMode) {
