@@ -1673,10 +1673,17 @@ var ThreadUI = {
       });
     }
 
+    var timestamp;
+    if (message.delivery == 'sending' || message.delivery == 'sent') {
+      timestamp = String(message.timestamp);
+    } else {
+      timestamp = String(message.sentTimestamp);
+    }
+
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
       bodyHTML: bodyHTML,
-      timestamp: String(message.timestamp),
+      timestamp: timestamp,
       subject: String(message.subject),
       simInformationHTML: simInformationHTML,
       messageStatusHTML: this.getMessageStatusMarkup(messageStatus).toString()
@@ -1717,7 +1724,12 @@ var ThreadUI = {
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
-    var timestamp = +message.timestamp;
+    var timestamp;
+    if (message.delivery == 'sending' || message.delivery == 'sent') {
+      timestamp = +message.timestamp;
+    } else {
+      timestamp = +message.sentTimestamp;  
+    }
 
     // look for an old message and remove it first - prevent anything from ever
     // double rendering for now
