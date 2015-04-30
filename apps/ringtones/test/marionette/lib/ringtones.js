@@ -345,8 +345,8 @@ NewRingtoneContainer.Selectors = Object.freeze({
   cancelButton: '#header',
   saveButton: 'button#save',
 
-  songTitle: 'p#songtitle',
-  artist: 'p#artist'
+  songTitle: '#songtitle',
+  artist: '#artist'
 });
 
 NewRingtoneContainer.prototype = {

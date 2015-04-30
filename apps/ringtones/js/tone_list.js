@@ -99,7 +99,9 @@ var ToneList = (function() {
       if (tone.subtitle) {
         var subtitle = document.createElement('p');
         subtitle.classList.add('subtitle');
-        subtitle.textContent = tone.subtitle;
+        var bdi = document.createElement('bdi');
+        bdi.textContent = tone.subtitle;
+        subtitle.appendChild(bdi);
         item.querySelector('.name').parentNode.appendChild(subtitle);
       }
 
