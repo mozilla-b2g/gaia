@@ -1234,3 +1234,11 @@ html[dir="rtl"] .list-song-length {
   opacity: 1;
   transition: all 600ms ease;
 }
+
+/* See bug 1158043 */
+#title-text bdi {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
