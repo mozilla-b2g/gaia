@@ -11,6 +11,10 @@ define(function() {
       this.status = status;
       this.onreadystatechange();
     },
+    triggerOnLoad: function(status) {
+      this.status = status;
+      this.onload();
+    },
     open: function(requestType, requestUrl) {
       this.data.requestType = requestType;
       this.data.requestUrl = requestUrl;
