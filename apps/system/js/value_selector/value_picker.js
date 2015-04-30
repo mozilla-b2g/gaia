@@ -123,10 +123,10 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.addPickerUnit = function(index) {
-    var html = this._valueDisplayedText[index];
+    var content = this._valueDisplayedText[index];
     var unit = document.createElement('div');
     unit.className = this._unitClassName;
-    unit.innerHTML = html;
+    unit.textContent = content;
     this.element.appendChild(unit);
   };
 
