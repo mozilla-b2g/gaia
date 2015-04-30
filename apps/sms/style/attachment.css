@@ -17,6 +17,11 @@
   -moz-user-select: none;
 }
 
+.attachment-container.attachment-will-be-deleted {
+  outline: 2px solid red;
+  outline-offset: -2px;
+}
+
 .attachment-draft {
   margin: 0;
   padding: 0;

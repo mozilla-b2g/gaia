@@ -190,6 +190,21 @@ var Compose = (function() {
       state.size = null;
       compose.unlock();
     }
+    if (e.which === 8) {
+      var selection = window.getSelection();
+      if (!selection.isCollapsed) {
+        return;
+      }
+      selection.modify('extend', 'backward', 'word');
+      var node;
+      var nodes = [...attachments.keys()];
+      if ((node = nodes.find(node => selection.containsNode(node, false)))) {
+        e.preventDefault();
+        node.classList.add('attachment-will-be-deleted');
+      } else {
+        selection.collapseToEnd();
+      }
+    }
   }
 
   function insert(item) {
