@@ -24,9 +24,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         marketplace = Marketplace(self.marionette)
         marketplace.launch()
 
-        marketplace.search(self.app_search)
-        # Make sure All apps is chosen as search filter
-        results = marketplace.filter_search_all_apps()
+        results = marketplace.search(self.app_search)
         first_result = results.search_results[0]
         app_name = first_result.get_app_name()
         first_result.tap_install_button()

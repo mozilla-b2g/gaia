@@ -15,24 +15,8 @@ class Marketplace(Base):
     _search_locator = (By.ID, 'search-q')
     _filter_locator = (By.ID, 'compat-filter')
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
+    _search_toggle_locator = (By.CSS_SELECTOR, '.header--search-toggle')
     name = 'Marketplace'
-
-    def filter_search_all_apps(self):
-        filter_select = Wait(self.marionette).until(
-            expected.element_present(*self._filter_locator))
-        Wait(self.marionette).until(expected.element_displayed(filter_select))
-        filter_select.tap()
-
-        self.select('All Apps', tap_close=False)
-
-        # After the select is gone, go back to the Marketplace app
-        self.apps.switch_to_displayed_app()
-        iframe = Wait(self.marionette).until(
-            expected.element_present(*self._marketplace_iframe_locator))
-        Wait(self.marionette).until(expected.element_displayed(iframe))
-        self.marionette.switch_to_frame(iframe)
-
-        return SearchResults(self.marionette)
 
     def search(self, term):
         iframe = Wait(self.marionette).until(
@@ -43,6 +27,11 @@ class Marketplace(Base):
         # This sleep seems necessary, otherwise on device we get timeout failure on display search_box sometimes, see bug 1136791
         import time
         time.sleep(10)
+
+        search_toggle = Wait(self.marionette).until(
+            expected.element_present(*self._search_toggle_locator))
+        Wait(self.marionette).until(expected.element_displayed(search_toggle))
+        search_toggle.tap()
 
         search_box = Wait(self.marionette).until(
             expected.element_present(*self._search_locator))
