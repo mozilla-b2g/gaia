@@ -24,7 +24,7 @@ var AlarmEdit = function() {
 
   this.selects = {};
   [
-    'time', 'repeat', 'sound', 'snooze'
+    'time', 'repeat', 'sound', 'snooze', 'duration'
   ].forEach(function(id) {
     this.selects[id] = this.element.querySelector('#' + id + '-select');
   }, this);
@@ -76,7 +76,19 @@ var AlarmEdit = function() {
       return _('nMinutes', {n: snooze});
     }
   });
-
+  this.buttons.duration = new FormButton(this.selects.duration, {
+    id: 'duration-menu',
+    formatLabel: function(duration) {
+      switch (duration) {
+        case '0':
+          return 'Until canceled';
+        case '1':
+          return '1 minute';
+        default:
+          return _('nMinutes', {n: duration});
+      }
+    }
+  });
   this.scrollList = this.element.querySelector('#edit-alarm');
   this.sundayListItem = this.element.querySelector('#repeat-select-sunday');
 
@@ -220,6 +232,7 @@ Utils.extend(AlarmEdit.prototype, {
     this.initRepeatSelect();
     this.initSoundSelect();
     this.initSnoozeSelect();
+    this.initDurationSelect();
     this.checkboxes.vibrate.checked = this.alarm.vibrate;
 
     // Update the labels for any FormButton dropdowns that have
@@ -278,6 +291,15 @@ Utils.extend(AlarmEdit.prototype, {
     return this.buttons.snooze.value;
   },
 
+  initDurationSelect: function aev_initDurationeSelect() {
+    this.buttons.duration.value = this.alarm.duration;
+  },
+
+  getDurationSelect: function aev_getDurationSelect() {
+    return this.buttons.duration.value;
+  },
+
+
   getRepeatSelect: function aev_getRepeatSelect() {
     return this.buttons.repeat.value;
   },
@@ -310,6 +332,7 @@ Utils.extend(AlarmEdit.prototype, {
     alarm.sound = this.getSoundSelect();
     alarm.vibrate = this.checkboxes.vibrate.checked;
     alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
+    alarm.duration = parseInt(this.getDurationSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
     this.isSaving = true;

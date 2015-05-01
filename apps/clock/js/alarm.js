@@ -20,7 +20,8 @@ define(function(require, exports, module) {
       label: '',
       sound: 'ac_awake.opus',
       vibrate: true,
-      snooze: 10 // Number of minutes to snooze
+      snooze: 10, // Number of minutes to snooze
+      duration: 0 // Number of minutes to wait before autocancel [0 = never]
     };
 
     for (var key in defaults) {
@@ -39,7 +40,8 @@ define(function(require, exports, module) {
         label: this.label,
         sound: this.sound,
         vibrate: this.vibrate,
-        snooze: this.snooze
+        snooze: this.snooze,
+        duration: this.duration
       };
     },
 

@@ -60,6 +60,16 @@
     </select>
   </li>
   <li>
+    <label class="view-alarm-lbl duration-lbl" data-l10n-id="duration">Duration</label>
+    <select id="duration-select">
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": 1}' value="1">1 minute</option>
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": 2}' value="2">2 minutes</option>
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": 3}' value="3">3 minutes</option>
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": 5}' value="5">5 minutes</option>
+      <option data-l10n-id="until-canceled" value="0" selected>Until canceled</option>
+    </select>
+  </li>
+  <li>
     <label class="alarm-volume-lbl"
            id="alarm-volume-lbl"
            data-l10n-id="alarm-volume-label">Alarm Volume</label>
