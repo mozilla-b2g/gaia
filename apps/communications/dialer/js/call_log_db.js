@@ -9,7 +9,9 @@ var CallLogDBManager = {
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',
   _dbGroupsStore: 'dialerGroups',
-  _dbVersion: 6,
+  _dbMiscStore: 'misc',
+  _dbContactsRevisionKey: 'contactsRevision',
+  _dbVersion: 7,
   _maxNumberOfGroups: 200,
   _numberOfGroupsToDelete: 30,
 
@@ -89,6 +91,9 @@ var CallLogDBManager = {
                 self._upgradeSchemaVersion6(db, txn, next);
                 break;
               case 6:
+                self._upgradeSchemaVersion7(db, txn, next);
+                break;
+              case 7:
                 // we have finished the upgrades. please keep this
                 // in sync for future upgrades, since otherwise it
                 // will call the default: and abort the transaction :(
@@ -257,6 +262,15 @@ var CallLogDBManager = {
     function upgradeSchemaVersion6(db, transaction, next) {
     // Remove the unused dialerRecents store
     db.deleteObjectStore(this._dbRecentsStore);
+
+    next();
+  },
+  /**
+   * Add the 'misc' store used for storing miscellaneous flags and options.
+   */
+  _upgradeSchemaVersion7:
+    function upgradeSchemaVersion7(db, transaction, next) {
+    db.createObjectStore(this._dbMiscStore);
 
     next();
   },
@@ -908,16 +922,31 @@ var CallLogDBManager = {
    * be called after refresing the local cache because of a contact updated, a
    * contact deletion or a cache sync.
    *
-   * @param {Function} callback A callback to be invoked when the operation is
-   *        complete.
+   * @param {Integer} revision The new revision of the contacts cache.
+   * @returns {Object} A promise resolving to the old revision of the contacts
+   *          cache that was stored in the database.
    */
-  _updateCacheRevision: function _updateCacheRevision(callback) {
-    Contacts.getRevision(function(contactsRevision) {
-      if (contactsRevision) {
-        window.asyncStorage.setItem('contactCacheRevision',
-                                    contactsRevision);
-      }
-      callback();
+  updateCacheRevision: function updateCacheRevision(revision) {
+    var self = this;
+
+    return new Promise(function(resolve, reject) {
+      this._newTxn('readwrite', [this._dbMiscStore],
+                  function(error, txn, store) {
+        if (error) {
+          reject(error);
+        }
+
+        var oldRevision = 0;
+
+        txn.oncomplete = function() {
+          resolve(oldRevision);
+        };
+
+        store.get(self._dbContactsRevisionKey).success = function() {
+          oldRevision = this.result;
+          store.put(revision, self._dbContactsRevisionKey);
+        };
+      });
     });
   },
 
@@ -941,63 +970,68 @@ var CallLogDBManager = {
                                                           callback) {
 
     var self = this;
-    this._newTxn('readwrite', [this._dbGroupsStore],
-                  function(error, txn, store) {
-      var result;
 
-      if (error) {
-        self._asyncReturn(callback, error);
-        return;
-      }
+    Contacts.getRevision().then(function(contactsRevision) {
+      self._newTxn('readwrite', [self._dbGroupsStore, self._dbMiscStore],
+                    function(error, txn, stores) {
+        var result;
+        var groupsStore = stores[0];
+        var miscStore = stores[1];
 
-      if (!contact) {
-        self._asyncReturn(callback, 0);
-        return;
-      }
-
-      txn.oncomplete = function() {
-        self._updateCacheRevision(function() {
-          self._asyncReturn(callback, result);
-        });
-      };
-
-      var count = 0;
-      var req = store.index('number')
-                     .openCursor(IDBKeyRange.only(matchingTel.value));
-      req.onsuccess = function onsuccess(event) {
-        var cursor = event.target.result;
-        if (cursor && cursor.value) {
-          var group = cursor.value;
-          group.contactId = contact.id;
-          var photo = ContactPhotoHelper.getThumbnail(contact);
-          if (photo) {
-            group.contactPhoto = photo;
-          }
-          if (matchingTel) {
-            var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
-                                                              contact);
-            if (Array.isArray(primaryInfo) && primaryInfo[0]) {
-              primaryInfo = primaryInfo[0];
-            }
-            group.contactPrimaryInfo = String(primaryInfo);
-            if (Array.isArray(matchingTel.type) && matchingTel.type[0]) {
-              group.contactMatchingTelType = String(matchingTel.type[0]);
-            }
-            if (matchingTel.carrier) {
-              group.contactMatchingTelCarrier = String(matchingTel.carrier);
-            }
-          }
-          cursor.update(group);
-          self._dispatchCallLogDbNewCall(self._getGroupObject(group));
-          count++;
-          cursor.continue();
-        } else {
-          result = count;
+        if (error) {
+          self._asyncReturn(callback, error);
+          return;
         }
-      };
-      req.onerror = function onerror(event) {
-        result = event.target.error;
-      };
+
+        if (!contact) {
+          self._asyncReturn(callback, 0);
+          return;
+        }
+
+        txn.oncomplete = function() {
+          self._asyncReturn(callback, result);
+        };
+
+        var count = 0;
+        var req = groupsStore.index('number')
+                             .openCursor(IDBKeyRange.only(matchingTel.value));
+        req.onsuccess = function onsuccess(event) {
+          var cursor = event.target.result;
+          if (cursor && cursor.value) {
+            var group = cursor.value;
+            group.contactId = contact.id;
+            var photo = ContactPhotoHelper.getThumbnail(contact);
+            if (photo) {
+              group.contactPhoto = photo;
+            }
+            if (matchingTel) {
+              var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+                                                                contact);
+              if (Array.isArray(primaryInfo) && primaryInfo[0]) {
+                primaryInfo = primaryInfo[0];
+              }
+              group.contactPrimaryInfo = String(primaryInfo);
+              if (Array.isArray(matchingTel.type) && matchingTel.type[0]) {
+                group.contactMatchingTelType = String(matchingTel.type[0]);
+              }
+              if (matchingTel.carrier) {
+                group.contactMatchingTelCarrier = String(matchingTel.carrier);
+              }
+            }
+            cursor.update(group);
+            self._dispatchCallLogDbNewCall(self._getGroupObject(group));
+            count++;
+            cursor.continue();
+          } else {
+            result = count;
+          }
+        };
+        req.onerror = function onerror(event) {
+          result = event.target.error;
+        };
+
+        miscStore.put(contactsRevision, self._dbContactsRevisionKey);
+      });
     });
   },
 
@@ -1028,57 +1062,61 @@ var CallLogDBManager = {
 
     var self = this;
 
-    this._newTxn('readwrite', [this._dbGroupsStore],
-                 function(error, txn, store) {
-      if (error) {
-        self._asyncReturn(callback, error);
-        callback(error);
-        return;
-      }
-
-      var count = 0;
-
-      txn.oncomplete = function() {
-        self._updateCacheRevision(function() {
-          self._asyncReturn(callback, count);
-        });
-      };
-      txn.onerror = function(event) {
-        self._asyncReturn(callback, event.target.error);
-      };
-
-      var req;
-      if (contactId) {
-        req = store.index('contactId').openCursor(contactId);
-      } else if (group) {
-        var groupId = self._getGroupId(group);
-        req = store.openCursor(groupId);
-      }
-      req.onsuccess = function onsuccess(event) {
-        var cursor = event.target.result;
-        if (cursor) {
-          var group = cursor.value;
-          if (group.contactId) {
-            delete group.contactId;
-          }
-          if (group.contactPrimaryInfo) {
-            delete group.contactPrimaryInfo;
-          }
-          if (group.contactMatchingTelType) {
-            delete group.contactMatchingTelType;
-          }
-          if (group.contactMatchingTelCarrier) {
-            delete group.contactMatchingTelCarrier;
-          }
-          if (group.contactPhoto) {
-            delete group.contactPhoto;
-          }
-          self._dispatchCallLogDbNewCall(self._getGroupObject(group));
-          cursor.update(group);
-          count++;
-          cursor.continue();
+    Contacts.getRevision().then(function(contactsRevision) {
+      self._newTxn('readwrite', [self._dbGroupsStore, self._dbMiscStore],
+                   function(error, txn, stores) {
+        if (error) {
+          self._asyncReturn(callback, error);
+          callback(error);
+          return;
         }
-      };
+
+        var groupsStore = stores[0];
+        var miscStore = stores[1];
+        var count = 0;
+
+        txn.oncomplete = function() {
+          self._asyncReturn(callback, count);
+        };
+        txn.onerror = function(event) {
+          self._asyncReturn(callback, event.target.error);
+        };
+
+        var req;
+        if (contactId) {
+          req = groupsStore.index('contactId').openCursor(contactId);
+        } else if (group) {
+          var groupId = self._getGroupId(group);
+          req = groupsStore.openCursor(groupId);
+        }
+        req.onsuccess = function onsuccess(event) {
+          var cursor = event.target.result;
+          if (cursor) {
+            var group = cursor.value;
+            if (group.contactId) {
+              delete group.contactId;
+            }
+            if (group.contactPrimaryInfo) {
+              delete group.contactPrimaryInfo;
+            }
+            if (group.contactMatchingTelType) {
+              delete group.contactMatchingTelType;
+            }
+            if (group.contactMatchingTelCarrier) {
+              delete group.contactMatchingTelCarrier;
+            }
+            if (group.contactPhoto) {
+              delete group.contactPhoto;
+            }
+            self._dispatchCallLogDbNewCall(self._getGroupObject(group));
+            cursor.update(group);
+            count++;
+            cursor.continue();
+          }
+        };
+
+        miscStore.put(contactsRevision, self._dbContactsRevisionKey);
+      });
     });
   },
 
@@ -1197,8 +1235,12 @@ var CallLogDBManager = {
 
   invalidateContactsCache: function invalidateContactsCache(callback) {
     var self = this;
+    var contactsRevision = 0;
 
-    this._gatherAllGroups().then(function(groups) {
+    Contacts.getRevision().then(function(revision) {
+      contactsRevision = revision;
+      return self._gatherAllGroups();
+    }).then(function(groups) {
       var promises = [];
 
       /* For each group gather the contact information and wheter or not it
@@ -1213,17 +1255,18 @@ var CallLogDBManager = {
       /* Iterate over all groups and store those that have been updated. Once
        * this is done update the cache revision and invoke the user provided
        * callback to finish the procedure. */
-      self._newTxn('readwrite', [self._dbGroupsStore],
-                    function(error, txn, store) {
+      self._newTxn('readwrite', [self._dbGroupsStore, self._dbMiscStore],
+                    function(error, txn, stores) {
+        var groupsStore = stores[0];
+        var miscStore = stores[1];
+
         if (error) {
           self._asyncReturn(callback, error);
           return;
         }
 
         txn.oncomplete = function onContactsUpdated() {
-          self._updateCacheRevision(function() {
-            self._asyncReturn(callback);
-          });
+          self._asyncReturn(callback);
         };
         txn.onerror = function(event) {
           self._asyncReturn(callback, event.target.error);
@@ -1231,9 +1274,11 @@ var CallLogDBManager = {
 
         for (var i = 0; i < updatedGroups.length; i++) {
           if (updatedGroups[i]) {
-            store.put(updatedGroups[i]);
+            groupsStore.put(updatedGroups[i]);
           }
         }
+
+        miscStore.put(contactsRevision, self._dbContactsRevisionKey);
       });
     });
   }

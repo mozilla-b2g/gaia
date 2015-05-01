@@ -1,5 +1,6 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* globals asyncStorage, fb, LazyLoader, MozActivity, SimplePhoneMatcher */
+
+/* exported Contacts */
 
 'use strict';
 
@@ -11,23 +12,29 @@ var Contacts = {
     '/shared/js/fb/fb_reader_utils.js'
   ],
 
-  // The mozContact API stores a revision of its database that allow us to know
-  // if we have a proper and updated contact cache.
+
+  /**
+   * Returns a promise that resolves to the contacts revision.
+   *
+   * @returns {Object} A promise that resolves to the contacts revision.
+   */
   getRevision: function getRevision(callback) {
     var mozContacts = navigator.mozContacts;
     if (!mozContacts) {
-      callback(null);
-      return;
+      return Promise.reject();
     }
 
-    var req = mozContacts.getRevision();
-    req.onsuccess = function onsuccess(event) {
-      callback(event.target.result);
-    };
-    req.onerror = function onerror(event) {
-      console.log('Error ' + event.target.error);
-      callback(null);
-    };
+    return new Promise(function(resolve, reject) {
+      var req = mozContacts.getRevision();
+      req.onsuccess = function onsuccess(event) {
+        resolve(event.target.result);
+      };
+      req.onerror = function onerror(event) {
+        console.error('Could not get the contacts revision ' +
+                      event.target.error);
+        reject(event.target.error);
+      };
+    });
   },
 
   findByNumber: function findByNumber(number, callback) {
@@ -240,6 +247,7 @@ var Contacts = {
   },
 
   sendEmailOrPick: function sendEmailOrPick(address) {
+    /*jshint -W031 */
     try {
       // We don't check the email format, lets the email
       // app do that
