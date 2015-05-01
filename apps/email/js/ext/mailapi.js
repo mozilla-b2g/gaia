@@ -2059,14 +2059,6 @@ var LEGAL_CONFIG_KEYS = [];
  */
 function reportError() {
   console.error.apply(console, arguments);
-  var msg = null;
-  for (var i = 0; i < arguments.length; i++) {
-    if (msg)
-      msg += " " + arguments[i];
-    else
-      msg = "" + arguments[i];
-  }
-  throw new Error(msg);
 }
 var unexpectedBridgeDataError = reportError,
     internalError = reportError,
