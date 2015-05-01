@@ -134,7 +134,7 @@ window.ValuePicker = (function() {
     var html = this._valueDisplayedText[index];
     var unit = document.createElement('div');
     unit.className = this._unitClassName;
-    unit.innerHTML = html;
+    unit.textContent = html;
     this.element.appendChild(unit);
   };
 
