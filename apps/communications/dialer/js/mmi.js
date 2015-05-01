@@ -163,6 +163,11 @@ var MmiManager = {
     var additionalInformation = mmiResult.additionalInformation;
 
     switch (mmiResult.serviceCode) {
+      case 'scCall':
+        /* Call control, no need to show a result page as the command will
+         * already have been executed (hang up a call, etc...). */
+        MmiUI.cancel();
+        return;
       case 'scUssd':
         // Bail out if there is nothing to show or if we got the .onsuccess
         // event after the .onussdevent.
