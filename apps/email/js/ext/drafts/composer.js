@@ -192,8 +192,12 @@ Composer.prototype = {
    * Request that a body be produced as a single Blob with the given options.
    * Multiple calls to this method may overlap concurrently.
    *
-   * @param {object} opts
-   *   { includeBcc: true } if the BCC header should be included.
+   * @param {Object} opts
+   * @param {Boolean} [opts.includeBcc=true]
+   * @param {Boolean} [opts.smtp=false]
+   *   Is this for an SMTP server?  Matters for dot-stuffing.  Our use of
+   *   Blobs currently has the side-effect of making it impossible for
+   *   smtpclient's dot-stuffing to work, which is somewhat of a problem.
    * @param {function(blob)} callback
    */
   withMessageBlob: function(opts, callback) {
@@ -216,6 +220,11 @@ Composer.prototype = {
     }
 
     var str = this._rootNode.build();
+    // smtpclient knows how to do dot-stuffing, but we bypass its dot-stuffing
+    // logic because smtpclient doesn't understand Blobs.
+    if (opts.smtp) {
+      str = str.replace(/\n\./g, '\n..');
+    }
 
     if (hasBcc) {
       str = str.replace(TEMP_BCC_REGEX, 'Bcc: ');
