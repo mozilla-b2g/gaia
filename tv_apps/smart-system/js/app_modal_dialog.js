@@ -307,8 +307,8 @@
     // Other dialogs also need to be implemented.
     switch (type) {
       case 'alert':
-        elements.alertTitle.innerHTML = title;
-        elements.alertMessage.innerHTML = message;
+        elements.alertTitle.textContent = title;
+        elements.alertMessage.textContent = message;
         elements.alert.classList.add('visible');
         if (evt.yesText) {
           elements.alertOk.removeAttribute('data-l10n-id');
@@ -327,8 +327,8 @@
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptTitle.innerHTML = title;
-        elements.promptMessage.innerHTML = message;
+        elements.promptTitle.textContent = title;
+        elements.promptMessage.textContent = message;
 
         if (evt.yesText) {
           elements.promptOk.removeAttribute('data-l10n-id');
@@ -358,8 +358,8 @@
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmTitle.innerHTML = title;
-        elements.confirmMessage.innerHTML = message;
+        elements.confirmTitle.textContent = title;
+        elements.confirmMessage.textContent = message;
 
         if (evt.yesText) {
           elements.confirmOk.removeAttribute('data-l10n-id');
@@ -389,7 +389,7 @@
       case 'custom-prompt':
         var customPrompt = evt.detail;
         elements.customPrompt.classList.add('visible');
-        elements.customPromptMessage.innerHTML = customPrompt.message;
+        elements.customPromptMessage.textContent = customPrompt.message;
         // Display custom list of buttons
         elements.customPromptButtons.innerHTML = '';
         elements.customPromptButtons.setAttribute('data-items',
