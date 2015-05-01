@@ -863,9 +863,18 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.file_manager.remove('/data/local/storage/permanent')
         self.device.file_manager.remove('/data/local/storage/persistent')
         self.device.file_manager.remove('/data/local/storage/default')
-        self.device.file_manager.remove('/data/local/webapps')
         # remove remembered networks
         self.device.file_manager.remove('/data/misc/wifi/wpa_supplicant.conf')
+
+        if self.device.is_android_build:
+            apps = json.loads(self.device.file_manager.pull_file('/data/local/webapps/webapps.json'))
+            system_install_time = apps['system.gaiamobile.org']['installTime']
+            for app in apps.values():
+                if app.get('installTime') > system_install_time:
+                    # removing any webapps installed since build time
+                    path = posixpath.join(app.get('basePath'), app.get('id'))
+                    self.logger.debug('Removing %s' % path)
+                    self.device.file_manager.remove(path)
 
     def cleanup_storage(self):
         """Remove all files from the device's storage paths"""
