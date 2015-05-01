@@ -4,8 +4,8 @@
 // To use this library you need to include 'shared/js/fb/fb_request.js'
 // WARNING: This file lazy loads 'shared/js/fb/fb_tel_index.js'
 
-var fb = this.fb || {};
-this.fb = fb;
+var fb = window.fb || {};
+window.fb = fb;
 
 (function() {
   var contacts = fb.contacts || {};
@@ -85,17 +85,17 @@ this.fb = fb;
   }
 
   // Creates a default handler for success
-  function defaultSuccess(request) {
-    return defaultSuccessCb.bind(null, request);
-  }
+  //function defaultSuccess(request) {
+  //  return defaultSuccessCb.bind(null, request);
+  //}
 
   function defaultErrorCb(request, error) {
     request.failed(error);
   }
 
-  function defaultSuccessCb(request, result) {
-    request.done(result);
-  }
+  //function defaultSuccessCb(request, result) {
+  //  request.done(result);
+  //}
 
   function setIndex(obj) {
     index = (obj || createIndex());
@@ -111,7 +111,7 @@ this.fb = fb;
   }
 
   Object.defineProperty(contacts, 'datastore', {
-    get: function getDataStore() { return datastore },
+    get: function getDataStore() { return datastore; },
     enumerable: false,
     configurable: false
   });
@@ -234,7 +234,7 @@ this.fb = fb;
 
   function doSearchByPhone(number, outRequest) {
     var normalizedNumber = navigator.mozPhoneNumberService.normalize(number);
-    LazyLoader.load(['/shared/js/fb/fb_tel_index.js',
+    window.LazyLoader.load(['/shared/js/fb/fb_tel_index.js',
                     '/shared/js/binary_search.js'], function() {
       var toSearchNumber = normalizedNumber;
       // TODO: Temporal way of searching for international numbers
@@ -249,7 +249,7 @@ this.fb = fb;
 
           setIndex(obj);
           revisionId = datastore.revisionId;
-          var results = TelIndexer.search(index.treeTel, toSearchNumber);
+          var results = window.TelIndexer.search(index.treeTel, toSearchNumber);
           var out = null;
           if (results.length > 0) {
             out = datastore.get.apply(datastore, results);
@@ -275,7 +275,7 @@ this.fb = fb;
         });
       }
       else {
-        var results = TelIndexer.search(index.treeTel, toSearchNumber);
+        var results = window.TelIndexer.search(index.treeTel, toSearchNumber);
         if (results.length > 0) {
           datastore.get.apply(datastore, results).then(
             function success(objList) {
