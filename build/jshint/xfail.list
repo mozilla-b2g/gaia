@@ -27,9 +27,6 @@ apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/wifi_test.js
 shared/js/blobview.js
 shared/js/dialer/contacts.js
-shared/js/fb/fb_data_reader.js
-shared/js/fb/fb_reader_utils.js
-shared/js/fb/fb_request.js
 shared/js/keyboard_helper.js
 shared/js/lockscreen_slide.js
 shared/js/mediadb.js
