@@ -588,7 +588,7 @@ suite('system/Statusbar', function() {
                                              'isMaximized');
       var spyParentIsMaximized = this.sinon.spy(app.appChrome, 'isMaximized');
 
-      StatusBar.setAppearance(app);
+      StatusBar.setAppearance();
       assert.isTrue(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
       assert.isTrue(spyTopUseLightTheming.calledOnce);
@@ -622,15 +622,7 @@ suite('system/Statusbar', function() {
         isFullScreenLayout: this.sinon.stub().returns(false)
       };
 
-      StatusBar.setAppearance({
-        getTopMostWindow: function getTopMostWindow() {
-          return topMost;
-        },
-        appChrome: {
-          useLightTheming: this.sinon.stub().returns(false),
-          isMaximized: this.sinon.stub().returns(false)
-        }
-      });
+      StatusBar.setAppearance();
       assert.isTrue(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });
@@ -652,7 +644,7 @@ suite('system/Statusbar', function() {
     test('setAppearance fullscreen', function() {
       this.sinon.stub(MockService.currentApp._topWindow, 'isFullScreen')
         .returns(true);
-      StatusBar.setAppearance(app);
+      StatusBar.setAppearance();
       assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
       assert.isTrue(MockService.currentApp._topWindow.isFullScreen.calledOnce);
     });
@@ -660,9 +652,32 @@ suite('system/Statusbar', function() {
     test('setAppearance fullscreenLayout', function() {
       var stub = this.sinon.stub(MockService.currentApp._topWindow,
         'isFullScreenLayout').returns(true);
-      StatusBar.setAppearance(app);
+      StatusBar.setAppearance();
       assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
       assert.isTrue(stub.calledOnce);
+    });
+  });
+
+  suite('setAppearance with no top most window', function() {
+    setup(function() {
+      MockService.currentApp = getMockApp();
+      MockService.mTopMostWindow = null;
+    });
+
+    test('does not add light or maximized appearance', function() {
+      StatusBar.element.classList.remove('light');
+      StatusBar.element.classList.remove('maximized');
+      StatusBar.setAppearance();
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('does not remove light or maximized appearance', function() {
+      StatusBar.element.classList.add('light');
+      StatusBar.element.classList.add('maximized');
+      StatusBar.setAppearance();
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });
   });
 
@@ -732,7 +747,7 @@ suite('system/Statusbar', function() {
     });
 
     test('should do nothing when is locked', function() {
-      StatusBar.setAppearance(app);
+      StatusBar.setAppearance();
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
     });

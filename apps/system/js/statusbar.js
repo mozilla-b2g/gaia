@@ -366,11 +366,16 @@ var StatusBar = {
   },
 
   setAppearance: function() {
-    var app = Service.query('getTopMostWindow');
-
     // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
       this.element.classList.add('maximized');
+      return;
+    }
+
+    var app = Service.query('getTopMostWindow');
+    // In some cases, like when opening an app from the task manager, there
+    // temporarily is no top most window, so we cannot set an appearance.
+    if (!app) {
       return;
     }
 
