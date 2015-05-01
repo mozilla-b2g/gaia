@@ -4,11 +4,11 @@
 // To use this library you need to include:
 // 'shared/js/fb/fb_request.js' and 'shared/js/fb/fb_data_reader.js'
 
-var fb = this.fb || {};
-this.fb = fb;
+var fb = window.fb || {};
+window.fb = fb;
 
-if (!this.AuxFB) {
-  this.AuxFb = (function() {
+if (!window.AuxFB) {
+  window.AuxFb = (function() {
     var CATEGORY = 'facebook';
     var NOT_LINKED = 'not_linked';
     var LINKED = 'fb_linked';
@@ -306,8 +306,8 @@ if (!this.AuxFB) {
   })();
 
   // This boilerplate code sets the AuxFb properties to the fb object
-  var props = Object.keys(this.AuxFb);
-  var self = this;
+  var props = Object.keys(window.AuxFb);
+  var self = window;
 
   for (var j = 0, end = props.length; j < end; j++) {
     var prop = props[j];
@@ -316,9 +316,8 @@ if (!this.AuxFB) {
     }
     else {
       Object.defineProperty(self.fb, prop, {
-        value: (function() {
-          return self.AuxFb[prop];
-        })(), writable: false, enumerable: true, configurable: false
+        value: self.AuxFb[prop],
+        writable: false, enumerable: true, configurable: false
       });
     }
   }
