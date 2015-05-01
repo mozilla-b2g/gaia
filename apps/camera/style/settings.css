@@ -146,6 +146,8 @@
 /**
  * 1. Space it out from under the
  *    setting menu button.
+ * 2. In case of the title being longer than the header
+ *    we show ellipsis and prevent line wrapping
  */
 
 .settings_header {
@@ -153,6 +155,9 @@
   height: 9rem;
   margin-right: 5rem; /* 1 */
   line-height: 9rem;
+  white-space: nowrap; /* 2 */
+  text-overflow: ellipsis; /* 2 */
+  overflow: hidden; /* 2 */
 }
 
 /** Title
