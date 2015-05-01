@@ -5,7 +5,7 @@
 import time
 
 from marionette_driver import expected, By, Wait
-from marionette_driver.errors import FrameSendFailureError
+from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
 
 from gaiatest.apps.base import Base
 
@@ -30,7 +30,7 @@ class CropView(Base):
     def tap_crop_done(self):
         try:
             self.marionette.find_element(*self._crop_done_button_locator).tap()
-        except FrameSendFailureError:
+        except (FrameSendFailureError, NoSuchWindowException):
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass
 
