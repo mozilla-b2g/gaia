@@ -4,11 +4,11 @@
 // To use this library you need to include:
 // 'shared/js/fb/fb_request.js' and 'shared/js/fb/fb_data_reader.js'
 
-var fb = this.fb || {};
-this.fb = fb;
+var fb = self.fb || {};
+self.fb = fb;
 
-if (!this.AuxFB) {
-  this.AuxFb = (function() {
+if (!self.AuxFB) {
+  self.AuxFb = (function() {
     var CATEGORY = 'facebook';
     var NOT_LINKED = 'not_linked';
     var LINKED = 'fb_linked';
@@ -306,10 +306,10 @@ if (!this.AuxFB) {
   })();
 
   // This boilerplate code sets the AuxFb properties to the fb object
-  var props = Object.keys(this.AuxFb);
-  var self = this;
+  var props = Object.keys(self.AuxFb);
 
   for (var j = 0, end = props.length; j < end; j++) {
+    /* jshint loopfunc: true */
     var prop = props[j];
     if (typeof self.fb[prop] === 'function') {
       self.fb[prop] = self.AuxFb[prop];
