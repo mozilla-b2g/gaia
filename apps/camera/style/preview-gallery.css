@@ -9,7 +9,7 @@
   overflow: hidden;
   opacity: 1;
   visibility: visible;
-  transition: all 0.5s ease-in-out;
+  transition: all var(--transition-duration) ease-in-out;
   background-color: #333333;
 }
 
@@ -64,7 +64,8 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  transition: visibility var(--transition-duration) ease-in-out,
+              opacity var(--transition-duration) ease-in-out;
 }
 
 /**

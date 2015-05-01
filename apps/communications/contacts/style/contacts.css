@@ -101,7 +101,7 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .view-contact-profile .view-body-inner.up {
-  transition: transform 0.5s ease-out;
+  transition: transform var(--transition-duration) ease-out;
 }
 
 .view-contact-profile .view-body-inner hr {

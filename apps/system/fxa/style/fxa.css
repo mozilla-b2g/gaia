@@ -245,7 +245,7 @@ ul.fxa-verification-wrapper li {
 /* Animate next screen */
 .currentToLeft {
   display:block;
-  animation: currentToLeft 0.4s forwards;
+  animation: currentToLeft var(--transition-duration) forwards;
 }
 @keyframes currentToLeft {
   0% { transform: translateX(0); }
@@ -253,7 +253,7 @@ ul.fxa-verification-wrapper li {
 }
 .rightToCurrent {
   display:block;
-  animation: rightToCurrent 0.4s forwards;
+  animation: rightToCurrent var(--transition-duration) forwards;
 }
 @keyframes rightToCurrent {
   0% { transform: translateX(100%); }
@@ -263,7 +263,7 @@ ul.fxa-verification-wrapper li {
 /* Animate prev screen */
 .leftToCurrent {
   display: block;
-  animation: leftToCurrent 0.4s forwards;
+  animation: leftToCurrent var(--transition-duration) forwards;
 }
 @keyframes leftToCurrent {
   0% { transform: translateX(-100%); }
@@ -271,7 +271,7 @@ ul.fxa-verification-wrapper li {
 }
 .currentToRight {
   display: block;
-  animation: currentToRight 0.4s forwards;
+  animation: currentToRight var(--transition-duration) forwards;
 }
 @keyframes currentToRight {
   0% { transform: translateX(0); }

@@ -229,7 +229,7 @@ suite('system/SheetsTransition >', function() {
     });
 
     test('it should set the transition duration on the sheets', function() {
-      var transition = 'transform 105ms linear 0s';
+      var transition = 'transform 90ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
       assert.equal(dialerFrame.style.transition, transition);
     });
@@ -278,7 +278,7 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.moveInDirection('ltr', 0.7);
       SheetsTransition.snapBack(0.0001);
 
-      var transition = 'transform 90ms linear 0s';
+      var transition = 'transform 60ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
       assert.equal(dialerFrame.style.transition, transition);
     });
@@ -333,7 +333,7 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.moveInDirection('rtl', 0.7);
       SheetsTransition.snapBack(0.0001);
 
-      var transition = 'transform 90ms linear 0s';
+      var transition = 'transform 60ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
       assert.equal(contactsFrame.style.transition, transition);
     });

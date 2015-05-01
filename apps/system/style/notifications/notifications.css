@@ -253,14 +253,14 @@
 
 #notifications-container .notification.snapback,
 .notification-toaster.snapback {
-  transition: transform 0.3s ease-out;
+  transition: transform var(--transition-duration) ease-out;
   transform: translateX(0);
 }
 
 #notifications-container .notification.disappearing,
 #notifications-container .notification.disappearing-via-clear-all,
 .notification-toaster.disappearing {
-  transition: transform 0.3s linear;
+  transition: transform var(--transition-duration) linear;
   transform: translateX(100%);
 }
 
@@ -270,7 +270,7 @@
 }
 
 #notifications-container .notification.disappearing ~ .notification {
-  transition: transform 0.3s linear;
+  transition: transform var(--transition-duration) linear;
   transform: translateY(-6.2rem);
 }
 

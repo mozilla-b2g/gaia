@@ -14,7 +14,7 @@
   box-shadow: 0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.4);
   border-radius: 0.2rem;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-duration) ease;
 }
 
 #text-selection-dialog-root > .textselection-dialog.visible {

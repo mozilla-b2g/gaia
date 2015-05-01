@@ -68,7 +68,7 @@ input.error {
 /* Hide/show tab panel when other views show up */
 
 #tabpanel {
-  transition: visibility 0.5s;
+  transition: visibility var(--transition-duration);
 }
 
 #tabpanel.behind {
@@ -235,9 +235,9 @@ section.graph canvas {
 
 .fade.in {
   opacity: 1;
-  transition: opacity 0.3s linear;
+  transition: opacity var(--transition-duration) linear;
 }
 
 .fade.out {
-  transition: opacity 0.3s linear;
+  transition: opacity var(--transition-duration) linear;
 }
