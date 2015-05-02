@@ -60,8 +60,8 @@ class HTML5Player(PageRegion):
     def show_controls(self):
         Wait(self.marionette).until(lambda m: not self.controls_visible)
         self.marionette.execute_script("""
-           var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
-               .getService(SpecialPowers.Ci.inIDOMUtils)
+           var a = Components.classes["@mozilla.org/inspector/dom-utils;1"]
+               .getService(Components.interfaces.inIDOMUtils)
                .getChildrenForNode(document.getElementsByTagName('video')[0], true);
            var x = a[1].ownerDocument.getAnonymousElementByAttribute(a[1],'class', 'controlBar');
            x.removeAttribute('hidden');
@@ -70,8 +70,8 @@ class HTML5Player(PageRegion):
 
     def get_location(self, class_name):
         return self.marionette.execute_script("""
-           var a = SpecialPowers.Cc["@mozilla.org/inspector/dom-utils;1"]
-               .getService(SpecialPowers.Ci.inIDOMUtils)
+           var a = Components.classes["@mozilla.org/inspector/dom-utils;1"]
+               .getService(Components.interfaces.inIDOMUtils)
                .getChildrenForNode(document.getElementsByTagName('video')[0], true);
            var x1 = document.getElementsByTagName('video')[0].getBoundingClientRect().left;
            var x2 = a[1].ownerDocument

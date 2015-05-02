@@ -12,6 +12,7 @@ from marionette import (BaseMarionetteOptions,
                         MarionetteTextTestRunner,
                         MarionetteTestResult,
                         BaseMarionetteTestRunner)
+from marionette_driver.marionette import Marionette
 from marionette.runtests import cli
 import mozlog
 
@@ -49,10 +50,27 @@ class GaiaTextTestRunner(MarionetteTextTestRunner):
     resultclass = GaiaTestResult
 
 
+class GaiaMarionetteDriver(Marionette):
+
+    def __init__(self, *args, **kwargs):
+        Marionette.__init__(self, *args, **kwargs)
+
+    def execute_script(self, *args, **kwargs):
+        if not 'sandbox' in kwargs:
+            kwargs['sandbox'] = 'system'
+        return Marionette.execute_script(self, *args, **kwargs)
+
+    def execute_async_script(self, *args, **kwargs):
+        if not 'sandbox' in kwargs:
+            kwargs['sandbox'] = 'system'
+        return Marionette.execute_async_script(self, *args, **kwargs)
+
+
 class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
                      HTMLReportingTestRunnerMixin, TreeherderTestRunnerMixin):
 
     textrunnerclass = GaiaTextTestRunner
+    driverclass = GaiaMarionetteDriver
 
     def __init__(self, **kwargs):
         # if no server root is specified, use the packaged resources
@@ -68,16 +86,13 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
             if marionette.session is not None:
                 try:
                     marionette.switch_to_frame()
+                    marionette.push_permission('settings-read', True)
+                    marionette.push_permission('settings-api-read', True)
                     rv['settings'] = json.dumps(marionette.execute_async_script("""
-SpecialPowers.pushPermissions([
-  {type: 'settings-read', allow: true, context: document},
-  {type: 'settings-api-read', allow: true, context: document},
-], function() {
   var req = window.navigator.mozSettings.createLock().get('*');
   req.onsuccess = function() {
     marionetteScriptFinished(req.result);
-  }
-});""", special_powers=True), sort_keys=True, indent=4, separators=(',', ': '))
+  }""", sandbox='system'), sort_keys=True, indent=4, separators=(',', ': '))
                 except:
                     logger = mozlog.structured.get_default_logger()
                     if not logger:
