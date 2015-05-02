@@ -1,6 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
 document.addEventListener('DOMContentLoaded', function onload() {
@@ -119,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
      if (result && result.length) {
         result.sort();
         for (var i = 0; i < result.length; i++) {
+          /* jshint loopfunc: true */
           var mnc = result[i].mnc;
 
           var operatorVariantSettings = {};
@@ -136,20 +134,20 @@ document.addEventListener('DOMContentLoaded', function onload() {
                 JSON.stringify(otherSettings));
             }
             if (!operatorVariantSettings.voicemail) {
-              voicemail = otherSettings['voicemail'];
+              voicemail = otherSettings.voicemail;
               if (voicemail) {
                 operatorVariantSettings.voicemail = voicemail;
               }
             }
 
             var enableStrict7BitEncodingForSms =
-              otherSettings['enableStrict7BitEncodingForSms'];
+              otherSettings.enableStrict7BitEncodingForSms;
             if (enableStrict7BitEncodingForSms) {
               operatorVariantSettings.enableStrict7BitEncodingForSms =
                 enableStrict7BitEncodingForSms == 'true';
             }
             var cellBroadcastSearchList =
-              otherSettings['cellBroadcastSearchList'];
+              otherSettings.cellBroadcastSearchList;
             if (cellBroadcastSearchList) {
               var searchListObj = {};
               var lists = cellBroadcastSearchList.split('|');
@@ -161,14 +159,14 @@ document.addEventListener('DOMContentLoaded', function onload() {
             }
 
             var operatorSizeLimitation =
-              otherSettings['operatorSizeLimitation'];
+              otherSettings.operatorSizeLimitation;
             if (operatorSizeLimitation) {
               operatorVariantSettings.operatorSizeLimitation =
                 +operatorSizeLimitation;
             }
-            var skipProxy = otherSettings['skipProxy'];
+            var skipProxy = otherSettings.skipProxy;
             if (skipProxy == 'true') {
-              var skipProxyFor = otherSettings['skipProxyFor'];
+              var skipProxyFor = otherSettings.skipProxyFor;
               if (skipProxyFor) {
                 if (skipProxyFor.indexOf(result[i].carrier) != -1) {
                   if (DEBUG) {
@@ -292,15 +290,17 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var localAndroidDB = loadXML(LOCAL_ANDROID_DB_FILE);
           var localApns =
             localAndroidDB.documentElement.querySelectorAll('apn');
+          var androidApns;
+          var androidApn;
           for (var localApn of localApns) {
             if (localApn.getAttribute('overwrite') &&
                 localApn.getAttribute('carrier_name')) {
               var pattern = '[carrier="' +
                             localApn.getAttribute('carrier_name') + '"]';
-              var androidApns =
+              androidApns =
                 gAndroidDB.documentElement.querySelectorAll(pattern);
               var matchFound = false;
-              for (var androidApn of androidApns) {
+              for (androidApn of androidApns) {
                 if (androidApn &&
                     androidApn.getAttribute('carrier') ===
                     localApn.getAttribute('carrier_name')) {
@@ -321,9 +321,9 @@ document.addEventListener('DOMContentLoaded', function onload() {
               }
 
               if (!matchFound) {
-                alert("Warning!\nCould not find APN '" +
+                alert('Warning!\nCould not find APN \'' +
                       localApn.getAttribute('carrier_name') +
-                      "'. Which is expected to be overwrited.");
+                      '\'. Which is expected to be overwrited.');
               }
 
               continue;
@@ -334,12 +334,12 @@ document.addEventListener('DOMContentLoaded', function onload() {
             // Note: This patch will not function once we get
             // the correct names updated in the upstream database.
             if (localApn.getAttribute('name')) {
-              var pattern = 'apn' +
+              var localPattern = 'apn' +
                             '[mcc="' + localApn.getAttribute('mcc') + '"]' +
                             '[mnc="' + localApn.getAttribute('mnc') + '"]';
-              var androidApns =
-                gAndroidDB.documentElement.querySelectorAll(pattern);
-              for (var androidApn of androidApns) {
+              androidApns =
+                gAndroidDB.documentElement.querySelectorAll(localPattern);
+              for (androidApn of androidApns) {
                 if (androidApn &&
                     androidApn.getAttribute('carrier') ===
                     localApn.getAttribute('carrier')) {

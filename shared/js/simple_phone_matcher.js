@@ -422,7 +422,7 @@ var SimplePhoneMatcher = {
 
     var trunk0Join = prefixesWithTrunk0.join('|');
     var trunk0Regexp = new RegExp('^\\+(' + trunk0Join + ')');
-    this._internationalPrefixes(number).some(function match(variant) {
+    this._internationalPrefixes(number).some(variant => {
       var match = variant.match(trunk0Regexp);
 
       if (match) {
@@ -435,7 +435,7 @@ var SimplePhoneMatcher = {
 
     var noTrunkJoin = prefixesWithNoTrunk.join('|');
     var noTrunkRegexp = new RegExp('^\\+(' + noTrunkJoin + ')');
-    this._internationalPrefixes(number).some(function match(variant) {
+    this._internationalPrefixes(number).some(variant => {
       var match = variant.match(noTrunkRegexp);
 
       if (match) {
@@ -460,7 +460,7 @@ var SimplePhoneMatcher = {
     Object.keys(this._areaCodeSwipe).forEach(function(country) {
       var re = new RegExp('^\\+' + country);
 
-      this._internationalPrefixes(number).some(function match(variant) {
+      this._internationalPrefixes(number).some(variant => {
         var match = variant.match(re);
 
         if (match) {
@@ -469,7 +469,7 @@ var SimplePhoneMatcher = {
         }
 
         return match;
-      }, this);
+      });
     }, this);
 
     return variants;
