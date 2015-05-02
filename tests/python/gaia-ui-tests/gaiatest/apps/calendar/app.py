@@ -198,7 +198,7 @@ class Calendar(Base):
     def a11y_click_header(self, header, selector):
         self.marionette.execute_async_script(
             "Accessibility.click(arguments[0].shadowRoot.querySelector('%s'));" % selector,
-            [header], special_powers=True)
+            [header])
 
     def wait_fot_settings_drawer_animation(self):
         el = self.marionette.find_element(*self.settings._settings_drawer_locator)
