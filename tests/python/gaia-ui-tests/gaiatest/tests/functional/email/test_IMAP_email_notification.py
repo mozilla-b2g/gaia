@@ -88,7 +88,5 @@ class TestEmailNotification(GaiaTestCase):
                          '"%s".' % (mock_email['message'], email.body))
 
     def tearDown(self):
-        self.marionette.execute_script("SpecialPowers.setIntPref('dom.requestSync.minInterval', 100);",
-                                        special_powers=True)
-
+        self.data_layer.set_int_pref('dom.requestSync.minInterval', 100)
         GaiaTestCase.tearDown(self)
