@@ -92,7 +92,8 @@
 
         that.cardManager.on('card-inserted',
                           that.onCardInserted.bind(that, that.cardScrollable));
-        that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
+        that.cardManager.on('card-removed',
+                          that.onCardRemoved.bind(that, that.cardScrollable));
         that.cardManager.on('card-updated', that.onCardUpdated.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
@@ -148,6 +149,8 @@
           if (card instanceof Folder) {
             card.on('card-inserted',
                         that.onCardInserted.bind(that, that.folderScrollable));
+            card.on('card-removed',
+                        that.onCardRemoved.bind(that, that.folderScrollable));
           }
         });
       });
@@ -239,6 +242,8 @@
       if (card instanceof Folder) {
         card.on('card-inserted',
                 this.onCardInserted.bind(this, this.folderScrollable));
+        card.on('card-removed',
+                this.onCardRemoved.bind(this, this.folderScrollable));
       }
 
       var newCardElem = this._createCardNode(card);
@@ -279,14 +284,14 @@
       });
     },
 
-    onCardRemoved: function(indices) {
+    onCardRemoved: function(scrollable, indices) {
       indices.forEach(function(indices) {
-        var elm = this.cardScrollable.getNode(indices);
+        var elm = scrollable.getNode(indices);
         if (elm.dataset.revokableURL) {
           URL.revokeObjectURL(elm.dataset.revokableURL);
         }
       }, this);
-      this.cardScrollable.removeNodes(indices);
+      scrollable.removeNodes(indices);
     },
 
     _setCardIcon: function (cardButton, card, blob, bgColor) {

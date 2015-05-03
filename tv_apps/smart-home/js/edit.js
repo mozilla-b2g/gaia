@@ -353,7 +353,15 @@
     deleteCard: function(scrollable, nodeElem) {
       this._concealPanel(scrollable, nodeElem);
       scrollable.spatialNavigator.focus(scrollable.getItemFromNode(nodeElem));
-      this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+      if (scrollable === this.cardScrollable) {
+        this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+      } else {
+        var folder = this.cardManager.findContainingFolder(
+                              {cardId: scrollable.currentItem.dataset.cardId});
+        var card = this.cardManager.findCardFromCardList(
+                              {cardId: scrollable.currentItem.dataset.cardId});
+        folder.removeCard(card);
+      }
     },
 
     hoverCard: function(scrollable, focusedItem, targetItem) {
