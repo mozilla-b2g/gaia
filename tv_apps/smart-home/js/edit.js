@@ -85,6 +85,11 @@
 
         // Keep track of scrollable and node for showing/hiding panel
         this.currentScrollable = this.cardScrollable;
+        // Add current-scrollable style to #card-viewer
+        document.getElementById('card-viewer').classList.add(
+          'current-scrollable');
+        document.getElementById('folder-viewer').classList.remove(
+          'current-scrollable');
         this.currentNode =
           this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
         this._revealPanel(this.currentScrollable, this.currentNode);
@@ -243,16 +248,15 @@
       if (scrollable && scrollable.isHovering) {
         this.currentNode.classList.toggle('left_arrow', true);
         this.currentNode.classList.toggle('right_arrow', true);
-        // If the current node can be moved into a folder
         this.currentNode.classList.toggle('down_arrow', true);
-        // If the current node can be removed from a folder
-        this.currentNode.classList.toggle('up_arrow', false);
+        this.currentNode.classList.remove('up_arrow');
       } else {
         this.currentNode.classList.toggle('left_arrow', index > 0);
         this.currentNode.classList.toggle('right_arrow',
                                     index < this.currentScrollable.length - 1);
         this.currentNode.classList.remove('down_arrow');
-        this.currentNode.classList.remove('up_arrow');
+        this.currentNode.classList.toggle('up_arrow',
+                              this.currentScrollable === this.folderScrollable);
       }
     },
 
@@ -285,6 +289,11 @@
       folder.addCard(card, 0);
       this._hoveringCard = null;
       this.currentScrollable = this.folderScrollable;
+      // Remove current-scrollable style from #card-viewer
+      document.getElementById('card-viewer').classList.remove(
+        'current-scrollable');
+      document.getElementById('folder-viewer').classList.add(
+        'current-scrollable');
       this.currentNode = this.folderScrollable.getNodeFromItem(
                                             this.folderScrollable.currentItem);
       if (!this.spatialNavigator.focus(this.folderScrollable)) {
@@ -423,6 +432,19 @@
 
         this.currentNode = nodeElem;
         this.currentScrollable = scrollable;
+        if (this.currentScrollable === this.cardScrollable) {
+          // Add current-scrollable style to #card-viewer
+          document.getElementById('card-viewer').classList.add(
+            'current-scrollable');
+          document.getElementById('folder-viewer').classList.remove(
+            'current-scrollable');
+        } else {
+          // Remove current-scrollable style from #card-viewer
+          document.getElementById('card-viewer').classList.remove(
+            'current-scrollable');
+          document.getElementById('folder-viewer').classList.add(
+            'current-scrollable');
+        }
       }
       this._revealPanel(scrollable, nodeElem);
       itemElem.focus();

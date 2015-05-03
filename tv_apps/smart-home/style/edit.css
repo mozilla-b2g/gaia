@@ -5,7 +5,7 @@
   transform: translateY(-16rem);
 }
 
-#main-section[data-mode="arrange"] #card-viewer {
+#main-section[data-mode="arrange"] #card-viewer.current-scrollable {
   z-index: 1;
 }
 
