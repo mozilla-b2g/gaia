@@ -92,7 +92,8 @@
 
         that.cardManager.on('card-inserted',
                           that.onCardInserted.bind(that, that.cardScrollable));
-        that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
+        that.cardManager.on('card-removed',
+                          that.onCardRemoved.bind(that, that.cardScrollable));
         that.cardManager.on('card-updated', that.onCardUpdated.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
@@ -148,6 +149,8 @@
           if (card instanceof Folder) {
             card.on('card-inserted',
                         that.onCardInserted.bind(that, that.folderScrollable));
+            card.on('card-removed',
+                        that.onCardRemoved.bind(that, that.folderScrollable));
           }
         });
       });
@@ -235,10 +238,12 @@
       }
     },
 
-    onCardInserted: function(scrollable, card, idx) {
+    onCardInserted: function(scrollable, card, idx, overFolder) {
       if (card instanceof Folder) {
         card.on('card-inserted',
                 this.onCardInserted.bind(this, this.folderScrollable));
+        card.on('card-removed',
+                this.onCardRemoved.bind(this, this.folderScrollable));
       }
 
       var newCardElem = this._createCardNode(card);
@@ -263,7 +268,11 @@
         }
         this.isNavigable = true;
       }.bind(this));
-      scrollable.insertNodeBefore(newCardElem, idx);
+      if (!overFolder) {
+        scrollable.insertNodeBefore(newCardElem, idx);
+      } else {
+        scrollable.insertNodeOver(newCardElem, idx);
+      }
     },
 
     onCardUpdated: function(card, idx) {
@@ -279,14 +288,14 @@
       });
     },
 
-    onCardRemoved: function(indices) {
+    onCardRemoved: function(scrollable, indices) {
       indices.forEach(function(indices) {
-        var elm = this.cardScrollable.getNode(indices);
+        var elm = scrollable.getNode(indices);
         if (elm.dataset.revokableURL) {
           URL.revokeObjectURL(elm.dataset.revokableURL);
         }
       }, this);
-      this.cardScrollable.removeNodes(indices);
+      scrollable.removeNodes(indices);
     },
 
     _setCardIcon: function (cardButton, card, blob, bgColor) {
@@ -672,7 +681,10 @@
     },
 
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
-      nodeElem.classList.remove('focused');
+      // Fix null error when the last card in a folder is removed.
+      if (nodeElem) {
+        nodeElem.classList.remove('focused');
+      }
     },
 
     handleCardUnhover: function(scrollable, itemElem, nodeElem) {
