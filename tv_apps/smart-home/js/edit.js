@@ -47,6 +47,8 @@
         this.onCardMoveAnimationEnd.bind(this));
       this.cardScrollable.on('hovering-node-removed',
         this.onHoveringNodeRemoved.bind(this));
+      this.cardScrollable.on('node-inserted-over-folder',
+        this.onNodeInsertedOverFolder.bind(this));
 
       this.spatialNavigator.on('focus', this.handleFocus.bind(this));
       this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
@@ -211,7 +213,12 @@
           this._moveQueue.clearQueue();
           break;
         case 'up':
-          // TODO: Implement remove from folder in bug 1156143
+          if (this.currentScrollable === this.folderScrollable) {
+            this.moveToCardList(focus);
+            this._moveTimer =
+              window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
+              CARD_TRANSFORM_LATENCY);
+          }
           break;
         }
       }
@@ -305,6 +312,39 @@
       this._setHintArrow();
     },
 
+    moveToCardList: function(focus) {
+      var folder = this.cardManager.findContainingFolder(
+                                    {cardId: focus.currentItem.dataset.cardId});
+      var card = this.cardManager.findCardFromCardList(
+                                    {cardId: focus.currentItem.dataset.cardId});
+      var folderItem = this.cardScrollable.spatialNavigator.getFocusedElement();
+      var idx = this.cardScrollable.getNodeFromItem(folderItem).dataset.idx;
+
+      this._hoveringCard = card;
+
+      folder.removeCard(card);
+      // insert card
+      this.cardManager.insertCard({
+        card: card,
+        index: parseInt(idx, 10),
+        overFolder: true
+      });
+
+      this.spatialNavigator.focus(this.cardScrollable);
+      this.currentScrollable = this.cardScrollable;
+      // Add current-scrollable style to #card-viewer
+      document.getElementById('card-viewer').classList.add(
+        'current-scrollable');
+      document.getElementById('folder-viewer').classList.remove(
+        'current-scrollable');
+    },
+
+    onNodeInsertedOverFolder: function() {
+      this.currentNode = this.cardScrollable.getNodeFromItem(
+                                            this.cardScrollable.currentItem);
+      this._setHintArrow(this.currentScrollable);
+    },
+
     onEnter: function() {
       if (this.mode !== 'edit' && this.mode !== 'arrange') {
         return false;
@@ -361,6 +401,10 @@
         var card = this.cardManager.findCardFromCardList(
                               {cardId: scrollable.currentItem.dataset.cardId});
         folder.removeCard(card);
+
+        if (folder.isEmpty()) {
+          this.spatialNavigator.focus(this.cardScrollable);
+        }
       }
     },
 

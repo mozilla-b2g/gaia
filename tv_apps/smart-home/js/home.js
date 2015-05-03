@@ -238,7 +238,7 @@
       }
     },
 
-    onCardInserted: function(scrollable, card, idx) {
+    onCardInserted: function(scrollable, card, idx, overFolder) {
       if (card instanceof Folder) {
         card.on('card-inserted',
                 this.onCardInserted.bind(this, this.folderScrollable));
@@ -268,7 +268,11 @@
         }
         this.isNavigable = true;
       }.bind(this));
-      scrollable.insertNodeBefore(newCardElem, idx);
+      if (!overFolder) {
+        scrollable.insertNodeBefore(newCardElem, idx);
+      } else {
+        scrollable.insertNodeOver(newCardElem, idx);
+      }
     },
 
     onCardUpdated: function(card, idx) {
@@ -671,7 +675,10 @@
     },
 
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
-      nodeElem.classList.remove('focused');
+      // Fix null error when the last card in a folder is removed.
+      if (nodeElem) {
+        nodeElem.classList.remove('focused');
+      }
     },
 
     handleCardUnhover: function(scrollable, itemElem, nodeElem) {

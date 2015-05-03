@@ -184,10 +184,8 @@
     },
 
     _onFolderChange: function cm_onFolderChange(folder) {
-      if (folder.isDetached()) {
+      if (folder.isDetached() || folder.isEmpty()) {
         this.writeCardlistInCardStore();
-      } else if (folder.isEmpty()) {
-        this.writeCardlistInCardStore({cleanEmptyFolder: true});
       } else {
         this.writeFolderInCardStore(folder);
       }
@@ -372,8 +370,14 @@
     insertCard: function cm_insertCard(options) {
       var that = this;
       this._asyncSemaphore.wait(function() {
-        var newCard = this._deserializeCardEntry(options.cardEntry);
+        var newCard;
         var position;
+
+        if (options.cardEntry) {
+          newCard = this._deserializeCardEntry(options.cardEntry);
+        } else {
+          newCard = options.card;
+        }
 
         // prevent same card from being inserted twice
         if (newCard && newCard.nativeApp) {
@@ -386,7 +390,7 @@
           }
         }
 
-        if (options.index === 'number') {
+        if (typeof options.index === 'number') {
           position = options.index;
         } else if (!newCard.group) {
           position = this._cardList.length;
@@ -417,7 +421,7 @@
 
         this._cardList.splice(position, 0, newCard);
         this.writeCardlistInCardStore().then(function() {
-          that.fire('card-inserted', newCard, position);
+          that.fire('card-inserted', newCard, position, options.overFolder);
         });
       }, this);
     },
