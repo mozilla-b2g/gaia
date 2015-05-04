@@ -59,14 +59,8 @@ suite('Views.Month', function() {
     test('dom: click', function() {
       subject.onfirstseen();
 
-      // find something with [data-date];
-      var el = subject.element.querySelector(
-        '[data-date]'
-      );
-
-      var date = Calc.dateFromId(
-        el.dataset.date
-      );
+      var el = subject.element.querySelector('.month-day');
+      var date = Calc.dateFromId(el.dataset.date);
 
       triggerEvent(el, 'click');
       assert.deepEqual(

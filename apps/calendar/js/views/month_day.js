@@ -45,6 +45,7 @@ MonthDay.prototype = {
     );
     el.dataset.date = dayId;
     el.className = state;
+    el.classList.add('month-day');
     el.innerHTML = `<span class="day" role="button">${date}</span>
       <div id="${id}-busy-indicator" class="busy-indicator"
         aria-hidden="true"></div>
