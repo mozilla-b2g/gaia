@@ -722,6 +722,18 @@
       return found;
     },
 
+    findContainingFolder: function cm_findContainingFolder(query) {
+      var folder;
+      this._cardList.some(function(card) {
+        if (card instanceof Folder) {
+          if (card.findCard(query)) {
+            folder = card;
+          }
+        }
+      });
+      return folder;
+    },
+
     isPinned: function cm_isPinned(options) {
       var that = this;
       return this._getPipedPromise('isPinned', function(resolve, reject) {

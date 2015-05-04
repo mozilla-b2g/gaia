@@ -1,3 +1,4 @@
+/* global evt, Folder */
 'use strict';
 
 (function(exports) {
@@ -6,7 +7,7 @@
 
   function Edit() {}
 
-  Edit.prototype = {
+  Edit.prototype = evt({
     mainSection: document.getElementById('main-section'),
     doneButton: document.getElementById('done-button'),
     searchButton: document.getElementById('search-button'),
@@ -18,25 +19,50 @@
     editNavElements: undefined,
     currentNode: undefined,
 
-    init: function(spatialNavigator, cardManager, cardScrollable) {
+    init: function(spatialNavigator, cardManager,
+                   cardScrollable, folderScrollable) {
+      var that = this;
+
       this.spatialNavigator = spatialNavigator;
       this.cardManager = cardManager;
       this.cardScrollable = cardScrollable;
+      this.folderScrollable = folderScrollable;
 
       this.regularNavElements =
               [this.searchButton, this.settingsButton, this.editButton];
       this.editNavElements = [this.doneButton, this.addNewFolderButton];
 
       this.cardManager.on('card-swapped', this.onCardSwapped.bind(this));
+      this.cardManager.getCardList().then(function(cardList) {
+        cardList.forEach(function(card) {
+          if (card instanceof Folder) {
+            card.on('card-swapped', that.onCardSwapped.bind(that));
+          }
+        });
+      });
 
       this.cardScrollable.on('listTransformEnd',
                                   this.handleListTransformEnd.bind(this));
       this.cardScrollable.on('nodeTransformEnd',
-        this.onCardSwapAnimationEnd.bind(this));
+        this.onCardMoveAnimationEnd.bind(this));
+      this.cardScrollable.on('hovering-node-removed',
+        this.onHoveringNodeRemoved.bind(this));
 
       this.spatialNavigator.on('focus', this.handleFocus.bind(this));
       this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
 
+      // If a card is hovering over a folder
+      this._isHovering = false;
+      // A workaround for checking if the folder list is navigable
+      this.isFolderReady = false;
+      // The hovering card
+      this._hoveringCard = null;
+      // The hovering card button element
+      this._hoveringItem = null;
+      // The hovered folder element
+      this._hoveredItem = null;
+      // Previously pressed key
+      this._previousKey = '';
     },
     /**
      * State of home app looks like this:
@@ -49,6 +75,7 @@
         this.spatialNavigator.multiAdd(this.regularNavElements);
         this.spatialNavigator.multiRemove(this.editNavElements);
         this.cardScrollable.setScale();
+        this.folderScrollable.setScale();
         this.cardScrollable.listElem.classList.add('exiting-edit-mode');
         this.cardManager.writeCardlistInCardStore({cleanEmptyFolder: true})
           .then(function() {
@@ -72,6 +99,7 @@
 
         this.spatialNavigator.focus(this.cardScrollable);
         this.cardScrollable.setScale(EDIT_MODE_SCALE);
+        this.folderScrollable.setScale(EDIT_MODE_SCALE);
       }
     },
 
@@ -79,19 +107,27 @@
       if (this.mainSection.dataset.mode === 'edit') {
         this.mainSection.dataset.mode = 'arrange';
         this._concealPanel(this.currentScrollable, this.currentNode);
+        this.currentScrollable.spatialNavigator.focus(
+          this.currentScrollable.getItemFromNode(this.currentNode));
         this._setHintArrow();
+        this.fire('arrange');
       } else if (this.mainSection.dataset.mode == 'arrange') {
         this.mainSection.dataset.mode = 'edit';
 
-        this.currentNode =
-           this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
-        this.currentScrollable = this.cardScrollable;
+        this.currentNode = this.currentScrollable.getNodeFromItem(
+                                            this.currentScrollable.currentItem);
         this._revealPanel(this.currentScrollable, this.currentNode);
         this._clearHintArrow();
+        if (this.currentScrollable === this.folderScrollable) {
+          // Update scrollable positions
+          this.cardScrollable.setNodesPosition();
+          // folderScrollable should trace the position of cardScrollable,
+          // leave this in bug 1158665
+        }
       }
     },
 
-    _swapQueue: {
+    _moveQueue: {
       queue: [],
       isEmpty: function() {
         return (this.queue.length === 0);
@@ -104,57 +140,109 @@
       },
       getLength: function() {
         return this.queue.length;
+      },
+      clearQueue: function() {
+        this.queue.length = 0;
       }
     },
 
-    _swapTimer: undefined,
+    _moveTimer: undefined,
 
-    _produceSwap: function(key) {
-      this._swapQueue.push(key);
-      if (!this._swapTimer) {
-        this._consumeSwap();
+    _produceMove: function(key) {
+      this._moveQueue.push(key);
+      if (!this._moveTimer) {
+        this._consumeMove();
       }
     },
 
-    _consumeSwap: function() {
+    _consumeMove: function() {
       var focus = this.spatialNavigator.getFocusedElement();
       var keepConsuming = false;
-      if (!this._swapQueue.isEmpty() && focus.CLASS_NAME === 'XScrollable') {
-        var key = this._swapQueue.shift();
+
+      if (!this._moveQueue.isEmpty() && focus.CLASS_NAME === 'XScrollable') {
+        var key = this._moveQueue.shift();
         var targetItem = focus.getTargetItem(key);
-        if (targetItem) {
-          var focusedCard = this.cardManager.findCardFromCardList(
-                                  {cardId: focus.currentItem.dataset.cardId});
-          var nonFocusedCard = this.cardManager.findCardFromCardList(
-                                    {cardId: targetItem.dataset.cardId});
-          this.cardManager.swapCard(focusedCard, nonFocusedCard);
-          this._swapTimer =
-            window.setTimeout(this.onCardSwapAnimationEnd.bind(this),
-              CARD_TRANSFORM_LATENCY, targetItem);
-        } else {
-          // if queue is not empty but we are failed to get targetItem
-          // that means we reach the boundary of cards. Thus we should
-          // consume next action in queue
-          keepConsuming = true;
+
+        switch (key) {
+        case 'left':
+        case 'right':
+          if (!this._isHovering && targetItem &&
+              focus.currentItem.getAttribute('app-type') !== 'folder' &&
+              targetItem.getAttribute('app-type') === 'folder') {
+            // hover on folder
+            this.hoverCard(focus, focus.currentItem, targetItem);
+            this._moveTimer =
+              window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
+                CARD_TRANSFORM_LATENCY, targetItem);
+          } else if (this._isHovering &&
+                     (this._previousKey === 'left' && key === 'right' ||
+                      this._previousKey === 'right' && key === 'left')) {
+            this.unhoverCard(focus, true);
+            this._moveTimer =
+              window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
+                CARD_TRANSFORM_LATENCY, targetItem);
+          } else if (targetItem) {
+            if (this._isHovering) {
+              this.unhoverCard(focus, false);
+            }
+            var focusedCard = this.cardManager.findCardFromCardList(
+                                    {cardId: focus.currentItem.dataset.cardId});
+            var nonFocusedCard = this.cardManager.findCardFromCardList(
+                                      {cardId: targetItem.dataset.cardId});
+            if (this.currentScrollable === this.folderScrollable) {
+              var containingFolder = this.cardManager.findContainingFolder(
+                                    {cardId: focus.currentItem.dataset.cardId});
+              containingFolder.swapCard(focusedCard, nonFocusedCard);
+            } else {
+              this.cardManager.swapCard(focusedCard, nonFocusedCard);
+            }
+
+            this._moveTimer =
+              window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
+                CARD_TRANSFORM_LATENCY, targetItem);
+          } else {
+            // if queue is not empty but we are failed to get targetItem
+            // that means we reach the boundary of cards. Thus we should
+            // consume next action in queue
+            keepConsuming = true;
+          }
+
+          break;
+        case 'down':
+          if (this.isFolderReady) {
+            this.moveToFolder();
+            this._moveTimer =
+              window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
+              CARD_TRANSFORM_LATENCY);
+          }
+          this._moveQueue.clearQueue();
+          break;
+        case 'up':
+          // Implement remove from folder in bug 1156143
+          break;
         }
+
+        this._previousKey = key;
       }
       if (keepConsuming) {
-        this._consumeSwap();
+        this._consumeMove();
       }
     },
 
-    onCardSwapAnimationEnd: function(elem) {
-      if (this._swapTimer) {
-        window.clearTimeout(this._swapTimer);
-        this._swapTimer = undefined;
+    onCardMoveAnimationEnd: function(elem) {
+      if (this._moveTimer) {
+        window.clearTimeout(this._moveTimer);
+        this._moveTimer = undefined;
       }
-      if (!elem.classList.contains('focused') && !this._swapQueue.isEmpty()) {
-        this._consumeSwap();
+      if (elem &&
+          !elem.classList.contains('focused') &&
+          !this._moveQueue.isEmpty()) {
+        this._consumeMove();
       }
     },
 
     onCardSwapped: function(card1, card2, idx1, idx2) {
-      this.cardScrollable.swap(idx1, idx2);
+      this.currentScrollable.swap(idx1, idx2);
       this._setHintArrow();
     },
 
@@ -162,15 +250,27 @@
       if (this.mode !== 'arrange') {
         return false;
       }
-      this._produceSwap(key);
+      this._produceMove(key);
+
       return true;
     },
 
     _setHintArrow: function() {
       var index = parseInt(this.currentNode.dataset.idx, 10);
-      this.currentNode.classList.toggle('left_arrow', index > 0);
-      this.currentNode.classList.toggle('right_arrow',
+      if (this._isHovering) {
+        this.currentNode.classList.toggle('left_arrow', true);
+        this.currentNode.classList.toggle('right_arrow', true);
+        // If the current node can be moved into a folder
+        this.currentNode.classList.toggle('down_arrow', true);
+        // If the current node can be removed from a folder
+        this.currentNode.classList.toggle('up_arrow', false);
+      } else {
+        this.currentNode.classList.toggle('left_arrow', index > 0);
+        this.currentNode.classList.toggle('right_arrow',
                                     index < this.currentScrollable.length - 1);
+        this.currentNode.classList.remove('down_arrow');
+        this.currentNode.classList.remove('up_arrow');
+      }
     },
 
     _clearHintArrow: function() {
@@ -179,13 +279,55 @@
     },
 
     addNewFolder: function() {
-      this.cardManager.insertNewFolder({id: 'new-folder'},
+      var folder = this.cardManager.insertNewFolder({id: 'new-folder'},
         this.cardScrollable.currentIndex);
+      folder.on('card-swapped', this.onCardSwapped.bind(this));
       this.spatialNavigator.focus(this.cardScrollable);
     },
 
+    moveToFolder: function() {
+      var cardItem = this._hoveringItem;
+      var card = this.cardManager.findCardFromCardList(
+                      {cardId: cardItem.dataset.cardId});
+      this._hoveringCard = card;
+      // Remove the card from the main list
+      // this.deleteCard(this.cardScrollable,
+      //                 this.cardScrollable.getNodeFromItem(cardItem));
+      var nodeElem = this.cardScrollable.getNodeFromItem(cardItem);
+      this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+    },
+
+    onHoveringNodeRemoved: function() {
+      var folderItem = this._hoveredItem;
+      var folder = this.cardManager.findCardFromCardList(
+                    {cardId: folderItem.dataset.cardId});
+      // Align the folderScrollable with the folder,
+      // leave this in bug 1158665
+      // this.folderScrollable.setReferenceElement(folderItem);
+
+      this.cardScrollable.spatialNavigator.focusSilently(folderItem);
+
+      var card = this._hoveringCard;
+      // Add the card into the folder
+      folder.addCard(card, 0);
+
+      var folderNode = this.cardScrollable.getNodeFromItem(this._hoveredItem);
+      this._hoveredItem.classList.remove('hovered');
+      folderNode.classList.remove('hovered');
+      this._isHovering = false;
+      this._hoveringItem = null;
+      this._hoveredItem = null;
+      this._hoveringCard = null;
+      // this.spatialNavigator.add(this.folderScrollable);
+      this.currentScrollable = this.folderScrollable;
+      this.currentNode = this.folderScrollable.getNodeFromItem(
+                                            this.folderScrollable.currentItem);
+      this.spatialNavigator.focus(this.folderScrollable);
+      this._setHintArrow();
+    },
+
     onEnter: function() {
-      if (this.mode !== 'edit' && this.mode !== 'arrange') {
+      if (this.mode !== 'edit' && this.mode !== 'arrange' || this._isHovering) {
         return false;
       }
 
@@ -229,7 +371,40 @@
 
     deleteCard: function(scrollable, nodeElem) {
       this._concealPanel(scrollable, nodeElem);
+      scrollable.spatialNavigator.focus(scrollable.getItemFromNode(nodeElem));
       this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+    },
+
+    hoverCard: function(scrollable, focusedItem, targetItem) {
+      var node1 = scrollable.getNodeFromItem(focusedItem);
+      var node2 = scrollable.getNodeFromItem(targetItem);
+      this.cardScrollable.hover(node1, node2);
+      focusedItem.classList.add('hover');
+      targetItem.classList.add('hovered');
+      node1.classList.add('hover');
+      node2.classList.add('hovered');
+      this._isHovering = true;
+      this._hoveringItem = focusedItem;
+      this._hoveredItem = targetItem;
+      // set up/bottom arrow
+      this._setHintArrow();
+    },
+
+    unhoverCard: function(scrollable, shouldResetCardPositions) {
+      var node1 = scrollable.getNodeFromItem(this._hoveringItem);
+      var node2 = scrollable.getNodeFromItem(this._hoveredItem);
+      this.cardScrollable.unhover(shouldResetCardPositions);
+      this._hoveringItem.classList.remove('hover');
+      this._hoveredItem.classList.remove('hovered');
+      node1.classList.remove('hover');
+      node2.classList.remove('hovered');
+      this._isHovering = false;
+      this._hoveringItem = null;
+      this._hoveredItem = null;
+      // clear up/bottom arrow
+      if (shouldResetCardPositions) {
+        this._setHintArrow();
+      }
     },
 
     _getPanel: function(nodeElem) {
@@ -268,6 +443,8 @@
     handleUnfocus: function(elem) {
       if (this.mode === 'edit' && elem === this.currentScrollable) {
         this._concealPanel(this.currentScrollable, this.currentNode);
+        this.currentScrollable.spatialNavigator.focusSilently(
+          this.currentScrollable.getItemFromNode(this.currentNode));
       }
     },
 
@@ -303,7 +480,7 @@
     get mode() {
       return this.mainSection.dataset.mode;
     }
-  };
+  });
 
   exports.Edit = Edit;
 }(window));
