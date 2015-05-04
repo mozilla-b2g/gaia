@@ -1,0 +1,30 @@
+{
+  "name": "gaia-component",
+  "homepage": "https://github.com/gaia-components/gaia-component",
+  "version": "0.3.4",
+  "main": "gaia-component.js",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "devDependencies": {
+    "bower": "^1.3.5",
+    "browserify": "^5.11.2",
+    "karma": "^0.12.16",
+    "karma-firefox-launcher": "^0.1.3",
+    "karma-mocha": "^0.1.3",
+    "karma-sinon-chai": "^0.1.6",
+    "mozilla-download": "^0.4.3"
+  },
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gaia-components/gaia-component.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gaia-components/gaia-component/issues"
+  }
+}

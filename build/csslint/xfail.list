@@ -46,6 +46,7 @@ apps/settings/style/screen_lock.css 0 2
 apps/settings/style/downloads.css 0 3
 apps/sms/style/root.css 0 1
 apps/sms/style/sms.css 0 5
+apps/sms/bower_components/gaia-theme/gaia-theme.css 5 0
 apps/system/mobile_id/style/mobile_id.css 0 16
 apps/system/style/modal_dialog/modal_dialog.css 0 1
 apps/system/style/net_error.css 1 0

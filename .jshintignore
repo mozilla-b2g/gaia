@@ -53,6 +53,7 @@ apps/system/js/uuid.js
 apps/camera/bower_components/**
 apps/bluetooth/js/vendor/alameda.js
 apps/bluetooth/js/settings.js
+apps/sms/bower_components/**
 tv_apps/app-deck/bower_components/**
 tv_apps/fling-player/bower_components/**
 tv_apps/notification-sender/bower_components/**
