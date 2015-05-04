@@ -228,6 +228,7 @@
   text-shadow: none;
   text-align: start;
   padding: 0 1.2rem;
+  -moz-padding-end: 0.2rem;
   margin: 0 1.5rem 1rem 1.5rem;
   background: rgba(87, 87, 87, 0.8);
   border: none;
