@@ -73,7 +73,8 @@
                 listElem: 'folder-list',
                 itemClassName: 'app-button',
                 leftMargin: CARDLIST_LEFT_MARGIN,
-                scale: 0.68});
+                scale: 0.68,
+                referenceElement: that.cardScrollable});
 
         that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
         var collection = that.getNavigateElements();
@@ -678,6 +679,7 @@
       this.folderScrollable.clean();
       this._folderCard = undefined;
       this.edit.isFolderReady = false;
+      this.cardScrollable.setColspanOnFocus(0);
     },
 
     handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
@@ -721,38 +723,39 @@
       this._folderCard = card;
       var folderList = this._folderCard.getCardList();
 
-      // Build folder list
-      if (folderList.length > 0) {
-        folderList.forEach(function(card) {
-          this.folderScrollable.addNode(this._createCardNode(card));
-        }, this);
-
-        var step = 0;
-        var initFolderAnimation = function() {
-          if (step === 0) {
-            ++step;
-            // At first frame, we call setReferenceElement to move folder list
-            // right under folder card. Transition should be replaced by 'none'
-            // since we don't need to show this process as animation to user.
-            this.folderListElem.style.transition = 'none';
-            this.folderScrollable.setReferenceElement(target);
-            this.skipFolderBubble = Animations.doBubbleAnimation(
-                          this.folderListElem, '.app-button', 100, function() {
-                this.spatialNavigator.add(this.folderScrollable);
-                this.edit.isFolderReady = true;
-                this.skipFolderBubble = undefined;
-              }.bind(this));
-
-            window.requestAnimationFrame(initFolderAnimation);
-          } else {
-            // 2nd frame, recover original transition.
-            this.folderListElem.style.transition = '';
-          }
-        }.bind(this);
-        window.requestAnimationFrame(initFolderAnimation);
-      } else {
+      if (folderList.length === 0) {
         this.edit.isFolderReady = true;
+        return;
       }
+
+      // Build folder list
+      folderList.forEach(function(card) {
+        this.folderScrollable.addNode(this._createCardNode(card));
+      }, this);
+
+      var step = 0;
+      var initFolderAnimation = function() {
+        if (step === 0) {
+          ++step;
+          // At first frame, we call setReferenceElement to move folder list
+          // right under folder card. Transition should be replaced by 'none'
+          // since we don't need to show this process as animation to user.
+          this.folderListElem.style.transition = 'none';
+          this.folderScrollable.realignToReferenceElement();
+          this.skipFolderBubble = Animations.doBubbleAnimation(
+                        this.folderListElem, '.app-button', 100, function() {
+              this.spatialNavigator.add(this.folderScrollable);
+              this.edit.isFolderReady = true;
+              this.skipFolderBubble = undefined;
+            }.bind(this));
+
+          window.requestAnimationFrame(initFolderAnimation);
+        } else {
+          // 2nd frame, recover original transition.
+          this.folderListElem.style.transition = '';
+        }
+      }.bind(this);
+      window.requestAnimationFrame(initFolderAnimation);
     },
 
     openSettings: function() {
