@@ -6,6 +6,10 @@
   transform-origin: 0 0;
 }
 
+.videoPlayer:focus {
+  outline: none;
+}
+
 /* video player controls */
 .videoPlayerPlayButton:before {
   content: "";
