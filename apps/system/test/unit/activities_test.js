@@ -1,18 +1,21 @@
 'use strict';
 /* global MocksHelper, MockApplications, MockL10n, MockDefaultActivityHelper,
-          ActionMenu, Activities, DefaultActivityHelper, MockService
+          ActionMenu, BaseModule, DefaultActivityHelper, MockService
 */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_default_activity_helper.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
-requireApp('system/js/action_menu.js');
-requireApp('system/js/activities.js');
+requireApp('system/js/base_module.js');
 
 var mocksForActivities = new MocksHelper([
-  'Applications'
+  'Applications',
+  'LazyLoader',
+  'ActionMenu'
 ]).init();
 
 suite('system/Activities', function() {
@@ -36,7 +39,7 @@ suite('system/Activities', function() {
 
   mocksForActivities.attachTestHelpers();
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realApplications = window.applications;
@@ -45,6 +48,7 @@ suite('system/Activities', function() {
     window.Service = MockService;
     window.applications = MockApplications;
     window.DefaultActivityHelper = MockDefaultActivityHelper;
+    requireApp('system/js/activities.js', done);
   });
 
   suiteTeardown(function() {
@@ -61,12 +65,24 @@ suite('system/Activities', function() {
 
   suite('constructor', function() {
     test('adds event listeners', function() {
-      this.sinon.stub(window, 'addEventListener');
-      subject = new Activities();
-      assert.ok(window.addEventListener.withArgs('mozChromeEvent').calledOnce);
-      assert.ok(window.addEventListener.withArgs('appopened').calledOnce);
-      assert.ok(window.addEventListener
-        .withArgs('applicationinstall').calledOnce);
+      var expected = [];
+      subject = BaseModule.instantiate('Activities');
+      this.sinon.stub(subject, 'handleEvent', function(evt) {
+        expected.push(evt.type);
+      });
+      subject.start();
+      var events = {};
+      var eventsToListen = [
+        'mozChromeEvent',
+        'appopened',
+        'applicationinstall'
+      ];
+
+      eventsToListen.forEach(function(name) {
+        events[name] = new CustomEvent(name);
+        window.dispatchEvent(events[name]);
+        assert.isTrue(expected[expected.length - 1] === name);
+      });
     });
   });
 
@@ -111,7 +127,6 @@ suite('system/Activities', function() {
     });
 
     test('opens action menu with multiple choice', function() {
-      this.sinon.stub(ActionMenu.prototype, 'start');
       this.sinon.stub(window, 'dispatchEvent');
       subject.chooseActivity({
         id: 'single',
@@ -126,7 +141,9 @@ suite('system/Activities', function() {
 
     test('only opens once if we get two activity-choice events', function() {
       subject.actionMenu = null;
-      this.sinon.stub(ActionMenu.prototype, 'start');
+      this.sinon.stub(ActionMenu.prototype, 'show', function() {
+        subject.actionMenu.active = true;
+      });
       var evt = {
         type: 'mozChromeEvent',
         detail: {
@@ -138,7 +155,7 @@ suite('system/Activities', function() {
       this.sinon.clock.tick();
       subject.handleEvent(evt);
       this.sinon.clock.tick();
-      assert.ok(ActionMenu.prototype.start.calledOnce);
+      assert.ok(ActionMenu.prototype.show.calledOnce);
     });
 
     test('does not allow a choice that would subvert forward lock', function() {
@@ -387,7 +404,7 @@ suite('system/Activities', function() {
       listedName = 'pick';
       listedType = 'image/*';
 
-      subject = new Activities();
+      subject = BaseModule.instantiate('Activities');
     });
 
     teardown(function() {

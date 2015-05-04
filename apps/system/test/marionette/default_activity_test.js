@@ -83,9 +83,12 @@
       client.switchToFrame();
 
       // the app choice doesn't appear this time
-      client.findElement(setDefaultSelector, function(err, element) {
-        assert.equal(err.name, 'NoSuchElement', 'element not found');
-      });
+      try {
+        client.findElement(setDefaultSelector);
+      } catch (exception) {
+        assert(exception.name === 'NoSuchElement');
+      }
+
 
       // Check that CALLEE is open
       client.apps.switchToApp(CALLEE_APP);
@@ -163,9 +166,11 @@
       client.switchToFrame();
 
       // the app choice doesn't appear this time
-      client.findElement(setDefaultSelector, function(err, element) {
-        assert.equal(err.name, 'NoSuchElement', 'element not found');
-      });
+      try {
+        client.findElement(setDefaultSelector);
+      } catch (exception) {
+        assert(exception.name === 'NoSuchElement');
+      }
 
       // Check that CALLEE is open
       client.apps.switchToApp(CALLEE_APP);

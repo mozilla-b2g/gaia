@@ -58,10 +58,13 @@
     configs: {
       listens: ['system-dialog-created',
                 'simlockcreated',
+                'actionmenucreated',
                 'system-dialog-show',
                 'system-dialog-hide',
                 'simlockshow',
+                'actionmenushow',
                 'simlockhide',
+                'actionmenuhide',
                 'system-dialog-requestfocus',
                 'simlockrequestfocus',
                 'home',
@@ -176,16 +179,19 @@
         Service.request('focus', this);
         break;
       case 'simlockcreated':
+      case 'actionmenucreated':
       case 'system-dialog-created':
         dialog = evt.detail;
         this.registerDialog(dialog);
         break;
       case 'simlockshow':
       case 'system-dialog-show':
+      case 'actionmenushow':
         dialog = evt.detail;
         this.activateDialog(dialog);
         break;
       case 'simlockhide':
+      case 'actionmenuhide':
       case 'system-dialog-hide':
         dialog = evt.detail;
         this.deactivateDialog(dialog);

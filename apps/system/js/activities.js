@@ -1,7 +1,19 @@
 'use strict';
-/* global ActionMenu, applications, ManifestHelper, DefaultActivityHelper */
+/* global ActionMenu, BaseModule, applications,
+  ManifestHelper, DefaultActivityHelper, LazyLoader */
 
-(function(exports) {
+(function() {
+
+
+  var Activities = function Activities() {
+    this.actionMenu = null;
+  };
+
+  Activities.EVENTS = [
+    'mozChromeEvent',
+    'appopened',
+    'applicationinstall'
+  ];
 
   /**
    * Handles relaying of information for web activities.
@@ -9,15 +21,11 @@
    * and fires an event off when the user selects one.
    * @class Activities
    */
-  function Activities() {
-    window.addEventListener('mozChromeEvent', this);
-    window.addEventListener('appopened', this);
-    window.addEventListener('applicationinstall', this);
-    this.actionMenu = null;
-  }
 
-  Activities.prototype = {
+  BaseModule.create(Activities, {
     /** @lends Activities */
+
+    name: 'Activities',
 
     /**
      * Remove all event listeners. This is mainly used in unit tests.
@@ -179,18 +187,26 @@
           var type = this._detail.activityType;
           var config = DefaultActivityHelper.getDefaultConfig(name, type);
 
-          var activityNameL10nId;
+          var titleId;
           if (config) {
-            activityNameL10nId = config.l10nId;
+            titleId = config.l10nId;
           } else {
-            activityNameL10nId = 'activity-' + this._detail.name;
+            titleId = 'activity-' + this._detail.name;
           }
 
-          if (!this.actionMenu) {
-            this.actionMenu = new ActionMenu(this._listItems(choices),
-              activityNameL10nId, this.choose.bind(this),
-              this.cancel.bind(this), null, config !== undefined);
-            this.actionMenu.start();
+          var askForDefault = config !== undefined;
+          var items = this._listItems(choices);
+
+          if (!this.actionMenu || !this.actionMenu.active) {
+            var controller = {
+              successCb: this.choose.bind(this),
+              cancelCb: this.cancel.bind(this)
+            };
+
+            LazyLoader.load('js/action_menu.js', function() {
+              this.actionMenu = new ActionMenu(controller);
+              this.actionMenu.show(items, titleId, askForDefault);
+            }.bind(this));
           }
         }).bind(this));
       }
@@ -240,11 +256,6 @@
       delete this._detail;
     },
 
-    publish: function(eventName) {
-      var event = new CustomEvent(eventName);
-      window.dispatchEvent(event);
-    },
-
     /**
      * Sends an event to the platform when a user makes a choice
      * or cancels the activity menu.
@@ -282,8 +293,6 @@
 
       return items;
     }
-  };
+  });
 
-  exports.Activities = Activities;
-
-}(window));
+}());
