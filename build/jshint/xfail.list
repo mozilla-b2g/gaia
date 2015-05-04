@@ -28,7 +28,6 @@ apps/system/test/unit/wifi_test.js
 shared/js/blobview.js
 shared/js/dialer/contacts.js
 shared/js/keyboard_helper.js
-shared/js/lockscreen_slide.js
 shared/js/mediadb.js
 shared/js/operator_variant_helper.js
 shared/js/simple_phone_matcher.js
