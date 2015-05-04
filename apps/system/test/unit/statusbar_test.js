@@ -596,6 +596,12 @@ suite('system/Statusbar', function() {
 
     test('setAppearance no appChrome', function() {
       MockService.currentApp = {
+        isFullScreen: function isFullScreen() {
+          return false;
+        },
+        isFullScreenLayout: function isFullScreenLayout() {
+          return false;
+        },
         getTopMostWindow: function getTopMostWindow() {
           return this;
         }
@@ -609,7 +615,9 @@ suite('system/Statusbar', function() {
       var topMost = new MockAppWindow();
       topMost.appChrome = {
         useLightTheming: this.sinon.stub().returns(true),
-        isMaximized: this.sinon.stub().returns(true)
+        isMaximized: this.sinon.stub().returns(true),
+        isFullScreen: this.sinon.stub().returns(false),
+        isFullScreenLayout: this.sinon.stub().returns(false)
       };
 
       StatusBar.setAppearance({
@@ -628,6 +636,8 @@ suite('system/Statusbar', function() {
     test('setAppearance homescreen', function() {
       MockService.currentApp = {
         isHomescreen: true,
+        isFullScreen: this.sinon.stub().returns(false),
+        isFullScreenLayout: this.sinon.stub().returns(false),
         getTopMostWindow: function getTopMostWindow() {
           return this;
         }
@@ -635,6 +645,22 @@ suite('system/Statusbar', function() {
       StatusBar.setAppearance();
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance fullscreen', function() {
+      this.sinon.stub(MockService.currentApp._topWindow, 'isFullScreen')
+        .returns(true);
+      StatusBar.setAppearance(app);
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen'));
+      assert.isTrue(MockService.currentApp._topWindow.isFullScreen.calledOnce);
+    });
+
+    test('setAppearance fullscreenLayout', function() {
+      var stub = this.sinon.stub(MockService.currentApp._topWindow,
+        'isFullScreenLayout').returns(true);
+      StatusBar.setAppearance(app);
+      assert.isTrue(StatusBar.element.classList.contains('fullscreen-layout'));
+      assert.isTrue(stub.calledOnce);
     });
   });
 
@@ -727,6 +753,12 @@ suite('system/Statusbar', function() {
           isMaximized: function isMaximized() {
             return maximized;
           }
+        },
+        isFullScreen: function isFullScreen() {
+          return false;
+        },
+        isFullScreenLayout: function isFullScreenLayout() {
+          return false;
         }
       };
     }
@@ -1115,6 +1147,12 @@ suite('system/Statusbar', function() {
           isMaximized: function isMaximized() {
             return true;
           }
+        },
+        isFullScreen: function isFullScreen() {
+          return false;
+        },
+        isFullScreenLayout: function isFullScreenLayout() {
+          return false;
         }
       },
       appChrome: {
@@ -1124,7 +1162,7 @@ suite('system/Statusbar', function() {
       },
       getTopMostWindow: function getTopMostWindow() {
         return this._topWindow;
-      },
+      }
     };
   }
 
