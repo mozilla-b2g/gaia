@@ -24,7 +24,8 @@
     'CameraTrigger',
     'FeatureDetector',
     'AudioChannelService',
-    'Activities'
+    'Activities',
+    'SystemWindow'
   ];
 
   Core.SERVICES = [

@@ -9,11 +9,34 @@
   /**
    * AudioChannelController controls the audio channel to
    * play or pause.
+   *
+   * There are two ways to create an AudioChannelController instance.
+   * One is for System app, and the other one is for other apps. 
+   *
+   * Doing `new AudioChannelController('notification')`
+   * to create a controller for System app's notification audio channel.
+   *
+   * Doing `new AudioChannelController(musicApp, contentChannel)`
+   * to create a controller for Music app's content audio channel.
+   * 
+   * @param {AppWindow|String} app
+   * If you want to create a controller for System app's audio channel,
+   * use a String.
+   * If you want to create a controller for other app's audio channel,
+   * use a AppWindow.
+   * @param {BrowserElementAudioChannel} channel
+   * An audio channel belongs to the app.
    */
   var AudioChannelController = function(app, channel) {
     this.app = app;
     this.name = channel.name;
     this._channel = channel;
+    if (app.isSystem) {
+      window.addEventListener('mozChromeEvent', this);
+    } else {
+      app.element.addEventListener('_destroyed', this);
+      channel.addEventListener('activestatechanged', this);
+    }
     this._states = {
       active: false,
       playing: false,
@@ -22,8 +45,6 @@
     };
     this._policy = {};
     this._generateID();
-    channel.addEventListener('activestatechanged', this);
-    app.element.addEventListener('_destroyed', this);
   };
 
   AudioChannelController.prototype = Object.create(BaseUI.prototype); 
@@ -49,6 +70,43 @@
 
       case '_destroyed':
         this.publish('destroyed');
+        break;
+
+      case 'mozChromeEvent':
+        var detail = evt.detail;
+        var name = detail.name;
+        switch (detail.type) {
+          case 'system-audiochannel-state-changed':
+            if (name === this.name) {
+              this._states.active = detail.isActive;
+              this.publish('statechanged');
+            }
+            break;
+
+          case 'system-audiochannel-mute-onsuccess':
+            name === this.name &&
+              this.debug('Set muting state of audio channel as ' +
+                detail.isMuted);
+            break;
+
+          case 'system-audiochannel-mute-onerror':
+            name === this.name &&
+              this.debug('Cannot set muting state of audio channel as ' +
+                detail.isMuted);
+            break;
+
+          case 'system-audiochannel-volume-onsuccess':
+            name === this.name &&
+              this.debug('Set volume of the audio channel as ' +
+                detail.volume);
+            break;
+
+          case 'system-audiochannel-volume-onerror':
+            name === this.name &&
+              this.debug('Cannot set volume of the audio channel as ' +
+                detail.volume);
+            break;
+        }
         break;
     }
   };  
@@ -137,20 +195,26 @@
    */
   AudioChannelController.prototype._play = function() {
     this._states.playing = true;
-    var promise = new Promise((resolve) => {
-      var request = this._channel.setMuted(false);
-      request.onsuccess = () => {
-        resolve();
-      };
-      request.onerror = () => {
-        throw 'Cannot play the audio channel.';
-      };
-    });
-    promise.then(() => {
-      this.app.debug('Play the audio channel.');
-    }).catch(e => {
-      this.app.debug(e);
-    });
+    if (this.app.isSystem) {
+      this._sendContentEvent({
+        type: 'system-audiochannel-mute', isMuted: false
+      });
+    } else {
+      var promise = new Promise((resolve) => {
+        var request = this._channel.setMuted(false);
+        request.onsuccess = () => {
+          resolve();
+        };
+        request.onerror = () => {
+          throw 'Cannot play the audio channel.';
+        };
+      });
+      promise.then(() => {
+        this.app.debug('Play the audio channel.');
+      }).catch(e => {
+        this.app.debug(e);
+      });
+    }
   };
 
   /**
@@ -175,20 +239,26 @@
    */
   AudioChannelController.prototype._pause = function() {
     this._states.playing = false;
-    var promise = new Promise((resolve) => {
-      var request = this._channel.setMuted(true);
-      request.onsuccess = () => {
-        resolve();
-      };
-      request.onerror = () => {
-        throw 'Cannot pause the audio channel.';
-      };
-    });
-    promise.then(() => {
-      this.app.debug('Pause the audio channel');
-    }).catch(e => {
-      this.app.debug(e);
-    });
+    if (this.app.isSystem) {
+      this._sendContentEvent({
+        type: 'system-audiochannel-mute', isMuted: true
+      });
+    } else {
+      var promise = new Promise((resolve) => {
+        var request = this._channel.setMuted(true);
+        request.onsuccess = () => {
+          resolve();
+        };
+        request.onerror = () => {
+          throw 'Cannot pause the audio channel.';
+        };
+      });
+      promise.then(() => {
+        this.app.debug('Pause the audio channel');
+      }).catch(e => {
+        this.app.debug(e);
+      });
+    }
   };
 
   /**
@@ -212,20 +282,26 @@
    * @param {Number} volume 0 to 1.
    */
   AudioChannelController.prototype._setVolume = function(volume) {
-    var promise = new Promise((resolve) => {
-      var request = this._channel.setVolume(volume);
-      request.onsuccess = () => {
-        resolve();
-      };
-      request.onerror = () => {
-        throw 'Cannot set volume of the audio channel.';
-      };
-    });
-    promise.then(() => {
-      this.app.debug('Set volume: ' + volume);
-    }).catch(e => {
-      this.app.debug(e);
-    });   
+    if (this.app.isSystem) {
+      this._sendContentEvent({
+        type: 'system-audiochannel-volume', volume: volume
+      });
+    } else {
+      var promise = new Promise((resolve) => {
+        var request = this._channel.setVolume(volume);
+        request.onsuccess = () => {
+          resolve();
+        };
+        request.onerror = () => {
+          throw 'Cannot set volume of the audio channel.';
+        };
+      });
+      promise.then(() => {
+        this.app.debug('Set volume: ' + volume);
+      }).catch(e => {
+        this.app.debug(e);
+      });
+    }
   };
 
   /**
@@ -233,6 +309,20 @@
    */
   AudioChannelController.prototype._generateID = function() {
     this.instanceID = this.app.instanceID + '_' + this.name;
+  };
+
+  /**
+   * Send MozContentEvent to control the audio chanenl in System app.
+   *
+   * @param {Object} detail The arguments for passing to Gecko.
+   * @param {Object} detail.type The operation for the audio channel.
+   * @param {Object} detail.isMuted Allow audio channel to play or not.
+   * @param {Object} detail.volume The volume you want to set.
+   */
+  AudioChannelController.prototype._sendContentEvent = function(detail) {
+    detail.name = this.name;
+    var evt = new CustomEvent('mozContentEvent', { detail: detail });
+    window.dispatchEvent(evt);
   };
 
   exports.AudioChannelController = AudioChannelController;
