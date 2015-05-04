@@ -1,0 +1,39 @@
+/*
+ * This file contains styles for Conversation view edit mode. They complement
+ * styles from views/shared/style/edit-mode.css that are applied as well.
+ * View edit mode is activated via Options -> Select messages.
+ */
+
+
+.edit #messages-container {
+  margin-bottom: 5.5rem;
+}
+
+.edit .article-list[data-type="list"] .message {
+  border-color: #e7e7e7;
+}
+
+.edit [data-type="list"] .message .bubble {
+  pointer-events: none;
+}
+
+.edit .message .bubble {
+  pointer-events: none;
+}
+
+.edit .message.incoming .bubble {
+  transform: translateX(2.5rem);
+}
+
+.edit #messages-compose-form {
+  display: none;
+}
+
+/* RTL View */
+html[dir="rtl"] .edit .message.outgoing .bubble {
+  transform: translateX(0);
+}
+
+html[dir="rtl"] .edit .message.incoming .bubble {
+  transform: translateX(-2.5rem);
+}

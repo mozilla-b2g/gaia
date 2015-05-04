@@ -1,0 +1,679 @@
+#composer-container {
+  position: relative;
+
+  background: #e1f0ec;
+}
+
+.new .article-list {
+  z-index: 5;
+
+  padding: 0;
+}
+
+/*
+ * Flex layout is wrapped by 'flex-composer'. Our flex layout has
+ * 2 well differentiated:
+ * - 'messages-container'
+ * - 'messages-compose-form'
+ */
+
+.flex-composer {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  top: 0;
+
+  overflow: hidden;
+}
+
+.new .flex-composer {
+  position: relative;
+  top: 4rem;   /* 4rem is the default size of the recipient panel */
+
+  height: calc(100% - 4rem);
+}
+
+.multiline-recipients-mode.new .flex-composer {
+  top: 5.5rem;
+
+  height: calc(100% - 5.5rem);
+}
+
+#messages-container {
+  /* We'll set flex-basis with a shrink factor of 0 to do min-height.
+   * formula: flex-basis = a % + b)
+   * a = (gap2 - gap1) / keyboard_height
+   * b = gap2 - (gap2 - gap1) * (buri_height - header) / keyboard_height + subheader + time_header
+   *
+   * with :
+   * gap1 = 4rem
+   *   minimal visible part of a thread when the keyboard is displayed, on buri
+   * gap2 = 8rem
+   *   minimal visible part of a thread when the keyboard is hidden, on a buri
+   * keyboard_height = 26rem
+   *   measured on a buri, standard english keyboard with suggestions
+   * header = 5rem
+   * subheader = 2rem
+   * buri_height = 48rem
+   * time_header = 2rem
+   *
+   * See https://bugzilla.mozilla.org/show_bug.cgi?id=1015867#c12 for more
+   * information
+   */
+  flex: 1 0 calc(15.4% + 5.38rem);
+  overflow: auto;
+}
+
+.new #messages-container {
+  flex-basis: 0;
+}
+
+#messages-compose-form {
+  display: flex;
+  flex-direction: column;
+
+  height: auto; /* overrides building blocks */
+  min-height: 4rem;
+
+  background-color: #fff;
+}
+
+/* Overwrite. No more fixed height */
+form[role="search"] p input,
+form[role="search"] p textarea,
+form[role="search"] button[type="submit"] + p > textarea {
+  height: auto;
+}
+
+/*
+ * Input now are contentEditable containers. We define
+ * placeholder management here as well.
+ */
+
+#messages-input {
+  position: relative; /* to position its generated content */
+
+  overflow: auto;
+
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  -moz-padding-end: 0.5rem;
+
+  color: #474747;
+  -moz-border-end: 0.1rem solid #ccc;
+
+  font-size: 1.7rem;
+  line-height: 2.1rem;
+
+  unicode-bidi: -moz-plaintext;
+}
+
+#messages-input.placeholder {
+  unicode-bidi: unset;
+}
+
+#messages-input:after {
+  content: attr(data-placeholder);
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  color: #9b9b9b;
+  font-style: italic;
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+#messages-input.placeholder:after {
+  visibility: visible;
+}
+
+/* Overwrite BB because of the previous rule */
+form[role="search"] button[type="submit"]:after {
+    content: "";
+    background: none;
+}
+
+.mms-label-line {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  background-color: #e1f0ec;
+}
+
+.subject-composer {
+  position: relative;
+
+  flex-grow: 1;
+  min-width: 0;
+  padding: 1rem 0 0.3rem;
+}
+
+.mms-label {
+  padding: 1rem 0 0.3rem;
+}
+
+.mms-label,
+.message-counter {
+  display: none;
+  flex: none;
+  text-align: center;
+
+  box-sizing: border-box;
+  width: 6rem;
+
+  color: #575757;
+
+  font-size: 1.4rem;
+}
+
+.message-counter {
+  padding-top: .7rem;
+}
+
+/**
+ * 1. "MMS" label is displayed near the subject field when subject input is
+ *    visible and message type is MMS;
+ * 2. Remaining characters counter is displayed in bottom section if character
+ *    count exceeds predefined threshold and message type is SMS.
+ */
+[data-message-type='mms'] .mms-label,
+[data-message-type='sms'] .message-counter:not(:empty) {
+  display: block;
+}
+
+.content-composer {
+  display: flex;
+  flex-direction: row;
+
+  min-height: 0;
+}
+
+.subject-composer-input {
+  position: relative;
+
+  box-sizing: border-box;
+  min-height: 2.2rem;
+  padding: 0;
+  padding-bottom: 0.1rem;
+  -moz-padding-start: 1.5rem;
+
+  color: #008787;
+
+  font-size: 1.7rem;
+}
+
+.subject-composer-placeholder {
+  position: absolute;
+  top: 1rem;
+  /* adding both left/right so that it behaves correctly in RTL */
+  left: 1.5rem;
+  right: 1.5rem;
+
+  color: #00adad;
+  font-size: 1.7rem;
+  font-weight: normal;
+  font-style: italic;
+
+  pointer-events: none;
+}
+
+.composer-message-input-container {
+  position: relative;
+
+  flex: auto;
+
+  box-sizing: border-box;
+  min-width: 0;
+  height: 100%;
+  min-height: 4rem;
+  padding: 1rem 0;
+}
+
+.composer-button-container {
+  position: relative;
+
+  display: flex;
+  flex: none;
+  flex-direction: row;
+  justify-content: center;
+  align-content: space-between;
+  flex-wrap: wrap;
+
+  width: 6rem;
+
+  -moz-user-select: none; /* without this, tapping on the element selects its content */
+}
+
+.messages-attach-container {
+  display: flex;
+}
+
+#messages-send-button {
+  height: 4rem;
+  overflow: visible;
+  background: #fff url(images/icons/actionicon_sms_send_30x30.png)
+              no-repeat center center / 3rem;
+
+  align-self: flex-end;
+
+  /* When we put the icon at the center, an optical illusion makes it look to be
+   * slightly to the left, so we offset the button by 2px to the right to
+   * counteract this illusion */
+  transform: translate(.2rem);
+}
+
+#messages-send-button:after {
+  display: none
+}
+
+#messages-send-button[disabled] {
+  background-blend-mode: luminosity;
+  opacity: 0.625;
+}
+
+#messages-input.ignoreEvents {
+  pointer-events: none;
+}
+
+#messages-attach-button {
+  align-self: flex-end;
+  flex: none;
+
+  box-sizing: content-box;
+  width: 3rem;
+  margin: 0;
+  padding: 0;
+  -moz-padding-start: 0.5rem;
+  -moz-padding-end: 1rem;
+
+  background: transparent
+              url('images/icons/actionicon_sms_add_attachment_30x30.png')
+              no-repeat center / 3rem;
+}
+
+#messages-attach-button[disabled] {
+  background-blend-mode: luminosity;
+  opacity: 0.3;
+}
+
+/*
+  DSDS
+*/
+
+.sim-indication {
+  position: absolute;
+  right: 1.8rem;
+  bottom: 0.4rem;
+
+  display: none;
+  line-height: 1;
+
+  color: #5f5f5f;
+  font-size: 1.4rem;
+  font-style: normal;
+}
+
+.sim-indication:before {
+  position: absolute;
+  right: .8rem; /* 2.6rem from the right; means .8rem from .sim-indication */
+  bottom: -0.1rem;
+
+  content: '...';
+
+  color: #b2b2b2;
+  font-size: 1.6rem;
+}
+
+button[disabled] .sim-indication {
+  color: inherit;
+}
+
+.has-preferred-sim .sim-indication {
+  display: block;
+}
+
+/**
+ * Override Building Block [Input areas] styles
+ * We should get rid of all [role="search"] Messages rules in bug 1055357.
+ */
+form.bottom[role="search"] {
+  z-index: 3;
+}
+
+/*
+  Styles for new message
+*/
+
+section[role="region"].new > gaia-header h1 {
+  pointer-events: none;
+}
+
+#messages-contact-pick-button {
+  display: none;
+}
+
+.new #messages-contact-pick-button {
+  display: block;
+
+  width: 5rem;
+  height: 4rem;
+}
+
+#messages-contact-pick-button .icon-user {
+  position: absolute;
+  top: 0.6rem;
+  right: 1rem;
+
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+
+  color: #575757;
+  background-color: #FFF;
+}
+
+#messages-contact-pick-button .icon-user:after {
+  content: "+";
+  position: absolute;
+
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+
+  line-height: 2.8rem;
+  font-size: 2.1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+#messages-contact-pick-button .icon-user:active {
+  color: #FFF;
+  background-color: #29bbb5;
+}
+
+section[role="region"].new .subheader {
+  /* The subheader contains the recipients part and because of the fact that it
+   * has "overflow: visible" we can see it. We should revise it.
+   */
+  height: 0;
+}
+
+.subheader menu {
+  position: relative;
+  flex-shrink: 0;
+
+  width: 5rem;
+  height: 4rem;
+}
+
+/* Render this container outside of the document flow so that it does not
+ * effect the height of the containing subheader, and therefore does not effect
+ * the height of the Compose field. */
+.subheader .overlay {
+  position: absolute;
+  width: 100%;
+}
+
+/** To be seen below the To: field when we are creating a new message **/
+.new .overlay {
+  /* recipient's panel default size; be careful as this value depends on To:
+   * field height */
+  top: 4rem;
+}
+
+.new.multiline-recipients-mode .overlay {
+  top: 5.5rem;
+}
+
+#messages-to-field {
+  position: relative;
+  /* To be above .article-list's with z-index = 5 */
+  z-index: 6;
+
+  display: none;
+  min-height: 5.5rem;
+
+  text-align: start;
+  color: black;
+  font-size: 1.465rem;
+  background-color: #f2f2f2;
+  transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 4rem));
+}
+
+.multiline-recipients-mode #messages-to-field {
+  transform: translateY(calc(-100% + 5.5rem));
+}
+
+section[role="region"].new #messages-to-field {
+  display: flex;
+  align-items: flex-end;
+}
+
+
+section[role="region"].new #messages-to-field.multiline {
+  transform: translateY(0);
+}
+
+#to-label {
+  flex-shrink: 0;
+
+  height: 4rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 0.7rem;
+
+  line-height: 4rem;
+  font-weight: 200;
+  font-size: 1.465rem;
+  color: #000;
+}
+
+#messages-recipients-list-container {
+  min-height: 4rem;
+  min-width: 0;
+  box-sizing: border-box;
+
+  flex-grow: 1;
+}
+
+#messages-recipients-list {
+  box-sizing: border-box;
+  min-height: 4rem;
+  padding-top: 0;
+  -moz-padding-end: 0.6rem;
+  padding-bottom: 0.6rem;
+  -moz-padding-start: 0;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/*
+Used by Recipients.View to display multi or single line.
+Do not remove.
+*/
+#messages-recipients-list.singleline {
+  overflow-y: hidden;
+}
+
+#messages-recipients-list.multiline {
+  /* max-height = viewport - header - minimum composer - list margin */
+  max-height: calc(100vh - 5rem - 4rem - 0.6rem);
+  margin-bottom: 0.6rem;
+  padding-bottom: 0;
+
+  overflow-y: scroll;
+}
+
+.recipient[contenteditable] {
+  overflow: hidden;
+  /**
+   * We don't use -moz-margin-end\-start here because margin location shouldn't
+   * depend on text direction of recipient element content itself. For LTR mode
+   * both LTR and RTL recipient elements should have right margin, for RTL mode
+   * it should have left margin, so to align it correctly we should override
+   * margin depending on text direction of parent element.
+   */
+  margin: 0.6rem 0.6rem 0 0;
+
+  display: block;
+
+  /* override BB selector */
+  height: auto;
+  width: auto;
+}
+
+.recipient[contenteditable].email {
+  /**
+   * We don't use -moz-padding-start here because padding location shouldn't
+   * depend on text direction of recipient element content itself. For LTR mode
+   * both LTR and RTL email recipient elements should have left padding to
+   * accommodate email icon, for RTL mode it should be on the right side, so to
+   * align it correctly we should override padding depending on text direction
+   * of parent element.
+   */
+  padding-left: 3.8rem;
+  background: #fff url(images/icons/icon_sms_compose_email.png) left 1.5rem
+              center / 1.7rem no-repeat;
+}
+
+#messages-recipients-list > .recipient[contenteditable=true] {
+  flex-grow: 1;
+  height: 2.8rem;
+  line-height: 2.8rem;
+  border-radius: 0;
+
+  word-wrap: unset;
+
+  /* Building blocks override (bug xxx) */
+  background: none;
+  color: #000;
+}
+
+#messages-recipients-list > .recipient[contenteditable=true]:focus {
+  /**
+   * To workaround bug 1103011, we just collapse editable recipient on focus so
+   * that caret position looks correct for the user, while in fact it is not
+   * true - caret is still in wrong position, but zero-width editable element is
+   * aligned correctly inside parent.
+   */
+  flex-grow: unset;
+}
+
+.recipient[contenteditable=true]:empty:not(:last-of-type) {
+  display: none;
+}
+
+/* Disable padding and give negative margin-end on empty contenteditable
+ * recipients when they do not have focus. This allows the Recipients List
+ * to intelligently collapse when the final row contains no "assimilated"
+ * (i.e. non-contenteditable) recipients. */
+.recipient[contenteditable=true]:empty {
+  /**
+   * We don't use -moz-margin-end here because of the bug 1103011, as currently
+   * directionality of empty contenteditable isn't inherited from parent, but
+   * always LTR, so -moz-margin-end equals to margin-right in both LTR and RTL
+   * modes. So to align it correctly we should override margin depending on text
+   * direction of parent element manually.
+   */
+  margin-right: -0.5rem;
+  padding: 0;
+}
+
+.recipient[contenteditable=true]:focus,
+.recipient[contenteditable=true]:hover,
+.recipient[contenteditable=true]:empty:focus {
+  -moz-margin-end: 0.5rem;
+  -moz-padding-end: 0.3rem;
+}
+
+#messages-recipient-suggestions {
+  position: absolute;
+  /* 9rem (5 rem from app header + 4rem from "To" panel heights) */
+  top: 9rem;
+
+  overflow-y: auto;
+
+  max-height: calc(100% - 9rem);
+  width: 100%;
+}
+
+.recipient-suggestions-list {
+  border-bottom: 0.1rem solid #E7E7E7;
+}
+
+.multiline-recipients-mode #messages-recipient-suggestions {
+  top: 10.5rem;
+
+  max-height: calc(100% - 10.5rem);
+}
+
+#messages-recipient-suggestions li {
+  pointer-events: auto;
+}
+
+/* RTL modifications */
+/* No translation by 2px because I don't see the illusion when it's on the left */
+html[dir=rtl] #messages-send-button {
+  transform: scaleX(-1);
+}
+
+/* The sim-indication is mirrored twice so that it's back at the right place */
+html[dir=rtl] .sim-indication {
+  transform: scaleX(-1);
+  right: 1.9rem;
+}
+
+html[dir=rtl] .sim-indication:before {
+  right: unset;
+  left: .8rem;
+}
+
+html[dir="rtl"] #messages-contact-pick-button .icon-user {
+  left: 1rem;
+  right: unset;
+}
+
+/* RTL for recipient panel */
+:-moz-dir(rtl) > .recipient[contenteditable] {
+  margin-left: 0.6rem;
+  margin-right: 0;
+
+  /**
+   * We need "text-align: right" only for the cases when currently editable
+   * recipient looses focus but not yet assimilated: case №1 - when we tap on
+   * thread-container - maybe fixed soon, case №2 - when we use screen reader,
+   * eg. single touch on message input steals focus from currently editable
+   * recipient, but doesn't yet give it to the message input. As the result
+   * flex-grow (see workaround for bug 1103011) returns and because of dir=auto
+   * LTR\RTL name would be always left\right aligned in both LTR and RTL modes.
+   */
+  text-align: right;
+}
+
+:-moz-dir(rtl) > .recipient[contenteditable].email {
+  /**
+   * See LTR ".recipient[contenteditable].email" rule above for the explanation
+   * why we don't use -moz-padding-start/-end here.
+   */
+  padding: 0 3.8rem 0 1.5rem;
+
+  background-position: right 1.5rem center;
+}
+
+:-moz-dir(rtl) > .recipient[contenteditable=true]:empty {
+  /**
+   * See LTR ".recipient[contenteditable=true]:empty" rule above for the
+   * explanation why we don't use -moz-margin-start/-end here.
+   */
+  margin-left: -0.5rem;
+  margin-right: 0;
+}
