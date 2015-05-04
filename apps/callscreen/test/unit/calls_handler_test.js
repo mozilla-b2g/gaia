@@ -953,6 +953,7 @@ suite('calls handler', function() {
 
         setup(function() {
           mockCall = new MockCall('543552', 'incoming');
+          this.sinon.spy(mockCall, 'hangUp');
           mockCall.addEventListener(
             'statechange', CallsHandler.updatePlaceNewCall);
           telephonyAddCall.call(this, mockCall, {trigger: true});
@@ -960,9 +961,14 @@ suite('calls handler', function() {
         });
 
         test('should hangup the active call', function() {
-          var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
           CallsHandler.end();
-          assert.isTrue(hangUpSpy.calledOnce);
+          sinon.assert.calledOnce(mockCall.hangUp);
+        });
+
+        test('should hangup the held call', function() {
+          MockNavigatorMozTelephony.active = null;
+          CallsHandler.end();
+          sinon.assert.calledOnce(mockCall.hangUp);
         });
 
         test('should enable the place new call button', function() {
@@ -1000,6 +1006,14 @@ suite('calls handler', function() {
         });
 
         test('should hangup all the calls in the conference group', function() {
+          CallsHandler.end();
+          sinon.assert.calledOnce(
+            MockNavigatorMozTelephony.conferenceGroup.hangUp);
+        });
+
+        test('should hangup all the calls in the held conference group',
+        function() {
+          MockNavigatorMozTelephony.active = null;
           CallsHandler.end();
           sinon.assert.calledOnce(
             MockNavigatorMozTelephony.conferenceGroup.hangUp);
