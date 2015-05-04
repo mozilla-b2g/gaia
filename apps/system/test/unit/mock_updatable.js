@@ -70,3 +70,5 @@ MockSystemUpdatable.prototype.checkKnownUpdate = function(callback) {
     callback();
   }
 };
+
+MockSystemUpdatable.prototype.declineInstallWait = function() {};
