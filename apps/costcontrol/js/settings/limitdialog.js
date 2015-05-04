@@ -122,7 +122,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
   dataLimitInput.addEventListener('input',
     function cc_ondataLimitInputChange(evt) {
       var lowLimitValue = evt.target.value.trim();
-      var isNumericLowLimit = !Number.isNaN(lowLimitValue);
+      var isNumericLowLimit = !Number.isNaN(Number(lowLimitValue));
 
       if (isNumericLowLimit &&
           lowLimitValue.indexOf('.0') !== lowLimitValue.length - 2 &&
