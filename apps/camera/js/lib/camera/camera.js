@@ -122,6 +122,7 @@ Camera.prototype.load = function() {
   if (this.mozCamera && !loadingNewCamera) {
     this.setupNewCamera(this.mozCamera);
     debug('camera not changed');
+    this.ready();
     return;
   }
 
