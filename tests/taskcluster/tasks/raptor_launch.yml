@@ -24,7 +24,6 @@ task:
       RAPTOR_TIMEOUT: '{{raptorTimeout}}'
       RAPTOR_LAUNCH_DELAY: 6000
     command:
-      - entrypoint
       - /home/tester/bin/go-raptor.sh
 
     artifacts:
