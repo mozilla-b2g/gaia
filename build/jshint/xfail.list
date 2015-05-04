@@ -1,12 +1,9 @@
-apps/keyboard/js/imes/jshangul/jshangul.js
 apps/keyboard/js/imes/jskanji/jskanji.js
 apps/keyboard/js/imes/jspinyin/empinyin_files.js
 apps/keyboard/js/imes/jspinyin/jspinyin.js
-apps/keyboard/js/imes/jspinyin/tests/init.js
 apps/keyboard/js/imes/jspinyin/worker.js
 apps/keyboard/js/imes/jszhuyin/jszhuyin.js
 apps/keyboard/js/imes/latin/latin.js
-apps/keyboard/js/imes/latin/predictions.js
 apps/keyboard/js/render.js
 apps/keyboard/js/settings/settings.js
 apps/keyboard/test/unit/imes/jspinyin/jspinyin_test.js

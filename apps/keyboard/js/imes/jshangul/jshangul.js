@@ -1,15 +1,13 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global KeyEvent, InputMethods */
 'use strict';
 
 (function() {
 
   var keyboard, ime, composingText, JangmiIME;
 
-  var SPACE = KeyEvent.DOM_VK_SPACE;
   var BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
-  var RETURN = KeyEvent.DOM_VK_RETURN;
 
   /*
     JangmiIME
@@ -34,7 +32,6 @@
 
     var UTF8_HANGUL_SYLLABLES_START = 0xAC00;
     var UTF8_HANGUL_COMPATIBILITY_START = 0x3131;
-    var UTF8_JUNGSEONG_START = 0x1161;
     var UTF8_CHOSEONG_DIFF = '까'.charCodeAt(0) - '가'.charCodeAt(0);
     var UTF8_JUNGSEONG_DIFF = '개'.charCodeAt(0) - '가'.charCodeAt(0);
 
