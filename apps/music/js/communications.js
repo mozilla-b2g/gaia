@@ -137,23 +137,26 @@ var MusicComms = {
   _statusBeforeSCO: null,
 
   init: function() {
-    // The Media Remote Controls object will handle the remote commands.
-    this.mrc = new MediaRemoteControls();
-    // Add command listeners base on what commands the MusicComms has.
-    for (var command in this.commands) {
-      this.mrc.addCommandListener(command, this.commands[command].bind(this));
-    }
+    LazyLoader.load(['shared/js/bluetooth_helper.js',
+      'shared/js/media/remote_controls.js'], () => {
+      // The Media Remote Controls object will handle the remote commands.
+      this.mrc = new MediaRemoteControls();
+      // Add command listeners base on what commands the MusicComms has.
+      for (var command in this.commands) {
+        this.mrc.addCommandListener(command, this.commands[command].bind(this));
+      }
 
-    // Update the SCO status after the mrc is ready, so that we can know the
-    // current SCO connection and reflect it to the player.
-    this.mrc.start(this.updateSCOStatus.bind(this));
+      // Update the SCO status after the mrc is ready, so that we can know the
+      // current SCO connection and reflect it to the player.
+      this.mrc.start(this.updateSCOStatus.bind(this));
 
-    this.mrc.notifyAppInfo({
-      origin: window.location.origin,
-      icon: window.location.origin + '/style/icons/music_84.png'
+      this.mrc.notifyAppInfo({
+        origin: window.location.origin,
+        icon: window.location.origin + '/style/icons/music_84.png'
+      });
+
+      this.enabled = true;
     });
-
-    this.enabled = true;
   },
 
   _getPlayerReady: function(callback) {
