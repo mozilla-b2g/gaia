@@ -22,6 +22,10 @@
   visibility: visible;
 }
 
+#main-section[data-mode="edit"] .card.delete > .card-panel {
+  display: none;
+}
+
 #main-section[data-mode="edit"] .card.focused > smart-button {
   transform: scale(1.4);
 }
@@ -34,6 +38,11 @@
 #main-section[data-mode="arrange"] .card.focused.hover > smart-button {
   transform: scale(1.2);
   transition-delay: 0.1s;
+}
+
+#main-section[data-mode="edit"] .card.delete > smart-button {
+  transform: scale(1.4) translateY(20rem);
+  opacity: 0;
 }
 
 #main-section[data-mode="edit"] .card.focused > .card-panel smart-button {
