@@ -81,9 +81,9 @@
 }
 
 /* Overwrite. No more fixed height */
-form[role="search"] p input,
-form[role="search"] p textarea,
-form[role="search"] button[type="submit"] + p > textarea {
+#messages-compose-form p input,
+#messages-compose-form p textarea,
+#messages-compose-form button[type="submit"] + p > textarea {
   height: auto;
 }
 
