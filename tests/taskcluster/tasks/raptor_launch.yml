@@ -21,12 +21,11 @@ task:
       RAPTOR_TEST: tests/raptor/emulator_launch_test.js
       RAPTOR_RUNS: '{{raptorRuns}}'
       RAPTOR_APPS: '{{raptorApps}}'
-      RAPTOR_GAIA_REV: '{{gaiaRev}}'
       RAPTOR_TIMEOUT: '{{raptorTimeout}}'
-      RAPTOR_BOOT_SLEEP: '{{raptorBootSleep}}'
       RAPTOR_LAUNCH_DELAY: 6000
     command:
       - entrypoint
+      - /home/tester/bin/go-raptor.sh
 
     artifacts:
       'public/logs':
