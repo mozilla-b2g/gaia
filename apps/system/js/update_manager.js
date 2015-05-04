@@ -743,7 +743,10 @@ var UpdateManager = {
       case 'wifi-statuschange':
         this.updateWifiStatus();
         break;
-       case 'lockscreen-appopened':
+      case 'lockscreen-appopened':
+        if (this.systemUpdatable.showingApplyPrompt) {
+          this.systemUpdatable.declineInstallWait();
+        }
         this.downloadViaDataConnectionDialog.classList.remove('visible');
         this._closeDownloadDialog();
         CustomDialog.hide();

@@ -408,6 +408,14 @@ suite('system/UpdateManager', function() {
         assert.isFalse(MockCustomDialog.mShown);
       });
 
+      test('should decline install if showing apply prompt', function() {
+        this.sinon.spy(UpdateManager.systemUpdatable, 'declineInstallWait');
+        UpdateManager.systemUpdatable.showingApplyPrompt = true;
+        window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+        assert.isTrue(
+          UpdateManager.systemUpdatable.declineInstallWait.calledOnce);
+      });
+
       var testCases = [
         {
           title: 'should dispatchEvent updatepromptshown, showDownloadPrompt',
