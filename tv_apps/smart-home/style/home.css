@@ -76,6 +76,15 @@ section {
   transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1), filter 0.3s ease;
 }
 
+.card smart-button[type="app-button"].tv-channel {
+  background-color: #272727;
+}
+
+.card smart-button[type="app-button"].tv-channel:before {
+  font-size: 30rem;
+  color: white;
+}
+
 .card smart-button[type="app-button"].new-card {
   opacity: 0;
   transform: scale(0.5, 0.5);

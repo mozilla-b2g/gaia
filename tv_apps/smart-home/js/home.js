@@ -440,8 +440,14 @@
       // XXX: will support Folder and other type of Card in the future
       // for now, we only create card element for Application and Deck
       if (card instanceof Application) {
-        cardButton.setAttribute('app-type', 'app');
-        this._fillCardIcon(cardButton, card);
+        if (card.group === 'tv') {
+          cardButton.classList.add('tv-channel');
+          cardButton.dataset.icon = 'tv';
+          cardButton.setAttribute('app-type', 'tv');
+        } else {
+          cardButton.setAttribute('app-type', 'app');
+          this._fillCardIcon(cardButton, card);
+        }
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
         this.createWave(cardButton, card);
