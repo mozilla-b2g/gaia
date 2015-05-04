@@ -117,8 +117,10 @@
       this.listElem.style.transitionDuration = null;
 
       // set positions of other nodes to create moving effect
-      this._setOtherNodesPosition(this.newCardIndex);
-      this.focus(this.newCardIndex);
+      if (!this.isHovering) {
+        this._setOtherNodesPosition(this.newCardIndex);
+        this.focus(this.newCardIndex);
+      }
       this.fire('slideEnd');
       this.isSliding = false;
     },
@@ -378,10 +380,11 @@
 
       var newFocus = this.getItemFromNode(this.nodes[newFocusIdx]);
       this.nodes = newNodes;
-      if (!this.isHovering) {
+      if (!this.isHovering && newFocus) {
         this._setNodesPosition();
         this.spatialNavigator.focus(newFocus);
-      } else {
+      } else if (this.isHovering) {
+        this._setNodesIdx();
         this.spatialNavigator.focusSilently(this.hoveredItem);
         this.fire('hovering-node-removed', this.hoveringItem, this.hoveredItem);
         this.unhoverSilently();
@@ -410,6 +413,31 @@
       return true;
     },
 
+    insertNodeOver: function(newNode, startNode) {
+      if (typeof startNode === 'number') {
+        startNode = this.nodes[startNode];
+      }
+
+      var itemElem = this.getItemFromNode(newNode);
+      if (!itemElem) {
+        return false;
+      }
+
+      var newIdx =  parseInt(startNode.dataset.idx, 10);
+
+      this.nodes.splice(newIdx, 0, newNode);
+      this.listElem.appendChild(newNode);
+      this._setNodesPosition();
+
+      this.spatialNavigator.add(itemElem);
+      this._slide(this.getItemFromNode(startNode), newIdx + 1);
+      this.hover(itemElem, this.getItemFromNode(startNode));
+      this.focus(newIdx);
+      this.fire('node-inserted-over-folder');
+
+      return true;
+    },
+
     get currentItem() {
       return this.spatialNavigator.getFocusedElement();
     },
@@ -431,6 +459,12 @@
       }
     },
 
+    _setNodesIdx: function() {
+      for(var idx in this.nodes) {
+        this.nodes[idx].dataset.idx = idx;
+      }
+    },
+
     _setNodesPosition: function() {
       for(var idx in this.nodes) {
         this._setNodePosition(idx);
@@ -441,10 +475,13 @@
       this._setNodesPosition();
     },
 
-    _setNodePosition: function(idx) {
+    _setNodePosition: function(idx, offset) {
+      var distance = 0;
+      distance = offset ? idx + offset : idx;
       this.nodes[idx].dataset.idx = idx;
       this.getNodeFromItem(this.nodes[idx]).style.transform =
-          'translateX(calc((100% + ' + this.spacing + 'rem) * ' + idx + '))';
+          'translateX(calc((100% + ' + this.spacing + 'rem) * ' +
+          distance + '))';
     },
 
     swap: function(node1, node2) {

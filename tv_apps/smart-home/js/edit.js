@@ -47,6 +47,8 @@
         this.onCardMoveAnimationEnd.bind(this));
       this.cardScrollable.on('hovering-node-removed',
         this.onHoveringNodeRemoved.bind(this));
+      this.cardScrollable.on('node-inserted-over-folder',
+        this.onNodeInsertedOverFolder.bind(this));
 
       this.spatialNavigator.on('focus', this.handleFocus.bind(this));
       this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
@@ -85,6 +87,11 @@
 
         // Keep track of scrollable and node for showing/hiding panel
         this.currentScrollable = this.cardScrollable;
+        // Add current-scrollable style to #card-viewer
+        document.getElementById('card-viewer').classList.add(
+          'current-scrollable');
+        document.getElementById('folder-viewer').classList.remove(
+          'current-scrollable');
         this.currentNode =
           this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
         this._revealPanel(this.currentScrollable, this.currentNode);
@@ -206,7 +213,12 @@
           this._moveQueue.clearQueue();
           break;
         case 'up':
-          // TODO: Implement remove from folder in bug 1156143
+          if (this.currentScrollable === this.folderScrollable) {
+            this.moveToCardList(focus);
+            this._moveTimer =
+              window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
+              CARD_TRANSFORM_LATENCY);
+          }
           break;
         }
       }
@@ -243,16 +255,15 @@
       if (scrollable && scrollable.isHovering) {
         this.currentNode.classList.toggle('left_arrow', true);
         this.currentNode.classList.toggle('right_arrow', true);
-        // If the current node can be moved into a folder
         this.currentNode.classList.toggle('down_arrow', true);
-        // If the current node can be removed from a folder
-        this.currentNode.classList.toggle('up_arrow', false);
+        this.currentNode.classList.remove('up_arrow');
       } else {
         this.currentNode.classList.toggle('left_arrow', index > 0);
         this.currentNode.classList.toggle('right_arrow',
                                     index < this.currentScrollable.length - 1);
         this.currentNode.classList.remove('down_arrow');
-        this.currentNode.classList.remove('up_arrow');
+        this.currentNode.classList.toggle('up_arrow',
+                              this.currentScrollable === this.folderScrollable);
       }
     },
 
@@ -285,6 +296,11 @@
       folder.addCard(card, 0);
       this._hoveringCard = null;
       this.currentScrollable = this.folderScrollable;
+      // Remove current-scrollable style from #card-viewer
+      document.getElementById('card-viewer').classList.remove(
+        'current-scrollable');
+      document.getElementById('folder-viewer').classList.add(
+        'current-scrollable');
       this.currentNode = this.folderScrollable.getNodeFromItem(
                                             this.folderScrollable.currentItem);
       if (!this.spatialNavigator.focus(this.folderScrollable)) {
@@ -294,6 +310,39 @@
         this.spatialNavigator.focus(this.folderScrollable);
       }
       this._setHintArrow();
+    },
+
+    moveToCardList: function(focus) {
+      var folder = this.cardManager.findContainingFolder(
+                                    {cardId: focus.currentItem.dataset.cardId});
+      var card = this.cardManager.findCardFromCardList(
+                                    {cardId: focus.currentItem.dataset.cardId});
+      var folderItem = this.cardScrollable.spatialNavigator.getFocusedElement();
+      var idx = this.cardScrollable.getNodeFromItem(folderItem).dataset.idx;
+
+      this._hoveringCard = card;
+
+      folder.removeCard(card);
+      // insert card
+      this.cardManager.insertCard({
+        card: card,
+        index: parseInt(idx, 10),
+        overFolder: true
+      });
+
+      this.spatialNavigator.focus(this.cardScrollable);
+      this.currentScrollable = this.cardScrollable;
+      // Add current-scrollable style to #card-viewer
+      document.getElementById('card-viewer').classList.add(
+        'current-scrollable');
+      document.getElementById('folder-viewer').classList.remove(
+        'current-scrollable');
+    },
+
+    onNodeInsertedOverFolder: function() {
+      this.currentNode = this.cardScrollable.getNodeFromItem(
+                                            this.cardScrollable.currentItem);
+      this._setHintArrow(this.currentScrollable);
     },
 
     onEnter: function() {
@@ -344,7 +393,19 @@
     deleteCard: function(scrollable, nodeElem) {
       this._concealPanel(scrollable, nodeElem);
       scrollable.spatialNavigator.focus(scrollable.getItemFromNode(nodeElem));
-      this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+      if (scrollable === this.cardScrollable) {
+        this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+      } else {
+        var folder = this.cardManager.findContainingFolder(
+                              {cardId: scrollable.currentItem.dataset.cardId});
+        var card = this.cardManager.findCardFromCardList(
+                              {cardId: scrollable.currentItem.dataset.cardId});
+        folder.removeCard(card);
+
+        if (folder.isEmpty()) {
+          this.spatialNavigator.focus(this.cardScrollable);
+        }
+      }
     },
 
     hoverCard: function(scrollable, focusedItem, targetItem) {
@@ -423,6 +484,19 @@
 
         this.currentNode = nodeElem;
         this.currentScrollable = scrollable;
+        if (this.currentScrollable === this.cardScrollable) {
+          // Add current-scrollable style to #card-viewer
+          document.getElementById('card-viewer').classList.add(
+            'current-scrollable');
+          document.getElementById('folder-viewer').classList.remove(
+            'current-scrollable');
+        } else {
+          // Remove current-scrollable style from #card-viewer
+          document.getElementById('card-viewer').classList.remove(
+            'current-scrollable');
+          document.getElementById('folder-viewer').classList.add(
+            'current-scrollable');
+        }
       }
       this._revealPanel(scrollable, nodeElem);
       itemElem.focus();
