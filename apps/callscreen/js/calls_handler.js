@@ -362,6 +362,18 @@ var CallsHandler = (function callsHandler() {
   }
   window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
+  /**
+   * Return the number of calls currently present in one state or another.
+   * This includes all regular calls irrespective of their state plus a
+   * conference group call if one is present.
+   *
+   * @returns {Integer} The number of calls currently present.
+   */
+  function openLines() {
+    return telephony.calls.length +
+      (telephony.conferenceGroup.calls.length ? 1 : 0);
+  }
+
   /* === Bluetooth Headset support ===*/
   function handleBTCommand(message) {
     var command = message.command;
@@ -559,10 +571,7 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    var openLines = telephony.calls.length +
-      (telephony.conferenceGroup.calls.length ? 1 : 0);
-
-    if (openLines < 2 && !cdmaCallWaiting()) {
+    if (openLines() < 2 && !cdmaCallWaiting()) {
       // Putting a call on Hold when there are no other
       // calls in progress has been disabled until a less
       // accidental user-interface is implemented.
@@ -587,10 +596,7 @@ var CallsHandler = (function callsHandler() {
   }
 
   function holdOrResumeSingleCall() {
-    var openLines = telephony.calls.length +
-      (telephony.conferenceGroup.calls.length ? 1 : 0);
-
-    if (openLines !== 1 ||
+    if (openLines() !== 1 ||
         (telephony.calls.length &&
          (telephony.calls[0].state === 'incoming' ||
           !telephony.calls[0].switchable))) {
@@ -648,25 +654,34 @@ var CallsHandler = (function callsHandler() {
   }
 
   function end() {
-    // If a conference call is active we end all the calls in it
-    if (telephony.active == telephony.conferenceGroup) {
-      endConferenceCall();
-      return;
-    }
+    var callToEnd;
 
     // If there is an active call we end this one
     if (telephony.active) {
-      telephony.active.hangUp();
-      return;
+      callToEnd = telephony.active;
+    } else if (openLines() === 1) {
+      // If there's a single call we end it
+      if (telephony.conferenceGroup.calls.length) {
+        callToEnd = telephony.conferenceGroup;
+      } else {
+        callToEnd = telephony.calls[0];
+      }
+    } else {
+      // If not we're rejecting the last incoming call
+      if (!handledCalls.length) {
+        return;
+      }
+
+      var lastCallIndex = handledCalls.length - 1;
+      callToEnd = handledCalls[lastCallIndex].call;
     }
 
-    // If not we're rejecting the last incoming call
-    if (!handledCalls.length) {
-      return;
+    // If this is a conference call end all the calls in it
+    if (callToEnd.calls) {
+      endConferenceCall();
+    } else {
+      callToEnd.hangUp();
     }
-
-    var lastCallIndex = handledCalls.length - 1;
-    handledCalls[lastCallIndex].call.hangUp();
   }
 
   function unmute() {
@@ -828,13 +843,10 @@ var CallsHandler = (function callsHandler() {
    * onmozinterrupbegin event handler.
    */
   function onMozInterrupBegin() {
-    var openLines =
-      telephony.calls.length + (telephony.conferenceGroup.calls.length ? 1 : 0);
-
     // If there are multiple calls handled by the callscreen app and it is
     // interrupted by another app which uses the telephony audio channel the
     // callscreen wins.
-    if (openLines !== 1) {
+    if (openLines() !== 1) {
      forceAnAudioCompetitionWin();
       return;
     }
@@ -906,10 +918,7 @@ var CallsHandler = (function callsHandler() {
    */
   function updateMergeAndOnHoldStatus() {
     var isEstablishing = isEstablishingCall();
-    var openLines = telephony.calls.length +
-      (telephony.conferenceGroup.calls.length ? 1 : 0);
-
-      if (openLines > 1 && !isEstablishing) {
+      if (openLines() > 1 && !isEstablishing) {
         /* If more than one call has been established show only the merge
          * button or no button at all if the calls are not mergeable. */
         CallScreen.hideOnHoldButton();
