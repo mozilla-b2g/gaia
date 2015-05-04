@@ -20,7 +20,7 @@
   BaseModule.create(FeatureDetector, {
     name: 'FeatureDetector',
     deviceType: 'phone',
-    deviceMemory: 0,
+    _deviceMemoryPromise: null,
 
     _start: function() {
       this._getDeviceType();
@@ -29,7 +29,7 @@
 
     _stop: function() {
       this.deviceType = null;
-      this.deviceMemory = 0;
+      this._deviceMemoryPromise = null;
     },
 
     _getDeviceType: function() {
@@ -44,16 +44,22 @@
 
     _getDeviceMemory: function() {
       if ('getFeature' in navigator) {
-        navigator.getFeature('hardware.memory').then(mem => {
-          this.deviceMemory = mem;
-        }, () => {
-          this.error('Failed to retrieve total memory of the device.');
-        });
+        this._deviceMemoryPromise =
+          navigator.getFeature('hardware.memory').catch(() => {
+            this.error('Failed to retrieve total memory of the device.');
+
+            // Return the failsafe value.
+            return 0;
+          });
+      } else {
+        this.error('navigator.getFeature is not available.');
+
+        this._deviceMemoryPromise = Promise.resolve(0);
       }
     },
 
     getDeviceMemory: function() {
-      return this.deviceMemory;
+      return this._deviceMemoryPromise;
     }
   });
 }(window));
