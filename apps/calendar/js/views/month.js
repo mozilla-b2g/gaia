@@ -93,8 +93,8 @@ Month.prototype = {
     this.element.addEventListener('swipe', this);
     this.element.addEventListener('wheel', this);
     this.controller.on('monthChange', this);
-    this.delegate(this.element, 'click', '[data-date]', this);
-    this.delegate(this.element, 'dbltap', '[data-date]', this);
+    this.delegate(this.element, 'click', '.month-day', this);
+    this.delegate(this.element, 'dbltap', '.month-day', this);
 
     timeObserver.on('day', this._setPresentDate);
 
