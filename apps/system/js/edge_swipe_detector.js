@@ -273,6 +273,15 @@
       if (!this._touchStartEvt) {
         return;
       }
+
+      // Edge gestures are never multi-touch
+      var touches = e.touches.length + e.changedTouches.length;
+      if (touches > 1 && !this._forwarding) {
+        this._touchStartEvt = null;
+        SheetsTransition.snapInPlace();
+        return;
+      }
+
       var touch = e.changedTouches[0];
       this._updateProgress(touch);
 

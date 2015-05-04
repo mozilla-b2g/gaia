@@ -637,6 +637,37 @@ suite('system/EdgeSwipeDetector >', function() {
         centerY = Math.floor(window.innerHeight / 2);
       });
 
+      suite('if it\'s actually a two fingers tap', function() {
+        var gesture;
+        setup(function() {
+          var screenWidth = window.innerWidth;
+          gesture = (function() {
+            touchStart(panel, [screenWidth], [100, 100]);
+            this.sinon.clock.tick();
+            touchStart(panel, [0], [100, 100]);
+            this.sinon.clock.tick();
+            touchEnd(panel, [(screenWidth - 2), 2], [100, 100]);
+            this.sinon.clock.tick();
+            touchEnd(panel, [2], [100, 100]);
+            this.sinon.clock.tick();
+          }).bind(this);
+        });
+
+        test('it should not move the sheets', function() {
+          var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+          gesture();
+          assert.isFalse(moveSpy.called);
+        });
+
+        test('it should not move in the stack', function() {
+          var backSpy = this.sinon.spy(MockStackManager, 'goNext');
+          var fwSpy = this.sinon.spy(MockStackManager, 'goPrev');
+          gesture();
+          assert.isFalse(backSpy.called);
+          assert.isFalse(fwSpy.called);
+        });
+      });
+
       test('it should not move the sheets', function() {
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
         pinch(this.sinon.clock, panel, centerX, centerY);
