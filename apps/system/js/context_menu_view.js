@@ -1,5 +1,5 @@
 /* exported ContextMenuView */
-/* global BaseUI */
+/* global BaseUI, Service */
 (function(exports) {
   'use strict';
 
@@ -25,6 +25,8 @@
   ContextMenuView.prototype.CLASS_NAME = 'BrowserContextMenu';
 
   ContextMenuView.prototype.ELEMENT_PREFIX = 'contextmenu-';
+
+  ContextMenuView.prototype.TRANSITION_TIMEOUT = 350;
 
   ContextMenuView.prototype.customID = function am_customID() {
     return 'context-menu';
@@ -73,7 +75,6 @@
     this.containerElement.removeChild(this.element);
   };
 
-
   ContextMenuView.prototype.show = function(menu) {
     if (!this._injected) {
       this.render();
@@ -81,8 +82,8 @@
     }
 
     this.buildMenu(menu);
-    this.parentModule.app && this.parentModule.app.blur();
     this.element.classList.add('visible');
+    this._requestFocus();
   };
 
   ContextMenuView.prototype.hide = function(evt) {
@@ -94,11 +95,8 @@
       evt.preventDefault();
     }
 
-    this.element.blur();
     this.element.classList.remove('visible');
-    if (this.parentModule.app) {
-      this.parentModule.app.focus();
-    }
+    this._requestFocus();
   };
 
   ContextMenuView.prototype.buildMenu = function(items) {
@@ -123,6 +121,27 @@
     }, this);
 
     this.elements.list.appendChild(this.elements.cancel);
+  };
+
+  ContextMenuView.prototype.focus = function() {
+    document.activeElement.blur();
+    this.elements.cancel.focus();
+  };
+
+  ContextMenuView.prototype._requestFocus = function() {
+    var transited = function() {
+      this.element.removeEventListener('transitionend', transited);
+      if (this.transitionTimeout) {
+        clearTimeout(this.transitionTimeout);
+        this.transitionTimeout = null;
+      }
+      // The focus switch should be after this module is already shown and
+      // transited.
+      Service.request('focus');
+    }.bind(this);
+
+    this.element.addEventListener('transitionend', transited);
+    this.transitionTimeout = setTimeout(transited, this.TRANSITION_TIMEOUT);
   };
 
   exports.ContextMenuView = ContextMenuView;
