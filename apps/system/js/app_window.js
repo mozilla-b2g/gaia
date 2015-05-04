@@ -1322,9 +1322,19 @@
 
       // will be null if there is no blob
       var screenshotURL = this.requestScreenshotURL();
+
+      //  return promise to make sure the image is ready
+      var promise = new Promise((resolve) => {
+         var image = document.createElement('img');
+          image.onload = function() {
+            resolve();
+          }.bind(this);
+          image.src = screenshotURL;
+      });
       this.screenshotOverlay.style.backgroundImage = screenshotURL ?
           'url(' + screenshotURL + ')' : 'none';
       this.element.classList.toggle('no-screenshot', !screenshotURL);
+      return promise;
     };
 
   /**
@@ -2047,8 +2057,9 @@
   AppWindow.prototype._handle__shrinkingstart = function aw_shrinkingstart() {
     this.broadcast('blur');
     this.getScreenshot(() => {
-      this._showScreenshotOverlay();
-      this.setVisible(false);
+      this._showScreenshotOverlay().then(() => {
+        this.setVisible(false);
+      });
     });
   };
 
