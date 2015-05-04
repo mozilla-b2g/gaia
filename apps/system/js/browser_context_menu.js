@@ -289,4 +289,8 @@
     }
   });
 
+  BrowserContextMenu.prototype.focus = function() {
+    this.contextMenuView.focus();
+  };
+
 }(this));

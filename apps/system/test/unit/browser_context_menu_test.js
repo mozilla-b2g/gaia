@@ -318,4 +318,17 @@ suite('system/BrowserContextMenu', function() {
     assert.equal(MozActivity.calls[0].data.isPrivate, true);
     assert.equal(MozActivity.calls[0].data.url, 'http://example.com');
   });
+
+  test('focus context menu', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = BaseModule.instantiate('BrowserContextMenu', app1);
+    md1.start();
+
+    var focusStub = this.sinon.stub(md1.contextMenuView, 'focus');
+
+    md1.focus();
+
+    assert.isTrue(focusStub.called);
+
+  });
 });
