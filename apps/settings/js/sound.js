@@ -31,6 +31,7 @@
       var isFirstInput = false;
       var interval = 500;
       var intervalID = null;
+      var timeoutID = null;
       var delay = 800;
       var player = new Audio();
 
@@ -94,6 +95,20 @@
           setVolume();
           intervalID = setInterval(setVolume, interval);
         }
+
+        // Clear the timeout to re-observe the value if user change it quickly.
+        clearTimeout(timeoutID);
+        // If the user tap the slider very quickly, like the click event, then
+        // we try to stop the player after a constant duration so that the user
+        // is able to hear the tone's preview with the adjusted volume.
+        timeoutID = setTimeout(function() {
+          if (!isTouching) {
+            // Re-observe the value change after the user finished
+            // tapping/dragging on the slider and the preview is ended.
+            SettingsListener.observe(channelKey, '', setSliderValue);
+            stopTone();
+          }
+        }, delay);
       });
 
       slider.addEventListener('touchend', function(event) {
@@ -102,17 +117,6 @@
         // finger leaves the panel.
         clearInterval(intervalID);
         setVolume();
-        // Re-observe the value change after the user finished tapping/dragging
-        // on the slider and the preview is ended.
-        SettingsListener.observe(channelKey, '', setSliderValue);
-        // If the user tap the slider very quickly, like the click event, then
-        // we try to stop the player after a constant duration so that the user
-        // is able to hear the tone's preview with the adjusted volume.
-        setTimeout(function() {
-          if (!isTouching) {
-            stopTone();
-          }
-        }, delay);
       });
 
       function setVolume() {
