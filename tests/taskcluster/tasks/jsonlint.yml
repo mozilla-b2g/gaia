@@ -19,7 +19,7 @@ task:
       gaia-misc-caches: /home/tester/caches/
     command:
       - entrypoint
-      - curl https://s3-us-west-2.amazonaws.com/test-caching/xulrunner-sdk-40.zip > {{gaia}}/artifacts/xulrunner-sdk-40.zip
+      - mkdir -p {{gaia}}/artifacts && curl https://s3-us-west-2.amazonaws.com/test-caching/xulrunner-sdk-40.zip > {{gaia}}/artifacts/xulrunner-sdk-40.zip
     artifacts:
       'public/cache':
         type: directory
