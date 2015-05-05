@@ -501,6 +501,17 @@ suite('enable/disable software home button', function() {
       assert.isFalse(subject.element.classList.
         contains('attention-lockscreen'));
     });
+
+    test('should hide the software button when attention is closed',
+      function() {
+        Service.locked = true;
+        subject.handleEvent({type: 'attentionopening'});
+        assert.isTrue(subject.element.classList.
+          contains('attention'));
+        subject.handleEvent({type: 'attentionclosed'});
+        assert.isFalse(subject.element.classList.
+          contains('attention'));
+      });
   });
 
   suite('general event handling', function() {

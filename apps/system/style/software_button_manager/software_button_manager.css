@@ -20,7 +20,7 @@
 }
 
 #screen:not(.locked) #software-buttons.visible,
-#screen.locked.attention #software-buttons.visible,
+#software-buttons.visible.attention,
 #screen.locked.secure-app #software-buttons.visible {
   transform: translateY(-100%);
   visibility: visible;

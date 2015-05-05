@@ -71,6 +71,8 @@
                                 this._updateButtonRect.bind(this));
         window.addEventListener('edge-touch-redispatch', this);
         window.addEventListener('hierachychanged', this);
+        window.addEventListener('attentionopening', this);
+        window.addEventListener('attentionclosed', this);
       } else {
         window.screen.removeEventListener('mozorientationchange', this);
         window.removeEventListener('orientationchange', this);
@@ -83,6 +85,8 @@
                                 this._updateButtonRect.bind(this));
         window.removeEventListener('edge-touch-redispatch', this);
         window.removeEventListener('hierachychanged', this);
+        window.removeEventListener('attentionopening', this);
+        window.removeEventListener('attentionclosed', this);
       }
     },
 
@@ -347,6 +351,13 @@
             this.element.classList.toggle('attention-lockscreen',
               Service.query('getTopMostWindow').CLASS_NAME ===
               'LockScreenWindow');
+          }
+          break;
+        case 'attentionopening':
+        case 'attentionclosed':
+          if (this.enabled && Service.locked) {
+            this.element.classList.toggle('attention',
+              evt.type === 'attentionopening');
           }
           break;
       }
