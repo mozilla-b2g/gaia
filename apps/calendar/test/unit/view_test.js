@@ -207,7 +207,7 @@ suite('view', function() {
 
   suite('#showErrors', function() {
 
-    test('successfuly display', function() {
+    test('successfully display', function() {
       var errors = [{ name: 'error-default' }];
       subject.showErrors(errors);
       var list = subject.status.classList;

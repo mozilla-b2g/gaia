@@ -1,6 +1,8 @@
 define(function(require, exports, module) {
 'use strict';
 
+var nextTick = require('common/next_tick');
+
 function PendingManager() {
   this.objects = [];
   this.pending = 0;
@@ -14,15 +16,12 @@ PendingManager.prototype = {
     object.on(object.startEvent, this.onstart);
     object.on(object.completeEvent, this.onend);
 
-    var wasPending = this.isPending();
-    this.objects.push(object);
-    if (object.pending) {
-      this.pending++;
-
-      if (!wasPending) {
-        this.onpending && this.onpending();
-      }
+    if (!this.isPending() && object.pending) {
+      // Registering this object will make us pending.
+      nextTick(() => this.onpending && this.onpending());
     }
+
+    this.objects.push(object);
   },
 
   /**
@@ -34,19 +33,11 @@ PendingManager.prototype = {
    * object is removed it will break .pending.
    */
   unregister: function(object) {
-    var idx = this.objects.indexOf(object);
-    if (idx !== -1) {
-      this.objects.splice(idx, 1);
-      return true;
-    }
-
-    return false;
+    this.objects = this.objects.filter(el => el !== object);
   },
 
   isPending: function() {
-    return this.objects.some((object) => {
-      return object.pending;
-    });
+    return this.objects.some(object => object.pending);
   },
 
   onstart: function() {

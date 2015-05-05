@@ -1,6 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
+var asyncRequire = require('common/async_require');
 var debug = require('common/debug')('viewFactory');
 var nextTick = require('common/next_tick');
 var snakeCase = require('snake_case');
@@ -46,9 +47,7 @@ exports.get = function(name, cb) {
     this._initView(name, Ctor, cb);
   } catch(e) {
     debug(`Will try to load view ${name} at ${path}`);
-    // we need to grab the global `require` because the async require is not
-    // part of the AMD spec and is not implemented by all loaders
-    window.require([path], Ctor => {
+    asyncRequire(path).then(Ctor => {
       debug(`Loaded view ${name}`);
       this._initView(name, Ctor, cb);
     });
