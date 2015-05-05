@@ -5,12 +5,11 @@ require('/shared/elements/gaia-header/dist/gaia-header.js');
 var EventBase = require('views/event_base');
 var EventModel = require('models/event');
 var View = require('view');
-var providerFactory = require('provider/provider_factory');
 var router = require('router');
 
 suite('Views.EventBase', function() {
+  var core;
   var subject;
-  var app;
   var triggerEvent;
   var last = router.last;
 
@@ -19,6 +18,7 @@ suite('Views.EventBase', function() {
   }
 
   suiteSetup(function() {
+    core = testSupport.calendar.core();
     triggerEvent = testSupport.calendar.triggerEvent;
     last = router.last;
   });
@@ -27,7 +27,6 @@ suite('Views.EventBase', function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
     router.last = last;
-    delete providerFactory.providers.Test;
   });
 
   setup(function(done) {
@@ -42,10 +41,8 @@ suite('Views.EventBase', function() {
     ].join('');
 
     document.body.appendChild(div);
-    app = testSupport.calendar.app();
 
     subject = new EventBase({
-      app: app,
       selectors: {
         element: '#event-test',
         header: '#event-test-header',
@@ -53,7 +50,7 @@ suite('Views.EventBase', function() {
       }
     });
 
-    app.db.open(done);
+    core.db.open(done);
   });
 
   // setup this.account / this.calendar
@@ -64,10 +61,10 @@ suite('Views.EventBase', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts', 'calendars', 'events', 'busytimes'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -117,7 +114,7 @@ suite('Views.EventBase', function() {
     });
 
     test('readonly', function(done) {
-      var provider = providerFactory.get('Mock');
+      var provider = core.providerFactory.get('Mock');
 
       provider.stageEventCapabilities(this.event._id, null, {
         canUpdate: false
@@ -178,7 +175,7 @@ suite('Views.EventBase', function() {
       setup(function(done) {
         headerFontSize = this.sinon.stub(subject.header, 'runFontFitSoon');
 
-        app.timeController.move(date);
+        core.timeController.move(date);
         subject.dispatch({ params: {} });
 
         subject.ondispatch = done;

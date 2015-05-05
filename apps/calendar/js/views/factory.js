@@ -5,8 +5,6 @@ var debug = require('common/debug')('viewFactory');
 var nextTick = require('common/next_tick');
 var snakeCase = require('snake_case');
 
-// FIXME: app is injected later, we can only remove this after Bug 1154988
-exports.app = null;
 exports._instances = Object.create(null);
 
 /**
@@ -73,7 +71,7 @@ exports._initView = function(name, Ctor, cb) {
     // trigger the window.require callback multiple times)
     return;
   }
-  var view = new Ctor({ app: exports.app });
+  var view = new Ctor();
   this._instances[name] = view;
   this._get(name, cb);
 };

@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Parent = require('view');
+var core = require('core');
 var createDay = require('common/calc').createDay;
 var dateFormat = require('date_format');
 var dayObserver = require('day_observer');
@@ -12,7 +13,7 @@ var template = require('templates/month_day_agenda');
 function MonthDayAgenda() {
   Parent.apply(this, arguments);
   this._render = this._render.bind(this);
-  this.controller = this.app.timeController;
+  this.controller = core.timeController;
 }
 module.exports = MonthDayAgenda;
 

@@ -2,15 +2,16 @@ define(function(require) {
 'use strict';
 
 var Factory = require('test/support/factory');
+var core = require('core');
 var dayObserver = require('day_observer');
 
 suite('day_observer', function() {
-  var app;
   var busyToday1, busyToday2, busyTomorrow, busyTodayAllday;
   var event1, event2, event3, event4;
   var calendar, hiddenCalendar;
   var calendarColor = '#00aacc';
   var hiddenCalendarColor = '#BADA55';
+  var busytimeStore, calendarStore, eventStore;
   var subject;
   var today;
   var tomorrow;
@@ -18,8 +19,12 @@ suite('day_observer', function() {
   var oneHour = 60 * 60 * 1000;
 
   suiteSetup(function(done) {
-    app = testSupport.calendar.app();
     subject = dayObserver;
+    var storeFactory = core.storeFactory;
+    eventStore = storeFactory.get('Event');
+    busytimeStore = storeFactory.get('Busytime');
+    calendarStore = storeFactory.get('Calendar');
+
 
     today = new Date();
     today.setHours(8, 0, 0, 0);
@@ -36,17 +41,11 @@ suite('day_observer', function() {
     tomorrow.setHours(8, 0, 0, 0);
     tomorrow.setDate(DAY + 1);
 
-    subject.busytimeStore = app.store('Busytime');
-    subject.calendarStore = app.store('Calendar');
-    subject.eventStore = app.store('Event');
-    subject.syncController = app.syncController;
-    subject.timeController = app.timeController;
-
-    app.db.open(done);
+    core.db.open(done);
   });
 
   suiteSetup(function(done) {
-    subject.calendarStore.all((err) => {
+    calendarStore.all((err) => {
       done(err);
     });
   });
@@ -113,10 +112,6 @@ suite('day_observer', function() {
       endDate: tomorrowStart
     });
 
-    var eventStore = subject.eventStore;
-    var busytimeStore = subject.busytimeStore;
-    var calendarStore = subject.calendarStore;
-
     // events should be persisted before the busytimes
     Promise.all([
       calendarStore.persist(calendar),
@@ -140,14 +135,14 @@ suite('day_observer', function() {
 
   suiteTeardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['events', 'busytimes', 'calendars'],
       done
     );
   });
 
   suiteTeardown(function() {
-    app.db.close();
+    core.db.close();
   });
 
   teardown(function() {
@@ -184,7 +179,7 @@ suite('day_observer', function() {
       }
       // ensures 'monthChange' triggers the load of busytimes, we are not
       // calling `move()` because this is more flexible and less error prone
-      subject.timeController.emit('monthChange', today);
+      core.timeController.emit('monthChange', today);
       subject.on(today, onRecords);
     });
 
@@ -304,7 +299,7 @@ suite('day_observer', function() {
           ]);
           assert.deepEqual(records.allday, []);
           // remove busytime
-          subject.busytimeStore.remove(busyYesterday2._id);
+          busytimeStore.remove(busyYesterday2._id);
           return;
         }
 
@@ -319,7 +314,7 @@ suite('day_observer', function() {
           ]);
           assert.deepEqual(records.allday, []);
           // toggle calendar visibility
-          subject.calendarStore.persist(Factory('calendar', {
+          calendarStore.persist(Factory('calendar', {
             _id: hiddenCalendar._id,
             localDisplayed: true
           }));
@@ -343,9 +338,9 @@ suite('day_observer', function() {
         done();
       });
 
-      subject.busytimeStore.persist(busyYesterday);
-      subject.busytimeStore.persist(busyYesterday2);
-      subject.busytimeStore.persist(busyYesterdayHidden);
+      busytimeStore.persist(busyYesterday);
+      busytimeStore.persist(busyYesterday2);
+      busytimeStore.persist(busyYesterdayHidden);
     });
 
     test('#findAssociated', function(done) {

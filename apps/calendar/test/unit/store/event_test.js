@@ -6,12 +6,11 @@ var AccountModel = require('models/account');
 var Calc = require('common/calc');
 var CalendarModel = require('models/calendar');
 var Factory = require('test/support/factory');
-var providerFactory = require('provider/provider_factory');
+var core = require('core');
 
 suite('store/event', function() {
   var subject;
   var db;
-  var app;
   var id = 0;
 
   function event(date) {
@@ -24,9 +23,8 @@ suite('store/event', function() {
 
   setup(function(done) {
     id = 0;
-    app = testSupport.calendar.app();
-    db = app.db;
-    subject = db.getStore('Event');
+    db = core.db;
+    subject = core.storeFactory.get('Event');
 
     db.open(function(err) {
       assert.ok(!err);
@@ -38,7 +36,7 @@ suite('store/event', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      subject.db,
+      core.db,
       [
         'accounts', 'calendars', 'events',
         'busytimes', 'icalComponents'
@@ -53,7 +51,6 @@ suite('store/event', function() {
   test('initialization', function() {
     assert.instanceOf(subject, Abstract);
     assert.equal(subject._store, 'events');
-    assert.equal(subject.db, db);
   });
 
   test('#_createModel', function() {
@@ -101,7 +98,7 @@ suite('store/event', function() {
       subject.providerFor(event, function(err, provider) {
         assert.equal(
           provider,
-          providerFactory.get('Mock')
+          core.providerFactory.get('Mock')
         );
         done();
       });
@@ -195,13 +192,13 @@ suite('store/event', function() {
       var componentStore;
 
       setup(function(done) {
-        componentStore = db.getStore('IcalComponent');
+        componentStore = core.storeFactory.get('IcalComponent');
         event = Factory('event');
         component = Factory('icalComponent', {
           eventId: event._id
         });
 
-        var trans = subject.db.transaction(
+        var trans = core.db.transaction(
           ['events', 'icalComponents'],
           'readwrite'
         );
@@ -299,7 +296,7 @@ suite('store/event', function() {
     persistEvent(2);
 
     setup(function(done) {
-      busytime = subject.db.getStore('Busytime');
+      busytime = core.storeFactory.get('Busytime');
       subject.get(byCalendar[2][0], function(err, result) {
         done(function() {
           assert.ok(result, 'has control event');

@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.email.app import Email
+from marionette_driver import Wait
 
 
 class TestEmailCardsVisibilityAccessibility(GaiaTestCase):
@@ -16,8 +17,8 @@ class TestEmailCardsVisibilityAccessibility(GaiaTestCase):
     def test_a11y_email_cards_visibility(self):
 
         # Setup account info is visible
-        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
-            *self.email._setup_account_info)))
+        Wait(self.marionette).until(lambda m: self.accessibility.is_visible(m.find_element(
+                                    *self.email._setup_account_info)))
 
         # start setting up account and enter manual setup
         self.email.a11y_navigate_to_manual_setup('test_name', 'test@email.com')

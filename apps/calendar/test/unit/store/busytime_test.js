@@ -3,18 +3,17 @@ define(function(require) {
 
 var Factory = require('test/support/factory');
 var Timespan = require('common/timespan');
+var core = require('core');
 
 suite('store/busytime', function() {
-  var app;
   var subject;
   var db;
   var id = 0;
 
   setup(function(done) {
     id = 0;
-    app = testSupport.calendar.app();
-    db = app.db;
-    subject = db.getStore('Busytime');
+    db = core.db;
+    subject = core.storeFactory.get('Busytime');
 
     db.open(function(err) {
       assert.ok(!err);
@@ -24,13 +23,13 @@ suite('store/busytime', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      subject.db,
+      core.db,
       done
     );
   });
 
   teardown(function() {
-    subject.db.close();
+    core.db.close();
   });
 
   suite('#_removeDependents', function() {
@@ -40,7 +39,7 @@ suite('store/busytime', function() {
       var busytime;
 
       function createTrans(done) {
-        var trans = subject.db.transaction(
+        var trans = core.db.transaction(
           ['busytimes', 'alarms'], 'readwrite'
         );
 
@@ -55,7 +54,7 @@ suite('store/busytime', function() {
       setup(function(done) {
         var trans = createTrans(done);
 
-        alarmStore = subject.db.getStore('Alarm');
+        alarmStore = core.storeFactory.get('Alarm');
         busytime = Factory('busytime', { _id: 'foo' });
 
         subject.persist(busytime, trans);
@@ -233,7 +232,7 @@ suite('store/busytime', function() {
 
     setup(function(done) {
       removeEvents.length = 0;
-      var trans = subject.db.transaction(
+      var trans = core.db.transaction(
         'busytimes', 'readwrite'
       );
 

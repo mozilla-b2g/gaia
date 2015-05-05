@@ -5,13 +5,12 @@ define(function(require) {
 var EventBase = require('views/event_base');
 var View = require('view');
 var ViewEvent = require('views/view_event');
-var providerFactory = require('provider/provider_factory');
+var core = require('core');
 var router = require('router');
 
 require('dom!show_event');
 
 suite('Views.ViewEvent', function() {
-  var app;
   var subject;
   var controller;
 
@@ -37,6 +36,7 @@ suite('Views.ViewEvent', function() {
 
   var triggerEvent;
   suiteSetup(function() {
+    testSupport.calendar.core();
     triggerEvent = testSupport.calendar.triggerEvent;
   });
 
@@ -45,7 +45,6 @@ suite('Views.ViewEvent', function() {
 
   teardown(function() {
     router.go = realGo;
-    delete providerFactory.providers.Test;
   });
 
   suiteTemplate('show-event', {
@@ -54,28 +53,26 @@ suite('Views.ViewEvent', function() {
 
   setup(function(done) {
     realGo = router.go;
-    app = testSupport.calendar.app();
 
-    eventStore = app.store('Event');
-    accountStore = app.store('Account');
-    calendarStore = app.store('Calendar');
-    provider = providerFactory.get('Mock');
+    var storeFactory = core.storeFactory;
+    eventStore = storeFactory.get('Event');
+    accountStore = storeFactory.get('Account');
+    calendarStore = storeFactory.get('Calendar');
+    provider = core.providerFactory.get('Mock');
 
-    controller = app.timeController;
+    controller = core.timeController;
 
-    subject = new ViewEvent({
-      app: app
-    });
+    subject = new ViewEvent();
 
-    app.db.open(done);
+    core.db.open(done);
   });
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts', 'calendars', 'events', 'busytimes', 'alarms'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );

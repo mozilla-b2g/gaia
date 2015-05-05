@@ -4,8 +4,8 @@ define(function(require, exports, module) {
 var Abstract = require('./abstract');
 var Calc = require('common/calc');
 var Calendar = require('./calendar');
+var core = require('core');
 var denodeifyAll = require('common/promise').denodeifyAll;
-var providerFactory = require('provider/provider_factory');
 
 function Events() {
   Abstract.apply(this, arguments);
@@ -42,10 +42,10 @@ Events.prototype = {
   _removeDependents: function(id, trans) {
     this.removeByIndex('parentId', id, trans);
 
-    var busy = this.db.getStore('Busytime');
+    var busy = core.storeFactory.get('Busytime');
     busy.removeEvent(id, trans);
 
-    var component = this.db.getStore('IcalComponent');
+    var component = core.storeFactory.get('IcalComponent');
     component.remove(id, trans);
   },
 
@@ -66,7 +66,7 @@ Events.prototype = {
    */
   providerFor: function(event, callback) {
     this.ownersOf(event, function(err, owners) {
-      callback(null, providerFactory.get(owners.account.providerType));
+      callback(null, core.providerFactory.get(owners.account.providerType));
     });
   },
 
@@ -112,7 +112,7 @@ Events.prototype = {
     }
 
     ids.forEach(function(id) {
-      var trans = this.db.transaction('events');
+      var trans = core.db.transaction('events');
       var store = trans.objectStore('events');
       var req = store.get(id);
 
@@ -136,7 +136,7 @@ Events.prototype = {
    * @param {Function} callback node style [err, array of events].
    */
   eventsForCalendar: function(calendarId, callback) {
-    var trans = this.db.transaction('events');
+    var trans = core.db.transaction('events');
     var store = trans.objectStore('events');
     var index = store.index('calendarId');
     var key = IDBKeyRange.only(calendarId);

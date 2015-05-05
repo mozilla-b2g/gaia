@@ -76,10 +76,11 @@ function loadApp() {
   return new Promise((accept) => {
     requirejs([
       'app',
+      'core',
       'db',
       'ext/chai',
       'ext/chai-as-promised',
-      'provider/provider_factory',
+      'provider/factory',
       'router',
       'test/support/fake_page',
       'test/support/factories/all',
@@ -106,6 +107,10 @@ window.testAgentRuntime.testLoader = function(path) {
   .then(() => {
     console.log('Will load app...');
     return loadApp();
+  })
+  .then(() => {
+    console.log('Will setup app & core...');
+    window.testSupport.calendar.core();
   })
   .then(() => {
     console.log('Will override default chai...');
@@ -157,10 +162,10 @@ window.testSupport.calendar = {
   accountEnvironment: function(accOverrides, calOverrides) {
     setup(function(done) {
       var Factory = requirejs('test/support/factory');
-      var app = requirejs('app');
+      var core = requirejs('core');
       var id = ++testSupport.calendar._lastEnvId;
 
-      var trans = app.db.transaction(
+      var trans = core.db.transaction(
         ['accounts', 'calendars'],
         'readwrite'
       );
@@ -187,9 +192,10 @@ window.testSupport.calendar = {
       this.account = account;
       this.calendar = calendar;
 
-      var accountStore = app.store('Account');
+      var storeFactory = core.storeFactory;
+      var accountStore = storeFactory.get('Account');
       accountStore.persist(account, trans);
-      var calendarStore = app.store('Calendar');
+      var calendarStore = storeFactory.get('Calendar');
       calendarStore.persist(calendar, trans);
     });
   },
@@ -197,7 +203,7 @@ window.testSupport.calendar = {
   eventEnvironment: function(busytimeOverrides, eventOverrides) {
     setup(function(done) {
       var Factory = requirejs('test/support/factory');
-      var app = requirejs('app');
+      var core = requirejs('core');
 
       eventOverrides = eventOverrides || {};
       eventOverrides.calendarId = this.calendar._id;
@@ -211,8 +217,9 @@ window.testSupport.calendar = {
 
       this.busytime = Factory('busytime', busytimeOverrides);
 
-      var eventStore = app.store('Event');
-      var trans = app.db.transaction(
+      var storeFactory = core.storeFactory;
+      var eventStore = storeFactory.get('Event');
+      var trans = core.db.transaction(
         eventStore._dependentStores,
         'readwrite'
       );
@@ -226,7 +233,7 @@ window.testSupport.calendar = {
       };
 
       eventStore.persist(this.event, trans);
-      app.store('Busytime').persist(this.busytime, trans);
+      storeFactory.get('Busytime').persist(this.busytime, trans);
     });
   },
 
@@ -289,11 +296,10 @@ window.testSupport.calendar = {
 
   },
 
-  app: function() {
-    var Db = requirejs('db');
+  core: function() {
     var MockProvider = requirejs('test/support/mock_provider');
     var app = requirejs('app');
-    var providerFactory = requirejs('provider/provider_factory');
+    var core = requirejs('core');
 
     if (app._pendingManger) {
       // hack to ensure clean tests
@@ -302,16 +308,14 @@ window.testSupport.calendar = {
       });
     }
 
-    if (app.db && app.db.isOpen) {
-      app.db.close();
+    if (core.db && core.db.isOpen) {
+      core.db.close();
     }
 
-    var db = new Db('b2g-test-calendar');
-    app.configure(db);
-    providerFactory.app = app;
-    providerFactory.providers.Mock = new MockProvider({ app: app });
-    app.dateFormat = navigator.mozL10n.DateTimeFormat();
-    return app;
+    app._setupCore('b2g-test-calendar');
+    core.providerFactory.providers.Mock = new MockProvider();
+
+    return core;
   },
 
   bench: function bench(iter, cb) {
@@ -343,9 +347,9 @@ window.testSupport.calendar = {
     var object = Object.create(null);
 
     setup(function(done) {
-      var app = requirejs('app');
-      var db = app.db;
-      var store = db.getStore(storeName);
+      var core = requirejs('core');
+      var db = core.db;
+      var store = core.storeFactory.get(storeName);
       var trans = db.transaction(store._dependentStores, 'readwrite');
 
       for (var key in list) {

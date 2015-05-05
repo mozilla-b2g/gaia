@@ -5,10 +5,10 @@ requireCommon('test/synthetic_gestures.js');
 
 var TimeHeader = require('views/time_header');
 var View = require('view');
+var core = require('core');
 
 suite('Views.TimeHeader', function() {
   var subject;
-  var app;
   var controller;
   var date = new Date(2012, 0, 1);
   var localeFormat;
@@ -36,10 +36,9 @@ suite('Views.TimeHeader', function() {
 
     document.body.appendChild(div);
 
-    app = testSupport.calendar.app();
-    controller = app.timeController;
+    controller = core.timeController;
 
-    subject = new TimeHeader({ app: app });
+    subject = new TimeHeader();
 
     controller.move(date);
     monthTitle = localeFormat(
@@ -50,7 +49,6 @@ suite('Views.TimeHeader', function() {
 
   test('initialization', function() {
     assert.instanceOf(subject, View);
-    assert.equal(subject.app, app);
     assert.ok(subject.element);
     assert.equal(
       subject.element, document.querySelector('#time-header')
