@@ -168,6 +168,7 @@ suite('system/Statusbar', function() {
     setup(function() {
       app = new MockAppWindow();
       MockService.currentApp = app;
+      MockService.mTopMostWindow = app;
     });
 
     teardown(function() {
@@ -577,6 +578,7 @@ suite('system/Statusbar', function() {
       StatusBar.element.classList.remove('maximized');
       app = getMockApp();
       MockService.currentApp = app;
+      MockService.mTopMostWindow = app;
     });
 
     test('setAppearance light and maximized', function() {
@@ -595,7 +597,7 @@ suite('system/Statusbar', function() {
     });
 
     test('setAppearance no appChrome', function() {
-      MockService.currentApp = {
+      MockService.mTopMostWindow = {
         getTopMostWindow: function getTopMostWindow() {
           return this;
         }
@@ -626,7 +628,7 @@ suite('system/Statusbar', function() {
     });
 
     test('setAppearance homescreen', function() {
-      MockService.currentApp = {
+      MockService.mTopMostWindow = {
         isHomescreen: true,
         getTopMostWindow: function getTopMostWindow() {
           return this;
@@ -688,6 +690,7 @@ suite('system/Statusbar', function() {
         detail: lockscreenApp
       });
       MockService.currentApp = app;
+      MockService.mTopMostWindow = app;
       StatusBar.handleEvent(evt);
     });
 
@@ -1102,6 +1105,24 @@ suite('system/Statusbar', function() {
       var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       StatusBar.handleEvent(evt);
       assert.isTrue(setAppearanceStub.called);
+    });
+  });
+
+  suite('attention window', function() {
+    var app;
+    setup(function() {
+      StatusBar.element.classList.remove('light');
+      StatusBar.element.classList.remove('maximized');
+      app = getMockApp();
+      MockService.currentApp = app;
+      MockService.mTopMostWindow = app;
+    });
+
+    test('should maximize status bar', function() {
+      window.dispatchEvent(new CustomEvent('attentionopened'));
+
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+      assert.isFalse(StatusBar.element.classList.contains('light'));
     });
   });
 
