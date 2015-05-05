@@ -145,6 +145,7 @@ function SystemUpdatable() {
   this.size = 0;
   this.downloading = false;
   this.paused = false;
+  this.updateObject = null;
 
   // XXX: this state should be kept on the platform side
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
@@ -359,6 +360,99 @@ SystemUpdatable.prototype.acceptInstall = function() {
   this._dispatchEvent('update-prompt-apply-result', 'restart');
 };
 
+SystemUpdatable.prototype.getUpdateDetails = function() {
+  return document.getElementById('updates-Details-dialog');
+};
+
+SystemUpdatable.prototype.setUpdate = function(aUpdate) {
+  this.updateObject = aUpdate;
+
+  var details = this.getUpdateDetails();
+  if (!details) {
+    console.error('Unable to get update details dialog: ', details);
+    return;
+  }
+
+  var parentNode = details.querySelector('#update-Details-infos ul');
+  if (!parentNode) {
+    console.error('Unable to get update details parent node: ', parentNode);
+    return;
+  }
+
+  var avoid = [ 'detailsURL', 'isOSUpdate' ];
+  for (var p in this.updateObject) {
+    if (avoid.indexOf(p) >= 0) {
+      continue;
+    }
+
+    var span = document.createElement('span');
+    span.setAttribute('data-l10n-id', 'systemUpdateDetails-' + p);
+
+    var small = document.createElement('small');
+    small.textContent = this.updateObject[p];
+
+    var li = document.createElement('li');
+    li.appendChild(span);
+    li.appendChild(small);
+
+    parentNode.appendChild(li);
+  }
+
+  this.fetchReleaseNotes();
+};
+
+SystemUpdatable.prototype.fetchReleaseNotes = function() {
+  var relnoteNode = document.querySelector('#update-Details-relnote p');
+  if (!relnoteNode) {
+    console.error('Unable to get update details release notes node');
+    return;
+  }
+
+  var url = this.getUpdate().detailsURL;
+
+  var xhr = new XMLHttpRequest({mozSystem: true});
+  xhr.open('GET', url, true);
+
+  xhr.addEventListener('readystatechange', function(evt) {
+    if (evt.target.readyState !== XMLHttpRequest.DONE) {
+      return;
+    }
+
+    if (evt.target.status !== 200) {
+      console.debug('XHR for ' + url + ' received unexpected status ' +
+                    evt.target.status);
+      return;
+    }
+
+    relnoteNode.textContent = evt.target.responseText;
+
+    // Will hide the loading text and show the actual content
+    relnoteNode.parentNode.dataset.relnotes = true;
+  });
+
+  xhr.send();
+};
+
+SystemUpdatable.prototype.getUpdate = function() {
+  return this.updateObject;
+};
+
+SystemUpdatable.prototype.hideUpdateDetails = function() {
+  var details = this.getUpdateDetails();
+  if (details.classList.contains('visible')) {
+    details.classList.remove('visible');
+  }
+  details.classList.add('hidden');
+};
+
+SystemUpdatable.prototype.showUpdateDetails = function() {
+  var details = this.getUpdateDetails();
+  if (details.classList.contains('hidden')) {
+    details.classList.remove('hidden');
+  }
+  details.classList.add('visible');
+};
+
 SystemUpdatable.prototype.rememberKnownUpdate = function() {
   asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
 };
@@ -387,3 +481,24 @@ SystemUpdatable.prototype._dispatchEvent = function(type, result) {
   event.initCustomEvent('mozContentEvent', true, true, data);
   window.dispatchEvent(event);
 };
+
+console.debug('Will create fake SystemUpdatable ...');
+window.addEventListener('load', function() {
+  var fakeUpdate = {
+    appVersion: '',
+    buildID: '',
+    detailsURL:
+      'http://builds.firefoxos.mozfr.org/openc/nightly/sha1.checksums',
+    displayVersion: '',
+    isOSUpdate: true,
+    platformVersion: '',
+    previousAppVersion: '',
+    state: 0,
+    statusText: '',
+  };
+  console.debug('Will instantiate fake SystemUpdatable ...');
+  var systemUpdate = new SystemUpdatable();
+  console.debug('Instantiated fake SystemUpdatable: ' + systemUpdate);
+  systemUpdate.setUpdate(fakeUpdate);
+  systemUpdate.showUpdateDetails();
+});
