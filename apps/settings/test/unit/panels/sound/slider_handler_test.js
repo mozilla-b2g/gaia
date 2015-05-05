@@ -190,8 +190,17 @@ suite('Sound > SliderHandler', function() {
 
   suite('_inputHandler', function() {
     setup(function() {
-      this.sinon.stub(sliderHandler, '_setVolume');
+      this.clock = sinon.useFakeTimers();
+      this.sinon.spy(window, 'clearTimeout');
       this.sinon.spy(window, 'setInterval');
+      this.sinon.spy(window, 'setTimeout');
+      this.sinon.stub(sliderHandler, '_setVolume');
+      this.sinon.stub(sliderHandler, '_stopTone');
+      this.sinon.stub(SettingsListener, 'observe');
+    });
+
+    teardown(function() {
+      this.clock.restore();
     });
 
     test('we would make sure _isFirstInput is unset', function() {
@@ -217,15 +226,37 @@ suite('Sound > SliderHandler', function() {
       sliderHandler._inputHandler();
       assert.ok(window.setInterval.calledOnce);
     });
+
+    test('we would call setTimeout', function() {
+      sliderHandler._isFirstInput = true;
+      sliderHandler._inputHandler();
+      assert.ok(window.setTimeout.calledOnce);
+    });
+
+    test('we would still call setTimeout if is not FirstInput', function() {
+      sliderHandler._isFirstInput = false;
+      sliderHandler._inputHandler();
+      assert.ok(window.setTimeout.calledOnce);
+    });
+
+    test('we would observe channelKey', function() {
+      sliderHandler._inputHandler();
+      this.clock.tick(1000);
+      assert.ok(SettingsListener.observe.calledWith(
+        sliderHandler._channelKey, '', sliderHandler._boundSetSliderValue));
+    });
+
+    test('we would call _stopTone', function() {
+      sliderHandler._inputHandler();
+      this.clock.tick(1000);
+      assert.ok(sliderHandler._stopTone.called);
+    });
   });
- 
+
   suite('_touchEndHandler', function() {
     setup(function() {
-      this.clock = sinon.useFakeTimers();
       this.sinon.spy(window, 'clearInterval');
       this.sinon.stub(sliderHandler, '_setVolume');
-      this.sinon.stub(sliderHandler, '_stopTone');
-      this.sinon.stub(SettingsListener, 'observe');
 
       sliderHandler._intervalID = 123;
       sliderHandler._isTouching = true;
@@ -234,7 +265,6 @@ suite('Sound > SliderHandler', function() {
 
     teardown(function() {
       window.clearInterval.restore();
-      this.clock.restore();
     });
 
     test('we would make sure _isTouching is unset', function() {
@@ -243,16 +273,6 @@ suite('Sound > SliderHandler', function() {
 
     test('we would call _setVolume', function() {
       assert.ok(sliderHandler._setVolume.called);
-    });
-
-    test('we would observe channelKey', function() {
-      assert.ok(SettingsListener.observe.calledWith(
-        sliderHandler._channelKey, '', sliderHandler._boundSetSliderValue));
-    });
-
-    test('we would call _stopTone', function() {
-      this.clock.tick(1000);
-      assert.ok(sliderHandler._stopTone.called);
     });
 
     test('we would call clearInterval', function() {
