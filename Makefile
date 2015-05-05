@@ -450,7 +450,7 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 # Any layout listed here that doesn't require a dictionary download and/or
 # comes with its own dictionary will become a pre-installed layout,
 # behaving the same way as if it is listed in the above variable.
-GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS?=
+GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS?=noPreloadDictRequired
 # Enable user dictionary for built-in keyboard app by default
 GAIA_KEYBOARD_ENABLE_USER_DICT?=1
 

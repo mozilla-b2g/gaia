@@ -21,7 +21,12 @@ suite('Keyboard layouts building tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var config = JSON.parse(process.env.BUILD_CONFIG);
-      var layoutIds = config.GAIA_KEYBOARD_LAYOUTS.split(',').sort();
+      var layoutIds = ['ar', 'bn-Avro', 'bn-Probhat', 'de', 'dz-BT',
+         'en', 'en-Colemak', 'en-Dvorak', 'en-Neo', 'eo', 'es',
+         'es-Americas', 'fr', 'fr-CA', 'fr-CH', 'fr-Dvorak-bepo',
+         'he', 'hi', 'ko', 'mk', 'my', 'pl', 'pt-BR', 'ta', 'te',
+         'th', 'vi-Qwerty', 'vi-Telex', 'vi-Typewriter', 'wo',
+         'zh-Hans-Pinyin'];
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
