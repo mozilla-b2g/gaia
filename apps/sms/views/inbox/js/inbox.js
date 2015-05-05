@@ -3,7 +3,7 @@
 
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MessageManager, TimeHeaders,
-         Drafts, Thread, ConversationView, OptionMenu, ActivityPicker,
+         Drafts, Thread, OptionMenu, ActivityPicker,
          StickyHeader, Navigation,
          InterInstanceEventDispatcher,
          SelectionHandler,
@@ -25,8 +25,6 @@ function createBdiNode(content) {
 var InboxView = {
   readyDeferred: Utils.Promise.defer(),
 
-  draftLinks: null,
-  draftRegistry: null,
   DRAFT_SAVED_DURATION: 5000,
   FIRST_PANEL_THREAD_COUNT: 9, // counted on a Peak
 
@@ -107,9 +105,6 @@ var InboxView = {
       this.updateContactsInfo.bind(this)
     );
 
-    this.draftLinks = new Map();
-    InboxView.draftRegistry = {};
-
     MessageManager.on('message-sending', this.onMessageSending.bind(this));
     MessageManager.on('message-received', this.onMessageReceived.bind(this));
     MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
@@ -147,11 +142,11 @@ var InboxView = {
   },
 
   setContact: function inbox_setContact(node) {
-    // TODO Bug 1014226 will introduce a draftId instead of threadId for
-    // drafts, this will allow removing the test with is-draft here.
-    var threadOrDraft = node.classList.contains('is-draft') ?
-      Drafts.get(node.dataset.threadId) :
-      Threads.get(node.dataset.threadId);
+    var threadId = node.dataset.threadId;
+    var draftId = node.dataset.draftId;
+
+    var threadOrDraft = draftId ?
+      Drafts.byDraftId(+draftId) : Threads.get(threadId);
 
     if (!threadOrDraft) {
       throw new Error('Thread node is invalid!');
@@ -257,9 +252,8 @@ var InboxView = {
   },
 
   handleEvent: function inbox_handleEvent(event) {
-    var draftId;
     var parent = event.target.parentNode;
-    var parentThreadId = parent.dataset.threadId;
+    var threadId = parent.dataset.threadId;
 
     switch (event.type) {
       case 'click':
@@ -268,29 +262,24 @@ var InboxView = {
           return;
         }
 
-        if ((draftId = this.draftLinks.get(event.target))) {
-          // TODO: Bug 1010216: remove this
-          ConversationView.draft = Drafts.get(draftId);
-        }
-
-        if (parentThreadId) {
+        if (threadId) {
           event.preventDefault();
-          // TODO Bug 1014226 will introduce a draftId instead of threadId for
-          // drafts, this will allow removing the test with is-draft here.
-          if (parent.classList.contains('is-draft')) {
+
+          var draftId = parent.dataset.draftId;
+          if (draftId) {
             Navigation.toPanel('composer', {
-              draftId: +parentThreadId
+              draftId: +draftId
             });
           } else {
             Navigation.toPanel('thread', {
-              id: +parentThreadId
+              id: +threadId
             });
           }
         }
 
         break;
       case 'contextmenu':
-        if (this.inEditMode || !parentThreadId) {
+        if (this.inEditMode || !threadId) {
           return;
         }
 
@@ -302,11 +291,11 @@ var InboxView = {
           header: { l10nId: 'thread-options' },
           items: [{
             l10nId: 'delete-thread',
-            method: this.delete.bind(this, [parentThreadId])
+            method: this.delete.bind(this, [threadId])
           }]
         };
 
-        var thread = Threads.get(+parentThreadId);
+        var thread = Threads.get(+threadId);
 
         if (!thread.isDraft) {
           var isRead = thread.unreadCount > 0;
@@ -315,7 +304,7 @@ var InboxView = {
           params.items.push(
             {
               l10nId: l10nKey,
-              method: this.markReadUnread.bind(this, [parentThreadId], isRead)
+              method: this.markReadUnread.bind(this, [threadId], isRead)
             }
           );
         }
@@ -387,9 +376,10 @@ var InboxView = {
 
   markReadUnread: function inbox_markReadUnread(selected, isRead) {
     selected.forEach((id) => {
-      var thread  = Threads.get(id);
-      var markable =
-        thread && (isRead || !thread.hasDrafts) && (!thread.isDraft);
+      var thread = Threads.get(id);
+
+      var markable = thread && !thread.isDraft &&
+        (isRead || !thread.getDraft());
 
       if (markable) {
         thread.unreadCount = isRead ? 0 : 1;
@@ -404,7 +394,7 @@ var InboxView = {
 
   removeThread: function inbox_removeThread(threadId) {
     var li = document.getElementById('thread-' + threadId);
-    var parent, draftId;
+    var parent;
     var photoUrl = li && li.dataset.photoUrl;
 
     // Revoke the contact photo while deletion for avoiding intermittent
@@ -416,12 +406,6 @@ var InboxView = {
     if (li) {
       parent = li.parentNode;
       li.remove();
-    }
-
-    if ((draftId = this.draftLinks.get(li))) {
-      this.draftLinks.delete(li);
-
-      delete this.draftRegistry[draftId];
     }
 
     // remove the header and the ul for an empty list
@@ -585,29 +569,25 @@ var InboxView = {
     // Request and render all threads with drafts
     // or thread-less drafts.
     return Drafts.request(force).then(() => {
-      Drafts.forEach(function(draft, threadId) {
-        var thread;
-        if (threadId) {
+      for (var draft of Drafts.getAll()) {
+        if (draft.threadId) {
           // Find draft-containing threads that have already been rendered
           // and update them so they mark themselves appropriately
-          var el = document.getElementById('thread-' + threadId);
-          if (el) {
-            thread = Threads.get(threadId);
-            this.updateThread(thread);
+          if (document.getElementById(`thread-${draft.threadId}`)) {
+            this.updateThread(Threads.get(draft.threadId));
           }
         } else {
           // Safely assume there is a threadless draft
           this.setEmpty(false);
 
-          // If there is currently no list item rendered for this
-          // draft, then proceed.
-          if (!this.draftRegistry[draft.id]) {
-            thread = Thread.create(draft);
+          // Render draft only in case we haven't rendered it yet.
+          if (!Threads.has(draft.id)) {
+            var thread = Thread.create(draft);
             Threads.set(draft.id, thread);
             this.appendThread(thread);
           }
         }
-      }, this);
+      }
 
       this.sticky && this.sticky.refresh();
     });
@@ -715,19 +695,15 @@ var InboxView = {
     var id = record.id;
     var bodyHTML = record.body;
     var thread = Threads.get(id);
-    var draft, draftId;
     var iconLabel = '';
 
     // A new conversation "is" a draft
     var isDraft = thread.isDraft;
 
-    // A an existing conversation "has" a draft
-    // (or it doesn't, depending on the value
-    // returned by thread.hasDrafts)
-    var hasDrafts = thread.hasDrafts;
+    // A an existing conversation has draft.
+    var draft = thread.getDraft();
 
-    if (hasDrafts) {
-      draft = Drafts.byThreadId(thread.id).latest;
+    if (!isDraft && draft) {
       timestamp = Math.max(draft.timestamp, timestamp);
       // If the draft is newer than the message, update
       // the body with the draft content's first string.
@@ -749,25 +725,18 @@ var InboxView = {
     li.dataset.lastMessageType = type;
     li.classList.add('threadlist-item');
 
-    if (hasDrafts || isDraft) {
+    if (draft) {
       // Set the "draft" visual indication
       li.classList.add('draft');
 
-      if (hasDrafts) {
-        li.classList.add('has-draft');
-        iconLabel = 'has-draft';
-      } else {
+      if (isDraft) {
+        li.dataset.draftId = draft.id;
         li.classList.add('is-draft');
         iconLabel = 'is-draft';
+      } else {
+        li.classList.add('has-draft');
+        iconLabel = 'has-draft';
       }
-
-
-      draftId = hasDrafts ? draft.id : record.id;
-
-      // Used in renderDrafts as an efficient mechanism
-      // for checking whether a draft of a specific ID
-      // has been rendered.
-      this.draftRegistry[draftId] = true;
     }
 
     if (record.unreadCount > 0) {
@@ -779,7 +748,7 @@ var InboxView = {
     li.innerHTML = this.tmpl.thread.interpolate({
       hash: isDraft ? '#composer' : '#thread=' + id,
       mode: isDraft ? 'drafts' : 'threads',
-      id: isDraft ? draftId : id,
+      id: isDraft ? draft.id : id,
       number: number,
       bodyHTML: bodyHTML,
       timestamp: String(timestamp),
@@ -789,13 +758,6 @@ var InboxView = {
     });
 
     TimeHeaders.update(li.querySelector('time'));
-
-    if (draftId) {
-      // Used in handleEvent to set the ConversationView.draft object
-      this.draftLinks.set(
-        li.querySelector('a'), draftId
-      );
-    }
 
     return li;
   },
@@ -900,11 +862,11 @@ var InboxView = {
     }
 
     var timestamp = +thread.timestamp;
-    var drafts = Drafts.byThreadId(thread.id);
+    var draft = Drafts.byThreadId(thread.id);
     var firstThreadInContainer = false;
 
-    if (drafts.length) {
-      timestamp = Math.max(drafts.latest.timestamp, timestamp);
+    if (draft) {
+      timestamp = Math.max(draft.timestamp, timestamp);
     }
 
     // We create the DOM element of the thread

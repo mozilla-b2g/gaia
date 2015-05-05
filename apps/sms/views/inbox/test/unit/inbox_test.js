@@ -1,7 +1,6 @@
 /*global MocksHelper, loadBodyHTML, MockL10n, InboxView,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread,
-         ConversationView,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
          MockSettings, Settings,
          InterInstanceEventDispatcher,
@@ -12,8 +11,6 @@
 'use strict';
 
 require('/views/shared/js/utils.js');
-require('/views/conversation/js/recipients.js');
-require('/services/js/drafts.js');
 require('/services/js/threads.js');
 require('/views/inbox/js/inbox.js');
 
@@ -29,13 +26,13 @@ require('/views/shared/test/unit/mock_waiting_screen.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/views/shared/test/unit/thread_list_mockup.js');
 require('/views/shared/test/unit/utils_mockup.js');
-require('/views/shared/test/unit/mock_conversation.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
 require('/views/shared/test/unit/mock_selection_handler.js');
+require('/services/test/unit/mock_drafts.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForInboxView = new MocksHelper([
@@ -45,7 +42,6 @@ var mocksHelperForInboxView = new MocksHelper([
   'Utils',
   'WaitingScreen',
   'TimeHeaders',
-  'ConversationView',
   'ContactPhotoHelper',
   'OptionMenu',
   'StickyHeader',
@@ -53,7 +49,9 @@ var mocksHelperForInboxView = new MocksHelper([
   'InterInstanceEventDispatcher',
   'SelectionHandler',
   'LazyLoader',
-  'Settings'
+  'Settings',
+  'Drafts',
+  'Draft'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -73,9 +71,6 @@ suite('thread_list_ui', function() {
 
     InboxView.readyDeferred = Utils.Promise.defer();
     InboxView.init();
-
-    // Clear drafts as leftovers in the profile might break the tests
-    Drafts.clear();
   });
 
   teardown(function() {
@@ -247,36 +242,6 @@ suite('thread_list_ui', function() {
       });
       test('calls setEmpty(true)', function() {
         assert.ok(InboxView.setEmpty.calledWith(true));
-      });
-    });
-
-    suite('remove draft links', function() {
-      setup(function() {
-        this.sinon.stub(InboxView.draftLinks, 'get').returns(1);
-        this.sinon.stub(InboxView.draftLinks, 'delete');
-
-        InboxView.removeThread(1);
-      });
-      test('calls draftLinks.get()', function() {
-        assert.isTrue(InboxView.draftLinks.get.called);
-      });
-      test('calls draftLinks.delete()', function() {
-        assert.isTrue(InboxView.draftLinks.delete.called);
-      });
-    });
-
-    suite('remove draft registry item', function() {
-      setup(function() {
-        InboxView.draftRegistry = {1: true};
-        this.sinon.stub(InboxView.draftLinks, 'get').returns(1);
-        this.sinon.stub(InboxView.draftLinks, 'delete');
-
-        InboxView.removeThread(1);
-      });
-      test('clears draftRegistry', function() {
-        assert.isTrue(
-          typeof InboxView.draftRegistry[1] === 'undefined'
-        );
       });
     });
   });
@@ -529,8 +494,9 @@ suite('thread_list_ui', function() {
     });
 
     suite(' > update in-memory threads', function() {
+      var firstThread, secondThread;
       setup(function() {
-        Threads.set(1, {
+        firstThread = new Thread({
           id: 1,
           participants: ['555'],
           lastMessageType: 'sms',
@@ -539,22 +505,31 @@ suite('thread_list_ui', function() {
           unreadCount: 0
         });
 
+        secondThread = new Thread({
+          id: 2,
+          participants: ['666'],
+          lastMessageType: 'sms',
+          body: 'Hello 666',
+          timestamp: Date.now(),
+          unreadCount: 0
+        });
+
+        Threads.set(1, firstThread);
+
         // This is used to reset the spy record
         Threads.set.reset();
       });
 
       test('Threads.set is called', function() {
-        InboxView.updateThread({
-          id: 1
-        });
-        assert.isTrue(Threads.set.calledOnce);
+        InboxView.updateThread(firstThread);
+
+        sinon.assert.calledOnce(Threads.set);
       });
 
       test('Threads.set is called even id has no match', function() {
-        InboxView.updateThread({
-          id: 2
-        });
-        assert.isTrue(Threads.set.calledOnce);
+        InboxView.updateThread(secondThread);
+
+        sinon.assert.calledOnce(Threads.set);
       });
     });
   });
@@ -655,6 +630,7 @@ suite('thread_list_ui', function() {
 
     setup(function() {
       this.sinon.stub(MessageManager, 'getMessages');
+      this.sinon.stub(Drafts, 'byDraftId');
 
       var drafts = threadDraftIds.map((id) => {
         var draft = new Draft({
@@ -667,8 +643,9 @@ suite('thread_list_ui', function() {
         });
         var thread = Thread.create(draft);
 
-        Drafts.add(draft);
         Threads.set(draft.id, thread);
+
+        Drafts.byDraftId.withArgs(draft.id).returns(draft);
 
         return thread;
       });
@@ -696,7 +673,6 @@ suite('thread_list_ui', function() {
 
     teardown(function() {
       InboxView.container = '';
-      Drafts.clear();
       InboxView.cancelEdit();
     });
 
@@ -721,6 +697,7 @@ suite('thread_list_ui', function() {
         this.sinon.stub(WaitingScreen, 'show');
         this.sinon.stub(WaitingScreen, 'hide');
         this.sinon.stub(MessageManager, 'deleteMessages');
+        this.sinon.spy(Drafts, 'delete');
         this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
       });
 
@@ -746,7 +723,7 @@ suite('thread_list_ui', function() {
           this.sinon.spy(Drafts, 'store');
 
           threadDraftIds.forEach((id) => {
-            assert.isTrue(Drafts.byThreadId(id).length > 0);
+            assert.isNotNull(document.getElementById(`thread-${id}`));
           });
 
           selectThreadsAndDelete(threadDraftIds).then(done, done);
@@ -756,7 +733,7 @@ suite('thread_list_ui', function() {
           sinon.assert.called(WaitingScreen.show);
 
           threadDraftIds.forEach((id) => {
-            assert.isTrue(Drafts.byThreadId(id).length === 0);
+            sinon.assert.calledWith(Drafts.delete, sinon.match({ id: id }));
           });
 
           assert.isNull(document.getElementById('thread-100'));
@@ -858,7 +835,7 @@ suite('thread_list_ui', function() {
 
           // First drafts are deleted
           threadDraftIds.forEach((id) => {
-            assert.isTrue(Drafts.byThreadId(id).length === 0);
+            sinon.assert.calledWith(Drafts.delete, sinon.match({ id: id }));
           });
 
           assert.isNotNull(document.getElementById('thread-1'));
@@ -969,9 +946,7 @@ suite('thread_list_ui', function() {
       var now, message, li;
 
       setup(function() {
-        this.sinon.stub(Threads, 'get').returns({
-          hasDrafts: true
-        });
+        this.sinon.stub(Drafts, 'byThreadId');
 
         now = Date.now();
 
@@ -984,11 +959,9 @@ suite('thread_list_ui', function() {
       });
 
       test('Message newer than draft is used', function() {
-        this.sinon.stub(Drafts, 'byThreadId').returns({
-          latest: {
-            timestamp: now - 60000,
-            content: ['from a draft']
-          }
+        Drafts.byThreadId.withArgs(message.threadId).returns({
+          timestamp: now - 60000,
+          content: ['from a draft']
         });
         li = InboxView.createThread(
           Thread.create(message)
@@ -1000,11 +973,9 @@ suite('thread_list_ui', function() {
       });
 
       test('Draft newer than content is used', function() {
-        this.sinon.stub(Drafts, 'byThreadId').returns({
-          latest: {
-            timestamp: now,
-            content: ['from a draft']
-          }
+        Drafts.byThreadId.withArgs(message.threadId).returns({
+          timestamp: now,
+          content: ['from a draft']
         });
         message.timestamp = now - 60000;
         li = InboxView.createThread(
@@ -1017,11 +988,9 @@ suite('thread_list_ui', function() {
       });
 
       test('Draft newer, but has no content', function() {
-        this.sinon.stub(Drafts, 'byThreadId').returns({
-          latest: {
-            timestamp: now,
-            content: []
-          }
+        Drafts.byThreadId.withArgs(message.threadId).returns({
+          timestamp: now,
+          content: []
         });
         message.timestamp = now - 60000;
         li = InboxView.createThread(
@@ -1034,12 +1003,10 @@ suite('thread_list_ui', function() {
       });
 
       test('Last message type for draft', function() {
-        this.sinon.stub(Drafts, 'byThreadId').returns({
-          latest: {
-            timestamp: now,
-            content: [],
-            type: 'mms'
-          }
+        Drafts.byThreadId.withArgs(message.threadId).returns({
+          timestamp: now,
+          content: [],
+          type: 'mms'
         });
         li = InboxView.createThread(
           Thread.create(message)
@@ -1404,6 +1371,10 @@ suite('thread_list_ui', function() {
       this.sinon.spy(InboxView, 'createThread');
       this.sinon.spy(InboxView, 'updateThread');
       this.sinon.spy(InboxView, 'setContact');
+      this.sinon.spy(Drafts, 'request');
+      this.sinon.stub(Drafts, 'getAll');
+      this.sinon.stub(Drafts, 'byDraftId');
+      this.sinon.stub(Drafts, 'byThreadId');
 
       var someDate = new Date(2013, 1, 1).getTime();
       insertMockMarkup(someDate);
@@ -1427,8 +1398,6 @@ suite('thread_list_ui', function() {
         type: 'sms'
       });
 
-      Drafts.add(threadDraft);
-
       draft = new Draft({
         id: 101,
         threadId: null,
@@ -1438,20 +1407,15 @@ suite('thread_list_ui', function() {
         type: 'sms'
       });
 
-      Drafts.add(draft);
-
-      this.sinon.stub(Drafts, 'request').returns(
-        Promise.resolve([draft, threadDraft])
-      );
-
-      InboxView.draftLinks = new Map();
-      InboxView.draftRegistry = {};
+      Drafts.byDraftId.withArgs(draft.id).returns(draft);
+      Drafts.byThreadId.withArgs(threadDraft.threadId).returns(threadDraft);
+      Drafts.getAll.returns([threadDraft, draft]);
 
       InboxView.renderDrafts().then(done, done);
     });
 
     teardown(function() {
-      Drafts.clear();
+      Threads.clear();
     });
 
     test('Draft.request is called', function() {
@@ -1472,11 +1436,6 @@ suite('thread_list_ui', function() {
 
     test('InboxView.setContact is called', function() {
       sinon.assert.called(InboxView.setContact);
-    });
-
-    test('click on a draft populates ConversationView.draft', function() {
-      document.querySelector('#thread-101 a').click();
-      assert.equal(ConversationView.draft, draft);
     });
 
     test('should re-request drafts if they are changed by another app instance',
@@ -1806,17 +1765,36 @@ suite('thread_list_ui', function() {
   });
 
   suite('click handling,', function() {
-    var thread1, thread2;
-    setup(function() {
+    var thread1, thread2, draft1;
+    setup(function(done) {
       this.sinon.stub(Navigation, 'toPanel');
+      this.sinon.stub(Drafts, 'getAll');
+      this.sinon.stub(Drafts, 'byDraftId');
+
       insertMockMarkup(new Date(2013, 1, 1));
 
-      thread1 = document.getElementById('thread-1');
-      thread2 = document.getElementById('thread-2');
+      var draft = new Draft({
+        id: 101,
+        threadId: null,
+        recipients: [],
+        content: ['An explicit id'],
+        timestamp: Date.now(),
+        type: 'sms'
+      });
+
+      Drafts.byDraftId.withArgs(draft.id).returns(draft);
+      Drafts.getAll.returns([draft]);
+
+      InboxView.renderDrafts().then(() => {
+        thread1 = document.getElementById('thread-1');
+        thread2 = document.getElementById('thread-2');
+        draft1 = document.getElementById('thread-101');
+      }).then(done, done);
     });
 
     teardown(function() {
       InboxView.inEditMode = false;
+      Threads.clear();
     });
 
     test('clicking on a list item', function() {
@@ -1832,6 +1810,12 @@ suite('thread_list_ui', function() {
 
       sinon.assert.notCalled(Navigation.toPanel);
       assert.ok(thread1.querySelector('input').checked);
+    });
+
+    test('click on draft', function() {
+      draft1.querySelector('label').click();
+
+      sinon.assert.calledWith(Navigation.toPanel, 'composer', { draftId: 101 });
     });
   });
 
@@ -1850,6 +1834,8 @@ suite('thread_list_ui', function() {
     setup(function(done) {
       this.sinon.stub(MessageManager, 'markThreadRead');
       this.sinon.stub(InboxView, 'delete');
+      this.sinon.stub(Drafts, 'getAll');
+      this.sinon.stub(Drafts, 'byDraftId');
 
       threads.forEach((threadInfo) => {
         var thread = Thread.create(MockMessages.sms({
@@ -1869,18 +1855,15 @@ suite('thread_list_ui', function() {
         type: 'sms'
       });
 
-      Drafts.add(draft);
-
-      this.sinon.stub(Drafts, 'request').returns(
-        Promise.resolve([draft])
-      );
+      Drafts.byDraftId.withArgs(draft.id).returns(draft);
+      Drafts.getAll.returns([draft]);
 
       InboxView.renderDrafts().then(done, done);
     });
 
     teardown(function() {
       InboxView.inEditMode = false;
-      Drafts.clear();
+      Threads.clear();
     });
 
     //mark as read action on thread

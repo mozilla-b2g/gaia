@@ -1,29 +1,20 @@
-/*exported MockDrafts,MockDraftList,MockDraft */
+/*exported MockDrafts,
+           MockDraft
+*/
 
 'use strict';
 
 var MockDrafts = {
-  List: MockDraftList,
   add: function() {},
-  delete: function() {},
-  byThreadId: function() {
-    return new MockDraftList();
-  },
-  get: function() {},
+  delete: function() { return this; },
+  byThreadId: () => null,
+  byDraftId: function() {},
   clear: function() {},
   store: function() {},
-  request: function() {}
-};
-
-function MockDraftList() {}
-
-MockDraftList.prototype = {
-  length: 0,
-  forEach: function() {}
+  request: () => Promise.resolve(),
+  getAll: () => []
 };
 
 function MockDraft(draft) {
-  for (var p in draft) {
-    this[p] = draft[p];
-  }
+  Object.assign(this, draft);
 }

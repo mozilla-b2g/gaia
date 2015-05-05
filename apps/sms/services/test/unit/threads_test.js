@@ -17,7 +17,7 @@ function assertDeepEqual(test, expected) {
   for (var key in expected) {
     assert.deepEqual(test[key], expected[key]);
   }
-} 
+}
 
 suite('Threads', function() {
   var message;
@@ -192,12 +192,12 @@ suite('Threads', function() {
     });
 
     test('Threads.delete() calls Drafts.delete()', function() {
-      this.sinon.stub(Drafts, 'delete');
+      this.sinon.spy(Drafts, 'delete');
       this.sinon.stub(Drafts, 'store');
 
       this.sinon.stub(Threads, 'get').returns({
         id: 1,
-        hasDrafts: true
+        getDraft: () => { return { threadId: 1 }; }
       });
 
       Threads.delete(1);
@@ -279,12 +279,6 @@ suite('Thread', function() {
     Threads.set(1, fixture);
   });
 
-  test('Thread', function() {
-    assert.ok(Thread);
-    assert.typeOf(Thread.prototype.drafts, 'object');
-    assert.typeOf(Thread.prototype.hasDrafts, 'boolean');
-  });
-
   test('Thread object', function() {
     var thread = new Thread(fixture);
 
@@ -300,18 +294,18 @@ suite('Thread', function() {
     });
   });
 
-  test('thread.drafts, hasDrafts', function() {
-    this.sinon.stub(Drafts, 'byThreadId').returns([
-      {
-        id: 101,
-        recipients: ['555'],
-        content: ['This is a new draft for thread 1'],
-        subject: 'This is a subject',
-        timestamp: 2,
-        threadId: 1,
-        type: 'sms'
-      }
-    ]);
+  test('thread has draft', function() {
+    var draft = {
+      id: 101,
+      recipients: ['555'],
+      content: ['This is a new draft for thread 1'],
+      subject: 'This is a subject',
+      timestamp: 2,
+      threadId: 1,
+      type: 'sms'
+    };
+
+    this.sinon.stub(Drafts, 'byThreadId').withArgs(1).returns(draft);
 
     Threads.set(1, {
       id: 1,
@@ -323,12 +317,11 @@ suite('Thread', function() {
       messages: new Map()
     });
 
-    assert.equal(Threads.get(1).drafts.length, 1);
-    assert.isTrue(Threads.get(1).hasDrafts);
+    assert.deepEqual(Threads.get(1).getDraft(), draft);
   });
 
-  test('no thread.drafts, hasDrafts', function() {
-    this.sinon.stub(Drafts, 'byThreadId').returns([]);
+  test('thread does not have draft', function() {
+    this.sinon.stub(Drafts, 'byThreadId').withArgs(1).returns(null);
 
     Threads.set(1, {
       id: 1,
@@ -340,8 +333,7 @@ suite('Thread', function() {
       messages: new Map()
     });
 
-    assert.equal(Threads.get(1).drafts.length, 0);
-    assert.isFalse(Threads.get(1).hasDrafts);
+    assert.isNull(Threads.get(1).getDraft());
   });
 
 });
