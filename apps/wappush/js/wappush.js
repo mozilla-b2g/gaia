@@ -194,18 +194,17 @@
 
     var title = Utils.prepareMessageTitle(message);
 
-    var options = {
+    NotificationHelper.send(title, {
       icon: iconURL,
-      body: text,
+      bodyL10n: text,
       tag: message.timestamp
-    };
-
-    var notification = new Notification(title, options);
-    notification.addEventListener('click',
-      function wpm_onNotificationClick(event) {
-        wpm_displayWapPushMessage(event.target.tag);
-      }
-    );
+    }).then(function(notification) {
+      notification.addEventListener('click',
+        function wpm_onNotificationClick(event) {
+          wpm_displayWapPushMessage(event.target.tag);
+        }
+      );
+    });
   }
 
   /**

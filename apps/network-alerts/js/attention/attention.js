@@ -32,25 +32,19 @@ function sendNotification() {
 
   return new Promise(function(resolve, reject) {
     var title = params.title;
-    var body = params.body;
     var req = navigator.mozApps.getSelf();
 
     req.onsuccess = function onsuccess(event) {
       var app = event.target.result;
 
-      var notification = new Notification(
-        navigator.mozL10n.get(title), {
-          body: body,
-          tag: '' + Date.now(), // needs to be unique
-          icon: NotificationHelper.getIconURI(app) + '?titleID=' + title
-        }
-      );
-
-      notification.onerror = function onerror() {
-        reject(new Error('CMAS: notification API error'));
-      };
-
-      notification.onshow = resolve;
+      NotificationHelper.send(title, {
+        bodyL10n: params.body;
+        tag: '' + Date.now(), // needs to be unique
+        icon: NotificationHelper.getIconURI(app) + '?titleID=' + title
+      }).then(function(notification) {
+        notification.addEventListener('error', reject(new Error('CMAS: notification API error')));
+        notification.addEventListener('show', resolve);
+      });
     };
 
     req.onerror = function onerror() {
