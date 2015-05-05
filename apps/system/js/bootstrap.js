@@ -7,6 +7,9 @@
    * The responsibility is only start the app instance and catch
    * the error from the start function.
    *
+   * The main reason is this file is not test-able so
+   * it should not grow anyway.
+   *
    * If you have a new module, please find a proper parent
    * in the dependency tree and put it there.
    */

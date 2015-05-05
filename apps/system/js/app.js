@@ -2,6 +2,25 @@
 'use strict';
 
 (function(exports) {
+  /**
+   * The entry point of the whole system app.
+   * It's duty is to prepare everything ready to launch
+   * the application core (core.js).
+   *
+   * Core could run without App, but it is expected to be slower
+   * because App will prepare the launch config for it with
+   * Launcher's help (launcher.js).
+   *
+   * In Launcher it will read the launch configurations and put
+   * some requests according to the config in the Service. When
+   * the relative modules which are started by Core is started,
+   * they could just fetch the launch config sychronously to
+   * fasten to launch progress.
+   *
+   * If Launcher does not prepare the value for them,
+   * the modules who are started by the Core will still get
+   * the values asynchronously.
+   */
   var App = function() {};
   App.prototype = {
     // TODO: decrease the files here and move them into specific loader
@@ -41,12 +60,17 @@
       window.settingsCore.start();
       window.launcher = BaseModule.instantiate('Launcher');
       return Promise.all([
-        applications.waitForReady(), // There is too many operations
-                                     // need to wait application ready.
+        // XXX:
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=1161489
+        // Consider to move applications.start() into Core or AppCore
+        // but it may miss the mozChromeEvent to tell us application
+        // is ready to query.
+        applications.waitForReady(),
         window.launcher.start()
       ]).then(() => {
         window.core = BaseModule.instantiate('Core');
         return window.core.start().then(() => {
+          // To let integration test know we are ready to test.
           document.body.setAttribute('ready-state', 'fullyLoaded');
           window.performance.mark('fullyLoaded');
         });

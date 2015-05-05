@@ -350,7 +350,7 @@ var StatusBar = {
     }
   },
 
-  setAppearance: function(app) {
+  setAppearance: function() {
     var app = Service.query('getTopMostWindow');
     if (!app) {
       return;

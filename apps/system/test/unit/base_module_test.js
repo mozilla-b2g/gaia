@@ -51,9 +51,8 @@ suite('system/BaseModule', function() {
         name: 'LaunchingPromiseTester'
       });
       var lpt = BaseModule.instantiate('LaunchingPromiseTester');
-      lpt.start().then(function() {
-        done();
-      });
+      lpt.start().catch((e) => {throw e || 'Should not throw'; })
+                 .then(done, done);
     });
 
     test('custom start', function(done) {
@@ -67,9 +66,8 @@ suite('system/BaseModule', function() {
         }
       });
       var lpt = BaseModule.instantiate('LaunchingPromiseTester');
-      lpt.start().then(function() {
-        done();
-      });
+      lpt.start().catch((e) => {throw e || 'Should not throw'; })
+                 .then(done, done);
     });
   });
 

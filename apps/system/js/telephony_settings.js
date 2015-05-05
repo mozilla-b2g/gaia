@@ -1,10 +1,11 @@
 'use strict';
-/* global BaseModule */
+/* global SettingsHelper, BaseModule, LazyLoader */
 
 (function() {
   /**
    * TelephonySettings sets voice privacy and roaming modes based on
    * the users saved settings.
+   * @requires SettingsHelper
    * @class TelephonySettings
    */
   function TelephonySettings(core) {
@@ -12,46 +13,67 @@
     this.connections = Array.slice(core.mobileConnections || []);
   }
 
-  TelephonySettings.SETTINGS = [
-    'ril.voicePrivacy.enabled',
-    'ril.roaming.preference',
-    'ril.clirMode',
-    'ril.radio.preferredNetworkType'
-  ];
-
   BaseModule.create(TelephonySettings, {
     name: 'TelephonySettings',
-
-    '_observe_ril.voicePrivacy.enabled' : function(values) {
-      values = values || this.connections.map(function() { return false; });
-      this.connections.forEach(function vp_iterator(conn, index) {
-        var setReq = conn.setVoicePrivacyMode(values[index]);
-        setReq.onerror = function set_vpm_error() {
-          if (setReq.error.name === 'RequestNotSupported' ||
-              setReq.error.name === 'GenericFailure') {
-            console.log('Request not supported.');
-          } else {
-            console.error('Error setting voice privacy.');
-          }
-        };
+    /**
+     * Initialzes all settings.
+     * @memberof TelephonySettings.prototype
+     */
+    _start: function() {
+      // XXX: Deprecate SettingsHelper usage in system app
+      // and use this.readSetting instead.
+      return LazyLoader.load('shared/js/settings_helper.js').then(() => {
+        this.initVoicePrivacy();
+        this.initRoaming();
+        this.initCallerIdPreference();
+        this.initPreferredNetworkType();
       });
     },
 
-    '_observe_ril.roaming.preference': function(values) {
-      if (!values) {
-        return;
-      }
-      this.connections.forEach(function rp_iterator(conn, index) {
-        var setReq = conn.setRoamingPreference(values[index]);
-        setReq.onerror = function set_vpm_error() {
-          if (setReq.error.name === 'RequestNotSupported' ||
-              setReq.error.name === 'GenericFailure') {
-            console.log('Request not supported.');
-          } else {
-            console.error('Error roaming preference.');
-          }
-        };
-      });
+    /**
+     * Initializes voice privacy based on user setting.
+     */
+    initVoicePrivacy: function() {
+      var defaultVoicePrivacySettings =
+        this.connections.map(function() { return false; });
+      var voicePrivacyHelper =
+        SettingsHelper('ril.voicePrivacy.enabled', defaultVoicePrivacySettings);
+      voicePrivacyHelper.get(function got_vp(values) {
+        this.connections.forEach(function vp_iterator(conn, index) {
+          var setReq = conn.setVoicePrivacyMode(values[index]);
+          setReq.onerror = function set_vpm_error() {
+            if (setReq.error.name === 'RequestNotSupported' ||
+                setReq.error.name === 'GenericFailure') {
+              console.log('Request not supported.');
+            } else {
+              console.error('Error setting voice privacy.');
+            }
+          };
+        });
+      }.bind(this));
+    },
+
+    /**
+     * Initializes roaming based on user setting.
+     */
+    initRoaming: function() {
+      var defaultRoamingPreferences =
+        this.connections.map(function() { return 'any'; });
+      var roamingPreferenceHelper =
+        SettingsHelper('ril.roaming.preference', defaultRoamingPreferences);
+      roamingPreferenceHelper.get(function got_rp(values) {
+        this.connections.forEach(function rp_iterator(conn, index) {
+          var setReq = conn.setRoamingPreference(values[index]);
+          setReq.onerror = function set_vpm_error() {
+            if (setReq.error.name === 'RequestNotSupported' ||
+                setReq.error.name === 'GenericFailure') {
+              console.log('Request not supported.');
+            } else {
+              console.error('Error roaming preference.');
+            }
+          };
+        });
+      }.bind(this));
     },
 
     /**
@@ -61,39 +83,46 @@
      * CLIR_INVOCATION:  1
      * CLIR_SUPPRESSION: 2
      */
-    '_observe_ril.clirMode': function(values) {
-      this.connections.forEach(function cid_iterator(conn, index) {
-        if (values && values[index] !== null) {
-          this._setCallerIdPreference(conn, values[index], function() {
-            this._syncCallerIdPreferenceWithCarrier(conn, index);
-            this._registerListenerForCallerIdPreference(conn, index);
-          }.bind(this));
-        } else {
-          this._registerListenerForCallerIdPreference(conn, index);
-        }
-      }, this);
+    initCallerIdPreference: function() {
+      var callerIdPreferenceHelper = SettingsHelper('ril.clirMode', null);
+      var that = this;
+
+      callerIdPreferenceHelper.get(function got_cid(values) {
+        that.connections.forEach(function cid_iterator(conn, index) {
+          if (values && values[index] !== null) {
+            that._setCallerIdPreference(conn, values[index], function() {
+              that._syncCallerIdPreferenceWithCarrier(conn, index,
+                callerIdPreferenceHelper);
+              that._registerListenerForCallerIdPreference(conn, index,
+                callerIdPreferenceHelper);
+            });
+          } else {
+            that._registerListenerForCallerIdPreference(conn, index,
+              callerIdPreferenceHelper);
+          }
+        });
+      });
     },
 
-    _registerListenerForCallerIdPreference: function(conn, index) {
+    _registerListenerForCallerIdPreference: function(conn, index, helper) {
       // register event handler for caller id preference change, but we should
       // always query the real settings value from the carrier.
       conn.addEventListener('clirmodechange', function onclirchanged(event) {
-        this._syncCallerIdPreferenceWithCarrier(conn, index);
+        this._syncCallerIdPreferenceWithCarrier(conn, index, helper);
       }.bind(this));
     },
 
-    _syncCallerIdPreferenceWithCarrier: function(conn, index) {
+    _syncCallerIdPreferenceWithCarrier: function(conn, index, helper) {
       var that = this;
       this._getCallerIdPreference(conn, function(realValue) {
-        var values = that._settings['ril.clirMode'];
-        values = values || that.connections.map(function() {
-          return 0;
+        helper.get(function got_cid(values) {
+          values = values || that.connections.map(function() {
+            return 0;
+          });
+          values[index] = realValue;
+          helper.set(values);
         });
-        values[index] = realValue;
-        that.writeSetting({
-          'ril.clirMode': values
-        });
-      }.bind(this));
+      });
     },
 
     _getCallerIdPreference: function(conn, callback) {
@@ -164,25 +193,25 @@
      * should use the option that makes the device able to connect all supported
      * netwrok types.
      */
-    '_observe_ril.radio.preferredNetworkType': function got_pnt(values) {
-      if (!values) {
-        values = this._getDefaultPreferredNetworkTypes();
-        this.writeSetting({
-          'ril.radio.preferredNetworkType': values
-        });
-      } else if (typeof values == 'string') {
-        // do the migration
-        var tempDefault = this._getDefaultPreferredNetworkTypes();
-        tempDefault[0] = values;
-        values = tempDefault;
-        this.writeSetting({
-          'ril.radio.preferredNetworkType': values
-        });
-      }
+    initPreferredNetworkType: function() {
+      var preferredNetworkTypeHelper =
+        SettingsHelper('ril.radio.preferredNetworkType');
+      preferredNetworkTypeHelper.get(function got_pnt(values) {
+        if (!values) {
+          values = this._getDefaultPreferredNetworkTypes();
+          preferredNetworkTypeHelper.set(values);
+        } else if (typeof values == 'string') {
+          // do the migration
+          var tempDefault = this._getDefaultPreferredNetworkTypes();
+          tempDefault[0] = values;
+          values = tempDefault;
+          preferredNetworkTypeHelper.set(values);
+        }
 
-      this.connections.forEach(function pnt_iterator(conn, index) {
-        this._setDefaultPreferredNetworkType(conn, values[index]);
-      }, this);
+        this.connections.forEach(function pnt_iterator(conn, index) {
+          this._setDefaultPreferredNetworkType(conn, values[index]);
+        }, this);
+      }.bind(this));
     },
 
     _setDefaultPreferredNetworkType: function(conn, preferredNetworkType) {

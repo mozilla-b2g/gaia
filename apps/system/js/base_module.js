@@ -577,10 +577,9 @@
     },
 
     /**
-     * Custom start function. Override it if necessary.
-     * Note: if you want to access submodules when it's started,
-     * override this._[MODULE_NAME]_loaded()
-     * because they may not be loaded before custom start.
+     * Custom start function, override it if necessary.
+     * If you want to block the start process of this module,
+     * return a promise here.
      */
     _start: function() {},
 
@@ -590,7 +589,7 @@
     _stop: function() {},
 
     /**
-     * The starting of a module has these steps:
+     * The starting progress of a module has these steps:
      * * import javascript files
      * * lazy load submodules and instantiate once loaded.
      * * custom start function
@@ -602,12 +601,26 @@
      * The service registration is expected to happen after everything is done.
      * The ordering of the remaining parts should not depends each other.
      *
+     * The start function will return a promise to let you know
+     * when the module is started.
+     * @example
+     * var a = BaseModule.instantiate('A');
+     * a.start().then(() => {
+     *   console.log('started');
+     * });
+     *
+     * Note: a module start promise will only be resolved
+     * after all the steps are resolved, including
+     * the custom start promise and the promises from all the submodules.
+     * So when you see a module is started, that means all of its
+     * submodules are started as well.
+     *
      * @memberOf BaseModule.prototype
      */
     start: function() {
       if (this.lifeCycleState !== 'stopped') {
         this.warn('already started');
-        return Promise.reject();
+        return Promise.reject('already started');
       }
       this.switchLifeCycle('starting');
       return this.imports();
