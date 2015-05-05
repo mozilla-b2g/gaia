@@ -10,7 +10,7 @@ marionette('Software Home Button - Power Menu', function() {
     settings: {
       'software-button.enabled': true
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
   var system;
 
   setup(function() {

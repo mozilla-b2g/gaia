@@ -9,7 +9,7 @@ marionette('Closing statusbar via home button >', function() {
       'dom.w3c_touch_events.enabled': 1,
       'devtools.debugger.forbid-certified-apps': false
     }
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
 
   var system,
       verticalHomeApp = 'app://verticalhome.gaiamobile.org',

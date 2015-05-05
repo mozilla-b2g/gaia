@@ -18,7 +18,7 @@ marionette('Software Home Button - Attention window', function() {
       'software-button.enabled': true
     },
     apps: apps
-  });
+  }, undefined, { 'raisesAccessibilityExceptions': true });
   var system;
   var lockScreen;
   var fakedialer;
