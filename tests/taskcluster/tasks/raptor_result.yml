@@ -25,7 +25,7 @@ task:
     artifacts:
       'public/logs':
         type: directory
-        path: '/home/worker/logs'
+        path: '/home/tester/logs'
         expires: '{{nextYear}}'
 
   extra:
