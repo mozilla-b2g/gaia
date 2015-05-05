@@ -18,6 +18,7 @@ KeyboardLayoutDetail.prototype.layoutFile = null;
 KeyboardLayoutDetail.prototype.types = null;
 KeyboardLayoutDetail.prototype.imEngineId = undefined;
 KeyboardLayoutDetail.prototype.imEngineDir = null;
+KeyboardLayoutDetail.prototype.noIncludeInExpandLayoutIdSet = undefined;
 
 // How size is counted is imEngine dependent.
 KeyboardLayoutDetail.prototype.fileSize = null;
@@ -71,6 +72,8 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
   this.label = win.Keyboards[id].menuLabel;
   this.types = win.Keyboards[id].types.sort();
   this.imEngineId = win.Keyboards[id].imEngine;
+  this.noIncludeInExpandLayoutIdSet =
+    win.Keyboards[id].noIncludeInExpandLayoutIdSet;
   if (this.imEngineId) {
     this.imEngineDir =
       utils.getFile(appDir.path, 'js', 'imes', this.imEngineId);
@@ -148,17 +151,19 @@ KeyboardLayoutDetail.prototype.load = function(appDir) {
       break;
 
     default:
+      // It's possible the layout doesn't have an IMEngine, and it's acceptible.
+      // Other than that, throw so people are forced to place their IMEngine
+      // correctly here.
+      if (this.imEngineId) {
+        throw new Error('KeyboardLayoutDetail: Found an unknown imEngine: "' +
+          this.imEngineId + '".');
+      }
+
       // To prevent this to be 0, set the size to it's layoutFile.
       this.fileSize = this.layoutFile.fileSize;
 
-      // It's possible the layout doesn't have an IMEngine, and it's acceptible.
-      if (!this.imEngineId) {
-        break;
-      }
-
-      // Throw so people are forced to place their IMEngine correctly here.
-      throw new Error('KeyboardLayoutDetail: Found an unknown imEngine: "' +
-        this.imEngineId + '".');
+      // This is purposely left unset.
+      this.preloadDictRequired = undefined;
   }
 };
 
@@ -167,11 +172,16 @@ var KeyboardLayoutConfigurator = function(appDir) {
 };
 
 KeyboardLayoutConfigurator.prototype.loadLayouts =
-function(layoutIds, preloadDictLayoutIds) {
-  var layoutIdSet = this._expandLayoutIdSet(layoutIds);
-  var preloadDictLayoutIdSet = this._expandLayoutIdSet(preloadDictLayoutIds);
+function(enabledLayoutIds, downloadableLayoutIds) {
+  var enabledLayoutIdSet = this._expandLayoutIdSet(enabledLayoutIds);
+  var downloadableLayoutIdSet = this._expandLayoutIdSet(downloadableLayoutIds);
 
-  if (layoutIdSet.size === 0) {
+  utils.log('keyboard-load-layouts', 'The enabled layouts are set to: ' +
+    [...enabledLayoutIdSet].join(', '));
+  utils.log('keyboard-load-layouts', 'The downloadable layouts are set to: ' +
+    [...downloadableLayoutIdSet].join(', '));
+
+  if (enabledLayoutIdSet.size === 0) {
     throw new Error('KeyboardLayoutConfigurator: No layout specified?');
   }
 
@@ -182,13 +192,24 @@ function(layoutIds, preloadDictLayoutIds) {
   // considered preloaded.
   var imEngineDictIdSet = new Set();
 
-  layoutIdSet.forEach(function(layoutId) {
+  enabledLayoutIdSet.forEach(function(layoutId) {
     var detail = new KeyboardLayoutDetail(layoutId);
     detail.load(this.appDir);
 
-    if (detail.dictFile && preloadDictLayoutIdSet.has(layoutId)) {
+    if (detail.dictFile) {
       imEngineDictIdSet.add(detail.imEngineId + '/' + detail.dictFilePath);
     }
+
+    this.layoutDetails.push(detail);
+  }, this);
+
+  downloadableLayoutIdSet.forEach(function(layoutId) {
+    if (enabledLayoutIdSet.has(layoutId)) {
+      return;
+    }
+
+    var detail = new KeyboardLayoutDetail(layoutId);
+    detail.load(this.appDir);
 
     this.layoutDetails.push(detail);
   }, this);
@@ -246,12 +267,13 @@ KeyboardLayoutConfigurator.prototype._listAllLayouts = function(testFunc) {
       return false;
     }
 
-    if (typeof testFunc === 'function') {
-      var detail = new KeyboardLayoutDetail(layoutId);
-      detail.load(this.appDir);
-      if (!testFunc(detail)) {
-        return false;
-      }
+    var detail = new KeyboardLayoutDetail(layoutId);
+    detail.load(this.appDir);
+    if (detail.noIncludeInExpandLayoutIdSet) {
+      return false;
+    }
+    if (typeof testFunc === 'function' && !testFunc(detail)) {
+      return false;
     }
 
     return true;

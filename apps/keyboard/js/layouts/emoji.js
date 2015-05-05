@@ -2,6 +2,10 @@ Keyboards.emoji = {
   label: 'Emoji',
   types: ['text', 'url', 'email'],
   menuLabel: 'Emoji',
+  // We don't want to ship this yet even when enable/downloadable layout is
+  // set to include this.
+  // User must explicitly include emoji to test this layout.
+  noIncludeInExpandLayoutIdSet: true,
   pages: [{   // Page 0 - People
     panelKeys: [ { compositeKey: '😄', type: 'emoji' }, { compositeKey: '😃', type: 'emoji' },
                  { compositeKey: '😀', type: 'emoji' }, { compositeKey: '😊', type: 'emoji' },

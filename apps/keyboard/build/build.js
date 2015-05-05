@@ -13,8 +13,8 @@ var KeyboardAppBuilder = function() {
 // set options
 KeyboardAppBuilder.prototype.setOptions = function(options) {
   this.enabledLayouts = options.GAIA_KEYBOARD_LAYOUTS.split(',');
-  this.preloadDictLayouts =
-    options.GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS.split(',');
+  this.downloadableLayouts =
+    options.GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS.split(',');
   this.userDictEnabled = options.GAIA_KEYBOARD_ENABLE_USER_DICT === '1';
   this.distDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);
@@ -105,7 +105,7 @@ KeyboardAppBuilder.prototype.execute = function(options) {
   this.layoutConfigurator =
     new KeyboardLayoutConfigurator(this.appDir);
   this.layoutConfigurator
-    .loadLayouts(this.enabledLayouts, this.preloadDictLayouts);
+    .loadLayouts(this.enabledLayouts, this.downloadableLayouts);
 
   this.copyStaticFiles();
   this.copyLayouts();

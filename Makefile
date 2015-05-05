@@ -440,14 +440,17 @@ GAIA_PRETRANSLATE?=1
 GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
+# Include the ID of the layout in this variable will make both the dictionary
+# and the layout included in the package.
 GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 # We optionally offers downloading the dictionary from the CDN, instead of
 # including it in the build.
-# Latin IMEngine-backed layouts specified under this variable will have
-# their dictionaries included in the package. The user has to optionally
-# download the dictionary in keyboard settings page in order to enable the
-# layout.
-GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS?=$(GAIA_KEYBOARD_LAYOUTS)
+# Include the ID of the layout in this variable will make it appear in the
+# keyboard settings page, allowing user to download the dictionary.
+# Any layout listed here that doesn't require a dictionary download and/or
+# comes with its own dictionary will become a pre-installed layout,
+# behaving the same way as if it is listed in the above variable.
+GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS?=
 # Enable user dictionary for built-in keyboard app by default
 GAIA_KEYBOARD_ENABLE_USER_DICT?=1
 
@@ -513,7 +516,7 @@ define BUILD_CONFIG
   "GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
   "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
   "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
-  "GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS" : "$(GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS)", \
+  "GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS" : "$(GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS)", \
   "GAIA_KEYBOARD_ENABLE_USER_DICT" : "$(GAIA_KEYBOARD_ENABLE_USER_DICT)", \
   "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
   "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
