@@ -288,45 +288,48 @@ suiteGroup('Views.EventBase', function() {
   });
 
   suite('#_createModel', function() {
-    var date = new Date(2012, 0, 1);
-
     test('time is less then now', function() {
-      var now = new Date();
-      var start = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        now.getHours() + 1
-      );
-
-      var end = new Date(start.valueOf());
-      end.setHours(end.getHours() + 1);
-
-      var model = subject._createModel(date);
+      var model = subject._createModel(new Date(2012, 0, 1));
 
       assert.hasProperties(
         model,
-        { startDate: start, endDate: end }
+        {
+          startDate: new Date(2012, 0, 1, 8),
+          endDate: new Date(2012, 0, 1, 9)
+        }
       );
     });
 
-    test('time is greater then now', function() {
+    test('time is today', function() {
       var now = new Date();
-      var start = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        now.getHours() + 10
-      );
-
-      var end = new Date(start.valueOf());
-      end.setHours(end.getHours() + 1);
+      var start = new Date(now.getTime());
+      start.setHours(0, 0, 0, 0);
+      // defaults to next hour
+      var realStart = new Date(now.getTime());
+      realStart.setHours(now.getHours() + 1, 0, 0, 0);
+      var end = new Date(now.getTime());
+      end.setHours(now.getHours() + 2, 0, 0, 0);
 
       var model = subject._createModel(start);
 
       assert.hasProperties(
         model,
-        { startDate: start, endDate: end }
+        { startDate: realStart, endDate: end }
+      );
+    });
+
+    test('time is greater then now', function() {
+      var now = new Date();
+      var year = now.getFullYear() + 1;
+      var start = new Date(year, 6, 23);
+      var model = subject._createModel(start);
+
+      assert.hasProperties(
+        model,
+        {
+          startDate: new Date(year, 6, 23, 8),
+          endDate: new Date(year, 6, 23, 9)
+        }
       );
     });
   });
