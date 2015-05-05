@@ -847,6 +847,13 @@
       return false;
     }
 
+    // Bug 1134998: Don't track apps that are marked as private windows
+    // Some app-like objects may not have the isPrivateBrowser function,
+    // so we also check to make sure it exists here.
+    if (typeof app.isPrivateBrowser === 'function' && app.isPrivateBrowser()) {
+      return false;
+    }
+
     // Gecko and the app window state machine do not send certain app properties
     // along in webapp-launch or appopened events, causing marketplace app usage
     // to not be properly recorded. We fall back on the system app's application
