@@ -1,0 +1,45 @@
+.container {
+  background-color: black;
+  bottom: 0;
+  color: white;
+  font-size: 64px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.container * {
+  position: absolute;
+  width: 100%;
+}
+
+.count {
+  bottom: 50%;
+  text-align: center;
+}
+
+.controls {
+  bottom: 0;
+  font-weight: bold;
+}
+
+.controls * {
+  cursor: pointer;
+  float: left;
+  position: relative;
+  text-align: center;
+  width: 50%;
+}
+
+.controls *:active {
+  background-color: white;
+}
+
+.controls .plus {
+  color: green;
+}
+
+.controls .minus {
+  color: red;
+}
