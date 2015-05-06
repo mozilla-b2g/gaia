@@ -1,6 +1,11 @@
 'use strict';
 
-/* globals MockNavigatorMozMobileConnections, Service */
+/* global AppUpdatable, Service, UpdateManager,
+          MockApp, MockAppUpdatable, MockAppsMgmt, MockChromeEvent,
+          MockCustomDialog, MocksHelper, MockL10n,
+          MockNavigatorMozMobileConnections, MockNavigatorSettings,
+          MockNavigatorWakeLock, MockNotificationScreen, MockUtilityTray,
+          MockSettingsListener, MockSystemBanner, MockSystemUpdatable */
 
 requireApp('system/js/update_manager.js');
 
@@ -11,6 +16,7 @@ requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/service.js');
 requireApp('system/test/unit/mock_notification_screen.js');
@@ -31,7 +37,8 @@ var mocksForUpdateManager = new MocksHelper([
   'SystemUpdatable',
   'AppUpdatable',
   'SettingsListener',
-  'asyncStorage'
+  'asyncStorage',
+  'LazyLoader'
 ]).init();
 
 suite('system/UpdateManager', function() {
@@ -111,7 +118,15 @@ suite('system/UpdateManager', function() {
   });
 
   setup(function() {
-    this.sinon.stub(Service, 'request');
+    this.sinon.stub(Service, 'request', function(action) {
+      if (action === 'showCustomDialog') {
+        MockCustomDialog.show(arguments[1],
+          arguments[2], arguments[3], arguments[4]);
+      } else {
+        MockCustomDialog.hide(arguments[1],
+          arguments[2], arguments[3], arguments[4]);
+      }
+    });
     // they are automatically restored at teardown by the test agent
     this.sinon.useFakeTimers();
 
@@ -649,7 +664,6 @@ suite('system/UpdateManager', function() {
 
       suite('notification behavior after addToDownloadsQueue', function() {
         setup(function() {
-          var css = UpdateManager.container.classList;
           UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
         });
 
@@ -657,7 +671,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen.wasMethodCalled['addUnreadNotification'],
+            MockNotificationScreen.wasMethodCalled.addUnreadNotification,
             1);
         });
 
@@ -667,8 +681,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen
-              .wasMethodCalled['addUnreadNotification'],
+            MockNotificationScreen.wasMethodCalled.addUnreadNotification,
             1);
         });
       });
@@ -687,8 +700,7 @@ suite('system/UpdateManager', function() {
             var css = UpdateManager.container.classList;
             assert.isTrue(css.contains('displayed'));
             assert.equal(
-              MockNotificationScreen
-                .wasMethodCalled['addUnreadNotification'],
+              MockNotificationScreen.wasMethodCalled.addUnreadNotification,
               1);
           });
         });
@@ -706,8 +718,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen
-              .wasMethodCalled['addUnreadNotification'],
+            MockNotificationScreen.wasMethodCalled.addUnreadNotification,
             1);
         });
 
@@ -741,7 +752,7 @@ suite('system/UpdateManager', function() {
 
             this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
-            var css = UpdateManager.toaster.classList;
+            css = UpdateManager.toaster.classList;
             assert.isTrue(css.contains('displayed'));
             var l10nAttrs = MockL10n.getAttributes(
               UpdateManager.toasterMessage);
@@ -1786,7 +1797,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should not add app if not in updatableApps array', function() {
-          var updatableApp = new MockAppUpdatable(new MockApp);
+          var updatableApp = new MockAppUpdatable(new MockApp());
           var initialLength = UpdateManager.updatesQueue.length;
           UpdateManager.addToUpdatesQueue(updatableApp);
           assert.equal(initialLength, UpdateManager.updatesQueue.length);
@@ -1929,7 +1940,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should not add app if not in updatableApps array', function() {
-          var updatableApp = new MockAppUpdatable(new MockApp);
+          var updatableApp = new MockAppUpdatable(new MockApp());
           var initialLength = UpdateManager.downloadsQueue.length;
           UpdateManager.addToDownloadsQueue(updatableApp);
           assert.equal(initialLength, UpdateManager.downloadsQueue.length);

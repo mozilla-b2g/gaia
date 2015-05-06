@@ -1,10 +1,11 @@
+/* global Service */
 'use strict';
 
-(function(window) {
+(function(exports) {
   /**
    * @mixin BrowserMixin
    */
-  window.BrowserMixin = {
+  var BrowserMixin = {
     reload: function bm_reload() {
       if (this.browser.element) {
         this.browser.element.reload();
@@ -94,6 +95,7 @@
         }
         return;
       }
+      this.debug('getting screenshot..');
       var self = this;
       var invoked = false;
       var timer;
@@ -126,10 +128,12 @@
       var type = this.isHomescreen ?
         'image/png' : 'image/jpeg';
 
-      var req = this.iframe.getScreenshot(
-        width || this.width || layoutManager.width,
-        height || this.height || layoutManager.height,
-        type);
+      var _width = width || this.width ||
+                   Service.query('LayoutManager.width');
+      var _height = height || this.height ||
+                    Service.query('LayoutManager.height');
+      this.debug('w=' + _width + ';h=' + _height);
+      var req = this.iframe.getScreenshot(_width, _height, type);
 
       var success = function(result) {
         if (!width) {
@@ -233,7 +237,6 @@
           'setActive' in this.browser.element) {
         this.debug('setActive on browser element:' + active);
         this.browser.element.setActive(active);
-        var topMostUI = Service.query('getTopMostUI');
       }
     },
 
@@ -313,8 +316,9 @@
           r.onerror = error;
         }
       } else {
-        if (callback)
+        if (callback) {
           callback();
+        }
       }
     },
 
@@ -326,5 +330,7 @@
     }
   };
 
-  AppWindow.addMixin(BrowserMixin);
-}(this));
+  if (exports.AppWindow) {
+    exports.AppWindow.addMixin(BrowserMixin);
+  }
+}(window));

@@ -3,15 +3,14 @@
 
 'use strict';
 
-requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
-  'OrientationManager',
-  'Applications', 'SettingsListener', 'ManifestHelper'
+  'Service', 'Applications', 'SettingsListener', 'ManifestHelper'
 ]).init();
 
 suite('system/HomescreenWindow', function() {
@@ -32,7 +31,6 @@ suite('system/HomescreenWindow', function() {
 
       return element;
     });
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');

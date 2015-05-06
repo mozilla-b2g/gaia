@@ -29,7 +29,7 @@ marionette('Vertical Home - Packaged App Pending', function() {
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     subject.waitForLaunch();
   });
 

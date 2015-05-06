@@ -203,15 +203,23 @@
       this._callForwardingIconInitializedStates =
         Array.prototype.map.call(this._slots, function() { return false; });
 
-      this._callForwardingHelper =
-        SettingsHelper('ril.cf.enabled', this._defaultCallForwardingIconStates);
+      // XXX:
+      // We should use observe/read/write functionality in baseModule
+      // and remove the usage here.
+      LazyLoader.load(['shared/js/settings_helper.js']).then(() => {
+        this._callForwardingHelper =
+          SettingsHelper('ril.cf.enabled',
+            this._defaultCallForwardingIconStates);
 
-      this._addEventHandlers();
+        this._addEventHandlers();
 
-      // Initialize the icon states
-      this._slots.forEach(function(slot) {
-        this._initCallForwardingState(slot);
-      }, this);
+        // Initialize the icon states
+        this._slots.forEach(function(slot) {
+          this._initCallForwardingState(slot);
+        }, this);
+      }).catch((err) => {
+        console.error(err);
+      });
     },
 
     '_observe_ril.cf.enabled': function(value) {

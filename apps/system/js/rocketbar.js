@@ -75,6 +75,8 @@
       this.addEventListeners();
       this.enabled = true;
       Service.request('registerHierarchy', this);
+      Service.registerState('enabled', this);
+      Service.register('handleInput', this);
     },
 
     /**
@@ -315,9 +317,7 @@
           }
           break;
         case 'global-search-request':
-          // XXX: fix the WindowManager coupling
-          // but currently the transition sequence is crucial for performance
-          var app = Service.currentApp;
+          var app = Service.query('AppWindowManager.getActiveWindow');
           var afterActivate;
 
           if (app && !app.isActive()) {
@@ -559,7 +559,8 @@
         this._port.postMessage({
           action: 'change',
           input: input,
-          isPrivateBrowser: Service.currentApp.isPrivateBrowser()
+          isPrivateBrowser:
+            Service.query('AppWindowManager.getActiveWindow').isPrivateBrowser()
         });
       }
     },
@@ -592,7 +593,8 @@
       });
 
       // Do not persist search submissions from private windows.
-      if (Service.currentApp.isPrivateBrowser()) {
+      if (Service.query('AppWindowManager.getActiveWindow')
+                 .isPrivateBrowser()) {
         this.setInput('');
       }
     },

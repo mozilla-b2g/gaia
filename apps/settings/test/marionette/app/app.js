@@ -233,7 +233,7 @@ Settings.prototype = {
       return this.findElement('messageMenuItem').enabled();
     }.bind(this));
 
-    menuItem.tap(20, 20);
+    menuItem.tap();
     this.client.waitFor(function() {
       var loc = parentSection.location();
       var size = parentSection.size();

@@ -1,6 +1,7 @@
+/* global SettingsListener, Service */
 'use strict';
 
-(function(window) {
+(function(exports) {
   /**
    * OrientationManager manages the orientation.
    *
@@ -20,7 +21,9 @@
    *
    * @module OrientationManager
    */
-  window.OrientationManager = {
+  var OrientationManager = {
+    name: 'OrientationManager',
+
     init: function om_init() {
       this.fetchDefaultOrientation();
       if (SettingsListener) {
@@ -38,6 +41,11 @@
       window.addEventListener('trusteduiclose', this);
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('searchclosing', this);
+      Service.registerState('globalOrientation', this);
+      Service.registerState('defaultOrientation', this);
+      Service.registerState('fetchCurrentOrientation', this);
+      Service.registerState('isDefaultPortrait', this);
+      Service.registerState('isOnRealDevice', this);
     },
 
     handleEvent: function om_handleEvent(evt) {
@@ -48,7 +56,7 @@
         case 'lockscreen-appclosing':
         case 'searchclosing':
           // We don't need to reset orientation if lockscreen is locked.
-          if (Service.locked) {
+          if (Service.query('locked')) {
             return;
           }
         /**
@@ -99,8 +107,9 @@
      * @memberOf module:OrientationManager
      */
     isOnRealDevice: function sl_isOnRealDevice() {
-      if (typeof(this._isOnRealDevice) !== 'undefined')
+      if (typeof(this._isOnRealDevice) !== 'undefined') {
         return this._isOnRealDevice;
+      }
 
       // XXX: A hack to know we're using real device or not
       // is to detect screen size.
@@ -164,4 +173,5 @@
   };
 
   OrientationManager.init();
-}(this));
+  exports.OrientationManager = OrientationManager;
+}(window));

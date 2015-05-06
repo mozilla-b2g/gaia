@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global ImageUtils, LazyLoader, OrientationManager */
+/* global ImageUtils, LazyLoader, Service */
 
 'use strict';
 
@@ -48,43 +48,60 @@
   }
 
   WallpaperManager.prototype = {
+    name: 'WallpaperManager',
     /**
      * Bootstrap the module. Read the current wallpaper from the
      * settings db and pass it to _setWallpaper(). Also listen for
      * changes to the wallpaper and invoke _setWallpaper() for each
      * one.
      */
-    start: function() {
-      if (this._started) {
-        throw 'Instance should not be start()\'ed twice.';
-      }
-      this._started = true;
-      debug('started');
-
-      // Query the wallpaper
-      var lock = navigator.mozSettings.createLock();
-      var query = lock.get(WALLPAPER_KEY);
-      query.onsuccess = function() {
-        var wallpaper = query.result[WALLPAPER_KEY];
+    initializeWallpaper: function(wallpaper, valid) {
+      return new Promise((resolve, reject) => {
+        if (this.wallpaperInitialized) {
+          reject();
+          return;
+        }
+        this.wallpaperInitialized = true;
+        this.initPromise = resolve;
         if (!wallpaper) {
           debug('no wallpaper found at startup; using default');
           this._setWallpaper(DEFAULT_WALLPAPER_URL);
         }
         else if (wallpaper instanceof Blob) {
-          // If the wallpaper is a blob, first go see if we have already
-          // validated it size. Because if we have, we don't have to check
-          // the size again or even load the code to check its size.
-          var query2 = lock.get(WALLPAPER_VALID_KEY);
-          query2.onsuccess = function() {
-            var valid = query2.result[WALLPAPER_VALID_KEY];
+          if (valid === undefined) {
+            var lock = navigator.mozSettings.createLock();
+            // If the wallpaper is a blob, first go see if we have already
+            // validated it size. Because if we have, we don't have to check
+            // the size again or even load the code to check its size.
+            var query2 = lock.get(WALLPAPER_VALID_KEY);
+            query2.onsuccess = function() {
+              var valid = query2.result[WALLPAPER_VALID_KEY];
+              this._setWallpaper(wallpaper, valid);
+            }.bind(this);
+          } else {
             this._setWallpaper(wallpaper, valid);
-          }.bind(this);
+          }
         }
         else {
           // If the wallpaper is not a blob, just pass it to _setWallpaper
           // and try to convert it to a blob there.
           this._setWallpaper(wallpaper);
         }
+      });
+    },
+    start: function() {
+      if (this._started) {
+        throw 'Instance should not be start()\'ed twice.';
+      }
+      this._started = true;
+      debug('started');
+      Service.register('initializeWallpaper', this);
+
+      // Query the wallpaper
+      var lock = navigator.mozSettings.createLock();
+      var query = lock.get(WALLPAPER_KEY);
+      query.onsuccess = function() {
+        this.initializeWallpaper(query.result[WALLPAPER_KEY]);
       }.bind(this);
 
       // And register a listener so we'll be notified of future changes
@@ -93,6 +110,7 @@
         this._setWallpaper(e.settingValue);
       }.bind(this);
       navigator.mozSettings.addObserver(WALLPAPER_KEY, this.observer);
+      Service.registerState('getWallpaper', this);
     },
 
     /**
@@ -113,6 +131,10 @@
     getBlobURL: function() {
       if (!this._started) { return; }
       return this._blobURL;
+    },
+
+    getWallpaper: function() {
+      return this.getBlobURL();
     },
 
     //
@@ -228,7 +250,7 @@
 
       // How big (in device pixels) is the screen in its default orientation?
       var screenWidth, screenHeight;
-      if (OrientationManager && !OrientationManager.isDefaultPortrait()) {
+      if (!Service.query('isDefaultPortrait')) {
         // The screen.width and screen.height values depend on how the
         // user is holding the device. If this is a tablet or other
         // device with a screen that defaults to landscape mode, then
@@ -349,6 +371,10 @@
       // Create a new blob:// url for this blob
       this._blobURL = URL.createObjectURL(blob);
 
+      document.getElementById('screen').style.backgroundImage =
+        'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +
+        'url(' + this._blobURL + ')';
+
       // And tell the system about it.
       var evt = new CustomEvent('wallpaperchange', {
         bubbles: true,
@@ -356,6 +382,8 @@
         detail: { url: this._blobURL }
       });
       window.dispatchEvent(evt);
+      this.initPromise && this.initPromise();
+      this.initPromise = null;
     }
   };
 

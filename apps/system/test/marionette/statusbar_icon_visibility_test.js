@@ -15,7 +15,7 @@ marionette('Statusbar Visibility', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     halfScreenHeight = client.executeScript(function() {
       return window.innerHeight;
     }) / 2;

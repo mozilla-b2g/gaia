@@ -1,5 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global Service */
 
 // TODO: Blocked by [Payment] UX and visuals for the payment request
 //       confirmation screen https://github.com/mozilla-b2g/gaia/issues/2692
@@ -37,6 +38,7 @@ var Payment = {
 
     // requestId identifies the mozPay DOMRequest identifier.
     var requestId = e.detail.requestId;
+    var frame;
 
     switch (e.detail.type) {
       // Chrome asks Gaia to show the payment request confirmation dialog.
@@ -61,7 +63,7 @@ var Payment = {
               id: chromeEventId,
               userSelection: selection
             });
-          }
+          };
         })(chromeEventId);
 
         // If there is only one request, we skip the confirmation dialog and
@@ -72,7 +74,7 @@ var Payment = {
           return;
         }
 
-        var frame = document.createElement('iframe');
+        frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.setAttribute('remote', true);
         frame.classList.add('screen');
@@ -97,11 +99,13 @@ var Payment = {
                               requests[i].productPrice[0].amount + ' ' +
                               requests[i].productPrice[0].currency;
             button.appendChild(frameDocument.createTextNode(requestText));
+            /* jshint -W083 */
             button.onclick = function selectRequest() {
               // We send the selected request back to Chrome so it can start
               // the appropriate payment flow.
               returnSelection(this.getAttribute('value'));
             };
+            /* jshint +W083 */
             requestElement.appendChild(button);
             requestsList.appendChild(requestElement);
           }
@@ -117,7 +121,7 @@ var Payment = {
         // we simply return the iframe instance to the platform once it is
         // inserted in the trusted UI container. At that point the platform
         // sets the corresponding payment information in the iframe.
-        var frame = document.createElement('iframe');
+        frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
 
@@ -139,7 +143,7 @@ var Payment = {
               id: chromeEventId,
               frame: frame
             });
-          }
+          };
         })(requestId, chromeEventId);
 
         window.addEventListener('trustedopened', ontrustedopened);
@@ -158,7 +162,7 @@ var Payment = {
             self.dispatchEvent({
               id: chromeEventId
             });
-          }
+          };
         })(requestId, chromeEventId);
 
         if (!this.removePaymentWindow(requestId)) {
@@ -182,7 +186,8 @@ var Payment = {
 
     // The payment flow is shown within the trusted UI with the name of
     // the mozPay caller application as title.
-    var title = Service.currentApp.manifest.name;
+    var app = Service.query('getTopMostWindow');
+    var title = app ? app.manifest.name : null;
     title = title ? title : navigator.mozL10n.get('payment-flow');
 
     window.dispatchEvent(new CustomEvent('launchtrusted', {

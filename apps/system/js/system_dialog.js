@@ -1,6 +1,4 @@
-/* global StatusBar */
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global Service */
 'use strict';
 
 (function(exports) {
@@ -66,7 +64,7 @@
    * @type {Object}
    */
   SystemDialog.prototype.SUB_COMPONENTS = {
-    'valueSelector': window.ValueSelector
+    'valueSelector': 'ValueSelector'
   };
 
   /**
@@ -78,8 +76,9 @@
     function sd_installSubComponents() {
       this.debug('installing sub components...');
       for (var componentName in this.SUB_COMPONENTS) {
-        if (this.SUB_COMPONENTS[componentName]) {
-          this[componentName] = new this.SUB_COMPONENTS[componentName](this);
+        if (window[this.SUB_COMPONENTS[componentName]]) {
+          this[componentName] =
+            new window[this.SUB_COMPONENTS[componentName]](this);
         }
       }
     };
@@ -173,7 +172,8 @@
   SystemDialog.prototype.updateHeight = function sd_updateHeight() {
     // The LayoutManager is already taking care of the keyboard height,
     // so we don't need to worry about that here.
-    var height = window.layoutManager.height - StatusBar.height;
+    var height = Service.query('LayoutManager.height') -
+      Service.query('Statusbar.height');
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
   };
