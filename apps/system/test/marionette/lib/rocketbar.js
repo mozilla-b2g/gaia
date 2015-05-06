@@ -20,8 +20,6 @@ module.exports = Rocketbar;
 
 Rocketbar.clientOptions = {
   prefs: {
-    // This is true on Gonk, but false on desktop, so override.
-    'dom.inter-app-communication-api.enabled': true,
     'dom.w3c_touch_events.enabled': 1
   }
 };

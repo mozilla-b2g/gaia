@@ -8,10 +8,6 @@ marionette('media playback tests', function() {
   var apps = {};
   apps[fakeMusicInfo.origin] = fakeMusicInfo.path;
   var client = marionette.client({
-    prefs: {
-      // This is true on Gonk, but false on desktop, so override.
-      'dom.inter-app-communication-api.enabled': true
-    },
     apps: apps
   });
 

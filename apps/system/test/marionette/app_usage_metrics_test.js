@@ -30,7 +30,6 @@ marionette('App Usage Metrics >', function() {
       'fakemusic.gaiamobile.org': __dirname + '/../apps/fakemusic'
     },
     prefs: {
-      'dom.inter-app-communication-api.enabled': true,
       'dom.w3c_touch_events.enabled': 1
     }
   });
