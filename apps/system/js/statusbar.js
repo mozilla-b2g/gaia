@@ -300,6 +300,7 @@ var StatusBar = {
     // Listen to orientation change and SHB activation/deactivation.
     window.addEventListener('system-resize', this);
 
+    window.addEventListener('attentionopened', this);
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
     window.addEventListener('hierarchytopmostwindowchanged', this);
@@ -671,11 +672,16 @@ var StatusBar = {
   },
 
   setAppearance: function() {
-    var app = Service.currentApp;
-
     // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
       this.element.classList.add('maximized');
+      return;
+    }
+
+    var app = Service.query('getTopMostWindow');
+    // In some cases, like when opening an app from the task manager, there
+    // temporarily is no top most window, so we cannot set an appearance.
+    if (!app) {
       return;
     }
 
@@ -696,7 +702,8 @@ var StatusBar = {
     }
 
     this.element.classList.toggle('maximized',
-      app.isHomescreen || !!(app.appChrome && app.appChrome.isMaximized()));
+      app.isHomescreen || app.isAttentionWindow ||
+      !!(app.appChrome && app.appChrome.isMaximized()));
   },
 
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
