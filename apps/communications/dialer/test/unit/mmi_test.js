@@ -691,4 +691,16 @@ suite('dialer/mmi', function() {
         'scPin');
     });
   });
+
+  suite('Call control supplementary service commands', function() {
+    test('should cancel and hide the loading screen', function() {
+      this.sinon.spy(MockMmiUI, 'cancel');
+      MmiManager.notifySuccess({
+        serviceCode: 'scCall',
+        statusMessage: 'smCallControl'
+      }, 1);
+      sinon.assert.called(MockMmiUI.cancel);
+      sinon.assert.notCalled(MockMmiUI.success);
+    });
+  });
 });
