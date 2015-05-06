@@ -49,21 +49,21 @@
    * that are not cancelable and do not bubble.  They are dispatched at the
    * window object.  The type property is set to one of these:
    *
-   * | Event Type  |  Meaning                                                  |
-   * |-------------|-----------------------------------------------------------|
-   * | home        | short press and release of home button                    |
-   * | holdhome    | long press and hold of home button                        |
-   * | sleep       | short press and release of sleep button                   |
-   * | wake        | sleep or home pressed while sleeping                      |
-   * | holdsleep   | long press and hold of sleep button                       |
-   * | volumeup    | volume up pressed and released or autorepeated            |
-   * | volumedown  | volume down pressed and released or autorepeated          |
-   * | volumedown  | volume down and sleep pressed at same time (used for      |
-   * |   + sleep   | screenshots)                                              |
-   * | volumeup    | volume up and sleep pressed at same time (used for        |
-   * |   + sleep   | systemlog capture)                                        |
-   * | camera      | short press and release of camera button                  |
-   * | holdcamera  | long press and hold of camera button                      |
+   * | Event Type   |  Meaning                                                 |
+   * |--------------|----------------------------------------------------------|
+   * | home         | short press and release of home button                   |
+   * | holdhome     | long press and hold of home button                       |
+   * | sleep        | short press and release of sleep button                  |
+   * | wake         | sleep or home pressed while sleeping                     |
+   * | holdsleep    | long press and hold of sleep button                      |
+   * | volumeup     | volume up pressed and released or autorepeated           |
+   * | volumedown   | volume down pressed and released or autorepeated         |
+   * | volumedown   | volume down and sleep pressed at same time (used for     |
+   * |   + sleep    | screenshots)                                             |
+   * | volumedown   | volume up and sleep pressed at same time (used for       |
+   * |   + volumeup | systemlog capture)                                       |
+   * | camera       | short press and release of camera button                 |
+   * | holdcamera   | long press and hold of camera button                     |
    *
    * Because these events are fired at the window object, they cannot be
    * captured.  Many modules listen for the home event. Those that want
@@ -438,13 +438,6 @@
          */
         this.hardwareButtons.setState('screenshot', type);
         return;
-      case 'volume-up-button-press':
-        /**
-         * When the user presses Volume Up button, before HOLD_INTERVAL,
-         * while holding the Sleep button.
-         */
-        this.hardwareButtons.setState('systemlog', type);
-        return;
       case 'home-button-press':
         this.hardwareButtons.setState('base', type);
         return;
@@ -532,15 +525,12 @@
            */
           this.hardwareButtons.setState('screenshot', type);
           return;
-        } else if (this.direction === 'volume-up-button-press') {
-          /**
-           * When the user presses Sleep button, before HOLD_INTERVAL,
-           * while holding the Volume Up button.
-           */
-          this.hardwareButtons.setState('systemlog', type);
-          return;
         }
         this.hardwareButtons.setState('sleep', type);
+        return;
+      case 'volume-down-button-press':
+      case 'volume-up-button-press':
+        this.hardwareButtons.setState('systemlog', type);
         return;
       case 'volume-up-button-release':
         if (this.direction === 'volume-up-button-press') {
@@ -714,11 +704,11 @@
   HardwareButtonsSystemLogState.prototype.enter = function() {
     this.timer = setTimeout(function() {
       /**
-       * When the user holds Volume Up and Power button
+       * When the user holds Volume Up and Volume Down button
        * more than HOLD_INTERVAL.
-       * @event HardwareButtonsHomeState#volumeup+sleep
+       * @event HardwareButtonsHomeState#volumeup+volumedown
        */
-      this.hardwareButtons.publish('volumeup+sleep');
+      this.hardwareButtons.publish('volumeup+volumedown');
       this.hardwareButtons.setState('base');
     }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
   };

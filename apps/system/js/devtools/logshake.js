@@ -35,7 +35,7 @@
      */
     start: function() {
       Service.request('handleSystemMessageNotification', 'logshake', this);
-      window.addEventListener('volumeup+sleep', this);
+      window.addEventListener('volumeup+volumedown', this);
       this.startCaptureLogsListener();
     },
 
@@ -68,7 +68,7 @@
     handleEvent: function(event) {
       debug('handling event ' + event.type);
       switch(event.type) {
-        case 'volumeup+sleep':
+        case 'volumeup+volumedown':
           this.requestSystemLogs();
           break;
         case 'capture-logs-start':
