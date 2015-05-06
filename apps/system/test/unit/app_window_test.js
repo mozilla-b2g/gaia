@@ -1112,14 +1112,11 @@ suite('system/AppWindow', function() {
     test('MozBrowser API: simple methods', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      var stubBlur = this.sinon.stub(app1.browser.element, 'blur');
       var stubBack = this.sinon.stub(app1.browser.element, 'goBack');
       var stubForward = this.sinon.stub(app1.browser.element, 'goForward');
       var stubReload = this.sinon.stub(app1.browser.element, 'reload');
       var stubStop = this.sinon.stub(app1.browser.element, 'stop');
 
-      app1.blur();
-      assert.isTrue(stubBlur.called);
       app1.back();
       assert.isTrue(stubBack.called);
       app1.forward();
@@ -1130,7 +1127,60 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubStop.called);
     });
 
-    suite('focus', function() {
+    suite('focus/blur', function() {
+      var app1;
+      var stubBlur;
+      var stubFocus;
+
+      setup(function() {
+        app1 = new AppWindow(fakeAppConfig1);
+        stubBlur = this.sinon.stub(app1.browser.element, 'blur');
+        stubFocus = this.sinon.stub(app1.browser.element, 'focus');
+      });
+
+      teardown(function() {
+        stubBlur.restore();
+        stubFocus.restore();
+      });
+
+      test('blur should not be called without focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return document.body;
+        });
+        app1.blur();
+        assert.isFalse(stubBlur.called);
+        stub.restore();
+      });
+
+      test('blur should be called with focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return app1.browser.element;
+        });
+        app1.blur();
+        assert.isTrue(stubBlur.called);
+        stub.restore();
+      });
+
+      test('focus should be called without focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return document.body;
+        });
+        app1.focus();
+        assert.isTrue(stubFocus.called);
+        stub.restore();
+      });
+
+      test('focus should not be called with focus', function() {
+        var stub = this.sinon.stub(app1, 'getActiveElement', function() {
+          return app1.browser.element;
+        });
+        app1.focus();
+        assert.isFalse(stubFocus.called);
+        stub.restore();
+      });
+    });
+
+    suite('focus and context menu', function() {
       var app1;
       var stubFocus;
 

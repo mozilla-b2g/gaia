@@ -173,16 +173,31 @@
       }
     },
 
+    /**
+     * For test purpose, we create this method for changing active element. The
+     * activeElement is readonly property. We may use defineProperty to override
+     * it. But we get undefined with getOwnPropertyDescriptor. As to
+     * window.document, it is also a readonly and non-configurable property. We
+     * cannot override it directly.
+     *
+     * @return {HTMLDOMElement} the active element of current document.
+     */
+    getActiveElement: function bm_getActiveElement() {
+      return document.activeElement;
+    },
+
     focus: function bm_focus() {
       if (this.contextmenu && this.contextmenu.isShown()) {
         this.contextmenu.focus();
-      } else if (this.browser && this.browser.element) {
+      } else if (this.browser && this.browser.element &&
+                 this.getActiveElement() !== this.browser.element) {
         this.browser.element.focus();
       }
     },
 
     blur: function bm_blur() {
-      if (this.browser.element) {
+      if (this.browser && this.browser.element &&
+          this.getActiveElement() === this.browser.element) {
         this.browser.element.blur();
       }
     },
