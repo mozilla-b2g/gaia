@@ -19,7 +19,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
-requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
 
 requireApp('ftu/test/unit/mock_wifi_manager.js');
@@ -314,7 +313,7 @@ suite('navigation >', function() {
             'aboutBrowser');
           var linkRef = document.getElementById('external-link-privacy');
           assert.equal(linkRef.getAttribute('data-l10n-id'),
-            'learn-more-privacy2');
+            'learn-more-privacy3');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);

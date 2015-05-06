@@ -1101,8 +1101,8 @@
     });
   }
 
-  // strftime tokens (%a, %Eb), template {vars} and HTML entities (&#x202a;)
-  var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;)/;
+  // strftime tokens (%a, %Eb), template {vars}, HTML entities (&#x202a;), and HTML tags.
+  var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|\<\s*.+?\s*\>)/;
 
   function mapContent(fn, val) {
     if (!val) {

@@ -8,7 +8,6 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 requireApp('ftu/js/ui.js');
-requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
 
 requireApp('ftu/test/unit/mock_tutorial.js');
