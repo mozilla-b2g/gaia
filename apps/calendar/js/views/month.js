@@ -27,6 +27,9 @@ Calendar.ns('Views').Month = (function() {
 
     SELECTED: 'selected',
 
+    /** @type {DOMElement} used to detect if dbltap happened on same date */
+    _lastTarget: null,
+
     _onswipe: function() {
       var didSwipe = Parent.prototype._onswipe.apply(this, arguments);
 
@@ -81,7 +84,10 @@ Calendar.ns('Views').Month = (function() {
           this.controller.selectedDay = date;
           break;
         case 'dbltap':
-          this.app.go('/day/');
+          // make sure we discard double taps that started on a different day
+          if (this._lastTarget === target) {
+            this._goToAddEvent();
+          }
           break;
         case 'selectedDayChange':
           this._selectDay(e.data[0]);
@@ -91,6 +97,16 @@ Calendar.ns('Views').Month = (function() {
           this.changeDate(e.data[0]);
           break;
       }
+      this._lastTarget = target;
+    },
+
+    _goToAddEvent: function(date) {
+      // slight delay to avoid tapping the elements inside the add event screen
+      setTimeout(() => {
+        // don't need to set the date since the first tap triggers a click that
+        // sets the timeController.selectedDay
+        this.app.go('/event/add/');
+      }, 50);
     },
 
     _createChild: function(time) {

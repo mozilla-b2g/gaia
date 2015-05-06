@@ -223,13 +223,16 @@ Calendar.ns('Views').EventBase = (function() {
      */
     _createModel: function(time) {
       var now = new Date();
+      // time can be null in some cases, default to today (eg. unit tests)
+      time = time || now;
 
-      if (time < now) {
+      if (Calendar.Calc.isSameDate(now, time)) {
         time = now;
-        now.setHours(now.getHours() + 1);
-        now.setMinutes(0);
-        now.setSeconds(0);
-        now.setMilliseconds(0);
+        // events created today default to begining of the next hour
+        time.setHours(time.getHours() + 1, 0, 0, 0);
+      } else {
+        // events created on other days default to 8AM
+        time.setHours(8, 0, 0, 0);
       }
 
       var model = new Calendar.Models.Event();
