@@ -1062,6 +1062,6 @@ html[dir="rtl"] .contact-header aside.pack-end {
 html {
   -moz-user-select: none;
 }
-.editable-select-mode [contenteditable] {
+.editable-select-mode [contenteditable="true"] {
   -moz-user-select: text;
 }
