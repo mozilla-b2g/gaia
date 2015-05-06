@@ -62,5 +62,3 @@ tv_apps/smart-system/bower_components/**
 tv_apps/tv-deck/bower_components/**
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
-tests/performance/getappname_atom.js
-tests/performance/exec-sync.js
