@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Apps</title>
+
+    <!-- stylesheets of building blocks -->
+    <link rel="stylesheet" type="text/css" href="style/tv_epg.css">
+
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
+
+    <!-- Shared libraries -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/manifest_helper.js"></script>
+
+    <!-- building blocks -->
+
+    <!-- Specific code -->
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/tv-epg.{locale}.properties"/>
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
+  </head>
+
+  <body>
+    <article id="main-section" contextmenu="context-menu">
+      <section role="region" id="main-container">
+        <div id="top-container">
+          <div id="header">
+            <div id="label">TV Guide</div>
+            <div id="time"><span id="time-prefix">AM</span>9:45</div>
+          </div>
+          <div id="epg-container">
+            <div id="epg-left">
+              <div id="date">SAT, May 15</div>
+              <div id="channel-list-container">
+                <ul id="channel-list">
+                  <li>102<span class="title">HLN</span></li>
+                  <li>103<span class="title">CNNHD</span></li>
+                  <li>104<span class="title">CNN</span></li>
+                  <li>105<span class="title">ESPNHD</span></li>
+                  <li>106<span class="title">ESPN</span></li>
+                  <li>107<span class="title">ABCHD</span></li>
+                  <li>108<span class="title">ABC</span></li>
+                </ul>
+              </div>
+            </div>
+            <div id="epg-right">
+              <div id="timeline-container">
+                <ul id="timeline">
+                  <li>9:30 PM</li>
+                  <li>10:00 PM</li>
+                  <li>10:30 PM</li>
+                  <li>11:00 PM</li>
+                  <li>11:30 PM</li>
+                  <li>00:00 AM</li>
+                </ul>
+              </div>
+              <div id="program-list-container">
+                <div id="program-list">
+                  <ul>
+                   <li data-duration="1">Forensic Files</li>
+                   <li data-duration="1">Forensic Files</li>
+                   <li data-duration="1">Nancy Grace</li>
+                   <li data-duration="1">Nancy Grace</li>
+                   <li data-duration="1">Nancy Grace</li>
+                   <li data-duration="1">Nancy Grace</li>
+                  </ul>
+                  <ul>
+                   <li data-duration="2">Anthony Bourdain: parts Unknown</li>
+                   <li data-duration="1">CNN International</li>
+                   <li data-duration="1">CNN International</li>
+                   <li data-duration="1">CNN International</li>
+                   <li data-duration="1">CNN International</li>
+                  </ul>
+                  <ul>
+                   <li data-duration="2">Anthony Bourdain: parts Unknown</li>
+                   <li data-duration="1">CNN International</li>
+                   <li data-duration="1">CNN International</li>
+                   <li data-duration="1">CNN International</li>
+                   <li data-duration="1">CNN International</li>
+                  </ul>
+                  <ul>
+                   <li data-duration="2">SportsCenter</li>
+                   <li data-duration="2">SportsCenter</li>
+                   <li data-duration="2">SportsCenter</li>
+                  </ul>
+                  <ul>
+                   <li data-duration="2" class="focus">SportsCenter</li>
+                   <li data-duration="2">SportsCenter</li>
+                   <li data-duration="2">SportsCenter</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="bottom-container">
+          <video id="video-thumbnail"></video>
+          <div id="detail-container">
+            <div id="program-title">SportsCenter</div>
+            <ul id="program-meta">
+              <li>9:30PM - 10:30PM</li>
+              <li>TV-G</li>
+              <li>HD 1080i</li>
+            </ul>
+            <div id="program-detail">Buckeyes' QB battle unprecedented but solvable</div>
+            <div id="progress-bar-back"></div>
+            <div id="progress-bar"></div>
+          </div>
+        </div>
+      </section>
+      <menu type="context" id="context-menu">
+        <menuitem icon="" data-l10n-id="" id=""></menuitem>
+      </menu>
+    </article>
+  </body>
+
+</html>
