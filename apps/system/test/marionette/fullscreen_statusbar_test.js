@@ -5,11 +5,7 @@ marionette('Fullscreen status bar >', function() {
 
   var VIDEO_APP = 'app://video.gaiamobile.org';
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    }
-  });
+  var client = marionette.client();
 
   var actions, video, sys;
 

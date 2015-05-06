@@ -8,9 +8,6 @@ var FULLSCREENNAVAPP = __dirname + '/../apps/fullscreennavapp';
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
     apps: {
       'fullscreennavapp.gaiamobile.org': FULLSCREENNAVAPP,
     }

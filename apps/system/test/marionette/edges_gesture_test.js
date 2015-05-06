@@ -11,7 +11,6 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 marionette('Edges gesture >', function() {
   var client = marionette.client({
     prefs: {
-      'dom.w3c_touch_events.enabled': 1,
       'devtools.debugger.forbid-certified-apps': false
     },
     settings: {

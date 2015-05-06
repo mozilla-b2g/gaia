@@ -28,9 +28,6 @@ marionette('App Usage Metrics >', function() {
       'fakealarm.gaiamobile.org': __dirname + '/../apps/fakealarmapp',
       'fakemedia.gaiamobile.org': __dirname + '/../apps/fakemediaapp',
       'fakemusic.gaiamobile.org': __dirname + '/../apps/fakemusic'
-    },
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
     }
   });
 

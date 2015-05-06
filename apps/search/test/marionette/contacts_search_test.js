@@ -6,7 +6,7 @@ var Contacts = require(
 var assert = require('assert');
 
 marionette('Search - Contact search', function() {
-  var client = marionette.client(Rocketbar.clientOptions);
+  var client = marionette.client();
 
   var contacts, search, rocketbar;
 

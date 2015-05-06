@@ -8,8 +8,7 @@ marionette('Software Home Button - File Open Error', function() {
 
   var client = marionette.client({
     prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+      'focusmanager.testmode': true
     },
     settings: {
       'software-button.enabled': true
