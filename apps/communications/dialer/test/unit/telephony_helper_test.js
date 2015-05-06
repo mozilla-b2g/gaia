@@ -180,26 +180,6 @@ suite('telephony helper', function() {
     sinon.assert.notCalled(holdStub);
   });
 
-  test('should not dial when call limit reached (2 normal call)', function() {
-    MockNavigatorMozTelephony.calls =
-      [{number: '111111', serviceId: 0}, {number: '222222', serviceId: 0}];
-    this.sinon.spy(MockTelephonyMessages, 'displayMessage');
-    subject.call('333333', 0);
-    sinon.assert.calledWith(MockTelephonyMessages.displayMessage,
-                            'UnableToCall');
-  });
-
-  test('should not dial when call limit reached (1 normal call + 1 group call)',
-  function() {
-    MockNavigatorMozTelephony.calls = [{number: '111111', serviceId: 0}];
-    MockNavigatorMozTelephony.conferenceGroup.calls =
-      [{number: '222222', serviceId: 0}, {number: '333333', serviceId: 0}];
-    this.sinon.spy(MockTelephonyMessages, 'displayMessage');
-    subject.call('444444', 0);
-    sinon.assert.calledWith(MockTelephonyMessages.displayMessage,
-                            'UnableToCall');
-  });
-
   test('should return null serviceId - no call', function() {
     assert.equal(subject.getInUseSim(), null);
   });
