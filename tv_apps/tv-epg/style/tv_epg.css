@@ -59,6 +59,8 @@ a:hover, a:active, a:focus {
 }
 
 #time-prefix {
+  float: right;
+  font-style: normal;
   font-size: 2rem;
 }
 
@@ -157,6 +159,7 @@ a:hover, a:active, a:focus {
   font-size: 0;
   overflow: hidden;
   position: relative;
+  height: calc(100% - 4.6rem);
 }
 
 #program-list {

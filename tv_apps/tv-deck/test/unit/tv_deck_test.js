@@ -3,15 +3,15 @@
 /* global TVDeck, MocksHelper, MockTVManager, MockNavigatormozApps */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
-require('/shared/test/unit/mocks/mock_key_navigation_adapter.js');
-require('/shared/test/unit/mocks/mock_simple_key_navigation.js');
-require('/shared/test/unit/mocks/mock_tv_channel.js');
-require('/shared/test/unit/mocks/mock_tv_source.js');
-require('/shared/test/unit/mocks/mock_tv_tuner.js');
-require('/shared/test/unit/mocks/mock_tv_manager.js');
+require('/shared/test/unit/mocks/smart-screen/mock_key_navigation_adapter.js');
+require('/shared/test/unit/mocks/smart-screen/mock_simple_key_navigation.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_channel.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_source.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_tuner.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_manager.js');
+require('/shared/test/unit/mocks/smart-screen/mock_channel_manager.js');
 require('/bower_components/smart-bubbles/script.js');
 require('/test/unit/mock_pin_card.js');
-require('/test/unit/mock_channel_manager.js');
 require('/js/tv_deck.js');
 
 var mocksHelper = new MocksHelper([
@@ -114,6 +114,7 @@ suite('tv-deck/tv_deck', function() {
 
     test('Rescan tuners if playing tuner is not found', function() {
       var scanTuners = this.sinon.stub(tvDeck.channelManager, 'scanTuners');
+      this.sinon.stub(tvDeck.channelManager, 'getTuner').returns(null);
       tvDeck._onHashChange();
       assert.isTrue(scanTuners.called);
     });
@@ -121,6 +122,7 @@ suite('tv-deck/tv_deck', function() {
     test('Rescan sources if playing source is not found', function() {
       var scanSources = this.sinon.stub(tvDeck.channelManager, 'scanSources');
       this.sinon.stub(tvDeck.channelManager, 'getTuner').returns({});
+      this.sinon.stub(tvDeck.channelManager, 'getSource').returns(null);
       tvDeck._onHashChange();
       assert.isTrue(scanSources.called);
     });

@@ -14,5 +14,6 @@
     "tests"
   ],
   "dependencies": {
+    "evt": "gaia-components/evt#~0.4.0"
   }
 }
