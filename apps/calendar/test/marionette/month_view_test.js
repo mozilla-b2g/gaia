@@ -168,7 +168,38 @@ marionette('month view', function() {
     assert.include(text, 'Launch', 'should show title');
     assert.include(event.text(), 'Alderaan', 'should show location');
   });
+
+  test('double tap', function() {
+    var month = app.month;
+    month.actions.doubleTap(month.currentDay, 8, 8).perform();
+
+    var editEvent = app.editEvent;
+    editEvent.waitForDisplay();
+    var now = new Date();
+    var start = new Date(now.getTime());
+    start.setHours(now.getHours() + 1, 0, 0, 0);
+    var end = new Date(start.getTime());
+    end.setHours(start.getHours() + 1, 0, 0, 0);
+    assert.equal(editEvent.startDate, toIso(start), 'startDate');
+    assert.equal(editEvent.endDate, toIso(end), 'endDate');
+    assert.equal(editEvent.startTime, toTime(start), 'startTime');
+    assert.equal(editEvent.endTime, toTime(end), 'endTime');
+  });
 });
+
+function toIso(date) {
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' +
+    pad(date.getDate());
+}
+
+function pad(num) {
+  return num > 9 ? num : '0' + num;
+}
+
+function toTime(date) {
+  return pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' +
+    pad(date.getSeconds());
+}
 
 function dayName(num) {
   return [
