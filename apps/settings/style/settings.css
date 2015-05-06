@@ -670,6 +670,25 @@ span.passcode-digit[data-dot]::before {
 }
 
 /******************************************************************************
+ * Bluetooth
+ */
+
+.bluetooth-rename-dialog {
+  -moz-box-sizing: padding-box;
+  padding: 0 2rem;
+  font-size: 1.4em;
+}
+
+.bluetooth-rename-dialog > div {
+  margin-top: 1rem;
+}
+
+.bluetooth-rename-dialog .error {
+  font-size: 1.2rem;
+  color: red;
+}
+
+/******************************************************************************
  * Internet sharing (Wi-Fi HotSpot)
  */
 

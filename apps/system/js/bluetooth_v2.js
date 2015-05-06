@@ -20,6 +20,9 @@
 (function(exports) {
 var Bluetooth = function() {};
 
+// A timeout to set discoverable property false after 2 mins.
+const DISCOVERABLE_TIMEOUT_TIME = 120000;
+
 Bluetooth.prototype = {
   name: 'Bluetooth',
 
@@ -339,6 +342,45 @@ Bluetooth.prototype = {
     ));
   },
 
+  /*
+   * The method will set/clean timeout to set discoverable property with false.
+   *
+   * @private
+   * @param {Boolean} discoverable discoverable state
+   */
+  _setDiscoverableTimer: function(discoverable) {
+    if (this._adapter === null) {
+      return;
+    }
+
+    // Discoverable property will be set to false after 2 mins.
+    if (discoverable && !this._disableDiscoverableTimeout) {
+      this.debug('setTimeout to disable discoverable after 2 minutes');
+      this._startTimeMS = (new Date()).getTime();
+      this.debug('_startTimeMS = ' + this._startTimeMS);
+      this._disableDiscoverableTimeout = setTimeout(() => {
+        this._adapter.setDiscoverable(false);
+      }, DISCOVERABLE_TIMEOUT_TIME);
+      // Set timestamp 
+      navigator.mozSettings.createLock().set({
+        'bluetooth.discoverable.disableTimestamp': this._startTimeMS
+      });
+      // Early return here since already set timeout.
+      return;
+    }
+
+    // Clear timeout for disabled.
+    if (!discoverable && this._disableDiscoverableTimeout) {
+      this.debug('clearTimeout');
+      clearTimeout(this._disableDiscoverableTimeout);
+      this._disableDiscoverableTimeout = null;
+      // Reset timestamp
+      navigator.mozSettings.createLock().set({
+        'bluetooth.discoverable.disableTimestamp': null
+      });
+    }
+  },
+
   /**
    * BT APIv2: Watch 'onattributechanged' event from
    * mozBluetooth.defaultAdapter for updating state information.
@@ -366,6 +408,10 @@ Bluetooth.prototype = {
               window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
               this.icon && this.icon.update();
             }
+            break;
+          case 'discoverable':
+            this.debug('discoverable = ' + this._adapter.discoverable);
+            this._setDiscoverableTimer(this._adapter.discoverable);
             break;
           default:
             break;
