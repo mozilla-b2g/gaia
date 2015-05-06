@@ -14,9 +14,34 @@
   width: 100%;
 }
 
+.toggle {
+  background-color: white;
+  color: black;
+  cursor: pointer;
+  font-size: 32px;
+  float: right;
+  text-align: center;
+  top: 0;
+}
+
+.toggle:hover {
+  background-color: yellow;
+}
+
 .count {
   bottom: 50%;
   text-align: center;
+}
+
+.count * {
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
+.count .binary {
+  /* binary is initially hidden */
+  display: none;
 }
 
 .controls {
@@ -30,6 +55,10 @@
   position: relative;
   text-align: center;
   width: 50%;
+}
+
+.controls *:hover {
+  background-color: yellow;
 }
 
 .controls *:active {
