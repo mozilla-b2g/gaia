@@ -89,7 +89,6 @@
   <script defer src="js/utils.js"></script>
   <script defer src="js/finish_screen.js"></script>
   <script defer src="js/tutorial.js"></script>
-  <script defer src="js/external_links.js"></script>
   <script defer src="js/navigation.js"></script>
   <script defer src="js/data_mobile.js"></script>
   <script defer src="js/time.js"></script>
@@ -555,11 +554,16 @@
           faster and more responsive.
         </p>
         <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
-        <p id='external-link-telemetry'>
-          Learn more at www.mozilla.org/telemetry
+        <p id='external-link-telemetry' data-l10n-id='learn-more-telemetry3'>
+          Learn more at
+          <a href="https://www.mozilla.org/telemetry"
+             class="external">www.mozilla.org/telemetry</a>
         </p>
-        <p id='external-link-information'>Learn how Mozilla handles your
-          information at www.mozilla.org/privacy
+        <p id='external-link-information' data-l10n-id='learn-more-information3'>
+          Learn how Mozilla handles your
+          information at
+          <a href="https://www.mozilla.org/privacy"
+             class="external">www.mozilla.org/privacy</a>
         </p>
       </section>
       <section role="region" id="SIM_mandatory">
@@ -585,25 +589,29 @@
             Email successfully added!
           </p>
         </section>
-        <p id="external-link-privacy">
-          Learn how Mozilla handles your information in our privacy policy.
+        <p id="external-link-privacy" data-l10n-id="learn-more-privacy3">
+          Learn how Mozilla handles your information in our
+          <a href="https://www.mozilla.org/privacy/firefox-os"
+             class="external">privacy policy</a>.
         </p>
       </section>
       <section role="region" id="welcome_browser">
         <section id="browser_logo_horizontal">
           <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
-        <p id="browser_os_welcome">
+        <p id="browser_os_welcome" data-l10n-id='htmlWelcome3'>
           Welcome to Browser OS, the free and
           open source operating system from
-          Mozilla. Our mission is to promote
+          <a href="#about-your-rights">Mozilla</a>. Our mission is to promote
           openness, innovation and opportunity
           by keeping the power of the Web in
           your hands.
         </p>
-        <p id="browser_os_improve">
+        <p id="browser_os_improve" data-l10n-id="helpImprove3">
           You can help us improve our products and services by automatically
-          sending analytics data. See our Privacy Notice to learn how we
+          sending analytics data. See our
+          <a href="https://www.mozilla.org/privacy/firefox-os"
+             class="external">Privacy Notice</a> to learn how we
           handle data from your device.
         </p>
         <section id="form_share_statistics">
