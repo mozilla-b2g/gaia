@@ -490,6 +490,19 @@
     "dictFilePath": "dictionaries/gv.dict"
   },
   {
+    "id": "ha",
+    "name": "Hausa",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 1039,
+    "preloaded": true
+  },
+  {
     "id": "he",
     "name": "עִבְרִית",
     "types": [
