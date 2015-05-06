@@ -7,9 +7,6 @@ marionette('Find My Device lock >', function() {
   var FINDMYDEVICE_TEST_APP = 'app://test-findmydevice.gaiamobile.org';
 
   var client = marionette.client({
-    prefs: {
-      'dom.inter-app-communication-api.enabled': true
-    },
     apps: {
       'test-findmydevice.gaiamobile.org':
         __dirname + '/fixtures/test-findmydevice',
