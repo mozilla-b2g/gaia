@@ -240,7 +240,6 @@
    * triggerred either by pressing enter key or enterNumebrTimeout.
    */
   proto._onEnter = function td__onEnter() {
-    var channelNumberContent = this.channelNumber.textContent;
     if (this.enterNumberTimeoutId) {
       clearTimeout(this.enterNumberTimeoutId);
       this.enterNumberTimeoutId = null;
@@ -256,7 +255,8 @@
       // reset back to current channel number if the number entered
       // is not valid.
       if (newIndex !== 0 && !newIndex) {
-        this.channelNumber.textContent = channelNumberContent;
+        this.channelNumber.textContent =
+                              this.channelManager.playingState.channelNumber;
         this.channelPanel.classList.add('flash');
         this.simpleKeyNavigation.focus();
         return;
