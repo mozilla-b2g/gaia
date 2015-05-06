@@ -24,7 +24,7 @@ suite('Keyboard layouts building tests', function() {
       var layoutIds = ['ar', 'bn-Avro', 'bn-Probhat', 'de', 'dz-BT',
          'en', 'en-Colemak', 'en-Dvorak', 'en-Neo', 'eo', 'es',
          'es-Americas', 'fr', 'fr-CA', 'fr-CH', 'fr-Dvorak-bepo',
-         'he', 'hi', 'ko', 'mk', 'my', 'pl', 'pt-BR', 'ta', 'te',
+         'he', 'hi', 'ig', 'ko', 'mk', 'my', 'pl', 'pt-BR', 'ta', 'te',
          'th', 'vi-Qwerty', 'vi-Telex', 'vi-Typewriter', 'wo',
          'zh-Hans-Pinyin'];
       var zipPath = path.join(process.cwd(), 'profile',
