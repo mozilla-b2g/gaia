@@ -1,22 +1,20 @@
 'use strict';
 
 /**
- *  This module contains all the build time generation logic needed to
- *  use the import functionality both by the FTU and Comms Applications
+ * This module contains all the build time generation logic needed to
+ * use the import functionality both by the FTU and Comms Applications
  *
- *  The Functions exported by this module are used by the build scripts
- *  of Comms and FTU apps
- *
+ * The Functions exported by this module are used by the build scripts
+ * of Comms and FTU apps
  */
 
-/* global require, exports */
-const utils = require('utils');
+const utils = require('./utils');
 
 // Generates the communications services configuration as JS file
 // loaded by the application (parameters.js)
 function generateServicesConfig(config) {
-  var importServicesFile = utils.resolve(
-                        config.CONTACTS_IMPORT_SERVICES_PATH, config.GAIA_DIR);
+  var importServicesFile = utils.resolve(config.CONTACTS_IMPORT_SERVICES_PATH,
+    config.GAIA_DIR);
 
   if (!importServicesFile.exists()) {
     throw new Error('file not found: ' + importServicesFile.path);
@@ -30,12 +28,9 @@ function generateServicesConfig(config) {
     importServices.live.applicationId = '00000000440F8B08';
   }
 
+  var resultFile = utils.resolve(utils.joinPath('shared', 'pages', 'import',
+    'js', 'parameters.js'), config.GAIA_DIR);
   var jsPrefix =  'var oauthflow = this.oauthflow || {}; oauthflow.params = ';
-
-  var resultFile = utils.resolve(
-    utils.joinPath('shared', 'pages', 'import', 'js', 'parameters.js'),
-                    config.GAIA_DIR);
-
   var content = jsPrefix + JSON.stringify(importServices) + ';';
 
   if (resultFile.exists()) {
@@ -44,9 +39,7 @@ function generateServicesConfig(config) {
       return;
     }
   }
-
-  utils.writeContent(resultFile, jsPrefix +
-                     JSON.stringify(importServices) + ';');
+  utils.writeContent(resultFile, content);
 }
 
 exports.execute = function(config) {

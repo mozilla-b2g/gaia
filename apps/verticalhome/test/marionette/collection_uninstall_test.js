@@ -43,7 +43,12 @@ marionette('Vertical - Uninstall Collection', function() {
   test('uninstall collection', function() {
     home.enterEditMode();
 
-    var remove = icon.findElement('.remove');
+    var remove;
+    client.waitFor(function() {
+      remove = icon.findElement('.remove');
+      return remove && remove.displayed();
+    });
+
     var id = icon.scriptWith(function(el) {
       return el.dataset.identifier;
     });

@@ -8,6 +8,7 @@
   var MockBluetoothTransfer = {
     mNfcHandoverManager: null,
     sendFileQueueEmpty: true,
+    fileTransferInProgress: false,
     sendFileViaHandover: function(mac, blob) {
       var self = this;
       var req = new MockDOMRequest();
@@ -26,6 +27,10 @@
 
     get isSendFileQueueEmpty() {
       return MockBluetoothTransfer.sendFileQueueEmpty;
+    },
+
+    get isFileTransferInProgress() {
+      return MockBluetoothTransfer.fileTransferInProgress;
     }
   };
 

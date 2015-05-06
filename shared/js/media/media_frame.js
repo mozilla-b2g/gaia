@@ -51,7 +51,25 @@ function MediaFrame(container, includeVideo, maxImageSize) {
     this.video = new VideoPlayer(container);
     this.video.hide();
   }
+
+  // Add a class to the container so we could find it later and use it as
+  // a key in the instance weakmap.
+  container.classList.add('media-frame-container');
+  MediaFrame.instancesToLocalize.set(container, this);
 }
+
+// WeakMap with the container nodes as keys and MediaFrame instances as values.
+MediaFrame.instancesToLocalize = new WeakMap();
+
+navigator.mozL10n.ready(function() {
+  // Retrieve MediaFrame instances by searching for container nodes.
+  for (var container of document.querySelectorAll('.media-frame-container')) {
+    var instance = MediaFrame.instancesToLocalize.get(container);
+    if (instance) {
+      instance.localize();
+    }
+  }
+});
 
 MediaFrame.computeMaxImageDecodeSize = function(mem) {
   if (!mem) {
@@ -137,6 +155,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   // It would be nice if users of this module could override this
   // background color.
   this.image.style.backgroundColor = '#222';
+  this.image.setAttribute('role', 'img');
 
   // Figure out if we are going to downsample the image before displaying it
   // We expose fullSampleSize as part of the public api only for testing.
@@ -156,6 +175,12 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
 
   // Keep track of what kind of content we have
   this.displayingImage = true;
+
+  // If a locale is present and ready, go ahead and localize now.
+  // Otherwise, localization will be handled by the ready() callback above.
+  if (navigator.mozL10n.readyState === 'complete') {
+    this.localize();
+  }
 
   // Determine whether we can use the preview image
   function usePreview(preview) {
@@ -189,7 +214,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
     }
 
     // Otherwise a preview is big enough if at least one dimension is >= the
-    // screen size in both portait and landscape mode.
+    // screen size in both portrait and landscape mode.
     var screenWidth = window.innerWidth * window.devicePixelRatio;
     var screenHeight = window.innerHeight * window.devicePixelRatio;
 
@@ -371,6 +396,40 @@ MediaFrame.prototype._displayImage = function(backgroundImage, width, height) {
   var temp = this.image.clientLeft; // jshint ignore:line
 };
 
+// This function adds a label for accessibility to the image frame.
+// Videos are localized within the video player, so this is only for images.
+MediaFrame.prototype.localize = function localize() {
+  if (!this.displayingImage) {
+    return;
+  }
+
+  var portrait = this.fullsizeWidth < this.fullsizeHeight;
+  if (this.rotation == 90 || this.rotation == 270) {
+    // If rotated sideways, the width and height are swapped.
+    portrait = !portrait;
+  }
+
+  var timestamp = this.imageblob.lastModifiedDate;
+  var orientation = navigator.mozL10n.get(
+    portrait ? 'orientationPortrait' : 'orientationLandscape');
+  var label = '';
+
+  if (timestamp) {
+    var locale_entry = navigator.mozL10n.get(
+      'imageDescription', { orientation: orientation });
+
+    if (!this.dtf) {
+      this.dtf = new navigator.mozL10n.DateTimeFormat();
+    }
+
+    label = this.dtf.localeFormat(new Date(timestamp), locale_entry);
+  } else {
+    label = navigator.mozL10n.get(
+      'imageDescriptionNoTimestamp', { orientation: orientation });
+  }
+
+  this.image.setAttribute('aria-label', label);
+};
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   if (!this.displayingImage || !this.displayingPreview) {
@@ -418,7 +477,8 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
   // Display them in the video element.
   // The VideoPlayer class takes care of positioning itself, so we
   // don't have to do anything here with computeFit() or setPosition()
-  this.video.load(this.videourl, this.posterurl, width, height, rotation || 0);
+  this.video.load(this.videourl, this.posterurl, width, height, rotation || 0,
+                  videoblob.lastModifiedDate);
 
   // Show the player controls
   this.video.show();

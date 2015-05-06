@@ -9,11 +9,27 @@ var TitleBar = {
   },
 
   get titleText() {
-    return document.getElementById('title-text');
+    return document.querySelector('#title-text bdi');
   },
 
   get playerIcon() {
     return document.getElementById('title-player');
+  },
+
+  get scanProgress() {
+    return document.getElementById('scan-progress');
+  },
+
+  get scanCount() {
+    return document.getElementById('scan-count');
+  },
+
+  get scanArtist() {
+    return document.getElementById('scan-artist');
+  },
+
+  get scanTitle() {
+    return document.getElementById('scan-title');
   },
 
   init: function tb_init() {
@@ -41,6 +57,17 @@ var TitleBar = {
     }
 
     ModeManager.pop();
+  },
+
+  showScanProgress: function(info) {
+    this.scanProgress.classList.remove('hidden');
+    this.scanCount.textContent = info.count;
+    this.scanArtist.textContent = info.artist || '';
+    this.scanTitle.textContent = info.title || '';
+  },
+
+  hideScanProgress: function() {
+    this.scanProgress.classList.add('hidden');
   },
 
   handleEvent: function tb_handleEvent(evt) {

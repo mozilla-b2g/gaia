@@ -56,6 +56,14 @@ var FLAVORS = {
       main: 'contact-suggestion-tmpl',
       photo: 'contact-photo-tmpl'
     }
+  },
+  'report-view': {
+    renderAll: false,
+    shouldHighlight: false,
+    templates: {
+      main: 'contact-report-tmpl',
+      photo: 'contact-photo-tmpl'
+    }
   }
 };
 

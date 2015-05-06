@@ -152,9 +152,10 @@
     }
 
     var h3 = document.createElement('h3');
-    var textNode = document.createTextNode(text);
+    var spanNode = document.createElement('span');
+    spanNode.textContent = text;
     var ul = listTemplate.cloneNode(true);
-    h3.appendChild(textNode);
+    h3.appendChild(spanNode);
     parent.appendChild(h3);
     parent.appendChild(ul);
   }
@@ -254,7 +255,13 @@
   function formatTopResult(result) {
     var div = document.createElement('div');
     var span = document.createElement('span');
-    span.textContent = result.title || result.url;
+    if (result.title) {
+      span.setAttribute('dir', 'auto');
+      span.textContent = result.title;
+    } else {
+      span.setAttribute('dir', 'ltr');
+      span.textContent = result.url;
+    }
     div.dataset.url = result.url;
     div.classList.add('top-site');
     div.appendChild(span);
@@ -371,6 +378,9 @@
             return formatPlace(result, filter);
           }));
         }, function filterFun(result) {
+          if (result.frecency <= 0) {
+            return false;
+          }
           var url = parseUrl(result.url);
           var matches = !(url.hostname in matchedOrigins) &&
             (matchesFilter(result.title, filter) ||

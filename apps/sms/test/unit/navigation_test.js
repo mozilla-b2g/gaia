@@ -7,11 +7,12 @@
 
 'use strict';
 
+require('/shared/js/event_dispatcher.js');
+
 require('/js/utils.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_startup.js');
 
-require('/js/event_dispatcher.js');
 require('/js/navigation.js');
 
 var mocksHelperForNavigation = new MocksHelper([
@@ -368,7 +369,7 @@ suite('navigation >', function() {
             sinon.assert.notCalled(Panel4.afterEnter);
             sinon.assert.notCalled(Navigation.slide);
             assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
           }).then(done, done);
         });
 
@@ -383,7 +384,7 @@ suite('navigation >', function() {
             sinon.assert.notCalled(Panel4.afterEnter);
             sinon.assert.notCalled(Navigation.slide);
             assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
           }).then(done, done);
         });
       });
@@ -399,7 +400,7 @@ suite('navigation >', function() {
             sinon.assert.notCalled(Panel4.afterEnter);
             sinon.assert.notCalled(Navigation.slide);
             assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
           }).then(done, done);
         });
 
@@ -413,7 +414,7 @@ suite('navigation >', function() {
             sinon.assert.notCalled(Panel4.afterEnter);
             sinon.assert.notCalled(Navigation.slide);
             assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
           }).then(done, done);
         });
       });
@@ -425,7 +426,7 @@ suite('navigation >', function() {
           Navigation.toPanel('panel4').then(function resolved_expected() {
             sinon.assert.called(Panel4.afterEnter);
             assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
           }, function rejected_unexpected() {
             throw new Error('toPanel should not be rejected');
           }).then(done, done);
@@ -437,7 +438,7 @@ suite('navigation >', function() {
           Navigation.toPanel('panel4').then(function() {
             sinon.assert.called(Panel4.afterEnter);
             assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
           }, function rejected_unexpected() {
             throw new Error('toPanel should not be rejected');
           }).then(done, done);
@@ -451,7 +452,7 @@ suite('navigation >', function() {
 
           Navigation.toPanel('panel4').then(function resolved_expected() {
             assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
             sinon.assert.called(console.error);
           }, function rejected_unexpected() {
             throw new Error('toPanel should not be rejected');
@@ -464,7 +465,7 @@ suite('navigation >', function() {
 
           Navigation.toPanel('panel4').then(function resolved_expected() {
             assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isFalse(Navigation.transitioning);
+            assert.isNull(Navigation.transitionPromise);
             sinon.assert.called(console.log);
           }, function rejected_unexpected() {
             throw new Error('toPanel should not be rejected');
@@ -521,12 +522,75 @@ suite('navigation >', function() {
     });
   });
 
+  suite('ensureCurrentPanel >', function() {
+    setup(function(done) {
+      this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
+      this.sinon.spy(Navigation, 'toPanel');
+
+      // Set custom hash to have non-initialized current panel
+      window.location.hash = '#notification';
+
+      Navigation.init().catch((e) => {
+        Navigation.toPanel.reset();
+
+        // It's expected error for the unknown panel
+        if (e.message === 'Panel notification is unknown.') {
+          return;
+        }
+
+        throw e;
+      }).then(done, done);
+    });
+
+    test('navigates to default panel when current panel is not set',
+    function(done) {
+      // We don't have any correct current panel, so navigation to default
+      // panel should be triggered.
+      assert.isFalse(Navigation.isCurrentPanel('panel1'));
+
+      Navigation.ensureCurrentPanel().then(() => {
+        assert.isTrue(Navigation.isCurrentPanel('panel1'));
+
+        // Navigate to another panel and make sure that "ensureCurrentPanel"
+        // doesn't change it
+        return Navigation.toPanel('panel2');
+      }).then(() => {
+        assert.isTrue(Navigation.isCurrentPanel('panel2'));
+
+        return Navigation.ensureCurrentPanel();
+      }).then(() => {
+        assert.isTrue(Navigation.isCurrentPanel('panel2'));
+      }).then(done, done);
+    });
+
+    test('does not navigate to default panel when transitioning is happening',
+    function(done) {
+      var onPanelNavigated = sinon.stub();
+
+      Navigation.toPanel('panel2').then(onPanelNavigated);
+
+      // We don't have any correct current panel, but we're in transitioning
+      // state currently that means that if nothing goes wrong we'll have
+      // initialized current panel soon and no need to force navigation to
+      // default panel.
+      assert.isFalse(Navigation.isCurrentPanel('panel2'));
+
+      Navigation.ensureCurrentPanel().then(() => {
+        // Verify that ensureCurrentPanel is resolved not earlier than actual
+        // transition is completed.
+        sinon.assert.called(onPanelNavigated);
+
+        assert.isTrue(Navigation.isCurrentPanel('panel2'));
+      }).then(done, done);
+    });
+  });
+
   suite('slide()', function() {
     var wrapper;
 
     setup(function() {
       loadBodyHTML('/index.html');
-      wrapper = document.getElementById('main-wrapper'),
+      wrapper = document.getElementById('main-wrapper');
       Navigation.init();
     });
 

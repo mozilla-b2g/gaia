@@ -21,7 +21,6 @@
     "time": {},
     "audio-channel-telephony":{},
     "idle":{},
-    "storage": {},
     "device-storage:sdcard": { "access": "readonly" },
     "phonenumberservice": {}
   },
@@ -45,7 +44,10 @@
   },
   "locales": {
     "ar": {},
-    "en-US": {},
+    "en-US": {
+      "name": "Callscreen",
+      "description": "Gaia Callscreen"
+    },
     "fr": {},
     "zh-TW": {}
   },

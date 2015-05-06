@@ -47,6 +47,7 @@ class TestDeleteApp(GaiaTestCase):
         self.homescreen.installed_app(self.test_data['name']).tap_delete_app().tap_confirm()
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.homescreen.name)
+        self.wait_for_condition(lambda m: not self.homescreen.is_edit_mode_active)
         self.apps.switch_to_displayed_app()
         self.homescreen.wait_for_app_icon_not_present(self.test_data['name'])
 

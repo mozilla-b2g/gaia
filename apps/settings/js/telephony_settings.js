@@ -1,13 +1,11 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global DsdsSettings, TelephonyItemsHandler, AirplaneModeHelper */
 'use strict';
 
 /**
  * Singleton object (base object) that handle listener and events on mozIcc
  * objects in order to handle telephony-related menu items in the root panel.
  */
-var TelephonySettingHelper = (function(window, document, undefined) {
+window.TelephonySettingHelper = (function() {
   var _iccManager;
   var _mobileConnections;
 
@@ -86,4 +84,4 @@ var TelephonySettingHelper = (function(window, document, undefined) {
   return {
     init: tsh_init
   };
-})(this, document);
+})();

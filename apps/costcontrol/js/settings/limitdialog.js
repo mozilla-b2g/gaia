@@ -122,7 +122,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
   dataLimitInput.addEventListener('input',
     function cc_ondataLimitInputChange(evt) {
       var lowLimitValue = evt.target.value.trim();
-      var isNumericLowLimit = !Number.isNaN(lowLimitValue);
+      var isNumericLowLimit = !Number.isNaN(Number(lowLimitValue));
 
       if (isNumericLowLimit &&
           lowLimitValue.indexOf('.0') !== lowLimitValue.length - 2 &&
@@ -144,11 +144,17 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
   // Configure the swicth unit button
   var currentUnit = settings.option('dataLimitUnit');
   var switchUnitButton = dialog.querySelector('.switch-unit-button');
-  switchUnitButton.querySelector('span.tag').textContent = _(currentUnit);
+  function localizeSwitchUnitButton(unit) {
+    switchUnitButton.setAttribute('data-l10n-id', 'unit-' + unit);
+    switchUnitButton.querySelector('span.tag').setAttribute(
+      'data-l10n-id', unit);
+  }
+
+  localizeSwitchUnitButton(currentUnit);
   switchUnitButton.addEventListener('click',
     function ccapp_switchUnit() {
       currentUnit = (currentUnit === 'MB') ? 'GB' : 'MB';
-      switchUnitButton.querySelector('span.tag').textContent = _(currentUnit);
+      localizeSwitchUnitButton(currentUnit);
     }
   );
 
@@ -186,7 +192,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
       }
 
       // Set dialog
-      switchUnitButton.querySelector('span.tag').textContent = _(value);
+      localizeSwitchUnitButton(value);
 
       var tagSpan = guiWidget.querySelector('.tag');
       tagSpan.textContent = format(dataLimitInput.value);
@@ -201,7 +207,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager, widgetRoot) {
     dataLimitInput.setSelectionRange(dataLimitInput.value.length,
                                      dataLimitInput.value.length);
     oldUnitValue = settings.option('dataLimitUnit');
-    switchUnitButton.querySelector('span.tag').textContent = _(oldUnitValue);
+    localizeSwitchUnitButton(oldUnitValue);
   });
 
 }

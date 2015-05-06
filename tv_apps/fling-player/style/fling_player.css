@@ -1,3 +1,8 @@
+/**
+ External
+ */
+@import url("../bower_components/gaia-theme/gaia-theme.css");
+
 html {
   font-size: 10px;
   /* We have Fira Sans as default font in real device. But it isn't default in
@@ -32,28 +37,19 @@ article, section, video {
 
 #loading-section {
   background-color: rgba(0, 0, 0, 0.75);
+  text-align: center;
+  top: calc(50% - 20rem);
+  left: calc(50% - 15rem);
+  height: 30rem;
+  width: 30rem;
 }
 
 #loading-section span{
-  width: 100%;
-  height: 100%;
-  display: inline-block;
-  font-size: 10rem;
   color: white;
-  line-height: 108rem;
-  text-align: center;
-  animation-name: spin;
-  animation-duration: 1000ms;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  } to {
-    transform: rotate(360deg);
-  }
+  line-height: 5rem;
+  font-size: 2.4rem;
+  font-style: italic;
+  display: inline-block;
 }
 
 .control-bar {

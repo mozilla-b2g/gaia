@@ -32,6 +32,16 @@ var ForwardLockMetadata = (function() {
             if (!metadata.title) {
               metadata.title = unlockedMetadata.name;
             }
+            if (metadata.picture && metadata.picture.flavor === 'embedded') {
+              // Grab the slice for the embedded album art while we still have
+              // the decrypted blob to look at!
+              metadata.picture = {
+                flavor: 'unsynced',
+                blob: unlocked.slice(metadata.picture.start,
+                                     metadata.picture.end,
+                                     metadata.picture.type)
+              };
+            }
             return metadata;
           }));
         }

@@ -9,15 +9,14 @@
  *
  */
 
-/* global require, exports */
-const utils = require('utils');
+var utils = require('utils');
 
 // Returns the communications services configuration as a JS object
 function getCommsServices(gaiaDir) {
   var content = JSON.parse(utils.getFileContent(utils.getFile(
     gaiaDir, 'build', 'config', 'communications_services.json')));
   var custom = utils.getDistributionFileContent('communications_services',
-                                                                      content);
+    content);
   return JSON.parse(custom);
 }
 
@@ -25,7 +24,8 @@ function getCommsServices(gaiaDir) {
 // This manifest object will have to be serialized and persisted by the caller
 function generateManifest (webapp, gaia) {
   var manifestObject;
-  var manifestContent = utils.getFileContent(webapp.manifestFile);
+  var manifestFile = utils.getFile(webapp.manifestFilePath);
+  var manifestContent = utils.getFileContent(manifestFile);
   manifestObject = JSON.parse(manifestContent);
   var commsServices = getCommsServices(gaia.gaiaDir);
 
@@ -61,9 +61,7 @@ function generateManifest (webapp, gaia) {
 
 // Generates the configuration to be used by the importing processes
 function generateConfig (app, destination, gaia) {
-  var configFile = utils.getFile(gaia.stageDir.path, destination,
-                                'config.json');
-
+  var config = utils.getFile(gaia.stageDir.path, destination, 'config.json');
   var defaultConfig = {
     'defaultContactsOrder': 'givenName',
     'facebookEnabled': true,
@@ -73,12 +71,12 @@ function generateConfig (app, destination, gaia) {
     'testToken': '',
     'defaultImage': true
   };
-  utils.writeContent(configFile,
-    utils.getDistributionFileContent(app, defaultConfig, gaia.distributionDir));
+
+  utils.writeContent(config, utils.getDistributionFileContent(app,
+    defaultConfig, gaia.distributionDir));
 
   // Images configuration
-  var imageConfigFile = utils.getFile(gaia.stageDir.path, '',
-                                'config-images.json');
+  var imageConfig= utils.getFile(gaia.stageDir.path, '', 'config-images.json');
   var defaultImageConfig = {
     'thumbnail' : {
       'format': 'image/jpeg',
@@ -87,9 +85,8 @@ function generateConfig (app, destination, gaia) {
     }
   };
 
-  utils.writeContent(imageConfigFile,
-    utils.getDistributionFileContent(app, defaultImageConfig,
-                                     gaia.distributionDir));
+  utils.writeContent(imageConfig, utils.getDistributionFileContent(app,
+    defaultImageConfig, gaia.distributionDir));
 }
 
 exports.generateManifest = generateManifest;

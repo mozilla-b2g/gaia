@@ -31,7 +31,7 @@
   <link rel="resource" type="image/png" href="/shared/resources/branding/powered.png"/>
   <link rel="resource" type="image/png" href="/shared/resources/branding/privacy_sprite.png"/>
   <meta name="defaultLanguage" content="en-US">
-  <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+  <meta name="availableLanguages" content="en-US">
   <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
   <!-- This is needed for not duplicating SIM Import and FB Import locales -->
   <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
@@ -50,6 +50,7 @@
   <script defer src="/shared/js/input_mgmt/input_app_list.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
   <script defer src="/shared/js/language_list.js"></script>
+  <script defer src="/shared/js/settings_listener.js"></script>
   <script defer src="/shared/js/version_helper.js"></script>
 
   <!-- Import contacts help files -->
@@ -102,7 +103,6 @@
 
   <!-- Components -->
   <script defer src="/shared/js/component_utils.js"></script>
-  <script defer src="/shared/elements/gaia_switch/script.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_subheader/script.js"></script>
   <script defer src="/shared/elements/config.js"></script>
@@ -199,7 +199,7 @@
 
   <section id="sim-info-screen" role="region" class="skin-organic">
     <gaia-header>
-      <h1 id="sim-info-header" data-l10n-id="simManager">SIM Manager</h1>
+      <h1 id="sim-info-header" data-l10n-id="simManager"></h1>
     </gaia-header>
     <article role="main">
       <section>
@@ -258,9 +258,10 @@
         <article data-type="list">
           <ul>
             <li>
-              <gaia-switch id="data-connection-switch">
-                <label data-l10n-id="dataConnection"></label>
-              </gaia-switch>
+              <label class="pack-switch" id="data-connection-switch">
+                <input class="uninit" id="data-connection-checkbox" type="checkbox">
+                <span data-l10n-id="dataConnection"></span>
+              </label>
             </li>
           </ul>
         </article>
@@ -332,7 +333,7 @@
                 </label>
                 <input type="text" name="wifi_identity" id="hidden-wifi-identity" dir="auto"/>
               </li>
-              <li>
+              <li id="hidden-wifi-password-box">
                 <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
                   Password
                 </label>
@@ -399,9 +400,10 @@
         <article data-type="list">
           <ul>
             <li>
-              <gaia-switch id="geolocation-switch" name="geolocation.enabled" checked>
-                <label data-l10n-id="geolocationCheckbox"></label>
-              </gaia-switch>
+              <label class="pack-switch" id="geolocation-switch">
+                <input class="uninit" id="geolocation-checkbox" name="geolocation.enabled" type="checkbox" checked>
+                <span data-l10n-id="geolocationCheckbox">Geolocation</span>
+              </label>
             </li>
           </ul>
         </article>
@@ -517,7 +519,7 @@
           <ul>
             <li>
               <a class="privacy-menuitem privacy-browserOS external"
-                href="https://www.mozilla.org/privacy/firefox-os/"
+                href="https://www.mozilla.org/privacy/firefox-os"
                 data-l10n-id="privacy-b2g"
                 title="B2G OS">Browser OS</a>
             </li>

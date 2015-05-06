@@ -1,6 +1,6 @@
 
 'use strict';
-
+/* exported MockDownloadNotification */
 var MockDownloadNotification = function(download) {
   this.download = download;
   MockDownloadNotification.methodCalled = 'DownloadNotification';

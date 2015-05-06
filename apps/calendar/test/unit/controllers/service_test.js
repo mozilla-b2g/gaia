@@ -6,11 +6,9 @@ var ServiceController = require('controllers/service');
 
 suite('Controllers.Service', function() {
   var subject;
-  var app;
 
   setup(function() {
-    app = testSupport.calendar.app();
-    subject = new ServiceController(app);
+    subject = new ServiceController();
   });
 
   test('initialize', function() {

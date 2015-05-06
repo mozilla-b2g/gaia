@@ -1,18 +1,20 @@
 'use strict';
 
-/* global LayoutItem, LayoutDictionaryList, LayoutItemList, PromiseStorage */
+/* global LayoutItem, LayoutDictionaryList, LayoutItemList, PromiseStorage,
+          SettingsPromiseManager */
 
 require('/js/settings/layout_item.js');
 require('/js/settings/layout_item_list.js');
 require('/js/settings/layout_dictionary_list.js');
 require('/js/shared/promise_storage.js');
+require('/js/keyboard/settings.js');
 
 suite('LayoutItemList', function() {
   var layoutDictionaryListStub;
-  var promiseStorageStub;
-
   var dbGetItemConfigDeferred;
   var dbSetItemDeferred;
+
+  var app;
 
   var fakeXhr;
 
@@ -38,23 +40,10 @@ suite('LayoutItemList', function() {
     this.sinon.stub(window, 'LayoutDictionaryList')
       .returns(layoutDictionaryListStub);
 
-    promiseStorageStub =
-      this.sinon.stub(Object.create(PromiseStorage.prototype));
-    this.sinon.stub(window, 'PromiseStorage')
-      .returns(promiseStorageStub);
-
     var LayoutItemPrototype = LayoutItem.prototype;
     this.sinon.stub(window, 'LayoutItem', function() {
       return this.sinon.stub(Object.create(LayoutItemPrototype));
     }.bind(this));
-
-    dbGetItemConfigDeferred = new Deferred();
-    promiseStorageStub.getItem
-      .withArgs(LayoutItemList.prototype.ENABLED_LAYOUT_KEY)
-      .returns(dbGetItemConfigDeferred.promise);
-
-    dbSetItemDeferred = new Deferred();
-    promiseStorageStub.setItem.returns(dbSetItemDeferred.promise);
 
     var requests = [];
     fakeXhr = sinon.useFakeXMLHttpRequest();
@@ -62,9 +51,20 @@ suite('LayoutItemList', function() {
       requests.push(request);
     };
 
-    var app = {
-      closeLockManager: { stub: 'closeLockManager' }
+    app = {
+      closeLockManager: { stub: 'closeLockManager' },
+      preferencesStore: sinon.stub(Object.create(PromiseStorage.prototype)),
+      settingsPromiseManager:
+        this.sinon.stub(Object.create(SettingsPromiseManager.prototype))
     };
+
+    dbGetItemConfigDeferred = new Deferred();
+    app.preferencesStore.getItem
+      .withArgs(LayoutItemList.prototype.ENABLED_LAYOUT_KEY)
+      .returns(dbGetItemConfigDeferred.promise);
+
+    dbSetItemDeferred = new Deferred();
+    app.preferencesStore.setItem.returns(dbSetItemDeferred.promise);
 
     list = new LayoutItemList(app);
     list.onready = this.sinon.stub();
@@ -76,10 +76,8 @@ suite('LayoutItemList', function() {
     assert.isTrue(layoutDictionaryListStub.start.calledOnce);
     assert.equal(list.dictionaryList, layoutDictionaryListStub);
 
-    assert.isTrue(window.PromiseStorage.calledWith(list.DATABASE_NAME));
-    assert.isTrue(promiseStorageStub.start.calledOnce);
     assert.isTrue(
-      promiseStorageStub.getItem.calledWith(list.ENABLED_LAYOUT_KEY));
+      app.preferencesStore.getItem.calledWith(list.ENABLED_LAYOUT_KEY));
     dbGetItemConfigDeferred.resolve(['fr']);
 
     var request = requests[0];
@@ -183,7 +181,7 @@ suite('LayoutItemList', function() {
 
     Promise.resolve()
       .then(function() {
-        assert.isTrue(promiseStorageStub.setItem
+        assert.isTrue(app.preferencesStore.setItem
           .calledWith(list.ENABLED_LAYOUT_KEY, ['fr', 'fr-CA']));
         dbSetItemDeferred.resolve();
 
@@ -200,7 +198,7 @@ suite('LayoutItemList', function() {
 
     Promise.resolve()
       .then(function() {
-        assert.isTrue(promiseStorageStub.setItem
+        assert.isTrue(app.preferencesStore.setItem
           .calledWith(list.ENABLED_LAYOUT_KEY, []));
         dbSetItemDeferred.resolve();
 
@@ -210,5 +208,185 @@ suite('LayoutItemList', function() {
         throw (e || 'Should not reject.');
       })
       .then(done, done);
+  });
+
+  suite('DownloadPreference', function() {
+    suite('getCurrentState', function() {
+      teardown(function() {
+        delete navigator.mozMobileConnections;
+      });
+
+      test('not using data connection', function(done) {
+        navigator.mozMobileConnections = {
+          '0': { data: { connected: false } },
+          '1': { data: { connected: false } },
+          length: 2 };
+
+        list.downloadPreference.getCurrentState().then(function(val) {
+          assert.equal(val, list.downloadPreference.STATE_ALLOW);
+        }).then(done, done);
+      });
+
+      test('data connection not avail', function(done) {
+        list.downloadPreference.getCurrentState().then(function(val) {
+          assert.equal(val, list.downloadPreference.STATE_ALLOW);
+        }).then(done, done);
+      });
+
+      suite('w/ data connection', function() {
+        var getItemDeferred;
+
+        setup(function() {
+          navigator.mozMobileConnections = {
+            '0': { data: { connected: true } },
+            '1': { data: { connected: false } },
+            length: 2 };
+
+          getItemDeferred = new Deferred();
+          app.preferencesStore.getItem.returns(getItemDeferred.promise);
+        });
+
+        test('preferences unset', function(done) {
+          getItemDeferred.resolve(undefined);
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_PROMPT);
+          }).then(done, done);
+        });
+
+        test('preferences set to always allow', function(done) {
+          getItemDeferred.resolve(true);
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_ALLOW);
+          }).then(done, done);
+        });
+
+        test('preferences set to always deny', function(done) {
+          getItemDeferred.resolve(false);
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_DENY);
+          }).then(done, done);
+        });
+
+        test('preferences store rejects', function(done) {
+          getItemDeferred.reject('Mocked Error');
+
+          list.downloadPreference.getCurrentState().then(function(val) {
+            assert.isTrue(app.preferencesStore.getItem
+              .calledWith('download.prompt-on-data-connection'));
+            assert.equal(val, list.downloadPreference.STATE_PROMPT);
+          }).then(done, done);
+        });
+      });
+    });
+
+    suite('setDataConnectionDownloadState', function() {
+      var p;
+      setup(function() {
+        p = { stub: 'promise' };
+
+        app.preferencesStore.deleteItem.returns(p);
+        app.preferencesStore.setItem.returns(p);
+      });
+
+      test('set to prompt', function() {
+        var r = list.downloadPreference.setDataConnectionDownloadState(
+          list.downloadPreference.STATE_PROMPT);
+
+        assert.isTrue(app.preferencesStore.deleteItem.calledWith(
+          'download.prompt-on-data-connection'));
+        assert.equal(r, p);
+      });
+
+      test('set to allow', function() {
+        var r = list.downloadPreference.setDataConnectionDownloadState(
+          list.downloadPreference.STATE_ALLOW);
+
+        assert.isTrue(app.preferencesStore.setItem.calledWith(
+          'download.prompt-on-data-connection', true));
+        assert.equal(r, p);
+      });
+
+      test('set to deny', function() {
+        var r = list.downloadPreference.setDataConnectionDownloadState(
+          list.downloadPreference.STATE_DENY);
+
+        assert.isTrue(app.preferencesStore.setItem.calledWith(
+          'download.prompt-on-data-connection', false));
+        assert.equal(r, p);
+      });
+    });
+
+    suite('LayoutEnabler', function() {
+      var appManifestURL;
+      setup(function() {
+        appManifestURL =
+          location.protocol + '//' + location.hostname + '/manifest.webapp';
+      });
+
+      test('enableLayout', function(done) {
+        var deferred = new Deferred();
+
+        app.settingsPromiseManager.updateOne.returns(deferred.promise);
+
+        var p = list.layoutEnabler.enableLayout('foo');
+
+        assert.isTrue(app.settingsPromiseManager.updateOne.calledWith(
+          list.layoutEnabler.SETTING_ENABLE_LAYOUT_KEY));
+
+        var obj = {};
+        obj[appManifestURL] = {};
+
+        var refObj = {};
+        refObj[appManifestURL] = {};
+        refObj[appManifestURL].foo = true;
+
+        var returnedObj =
+          app.settingsPromiseManager.updateOne.firstCall.args[1](obj);
+
+        assert.deepEqual(returnedObj, refObj);
+        deferred.resolve();
+
+        p.catch(function(e) { throw e || 'Should not reject.'; })
+          .then(done, done);
+      });
+
+      test('disableLayout', function(done) {
+        var deferred = new Deferred();
+
+        app.settingsPromiseManager.updateOne.returns(deferred.promise);
+
+        var p = list.layoutEnabler.disableLayout('foo');
+
+        assert.isTrue(app.settingsPromiseManager.updateOne.calledWith(
+          list.layoutEnabler.SETTING_ENABLE_LAYOUT_KEY));
+
+        var obj = {};
+        obj[appManifestURL] = {};
+        obj[appManifestURL].foo = true;
+        obj[appManifestURL].bar = true;
+
+        var refObj = {};
+        refObj[appManifestURL] = {};
+        refObj[appManifestURL].bar = true;
+
+        var returnedObj =
+          app.settingsPromiseManager.updateOne.firstCall.args[1](obj);
+
+        assert.deepEqual(returnedObj, refObj);
+        deferred.resolve();
+
+        p.catch(function(e) { throw e || 'Should not reject.'; })
+          .then(done, done);
+      });
+    });
   });
 });

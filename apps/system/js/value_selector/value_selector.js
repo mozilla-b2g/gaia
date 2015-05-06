@@ -26,8 +26,8 @@
 
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
+    app.element.addEventListener('_closed', this);
     app.element.addEventListener('_inputmethod-contextchange', this);
-    app.element.addEventListener('_sheetsgesturebegin', this);
     app.element.addEventListener('_localized', this);
     window.addEventListener('timeformatchange', this);
   };
@@ -73,6 +73,7 @@
         break;
       case '_opening':
       case '_closing':
+      case '_closed':
         if (this._injected) {
           this.hide();
         }
@@ -96,12 +97,6 @@
           this._timePicker = null;
         }
         break;
-      case '_sheetsgesturebegin':
-        // Only cancel if the value selector was rendered.
-        if (this._injected) {
-          this.cancel();
-        }
-        break;
       case '_inputmethod-contextchange':
         var typesToHandle = ['select-one', 'select-multiple', 'date', 'time',
           'datetime', 'datetime-local', 'blur'];
@@ -114,9 +109,19 @@
           this.show(evt.detail);
         } else {
           this.render(function afterRender() {
-            this.show(evt.detail);
+            // Nesting two requestionAnimationFrames stops the style changes
+            // from this.show coalescing with the creation of the elements,
+            // without forcing a synchronous style flush.
+            window.requestAnimationFrame(() => {
+              window.requestAnimationFrame(() => {
+                this.show(evt.detail);
+              });
+            });
           }.bind(this));
         }
+        break;
+      case 'transitionend':
+        this.element.classList.remove('transitioning');
         break;
     }
   };
@@ -162,6 +167,7 @@
     // Prevent the form from submit.
     this.elements.selectOptionPopup.addEventListener('submit', this);
     this.element.addEventListener('mousedown', this);
+    this.element.addEventListener('transitionend', this);
     ['selectOptionsButtons', 'timePickerButtons',
       'spinDatePickerButtons'].forEach(function(elementId) {
         this.elements[elementId].addEventListener('click', this);
@@ -198,6 +204,7 @@
 
     this.app._setVisibleForScreenReader(false);
     if (this.element.hidden) {
+      this.element.classList.add('transitioning');
       this.element.hidden = false;
     }
 
@@ -238,8 +245,9 @@
       return;
     }
     this.element.blur();
+    this.element.classList.add('transitioning');
     this.element.hidden = true;
-    if (this.app) {
+    if (this.app.getBottomMostWindow().isActive() && this.app.isActive()) {
       this.app.focus();
     }
     this.publish('hidden');

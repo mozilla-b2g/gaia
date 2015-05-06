@@ -2,7 +2,6 @@
           NotificationHelper, _, MozActivity, NetworkUsageAlarm, LazyLoader,
           SimManager, IACManager, DEBUGGING
 */
-/* exported activity */
 /*jshint -W020 */
 /* The previous directive,ignore the "Read only" errors, that are produced when
    redirect global objects (Common and Costcontrol) to parent versions to avoid
@@ -42,7 +41,9 @@
   }
 
   // Close if in standalone mode
-  var closing, activity;
+  var closing;
+
+
   function closeIfProceeds() {
     debug('Checking for closing...');
     if (inStandAloneMode()) {
@@ -151,116 +152,64 @@
   }
 
   function sendIncorrectTopUpNotification(callback) {
-    // XXX: Hack hiding the message class in the icon URL
-    // Should use the tag element of the notification once the final spec
-    // lands:
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
-    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
-      var app = evt.target.result;
-      var iconURL = NotificationHelper.getIconURI(app);
+    var title = 'topup-incorrectcode-title2';
+    var message = 'topup-incorrectcode-message3';
 
-      var goToTopUpCode;
-      if (!inStandAloneMode()) {
-        goToTopUpCode = function _goToTopUpCode() {
-          if (inApplicationMode()) {
-            app.launch();
-            window.parent.BalanceTab.topUpWithCode(true);
-          } else {
-            activity = new MozActivity({ name: 'costcontrol/balance' });
-          }
-        };
-      }
+    sendNotification('topUpError', title, message);
 
-      iconURL += '?topUpError';
-      NotificationHelper.send('topup-incorrectcode-title2', {
-        'bodyL10n': 'topup-incorrectcode-message3',
-        'icon': iconURL
-      }).then(function(notification) {
-        notification.addEventListener('click', goToTopUpCode);
-      });
-
-      if (callback) {
-        callback();
-      }
-    };
+    if (callback) {
+      callback();
+    }
   }
 
   function sendBalanceThresholdNotification(remaining, settings, callback) {
-    // XXX: Hack hiding the message class in the icon URL
-    // Should use the tag element of the notification once the final spec
-    // lands:
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
-    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
-      var app = evt.target.result;
-      var iconURL = NotificationHelper.getIconURI(app);
 
-      var goToBalance;
-      if (!inStandAloneMode()) {
-        goToBalance = function _goToBalance() {
-          if (inApplicationMode()) {
-            app.launch();
-            window.parent.CostControlApp.showBalanceTab();
-          } else {
-            activity = new MozActivity({ name: 'costcontrol/balance' });
-          }
-        };
-      }
+    debug('Low limit already notified:', settings.lowLimitNotified);
+    debug('Zero balance already notified:', settings.lowLimitNotified);
 
-      debug('Low limit already notified:', settings.lowLimitNotified);
-      debug('Zero balance already notified:', settings.lowLimitNotified);
+    // Zero reached notification
+    var type;
+    if (remaining.balance === 0 && !settings.zeroBalanceNotified) {
+      type = 'zeroBalance';
 
-      // Zero reached notification
-      var type;
-      if (remaining.balance === 0 && !settings.zeroBalanceNotified) {
-        type = 'zeroBalance';
+    // There is a limit an we are below that limit and we did not notified yet
+    } else if (settings.lowLimit &&
+               remaining.balance < settings.lowLimitThreshold &&
+               !settings.lowLimitNotified) {
+      type = 'lowBalance';
 
-      // There is a limit an we are below that limit and we did not notified yet
-      } else if (settings.lowLimit &&
-                 remaining.balance < settings.lowLimitThreshold &&
-                 !settings.lowLimitNotified) {
-        type = 'lowBalance';
+    // No need for notification
+    } else if (callback) {
+      setTimeout(callback);
+      return;
+    }
+    debug('Notification type:', type);
 
-      // No need for notification
-      } else {
-        if (typeof callback === 'function') {
-          setTimeout(callback);
-        }
-        return;
-      }
-      debug('Notification type:', type);
-      iconURL += '?' + type;
+    // Get l10n for remaining balance
+    var remainingBalance = _('currency', {
+      currency: remaining.currency,
+      value: remaining.balance
+    });
 
-      // Get l10n for remaining balance
-      var remainingBalance = _('currency', {
-        currency: remaining.currency,
-        value: remaining.balance
-      });
-
-      // Compose notification and send it
-      var title = 'low-balance-notification-title';
-      var message = {
-        id: 'low-balance-notification-text',
-        args: { remaining: remainingBalance }
-      };
-      if (type === 'zeroBalance') {
-        title = 'usage';
-        message = 'zero-balance-message';
-      }
-
-      NotificationHelper.send(title, {
-        'bodyL10n': message,
-        'icon': iconURL
-      }).then(function(notification) {
-        notification.addEventListener('click', goToBalance);
-      });
-
-      // Finally mark the notification as sent
-      var update = {};
-      var notified = (type === 'lowBalance') ? 'lowLimitNotified' :
-                                               'zeroBalanceNotified';
-      update[notified] = true;
-      ConfigManager.setOption(update, callback);
+    // Compose notification and send it
+    var title = 'low-balance-notification-title';
+    var message = {
+      id: 'low-balance-notification-text',
+      args: { remaining: remainingBalance }
     };
+    if (type === 'zeroBalance') {
+      title = 'usage';
+      message = 'zero-balance-message';
+    }
+
+    sendNotification(type, title, message);
+
+    // Finally mark the notification as sent
+    var update = {};
+    var notified = (type === 'lowBalance') ? 'lowLimitNotified' :
+                                             'zeroBalanceNotified';
+    update[notified] = true;
+    ConfigManager.setOption(update, callback);
   }
   window.sendBalanceThresholdNotification = sendBalanceThresholdNotification;
 
@@ -323,26 +272,75 @@
     });
   }
 
+  function getNofificationAction(type, app) {
+    var activityName, action;
+    var noop = function() {};
+    switch (type) {
+      case 'lowBalance':
+      case 'zeroBalance':
+        activityName = 'costcontrol/balance';
+        action = function() {
+          if (window.parent.BalanceTab) {
+            window.parent.CostControlApp.showBalanceTab();
+          }
+        };
+        break;
+      case 'topUpError' :
+        activityName = 'costcontrol/balance';
+        action = function() {
+          if (window.parent.BalanceTab) {
+            window.parent.BalanceTab.topUpWithCode(true);
+          }
+        };
+        break;
+      default:
+        activityName = 'costcontrol/data_usage';
+        action = function() {
+          if (window.parent.CostControlApp) {
+            window.parent.CostControlApp.showDataUsageTab();
+          }
+        };
+        break;
+    }
+
+    if (!inStandAloneMode()) {
+      return function() {
+        if (inApplicationMode()) {
+          app.launch();
+          action && action();
+        } else {
+          type = new MozActivity({name: activityName});
+        }
+      };
+    }
+    return noop;
+}
+
+  function sendNotification(notificationType, title, message) {
+    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+      var navigate = getNofificationAction(notificationType, app);
+
+      NotificationHelper.send(title, {
+        'bodyL10n': message,
+        'icon': iconURL,
+        'data': notificationType
+      }).then(function(notification) {
+        notification.addEventListener('click', function() {
+          notification.close();
+          navigate();
+        });
+      });
+    };
+  }
+
   function _onNetworkAlarm(alarm) {
     clearTimeout(closing);
     navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
       SimManager.requestDataSimIcc(function(dataSimIcc) {
         ConfigManager.requestSettings(dataSimIcc.iccId,
                                       function _onSettings(settings) {
-          var app = evt.target.result;
-          var iconURL = NotificationHelper.getIconURI(app);
-
-          var goToDataUsage;
-          if (!inStandAloneMode()) {
-            goToDataUsage = function _goToDataUsage() {
-              if (inApplicationMode()) {
-                app.launch();
-                window.parent.CostControlApp.showDataUsageTab();
-              } else {
-                activity = new MozActivity({name: 'costcontrol/data_usage'});
-              }
-            };
-          }
           var limit = Common.getDataLimit(settings);
           var limitText = Formatting.formatData(Formatting.smartRound(limit));
           var title = {
@@ -350,12 +348,7 @@
             args: { limit: limitText }
           };
           var message = 'data-limit-notification-text2';
-          NotificationHelper.send(title, {
-            'bodyL10n': message,
-            'icon': iconURL
-          }).then(function(notification) {
-            notification.addEventListener('click', goToDataUsage);
-          });
+          sendNotification('dataUsage', title, message);
           ConfigManager.setOption({ 'dataUsageNotified': true },
                                   closeIfProceeds);
           return;

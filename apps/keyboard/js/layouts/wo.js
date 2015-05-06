@@ -4,6 +4,7 @@ Keyboards.wo = {
   menuLabel: 'Wolof',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  lang: 'wo',
   pages: [ {
     alt: {
       a: 'àâæáãäåā',

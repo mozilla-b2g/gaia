@@ -5,12 +5,7 @@ var assert = require('assert'),
     NotificationList = require('./lib/notification').NotificationList;
 
 marionette('notification count tests', function() {
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
   var notificationList = new NotificationList(client);
 
   var system;

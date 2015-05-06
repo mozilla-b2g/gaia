@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockSheetsTransition */
 
 var MockSheetsTransition = {
   transitioning: false,

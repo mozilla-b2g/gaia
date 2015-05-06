@@ -1,16 +1,17 @@
 'use strict';
 /* global ActivityHandler */
+/* global Cache */
 /* global ConfirmDialog */
 /* global ContactPhotoHelper */
 /* global Contacts */
 /* global fb */
+/* global ICEStore */
+/* global ICEData */
 /* global ImageLoader */
 /* global LazyLoader */
 /* global monitorTagVisibility */
 /* global Normalizer */
 /* global utils */
-/* global ICEStore */
-/* global ICEData */
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -202,6 +203,8 @@ contacts.List = (function() {
     }
 
     createPhotoTemplate();
+
+    Cache.oneviction = onCacheEvicted;
   };
 
   function hide() {
@@ -326,10 +329,11 @@ contacts.List = (function() {
 
     var complete = function complete() {
       initConfiguration(function onInitConfiguration() {
-        getContactsByGroup(onError, contacts);
-        if (typeof callback === 'function') {
-          callback();
-        } // Used in unit testing.
+        getContactsByGroup(onError, contacts).then(() => {
+          if (typeof callback === 'function') {
+            callback();
+          } // Used in unit testing.
+        });
       });
     };
 
@@ -663,13 +667,11 @@ contacts.List = (function() {
   function createSocialMark() {
     var span = document.createElement('span');
     span.classList.add('icon-social');
-
     return span;
   }
 
   function markAsFb(ele) {
     ele.classList.add('icon-fb');
-
     return ele;
   }
 
@@ -677,16 +679,9 @@ contacts.List = (function() {
   function loadChunk(chunk) {
     var nodes = [];
     for (var i = 0, n = chunk.length; i < n; ++i) {
-      if (i === getRowsPerPage()) {
-        notifyAboveTheFold();
-      }
 
       var newNodes = appendToLists(chunk[i]);
       nodes.push.apply(nodes, newNodes);
-    }
-
-    if (i < getRowsPerPage()) {
-      notifyAboveTheFold();
     }
 
     // If the search view has been activated by the user, then send newly
@@ -697,30 +692,17 @@ contacts.List = (function() {
     }
   }
 
-  // Time until we show the first contacts "above the fold" is a very
-  // important usability metric.  Emit an event when as soon as we reach
-  // this point so tools can measure the time.
-  var notifiedAboveTheFold = false;
-  function notifyAboveTheFold() {
-    if (notifiedAboveTheFold) {
-      return;
-    }
-
-    notifiedAboveTheFold = true;
-    // Replacing the old 'above-the-fold-ready' message
-    utils.PerformanceHelper.contentInteractive();
-
-    // Don't bother loading the monitor until we have rendered our
-    // first screen of contacts.  This avoids the overhead of
-    // onscreen() calls when adding those first contacts.
-    var vm_file = '/shared/js/tag_visibility_monitor.js';
-    LazyLoader.load([vm_file], function() {
-      var scrollMargin = ~~(getViewHeight() * 1.5);
-      // NOTE: Making scrollDelta too large will cause janky scrolling
-      //       due to bursts of onscreen() calls from the monitor.
-      var scrollDelta = ~~(scrollMargin / 15);
-      monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
-                                     scrollDelta, onscreen, offscreen);
+  function loadVisibilityMonitor() {
+    return new Promise((resolve) => {
+      LazyLoader.load('/shared/js/tag_visibility_monitor.js', () => {
+        var scrollMargin = ~~(getViewHeight() * 1.5);
+        // NOTE: Making scrollDelta too large will cause janky scrolling
+        //       due to bursts of onscreen() calls from the monitor.
+        var scrollDelta = ~~(scrollMargin / 15);
+        monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
+                                       scrollDelta, onscreen, offscreen);
+        resolve();
+      });
     });
   }
 
@@ -792,13 +774,19 @@ contacts.List = (function() {
     return nodes;
   }
 
-  //Adds each contact to its group container
+  // Adds each contact to its group container
   function appendToList(contact, group, ph) {
     ph = ph || createPlaceholder(contact, group);
     var list = getGroupList(group);
 
-    // If above the fold for list, render immediately
-    if (list.children.length < getRowsPerPage()) {
+    var inCache = Cache.active &&
+                  (Cache.hasContact(contact.id)) ||
+                  (group == 'favorites' && Cache.hasFavorite(contact.id));
+
+    // If above the fold for list or if the contact is in the cache,
+    // create the DOM node. If the contact is in the cache and has not
+    // changed, we won't append it to the DOM.
+    if (list.children.length < getRowsPerPage() || inCache) {
       renderContact(contact, ph);
     }
 
@@ -808,7 +796,58 @@ contacts.List = (function() {
 
     loadedContacts[contact.id][group] = contact;
 
-    list.appendChild(ph);
+    var previousNode;
+
+    // If the contact is in the cache but nothing changed, we bail out.
+    // Otherwise, we remove the DOM node and let the flow continue so we
+    // can append the new node with the updated information.
+    if (inCache) {
+      var cachedContact;
+      if (group == 'favorites') {
+        cachedContact = Cache.getFavorite(contact.id);
+      } else {
+        cachedContact = Cache.getContact(contact.id);
+      }
+      // We don't add Facebook information while creating the placeholder,
+      // this information is added afterwards in renderFbData.
+      // Because of that, we need to get rid of the additional information
+      // from the cached contact before checking against the original contact
+      // information.
+      if (contact.category &&
+          contact.category.indexOf('facebook') != -1) {
+        var separator =
+          '<p class="contact-text"><span class="icon-social';
+        cachedContact = cachedContact.split(separator)[0];
+      }
+
+      if (cachedContact === ph.innerHTML) {
+        ph = null;
+        return;
+      }
+      var toReplace = list.querySelector('li[data-uuid=\"' +
+                                         contact.id + '\"]');
+      previousNode = toReplace.nextElementSibling;
+      toReplace.parentNode.removeChild(toReplace);
+    }
+
+    // It is possible that a new contact has been added while the app was
+    // closed. In that case, we need to check if the new contact needs
+    // to be inserted in the first chunk so it is later cached.
+    if (Cache.active && (Cache.updated < contact.updated)) {
+      renderOrderString(ph, contact);
+      if (Cache.lastOrderString > ph.dataset.order) {
+        var listElements = list.getElementsByTagName('li');
+        var insertAt = searchNodes(listElements, ph.dataset.order);
+        previousNode = listElements[insertAt];
+      }
+    }
+
+    if (previousNode) {
+      list.insertBefore(ph, previousNode);
+    } else {
+      list.appendChild(ph);
+    }
+
     if (list.children.length === 1) {
       showGroupByList(list);
       setRowsPerPage(list.firstChild);
@@ -826,35 +865,54 @@ contacts.List = (function() {
     // and we didn't unselected any other contact
     selectAllPending = false;
 
-    // If there are zero contacts, then we still need to notify
-    // that the initial screen has been displayed.  This is a no-op
-    // if the notification has already happened.
-    notifyAboveTheFold();
+    loadVisibilityMonitor();
 
     // Replacing old message 'startup-path-done'
     utils.PerformanceHelper.loadEnd();
-    fb.init(function contacts_init() {
-      if (fb.isEnabled) {
-        Contacts.loadFacebook(NOP_FUNCTION);
-      }
-      lazyLoadImages();
-      loaded = true;
+    LazyLoader.load([
+     '/contacts/js/fb/fb_init.js',
+     '/contacts/js/fb_loader.js',
+     '/shared/js/contacts/utilities/image_loader.js'
+    ], () => {
+      fb.init(function contacts_init() {
+        if (fb.isEnabled) {
+          Contacts.loadFacebook(NOP_FUNCTION);
+        }
+        lazyLoadImages();
+        loaded = true;
+      });
     });
 
-    loadICE();
+    loadICE().then(() => {
+      if (Cache.enabled) {
+        // Once we've rendered the whole list, we can check if what we added
+        // in the cached chunk is valid.
+        verifyAndRebuildCache();
+      }
+    });
   };
 
   /**
    * Check if we have ICE contacts information
    */
+  var ICELoaded;
   function loadICE() {
-    LazyLoader.load([
-      '/contacts/js/utilities/ice_data.js',
-      '/shared/js/contacts/utilities/ice_store.js'],
-     function() {
-      ICEStore.getContacts().then(displayICEIndicator);
-      ICEStore.onChange(function() {
-        ICEStore.getContacts().then(displayICEIndicator);
+    if (ICELoaded) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      LazyLoader.load([
+        '/contacts/js/utilities/ice_data.js',
+        '/shared/js/contacts/utilities/ice_store.js'],
+       function() {
+        ICEStore.getContacts().then((ids) => {
+          ICELoaded = true;
+          displayICEIndicator(ids);
+          resolve();
+        });
+        ICEStore.onChange(function() {
+          ICEStore.getContacts().then(displayICEIndicator);
+        });
       });
     });
   }
@@ -862,9 +920,11 @@ contacts.List = (function() {
   function displayICEIndicator(ids) {
     if (!iceGroup) {
       buildICEGroup();
+    } else {
+      addICEListeners();
     }
 
-    if (!ids || ids.length === 0) {
+    if (!ids || !ids.length) {
       hideICEGroup();
       return;
     }
@@ -917,12 +977,18 @@ contacts.List = (function() {
     p.classList.add('contact-text');
     p.setAttribute('data-l10n-id', 'ICEContactsGroup');
 
-    groupsList.insertBefore(iceGroup,
-     groupsList.firstChild).appendChild(list).appendChild(elem);
+    groupsList.insertBefore(iceGroup, groupsList.firstChild)
+              .appendChild(list).appendChild(elem);
     elem.appendChild(icon);
     elem.appendChild(p);
 
-    iceGroup.addEventListener('click', onICEGroupClicked);
+    addICEListeners();
+  }
+
+  function addICEListeners() {
+    if (!Cache.active) {
+      iceGroup.addEventListener('click', onICEGroupClicked);
+    }
 
     // Set a listener in case ice contacts are modified
     // and we need to remove the group.
@@ -934,19 +1000,23 @@ contacts.List = (function() {
   }
 
   function onICEGroupClicked() {
-    Contacts.view('Ice', function() {
-      // Prebuild the rows here, we have all the data to
-      // build them. Current amount of rows is 2.
-      function rowBuilder(id, node) {
-        renderLoadedContact(node, id);
-        updateRowStyle(node, true);
-        updateSingleRowSelection(node, id);
-        var out = node.cloneNode(true);
-        renderPhoto(out, id, true, out.dataset.group);
-        return out;
-      }
-      contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
-      contacts.ICEView.showICEList();
+    loadICE().then(() => {
+      LazyLoader.load('/shared/js/contacts/utilities/image_loader.js', () => {
+        Contacts.view('Ice', function() {
+          // Prebuild the rows here, we have all the data to
+          // build them. Current amount of rows is 2.
+          function rowBuilder(id, node) {
+            renderLoadedContact(node, id);
+            updateRowStyle(node, true);
+            updateSingleRowSelection(node, id);
+            var out = node.cloneNode(true);
+            renderPhoto(out, id, true, out.dataset.group);
+            return out;
+          }
+          contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
+          contacts.ICEView.showICEList();
+        });
+      });
     });
   }
 
@@ -1083,8 +1153,8 @@ contacts.List = (function() {
       var posH = ['left','center','right'];
       var posV = ['top','center','bottom'];
       var position =
-        posH[Math.floor(Math.random()*3)] + ' ' +
-        posV[Math.floor(Math.random()*3)];
+        posH[Math.floor(Math.random() * 3)] + ' ' +
+        posV[Math.floor(Math.random() * 3)];
 
       img.style.backgroundPosition = position;
 
@@ -1142,13 +1212,31 @@ contacts.List = (function() {
     } else {
       meta = elements[1];
     }
-    var mark = markAsFb(createSocialMark());
+
+    // We may already have added the social mark.
+    var mark = link.querySelector('span.icon-social');
+    if (!mark) {
+      mark = markAsFb(createSocialMark());
+    }
+
     var org = meta.querySelector('span.org');
     meta.insertBefore(mark, org);
     if (!contact.org || !contact.org.length) {
       mark.classList.add('notorg');
     } else {
       renderOrg(contact, link);
+    }
+
+    // Additional Facebook data starts coming after we already
+    // rendered the list. At that point we already built the
+    // cache without this information. To avoid flashing the
+    // screen repainting it with this new information, we request
+    // a new cache refresh if we are adding the info to a node
+    // that belongs to the cache. Because we are throttling cache
+    // refresh requests, this shouldn't be too expensive.
+    // Life can be hard sometimes.
+    if (Cache.enabled && link.dataset.cache) {
+      cacheContactsList();
     }
   }
 
@@ -1199,29 +1287,21 @@ contacts.List = (function() {
   };
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
-    if (!Contacts.asyncScriptsLoaded) {
-      // delay loading if they're not there yet
-      window.addEventListener('asyncScriptsLoaded', function listener() {
-        window.removeEventListener('asyncScriptsLoaded', listener);
-
-        getContactsByGroup(errorCb, contacts);
-      });
-      return;
-    }
-    notifiedAboveTheFold = false;
-    if (contacts) {
-      if (!contacts.length) {
-        toggleNoContactsScreen(true);
+    return Contacts.asyncScriptsLoaded.then(() => {
+      if (contacts) {
+        if (!contacts.length) {
+          toggleNoContactsScreen(true);
+          dispatchCustomEvent('listRendered');
+          return;
+        }
+        toggleNoContactsScreen(false);
+        loadChunk(contacts);
+        onListRendered();
         dispatchCustomEvent('listRendered');
         return;
       }
-      toggleNoContactsScreen(false);
-      loadChunk(contacts);
-      onListRendered();
-      dispatchCustomEvent('listRendered');
-      return;
-    }
-    getAllContacts(errorCb, loadChunk);
+      getAllContacts(errorCb, loadChunk);
+    });
   };
 
   var getContactById = function(contactID, successCb, errorCb) {
@@ -1259,6 +1339,11 @@ contacts.List = (function() {
   };
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
+    if (Cache.active) {
+      headers = Cache.headers;
+      iceGroup = document.getElementById('section-group-ice');
+      iceGroup.addEventListener('click', onICEGroupClicked);
+    }
     loading = true;
     initConfiguration(function onInitConfiguration() {
       var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
@@ -1309,7 +1394,7 @@ contacts.List = (function() {
     var renderedNode = renderContact(contact);
 
     // We must render all values here because the contact is not saved in
-    // the loadedContacts hash when added one at a via refresh().  Therefore
+    // the loadedContacts hash when added one at  via refresh().  Therefore
     // we can not lazy render these values.
     renderSearchString(renderedNode, contact);
     renderOrderString(renderedNode, contact);
@@ -1326,7 +1411,7 @@ contacts.List = (function() {
 
     loadedContacts[contact.id][renderedNode.dataset.group] = contact;
 
-    // If is favorite add as well to the favorite group
+    // If it is favorite add as well to the favorite group
     if (isFavorite(contact)) {
       list = getGroupList('favorites');
       loadedContacts[contact.id].favorites = contact;
@@ -1451,13 +1536,11 @@ contacts.List = (function() {
   };
 
   var remove = function remove(id) {
-    // Nothing to do if we don't know about this contact
-    if (!(id in selectedContacts)) {
-      return;
-    }
-
     // Could be more than one item if it's in favorites
     var items = groupsList.querySelectorAll('li[data-uuid=\"' + id + '\"]');
+    if (!items || !items.length) {
+      return;
+    }
     // We have a node list, not an array, and we want to walk it
     Array.prototype.forEach.call(items, function removeItem(item) {
       var ol = item.parentNode;
@@ -1466,13 +1549,17 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
-    delete photosById[id];
+    if (photosById[id]) {
+      delete photosById[id];
+    }
     var selector = 'section header:not(.hide)';
     var visibleElements = groupsList.querySelectorAll(selector);
     var showNoContacts = visibleElements.length === 0;
     toggleNoContactsScreen(showNoContacts);
 
-    delete selectedContacts[id];
+    if (selectedContacts[id] !== undefined) {
+      delete selectedContacts[id];
+    }
   };
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact, display) {
@@ -1548,13 +1635,18 @@ contacts.List = (function() {
     }
 
     // Passed an ID, so look up contact
-    getContactById(idOrContact, function(contact, fbData) {
-      var enrichedContact = null;
-      if (fb.isFbContact(contact)) {
-        var fbContact = new fb.Contact(contact);
-        enrichedContact = fbContact.merge(fbData);
-      }
-      refreshContact(contact, enrichedContact, callback);
+    LazyLoader.load([
+     '/contacts/js/fb/fb_init.js',
+     '/contacts/js/fb_loader.js'
+    ], () => {
+      getContactById(idOrContact, function(contact, fbData) {
+        var enrichedContact = null;
+        if (fb.isFbContact(contact)) {
+          var fbContact = new fb.Contact(contact);
+          enrichedContact = fbContact.merge(fbData);
+        }
+        refreshContact(contact, enrichedContact, callback);
+      });
     });
   };
 
@@ -1602,6 +1694,7 @@ contacts.List = (function() {
       return;
     }
     iceGroup = null;
+    ICELoaded = false;
     utils.dom.removeChildNodes(groupsList);
     headers = {};
     loadedContacts = {};
@@ -2160,6 +2253,188 @@ contacts.List = (function() {
     _notifyRowOnScreenUUID = null;
   }
 
+  // After merging one or more contacts, we need to remove all the matches
+  // except the master one from the contacts list.
+  function onContactsMerged(ids) {
+    Object.keys(ids).forEach(id => {
+      if (id in selectedContacts) {
+        remove(id);
+      }
+    });
+    Cache.evict(false /* undo applied cache */,
+                true /* instant eviction */);
+  }
+
+  window.onmessage = (e) => {
+    if (e.data.type != 'duplicate_contacts_merged' || !e.data.data) {
+      return;
+    }
+    onContactsMerged(e.data.data);
+  };
+
+  /**
+   * Cache related functionality.
+   */
+
+  function getFirstChunkCache() {
+    // Get a representation of each group holding the first chunk of contacts
+    // as objects of this form:
+    // {
+    //   elementName: <string>,
+    //   attributes: <Array>,
+    //   innerHTML: <string>
+    // }
+
+    var cache = [];
+
+    var groups = Array.prototype.slice.call(groupsList.children);
+    var contactsCount = CHUNK_SIZE;
+    var lastOrderString;
+    while (contactsCount && groups.length) {
+      var group = groups.shift();
+
+      var groupCache = {};
+      groupCache.elementName = 'section';
+      groupCache.attributes = [];
+      for (var j = 0; j < group.attributes.length; j++) {
+        groupCache.attributes.push({
+          name: group.attributes[j].nodeName,
+          value: group.attributes[j].value
+        });
+      }
+
+      var section = document.createElement('section');
+      var header = group.querySelector('header');
+      // ICE group section has no header, only <ol> child
+      if (header) {
+        section.appendChild(header.cloneNode(true));
+      }
+
+      // We only want complete contacts until we reach CHUNK_SIZE
+      var ol = group.querySelector('ol');
+      var contacts = ol.cloneNode();
+      [].forEach.call(ol.querySelectorAll('li.contact-item'), (node) => {
+        if (!contactsCount) {
+          return;
+        }
+        contactsCount--;
+
+        if (loadedContacts && loadedContacts[node.dataset.uuid]) {
+          renderOrderString(node);
+        }
+
+        node.dataset.cache = true;
+        var contact = node.cloneNode(true);
+
+        // We cannot cache the contact image, so we get rid of them.
+        var aside = contact.querySelector('aside');
+        if (aside) {
+          aside.parentNode.removeChild(aside);
+        }
+
+        contact.dataset.status = '';
+        contact.dataset.rendered = false;
+        contact.dataset.visited = false;
+
+        lastOrderString = contact.dataset.order;
+
+        contacts.appendChild(contact);
+      });
+      section.appendChild(contacts);
+
+      groupCache.innerHTML = section.innerHTML;
+      section = null;
+      cache.push(groupCache);
+    }
+
+    return {
+      cache: cache,
+      lastOrderString: lastOrderString
+    };
+  }
+
+  var cacheRequestTimer;
+  function cacheContactsList() {
+    if (inSelectMode) {
+      return;
+    }
+    // The Cache mechanism accesses localStorage.
+    // Use the following logic to cache the contact list in a
+    // moderate pattern.
+    // 1. When a request to cache the list is received, start a
+    //    timer.
+    // 2. If another request is received while the timer is
+    //    running, reset it.
+    // 3. Once the timer fires, start caching the list.
+
+    if (cacheRequestTimer) {
+      clearTimeout(cacheRequestTimer);
+    }
+
+    cacheRequestTimer = setTimeout(() => {
+      cacheRequestTimer = null;
+      Cache.firstChunk = getFirstChunkCache();
+      // Release memory taken by the old cache.
+      Cache.cleanup();
+    }, 1000);
+  }
+
+  function removeCachedContactFromList(id) {
+    remove(id);
+    // We may also need to remove it from the list of ICE contacts.
+    ICEData.load().then((contacts) => {
+      for (var i = 0; i < contacts.length; i++) {
+        if (contacts[i].id == id) {
+          ICEData.removeICEContact(contacts[i].id);
+        }
+      }
+    });
+    // We also remove it from the cache
+    Cache.removeContact(id);
+  }
+
+  function verifyAndRebuildCache() {
+    if (!Cache.active || !Cache.length) {
+      // Everything is fine.
+      cacheContactsList();
+      return;
+    }
+
+    // If there are still contacts to consume in the cache it
+    // means that these contacts are no longer part of the contacts
+    // source, but they are still in the DOM, so we need to eliminate them.
+    // This can happen if the contacts were removed while the app
+    // was closed for instance.
+    for (var id of Cache.contacts) {
+      removeCachedContactFromList(id);
+      // If the contact is also cached as a favorite contact, we don't need to
+      // try to remove it again from the DOM when processing the pending
+      // favorites. So we simply remove them from the cache (getting the
+      // contact does the deletion from the cache).
+      if (Cache.hasFavorite(id)) {
+        Cache.getFavorite(id);
+      }
+    }
+
+    // It is possible that we have favorite contacts that are in the favorites
+    // group (which is cached for being the first group) but are also outside
+    // of the first chunk. In that case, we remove them from the favorites
+    // group.
+    for (var favId of Cache.favorites) {
+      removeCachedContactFromList(favId);
+    }
+
+    // Once we cleaned up the DOM, we can create the cache again.
+    cacheContactsList();
+  }
+
+  function onCacheEvicted() {
+    cacheContactsList();
+  }
+
+  /**
+   * API
+   */
   return {
     'init': init,
     'load': load,
@@ -2196,6 +2471,11 @@ contacts.List = (function() {
       return inSelectMode;
     },
     'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID,
-    'toggleICEGroup': toggleICEGroup
+    'toggleICEGroup': toggleICEGroup,
+    // For testing purposes only
+    set ICELoaded(loaded) {
+      ICELoaded = loaded;
+    },
+    'loadVisibilityMonitor': loadVisibilityMonitor
   };
 })();

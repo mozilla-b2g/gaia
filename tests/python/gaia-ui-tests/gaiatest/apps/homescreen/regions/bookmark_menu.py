@@ -2,14 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+import time
+
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -32,6 +27,8 @@ class BookmarkMenu(Base):
         element = Wait(self.marionette).until(expected.element_present(
             *self._add_bookmark_to_home_screen_dialog_button_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
+        # This sleep is necessary for the button to react to the tap call
+        time.sleep(0.2)
         element.tap()
 
         # Wait for the Add to bookmark frame to be dismissed

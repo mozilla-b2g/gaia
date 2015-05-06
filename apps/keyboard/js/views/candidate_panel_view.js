@@ -159,7 +159,8 @@ CandidatePanelView.prototype.renderCandidatePanel = function(rowLimit,
 
     // TODO: we should not create a business logic object in the view,
     // let's move it to somewhere else.
-    var candidateView =  new CandidateView({ selection: true,
+    var candidateView =  new CandidateView({ suggestion: true,
+                                             selection: true,
                                              text: cand,
                                              data: data },
                                            { unit: unit },

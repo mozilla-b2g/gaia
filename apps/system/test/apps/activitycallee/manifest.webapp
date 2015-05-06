@@ -1,0 +1,33 @@
+{
+  "name": "Fake Activity Callee with inline deposition",
+  "description": "A fake activity callee",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "fullscreen": true,
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "test-alert": {
+      "disposition": "inline",
+      "href": "index.html",
+      "returnValue": true
+    },
+    "test-chain-inline": {
+      "disposition": "inline",
+      "href": "chain.html",
+      "returnValue": true
+    },
+    "view": {
+      "disposition": "inline",
+      "href": "defaulttest.html",
+      "filters": {
+        "type": {
+          "required": true,
+          "value": ["url"]
+        }
+      }
+    }
+  }
+}

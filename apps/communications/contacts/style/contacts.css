@@ -6,10 +6,15 @@
 }
 
 /* Fav star in header */
-#contact-name-title.favorite {
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 3rem;
-  padding-right: 3rem;
-  margin-right: -1rem;
+.favorite-indicator {
+  display: none;
+
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center / 3rem;
+  padding: 0 1rem;
+}
+
+.favorite .favorite-indicator {
+  display: unset;
 }
 
 section[role="region"] > gaia-header .icon.icon-edit-contact {
@@ -96,7 +101,7 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .view-contact-profile .view-body-inner.up {
-  transition: transform 0.5s ease-out;
+  transition: transform var(--transition-duration) ease-out;
 }
 
 .view-contact-profile .view-body-inner hr {
@@ -340,6 +345,7 @@ form p textarea + button[type="reset"].hide {
   margin-left: 0 !important;
 }
 
+#contact-detail p > strong,
 #contact-detail bdi > strong,
 .action-block b,
 .comment-notes {
@@ -562,7 +568,10 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 
 /* Extending BB buttons Icons at left side*/
 #view-settings [data-type="list"] li button.icon {
-  padding: 1.2rem 1.3rem 1.2rem 4rem;
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
+  -moz-padding-end: 1.3rem;
+  -moz-padding-start: 4rem;
 }
 
 #view-settings [data-type="list"] li button.icon:before {
@@ -575,7 +584,10 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
 }
 
 #import-settings [data-type="list"] li button.icon {
-  padding: 1rem 1.3rem 1rem 4rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  -moz-padding-end: 1.3rem;
+  -moz-padding-start: 4rem;
 }
 
 #import-settings [data-type="list"] li button.icon:before {
@@ -916,7 +928,7 @@ form[role="combobox"] span[data-field="type"] {
   color: #5f5f5f;
   height: 5rem;
   vertical-align: middle;
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
   margin: 0;
 }
 
@@ -1007,6 +1019,19 @@ li button[data-field-type]:active {
   color: #5F5F5F;
 }
 
+/* Ellipsis fix for contact lists */
+/*we hijack the overflow and text-overflow
+ * of the shared style to make the ellipsis display always at the end
+ * (ie right for LTR string and left for RTL string)
+ * while keeping alignment of the current system-wide language */
+[data-type="list"] li.contact-item bdi,
+li button.icon-email bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
 /* RTL View */
 
 html[dir="rtl"] .field-template {
@@ -1049,4 +1074,53 @@ html[dir="rtl"] #view-settings [data-type="list"] li button.icon:before {
 
 html[dir="rtl"] .img-delete-button {
   background-position: 100% 0;
+}
+
+html[dir="rtl"] #import-settings [data-type="list"] li button.icon:before {
+  left: auto;
+  right: 0.5rem;
+}
+
+/* RTL View */
+html[dir="rtl"] nav[data-type="scrollbar"] {
+  direction: ltr;
+  right: 0;
+  left: unset;
+}
+
+html[dir="rtl"] nav[data-type="scrollbar"] p {
+  left: unset;
+  right: 10rem;
+}
+
+/* TODO: Remove this workaround once bug 883884 fixed */
+.ellipsis-dir-fix {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Overwrite input-areas bb */
+#custom-tag-reset {
+  right: 1rem;
+}
+
+html[dir="rtl"] #custom-tag-reset {
+  left: 1rem;
+  right: unset;
+}
+
+#multiple-select-view aside {
+  border-bottom: 0.1rem solid #FFFFFF;
+  margin-right: 0;
+  padding-right: 1.5rem;
+}
+
+/* Force align with system because dir="auto" will ignore text-align: start*/
+.force-align[dir="auto"] {
+  text-align: left;
+}
+
+html[dir="rtl"] .force-align[dir="auto"] {
+  text-align: right;
 }

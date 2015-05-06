@@ -4,7 +4,7 @@ define(function(require) {
 var Factory = require('test/support/factory');
 var IntervalTree = require('interval_tree');
 var Overlap = require('utils/overlap');
-var Timespan = require('timespan');
+var Timespan = require('common/timespan');
 
 suite('overlap', function() {
   var forever;

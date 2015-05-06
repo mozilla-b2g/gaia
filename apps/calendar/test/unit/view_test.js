@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var View = require('view');
 
 suite('view', function() {

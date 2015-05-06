@@ -1,24 +1,33 @@
-/* globals onLoadDialer, MockKeypadManager, MocksHelper */
+/* globals onLoadDialer, MockKeypadManager, MockL10n, MocksHelper */
 
 'use strict';
 
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_lazy_l10n.js');
-require('/shared/js/usertiming.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_navbar_manager.js');
 
 var mocksHelperForIndex = new MocksHelper([
   'CallHandler',
   'KeypadManager',
-  'LazyL10n',
   'LazyLoader',
   'NavbarManager'
 ]).init();
 
 suite('index.js', function() {
+  var realMozL10n;
+
   mocksHelperForIndex.attachTestHelpers();
+
+  suiteSetup(function() {
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realMozL10n;
+  });
 
   setup(function(done) {
     require('/dialer/js/index.js', done);

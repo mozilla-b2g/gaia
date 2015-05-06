@@ -114,6 +114,7 @@ suite('Keypad', function() {
     test('Adds active class to keys when pressed', function() {
       var fakeEvent = {
         target: document.createElement('div'),
+        preventDefault: function() {},
         stopPropagation: function() {},
         type: null
       };

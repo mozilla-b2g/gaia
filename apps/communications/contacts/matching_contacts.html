@@ -9,8 +9,9 @@
     <title>Merge duplicates</title>
 
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/matcher/matcher.{locale}.properties">
+    <link rel="localization" href="shared/locales/phone_types/phone_types.{locale}.properties">
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
 
     <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
@@ -47,7 +48,7 @@
   <body role="application" class="skin-comms">
     <section role="region">
       <gaia-header id="merge-header" action="close">
-        <h1 id="title" data-l10n-id="mergeDuplicateTitle">Merge duplicates</h1>
+        <h1 id="title" data-l10n-id="mergeDuplicateTitle"></h1>
       </gaia-header>
 
       <section id="main">
@@ -65,8 +66,12 @@
               <aside class="pack-end">
                 <img data-src="#thumb#">
               </aside>
-              <p>#displayName#</p>
-              <p class="match-main-reason">#mainReason#</p>
+              <p>
+                <bdi class="ellipsis-dir-fix">#displayName#</bdi>
+              </p>
+              <p class="match-main-reason">
+                <bdi class="ellipsis-dir-fix">#mainReason#</bdi>
+              </p>
             </li>
           </ol>
         </section> <!-- contacts-list-container -->

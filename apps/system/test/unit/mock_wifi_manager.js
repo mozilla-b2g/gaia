@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockWifiManager */
 
 var MockWifiManager = {
   connection: {

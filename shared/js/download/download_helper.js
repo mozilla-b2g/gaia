@@ -503,6 +503,20 @@ var DownloadHelper = (function() {
       var req;
       var show = DownloadUI.show;
 
+      // Canceled activites are normal and shouldn't be interpreted as errors.
+      // Unfortunately, this isn't reported in a standard way by our
+      // applications (or third party apps for that matter). This is why we
+      // have this lazy filter here that may need to be updated in the future
+      // but hopefully will just get removed.
+      if (error.message &&
+          (error.message.endsWith('canceled') ||
+           error.message.endsWith('cancelled'))) {
+        // Since this isn't actually an error, we invoke the callback with null.
+        cb && cb(null);
+        // and return early.
+        return;
+      }
+
       switch (error.code) {
         case CODE.NO_SDCARD:
         case CODE.UNMOUNTED_SDCARD:
@@ -526,7 +540,6 @@ var DownloadHelper = (function() {
           req.onconfirm = function tfoeOnConfirm() {
             showRemoveFileUI(download, cb);
           };
-
           break;
       }
 

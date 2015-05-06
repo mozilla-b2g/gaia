@@ -14,7 +14,7 @@ Ftu.clientOptions = {
     'dom.w3c_touch_events.enabled': 1
   },
   settings: {
-    'lockscreen.enabled': false
+    'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp'
   }
 };
 

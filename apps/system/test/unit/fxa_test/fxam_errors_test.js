@@ -1,3 +1,4 @@
+/* global FxaModuleErrors, MockL10n */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -56,6 +57,14 @@ suite('Error manager', function() {
 
   teardown(function() {
     response = null;
+  });
+
+  test('copppa error called twice - bug 1137354', function() {
+    var registerElementStub = this.sinon.stub(document, 'registerElement');
+
+    FxaModuleErrors.responseToParams({error: 'COPPA_ERROR'});
+    FxaModuleErrors.responseToParams({error: 'COPPA_ERROR'});
+    assert.ok(registerElementStub.calledOnce);
   });
 
   Object.keys(errorsObject).forEach(function(key) {

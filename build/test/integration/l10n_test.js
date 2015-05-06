@@ -1,8 +1,5 @@
 'use strict';
 
-/* jshint node:true */
-/* global suite, suiteSetup, suiteTeardown, test */
-
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
@@ -14,8 +11,9 @@ suite('L10n logic tests', function() {
     'build', 'config', 'phone', 'apps-engineering.list');
   var apps = [
     'apps/*',
-    'dev_apps/test-l10n-optimize',
-    'dev_apps/test-l10n-missing',
+    'build/test/fixtures/test-l10n-optimize',
+    'build/test/fixtures/test-l10n-missing',
+    'build/test/fixtures/test-l10n-duplicates',
     '' // a line-break is required at the end of an apps file
   ];
 
@@ -59,6 +57,19 @@ suite('L10n logic tests', function() {
           stdout,
           'L10nError: "entity0" not found in en-US in ' +
             'app://test-l10n-missing.gaiamobile.org');
+        done();
+      }
+    );
+  });
+
+  test('make test-l10n-duplicates detects a duplicate string', function(done) {
+    helper.exec('APP=test-l10n-duplicates make',
+      function(error, stdout, stderr) {
+        assert.isNotNull(error, 'Expected a "make" error');
+        assert.include(
+          stdout,
+          'L10nError: Duplicate string "entity1" found in ' +
+            'app://test-l10n-duplicates.gaiamobile.org');
         done();
       }
     );

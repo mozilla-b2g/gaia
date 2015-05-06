@@ -5,6 +5,8 @@
     <meta charset="utf-8" />
     <meta name="theme-color" content="#242d33">
     <title>Gallery</title>
+
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
@@ -12,23 +14,38 @@
     <!-- Reponsive design for tiny & large device -->
     <link rel="stylesheet" href="style/gallery_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
-    <!-- this file is loaded lazily but is listed here so it gets packaged
+    <!-- These file are loaded lazily but listed here to get packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css" />
     -->
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/gallery.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
-    <!-- Shared code -->
-    <script defer src="shared/js/usertiming.js"></script>
-    <script defer src="shared/js/performance_testing_helper.js"></script>
+
+    <!-- This batch of scripts is the critical startup code that we
+      want to run as soon as possible. Thumbnails.js creates a MediaDB
+      instance and starts enumerating it and building the
+      thumbnails. The files that come before it are its
+      dependencies. The rest of the application startup is at the end
+      of the scripts in startup.js. I have tried converting these to
+      non-deferred, thinking that that will get them running faster,
+      but in practice (on a quad core nexus 5), the app starts more
+      quickly if everything is deferred.  -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
-    <script defer src="shared/js/template.js"></script>
-    <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
+    <script defer src="js/globals.js"></script>
+    <script defer src="js/thumbnail_item.js"></script>
+    <script defer src="js/thumbnail_date_group.js"></script>
+    <script defer src="js/thumbnail_list.js"></script>
+    <script defer src="js/thumbnails.js"></script>
+
+    <!-- Shared code -->
+    <script defer src="shared/js/performance_testing_helper.js"></script>
+    <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
@@ -46,17 +63,15 @@
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
 
-    <!-- Specific code -->
+    <!-- More application code. startup.js launches the app -->
     <script defer src="js/config.js"></script>
     <script defer src="js/utils.js"></script>
-    <script defer src="js/thumbnail_item.js"></script>
-    <script defer src="js/thumbnail_date_group.js"></script>
-    <script defer src="js/thumbnail_list.js"></script>
     <script defer src="js/ensure_file_backed_blob.js"></script>
     <script defer src="js/spinner.js"></script>
     <script defer src="js/overlay.js"></script>
     <script defer src="js/nfc.js"></script>
     <script defer src="js/gallery.js"></script>
+    <script defer src="js/startup.js"></script>
   </head>
 
   <body role="application" class="theme-media">
@@ -65,7 +80,7 @@
     <section role="region" id="thumbnail-views" class="skin-dark">
       <!-- This header only shown on tablet view  -->
       <gaia-header id="thumbnails-list-top" class="thumbnails-list">
-        <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
+        <h1 id="thumbnail-list-title" data-l10n-id="gallery"></h1>
       </gaia-header>
       <gaia-header id="selected-header" class="thumbnails-select" action="close">
         <h1 id="thumbnails-number-selected"></h1>
@@ -74,9 +89,13 @@
         <h1 id="pick-header-title" data-l10n-id="pickoneimage2"></h1>
       </gaia-header>
 
-      <!-- This element gets positioned over different view elements -->
-      <!-- It gets styled differently depending on what it is over -->
-      <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
+      <!-- This is a placeholder element marking where the list of
+           thumbnails should be inserted into the document. When the
+           real list of thumbnails is inserted, it will have id
+           "thumbnails".  This list of thumbnails is displayed in
+           normal thumbnail list mode, in select mode, and in pick
+           mode, and its styling depends on what mode we're in.  -->
+      <ul id="thumbnails-placeholder"></ul>
 
       <footer class="thumbnails-list" role="toolbar">
         <a id="thumbnails-camera-button" class="button" data-icon="camera" data-l10n-id="camera-button" role="button"></a>
@@ -90,7 +109,7 @@
 
     <section role="region" id="fullscreen-view" class="skin-dark">
       <gaia-header id="fullscreen-toolbar-header" action="back" class="large-only">
-        <h1 data-l10n-id="gallery" id="fullscreen-title">Gallery</h1>
+        <h1 data-l10n-id="gallery" id="fullscreen-title"></h1>
         <a id="fullscreen-camera-button-large">
           <span data-icon="camera"></span>
         </a>
@@ -174,7 +193,7 @@
       <!-- this holds different options for different editing modes -->
       <!-- only one set of options will be visible at a time -->
       <div id="edit-options">
-        <div id="exposure-slider" class="edit-options-bar hidden">
+        <div id="exposure-slider" class="edit-options-bar hidden" role="slider" aria-valuemax="3" aria-valuemin="-3" aria-valuenow="0">
           <div id="sliderbar">
             <hr id="sliderline"/>
             <div id="sliderthumb"></div>
@@ -191,11 +210,11 @@
         </div>
 
         <div id="edit-crop-options" class="edit-options-bar hidden" role="radiogroup" data-l10n-id="crop-options">
-          <a id="edit-crop-none" class="button" data-icon="undo" role="button" data-l10n-id="crop-revert"></a>
           <a id="edit-crop-aspect-free" class="selected radio button" role="radio" aria-checked="true" data-l10n-id="crop-aspect-free"></a>
           <a id="edit-crop-aspect-portrait" class="radio button" role="radio" data-l10n-id="crop-aspect-portrait"></a>
           <a id="edit-crop-aspect-landscape" class="radio button" role="radio" data-l10n-id="crop-aspect-landscape"></a>
           <a id="edit-crop-aspect-square" class="radio button" role="radio" data-l10n-id="crop-aspect-square"></a>
+          <a id="edit-crop-aspect-more" class="radio button" role="radio" data-icon="more" data-l10n-id="crop-aspect-more"></a>
         </div>
 
         <div id="edit-effect-options" class="edit-options-bar hidden" role="radiogroup" data-l10n-id="effect-options">
@@ -224,15 +243,6 @@
       </footer>
     </section>
 
-    <!-- This element is the template of each thumbnail item -->
-    <div id="thumbnail-group-header" hidden>
-      <!--
-        <li>
-          <div class="thumbnail-group-header"></div>
-          <div class="thumbnail-group-container"></div>
-        </li>
-      -->
-    </div>
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->
     <div id="progress" class="hidden">
@@ -265,6 +275,15 @@
       <menu>
         <button id="confirm-cancel"></button>
         <button id="confirm-ok"></button>
+      </menu>
+    </form>
+
+    <form id="aspect-ratio-options-view" role="dialog" data-type="action" class="hidden">
+      <menu>
+       <button type="button" id="edit-crop-aspect-3x4"><span data-l10n-id="crop-aspect-3x4">3:4</span></button>
+       <button type="button" id="edit-crop-aspect-4x3"><span data-l10n-id="crop-aspect-4x3">4:3</span></button>
+       <button type="button" id="edit-crop-aspect-16x9"><span data-l10n-id="crop-aspect-16x9">16:9</span></button>
+       <button type="button" id="aspect-ratio-options-cancel" data-l10n-id="cancel"></button>
       </menu>
     </form>
 

@@ -15,7 +15,7 @@ gaia-select > label {
   display: block;
 }
 
-gaia-select:after {
+gaia-select::after {
   content: '';
   position: absolute;
   width: 0;
@@ -29,6 +29,12 @@ gaia-select:after {
   transform: rotate(45deg);
   z-index: 1;
   pointer-events: none;
+}
+
+gaia-select:-moz-dir(rtl)::after {
+  left: 0.8rem;
+  right: unset;
+  transform: rotate(135deg);
 }
 
 select {

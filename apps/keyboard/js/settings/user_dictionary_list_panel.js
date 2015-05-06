@@ -6,12 +6,23 @@
  * The panel for the list of user dictionary words. When there is no word,
  * display a placeholder.
  *
- * We use a ES6 WeakMap to conveniently map a DOM element to the word it
- * contains. The architecture design is you never need to query a DOM element
- * from a word (a little funtional-programming sense).
+ * We want to keep the list in alphabetical order. The view does not do the
+ * sorting job -- the model keeps the list sorted, while the view merely
+ * reflects the order of the list and displays as such.
+ *
+ * Thus, the model is expected to return a full, sorted word list for each
+ * modification to the list. This includes adding a word, removing a word, and
+ * replacing a word. (The list isn't really used for removing a word, though).
+ *
+ * We use two-way mapping:
+ * - From user interaction of a word DOM element, to a word string value:
+ *   This is kept with an ES6 WeakMap.
+ * - From a word string value to a word DOM element (used to re-order a
+ *   displayed list according to the order returned from model):
+ *   This is kept with an object.
  *
  * When we're talking about "a word's DOM element", we're always referring to
- * the <a> element, and never its parent, the <li> element.
+ * the <li> element, and never its inner child, the <a> element.
  */
 
 (function(exports) {
@@ -26,8 +37,10 @@ var UserDictionaryListPanel = function(app) {
 
   this._listContainer = null;
 
-  // a WeakMap from word list's each <a> element to an actual word.
+  // a WeakMap from word list's each <li> element to an actual word.
   this._domWordMap = null;
+  // an object from an actual word to a word list's <li> element.
+  this._wordDomMap = null;
 };
 
 UserDictionaryListPanel.prototype = Object.create(BaseView.prototype);
@@ -42,6 +55,7 @@ UserDictionaryListPanel.prototype.start = function() {
   this._model.start();
 
   this._domWordMap = new WeakMap();
+  this._wordDomMap = {};
 };
 
 UserDictionaryListPanel.prototype.stop = function() {
@@ -51,6 +65,7 @@ UserDictionaryListPanel.prototype.stop = function() {
   this._listContainer = null;
   this._model.stop();
   this._domWordMap = null;
+  this._wordDomMap = null;
 };
 
 UserDictionaryListPanel.prototype.beforeShow = function(options) {
@@ -62,7 +77,7 @@ UserDictionaryListPanel.prototype.beforeShow = function(options) {
         this.container.classList.add('empty');
       } else {
         this.container.classList.remove('empty');
-        words.forEach(word => this._appendList(word.trim()));
+        this._rearrangeList(words);
       }
     }).catch(e => console.error(e));
   }
@@ -94,7 +109,7 @@ UserDictionaryListPanel.prototype.handleEvent = function(evt) {
     case 'click':
       if ('ud-addword-btn' === target.id) {
         this._showAddDialog();
-      } else if ('a' === target.tagName.toLowerCase()) {
+      } else if ('li' === target.tagName.toLowerCase()) {
         this._showEditDialog(target);
         evt.preventDefault();
       }
@@ -106,16 +121,38 @@ UserDictionaryListPanel.prototype.handleEvent = function(evt) {
   }
 };
 
-UserDictionaryListPanel.prototype._appendList = function(word) {
-  var wordElem = document.createElement('a');
-  wordElem.href = '#' + word;
-  wordElem.textContent = word;
+// Re-arrange the DOM elements for the list of words. Create related dom element
+// if needed.
+UserDictionaryListPanel.prototype._rearrangeList = function(wordList) {
+  wordList.forEach(word => {
+    word = word.trim();
 
-  var li = document.createElement('li');
-  li.appendChild(wordElem);
-  this._listContainer.appendChild(li);
+    var wordElem;
 
-  this._domWordMap.set(wordElem, word);
+    if (word in this._wordDomMap) {
+      wordElem = this._wordDomMap[word];
+    } else {
+      wordElem = this._createWordElem(word);
+    }
+
+    // DOM spec says we don't need to removeChild() before calling appendChild
+    // so we merely call appendChild regardless whether we created a LI or not.
+    this._listContainer.appendChild(wordElem);
+  });
+};
+
+UserDictionaryListPanel.prototype._createWordElem = function(word) {
+  var innerAnchor = document.createElement('a');
+  innerAnchor.href = '#' + word;
+  innerAnchor.textContent = word;
+
+  var elem = document.createElement('li');
+  elem.appendChild(innerAnchor);
+
+  this._domWordMap.set(elem, word);
+  this._wordDomMap[word] = elem;
+
+  return elem;
 };
 
 UserDictionaryListPanel.prototype._showAddDialog = function() {
@@ -156,10 +193,10 @@ UserDictionaryListPanel.prototype._addWord = function(word) {
 
   if (word.length > 0) {
     var awakeLock = this.app.closeLockManager.requestLock('stayAwake');
-    this._model.addWord(word).then(() => {
+    this._model.addWord(word).then(wordList => {
       awakeLock.unlock();
       this.container.classList.remove('empty');
-      this._appendList(word);
+      this._rearrangeList(wordList);
     }).catch(e => {
       awakeLock.unlock();
       if ('existing' === e) {
@@ -177,8 +214,9 @@ UserDictionaryListPanel.prototype._removeWord = function(word, wordElem) {
     awakeLock.unlock();
 
     this._domWordMap.delete(wordElem);
+    delete this._wordDomMap[word];
 
-    this._listContainer.removeChild(wordElem.parentNode);
+    this._listContainer.removeChild(wordElem);
 
     if (0 === this._listContainer.childNodes.length) {
       this.container.classList.add('empty');
@@ -195,17 +233,23 @@ function(oldWord, newWord, wordElem){
 
   if (newWord.length > 0 && oldWord !== newWord) {
     var awakeLock = this.app.closeLockManager.requestLock('stayAwake');
-    this._model.updateWord(oldWord, newWord).then(() => {
+    this._model.updateWord(oldWord, newWord).then(wordList => {
       awakeLock.unlock();
 
       this._domWordMap.set(wordElem, newWord);
-      wordElem.textContent = newWord;
+      delete this._wordDomMap[oldWord];
+      this._wordDomMap[newWord] = wordElem;
+
+      wordElem.childNodes[0].textContent = newWord;
+
+      this._rearrangeList(wordList);
     }).catch(e => {
       awakeLock.unlock();
 
       if ('existing' === e) {
         this._domWordMap.delete(wordElem);
-        this._listContainer.removeChild(wordElem.parentNode);
+        delete this._wordDomMap[oldWord];
+        this._listContainer.removeChild(wordElem);
       } else {
         console.error(e);
       }

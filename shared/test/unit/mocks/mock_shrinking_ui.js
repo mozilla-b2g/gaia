@@ -18,3 +18,5 @@ MockShrinkingUI.prototype.stop = function() {
 MockShrinkingUI.prototype.isActive = function() {
   return this.mActive;
 };
+
+MockShrinkingUI.prototype.respondToHierarchyEvent = function() {};

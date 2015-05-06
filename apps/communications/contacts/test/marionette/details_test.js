@@ -110,7 +110,7 @@ marionette('Contacts > Details', function() {
 
     // Click on favorite
     client.helper.waitForElement(selectors.detailsFavoriteButton).click();
-    nameNode = client.helper.waitForElement(selectors.detailsContactName);
+    nameNode = client.helper.waitForElement(selectors.detailsHeader);
     client.waitFor(function() {
       return nameNode.getAttribute('class').indexOf('favorite') != -1;
     });

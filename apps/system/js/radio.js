@@ -1,4 +1,4 @@
-/* global BaseModule */
+/* global BaseModule, MobileConnectionIcon, OperatorIcon, LazyLoader */
 
 'use strict';
 
@@ -21,11 +21,10 @@
     this._setRadioOpCount = 0;
 
     /*
-     * An internal array storing the expecting radio states.
-     *
-     * @default {Boolean} false
+     * Data connection type mapping result
      */
-    this._expectedRadioStates = [];
+    this.types = [];
+    this.states = [];
 
     /*
      * An internal key used to track whether there is any error
@@ -43,12 +42,36 @@
 
   Radio.EVENTS = [
     'airplanemode-enabled',
-    'airplanemode-disabled'
+    'airplanemode-disabled',
+    'callschanged'
+  ];
+
+  Radio.SETTINGS = [
+    'operatorResources.data.icon'
+  ];
+
+  Radio.STATES = [
+    'enabled',
+    'isCDMA',
+    'getDataConnectionType'
   ];
 
   BaseModule.create(Radio, {
     name: 'Radio',
     EVENT_PREFIX: 'radio',
+
+    isCDMA: function(index) {
+      return !!this.dataExclusiveCDMATypes[
+              this.mobileConnections[index].data.type];
+    },
+
+    getDataConnectionType: function(index) {
+      return this.types[index];
+    },
+
+    '_handle_callschanged': function() {
+      this.icon && this.icon.updateData();
+    },
 
     '_handle_airplanemode-enabled': function() {
       this.enabled = false;
@@ -58,25 +81,39 @@
       this.enabled = true;
     },
 
-    /*
-     * Checks if the state change is expected. If not, we should re-enable the
-     * radio when necessary.
-     */
-    _onRadioStateChange: function(conn, index) {
-      this.debug('radiostatechange: [' + index + '] ' + conn.radioState);
-      if (this._expectedRadioStates[index] !== null) {
-        // we are expecting radio state changes
-        if (this._expectedRadioStates[index] &&
-            conn.radioState === 'enabled' ||
-            !this._expectedRadioStates[index] &&
-            conn.radioState === 'disabled') {
-          // clear the expected state if the real state meets the expection.
-          this._expectedRadioStates[index] = null;
-        }
-      } else {
-        // there is an unexpected radio state change from gecko
-        this._reEnableRadioIfNeeded(conn, index);
+    '_observe_operatorResources.data.icon': function(value) {
+      var dataIconValues = value;
+      if (!dataIconValues) {
+        return;
       }
+
+      for (var key in dataIconValues) {
+        //Change only dataIcon values that actually really know
+        if (this.mobileDataIconTypes[key]) {
+          this.mobileDataIconTypes[key] = dataIconValues[key];
+        }
+      }
+    },
+
+    _onDataChange: function(conn, index) {
+      this.types[index] = this.mobileDataIconTypes[conn.data.type];
+      if (this.mobileConnections.length === 1) {
+        this.operatorIcon.update();
+      }
+      this.icon && this.icon.update(index);
+      this.icon && this.icon.updateData(index);
+    },
+
+    _onVoiceChange: function(conn, index) {
+      if (this.operatorIcon && this.mobileConnections.length === 1) {
+        this.operatorIcon.update();
+      }
+      this.icon && this.icon.update(index);
+    },
+
+    _onRadioStateChange: function(conn, index) {
+      this.icon && this.icon.update(index);
+      this.debug('radiostatechange: [' + index + '] ' + conn.radioState);
       this.publish('statechange', {
         index: index,
         state: conn.radioState
@@ -88,10 +125,49 @@
      * is ok to do following operations.
      */
     _start: function() {
+      this.dataExclusiveCDMATypes = {
+        'evdo0': true, 'evdoa': true, 'evdob': true, // data call only
+        '1xrtt': true, 'is95a': true, 'is95b': true  // data call or voice call
+      };
+      /* A mapping table between technology names
+         we would get from API v.s. the icon we want to show. */
+      this.mobileDataIconTypes = {
+        'lte': '4G', // 4G LTE
+        'ehrpd': '4G', // 4G CDMA
+        'hspa+': 'H+', // 3.5G HSPA+
+        'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
+        'evdo0': 'Ev', 'evdoa': 'Ev', 'evdob': 'Ev', // 3G CDMA
+        'umts': '3G', // 3G
+        'edge': 'E', // EDGE
+        'gprs': '2G',
+        '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x' // 2G CDMA
+      };
+      this.service.request('stepReady', '#languages').then(function() {
+        this.debug('step is resolved.');
+        LazyLoader.load(['js/roaming_icon.js', 
+                         'js/signal_icon.js',
+                         'js/mobile_connection_icon.js']).then(function() {
+                            this._stepReady = true;
+                            this.icon = new MobileConnectionIcon(this);
+                            this.icon.start();
+                         }.bind(this)).catch(function(err) {
+                           console.error(err);
+                         });
+      }.bind(this));
+      LazyLoader.load(['js/operator_icon.js']).then(function() {
+        this.operatorIcon = new OperatorIcon(this);
+        this.operatorIcon.start();
+      }.bind(this)).catch(function(err) {
+        console.error(err);
+      });
       this.mobileConnections.forEach(function(conn, index) {
-        this._expectedRadioStates.push(null);
+        this.types.push('');
         conn.addEventListener('radiostatechange',
           this._onRadioStateChange.bind(this, conn, index));
+        conn.addEventListener('datachange',
+          this._onDataChange.bind(this, conn, index));
+        conn.addEventListener('voicechange',
+          this._onVoiceChange.bind(this, conn, index));
       }, this);
       this.service.request('AirplaneMode:registerNetwork', 'radio', this);
       var airplaneMode = this.service.query('AirplaneMode.isActive');
@@ -139,9 +215,6 @@
      * @param {Boolean} enabled
      */
     _doSetRadioEnabled: function(conn, enabled, index) {
-      // Set the expected state so that we can tell whether a radio change
-      // results from gaia or gecko.
-      this._expectedRadioStates[index] = enabled;
       this.debug('Real operation to turn ' + (enabled ? 'on' : 'off') +
         ' for ' + index + ' connection.');
       var self = this;
@@ -183,12 +256,6 @@
           '-enabled' : '-disabled';
 
         this.publish(evtName);
-      }
-    },
-
-    _reEnableRadioIfNeeded: function(conn) {
-      if (conn.radioState === 'disabled' && this.enabled) {
-        this._setRadioEnabled(conn, true);
       }
     }
   }, {

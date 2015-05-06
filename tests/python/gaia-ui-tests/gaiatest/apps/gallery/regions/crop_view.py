@@ -2,19 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.errors import FrameSendFailureError
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.errors import FrameSendFailureError
+import time
+
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
 
 from gaiatest.apps.base import Base
-import time
 
 
 class CropView(Base):
@@ -37,7 +30,7 @@ class CropView(Base):
     def tap_crop_done(self):
         try:
             self.marionette.find_element(*self._crop_done_button_locator).tap()
-        except FrameSendFailureError:
+        except (FrameSendFailureError, NoSuchWindowException):
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass
 

@@ -711,11 +711,18 @@ contacts.Form = (function() {
       isIceContact(currentContact, function(result) {
         if (result === true) {
           var msgId = 'ICEContactDelTel';
-          var phoneNumberInput = document.getElementById('number_0');
-          var phoneNumberValue = phoneNumberInput &&
-                                                phoneNumberInput.value.trim();
+          var selector = 'div:not([data-template]) .textfield[type="tel"]';
+          var telInputs = document.querySelectorAll(selector);
+          var hasNumber = false;
 
-          if (counters.tel === 0 || (counters.tel === 1 && !phoneNumberValue)) {
+          for (var i = 0, len = telInputs.length; i < len; i++) {
+            if (telInputs[i].value.trim()) {
+              hasNumber = true;
+              break;
+            }
+          }
+
+          if (!hasNumber) {
             msgId = 'ICEContactDelTelAll';
             ICEData.removeICEContact(currentContact.id);
           }
@@ -854,7 +861,8 @@ contacts.Form = (function() {
 
               // List of duplicate contacts to merge (identifiers)
               var list = [];
-              Object.keys(data.data).forEach(function(id) {
+              var ids = data.data;
+              Object.keys(ids).forEach(id => {
                 list.push(results[id]);
               });
 
@@ -867,7 +875,7 @@ contacts.Form = (function() {
 
                 window.postMessage({
                   type: 'duplicate_contacts_merged',
-                  data: ''
+                  data: ids
                 }, fb.CONTACTS_APP_ORIGIN);
               });
 
@@ -1410,8 +1418,10 @@ contacts.Form = (function() {
                  function(resized) {
                    Contacts.updatePhoto(resized, thumb);
                    currentPhoto = resized;
-                   // We temporarily mark that there is a local photo chosen
-                   deviceContact.photo = [currentPhoto];
+                   if (fb.isFbContact(currentContact)) {
+                     // We temporarily mark that there is a local photo chosen
+                     deviceContact.photo = [currentPhoto];
+                   }
                  });
     };
 

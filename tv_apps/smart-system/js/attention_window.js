@@ -1,4 +1,4 @@
-/* global AppWindow */
+/* global AppWindow, focusManager */
 'use strict';
 
 (function(exports) {
@@ -62,6 +62,7 @@
     if (this._DEBUG) {
       AttentionWindow[this.instanceID] = this;
     }
+    focusManager.addUI(this);
     this.publish('created');
   };
 

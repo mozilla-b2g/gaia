@@ -7,7 +7,7 @@
 ---
 params:
   # Default properties
-  provisionerId: 'aws-provisioner'
+  provisionerId: 'aws-provisioner-v1'
   workerType: gaia
   # Location in image where we store the gaia contents.
   gaia: '/home/tester/git_checkout'
@@ -15,8 +15,9 @@ params:
 # All task definitions
 definitions:
   build_unit:
+
   build_integration:
-    chunks: 4
+    chunks: 10
 
   gaia_ui_tests:
     chunks: 30

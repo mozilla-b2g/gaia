@@ -114,7 +114,14 @@ Provider.prototype = {
         result.dataset[i] = config.dataset[i];
       }
 
-      title.textContent = config.title || config.url;
+      if (config.title) {
+        title.setAttribute('dir', 'auto');
+        title.textContent = config.title;
+      } else {
+        title.setAttribute('dir', 'ltr');
+        title.textContent = config.url;
+      }
+
       if (config.meta) {
         meta.textContent = config.meta;
         // Expose meta infrormation as a helpful description for each result.
@@ -142,9 +149,9 @@ Provider.prototype = {
       result.appendChild(iconWrapper);
       result.appendChild(description);
       frag.appendChild(result);
-      
+
       if (!config.icon) {
-        this.updateIcon(config, iconWrapper); 
+        this.updateIcon(config, iconWrapper);
       }
     }, this);
     return frag;

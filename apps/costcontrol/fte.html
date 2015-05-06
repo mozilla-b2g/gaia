@@ -43,7 +43,6 @@
   <script type="text/javascript" src="shared/js/async_storage.js"></script>
   <script type="text/javascript" src="shared/js/settings_listener.js"></script>
   <script type="text/javascript" src="shared/js/lazy_loader.js"></script>
-  <script type="text/javascript" defer src="shared/js/usertiming.js"></script>
   <script type="text/javascript" defer src="shared/js/performance_testing_helper.js"></script>
 
   <!-- Gaia Components -->
@@ -65,7 +64,7 @@
    <!-- Global Step 1 -->
     <section role="region" class="view step" data-viewport="" id="step-1">
       <gaia-header>
-        <h1 data-l10n-id="fte-welcome-title">Welcome</h1>
+        <h1 data-l10n-id="fte-welcome-title"></h1>
       </gaia-header>
       <section class="content vbox">
         <div class="authed-sim" hidden>
@@ -87,7 +86,7 @@
     <!-- Step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="step-2">
       <gaia-header>
-        <h1 data-l10n-id="fte-plantype-title">Type of contract</h1>
+        <h1 data-l10n-id="fte-plantype-title"></h1>
       </gaia-header>
       <ul class="content choices">
         <li class="active">
@@ -117,7 +116,7 @@
     <!-- Prepaid step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="prepaid-step-2">
       <gaia-header>
-        <h1 data-l10n-id="fte-prepaid2-title">Low balance alert</h1>
+        <h1 data-l10n-id="fte-prepaid2-title"></h1>
       </gaia-header>
       <section class="content">
         <ul class="settings">
@@ -150,7 +149,7 @@
     <!-- Prepaid step 3 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="prepaid-step-3">
       <gaia-header>
-        <h1 data-l10n-id="fte-prepaid3-title">Data Report and Alert</h1>
+        <h1 data-l10n-id="fte-prepaid3-title"></h1>
       </gaia-header>
       <section class="content">
         <ul class="settings">
@@ -244,7 +243,7 @@
     <!-- Postpaid step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="postpaid-step-2">
       <gaia-header>
-        <h1 data-l10n-id="fte-postpaid2-title">Phone and Data Report</h1>
+        <h1 data-l10n-id="fte-postpaid2-title"></h1>
       </gaia-header>
        <ul class="content settings">
         <li class="vbox">
@@ -324,7 +323,7 @@
     <!-- Postpaid step 3 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="postpaid-step-3">
       <gaia-header>
-        <h1 data-l10n-id="fte-postpaid3-title">Data Alert</h1>
+        <h1 data-l10n-id="fte-postpaid3-title"></h1>
       </gaia-header>
       <section class="content">
         <ul class="settings">
@@ -356,7 +355,7 @@
     <!-- Non VIVO step 2 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="non-vivo-step-1">
       <gaia-header>
-        <h1 data-l10n-id="fte-onlydata2-title">Data Report</h1>
+        <h1 data-l10n-id="fte-onlydata2-title"></h1>
       </gaia-header>
       <ul class="content settings">
         <li class="vbox">
@@ -436,7 +435,7 @@
     <!-- Non VIVO step 3 -->
     <section role="region" class="view step gaia-list" data-viewport="right" id="non-vivo-step-2">
       <gaia-header>
-        <h1 data-l10n-id="fte-onlydata3-title">Data Alert</h1>
+        <h1 data-l10n-id="fte-onlydata3-title"></h1>
       </gaia-header>
       <ul class="content settings">
         <li class="active">
@@ -467,7 +466,7 @@
   <!-- Data usage limits -->
   <section aria-labelledby="limit-dialog-heading" id="data-limit-dialog" role="dialog" class="view" data-viewport="bottom">
     <gaia-header id="limit-dialog-header" action="close">
-      <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header">Data Usage Limit</h1>
+      <h1 id="limit-dialog-heading" data-l10n-id="data-limit-header"></h1>
       <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
     </gaia-header>
     <section class="content" class="vbox">
@@ -479,13 +478,13 @@
       </div>
     </section>
     <form>
-      <ul class="buttons-list">
-        <li>
-          <label for="data-limit-input">
+      <ul class="buttons-list" role="presentation">
+        <li role="presentation">
+          <label for="data-limit-input" data-l10n-id="data-limit-input-label">
             <input id="data-limit-input" type="text" x-inputmode="numeric" maxlength="6" />
           </label>
         </li>
-        <li>
+        <li role="presentation">
           <button class="icon icon-dialog switch-unit-button">
             <span class="tag"></span>
           </button>

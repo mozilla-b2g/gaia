@@ -43,11 +43,20 @@ section {
 }
 
 #app-deck-grid-view {
-  /* top = (6 - 5.8)rem, left = right = (14.2 - 2.6)rem */
-  padding: 0.2rem 11.6rem 0 11.6rem;
+  /* top = (6 - 5.8)rem */
+  padding: 0.2rem 14.2rem 0;
   height: 100%;
   overflow: hidden;
   scroll-behavior: smooth;
+}
+
+#app-deck-grid-view:after {
+  content: "";
+  display: block;
+  /* app-deck-grid-view has padding-top 0.2rem, and the buttons in the first row
+     have margin-top 5.8rem, so app-deck-grid-view bottom should have height
+     5.8 + 0.2 - 2.9(button margin-bottom) = 3.1rem */
+  height: 3.1rem;
 }
 
 smart-button[type="app-button"] {

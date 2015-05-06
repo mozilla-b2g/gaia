@@ -306,6 +306,7 @@ suite('system/ChildWindowFactory', function() {
   test('Create ActivityWindow', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var spy = this.sinon.spy(window, 'ActivityWindow');
+    this.sinon.spy(app1, '_setVisibleForScreenReader');
     new ChildWindowFactory(app1);
     app1.element.dispatchEvent(new CustomEvent('_launchactivity', {
       detail: fakeActivityDetail
@@ -313,6 +314,7 @@ suite('system/ChildWindowFactory', function() {
     assert.isTrue(spy.calledWithNew());
     assert.deepEqual(spy.getCall(0).args[0], fakeActivityDetail);
     assert.deepEqual(spy.getCall(0).args[1], app1);
+    sinon.assert.calledWith(app1._setVisibleForScreenReader, false);
   });
 
   test('Create TrustedWindow', function() {
@@ -365,6 +367,7 @@ suite('system/ChildWindowFactory', function() {
     var cwf = new ChildWindowFactory(app1);
     this.sinon.stub(app1, 'isActive').returns(true);
     this.sinon.stub(app1, 'isVisible').returns(true);
+    this.sinon.spy(app1, '_setVisibleForScreenReader');
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
         detail: fakeWindowOpenPopup
@@ -377,6 +380,7 @@ suite('system/ChildWindowFactory', function() {
         }));
     assert.isTrue(stubSetOrientation.called);
     assert.isTrue(stubRequestForeground.called);
+    sinon.assert.calledWith(app1._setVisibleForScreenReader, true);
   });
 
   suite('runningFTU', function() {

@@ -20,10 +20,13 @@ gaia-menu {
   font-size: 0;
   color: #fff;
   display: block;
+  transition: transform ease-in-out var(--transition-duration),
+              visibility var(--transition-duration);
 }
 
 gaia-menu[hidden] {
-  display: none;
+  transform: translateY(100%);
+  visibility: hidden;
 }
 
 gaia-menu:before {

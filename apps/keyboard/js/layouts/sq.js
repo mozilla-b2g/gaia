@@ -6,6 +6,7 @@ Keyboards.sq = {
   autoCorrectLanguage: 'sq',
   menuLabel: 'Shqip',
   width: 11,
+  lang: 'sq',
   alt: {
     a: 'áàâäåãāæ',
     c: 'ćč',

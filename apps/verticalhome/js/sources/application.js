@@ -12,7 +12,7 @@
   var appMgr = navigator.mozApps.mgmt;
   var apps = null;
 
-  window.performance.mark('homescreenStart@System');
+  window.performance.mark('homescreenStart@system.gaiamobile.org');
 
   appMgr.getAll().onsuccess = function onsuccess(event) {
     apps = event.target.result;

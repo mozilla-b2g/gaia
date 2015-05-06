@@ -499,6 +499,50 @@ suite('Cost Control Service Hub Suite >', function() {
     }
   );
 
+  test(
+    'Get datausage per app shows browser App',
+    function(done) {
+      var expectedLastDataUsage = {
+        mobile: { total: 10000, apps: {} },
+        wifi: { total: 20000, apps: {} }
+      };
+
+      var fakeSettings = { lastDataUsage: expectedLastDataUsage };
+
+      this.sinon.stub(SimManager, 'requestDataSimIcc', function (callback) {
+        (typeof callback === 'function') && callback({iccId:'12345'});
+      });
+
+      window.ConfigManager = new MockConfigManager({
+        fakeSettings: fakeSettings
+      });
+
+      CostControl.getInstance(function(service) {
+        var manifests = [MockMozNetworkStats.APP_MANIFEST_1,
+                         Common.BROWSER_APP.manifestURL];
+        service.request({type: 'datausage', apps: manifests}, function(result) {
+          assert.equal(result.status, 'success');
+          assert.equal(Object.keys(result.data.mobile.apps).length, 2);
+
+          var apps = result.data.mobile.apps;
+          var app1 = apps[MockMozNetworkStats.APP_MANIFEST_1];
+          var browserApp = apps[Common.BROWSER_APP.manifestURL];
+
+          assert.equal(app1.total, 1047);
+          assert.equal(browserApp.total, 595);
+          assert.equal(result.data.mobile.total, app1.total + browserApp.total);
+
+          assert.equal(
+            fakeSettings.lastDataUsage.mobile.total,
+            expectedLastDataUsage.mobile.total
+          );
+
+          done();
+        });
+      });
+    }
+  );
+
   test('Querying data usage globally caches the result', function(done) {
     this.sinon.stub(SimManager, 'requestDataSimIcc').yields({iccId: '12345'});
 

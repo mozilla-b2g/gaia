@@ -100,6 +100,9 @@ cards-message-list.after .msg-list-scrollouter {
 .msg-header-item:active {
   background-color: #b1f1ff;
 }
+.msg-header-item:focus {
+  outline: 0;
+}
 
 /*
 Default data placeholder items. To limit scrolling
@@ -128,6 +131,7 @@ reflows. Foreground/background colors should be safe.
   width: .9rem;
   margin-top: -.45rem;
   border-radius: 50%;
+  visibility: hidden;
 }
 
 html:-moz-dir(rtl) .msg-header-unread-section {
@@ -137,6 +141,7 @@ html:-moz-dir(rtl) .msg-header-unread-section {
 
 .msg-header-item.unread .msg-header-unread-section {
   background-color: #2fc9ec;
+  visibility: visible;
 }
 
 .msg-header-syncing-section {
@@ -182,6 +187,9 @@ html:-moz-dir(rtl) .msg-header-unread-section {
   line-height: 2rem;
   padding: 1rem 0 0 1.5rem;
   border-bottom: 0.1rem solid #f2f2f1;
+  display: inline-flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
 }
 
 html:-moz-dir(rtl) .msg-header-details-section {
@@ -219,18 +227,14 @@ html:-moz-dir(rtl) .msg-header-avatar-section {
   right: auto;
 }
 
-.msg-header-author-and-date {
-  display: table;
-  table-layout: fixed;
-  width: -moz-available;
-}
-
 .msg-header-author {
   font-size: 1.9rem;
   font-weight: normal;
   color: #131313;
-  display: table-cell;
-  width: -moz-available;
+  flex-grow: 1;
+  flex-shrink: 1;
+  width: 0;
+  order: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -246,20 +250,27 @@ html:-moz-dir(rtl) .msg-header-author {
 }
 
 .msg-header-date {
-  -moz-padding-start: 0.5rem;
+  padding-left: 0.5rem;
   color: #8f8f8f;
   font-size: 1.5rem;
   font-weight: 400;
-  display: table-cell;
-  width: -moz-min-content;
+  flex-shrink: 0;
+  order: 2;
   white-space: nowrap;
 }
+
+html:-moz-dir(rtl) .msg-header-date {
+  padding-left: unset;
+  padding-right: 0.5rem;
+}
+
 .msg-header-item.unread .msg-header-date {
   color: #008eab;
 }
 
 .msg-header-subject {
-  display: block;
+  order: 3;
+  flex: 0 0 -moz-available;
   color: #131313;
   font-size: 1.5rem;
   font-weight: normal;
@@ -274,7 +285,8 @@ html:-moz-dir(rtl) .msg-header-subject {
 }
 
 .msg-header-snippet {
-  display: block;
+  order: 4;
+  flex: 0 0 -moz-available;
   color: #858585;
   font-size: 1.5rem;
   font-weight: 400;
@@ -301,6 +313,7 @@ html:-moz-dir(rtl) .msg-header-snippet.icon-short {
 
 .msg-header-star {
   display: block;
+  visibility: hidden;
   color: #888844;
   font-size: 150%;
 }
@@ -312,6 +325,7 @@ html:-moz-dir(rtl) .msg-header-snippet.icon-short {
   width: 2rem;
   height: 2rem;
   top: 3rem;
+  visibility: visible;
 }
 
 html:-moz-dir(rtl) .msg-header-star-starred {
@@ -321,6 +335,7 @@ html:-moz-dir(rtl) .msg-header-star-starred {
 
 .msg-header-attachments {
   display: block;
+  visibility: hidden;
 }
 
 .msg-header-attachments-yes {
@@ -330,6 +345,7 @@ html:-moz-dir(rtl) .msg-header-star-starred {
   width: 2rem;
   height: 2rem;
   top: 5rem;
+  visibility: visible;
 }
 
 html:-moz-dir(rtl) .msg-header-attachments-yes {
@@ -388,6 +404,11 @@ html:-moz-dir(rtl) .msg-header-attachments-yes {
   font-weight: 500;
   color: #5f5f5f;
   word-wrap: break-word;
+}
+
+/* Copy/paste select all could reach across the whole DOM so only scope the
+  selection to the center "active" card. Bug 1152172. */
+.center .msg-envelope-subject {
   -moz-user-select: text;
 }
 
@@ -400,8 +421,9 @@ html:-moz-dir(rtl) .msg-header-attachments-yes {
 }
 
 /* Plain text emails with their structured DOM created for the reader should
-   all have selectable text. */
-.msg-body-container * {
+   all have selectable text. Copy/paste select all could reach across the whole
+   DOM so only scope the selection to the center "active" card. Bug 1152172. */
+.center .msg-body-container * {
   -moz-user-select: text;
 }
 

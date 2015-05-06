@@ -19,6 +19,8 @@
   }
 
   AppManager.prototype = {
+    dialogVisible: false,
+
     get self() {
       return this.app;
     },
@@ -57,14 +59,21 @@
 
       switch(e.type) {
         case 'removeitem':
+          if (this.dialogVisible) {
+            return;
+          }
+
+          this.dialogVisible = true;
           if (e.detail.detail.type == 'app') {
             var request = navigator.mozApps.mgmt.uninstall(e.detail.app);
             request.onsuccess = () => {
               e.detail.removeFromGrid();
+              this.dialogVisible = false;
             };
             request.onerror = () => {
               console.error('Error while trying to remove',
                             e.detail.name, request.error);
+              this.dialogVisible = false;
             };
             break;
           }
@@ -73,7 +82,10 @@
             title: {id: 'delete-title', args: nameObj},
             body: {id: 'delete-body', args: nameObj},
             cancel: {
-              title: 'cancel'
+              title: 'cancel',
+              cb: () => {
+                this.dialogVisible = false;
+              }
             },
             confirm: {
               title: 'delete',
@@ -84,6 +96,8 @@
 
                 // handle the real removal asynchronously
                 this.handleItemRemoval(e.detail);
+
+                this.dialogVisible = false;
               }
             }
           });

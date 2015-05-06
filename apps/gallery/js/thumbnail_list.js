@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * ThumbnailList is the class reponsible for rendering all gallery content in to
  * list. It uses GroupClass to group and sort file data as ThumbnailItem.
@@ -34,10 +36,6 @@ function ThumbnailList(groupClass, container) {
   this.count = 0;
   this.groupClass = groupClass;
   this.container = container;
-
-  // If the locale changes while we're running, then we need to
-  // re-localize the dates in the group headers
-  navigator.mozL10n.ready(this.localize.bind(this));
 }
 
 ThumbnailList.prototype.addItem = function(item) {

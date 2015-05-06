@@ -1,4 +1,5 @@
 'use strict';
+/* global focusManager */
 
 (function(exports) {
 
@@ -72,6 +73,7 @@
       var button = banner.querySelector('button');
 
       if (buttonParams) {
+        focusManager.addUI(this);
         banner.dataset.button = true;
         button.setAttribute('data-l10n-id', buttonParams.labelL10nId);
         this._clickCallback = function() {
@@ -86,6 +88,7 @@
         banner.classList.remove('visible');
 
         if (buttonParams) {
+          focusManager.removeUI(this);
           if (buttonParams.dismiss && !this._clicked) {
             buttonParams.dismiss();
           }
@@ -94,9 +97,27 @@
           button.classList.remove('visible');
           this.banner.parentNode.removeChild(this.banner);
         }
+        focusManager.focus();
       }.bind(this));
-
+      focusManager.focus();
       banner.classList.add('visible');
+    },
+
+    isFocusable: function() {
+      return this._banner && this._banner.classList.contains('visible');
+    },
+
+    getElement: function() {
+      if (this.isFocusable()) {
+        return this._banner;
+      }
+    },
+
+    focus: function() {
+      if (this.isFocusable()) {
+        document.activeElement.blur();
+        this._banner.querySelector('button').focus();
+      }
     }
   };
 

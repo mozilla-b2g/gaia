@@ -7,7 +7,7 @@ var MockMozNetworkStats;
 requireApp('costcontrol/test/unit/mock_all_network_interfaces.js', function() {
 
   MockMozNetworkStats = (function() {
-
+    var system_manifest = 'app://system.gaiamobile.org/manifest.webapp';
     var samples1 = {
       'manifestURL': null,
       'network': {'type': 0, 'id': '0'},
@@ -74,6 +74,19 @@ requireApp('costcontrol/test/unit/mock_all_network_interfaces.js', function() {
           {'rxBytes': 456, 'txBytes': 567,
            'date': {'__date__': '2014-08-14T05:00:00.000Z'}},
           {'rxBytes': 567, 'txBytes': 678,
+           'date': {'__date__': '2014-08-15T05:00:00.000Z'}},
+        ]
+      },
+      'app://system.gaiamobile.org/manifest.webapp': {
+        browsingTrafficOnly: true,
+        'appManifestURL': system_manifest,
+        'network': {'type': 1, 'id': '45678'},
+        'start': {'__date__': '2014-08-14T05:00:00.000Z'},
+        'end': {'__date__': '2014-08-31T05:00:00.000Z'},
+        'data': [
+          {'rxBytes': 121, 'txBytes': 111,
+           'date': {'__date__': '2014-08-14T05:00:00.000Z'}},
+          {'rxBytes': 141, 'txBytes': 222,
            'date': {'__date__': '2014-08-15T05:00:00.000Z'}},
         ]
       }

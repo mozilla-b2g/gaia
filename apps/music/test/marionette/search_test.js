@@ -5,6 +5,7 @@ var assert = require('assert');
 var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
 var FakeControls = require('./lib/fakecontrols.js');
+var SearchHelper = require('./lib/searchhelper.js');
 /*var Statusbar = require('./lib/statusbar.js');*/
 
 marionette('Music player search', function() {
@@ -17,11 +18,6 @@ marionette('Music player search', function() {
       'device.storage.enabled': true,
       'device.storage.testing': true,
       'device.storage.prompt.testing': true
-    },
-
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
     },
 
     apps: apps
@@ -113,22 +109,39 @@ marionette('Music player search', function() {
       // check for the results in "artists"
       var resultsList = testSearchResults(Music.Selector.searchArtists, 2);
 
-      assert.equal(resultsList[1].findElement('.list-single-title').text(),
-                   'The NSA');
-      assert.equal(resultsList[1].findElement('.search-highlight').text(),
-                   'The');
+      assert.equal(SearchHelper.singleTitle(resultsList[1]), 'The NSA');
+      assert.equal(SearchHelper.highlight(resultsList[1]), 'The');
+
+      var noResult = client.findElement(Music.Selector.searchNoResult);
+      assert.ok(noResult);
+      assert.ok(!noResult.displayed());
     });
 
     test('Check simple search results in tracks.', function() {
       // check for the results in "artists"
       var resultsList = testSearchResults(Music.Selector.searchTitles, 1);
 
-      assert.equal(resultsList[0].findElement('.list-main-title').text(),
+      assert.equal(SearchHelper.mainTitle(resultsList[0]),
                    'The Ecuadorian Embassy');
-      assert.equal(resultsList[0].findElement('.search-highlight').text(),
-                   'The');
+      assert.equal(SearchHelper.highlight(resultsList[0]), 'The');
+      var noResult = client.findElement(Music.Selector.searchNoResult);
+      assert.ok(noResult);
+      assert.ok(!noResult.displayed());
     });
 
+    test('Check empty results', function() {
+      music.searchTiles('qwerty');
+
+      var view = client.findElement(Music.Selector.searchNoResult);
+
+      assert.ok(view);
+
+      client.waitFor(function() {
+        return view.displayed();
+      });
+
+      assert.ok(view.displayed());
+    });
   });
 
   suite('Search context tests', function () {
@@ -142,14 +155,12 @@ marionette('Music player search', function() {
 
     test('Check the context for artists', function() {
       music.switchToArtistsView();
-      music.searchTiles('the');
+      music.searchArtists('the');
 
       var resultsList = testSearchResults(Music.Selector.searchArtists, 2);
 
-      assert.equal(resultsList[1].findElement('.list-single-title').text(),
-                   'The NSA');
-      assert.equal(resultsList[1].findElement('.search-highlight').text(),
-                   'The');
+      assert.equal(SearchHelper.singleTitle(resultsList[1]), 'The NSA');
+      assert.equal(SearchHelper.highlight(resultsList[1]), 'The');
     });
 
   });

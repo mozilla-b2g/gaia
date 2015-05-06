@@ -57,7 +57,7 @@ suite('LayoutRenderingManager', function() {
       viewManager: viewManager
     };
 
-    Object.defineProperty(window, 'hidden',
+    Object.defineProperty(document, 'hidden',
                           { value: false, configurable: true });
 
     manager = new LayoutRenderingManager(app);
@@ -233,7 +233,7 @@ suite('LayoutRenderingManager', function() {
       };
       manager.handleEvent(evt);
 
-      assert.isTrue(viewManager.resize.calledOnce);
+      assert.equal(viewManager.resize.callCount, 1);
 
       assert.isTrue(
         app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({

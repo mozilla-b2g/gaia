@@ -3,16 +3,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 4.5rem 2rem 0;
+  padding: 0 10.0rem 2rem 0;
   font-size: 1.6rem;
   line-height: 2rem;
+}
+
+html[dir="rtl"] #group-call-details-list > section .additionalContactInfo {
+  text-align: right;
+  padding: 0 0 2rem 10.0rem;
 }
 
 #group-call-details-list .duration {
   display: none;
 }
 
-#group-call-details-list .number {
+#group-call-details-list .number bdi {
   font-size: 1.7rem;
   line-height: 2.4rem;
   white-space: nowrap;
@@ -20,7 +25,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: bold;
-  padding-right: 4.5rem;
+  padding-right: 10.0rem;
+}
+
+html[dir="rtl"] #group-call-details-list .number bdi {
+  text-align: right;
+  padding-right: 0;
+  padding-left: 10.0rem;
 }
 
 #group-call-details-list > section:not(.additionalInfo) .number {
@@ -40,6 +51,10 @@
   left: 0;
 }
 
+html[dir="rtl"] #group-call-details .hangup-button {
+  background: url('images/handled_call/actionicon_activecall_hangup.png') no-repeat scroll left 1.8rem center / 4rem auto transparent;
+}
+
 #group-call-details section.ended > .hangup-button {
   background-image: none;
 }
@@ -51,6 +66,11 @@
   right: 1.5rem;
 }
 
+html[dir="rtl"] #group-call-details section.ended > .duration {
+  right: auto;
+  left: 1.5rem;
+}
+
 #group-call-details section.ended > .duration > span {
   font-weight: normal;
 }
@@ -59,6 +79,10 @@
   text-align: right;
   font-weight: 300;
   line-height: 1.7rem;
+}
+
+html[dir="rtl"] #group-call-details section.ended > .duration > .total-duration {
+  text-align: left;
 }
 
 #group-call-details-list .sim {

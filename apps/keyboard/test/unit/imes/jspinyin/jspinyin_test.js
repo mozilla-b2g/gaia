@@ -451,7 +451,8 @@ suite('jspinyin', function() {
     });
   });
 
-  test('deactivate (save indexedDB failed)', function(done) {
+  // Bug 1146260
+  test.skip('deactivate (save indexedDB failed)', function(done) {
     this.sinon.stub(jspinyin, '_start', function() {
       window.indexedDB.open.restore();
       setTimeout(function() {

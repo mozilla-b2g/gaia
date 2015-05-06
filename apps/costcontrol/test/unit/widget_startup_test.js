@@ -108,7 +108,7 @@ suite('Widget Startup Modes Test Suite >', function() {
     }, 0);
   }
 
-  function setupCardState(icc, costControlConfig) {
+  function setupCardState(costControlConfig) {
     window.CostControl = new MockCostControl(costControlConfig);
   }
 
@@ -150,7 +150,7 @@ suite('Widget Startup Modes Test Suite >', function() {
     status:'success',
     type:'balance',
     data: {
-      timestamp: { __date__: '2014-04-14T08:35:16.812Z' },
+      timestamp: new Date('2014-04-14T08:35:16.812Z'),
       balance: 22.34,
       currency: '$'
     }
@@ -281,7 +281,7 @@ suite('Widget Startup Modes Test Suite >', function() {
 
         // Send a iccdetected event to restart the widget
         AirplaneModeHelper._status = 'disabled';
-        setupCardState({cardState: 'ready', iccInfo: true});
+        setupCardState();
         var ftePending = true;
         var applicationMode = 'DATA_USAGE_ONLY';
         setupConfig(applicationMode, ftePending);
@@ -311,7 +311,7 @@ suite('Widget Startup Modes Test Suite >', function() {
 
   test('fte start-up', function() {
 
-    setupCardState({cardState: 'ready', iccInfo: true});
+    setupCardState();
     var ftePending = true;
     var applicationMode = 'DATA_USAGE_ONLY';
     setupConfig(applicationMode, ftePending);
@@ -323,12 +323,12 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('normal start-up with DATA_USAGE_ONLY applicationMode', function(done) {
-    assert.equal(showSimErrorSpy.notCalled,true); 
+    assert.equal(showSimErrorSpy.notCalled, true);
     var fakeResultDataUsage = {
       datausage: requestDataUsageResult
     };
     var costControlConfig  = newCostControlRequest(fakeResultDataUsage);
-    setupCardState({cardState: 'ready', iccInfo: true}, costControlConfig);
+    setupCardState(costControlConfig);
     var ftePending = false;
     var applicationMode = 'DATA_USAGE_ONLY';
     setupConfig(applicationMode, ftePending);
@@ -358,7 +358,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('normal start-up with POSTPAID applicationMode', function(done) {
-    assert.equal(showSimErrorSpy.notCalled,true); 
+    assert.equal(showSimErrorSpy.notCalled, true);
     sinon.stub(Formatting, 'formatTime', function(timestamp, format) {
       return timestamp;
     });
@@ -367,7 +367,7 @@ suite('Widget Startup Modes Test Suite >', function() {
       telephony: resultRequestPostpaid
     };
     var costControlConfig  = newCostControlRequest(fakePostPaidResult);
-    setupCardState({cardState: 'ready', iccInfo: true}, costControlConfig);
+    setupCardState(costControlConfig);
     var ftePending = false;
     var applicationMode = 'POSTPAID';
     setupConfig(applicationMode, ftePending);
@@ -406,7 +406,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('normal start-up with PREPAID applicationMode', function(done) {
-    assert.equal(showSimErrorSpy.notCalled,true); 
+    assert.equal(showSimErrorSpy.notCalled, true);
     sinon.stub(Formatting, 'formatTime', function(timestamp, format) {
       return timestamp;
     });
@@ -414,17 +414,9 @@ suite('Widget Startup Modes Test Suite >', function() {
       datausage: requestDataUsageResult,
       balance: resultRequestPrepaid
     };
-    var fakeConfiguration = {
-      balance: {
-        minimum_delay: 3 * 60 * 60 * 1000 // 3h
-      },
-      is_free: false,
-      is_roaming_free: false
-    };
-    var costControlConfig  = newCostControlRequest(fakePrePaidResult,
-                                                   {fte: false},
-                                                   fakeConfiguration);
-    setupCardState({cardState: 'ready', iccInfo: true}, costControlConfig);
+
+    var costControlConfig  = newCostControlRequest(fakePrePaidResult);
+    setupCardState(costControlConfig);
     var ftePending = false;
     var applicationMode = 'PREPAID';
     setupConfig(applicationMode, ftePending);
@@ -460,5 +452,98 @@ suite('Widget Startup Modes Test Suite >', function() {
 
     AirplaneModeHelper._status = 'disabled';
     Widget.init();
+  });
+
+  test('DSDS start-up after SIM switching: from data usage only SIM to ' +
+       'prepaid SIM',
+    function(done) {
+      /*
+        Related to:
+          Bug 1128493 - [CostControl] Widget broken after switching data sim
+      */
+
+      // SETUP TEST
+      var ftePending = false;
+      var self = this;
+      var fakeResult = {
+        datausage: requestDataUsageResult,
+        balance: resultRequestPrepaid
+      };
+      this.sinon.stub(SimManager, 'isMultiSim').returns(true);
+      this.sinon.stub(window.CostControl, 'getInstance')
+            .yields(newCostControlRequest(fakeResult));
+
+      function assertPrepaidDataLayout() {
+        var balanceDataText = _('currency', {
+          value: fakeResult.balance.data.balance,
+          currency: fakeResult.balance.data.currency
+        });
+        assertNonDataUseOnlyLayout('', balanceDataText);
+        return Promise.resolve();
+      }
+
+      function setupDataUsageOnlySIM() {
+        return new Promise(function(resolve) {
+          setupConfig('DATA_USAGE_ONLY', ftePending);
+
+          // Waiting for the end of the first startup (data_Usage_Only mode)
+          window.addEventListener('hashchange', function _onHashChange(evt) {
+            var message = window.location.hash.split('#')[1];
+            if (message === 'updateDone') {
+              window.removeEventListener('hashchange', _onHashChange);
+              resolve(done);
+            }
+          });
+        });
+      }
+
+      function assertDataUsageOnlyLayout() {
+        // right Panel is hidden when data_usage_only mode is loaded
+        assert.ok(rightPanel.hidden);
+        return Promise.resolve();
+      }
+
+      function setupPrepaidSim() {
+        return new Promise(function(resolve) {
+          self.sinon.stub(window.ConfigManager, 'getApplicationMode',
+            function() {
+              // updating prepaid configuration
+              var fakeConfiguration = {
+                balance: {
+                  minimum_delay: 3 * 60 * 60 * 1000 // 3h
+                },
+                is_free: false,
+                is_roaming_free: false
+              };
+              setupConfig('PREPAID', false, fakeConfiguration);
+              return 'PREPAID';
+            }
+          );
+
+          // Waiting for the end of the second startup (with prepaid sim)
+          window.addEventListener('hashchange', function _onHashChange(evt) {
+            var message = window.location.hash.split('#')[1];
+            if (message === 'updateDone') {
+              window.removeEventListener('hashchange', _onHashChange);
+              resolve(done);
+            }
+          });
+
+          // Simulating a data slot change
+          var serviceSlotChangeEvent = new CustomEvent('dataSlotChange');
+          window.dispatchEvent(serviceSlotChangeEvent);
+        });
+      }
+
+      setupDataUsageOnlySIM()
+        .then(assertDataUsageOnlyLayout)
+        .then(setupPrepaidSim)
+        .then(assertPrepaidDataLayout)
+        .catch(function() {
+          assert.isTrue(false);
+        }).then(done, done);
+
+      AirplaneModeHelper._status = 'disabled';
+      Widget.init();
   });
 });

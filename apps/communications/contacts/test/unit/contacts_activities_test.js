@@ -71,6 +71,12 @@ suite('Test Activities', function() {
     window.utils.importFromVcard = realImport;
   });
 
+  function assertIsOpened(activity, viewName) {
+    ActivityHandler.handle(activity);
+    assert.include(document.location.hash, viewName);
+    assert.equal(ActivityHandler._currentActivity, activity);
+  }
+
   suite('Activity launching', function() {
     setup(function() {
       ActivityHandler._currentActivity = null;
@@ -88,9 +94,7 @@ suite('Test Activities', function() {
           data: {}
         }
       };
-      ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'view-contact-form');
-      assert.equal(ActivityHandler._currentActivity, activity);
+      assertIsOpened(activity, 'view-contact-form');
     });
 
     test('Open contact', function() {
@@ -100,11 +104,8 @@ suite('Test Activities', function() {
           data: {}
         }
       };
-      ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'view-contact-details');
-      assert.equal(ActivityHandler._currentActivity, activity);
+      assertIsOpened(activity, 'view-contact-details');
     });
-
 
     test('Open text/vcard with allowSave', function() {
       var activity = {
@@ -116,11 +117,32 @@ suite('Test Activities', function() {
           }
         }
       };
-      ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'view-contact-details');
-      assert.equal(ActivityHandler._currentActivity, activity);
+      assertIsOpened(activity, 'view-contact-details');
     });
 
+    test('Open vCard with deprecated text/directory datatype', function() {
+      var activity = {
+        source: {
+          name: 'open',
+          data: {
+            type: ['text/directory']
+          }
+        }
+      };
+      assertIsOpened(activity, 'view-contact-details');
+    });
+
+    test('Open vCard with deprecated text/x-vcard datatype', function() {
+      var activity = {
+        source: {
+          name: 'open',
+          data: {
+            type: ['text/x-vcard']
+          }
+        }
+      };
+      assertIsOpened(activity, 'view-contact-details');
+    });
 
     test('Update contact', function() {
       var activity = {
@@ -129,11 +151,9 @@ suite('Test Activities', function() {
           data: {}
         }
       };
-      ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'add-parameters');
+      assertIsOpened(activity, 'add-parameters');
       assert.isTrue(Contacts.checkCancelableActivity.called,
                                             'checks for activity UI specifics');
-      assert.equal(ActivityHandler._currentActivity, activity);
     });
 
     test('Pick contact', function() {
@@ -161,10 +181,7 @@ suite('Test Activities', function() {
       };
       window.utils.importedCount = 1;
       window.utils.importedID = '1';
-      ActivityHandler.handle(activity);
-      assert.equal(ActivityHandler._currentActivity, activity);
-      assert.include(document.location.hash, 'view-contact-details',
-        'showing contact details screen');
+      assertIsOpened(activity, 'view-contact-details');
       assert.include(document.location.hash, 'id=1',
         'with the proper contact id');
     });
@@ -179,11 +196,7 @@ suite('Test Activities', function() {
         }
       };
       window.utils.importedCount = 2;
-      ActivityHandler.handle(activity);
-      assert.equal(ActivityHandler._currentActivity, activity,
-        'handling as an activity');
-      assert.include(document.location.hash, 'view-contact-list',
-        'showing list view screen');
+      assertIsOpened(activity, 'view-contact-list');
       assert.equal(document.location.hash.indexOf('id'), -1,
         'no contact id as parameter');
       assert.isTrue(Contacts.checkCancelableActivity.called,

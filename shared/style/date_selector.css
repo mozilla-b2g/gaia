@@ -105,12 +105,12 @@
   width: 27%;
 }
 
-/*DMY*/
+/* DMY */
 [role="dialog"][data-type="date-selector"] .DMY .value-picker-year-wrapper {
   border: none;
 }
 
-/*YMD*/
+/* YMD */
 [role="dialog"][data-type="date-selector"] .YMD .value-picker-year-wrapper {
   left: 0;
   right: auto;
@@ -131,7 +131,7 @@
   width: 21%;
 }
 
-/*MDY*/
+/* MDY */
 [role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
   left: 0;
 }
@@ -170,8 +170,7 @@
 }
 
 [role="dialog"][data-type="date-selector"] .animation-on {
-  transition-duration: 0.5s;
-  transition-property: transform;
+  transition: transform var(--transition-duration) cubic-bezier(0, 0, 0.4, 1);
 }
 
 [role="dialog"][data-type="date-selector"]  .picker-unit {
@@ -276,4 +275,54 @@ button[disabled]::-moz-selection {
 
 [role="dialog"][data-type="date-selector"] menu button.full {
   width: 100%;
+}
+
+/* Right-To-Left layout */
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .picker-bar-background {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper,
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+  left: unset;
+  right: 0;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
+  left: unset;
+  right: 21%;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+  left: 0;
+  right: auto;
+}
+
+/* YMD */
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-year-wrapper {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper  {
+  left: unset;
+  right: 27%;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .YMD .value-picker-date-wrapper {
+  left: 0;
+  right: auto;
+}
+
+/* MDY */
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
+  left: unset;
+  right: 0;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper {
+  left: unset;
+  right: 52%;
 }

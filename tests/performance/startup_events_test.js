@@ -67,7 +67,6 @@ marionette('startup event test > ' + appPath + ' >', function() {
 
         app.close();
 
-        assert.ok(memoryUsage, 'could not collect memory usage');
         assert.ok(Object.keys(runResults).length, 'empty results');
         assert.ok(runResults.start > 0, 'problem capturing start epoch');
 

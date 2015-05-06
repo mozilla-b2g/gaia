@@ -202,7 +202,7 @@ a:active {
 }
 
 div.animation-on > div {
-  transition: -moz-transform 0.4s ease 0s;
+  transition: -moz-transform var(--transition-duration) ease 0s;
 }
 
 #frequency-dialer {
@@ -454,7 +454,7 @@ a#frequency-op-seekup:active {
   top: 0;
   left: 0;
   color: #FFF;
-  background: url(images/popup-texture.png) transparent repeat 0 0 / 100% 100%;
+  background-color: #2d2d2d;
 }
 
 .warning .warning-header {
@@ -504,3 +504,16 @@ a#frequency-op-seekup:active {
 }
 /******* end *******/
 
+/***  styles for RTL languages ****/
+/* The scrollbar should be on the left.
+ * But direction is explicitly set to LTR on #container
+   So we force #fav-list to be RTL, while keeping the children LTR
+*/
+html[dir=rtl] #fav-list {
+  direction: rtl;
+}
+
+html[dir=rtl] #fav-list > * {
+  direction: ltr;
+}
+/******* end *******/

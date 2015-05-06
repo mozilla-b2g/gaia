@@ -10,13 +10,14 @@ define(function(require, exports, module) {
   var template, fetchText, templateDiv,
       isReady = false,
       readyQueue = [],
-      tagRegExp = /<(\w+-\w+)(\s|>)/g,
+      tagRegExp = /<(\w+-[\w-]+)(\s|>)/g,
       commentRegExp = /<!--*.?-->/g,
       attrIdRegExp = /\s(hrefid|srcid)="([^"]+)"/g,
       buildProtocol = 'build:',
       moduleConfig = module.config(),
       depPrefix = 'element!',
-      buildMap = {};
+      buildMap = {},
+      tagToId = function(tag) { return tag; };
 
   // Referencing element module to make sure
   // document.register shim is in place. Over time,
@@ -24,8 +25,11 @@ define(function(require, exports, module) {
   // can be removed.
   require('element');
 
-  if (moduleConfig.hasOwnProperty(depPrefix)) {
+  if (moduleConfig.hasOwnProperty('depPrefix')) {
     depPrefix = moduleConfig.depPrefix;
+  }
+  if (moduleConfig.hasOwnProperty('tagToId')) {
+    tagToId = moduleConfig.tagToId;
   }
 
   if (typeof document !== 'undefined') {
@@ -218,7 +222,7 @@ define(function(require, exports, module) {
 
       tagRegExp.lastIndex = 0;
       while ((match = tagRegExp.exec(noCommentText))) {
-        deps.push(depPrefix + match[1]);
+        deps.push(depPrefix + tagToId(match[1]));
       }
 
       return deps;

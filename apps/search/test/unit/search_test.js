@@ -1,15 +1,21 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          Search, MockProvider, MockasyncStorage, Promise */
+          Search, MockProvider, MockasyncStorage, Promise, MocksHelper */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
+require('/shared/test/unit/mocks/mock_search_provider.js');
 require('/shared/js/url_helper.js');
 require('/shared/js/dedupe.js');
 require('/js/contextmenu.js');
+require('/shared/js/metrics_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 requireApp('search/test/unit/mock_provider.js');
+
+var mocksForSearch = new MocksHelper([
+  'SearchProvider'
+]).init();
 
 suite('search/search', function() {
   var realAsyncStorage;
@@ -18,6 +24,7 @@ suite('search/search', function() {
   var realOnLine;
 
   var clock;
+  mocksForSearch.attachTestHelpers();
 
   function removeProvider(provider) {
     delete Search.providers[provider.name];
@@ -69,8 +76,8 @@ suite('search/search', function() {
 
   suite('init', function() {
     test('will call provider init method', function() {
-
       var initCalled;
+      this.sinon.spy(window.MetricsHelper.prototype, 'init');
 
       Search.providers = [{
         init: function() {
@@ -88,6 +95,7 @@ suite('search/search', function() {
       assert.ok(initCalled);
       Search.providers = [];
       assert.isFalse(Search.suggestionsWrapper.classList.contains('offline'));
+      sinon.assert.calledOnce(window.MetricsHelper.prototype.init);
     });
   });
 
@@ -133,6 +141,25 @@ suite('search/search', function() {
         name: 'Foo'
       });
       assert.equal(count, numProviders());
+    });
+  });
+
+  suite('initNotice', function() {
+    test('gets the settingsLink on every call', function() {
+      var stub = this.sinon.stub(document, 'getElementById').returns({
+        addEventListener: this.sinon.spy()
+      });
+      Search.initNotice();
+      Search.initNotice();
+      assert.isTrue(stub.withArgs('settings-link').callCount === 2);
+    });
+  });
+
+  suite('scrolling focus', function() {
+    test('we grab focus when scrolling results', function() {
+      var stub = this.sinon.stub(window, 'focus');
+      window.dispatchEvent(new window.Event('scroll'));
+      assert.ok(stub.calledOnce);
     });
   });
 
@@ -253,6 +280,20 @@ suite('search/search', function() {
       });
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
+    });
+
+    test('Fires correct Event to metrics search for search term', function() {
+      var stub = this.sinon.stub(window.MetricsHelper.prototype, 'report');
+
+      Search.dispatchMessage({
+        data: {
+          action: 'submit',
+          input: 'searchterm'
+        }
+      });
+      clock.tick(1000); // For typing timeout
+
+      assert.ok(stub.calledWith('websearch', 'testProvider'));
     });
   });
 

@@ -1,10 +1,12 @@
 'use strict';
-/*global startupCacheEventsSent */
-define(function(require) {
+define(function(require, exports, module) {
 
-var mozL10n = require('l10n!'),
+var cardsInit = require('cards_init'),
+    htmlCache = require('html_cache'),
+    mozL10n = require('l10n!'),
     evt = require('evt'),
     toaster = require('toaster'),
+    transitionEnd = require('transition_end'),
     hookupInputAreaResetButtons = require('input_areas');
 
 function addClass(domNode, name) {
@@ -17,14 +19,6 @@ function removeClass(domNode, name) {
   if (domNode) {
     domNode.classList.remove(name);
   }
-}
-
-// XXX when a bigger rename can happen, remove the need
-// to translate between custom element names and moz-style
-// underbar naming, and consider the card- as part of the
-// input names.
-function translateCustomElementName(customElementName) {
-  return customElementName.replace(/^cards-/, '').replace(/-/g, '_');
 }
 
 /**
@@ -113,7 +107,7 @@ var cards = {
   /**
    * Initialize and bind ourselves to the DOM which should now be fully loaded.
    */
-  _init: function() {
+  init: function() {
     this._rootNode = document.body;
     this._containerNode = document.getElementById('cardContainer');
     this._cardsNode = document.getElementById('cards');
@@ -128,9 +122,7 @@ var cards = {
 
     // XXX be more platform detecty. or just add more events. unless the
     // prefixes are already gone with webkit and opera?
-    this._cardsNode.addEventListener('transitionend',
-                                     this._onTransitionEnd.bind(this),
-                                     false);
+    transitionEnd(this._cardsNode, this._onTransitionEnd.bind(this), false);
 
     // Listen for visibility changes to let current card know of them too.
     // Do this here instead of each card needing to listen, and needing to know
@@ -141,6 +133,8 @@ var cards = {
         card.onCurrentCardDocumentVisibilityChange(document.hidden);
       }
     }.bind(this));
+
+    cardsInit(this);
   },
 
   /**
@@ -229,14 +223,9 @@ var cards = {
 
     var domNode = args.cachedNode || new cardDef();
 
-    if (domNode.extraClasses) {
-      domNode.classList.add.apply(domNode.classList, domNode.extraClasses);
-    }
     if (args && domNode.onArgs) {
       domNode.onArgs(args);
     }
-    domNode.classList.add('card');
-    domNode.setAttribute('data-type', type);
 
     var cardIndex, insertBuddy;
     if (!placement) {
@@ -384,7 +373,7 @@ var cards = {
   _findCardUsingType: function(type) {
     for (var i = 0; i < this._cardStack.length; i++) {
       var domNode = this._cardStack[i];
-      if (translateCustomElementName(this.cardName(domNode)) === type) {
+      if (htmlCache.nodeToKey(domNode) === type) {
         return i;
       }
     }
@@ -410,10 +399,6 @@ var cards = {
       // the one in hasCard, are correct.
       return undefined;
     }
-  },
-
-  cardName: function(node) {
-    return node.nodeName.toLowerCase();
   },
 
   hasCard: function(query) {
@@ -443,7 +428,7 @@ var cards = {
     if (this._pendingPush) {
       result = this._pendingPush;
     } else if (card) {
-      result = translateCustomElementName(this.cardName(card));
+      result = htmlCache.nodeToKey(card);
     }
     return result;
   },
@@ -873,18 +858,15 @@ var cards = {
    */
   _emitStartupEvents: function(skipEmitContentEvents) {
     if (!this._startupEventsEmitted) {
-      if (startupCacheEventsSent) {
+      if (window.startupCacheEventsSent) {
         // Cache already loaded, so at this point the content shown is wired
         // to event handlers.
         window.performance.mark('contentInteractive');
-        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
       } else {
         // Cache was not used, so only now is the chrome dom loaded.
         window.performance.mark('navigationLoaded');
-        window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
       }
       window.performance.mark('navigationInteractive');
-      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
       // If a card that has a simple static content DOM, content is complete.
       // Otherwise, like message_list, need backend data to call complete.

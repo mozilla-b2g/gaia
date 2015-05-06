@@ -24,7 +24,5 @@ define run-js-command
 endef
 
 define run-node-command
-  echo "run-node-command $1";
-  node --harmony -e \
-  "require('./build/$(strip $1).js').execute($(BUILD_CONFIG))"
+  node --harmony -e "require('./build/$(strip $1).js').execute($(BUILD_CONFIG))"
 endef

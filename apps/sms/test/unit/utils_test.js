@@ -933,7 +933,8 @@ suite('Utils', function() {
       'text': null,
       'application/video': 'application',
       'multipart/form-data': null,
-      'text/vcard': 'ref'
+      'text/vcard': 'vcard',
+      'text/calendar': 'ref'
     };
 
     Object.keys(tests).forEach(function(testIndex) {
@@ -1501,67 +1502,48 @@ suite('getContactDisplayInfo', function() {
 
   teardown(function() {
     navigator.mozL10n = nativeMozL10n;
-    Utils.getContactDetails.reset();
-    Utils.getDisplayObject.reset();
   });
 
   test('Valid contact with phonenumber', function(done) {
     Utils.getContactDisplayInfo(
       MockContacts.findByPhoneNumber.bind(MockContacts),
-      '+346578888888',
-      function onData(data) {
-        var tel = MockContact.list()[0].tel[0];
-        assert.ok(Utils.getContactDetails.called);
-        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
-        assert.ok(Utils.getDisplayObject.called);
-        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        done();
-      }
-    );
+      '+346578888888'
+    ).then(() => {
+      var tel = MockContact.list()[0].tel[0];
+      sinon.assert.calledWith(Utils.getContactDetails, tel);
+      sinon.assert.calledWith(Utils.getDisplayObject, sinon.match.any, tel);
+    }).then(done, done);
   });
 
   test('Empty contact with phonenumber', function(done) {
-    this.sinon.stub(MockContact, 'list', function() {
-      return [];
-    });
     Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '+348888888888',
-      function onData(data) {
-        var tel = {
-          'value': '+348888888888',
-          'type': [''],
-          'carrier': ''
-        };
-        assert.ok(Utils.getContactDetails.called);
-        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
-        assert.ok(Utils.getDisplayObject.called);
-        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        done();
-      }
-    );
+      () => Promise.resolve([]),
+      '+348888888888'
+    ).then(() => {
+      var tel = {
+        'value': '+348888888888',
+        'type': [''],
+        'carrier': ''
+      };
+
+      sinon.assert.calledWith(Utils.getContactDetails, tel);
+      sinon.assert.calledWith(Utils.getDisplayObject, sinon.match.any, tel);
+    }).then(done, done);
   });
 
   test('Null contact with phonenumber', function(done) {
-    this.sinon.stub(MockContact, 'list', function() {
-      return null;
-    });
     Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '+348888888888',
-      function onData(data) {
-        var tel = {
-          'value': '+348888888888',
-          'type': [''],
-          'carrier': ''
-        };
-        assert.ok(Utils.getContactDetails.called);
-        assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
-        assert.ok(Utils.getDisplayObject.called);
-        assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        done();
-      }
-    );
+      () => Promise.resolve(null),
+      '+348888888888'
+    ).then(() => {
+      var tel = {
+        'value': '+348888888888',
+        'type': [''],
+        'carrier': ''
+      };
+      sinon.assert.calledWith(Utils.getContactDetails, tel);
+      sinon.assert.calledWith(Utils.getDisplayObject, sinon.match.any, tel);
+    }).then(done, done);
   });
 
   test('No contact and no phonenumber', function(done) {
@@ -1569,15 +1551,13 @@ suite('getContactDisplayInfo', function() {
       return [];
     });
     Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '',
-      function onData(data) {
-        assert.isFalse(Utils.getContactDetails.called);
-        assert.isFalse(Utils.getDisplayObject.called);
-        assert.equal(data, null);
-        done();
-      }
-    );
+      () => Promise.resolve([]),
+      ''
+    ).then((data) => {
+      sinon.assert.notCalled(Utils.getContactDetails);
+      sinon.assert.notCalled(Utils.getDisplayObject);
+      assert.equal(data, null);
+    }).then(done, done);
   });
 });
 

@@ -1,25 +1,24 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Month = require('views/month');
+var core = require('core');
 
 requireCommon('test/synthetic_gestures.js');
 
 suite('Views.Month', function() {
   var subject,
-      app,
       controller,
       triggerEvent;
 
   suiteSetup(function(done) {
     triggerEvent = testSupport.calendar.triggerEvent;
-    app = testSupport.calendar.app();
-    app.db.open(done);
+    core.db.open(done);
   });
 
   suiteTeardown(function() {
-    app.db.close();
+    core.db.close();
   });
 
   setup(function() {
@@ -34,10 +33,10 @@ suite('Views.Month', function() {
 
     document.body.appendChild(div);
 
-    controller = app.timeController;
+    controller = core.timeController;
     controller.move(new Date());
 
-    subject = new Month({ app: app });
+    subject = new Month();
   });
 
   teardown(function() {
@@ -59,14 +58,8 @@ suite('Views.Month', function() {
     test('dom: click', function() {
       subject.onfirstseen();
 
-      // find something with [data-date];
-      var el = subject.element.querySelector(
-        '[data-date]'
-      );
-
-      var date = Calc.dateFromId(
-        el.dataset.date
-      );
+      var el = subject.element.querySelector('.month-day');
+      var date = Calc.dateFromId(el.dataset.date);
 
       triggerEvent(el, 'click');
       assert.deepEqual(
@@ -81,7 +74,7 @@ suite('Views.Month', function() {
 // Bug 840489.
     test('dom: dbltap', function() {
       var calledWith;
-      app.router.show = function(url) {
+      core.router.show = function(url) {
         calledWith = url;
       };
 
@@ -130,7 +123,7 @@ suite('Views.Month', function() {
     });
 
     assert.deepEqual(
-      app.timeController.selectedDay,
+      core.timeController.selectedDay,
       expected,
       'selects first day of previous month'
     );
@@ -149,7 +142,7 @@ suite('Views.Month', function() {
     });
 
     assert.deepEqual(
-      app.timeController.selectedDay,
+      core.timeController.selectedDay,
       expected,
       'selects first day of month'
     );

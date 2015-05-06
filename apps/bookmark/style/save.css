@@ -12,7 +12,6 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: calc(100% - 10rem);
   padding: 0 1.5rem;
 }
 
@@ -36,6 +35,84 @@ body[data-mode="put"] #edit-bookmark-header {
   background-repeat: no-repeat;
   background-position: center center;
   background-image: url('../shared/elements/gaia_grid/images/default_icon.png');
+  background-size: 8.4rem;
   display: block;
   margin-bottom: 2.4rem;
+}
+
+#bookmark-url {
+  font-size: 1.4rem;
+  color: rgb(95, 95, 95);
+  width: 100%;
+  margin-bottom: 1.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 1.5rem;
+  font-style: italic;
+}
+
+
+/* App Installation section */
+
+#app-installation {
+  padding: 1.5rem;
+  padding-top: 2rem;
+}
+
+#app-installation h2 {
+  text-align: center;
+  border-top: 0.2rem solid rgb(114, 114, 114);
+  font-size: 1.4rem;
+  color: rgb(114, 114, 114);
+  margin: 0.8rem 0 -0.8rem 0;
+}
+
+#app-installation h2 span {
+  position: relative;
+  top: -1rem;
+  background-color: #f4f4f4;
+  padding: 0 0.5rem;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+#app-icon, #app-icon-placeholder {
+  display: block;
+  width: 6rem;
+  height: 6rem;
+  margin: 0.5rem auto 0 auto;
+}
+
+#app-installation p {
+  font-size: 1.4rem;
+  color: rgb(80, 88, 89);
+  margin: 1rem;
+}
+
+#app-installation #app-name {
+  height: 2rem;
+  font-size: 1.6rem;
+  color: rgb(41, 41, 41);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+  text-align: center;
+}
+
+#app-installation #install-app-button {
+  display: block;
+  width: auto;
+  margin: 0 auto;
+  padding: 0 5rem;
+}
+
+#app-icon.hidden,
+#app-icon-placeholder.hidden,
+#app-installation.hidden {
+  display: none;
 }

@@ -5,8 +5,11 @@ module.exports = {
   settings: {
     'search.suggestions.enabled': false,
     'cdn.url': 'http://localhost',
-    'everythingme.api.url': null,
-    'search.marketplace.url': null
+    'appsearch.url': null,
+    'search.marketplace.url': null,
+    'ftu.manifestURL': null,
+    'lockscreen.enabled': false,
+    'screen.timeout': 0
   },
   prefs: {
     'geo.wifi.uri': 'http://localhost',

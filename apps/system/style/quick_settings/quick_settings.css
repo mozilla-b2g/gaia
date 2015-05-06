@@ -3,20 +3,20 @@
   pointer-events: none;
 }
 
-#quick-settings > li {
+#quick-settings > ul {
   padding: 0 1.5rem;
   margin: 0;
-  list-style: none;
 }
 
-#quick-settings ul {
+#quick-settings li {
   float: left;
   width: 20%;
   padding: 0;
   margin: 0;
+  list-style: none;
 }
 
-#quick-settings.non-mobile ul {
+#quick-settings.non-mobile li {
   width: 25%;
 }
 

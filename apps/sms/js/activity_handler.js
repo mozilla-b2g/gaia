@@ -1,9 +1,9 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
+/*global Utils, MessageManager, Compose, NotificationHelper,
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
-         ThreadUI, Notification, Settings, Navigation */
+         ConversationView, Notification, Settings, Navigation */
 /*exported ActivityHandler */
 
 'use strict';
@@ -83,12 +83,12 @@ var ActivityHandler = {
   */
   _findContactByTarget: function findContactByTarget(target) {
     var deferred = Utils.Promise.defer();
-    Contacts.findByAddress(target, (results) => {
+    Contacts.findByAddress(target).then((contacts) => {
       var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
-      if (results && results.length) {
-        record = results[0];
+      if (contacts && contacts.length) {
+        record = contacts[0];
         name = record.name.length && record.name[0];
         contact = {
           number: target,
@@ -231,6 +231,11 @@ var ActivityHandler = {
       return;
     }
 
+    // If we're currently in the target thread, just do nothing
+    if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+      return;
+    }
+
     MessageManager.getMessage(message.id).then((message) => {
       if (!Threads.has(message.threadId)) {
         Threads.registerMessage(message);
@@ -241,63 +246,17 @@ var ActivityHandler = {
         return;
       }
 
-      Utils.confirm('discard-new-message').then(() => {
-        ThreadUI.cleanFields();
+      Utils.confirm(
+        'discard-new-message',
+        'unsent-message-title',
+        { text: 'unsent-message-option-discard', className: 'danger' }
+      ).then(() => {
+        ConversationView.cleanFields();
         ActivityHandler.toView(message);
       });
     }, function onGetMessageError() {
       Utils.alert('deleted-sms');
     });
-  },
-
-  // The unsent confirmation dialog provides 2 options: edit and discard
-  // discard: clear the message user typed
-  // edit: continue to edit the unsent message and ignore the activity
-  displayUnsentConfirmation: function ah_displayUnsentConfirmtion(activity) {
-    var msgDiv = document.createElement('div');
-    msgDiv.innerHTML = '<h1 data-l10n-id="unsent-message-title"></h1>' +
-                       '<p data-l10n-id="unsent-message-description"></p>';
-    var options = new OptionMenu({
-      type: 'confirm',
-      section: msgDiv,
-      items: [{
-        l10nId: 'unsent-message-option-edit',
-        method: function editOptionMethod() {
-          // we're already in message app, we don't need to do anything
-        }
-      },
-      {
-        l10nId: 'unsent-message-option-discard',
-        method: (activity) => {
-          ThreadUI.discardDraft();
-          this.launchComposer(activity);
-        },
-        params: [activity]
-      }]
-    });
-    options.show();
-  },
-
-  // Launch the UI properly
-  launchComposer: function ah_launchComposer(activity) {
-    Navigation.toPanel('composer', { activity: activity });
-  },
-
-  // Check if we want to go directly to the composer or if we
-  // want to keep the previously typed text
-  triggerNewMessage: function ah_triggerNewMessage(body, number, contact) {
-     var activity = {
-        body: body || null,
-        number: number || null,
-        contact: contact || null
-      };
-
-    if (Compose.isEmpty()) {
-      this.launchComposer(activity);
-    } else {
-      // ask user how should we do
-      ActivityHandler.displayUnsentConfirmation(activity);
-    }
   },
 
   /**
@@ -315,17 +274,23 @@ var ActivityHandler = {
    */
   toView: function ah_toView(message, focusComposer) {
     var navigateToView = function act_navigateToView() {
-      // If we only have a body, just trigger a new message.
-      if (!message.threadId) {
-        ActivityHandler.triggerNewMessage(
-          message.body, message.number, message.contact
-        );
+      // If we have appropriate thread then let's forward user there, otherwise
+      // open new message composer.
+      if (message.threadId) {
+        Navigation.toPanel('thread', {
+          id: message.threadId,
+          focusComposer: focusComposer
+        });
         return;
       }
 
-      Navigation.toPanel(
-        'thread', { id: message.threadId, focusComposer: focusComposer }
-      );
+      Navigation.toPanel('composer', {
+        activity: {
+          body: message.body || null,
+          number: message.number || null,
+          contact: message.contact || null
+        }
+      });
     };
 
     navigator.mozL10n.once(function waitLocalized() {
@@ -408,16 +373,6 @@ var ActivityHandler = {
 
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
-
-        // Stashing the number at the end of the icon URL to make sure
-        // we get it back even via system message
-        iconURL += '?';
-        iconURL += [
-          'threadId=' + threadId,
-          'number=' + encodeURIComponent(number),
-          'id=' + id
-        ].join('&');
 
         function goToMessage() {
           app.launch();
@@ -435,9 +390,10 @@ var ActivityHandler = {
           }
 
           var options = {
-            icon: iconURL,
+            icon: NotificationHelper.getIconURI(app),
             body: body,
-            tag: 'threadId:' + threadId
+            tag: 'threadId:' + threadId,
+            data: { id, threadId }
           };
 
           var notification = new Notification(title, options);
@@ -488,13 +444,13 @@ var ActivityHandler = {
           }
         }
 
-        Contacts.findByAddress(message.sender, function gotContact(contact) {
+        Contacts.findByAddress(message.sender).then(function(contacts) {
           var sender = message.sender;
-          if (!contact) {
-            console.error('We got a null contact for sender:', sender);
-          } else if (contact.length && contact[0].name &&
-            contact[0].name.length && contact[0].name[0]) {
-            sender = contact[0].name[0];
+          if (!contacts) {
+            console.error('We got a null contacts for sender:', sender);
+          } else if (contacts.length && contacts[0].name &&
+            contacts[0].name.length && contacts[0].name[0]) {
+            sender = contacts[0].name[0];
           }
           if (message.type === 'sms') {
             continueWithNotification(sender, message.body || '');
@@ -536,17 +492,18 @@ var ActivityHandler = {
     SilentSms.checkSilentModeFor(message.sender).then(handleNotification);
   },
 
-  onNotification: function ah_onNotificationClick(message) {
-    // The "message" argument object does not have
-    // the necessary information we need, so we'll
-    // extract it from the imageURL string
-    //
-    // NOTE: In 1.2, use the arbitrary string allowed by
-    // the new notification spec.
-    //
-    var params = Utils.params(message.imageURL);
-
-    if (!message.clicked) {
+  onNotification: function ah_onNotificationClick(notification) {
+    // When notification is removed from notification tray, notification system
+    // message will still be fired, but "clicked" property will be equal to
+    // false. This should change once bug 1139363 is landed.
+    // When user clicks on notification we'll get two system messages,
+    // first to notify app that notification is clicked and then, once we show
+    // Thread panel to the user, we remove that notification from the tray that
+    // causes the second system message with "clicked" set to false.
+    if (!notification.clicked) {
+      // When app is run via notification system message there is no valid
+      // current panel set hence app is in the invalid state, so let's fix this.
+      Navigation.ensureCurrentPanel();
       return;
     }
 
@@ -555,16 +512,8 @@ var ActivityHandler = {
 
       app.launch();
 
-      // the type param is only set for class0 messages
-      if (params.type === 'class0') {
-        Utils.alert({ raw: message.body }, { raw: message.title });
-        return;
-      }
-
-      ActivityHandler.handleMessageNotification({
-        id: params.id,
-        threadId: params.threadId
-      });
+      // At the moment notification.data is { id, threadId }
+      ActivityHandler.handleMessageNotification(notification.data);
     };
   }
 };

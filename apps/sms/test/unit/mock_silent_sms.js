@@ -8,6 +8,7 @@ var MockSilentSms = {
   checkSilentModeFor: function (smsNumber) {
     return Promise.resolve(smsNumber === this.mSilentSmsNumber);
   },
+  init: () => {},
   mSetup: function() {
     this.mSilentSmsNumber = 9090;
   },

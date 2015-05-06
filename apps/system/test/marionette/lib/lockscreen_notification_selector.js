@@ -96,11 +96,9 @@
       return {
         title: node.querySelector('.title-container .title')
                .innerHTML,
-        body: node.querySelector('.detail').innerHTML,
-        lang: node.querySelector('.title-container')
-              .getAttribute('lang'),
-        dir: node.querySelector('.title-container')
-              .getAttribute('dir'),
+        body: node.querySelector('.detail .detail-content').innerHTML,
+        lang: node.getAttribute('lang'),
+        dir: node.getAttribute('data-predefined-dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l')
       };
     });
@@ -122,6 +120,9 @@
       return false;
     }
     if (detailsA.bidi && detailsB.bidi !== detailsA.bidi) {
+      return false;
+    }
+    if (detailsA.dir && detailsB.dir !== detailsA.dir) {
       return false;
     }
     return true;

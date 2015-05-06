@@ -14,9 +14,6 @@ marionette('Homescreen navigation >', function() {
       'devtools.debugger.forbid-certified-apps': false
     },
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'edgesgesture.enabled': true,
       'devtools.overlay': true,
       'hud.reflows': true
     }
@@ -69,7 +66,7 @@ marionette('Homescreen navigation >', function() {
     launchSettings();
 
     var count = reflowHelper.getCount();
-    assert.equal(count, 0, 'we got ' + count + ' reflows instead of 0');
+    assert.equal(count, 2, 'we got ' + count + ' reflows instead of 2');
     reflowHelper.stopTracking();
   });
 });

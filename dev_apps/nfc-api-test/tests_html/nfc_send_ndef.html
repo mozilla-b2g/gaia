@@ -9,12 +9,23 @@
     <link rel="stylesheet" type="text/css" href="../style/API.css">
   </head>
   <body>
+    <fieldset>
+      <legend>URL to be written</legend>
+      <section>
+        <select id="urlOptions">
+          <option value="https://www.mozilla.org">Mozilla</option>
+          <option value="https://www.mozilla.org/en-US/firefox/os/">FirefoxOS</option>
+          <option value="https://www.mozilla.org/en-US/firefox/">Firefox</option>
+          <option value="https://www.yahoo.com/">Yahoo</option>
+        </select>
+      </section>
+    </fieldset>
+
     <div id="content">
       <div>
         <h2>Test Description</h2>
         <h5>
-          Tap an NFC device, then this app will try to send URL(http://www.mozilla.org)
-          to that device.
+          Tap an NFC device, then this app will try to send URL to that device.
         </h5>
       </div>
 

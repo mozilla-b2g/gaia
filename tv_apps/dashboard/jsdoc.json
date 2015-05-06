@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "src": [
+      "tv_apps/dashboard/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/dashboard"
+    }
+  }
+}

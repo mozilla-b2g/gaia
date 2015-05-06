@@ -1,5 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* exported BluetoothHelper */
 
 'use strict';
@@ -127,6 +125,11 @@ var BluetoothHelper = function() {
     }
   };
 
+  var _resetAdapter = function() {
+    _isReady = false;
+    _adapter = null;
+  };
+
   // init
   if (_bluetooth) {
     // detect API version
@@ -141,6 +144,7 @@ var BluetoothHelper = function() {
     } else {
       _bluetooth.addEventListener('enabled', _getAdapter);
       _bluetooth.addEventListener('adapteradded', _getAdapter);
+      _bluetooth.addEventListener('disabled', _resetAdapter);
     }
     _getAdapter();
   }
@@ -240,6 +244,24 @@ var BluetoothHelper = function() {
       });
     },
 
+    isScoConnected: function(cb, errorcb) {
+      _ready(function() {
+        _handleRequest(_adapter.isScoConnected(), cb, errorcb);
+      });
+    },
+
+    sendMediaMetaData: function(metadata, cb, errorcb) {
+      _ready(function() {
+        _handleRequest(_adapter.sendMediaMetaData(metadata), cb, errorcb);
+      });
+    },
+
+    sendMediaPlayStatus: function(metadata, cb, errorcb) {
+      _ready(function() {
+        _handleRequest(_adapter.sendMediaPlayStatus(metadata), cb, errorcb);
+      });
+    },
+
     set onhfpstatuschanged(callback) {
       _ready(function() {
         _adapter.onhfpstatuschanged = callback;
@@ -249,6 +271,18 @@ var BluetoothHelper = function() {
     set onscostatuschanged(callback) {
       _ready(function() {
         _adapter.onscostatuschanged = callback;
+      });
+    },
+
+    set ona2dpstatuschanged(callback) {
+      _ready(function() {
+        _adapter.ona2dpstatuschanged = callback;
+      });
+    },
+
+    set onrequestmediaplaystatus(callback) {
+      _ready(function() {
+        _adapter.onrequestmediaplaystatus = callback;
       });
     },
 

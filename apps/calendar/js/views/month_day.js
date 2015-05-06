@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var dayObserver = require('day_observer');
 
 // MonthDay represents a single day inside the Month view grid.
@@ -45,6 +45,7 @@ MonthDay.prototype = {
     );
     el.dataset.date = dayId;
     el.className = state;
+    el.classList.add('month-day');
     el.innerHTML = `<span class="day" role="button">${date}</span>
       <div id="${id}-busy-indicator" class="busy-indicator"
         aria-hidden="true"></div>

@@ -2,8 +2,7 @@
 
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
-var mockUtils =
-  require('./mock_utils.js');
+var mockUtils = require('./mock_utils.js');
 
 suite('preferences.js', function() {
   var app;
@@ -344,6 +343,8 @@ suite('preferences.js', function() {
         'extensions.autoDisableScopes': 0,
         'browser.tabs.remote.autostart': false,
         'browser.tabs.remote.autostart.1': false,
+        'browser.tabs.remote.autostart.2': false,
+        'browser.shell.checkDefaultBrowser': false
       });
       assert.isUndefined(preferences.userPrefs['network.http.use-cache']);
     });

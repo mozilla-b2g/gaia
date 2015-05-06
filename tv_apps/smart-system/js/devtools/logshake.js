@@ -1,4 +1,4 @@
-/* global MozActivity, dump */
+/* global MozActivity, dump, NotificationHelper */
 (function(exports) {
   'use strict';
   /**
@@ -114,11 +114,14 @@
     },
 
     _notify: function(titleId, body, onclick) {
-      var title = navigator.mozL10n.get(titleId) || titleId;
-      var notification = new window.Notification(title, {body: body});
-      if (onclick) {
-        notification.onclick = onclick;
-      }
+
+      NotificationHelper.send(titleId, {
+        'bodyL10n': body
+      }).then(function(notification) {
+        if(onclick) {
+          notification.addEventListener('click', onclick);
+        }
+      });
     },
 
     /**

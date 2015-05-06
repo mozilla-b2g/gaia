@@ -73,6 +73,8 @@ var PlayerView = {
   init: function pv_init() {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
+    this.artistText = document.querySelector('#player-cover-artist bdi');
+    this.albumText = document.querySelector('#player-cover-album bdi');
 
     this.timeoutID;
     this.cover = document.getElementById('player-cover');
@@ -85,6 +87,7 @@ var PlayerView = {
 
     this.ratings = document.getElementById('player-album-rating').children;
 
+    this.seekSlider = document.getElementById('player-seek');
     this.seekRegion = document.getElementById('player-seek-bar');
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekIndicator = document.getElementById('player-seek-bar-indicator');
@@ -116,6 +119,7 @@ var PlayerView = {
     this.seekRegion.addEventListener('touchstart', this);
     this.seekRegion.addEventListener('touchmove', this);
     this.seekRegion.addEventListener('touchend', this);
+    this.seekSlider.addEventListener('keypress', this);
     this.previousControl.addEventListener('touchend', this);
     this.nextControl.addEventListener('touchend', this);
 
@@ -139,10 +143,6 @@ var PlayerView = {
     // This shouldn't have handled by music app itself. Remove the patch of
     // bug 894744 once we have better solution.
     window.addEventListener('storage', this._handleInterpageMessage.bind(this));
-
-    // A timer we use to work around
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-    this.endedTimer = null;
 
     // Listen to language changes to update the language direction accordingly
     navigator.mozL10n.ready(this.updateL10n.bind(this));
@@ -226,19 +226,21 @@ var PlayerView = {
         this.album.classList.remove('hidden-cover-share');
       }
     } else {
-      var titleBar = document.getElementById('title-text');
+      // we can't use TitleBar here as if we are in the activity
+      // it will not be initialised.
+      var titleBar = document.querySelector('#title-text bdi');
 
       titleBar.textContent =
         metadata.title || navigator.mozL10n.get('unknownTitle');
       titleBar.dataset.l10nId = metadata.title ? '' : 'unknownTitle';
     }
 
-    this.artist.textContent =
+    this.artistText.textContent =
       metadata.artist || navigator.mozL10n.get('unknownArtist');
-    this.artist.dataset.l10nId = metadata.artist ? '' : 'unknownArtist';
-    this.album.textContent =
+    this.artistText.dataset.l10nId = metadata.artist ? '' : 'unknownArtist';
+    this.albumText.textContent =
       metadata.album || navigator.mozL10n.get('unknownAlbum');
-    this.album.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
+    this.albumText.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
 
     this.setCoverImage(fileinfo);
   },
@@ -273,15 +275,17 @@ var PlayerView = {
   },
 
   setRepeat: function pv_setRepeat(value) {
-    var repeatClasses = ['repeat-off', 'repeat-list', 'repeat-song'];
+    var repeatModes = ['repeat-off', 'repeat-list', 'repeat-song'];
 
     // Remove all repeat classes before applying a new one
-    repeatClasses.forEach(function pv_resetRepeat(targetClass) {
+    repeatModes.forEach(function pv_resetRepeat(targetClass) {
       this.repeatButton.classList.remove(targetClass);
     }.bind(this));
 
     this.repeatOption = value;
-    this.repeatButton.classList.add(repeatClasses[this.repeatOption]);
+    this.repeatButton.classList.add(repeatModes[this.repeatOption]);
+    this.repeatButton.setAttribute(
+      'data-l10n-id', repeatModes[this.repeatOption]);
   },
 
   setShuffle: function pv_setShuffle(value, index) {
@@ -300,11 +304,18 @@ var PlayerView = {
     } else {
       this.shuffleButton.classList.remove('shuffle-on');
     }
+    this.shuffleButton.setAttribute('aria-pressed', this.shuffleOption);
   },
 
   setRatings: function pv_setRatings(rated) {
     for (var i = 0; i < 5; i++) {
       var rating = this.ratings[i];
+
+      if (i === rated - 1) {
+          rating.setAttribute('aria-checked', true);
+      } else {
+          rating.setAttribute('aria-checked', false);
+      }
 
       if (i < rated) {
         rating.classList.add('star-on');
@@ -394,11 +405,6 @@ var PlayerView = {
     // due to b2g cannot get some mp3's duration
     // and the seekBar can still show 00:00 to -00:00
     this.setSeekBar(0, 0, 0);
-
-    if (this.endedTimer) {
-      clearTimeout(this.endedTimer);
-      this.endedTimer = null;
-    }
   },
 
   updateRemoteMetadata: function pv_updateRemoteMetadata() {
@@ -579,8 +585,19 @@ var PlayerView = {
         this.setAudioSrc(this.dataSource);
       }.bind(this));
     } else {
-      // If we reach here, the player is paused so resume it
-      this.audio.play();
+      // If we reach here, the player is paused so resume it.
+      // But if we're very close to the end of the song (and if the song
+      // is not really short) then just skip to the next song rather than
+      // finishing this one. (This works around Bug 1157118 where if we're
+      // within a fraction of a second of the end of a .m4a file, it takes
+      // a long time to get an ended event and move to the next song.)
+      if (this.audio.duration > 20 &&
+          this.audio.duration - this.audio.currentTime < 1) {
+        this.next(true);
+      }
+      else {
+        this.audio.play();
+      }
     }
   },
 
@@ -746,30 +763,29 @@ var PlayerView = {
       this.audio.currentTime = Math.floor(seekTime);
     }
 
-    var startTime = this.audio.startTime;
-
-    var endTime;
-    // The audio element's duration might be NaN or 'Infinity' if it's not ready
-    // We should get the duration from the buffered parts before the duration
-    // is ready, and be sure to get the buffered parts if there is data in it.
-    if (isNaN(this.audio.duration)) {
-      endTime = 0;
-    } else if (this.audio.duration === Infinity) {
-      endTime = (this.audio.buffered.length > 0) ?
-        this.audio.buffered.end(this.audio.buffered.length - 1) : 0;
-    } else {
-      endTime = this.audio.duration;
-    }
-
-    var currentTime = this.audio.currentTime;
-
-    this.setSeekBar(startTime, endTime, currentTime);
+    this.setSeekBar(0, this.audio.duration, this.audio.currentTime);
   },
 
   setSeekBar: function pv_setSeekBar(startTime, endTime, currentTime) {
+    if (!isFinite(endTime)) {
+      endTime = Math.max(this.seekBar.max, currentTime);
+    }
+
+    if (this.seekBar.max != endTime) {
+      // Duration changed, update accessibility label.
+      navigator.mozL10n.setAttributes(this.seekSlider,
+        'playbackSeekBar', {'duration': formatTime(endTime)});
+    }
+
     this.seekBar.min = startTime;
     this.seekBar.max = endTime;
     this.seekBar.value = currentTime;
+
+    var formattedCurrentTime = formatTime(currentTime);
+    // Adjust values for accessibility
+    this.seekSlider.setAttribute('aria-valuetext', formattedCurrentTime);
+    this.seekSlider.setAttribute('aria-valuemax', endTime);
+    this.seekSlider.setAttribute('aria-valuenow', currentTime);
 
     // if endTime is 0, that's a reset of seekBar
     var ratio = (endTime !== 0) ? (currentTime / endTime) : 0;
@@ -790,7 +806,7 @@ var PlayerView = {
 
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
-    this.seekElapsed.textContent = formatTime(currentTime);
+    this.seekElapsed.textContent = formattedCurrentTime;
     var remainingTime = endTime - currentTime;
     // Check if there is remaining time to show, avoiding to display "-00:00"
     // while song is loading (Bug 833710)
@@ -979,11 +995,13 @@ var PlayerView = {
         this.playControl.classList.remove('is-pause');
         // The play event is fired when audio playback has begun.
         this.playStatus = PLAYSTATUS_PLAYING;
+        this.playControl.setAttribute('data-l10n-id', 'playbackPause');
         this.updateRemotePlayStatus();
         break;
       case 'pause':
         this.playControl.classList.add('is-pause');
         this.playStatus = PLAYSTATUS_PAUSED;
+        this.playControl.setAttribute('data-l10n-id', 'playbackPlay');
         this.updateRemotePlayStatus();
         break;
       case 'touchstart':
@@ -1031,6 +1049,21 @@ var PlayerView = {
           this.next();
         }
         break;
+      case 'keypress':
+        // The standard accessible control for sliders is arrow up/down keys.
+        // Our screenreader synthesizes those events on swipe up/down gestures.
+        // Currently, we only allow screen reader users to adjust sliders with a
+        // constant step size (there is no page up/down equivalent). In the case
+        // of music, we make sure that the maximum amount of steps for the
+        // entire duration is 20, or 2 second increments if the duration is less
+        // then 40 seconds.
+        var step = Math.max(this.audio.duration / 20, 2);
+        if (evt.keyCode == evt.DOM_VK_DOWN) {
+          this.seekAudio(this.audio.currentTime - step);
+        } else if (evt.keyCode == evt.DOM_VK_UP) {
+          this.seekAudio(this.audio.currentTime + step);
+        }
+        break;
       case 'contextmenu':
         if (target.id === 'player-controls-next') {
           this.startFastSeeking(1);
@@ -1048,27 +1081,9 @@ var PlayerView = {
         if (evt.type === 'durationchange' || this.audio.currentTime === 0) {
           this.updateRemoteMetadata();
         }
-
-        // Since we don't always get reliable 'ended' events, see if
-        // we've reached the end this way.
-        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-        // If we're within 1 second of the end of the song, register
-        // a timeout to skip to the next song one second after the song ends
-        if (this.audio.currentTime >= this.audio.duration - 1 &&
-            this.endedTimer == null) {
-          var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
-          this.endedTimer = setTimeout(function() {
-                                         this.next(true);
-                                       }.bind(this),
-                                       timeToNext * 1000);
-        }
         break;
       case 'ended':
-        // Because of the workaround above, we have to ignore real ended
-        // events if we already have a timer set to emulate them
-        if (!this.endedTimer) {
-          this.next(true);
-        }
+        this.next(true);
         break;
 
       case 'visibilitychange':

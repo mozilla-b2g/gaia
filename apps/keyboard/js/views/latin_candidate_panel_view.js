@@ -121,7 +121,7 @@ LatinCandidatePanelView.prototype.showCandidates = function(candidates) {
     // TODO: we should not create a business logic object in the view,
     // let's move it to somewhere else.
     var candidateView = new LatinCandidateView(
-      { selection: true,
+      { suggestion: true,
         text: text,
         data: data },
       { candidatesLength: candidates.length,

@@ -6,8 +6,5 @@
     "name": "Platypus Corp.",
     "url": "https://flying.platypus.com/"
   },
-  "type": "privileged",
-  "permissions": {
-    "storage": {}
-  }
+  "type": "privileged"
 }

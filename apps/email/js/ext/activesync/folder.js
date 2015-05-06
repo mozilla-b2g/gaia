@@ -1,6 +1,6 @@
 define(
   [
-    'rdcommon/log',
+    'logic',
     '../date',
     '../syncbase',
     '../allback',
@@ -17,7 +17,7 @@ define(
     'exports'
   ],
   function(
-    $log,
+    logic,
     $date,
     $sync,
     allback,
@@ -110,10 +110,12 @@ function lazyConnection(cbIndex, fn, failString) {
 }
 
 
-function ActiveSyncFolderConn(account, storage, _parentLog) {
+function ActiveSyncFolderConn(account, storage) {
   this._account = account;
   this._storage = storage;
-  this._LOG = LOGFAB.ActiveSyncFolderConn(this, _parentLog, storage.folderId);
+  logic.defineScope(this, 'ActiveSyncFolderConn',
+                    { folderId: storage.folderId,
+                      accountId: account.id });
 
   this.folderMeta = storage.folderMeta;
 
@@ -364,7 +366,7 @@ ActiveSyncFolderConn.prototype = {
           else {
             filterType = Type.NoFilter;
           }
-          folderConn._LOG.inferFilterType(filterType);
+          logic(folderConn, 'inferFilterType', { filterType: filterType });
           callback(null, filterType);
         });
         return;
@@ -375,7 +377,7 @@ ActiveSyncFolderConn.prototype = {
         // round-trip where we'd normally get a zero syncKey from the server.
         folderConn.syncKey = '0';
       }
-      folderConn._LOG.inferFilterType(filterType);
+      logic(folderConn, 'inferFilterType', { filterType: filterType });
       callback(null, filterType);
     });
   }),
@@ -784,6 +786,7 @@ ActiveSyncFolderConn.prototype = {
               break;
             case asb.FileReference:
             case em.AttName:
+            case em.Att0Id:
               attachment.part = attachDataText;
               break;
             case asb.EstimatedDataSize:
@@ -795,10 +798,6 @@ ActiveSyncFolderConn.prototype = {
               break;
             case asb.IsInline:
               isInline = (attachDataText === '1');
-              break;
-            case asb.FileReference:
-            case em.Att0Id:
-              attachment.part = attachData.children[0].textContent;
               break;
             }
           }
@@ -1070,7 +1069,7 @@ ActiveSyncFolderConn.prototype = {
 
     var type = snippetOnly ? 'plain' : bodyRep.type;
     var data = $mailchew.processMessageContent(bodyContent, type, !snippetOnly,
-                                               true, this._LOG);
+                                               true);
 
     header.snippet = data.snippet;
     bodyRep.isDownloaded = !snippetOnly;
@@ -1099,7 +1098,7 @@ ActiveSyncFolderConn.prototype = {
         changedMessages = 0,
         deletedMessages = 0;
 
-    this._LOG.sync_begin(null, null, null);
+    logic(this, 'sync_begin');
     var self = this;
     this._enumerateFolderChanges(function (error, added, changed, deleted,
                                            moreAvailable) {
@@ -1110,13 +1109,17 @@ ActiveSyncFolderConn.prototype = {
           // If we got a bad sync key, we'll end up creating a new connection,
           // so just clear out the old storage to make this connection unusable.
           folderConn._storage = null;
-          folderConn._LOG.sync_end(null, null, null);
+          logic(folderConn, 'sync_end', {
+		    full: null, changed: null, deleted: null
+		  });
         });
         return;
       }
       else if (error) {
         // Sync is over!
-        folderConn._LOG.sync_end(null, null, null);
+        logic(folderConn, 'sync_end', {
+		  full: null, changed: null, deleted: null
+        });
         doneCallback(error);
         return;
       }
@@ -1183,8 +1186,11 @@ ActiveSyncFolderConn.prototype = {
           // Note: For the second argument here, we report the number of
           // messages we saw that *changed*. This differs from IMAP, which
           // reports the number of messages it *saw*.
-          folderConn._LOG.sync_end(addedMessages, changedMessages,
-                                   deletedMessages);
+          logic(folderConn, 'sync_end', {
+            full: addedMessages,
+            changed: changedMessages,
+            deleted: deletedMessages
+          });
           storage.markSyncRange($sync.OLDEST_SYNC_DATE, accuracyStamp, 'XXX',
                                 accuracyStamp);
           doneCallback(null, null, messagesSeen);
@@ -1371,14 +1377,15 @@ ActiveSyncFolderConn.prototype = {
   }),
 };
 
-function ActiveSyncFolderSyncer(account, folderStorage, _parentLog) {
+function ActiveSyncFolderSyncer(account, folderStorage) {
   this._account = account;
   this.folderStorage = folderStorage;
 
-  this._LOG = LOGFAB.ActiveSyncFolderSyncer(this, _parentLog,
-                                            folderStorage.folderId);
+  logic.defineScope(this, 'ActiveSyncFolderSyncer',
+                    { accountId: account.id,
+                      folderId: folderStorage.folderId });
 
-  this.folderConn = new ActiveSyncFolderConn(account, folderStorage, this._LOG);
+  this.folderConn = new ActiveSyncFolderConn(account, folderStorage);
 }
 exports.ActiveSyncFolderSyncer = ActiveSyncFolderSyncer;
 ActiveSyncFolderSyncer.prototype = {
@@ -1475,34 +1482,7 @@ ActiveSyncFolderSyncer.prototype = {
 
   shutdown: function() {
     this.folderConn.shutdown();
-    this._LOG.__die();
-  },
+  }
 };
-
-var LOGFAB = exports.LOGFAB = $log.register($module, {
-  ActiveSyncFolderConn: {
-    type: $log.CONNECTION,
-    subtype: $log.CLIENT,
-    events: {
-      inferFilterType: { filterType: false },
-    },
-    asyncJobs: {
-      sync: {
-        newMessages: true, changedMessages: true, deletedMessages: true,
-      },
-    },
-    errors: {
-      htmlParseError: { ex: $log.EXCEPTION },
-      htmlSnippetError: { ex: $log.EXCEPTION },
-      textChewError: { ex: $log.EXCEPTION },
-      textSnippetError: { ex: $log.EXCEPTION },
-    },
-  },
-  ActiveSyncFolderSyncer: {
-    type: $log.DATABASE,
-    events: {
-    }
-  },
-});
 
 }); // end define

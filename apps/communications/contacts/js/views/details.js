@@ -1,20 +1,23 @@
 'use strict';
+
 /* jshint nonew: false */
+
 /* global ActivityHandler */
 /* global COMMS_APP_ORIGIN */
 /* global Contacts */
 /* global ContactsButtons */
 /* global ContactPhotoHelper */
+/* globals ContactToVcardBlob */
 /* global fb */
+/* global ICEData */
 /* global LazyLoader */
+/* global MozActivity */
 /* global Normalizer */
 /* global SCALE_RATIO */
-/* global WebrtcClient */
-/* global utils */
 /* global TAG_OPTIONS */
-/* global ICEData */
-/* globals ContactToVcardBlob, VcardFilename */
-/* global MozActivity */
+/* global utils */
+/* global VcardFilename */
+/* global WebrtcClient */
 
 var contacts = window.contacts || {};
 
@@ -28,6 +31,7 @@ contacts.Details = (function() {
       contactDetails,
       listContainer,
       detailsName,
+      detailsNameText,
       orgTitle,
       datesTemplate,
       addressesTemplate,
@@ -58,6 +62,7 @@ contacts.Details = (function() {
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
+    detailsNameText = dom.querySelector('#contact-name-title bdi');
     orgTitle = dom.querySelector('#org-title');
     datesTemplate = dom.querySelector('#dates-template-\\#i\\#');
     addressesTemplate = dom.querySelector('#address-details-template-\\#i\\#');
@@ -274,7 +279,7 @@ contacts.Details = (function() {
   // Method that generates HTML markup for the contact
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
-    detailsName.textContent = getDisplayName(contact);
+    detailsNameText.textContent = getDisplayName(contact);
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
@@ -307,11 +312,8 @@ contacts.Details = (function() {
   var renderFavorite = function cd_renderFavorite(contact) {
     var favorite = isFavorite(contact);
     toggleFavoriteMessage(favorite);
-    if (contact.category && contact.category.indexOf('favorite') != -1) {
-      detailsName.classList.add('favorite');
-    } else {
-      detailsName.classList.remove('favorite');
-    }
+
+    header.classList.toggle('favorite', !!favorite);
   };
 
   var isFavorite = function isFavorite(contact) {
@@ -384,9 +386,9 @@ contacts.Details = (function() {
   var renderOrg = function cd_renderOrg(contact) {
     if (contact.org && contact.org.length > 0 && contact.org[0] !== '') {
       orgTitle.textContent = contact.org[0];
-      orgTitle.className = '';
+      orgTitle.classList.remove('hide');
     } else {
-      orgTitle.className = 'hide';
+      orgTitle.classList.add('hide');
       orgTitle.textContent = '';
     }
   };
@@ -652,13 +654,14 @@ contacts.Details = (function() {
 
     LazyLoader.load(VCARD_DEPS,function vcardLoaded() {
       ContactToVcardBlob([contactData], function blobReady(vcardBlob) {
+        var filename = VcardFilename(contactData);
         new MozActivity({
           name: 'share',
           data: {
             type: 'text/vcard',
             number: 1,
-            blobs: [vcardBlob],
-            filenames: [VcardFilename(contactData)]
+            blobs: [new window.File([vcardBlob], filename)],
+            filenames: [filename]
           }
         });
         // The MIME of the blob should be this for some MMS gateways

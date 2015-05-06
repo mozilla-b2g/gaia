@@ -1,6 +1,7 @@
 {
   "layout"  : {
     "af": [
+        {"layoutId": "af", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ar": [
@@ -127,6 +128,9 @@
         {"layoutId": "ko", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "lg": [
+        {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
+    ],
     "lij": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
@@ -220,9 +224,18 @@
     "th": [
         {"layoutId": "th", "app": ["apps", "keyboard"]}
     ],
+    "tn": [
+        {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
+    ],
+    "tl": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "tr": [
         {"layoutId": "tr-Q", "app": ["apps", "keyboard"]},
         {"layoutId": "tr-F", "app": ["apps", "keyboard"]}
+    ],
+    "uk": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ur": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}

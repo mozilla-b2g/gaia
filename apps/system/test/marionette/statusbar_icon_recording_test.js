@@ -9,10 +9,6 @@ marionette('Status Bar icons - Recording', function() {
   var client = marionette.client({
     prefs: {
       'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 
@@ -29,8 +25,9 @@ marionette('Status Bar icons - Recording', function() {
     system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
-    statusBar.changeDelayValue();
-    statusBar.dispatchRecordingEvent('recording-state-changed', {active: true});
+    // statusBar.changeDelayValue('RecordingIcon');
+    statusBar.dispatchMozChromeEvent('recording-status', {active: true,
+      requestURL: 'app://fake.recorder.org'});
   });
 
   test('should be visible', function() {
@@ -41,8 +38,8 @@ marionette('Status Bar icons - Recording', function() {
 
   test('should turn translucent after deactivation then disappear', function() {
     icon = statusBar.recording.waitForIconToAppear();
-    statusBar.dispatchRecordingEvent('recording-state-changed',
-      {active: false});
+    statusBar.dispatchMozChromeEvent('recording-status',
+      {active: false, requestURL: 'app://fake.recorder.org'});
 
     // First, the icon is deactivated...
     assert.equal('false', icon.getAttribute('data-active'));
@@ -64,9 +61,8 @@ marionette('Status Bar icons - Recording', function() {
     launchApp();
 
     statusBar.minimised.recording.waitForIconToAppear();
-    statusBar.dispatchRecordingEvent('recording-state-changed',
-      {active: false});
-
+    statusBar.dispatchMozChromeEvent('recording-status',
+      {active: false, requestURL: 'app://fake.recorder.org'});
     // First, the icon is deactivated...
     icon = statusBar.minimised.recording.icon; // Refresh the element.
     assert.equal('false', icon.getAttribute('data-active'));

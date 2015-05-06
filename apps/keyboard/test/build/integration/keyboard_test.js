@@ -21,7 +21,12 @@ suite('Keyboard layouts building tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var config = JSON.parse(process.env.BUILD_CONFIG);
-      var layoutIds = config.GAIA_KEYBOARD_LAYOUTS.split(',').sort();
+      var layoutIds = ['ar', 'bn-Avro', 'bn-Probhat', 'de', 'dz-BT',
+         'en', 'en-Colemak', 'en-Dvorak', 'en-Neo', 'eo', 'es',
+         'es-Americas', 'fr', 'fr-CA', 'fr-CH', 'fr-Dvorak-bepo',
+         'he', 'hi', 'ko', 'mk', 'my', 'pl', 'pt-BR', 'ta', 'te',
+         'th', 'vi-Qwerty', 'vi-Telex', 'vi-Typewriter', 'wo',
+         'zh-Hans-Pinyin'];
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
@@ -81,10 +86,8 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build with all layouts and dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make', function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make';
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* make', function(done) {
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=* make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -93,12 +96,13 @@ suite('Keyboard layouts building tests', function() {
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
       var layoutIds =
-        fs.readdirSync(appDirPath + '/js/layouts').map(function(filename) {
-          if (path.extname(filename) !== '.js') {
-            return;
-          }
-
+        fs.readdirSync(appDirPath + '/js/layouts').filter(function(filename) {
+          return (path.extname(filename) === '.js');
+        }).map(function(filename) {
           return path.basename(filename, '.js');
+        }).filter(function(layoutId) {
+          // Exclude noIncludeInExpandLayoutIdSet layouts
+          return (['emoji'].indexOf(layoutId) === -1);
         });
 
       var layouts = layoutIds.map(function(layout) {
@@ -153,7 +157,8 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/latin/dictionaries/sr-Cyrl.dict',
         'js/imes/latin/dictionaries/sr-Latn.dict',
         'js/imes/latin/dictionaries/sv.dict',
-        'js/imes/latin/dictionaries/tr.dict'
+        'js/imes/latin/dictionaries/tr.dict',
+        'js/imes/latin/dictionaries/af.dict'
       ];
 
       var checkList = [].concat(layouts, imes, dicts);
@@ -184,11 +189,12 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build with all layouts with no dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS="" make',
+  // (preload ko layout here to avoid empty check.)
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=ko ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=noPreloadDictRequired make',
   function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS="" make';
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=ko ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=noPreloadDictRequired make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -228,9 +234,13 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build default layouts with only en dictionary, and extra IMEs
-  test('APP=keyboard GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=en make',
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
+    'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make',
   function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=en make';
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
+      'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
+      'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -370,71 +380,6 @@ suite('Keyboard settings building tests', function() {
           return elem.id === 'handwriting-settings';
         }),
           'Some section in general panel should include handwriting settings');
-
-        done();
-      });
-    });
-  });
-
-  suite('User dictionary', function() {
-    // return an array of <li> in the root panel's first section's ui
-    var getLIsFromGeneralPanel = function(domDoc) {
-      return Array.prototype.slice.call(
-               domDoc.querySelectorAll('#general-settings > ul > li'));
-    };
-
-    // default: there shouldn't be user dictionary elements in resulting file
-    test('APP=keyboard make', function(done) {
-      var cmd = 'APP=keyboard make';
-      helper.exec(cmd, function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-
-        var settingsDOMDoc = getSettingsDomDoc();
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/user_dictionary_edit_dialog.js';
-        }), 'No script should include user_dictionary_edit_dialog.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/user_dictionary_list_panel.js';
-        }), 'No script should include user_dictionary_list_panel.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).every(function(elem){
-          return elem.src !== 'js/settings/user_dictionary.js';
-        }), 'No script should include user_dictionary.js');
-
-        assert.isTrue(
-        getLIsFromGeneralPanel(settingsDOMDoc).every(function(elem){
-          return elem.querySelector('a#menu-userdict') === null;
-        }), 'No <li> in general panel should include user dict settings');
-
-        done();
-      });
-    });
-
-    test('GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make', function(done) {
-      var cmd = 'GAIA_KEYBOARD_ENABLE_USER_DICT=1 APP=keyboard make';
-      helper.exec(cmd, function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-
-        var settingsDOMDoc = getSettingsDomDoc();
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/user_dictionary_edit_dialog.js';
-        }), 'Some script should include user_dictionary_edit_dialog.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/user_dictionary_list_panel.js';
-        }), 'Some script should include user_dictionary_list_panel.js');
-
-        assert.isTrue(getScriptsFromDomDoc(settingsDOMDoc).some(function(elem){
-          return elem.src === 'js/settings/user_dictionary.js';
-        }), 'Some script should include user_dictionary.js');
-
-        assert.isTrue(
-        getLIsFromGeneralPanel(settingsDOMDoc).some(function(elem){
-          return elem.querySelector('a#menu-userdict') !== null;
-        }), 'Some <li> in general panel should include user dict settings');
 
         done();
       });

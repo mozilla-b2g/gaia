@@ -2,17 +2,18 @@ define(function(require, exports, module) {
 'use strict';
 
 var Parent = require('view');
-var createDay = require('calc').createDay;
+var core = require('core');
+var createDay = require('common/calc').createDay;
 var dateFormat = require('date_format');
 var dayObserver = require('day_observer');
-var isAllDay = require('calc').isAllDay;
+var isAllDay = require('common/calc').isAllDay;
 var performance = require('performance');
 var template = require('templates/month_day_agenda');
 
 function MonthDayAgenda() {
   Parent.apply(this, arguments);
   this._render = this._render.bind(this);
-  this.controller = this.app.timeController;
+  this.controller = core.timeController;
 }
 module.exports = MonthDayAgenda;
 

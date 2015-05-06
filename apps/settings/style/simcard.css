@@ -42,9 +42,6 @@
 .sim-manager-security-entry {
   height: 6rem;
 }
-.sim-manager-security-desc {
-  color: #6D7374;
-}
 .sim-manager-security-entry[aria-disabled="true"] {
   opacity: 0.6;
   pointer-events: none;

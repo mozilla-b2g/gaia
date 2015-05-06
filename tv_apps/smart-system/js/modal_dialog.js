@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global KeyboardManager */
+/* global KeyboardManager, focusManager, Tagged */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -16,6 +16,8 @@ var ModalDialog = {
 
   // DOM
   elements: {},
+
+  dialog: document.getElementById('modal-dialog'),
 
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
@@ -77,6 +79,7 @@ var ModalDialog = {
         elements[id].addEventListener('click', this);
       }
     }
+    focusManager.addUI(this);
   },
 
   // Default event handler
@@ -208,7 +211,6 @@ var ModalDialog = {
         this.setTitle('alert', title);
         elements.alertOk.setAttribute('data-l10n-id', evt.yesText ?
                                                         evt.yesText : 'ok');
-        elements.alert.focus();
         break;
 
       case 'prompt':
@@ -220,7 +222,6 @@ var ModalDialog = {
                                                         evt.yesText : 'ok');
         elements.promptCancel.setAttribute('data-l10n-id', evt.noText ?
                                                         evt.noText : 'cancel');
-        elements.prompt.focus();
         break;
 
       case 'confirm':
@@ -231,17 +232,16 @@ var ModalDialog = {
                                                         evt.yesText : 'ok');
         elements.confirmCancel.setAttribute('data-l10n-id', evt.noText ?
                                                         evt.noText : 'cancel');
-        elements.confirm.focus();
         break;
 
       case 'selectone':
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
-        elements.selectOne.focus();
         break;
     }
 
     this.setHeight(window.innerHeight);
+    focusManager.focus();
   },
 
   hide: function md_hide() {
@@ -290,7 +290,7 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
-
+    focusManager.focus();
     this.processNextEvent();
   },
 
@@ -333,7 +333,7 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
-
+    focusManager.focus();
     this.processNextEvent();
   },
 
@@ -354,7 +354,7 @@ var ModalDialog = {
     if (evt.detail.unblock) {
       evt.detail.unblock();
     }
-
+    focusManager.focus();
     this.processNextEvent();
   },
 
@@ -367,16 +367,14 @@ var ModalDialog = {
       return;
     }
 
-    var itemsHTML = [];
+    var itemsHTML = '';
     for (var i = 0; i < data.options.length; i++) {
-      itemsHTML.push('<li><button id="');
-      itemsHTML.push(data.options[i].id);
-      itemsHTML.push('">');
-      itemsHTML.push(data.options[i].text);
-      itemsHTML.push('</button></li>');
+      itemsHTML += Tagged.escapeHTML `<li>
+        <button id="${data.options[i].id}">${data.options[i].text}</button>
+      </li>`;
     }
 
-    elements.selectOneMenu.innerHTML = itemsHTML.join('');
+    elements.selectOneMenu.innerHTML = itemsHTML;
   },
 
   /**
@@ -476,7 +474,26 @@ var ModalDialog = {
 
   isVisible: function md_isVisible() {
     return this.screen ? this.screen.classList.contains('modal-dialog') : false;
-  }
+  },
+
+  isFocusable: function md_isFocusable() {
+    return this.isVisible();
+  },
+
+  getElement: function md_getElement() {
+    if (this.isFocusable()) {
+      return this.dialog;
+    }
+  },
+
+  focus: function md_focus() {
+    if (this.isFocusable()) {
+      document.activeElement.blur();
+      var type = this.eventForCurrentOrigin.detail.promptType;
+      document.getElementById(this.prefix + type)
+              .querySelector('button').focus();
+    }
+  },
 };
 
 ModalDialog.init();

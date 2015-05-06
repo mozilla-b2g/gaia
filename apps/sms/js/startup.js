@@ -3,10 +3,9 @@
 
 'use strict';
 
-/*global ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
+/*global ActivityHandler, ConversationView, InboxView, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information, SilentSms,
-         PerformanceTestingHelper, App, Navigation, EventDispatcher,
-         LocalizationHelper,
+         App, Navigation, EventDispatcher, LocalizationHelper,
          InterInstanceEventDispatcher
 */
 
@@ -26,21 +25,20 @@ var Startup = {
     'js/errors.js',
     'js/dialog.js',
     'js/error_dialog.js',
-    'js/link_helper.js',
-    'js/link_action_handler.js',
+    'views/conversation/js/link_helper.js',
+    'views/conversation/js/link_action_handler.js',
     'js/contact_renderer.js',
     'js/activity_picker.js',
-    'js/information.js',
+    'views/conversation/js/information.js',
     'js/shared_components.js',
     'js/task_runner.js',
     'js/silent_sms.js',
-    'js/recipients.js',
-    'js/attachment.js',
-    'js/attachment_renderer.js',
-    'js/attachment_menu.js',
-    'js/thread_ui.js',
-    'js/subject_composer.js',
-    'js/compose.js',
+    'views/conversation/js/recipients.js',
+    'views/conversation/js/attachment.js',
+    'views/conversation/js/attachment_renderer.js',
+    'views/conversation/js/conversation.js',
+    'views/conversation/js/subject_composer.js',
+    'views/conversation/js/compose.js',
     'js/wbmp.js',
     'js/smil.js',
     'js/notify.js',
@@ -49,47 +47,53 @@ var Startup = {
   ],
 
   _lazyLoadInit: function() {
-    return LazyLoader.load(this._lazyLoadScripts).then(() => {
+    var lazyLoadPromise = LazyLoader.load(this._lazyLoadScripts).then(() => {
       LocalizationHelper.init();
 
       InterInstanceEventDispatcher.connect();
 
-      // dispatch moz-content-interactive when all the modules initialized
+      // dispatch contentInteractive when all the modules initialized
       SilentSms.init();
       ActivityHandler.init();
 
       // Init UI Managers
       TimeHeaders.init();
-      ThreadUI.init();
+      ConversationView.init();
       Information.initDefaultViews();
 
       // Dispatch post-initialize event for continuing the pending action
       Startup.emit('post-initialize');
       window.performance.mark('contentInteractive');
-      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
       // Fetch mmsSizeLimitation and max concat
       Settings.init();
 
       window.performance.mark('objectsInitEnd');
-      PerformanceTestingHelper.dispatch('objects-init-finished');
     });
+    this._initHeaders();
+    return lazyLoadPromise;
+  },
+
+  _initHeaders: function() {
+    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
+    for (var i = 0, l = headers.length; i < l; i++) {
+      headers[i].removeAttribute('no-font-fit');
+    }
   },
 
   /**
-   * We wait for the DOMContentLoaded event in the event sequence. After we
-   * loaded the first panel of threads, we lazy load all non-critical JS files.
-   * As a result, if the 'load' event was not sent yet, this will delay it even
-   * more until all these non-critical JS files are loaded. This is fine.
-   */
+  * We wait for the DOMContentLoaded event in the event sequence. After we
+  * loaded the first panel of threads, we lazy load all non-critical JS files.
+  * As a result, if the 'load' event was not sent yet, this will delay it even
+  * more until all these non-critical JS files are loaded. This is fine.
+  */
   init: function() {
     function initializeDefaultPanel(firstPageLoadedCallback) {
       Navigation.off('navigated', initializeDefaultPanel);
 
-      ThreadListUI.init();
-      ThreadListUI.renderThreads(firstPageLoadedCallback, function() {
+      InboxView.init();
+      InboxView.renderThreads(firstPageLoadedCallback).then(() => {
         window.performance.mark('fullyLoaded');
-        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
         App.setReady();
       });
     }
@@ -98,7 +102,6 @@ var Startup = {
       window.removeEventListener('DOMContentLoaded', loaded);
 
       window.performance.mark('navigationLoaded');
-      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       MessageManager.init();
       Navigation.init();
@@ -116,10 +119,9 @@ var Startup = {
         initializeDefaultPanel(this._lazyLoadInit.bind(this));
       }
 
-      // dispatch chrome-interactive when thread list related modules
+      // dispatch navigationInteractive when thread list related modules
       // initialized
       window.performance.mark('navigationInteractive');
-      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
     }.bind(this);
 
     window.addEventListener('DOMContentLoaded', loaded);

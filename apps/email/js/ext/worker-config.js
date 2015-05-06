@@ -49,6 +49,8 @@
       'bleach.js': 'ext/bleach.js',
       'browserbox': 'ext/browserbox',
       'browserbox-imap': 'ext/browserbox-imap',
+      'co': 'ext/co',
+      'equal': 'ext/equal',
       'evt': 'ext/evt',
       'imap-handler': 'ext/imap-handler',
       'mailbuild': 'ext/mailbuild',
@@ -59,13 +61,11 @@
       'mimetypes': 'ext/mimetypes',
       'mix': 'ext/mix',
       'punycode': 'ext/punycode',
-      'rdcommon': 'ext/rdcommon',
       'safe-base64': 'ext/safe-base64',
       'smtpclient': 'ext/smtpclient',
       'stringencoding': 'ext/stringencoding',
       'tcp-socket': 'ext/tcp-socket',
       'utf7': 'ext/utf7',
-      'wmsy': 'ext/wmsy',
       'wo-utf7': 'ext/wo-utf7'
       // </gelam-ext>
     },

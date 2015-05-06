@@ -2,16 +2,15 @@
 
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
-var mockUtils =
-  require('./mock_utils.js');
+var mockUtils = require('./mock_utils.js');
 
 suite('settings.js', function() {
   var app;
   setup(function() {
     app = proxyquire.noCallThru().load(
-            '../../settings', {
-              './utils': mockUtils
-            });
+      '../../settings', {
+        './utils': mockUtils
+      });
     mockUtils.getFileContent = function(file) {
       return file;
     };
@@ -263,6 +262,7 @@ suite('settings.js', function() {
       var queue = app.execute(config);
       var expected = {
           'debug.console.enabled': true,
+          'debug.performance_data.shared': false,
           'developer.menu.enabled': true,
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
@@ -326,7 +326,8 @@ suite('settings.js', function() {
           'notification.ringtone.default.id':
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL },
+          'ftu.pingURL': config.FTU_PING_URL,
+          'debug.performance_data.shared': false },
           result);
         done();
       });
@@ -348,6 +349,7 @@ suite('settings.js', function() {
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
+          'gaia.system.checkForUpdates': true,
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
@@ -362,7 +364,8 @@ suite('settings.js', function() {
           'notification.ringtone.default.id':
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL },
+          'ftu.pingURL': config.FTU_PING_URL,
+          'debug.performance_data.shared': false },
           result);
         done();
       });
@@ -416,7 +419,8 @@ suite('settings.js', function() {
           'notification.ringtone.default.id':
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL },
+          'ftu.pingURL': config.FTU_PING_URL,
+          'debug.performance_data.shared': false },
           result);
         done();
       });
@@ -451,7 +455,8 @@ suite('settings.js', function() {
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL,
-          'screen.timeout': 600 },
+          'screen.timeout': 600,
+          'debug.performance_data.shared': false },
           result);
         done();
       });

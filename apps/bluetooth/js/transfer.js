@@ -10,14 +10,17 @@ navigator.mozL10n.once(function showPanel() {
   var defaultAdapter = null;
   var activity = null;
   var sendingFilesSchedule = {};
+  var numberOfTasks;
   var _debug = false;
 
   navigator.mozSetMessageHandler('activity', function handler(activityRequest) {
     activity = activityRequest;
     if (settings && bluetooth &&
-        (activity.source.name == 'share') &&
+        (activity.source.name == 'share' ||
+         activity.source.name == 'share-via-bluetooth-only') &&
         (activity.source.data.blobs &&
          activity.source.data.blobs.length > 0)) {
+      observeOnadapteradded();
       observeBluetoothEnabled();
       isBluetoothEnabled();
     } else {
@@ -43,6 +46,12 @@ navigator.mozL10n.once(function showPanel() {
     console.log('[Bluetooth APP Send File]: ' + msg);
   }
 
+  function observeOnadapteradded() {
+    bluetooth.onadapteradded = function bt_adapterAdded() {
+      initialDefaultAdapter();
+    };
+  }
+
   function observeBluetoothEnabled() {
     // enable Bluetooth if the related settings says so
     // register an observer to monitor bluetooth.enabled changes
@@ -66,6 +75,8 @@ navigator.mozL10n.once(function showPanel() {
           debug(msg);
           confirmTurnBluetoothOn();
         }
+      } else {
+        dialogConfirmBluetooth.hidden = true;
       }
     });
   }
@@ -98,9 +109,6 @@ navigator.mozL10n.once(function showPanel() {
     }
 
     dialogConfirmBluetooth.hidden = true;
-    bluetooth.onadapteradded = function bt_adapterAdded() {
-      initialDefaultAdapter();
-    };
     settings.createLock().set({'bluetooth.enabled': true});
   }
 
@@ -182,7 +190,7 @@ navigator.mozL10n.once(function showPanel() {
 
     // Send each file via Bluetooth sendFile API
     var blobs = activity.source.data.blobs;
-    var numberOfTasks = blobs.length;
+    numberOfTasks = blobs.length;
     blobs.forEach(function(blob, index) {
       /**
        * Checking blob.name is because the sendFile() api needs a "file" object.
@@ -193,13 +201,9 @@ navigator.mozL10n.once(function showPanel() {
        */
       if (blob.name) {
         // The blob has name, send the blob directly.
-        defaultAdapter.sendFile(targetDevice.address, blob);
-        var msg = 'blob is sending...';
-        debug(msg);
-        if (--numberOfTasks === 0) {
-          transferred();
-        }
-      } else {
+        debug('blob is sending with name...');
+        sendFile(targetDevice.address, blob);
+      } else if (activity.source.data.filepaths) {
         // The blob does not have name,
         // browse the file via filepath from storage again.
         var filepath = activity.source.data.filepaths[index];
@@ -207,25 +211,42 @@ navigator.mozL10n.once(function showPanel() {
         var getRequest = storage.get(filepath);
 
         getRequest.onsuccess = function() {
-          defaultAdapter.sendFile(targetDevice.address, getRequest.result);
-          var msg = 'getFile succeed & file is sending...';
-          debug(msg);
-          if (--numberOfTasks === 0) {
-            transferred();
-          }
+          debug('getFile succeed & file is sending...');
+          sendFile(targetDevice.address, getRequest.result);
         };
 
         getRequest.onerror = function() {
-          defaultAdapter.sendFile(targetDevice.address, blob);
-          var msg = 'getFile failed so that blob is sending without filename ' +
-                    getRequest.error && getRequest.error.name;
-          debug(msg);
-          if (--numberOfTasks === 0) {
-            transferred();
-          }
+          debug('getFile failed so that blob is sending without filename ' +
+                getRequest.error && getRequest.error.name);
+          sendFile(targetDevice.address, blob);
         };
+      } else {
+        // The blob does not have name and filepath,
+        // pass the blob without name to send file directly.
+        debug('no filepath to get from device storage ' +
+              'so that blob is sending without filename');
+        sendFile(targetDevice.address, blob);
       }
     });
+  }
+
+  /**
+   * Given address, blob(file), message to send file via platform.
+   *
+   * @access private
+   * @memberOf transfer
+   * @param {String} address - address of target device
+   * @param {Object} blob - blob(file) to send
+   */
+  function sendFile(address, blob) {
+    defaultAdapter.sendFile(address, blob);
+    checkTasksComplete();
+  }
+
+  function checkTasksComplete() {
+    if (--numberOfTasks === 0) {
+      transferred();
+    }
   }
 
   function transferred() {

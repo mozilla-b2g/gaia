@@ -1,6 +1,8 @@
+/* global dump */
+/* jshint nonew: false */
 'use strict';
-var util = require('util'),
-    Marionette = require('marionette-client');
+
+var Marionette = require('marionette-client');
 
 function NotificationTest(client, details, delay_create) {
   this.client = client;
@@ -22,7 +24,7 @@ NotificationTest.prototype = {
   client: null,
   tag: null,
   close: function() {
-    var ret = undefined;
+    var ret;
     this.client.executeAsyncScript(function(notifyTag) {
       var n = Notification.get({tag: notifyTag});
       n.then(
@@ -88,17 +90,17 @@ NotificationList.prototype = {
   _remoteGetNotificationDetails: function(selector) {
     var nodes = document.querySelectorAll(selector);
     var details = [];
+    /* jshint -W084 */
     for (var node, i = 0; node = nodes[i]; i++) {
       var id = node.getAttribute('data-notification-id');
       var query = selector + '[data-notification-id="' + id + '"]';
       details.push({
         title: document.querySelector(query + ' > .title-container .title')
           .innerHTML,
-        body: document.querySelector(query + ' > .detail').innerHTML,
-        lang: document.querySelector(query + ' > .title-container')
-          .getAttribute('lang'),
-        dir: document.querySelector(query + ' > .title-container')
-          .getAttribute('dir'),
+        body: document.querySelector(query + ' > .detail .detail-content')
+          .innerHTML,
+        lang: document.querySelector(query).getAttribute('lang'),
+        dir: document.querySelector(query).getAttribute('data-predefined-dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l'),
         query: query
       });
@@ -144,6 +146,9 @@ NotificationList.prototype = {
         continue;
       }
       if (details.bidi && notification.bidi !== details.bidi) {
+        continue;
+      }
+      if (details.dir && notification.dir !== details.dir) {
         continue;
       }
       ++count;

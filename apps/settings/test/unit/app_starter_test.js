@@ -12,7 +12,6 @@ Object.defineProperty(document, 'readyState', {
   value: 'loading',
   configurable: true
 });
-require('/shared/js/usertiming.js');
 require('/js/startup.js');
 
 suite('AppStarter', function() {
@@ -56,45 +55,6 @@ suite('AppStarter', function() {
       this.sinon.stub(window, 'RootPanelHandler', function() {
         return function() {};
       });
-    });
-
-    test('should dispatch moz-chrome-dom-loaded and moz-chrome-interactive',
-      function(done) {
-        var chromeDomLoaded = false;
-        var chromeInteractive = false;
-
-        function checkDone() {
-          if (chromeDomLoaded && chromeInteractive) {
-            assert.ok(true);
-            done();
-          }
-        }
-
-        window.addEventListener('moz-chrome-dom-loaded', 
-          function onDomLoaded() {
-            window.removeEventListener('moz-chrome-dom-loaded', onDomLoaded);
-            chromeDomLoaded = true;
-            checkDone();
-        });
-        window.addEventListener('moz-chrome-interactive',
-          function onInteract() {
-            window.removeEventListener('moz-chrome-interactive', onInteract);
-            chromeInteractive = true;
-            checkDone();
-        });
-
-        appStarter.start();
-    });
-
-    test('should dispatch moz-content-interactive after initializing the ' +
-      'initial panel handler', function(done) {
-        window.addEventListener('moz-content-interactive', function onEvent() {
-          window.removeEventListener('moz-content-interactive', onEvent);
-          sinon.assert.called(window.InitialPanelHandler);
-          done();
-        });
-
-        appStarter.start();
     });
 
     test('should show correct initial panel', function(done) {

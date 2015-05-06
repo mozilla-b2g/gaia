@@ -1,6 +1,4 @@
-/* global utils,
-          UIManager,
-          WifiHelper */
+/* global utils, UIManager, WifiHelper, WifiUI:true */
 /* exported WifiManager, WifiUI */
 'use strict';
 
@@ -79,7 +77,6 @@ var WifiManager = {
         self.onScan();
       }, SCAN_TIMEOUT);
     }
-
   },
 
   enable: function wn_enable(lock) {
@@ -105,18 +102,22 @@ var WifiManager = {
   },
 
   getNetwork: function wm_gn(ssid) {
-    var network;
-    for (var i = 0; i < this.networks.length; i++) {
-      if (this.networks[i].ssid == ssid) {
-        network = this.networks[i];
-        break;
+    var list = this.networks;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].ssid === ssid) {
+        return list[i];
       }
     }
-    return network;
+
+    return null;
   },
 
   connect: function wn_connect(ssid, password, user) {
     var network = this.getNetwork(ssid);
+    if (!network) {
+      console.error('Network not found');
+      return;
+    }
     this.ssid = ssid;
     // TODO: Hardcoded for resolving bug 1019146, replace hardcoded eap
     //       method with user selected eap method after bug 1036829.
@@ -156,7 +157,6 @@ var WifiManager = {
 };
 
 var WifiUI = {
-
   joinNetwork: function wui_jn() {
     var password = document.getElementById('wifi_password').value;
     var user = document.getElementById('wifi_user').value;
@@ -171,6 +171,7 @@ var WifiUI = {
     var ssid = UIManager.hiddenWifiSsid.value;
     var security = UIManager.hiddenWifiSecurity.value;
     var network;
+
     if (ssid.length) {
       if (!Array.isArray(WifiManager.networks)) {
         WifiManager.networks = [];
@@ -193,7 +194,6 @@ var WifiUI = {
   },
 
   connect: function wui_connect(ssid, password, user) {
-
     // First we check if there is a previous selected network
     // and we remove their status
     var networkSelected = document.querySelector('li[data-wifi-selected]');
@@ -230,9 +230,14 @@ var WifiUI = {
   chooseNetwork: function wui_cn(event) {
     // Retrieve SSID from dataset
     var ssid = event.target.dataset.ssid;
+    var selectedNetwork = WifiManager.getNetwork(ssid);
+    if (!selectedNetwork) {
+      console.error('Network not found');
+      return;
+    }
 
     // Do we need to type password?
-    if (WifiHelper.isOpen(WifiManager.getNetwork(ssid))) {
+    if (WifiHelper.isOpen(selectedNetwork)) {
       WifiUI.connect(ssid);
       return;
     }
@@ -242,18 +247,16 @@ var WifiUI = {
     // Update title
     UIManager.mainTitle.textContent = ssid;
 
-    // Update network
-    var selectedNetwork = WifiManager.getNetwork(ssid);
+    // Update network values
     var ssidHeader = document.getElementById('wifi_ssid');
-    var userLabel = document.getElementById('label_wifi_user');
     var userInput = document.getElementById('wifi_user');
     var passwordInput = document.getElementById('wifi_password');
     var showPassword = document.querySelector('input[name=show_password]');
     var joinButton = UIManager.wifiJoinButton;
 
     joinButton.disabled = true;
-    passwordInput.addEventListener('keyup', function validatePassword() {
-      // disable the "Join" button if the password is too short
+    passwordInput.addEventListener('input', function validatePassword() {
+      // disable the "Join" button if the password is on wrong format
       joinButton.disabled =
         !WifiHelper.isValidInput(WifiHelper.getKeyManagement(selectedNetwork),
           passwordInput.value, userInput.value);
@@ -274,7 +277,7 @@ var WifiUI = {
     // Activate secondary menu
     UIManager.navBar.classList.add('secondary-menu');
     // Update changes in form
-    if (WifiHelper.isEap(WifiManager.getNetwork(ssid))) {
+    if (WifiHelper.isEap(selectedNetwork)) {
       userInput.parentNode.classList.remove('hidden');
     } else {
       userInput.parentNode.classList.add('hidden');
@@ -290,12 +293,24 @@ var WifiUI = {
     // Update title
     UIManager.mainTitle.setAttribute('data-l10n-id', 'authentication');
     UIManager.navBar.classList.add('secondary-menu');
+    // Clean input contents
+    UIManager.hiddenWifiSsid.value = '';
+    UIManager.hiddenWifiPassword.value = '';
+    UIManager.hiddenWifiIdentity.value = '';
     // Reset join button state
     UIManager.wifiJoinButton.disabled = true;
     window.location.hash = '#hidden-wifi-authentication';
   },
 
   handleHiddenWifiSecurity: function wui_handleSecurity(securityType) {
+    // no need for password if network is open
+    if (securityType === '') {
+      UIManager.hiddenWifiPasswordBox.classList.add('hidden');
+    } else {
+      UIManager.hiddenWifiPasswordBox.classList.remove('hidden');
+    }
+
+    // need of username is security is WPA-EAP
     if (securityType.indexOf('EAP') !== -1) {
       UIManager.hiddenWifiIdentityBox.classList.remove('hidden');
     } else {
@@ -352,8 +367,7 @@ var WifiUI = {
           var keys = WifiHelper.getSecurity(network);
 
           li.dataset.security = keys;
-
-          if (keys && keys.length) {
+          if (!WifiHelper.isOpen(network)) {
             small.textContent = keys.join(', ');
             icon.classList.add('secured');
           } else {
@@ -396,7 +410,6 @@ var WifiUI = {
   updateNetworkStatus: function wui_uns(ssid, status) {
     var element = document.getElementById(ssid);
     // Check if element exists and it's the selected network
-
     if (!element) {
       return;
     }
@@ -405,11 +418,7 @@ var WifiUI = {
       element.querySelector('p[data-security-level]').setAttribute(
                           'data-l10n-id', 'shortStatus-' + status);
     } else {
-      var security = element.dataset.security;
-
-      if (security === '') {
-        security = 'Open';
-      }
+      var security = element.dataset.security || 'Open';
 
       element.querySelector('p[data-security-level]').setAttribute(
                           'data-l10n-id', 'security' + security);
@@ -432,6 +441,4 @@ var WifiUI = {
       }
     }
   }
-
 };
-

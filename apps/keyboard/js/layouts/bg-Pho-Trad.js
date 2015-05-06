@@ -7,6 +7,7 @@ Keyboards['bg-Pho-Trad'] = {
   autoCorrectLanguage: 'bg',
   basicLayoutKey: 'AБB',
   width: 11,
+  lang: 'bg',
   alt: {
     'и': 'ѝ'
   },

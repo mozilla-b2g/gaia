@@ -2,13 +2,11 @@ define(function(require) {
 'use strict';
 
 var DurationTime = require('templates/duration_time');
-var app = require('app');
 
 suite('DurationTime', function() {
   var subject;
 
   suiteSetup(function() {
-    app.dateFormat = navigator.mozL10n.DateTimeFormat();
     subject = DurationTime;
   });
 

@@ -3,17 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.errors import FrameSendFailureError
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.errors import FrameSendFailureError
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
 
 from gaiatest.apps.base import Base
 
@@ -51,7 +44,7 @@ class Ftu(Base):
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > label')
+    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > span')
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
@@ -123,7 +116,10 @@ class Ftu(Base):
     def tap_next(self):
         next_button = Wait(self.marionette).until(
             expected.element_present(*self._next_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(next_button))
         Wait(self.marionette).until(expected.element_enabled(next_button))
+        # In b2g desktop builds, this sleep prevents intermittent failures
+        time.sleep(0.2)
         next_button.tap()
 
     def a11y_click_next(self):
@@ -354,6 +350,9 @@ class Ftu(Base):
     def enter_email_address(self, email):
         # TODO assert that this is preserved in the system somewhere. Currently it is not used
         self.marionette.find_element(*self._email_field_locator).send_keys(email)
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
+        self.apps.switch_to_displayed_app()
 
     def tap_next_to_finish_section(self):
         self.tap_next()
@@ -370,7 +369,7 @@ class Ftu(Base):
     def tap_skip_tour(self):
         try:
             self.marionette.find_element(*self._skip_tour_button_locator).tap()
-        except FrameSendFailureError:
+        except (FrameSendFailureError, NoSuchWindowException):
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass
 
@@ -390,6 +389,7 @@ class Ftu(Base):
     def tap_take_tour(self):
         take_tour = Wait(self.marionette).until(
             expected.element_present(*self._take_tour_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(take_tour))
         Wait(self.marionette).until(expected.element_enabled(take_tour))
         take_tour.tap()
 
@@ -404,6 +404,7 @@ class Ftu(Base):
         next = Wait(self.marionette).until(
             expected.element_present(*self._tour_next_button_locator))
         Wait(self.marionette).until(expected.element_displayed(next))
+        Wait(self.marionette).until(expected.element_enabled(next))
         next.tap()
 
     def tap_back(self):
@@ -455,6 +456,6 @@ class Ftu(Base):
     def tap_lets_go_button(self):
         try:
             self.marionette.find_element(*self._lets_go_button_locator).tap()
-        except FrameSendFailureError:
+        except (FrameSendFailureError, NoSuchWindowException):
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass

@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var create = require('template').create;
 var dateFormat = require('date_format');
 
@@ -21,7 +21,8 @@ module.exports = create({
     var hour = this.h('hour');
     var format = Calc.getTimeL10nLabel(this.h('format'));
     var className = this.h('className');
-    var date = new Date();
+    // 0ms since epoch as base date to avoid issues with daylight saving time
+    var date = new Date(0);
     date.setHours(hour, 0, 0, 0);
 
     var l10nLabel = l10n.get(format);

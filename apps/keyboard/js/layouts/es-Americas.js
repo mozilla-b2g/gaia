@@ -5,6 +5,7 @@ Keyboards['es-Americas'] = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'es',
+  lang: 'es',
   alt: {
     a: 'áªàâäåãāæ',
     c: 'ç',

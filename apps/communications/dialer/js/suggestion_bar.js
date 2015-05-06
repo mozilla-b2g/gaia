@@ -1,4 +1,4 @@
-/* globals CallHandler, Contacts, fb, KeypadManager, LazyL10n, LazyLoader,
+/* globals CallHandler, Contacts, fb, KeypadManager, LazyLoader,
            SimplePhoneMatcher, SimSettingsHelper */
 
 // Suggestion_bar.js will be loaded on init of KeypadManager through
@@ -254,14 +254,33 @@ var SuggestionBar = {
   },
 
   _setItem: function sb_setItem(node, tel, type, name) {
+    var phoneTypes = [
+      'mobile',
+      'home',
+      'work',
+      'personal',
+      'faxHome',
+      'faxOffice',
+      'faxOther',
+      'other'
+    ];
     var typeTag = node.querySelector('.js-tel-type');
     var telTag = node.querySelector('.js-tel');
     var nameTag = node.querySelector('.js-name');
     nameTag.textContent = name ? name : null;
-    LazyL10n.get(function localized(_) {
-      typeTag.textContent = _(type) || type;
-    });
     telTag.innerHTML = tel ? tel : null;
+
+    if (type) {
+      if (phoneTypes.some(element => element == type)) {
+        navigator.mozL10n.setAttributes(typeTag, type);
+      } else {
+        // No localization found, use the type string as-is
+        typeTag.removeAttribute('data-l10n-id');
+        typeTag.textContent = type;
+      }
+    } else {
+      typeTag.textContent = null;
+    }
   },
 
   clear: function sb_clear(isHardClear) {

@@ -4,7 +4,7 @@ define(function(require) {
 var CaldavService = require('service/caldav');
 var ICAL = require('ext/ical');
 var IcalRecurExpansion = require('service/ical_recur_expansion');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var ServiceSupport = require('test/service/helper');
 
 suite('service/ical_recur_expansion', function() {

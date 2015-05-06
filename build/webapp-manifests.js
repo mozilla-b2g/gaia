@@ -1,6 +1,8 @@
 'use strict';
-/* global require, exports */
-// Generate webapps_stage.json.
+
+/**
+ * Generate webapps_shared.json in stage folder and uuid.json for external apps
+ */
 
 var utils = require('./utils');
 
@@ -24,15 +26,13 @@ ManifestBuilder.prototype.setConfig = function(config) {
 };
 
 ManifestBuilder.prototype.genStageWebappJSON = function() {
-  var manifestFile = this.stageDir.clone();
-  manifestFile.append('webapps_stage.json');
+  var manifestFile = utils.getFile(this.stageDir.path, 'webapps_stage.json');
   utils.writeContent(manifestFile,
     JSON.stringify(this.stageManifests, null, 2) + '\n');
 };
 
 ManifestBuilder.prototype.genUuidJSON = function() {
-  var uuidFile = this.stageDir.clone();
-  uuidFile.append(UUID_FILENAME);
+  var uuidFile = utils.getFile(this.stageDir.path, UUID_FILENAME);
   utils.writeContent(uuidFile,
     JSON.stringify(utils.getUUIDMapping(this.config), null, 2) + '\n');
 };
@@ -43,12 +43,13 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
     isPackaged = true;
     if (webapp.metaData.origin) {
       this.errors.push('External webapp `' + webapp.sourceDirectoryName +
-                       '` can not have origin in metadata because is packaged');
+        '` can not have origin in metadata because is packaged');
       return;
     }
   }
 
-  var webappTargetDirName = webapp.profileDirectoryFile.leafName;
+  var profileDirectoryFile = utils.getFile(webapp.profileDirectoryFilePath);
+  var webappTargetDirName = profileDirectoryFile.leafName;
 
   var origin = isPackaged ? 'app://' + webappTargetDirName :
                webapp.metaData.origin;

@@ -33,6 +33,13 @@ suite('system/Service', function() {
         isFtuRunning: false,
         isUpgrading: function() {
           return this._upgrading;
+        },
+        reachStep: function(step) {
+          if (step === '#wifi') {
+            return true;
+          } else {
+            return false;
+          }
         }
       };
     });
@@ -45,6 +52,7 @@ suite('system/Service', function() {
     test('State provider is valid', function() {
       Service.registerState('isFtuRunning', fakeFtuLauncher);
       Service.registerState('isUpgrading', fakeFtuLauncher);
+      Service.registerState('reachStep', fakeFtuLauncher);
       assert.equal(Service.query('isFtuRunning'), false);
       assert.equal(Service.query('isUpgrading'), false);
       assert.equal(Service.query('FakeFtuLauncher.isFtuRunning'), false);
@@ -55,6 +63,8 @@ suite('system/Service', function() {
       fakeFtuLauncher._upgrading = true;
       assert.equal(Service.query('isUpgrading'), true);
       assert.equal(Service.query('FakeFtuLauncher.isUpgrading'), true);
+      assert.equal(Service.query('reachStep', '#wifi'), true);
+      assert.equal(Service.query('reachStep', '#languages'), false);
     });
 
     test('State provider is invalid', function() {

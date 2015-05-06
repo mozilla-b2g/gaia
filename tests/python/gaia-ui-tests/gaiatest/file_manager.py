@@ -59,6 +59,10 @@ class GaiaFileManager(object):
         """Make directory structure."""
 
     @abstractmethod
+    def pull_file(self, path):
+        """Returns contents of file."""
+
+    @abstractmethod
     def push_file(self, local_path, remote_path=None, count=1):
         """Push a file to the system."""
 
@@ -88,6 +92,9 @@ class GaiaDeviceFileManager(GaiaFileManager):
 
     def make_dirs(self, filename):
         self.device.manager.mkDirs(filename)
+
+    def pull_file(self, path):
+        return self.device.manager.pullFile(path)
 
     def push_file(self, local_path, remote_path=None, count=1):
         # If remote path is not specified, use the storage path
@@ -134,6 +141,10 @@ class GaiaLocalFileManager(GaiaFileManager):
         if not os.path.isdir(containing):
             self._logger.debug('Making path: %s' % containing)
             os.makedirs(containing)
+
+    def pull_file(self, path):
+        with open(path) as f:
+            return f.read()
 
     def push_file(self, local_path, remote_path=None, count=1):
         # If remote path is not specified, use the storage path

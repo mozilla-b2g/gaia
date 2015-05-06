@@ -31,8 +31,6 @@
       The following scripts are lazy loaded but left here to ensure
       they get copied over from shared during the build
     -->
-    <!-- <script defer src="/shared/js/usertiming.js"></script> -->
-    <!-- <script defer src="/shared/js/performance_testing_helper.js"></script> -->
     <!-- <script defer src="/shared/js/l10n.js"></script> -->
     <!-- <script defer src="/shared/js/l10n_date.js"></script> -->
     <!-- <script defer src="/shared/js/async_storage.js"></script> -->
@@ -51,7 +49,7 @@
 
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <link rel="localization" href="locales/clock.{locale}.properties">
     <link rel="localization" href="locales/alarms.{locale}.properties">
@@ -70,11 +68,10 @@
     </div>
 
     <ul role="tablist" class="bb-tablist skin-dark bottom" id="clock-tabs">
-      <li role="presentation"><a id="alarm-tab" aria-controls="alarm-panel" aria-selected="true" role="tab" href="#alarm-panel" data-l10n-id="alarm">Alarm</a></li>
-      <li role="presentation"><a id="timer-tab" aria-controls="timer-panel" aria-selected="false" role="tab" href="#timer-panel" data-l10n-id="timer">Timer</a></li>
-      <li role="presentation"><a id="stopwatch-tab" aria-controls="stopwatch-panel" aria-selected="false" role="tab" href="#stopwatch-panel" data-l10n-id="stopwatch">Stopwatch</a></li>
+      <li role="presentation"><a id="alarm-tab" aria-controls="alarm-panel" aria-selected="true" role="tab" href="#alarm-panel" data-l10n-id="alarm"></a></li>
+      <li role="presentation"><a id="timer-tab" aria-controls="timer-panel" aria-selected="false" role="tab" href="#timer-panel" data-l10n-id="timer"></a></li>
+      <li role="presentation"><a id="stopwatch-tab" aria-controls="stopwatch-panel" aria-selected="false" role="tab" href="#stopwatch-panel" data-l10n-id="stopwatch"></a></li>
     </ul>
-
-    <script data-main="js/startup.js" src="js/alameda.js"></script>
+    <script defer data-main="js/startup.js" src="js/alameda.js"></script>
   </body>
 </html>

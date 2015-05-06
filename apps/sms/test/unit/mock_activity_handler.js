@@ -6,9 +6,6 @@ var MockActivityHandler = {
   isInActivity: function() {},
   leaveActivity: function() {},
   handleMessageNotification: function() {},
-  displayUnsentConfirmation: function() {},
-  launchComposer: function() {},
-  triggerNewMessage: function() {},
   toView: function() {},
   onSmsReceived: function() {},
   onNotification: function() {}

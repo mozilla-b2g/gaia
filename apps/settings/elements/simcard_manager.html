@@ -1,18 +1,17 @@
 <element name="sim-manager" extends="section">
   <template>
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="simManager-header">SIM Manager</h1>
+      <h1 data-l10n-id="simManager-header"></h1>
     </gaia-header>
     <div>
       <ul class="sim-card-container"></ul>
-      <header>
+      <header class="sim-manager-settings-header">
         <h2 data-l10n-id="simSettings">SIM Settings</h2>
       </header>
       <ul class="sim-manager-select-list">
         <li class="sim-manager-security-entry">
           <a class="menu-item" href="#simpin">
             <span data-l10n-id="simSecurity">SIM Security</span>
-            <small class="sim-manager-security-desc"></small>
           </a>
         </li>
         <li>
@@ -47,7 +46,7 @@
         <div class="information-container">
           <p class="sim-card-name"></p>
           <p class="sim-card-operator"></p>
-          <p class="sim-card-number"></p>
+          <bdi class="sim-card-number"></bdi>
         </div>
       </li>
       -->

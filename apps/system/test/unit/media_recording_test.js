@@ -1,12 +1,22 @@
-/* global MockL10n, MediaRecording */
+/* global MockL10n, MediaRecording, MockLazyLoader, MocksHelper */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/js/service.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/recording_icon.js');
+
+var mocksForMediaRecording = new MocksHelper([
+  'LazyLoader'
+]).init();
 
 suite('system/media recording', function() {
   var realL10n;
   var mediaRecording;
+  mocksForMediaRecording.attachTestHelpers();
   function sendChromeEvent(active, isApp, origin, isAudio, isVideo) {
     var detail = {'active': active,
                   'isApp': isApp,
@@ -35,11 +45,17 @@ suite('system/media recording', function() {
   });
 
   setup(function() {
+    MockLazyLoader.mLoadRightAway = true;
+    this.sinon.spy(MockLazyLoader, 'load');
     mediaRecording.start();
   });
 
   teardown(function() {
     mediaRecording.stop();
+  });
+
+  test('Should lazy load icon', function() {
+    assert.isTrue(MockLazyLoader.load.calledWith(['js/recording_icon.js']));
   });
 
   suite('active stat', function() {

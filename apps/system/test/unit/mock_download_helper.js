@@ -1,6 +1,6 @@
 
 'use strict';
-
+/* exported MockDownloadHelper */
 var MockDownloadHelper = {
   open: function() {
     this.methodCalled = 'open';

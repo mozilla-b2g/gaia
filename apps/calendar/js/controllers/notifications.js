@@ -1,14 +1,12 @@
 define(function(require, exports) {
 'use strict';
 
-var calc = require('calc');
+var calc = require('common/calc');
+var core = require('core');
 var dateFormat = require('date_format');
-var debug = require('debug')('controllers/notifications');
+var debug = require('common/debug')('controllers/notifications');
 var messageHandler = require('message_handler');
 var notification = require('notification');
-
-// Will be injected...
-exports.app = null;
 
 exports.observe = function() {
   debug('Will start notifications controller...');
@@ -23,18 +21,21 @@ exports.onAlarm = function(alarm) {
   debug('Will request cpu wake lock...');
   var lock = navigator.requestWakeLock('cpu');
   debug('Received cpu lock. Will issue notification...');
-  return issueNotification(alarm).then(() => {
+  return issueNotification(alarm).catch(err => {
+    console.error('controllers/notifications', err.toString());
+  }).then(() => {
+    // release cpu lock with or without errors
     debug('Will release cpu wake lock...');
     lock.unlock();
   });
 };
 
 function issueNotification(alarm) {
-  var app = exports.app;
-  var eventStore = app.store('Event');
-  var busytimeStore = app.store('Busytime');
+  var storeFactory = core.storeFactory;
+  var eventStore = storeFactory.get('Event');
+  var busytimeStore = storeFactory.get('Busytime');
 
-  var trans = app.db.transaction(['busytimes', 'events']);
+  var trans = core.db.transaction(['busytimes', 'events']);
 
   // Find the event and busytime associated with this alarm.
   return Promise.all([
@@ -43,6 +44,16 @@ function issueNotification(alarm) {
   ])
   .then(values => {
     var [event, busytime] = values;
+
+    // just a safeguard on the very unlikely case that busytime or event
+    // doesn't exist anymore (should be really hard to happen)
+    if (!event) {
+      throw new Error(`can't find event with ID: ${alarm.eventId}`);
+    }
+    if (!busytime) {
+      throw new Error(`can't find busytime with ID: ${alarm.busytimeId}`);
+    }
+
     var begins = calc.dateFromTransport(busytime.start);
     var distance = dateFormat.fromNow(begins);
     var now = new Date();
@@ -59,7 +70,6 @@ function issueNotification(alarm) {
 
     var body = event.remote.description || '';
     debug('Will send event notification with title:', title, 'body:', body);
-    notification.app = exports.app;
     return notification.sendNotification(
       title,
       body,

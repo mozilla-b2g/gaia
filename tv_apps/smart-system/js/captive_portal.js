@@ -5,7 +5,9 @@
    EntrySheet,
    FtuLauncher,
    Notification,
-   MozActivity
+   MozActivity,
+   NotificationHelper,
+   focusManager
 */
 
 'use strict';
@@ -19,7 +21,6 @@ var CaptivePortal = {
 
   handleLogin: function cp_handleLogin(id, url) {
     var wifiManager = window.navigator.mozWifiManager;
-    var _ = window.navigator.mozL10n.get;
     var settings = window.navigator.mozSettings;
     var icon = window.location.protocol + '//' + window.location.hostname +
       '/style/icons/captivePortal.png';
@@ -29,15 +30,24 @@ var CaptivePortal = {
     var currentNetwork = wifiManager.connection.network;
     var networkName = (currentNetwork && currentNetwork.ssid) ?
         currentNetwork.ssid : '';
-    var message = _('captive-wifi-available', { networkName: networkName });
+    var message = { 'id': 'captive-wifi-available',
+      'args': { networkName: networkName }
+    };
 
     if (FtuLauncher.isFtuRunning()) {
       settings.createLock().set({'wifi.connect_via_settings': false});
 
-      this.entrySheet = new EntrySheet(document.getElementById('screen'),
-                                      url,
-                                      new BrowserFrame({url: url}));
+      this.entrySheet = new EntrySheet(
+        document.getElementById('screen'),
+        url,
+        new BrowserFrame({url: url}),
+        function() {
+          this.entrySheet = null;
+          focusManager.focus();
+        }.bind(this)
+      );
       this.entrySheet.open();
+      focusManager.focus();
       return;
     }
 
@@ -56,17 +66,21 @@ var CaptivePortal = {
     }).bind(this);
 
     var options = {
-      body: message,
-      icon: icon,
-      tag: this.notificationPrefix + networkName
+      'bodyL10n': message,
+      'icon': icon,
+      'tag': this.notificationPrefix + networkName
     };
 
-    this.notification = new Notification('', options);
-    this.notification.addEventListener('click',
-      this.captiveNotification_onClick);
-    this.notification.addEventListener('close', (function() {
-      this.notification = null;
-    }).bind(this));
+    NotificationHelper.send('', options).then(function(notification){
+      this.notification = notification;
+
+      notification.addEventListener('click',
+        this.captiveNotification_onClick);
+      notification.addEventListener('close', (function() {
+        this.notification = null;
+      }).bind(this));
+    });
+    focusManager.focus();
   },
 
   dismissNotification: function dismissNotification(id) {
@@ -79,11 +93,11 @@ var CaptivePortal = {
         }
 
         this.notification.close();
+        focusManager.focus();
       }
 
       if (this.entrySheet) {
         this.entrySheet.close();
-        this.entrySheet = null;
       }
     }
   },
@@ -129,7 +143,27 @@ var CaptivePortal = {
     }).then((function() {
       window.addEventListener('mozChromeEvent', this);
     }).bind(this));
+    focusManager.addUI(this);
     return promise;
+  },
+
+  isFocusable: function cp_isFocusable() {
+    return !!this.entrySheet;
+  },
+
+  getElement: function cp_getElement() {
+    if (this.isFocusable()){
+      return this.entrySheet.element;
+    }
+  },
+
+  focus: function cp_focus() {
+    if (this.isFocusable()){
+      var element = this.entrySheet.element.querySelector('iframe') ||
+                    this.entrySheet.header.els.actionButton;
+      document.activeElement.blur();
+      element.focus();
+    }
   }
 };
 

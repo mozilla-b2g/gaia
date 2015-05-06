@@ -2,11 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
-from marionette.wait import Wait
+from marionette_driver import By, Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.cost_control.app import CostControl
@@ -45,11 +42,11 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         # open browser to get some data downloaded
         search = Search(self.marionette)
         search.launch(launch_timeout=30000)
-        browser = search.go_to_url('http://www.mozilla.org/')
+        browser = search.go_to_url('http://mozqa.com/qa-testcase-data/Images/sample_png_02.png')
         browser.wait_for_page_to_load(180)
 
         browser.switch_to_content()
-        Wait(self.marionette, timeout=60).until(lambda m: "Home of the Mozilla Project" in m.title)
+        Wait(self.marionette, timeout=60).until(lambda m: "sample_png_02.png" in m.title)
         browser.switch_to_chrome()
 
         # get the notification bar

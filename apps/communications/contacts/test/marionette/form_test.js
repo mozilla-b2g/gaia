@@ -3,7 +3,12 @@
 var Contacts = require('./lib/contacts'),
     ContactsData = require('./lib/contacts_data'),
     Dialer = require('../../../dialer/test/marionette/lib/dialer'),
-    assert = require('assert');
+    assert = require('assert'),
+    /*jshint -W079 */
+    System = require('../../../../system/test/marionette/lib/system');
+
+    // XXX Bug 1139799 - Enable test for Bug 1116889
+    // Gallery = require('../../../../gallery/test/marionette/lib/gallery');
 
 marionette('Contacts > Form', function() {
   var client = marionette.client(Contacts.config),
@@ -11,7 +16,8 @@ marionette('Contacts > Form', function() {
     contactsData,
     dialerSubject,
     dialerSelectors,
-    selectors;
+    selectors,
+    system;
 
   setup(function() {
     subject = new Contacts(client);
@@ -20,6 +26,16 @@ marionette('Contacts > Form', function() {
     dialerSubject = new Dialer(client);
     dialerSelectors = Dialer.Selectors;
     subject.launch();
+    system = new System(client);
+  });
+
+  teardown(function() {
+    subject = null;
+    contactsData = null;
+    selectors = null;
+    dialerSubject = null;
+    dialerSelectors = null;
+    system = null;
   });
 
   var contactData = {
@@ -154,7 +170,7 @@ marionette('Contacts > Form', function() {
 
     });
 
-    suite('> Addind and removing', function() {
+    suite('> Adding and removing', function() {
       test('Template ids unique', function() {
         var data = {
           givenName: ['John'],
@@ -183,6 +199,85 @@ marionette('Contacts > Form', function() {
         assert.equal(phoneList[1].getAttribute('id'), 'number_2');
       });
     });
+
+    /* XXX Bug 1139799 - Enable test for Bug 1116889
+    suite('> Discard edited contact photo', function() {
+      setup(function() {
+        // Create a contact without photo
+        contactsData.createMozContact(contactData, false);
+
+        client.switchToFrame();
+
+        // This test makes use of gallery images, so we need to populate
+        // the pictures folder with test images and launch the gallery app
+        // to make sure that it scans the images properly.
+        client.fileManager.add({
+          type: 'pictures',
+          filePath: 'test_media/Pictures/firefoxOS.png'
+        });
+
+        var gallery = new Gallery(client);
+        gallery.launch();
+        client.apps.close(Gallery.ORIGIN);
+
+        client.switchToFrame();
+        subject.launch();
+      });
+
+      test('Select photo and discard it', function() {
+        // Select first contact and click on the edit button.
+        editFirstContact();
+
+        // Check that we have no photo for this contact.
+        var photoBeforeEdit =
+          client.helper.waitForElement(selectors.formPhotoImg);
+        assert.ok(photoBeforeEdit.getAttribute('style') === '');
+
+        // Click on the photo button to edit it. This triggers an activity
+        // selection menu.
+        var photoChangeButton =
+          client.helper.waitForElement(selectors.formPhotoButton);
+        subject.clickOn(photoChangeButton);
+
+        // Switch to system frame.
+        client.switchToFrame();
+
+        // Select gallery option on activity selector.
+        var gallery = system.getActivityOptionMatching('gallery');
+        subject.clickOn(gallery);
+
+        // Choose an image.
+        client.apps.switchToApp('app://gallery.gaiamobile.org');
+        var thumbnail = client.helper.waitForElement(selectors.galleryImage);
+        subject.clickOn(thumbnail);
+        var done =
+          client.helper.waitForElement(selectors.galleryDone);
+        subject.clickOn(done);
+
+        // Get back to contacts app.
+        client.switchToFrame();
+        client.apps.switchToApp(Contacts.URL, 'contacts');
+
+        // Discard changes.
+        var formHeader =
+          client.helper.waitForElement(selectors.formHeader);
+        formHeader.tap(10, 10);
+
+        subject.waitSlideLeft('details');
+
+        // Edit again.
+        var edit =
+          client.helper.waitForElement(selectors.detailsEditContact);
+        subject.clickOn(edit);
+        client.helper.waitForElement(selectors.form);
+
+        // Check that we have no photo after discarding the selection.
+        var photoAfterEdit =
+          client.helper.waitForElement(selectors.formPhotoImg);
+        assert.ok(photoAfterEdit.getAttribute('style') === '');
+      });
+    });
+    */
   });
 
   suite('> Facebook contacts', function() {
@@ -262,4 +357,31 @@ marionette('Contacts > Form', function() {
       assert.ok(isGalleryButtonPresent());
     });
   }); // Facebook Contacts
+
+  suite('> Input buttons', function() {
+    function assertClear(inputSelector) {
+      var input = client.helper.waitForElement(inputSelector);
+      input.tap();
+      input.sendKeys('1234');
+      client.findElement(inputSelector + ' + button[type="reset"]').tap();
+      assert.strictEqual(input.getAttribute('value'), '');
+    }
+
+    test('Clear buttons work as expected', function() {
+      contactsData.createMozContact(contactData);
+      editFirstContact();
+
+      var fieldSelectors = [
+        selectors.formGivenName,
+        selectors.formTelNumberFirst,
+        selectors.formFamilyName,
+        selectors.formOrg,
+        selectors.formEmailFirst
+      ];
+
+      for (var i = 0, len = fieldSelectors.length; i < len; i++){
+        assertClear(fieldSelectors[i]);
+      }
+    });
+  });
 });

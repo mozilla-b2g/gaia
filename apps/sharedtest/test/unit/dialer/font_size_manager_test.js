@@ -17,6 +17,8 @@ suite('font size manager', function() {
   var realMozL10n;
 
   var view;
+  var bdiNode;
+  var innerEl;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -67,6 +69,11 @@ suite('font size manager', function() {
       {
         element: 'input',
         textField: 'value'
+      },
+      {
+        element: 'div',
+        childElement: 'bdi',
+        textField: 'textContent'
       }
     ];
 
@@ -77,14 +84,21 @@ suite('font size manager', function() {
         var getExpectedEllipsizedText = function(side, direction) {
           // MockL10n does not invert text when in RTL mode, but FSM will
           // treat the left side as the end for the purpose of ellipses.
-          return side === 'end' ^ direction === 'ltr' ? '\u2026ar' : 'fo\u2026';
+          return side === 'end' ? 'fo\u2026' : '\u2026ar';
         };
 
         setup(function() {
           originalInnerHTML = document.body.innerHTML;
           document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
+
           view = document.createElement(viewElement.element);
-          view[viewElement.textField] = 'foobar';
+          if(viewElement.childElement) {
+            innerEl = document.createElement(viewElement.childElement);
+            view.appendChild(innerEl);
+          } else {
+            innerEl = view;
+          }
+          innerEl[viewElement.textField] = 'foobar';
           document.body.appendChild(view);
         });
 
@@ -184,6 +198,7 @@ suite('font size manager', function() {
 
     suite('special view cases', function() {
       var originalInnerHTML;
+      var originalFontSize;
 
       setup(function() {
         originalInnerHTML = document.body.innerHTML;
@@ -208,6 +223,39 @@ suite('font size manager', function() {
         test('no adaptation is made', function() {
           FontSizeManager.adaptToSpace(FontSizeManager.DIAL_PAD, view);
           assert.notEqual(view.style.fontSize, '42px');
+        });
+      });
+
+      suite('on child <bdi>', function() {
+        setup(function() {
+          originalInnerHTML = document.body.innerHTML;
+          originalFontSize = document.documentElement.style.fontSize;
+
+          document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
+
+          bdiNode = document.createElement('bdi');
+          bdiNode.textContent = 'testing';
+
+          view = document.createElement('div');
+          view.appendChild(bdiNode);
+
+          document.body.appendChild(view);
+        });
+
+        teardown(function() {
+          document.body.innerHTML = originalInnerHTML;
+          document.documentElement.style.fontSize = originalFontSize;
+        });
+
+        test('bdi Node is preserved', function() {
+          FontSizeUtils.getMaxFontSizeInfo.returns({
+            fontSize: 42,
+            overflow: true
+          });
+
+          FontSizeManager.adaptToSpace(FontSizeManager.SINGLE_CALL, view);
+          var el = view.querySelector('bdi');
+          assert.isNotNull(el);
         });
       });
 

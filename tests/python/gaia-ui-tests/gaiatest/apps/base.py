@@ -4,16 +4,9 @@
 
 import time
 
-try:
-    from marionette.wait import Wait
-    from marionette.by import By
-    from marionette.errors import (NoSuchElementException,
-                               StaleElementException)
-except:
-    from marionette_driver.wait import Wait
-    from marionette_driver.by import By
-    from marionette_driver.errors import (NoSuchElementException,
-                               StaleElementException)
+from marionette_driver import By, Wait
+from marionette_driver.errors import (NoSuchElementException,
+                                      StaleElementException)
 
 from gaiatest import GaiaApps
 from gaiatest import Accessibility
@@ -100,12 +93,14 @@ class Base(object):
     def wait_for_select_closed(self, by, locator):
         self.wait_for_element_not_displayed(by, locator)
 
-        # TODO we should find something suitable to wait for, but this goes too
-        # fast against desktop builds causing intermittent failures
-        time.sleep(0.2)
-
         # now back to app
         self.apps.switch_to_displayed_app()
+
+        # TODO we should find something suitable to wait for, but this goes too
+        # fast against desktop builds causing intermittent failures
+        # This sleep is necessary to make sure the select is completely faded out,
+        # see bug 1148154
+        time.sleep(1)
 
     def select(self, match_string, tap_close=True):
         # cheeky Select wrapper until Marionette has its own

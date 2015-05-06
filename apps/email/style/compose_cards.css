@@ -135,11 +135,23 @@ input.cmp-subject-text {
   outline: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+
+/* Copy/paste select all could reach across the whole DOM so only scope the
+selection to the center "active" card. Bug 1152172. */
+.center .cmp-body-text {
+  -moz-user-select: text;
+}
+/* This style allows newlines to be copied. This catches br tags and is
+extensible to the future where other tags could be in the contenteditable
+field. Bug 1127160. */
+.center .cmp-body-text * {
   -moz-user-select: text;
 }
 
 .cmp-body-html {
-  margin: 0 1.5rem;
+  margin: 0 1.5rem 1.5rem;
 }
 
 /* Attachment */

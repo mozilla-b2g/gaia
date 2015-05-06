@@ -1,12 +1,10 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('message_handler');
+var Responder = require('common/responder');
+var debug = require('common/debug')('message_handler');
 var notification = require('notification');
 
-// Will be injected...
-exports.app = null;
 var responder = exports.responder = new Responder();
 
 exports.start = function() {

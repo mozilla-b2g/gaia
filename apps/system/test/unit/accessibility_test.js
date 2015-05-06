@@ -1,11 +1,12 @@
 'use strict';
 /* global MocksHelper, MockSpeechSynthesis, MockSpeechSynthesisUtterance,
-          Accessibility, SettingsListener */
+          Accessibility, SettingsListener, MockL10n */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_speech_synthesis.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/accessibility_quicknav_menu.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForA11y = new MocksHelper([
   'SettingsListener'
@@ -23,6 +24,21 @@ suite('system/Accessibility', function() {
   var vcChangeNotKeyDetails = {
     eventType: 'vc-change',
     options: { pattern: [40], isKey: false }
+  };
+
+  var vcChangeHintsEnabledDetails = {
+      eventType: 'vc-change',
+      data: [{string: 'link'}],
+      options: {
+        hints: [{string: 'link-hint'}]
+      }
+  };
+
+  var screenChangeScreenDisabledEvent = {
+    type: 'screenchange',
+    detail: {
+      screenEnabled: false
+    }
   };
 
   var clickActionDetails = {
@@ -80,6 +96,8 @@ suite('system/Accessibility', function() {
 
   var fakeSentence = 'This is captions text';
 
+  var realL10n = navigator.mozL10n;
+
   mocksForA11y.attachTestHelpers();
   setup(function() {
     accessibility = new Accessibility();
@@ -88,6 +106,11 @@ suite('system/Accessibility', function() {
     this.sinon.stub(speechSynthesizer, 'speech', MockSpeechSynthesis);
     this.sinon.stub(speechSynthesizer, 'utterance',
       MockSpeechSynthesisUtterance);
+    navigator.mozL10n = MockL10n;
+  });
+
+  teardown(function() {
+    navigator.mozL10n = realL10n;
   });
 
   test('logohidden handler', function() {
@@ -247,8 +270,9 @@ suite('system/Accessibility', function() {
       accessibility.handleEvent(getAccessFuOutput(liveRegionDetails));
       assert.isFalse(stub_playSound.called);
       assert.isTrue(stubSpeak.called);
-      assert.isTrue(stubSpeak.calledWith(liveRegionDetails.data, null,
-        liveRegionDetails.options));
+      assert.deepEqual(liveRegionDetails.data, stubSpeak.args[0][0]);
+      assert.equal(typeof stubSpeak.args[0][1], 'function');
+      assert.deepEqual(liveRegionDetails.options, stubSpeak.args[0][2]);
     });
 
     test('no-move event', function() {
@@ -287,6 +311,56 @@ suite('system/Accessibility', function() {
       assert.isTrue(!!accessibility.quicknav);
       assert.isTrue(
         accessibility.quicknav.element.classList.contains('visible'));
+    });
+  });
+
+  suite('interaction hints', function() {
+    test('handle vc change event with hints enabled', function() {
+      var stubSetHintsTimeout = this.sinon.stub(accessibility,
+        'setHintsTimeout');
+      accessibility.handleAccessFuOutput(vcChangeHintsEnabledDetails);
+      assert.isTrue(stubSetHintsTimeout.called);
+      assert.isTrue(stubSetHintsTimeout.calledWith(
+        vcChangeHintsEnabledDetails.options.hints));
+    });
+
+    test('make sure hints are canceled on screen off', function() {
+      var stubCancelHints = this.sinon.stub(accessibility, 'cancelHints');
+      accessibility.handleEvent(screenChangeScreenDisabledEvent);
+      assert.isTrue(stubCancelHints.called);
+    });
+
+    test('make sure hints are canceled with output/control event', function(){
+      // Output event
+      accessibility.isSpeakingHints = true;
+      accessibility.handleAccessFuOutput(vcChangeHintsEnabledDetails);
+      assert.isFalse(accessibility.isSpeakingHints);
+
+      // Control event
+      accessibility.isSpeakingHints = true;
+      accessibility.handleAccessFuControl({});
+      assert.isFalse(accessibility.isSpeakingHints);
+    });
+
+    suite('timeout based hint tests', function(){
+      var clock;
+
+      setup(function() {
+        clock = this.sinon.useFakeTimers();
+      });
+
+      teardown(function() {
+        clock.restore();
+      });
+
+      test('make sure hints are spoken', function() {
+        var stubSpeak = this.sinon.stub(accessibility, 'speak');
+        accessibility.setHintsTimeout(
+          vcChangeHintsEnabledDetails.options.hints);
+        clock.tick(accessibility.HINTS_TIMEOUT + 50);
+        assert.isTrue(stubSpeak.called);
+      });
+
     });
   });
 });

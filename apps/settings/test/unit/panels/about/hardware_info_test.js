@@ -210,8 +210,17 @@ suite('about > hardware_info', function() {
           { mdn: 'mdn1' }, 0, true);
         var spans1 = hardwareInfo._renderPhoneNumberElement(
           { mdn: 'mdn2' }, 1, true);
-        assert.equal(spans0.textContent, 'SIM 1: mdn1');
-        assert.equal(spans1.textContent, 'SIM 2: mdn2');
+
+        var sim1Args = JSON.parse(spans0.getAttribute('data-l10n-args'));
+        var sim2Args = JSON.parse(spans1.getAttribute('data-l10n-args'));
+        assert.equal(spans0.getAttribute('data-l10n-id'),
+          'deviceInfo-MSISDN-with-index');
+        assert.equal(spans1.getAttribute('data-l10n-id'),
+          'deviceInfo-MSISDN-with-index');
+        assert.equal(sim1Args.index, 1);
+        assert.equal(sim1Args.msisdn, 'mdn1');
+        assert.equal(sim2Args.index, 2);
+        assert.equal(sim2Args.msisdn, 'mdn2');
       });
     });
   });

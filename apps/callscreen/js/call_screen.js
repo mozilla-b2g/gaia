@@ -1,6 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager,
-           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils,
-           performance */
+           LazyL10n, LockScreenSlide, MozActivity, SettingsListener, Utils */
 /* jshint nonew: false */
 
 'use strict';
@@ -46,8 +45,10 @@ var CallScreen = {
   incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
-  incomingNumberAdditionalInfo:
-    document.getElementById('incoming-number-additional-info'),
+  incomingNumberAdditionalTel:
+    document.getElementById('incoming-number-additional-info-tel'),
+  incomingNumberAdditionalTelType:
+    document.getElementById('incoming-number-additional-info-tel-type'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
@@ -461,6 +462,10 @@ var CallScreen = {
     this.mergeButton.classList.add('hide');
   },
 
+  showOnHoldAndMergeContainer: function cs_showOnHoldAndMergeContainer() {
+    this.holdAndMergeContainer.style.display = 'block';
+  },
+
   hideOnHoldAndMergeContainer: function cs_hideOnHoldAndMergeContainer() {
     this.holdAndMergeContainer.style.display = 'none';
   },
@@ -478,9 +483,9 @@ var CallScreen = {
     LazyL10n.get(function localized(_) {
       var ticker = setInterval(function ut_updateTimer(startTime) {
         // Bug 834334: Ensure that 28.999 -> 29.000
-        var delta = Math.round((performance.now() - startTime) / 1000) * 1000;
+        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
         Utils.prettyDuration(durationChildNode, delta);
-      }, 1000, performance.now());
+      }, 1000, Date.now());
       durationNode.dataset.tickerId = ticker;
     });
     return true;

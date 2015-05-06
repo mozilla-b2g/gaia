@@ -588,6 +588,11 @@ var CostControl = (function() {
         var manifestURL = request.result.appManifestURL;
         // ignore the 'null' manifestURL
         if (manifestURL && manifestURL !== 'null') {
+          var isBrowser = request.result.browsingTrafficOnly &&
+                          manifestURL === Common.SYSTEM_MANIFEST;
+          if (isBrowser) {
+            manifestURL = Common.BROWSER_APP.manifestURL;
+          }
           network.apps[manifestURL] = {
             samples: data[0],
             total: data[1]
@@ -643,7 +648,17 @@ var CostControl = (function() {
       if (apps && apps.length > 0) {
         requests = [];
         apps.forEach(function(manifestURL) {
-          requests.push(requestSamples({ appManifestURL: manifestURL }));
+          // Ignoring the system app because of the system traffic is going to
+          // be calculated (Front-end workaround for Bug 1083680)
+          if (manifestURL !== Common.SYSTEM_MANIFEST) {
+            var options = { appManifestURL: manifestURL };
+            // Browser app is included on System app
+            if (manifestURL === Common.BROWSER_APP.manifestURL) {
+              options.appManifestURL = Common.SYSTEM_MANIFEST;
+              options.browsingTrafficOnly = true;
+            }
+            requests.push(requestSamples(options));
+          }
         });
       } else {
         requests = [requestSamples()];

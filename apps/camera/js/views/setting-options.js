@@ -66,13 +66,21 @@ module.exports = View.extend({
 
     li.textContent = localizable ? this.l10n.get(option.title) : option.title;
     li.setAttribute('data-key', option.key);
+    // The settings options list is a listbox (list of actionable items) thus
+    // each iteam must have an 'option' role.
+    li.setAttribute('role', 'option');
     li.className = 'setting-option';
+    // The only way to exclude content from :before element (present in setting
+    // option item) is to override it with ARIA label.
+    this.l10n.setAttributes(li, 'setting-option', { value: li.textContent });
     li.dataset.icon = 'tick';
     this.els.ul.appendChild(li);
     this.els[option.key] = li;
 
     if (isSelected) {
       li.classList.add('selected');
+      // Make sure selected semantics is conveyed to the screen reader.
+      li.setAttribute('aria-selected', true);
       this.els.selected = li;
     }
   },
@@ -81,10 +89,13 @@ module.exports = View.extend({
     return '<div class="inner">' +
       '<div class="settings_header">' +
         '<div class="settings-back-btn js-back" ' +
-          'data-icon="back" role="button"></div>' +
-        '<h2 class="settings_title" data-l10n-id="' + data.header + '"></h2>' +
+          'data-icon="back" role="button" data-l10n-id="back-button"></div>' +
+        '<h2 aria-level="1" class="settings_title" data-l10n-id="' +
+          data.header + '"></h2>' +
       '</div>' +
-      '<div class="settings_items"><ul class="inner js-list"></ul></div>' +
+      '<div class="settings_items">' +
+        '<ul role="listbox" class="inner js-list"></ul>' +
+      '</div>' +
     '</div>';
   }
 });

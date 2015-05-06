@@ -26,7 +26,7 @@
     });
 
     ERRORS.set('FdnCheckError',{
-      prefix: 'fdnBlocked2',
+      prefix: 'fdnError',
       showRecipient: true
     });
 

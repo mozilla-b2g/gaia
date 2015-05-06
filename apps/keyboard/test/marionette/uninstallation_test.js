@@ -44,9 +44,7 @@ marionette('Show Keyboard App after uninstallation', function() {
       'focusmanager.testmode': true
     },
     settings: {
-     'keyboard.enabled-layouts': keyboardSettings,
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+     'keyboard.enabled-layouts': keyboardSettings
     }
   });
 
@@ -57,12 +55,8 @@ marionette('Show Keyboard App after uninstallation', function() {
     // switch back to system
     client.switchToFrame();
 
-
     // wait for the 2nd keyboard is loaded
-    var inputWindows = systemInputMgmt.inputWindows;
-    client.waitFor(function() {
-      return (inputWindows.length > 1);
-    });
+    systemInputMgmt.ensureInputWindowCount(2);
 
     systemInputMgmt.switchToActiveKeyboardFrame();
     return imeTestApp.sendKeyButton.displayed();
@@ -87,6 +81,12 @@ marionette('Show Keyboard App after uninstallation', function() {
     // Click to switch to next IME
     keyboard.imeSwitchingKey.click();
     check3rdPartyIme();
+
+    // XXX: Blur the input field, otherwise the keyboard frame has higher
+    // z-index than dialog and we can't click it
+    systemInputMgmt.waitForKeyboardFrameDisplayed();
+    client.apps.switchToApp(KeyboardTestApp.ORIGIN);
+    keyboardTestApp.nonInputArea.click();
 
     // Uninstall the current active IME
     appInstall.uninstall(ImeTestApp.MANIFEST_URL);

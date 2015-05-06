@@ -1,4 +1,4 @@
-/* global Bluetooth, appWindowManager */
+/* global appWindowManager */
 'use strict';
 
 function LockScreenMediaPlaybackWidget(container, options) {
@@ -75,7 +75,7 @@ LockScreenMediaPlaybackWidget.prototype = {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === Bluetooth.Profiles.SCO) {
+    if (name === 'sco') {
       this.container.classList.toggle('disabled', connected);
     }
   },
@@ -95,16 +95,30 @@ LockScreenMediaPlaybackWidget.prototype = {
 
     var title = metadata.title.trim();
     var artist = metadata.artist.trim();
-    var track = [];
 
-    if (title) {
-      track.push(title);
+    if (title || artist) {
+      this.track.removeAttribute('data-l10n-id');
+      this.track.textContent= '';
+
+      if (title) {
+        var titleNode = document.createTextNode(title);
+        this.track.appendChild(titleNode);
+      }
+
+      if (title && artist) {
+        var emDashNode = document.createTextNode(' — '); // Using a &mdash;
+        var artistNode = document.createTextNode(artist);
+        var artistBdiNode = document.createElement('bdi');
+        this.track.appendChild(emDashNode);
+        artistBdiNode.appendChild(artistNode);
+        this.track.appendChild(artistBdiNode);
+      }
+      else if (artist) { // but no title
+        this.track.appendChild(document.createTextNode(artist));
+      }
+    } else {
+      this.track.setAttribute('data-l10n-id', 'UnknownTrack');
     }
-    if (artist) {
-      track.push(artist);
-    }
-    track = track.join(' — '); // Using a &mdash; here.
-    this.track.textContent = track || navigator.mozL10n.get('UnknownTrack');
   },
 
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {

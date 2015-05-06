@@ -1,8 +1,8 @@
 /*global Notify, Compose, MocksHelper, ActivityHandler, Contacts,
-         Attachment, ThreadUI, Settings, Notification,
+         Attachment, ConversationView, Settings, Notification,
          Threads, Navigation, Promise, MessageManager, Utils  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
-         MockNavigatorWakeLock, MockOptionMenu,
+         MockNavigatorWakeLock,
          MockMessages, MockL10n, MockSilentSms,
          Settings,
          Utils
@@ -27,8 +27,7 @@ requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
-require('/shared/test/unit/mocks/mock_option_menu.js');
+require('/test/unit/mock_conversation.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_notify.js');
 require('/test/unit/mock_navigation.js');
@@ -47,12 +46,11 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'Notify',
-  'OptionMenu',
   'Settings',
   'SettingsURL',
   'SilentSms',
   'Threads',
-  'ThreadUI',
+  'ConversationView',
   'Utils',
   'Navigation'
 ]).init();
@@ -345,23 +343,29 @@ suite('ActivityHandler', function() {
     suite('contact retrieved (after getSelf)', function() {
       var contactName = '<&>'; // testing potentially unsafe characters
       var sendSpy;
+      var findByPromise;
+
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{name: [contactName]}]);
+        findByPromise = Promise.resolve(
+          [ { name: [contactName] } ]
+        );
+        this.sinon.stub(Contacts, 'findByAddress').returns(findByPromise);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
-      test('passes contact name in plain text', function() {
-        sinon.assert.called(sendSpy);
-        var notification = sendSpy.firstCall.thisValue;
-        assert.equal(notification.title, contactName);
+      test('passes contact name in plain text', function(done) {
+        findByPromise.then(() => {
+          sinon.assert.called(sendSpy);
+          var notification = sendSpy.firstCall.thisValue;
+          assert.equal(notification.title, contactName);
+        }).then(done, done);
       });
     });
 
     suite('null sms received', function() {
-      var sendSpy;
+      var sendSpy, contactSpy;
 
       setup(function(done) {
         message.body = null;
@@ -370,11 +374,14 @@ suite('ActivityHandler', function() {
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
         checkSilentPromise.then(() => done());
         sendSpy = this.sinon.spy(window, 'Notification');
+        contactSpy = this.sinon.spy(Contacts, 'findByAddress');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
-      test('null notification', function() {
-        sinon.assert.calledWithMatch(sendSpy, 'Pepito O\'Hare', { body: '' });
+      test('null notification', function(done) {
+        contactSpy.lastCall.returnValue.then(() => {
+          sinon.assert.calledWithMatch(sendSpy, 'Pepito O\'Hare', { body: '' });
+        }).then(done, done);
       });
     });
 
@@ -382,15 +389,17 @@ suite('ActivityHandler', function() {
       var phoneNumber = '+1111111111';
       var sendSpy;
 
-      setup(function() {
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
         message.sender = phoneNumber;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            tel: {'value': phoneNumber}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          tel: {'value': phoneNumber}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('phone in notification title when contact without name', function() {
@@ -404,15 +413,17 @@ suite('ActivityHandler', function() {
       var emailAddress = 'a@b.com';
       var sendSpy;
 
-      setup(function() {
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
         message.sender = emailAddress;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            email: {'value': emailAddress}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          email: {'value': emailAddress}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('email in notification title when contact without name', function() {
@@ -423,19 +434,23 @@ suite('ActivityHandler', function() {
     });
 
     suite('after getSelf', function() {
-      var sendSpy;
-      setup(function() {
+      var sendSpy, contactSpy;
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
+        contactSpy = this.sinon.spy(Contacts, 'findByAddress');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+        contactSpy.lastCall.returnValue.then(() => done(), done);
       });
 
       test('a notification is sent', function() {
         sinon.assert.called(sendSpy);
         var notification = sendSpy.firstCall.thisValue;
         assert.equal(notification.body, message.body);
-        var expectedicon = 'sms?threadId=' + message.threadId + '&number=' +
-          message.sender + '&id=' + message.id;
-        assert.equal(notification.icon, expectedicon);
+        assert.deepEqual(notification.data, {
+          id: message.id,
+          threadId: message.threadId
+        });
+        assert.equal(notification.icon, 'sms');
       });
 
       test('the lock is released', function() {
@@ -479,14 +494,18 @@ suite('ActivityHandler', function() {
         sinon.assert.notCalled(closeSpy);
       });
 
-      test('In target thread view and view is hidden', function() {
+      test('In target thread view and view is hidden', function(done) {
         isDocumentHidden = true;
         this.sinon.stub(Threads, 'currentId', message.threadId);
+        var contactSpy = this.sinon.spy(Contacts, 'findByAddress');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.called(document.addEventListener);
-        sinon.assert.notCalled(closeSpy);
-        document.addEventListener.yield();
-        sinon.assert.called(closeSpy);
+
+        contactSpy.lastCall.returnValue.then(() => {
+          sinon.assert.called(document.addEventListener);
+          sinon.assert.notCalled(closeSpy);
+          document.addEventListener.yield();
+          sinon.assert.called(closeSpy);
+        }).then(done, done);
       });
     });
 
@@ -589,11 +608,14 @@ suite('ActivityHandler', function() {
 
     suite('contact retrieved (after getSelf)', function() {
       var contactName = 'contact';
-      setup(function() {
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{name: [contactName]}]);
+      setup(function(done) {
+        var contactPromise = Promise.resolve([{name: [contactName]}]);
+
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('prefix the contact name with the SIM information', function() {
@@ -606,14 +628,16 @@ suite('ActivityHandler', function() {
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
 
-      setup(function() {
+      setup(function(done) {
         message.sender = phoneNumber;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            tel: {value: phoneNumber}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          tel: {value: phoneNumber}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('phone in notification title when contact without name', function() {
@@ -626,14 +650,16 @@ suite('ActivityHandler', function() {
     suite('[Email]contact without name (after getSelf)', function() {
       var emailAddress = 'a@b.com';
 
-      setup(function() {
+      setup(function(done) {
         message.sender = emailAddress;
-        this.sinon.stub(Contacts, 'findByAddress')
-          .yields([{
-            name: [''],
-            email: {value: emailAddress}
-          }]);
+        var contactPromise = Promise.resolve([{
+          name: [''],
+          email: {value: emailAddress}
+        }]);
+        this.sinon.stub(Contacts, 'findByAddress').returns(contactPromise);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        contactPromise.then(() => done(), done);
       });
 
       test('email in notification title when contact without name', function() {
@@ -656,15 +682,21 @@ suite('ActivityHandler', function() {
 
     suite('normal message', function() {
       setup(function() {
-        var message = {
+        var notification = {
           title: title,
           body: body,
-          imageURL: 'url?id=' + messageId + '&threadId=' + threadId,
+          imageURL: 'url',
           tag: 'threadId:' + threadId,
-          clicked: true
+          clicked: true,
+          data: {
+            id: messageId,
+            threadId: threadId
+          }
         };
 
-        MockNavigatormozSetMessageHandler.mTrigger('notification', message);
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'notification', notification
+        );
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
@@ -704,32 +736,29 @@ suite('ActivityHandler', function() {
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
       });
     });
+  });
 
-    suite('class-0 message', function() {
-      setup(function() {
-        var notification = {
-          title: title,
-          body: body,
-          imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
-            '&type=class0',
-          tag: 'threadId:' + threadId,
-          clicked: true
-        };
+  suite('user removed the notification', function() {
+    setup(function() {
+      this.sinon.spy(ActivityHandler, 'handleMessageNotification');
+      this.sinon.spy(MockNavigatormozApps, 'getSelf');
+      this.sinon.spy(Navigation, 'ensureCurrentPanel');
 
-        MockNavigatormozSetMessageHandler.mTrigger(
-          'notification', notification
-        );
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      MockNavigatormozSetMessageHandler.mTrigger('notification', {
+        title: 'title',
+        body: 'body',
+        imageURL: 'url?id=1&threadId=1',
+        tag: 'threadId:1',
+        // When notification is removed "clicked" property is false
+        clicked: false
       });
+    });
 
-      test('an alert is displayed', function() {
-        sinon.assert.calledWith(Utils.alert, { raw: body }, { raw: title });
-      });
+    test('navigation is forced to set current panel', function() {
+      sinon.assert.called(Navigation.ensureCurrentPanel);
 
-      test('handleMessageNotification is not called', function() {
-        var spied = ActivityHandler.handleMessageNotification;
-        assert.isFalse(spied.called);
-      });
+      sinon.assert.notCalled(MockNavigatormozApps.getSelf);
+      sinon.assert.notCalled(ActivityHandler.handleMessageNotification);
     });
   });
 
@@ -762,16 +791,6 @@ suite('ActivityHandler', function() {
       postResult: sinon.stub()
     };
 
-    var newActivity_empty = {
-      source: {
-        name: 'new',
-        data: {
-          number: '123'
-        }
-      },
-      postResult: sinon.stub()
-    };
-
     var threadDeferred;
 
     setup(function() {
@@ -793,110 +812,18 @@ suite('ActivityHandler', function() {
       ActivityHandler.leaveActivity();
     });
 
-    test('Should move to the composer', function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      onceNewActivityCompleted().then(function() {
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-          activity: {
-            number: '123',
-            body: 'foo'
-          }
-        });
-      }).then(done,done);
-    });
-
-    test('new message with empty msg', function() {
-      // No message in the input field.
-      Compose.mEmpty = true;
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.ok(false, 'confirmation dialog should not show');
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-    });
-
-    test('new message with no body, with empty msg', function() {
-      // No message in the input field.
-      Compose.mEmpty = true;
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.ok(false, 'confirmation dialog should not show');
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
-      threadDeferred.reject(new Error('No thread for this test'));
-    });
-
-    test('new message with user input msg, discard it', function(done) {
-      // User typed message in the input field
-      Compose.mEmpty = false;
-      this.sinon.stub(ThreadUI, 'discardDraft');
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.equal(MockOptionMenu.calls.length, 1);
-        assert.equal(MockOptionMenu.calls[0].type, 'confirm');
-
-        var items = MockOptionMenu.calls[0].items;
-        assert.isNotNull(items);
-        assert.equal(items.length, 2);
-        // discard is the second button
-        assert.isNotNull(items[1]);
-        assert.equal(typeof items[1].method, 'function');
-        // Check params
-        assert.equal(newActivity.source.data.number, items[1].params[0].number);
-        assert.equal(newActivity.source.data.body, items[1].params[0].body);
-        // Call discard with the params
-        items[1].method(items[1].params[0]);
-      });
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      onceNewActivityCompleted().then(function() {
-        sinon.assert.called(ThreadUI.discardDraft);
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-          activity: {
-            number: '123',
-            body: 'foo'
-          }
-        });
-      }).then(done,done);
-    });
-
-    test('new message with user input msg, edit it', function(done) {
-      // There is message in the input field.
-      Compose.mEmpty = false;
-      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
-        assert.equal(MockOptionMenu.calls.length, 1);
-        assert.equal(MockOptionMenu.calls[0].type, 'confirm');
-
-        var items = MockOptionMenu.calls[0].items;
-        assert.isNotNull(items);
-        assert.equal(items.length, 2);
-        // edit is the first button
-        assert.isNotNull(items[0]);
-        assert.equal(typeof items[0].method, 'function');
-        // Check if when keeping the previous message the
-        // composer keeps the previous status;
-        assert.isNotNull(items[0].params);
-        // call edit.
-        items[0].method();
-      });
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      onceNewActivityCompleted().then(function() {
-        sinon.assert.notCalled(Navigation.toPanel);
-      }).then(done,done);
-    });
-
-    test('new message should set the current activity', function(done) {
+    test('Should move to the composer and set activity', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
         assert.isTrue(ActivityHandler.isInActivity());
+        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
+          activity: {
+            number: '123',
+            body: 'foo'
+          }
+        });
       }).then(done,done);
     });
 
@@ -941,8 +868,9 @@ suite('ActivityHandler', function() {
       threadDeferred.reject(new Error('No thread for this test'));
 
       Contacts.findByPhoneNumber.restore();
-      this.sinon.stub(Contacts, 'findByAddress')
-        .callsArgWith(1, [{ name: ['foo'] }]);
+      this.sinon.stub(Contacts, 'findByAddress').returns(
+        Promise.resolve([{ name: ['foo'] }])
+      );
 
       onceNewActivityCompleted().then(function() {
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
@@ -981,14 +909,28 @@ suite('ActivityHandler', function() {
       this.sinon.stub(Threads, 'has');
       this.sinon.stub(Threads, 'registerMessage');
       this.sinon.stub(MessageManager, 'getMessage').returns(getMessagePromise);
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(Navigation, 'toPanel');
+      this.sinon.stub(Compose, 'clear');
+      this.sinon.stub(Compose, 'isEmpty').returns(true);
+      this.sinon.stub(ConversationView, 'cleanFields');
+    });
+
+    test('when message belongs to currently active thread', function() {
+      Navigation.isCurrentPanel.withArgs(
+        'thread', { id: message.threadId }
+      ).returns(true);
+
+      ActivityHandler.handleMessageNotification(message);
+
+      sinon.assert.notCalled(MessageManager.getMessage);
+      sinon.assert.notCalled(Utils.confirm);
+      sinon.assert.notCalled(Navigation.toPanel);
     });
 
     suite('When compose is not empty', function() {
       setup(function() {
-        this.sinon.stub(Compose, 'clear');
-        this.sinon.stub(ThreadUI, 'cleanFields');
-
-        Compose.append('test');
+        Compose.isEmpty.returns(false);
       });
 
       test('if user does not want to discard draft', function(done) {
@@ -999,8 +941,13 @@ suite('ActivityHandler', function() {
 
         getMessagePromise.then(() => confirmPromise).catch(() => {
           sinon.assert.notCalled(Compose.clear);
-          sinon.assert.notCalled(ThreadUI.cleanFields);
-          sinon.assert.called(Utils.confirm);
+          sinon.assert.notCalled(ConversationView.cleanFields);
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'discard-new-message',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
         }).then(done, done);
       });
 
@@ -1011,9 +958,28 @@ suite('ActivityHandler', function() {
         ActivityHandler.handleMessageNotification(message);
 
         getMessagePromise.then(() => confirmPromise).then(() => {
-          sinon.assert.called(ThreadUI.cleanFields);
-          sinon.assert.called(Utils.confirm);
+          sinon.assert.called(ConversationView.cleanFields);
+          sinon.assert.calledWith(
+            Utils.confirm,
+            'discard-new-message',
+            'unsent-message-title',
+            { text: 'unsent-message-option-discard', className: 'danger' }
+          );
         }).then(done, done);
+      });
+
+      test('if message belongs to currently active thread', function() {
+        Navigation.isCurrentPanel.withArgs(
+          'thread', { id: message.threadId }
+        ).returns(true);
+
+        ActivityHandler.handleMessageNotification(message);
+
+        // It shouldn't matter if message input has any text or not since target
+        // thread is already opened
+        sinon.assert.notCalled(MessageManager.getMessage);
+        sinon.assert.notCalled(Utils.confirm);
+        sinon.assert.notCalled(Navigation.toPanel);
       });
     });
 

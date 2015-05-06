@@ -1,7 +1,19 @@
 'use strict';
-/* global ActionMenu, applications, ManifestHelper */
+/* global ActionMenu, BaseModule, applications,
+  ManifestHelper, DefaultActivityHelper, LazyLoader */
 
-(function(exports) {
+(function() {
+
+
+  var Activities = function Activities() {
+    this.actionMenu = null;
+  };
+
+  Activities.EVENTS = [
+    'mozChromeEvent',
+    'appopened',
+    'applicationinstall'
+  ];
 
   /**
    * Handles relaying of information for web activities.
@@ -9,14 +21,20 @@
    * and fires an event off when the user selects one.
    * @class Activities
    */
-  function Activities() {
-    window.addEventListener('mozChromeEvent', this);
-    window.addEventListener('appopened', this);
-    this.actionMenu = null;
-  }
 
-  Activities.prototype = {
+  BaseModule.create(Activities, {
     /** @lends Activities */
+
+    name: 'Activities',
+
+    /**
+     * Remove all event listeners. This is mainly used in unit tests.
+     */
+    destroy: function() {
+      window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('appopened', this);
+      window.removeEventListener('applicationinstall', this);
+    },
 
     /**
     * General event handler interface.
@@ -37,9 +55,68 @@
         case 'appopened':
           if (this.actionMenu) {
             this.actionMenu.hide();
+            this.actionMenu = null;
           }
           break;
+        case 'applicationinstall':
+          this._onNewAppInstalled(evt.detail.application);
+          break;
       }
+    },
+
+    _onNewAppInstalled: function(app) {
+      var activities = app && app.manifest && app.manifest.activities;
+      if (!activities) {
+        return;
+      }
+
+      Object.keys(activities).forEach(function(activity) {
+        var filters = activities[activity].filters;
+
+        // Type can be single value, array, or a definition object (with value)
+        var type = filters && filters.type && filters.type.value ||
+                   filters && filters.type;
+
+        if (!type) {
+          return;
+        }
+
+        if (typeof type === 'string') {
+          // single value, change to Array
+          type = type.split(',');
+        }
+
+        // Now that it's an array, we check all the elements
+        type.forEach((diff) => {
+          DefaultActivityHelper.getDefaultAction(activity, diff)
+            .then((defApp) => {
+              // If default launch app is set for the type
+              if (defApp) {
+                // Delete the current default app
+                DefaultActivityHelper.setDefaultAction(activity, diff, null);
+              }
+          });
+        });
+      });
+    },
+
+    /**
+     * This gets the index from the defaultChoice in the choices
+     * list.
+     * @param  {Object} defaultChoice The default choice
+     * @return {Integer}              The index where the default
+     *                                choice is located. -1 if it
+     *                                is not found
+     */
+    _choiceFromDefaultAction: function(defaultChoiceManifest, detail) {
+      var index = -1;
+      if (defaultChoiceManifest) {
+        index = detail.choices.findIndex(function(choice) {
+          return choice.manifest.indexOf(defaultChoiceManifest) !== -1;
+        });
+      }
+
+      return index;
     },
 
    /**
@@ -49,10 +126,21 @@
     * @param {Object} detail The activity choose event detail.
     */
     chooseActivity: function(detail) {
-      this._id = detail.id;
-      var choices = detail.choices;
+      var name = detail && detail.name;
+      var type = detail && detail.activityType;
+      this._detail = detail;
       this.publish('activityrequesting');
-      if (choices.length === 1) {
+
+      DefaultActivityHelper.getDefaultAction(name, type).then(
+        this._gotDefaultAction.bind(this));
+    },
+
+    _gotDefaultAction: function(defaultChoice) {
+      var choices = this._detail.choices;
+      var index = this._choiceFromDefaultAction(defaultChoice, this._detail);
+      if (index > -1) {
+        this.choose(index);
+      } else if (choices.length === 1) {
         this.choose('0');
       } else {
         //
@@ -75,7 +163,7 @@
         // activity, but it is much simpler to restrict to the FL app
         // only.
         //
-        if (detail.name === 'view') {
+        if (this._detail.name === 'view') {
           var flAppIndex = choices.findIndex(function(choice) {
             var matchingRegex =
               /^(http|https|app)\:\/\/fl\.gaiamobile\.org\//;
@@ -95,12 +183,30 @@
           // shows
           window.dispatchEvent(new CustomEvent('activitymenuwillopen'));
 
-          var activityNameL10nId = 'activity-' + detail.name;
-          if (!this.actionMenu) {
-            this.actionMenu = new ActionMenu(this._listItems(choices),
-              activityNameL10nId, this.choose.bind(this),
-              this.cancel.bind(this));
-            this.actionMenu.start();
+          var name = this._detail.name;
+          var type = this._detail.activityType;
+          var config = DefaultActivityHelper.getDefaultConfig(name, type);
+
+          var titleId;
+          if (config) {
+            titleId = config.l10nId;
+          } else {
+            titleId = 'activity-' + this._detail.name;
+          }
+
+          var askForDefault = config !== undefined;
+          var items = this._listItems(choices);
+
+          if (!this.actionMenu || !this.actionMenu.active) {
+            var controller = {
+              successCb: this.choose.bind(this),
+              cancelCb: this.cancel.bind(this)
+            };
+
+            LazyLoader.load('js/action_menu.js', function() {
+              this.actionMenu = new ActionMenu(controller);
+              this.actionMenu.show(items, titleId, askForDefault);
+            }.bind(this));
           }
         }).bind(this));
       }
@@ -110,18 +216,27 @@
     * The user chooses an activity from the activity menu.
     * @memberof Activities.prototype
     * @param {Number} choice The activity choice.
+    * @param {Boolean} setAsDefault Should this be set as the default activity.
     */
-    choose: function(choice) {
+    choose: function(choice, setAsDefault) {
       this.actionMenu = null;
 
       var returnedChoice = {
-        id: this._id,
+        id: this._detail.id,
         type: 'activity-choice',
-        value: choice
+        value: choice,
+        setAsDefault: setAsDefault
       };
+      var name = this._detail.name;
+      var type = this._detail.activityType;
+
+      if (setAsDefault) {
+        DefaultActivityHelper.setDefaultAction(name, type,
+          this._detail.choices[choice].manifest);
+      }
 
       this._sendEvent(returnedChoice);
-      delete this._id;
+      delete this._detail;
     },
 
    /**
@@ -132,18 +247,13 @@
       this.actionMenu = null;
 
       var returnedChoice = {
-        id: this._id,
+        id: this._detail.id,
         type: 'activity-choice',
         value: -1
       };
 
       this._sendEvent(returnedChoice);
-      delete this._id;
-    },
-
-    publish: function(eventName) {
-      var event = new CustomEvent(eventName);
-      window.dispatchEvent(event);
+      delete this._detail;
     },
 
     /**
@@ -176,14 +286,13 @@
         items.push({
           label: new ManifestHelper(app.manifest).name,
           icon: choice.icon,
+          manifest: choice.manifest,
           value: index
         });
       });
 
       return items;
     }
-  };
+  });
 
-  exports.Activities = Activities;
-
-}(window));
+}());

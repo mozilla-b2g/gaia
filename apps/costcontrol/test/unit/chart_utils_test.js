@@ -1,4 +1,4 @@
-/* global ChartUtils, Toolkit, Common */
+/* global ChartUtils, Toolkit, Common, Formatting */
 
 'use strict';
 
@@ -7,6 +7,7 @@ require('/test/unit/mock_debug.js');
 require('/test/unit/mock_moz_l10n.js');
 require('/js/common.js');
 require('/js/utils/toolkit.js');
+require('/js/utils/formatting.js');
 require('/js/utils/chart.js');
 
 suite('ChartUtils suite >', function() {
@@ -224,4 +225,92 @@ suite('ChartUtils suite >', function() {
       Common.DATA_USAGE_WARNING);
   });
 
+  suite('accesibility', function() {
+    var canvas, model, date, upperDate, lowerDate;
+    function testAcesssibilityAttributes(identifier, data) {
+      assert.equal(canvas.getAttribute('data-l10n-id'), identifier);
+      assert.equal(canvas.getAttribute('data-l10n-args'), JSON.stringify(data));
+    }
+
+    setup(function() {
+      canvas = document.createElement('canvas');
+      date = new realDate(2014, 0, 15);
+      lowerDate = new realDate(2014, 0, 1);
+      upperDate = new realDate(2014, 0, 31);
+      model = {
+        axis: {
+          X: {
+            get: function() {},
+            today: date,
+            lower: lowerDate,
+            upper: upperDate
+          },
+          Y: { get: function() {}, lower: 0, margin: 0.20 }
+        },
+        data: {
+          wifi: { enabled: true, total: 0 },
+          mobile: { enabled: true, total: 0 }
+        },
+        todayLabel: {},
+        limits: {
+          enabled: true, value: null, dataLimitValue: 1, dataLimitUnit: 'MB'
+        }
+      };
+    });
+
+    test('> drawTodayLayer', function() {
+      ChartUtils.drawTodayLayer(canvas, model);
+      testAcesssibilityAttributes('today-layer',
+        { today: ChartUtils.formatChartDate(date) });
+    });
+
+    test('> drawAxisLayer', function() {
+      ChartUtils.drawAxisLayer(canvas, model);
+      testAcesssibilityAttributes('axis-layer', {
+        from: ChartUtils.formatChartDate(lowerDate),
+        to: ChartUtils.formatChartDate(upperDate)
+      });
+    });
+
+    test('> drawLimits do not display limit', function() {
+      ChartUtils.drawLimits(canvas, model);
+      assert.isFalse(canvas.hasAttribute('data-l10n-id'));
+      assert.isFalse(canvas.hasAttribute('data-l10n-args'));
+    });
+
+    test('> drawLimits MB', function() {
+      ChartUtils.drawLimits(canvas, model, true);
+      testAcesssibilityAttributes('limit-layer-MB',
+        { value: model.limits.dataLimitValue });
+    });
+
+    test('> drawLimits GB', function() {
+      model.limits.dataLimitUnit = 'GB';
+      ChartUtils.drawLimits(canvas, model, true);
+      testAcesssibilityAttributes('limit-layer-GB',
+        { value: model.limits.dataLimitValue });
+    });
+
+    test('> drawWarningLayer do no warning', function() {
+      ChartUtils.drawWarningLayer(canvas, model);
+      assert.isFalse(canvas.hasAttribute('data-l10n-id'));
+      assert.isFalse(canvas.hasAttribute('data-l10n-args'));
+    });
+
+    test('> drawWarningLayer limit warning', function() {
+      model.limits.value = 10;
+      model.data.mobile.total = 9;
+      ChartUtils.drawWarningLayer(canvas, model);
+      testAcesssibilityAttributes('warning-layer',
+        { value: Formatting.formatData(Formatting.roundData(1)) });
+    });
+
+    test('> drawWarningLayer limit exceeded', function() {
+      model.limits.value = 10;
+      model.data.mobile.total = 11;
+      ChartUtils.drawWarningLayer(canvas, model);
+      testAcesssibilityAttributes('limit-exceeded-layer',
+        { value: Formatting.formatData(Formatting.roundData(1)) });
+    });
+  });
 });

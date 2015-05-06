@@ -1,3 +1,4 @@
+'use strict';
 /*jshint node: true, browser: true */
 var SHARED_PATH = __dirname + '/../../../../../shared/test/integration';
 
@@ -19,23 +20,19 @@ EmailSync.prototype = {
 
   /**
    * Does the work to trigger a sync using helpers in
-   * mock_navigator_mozalarms.js. Assumes the mock
-   * mock_navigator_mozalarms.js was already injected.
+   * mock_navigator_moz_set_message_handler.js.
    */
   triggerSync: function() {
     // trigger sync in Email App
     this.client.executeScript(function() {
       var interval = 1000;
-      var date = new Date(Date.now() + interval).getTime();
-      var alarm = {
+      var task = {
         data: {
-          type: 'sync',
           accountIds: ['0', '1'],
-          interval: interval,
-          timestamp: date
+          interval: interval
         }
       };
-      return window.wrappedJSObject.fireMessageHandler(alarm);
+      return window.wrappedJSObject.fireMessageHandler(task, 'request-sync');
     });
   }
 };

@@ -104,7 +104,9 @@
     handlePresentation: function awf_handlePresentation(detail) {
       var parseUrl = detail.url.split('/');
       var protocol = parseUrl[0].toUpperCase();
+      var self = this;
       var manifestURL;
+      var requestId = detail.id;
 
       // We assume the URL is in the following format:
       // app://<domain name>/<path>
@@ -119,32 +121,53 @@
         url: detail.url,
         manifestURL: manifestURL
       });
+      config.timestamp = detail.timestamp;
 
-      var cb = function(receivedapp) {
-        var evt = new CustomEvent('mozContentEvent', {
-          bubbles: true,
-          cancelable: false,
-          detail: {
-            type: 'presentation-receiver-launched',
-            id: detail.id,
-            frame: receivedapp.iframe
+
+      return new Promise(function(resolve, reject) {
+        var app = AppWindowManager.getApp(config.origin, config.manifestURL);
+
+        window.addEventListener('appcreated', function awf_onappcreated(evt) {
+          if (evt.detail.config.url !== config.url) {
+            return;
           }
+          window.removeEventListener('appcreated', awf_onappcreated);
+          self._sendPresentationLaunched(evt.detail, requestId);
+          resolve();
         });
-        window.dispatchEvent(evt);
-      };
-      var app = AppWindowManager.getApp(config.origin, config.manifestURL);
-      if (app) {
-        app.kill();
-      }
-      window.addEventListener('appcreated', function awf_appcreated(evt) {
-        app = evt.detail;
 
-        if (app.config.url == config.url) {
-          window.removeEventListener('appcreated', awf_appcreated);
-          cb(app);
+        if (app) {
+          // If target app existed, kill it and relaunch.
+          window.addEventListener('appterminated',
+          function awf_onappdestroyed(evt) {
+            if (evt.detail.manifestURL !== app.manifestURL) {
+              return;
+            }
+            window.removeEventListener('appterminated', awf_onappdestroyed);
+            self._launchPresentationApp(config, protocol);
+          });
+          app.kill();
+        } else {
+          self._launchPresentationApp(config, protocol);
         }
       });
-      config.timestamp = detail.timestamp;
+    },
+
+    _sendPresentationLaunched: function awf_sendPresentationLaunched(app, id) {
+      var evt = new CustomEvent('mozContentEvent', {
+        bubbles: true,
+        cancelable: false,
+        detail: {
+          type: 'presentation-receiver-launched',
+          id: id,
+          frame: app.iframe
+        }
+      });
+      window.dispatchEvent(evt);
+    },
+
+    _launchPresentationApp:
+    function awf_launchPresentationApp(config, protocol) {
       if (protocol === 'APP:') {
         config.stayBackground = true;
         this.launch(config);

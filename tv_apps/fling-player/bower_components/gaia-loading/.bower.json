@@ -1,0 +1,30 @@
+{
+  "name": "gaia-loading",
+  "homepage": "https://github.com/gaia-components/gaia-loading",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "gaia-loading.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "README.md"
+  ],
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component#~0.3.0"
+  },
+  "_release": "84a8803886",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "84a880388686523e68172651fce2d570d4499daf"
+  },
+  "_source": "git://github.com/gaia-components/gaia-loading.git",
+  "_target": "*",
+  "_originalSource": "gaia-components/gaia-loading"
+}

@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import Wait
-    from marionette import expected
-    from marionette.by import By
-except:
-    from marionette_driver import Wait
-    from marionette_driver import expected
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -45,7 +38,7 @@ class KeyboardAddMoreKeyboards(Base):
     _section_locator = (By.ID, 'keyboard-selection-addMore')
     _select_language_locator = (
         By.XPATH,
-        "//div[contains(@class,'keyboardAppContainer')]//li[label[span[text()='%s']]]"
+        "//div[contains(@class,'keyboardAppContainer')]//li[label[span[bdi[text()='%s']]]]"
     )
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
 

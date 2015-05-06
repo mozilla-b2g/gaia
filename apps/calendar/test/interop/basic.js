@@ -3,7 +3,7 @@
 
 var Calendar = require('../marionette/lib/calendar'),
     assert = require('chai').assert,
-    debug = require('debug')('interop:basic'),
+    debug = require('common/debug')('interop:basic'),
     fs = require('fs'),
     path = require('path');
 

@@ -39,6 +39,7 @@
     "bluetooth":{},
     "downloads":{},
     "firefox-accounts": {},
-    "engineering-mode": {}
+    "engineering-mode": {},
+    "secureelement-manage": {}
   }
 }

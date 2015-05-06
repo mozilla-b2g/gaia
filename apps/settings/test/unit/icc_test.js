@@ -8,7 +8,6 @@ requireApp('settings/test/unit/mock_navigator_settings.js');
 requireApp('settings/test/unit/mock_settings.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/js/html_imports.js');
 require('/shared/test/unit/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
@@ -61,13 +60,6 @@ suite('STK (App menu) >', function() {
     window.reopenSettings = function mockReopenSettings() {};
     mocksHelper = new MocksHelper(mocksForIccApp);
     mocksHelper.suiteSetup();
-
-    HtmlImports.populate(function() {
-      window.addEventListener('iccPageLoaded', function onLoaded(event) {
-        done();
-      });
-      requireApp('settings/js/icc.js');
-    });
 
     this.STK_NEXT_ACTION_INDICATOR = {
       16: 'stkItemsNaiSetUpCall',
@@ -177,6 +169,26 @@ suite('STK (App menu) >', function() {
           }
         }
       }}});
+
+    require('/shared/js/html_imports.js', function() {
+      HtmlImports.populate(function() {
+        var map = {
+          'shared/stk_helper': 'shared_mocks/mock_stk_helper'
+        };
+
+        testRequire([
+          'shared_mocks/mock_stk_helper'
+        ], map, function(MockStkHelper) {
+          // we have to replace `require` in icc.js
+          window.require = function(modules, callback) {
+            callback(MockStkHelper);
+          };
+          testRequire(['icc'], {}, function() {
+            done();
+          });
+        });
+      });
+    });
   });
 
   suiteTeardown(function() {
@@ -199,9 +211,7 @@ suite('STK (App menu) >', function() {
     });
 
     test('Check initialization', function() {
-      assert.ok(document.getElementById('icc-stk-app-back'));
-      assert.ok(document.getElementById('icc-stk-help-exit'));
-      assert.ok(document.getElementById('icc-stk-exit'));
+      assert.ok(document.getElementById('icc-stk-main-header'));
       assert.ok(document.getElementById('icc-stk-header'));
       assert.ok(document.getElementById('icc-stk-subheader'));
       assert.ok(document.getElementById('icc-stk-list'));

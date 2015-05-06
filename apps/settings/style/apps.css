@@ -1,20 +1,21 @@
 /**
  * Application Permissions
  */
-
+#addons ul li img,
+#addon-details ul li img,
 #appPermissions ul li img,
 #homescreens ul li img {
-  -moz-margin-end: 1.4rem;
+  position: absolute;
   width: 3rem;
   height: 3rem;
-  filter: url('shadow.svg#drop-shadow');
+  left: 1.6rem;
 }
 
+#addons ul li > a,
+#addon-detail-toggle,
 #appPermissions ul li > a,
 #homescreens ul li > a  {
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
+  -moz-padding-start: 7.4rem;
 }
 
 .uninstall-app {
@@ -30,7 +31,6 @@
 /**
  * Vertical homescreen panel
  */
-
 #homescreen [data-type="list"] li:first-child {
   padding-bottom: 1rem;
 }
@@ -38,7 +38,62 @@
 /**
  * App permissions details panel
  */
-
 .developer-infos > a > small {
   color: #00e;
+}
+
+/*
+ * styles for the addons and addon-details panels
+ */
+.addon-paragraph {
+  font-size: 1.7rem;
+  line-height: 1.7rem;
+  font-weight: 400;
+  font-style: italic;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.addon-paragraph img {
+  float: left;
+  margin: 0 1rem 1rem 1rem;
+  width: 6.4rem;
+  height: 6.4rem;
+}
+
+.addon-rename {
+  background: none;
+  flex-shrink: 0;
+  width: auto;
+  color: #00aac5;
+  font-style: italic;
+  font-size: 1.4rem;
+  line-height: 1.4rem;
+  padding: 0;
+  margin: 0;
+}
+
+.addon-rename:active {
+  background: none;
+  color: #00aac5;
+  opacity: 0.5;
+}
+
+.no-rename .addon-rename {
+  display: none;
+}
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+html:-moz-dir(rtl) #addons ul li img,
+html:-moz-dir(rtl) #addon-details ul li img,
+html:-moz-dir(rtl) #appPermissions ul li img,
+html:-moz-dir(rtl) #homescreens ul li img {
+  left: unset;
+  right: 1.6rem;
+}
+
+html:-moz-dir(rtl) .addon-paragraph img {
+  float: right;
 }

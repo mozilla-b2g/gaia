@@ -1,6 +1,6 @@
 'use strict';
 
-/* global UIManager, DataMobile, MocksHelper */
+/* global UIManager, DataMobile, MocksHelper, Navigation */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('ftu/test/unit/mock_ui_manager.js');

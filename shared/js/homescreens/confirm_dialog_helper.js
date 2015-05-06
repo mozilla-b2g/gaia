@@ -80,8 +80,24 @@
       }
 
       document.activeElement.blur();
+      element.setAttribute('hidden', '');
       parent.appendChild(element);
-      window.dispatchEvent(new CustomEvent('gaia-confirm-open'));
+
+      // This nested requestAnimationFrame is to work around the coalescing
+      // of the style changes associated with removing of the 'hidden'
+      // attribute with the creation of the element.
+      // For whatever reason, flushing the style with the usual trick of
+      // accessing clientTop doesn't work, and a setTimeout requires an
+      // unreasonably lengthy timeout (>50ms) to work, and that may not be
+      // a reliable solution.
+      // This work-around, though gross, appears to work consistently without
+      // introducing too much lag or extra work.
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          element.removeAttribute('hidden');
+          window.dispatchEvent(new CustomEvent('gaia-confirm-open'));
+        });
+      });
     },
 
     destroy: function() {
@@ -92,9 +108,18 @@
       // Ensure cleanup of our hacks!
       window.removeEventListener('hashchange', this);
 
-      this.element.parentNode.removeChild(this.element);
-      this.element = null;
-      window.dispatchEvent(new CustomEvent('gaia-confirm-close'));
+      this.element.addEventListener('transitionend',
+        function removeAfterHide(e) {
+          if (e.target !== this.element) {
+            return;
+          }
+
+          this.element.parentNode.removeChild(this.element);
+          this.element = null;
+          window.dispatchEvent(new CustomEvent('gaia-confirm-close'));
+        }.bind(this));
+
+      this.element.setAttribute('hidden', '');
     },
 
     handleEvent: function(e) {

@@ -8,17 +8,13 @@ var FakeGlobalOverlayAppNoPerms =
 marionette('GlobalOverlayWindow', function() {
   var apps = {};
   apps[FakeGlobalOverlayApp.DEFAULT_ORIGIN] =
-    __dirname + '/fakeglobaloverlayapp';
+    __dirname + '/../apps/fakeglobaloverlayapp';
   apps[FakeGlobalOverlayAppNoPerms.DEFAULT_ORIGIN] =
-    __dirname + '/fakeglobaloverlayapp_nopermissions';
+    __dirname + '/../apps/fakeglobaloverlayapp_nopermissions';
 
   var client = marionette.client({
     prefs: {
       'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     },
     apps: apps
   });

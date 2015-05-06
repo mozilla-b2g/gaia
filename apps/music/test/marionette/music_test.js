@@ -15,11 +15,6 @@ marionette('Music ui tests', function() {
       'device.storage.prompt.testing': true
     },
 
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
     apps: apps
   });
 

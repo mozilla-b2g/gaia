@@ -58,15 +58,12 @@
     <script type="text/javascript" defer src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
     <script type="text/javascript" defer src="shared/js/format.js"></script>
-    <script type="text/javascript" defer src="/shared/js/usertiming.js"></script>
     <script type="text/javascript" defer src="/shared/js/performance_testing_helper.js"></script>
     <script type="text/javascript" defer src="/shared/js/url_helper.js"></script>
 
     <!-- Gaia Components -->
     <script defer src="/shared/elements/config.js"></script>
-    <script defer src="/shared/js/component_utils.js"></script>
     <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
-    <script defer src="/shared/elements/gaia_checkbox/script.js"></script>
 
     <script type="text/javascript" defer src="js/app.js"></script>
     <script type="text/javascript" defer src="js/application_init.js"></script>
@@ -76,6 +73,13 @@
     <link rel="import" href="/elements/topup-dialog.html">
     <link rel="import" href="/elements/datausage-tab.html">
     <link rel="import" href="/elements/appdetail-view.html">
+
+    <!-- Include the app icon in the application.zip -->
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_142.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_189.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_284.png"/>
   </head>
   <body role="application" class="theme-settings">
 
@@ -87,7 +91,7 @@
         <!-- XXX: The order of sections is important (tabs should be place above
              the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         <gaia-header>
-          <h1 data-l10n-id="usage">Usage</h1>
+          <h1 data-l10n-id="usage"></h1>
           <button class="settings-button" data-icon="settings"></button>
         </gaia-header>
 
@@ -142,7 +146,7 @@
     <section>
       <h1>Card is not ready</h1>
       <p>The button will close the application.</p>
-      <progress></progress>
+      <progress hidden></progress>
     </section>
     <menu>
       <button class="full" data-l10n-id="ok">Ok</button>

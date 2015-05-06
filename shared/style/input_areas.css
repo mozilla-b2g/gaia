@@ -24,6 +24,7 @@ textarea {
   color: #333;
   background: #fff;
   margin: 0 0 1rem 0;
+  unicode-bidi: -moz-plaintext;
 }
 
 label:active {
@@ -570,7 +571,3 @@ html[dir="rtl"] form p input:focus {
   padding-left: 3rem;
 }
 
-html[dir="rtl"] form p input:-moz-dir(ltr),
-html[dir="rtl"] form p input:-moz-dir(ltr):focus {
-  text-align: left;
-}

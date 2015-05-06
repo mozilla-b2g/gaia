@@ -1,3 +1,4 @@
+/* global MockL10n,MediaUtils,ThumbnailItem,Template */
 /*
  * Thumbnail Item tests
  */
@@ -24,7 +25,7 @@ suite('Thumbnail Item Unit Tests', function() {
   suite('#test object creation', function() {
     test('#empty video object', function() {
       try {
-        new ThumbnailItem();
+        new ThumbnailItem(); // jshint ignore:line
         assert.fail('undefined or null videoitem should not be ok.');
       } catch (ex) {
         assert.ok('correct behavior caught');
@@ -57,7 +58,7 @@ suite('Thumbnail Item Unit Tests', function() {
 
     test('#without template', function() {
       try {
-        var thumbnail = new ThumbnailItem(videodata);
+        new ThumbnailItem(videodata); // jshint ignore:line 
         assert.fail('htmlNode should throw error without template.');
       } catch (ex) {
         assert.ok('expected error caught.');
@@ -75,7 +76,6 @@ suite('Thumbnail Item Unit Tests', function() {
 
       ThumbnailItem.Template = new Template(dummyDiv);
       var thumbnail = new ThumbnailItem(videodata);
-      var domNode = thumbnail.htmlNode;
       thumbnail.updatePoster(new Blob(['empty-image'], {'type': 'image/jpeg'}));
       assert.ok('it is ok without any fields');
     });
@@ -86,7 +86,7 @@ suite('Thumbnail Item Unit Tests', function() {
 
       ThumbnailItem.Template = new Template(dummyDiv);
       try {
-        var thumbnail = new ThumbnailItem(videodata);
+        new ThumbnailItem(videodata); // jshint ignore:line
         assert.fail('htmlNode should throw error without element in template.');
       } catch (ex) {
         assert.ok('expected error caught.');

@@ -11,21 +11,6 @@
 
   Receiver.prototype = {
 
-    _MESSAGE_TYPES: Object.freeze({
-      'start-ringing': {
-        title: 'Incoming call',
-        bodyTemplate: '__SENDER__ calling'
-      },
-      'stop-ringing': {
-        title: 'Call ended',
-        bodyTemplate: '__SENDER__ call ended'
-      },
-      'sms': {
-        title: 'Message received',
-        bodyTemplate: '__SENDER__: __MESSAGE__'
-      }
-    }),
-
     _onSessionReady: undefined,
     _onMessage: undefined,
     _onStateChange: undefined,
@@ -52,6 +37,8 @@
 
         var session = navigator.mozPresentation.session;
         if (session) {
+          // XXX: message is an exception that we could not use addEventListener
+          // on it. See http://bugzil.la/1128384
           session.removeEventListener('message', this._onMessage);
           session.removeEventListener('statechange', this._onStateChange);
         }
@@ -64,59 +51,37 @@
       session.addEventListener('statechange', this._onStateChange);
     },
 
-    _isKnownType: function r_isKnownType(type) {
-      return !!this._MESSAGE_TYPES[type];
-    },
+    _renderMessage: function r_renderMessage(message) {
+      var result;
 
-    _renderMessageBody: function r_renderMessageBody(message) {
-      var bodyTemplate = this._MESSAGE_TYPES[message.type].bodyTemplate;
-      var body;
-      var sender;
-      if (message.name) {
-        sender = message.name;
-      } else {
-        sender = message.call;
-      }
       switch(message.type) {
-        case 'start-ringing':
-        case 'stop-ringing':
-          body = bodyTemplate.replace('__SENDER__', sender);
-          break;
-        case 'sms':
-          body = bodyTemplate.replace('__SENDER__', sender)
-                  .replace('__MESSAGE__', message.body);
+        case 'Message':
+        case 'Laundry':
+        case 'Home':
+        case 'Mail':
+          result = {
+            body: message.body,
+            title: message.title
+          };
           break;
       }
-      return body;
+      return result;
     },
 
-    // We assume incoming message event are in format below for now:
-    // 1. {data: {"call":"0987654321", "type":"start-ringing"}}
-    // 2. {data: {"call":"0987654321", "type":"stop-ringing"}}
-    // 3. {
-    //      data: {
-    //        "call":"+886987654321",
-    //        "name":null,
-    //        "type":"sms",
-    //        "body":"Test"
-    //      }
-    //    }
-    // Message format is subject to change.
     _handleMessage: function r_handleMessage(evt) {
-      var message = evt.data;
-      var type = message.type;
+      var message = JSON.parse(evt.data);
+      var renderedMessage = this._renderMessage(message);
 
-      if (this._isKnownType(type)) {
-        var title = this._MESSAGE_TYPES[type].title;
-
-        new Notification(title, {
-          body: this._renderMessageBody(message), icon: DEFAULT_ICON_URL
+      if (renderedMessage) {
+        new Notification(renderedMessage.title, {
+          body: renderedMessage.body,
+          icon: DEFAULT_ICON_URL
         });
       }
     },
 
     _handleStateChange: function r_handleStateChange(evt) {
-      if (evt.state === 'disconnected') {
+      if (!evt.state) {
         this.uninit();
         window.close();
       }

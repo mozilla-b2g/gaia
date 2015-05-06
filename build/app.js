@@ -4,6 +4,7 @@
 
 var utils = require('utils');
 var rebuild = require('rebuild');
+var nodeHelper = new utils.NodeHelper();
 
 function getAppRegExp(options) {
   var appRegExp;
@@ -17,19 +18,6 @@ function getAppRegExp(options) {
   return appRegExp;
 }
 
-function spawnProcess(module, appOptions) {
-  let proc = utils.getProcess();
-  let xpcshell = utils.getEnv('XPCSHELLSDK');
-  let args = [
-    '-f', utils.getEnv('GAIA_DIR') + '/build/xpcshell-commonjs.js',
-    '-e', 'run("' + module + '", "' + JSON.stringify(appOptions)
-      .replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '");'
-  ];
-  proc.init(utils.getFile(xpcshell));
-  proc.run(false, args, args.length);
-  return proc;
-}
-
 function buildApps(options) {
   var processes = [];
   var gaia = utils.gaia.getInstance(options);
@@ -41,7 +29,7 @@ function buildApps(options) {
   var callscreen;
   var communications;
   var webapps = gaia.rebuildWebapps.filter(function(app) {
-    var path = app.appDir.path;
+    var path = app.appDirPath;
     if (path.indexOf('callscreen') !== -1) {
       callscreen = app;
       return false;
@@ -54,7 +42,7 @@ function buildApps(options) {
   }
 
   webapps.forEach(function(app) {
-    let appDir = app.appDir.path;
+    let appDir = app.appDirPath;
     let appDirFile = utils.getFile(appDir);
     let appOptions = utils.cloneJSON(options);
     let stageAppDir = utils.getFile(options.STAGE_DIR, appDirFile.leafName);
@@ -70,15 +58,15 @@ function buildApps(options) {
       if (parseInt(options.P) > 0) {
         // A workaround for bug 1093267
         if (appDir.indexOf('communications') !== -1) {
-          communications = spawnProcess('build-app', appOptions);
+          communications = utils.spawnProcess('build-app', appOptions);
           processes.push({
             name: 'communications',
-            content: communications
+            instance: communications
           });
         } else {
           processes.push({
             name: appDirFile.leafName,
-            content: spawnProcess('build-app', appOptions)
+            instance: utils.spawnProcess('build-app', appOptions)
           });
         }
       } else {
@@ -91,7 +79,7 @@ function buildApps(options) {
       if (appDir.indexOf('callscreen') !== -1) {
         if (communications) {
           utils.processEvents(function () {
-            return { wait: communications.isRunning };
+            return { wait: utils.processIsRunning(communications) };
           });
         }
       }
@@ -104,14 +92,14 @@ function buildApps(options) {
   utils.processEvents(function () {
     return {
       wait: processes.some(function(proc) {
-        return proc.content.isRunning;
+        return utils.processIsRunning(proc.instance);
       })
     };
   });
 
   var failed = false;
   processes.forEach(function(proc) {
-    var exitValue = proc.content.exitValue;
+    var exitValue = utils.getProcessExitCode(proc.instance);
     if (exitValue !== 0) {
       failed = true;
       utils.log('failed', 'building ' + proc.name +
@@ -138,7 +126,7 @@ exports.execute = function(options) {
       });
   }
 
-  require('./pre-app').execute(options);
+  nodeHelper.require('pre-app', options);
 
   // Wait for all pre app tasks to be done before proceeding.
   utils.processEvents(function () {

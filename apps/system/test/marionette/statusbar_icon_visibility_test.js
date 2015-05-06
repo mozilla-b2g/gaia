@@ -7,10 +7,6 @@ marionette('Statusbar Visibility', function() {
   var client = marionette.client({
     prefs: {
       'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 
@@ -36,7 +32,7 @@ marionette('Statusbar Visibility', function() {
     client.waitFor(function() {
       // The element is rendered with moz-element so we can't use
       // marionette's .displayed()
-      var visibility = system.statusbarLabel.scriptWith(function(element) {
+      var visibility = system.statusbarOperator.scriptWith(function(element) {
         return window.getComputedStyle(element).visibility;
       });
       return (visibility == 'visible');

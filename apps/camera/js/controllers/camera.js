@@ -66,14 +66,16 @@ CameraController.prototype.bindEvents = function() {
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
-  app.on('previewgallery:opened', this.shutdownCamera);
+  app.on('previewgallery:opened', this.onGalleryOpened);
   app.on('previewgallery:closed', this.onGalleryClosed);
   app.on('stoprecording', this.camera.stopRecording);
   app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
+  app.on('keydown:capture', this.onCaptureKey);
+  app.on('keydown:focus', this.onFocusKey);
   app.on('timer:ended', this.capture);
-  app.on('visible', this.camera.load);
+  app.on('visible', this.onVisible);
   app.on('capture', this.capture);
   app.on('hidden', this.shutdownCamera);
 
@@ -88,6 +90,56 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.onHDRChange);
 
   debug('events bound');
+};
+
+/**
+ * Check to see if we're still in the preview-gallery
+ * and if so, prevent the camera app from loading the
+ * hardware.
+*/
+CameraController.prototype.onVisible = function() {
+  if (this.galleryOpen) {
+    return;
+  }
+  this.camera.load();
+};
+
+/**
+ * Take picture or start/end recording
+ * when a capture hardware key is invoked.
+ *
+ * Calling `.preventDefault()` prevents
+ * the default system operation
+ * (eg. changing volume level). We
+ * only call it when capture request
+ * succeeds.
+ *
+ * We don't want to .preventDefault() when
+ * the preview-gallery is open as the
+ * user may want to change the volume
+ * of a video being played back.
+ *
+ * @param  {Event} e
+ * @private
+ */
+CameraController.prototype.onCaptureKey = function(e) {
+  debug('on capture key', e);
+  var ignore = this.app.get('timerActive') ||
+    this.app.get('confirmViewVisible');
+  if (ignore) { return e.preventDefault(); }
+  if (this.capture() !== false) { e.preventDefault(); }
+};
+
+/**
+ * Focus the camera when a focus
+ * hardware key is invoked.
+ *
+ * @param  {Event} e
+ * @private
+ */
+CameraController.prototype.onFocusKey = function(e) {
+  debug('on focus key', e);
+  this.camera.focus.focus();
 };
 
 /**
@@ -158,7 +210,7 @@ CameraController.prototype.capture = function() {
   }
 
   var position = this.app.geolocation.position;
-  this.camera.capture({ position: position });
+  return this.camera.capture({ position: position });
 };
 
 /**
@@ -213,7 +265,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   debug('set mode: %s', mode);
   var self = this;
-  var html;
+  var l10nId;
 
   // Abort if didn't change.
   //
@@ -229,12 +281,12 @@ CameraController.prototype.setMode = function(mode) {
   }
 
   if (mode == 'video') {
-    html = this.l10nGet('Video-Mode');
+    l10nId = 'Video-Mode';
   }
   else {
-    html = this.l10nGet('Photo-Mode');
+    l10nId = 'Photo-Mode';
   }
-  this.notification.display({ text: html });
+  this.notification.display({ text: l10nId });
 
   this.setFlashMode();
   this.app.emit('camera:willchange');
@@ -438,6 +490,11 @@ CameraController.prototype.onCameraClosed = function(reason) {
   }
 };
 
+CameraController.prototype.onGalleryOpened = function() {
+  this.galleryOpen = true;
+  this.shutdownCamera();
+};
+
 /**
  * As the camera is shutdown when the
  * preview gallery is opened, we must
@@ -452,8 +509,9 @@ CameraController.prototype.onCameraClosed = function(reason) {
  */
 CameraController.prototype.onGalleryClosed = function(reason) {
   if (this.app.hidden) { return; }
+  this.galleryOpen = false;
   this.app.showSpinner();
-  this.camera.load(this.app.clearSpinner);
+  this.camera.load();
 };
 
 /**

@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -28,32 +25,40 @@ class UiTestsPivileged(Base):
         Base.launch(self, launch_timeout=120000)
 
     def tap_contacts_option(self):
-        self.wait_for_element_displayed(*self._contacts_locator, timeout=120)
-        self.marionette.find_element(*self._contacts_locator).tap()
+        element = Wait(self.marionette, timeout=120).until(
+            expected.element_present(*self._contacts_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
         from gaiatest.apps.ui_tests_privileged.regions.contacts import ContactsPage
 
         return ContactsPage(self.marionette)
 
     def tap_get_user_media_option(self):
-        self.wait_for_element_displayed(*self._get_user_media_locator, timeout=120)
-        self.marionette.find_element(*self._get_user_media_locator).tap()
+        element = Wait(self.marionette, timeout=120).until(
+            expected.element_present(*self._get_user_media_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
         from gaiatest.apps.ui_tests_privileged.regions.user_media import UserMediaPage
 
         return UserMediaPage(self.marionette)
 
     def tap_geolocation_option(self):
-        self.wait_for_element_displayed(*self._geolocation_locator, timeout=120)
-        self.marionette.find_element(*self._geolocation_locator).tap()
+        element = Wait(self.marionette, timeout=120).until(
+            expected.element_present(*self._geolocation_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
         from gaiatest.apps.ui_tests_privileged.regions.geolocation import GeolocationPage
 
         return GeolocationPage(self.marionette)
 
     def tap_device_storage_option(self):
-        self.wait_for_element_displayed(*self._device_storage_locator, timeout=120)
-        self.marionette.find_element(*self._device_storage_locator).tap()
+        element = Wait(self.marionette, timeout=120).until(
+            expected.element_present(*self._device_storage_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
         from gaiatest.apps.ui_tests_privileged.regions.device_storage import DeviceStoragePage
 

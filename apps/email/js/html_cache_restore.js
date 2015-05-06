@@ -1,11 +1,11 @@
 /*jshint browser: true */
-/*global performance, console */
+/*global performance, console, Notification */
 'use strict';
 var _xstart = performance.timing.fetchStart -
               performance.timing.navigationStart;
-function plog(msg) {
+window.plog = function(msg) {
   console.log(msg + ' ' + (performance.now() - _xstart));
-}
+};
 
 /**
  * Apparently the event catching done for the startup events from
@@ -14,192 +14,149 @@ function plog(msg) {
  * global to make sure we do not emit the same events later.
  * @type {Boolean}
  */
-var startupCacheEventsSent = false;
+window.startupCacheEventsSent = false;
 
 /**
  * Version number for cache, allows expiring cache.
  * Set by build process. Set as a global because it
  * is also used in html_cache.js.
  */
-var HTML_COOKIE_CACHE_VERSION = '2';
+window.HTML_CACHE_VERSION = '2';
 
 /**
- * Max size of cookie cache segments. Set as a global because it is also used by
- * html_cache.js.
+ * A function callback is registered if the model needs to be loaded before
+ * final view determination can be done. This should be a rare event, but can
+ * happen, see localOnModelLoaded for more details. config.js looks for this
+ * callback.
  */
-var HTML_COOKIE_CACHE_MAX_SEGMENTS = 40;
+window.startupOnModelLoaded = null;
 
-// Use a global to work around issue with
-// navigator.mozHasPendingMessage only returning
-// true to the first call made to it.
-window.htmlCacheRestorePendingMessage = [];
+/**
+ * Tracks if a mozSetMessageHandler has been dispatched to code. This only
+ * exists to help us be efficient on closing the app in the case of notification
+ * close events. If the notification system improved so that the app could tell
+ * it not to notify us on close events, this could be removed. It is a global
+ * so that cronsync-main can set it for request-sync operations. This file does
+ * not track request-sync setMozMessageHandler messages directly, since they
+ * need to acquire wake locks in the event turn the message is received. Since
+ * that is a bit complicated, the back-end handles it, since it also knows more
+ * about the sync details.
+ */
+window.appDispatchedMessage = false;
 
-// START COPY usertiming.js
-// A copy instead of a separate script because the gaia build system is not
-// set up to inline this with our main script element, and we want this work
-// to be done after the cache restore, but want to trigger the events that
-// may be met by the cache right away without waiting for another script
-// load after html_cache_restore.
 (function() {
-  // This is a PARTIAL implementation of User Timing, specifically only the
-  // methods `performance.mark` and `performance.measure`, as those are required
-  // for performance testing. The rest of the API will come once this API is
-  // properly implemented in Gecko and this shim of these methods can be removed
-  var performance = window.performance;
-  var console = window.console;
+  // Holds on to the pending message type that is indicated by
+  // mozHasPendingMessage. If it has a value, given by mozHasPendingMessage,
+  // then startup is put on hold until it arrives. Once the mozSetMessageHandler
+  // for the pending message type is received, this variable is cleared,
+  // opening the way for other mozSetMessageHandler messages to be processed.
+  // This is only important to track for messages that have UI impact, like
+  // inserting cards. Data messages, like request-sync are fine to pass through
+  // unblocked.
+  var pendingUiMessageType = null;
 
-  if (typeof performance.mark === 'function') {
-    return;
+  // There are special tasks, like DOM injection from cache, and startup of the
+  // main JS scripts, that should only be done during startup, but once the app
+  // has started up, then this file just handles dispatching of messages
+  // received via mozSetMessageHandler.
+  var startingUp = true;
+
+  // Holds the determination of the entry point type and view that should be
+  // used for startup.
+  var startupData = {};
+
+  /**
+   * startupOnModelLoaded is set to this function if the
+   * data_has_account localStorage value is not known. Called eventually by
+   * config.js once the model module has been loaded.
+   */
+  function localOnModelLoaded(model, callback) {
+    model.latestOnce('acctsSlice', function(acctsSlice) {
+      // At this point, model will have set up 'data_has_account', so the the
+      // final view can be set and the rest of the world can start turning.
+      // Note that request-sync can get kicked off before this is all done,
+      // since the worker will have started up and registered to get those
+      // messages. It is OK though since not showing any UI. If this case is
+      // triggered, it will result in a UI display in that case, but that is OK,
+      // it only happens on an app update situation, from cookies to
+      // localStorage or some kind of localStorage reset. So a rare event, and
+      // does not cause harm, just a bit of extra work in those cases once.
+      console.log('localOnModelLoaded called, hasAccount: ' +
+                  localStorage.getItem('data_has_account'));
+
+      setDefaultView();
+      hydrateHtml(startupData.view);
+      window.startupOnModelLoaded = null;
+      callback();
+    });
   }
 
-  // Create a performance entry in the logs in a certain format so performance
-  // tests can extract and parse
-  var logEntry = function(entry) {
-    setTimeout(function() {
-      var message = 'Performance Entry: ' +
-          entry.entryType + '|' +
-          entry.name + '|' +
-          entry.startTime + '|' +
-          entry.duration + '|' +
-          (entry.time || 0);
+  if (!localStorage.getItem('data_has_account')) {
+    console.log('data_has_account unknown, asking for model load first');
+    window.startupOnModelLoaded = localOnModelLoaded;
+  }
 
-      console.log(message);
-    }, 0);
-  };
+  function hasAccount() {
+    // var _1 = performance.now();
+    var has = localStorage.getItem('data_has_account') === 'yes';
+    // console.log('@@@ LOCALSTORAGE GET data_has_account: ' +
+    //             (performance.now() - _1));
+    return has;
+  }
 
-  // only used for measure(), to quickly see the latest timestamp of a mark
-  var marks = {};
-
-  /**
-   * UserTiming mark
-   * http://www.w3.org/TR/user-timing/#dom-performance-mark
-   *
-   * @param {string} markName Mark name
-   */
-  performance.mark = function(markName) {
-    var now = performance.now();
-    var epoch = Date.now();
-
-    // mark name is required
-    if (typeof markName === 'undefined') {
-      throw new SyntaxError('Mark name must be specified');
-    }
-
-    // mark name can't be a NT timestamp
-    if (performance.timing && markName in performance.timing) {
-      throw new SyntaxError('Mark name is not allowed');
-    }
-
-    if (!marks[markName]) {
-      marks[markName] = [];
-    }
-
-    marks[markName].push(now);
-
-    // add to perf timeline as well
-    logEntry({
-      entryType: 'mark',
-      name: markName,
-      startTime: now,
-      duration: 0,
-      time: epoch // NON-STANDARD EXTENSION
-    });
-  };
-
-  /**
-   * UserTiming measure
-   * http://www.w3.org/TR/user-timing/#dom-performance-measure
-   *
-   * @param {string} measureName Measure name
-   * @param {string} [startMark] Start mark name
-   * @param {string} [endMark] End mark name
-   */
-  performance.measure = function(measureName, startMark, endMark) {
-    var now = performance.now();
-    var epoch = Date.now();
-
-    if (!measureName) {
-      throw new Error('Measure must be specified');
-    }
-
-    // if there isn't a startMark, we measure from navigationStart to now
-    if (!startMark) {
-      logEntry({
-        entryType: 'measure',
-        name: measureName,
-        startTime: 0,
-        duration: now,
-        time: epoch // NON-STANDARD EXTENSION
-      });
-
-      return;
-    }
-
-    // If there is a startMark, check for it first in the NavigationTiming
-    // interface, then check our own marks.
-    var startMarkTime = 0;
-    if (performance.timing && startMark in performance.timing) {
-      // mark cannot have a timing of 0
-      if (startMark !== 'navigationStart' &&
-          performance.timing[startMark] === 0) {
-        throw new Error(startMark + ' has a timing of 0');
+  function setDefaultView() {
+    if (hasAccount()) {
+      if (!startupData.view) {
+        startupData.view = 'message_list';
       }
-
-      // time is the offset of this mark to navigationStart's time
-      startMarkTime = performance.timing[startMark] -
-      performance.timing.navigationStart;
     } else {
-      if (startMark in marks) {
-        startMarkTime = marks[startMark][marks[startMark].length - 1];
-      } else {
-        throw new Error(startMark + ' mark not found');
+      startupData.view = 'setup_account_info';
+    }
+  }
+
+  // Set up the default view, but if that is not possible to know yet, since
+  // the status of hasAccount is unknown, wait for the callback to set it up.
+  if (!window.startupOnModelLoaded) {
+    setDefaultView();
+  }
+
+  startupData.entry = 'default';
+
+  /**
+   * Makes sure the message type is wanted, given pendingUiMessageType concerns,
+   * and not coming in at a fast rate due to things like double clicks. Only
+   * necessary to use if the message is something that would insert cards, and
+   * fast entries could mess up card state.
+   */
+  var lastEntryTime = 0;
+  function isUiMessageTypeAllowedEntry(type) {
+    // If startup is pending on a message, and this message type is not what is
+    // wanted, skip it.
+    if (pendingUiMessageType && pendingUiMessageType !== type) {
+      console.log('Ignoring message of type: ' + type);
+      return false;
+    }
+
+    var entryTime = Date.now();
+
+    // This is the right pending startup message, so proceed without checking
+    // the entryTime as it is the first one allowed through.
+    if (pendingUiMessageType) {
+      pendingUiMessageType = null;
+    } else {
+      // Check for fast incoming messages, like from activity double taps, and
+      // ignore them, to avoid messing up the UI startup from double-click taps
+      // of activities/notifications that would insert new cards. Only one entry
+      // per second.
+      if (entryTime < lastEntryTime + 1000) {
+        console.log('email entry gate blocked fast repeated action: ' + type);
+        return false;
       }
     }
 
-    // If there is a endMark, check for it first in the NavigationTiming
-    // interface, then check our own marks.
-    var endMarkTime = now;
-
-    if (endMark) {
-      endMarkTime = 0;
-
-      if (performance.timing && endMark in performance.timing) {
-        // mark cannot have a timing of 0
-        if (endMark !== 'navigationStart' &&
-            performance.timing[endMark] === 0) {
-          throw new Error(endMark + ' has a timing of 0');
-        }
-
-        // time is the offset of this mark to navigationStart's time
-        endMarkTime = performance.timing[endMark] -
-        performance.timing.navigationStart;
-      } else {
-        if (endMark in marks) {
-          endMarkTime = marks[endMark][marks[endMark].length - 1];
-        } else {
-          throw new Error(endMark + ' mark not found');
-        }
-      }
-    }
-
-    // add to our measure array
-    var duration = endMarkTime - startMarkTime;
-
-    logEntry({
-      entryType: 'measure',
-      name: measureName,
-      startTime: startMarkTime,
-      duration: duration,
-      time: epoch // NON-STANDARD EXTENSION
-    });
-  };
-}());
-// END COPY performance_testing_helper.js
-
-(function() {
-  var selfNode = document.querySelector('[data-loadsrc]'),
-      loader = selfNode.dataset.loader,
-      loadSrc = selfNode.dataset.loadsrc;
+    lastEntryTime = entryTime;
+    return true;
+  }
 
   /**
    * Gets the HTML string from cache, as well as language direction.
@@ -208,28 +165,16 @@ window.htmlCacheRestorePendingMessage = [];
    * throw given vagaries of cookie cookie storage and encodings.
    * Be prepared.
    */
-  function retrieve() {
-    var value = document.cookie;
-    var pairRegExp = /htmlc(\d+)=([^;]+)/g;
-    var segments = [];
-    var match, index, version, langDir;
+  function retrieve(id) {
 
-    while ((match = pairRegExp.exec(value))) {
-      segments[parseInt(match[1], 10)] = match[2] || '';
-    }
+    // var _1 = performance.now();
+    var value = localStorage.getItem('html_cache_' + id) || '';
+    // console.log('@@@ LOCALSTORAGE GET html_cache: ' +
+    // (performance.now() - _1));
 
-    if (segments.length > HTML_COOKIE_CACHE_MAX_SEGMENTS) {
-      // Somehow, garbage got in the a higher segment level than the one used by
-      // html_cache, which makes sure the spaced up to the max is well gardened.
-      // So it is safe to just use the max segment size vs just dumping the
-      // whole cache.
-      console.warn('Trimming cache segments of ' + segments.length +
-                   ' to well kept limit of ' + HTML_COOKIE_CACHE_MAX_SEGMENTS);
-      segments.splice(HTML_COOKIE_CACHE_MAX_SEGMENTS,
-                      segments.length - HTML_COOKIE_CACHE_MAX_SEGMENTS);
-    }
+    var index, version, langDir;
 
-    value = decodeURIComponent(segments.join(''));
+    // console.log('RETRIEVED: ' + 'html_cache_' + id + ': ' + value);
 
     index = value.indexOf(':');
 
@@ -247,9 +192,9 @@ window.htmlCacheRestorePendingMessage = [];
       langDir = versionParts[1];
     }
 
-    if (version !== HTML_COOKIE_CACHE_VERSION) {
-      console.log('Skipping cookie cache, out of date. Expected ' +
-                  HTML_COOKIE_CACHE_VERSION + ' but found ' + version);
+    if (version !== window.HTML_CACHE_VERSION) {
+      console.log('Skipping html cache for ' + id + ', out of date. Expected ' +
+                  window.HTML_CACHE_VERSION + ' but found ' + version);
       value = '';
     }
 
@@ -259,15 +204,219 @@ window.htmlCacheRestorePendingMessage = [];
     };
   }
 
-  /*
-   * Automatically restore the HTML as soon as module is executed.
-   * ASSUMES card node is available (DOMContentLoaded or execution of
-   * module after DOM node is in doc)
-   */
-  var cardsNode = document.getElementById(selfNode.dataset.targetid);
+  // The evt module is needed to register for 'notification' events that are
+  // triggered by other code in the email app (not from the mozSetMessageHandler
+  // pathway), but it can be done lazily once the rest of the app has started up
+  // and has asked to listen for app messages.
+  var evt;
 
-  function startApp() {
-    var scriptNode = document.createElement('script');
+  // Tracks the handlers that are registered via globalOnAppMessage. The
+  // handlers are stored in slots that are named for the message types, like
+  // 'activity', 'notification'.
+  var handlers = {};
+
+  // Holds on to messages that come in via mozSetMessageHandler until there is a
+  // handler that has been registred for that message type.
+  var handlerQueues = {
+    notification: [],
+    activity: []
+  };
+
+  /**
+   * Called by app code. Only expects one listener to be registered for each
+   * handler type. This function also assumes that a  `require` loader is
+   * available to fetch the 'evt' module. This would not be needed if
+   * evt.emit('notification') was  not triggered by the email code.
+   * @param  {Object} listener Object whose keys are the handler type names and
+   * values are functions that handle that type.
+   */
+  window.globalOnAppMessage = function(listener) {
+
+    Object.keys(listener).forEach(function(key) {
+      var fn = handlers[key] = listener[key];
+      var queue = handlerQueues[key];
+      if (queue.length) {
+        handlerQueues[key] = [];
+        queue.forEach(function(argsArray) {
+          fn.apply(undefined, argsArray);
+        });
+      }
+    });
+
+    // Only need to do this wiring once, but globalOnAppMessage could be called
+    // multiple times.
+    if (!evt) {
+      require(['evt'], function(ev) {
+        evt = ev;
+        evt.on('notification', onNotification);
+      });
+    }
+
+    return startupData;
+  };
+
+  // Attach the hasAccount so that other code can use it and always get the
+  // freshest cached value.
+  window.globalOnAppMessage.hasAccount = hasAccount;
+
+  function dispatch(type, args) {
+    window.appDispatchedMessage = true;
+    if (handlers[type]) {
+      return handlers[type].apply(undefined, args);
+    } else {
+      handlerQueues[type].push(args);
+    }
+
+    // On the very first dispatch when app open is triggered by a dispatchable
+    // event, need to finish bootup now that full startup state is known.
+    finishStartup();
+  }
+
+  /**
+   * Perform requested activity.
+   *
+   * @param {MozActivityRequestHandler} req activity invocation.
+   */
+  function onActivityRequest(req) {
+    console.log('mozSetMessageHandler: received an activity');
+    if (!isUiMessageTypeAllowedEntry('activity')) {
+      return req.postError('cancelled');
+    }
+
+    // Right now all activity entry points go to compose, but may need to
+    // revisited if the activity entry points change.
+    if (startingUp) {
+      startupData.view = 'compose';
+      hydrateHtml(startupData.view);
+    }
+
+    dispatch('activity', [req]);
+  }
+
+  function onNotification(msg) {
+    console.log('mozSetMessageHandler: received a notification');
+    // Skip notification events that are not from a notification "click". The
+    // system app will also notify this method of any close events for
+    // notifications, which are not at all interesting.
+    if (!msg.clicked) {
+      // If a request-sync is waiting right behind this notification message,
+      // that sync would will be lost when the application closes. It is an edge
+      // case though, and recoverable on the next sync, where trying to be
+      // accommodating to it here would add more code complexity, and it would
+      // still have a failure window where the app just starts up with a
+      // notification, but just after that, after startup is finished but before
+      // this function is called, a sync message is queued up. Activities could
+      // be dropped too in a similar situation, but we might already drop some
+      // due to the fast click gate. The long term fix is to just get a
+      // notification system that allows apps to tell it not to call it if just
+      // closing a notification.
+
+      // Only close if entry was a notification and no other messages, like a
+      // request-sync or a UI-based message, have been dispatched.
+      if (startupData.entry === 'notification' &&
+          !window.appDispatchedMessage) {
+        console.log('App only started for notification close, closing app.');
+        window.close();
+      }
+      return;
+    }
+
+    // Bail early if notification is ignored. Do this before the notification
+    // close() work, so that user has the opportunity to tap on the notification
+    // later and still activate that notification flow.
+    if (!isUiMessageTypeAllowedEntry('notification')) {
+      return;
+    }
+
+    // Need to manually get all notifications and close the one that triggered
+    // this event due to fallout from 890440 and 966481.
+    if (typeof Notification !== 'undefined' && Notification.get) {
+      Notification.get().then(function(notifications) {
+        if (notifications) {
+          notifications.some(function(notification) {
+            // Compare tags, as the tag is based on the account ID and
+            // we only have one notification per account. Plus, there
+            // is no "id" field on the notification.
+            if (notification.tag === msg.tag && notification.close) {
+              notification.close();
+              return true;
+            }
+          });
+        }
+      });
+    }
+
+    // Adjust the startupData view as desired by the notification. For upgrade
+    // cases where a previous notification from an older version of email
+    // used the iconUrl, this just means we will got to the message_list instead
+    // of the message_reader for the single email notification case, but that is
+    // OK since it is a temporary upgrade issue, and the email will still be
+    // seen since it should be top of the list in the message_list.
+    var view = msg.data && msg.data.type;
+    if (startingUp && view) {
+      startupData.view = view;
+      hydrateHtml(view);
+    }
+
+    // The notification infrastructure does not automatically bring the app to
+    // the foreground, so if still hidden, show it now. Ideally this would not
+    // use a setTimeout, but it was getting incorrect document.hidden values on
+    // startup, where just a bit later the value does seem to be set correctly.
+    // The other option was to do this work inside the notification handler in
+    // mail_app, but the delay is long enough waiting for that point that the
+    // user might be concerned they did not correctly tap the notification.
+    setTimeout(function() {
+      if (document.hidden && navigator.mozApps) {
+        console.log('document was hidden, showing app via mozApps.getSelf');
+        navigator.mozApps.getSelf().onsuccess = function(event) {
+          var app = event.target.result;
+          app.launch();
+        };
+      }
+    }, 300);
+
+    dispatch('notification', [msg.data]);
+  }
+
+  var selfNode = document.querySelector('[data-loadsrc]');
+
+  function hydrateHtml(id) {
+    var parsedResults = retrieve(id);
+
+    if (parsedResults.langDir) {
+      document.querySelector('html').setAttribute('dir', parsedResults.langDir);
+    }
+
+    var contents = parsedResults.contents;
+
+    // Automatically restore the HTML as soon as module is executed.
+    // ASSUMES card node is available (DOMContentLoaded or execution of
+    // module after DOM node is in doc)
+    var cardsNode = document.getElementById(selfNode.dataset.targetid);
+
+    cardsNode.innerHTML = contents;
+    window.startupCacheEventsSent = !!contents;
+
+    if (contents) {
+      console.log('Using HTML cache for ' + id);
+    }
+
+    if (window.startupCacheEventsSent) {
+      window.performance.mark('navigationLoaded');
+      window.performance.mark('visuallyLoaded');
+    }
+  }
+
+  function finishStartup() {
+    // This can be called multiple times due to pendingUiMessageType listeners
+    // so only do the work once.
+    if (!startingUp) {
+      return;
+    }
+
+    var scriptNode = document.createElement('script'),
+        loader = selfNode.dataset.loader,
+        loadSrc = selfNode.dataset.loadsrc;
 
     if (loader) {
       scriptNode.setAttribute('data-main', loadSrc);
@@ -277,85 +426,45 @@ window.htmlCacheRestorePendingMessage = [];
     }
 
     document.head.appendChild(scriptNode);
+
+    startingUp = false;
   }
 
-  // TODO: mozHasPendingMessage can only be called once?
-  // Need to set up variable to delay normal code logic later
+  // mozHasPendingMessage seems like it can only be called once per message
+  // type, so only asking once. If we have both an activity or a notification
+  // coming in, the activity should win since it is part of a larger user action
+  // besides just email, and expects to get some callbacks.
   if (navigator.mozHasPendingMessage) {
     if (navigator.mozHasPendingMessage('activity')) {
-      window.htmlCacheRestorePendingMessage.push('activity');
+      pendingUiMessageType = 'activity';
+    } else if (navigator.mozHasPendingMessage('notification')) {
+      pendingUiMessageType = 'notification';
     }
-    if (navigator.mozHasPendingMessage('alarm')) {
-      window.htmlCacheRestorePendingMessage.push('alarm');
-    }
-    if (navigator.mozHasPendingMessage('notification')) {
-      window.htmlCacheRestorePendingMessage.push('notification');
+
+    if (pendingUiMessageType) {
+      startupData.entry = pendingUiMessageType;
+    } else if (navigator.mozHasPendingMessage('request-sync')) {
+      // While request-sync is not important for the pendingUiMessageType
+      // gateway, it still should be indicated that the entry point was not the
+      // default entry point, so that the UI is not fully started if this is a
+      // background sync.
+      startupData.entry = 'request-sync';
     }
   }
 
-  if (window.htmlCacheRestorePendingMessage.length) {
-    startApp();
+  if ('mozSetMessageHandler' in navigator) {
+    navigator.mozSetMessageHandler('notification', onNotification);
+    navigator.mozSetMessageHandler('activity', onActivityRequest);
   } else {
-    var parsedResults = retrieve();
-
-    if (parsedResults.langDir) {
-      document.querySelector('html').setAttribute('dir', parsedResults.langDir);
-    }
-
-    var contents = parsedResults.contents;
-    cardsNode.innerHTML = contents;
-    startupCacheEventsSent = !!contents;
-    window.addEventListener('load', startApp, false);
+    console.warn('mozSetMessageHandler not available. No notifications, ' +
+                 'activities or syncs.');
   }
 
-  // START COPY performance_testing_helper.js
-  // A copy instead of a separate script because the gaia build system is not
-  // set up to inline this with our main script element, and we want this work
-  // to be done after the cache restore, but want to trigger the events that
-  // may be met by the cache right away without waiting for another script
-  // load after html_cache_restore.
-  function dispatch(name) {
-    if (!window.mozPerfHasListener) {
-      return;
-    }
-
-    var now = window.performance.now();
-    var epoch = Date.now();
-
-    setTimeout(function() {
-      var detail = {
-        name: name,
-        timestamp: now,
-        epoch: epoch
-      };
-      var event = new CustomEvent('x-moz-perf', { detail: detail });
-
-      window.dispatchEvent(event);
-    });
-  }
-
-  ([
-    'moz-chrome-dom-loaded',
-    'moz-chrome-interactive',
-    'moz-app-visually-complete',
-    'moz-content-interactive',
-    'moz-app-loaded'
-  ].forEach(function(eventName) {
-      window.addEventListener(eventName, function mozPerfLoadHandler() {
-        dispatch(eventName);
-      }, false);
-    }));
-
-  window.PerformanceTestingHelper = {
-    dispatch: dispatch
-  };
-  // END COPY performance_testing_helper.js
-
-  if (startupCacheEventsSent) {
-    window.performance.mark('navigationLoaded');
-    window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-    window.performance.mark('visuallyLoaded');
-    window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+  if (window.startupOnModelLoaded) {
+    finishStartup();
+  } else if (startupData.entry === 'default' ||
+             startupData.entry === 'request-sync') {
+    hydrateHtml(startupData.view);
+    finishStartup();
   }
 }());
-

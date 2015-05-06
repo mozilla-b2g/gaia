@@ -1,4 +1,4 @@
-/* global Card, eventSafety, SettingsListener,
+/* global Card, eventSafety, SettingsListener, layoutManager,
           Service, homescreenLauncher, StackManager, OrientationManager */
 
 (function(exports) {
@@ -111,7 +111,9 @@
 
   TaskManager.prototype._appClosed = function cs_appClosed(evt) {
     window.removeEventListener('appclosed', this._appClosedHandler);
+    window.removeEventListener('homescreenclosed', this._appClosedHandler);
     this.screenElement.classList.add('cards-view');
+    this.element.classList.remove('from-home');
   };
 
   /**
@@ -133,6 +135,8 @@
     }
     this.calculateDimensions();
     this.newStackPosition = null;
+    // start listening for the various events we need to handle while
+    // the card view is showing
     this._registerShowingEvents();
 
     if (this.filter(filterName)) {
@@ -150,9 +154,6 @@
       app.enterTaskManager();
     });
 
-    this.publish('cardviewbeforeshow');
-
-    screen.mozLockOrientation(OrientationManager.defaultOrientation);
     this._placeCards();
     this.setActive(true);
 
@@ -166,8 +167,9 @@
     if (activeApp.isHomescreen) {
       // Ensure the homescreen is in a closed state, as the user may choose
       // one of the app.
-      activeApp.close();
-      screenElement.classList.add('cards-view');
+      activeApp.close('home-to-cardview');
+      this.element.classList.add('from-home');
+      window.addEventListener('homescreenclosed', this._appClosedHandler);
     } else {
       window.addEventListener('appclosed', this._appClosedHandler);
     }
@@ -181,15 +183,13 @@
    */
   TaskManager.prototype.hide = function cs_hideCardSwitcher() {
     if (!this.isActive()) {
-      // To avoid wrong behaviour when the app is closed
-      // by a second home button event
-      window.removeEventListener('appclosed', this._appClosedHandler);
-      this.screenElement.classList.remove('cards-view');
       return;
     }
     this._unregisterShowingEvents();
     this._removeCards();
     this.setActive(false);
+    window.removeEventListener('appclosed', this._appClosedHandler);
+    window.removeEventListener('homescreenclosed', this._appClosedHandler);
     this.screenElement.classList.remove('cards-view');
 
     var detail;
@@ -200,7 +200,13 @@
   };
 
 
+  TaskManager.prototype._showingEventsRegistered = false;
+
   TaskManager.prototype._registerShowingEvents = function() {
+    if (this._showingEventsRegistered) {
+      return;
+    }
+    this._showingEventsRegistered = true;
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('appopen', this);
@@ -214,16 +220,21 @@
   };
 
   TaskManager.prototype._unregisterShowingEvents = function() {
+    if (!this._showingEventsRegistered) {
+      return;
+    }
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
     window.removeEventListener('appterminated', this);
     window.removeEventListener('wheel', this);
     window.removeEventListener('resize', this);
-
-    this.element.removeEventListener('touchstart', this);
-    this.element.removeEventListener('touchmove', this);
-    this.element.removeEventListener('touchend', this);
+    if (this.element) {
+      this.element.removeEventListener('touchstart', this);
+      this.element.removeEventListener('touchmove', this);
+      this.element.removeEventListener('touchend', this);
+    }
+    this._showingEventsRegistered = false;
   };
 
   /**
@@ -420,20 +431,20 @@
 
       case 'select' :
 
-        if (this.position == card.position) {
-          this.exitToApp(card.app);
-        } else {
+        if (this.position != card.position) {
           // Make the target app, the selected app
           this.position = card.position;
           this.alignCurrentCard();
+        }
 
-          var self = this;
-          this.currentCard.element.addEventListener('transitionend',
-                                                    function onCenter(e) {
-            e.target.removeEventListener('transitionend', onCenter);
+        var self = this;
+        this.currentCard.element.addEventListener('transitionend',
+          function afterTransition(e) {
+            e.target.removeEventListener('transitionend', afterTransition);
             self.exitToApp(card.app);
           });
-        }
+        this.currentCard.element.classList.add('select');
+
         break;
     }
   };
@@ -442,6 +453,8 @@
     // The cards view class is removed here in order to let the window
     // manager repaints everything.
     this.screenElement.classList.remove('cards-view');
+    // immediately stop listening for input events
+    this._unregisterShowingEvents();
 
     if (this._shouldGoBackHome) {
       app = app || homescreenLauncher.getHomescreen(true);
@@ -460,17 +473,19 @@
 
     setTimeout(() => {
       var finish = () => {
+        this.element.classList.remove('to-home');
         this.hide();
       };
+      eventSafety(app.element, '_opened', finish, 400);
 
       if (app.isHomescreen) {
-        app.open();
-        finish();
+        this.element.classList.add('to-home');
+        app.open('home-from-cardview');
       } else {
         app.open('from-cardview');
-        eventSafety(app.element, '_opened', finish, 400);
       }
     }, 100);
+
   };
 
   /**
@@ -527,14 +542,44 @@
       filter = (evt.detail && evt.detail.filter) || null;
     }
 
-    var app = Service.currentApp;
-    if (app && !app.isHomescreen) {
-      app.getScreenshot(function onGettingRealtimeScreenshot() {
+
+    var shouldResize = (OrientationManager.defaultOrientation !=
+                        OrientationManager.fetchCurrentOrientation());
+    var shouldHideKeyboard = layoutManager.keyboardEnabled;
+
+    this.publish('cardviewbeforeshow'); // Will hide the keyboard if needed
+
+    var finish = () => {
+      if (shouldHideKeyboard) {
+        window.addEventListener('keyboardhidden', function kbHidden() {
+          window.removeEventListener('keyboardhidden', kbHidden);
+          shouldHideKeyboard = false;
+          setTimeout(finish);
+        });
+        return;
+      }
+
+      screen.mozLockOrientation(OrientationManager.defaultOrientation);
+      if (shouldResize) {
+        window.addEventListener('resize', function resized() {
+          window.removeEventListener('resize', resized);
+          shouldResize = false;
+          setTimeout(finish);
+        });
+        return;
+      }
+
+      var app = Service.currentApp;
+      if (app && !app.isHomescreen) {
+        app.getScreenshot(function onGettingRealtimeScreenshot() {
+          this.show(filter);
+        }.bind(this), 0, 0, 300);
+      } else {
         this.show(filter);
-      }.bind(this), 0, 0, 400);
-    } else {
-      this.show(filter);
-    }
+      }
+    };
+
+    finish();
   };
 
   /**

@@ -5,15 +5,11 @@ var UtilityTray = require('./lib/utility_tray.js');
 
 marionette('AttentionWindow interactions', function() {
   var apps = {};
-  apps[FakeLoopApp.DEFAULT_ORIGIN] = __dirname + '/fakeloopapp';
+  apps[FakeLoopApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakeloopapp';
 
   var client = marionette.client({
     prefs: {
       'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     },
     apps: apps
   });

@@ -2,7 +2,7 @@
 define(function(require) {
 'use strict';
 
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var EventBase = require('views/event_base');
 var Factory = require('test/support/factory');
 var InputParser = require('shared/input_parser');
@@ -10,8 +10,9 @@ var ModifyEvent = require('views/modify_event');
 var QueryString = require('querystring');
 var Template = require('template');
 var View = require('view');
-var nextTick = require('next_tick');
-var providerFactory = require('provider/provider_factory');
+var core = require('core');
+var nextTick = require('common/next_tick');
+var router = require('router');
 
 require('dom!modify_event');
 require('dom!show_event');
@@ -23,11 +24,11 @@ suite('views/modify_event', function() {
 
   var subject;
   var controller;
-  var app;
   var fmt;
 
   var provider;
 
+  var storeFactory;
   var eventStore;
   var calendarStore;
   var accountStore;
@@ -70,7 +71,7 @@ suite('views/modify_event', function() {
   var realGo;
 
   teardown(function() {
-    app.go = realGo;
+    router.go = realGo;
   });
 
   suiteTemplate('show-event', {
@@ -82,23 +83,21 @@ suite('views/modify_event', function() {
   });
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    realGo = app.go;
+    realGo = router.go;
+    storeFactory = core.storeFactory;
 
-    eventStore = app.store('Event');
-    accountStore = app.store('Account');
-    calendarStore = app.store('Calendar');
-    settingStore = app.store('Setting');
-    provider = providerFactory.get('Mock');
+    eventStore = storeFactory.get('Event');
+    accountStore = storeFactory.get('Account');
+    calendarStore = storeFactory.get('Calendar');
+    settingStore = storeFactory.get('Setting');
+    provider = core.providerFactory.get('Mock');
 
     fmt = navigator.mozL10n.DateTimeFormat();
 
-    controller = app.timeController;
+    controller = core.timeController;
 
-    app.db.open(done);
-    subject = new ModifyEvent({
-      app: app
-    });
+    core.db.open(done);
+    subject = new ModifyEvent();
   });
 
   testSupport.calendar.accountEnvironment();
@@ -117,10 +116,10 @@ suite('views/modify_event', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts', 'calendars', 'events', 'busytimes', 'alarms'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -616,7 +615,7 @@ suite('views/modify_event', function() {
         callback();
       };
 
-      app.go = function(place) {
+      router.go = function(place) {
         assert.notEqual(place, '/foo', 'redirect is changed to event url');
         done();
       };
@@ -634,7 +633,7 @@ suite('views/modify_event', function() {
       calledWith = null;
       list = subject.element.classList;
 
-      app.go = function(place) {
+      router.go = function(place) {
         redirectTo = place;
       };
     });
@@ -710,7 +709,7 @@ suite('views/modify_event', function() {
             assert.notEqual(redirectTo, '/foo');
 
             assert.deepEqual(
-              app.timeController.position,
+              core.timeController.position,
               subject.event.startDate,
               'moves time controller'
             );
@@ -757,7 +756,7 @@ suite('views/modify_event', function() {
             assert.equal(redirectTo, '/foo');
 
             assert.deepEqual(
-              app.timeController.position,
+              core.timeController.position,
               subject.event.startDate,
               'moves timeController'
             );

@@ -8,8 +8,8 @@
           MockImportStatusData, MockMozContacts
 */
 
-require('/shared/js/usertiming.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_datastore_migrator.js');
@@ -29,10 +29,11 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 
 var mocksForStatusBar = new MocksHelper([
+  'ActivityHandler',
+  'Cache',
   'DatastoreMigration',
   'LazyLoader',
-  'SmsIntegration',
-  'ActivityHandler'
+  'SmsIntegration'
 ]).init();
 
 if (!window.navigationStack) {
@@ -101,6 +102,7 @@ suite('Contacts', function() {
 
     realNavigationStack = window.navigationStack;
     window.navigationStack = MockNavigationStack;
+
     sinon.spy(window, 'navigationStack');
     requireApp('communications/contacts/js/utilities/performance_helper.js');
     requireApp('communications/contacts/js/contacts.js', done);
@@ -120,6 +122,7 @@ suite('Contacts', function() {
 
   setup(function() {
     this.sinon.spy(window.utils.PerformanceHelper, 'chromeInteractive');
+    this.sinon.spy(window.utils.PerformanceHelper, 'contentInteractive');
     loadBodyHTML('/contacts/index.html');
 
     window.ImportStatusData.clear();
@@ -134,6 +137,8 @@ suite('Contacts', function() {
 
     Contacts.init();
     mockNavigation = window.navigationStack.firstCall.thisValue;
+
+    navigator.mozL10n.fireOnce();
   });
 
   test('hashchange home', function(done) {
@@ -148,6 +153,7 @@ suite('Contacts', function() {
   test('mozL10n initialized', function() {
     sinon.assert.calledOnce(navigator.mozL10n.once);
     sinon.assert.calledOnce(window.utils.PerformanceHelper.chromeInteractive);
+    sinon.assert.calledOnce(window.utils.PerformanceHelper.contentInteractive);
   });
 
   suite('on contacts change', function() {
@@ -433,38 +439,33 @@ suite('Contacts', function() {
   suite('Async scripts loading', function() {
     var lastParams;
     setup(function() {
-      this.sinon.spy(window, 'dispatchEvent');
       this.sinon.stub(LazyLoader, 'load', function(p, cb) {
         lastParams = p;
         cb();
       });
     });
     test('> normal load of the scripts', function() {
-      Contacts.onLocalized();
-
-      sinon.assert.called(window.dispatchEvent);
-      assert.isNotNull(navigator.mozContacts.oncontactchange);
+      Contacts.onLocalized().then(() => {
+        sinon.assert.called(window.dispatchEvent);
+        assert.isNotNull(navigator.mozContacts.oncontactchange);
+      });
     });
     test('> loading scripts with nfc enabled', function() {
       var oldNFC = navigator.mozNfc;
       navigator.mozNfc = true;
-      Contacts.onLocalized();
-
-      sinon.assert.called(window.dispatchEvent);
-      assert.isNotNull(navigator.mozContacts.oncontactchange);
-      assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
-
-      navigator.mozNfc = oldNFC;
+      Contacts.onLocalized().then(() => {
+        assert.isNotNull(navigator.mozContacts.oncontactchange);
+        assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
+        navigator.mozNfc = oldNFC;
+      });
     });
     test('> loading scripts while handling an open activity',
      function() {
       ActivityHandler.currentlyHandling = true;
-      Contacts.onLocalized();
-
-      sinon.assert.called(window.dispatchEvent);
-      assert.isNull(navigator.mozContacts.oncontactchange);
-
-      ActivityHandler.currentlyHandling = false;
+      Contacts.onLocalized().then(() => {
+        assert.isNull(navigator.mozContacts.oncontactchange);
+        ActivityHandler.currentlyHandling = false;
+      });
     });
   });
 

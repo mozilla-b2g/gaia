@@ -90,6 +90,8 @@ var App = (function() {
   }
 
   function showOverlay(id) {
+    // Blurring the active element to dismiss the keyboard.
+    document.activeElement.blur();
     //
     // If id is null then hide the overlay. Otherwise, look up the localized
     // text for the specified id and display the overlay with that text.
@@ -104,8 +106,20 @@ var App = (function() {
     //
     app.currentOverlay = id;
 
+    function setVisibility(visible) {
+      // hide or show the overlay container and toggle aria-hidden on all other
+      // children of <body>
+      Array.forEach(document.body.children, function(elt) {
+        if (elt.id === 'overlay') {
+          elt.classList.toggle('hidden', !visible);
+        } else {
+          elt.setAttribute('aria-hidden', visible);
+        }
+      });
+    }
+
     if (id === null) {
-      document.getElementById('overlay').classList.add('hidden');
+      setVisibility(false);
       return;
     }
 
@@ -128,7 +142,7 @@ var App = (function() {
     titleElement.dataset.l10nId = l10nIds.title;
     textElement.dataset.l10nId = l10nIds.text;
 
-    document.getElementById('overlay').classList.remove('hidden');
+    setVisibility(true);
   }
 
   function showCorrectOverlay() {
@@ -218,6 +232,10 @@ var App = (function() {
           window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
           window.performance.mark('contentInteractive');
           window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+          // For performance optimization, we disable the font-fit logic in
+          // gaia-header to speed up the startup times, and here we have to
+          // remove the no-font-fit attribute to trigger the font-fit logic.
+          TitleBar.view.removeAttribute('no-font-fit');
 
           if (callback) {
             callback();

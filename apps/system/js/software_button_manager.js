@@ -52,7 +52,39 @@
      * @memberof SoftwareButtonManager.prototype
      * @type {Boolean}
      */
-    enabled: false,
+    _enabled: false,
+    get enabled() {
+      return this._enabled;
+    },
+    set enabled(value) {
+      this._enabled = value;
+      if (value) {
+        this._currentOrientation = OrientationManager.fetchCurrentOrientation();
+        window.screen.addEventListener('mozorientationchange', this);
+        window.addEventListener('orientationchange', this);
+
+        window.addEventListener('mozfullscreenchange', this);
+        window.addEventListener('homegesture-enabled', this);
+        window.addEventListener('homegesture-disabled', this);
+
+        window.addEventListener('system-resize',
+                                this._updateButtonRect.bind(this));
+        window.addEventListener('edge-touch-redispatch', this);
+        window.addEventListener('hierachychanged', this);
+      } else {
+        window.screen.removeEventListener('mozorientationchange', this);
+        window.removeEventListener('orientationchange', this);
+
+        window.removeEventListener('mozfullscreenchange', this);
+        window.removeEventListener('homegesture-enabled', this);
+        window.removeEventListener('homegesture-disabled', this);
+
+        window.removeEventListener('system-resize',
+                                this._updateButtonRect.bind(this));
+        window.removeEventListener('edge-touch-redispatch', this);
+        window.removeEventListener('hierachychanged', this);
+      }
+    },
 
     /**
      * Enables the software button if hasHardwareHomeButton is false.
@@ -152,18 +184,6 @@
         this.enabled = false;
         this.toggle();
       }
-
-      this._currentOrientation = OrientationManager.fetchCurrentOrientation();
-      window.screen.addEventListener('mozorientationchange', this);
-      window.addEventListener('orientationchange', this);
-
-      window.addEventListener('mozfullscreenchange', this);
-      window.addEventListener('homegesture-enabled', this);
-      window.addEventListener('homegesture-disabled', this);
-
-      window.addEventListener('system-resize',
-                              this._updateButtonRect.bind(this));
-      window.addEventListener('edge-touch-redispatch', this);
     },
 
    /**
@@ -218,6 +238,7 @@
         this.screenElement.classList.add('software-button-enabled');
         this.screenElement.classList.remove('software-button-disabled');
 
+        this.element.addEventListener('mousedown', this._preventFocus);
         this.homeButtons.forEach(function sbm_addTouchListeners(b) {
           b.addEventListener('touchstart', this);
           b.addEventListener('mousedown', this);
@@ -228,6 +249,7 @@
         this.screenElement.classList.remove('software-button-enabled');
         this.screenElement.classList.add('software-button-disabled');
 
+        this.element.removeEventListener('mousedown', this._preventFocus);
         this.homeButtons.forEach(function sbm_removeTouchListeners(b) {
           b.removeEventListener('touchstart', this);
           b.removeEventListener('mousedown', this);
@@ -320,7 +342,23 @@
         case 'orientationchange':
           this.element.classList.remove('no-transition');
           break;
+        case 'hierachychanged':
+          if (this.enabled && Service.query('getTopMostWindow')) {
+            this.element.classList.toggle('attention-lockscreen',
+              Service.query('getTopMostWindow').CLASS_NAME ===
+              'LockScreenWindow');
+          }
+          break;
       }
+    },
+
+    /**
+     * Used to prevent taps on the SHB container from stealing focus, and to
+     * prevent fuzzing issues where tapping will trigger events in the app.
+     * @memberof SoftwareButtonManager.prototype
+     */
+    _preventFocus: function(evt) {
+      evt.preventDefault();
     },
 
     /**

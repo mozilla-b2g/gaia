@@ -36,10 +36,12 @@ section {
 /* Card list */
 #card-viewer {
   position: absolute;
+  overflow: hidden;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
+  overflow: hidden;
 }
 
 #card-list-frame {
@@ -58,11 +60,43 @@ section {
   transform-origin: 0 50%;
 }
 
+#card-list.card-list-slide {
+  transition-timing-function: cubic-bezier(0.25, 0, 0, 1);
+}
+
+#card-list.no-transition {
+  transition-property: none;
+}
+
 .card {
-  margin: 0 1.6rem 0 1.6rem;
+  margin: 0;
   left: 0;
+  top: 0;
   position: absolute;
-  transition: transform 0.3s ease, filter 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1), filter 0.3s ease;
+}
+
+.card smart-button[type="app-button"].tv-channel {
+  background-color: #272727;
+}
+
+.card smart-button[type="app-button"].tv-channel:before {
+  font-size: 30rem;
+  color: white;
+}
+
+.card smart-button[type="app-button"].new-card {
+  opacity: 0;
+  transform: scale(0.5, 0.5);
+}
+
+.card smart-button[type="app-button"].new-card-transition {
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1) 0.2s,
+              opacity 0.4s cubic-bezier(0.25, 0, 0, 1) 0.2s;
+}
+
+.card smart-button[type="app-button"].new-card-transition.last-card {
+  transition-delay: 0s;
 }
 
 .card-panel {
@@ -70,8 +104,11 @@ section {
   top: -23.14rem;
   width: 100%;
   height: 14.926rem;
-  display: none;
   text-align: center;
+  /* Use visibility hidden instead of display none here because display none
+     may prevent transition happens */
+  visibility: hidden;
+  z-index: 0;
 }
 
 .card-panel smart-button {
@@ -79,6 +116,8 @@ section {
   margin-left: 1.86em;
   width: 14.926rem;
   height: 14.926rem;
+  transform: translateY(12rem);
+  opacity: 0;
 }
 
 .card-panel smart-button:first-child {
@@ -93,8 +132,43 @@ section {
 
 }
 
+.card smart-button.app-button {
+  /* smart-button should be in front of card-panel */
+  z-index: 1;
+}
+
 .card.focused {
   z-index: 100;
+}
+
+/**
+ * folder list
+ */
+
+#folder-viewer {
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+#folder-list-frame {
+  position: absolute;
+  width: 100%;
+  height: 33.6rem;
+  top: calc(32.41% + 32.3rem);
+  overflow: visible;
+}
+
+#folder-list {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.2s ease;
+  transform-origin: 0 50%;
 }
 
 /**
@@ -116,6 +190,7 @@ section {
   margin: 0;
   padding: 0;
   background-color: rgba(0, 0, 0, 0.65);
+  transition: background-color 0.66s linear;
 }
 
 .background:before {
@@ -156,8 +231,8 @@ nav {
 }
 
 nav header {
-  padding-left: 13rem;
-  padding-top: 9.2rem;
+  padding-left: 7rem;
+  padding-top: 5rem;
 
   font-size: 5.4rem;
   font-style: italic;
@@ -174,3 +249,49 @@ nav header {
 smart-button.hidden {
   display: none;
 }
+
+
+/* For smart-button, we put card name in pseudo-element :after. However, we need
+ * to localize card name and l10n library do not support localizing element with
+ * children elements.
+ * Instead of using :after, we create a 'span' element under smart-button and
+ * put card name in it.
+ */
+smart-button[type="app-button"]:after {
+  content: none;
+}
+
+smart-button[type="app-button"] > span.name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  width: 33.6rem;
+  height: 8rem;
+
+  padding-top: 1rem;
+
+  line-height: 3rem;
+  text-align: center;
+
+  font-size: 2.8rem;
+  font-style: italic;
+  color: #ffffff;
+}
+
+smart-button[type="app-button"][app-type="deck"] > span.name {
+  background-color: transparent;
+}
+
+smart-button[type="app-button"][app-type="tv"] > span.name {
+  background-color: #d90c83;
+}
+
+smart-button[type="app-button"][app-type="app"] > span.name {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+smart-button[type="app-button"][app-type="device"] > span.name {
+  background-color: #4a82ea;
+}
+

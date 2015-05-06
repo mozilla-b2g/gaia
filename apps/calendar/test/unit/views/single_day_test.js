@@ -1,21 +1,24 @@
 define(function(require) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var SingleDay = require('views/single_day');
+var core = require('core');
 var dayObserver = require('day_observer');
 
 suite('Views.SingleDay', function() {
   var alldaysHolder;
   var allDayIcon;
-  var app;
   var date;
   var dayId;
   var daysHolder;
   var subject;
 
+  function sanitize(str) {
+    return str.replace(/\s*\n\s*/gm, ' ');
+  }
+
   setup(function(done) {
-    app = testSupport.calendar.app();
     daysHolder = document.createElement('div');
     alldaysHolder = document.createElement('div');
     allDayIcon = document.createElement('span');
@@ -38,7 +41,7 @@ suite('Views.SingleDay', function() {
     this.sinon.spy(window, 'removeEventListener');
     this.sinon.spy(subject, 'onactive');
     this.sinon.spy(subject, 'oninactive');
-    app.db.open(done);
+    core.db.open(done);
   });
 
   teardown(function() {
@@ -49,7 +52,7 @@ suite('Views.SingleDay', function() {
     subject.onactive.restore();
     subject.oninactive.restore();
     subject.destroy();
-    app.db.close();
+    core.db.close();
   });
 
   test('#setup', function() {
@@ -118,19 +121,19 @@ suite('Views.SingleDay', function() {
 
     assert.equal(
       daysHolder.innerHTML,
-      '<div data-date="' + d + '" class="md__day"></div>',
+      `<div class="md__day" data-date="${d}"></div>`,
       'should add day node'
     );
 
     assert.equal(
-      alldaysHolder.innerHTML,
-      '<div data-date="' + d + '" class="md__allday">' +
-        '<h1 id="md__day-name-' + subject._instanceID + '" aria-level="2" ' +
-          'class="md__day-name">Wed 23</h1>' +
-        '<div aria-describedby="md__day-name-4" ' +
-          'data-l10n-id="create-all-day-event" role="button" ' +
-          'class="md__allday-events"></div>' +
-      '</div>'
+      sanitize(alldaysHolder.innerHTML),
+      sanitize(`<div class="md__allday" data-date="${d}">
+        <h1 class="md__day-name" aria-level="2"
+          id="md__day-name-${subject._instanceID}">Wed 23</h1>
+        <div aria-describedby="md__day-name-4"
+          data-l10n-id="create-all-day-event" role="button"
+          class="md__allday-events"></div>
+      </div>`)
     );
   });
 
@@ -175,6 +178,9 @@ suite('Views.SingleDay', function() {
     // check is if the view updates when the dayObserver emits events)
     dayObserver.emitter.emit(dayId, data);
 
+    assert.lengthOf(daysHolder.querySelectorAll('.md__event'), 2, '0: events');
+    assert.lengthOf(alldaysHolder.querySelectorAll('.md__event'), 1, '0: all');
+
     // testing the whole markup is enough to check if position and overlaps are
     // handled properly and also makes sure all the data is passed to the
     // templates, a drawback is that if we change the markup we need to update
@@ -210,10 +216,10 @@ suite('Views.SingleDay', function() {
     var remote = data.basic[0].event.remote;
 
     var title = busy.querySelector('#' + makeFirstEventID('title'));
-    assert.equal(title.textContent, remote.title, '1: title');
+    assert.equal(title.textContent.trim(), remote.title, '1: title');
 
     var location = busy.querySelector('#' + makeFirstEventID('location'));
-    assert.equal(location.textContent, remote.location, '1: location');
+    assert.equal(location.textContent.trim(), remote.location, '1: location');
 
     var icon = busy.querySelector('#' + makeFirstEventID('icon'));
     assert.include(icon.className, 'icon-calendar-alarm', '1: icon');
@@ -253,10 +259,10 @@ suite('Views.SingleDay', function() {
     remote = data.basic[1].event.remote;
 
     title = busy.querySelector('#' + makeSecondEventID('title'));
-    assert.equal(title.textContent, remote.title, '2: title');
+    assert.equal(title.textContent.trim(), remote.title, '2: title');
 
     location = busy.querySelector('#' + makeSecondEventID('location'));
-    assert.equal(location.textContent, remote.location, '2: location');
+    assert.equal(location.textContent.trim(), remote.location, '2: location');
 
     icon = busy.querySelector('#' + makeSecondEventID('icon'));
     assert.isNull(icon, '2: icon');
@@ -276,27 +282,102 @@ suite('Views.SingleDay', function() {
 
     var id = subject._instanceID;
 
+    var dayName = alldaysHolder.querySelector('.md__day-name');
+    assert.equal(dayName.getAttribute('aria-level'), '2', '3: day level');
+    assert.equal(dayName.id, `md__day-name-${id}`, '3: day id');
+    assert.equal(dayName.textContent.trim(), 'Wed 23', '3: day');
+
+    var wrapper = alldaysHolder.querySelector('.md__allday-events');
     assert.equal(
-      alldaysHolder.innerHTML,
-      '<div data-date="' + date.toString() + '" class="md__allday">' +
-        '<h1 id="md__day-name-' + id + '" aria-level="2" ' +
-          'class="md__day-name">Wed 23</h1>' +
-        '<div aria-labelledby="all-day-icon md__day-name-' + id + '" ' +
-          'aria-describedby="md__day-name-' + id + '" ' +
-          'data-l10n-id="create-all-day-event" role="listbox" ' +
-          'class="md__allday-events">' +
-        '<a role="option" aria-labelledby="' + makeAllDayEventID('title') +
-        ' ' + makeAllDayEventID('location') + '" ' +
-        'style="border-color: rgb(0, 255, 204); background-color: ' +
-        'rgba(0, 255, 204, 0.2);" ' +
-          'class="md__event is-allday" ' +
-          'href="/event/show/Curabitur-0-00-0-00">' +
-        '<span id="' + makeAllDayEventID('title') + '" ' +
-          'class="md__event-title">Curabitur</span>' +
-        '<span id="' + makeAllDayEventID('location') + '" ' +
-          'class="md__event-location">Mars</span>' +
-        '</a></div></div>',
-      'alldays: first render'
+      wrapper.getAttribute('aria-labelledby'),
+      `all-day-icon md__day-name-${id}`,
+      '3: wrapper aria-labelledby'
+    );
+    assert.equal(
+      wrapper.getAttribute('aria-describedby'),
+      `md__day-name-${id}`,
+      '3: wrapper aria-describedby'
+    );
+    assert.equal(
+      wrapper.dataset.l10nId,
+      'create-all-day-event',
+      '3: wrapper data-l10n-id'
+    );
+    assert.equal(wrapper.getAttribute('role'), 'listbox', '3: wrapper role');
+    assert.equal(wrapper.childNodes.length, 1, '3: wrapper childNodes');
+
+    busy = wrapper.firstChild;
+    assert.equal(busy.getAttribute('role'), 'option', '4: busy role');
+    assert.include(busy.className, 'md__event', '4: busy md__event');
+    assert.include(busy.className, 'is-allday', '4: busy is-allday');
+    assert.equal(
+      busy.style.borderColor,
+      'rgb(0, 255, 204)',
+      '4: busy border color'
+    );
+    assert.equal(
+      busy.style.backgroundColor,
+     'rgba(0, 255, 204, 0.2)',
+     '4: busy background color'
+    );
+    assert.include(
+      busy.getAttribute('aria-labelledby'),
+      makeAllDayEventID('location'),
+      '4: busy location label'
+    );
+    assert.include(
+      busy.getAttribute('aria-labelledby'),
+      makeAllDayEventID('title'),
+      '4: busy title label'
+    );
+    assert.include(
+      busy.getAttribute('aria-labelledby'),
+      makeAllDayEventID('description'),
+      '4: busy description label'
+    );
+
+    remote = data.allday[0].event.remote;
+
+    title = busy.querySelector('.md__event-title');
+    assert.equal(
+      title.textContent.trim(),
+      remote.title,
+      '4: title'
+    );
+    assert.equal(
+      title.id,
+      makeAllDayEventID('title'),
+      '4: title id'
+    );
+
+    location = busy.querySelector('.md__event-location');
+    assert.equal(
+      location.textContent.trim(),
+      remote.location,
+      '4: location'
+    );
+    assert.equal(
+      location.id,
+      makeAllDayEventID('location'),
+      '4: location id'
+    );
+
+    description = busy.querySelector('#' + makeAllDayEventID('description'));
+    assert.equal(
+      description.getAttribute('aria-hidden'),
+      'true',
+      '4: description aria-hidden'
+    );
+    assert.equal(
+      description.getAttribute('data-l10n-id'),
+      'event-multiple-day-duration',
+      '4: description data-l10n-id'
+    );
+    assert.equal(
+      description.dataset.l10nArgs,
+      '{"startDate":"Wednesday, July 23, 2014","startTime":"00:00",' +
+        '"endDate":"Thursday, July 24, 2014","endTime":"00:00"}',
+      '4: description data-l10n-id'
     );
 
     data = {
@@ -307,67 +388,18 @@ suite('Views.SingleDay', function() {
       ],
       allday: []
     };
-    makeFirstEventID = makeID.bind(this, subject, data.basic[0]);
-    makeSecondEventID = makeID.bind(this, subject, data.basic[1]);
     // we always send all the events for that day and redraw whole view
     dayObserver.emitter.emit(dayId, data);
 
+    // it's enough to check only the new event and the amount of busytimes
+    // inside each holder (just to ensure we are removing old elements)
+    busytimes = daysHolder.querySelectorAll('.md__event');
+    assert.lengthOf(busytimes, 2, '5: events');
+    assert.lengthOf(alldaysHolder.querySelectorAll('.md__event'), 0, '5: all');
     assert.equal(
-      daysHolder.innerHTML,
-      '<div data-date="' + date.toString() +'" class="md__day">' +
-      '<a aria-labelledby="' + makeFirstEventID('title') + ' ' +
-        makeFirstEventID('location') + ' ' +
-        makeFirstEventID('description') + '" ' +
-        'style="border-color: rgb(0, 255, 204); background-color: ' +
-        'rgba(0, 255, 204, 0.2); height: 49.9px; top: 250px;" ' +
-        'class="md__event" href="/event/show/Lorem-Ipsum-5-00-6-00">' +
-        '<span id="' + makeFirstEventID('title') + '" ' +
-          'class="md__event-title">Lorem Ipsum</span>' +
-        '<span id="' + makeFirstEventID('location') + '" ' +
-          'class="md__event-location">Mars</span>' +
-        '<span data-l10n-args="{&quot;startDate&quot;:&quot;Wednesday, July ' +
-          '23, 2014&quot;,&quot;startTime&quot;:&quot;05:00&quot;,&quot;' +
-          'endDate&quot;:&quot;Wednesday, July 23, 2014&quot;,&quot;endTime' +
-          '&quot;:&quot;06:00&quot;}" data-l10n-id="event-one-day-duration" ' +
-          'aria-hidden="true" id="' + makeFirstEventID('description') + '">' +
-        '</span>' +
-      '</a>' +
-      '<a aria-labelledby="' + makeSecondEventID('title') + ' ' +
-        makeSecondEventID('location') + ' ' +
-        makeSecondEventID('icon') + ' ' +
-        makeSecondEventID('description') + '" ' +
-        'style="border-color: rgb(0, 255, 204); background-color: ' +
-        'rgba(0, 255, 204, 0.2); height: 549.9px; top: 300px;" ' +
-        'class="md__event has-alarms" ' +
-        'href="/event/show/Maecennas-6-00-17-00">' +
-        '<span id="' + makeSecondEventID('title') + '" ' +
-          'class="md__event-title">Maecennas</span>' +
-        '<span id="' + makeSecondEventID('location') + '" ' +
-          'class="md__event-location">Mars</span>' +
-        '<i data-l10n-id="icon-calendar-alarm" id="' +
-          makeSecondEventID('icon') + '" aria-hidden="true" ' +
-          'style="color: rgb(0, 255, 204);" ' +
-          'class="gaia-icon icon-calendar-alarm"></i>' +
-        '<span data-l10n-args="{&quot;startDate&quot;:&quot;Wednesday, July ' +
-          '23, 2014&quot;,&quot;startTime&quot;:&quot;06:00&quot;,&quot;' +
-          'endDate&quot;:&quot;Wednesday, July 23, 2014&quot;,&quot;endTime' +
-          '&quot;:&quot;17:00&quot;}" data-l10n-id="event-one-day-duration" ' +
-          'aria-hidden="true" id="' + makeSecondEventID('description') + '">' +
-        '</span>' +
-      '</a></div>',
-      'second render'
-    );
-
-    assert.equal(
-      alldaysHolder.innerHTML,
-      '<div data-date="' + date.toString() + '" class="md__allday">' +
-        '<h1 id="md__day-name-' + subject._instanceID + '" aria-level="2" ' +
-          'class="md__day-name">Wed 23</h1>' +
-        '<div aria-labelledby="all-day-icon md__day-name-' + id + '" ' +
-          'aria-describedby="md__day-name-' + subject._instanceID + '" ' +
-          'data-l10n-id="create-all-day-event" role="button" ' +
-          'class="md__allday-events"></div></div>',
-      'alldays: second render'
+      busytimes[1].querySelector('.md__event-title').textContent.trim(),
+      data.basic[1].event.remote.title,
+      '5: event title'
     );
   });
 

@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import Wait
+from marionette_driver import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
@@ -13,7 +13,7 @@ class TestChangeLanguage(GaiaTestCase):
     def test_change_language_settings(self):
         lang_name = self.marionette.execute_script("""
             var qps = window.wrappedJSObject.navigator.mozL10n.qps;
-            return qps['qps-ploc'].name;
+            return qps['qps-ploc'].translate('Packaged Accented');
         """)
         header = self.marionette.execute_script("""
             var qps = window.wrappedJSObject.navigator.mozL10n.qps;

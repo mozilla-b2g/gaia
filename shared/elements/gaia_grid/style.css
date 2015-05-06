@@ -41,14 +41,9 @@
   position: absolute;
   transform-origin: 0 0;
   display: inline-block;
-  width: calc(100% / 3);
   text-align: center;
   background: no-repeat top center;
   z-index: 3;
-}
-
-.dragging .icon {
-  will-change: transform;
 }
 
 .icon.launching {
@@ -83,7 +78,7 @@
   width: calc(100% - 0.4rem);
   box-sizing: border-box;
   vertical-align: top;
-  transition: opacity 0.5s;
+  transition: opacity var(--transition-duration);
 }
 
 /* We allow more space for text in the search app by hooking into the text-rows attribute on gaia-grid. */
@@ -133,18 +128,23 @@
   margin: 0 25%;
   width: 50%;
   height: 0.2rem;
-  transition: opacity 0.5s;
+  transition: opacity var(--transition-duration);
 }
 
 .dragging .icon.active:not(.hidden) {
-  z-index: 5;
+  z-index: 6;
   opacity: 0.65;
 }
 
 .dragging .divider:not(.group),
 .icon:not(.active),
 .dropped {
-  transition: transform 0.5s, opacity 0.5s;
+  transition: transform var(--transition-duration),
+              opacity var(--transition-duration);
+}
+
+.icon.active {
+  will-change: transform;
 }
 
 .edit-mode .icon .remove {
@@ -179,12 +179,21 @@
   max-width: 100%;
 }
 
+/*
+Disable events for placeholders, so we don't trigger touch events in edit mode.
+We only do this in edit-mode, otherwise we might trigger entering edit mode
+instead of the context menu.
+*/
+.edit-mode .placeholder {
+  pointer-events: none;
+}
+
 #confirm-message {
   z-index: 100;
 }
 
 .dragging .group.active {
-  z-index: 4;
+  z-index: 5;
 }
 
 .divider.group {
@@ -196,24 +205,29 @@
   display: block;
   position: absolute;
   width: 100%;
-  transition: background-color 0.5s, opacity 0.5s;
-}
-
-.dragging .group > span {
-  will-change: transform;
+  transition: background-color var(--transition-duration),
+              opacity var(--transition-duration);
 }
 
 .group:not(.active):not(.newly-created) > span {
-  transition: background-color 0.5s, opacity 0.5s, transform 0.5s;
+  transition: background-color var(--transition-duration),
+              opacity var(--transition-duration),
+              transform var(--transition-duration);
+}
+
+.group.active > span {
+  will-change: transform;
 }
 
 .group .header {
-  height: 3rem;
+  height: 4rem;
+  z-index: 4;
 }
 
-.group .header span {
+.group .header span,
+.group .header button {
   position: absolute;
-  height: 3rem;
+  height: 4rem;
   top: 0;
 
   background-position: center top;
@@ -241,6 +255,12 @@
 .group .header .toggle {
   width: 5.34rem;
   right: 0;
+
+  border: none;
+  margin: 0;
+  padding: 0;
+
+  background-color: transparent;
   background-image: url('images/collapse_arrow.png');
   transform-origin: 50% 1.6rem;
   pointer-events: auto;
@@ -262,6 +282,7 @@
 .group .background {
   background-color: rgba(255, 255, 255, 0.15);
   opacity: 0;
+  pointer-events: none;
   height: 0.1rem;
   transform-origin: 0 0;
 }
@@ -283,6 +304,7 @@
 .group .shadow {
   background-color: rgba(255, 255, 255, 0.15);
   opacity: 0;
+  pointer-events: none;
 }
 
 .edit-mode .group.active .shadow {
@@ -318,6 +340,10 @@
 .edit-mode .group .separator > span {
   opacity: 0;
 }
+
+/* For preventing entering edit mode when long-pressing on a placeholder */
+.edit-mode .group .background,
+.edit-mode .group .shadow,
 
 .group.collapsed .header,
 .group.collapsed .background,
@@ -367,7 +393,6 @@
  * creation hint.
  */
 .edit-mode {
-  will-change: transform;
   transition: transform 0.25s;
 }
 
@@ -379,9 +404,4 @@
 :-moz-dir(rtl) .group .header .toggle {
   left: 0;
   right: unset;
-}
-
-/* RTL fixes being tracked in bug 1008013 */
-:-moz-dir(rtl) gaia-grid {
-  direction: ltr;
 }

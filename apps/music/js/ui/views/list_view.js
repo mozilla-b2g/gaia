@@ -95,6 +95,8 @@ var ListView = {
       headerLi = document.createElement('li');
       headerLi.className = 'list-header';
       headerLi.textContent = this.lastFirstLetter || '?';
+      headerLi.setAttribute('role', 'heading');
+      headerLi.setAttribute('aria-level', '2');
     }
 
     return headerLi;
@@ -348,11 +350,11 @@ var ListView = {
     var data = this.dataSource[index];
     var keyRange = (target.dataset.keyRange != 'all') ?
       IDBKeyRange.only(target.dataset.keyRange) : null;
-    var title = data.metadata.title;
+    var l10nId = data.metadata.l10nId;
     var direction =
-      (title === navigator.mozL10n.get('playlists-most-played')||
-       title === navigator.mozL10n.get('playlists-recently-added') ||
-       title === navigator.mozL10n.get('playlists-highest-rated')) ?
+      (l10nId === 'playlists-most-played' ||
+       l10nId === 'playlists-recently-added' ||
+       l10nId === 'playlists-highest-rated') ?
        'prev' : 'next';
 
     SubListView.activate(

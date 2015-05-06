@@ -3,12 +3,12 @@
 
 var WifiHelper = {
   getWifiManager: function() {
-    return this.wifiManager;
+    return this.wifiManager();
   },
 
   wifiManager: function() {
     return navigator.mozWifiManager;
-  }(),
+  },
 
   setPassword: function(network, password, identity, eap, phase2, certificate) {
     var encType = this.getKeyManagement(network);
@@ -84,7 +84,7 @@ var WifiHelper = {
      * Until this is properly implemented, we just compare SSIDs to tell wether
      * the network is already connected or not.
      */
-    var currentNetwork = this.wifiManager.connection.network;
+    var currentNetwork = this.getWifiManager().connection.network;
     if (!currentNetwork || !network) {
       return false;
     }

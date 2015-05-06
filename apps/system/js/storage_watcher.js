@@ -1,3 +1,4 @@
+/* global MozActivity, NotificationScreen, SystemBanner */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -38,6 +39,7 @@ var DeviceStorageWatcher = {
     // we have so far. In the future, we must expose how much storage each app
     // consumes, so the user has a better idea of which apps are consuming
     // more (see Bug 862408).
+    /* jshint nonew: false */
     new MozActivity({
       name: 'configure',
       data: {

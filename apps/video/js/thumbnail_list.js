@@ -29,6 +29,8 @@
  *    groupClass: the grouping class this list used.
  *    container: the HTML DOM element containing this list.
  */
+'use strict';
+
 function ThumbnailList(groupClass, container) {
   if (!groupClass || !container) {
     throw new Error('group class or container cannot be null or undefined');

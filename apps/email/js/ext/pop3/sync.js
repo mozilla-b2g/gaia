@@ -1,7 +1,7 @@
-define(['rdcommon/log', 'slog', '../util', 'module', 'require', 'exports',
+define(['logic', '../util', 'module', 'require', 'exports',
         '../mailchew', '../syncbase', '../date', '../jobmixins',
         '../allback', './pop3'],
-function(log, slog, util, module, require, exports,
+function(logic, util, module, require, exports,
          mailchew, sync, date, jobmixins,
          allback, pop3) {
 
@@ -17,10 +17,15 @@ var PASTWARDS = 1;
  * IMAP/ActiveSync, but we fast-path out of sync operations if the
  * folder we're looking at isn't the inbox.
  */
-function Pop3FolderSyncer(account, storage, _parentLog) {
-  this._LOG = LOGFAB.Pop3FolderSyncer(this, _parentLog, storage.folderId);
+function Pop3FolderSyncer(account, storage) {
   this.account = account;
   this.storage = storage;
+
+  logic.defineScope(this, 'Pop3FolderSyncer', {
+    accountId: account.id,
+    folderId: storage.folderId
+  });
+
   // Only sync folders if this is the inbox. Other folders are client-side only.
   this.isInbox = (storage.folderMeta.type === 'inbox');
 }
@@ -211,11 +216,16 @@ Pop3FolderSyncer.prototype = {
       var att = bodyInfo.attachments[i];
       if (att.file instanceof Blob) {
         // We want to save attachments to device storage (sdcard),
-        // rather than IndexedDB. NB: This will change when download
-        // manager comes.
+        // rather than IndexedDB, for now.  It's a v3 thing to use IndexedDB
+        // as a cache.
         console.log('Saving attachment', att.file);
+        // Always register all POP3 downloads with the download manager since
+        // the user didn't have to explicitly trigger download for each
+        // attachment.
+        var registerDownload = true;
         jobmixins.saveToDeviceStorage(
-          this._LOG, att.file, 'sdcard', att.name, att, latch.defer());
+          self, att.file, 'sdcard', registerDownload, att.name, att,
+          latch.defer());
         // When saveToDeviceStorage completes, att.file will
         // be a reference to the file on the sdcard.
       }
@@ -404,8 +414,7 @@ Pop3FolderSyncer.prototype = {
   },
 
   shutdown: function() {
-    // No real cleanup necessary here; just log that we died.
-    this._LOG.__die();
+    // Nothing to do here either.
   },
 
   /**
@@ -455,17 +464,17 @@ Pop3FolderSyncer.prototype = {
   function(conn, syncType, slice, realDoneCallback, progressCallback) {
     // if we could not establish a connection, abort the sync.
     var self = this;
-    slog.log('pop3.sync:begin', { syncType: syncType });
+    logic(self, 'sync:begin', { syncType: syncType });
 
     // Avoid invoking realDoneCallback multiple times.  Cleanup when we switch
     // sync to promises/tasks.
     var doneFired = false;
     var doneCallback = function(err) {
       if (doneFired) {
-        slog.log('pop3.sync:duplicateDone', { syncType: syncType, err: err });
+        logic(self, 'sync:duplicateDone', { syncType: syncType, err: err });
         return;
       }
-      slog.log('pop3.sync:end', { syncType: syncType, err: err });
+      logic(self, 'sync:end', { syncType: syncType, err: err });
       doneFired = true;
       // coerce the rich error object to a string error code; currently
       // refreshSlice only likes 'unknown' and 'aborted' so just run with
@@ -502,7 +511,7 @@ Pop3FolderSyncer.prototype = {
       saveNeeded = this._performTestAdditionsAndDeletions(latch.defer());
     } else {
       saveNeeded = true;
-      this._LOG.sync_begin();
+      logic(this, 'sync_begin');
       var fetchDoneCb = latch.defer();
 
       var closeExpected = false;
@@ -573,7 +582,7 @@ Pop3FolderSyncer.prototype = {
           overflowMessages.forEach(function(message) {
             this.storeOverflowMessageUidl(message.uidl, message.size);
           }, this);
-          this._LOG.overflowMessages(overflowMessages.length);
+          logic(this, 'overflowMessages', { count: overflowMessages.length });
         }
 
         // When all of the messages have been persisted to disk, indicate
@@ -599,7 +608,7 @@ Pop3FolderSyncer.prototype = {
       }
 
       if (this.isInbox) {
-        this._LOG.sync_end();
+        logic(this, 'sync_end');
       }
       // Don't notify completion until the save completes, if relevant.
       if (saveNeeded) {
@@ -649,36 +658,5 @@ function range(end) {
   return ret;
 }
 
-var LOGFAB = exports.LOGFAB = log.register(module, {
-  Pop3FolderSyncer: {
-    type: log.CONNECTION,
-    subtype: log.CLIENT,
-    events: {
-      savedAttachment: { storage: true, mimeType: true, size: true },
-      saveFailure: { storage: false, mimeType: false, error: false },
-      overflowMessages: { count: true },
-    },
-    TEST_ONLY_events: {
-    },
-    errors: {
-      callbackErr: { ex: log.EXCEPTION },
-
-      htmlParseError: { ex: log.EXCEPTION },
-      htmlSnippetError: { ex: log.EXCEPTION },
-      textChewError: { ex: log.EXCEPTION },
-      textSnippetError: { ex: log.EXCEPTION },
-
-      // Attempted to sync with an empty or inverted range.
-      illegalSync: { startTS: false, endTS: false },
-    },
-    asyncJobs: {
-      sync: {},
-      syncDateRange: {
-        newMessages: true, existingMessages: true, deletedMessages: true,
-        start: false, end: false,
-      },
-    },
-  },
-}); // end LOGFAB
 
 }); // end define

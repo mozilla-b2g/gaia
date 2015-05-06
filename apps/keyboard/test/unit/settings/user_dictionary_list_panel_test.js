@@ -108,16 +108,15 @@ suite('UserDictionary List Panel', function() {
           assert.isTrue(stubContainer.classList.add.calledWith('empty'));
         });
         test('Set with contents', function(){
-          var stubAppendToList = this.sinon.stub(panel, '_appendList');
+          var stubRearrangeList = this.sinon.stub(panel, '_rearrangeList');
 
           panel.beforeShow();
 
           p.mFulfillToValue(new Set(['star', 'stare', 'starry']));
 
           assert.isTrue(stubContainer.classList.remove.calledWith('empty'));
-          assert.isTrue(stubAppendToList.calledWith('star'));
-          assert.isTrue(stubAppendToList.calledWith('stare'));
-          assert.isTrue(stubAppendToList.calledWith('starry'));
+          assert.isTrue(
+            stubRearrangeList.calledWith(new Set(['star', 'stare', 'starry'])));
         });
       });
     });
@@ -159,7 +158,7 @@ suite('UserDictionary List Panel', function() {
 
     test('click on word -> showEditDialog', function() {
       var stubShowDialog = this.sinon.stub(panel, '_showEditDialog');
-      var target = {tagName: 'A'};
+      var target = {tagName: 'LI'};
       var spyPreventDefault = this.sinon.spy();
 
       panel.handleEvent({
@@ -173,8 +172,29 @@ suite('UserDictionary List Panel', function() {
     });
   });
 
+  test('rearrangeList', function() {
+    panel._wordDomMap = {
+      star: {t: 'star'},
+      starry: {t: 'starry'}
+    };
 
-  test('appendList', function() {
+    var stubStareWordElem = {cT: 'stare'};
+
+    this.sinon.stub(panel, '_createWordElem').returns(stubStareWordElem);
+
+    panel._rearrangeList(['star', 'stare', 'starry']);
+
+    // as the order of the words in the list is important, we need to make sure
+    // appendChild calls are in the same order.
+    assert.isTrue(stubListContainer.appendChild.getCall(0)
+      .calledWith(panel._wordDomMap.star));
+    assert.isTrue(stubListContainer.appendChild.getCall(1)
+      .calledWith(stubStareWordElem));
+    assert.isTrue(stubListContainer.appendChild.getCall(2)
+      .calledWith(panel._wordDomMap.starry));
+  });
+
+  test('createWordElem', function() {
     var stubA = {};
     var stubLI = {
       appendChild: this.sinon.spy()
@@ -185,14 +205,13 @@ suite('UserDictionary List Panel', function() {
     stubCreateElem.withArgs('a').returns(stubA);
     stubCreateElem.withArgs('li').returns(stubLI);
 
-    panel._appendList('star');
+    var ret = panel._createWordElem('star');
+    assert.equal(stubLI, ret);
 
     assert.equal(stubA.textContent, 'star');
     assert.equal(stubA.href, '#star');
 
     assert.isTrue(stubLI.appendChild.calledWith(stubA));
-    assert.isTrue(stubListContainer.appendChild.calledWith(stubLI));
-    assert.equal(panel._domWordMap.get(stubA), 'star');
   });
 
   suite('showAddDialog', function() {
@@ -241,18 +260,18 @@ suite('UserDictionary List Panel', function() {
       });
 
       test('successful', function(){
-        var stubAppendList= this.sinon.stub(panel, '_appendList');
+        var stubRearrangeList= this.sinon.stub(panel, '_rearrangeList');
 
         pDialog.mFulfillToValue({action: 'commit', word: 'star'});
 
         assert.isTrue(app.closeLockManager.requestLock.calledWith('stayAwake'));
         assert.isTrue(stubUserDictionary.addWord.calledWith('star'));
 
-        pAdd.mFulfillToValue(undefined);
+        pAdd.mFulfillToValue(['star']);
 
         assert.isTrue(closeLock.unlock.called);
         assert.isTrue(stubContainer.classList.remove.calledWith('empty'));
-        assert.isTrue(stubAppendList.calledWith('star'));
+        assert.isTrue(stubRearrangeList.calledWith(['star']));
       });
 
       test('still unlocks CloseLock after rejection from model', function(){
@@ -277,8 +296,9 @@ suite('UserDictionary List Panel', function() {
       pDialog = new MockPromise();
 
       stubWordElem = {
-        textContent: 'star',
-        parentNode: {}
+        childNodes: [{
+          textContent: 'star'
+        }]
       };
       panel._domWordMap.set(stubWordElem, 'star');
 
@@ -331,8 +351,7 @@ suite('UserDictionary List Panel', function() {
 
         assert.isTrue(closeLock.unlock.called);
         assert.isFalse(panel._domWordMap.has(stubWordElem));
-        assert.isTrue(
-          stubListContainer.removeChild.calledWith(stubWordElem.parentNode));
+        assert.isTrue(stubListContainer.removeChild.calledWith(stubWordElem));
 
         assert.isFalse(stubContainer.classList.add.called);
       });
@@ -390,17 +409,21 @@ suite('UserDictionary List Panel', function() {
       });
 
       test('successful, new word does not exist yet', function(){
+        var stubRearrangeList= this.sinon.stub(panel, '_rearrangeList');
+
         pDialog.mFulfillToValue({action: 'commit', word: 'star2'});
 
         assert.isTrue(app.closeLockManager.requestLock.calledWith('stayAwake'));
         assert.isTrue(
           stubUserDictionary.updateWord.calledWith('star', 'star2'));
 
-        pReplace.mFulfillToValue(undefined);
+        pReplace.mFulfillToValue(['star2']);
 
         assert.isTrue(closeLock.unlock.called);
         assert.equal(panel._domWordMap.get(stubWordElem), 'star2');
-        assert.equal(stubWordElem.textContent, 'star2');
+        assert.equal(stubWordElem.childNodes[0].textContent, 'star2');
+
+        assert.isTrue(stubRearrangeList.calledWith(['star2']));
       });
 
       test('successful, new word already exists', function(){
@@ -409,8 +432,7 @@ suite('UserDictionary List Panel', function() {
         pReplace.mRejectToError('existing');
 
         assert.isFalse(panel._domWordMap.has(stubWordElem));
-        assert.isTrue(
-          stubListContainer.removeChild.calledWith(stubWordElem.parentNode));
+        assert.isTrue(stubListContainer.removeChild.calledWith(stubWordElem));
       });
 
       test('still unlocks CloseLock after rejection from model', function(){

@@ -87,15 +87,15 @@
    *
    * To log the conditions, this function would stringify the conditions
    * and then parse it to do the deep copy. So please turn off the
-   * `config.graphic` in production mode.
+   * `config.debug` in production mode.
    *
    * @param from {string} - from state type
    * @param to {string} - to state type
    * @param conditions {object} - under what conditions we do the transferring
    */
   LockScreenStateLogger.prototype.transfer =
-  function lss_transfer(from, to, conditions) {
-    if (!this.configs.graph) {
+  function lss_transfer(from, to, conditions = {}) {
+    if (!this.configs.debug) {
       return;
     }
     var transferDetails = {
@@ -103,7 +103,11 @@
       to: to,
       conditions: JSON.parse(JSON.stringify(conditions))
     };
-    this.stateStack.push(transferDetails);
+    if (this.configs.graph) {
+      this.stateStack.push(transferDetails);
+    }
+    this.debug(`State transfer: from ${from} to ${to} because of:`,
+      transferDetails.conditions);
     return this;
   };
 

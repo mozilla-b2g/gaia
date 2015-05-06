@@ -12,12 +12,12 @@ marionette('LockScreen status bar', function() {
   var firstApp;
   var firstAppOrigin = 'fakeapp.gaiamobile.org';
   var apps = {};
-  apps[firstAppOrigin] = __dirname + '/fakeapp';
+  apps[firstAppOrigin] = __dirname + '/../apps/fakeapp';
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
       'lockscreen.enabled': true
     },
+
     apps: apps
   });
 

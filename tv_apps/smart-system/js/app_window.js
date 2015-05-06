@@ -6,7 +6,7 @@
 /* global ScreenLayout */
 /* global SettingsCache */
 /* global Service */
-/* global BrowserMixin */
+/* global focusManager */
 'use strict';
 
 (function(exports) {
@@ -64,7 +64,7 @@
     }
 
     this.launchTime = Date.now();
-
+    focusManager.addUI(this);
     return this;
   };
 
@@ -422,6 +422,7 @@
         clearTimeout(fallbackTimeout);
         this.element.removeEventListener('_closed', onClosed);
         this.destroy();
+        this.publish('terminated');
       }.bind(this);
 
       this.element.addEventListener('_closed', onClosed);
@@ -436,13 +437,12 @@
       }
     } else {
       this.destroy();
+      /**
+       * Fired when the instance is terminated.
+       * @event AppWindow#appterminated
+       */
+      this.publish('terminated');
     }
-
-    /**
-     * Fired when the instance is terminated.
-     * @event AppWindow#appterminated
-     */
-    this.publish('terminated');
   };
 
   /**
@@ -483,6 +483,9 @@
 
     this.publish('willdestroy');
     this.uninstallSubComponents();
+
+    focusManager.removeUI(this);
+
     if (this.element) {
       if (this.element.parentNode) {
         this.element.parentNode.removeChild(this.element);
@@ -703,8 +706,8 @@
     'childWindowFactory': window.ChildWindowFactory,
   };
 
-  AppWindow.prototype.openAnimation = 'enlarge';
-  AppWindow.prototype.closeAnimation = 'reduce';
+  AppWindow.prototype.openAnimation = 'invoked';
+  AppWindow.prototype.closeAnimation = 'fade-out';
 
   /**
    * Install sub components belong to this window instance.
@@ -911,7 +914,7 @@
        * focus it when this window was opened and defered to here.
       **/
       if (this.getBottomMostWindow().isActive() && this.isActive()) {
-        this.focus();
+        focusManager.focus();
       }
     };
 
@@ -2007,11 +2010,7 @@
   };
 
   AppWindow.prototype._handle__focus = function() {
-    var win = this;
-    while (win.frontWindow && win.frontWindow.isActive()) {
-      win = win.frontWindow;
-    }
-    win.focus();
+    focusManager.focus();
   };
 
   /**
@@ -2087,18 +2086,12 @@
     this.setVisible(false);
   };
 
-  /**
-   * Override focus to check if any popup on top of it and switch focus to them.
-   */
-  AppWindow.prototype.focus = function() {
-    if (this.contextmenu && this.contextmenu.hasMenuVisible()) {
-      this.contextmenu.focus();
-    } else if (this.modalDialog && this.modalDialog.isVisible()) {
-      this.modalDialog.focus();
-    } else {
-      // Call mixed in class.
-      BrowserMixin.focus.call(this);
-    }
+  AppWindow.prototype.getElement = function() {
+    return this.element;
+  };
+
+  AppWindow.prototype.isFocusable = function() {
+    return this.loaded && this.isVisible();
   };
 
   exports.AppWindow = AppWindow;

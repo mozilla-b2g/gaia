@@ -40,16 +40,13 @@ marionette('Vertical - grid', function() {
     var communicationManifestUrl =
       'app://communications.gaiamobile.org/manifest.webapp';
 
-    client.executeScript(function() {
-      navigator.mozSettings.createLock().set({
-        'language.current': 'ar'
-      });
-    });
+    client.settings.set('language.current', 'qps-plocm');
+
     // Localization can be async, wait for the content to update
     client.waitFor(function() {
       var phoneIcon = home.getIcon(communicationManifestUrl, 'dialer');
       return phoneIcon.text() ===
-        home.localizedAppName('communications', 'dialer', 'ar');
+        home.localizedAppName('communications', 'dialer', 'qps-plocm');
     });
 
     var app1Location = home.getNthIcon(1).location();

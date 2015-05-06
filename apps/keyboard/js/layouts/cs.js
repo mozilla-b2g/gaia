@@ -5,6 +5,7 @@ Keyboards.cs = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'cs',
+  lang: 'cs',
   alt: {
     a: 'á',
     c: 'č',

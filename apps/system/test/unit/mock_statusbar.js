@@ -1,4 +1,21 @@
+'use strict';
+/* exported MockStatusBar */
+
 var MockStatusBar = {
+  name: 'Statusbar',
+
+  getIcon: function(id) {
+    if (document.getElementById(id)) {
+      return document.getElementById(id);
+    } else {
+      var ele = document.createElement('div');
+      ele.id = id;
+      document.body.appendChild(ele);
+      this.mIconsElements.push(ele);
+      return ele;
+    }
+  },
+
   height: 20,
 
   notificationsCount: null,
@@ -11,6 +28,7 @@ var MockStatusBar = {
   },
 
   updateNotification: function(count) {
+    /* jshint -W053 */
     var number = new Number(count);
     this.notificationsCount = number.toString();
     this.methodCalled('updateNotification');
@@ -27,14 +45,6 @@ var MockStatusBar = {
     this.mNotificationUnread = false;
     this.wasMethodCalled = {};
     this.height = 20;
-  },
-
-  incSystemDownloads: function msb_incSystemDownloads() {
-    this.methodCalled('incSystemDownloads');
-  },
-
-  decSystemDownloads: function msb_decSystemDownloads() {
-    this.methodCalled('decSystemDownloads');
   },
 
   expand: function() {

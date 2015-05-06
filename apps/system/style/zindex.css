@@ -77,7 +77,15 @@
   z-index: 65537 !important;
 }
 
-#screen > [data-z-index-level="cards-view"] {
+/* Hide apps behind the wallpaper when they're all made visible for
+ * -moz-element.
+ */
+#screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).in-task-manager {
+  z-index: -1;
+}
+
+#screen > [data-z-index-level="cards-view"],
+#screen > [data-z-index-level="cards-view"] .no-recent-apps {
   z-index: 65535;
 }
 
@@ -103,6 +111,13 @@
 /* Level 3: Statusbar, Utility-Tray */
 #screen > [data-z-index-level="statusbar"] {
   z-index: 16385;
+}
+
+/* We need to have the statusbar lying on top of the utility tray
+   when it's open so that its icons are accessible to touch events
+   from the screenreader. */
+#screen.utility-tray > [data-z-index-level="statusbar"] {
+  z-index: 16386;
 }
 
 /* In landscape the software home button is on the right side of the screen
@@ -200,6 +215,10 @@
   z-index: 2046;
 }
 
+/* Keep system dialogs under lockscreen when locked */
+#screen.locked > [data-z-index-level="system-dialog"] {
+  z-index: 2045;
+}
 
 /* Keep keyboard and edges zones under lockscreen when locked */
 #screen.locked > [data-z-index-level="keyboards"] {
@@ -319,7 +338,8 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"]
+#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="utility-tray"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="global-overlays"] {
   z-index: 2147483647;
 }

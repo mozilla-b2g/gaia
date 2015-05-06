@@ -90,13 +90,19 @@
 
 /* Text */
 .fileName {
-  padding: 1rem 6rem 1rem 3.5rem;
+  padding-top: 1rem;
+  -moz-padding-end: 6rem;
+  padding-bottom: 1rem;
+  -moz-padding-start: 3.5rem;
   -moz-box-sizing: border-box;
 }
 
 .info {
   font-size: 1.2rem;
-  padding: 0 6rem 0 3.5rem;
+  padding-top: 0;
+  -moz-padding-end: 6rem;
+  padding-bottom: 0;
+  -moz-padding-start: 3.5rem;
   -moz-box-sizing: border-box;
 }
 
@@ -186,8 +192,7 @@
 #downloadList ul > li[data-state="failed"] .download-status {
   width: 3rem;
   height: 3rem;
-  background: url('images/download_exclamation.png');
-  background-repeat: no-repeat;
+  background: url('images/download_exclamation.png') no-repeat center center;
   left: 0.2rem;
 }
 
@@ -205,7 +210,6 @@
   margin: 0;
   pointer-events: all;
   right: 0;
-
 }
 
 #downloadList ul > li[data-state="downloading"] .pack-end {
@@ -229,16 +233,18 @@
   background-position: center;
 }
 
-/**
- * Setting `direction: ltr;` to every element in the "Downloads" section because
- * downloaded item names are always LTR: elements should stay as they are no
- * matter what direction the system uses.
- */
-
-html[dir="rtl"] #downloadList {
-  direction: ltr;
+/* RTL rules */
+html:-moz-dir(rtl) #downloadList aside.download-status {
+  margin: 1.75rem 0 0 0.5rem;
+  right: 0.2rem;
+  left: unset;
 }
 
-html[dir="rtl"] #downloadList ul li > label.pack-checkbox {
-  margin-left: .5rem;
+html:-moz-dir(rtl) #downloadList aside.pack-end {
+  right: unset;
+  left: 0;
+}
+
+html:-moz-dir(rtl) #downloads-edit-button::before {
+  transform: initial;
 }

@@ -2,12 +2,7 @@
 
 marionette('LockScreen ambient notification', function() {
   var LockScreenNotificationActions, lsActions, system;
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': true
-    }
-  });
+  var client = marionette.client();
 
   setup(function() {
     LockScreenNotificationActions =

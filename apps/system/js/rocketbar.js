@@ -1,6 +1,6 @@
 'use strict';
 /* global eventSafety */
-/* global Service, SearchWindow, places, Promise */
+/* global Service, SearchWindow, places, Promise, UtilityTray */
 
 (function(exports) {
 
@@ -90,7 +90,7 @@
         return Promise.reject();
       }
 
-      return new Promise(resolve => {
+      this._activateCall = new Promise(resolve => {
         if (this.active) {
           resolve();
           return;
@@ -108,6 +108,7 @@
         var waitOver = () => {
           if (searchLoaded && transitionEnded) {
             resolve();
+            this._activateCall = null;
             this.publish('-activated');
           }
         };
@@ -119,7 +120,7 @@
           waitOver();
         };
         backdrop.classList.remove('hidden');
-        eventSafety(backdrop, 'transitionend', finishTransition, 300);
+        eventSafety(backdrop, 'transitionend', finishTransition, 200);
 
         this.loadSearchApp().then(() => {
           if (this.input.value.length) {
@@ -130,6 +131,18 @@
         });
         this.publish('-activating');
       });
+
+      // Immediately hide if the utility tray is active.
+      // In the future we might be able to streamline this flow, but for now we
+      // need to ensure that all events are properly fired so that the chrome
+      // collapses. If for example we early exit, currently the chrome will
+      // not collapse.
+      if (UtilityTray.active || UtilityTray.shown) {
+        this._activateCall
+          .then(this._closeSearch.bind(this));
+      }
+
+      return this._activateCall;
     },
 
     /**
@@ -158,7 +171,7 @@
           window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
           self.publish('-deactivated');
           self.isClosing = false;
-        }, 300);
+        }, 200);
       };
 
       if (this.focused) {
@@ -189,7 +202,10 @@
       window.addEventListener('attentionopened', this);
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
-      window.addEventListener('utility-tray-overlayopening', this);
+      window.addEventListener('utilitytray-overlayopening', this);
+      window.addEventListener('utility-tray-overlayopened', this);
+      window.addEventListener('simlockrequestfocus', this);
+      window.addEventListener('cardviewbeforeshow', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -205,7 +221,9 @@
     },
 
     '_handle_system-resize': function() {
-      if (this.isActive() && this.searchWindow.frontWindow) {
+      if (this.isActive()) {
+        this.searchWindow &&
+        this.searchWindow.frontWindow &&
         this.searchWindow.frontWindow.resize();
         return false;
       }
@@ -240,8 +258,7 @@
           if (detail && detail.stayBackground) {
             return;
           }
-          this.hideResults();
-          this.deactivate();
+          this._closeSearch();
           break;
         case 'open-app':
           // Do not hide the searchWindow if we have a frontWindow.
@@ -256,9 +273,11 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'utility-tray-overlayopening':
-          this.hideResults();
-          this.deactivate();
+        case 'utilitytray-overlayopening':
+        case 'utility-tray-overlayopened':
+        case 'simlockrequestfocus':
+        case 'cardviewbeforeshow':
+          this._closeSearch();
           break;
         case 'lockscreen-appopened':
           this.handleLock(e);
@@ -278,8 +297,7 @@
           } else if (e.target == this.clearBtn) {
             this.clear();
           } else if (e.target == this.backdrop) {
-            this.hideResults();
-            this.deactivate();
+            this._closeSearch();
           }
           break;
         case 'searchterminated':
@@ -363,6 +381,7 @@
         this.searchWindow.open();
       }
       this.results.classList.remove('hidden');
+      this.backdrop.classList.add('results-shown');
     },
 
     /**
@@ -376,6 +395,7 @@
       }
 
       this.results.classList.add('hidden');
+      this.backdrop.classList.remove('results-shown');
 
       // Send a message to the search app to clear results
       if (this._port) {
@@ -390,13 +410,7 @@
      */
     clear: function() {
       this.setInput('');
-
-      // Send a message to the search app to clear results
-      if (this._port) {
-        this._port.postMessage({
-          action: 'clear'
-        });
-      }
+      this.hideResults();
     },
 
     /**
@@ -418,7 +432,9 @@
      * @memberof Rocketbar.prototype
      */
     focus: function() {
-      this.input.focus();
+      if (this.active) {
+        this.input.focus();
+      }
     },
 
     /**
@@ -442,10 +458,7 @@
      * @memberof Rocketbar.prototype
      */
     _handle_home: function() {
-      if (this.isActive()) {
-        this.hideResults();
-        this.deactivate();
-      }
+      this._closeSearch();
       return true;
     },
 
@@ -470,8 +483,7 @@
      * @memberof Rocketbar.prototype
      */
     handleLock: function() {
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
     },
 
     /**
@@ -506,6 +518,20 @@
       return true;
     },
 
+    _closeSearch: function() {
+      var hideAndDeactivate = () => {
+        this.hideResults();
+        this.deactivate();
+      };
+
+      if (this._activateCall) {
+        this._activateCall
+          .then(hideAndDeactivate);
+      } else {
+        hideAndDeactivate();
+      }
+    },
+
     /**
      * Handle text input in Rocketbar.
      * @memberof Rocketbar.prototype
@@ -514,6 +540,11 @@
       var input = this.input.value;
 
       this.rocketbar.classList.toggle('has-text', input.length);
+
+      if (UtilityTray.active || UtilityTray.shown) {
+        this._closeSearch();
+        return;
+      }
 
       if (!input && !this.results.classList.contains('hidden')) {
         this.hideResults();
@@ -539,8 +570,7 @@
      */
     handleCancel: function(e) {
       this.setInput('');
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
     },
 
     /**
@@ -589,8 +619,7 @@
         return;
       }
 
-      this.hideResults();
-      this.deactivate();
+      this._closeSearch();
 
       this.searchWindow = null;
       this._port = null;
@@ -645,6 +674,9 @@
       }
 
       switch (e.detail.action) {
+        case 'private-window':
+          window.dispatchEvent(new CustomEvent('new-private-window'));
+          break;
         case 'render':
           this.activate().then(this.focus.bind(this));
           break;
@@ -660,8 +692,7 @@
           places.screenshotRequested(e.detail.url);
           break;
         case 'hide':
-          this.hideResults();
-          this.deactivate();
+          this._closeSearch();
           break;
       }
     },

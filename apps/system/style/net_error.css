@@ -60,7 +60,7 @@ html {
 
 form[role="dialog"][data-type="action"] > menu > button.icon {
   background-repeat: no-repeat;
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
   background-size: 3rem;
   background-position: 0.5rem center;
 }
@@ -123,4 +123,12 @@ form[role="dialog"][data-type="action"] > menu > button.icon-settings {
     width: 5rem;
     height: 8.5rem;
   }
+}
+
+:-moz-dir(rtl) form[role="dialog"][data-type="action"] > menu > button.icon {
+  background-position: right 0.5rem center;
+}
+
+:-moz-dir(rtl) #net-error.framed #retry-icon {
+  float: left;
 }

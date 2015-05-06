@@ -7,6 +7,18 @@
 // if cannot find a word loosely matching the input) what the user is planning
 // to type.
 //
+// *** Notes on Documentation ***
+//
+// We have moved the overview documentation for prediction mechanism to Mozilla
+// Wiki: https://wiki.mozilla.org/Gaia/System/Keyboard/IME/Latin
+//                                              /Prediction_%26_Auto_Correction
+//
+// The documentation includes definitions of terminology and a few examples on
+// the prediciton process.
+//
+// Please make sure any updates to the codes are reflected in the wiki too.
+//
+//
 // This module defines a single global variable Predictions which is an
 // object with the following methods:
 //
@@ -17,80 +29,13 @@
 //   predict: given an input string, asynchronously find corrections or
 //      predictions and pass them to a specified callback.
 //
-// The word prediction / auto-correction algorithm works by finding loose
-// matches for the user's input. The hard part of this process is getting
-// the "loose" part right. For each character in the user's input, we'll
-// match variant forms of the character to handle case differences and
-// diacritics. In languages that use apostrophes and hyphens, we'll match
-// those at any point, even if the user omits them. Because we've been
-// passed a data structure that tells us which keys are near each other (and
-// how near they are) we use that information to correct typing errors.
-// Other loose matching techniques we try include transpositions, insertions
-// and deletions.
-//
-// During this loose matching process, we associate a weight with each
-// candidate we're considering. This weight is based on the word frequency
-// information from the dictionary file, but it is reduced when we make
-// corrections to the user's input, to reflect our decreased confidence in
-// the suggestion. Substituting variant forms and inserting apostrophes does
-// not reduce the weight by much at all. Substituting a nearby key reduces
-// the weight moderately (depending on how near the keys are), and
-// insertions and deletions and transpositions reduce the weight
-// significantly.
-//
 // The core part of the matching algorithm is in the process() function
 // nested inside the predict() method. To fully understand it, however, you
 // also need to understand the weighted Ternary Search Tree data structure
 // used to represent the dictionary.
 //
-// Each node of the tree represents a single character, and is part of
-// an ordinary binary tree. Nodes representing characters that are less
-// than the current node are found by following the left pointer, and nodes
-// that repesent characters that are greater than the character in the
-// current node are found by following the right pointer.
-//
-// Our data structure is called a ternary tree because in addition to these
-// left and right pointers, each node also has a center pointer that points
-// to the subtree of nodes that represent the next character of the
-// word. You can think of all the nodes found by recursively traversing
-// left and right from the current node as being on the same level, and the
-// node found by by traversing to the center pointer as being on the next
-// level.
-//
-// Ternary trees are good for representing dictionaries and checking
-// whether a string appears in the dictionary. In order to make
-// predictions, however, our dictionary also contains word frequency
-// information, and we use it to predict more frequently used words instead
-// of less frequently used words. So instead of using a generic ternary
-// search tree, we use a weighted ternary search tree. In addition to the
-// left, center, and right pointers, each node also has a next pointer that
-// points to the node that represents the next most likely letter at the
-// current position. In effect, all of the nodes that are on the same level
-// form a linked list sorted from most likely to least likely.
-//
-// To make this linked list work, the tree uses non-traditional
-// balancing. Instead of balancing the binary tree so that there are
-// approximately equal numbers of nodes on the left and the right, the tree
-// is balanced so that when you follow the center pointer from one level to
-// the next level, the node represents the most likely letter on that
-// level. Each center pointer points to the head of a linked list.
-//
-// In addition to holding a character, each node of the tree also stores a
-// frequency value. For each node, this number is the frequency of the most
-// frequent word beneath that node. If you recursively follow the center
-// pointer of a node, you'll find that most frequent word.
-//
-// It turns out that our matching algorithm does not actually use the left
-// and right pointers of the tree at all, so they are omitted from the
-// dictionary to dramatically reduce its file size. At any given "level" of
-// the tree, we find the possible letters by following the next pointer. And
-// at any given node, we move to the next level by following the center
-// pointer.
-//
-// You can read more about the data structure in the script that generates the
-// dictionary files:
-//
-//   gaia/dictionaries/xml2dict.py.
+// The illustration of the Ternary Search Tree structure may be found at the
+// Wiki page above.
 //
 // Also see the following online resources which include helpful diagrams:
 //
@@ -153,6 +98,9 @@ var Predictions = function() {
   var rootform = [];       // Maps charcodes to the root form
   var nearbyKeys;          // Maps charcodes to a set of codes of nearby keys
   var cache;               // Cache inputs to completions.
+  var validChars = null;   // An ES6 Set containing valid chars for this dict
+                           // including possibly valid variant forms and nearby
+                           // keys.
 
   // This function is called to pass our dictionary to us as an ArrayBuffer.
   function setDictionary(buffer) {
@@ -228,7 +176,15 @@ var Predictions = function() {
       'w': 'ẂẃŴŵẄẅẆẇẈẉẀẁⱲⱳ',
       'x': 'ẌẍẊẋ',
       'y': 'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
-      'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
+      'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ',
+      'α': 'άΆ',
+      'ε': 'έΈ',
+      'η': 'ήΉ',
+      'ι': 'ίϊΐΊΪ',
+      'ο': 'όΌ',
+      'υ': 'ύϋΰΎΫ',
+      'ω': 'ώΏ',
+      '$': '$'
     };
 
     // The reverse mapping from accented forms to the normalized ASCII form
@@ -276,6 +232,8 @@ var Predictions = function() {
       // log("Root form of " + ch + " " +
       //     String.fromCharCode(rootform[charcode]))
     }
+
+    generateValidChars();
   }
 
   // latin.js passes us a data structure that holds the inverse square
@@ -290,6 +248,54 @@ var Predictions = function() {
     cache = new LRUCache(CACHE_SIZE); // Discard any cached results
     nearbyKeys = data;
     // log("Nearby Keys: " + JSON.stringify(data));
+  }
+
+  function generateValidChars() {
+    // We're called when both |nearbyKeys| and |variants| information is ready.
+    // Note this relies on the fact that setNearByKeys is always called before
+    // setDictionary, and the setNearByKeys call is optional. Thus, we want to
+    // be called at setDictionary.
+    //
+    // It's not very easy to lessen the constraint, as within this module, we
+    // don't have knowledge on whether we're to be reinitialized, with setNBK
+    // coming or not, and with setNBK coming before or after setDict.
+    //
+    // Note at this moment, keys of |variants| object is the character table of
+    // this dictionary.
+    // We need to consider each variants[ch]'s
+    // - the ch itself (the character in the dict)
+    // - all the characters of variants[ch] string (different cases and
+    //     root form (of different cases); the latter is espcially important
+    //     if ch is accented)
+    // furthermore, for that ch, we want to consider as valid all the nearby
+    // keys of rootform[ch], and the variant form of such nearby keys.
+
+    validChars = new Set();
+
+    variants.forEach(function(variantStr, charCode) {
+      validChars.add(String.fromCharCode(charCode));
+
+      Array.from(variantStr).forEach(function(varCh) {
+        validChars.add(varCh);
+      });
+
+      var rootCode = rootform[charCode];
+      if (rootCode && nearbyKeys && nearbyKeys[rootCode]) {
+        Object.keys(nearbyKeys[rootCode]).forEach(
+        function(rootNearByCode) {
+          validChars.add(String.fromCharCode(rootNearByCode));
+
+          // the nearby key isn't necessarily in character table,
+          // so test its existence in |variants| first.
+          if (variants[rootNearByCode]) {
+            Array.from(variants[rootNearByCode]).forEach(
+            function(rootNearByVarCode) {
+              validChars.add(rootNearByVarCode);
+            });
+          }
+        });
+      }
+    });
   }
 
   //
@@ -307,13 +313,13 @@ var Predictions = function() {
   // the onerror function is called with an error message.
   //
   // If no error occurs, then the callback function is called with an array
-  // argument. Each element of this array is also an array holding a word
-  // and a number. The word is a proposed completion or correction to the
-  // input word and the number is the weight that the prediction algorithm
-  // assigns to that suggestions. Higher numbers mean better
-  // suggestions. Suggestions may take tens of milliseconds to compute which
-  // is why this method is designed to be asynchronous. Periodcally during
-  // the search process, the code returns to the event loop with
+  // argument. Each element of this array is also an array of two elements,
+  // a word and a number. The word is a proposed completion or correction,
+  // i.e. a 'suggestion', to the input word, and the number is the weight that
+  // the prediction algorithm assigns to that suggestion. Higher numbers mean
+  // better suggestions. Suggestions may take tens of milliseconds to compute,
+  // which is why this method is designed to be asynchronous. Periodically
+  // during the search process, the code returns to the event loop with
   // setTimeout(0) which gives other code time to run and potentially call
   // the abort method
   //
@@ -323,7 +329,8 @@ var Predictions = function() {
   function predict(input,           // the user's input
                    maxSuggestions,  // how many suggestions are requested
                    maxCandidates,   // how many candidates to consider
-                   maxCorrections,  // how many corrections to allow per word
+                   maxCorrections,  // how many corrections to allow per
+                                    // suggestion
                    callback,        // call this on success
                    onerror)         // and call this on error
   {
@@ -331,19 +338,20 @@ var Predictions = function() {
       throw Error('not initialized');
 
     // The search algorithm compares the user's input to the dictionary tree
-    // data structure and generates a set of candidates for each character.
+    // data structure and generates a set of candidates incrementally,
+    // character by character.
     // This variable will store the set of candidates we're evaluating as we
     // do a breadth first search of the dictionary tree and allows us to
     // pull out the best candidates first for further evaluation.
     var candidates = new BoundedPriorityQueue(maxCandidates);
 
-    // This is where we store the best complete words we've found so far.
-    var words = new BoundedPriorityQueue(maxSuggestions);
+    // This is where we store the best complete suggestions we've found so far.
+    var suggestions = new BoundedPriorityQueue(maxSuggestions);
 
     // If the first letter of the input is a capital letter, then we
-    // want to capitalize the first letter of all the suggested words.
+    // want to capitalize the first letter of all the suggestions.
     // We do this here rather than in latin.js so that we can filter out
-    // repeated words that come in both upper and lowercase forms
+    // repeated suggestions that come in both upper and lowercase forms
     var capitalize = (input[0] === input[0].toUpperCase());
 
     // This is the object we return. It allows the caller to abort a
@@ -361,8 +369,8 @@ var Predictions = function() {
       ',' + maxCandidates +
       ',' + maxCorrections;
 
-    // Start searching for words soon...
-    setTimeout(getWords);
+    // Start searching for suggestions soon...
+    setTimeout(getSuggestions);
 
     // But first, return the status object to the caller.
     return status;
@@ -377,7 +385,7 @@ var Predictions = function() {
       return false;
     }
 
-    function getWords() {
+    function getSuggestions() {
       try {
         // Check the cache. If we've seen this input recently we can return
         // suggestions right away.
@@ -391,7 +399,8 @@ var Predictions = function() {
 
         // Check length and check for invalid characters. If the input is
         // bad, we can reject it right away.
-        if (input.length > maxWordLength || !validChars(input)) {
+        if (input.length > maxWordLength ||
+            !Array.from(input).every(function(c) {return validChars.has(c);})) {
           status.state = 'done';
           status.suggestions = [];
           callback(status.suggestions);
@@ -403,7 +412,7 @@ var Predictions = function() {
         addCandidate(0, input, '', 1, 1, 0);
 
         // And then process it. This will generate more candidates to
-        // process. processCandidates() runs until all the words we want
+        // process. processCandidates() runs until all the suggestions we want
         // have been found or until all possiblities have been tried. It
         // returns to the event loop with setTimeout() so the search can be
         // aborted, but arranges to resume. It calls the callback when done.
@@ -416,35 +425,9 @@ var Predictions = function() {
       }
     }
 
-    // Check whether all the characters of s appear in the dictionary or are
-    // at least near characters that do. If we are passed a string that does
-    // not pass this test then there is no way we will be able to offer
-    // suggestions and it is not even worth searching.
-    function validChars(s) {
-      outer: for (var i = 0, n = s.length; i < n; i++) {
-        var c = s.charCodeAt(i);
-        if (characterTable.hasOwnProperty(c))  // character is valid
-          continue;
-        // If the character does not occur in this language, but there is
-        // a nearby key that does occur, then maybe it is okay
-        if (!nearbyKeys.hasOwnProperty(c))
-          return false;  // no nearby keys, so no suggestions possible
-        var nearby = nearbyKeys[c];
-        for (c in nearby) {
-          if (characterTable.hasOwnProperty(c))
-            continue outer;
-        }
-        // no nearby keys are in the dictionary, so no suggestions possible
-        return false;
-      }
-
-      // All the characters of s are valid
-      return true;
-    }
-
     // Add a candidate to the list of promising candidates if frequency *
-    // multiplier is high enough. A candidate is a pointer (byte offset) to
-    // a node in the tree, the portion of the user's input that has not yet
+    // multiplier is high enough. A candidate includes a pointer (byte offset)
+    // to a node in the tree, the portion of the user's input that has not yet
     // been considered, the output string that has been generated so far, a
     // number based on the highest frequency word that begins with the
     // output we've generated, a multipler that adjusts that frequency based
@@ -459,12 +442,12 @@ var Predictions = function() {
       // If no major corrections have been made to this candidate, then
       // artificially increase its weight so that it appears in the
       // candidates list before any corrected candidates. This should
-      // ensure that if the user is typing an infrequent word we don't
-      // bump the actual word off the list if there are lots of frequent
-      // words that have similar spellings. The artificial weight does
-      // not carry through to the list of words, so more frequent words may
-      // still be predicted instead of the user's input when the user is
-      // typing an infrequent word. But we shouldn't ever not be able to
+      // ensure that if the user is typing an infrequent word (but typing it
+      // correctly), we don't bump the actual word off the list if there are
+      // lots of frequent words that have similar spellings. The artificial
+      // weight does not carry through to the list of words, so more frequent
+      // words may still be predicted instead of the user's input when the user
+      // is typing an infrequent word. But we shouldn't ever not be able to
       // find the user's input as a valid word.  Adding letters to the
       // end of partial input does not count as a correction so we also
       // test the multiplier so that we don't boost the weight of every
@@ -480,8 +463,8 @@ var Predictions = function() {
         weight += ((frequency / 32) * ZERO_CORRECTION_PREFIX_MULTIPLIER);
       }
 
-      // If this candidate could never become a word, don't add it
-      if (weight <= words.threshold)
+      // If this candidate could never become a suggestion, don't add it
+      if (weight <= suggestions.threshold)
         return;
 
       candidates.add({
@@ -494,25 +477,25 @@ var Predictions = function() {
       }, weight);
     }
 
-    // Add a word to the priority queue of words
-    function addWord(word, weight) {
-      // If the input was capitalized, capitalize the word
+    // Add a suggestion to the priority queue of suggestions
+    function addSuggestion(suggestion, weight) {
+      // If the input was capitalized, capitalize the suggestion
       if (capitalize)
-        word = word[0].toUpperCase() + word.substring(1);
+        suggestion = suggestion[0].toUpperCase() + suggestion.substring(1);
 
-      // Make sure we don't already have the word in the queue
-      for (var i = 0, n = words.items.length; i < n; i++) {
-        if (words.items[i][0] === word) {
+      // Make sure we don't already have the suggestion in the queue
+      for (var i = 0, n = suggestions.items.length; i < n; i++) {
+        if (suggestions.items[i][0] === suggestion) {
           // If the version we already have has higher weight, skip this one
-          if (words.priorities[i] >= weight)
+          if (suggestions.priorities[i] >= weight)
             return;
           else // otherwise, remove the existing lower-weight copy
-            words.removeItemAt(i);
+            suggestions.removeItemAt(i);
           break;
         }
       }
 
-      words.add([word, weight], weight);
+      suggestions.add([suggestion, weight], weight);
     }
 
     // Take the highest-ranked candidate from the list of candidates and
@@ -520,7 +503,8 @@ var Predictions = function() {
     // we've processed a batch of candidates this way, use setTimeout() to
     // schedule the processing of the next batch after returning to the
     // event loop. If there are no more candidates or if the highest ranked
-    // one is not highly ranked enough, then we're done finding words.
+    // one is not highly ranked enough, then we're done finding all the
+    // possible candidates, and thus, we're doen for making suggestions.
     function processCandidates() {
       try {
         if (aborted())
@@ -531,10 +515,10 @@ var Predictions = function() {
 
           // If there are no more candidates, or if the weight isn't
           // high enough, we're done. Call the callback with the current
-          // set of words.
-          if (!candidate || candidate.weight <= words.threshold) {
+          // set of suggestions.
+          if (!candidate || candidate.weight <= suggestions.threshold) {
             status.state = 'done';
-            status.suggestions = words.items; // the array in the word queue
+            status.suggestions = suggestions.items;
             cache.add(cacheKey, status.suggestions);
             callback(status.suggestions);
             return;
@@ -543,10 +527,10 @@ var Predictions = function() {
           process(candidate);
 
           //
-          // If the predicted words don't seem right, uncomment these lines
-          // to see how the call to process() modifies the set of candiates
-          // at each step. The output is verbose, but with careful study it
-          // reveals what is going on in the algorithm.
+          // If the predicted suggestions don't seem right, uncomment these
+          // lines to see how the call to process() modifies the set of
+          // candiates at each step. The output is verbose, but with careful
+          // study it reveals what is going on in the algorithm.
           //
           // var s = "";
           // for(var i = 0; i < candidates.items.length; i++) {
@@ -577,18 +561,22 @@ var Predictions = function() {
     // tree as we would when looking for an exact match. Instead, at each
     // level, we visit the nodes in frequency order, following the next
     // pointer. If we find nodes that loosely match the first character of
-    // input, we use those nodes to generate new candidates for further
-    // evaluation later. Note that by maintaining a list of candidates like
-    // this, we're doing a breadth-first search rather than a depth-first
-    // search. (But since we weight the candidates, it is not a pure
+    // the remaining input, we use those nodes to generate new candidates for
+    // further evaluation later. This is defined as a GrowOperation in the Wiki
+    // article linked at the beginning of this file.
+    //
+    // Note that by maintaining a list of candidates like this, we're doing a
+    // breadth-first search rather than a depth-first search. (But since we
+    // weight the candidates and put them in a priority queue, it is not a pure
     // breadth-first search).
     //
-    // The input candidate specifies a node in the dictionary tree, the next
-    // character of the user's input, and the output generated so far. This
-    // function uses the dictionary to loop through all possible characters
+    // A candidate specifies a node in the dictionary tree, the remaining part
+    // of the user's input, and the output generated so far.
+    // This function uses the dictionary to loop through all possible characters
     // that could appear after the current output, and considers those
     // characters in most frequent to least frequent order. It compares each
-    // character to the next character of the user's input and generates new
+    // character to the first character (or, in certain GrowOperations, first
+    // two characters) of the remainder of user's input and generates new
     // candidates based on that comparison.
     //
     // The candidate generation considers things such as accented characters
@@ -603,15 +591,15 @@ var Predictions = function() {
       var corrections = candidate.corrections;
       var node = {};
 
-      // The next character of the user's input
+      // The next character of the remainder of user's input
       var char, code;
       if (remaining.length > 0) {
         char = remaining[0];
         code = remaining.charCodeAt(0);
       }
 
-      for (var next = candidate.pointer; next !== -1; next = node.next) {
-        readNode(next, node);
+      for (var curr = candidate.pointer; curr !== -1; curr = node.next) {
+        readNode(curr, node);
 
         // How common is the most common word under this node?
         var frequency = node.freq;
@@ -631,18 +619,18 @@ var Predictions = function() {
         // their output string will be
         var newoutput = output + String.fromCharCode(node.ch);
 
-        // The various ways we can generate new candidates from this node
-        // follow. Note that each one can have a different associated
-        // multiplier. And note that some are considered "corrections". To
-        // prevent explosive growth in the number of candidates we limit the
-        // number of corrections allowed on any candidate.
+        // The various ways (i.e. GrowOperations) we can generate new candidates
+        // from this node follow. Note that each one can have a different
+        // associated multiplier. And note that some are considered
+        // corrections. To prevent explosive growth in the number of candidates,
+        // we limit the number of corrections allowed on any candidate.
 
         // If there isn't any more input from the user, then we'll try to
-        // extend the output we've already got to find a complete word. But
-        // we apply a penalty for each character we add so that shorter
-        // completions are favored over longer completions
+        // extend the output we've already got to find a complete word as a
+        // suggestion. But we apply a penalty for each character we add so that
+        // shorter completions are favored over longer completions
         if (remaining.length === 0) {
-          // If a word ends here, add it to the queue of words
+          // If a word ends here, add it to the queue of suggestions
           if (node.ch === 0) {
             // Only suggest profane (freq == 1) words if the input is
             // already the same
@@ -650,17 +638,19 @@ var Predictions = function() {
                 input.toUpperCase() === output.toUpperCase()) {
               // Profane words have very low frequency themselves.
               // To make sure they pop up we bump the frequency
-              addWord(output, PROFANE_INPUT_MATCH_WEIGHT);
+              addSuggestion(output, PROFANE_INPUT_MATCH_WEIGHT);
             }
             else if (node.freq !== 1) {
-              addWord(output, weight);
+              addSuggestion(output, weight);
             }
             continue;
           }
 
+          // Insertion-Extend GrowOperation:
           // Otherwise, extend the candidate with the current node. We
-          // reduce the multiplier but do not count this as a correction so
-          // that we can extend candidates as far as needed to find words.
+          // reduce the multiplier, but do not count this as a correction so
+          // that we can extend candidates as far as needed to find suggestions.
+          // This is like in the sense of auto completion.
           addCandidate(node.center,
                        remaining,  // the empty string
                        newoutput,
@@ -674,6 +664,7 @@ var Predictions = function() {
 
         // Handle the case where this node marks the end of a word.
         if (node.ch === 0) {
+          // Deletion-AtEnd GrowOperation
           // If there is just one more character of user input remaining,
           // maybe the user accidentally typed an extra character at the
           // end, so try just dropping the last character. Note that this
@@ -681,7 +672,7 @@ var Predictions = function() {
           // it revisits the same node just without the one remaining
           // character of input.
           if (remaining.length === 1) {
-            addCandidate(next,    // stay at this same node
+            addCandidate(curr,    // stay at this same node
                          '',      // no more remaining characters
                          output,  // not newoutput
                          multiplier * DELETION_MULTIPLIER,
@@ -693,16 +684,16 @@ var Predictions = function() {
         // If we get to here, we know that we're still processing the user's
         // input and that there is a character associated with this node.
 
-        // These next few cases are all in an if/else chain. Each of them
-        // match (or substitute) the character in the node with the next
-        // character of the user's input: they all add the same candidate,
-        // so it never makes sense for more than one of them to run. But
-        // note that it is possible for the match to happen more than one
+        // These next several GrowOperations are all in disjoint if/else chains,
+        // meaning that they're not mutually exclusive.
+        // GrowOps within a if/else chain add the same candidate, so it never
+        // makes sense for more than one of them to run.
+        // But note that it is possible for such GrowOps to happen more than one
         // way, so we have to be sure to do the tests in highest to lowest
         // multiplier order.
 
+        // Match GrowOperation: an exact match on this character
         if (node.ch === code) {
-          // We found an exact match
           addCandidate(node.center,
                        remaining.substring(1),
                        newoutput,
@@ -710,6 +701,7 @@ var Predictions = function() {
                        frequency, corrections);
         }
         else if (variants[node.ch].indexOf(char) !== -1) {
+          // Substitution-Variant GrowOperation:
           // The user's input is a variant form of the character in this
           // node, so we'll accept that input as a substitute for the node
           // character. This covers case differences and unaccented forms of
@@ -728,13 +720,15 @@ var Predictions = function() {
           // character in the user's input. If the two keys are near each
           // other on the keyboard, then we do this with higher weight than
           // if they are distant.
-          var root = rootform[node.ch];
-          var rootcode = rootform[code];
-          var nearby = nearbyKeys[root] ? nearbyKeys[root][rootcode] : 0;
+          var rootNode = rootform[node.ch];
+          var rootInput = rootform[code];
+          var nearby =
+            nearbyKeys[rootNode] ? nearbyKeys[rootNode][rootInput] : 0;
           if (nearby) {
             var adjust =
               Math.max(nearby * NEARBY_KEY_REPLACEMENT_MULTIPLIER,
                        SUBSTITUTION_MULTIPLIER);
+            // Substitution-Near GrowOperation:
             // If the node holds a character that is near the one the user
             // typed, try it, assuming that the user has fat fingers and
             // just missed the key. Note that we use a weight based on the
@@ -748,6 +742,7 @@ var Predictions = function() {
                          frequency, corrections + 1);
           }
           else if (output.length > 0) {
+            // Substitution-Any GrowOperation:
             // If it wasn't a nearby key, try substituting it anyway, but
             // with a much lower weight. This handles the case where the
             // user just doesn't know how to spell the word. We assume that
@@ -774,6 +769,7 @@ var Predictions = function() {
         // more costly. Also: assume that the user got the first character
         // correct and don't insert at position 0.
         if (!variants[node.ch]) {  // If it is a punctuation character
+          // Insertion-Punctuation GrowOperation
           addCandidate(node.center,
                        remaining, // insertion, so no substring here
                        newoutput,
@@ -781,6 +777,7 @@ var Predictions = function() {
                        frequency, corrections);
         }
         else if (corrections < maxCorrections && output.length > 0) {
+          // Insertion-Any GrowOperation
           addCandidate(node.center,
                        remaining,
                        newoutput,
@@ -798,14 +795,14 @@ var Predictions = function() {
             (node.ch === remaining.charCodeAt(1) ||
              variants[node.ch].indexOf(remaining[1]) !== -1))
         {
-          // transpose
+          // Transposition GrowOperation
           addCandidate(node.center,
                        remaining[0] + remaining.substring(2),
                        newoutput,
                        multiplier * TRANSPOSITION_MULTIPLIER,
                        frequency, corrections + 1);
 
-          // delete
+          // Deletion GrowOperation
           addCandidate(node.center,
                        remaining.substring(2),
                        newoutput,
@@ -1007,4 +1004,4 @@ var Predictions = function() {
     setNearbyKeys: setNearbyKeys,
     predict: predict
   };
-}();
+};

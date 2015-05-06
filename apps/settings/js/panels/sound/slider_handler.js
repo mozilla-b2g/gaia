@@ -35,6 +35,7 @@ define(function(require) {
     this._isTouching = false;
     this._isFirstInput = false;
     this._intervalID = null;
+    this._timeoutID = null;
     this._player = new Audio();
   };
 
@@ -223,6 +224,13 @@ define(function(require) {
      * or we will see the queued callbacks try to update the slider's value
      * which we are unable to avoid and make bad ux for the users.
      *
+     * It uses setTimeout to re-observe the value change after the user finished
+     * tapping/dragging on the slider and the preview is ended.
+     *
+     * If the user tap the slider very quickly, like the click event, then
+     * we try to stop the player after a constant duration so that the user
+     * is able to hear the tone's preview with the adjusted volume.
+     *
      * @access private
      * @memberOf SliderHandler.prototype
      */
@@ -232,6 +240,15 @@ define(function(require) {
         this._setVolume();
         this._intervalID = setInterval(this._setVolume.bind(this), INTERVAL);
       }
+
+      clearTimeout(this._timeoutID);
+      this._timeoutID = setTimeout(function() {
+        if (!this._isTouching) {
+          SettingsListener.observe(this._channelKey, '',
+                                   this._boundSetSliderValue);
+          this._stopTone();
+        }
+      }.bind(this), DELAY);
     },
 
     /**
@@ -240,13 +257,6 @@ define(function(require) {
      * It Clear the interval setVolume() and set it directly when the
      * user's finger leaves the panel.
      *
-     * It Re-observe the value change after the user finished tapping/dragging
-     * on the slider and the preview is ended.
-     *
-     * If the user tap the slider very quickly, like the click event, then
-     * we try to stop the player after a constant duration so that the user
-     * is able to hear the tone's preview with the adjusted volume.
-     *
      * @access private
      * @memberOf SliderHandler.prototype
      */
@@ -254,12 +264,6 @@ define(function(require) {
       this._isTouching = false;
       clearInterval(this._intervalID);
       this._setVolume();
-      SettingsListener.observe(this._channelKey, '', this._boundSetSliderValue);
-      setTimeout(function() {
-        if (!this._isTouching) {
-          this._stopTone();
-        }
-      }.bind(this), DELAY);
     }
   };
 

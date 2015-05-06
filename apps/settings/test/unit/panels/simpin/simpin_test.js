@@ -11,7 +11,8 @@ suite('SimPin > ', function() {
       'shared/simslot_manager': 'MockSIMSlotManager',
       'shared/template': 'MockTemplate',
       'shared/toaster': 'MockToaster',
-      'simcard_dialog': 'MockSimcardDialog'
+      'modules/dialog_service': 'MockDialogService',
+      'modules/sim_security': 'MockSimSecurity'
     }
   };
 
@@ -36,12 +37,18 @@ suite('SimPin > ', function() {
       showToast: function() {}
     };
 
-    this.MockSimcardDialog = {
-      show: function() {}
+    this.MockDialogService = {
+      show: function() {
+        return Promise.resolve();
+      }
     };
 
     this.MockIccManager = {
       getIccById: function() {}
+    };
+
+    this.MockSimSecurity = {
+      getCardLock: function() {}
     };
 
     define('MockAirplaneModeHelper', () => {
@@ -60,12 +67,16 @@ suite('SimPin > ', function() {
       return this.MockToaster;
     });
 
-    define('MockSimcardDialog', () => {
-      return this.MockSimcardDialog;
+    define('MockDialogService', () => {
+      return this.MockDialogService;
     });
 
     define('MockIccManager', () => {
       return this.MockIccManager;
+    });
+
+    define('MockSimSecurity', () => {
+      return this.MockSimSecurity;
     });
 
     var requireCtx = testRequire([], map, function() {});
@@ -78,7 +89,6 @@ suite('SimPin > ', function() {
       });
 
       simpin.iccManager = this.MockIccManager;
-      simpin.simPinDialog = this.MockSimcardDialog;
       done();
     });
   });
@@ -188,131 +198,81 @@ suite('SimPin > ', function() {
     suite('icc has no cardState (maybe in airplane mode) > ', function() {
       setup(function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
-          cardState: null 
+          cardState: null
         });
-        simpin.updateSimPinUI(0);
-      });
-      test('checkbox will be disabled and div will be hidden', function() {
-        assert.ok(cachedDoms.checkbox.disabled);
-        assert.ok(cachedDoms.div.hidden);
+        test('checkbox will be disabled, div will be hidden', function(done) {
+          simpin.updateSimPinUI(0).then(function() {
+            assert.ok(cachedDoms.checkbox.disabled);
+            assert.ok(cachedDoms.div.hidden);
+          }).then(done, done);
+        });
       });
     });
 
     suite('icc has cardState, but not in airplane mode > ', function() {
       setup(function() {
-        var getCardLockObject = {
-          result: {
+        this.sinon.stub(this.MockSimSecurity, 'getCardLock', function() {
+          return Promise.resolve({
             enabled: true
-          }
-        };
+          });
+        });
 
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
-          cardState: 'normal',
-          getCardLock: function() {
-            return getCardLockObject;
-          }
+          cardState: 'normal'
         });
 
         simpin.isAirplaneMode = false;
-        simpin.updateSimPinUI(0);
-        getCardLockObject.onsuccess();
       });
 
-      test('will get right icc, exec onsuccess() and change UI', function() {
-        assert.isFalse(cachedDoms.checkbox.disabled);
-        assert.isTrue(cachedDoms.checkbox.checked);
-        assert.isFalse(cachedDoms.div.hidden);
+      test('will get right icc, and change UI', function(done) {
+        simpin.updateSimPinUI(0).then(function() {
+          assert.isFalse(cachedDoms.checkbox.disabled);
+          assert.isTrue(cachedDoms.checkbox.checked);
+          assert.isFalse(cachedDoms.div.hidden);
+        }).then(done, done);
       });
     });
 
     suite('icc has cardState, but in airplane mode > ', function() {
       setup(function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
-          cardState: 'normal',
-          getCardLock: function() {
-            return {};
-          }
+          cardState: 'normal'
         });
-
         simpin.isAirplaneMode = true;
-        simpin.updateSimPinUI(0);
       });
 
-      test('checkbox will be disabled and div will be hidden', function() {
-        assert.ok(cachedDoms.checkbox.disabled);
-        assert.ok(cachedDoms.div.hidden);
+      test('checkbox will be disabled and div will be hidden', function(done) {
+        simpin.updateSimPinUI(0).then(function() {
+          assert.ok(cachedDoms.checkbox.disabled);
+          assert.ok(cachedDoms.div.hidden);
+        }).then(done, done);
       });
     });
   });
 
-  suite('handleEvent > ', function() {
-    suite('checkSimPin > ', function() {
-      setup(function() {
-        this.sinon.stub(simpin, 'checkSimPin');
-        simpin.handleEvent({
-          target: {
-            dataset: {
-              simIndex: '0',
-              type: 'checkSimPin'
-            }
-          }
-        });
-      });
-      test('called successfully', function() {
-        assert.ok(simpin.checkSimPin.called);
-      });
+  suite('changeSimPin > ', function() {
+    setup(function() {
+      this.sinon.stub(this.MockToaster, 'showToast');
+      this.sinon.stub(this.MockDialogService, 'show').returns(
+        Promise.resolve({ type: 'submit' }));
     });
 
-    suite('changeSimPin in singleSim > ', function() {
-      setup(function() {
-        this.sinon.stub(simpin.simPinDialog, 'show');
-        this.sinon.stub(this.MockSIMSlotManager, 'isMultiSIM').returns(false);
-        this.sinon.stub(this.MockToaster, 'showToast');
-        simpin.handleEvent({
-          target: {
-            dataset: {
-              simIndex: '0',
-              type: 'changeSimPin'
-            }
-          }
-        });
-      });
-      test('called successfully', function() {
-        var firstCallArgs = simpin.simPinDialog.show.getCall(0).args[1];
-        var onsuccess = firstCallArgs.onsuccess;
-        onsuccess();
-
+    test('in single sim', function(done) {
+      this.sinon.stub(this.MockSIMSlotManager, 'isMultiSIM').returns(false);
+      simpin.changeSimPin(0).then(() => {
         var toastArgs = this.MockToaster.showToast.getCall(0).args[0];
-        assert.equal(firstCallArgs.cardIndex, 0);
         assert.equal(toastArgs.messageL10nId, 'simPinChangedSuccessfully');
-      });
+      }).then(done, done);
     });
 
-    suite('changeSimPin in multiSIM > ', function() {
-      setup(function() {
-        this.sinon.stub(simpin.simPinDialog, 'show');
-        this.sinon.stub(this.MockSIMSlotManager, 'isMultiSIM').returns(true);
-        this.sinon.stub(this.MockToaster, 'showToast');
-        simpin.handleEvent({
-          target: {
-            dataset: {
-              simIndex: '0',
-              type: 'changeSimPin'
-            }
-          }
-        });
-      });
-      test('called successfully', function() {
-        var firstCallArgs = simpin.simPinDialog.show.getCall(0).args[1];
-        var onsuccess = firstCallArgs.onsuccess;
-        onsuccess();
-
+    test('in multi sim', function(done) {
+      this.sinon.stub(this.MockSIMSlotManager, 'isMultiSIM').returns(true);
+      simpin.changeSimPin(0).then(() => {
         var toastArgs = this.MockToaster.showToast.getCall(0).args[0];
-        assert.equal(firstCallArgs.cardIndex, 0);
         assert.equal(toastArgs.messageL10nId,
           'simPinChangedSuccessfullyWithIndex');
         assert.equal(toastArgs.messageL10nArgs.index, 1);
-      });
+      }).then(done, done);
     });
   });
 
@@ -323,7 +283,6 @@ suite('SimPin > ', function() {
 
     setup(function() {
       simpin.conns = [{}, {}];
-      this.sinon.stub(simpin.simPinDialog, 'show');
       this.sinon.stub(simpin, 'updateSimPinUI');
       fakeCheckbox.checked = true;
     });
@@ -333,22 +292,24 @@ suite('SimPin > ', function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
           cardState: 'pukRequired'
         });
-        simpin.checkSimPin(fakeCheckbox, 0);
       });
-      
-      test('we will do following works', function() {
-        var dialogName = simpin.simPinDialog.show.getCall(0).args[0];
-        var firstCallArgs = simpin.simPinDialog.show.getCall(0).args[1];
 
-        assert.equal(dialogName, 'unlock_puk');
+      test('if submit, we will set values', function(done) {
+        this.sinon.stub(this.MockDialogService, 'show').returns(
+          Promise.resolve({ type: 'submit' }));
+        simpin.checkSimPin(fakeCheckbox, 0).then(() => {
+          assert.equal(fakeCheckbox.checked, true);
+          assert.isTrue(simpin.updateSimPinUI.called);
+        }).then(done, done);
+      });
 
-        var onsuccess = firstCallArgs.onsuccess;
-        onsuccess();
-        assert.equal(fakeCheckbox.checked, true);
-
-        var oncancel = firstCallArgs.oncancel;
-        oncancel();
-        assert.equal(fakeCheckbox.checked, false);
+      test('if cancel, we will undo operations', function(done) {
+        this.sinon.stub(this.MockDialogService, 'show').returns(
+          Promise.resolve({ type: 'cancel' }));
+        simpin.checkSimPin(fakeCheckbox, 0).then(() => {
+          assert.equal(fakeCheckbox.checked, false);
+          assert.isTrue(simpin.updateSimPinUI.called);
+        }).then(done, done);
       });
     });
 
@@ -358,39 +319,61 @@ suite('SimPin > ', function() {
           cardState: 'normal'
         });
         fakeCheckbox.checked = true;
-        simpin.checkSimPin(fakeCheckbox, 0);
       });
-       
-      test('we will do following works', function() {
-        var dialogName = simpin.simPinDialog.show.getCall(0).args[0];
-        var firstCallArgs = simpin.simPinDialog.show.getCall(0).args[1];
 
-        assert.equal(dialogName, 'enable_lock');
+      test('if submit, we will do following works', function(done) {
+        this.sinon.stub(this.MockDialogService, 'show').returns(
+          Promise.resolve({ type: 'submit' }));
 
-        var oncancel = firstCallArgs.oncancel;
-        oncancel();
-        assert.equal(fakeCheckbox.checked, false);
+        simpin.checkSimPin(fakeCheckbox, 0).then(() => {
+          var args = this.MockDialogService.show.getCall(0).args[1];
+          assert.equal(args.method, 'enable_lock');
+          assert.isTrue(simpin.updateSimPinUI.called);
+        }).then(done, done);
+      });
+
+      test('if cancel, we will undo operations', function(done) {
+        this.sinon.stub(this.MockDialogService, 'show').returns(
+          Promise.resolve({ type: 'cancel' }));
+
+        simpin.checkSimPin(fakeCheckbox, 0).then(() => {
+          var args = this.MockDialogService.show.getCall(0).args[1];
+          assert.equal(args.method, 'enable_lock');
+          assert.equal(fakeCheckbox.checked, false);
+          assert.isTrue(simpin.updateSimPinUI.called);
+        }).then(done, done);
       });
     });
 
-    suite('other cardstates with checkbox enabled', function() {
+    suite('other cardstates with checkbox disabled', function() {
       setup(function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
           cardState: 'normal'
         });
         fakeCheckbox.checked = false;
-        simpin.checkSimPin(fakeCheckbox, 0);
       });
-       
-      test('we will do following works', function() {
-        var dialogName = simpin.simPinDialog.show.getCall(0).args[0];
-        var firstCallArgs = simpin.simPinDialog.show.getCall(0).args[1];
 
-        assert.equal(dialogName, 'disable_lock');
+      test('if submit, we will do following works', function(done) {
+        this.sinon.stub(this.MockDialogService, 'show').returns(
+          Promise.resolve({ type: 'submit' }));
 
-        var oncancel = firstCallArgs.oncancel;
-        oncancel();
-        assert.equal(fakeCheckbox.checked, true);
+        simpin.checkSimPin(fakeCheckbox, 0).then(() => {
+          var args = this.MockDialogService.show.getCall(0).args[1];
+          assert.equal(args.method, 'disable_lock');
+          assert.isTrue(simpin.updateSimPinUI.called);
+        }).then(done, done);
+      });
+
+      test('if cancel, we will undo operations', function(done) {
+        this.sinon.stub(this.MockDialogService, 'show').returns(
+          Promise.resolve({ type: 'cancel' }));
+
+        simpin.checkSimPin(fakeCheckbox, 0).then(() => {
+          var args = this.MockDialogService.show.getCall(0).args[1];
+          assert.equal(args.method, 'disable_lock');
+          assert.equal(fakeCheckbox.checked, true);
+          assert.isTrue(simpin.updateSimPinUI.called);
+        }).then(done, done);
       });
     });
   });

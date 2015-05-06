@@ -56,12 +56,12 @@
 }
 
 .inputWindow.slide-from-bottom {
-  animation: kbShow 0.4s both ease;
+  animation: kbShow var(--transition-duration) both ease;
 }
 
 .inputWindow.slide-to-bottom {
    /* ease-in for disappearing */
-  animation: kbHide 0.4s both ease-in;
+  animation: kbHide var(--transition-duration) both ease-in;
 }
 
 @keyframes kbShow {
@@ -72,7 +72,7 @@
   80% {
     /* the original style indicates opacity should transition from 0 to 1
        within 0.2s for "ease", which after calculation is about 80% progress
-       of 0.4s "ease". */
+       of var(--transition-duration) "ease". */
     opacity: 1;
   }
   100% {
@@ -113,11 +113,11 @@
 }
 
 .lockScreenInputWindow.slide-from-bottom {
-  animation: slideFromBottom 0.4s both ease;
+  animation: slideFromBottom var(--transition-duration) both ease;
 }
 
 .lockScreenInputWindow.slide-to-bottom {
-  animation: slideToBottom 0.4s both ease-in;
+  animation: slideToBottom var(--transition-duration) both ease-in;
 }
 
 @keyframes slideFromBottom {

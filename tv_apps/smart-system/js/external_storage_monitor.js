@@ -1,5 +1,5 @@
 'use strict';
-/* global Notification, MozActivity */
+/* global Notification, MozActivity, NotificationHelper */
 
 (function(exports) {
 
@@ -379,35 +379,36 @@
       var msg = '[ExternalStorageMonitor] createMessage(): action = ' + action;
       this.debug(msg);
 
-      var _ = navigator.mozL10n.get;
-
       // Prepare message for fire notification.
-      var title, body;
+      var titleL10n, bodyL10n;
       switch (action) {
         case 'detected-recognised':
           this.getTotalSpace(function(totalSpace) {
-            title = _('sdcard-detected-title');
-            body = _('sdcard-total-size-body', {
-              size: totalSpace.size,
-              unit: totalSpace.unit
-            });
-            this.fireNotification(title, body, true);
+            titleL10n = 'sdcard-detected-title';
+            bodyL10n = {
+              'id': 'sdcard-total-size-body',
+              'args': {
+                size: totalSpace.size,
+                unit: totalSpace.unit
+              }
+            };
+            this.fireNotification(titleL10n, bodyL10n, true);
           }.bind(this));
           break;
         case 'detected-unrecognised':
-          title = _('sdcard-detected-title');
-          body = _('sdcard-unknown-size-then-tap-to-format-body');
-          this.fireNotification(title, body, true);
+          titleL10n = 'sdcard-detected-title';
+          bodyL10n = 'sdcard-unknown-size-then-tap-to-format-body';
+          this.fireNotification(titleL10n, bodyL10n, true);
           break;
         case 'normally-removed':
-          title = _('sdcard-removed-title');
-          body = _('sdcard-removed-ejected-successfully');
-          this.fireNotification(title, body);
+          titleL10n = 'sdcard-removed-title';
+          bodyL10n = 'sdcard-removed-ejected-successfully';
+          this.fireNotification(titleL10n, bodyL10n);
           break;
         case 'unexpectedly-removed':
-          title = _('sdcard-removed-title');
-          body = _('sdcard-removed-not-ejected-properly');
-          this.fireNotification(title, body);
+          titleL10n = 'sdcard-removed-title';
+          bodyL10n = 'sdcard-removed-not-ejected-properly';
+          this.fireNotification(titleL10n, bodyL10n);
           break;
       }
     },
@@ -425,16 +426,17 @@
       var notificationId = 'sdcard-storage-status';
 
       var options = {
-        body: body,
-        icon: iconUrl,
-        tag: notificationId
+        'bodyL10n': body,
+        'icon': iconUrl,
+        'tag': notificationId
       };
 
-      var notification = new Notification(title, options);
-
-      // set onclick handler for the notification
-      notification.onclick =
-        this.notificationHandler.bind(this, notification, openSettings);
+      NotificationHelper.send(title, options).then(function(notification) {
+        // set onclick handler for the notification
+        notification.addEventListener( 'click', function() {
+          this.notificationHandler.bind(this, notification, openSettings);
+        });
+      });
     },
 
     /**

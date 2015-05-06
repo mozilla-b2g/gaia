@@ -10,6 +10,7 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/utilities.js');
 require('/shared/js/contacts/search.js');
+require('/contacts/js/fb_resolver.js');
 
 suite('Search mode', function() {
   var searchBox, searchList, noResults;
@@ -121,8 +122,7 @@ suite('Search mode', function() {
     // test. Otherwise, every highlighted string needs to be equal to 'phrase'.
     function assertHighlight(phrase, strict) {
       var regExp = new RegExp('^' + Normalizer.toAscii(phrase) + '$', 'i'),
-          highlightClass = contacts.Search.getHighlightClass(),
-          highlightedNodes = searchList.getElementsByClassName(highlightClass);
+          highlightedNodes = searchList.getElementsByTagName('mark');
 
       assert.isTrue(highlightedNodes.length > 0);
 

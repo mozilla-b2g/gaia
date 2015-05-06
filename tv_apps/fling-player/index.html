@@ -6,15 +6,17 @@
     <title>Fling Player</title>
 
     <!-- stylesheets of building blocks -->
-    <link rel="stylesheet" type="text/css" href="tv_shared/font/gaia-device-icons.css">
-    <link rel="stylesheet" type="text/css" href="tv_shared/components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_component/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
     <link rel="stylesheet" type="text/css" href="style/fling_player.css">
 
     <!-- shared libraries -->
-    <script defer src="tv_shared/js/vendor/evt.js"></script>
+    <script defer src="bower_components/evt/index.js"></script>
 
     <!-- building block -->
-    <script defer src="tv_shared/components/smart-button/script.js"></script>
+    <script defer src="bower_components/gaia-component/gaia-component.js"></script>
+    <script defer src="bower_components/gaia-loading/gaia-loading.js"></script>
+    <script defer src="bower_components/smart-button/script.js"></script>
 
     <!-- main javascript code -->
     <script defer src="js/video_player.js"></script>
@@ -22,7 +24,7 @@
     <script defer src="js/fling_player.js"></script>
   </head>
 
-  <body>
+  <body class="theme-media">
     <article class="skin-dark">
       <section role="region" id="video-player-section">
         <video id="player" preload="metadata"></video>
@@ -31,6 +33,7 @@
         </nav>
       </section>
       <section role="region" id="loading-section">
+        <gaia-loading></gaia-loading>
         <span>Loading...</span>
       </section>
     </article>

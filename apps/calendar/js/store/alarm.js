@@ -2,12 +2,12 @@ define(function(require, exports, module) {
 'use strict';
 
 var Abstract = require('./abstract');
-var Calc = require('calc');
-var createDOMPromise = require('create_dom_promise');
-var debug = require('debug')('store/alarm');
-var denodeifyAll = require('promise').denodeifyAll;
-var notificationsController = require('controllers/notifications');
-var object = require('object');
+var Calc = require('common/calc');
+var createDOMPromise = require('common/create_dom_promise');
+var core = require('core');
+var debug = require('common/debug')('store/alarm');
+var denodeifyAll = require('common/promise').denodeifyAll;
+var object = require('common/object');
 
 /**
  * The alarm store can be thought of as a big queue.
@@ -104,7 +104,7 @@ Alarm.prototype = {
     // keep adding events until we are beyond this time.
     var minimum = utc + (this._alarmAddThresholdHours * Calc.HOUR);
 
-    var request = this.db
+    var request = core.db
       .transaction('alarms', 'readwrite')
       .objectStore('alarms')
       .index('trigger')
@@ -156,7 +156,7 @@ Alarm.prototype = {
     }
 
     if (!trans) {
-      trans = this.db.transaction(this._dependentStores);
+      trans = core.db.transaction(this._dependentStores);
     }
 
     var store = trans.objectStore(this._store);
@@ -259,7 +259,7 @@ function dispatchAlarms(past, future) {
   });
 
   object.forEach(eventToAlarm, (event, alarm) => {
-    notificationsController.onAlarm(alarm);
+    core.notificationsController.onAlarm(alarm);
   });
 
   // If the alarm should be triggered in the future, then we can create an

@@ -10,9 +10,9 @@ from gaiatest import GaiaTestCase
 class TestLaunchL10n(GaiaTestCase):
 
     default_locale = 'en-US'
-    alternate_locale = 'fr'
-    test_apps = {'Clock': 'Horloge',
-                 'Phone': u'Téléphone'}
+    alternate_locale = 'qps-ploc'
+    test_apps = {'Clock': u'Ƈŀǿǿƈķ',
+                 'Settings': u'Şḗḗŧŧīīƞɠş'}
 
     def test_launch_by_english_name_in_alternate_locale(self):
         '''

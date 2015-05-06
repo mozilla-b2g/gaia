@@ -398,7 +398,6 @@ var CpScreenHelper = (function() {
   function cpsh_onQuit(evt) {
     evt.preventDefault();
 
-    WapPushManager.clearNotifications(messageTag);
     MessageDB.deleteByTimestamp(messageTag).then(function() {
       WapPushManager.close();
     }, function() {
@@ -473,8 +472,6 @@ var CpScreenHelper = (function() {
     processed = true;
     // Store APNs into the database.
     StoreProvisioning.provision(apns, iccCardIndex);
-
-    WapPushManager.clearNotifications(messageTag);
 
     /* Show finish confirm dialog after having deleted the message, this is
      * done even if the deletion fails for some reason. */

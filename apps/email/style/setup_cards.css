@@ -130,14 +130,27 @@ cards-setup-done .sup-form-btn.recommend {
   color: #333;
   border: none;
   box-shadow: none;
+  box-sizing: border-box;
   background: white;
   outline: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
   padding: 1rem 1.5rem 0;
   font-size: 1.6rem;
+}
+
+/* Copy/paste select all could reach across the whole DOM so only scope the
+  selection to the center "active" card. Bug 1152172. */
+.center .tng-signature-text {
   -moz-user-select: text;
 }
+/* This style allows newlines to be copied. This catches br tags and is
+extensible to the future where other tags could be in the contenteditable
+field. Bug 1127160. */
+.center .tng-signature-text * {
+  -moz-user-select: text;
+}
+
 
 .tng-list {
   margin: 0;
@@ -145,8 +158,18 @@ cards-setup-done .sup-form-btn.recommend {
 }
 
 li button.signature-button.icon:before {
-  background-image: url('../shared/style/buttons/images/next.png');
+  top: calc(50% - 1.3rem);
   right: 0;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin-top: 0;
+  background: url('../shared/style/buttons/images/forward-light.svg') no-repeat center / 2.6rem;
+  opacity: 0.7;
+}
+
+html:-moz-dir(rtl) li button.signature-button.icon:before  {
+  left: 0;
+  right: unset;
 }
 
 li button.signature-button.button.icon {
@@ -332,16 +355,17 @@ li.align-center {
 
 .item-with-children::after  {
   content: "";
-  width: 3rem;
-  height: 3rem;
+  width: 2.6rem;
+  height: 2.6rem;
   position: absolute;
-  top: calc(50% - 1.5rem);
-  right: 0;
-  background: url(/shared/style/buttons/images/next.png) no-repeat center / 3rem auto;
+  top: calc(50% - 1.3rem);
+  right: -0.5rem;
+  background: url('../shared/style/buttons/images/forward-light.svg') no-repeat center / 2.6rem;
+  opacity: 0.7;
 }
 
 html:-moz-dir(rtl) .item-with-children::after  {
-  left: 0;
+  left: -0.5rem;
   right: auto;
 }
 

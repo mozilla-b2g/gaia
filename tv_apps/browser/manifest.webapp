@@ -14,7 +14,6 @@
     "systemXHR":{},
     "settings":{ "access": "readwrite" },
     "geolocation" : {},
-    "storage": {},
     "desktop-notification" : {},
     "audio-capture": {},
     "video-capture": {},

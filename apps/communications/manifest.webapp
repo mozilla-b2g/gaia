@@ -78,9 +78,8 @@
     "desktop-notification":{},
     "alarms": {},
     "systemXHR": {},
-    "audio-channel-content":{},
+    "audio-channel-notification":{},
     "idle":{},
-    "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},
     "nfc-share":{},
@@ -94,8 +93,8 @@
           "required": true,
           "value": ["webcontacts/contact","webcontacts/email",
                     "webcontacts/tel","webcontacts/select",
-                    "text/vcard", "text/x-vcard"]
-        }
+                    "text/vcard", "text/x-vcard", "text/directory"]
+         }
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",
@@ -103,7 +102,10 @@
     },
     "import": {
       "filters": {
-        "type": "text/vcard"
+        "type": {
+          "required": true,
+          "value": ["text/vcard", "text/x-vcard", "text/directory"]
+        }
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",
@@ -111,7 +113,8 @@
     },
     "open": {
       "filters": {
-        "type": ["webcontacts/contact", "text/vcard", "text/x-vcard"]
+        "type": ["webcontacts/contact", "text/vcard", "text/x-vcard",
+                 "text/directory"]
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",

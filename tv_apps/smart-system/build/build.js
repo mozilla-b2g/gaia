@@ -22,8 +22,7 @@ SystemAppBuilder.prototype.addCustomizeFiles = function() {
   var files = utils.ls(fileDir);
   files.forEach(function(file) {
     utils.copyFileTo(file.path,
-      utils.joinPath(self.stageDir.path, 'resources', 'power'),
-        file.leafName, true);
+      utils.joinPath(self.stageDir.path, 'resources', 'power'), file.leafName);
   });
 };
 
@@ -36,9 +35,5 @@ SystemAppBuilder.prototype.execute = function(options) {
 };
 
 exports.execute = function(options) {
-  // copy tv shared files
-  var helperPath = utils.joinPath('..', '..', 'tv_apps', 'tv_build',
-                                  'tv_shared_helper.js');
-  require(helperPath).TVSharedHelper.execute(options);
   (new SystemAppBuilder()).execute(options);
 };

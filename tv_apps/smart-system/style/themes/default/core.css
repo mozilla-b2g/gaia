@@ -127,7 +127,7 @@
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
-    padding: 1.5rem 0;
+    padding: 1.5rem 0 2rem 0;
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) {

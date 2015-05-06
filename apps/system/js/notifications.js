@@ -5,8 +5,10 @@
 
 
 var NotificationScreen = {
-  TOASTER_TIMEOUT: 5000,
+  TOASTER_TIMEOUT: 3500,
   TRANSITION_FRACTION: 0.30,
+  TRANSITION_DURATION: 200,
+  SWIPE_INERTIA: 100,
   TAP_THRESHOLD: 10,
   SCROLL_THRESHOLD: 10,
   CLEAR_DELAY: 80,
@@ -174,6 +176,7 @@ var NotificationScreen = {
         break;
       case 'ftudone':
         this.toaster.addEventListener('tap', this);
+        this.updateNotificationIndicator();
         break;
       case 'desktop-notification-resend':
         this.resendExpecting = evt.detail.number;
@@ -228,6 +231,7 @@ var NotificationScreen = {
     this._touchStartX = evt.touches[0].pageX;
     this._touchStartY = evt.touches[0].pageY;
     this._touchPosX = 0;
+    this._touchStartTime = evt.timeStamp;
     this._touching = true;
     this._isTap = true;
   },
@@ -254,13 +258,13 @@ var NotificationScreen = {
       return;
     }
 
-    evt.preventDefault();
-
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
     if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
+      this.notificationsContainer.style.overflow = 'hidden';
     }
     if (!this._isTap) {
+      evt.preventDefault();
       this._notification.style.transform =
         'translateX(' + this._touchPosX + 'px)';
     }
@@ -274,6 +278,8 @@ var NotificationScreen = {
     evt.preventDefault();
     this._touching = false;
 
+    this.notificationsContainer.style.overflow = '';
+
     if (this._isTap) {
       var event = new CustomEvent('tap', {
         bubbles: true,
@@ -284,12 +290,21 @@ var NotificationScreen = {
       return;
     }
 
-    if (Math.abs(this._touchPosX) >
+    // Taking speed into account to detect swipes
+    var deltaT = evt.timeStamp - this._touchStartTime;
+    var speed = this._touchPosX / deltaT;
+    var inertia = speed * this.SWIPE_INERTIA;
+    var finalDelta = Math.abs(this._touchPosX + inertia);
+
+    if (finalDelta >
         this._containerWidth * this.TRANSITION_FRACTION) {
       if (this._touchPosX < 0) {
         this._notification.classList.add('left');
       }
-      this.swipeCloseNotification();
+
+      var durationLeft = (1 - (finalDelta / this._containerWidth)) *
+                         this.TRANSITION_DURATION;
+      this.swipeCloseNotification(durationLeft);
     } else {
       this.cancelSwipe();
     }
@@ -373,13 +388,11 @@ var NotificationScreen = {
 
     this.toaster.dataset.notificationId = detail.id;
     this.toaster.dataset.type = type;
-    this.toasterTitle.textContent = detail.title;
-    this.toasterTitle.lang = detail.lang;
-    this.toasterTitle.dir = dir;
+    this.toaster.lang = detail.lang;
+    this.toaster.dir = dir;
 
+    this.toasterTitle.textContent = detail.title;
     this.toasterDetail.textContent = detail.text;
-    this.toasterDetail.lang = detail.lang;
-    this.toasterDetail.dir = dir;
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -396,6 +409,17 @@ var NotificationScreen = {
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
 
+    /* If dir "auto" was specified by the notification,
+     * use document direction instead because dir="auto"
+     * does not align the notification node according to
+     * the system language direction but instead it aligns
+     * every child element according to its own language
+     * which creates a UI mess we can't control by changing
+     * the system language.
+     */
+    var dir = (detail.bidi === 'auto' || typeof detail.bidi === 'undefined') ?
+      document.documentElement.dir : detail.bidi;
+
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
     this.addUnreadNotification(detail.id, true);
@@ -406,6 +430,8 @@ var NotificationScreen = {
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
+    notificationNode.lang = detail.lang;
+    notificationNode.dataset.predefinedDir = detail.bidi;
 
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
@@ -423,20 +449,14 @@ var NotificationScreen = {
       notificationNode.appendChild(icon);
     }
 
-    var dir = (detail.bidi === 'ltr' ||
-               detail.bidi === 'rtl') ?
-          detail.bidi : 'auto';
-
     var titleContainer = document.createElement('div');
     titleContainer.classList.add('title-container');
-    titleContainer.lang = detail.lang;
-    titleContainer.dir = dir;
 
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
-    title.lang = detail.lang;
-    title.dir = dir;
+    title.setAttribute('dir', 'auto');
+
     titleContainer.appendChild(title);
 
     var time = document.createElement('span');
@@ -450,9 +470,11 @@ var NotificationScreen = {
 
     var message = document.createElement('div');
     message.classList.add('detail');
-    message.textContent = detail.text;
-    message.lang = detail.lang;
-    message.dir = dir;
+    var messageContent = document.createElement('div');
+    messageContent.classList.add('detail-content');
+    messageContent.textContent = detail.text;
+    messageContent.setAttribute('dir', 'auto');
+    message.appendChild(messageContent);
     notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
@@ -469,7 +491,11 @@ var NotificationScreen = {
       } else if (oldIcon) {
         oldNotif.removeChild(oldIcon);
       }
+      // but we still need to update type, lang and dir.
       oldNotif.dataset.type = type;
+      oldNotif.lang = detail.lang;
+      oldNotif.dataset.predefinedDir = detail.bidi;
+
       notificationNode = oldNotif;
     } else {
       notificationContainer.insertBefore(notificationNode,
@@ -536,7 +562,7 @@ var NotificationScreen = {
           ringtonePlayer.pause();
           ringtonePlayer.removeAttribute('src');
           ringtonePlayer.load();
-        }, 2000);
+        }, 4000);
       }
 
       if (this.vibrates) {
@@ -581,7 +607,7 @@ var NotificationScreen = {
       }));
   },
 
-  swipeCloseNotification: function ns_swipeCloseNotification() {
+  swipeCloseNotification: function ns_swipeCloseNotification(duration) {
     var notification = this._notification;
     this._notification = null;
 
@@ -611,6 +637,8 @@ var NotificationScreen = {
     });
 
     notification.classList.add('disappearing');
+    duration = duration || this.TRANSITION_DURATION;
+    notification.style.transitionDuration = duration + 'ms';
     notification.style.transform = '';
   },
 
@@ -641,6 +669,11 @@ var NotificationScreen = {
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
     if (this.unreadNotifications.length) {
+      // If the ftu is running we should not show the ambient indicator
+      // because the statusbar is not accessible
+      if (Service.query('isFtuRunning')) {
+        return;
+      }
       this.ambientIndicator.classList.add('unread');
       navigator.mozL10n.setAttributes(
         this.ambientIndicator,

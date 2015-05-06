@@ -178,7 +178,7 @@ li .button[aria-disabled="true"] {
 li button.icon,
 li .bb-button.icon,
 li .button.icon {
-  padding-right: 4rem;
+  -moz-padding-end: 4rem;
 }
 
 li button.icon:before,
@@ -204,7 +204,8 @@ li .button.icon-view:active {
 li button.icon-view:before,
 li .bb-button.icon-view:before,
 li .button.icon-view:before {
-  background-image: url(buttons/images/next.png);
+  background-image: url(buttons/images/forward-light.svg);
+  background-size: 3rem;
   right: 0;
 }
 
@@ -400,6 +401,11 @@ html[dir="rtl"] .bb-button[data-icon]:before,
 html[dir="rtl"] .button[data-icon]:before {
   left: 1.5rem;
   right: unset;
+}
+
+html[dir="rtl"] button.mirrored[data-icon]:before,
+html[dir="rtl"] .bb-button.mirrored[data-icon]:before,
+html[dir="rtl"] .button.mirrored[data-icon]:before {
   transform: scale(-1, 1);
 }
 
@@ -432,7 +438,7 @@ html[dir="rtl"] li .bb-button.icon-dialog:before,
 html[dir="rtl"] li .button.icon-dialog:before {
   left: 0.8rem;
   right: unset;
-  transform: rotate(135deg);
+  transform: rotate(315deg);
   border-left: unset;
   border-right: 0.7rem solid #00aac5;
 }
@@ -460,10 +466,4 @@ html[dir="rtl"] .button[data-icon] select {
   left: unset;
   right: 0.3rem; /* .3rem space because of italic */
   text-indent: 1rem;
-}
-
-html[dir="rtl"] li button.icon,
-html[dir="rtl"] li .bb-button.icon,
-html[dir="rtl"] li .button.icon {
-    padding-right: 1rem;
 }

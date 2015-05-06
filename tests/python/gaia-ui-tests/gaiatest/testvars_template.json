@@ -1,37 +1,46 @@
 {
   "settings": {},
   "prefs": {},
-  "local_phone_numbers": [""],
-  "imei": "",
+  "phone_number": [],
+  "imei": [],
   "remote_phone_number": "",
   "wifi": {
     "ssid": ""
   },
   "email": {
     "gmail": {
-      "name": "",
       "email": "",
       "password": ""
     },
-    "IMAP": {
-      "name": "",
+    "imap": {
       "email": "",
-      "password": "",
-      "imap_hostname": "",
-      "imap_name": "",
-      "imap_port": "",
-      "smtp_hostname": "",
-      "smtp_name": "",
-      "smtp_port": ""
+      "hostname": "",
+      "port": "",
+      "username": "",
+      "password": ""
     },
-    "ActiveSync":{
-      "name": "",
+    "activesync":{
       "email": "",
-      "password": "",
-      "active_sync_hostname": "",
-      "active_sync_username": ""
+      "hostname": "",
+      "username": "",
+      "password": ""
+    },
+    "smtp":{
+      "hostname": "",
+      "port": "",
+      "username": "",
+      "password": ""
     }
-
+  },
+  "host": {
+    "smtp": {
+      "email": "",
+      "ssl": false,
+      "hostname": "",
+      "port": 25,
+      "username": "",
+      "password": ""
+    }
   },
   "plivo": {
     "auth_id": "",

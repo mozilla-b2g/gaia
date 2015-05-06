@@ -98,19 +98,19 @@ var SimManager = (function() {
         UIManager.pinInput.value = '';
         UIManager.pinInput.classList.add('onerror');
         UIManager.pinError.classList.remove('hidden');
-        navigator.mozL10n.setAttributes(
-          UIManager.pinError.querySelector('.main'),
-          'pinAttemptMsg2',
-          l10nArgs
-        );
-
+        navigator.mozL10n.setAttributes(UIManager.pinRetriesLeft,
+                                          'inputCodeRetriesLeft', l10nArgs);
+        UIManager.pinRetriesLeft.classList.remove('hidden');
         if (retryCount === 1) {
           UIManager.pinError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
-          navigator.mozL10n.setAttributes(UIManager.pinRetriesLeft,
-                                            'inputCodeRetriesLeft', l10nArgs);
-          UIManager.pinRetriesLeft.classList.remove('hidden');
+          navigator.mozL10n.setAttributes(
+            UIManager.pinError.querySelector('.main'),
+            'pinAttemptMsg2',
+            l10nArgs
+          );
+          UIManager.pinError.querySelector('.main').classList.remove('hidden');
         }
         break;
       case 'puk':
@@ -118,19 +118,19 @@ var SimManager = (function() {
         UIManager.pukInput.classList.add('onerror');
         UIManager.pukError.classList.remove('hidden');
         UIManager.pukInfo.classList.add('hidden');
-        navigator.mozL10n.setAttributes(
-          UIManager.pukError.querySelector('.main'),
-          'pukAttemptMsg2',
-          l10nArgs
-        );
-
+        navigator.mozL10n.setAttributes(UIManager.pukRetriesLeft,
+                                          'inputCodeRetriesLeft', l10nArgs);
+        UIManager.pukRetriesLeft.classList.remove('hidden');
         if (retryCount === 1) {
           UIManager.pukError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
-          navigator.mozL10n.setAttributes(UIManager.pukRetriesLeft,
-                                            'inputCodeRetriesLeft', l10nArgs);
-          UIManager.pukRetriesLeft.classList.remove('hidden');
+          navigator.mozL10n.setAttributes(
+            UIManager.pukError.querySelector('.main'),
+            'pukAttemptMsg2',
+            l10nArgs
+          );
+          UIManager.pukError.querySelector('.main').classList.remove('hidden');
         }
         // TODO what if counter gets to 0 ??
         break;
@@ -141,19 +141,19 @@ var SimManager = (function() {
         UIManager.xckInput.classList.add('onerror');
         UIManager.xckError.classList.remove('hidden');
         UIManager.xckInfo.classList.add('hidden');
-        navigator.mozL10n.setAttributes(
-          UIManager.xckError.querySelector('.main'),
-          'nckAttemptMsg2',
-          l10nArgs
-        );
-
-        if (retryCount === 1) {
+        navigator.mozL10n.setAttributes(UIManager.xckRetriesLeft,
+                                          'inputCodeRetriesLeft', l10nArgs);
+        UIManager.xckRetriesLeft.classList.remove('hidden');
+        if (retryCount == 1) {
           UIManager.xckError.
             querySelector('.lastchance').classList.remove('hidden');
         } else {
-          navigator.mozL10n.setAttributes(UIManager.xckRetriesLeft,
-                                            'inputCodeRetriesLeft', l10nArgs);
-          UIManager.xckRetriesLeft.classList.remove('hidden');
+          navigator.mozL10n.setAttributes(
+            UIManager.xckError.querySelector('.main'),
+            'nckAttemptMsg2',
+            l10nArgs
+          );
+          UIManager.xckError.querySelector('.main').classList.remove('hidden');
         }
         break;
     }
@@ -552,7 +552,7 @@ var SimManager = (function() {
   },
 
   simUnlockBack: function sm_simUnlockBack() {
-    if (this.icc0.skipped) {
+    if (this.icc0 && this.icc0.skipped) {
       this.icc0.skipped = false;
       this.hideScreen();
       this.handleCardState();
@@ -566,6 +566,7 @@ var SimManager = (function() {
     if (!icc) {
       throw new Error('Cannot unlock SIM, no current ICC');
     }
+    this.clearFields();
 
     switch (icc.mozIcc.cardState) {
       case 'pinRequired':
@@ -616,15 +617,22 @@ var SimManager = (function() {
     UIManager.confirmNewpinError.classList.add('hidden');
 
     UIManager.pinError.classList.add('hidden');
+    UIManager.pinError.querySelector('.main').classList.add('hidden');
+    UIManager.pinError.querySelector('.lastchance').classList.add('hidden');
     UIManager.pinRetriesLeft.classList.add('hidden');
+
     UIManager.pukError.classList.add('hidden');
+    UIManager.pukError.querySelector('.main').classList.add('hidden');
+    UIManager.pukError.querySelector('.lastchance').classList.add('hidden');
     UIManager.pukRetriesLeft.classList.add('hidden');
+
     UIManager.xckError.classList.add('hidden');
+    UIManager.xckError.querySelector('.main').classList.add('hidden');
+    UIManager.xckError.querySelector('.lastchance').classList.add('hidden');
     UIManager.xckRetriesLeft.classList.add('hidden');
   },
 
   unlockPuk: function sm_unlockPuk(icc) {
-    this.clearFields();
     var pukCode = UIManager.pukInput.value;
     if (pukCode.length !== 8) {
       UIManager.pukError.querySelector('.main')

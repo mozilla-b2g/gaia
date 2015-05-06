@@ -21,25 +21,6 @@ section[role="notification"] a {
   text-decoration: underline;
 }
 
-/* Render this container outside of the document flow so that it does not
- * effect the height of the containing subheader, and therefore does not effect
- * the height of the Compose field. */
-.subheader .overlay {
-  position: absolute;
-  width: 100%;
-}
-
-/** To be seen below the To: field when we are creating a new message **/
-.new .overlay {
-  /* recipient's panel default size; be careful as this value depends on To:
-   * field height */
-  top: 4rem;
-}
-
-.new.multiline-recipients-mode .overlay {
-  top: 5.5rem;
-}
-
 section[role="notification"] p {
   margin: .9rem 1.5rem;
   line-height: 1.7rem;

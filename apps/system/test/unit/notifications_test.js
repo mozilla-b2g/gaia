@@ -8,12 +8,12 @@
   MockNavigatorMozTelephony,
   MockCall,
   MockVersionHelper,
-  UtilityTray
+  UtilityTray,
+  Service
  */
 
 'use strict';
 
-require('/js/notifications.js');
 require('/test/unit/mock_screen_manager.js');
 require('/test/unit/mock_statusbar.js');
 require('/test/unit/mock_utility_tray.js');
@@ -50,6 +50,7 @@ suite('system/NotificationScreen >', function() {
     fakeNotifContainer;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
   var realVersionHelper, realMozL10n;
+  var isDocumentHidden;
 
   function sendChromeNotificationEvent(detail) {
     var event = new CustomEvent('mozChromeNotificationEvent', {
@@ -80,9 +81,13 @@ suite('system/NotificationScreen >', function() {
 
 
   mocksForNotificationScreen.attachTestHelpers();
-  setup(function() {
+  setup(function(done) {
     fakeDesktopNotifContainer = document.createElement('div');
     fakeDesktopNotifContainer.id = 'desktop-notifications-container';
+    Object.defineProperty(fakeDesktopNotifContainer, 'clientWidth', {
+      configurable: true,
+      get: function() { return 320; }
+    });
     fakeNotifContainer = document.createElement('div');
     fakeNotifContainer.id = 'notifications-container';
     fakePriorityNotifContainer = document.createElement('div');
@@ -140,11 +145,23 @@ suite('system/NotificationScreen >', function() {
     };
     navigator.mozL10n = MockL10n;
 
+    isDocumentHidden = false;
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => isDocumentHidden
+    });
+
     this.sinon.useFakeTimers();
-    NotificationScreen.init();
+    require('/js/notifications.js', function() {
+      NotificationScreen.init();
+      done();
+    });
   });
 
   teardown(function() {
+    // real document.hidden is in a prototype, so we can just delete it.
+    delete document.hidden;
+
     fakeDesktopNotifContainer.parentNode.removeChild(fakeDesktopNotifContainer);
     fakeLockScreenContainer.parentNode.removeChild(fakeLockScreenContainer);
     fakeToaster.parentNode.removeChild(fakeToaster);
@@ -220,6 +237,19 @@ suite('system/NotificationScreen >', function() {
       assert.ok(playSpy.calledOnce);
     });
 
+    test('it should stop playing after 4 seconds', function() {
+      var pauseSpy = this.sinon.spy(MockAudio.prototype, 'pause');
+      var loadSpy =  this.sinon.spy(MockAudio.prototype, 'load');
+      var removeAttributeSpy = this.sinon.spy(
+        MockAudio.prototype, 'removeAttribute');
+      sendNotification();
+      sinon.assert.notCalled(pauseSpy);
+      this.sinon.clock.tick(4000);
+      sinon.assert.called(loadSpy);
+      sinon.assert.calledWith(removeAttributeSpy, 'src');
+      sinon.assert.called(pauseSpy);
+    });
+
     test('if active call it should use telephony channel', function() {
       var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
       var mockCall = new MockCall('123456', 'connected');
@@ -266,6 +296,21 @@ suite('system/NotificationScreen >', function() {
       assert.isNull(NotificationScreen.ambientIndicator.getAttribute(
         'aria-label'));
       UtilityTray.shown = false;
+    });
+
+    test('should not show ambient indicator if FTU is running', function() {
+      var query = this.sinon.stub(Service, 'query');
+      query.withArgs('isFtuRunning').returns(true);
+      incrementNotications(1);
+      assert.isFalse(NotificationScreen.ambientIndicator.classList.
+        contains('unread'));
+    });
+
+    test('should update notification indicator when the FTU is done',
+      function() {
+        this.sinon.stub(NotificationScreen, 'updateNotificationIndicator');
+        window.dispatchEvent(new CustomEvent('ftudone'));
+        assert.isTrue(NotificationScreen.updateNotificationIndicator.called);
     });
 
     test('should not clear the ambient after decrement unread', function() {
@@ -332,14 +377,24 @@ suite('system/NotificationScreen >', function() {
     });
 
     function testNotificationWithDirection(dir) {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath,
                     title: 'title',
                     detail: 'detail',
                     bidi: dir};
       NotificationScreen.addNotification(detail);
-      assert.equal(dir, toasterTitle.dir);
+      assert.equal(dir, toaster.dir);
+      var notificationNode =
+        document.getElementsByClassName('notification')[0];
+      var notificationNodeTitle =
+        document.querySelector('.notification .title-container .title');
+      var notificationNodeDetail =
+        document.querySelector('.notification .detail');
+      assert.equal(dir, notificationNode.dataset.predefinedDir);
+      assert.equal('auto', notificationNodeTitle.dir);
+      assert.equal('auto', notificationNodeDetail
+        .querySelector('.detail-content').dir);
     }
 
     test('calling addNotification with rtl direction', function() {
@@ -351,31 +406,31 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('calling addNotification with auto direction', function() {
-      testNotificationWithDirection('auto');
+      testNotificationWithDirection('');
     });
 
     test('calling addNotification without direction', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title', detail: 'detail'};
       NotificationScreen.addNotification(detail);
-      assert.equal('auto', toasterTitle.dir);
+      assert.equal('', toaster.dir);
     });
 
     test('calling addNotification with language', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title', lang: 'en'};
       NotificationScreen.addNotification(detail);
-      assert.equal('en', toasterTitle.lang);
+      assert.equal('en', toaster.lang);
     });
 
     test('calling addNotification without language', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toaster = NotificationScreen.toaster;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title'};
       NotificationScreen.addNotification(detail);
-      assert.equal('undefined', toasterTitle.lang);
+      assert.equal('undefined', toaster.lang);
     });
 
     test('calling addNotification with timestamp', function() {
@@ -646,6 +701,69 @@ suite('system/NotificationScreen >', function() {
     });
   });
 
+  suite('swiping to dismiss >', function() {
+    var notificationNode, notifClickedStub, contentNotificationEventStub;
+    var details = {
+      type: 'desktop-notification',
+      id: 'id-1',
+      title: '',
+      message: ''
+    };
+
+    setup(function() {
+      notificationNode = NotificationScreen.addNotification(details);
+
+      notifClickedStub = sinon.stub();
+      contentNotificationEventStub = sinon.stub();
+
+      window.addEventListener('notification-clicked', notifClickedStub);
+      window.addEventListener(
+        'mozContentNotificationEvent', contentNotificationEventStub);
+    });
+
+    function fakeEvt(x, y) {
+      return {
+        timeStamp: Date.now(),
+        preventDefault: function() {},
+        touches: [{
+          target: notificationNode,
+          pageX: x,
+          pageY: y
+        }]
+      };
+    }
+
+    test('should disable scrolling during a swipe', function() {
+      var overflow = NotificationScreen.notificationsContainer.style.overflow;
+      assert.equal(overflow, '');
+
+      NotificationScreen.touchstart(fakeEvt(1, 1));
+      NotificationScreen.touchmove(fakeEvt(45, 1));
+      overflow = NotificationScreen.notificationsContainer.style.overflow;
+      assert.equal(overflow, 'hidden');
+
+      NotificationScreen.touchend(fakeEvt(45, 1));
+      overflow = NotificationScreen.notificationsContainer.style.overflow;
+      assert.equal(overflow, '');
+    });
+
+    test('should account for speed when dismissing', function() {
+      // Short but fast swipe
+      var close = this.sinon.stub(NotificationScreen, 'swipeCloseNotification');
+      NotificationScreen.touchstart(fakeEvt(1, 1));
+      this.sinon.clock.tick(10);
+      NotificationScreen.touchmove(fakeEvt(25, 1));
+      this.sinon.clock.tick(20);
+      NotificationScreen.touchmove(fakeEvt(45, 1));
+      this.sinon.clock.tick(30);
+      NotificationScreen.touchend(fakeEvt(45, 1));
+
+      sinon.assert.calledOnce(close);
+      var arg = close.getCall(0).args[0];
+      assert.isTrue(arg < NotificationScreen.TRANSITION_DURATION);
+    });
+  });
+
   suite('tap a notification using the obsolete API >', function() {
     var notificationNode, notifClickedStub, contentNotificationEventStub;
     var details = {
@@ -865,5 +983,4 @@ suite('system/NotificationScreen >', function() {
       });
     });
   });
-
 });

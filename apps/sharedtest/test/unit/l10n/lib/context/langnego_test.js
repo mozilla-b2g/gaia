@@ -1,5 +1,5 @@
 /* global assert:true, it, describe, beforeEach */
-/* global navigator, process */
+/* global navigator */
 'use strict';
 
 if (typeof navigator !== 'undefined') {
@@ -7,9 +7,7 @@ if (typeof navigator !== 'undefined') {
   var Context = L10n.Context;
 } else {
   var assert = require('assert');
-  var Context = process.env.L20N_COV ?
-    require('../../../build/cov/lib/l20n/context').Context
-    : require('../../../lib/l20n/context').Context;
+  var Context = require('../../../src/lib/context').Context;
 }
 
 describe('Language negotiation without arguments', function() {
@@ -47,14 +45,12 @@ describe('Language negotiation with arguments', function() {
 
 describe('Language negotiation with arguments and unsupported', function() {
   var ctx;
-
   beforeEach(function(done) {
     ctx = new Context();
     ctx.once(done);
     ctx.registerLocales('en-US', ['pl']);
     ctx.requestLocales('fr', 'pl');
   });
-
   it('sets the correct fallback chain', function() {
     assert.strictEqual(ctx.supportedLocales.length, 2);
     assert.strictEqual(ctx.supportedLocales[0], 'pl');

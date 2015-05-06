@@ -2,10 +2,347 @@
 ;(function(define){define(function(require,exports,module){
 'use strict';
 
+/**
+ * Simple logger.
+ *
+ * @return {Function}
+ */
+var debug = 0 ? console.log.bind(console) : function(){};
+
+/**
+ * Global canvas cache.
+ *
+ * @type {Object}
+ */
+var cache = {};
+
+/**
+ * Default min/max font-size.
+ *
+ * @type {Number}
+ */
+var MIN = 16;
+var MAX = 24;
+
+/**
+ * The number of pixels to subtract from
+ * the given `config.space` to ensure
+ * HTML text doesn't overflow container.
+ *
+ * Ideally we would use 1px, but in some
+ * cases italicised text in canvas is ~2px
+ * longer than the same text in HTML.
+ *
+ * http://bugzil.la/1126391
+ *
+ * @type {Number}
+ */
+var BUFFER = 3;
+
+/**
+ * Get the font-size that closest fits
+ * the given space with the given font.
+ *
+ * Config:
+ *
+ *   - {String} `text` The text string
+ *   - {String} `font` Font shorthand string
+ *   - {Number} `space` Width (px) to fit the text into
+ *   - {Number} `min` Min font-size (px) (optional)
+ *   - {Number} `max` Max font-size (px) (optional)
+ *
+ * @param  {Object} config
+ * @return {Object} {fontSize,overflowing,textWidth}
+ */
+module.exports = function(config) {
+  debug('font fit', config);
+  var space = config.space - BUFFER;
+  var min = config.min || MIN;
+  var max = config.max || MAX;
+  var text = trim(config.text);
+  var fontSize = max;
+  var textWidth;
+  var font;
+
+  do {
+    font = config.font.replace(/\d+px/, fontSize + 'px');
+    textWidth = getTextWidth(text, font);
+  } while (textWidth > space && fontSize !== min && fontSize--);
+
+  return {
+    textWidth: textWidth,
+    fontSize: fontSize,
+    overflowing: textWidth > space
+  };
+};
+
+/**
+ * Get the width of the given text
+ * with the given font style.
+ *
+ * @param  {String} text
+ * @param  {String} font (CSS shorthand)
+ * @return {Number} (px)
+ */
+function getTextWidth(text, font) {
+  var ctx = getCanvasContext(font);
+  var width = ctx.measureText(text).width;
+  debug('got text width', width);
+  return width;
+}
+
+/**
+ * Get a canvas context configured
+ * to the given font style.
+ *
+ * @param  {String} font
+ * @return {CanvasRenderingContext2D}
+ */
+function getCanvasContext(font) {
+  debug('get canvas context', font);
+
+  var cached = cache[font];
+  if (cached) { return cached; }
+
+  var canvas = document.createElement('canvas');
+  canvas.setAttribute('moz-opaque', 'true');
+  canvas.setAttribute('width', '1px');
+  canvas.setAttribute('height', '1px');
+  debug('created canvas', canvas);
+
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.font = font;
+
+  return cache[font] = ctx;
+}
+
+/**
+ * Trim leading, trailing
+ * and excess whitespace.
+ *
+ * @param  {String} text
+ * @return {String}
+ */
+function trim(text) {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+});})(typeof define=='function'&&define.amd?define
+:(function(n,w){'use strict';return typeof module=='object'?function(c){
+c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
+return w[n];},m.exports,m);w[n]=m.exports;};})('font-fit',this));
+
+},{}],2:[function(require,module,exports){
+;(function(define){define(function(require,exports,module){
+'use strict';
+
+/**
+ * Locals
+ */
+
 var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
-var removeAttribute = HTMLElement.prototype.removeAttribute;
-var setAttribute = HTMLElement.prototype.setAttribute;
+var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+var removeAttribute = Element.prototype.removeAttribute;
+var setAttribute = Element.prototype.setAttribute;
 var noop  = function() {};
+
+/**
+ * Register a new component.
+ *
+ * @param  {String} name
+ * @param  {Object} props
+ * @return {constructor}
+ * @public
+ */
+exports.register = function(name, props) {
+  var baseProto = getBaseProto(props.extends);
+
+  // Clean up
+  delete props.extends;
+
+  // Pull out CSS that needs to be in the light-dom
+  if (props.template) {
+    var output = processCss(props.template, name);
+
+    props.template = document.createElement('template');
+    props.template.innerHTML = output.template;
+    props.lightCss = output.lightCss;
+
+    props.globalCss = props.globalCss || '';
+    props.globalCss += output.globalCss;
+  }
+
+  // Inject global CSS into the document,
+  // and delete as no longer needed
+  injectGlobalCss(props.globalCss);
+  delete props.globalCss;
+
+  // Merge base getter/setter attributes with the user's,
+  // then define the property descriptors on the prototype.
+  var descriptors = Object.assign(props.attrs || {}, base.descriptors);
+
+  // Store the orginal descriptors somewhere
+  // a little more private and delete the original
+  props._attrs = props.attrs;
+  delete props.attrs;
+
+  // Create the prototype, extended from base and
+  // define the descriptors directly on the prototype
+  var proto = createProto(baseProto, props);
+  Object.defineProperties(proto, descriptors);
+
+  // Register the custom-element and return the constructor
+  try {
+    return document.registerElement(name, { prototype: proto });
+  } catch (e) {
+    if (e.name !== 'NotSupportedError') {
+      throw e;
+    }
+  }
+};
+
+var base = {
+  properties: {
+    GaiaComponent: true,
+    attributeChanged: noop,
+    attached: noop,
+    detached: noop,
+    created: noop,
+
+    createdCallback: function() {
+      if (this.rtl) { addDirObserver(); }
+      injectLightCss(this);
+      this.created();
+    },
+
+    /**
+     * It is very common to want to keep object
+     * properties in-sync with attributes,
+     * for example:
+     *
+     *   el.value = 'foo';
+     *   el.setAttribute('value', 'foo');
+     *
+     * So we support an object on the prototype
+     * named 'attrs' to provide a consistent
+     * way for component authors to define
+     * these properties. When an attribute
+     * changes we keep the attr[name]
+     * up-to-date.
+     *
+     * @param  {String} name
+     * @param  {String||null} from
+     * @param  {String||null} to
+     */
+    attributeChangedCallback: function(name, from, to) {
+      var prop = toCamelCase(name);
+      if (this._attrs && this._attrs[prop]) { this[prop] = to; }
+      this.attributeChanged(name, from, to);
+    },
+
+    attachedCallback: function() { this.attached(); },
+    detachedCallback: function() { this.detached(); },
+
+    /**
+     * A convenient method for setting up
+     * a shadow-root using the defined template.
+     *
+     * @return {ShadowRoot}
+     */
+    setupShadowRoot: function() {
+      if (!this.template) { return; }
+      var node = document.importNode(this.template.content, true);
+      this.createShadowRoot().appendChild(node);
+      return this.shadowRoot;
+    },
+
+    /**
+     * Sets an attribute internally
+     * and externally. This is so that
+     * we can style internal shadow-dom
+     * content.
+     *
+     * @param {String} name
+     * @param {String} value
+     */
+    setAttr: function(name, value) {
+      var internal = this.shadowRoot.firstElementChild;
+      setAttribute.call(internal, name, value);
+      setAttribute.call(this, name, value);
+    },
+
+    /**
+     * Removes an attribute internally
+     * and externally. This is so that
+     * we can style internal shadow-dom
+     * content.
+     *
+     * @param {String} name
+     * @param {String} value
+     */
+    removeAttr: function(name) {
+      var internal = this.shadowRoot.firstElementChild;
+      removeAttribute.call(internal, name);
+      removeAttribute.call(this, name);
+    }
+  },
+
+  descriptors: {
+    textContent: {
+      set: function(value) {
+        textContent.set.call(this, value);
+        if (this.lightStyle) { this.appendChild(this.lightStyle); }
+      },
+
+      get: textContent.get
+    },
+
+    innerHTML: {
+      set: function(value) {
+        innerHTML.set.call(this, value);
+        if (this.lightStyle) { this.appendChild(this.lightStyle); }
+      },
+
+      get: innerHTML.get
+    }
+  }
+};
+
+/**
+ * The default base prototype to use
+ * when `extends` is undefined.
+ *
+ * @type {Object}
+ */
+var defaultPrototype = createProto(HTMLElement.prototype, base.properties);
+
+/**
+ * Returns a suitable prototype based
+ * on the object passed.
+ *
+ * @param  {HTMLElementPrototype|undefined} proto
+ * @return {HTMLElementPrototype}
+ * @private
+ */
+function getBaseProto(proto) {
+  if (!proto) { return defaultPrototype; }
+  proto = proto.prototype || proto;
+  return !proto.GaiaComponent
+    ? createProto(proto, base.properties)
+    : proto;
+}
+
+/**
+ * Extends the given proto and mixes
+ * in the given properties.
+ *
+ * @param  {Object} proto
+ * @param  {Object} props
+ * @return {Object}
+ */
+function createProto(proto, props) {
+  return Object.assign(Object.create(proto), props);
+}
 
 /**
  * Detects presence of shadow-dom
@@ -20,144 +357,17 @@ var hasShadowCSS = (function() {
 })();
 
 /**
- * Register a new component.
+ * Regexs used to extract shadow-css
  *
- * @param  {String} name
- * @param  {Object} props
- * @return {constructor}
- * @public
+ * @type {Object}
  */
-module.exports.register = function(name, props) {
-  injectGlobalCss(props.globalCss);
-  delete props.globalCSS;
-
-  var proto = Object.assign(Object.create(base), props);
-  var output = extractLightDomCSS(proto.template, name);
-  var _attrs = Object.assign(props.attrs || {}, attrs);
-
-  proto.template = output.template;
-  proto.lightCss = output.lightCss;
-
-  Object.defineProperties(proto, _attrs);
-
-  // Register and return the constructor
-  // and expose `protoytpe` (bug 1048339)
-  var El = document.registerElement(name, { prototype: proto });
-  return El;
+var regex = {
+  shadowCss: /(?:\:host|\:\:content)[^{]*\{[^}]*\}/g,
+  ':host': /(?:\:host)/g,
+  ':host()': /\:host\((.+)\)(?: \:\:content)?/g,
+  ':host-context': /\:host-context\((.+)\)([^{,]+)?/g,
+  '::content': /(?:\:\:content)/g
 };
-
-var base = Object.assign(Object.create(HTMLElement.prototype), {
-  attributeChanged: noop,
-  attached: noop,
-  detached: noop,
-  created: noop,
-  template: '',
-
-  createdCallback: function() {
-    this.injectLightCss(this);
-    this.created();
-  },
-
-  /**
-   * It is very common to want to keep object
-   * properties in-sync with attributes,
-   * for example:
-   *
-   *   el.value = 'foo';
-   *   el.setAttribute('value', 'foo');
-   *
-   * So we support an object on the prototype
-   * named 'attrs' to provide a consistent
-   * way for component authors to define
-   * these properties. When an attribute
-   * changes we keep the attr[name]
-   * up-to-date.
-   *
-   * @param  {String} name
-   * @param  {String||null} from
-   * @param  {String||null} to
-   */
-  attributeChangedCallback: function(name, from, to) {
-    if (this.attrs && this.attrs[name]) { this[name] = to; }
-    this.attributeChanged(name, from, to);
-  },
-
-  attachedCallback: function() { this.attached(); },
-  detachedCallback: function() { this.detached(); },
-
-  /**
-   * Sets an attribute internally
-   * and externally. This is so that
-   * we can style internal shadow-dom
-   * content.
-   *
-   * @param {String} name
-   * @param {String} value
-   */
-  setAttr: function(name, value) {
-    var internal = this.shadowRoot.firstElementChild;
-    setAttribute.call(internal, name, value);
-    setAttribute.call(this, name, value);
-  },
-
-  /**
-   * Removes an attribute internally
-   * and externally. This is so that
-   * we can style internal shadow-dom
-   * content.
-   *
-   * @param {String} name
-   * @param {String} value
-   */
-  removeAttr: function() {
-    var internal = this.shadowRoot.firstElementChild;
-    removeAttribute.call(internal, name, value);
-    removeAttribute.call(this, name, value);
-  },
-
-  /**
-   * The Gecko platform doesn't yet have
-   * `::content` or `:host`, selectors,
-   * without these we are unable to style
-   * user-content in the light-dom from
-   * within our shadow-dom style-sheet.
-   *
-   * To workaround this, we clone the <style>
-   * node into the root of the component,
-   * so our selectors are able to target
-   * light-dom content.
-   *
-   * @private
-   */
-  injectLightCss: function(el) {
-    if (hasShadowCSS) { return; }
-    this.lightStyle = document.createElement('style');
-    this.lightStyle.setAttribute('scoped', '');
-    this.lightStyle.innerHTML = el.lightCss;
-    el.appendChild(this.lightStyle);
-  }
-});
-
-var attrs = {
-  textContent: {
-    set: function(value) {
-      var node = firstChildTextNode(this);
-      if (node) { node.nodeValue = value; }
-    },
-
-    get: function() {
-      var node = firstChildTextNode(this);
-      return node && node.nodeValue;
-    }
-  }
-};
-
-function firstChildTextNode(el) {
-  for (var i = 0; i < el.childNodes.length; i++) {
-    var node = el.childNodes[i];
-    if (node && node.nodeType === 3) { return node; }
-  }
-}
 
 /**
  * Extracts the :host and ::content rules
@@ -167,20 +377,34 @@ function firstChildTextNode(el) {
  *
  * @return {String}
  */
-function extractLightDomCSS(template, name) {
-  var regex = /(?::host|::content)[^{]*\{[^}]*\}/g;
+function processCss(template, name) {
+  var globalCss = '';
   var lightCss = '';
 
   if (!hasShadowCSS) {
-    template = template.replace(regex, function(match) {
-      lightCss += match.replace(/::content|:host/g, name);
+    template = template.replace(regex.shadowCss, function(match) {
+      var hostContext = regex[':host-context'].exec(match);
+
+      if (hostContext) {
+        globalCss += match
+          .replace(regex['::content'], '')
+          .replace(regex[':host-context'], '$1 ' + name + '$2')
+          .replace(/ +/g, ' '); // excess whitespace
+      } else {
+        lightCss += match
+          .replace(regex[':host()'], name + '$1')
+          .replace(regex[':host'], name)
+          .replace(regex['::content'], name);
+      }
+
       return '';
     });
   }
 
   return {
     template: template,
-    lightCss: lightCss
+    lightCss: lightCss,
+    globalCss: globalCss
   };
 }
 
@@ -197,15 +421,105 @@ function extractLightDomCSS(template, name) {
 function injectGlobalCss(css) {
   if (!css) return;
   var style = document.createElement('style');
-  style.innerHTML = css;
-  document.head.appendChild(style);
+  style.innerHTML = css.trim();
+  headReady().then(() => {
+    document.head.appendChild(style)
+  });
+}
+
+
+/**
+ * Resolves a promise once document.head is ready.
+ *
+ * @private
+ */
+function headReady() {
+  return new Promise(resolve => {
+    if (document.head) { return resolve(); }
+    window.addEventListener('load', function fn() {
+      window.removeEventListener('load', fn);
+      resolve();
+    });
+  });
+}
+
+
+/**
+ * The Gecko platform doesn't yet have
+ * `::content` or `:host`, selectors,
+ * without these we are unable to style
+ * user-content in the light-dom from
+ * within our shadow-dom style-sheet.
+ *
+ * To workaround this, we clone the <style>
+ * node into the root of the component,
+ * so our selectors are able to target
+ * light-dom content.
+ *
+ * @private
+ */
+function injectLightCss(el) {
+  if (hasShadowCSS) { return; }
+  el.lightStyle = document.createElement('style');
+  el.lightStyle.setAttribute('scoped', '');
+  el.lightStyle.innerHTML = el.lightCss;
+  el.appendChild(el.lightStyle);
+}
+
+/**
+ * Convert hyphen separated
+ * string to camel-case.
+ *
+ * Example:
+ *
+ *   toCamelCase('foo-bar'); //=> 'fooBar'
+ *
+ * @param  {Sring} string
+ * @return {String}
+ */
+function toCamelCase(string) {
+  return string.replace(/-(.)/g, function replacer(string, p1) {
+    return p1.toUpperCase();
+  });
+}
+
+/**
+ * Observer (singleton)
+ *
+ * @type {MutationObserver|undefined}
+ */
+var dirObserver;
+
+/**
+ * Observes the document `dir` (direction)
+ * attribute and dispatches a global event
+ * when it changes.
+ *
+ * Components can listen to this event and
+ * make internal changes if need be.
+ *
+ * @private
+ */
+function addDirObserver() {
+  if (dirObserver) { return; }
+
+  dirObserver = new MutationObserver(onChanged);
+  dirObserver.observe(document.documentElement, {
+    attributeFilter: ['dir'],
+    attributes: true
+  });
+
+  function onChanged(mutations) {
+    document.dispatchEvent(new Event('dirchanged'));
+  }
 }
 
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-component',this));
-},{}],2:[function(require,module,exports){
+
+},{}],3:[function(require,module,exports){
 (function(define){define(function(require,exports,module){
 /*jshint laxbreak:true*/
 
@@ -240,33 +554,79 @@ function isLoaded() {
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-icons',this));
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 ;(function(define){'use strict';define(function(require,exports,module){
-/*jshint esnext:true*/
 
 /**
  * Dependencies
  */
 
-var Component = require('gaia-component');
-var fontFit = require('./lib/font-fit');
+var component = require('gaia-component');
+var fontFit = require('font-fit');
 
-// Load 'gaia-icons' font-family
+/**
+ * Load 'gaia-icons' font-family
+ */
 require('gaia-icons');
+
+/**
+ * Simple logger (toggle 0)
+ *
+ * @type {Function}
+ */
+var debug = 0 ? console.log.bind(console) : function() {};
 
 /**
  * Supported action types
  *
  * @type {Object}
  */
-var actionTypes = { menu: 1, back: 1, close: 1 };
+const KNOWN_ACTIONS = {
+  menu: 'menu',
+  back: 'back',
+  close: 'close'
+};
 
 /**
- * Register the component.
+ * The default title font.
+ *
+ * @type {String}
+ */
+const TITLE_FONT = 'italic 300 24px FiraSans';
+
+/**
+ * The padding (start/end) used if
+ * the title needs padding away from
+ * the edge of the header.
+ *
+ * @type {Number}
+ */
+const TITLE_PADDING = 10;
+
+/**
+ * This is the minimum font size that we can take
+ * when the header title is centered in the window.
+ */
+const MINIMUM_FONT_SIZE_CENTERED = 20;
+
+/**
+ * This is the minimum font size that we can take
+ * when the header title is not centered in the window.
+ */
+const MINIMUM_FONT_SIZE_UNCENTERED = 18;
+
+/**
+ * This is the maximum font size that we can use for
+ * the heade title.
+ */
+const MAXIMUM_FONT_SIZE = 23;
+
+/**
+ * Register the element.
  *
  * @return {Element} constructor
  */
-module.exports = Component.register('gaia-header', {
+module.exports = component.register('gaia-header', {
 
   /**
    * Called when the element is first created.
@@ -277,128 +637,589 @@ module.exports = Component.register('gaia-header', {
    * @private
    */
   created: function() {
-    this.createShadowRoot().innerHTML = this.template;
+    debug('created');
+    this.setupShadowRoot();
 
-    // Get els
+    // Elements
     this.els = {
       actionButton: this.shadowRoot.querySelector('.action-button'),
-      headings: this.querySelectorAll('h1,h2,h3,h4'),
-      inner: this.shadowRoot.querySelector('.inner')
+      buttons: this.querySelectorAll('button, a'),
+      titles: this.querySelectorAll('h1')
     };
 
+    // Events
     this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
-    this.configureActionButton();
-    this.runFontFit();
+    this.observer = new MutationObserver(this.onMutation.bind(this));
+
+    // Properties
+    this.titleEnd = this.getAttribute('title-end');
+    this.titleStart = this.getAttribute('title-start');
+    this.noFontFit = this.getAttribute('no-font-fit');
+    this.notFlush = this.hasAttribute('not-flush');
+    this.action = this.getAttribute('action');
+
+    this.unresolved = {};
+    this.pending = {};
+    this._resizeThrottlingId = null;
+
+    // bind the listener in advance so that we can remove it when detaching.
+    this.onResize = this.onResize.bind(this);
   },
 
   /**
    * Called when the element is
    * attached to the DOM.
    *
+   * Run fontFit when we have DOM
+   * context and start listening
+   * for DOM mutations.
+   *
+   * We run font-fit on next tick to
+   * avoid reading from the DOM when
+   * it may not be loaded yet.
+   *
    * @private
    */
   attached: function() {
-    this.rerunFontFit();
+    debug('attached');
+    this.runFontFitSoon();
+    this.observerStart();
+    window.addEventListener('resize', this.onResize);
   },
 
   /**
-   * Called when one of the attributes
-   * on the element changes.
+   * Called when the element is
+   * detached from the DOM.
    *
    * @private
    */
-  attributeChanged: function(attr) {
-    if (attr === 'action') {
-      this.configureActionButton();
-      this.rerunFontFit();
-    }
+  detached: function() {
+    debug('detached');
+    window.removeEventListener('resize', this.onResize);
+    this.observerStop();
+    this.clearPending();
   },
 
   /**
-   * Runs the logic to size and position
-   * header text inside the available space.
+   * Clears pending `.nextTick()`s and requestAnimationFrame's.
    *
    * @private
+   */
+  clearPending: function() {
+    for (var key in this.pending) {
+      this.pending[key].clear();
+      delete this.pending[key];
+    }
+
+    window.cancelAnimationFrame(this._resizeThrottlingId);
+    this._resizeThrottlingId = null;
+  },
+
+  /**
+   * Run the font-fit logic and
+   * center the title.
+   *
+   * The styles are calculated synchronously,
+   * but then set asynchronously. This means
+   * this function can be hammered in one turn,
+   * and the title styles will only be written
+   * once, with the latest styles.
+   *
+   * @return {Promise}
+   * @public
    */
   runFontFit: function() {
-    for (var i = 0; i < this.els.headings.length; i++) {
-      fontFit.reformatHeading(this.els.headings[i]);
-      fontFit.observeHeadingChanges(this.els.headings[i]);
-    }
+    debug('run font-fit');
+
+    // Nothing is run if `no-font-fit` attribute
+    // is present. We don't `reject()` as this
+    // isn't technically an error state.
+    if (this.noFontFit) { return Promise.resolve(); }
+
+    var titles = this.els.titles;
+    var space = this.getTitleSpace();
+    var styles = [].map.call(titles, el => this.getTitleStyle(el, space));
+
+    // Update the title styles using the latest
+    // styles. This function can be called many
+    // times but will only run once in each tick.
+    return this.setTitleStylesSoon(styles);
   },
 
   /**
-   * Rerun font-fit logic.
-   *
-   * TODO: We really need an official API for this.
+   * Microtask debounced `runFontFit`
    *
    * @private
    */
-  rerunFontFit: function() {
-    for (var i = 0; i < this.els.headings.length; i++) {
-      fontFit.reformatHeading(this.els.headings[i]);
+  runFontFitSoon: function() {
+    debug('run font-fit soon');
+    if (this.pending.runFontFitSoon) { return; }
+    this.pending.runFontFitSoon = this.nextTick(() => {
+      delete this.pending.runFontFitSoon;
+      this.runFontFit();
+    });
+  },
+
+  /**
+   * Get the style properties required
+   * to fit and position the title text.
+   *
+   * @param  {HTMLH1Element} el
+   * @param  {Number} space
+   * @return {Object} {fontSize, marginStart, overflowing, id}
+   * @private
+   */
+  getTitleStyle: function(el, space) {
+    debug('get el style', el, space);
+    var text = el.textContent;
+    var styleId = space.start + text + space.end + '#' + space.value;
+
+    // Bail when there's no text (or just whitespace)
+    if (!text || !text.trim()) { return debug('exit: no text'); }
+
+    // If neither the text or the titleSpace
+    // changed, there's no reason to continue.
+    if (getStyleId(el) === styleId) { return debug('exit: no change'); }
+
+    var marginStart = this.getTitleMarginStart();
+    var textSpace = space.value - Math.abs(marginStart);
+    var fontFitResult = this.fontFit(text, textSpace, {
+      min: MINIMUM_FONT_SIZE_CENTERED
+    });
+
+    var overflowing = fontFitResult.overflowing;
+    var padding = { start: 0, end: 0 };
+
+    // If the text is overflowing in the
+    // centered title, we remove centering
+    // to free up space, rerun fontFit to
+    // get a fontSize which fits this space.
+    if (overflowing) {
+      debug('title overflowing');
+      padding.start = !space.start ? TITLE_PADDING : 0;
+      padding.end = !space.end ? TITLE_PADDING : 0;
+      textSpace = space.value - padding.start - padding.end;
+      fontFitResult = this.fontFit(text, textSpace);
+      marginStart = 0;
     }
+
+    return {
+      id: styleId,
+      fontSize: fontFitResult.fontSize,
+      marginStart: marginStart,
+      overflowing: overflowing,
+      padding: padding
+    };
+  },
+
+  /**
+   * Set's styles on the title elements.
+   *
+   * If there is already an unresolved Promise
+   * we return it instead of scheduling another.
+   * This means that the function can be hammered
+   * in the same sync-turn and will only run
+   * once (like a debounce).
+   *
+   * @param {Array} styles
+   * @return {Promise}
+   */
+  setTitleStylesSoon: function(styles) {
+    debug('set title styles soon', styles);
+    var key = 'setStyleTitlesSoon';
+
+     // Always update styles
+    this._titleStyles = styles;
+
+    // Return existing unresolved
+    // promise, or make a new one
+    return this.unresolved[key] = this.unresolved[key] || new Promise((resolve) => {
+      this.pending[key] = this.nextTick(() => {
+        var styles = this._titleStyles;
+        var els = this.els.titles;
+
+        [].forEach.call(els, (el, i) => {
+          if (!styles[i]) { return debug('exit'); }
+          this.setTitleStyle(el, styles[i]);
+        });
+
+        // Clean up
+        delete this._titleStyles;
+        delete this.unresolved[key];
+        delete this.pending[key];
+
+        resolve();
+      });
+    });
+  },
+
+  /**
+   * Fit text and center a title between
+   * the buttons before and after.
+   *
+   * Right now, because gaia-header is not
+   * fully rtl-compatible (due to Gaia),
+   * we're using `marginLeft` etc. These
+   * will be changed to `marginStart` etc
+   * when we become fully RTL.
+   *
+   * @param  {HTMLH1Element} title
+   * @param  {Number} space
+   * @private
+   */
+  setTitleStyle: function(el, style) {
+    debug('set title style', style);
+    this.observerStop();
+    el.style.marginLeft = style.marginStart + 'px';
+    el.style.paddingLeft = style.padding.start + 'px';
+    el.style.paddingRight = style.padding.end + 'px';
+    el.style.fontSize = style.fontSize + 'px';
+    setStyleId(el, style.id);
+    this.observerStart();
+  },
+
+  /**
+   * Run font-fit on a title with
+   * the given amount of content space.
+
+   * @param {String} text
+   * @param {Number} space
+   * @param {Object} optional {[min]}
+   * @return {Object} {fontSize, textWidth}
+   * @private
+   */
+  fontFit: function(text, space, opts = {}) {
+    debug('font fit:', text, space, opts);
+
+    var fontFitArgs = {
+      font: TITLE_FONT,
+      min: opts.min || MINIMUM_FONT_SIZE_UNCENTERED,
+      max: MAXIMUM_FONT_SIZE,
+      text: text,
+      space: space
+    };
+
+    return fontFit(fontFitArgs);
+  },
+
+  /**
+   * Start the observer listening
+   * for DOM mutations.
+   * Start the listener for 'resize' event.
+   *
+   * @private
+   */
+  observerStart: function() {
+    if (this.observing) { return; }
+
+    this.observer.observe(this, {
+      childList: true,
+      attributes: true,
+      subtree: true
+    });
+
+    this.observing = true;
+    debug('observer started');
+  },
+
+  /**
+   * Stop the observer listening
+   * for DOM mutations.
+   *
+   * @private
+   */
+  observerStop: function() {
+    if (!this.observing) { return; }
+    this.observer.disconnect();
+
+    this.observing = false;
+    debug('observer stopped');
+  },
+
+  /**
+   * Handle 'resize' events.
+   * @param {Event} The DOM Event that's being handled.
+   *
+   * @private
+   */
+  onResize: function(e) {
+    debug('onResize', this._resizeThrottlingId);
+
+    if (this._resizeThrottlingId !== null) {
+      return;
+    }
+
+    /* Resize events can arrive at a very high rate, so we're trying to
+     * reasonably throttle these events. */
+    this._resizeThrottlingId = window.requestAnimationFrame(() => {
+      this._resizeThrottlingId = null;
+      this.runFontFitSoon();
+    });
+  },
+
+  /**
+   * When the components DOM changes we
+   * call `.runFontFit()` (sync).
+   *
+   * If the `textContent` is changed in a
+   * mutation observer just after attaching,
+   * we end up running twice.
+   *
+   * If there is a pending async .runFontFit(),
+   * then we don't want to run it now.
+   *
+   * @param  {Array} mutations
+   * @private
+   */
+  onMutation: function(mutations) {
+    debug('on mutation', mutations);
+    if (!this.pending.runFontFitSoon) { this.runFontFit(); }
+  },
+
+  /**
+   * Get the title width.
+   *
+   * Returns the space available for <h1>.
+   *
+   * @return {Number}
+   * @private
+   */
+  getTitleSpace: function() {
+    var start = this.titleStart;
+    var end = this.titleEnd;
+    var space = this.getWidth() - start - end;
+    var result = {
+      value: space,
+      start: start,
+      end: end
+    };
+
+    debug('get title space', result);
+    return result;
+  },
+
+  /**
+   * Get the width of the component.
+   *
+   * For performance reasons we make the
+   * assumption that the width is the same
+   * as `window.innerWidth` unless the
+   * `not-flush` attribute is used.
+   *
+   * @return {Number}
+   * @private
+   */
+  getWidth: function() {
+    var value = this.notFlush
+      ? this.clientWidth
+      : window.innerWidth;
+
+    debug('get width', value);
+    return value;
   },
 
   /**
    * Triggers the 'action' button
-   * (used in testing).
+   * (used in Gaia integration testing).
    *
    * @public
    */
   triggerAction: function() {
-    if (this.isSupportedAction(this.getAttribute('action'))) {
-      this.els.actionButton.click();
-    }
-  },
-
-  /**
-   * Configure the action button based
-   * on the value of the `data-action`
-   * attribute.
-   *
-   * @private
-   */
-  configureActionButton: function() {
-    var old = this.els.actionButton.getAttribute('icon');
-    var type = this.getAttribute('action');
-    var supported = this.isSupportedAction(type);
-    this.els.actionButton.classList.remove('icon-' + old);
-    this.els.actionButton.setAttribute('icon', type);
-    this.els.inner.classList.toggle('supported-action', supported);
-    if (supported) { this.els.actionButton.classList.add('icon-' + type); }
-  },
-
-  /**
-   * Validate action against supported list.
-   *
-   * @private
-   */
-  isSupportedAction: function(action) {
-    return action && actionTypes[action];
+    if (this.action) { this.els.actionButton.click(); }
   },
 
   /**
    * Handle clicks on the action button.
    *
-   * Fired async to allow the 'click' event
+   * Fired pending to allow the 'click' event
    * to finish its event path before
    * dispatching the 'action' event.
    *
    * @param  {Event} e
    * @private
    */
-  onActionButtonClick: function(e) {
-    var config = { detail: { type: this.getAttribute('action') } };
-    var actionEvent = new CustomEvent('action', config);
-    setTimeout(this.dispatchEvent.bind(this, actionEvent));
+  onActionButtonClick: function() {
+    debug('action button click');
+    var config = { detail: { type: this.action } };
+    var e = new CustomEvent('action', config);
+    setTimeout(() => this.dispatchEvent(e));
   },
 
-  template: `
+  /**
+   * Get the margin-start value required
+   * to center the title between
+   * surrounding buttons.
+   *
+   * @param  {Object} title
+   * @return {Object}
+   * @private
+   */
+  getTitleMarginStart: function() {
+    var start = this.titleStart;
+    var end = this.titleEnd;
+    var marginStart = end - start;
+    debug('get title margin start', marginStart);
+    return marginStart;
+  },
+
+  /**
+   * Get all the buttons (<a> & <button>)
+   * before the first <h1>.
+   *
+   * @return {Array}
+   * @private
+   */
+  getButtonsBeforeTitle: function() {
+    var children = this.children;
+    var l = children.length;
+    var els = [];
+
+    for (var i = 0; i < l; i++) {
+      var el = children[i];
+      if (el.tagName === 'H1') { break; }
+      if (!contributesToLayout(el)) { continue; }
+
+      els.push(el);
+    }
+
+    // Don't forget the action button
+    if (this.action) { els.push(this.els.actionButton); }
+    return els;
+  },
+
+  /**
+   * Get all the buttons (<a> & <button>)
+   * after the last <h1>.
+   *
+   * @return {Array}
+   * @private
+   */
+  getButtonsAfterTitle: function() {
+    var children = this.children;
+    var els = [];
+
+    for (var i = children.length - 1; i >= 0; i--) {
+      var el = children[i];
+      if (el.tagName === 'H1') { break; }
+      if (!contributesToLayout(el)) { continue; }
+
+      els.push(el);
+    }
+
+    return els;
+  },
+
+  /**
+   * Get the sum of the width of
+   * the given buttons.
+   *
+   * This function is optimized to avoid reading
+   * `element.clientWidth` when possible.
+   *
+   * If a button is `display: none` it will
+   * have a `.clientWidth` of 0, therefore won't
+   * contribute anything to the overall sum.
+   *
+   * @param  {Array} buttons
+   * @return {Number}
+   * @private
+   */
+  sumButtonWidths: function(buttons) {
+    var defaultWidth = 50;
+    var sum = buttons.reduce((prev, button) => {
+      var isStandardButton = button === this.els.actionButton;
+      var width = isStandardButton ? defaultWidth : button.clientWidth;
+      return prev + width;
+    }, 0);
+
+    debug('sum button widths', buttons, sum);
+    return sum;
+  },
+
+  /**
+   * Known attribute property
+   * descriptors.
+   *
+   * These setters get called when matching
+   * attributes change on the element.
+   *
+   * @type {Object}
+   */
+  attrs: {
+    action: {
+      get: function() { return this._action; },
+      set: function(value) {
+        var action = KNOWN_ACTIONS[value];
+        if (action === this._action) { return; }
+        this.setAttr('action', action);
+        this._action = action;
+      },
+    },
+
+    titleStart: {
+      get: function() {
+        debug('get title-start');
+        if ('_titleStart' in this) { return this._titleStart; }
+        var buttons = this.getButtonsBeforeTitle();
+        var value = this.sumButtonWidths(buttons);
+        debug('get title-start', buttons, value);
+        return value;
+      },
+
+      set: function(value) {
+        debug('set title-start', value);
+        value = parseInt(value, 10);
+        if (value === this._titleStart || isNaN(value)) { return; }
+        this.setAttr('title-start', value);
+        this._titleStart = value;
+        debug('set');
+      }
+    },
+
+    titleEnd: {
+      get: function() {
+        debug('get title-end');
+        if ('_titleEnd' in this) { return this._titleEnd; }
+        var buttons = this.getButtonsAfterTitle();
+        return this.sumButtonWidths(buttons);
+      },
+
+      set: function(value) {
+        debug('set title-end', value);
+        value = parseInt(value, 10);
+        if (value === this._titleEnd || isNaN(value)) { return; }
+        this.setAttr('title-end', value);
+        this._titleEnd = value;
+      }
+    },
+
+    noFontFit: {
+      get: function() { return this._noFontFit || false; },
+      set: function(value) {
+        debug('set no-font-fit', value);
+        value = !!(value || value === '');
+
+        if (value === this.noFontFit) { return; }
+        this._noFontFit = value;
+
+        if (value) { this.setAttr('no-font-fit', ''); }
+        else { this.removeAttr('no-font-fit'); }
+      }
+    }
+  },
+
+  template: `<div class="inner">
+    <button class="action-button">
+      <content select=".l10n-action"></content>
+    </button>
+    <content></content>
+  </div>
+
   <style>
 
   :host {
     display: block;
+    -moz-user-select: none;
 
     --gaia-header-button-color:
       var(--header-button-color,
@@ -427,6 +1248,7 @@ module.exports = Component.register('gaia-header', {
     display: flex;
     min-height: 50px;
     direction: ltr;
+    -moz-user-select: none;
 
     background:
       var(--header-background,
@@ -442,18 +1264,20 @@ module.exports = Component.register('gaia-header', {
    */
 
   .action-button {
-    display: none; /* 1 */
     position: relative;
+
+    display: none; /* 1 */
     width: 50px;
     font-size: 30px;
     margin: 0;
     padding: 0;
     border: 0;
+    outline: 0;
+
     align-items: center;
     background: none;
     cursor: pointer;
     transition: opacity 200ms 280ms;
-
     color:
       var(--header-action-button-color,
       var(--header-icon-color,
@@ -461,12 +1285,16 @@ module.exports = Component.register('gaia-header', {
   }
 
   /**
-   * .action-supported
+   * [action=back]
+   * [action=menu]
+   * [action=close]
    *
    * 1. For icon vertical-alignment
    */
 
-  .supported-action .action-button {
+  [action=back] .action-button,
+  [action=menu] .action-button,
+  [action=close] .action-button {
     display: flex; /* 1 */
   }
 
@@ -478,6 +1306,20 @@ module.exports = Component.register('gaia-header', {
     transition: none;
     opacity: 0.2;
   }
+
+  /** Action Button Icon
+   ---------------------------------------------------------*/
+
+  .action-button:before {
+    font-family: 'gaia-icons';
+    font-style: normal;
+    text-rendering: optimizeLegibility;
+    font-weight: 500;
+  }
+
+  [action=close] .action-button:before { content: 'close' }
+  [action=back] .action-button:before { content: 'back' }
+  [action=menu] .action-button:before { content: 'menu' }
 
   /** Action Button Icon
    ---------------------------------------------------------*/
@@ -529,15 +1371,16 @@ module.exports = Component.register('gaia-header', {
   ::content h1 {
     flex: 1;
     margin: 0;
+    padding: 0;
+    overflow: hidden;
+
     white-space: nowrap;
     text-overflow: ellipsis;
-    overflow: hidden;
     text-align: center;
     line-height: 50px; /* 1 */
     font-weight: 300;
     font-style: italic;
     font-size: 24px;
-    -moz-user-select: none;
 
     color:
       var(--header-title-color,
@@ -548,27 +1391,19 @@ module.exports = Component.register('gaia-header', {
   }
 
   /**
-   * .flush-left
+   * [dir=rtl]
    *
-   * When the fitted text is flush with the
-   * edge of the left edge of the container
-   * we pad it in a bit.
+   * When the document is in RTL mode we still
+   * want the <h1> text to be reversed to that
+   * strings like '1 selected' become 'selected 1'.
+   *
+   * When we're happy for gaia-header to be fully
+   * RTL responsive we won't need this rule anymore,
+   * but this depends on all Gaia apps being ready.
    */
 
-  ::content h1.flush-left {
-    padding-left: 10px;
-  }
-
-  /**
-   * .flush-right
-   *
-   * When the fitted text is flush with the
-   * edge of the right edge of the container
-   * we pad it in a bit.
-   */
-
-  ::content h1.flush-right {
-    padding-right: 10px; /* 1 */
+  :host-context([dir=rtl]) ::content h1 {
+    direction: rtl;
   }
 
   /** Buttons
@@ -576,16 +1411,20 @@ module.exports = Component.register('gaia-header', {
 
   ::content a,
   ::content button {
+    position: relative;
+    z-index: 1;
     box-sizing: border-box;
     display: flex;
-    border: none;
     width: auto;
     height: auto;
+    min-width: 50px;
     margin: 0;
     padding: 0 10px;
+    outline: 0;
+    border: 0;
+
     font-size: 14px;
     line-height: 1;
-    min-width: 50px;
     align-items: center;
     justify-content: center;
     text-decoration: none;
@@ -594,11 +1433,8 @@ module.exports = Component.register('gaia-header', {
     border-radius: 0;
     font-style: italic;
     cursor: pointer;
-
     transition: opacity 200ms 280ms;
-
-    color:
-      var(--gaia-header-button-color);
+    color: var(--gaia-header-button-color);
   }
 
   /**
@@ -644,383 +1480,96 @@ module.exports = Component.register('gaia-header', {
       var(--gaia-header-button-color));
   }
 
-  /** Icons
-   ---------------------------------------------------------*/
+  /**
+   * If users want their action button
+   * to be in the component's light-dom
+   * they can add an .action class
+   * to make it look like the
+   * shadow action button.
+   */
 
-  [class^="icon-"]:before,
-  [class*="icon-"]:before {
-    font-family: 'gaia-icons';
-    font-style: normal;
-    text-rendering: optimizeLegibility;
-    font-weight: 500;
+  ::content .action {
+    color:
+      var(--header-action-button-color,
+      var(--header-icon-color,
+      var(--gaia-header-button-color)));
   }
 
-  .icon-menu:before { content: 'menu'; }
-  .icon-close:before { content: 'close'; }
-  .icon-back:before { content: 'back'; }
+  /**
+   * [data-icon]:empty
+   *
+   * Icon buttons with no textContent,
+   * should always be 50px.
+   *
+   * This is to prevent buttons being
+   * larger than they should be before
+   * icon-font has loaded.
+   */
 
-  </style>
+  ::content [data-icon]:empty {
+    width: 50px;
+  }
 
-  <div class="inner">
-    <button class="action-button">
-      <content select=".l10n-action"></content>
-    </button>
-    <content select="h1,h2,h3,h4,a,button"></content>
-  </div>`
+  </style>`,
+
+  // Test hook
+  nextTick: nextTick
 });
+
+/**
+ * Utils
+ */
+
+/**
+ * Determines whether passed element
+ * contributes to the layout in gaia-header.
+ *
+ * @param  {Element}  el
+ * @return {Boolean}
+ */
+function contributesToLayout(el) { return el.tagName !== 'STYLE'; }
+
+/**
+ * Set a 'style id' property that
+ * can be retrieved later.
+ *
+ * Used to determine whether a title's
+ * `style` needs to be updated or not.
+ *
+ * @param {Element} el
+ * @param {String} id
+ */
+function setStyleId(el, id) { el._styleId = id; }
+
+/**
+ * Get a 'style id' property.
+ *
+ * Used to determine whether a title's
+ * `style` needs to be updated or not.
+ *
+ * @param {Element} el
+ * @param {String} id
+ */
+function getStyleId(el) { return el._styleId; }
+
+/**
+ * Calls callback at next 'microtask'.
+ * Returns an object that has
+ * a `.clear()` method.
+ *
+ * @param  {Function} fn
+ * @return {Object} { clear }
+ */
+function nextTick(fn) {
+  var cleared;
+  Promise.resolve().then(() => { if (!cleared) { fn(); } });
+  return { clear: function() { cleared = true; }};
+}
 
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-header',this));
 
-},{"./lib/font-fit":4,"gaia-component":1,"gaia-icons":2}],4:[function(require,module,exports){
-;(function(define){'use strict';define(function(require,exports,module){
-  /*jshint esnext:true*/
-
-  /**
-   * Utility functions for measuring and manipulating font sizes
-   */
-  var GaiaHeaderFontFit = {
-    /**
-     * Allowable font sizes for header elements.
-     */
-    _HEADER_SIZES: [
-      16, 17, 18, 19, 20, 21, 22, 23, 24
-    ],
-
-    /**
-     * Perform auto-resize when textContent changes on element.
-     *
-     * @param {HTMLHeadingElement} heading The element to observer for changes
-     */
-    observeHeadingChanges: function(heading) {
-      var observer = this._getTextChangeObserver();
-      // Listen for any changes in the child nodes of the header.
-      observer.observe(heading, { childList: true });
-    },
-
-    /**
-     * Resize and reposition the header text based on string length and
-     * container position.
-     *
-     * @param {HTMLHeadingElement} heading h1 text inside header to reformat.
-     */
-    reformatHeading: function(heading) {
-      // Skip resize logic if header has no content, ie before localization.
-      if (!heading || heading.textContent.trim() === '') {
-        return;
-      }
-
-      // Reset our centering styles.
-      this._resetCentering(heading);
-
-      // Cache the element style properties to avoid reflows.
-      var style = this._getStyleProperties(heading);
-
-      // If the document is inside a hidden iframe
-      // `window.getComputedStyle()` returns null,
-      // and various canvas APIs throw errors; so we
-      // must abort here to avoid exceptions.
-      if (!style) {
-        return;
-      }
-
-      // Perform auto-resize and center.
-      style.textWidth = this._autoResizeElement(heading, style);
-      this._centerTextToScreen(heading, style);
-    },
-
-    /**
-     * Clear any current canvas contexts from the cache.
-     */
-    resetCache: function() {
-      this._cachedContexts = {};
-    },
-
-    /**
-     * Keep a cache of canvas contexts with a given font.
-     * We do this because it is faster to create new canvases
-     * than to re-set the font on existing contexts repeatedly.
-     *
-     * @private
-     */
-    _cachedContexts: {},
-
-    /**
-     * Grab or create a cached canvas context for a given fontSize/family pair.
-     * @todo Add font-weight as a new dimension for caching.
-     *
-     * @param {number} fontSize The font size of the canvas we want.
-     * @param {string} fontFamily The font family of the canvas we want.
-     * @param {string} fontStyle The style of the font (default to italic).
-     * @return {CanvasRenderingContext2D} A context with the specified font.
-     * @private
-     */
-    _getCachedContext: function(fontSize, fontFamily, fontStyle) {
-      // Default to italic style since this code is only ever used
-      // by headers right now and header text is always italic.
-      fontStyle = fontStyle || 'italic';
-
-      var cache = this._cachedContexts;
-      var ctx = cache[fontSize] && cache[fontSize][fontFamily] ?
-        cache[fontSize][fontFamily][fontStyle] : null;
-
-      if (!ctx) {
-        var canvas = document.createElement('canvas');
-        canvas.setAttribute('moz-opaque', 'true');
-        canvas.setAttribute('width', '1');
-        canvas.setAttribute('height', '1');
-
-        ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.font = fontStyle + ' ' + fontSize + 'px ' + fontFamily;
-
-        // Populate the contexts cache.
-        if (!cache[fontSize]) {
-          cache[fontSize] = {};
-        }
-        if (!cache[fontSize][fontFamily]) {
-          cache[fontSize][fontFamily] = {};
-        }
-        cache[fontSize][fontFamily][fontStyle] = ctx;
-      }
-
-      return ctx;
-    },
-
-    /**
-     * Use a single observer for all text changes we are interested in.
-     *
-     * @private
-     */
-    _textChangeObserver: null,
-
-    /**
-     * Auto-resize all text changes.
-     * We reformat only once even if several mutations occur for one target.
-     *
-     * @param {Array} mutations A MutationRecord list.
-     * @private
-     */
-    _handleTextChanges: function(mutations) {
-      var targets = new Set();
-
-      for (var i = 0; i < mutations.length; i++) {
-        targets.add(mutations[i].target);
-      }
-
-      for (var target of targets) {
-        this.reformatHeading(target);
-      }
-    },
-
-    /**
-     * Singleton-like interface for getting our text change observer.
-     * By reusing the observer, we make sure we only ever attach a
-     * single observer to any given element we are interested in.
-     *
-     * @private
-     */
-    _getTextChangeObserver: function() {
-      if (!this._textChangeObserver) {
-        this._textChangeObserver = new MutationObserver(
-          this._handleTextChanges.bind(this));
-      }
-      return this._textChangeObserver;
-    },
-
-    /**
-     * Get the width of a string in pixels, given its fontSize and fontFamily
-     * and fontStyle.
-     *
-     * @param {string} string The string we are measuring.
-     * @param {number} fontSize The size of the font to measure against.
-     * @param {string} fontFamily The font family to measure against.
-     * @param {string} fontStyle The style of the font (default to italic).
-     * @return {number} The pixel width of the string with the given font.
-     * @private
-     */
-    _getFontWidth: function(string, fontSize, fontFamily, fontStyle) {
-      var ctx = this._getCachedContext(fontSize, fontFamily, fontStyle);
-      return ctx.measureText(string).width;
-    },
-
-    /**
-     * Get the maximum allowable fontSize for a string such that it will
-     * not overflow past a maximum width.
-     *
-     * @param {string} string The string for which to check max font size.
-     * @param {Array.<number>} allowedSizes A list of fontSizes allowed.
-     * @param {string} fontFamily The font family of the string we're measuring.
-     * @param {number} maxWidth The maximum number of pixels before overflow.
-     * @return {Object} Dict containing max fontSize and overflow flag.
-     * @private
-     */
-    _getMaxFontSizeInfo: function(string, allowedSizes, fontFamily, maxWidth) {
-      var fontSize;
-      var resultWidth;
-      var i = allowedSizes.length - 1;
-
-      do {
-        fontSize = allowedSizes[i];
-        resultWidth = this._getFontWidth(string, fontSize, fontFamily);
-        i--;
-      } while (resultWidth > maxWidth && i >= 0);
-
-      return {
-        fontSize: fontSize,
-        overflow: resultWidth > maxWidth,
-        textWidth: resultWidth
-      };
-    },
-
-    /**
-     * Get an element's content width disregarding its box model sizing.
-     *
-     * @param {Object} style element, or style object.
-     * @returns {Number} Width in pixels of elements content.
-     * @private
-     */
-    _getContentWidth: function(style) {
-      var width = parseInt(style.width, 10);
-      if (style.boxSizing === 'border-box') {
-        width -= (parseInt(style.paddingRight, 10) +
-          parseInt(style.paddingLeft, 10));
-      }
-      return width;
-    },
-
-    /**
-     * Get an element's style properies.
-     *
-     * @param {HTMLHeadingElement} heading The element from which to get style.
-     * @return {Object} A dictionary containing element's style properties.
-     * @private
-     */
-    _getStyleProperties: function(heading) {
-      var style = getComputedStyle(heading) || {};
-      var contentWidth = this._getContentWidth(style);
-      if (isNaN(contentWidth)) {
-        contentWidth = 0;
-      }
-
-      return {
-        fontFamily: style.fontFamily || 'unknown',
-        contentWidth: contentWidth,
-        paddingRight: parseInt(style.paddingRight, 10),
-        paddingLeft: parseInt(style.paddingLeft, 10),
-        offsetLeft: heading.offsetLeft
-      };
-    },
-
-    /**
-     * Auto-resize element's font to fit its content width.
-     *
-     * @param {HTMLHeadingElement} heading The element to auto-resize.
-     * @param {Object} styleOptions Dictionary containing cached style props,
-     *                 to avoid reflows caused by grabbing style properties.
-     * @return {number} The pixel width of the resized text.
-     * @private
-     */
-    _autoResizeElement: function(heading, styleOptions) {
-      var contentWidth = styleOptions.contentWidth ||
-        this._getContentWidth(heading);
-
-      var fontFamily = styleOptions.fontFamily ||
-        getComputedStyle(heading).fontFamily;
-
-      var text = heading.textContent.replace(/\s+/g, ' ').trim();
-
-      var info = this._getMaxFontSizeInfo(
-        text,
-        this._HEADER_SIZES,
-        fontFamily,
-        contentWidth
-      );
-
-      heading.style.fontSize = info.fontSize + 'px';
-
-      return info.textWidth;
-    },
-
-    /**
-     * Reset the auto-centering styling on an element.
-     *
-     * @param {HTMLHeadingElement} heading The element to reset.
-     * @private
-     */
-    _resetCentering: function(heading) {
-      // We need to set the lateral margins to 0 to be able to measure the
-      // element width properly. All previously set values are ignored.
-      heading.style.marginLeft = heading.style.marginRight = '0';
-    },
-
-    /**
-     * Center an elements text based on screen position rather than container.
-     *
-     * @param {HTMLHeadingElement} heading The element we want to center.
-     * @param {Object} styleOptions Dictionary containing cached style props,
-     *                 avoids reflows caused by caching style properties.
-     * @private
-     */
-    _centerTextToScreen: function(heading, styleOptions) {
-      // Calculate the minimum amount of space needed for the header text
-      // to be displayed without overflowing its content box.
-      var minHeaderWidth = styleOptions.textWidth + styleOptions.paddingRight +
-        styleOptions.paddingLeft;
-
-      // Get the amount of space on each side of the header text element.
-      var tightText = styleOptions.textWidth > (styleOptions.contentWidth - 30);
-      var sideSpaceLeft = styleOptions.offsetLeft;
-      var sideSpaceRight = this._getWindowWidth() - sideSpaceLeft -
-        styleOptions.contentWidth - styleOptions.paddingRight -
-        styleOptions.paddingLeft;
-
-      // If there is no space to the left or right of the title
-      // we apply padding so that it's not flush up against edge
-      heading.classList.toggle('flush-left', tightText && !sideSpaceLeft);
-      heading.classList.toggle('flush-right', tightText && !sideSpaceRight);
-
-      // If both margins have the same width, the header is already centered.
-      if (sideSpaceLeft === sideSpaceRight) {
-        return;
-      }
-
-      // To center, we need to make sure the space to the left of the header
-      // is the same as the space to the right, so take the largest of the two.
-      var margin = Math.max(sideSpaceLeft, sideSpaceRight);
-
-      // If the minimum amount of space our header needs plus the max margins
-      // fits inside the width of the window, we can center this header.
-      // We subtract 1 pixels to wrap text like Gecko.
-      // See https://bugzil.la/1026955
-      if (minHeaderWidth + (margin * 2) < this._getWindowWidth() - 1) {
-        if (sideSpaceLeft < sideSpaceRight) {
-          heading.style.marginLeft = (sideSpaceRight - sideSpaceLeft) + 'px';
-        }
-        if (sideSpaceRight < sideSpaceLeft) {
-          heading.style.marginRight = (sideSpaceLeft - sideSpaceRight) + 'px';
-        }
-      }
-    },
-
-    /**
-     * Cache and return the width of the inner window.
-     *
-     * @return {number} The width of the inner window in pixels.
-     * @private
-     */
-    _getWindowWidth: function() {
-      return window.innerWidth;
-    }
-  };
-
-  module.exports = GaiaHeaderFontFit;
-
-});})(typeof define=='function'&&define.amd?define
-:(function(n,w){'use strict';return typeof module=='object'?function(c){
-c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
-return w[n];},m.exports,m);w[n]=m.exports;};})('./lib/font-fit',this));
-
-},{}]},{},[3])(3)
+},{"font-fit":1,"gaia-component":2,"gaia-icons":3}]},{},[4])(4)
 });

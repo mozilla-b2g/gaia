@@ -10,6 +10,7 @@
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/js/utilities/ice_data.js');
 requireApp('communications/contacts/js/views/ice_settings.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
@@ -17,7 +18,10 @@ requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 
 var mocksHelper = new MocksHelper([
-  'asyncStorage', 'ICEStore', 'Contacts'
+  'asyncStorage',
+  'Cache',
+  'Contacts',
+  'ICEStore',
 ]);
 mocksHelper.init();
 

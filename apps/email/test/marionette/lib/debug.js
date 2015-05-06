@@ -1,3 +1,4 @@
+'use strict';
 /*global module, console, process */
 
 // Run a test with DEBUG=true in front to get console listing of
@@ -7,8 +8,9 @@ var debug = process.env.DEBUG;
 
 module.exports = function(logPrefix, obj) {
 
-  if (!debug)
+  if (!debug) {
     return;
+  }
 
   // Optionally log all calls done to prototype methods. Uncomment this
   // section to get traces when trying to debug where flow gets stuck.

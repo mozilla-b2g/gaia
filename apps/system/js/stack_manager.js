@@ -8,7 +8,7 @@ var StackManager = {
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
     window.addEventListener('appterminated', this);
-    window.addEventListener('home', this);
+    window.addEventListener('homescreenopened', this);
     window.addEventListener('cardviewclosed', this);
   },
 
@@ -209,7 +209,7 @@ var StackManager = {
           this._current = id;
         }
         break;
-      case 'home':
+      case 'homescreenopened':
         // only handle home events if task manager is not visible
         if (window.taskManager && window.taskManager.isShown()) {
           return;

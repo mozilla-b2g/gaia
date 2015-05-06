@@ -214,9 +214,11 @@
 {
   top: calc(50% - 3rem);
   left: 3rem;
+  right: 3rem;
   font-size: 1.6rem;
   font-weight: 400;
   color: white;
+  text-align: start;
 }
 
 #system-update-splash > #divider

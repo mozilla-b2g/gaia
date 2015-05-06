@@ -66,8 +66,8 @@
       'SecureWindowManager',
       'LockScreenWindowManager',
       'UtilityTray',
-      'SystemDialogManager',
       'Rocketbar',
+      'SystemDialogManager',
       'AppWindowManager',
       'TaskManager'
     ],
@@ -136,10 +136,11 @@
     },
 
     focus: function(module) {
-      if (this._topMost !== module) {
-        return;
+      if (!module) {
+        this._topMost.setHierarchy(true);
+      } else if (this._topMost === module) {
+        module.setHierarchy(true);
       }
-      module.setHierarchy(true);
     },
 
     updateTopMostWindow: function() {
@@ -183,8 +184,15 @@
      * @param  {DOMEvent} evt Event to be broadcast
      */
     broadcast: function(evt) {
-      this._ui_list.some(function(ui) {
-        if (ui.respondToHierarchyEvent) {
+      this._ui_list.some(function(ui, index) {
+        // The last one will always catch the event if
+        // there is nobody block it.
+        // This rule is for task manager who is inactive but
+        // needs to catch holdhome event as no one else
+        // needs this event. If task manager's hierarchy is changed
+        // we may need to change this rule as well.
+        if ((ui.isActive() || index === this._ui_list.length - 1) &&
+            ui.respondToHierarchyEvent) {
           // If the module wants to interrupt the event,
           // it should return false in the broadcast function.
           this.debug('handover ' + evt.type + ' to ' + ui.name);

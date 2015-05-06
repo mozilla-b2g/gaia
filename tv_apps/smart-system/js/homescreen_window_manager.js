@@ -1,5 +1,5 @@
 /* global homescreenLauncher, Service, FtuLauncher, LandingAppLauncher,
-          AppWindowManager */
+          AppWindowManager, focusManager */
 
 'use strict';
 (function(exports) {
@@ -56,8 +56,10 @@
       window.addEventListener('open-app', this);
       window.addEventListener('webapps-launch', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('appterminated', this);
       window.addEventListener('activityopened', this);
       window.addEventListener('homescreenopened', this);
+      window.addEventListener('homescreenclosed', this);
       window.addEventListener('home', this);
       window.addEventListener('launchapp', this);
       // The removal of the followings will be at the ready event.
@@ -77,6 +79,7 @@
       window.removeEventListener('open-app', this);
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('appopened', this);
+      window.removeEventListener('appterminated', this);
       window.removeEventListener('activityopened', this);
       window.removeEventListener('homescreenopened', this);
       window.removeEventListener('launchapp', this);
@@ -124,9 +127,29 @@
             this.closeHomeApp();
           }
           break;
-        case 'launchapp':
+        case 'appterminated':
           if (this._underlayApp &&
               evt.detail.manifestURL === this._underlayApp.manifestURL) {
+            this._underlayApp = null;
+          }
+          break;
+        case 'homescreenclosed':
+          if (this._underlayApp) {
+            // If we have _underlayApp but another app is launching, we need to
+            // close the _underlayApp.
+            if (this._underlayApp.manifestURL ===
+                AppWindowManager.getActiveApp().manifestURL) {
+              focusManager.focus();
+            } else {
+              this._underlayApp.close('immediate');
+            }
+            this._underlayApp = null;
+          }
+          break;
+        case 'launchapp':
+          if (this._underlayApp &&
+              evt.detail.manifestURL === this._underlayApp.manifestURL &&
+              !evt.detail.stayBackground) {
 
             // The 'appopened' event will not be fired in this case because this
             // app is already opened. AppWindowManager will change the active
@@ -137,16 +160,10 @@
             //
             // In this case, HomescreenWindowManager will not close and reset
             // _activeHome. We should call closeHomeApp to reset the variable
-            // and focus back.
-            this.closeHomeApp();
+            // and focus back. switchApp in app window manager will handle
+            // home close.
 
-            this._underlayApp.focus();
-            this._underlayApp = null;
-          } else if (this._underlayApp) {
-            // If we have _underlayApp but another app is launching, we need to
-            // close the _underlayApp.
-            this._underlayApp.close();
-            this._underlayApp = null;
+            this._activeHome = null;
           }
           break;
         case 'homescreenopened':
@@ -214,7 +231,7 @@
         // If we open an activity at home and press home, the originApp is home
         // app and the next app is also home app. In this case, we don't need
         // to reopen it again.
-        homeApp.focus();
+        focusManager.focus();
         return;
       }
       homeApp.ready((function() {

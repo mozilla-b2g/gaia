@@ -8,12 +8,7 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('Notification.get():', function() {
 
-  var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    }
-  });
+  var client = marionette.client();
 
   test('promise is fulfilled', function(done) {
     var error = client.executeAsyncScript(function() {

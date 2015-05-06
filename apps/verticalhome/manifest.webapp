@@ -12,7 +12,6 @@
     "themeable":{},
     "mobileconnection":{},
     "open-remote-window":{},
-    "storage": {},
     "webapps-manage": {},
     "systemXHR": {},
     "settings":{ "access": "readwrite" }

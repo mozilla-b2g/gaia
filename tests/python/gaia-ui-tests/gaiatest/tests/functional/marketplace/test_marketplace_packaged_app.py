@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import Wait
-except:
-    from marionette_driver import Wait
+from marionette_driver import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.marketplace.app import Marketplace
@@ -26,9 +24,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         marketplace = Marketplace(self.marionette)
         marketplace.launch()
 
-        marketplace.search(self.app_search)
-        # Make sure All apps is chosen as search filter
-        results = marketplace.filter_search_all_apps()
+        results = marketplace.search(self.app_search)
         first_result = results.search_results[0]
         app_name = first_result.get_app_name()
         first_result.tap_install_button()

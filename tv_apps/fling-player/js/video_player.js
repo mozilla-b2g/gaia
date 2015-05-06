@@ -38,6 +38,11 @@
     this._player.src = url;
   };
 
+  proto.release = function vp_release() {
+    this._player.removeAttribute('src');
+    this._player.load();
+  };
+
   proto.play = function vp_play() {
     this._player.play();
   };

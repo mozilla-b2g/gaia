@@ -3,9 +3,10 @@ define(function(require, exports, module) {
 
 var CalendarTemplate = require('templates/calendar');
 var View = require('view');
-var app = require('app');
-var debug = require('debug')('views/settings');
-var forEach = require('object').forEach;
+var core = require('core');
+var debug = require('common/debug')('views/settings');
+var forEach = require('common/object').forEach;
+var router = require('router');
 
 require('dom!settings');
 
@@ -129,12 +130,12 @@ Settings.prototype = {
   _observeUI: function() {
     this.advancedSettingsButton.addEventListener('click', function(e) {
       e.stopPropagation();
-      app.router.show('/advanced-settings/');
+      router.show('/advanced-settings/');
     });
 
     this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
-    this.app.syncController.on('syncStart', this._syncStartStatus.bind(this));
-    this.app.syncController.on('syncComplete',
+    core.syncController.on('syncStart', this._syncStartStatus.bind(this));
+    core.syncController.on('syncComplete',
       this._syncCompleteStatus.bind(this));
 
     this.calendars.addEventListener(
@@ -143,7 +144,7 @@ Settings.prototype = {
   },
 
   _observeAccountStore: function() {
-    var store = this.app.store('Account');
+    var store = core.storeFactory.get('Account');
     var handler = this._updateSyncButton.bind(this);
 
     store.on('add', handler);
@@ -151,7 +152,7 @@ Settings.prototype = {
   },
 
   _observeCalendarStore: function() {
-    var store = this.app.store('Calendar');
+    var store = core.storeFactory.get('Calendar');
     var self = this;
 
     function handle(method) {
@@ -168,7 +169,7 @@ Settings.prototype = {
   },
 
   _persistCalendarDisplay: function(id, displayed) {
-    var store = this.app.store('Calendar');
+    var store = core.storeFactory.get('Calendar');
     var self = this;
 
     // clear timeout id
@@ -213,7 +214,7 @@ Settings.prototype = {
   _onSyncClick: function() {
     // trigger the sync the syncStart/complete events
     // will hide/show the button.
-    this.app.syncController.all();
+    core.syncController.all();
   },
 
   _add: function(id, model) {
@@ -285,7 +286,7 @@ Settings.prototype = {
   },
 
   _updateSyncButton: function(callback) {
-    var store = this.app.store('Account');
+    var store = core.storeFactory.get('Account');
     store.syncableAccounts((err, list) => {
       if (err) {
         console.error('Error fetching syncable accounts:', err);
@@ -305,7 +306,7 @@ Settings.prototype = {
   _onDrawerTransitionEnd: function(e) {
     this._updateDrawerAnimState('done');
     if (!document.body.classList.contains('settings-drawer-visible')) {
-      this.app.resetState();
+      router.resetState();
     }
   },
 
@@ -353,7 +354,7 @@ Settings.prototype = {
     if (this.calendarList && Object.keys(this.calendarList).length) {
       fetch = Promise.resolve();
     } else {
-      var store = this.app.store('Calendar');
+      var store = core.storeFactory.get('Calendar');
       fetch = store.all().then((calendars) => {
         debug('Settings view found calendars:', calendars);
         this.calendarList = calendars;

@@ -16,10 +16,10 @@ function Contacts(client) {
 Contacts.URL = 'app://communications.gaiamobile.org';
 
 Contacts.config = {
-  settings: {
-    // disable FTU because it blocks our display
-    'ftu.manifestURL': null,
-    'lockscreen.enabled': false
+  prefs: {
+    'device.storage.enabled': true,
+    'device.storage.testing': true,
+    'device.storage.prompt.testing': true
   }
 };
 
@@ -36,7 +36,7 @@ Contacts.Selectors = {
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
   detailsTelLabelFirst: '#phone-details-template-0 h2',
-  detailsTelButtonFirst: 'button.icon-call[data-tel]',
+  detailsTelButtonFirst: '.button.icon-call[data-tel]',
   detailsEmail: '#contact-detail-inner #email-details-template-0 div.item',
   detailsAddress: '#contact-detail-inner #address-details-template-0 div.item',
   detailsOrg: '#contact-detail-inner #org-title',
@@ -76,12 +76,15 @@ Contacts.Selectors = {
   formTel: '#contacts-form-phones input[type="tel"]',
   formDelFirstTel: '#add-phone-0 .img-delete-button',
   formTelLabelFirst: '#tel_type_0',
+  formTelNumberFirst: '#number_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
   formEmailSecond: '#email_1',
   formPhotoButton: '#photo-button',
   formAddNewTel: '#add-new-phone',
   formAddNewEmail: '#add-new-email',
+  formHeader: '#contact-form-header',
+  formPhotoImg: '#thumbnail-photo',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
@@ -103,6 +106,7 @@ Contacts.Selectors = {
 
   editForm: '#selectable-form',
   editMenu: '#select-all-wrapper',
+  selectAllButton: '#select-all',
 
   clearOrgButton: '#clear-org',
   setIceButton: '#set-ice',
@@ -123,7 +127,15 @@ Contacts.Selectors = {
   actionMenu: '#action-menu',
   actionMenuList: '#value-menu',
 
-  systemMenu: 'form[data-z-index-level="action-menu"]'
+  multipleSelectSave: '#save-button',
+  multipleSelectStatus: '#statusMsg p',
+
+  systemMenu: 'form[data-z-index-level="action-menu"]',
+
+  galleryImage: '.thumbnail img',
+  galleryDone: '#crop-done-button',
+
+  header: '#edit-title'
 };
 
 Contacts.prototype = {
@@ -270,6 +282,27 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
+  },
+
+  mergeContact: function(details) {
+    var selectors = Contacts.Selectors;
+
+    var addContact = this.client.findElement(selectors.formNew);
+    addContact.click();
+
+    this.enterContactDetails(details);
+
+    var duplicateFrame = this.client.findElement(selectors.duplicateFrame);
+    this.waitForSlideUp(duplicateFrame);
+    this.client.switchToFrame(duplicateFrame);
+
+    var mergeAction =
+      this.client.helper.waitForElement(selectors.duplicateMerge);
+    this.clickOn(mergeAction);
+
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Contacts.URL, 'contacts');
+    this.waitForSlideDown(duplicateFrame);
   },
 
   addContactMultipleEmails: function(details) {

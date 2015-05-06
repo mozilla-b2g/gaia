@@ -17,10 +17,6 @@ marionette('show Keyboard APP', function() {
     apps: apps,
     prefs: {
       'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
     }
   });
 

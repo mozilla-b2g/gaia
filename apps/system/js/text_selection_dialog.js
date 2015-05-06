@@ -19,6 +19,7 @@
     this._transitionState = 'closed';
     this._scrolling = false;
     this._isSelectionVisible = true;
+    this.textualmenuDetail = null;
     SettingsListener.observe('copypaste.enabled', true,
       function onObserve(value) {
         if (value) {
@@ -56,7 +57,10 @@
   // caret tile height is controlled by gecko, we estimate the height as
   // 22px. So 22px plus 12px which defined in UI spec, we get 34px from
   // the bottom of selected area to utility menu.
-  TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 34;
+  TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 43;
+
+  // Minimum distance between bubble and boundary.
+  TextSelectionDialog.prototype.DISTANCE_FROM_BOUNDARY = 5;
 
   TextSelectionDialog.prototype.ID_NAME = 'TextSelectionDialog';
 
@@ -67,13 +71,12 @@
       return;
     }
     this._enabled = true;
-    window.addEventListener('hierachychanged', this);
+    window.addEventListener('hierarchychanged', this);
     window.addEventListener('activeappchanged', this);
     window.addEventListener('home', this);
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('value-selector-shown', this);
     window.addEventListener('value-selector-hidden', this);
-    window.addEventListener('system-resize', this);
   };
 
   TextSelectionDialog.prototype.stop = function tsd_stop() {
@@ -87,7 +90,6 @@
     window.removeEventListener('mozChromeEvent', this);
     window.removeEventListener('value-selector-shown', this);
     window.removeEventListener('value-selector-hidden', this);
-    window.removeEventListener('system-resize', this);
   };
 
   TextSelectionDialog.prototype.debug = function tsd_debug(msg) {
@@ -99,17 +101,9 @@
 
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
     switch (evt.type) {
-      case 'system-resize':
-        // When shortcut mode, gaia gets no selectionchanged when lost focus,
-        // so we listen to system-resize event to hide the bubble.
-        if (this._shortcutTimeout) {
-          this._resetShortcutTimeout();
-          this.hide();
-        }
-        break;
       case 'home':
       case 'activeappchanged':
-      case 'hierachychanged':
+      case 'hierarchychanged':
         this.close();
         break;
       case 'value-selector-shown':
@@ -121,7 +115,27 @@
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'selectionstatechanged':
-            this._onSelectionStateChanged(evt);
+            if (this._ignoreSelectionChange) {
+              return;
+            }
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            var detail = evt.detail.detail;
+            if (!detail) {
+              return;
+            }
+            this.debug('on receive selection change event');
+            this.debug(JSON.stringify(detail));
+
+            this._isSelectionVisible = detail.visible;
+            // Separate collapse mode and selection mode for easier handling.
+            if (detail.isCollapsed) {
+              this._onCollapsedMode(detail);
+            } else {
+              this._onSelectionMode(detail);
+
+            }
             break;
           case 'scrollviewchange':
             this.debug('scrollviewchange');
@@ -139,6 +153,7 @@
             }
             break;
           case 'touchcarettap':
+            // We'll remove this event handler after bug 1120750 is merged.
             this.debug('touchcarettap');
             this.show(this.textualmenuDetail);
             this._triggerShortcutTimeout();
@@ -147,38 +162,37 @@
     }
   };
 
-  TextSelectionDialog.prototype._onSelectionStateChanged =
-    function tsd__onSelectionStateChanged(evt) {
-      if (this._ignoreSelectionChange) {
-        return;
+  TextSelectionDialog.prototype._onCollapsedMode =
+    function tsd__onCollapsedMode(detail) {
+      var states = detail.states;
+      var commands = detail.commands;
+      this.textualmenuDetail = detail;
+      // User can tap on empty column within shortcut timeout or simply tap on
+      // caret to launch bubble.
+      if (states.indexOf('taponcaret') !== -1 ||
+          (states.indexOf('mouseup') !== -1 && this._hasCutOrCopied) ||
+          (this._transitionState === 'opened' &&
+           states.indexOf('updateposition') !== -1 )) {
+        // In collapsed mode, only paste option will be displaed if we have
+        // copied or cut before.
+        commands.canSelectAll = false;
+        this.show(detail);
+        this._triggerShortcutTimeout();
+      } else {
+        this.hide();
       }
-      evt.preventDefault();
-      evt.stopPropagation();
+    };
 
-      var detail = evt.detail.detail;
-      if (!detail) {
-        return;
-      }
-      this.debug('on receive selection change event');
-      this.debug(JSON.stringify(detail));
+  TextSelectionDialog.prototype._onSelectionMode =
+    function tsd__onSelectionMode(detail) {
       var rect = detail.rect;
       var states = detail.states;
       var commands = detail.commands;
-      var isCollapsed = detail.isCollapsed;
-      var isTempShortcut = this._hasCutOrCopied && isCollapsed;
       var rectHeight = rect.top - rect.bottom;
       var rectWidth = rect.right - rect.left;
 
-      this._isSelectionVisible = detail.visible;
-      // In collapsed mode, only paste option will be displaed if we have copied
-      // or cut before.
-      if (isCollapsed && states.indexOf('mouseup') !== -1) {
-        this.textualmenuDetail = detail;
-        commands.canSelectAll = false;
-      }
-
-      if (!isTempShortcut && (isCollapsed || !this._isSelectionVisible)) {
-        this.close();
+      if (!this._isSelectionVisible) {
+        this.hide();
         return;
       }
       // If current element lost focus, we should hide the bubble.
@@ -195,14 +209,14 @@
       }
 
       if (states.indexOf('mouseup') !== -1 && rectHeight === 0 &&
-          rectWidth === 0 && !isTempShortcut) {
+          rectWidth === 0) {
         this.hide();
         return;
       }
 
       // We should not do anything if below cases happen.
       if (states.length === 0 || (
-          rectHeight === 0 && rectWidth === 0 && !isTempShortcut) ||
+          rectHeight === 0 && rectWidth === 0) ||
           !(commands.canPaste || commands.canCut || commands.canSelectAll ||
             commands.canCopy)
         ) {
@@ -216,11 +230,9 @@
 
       if (states.indexOf('selectall') !== -1 ||
           states.indexOf('mouseup') !== -1 ||
-          states.indexOf('updateposition') !== -1) {
+          (states.indexOf('updateposition') !== -1 &&
+           this.textualmenuDetail != null)) {
         this.show(detail);
-        if (isTempShortcut) {
-          this._triggerShortcutTimeout();
-        }
         return;
       }
       this.hide();
@@ -462,12 +474,14 @@
             selectDialogBottom) - selectOptionHeight) / 2;
       }
 
-      if (posLeft < 0) {
-        posLeft = 0;
+      if (posLeft < this.DISTANCE_FROM_BOUNDARY) {
+        posLeft = this.DISTANCE_FROM_BOUNDARY;
       }
 
-      if ((posLeft + numOfSelectOptions * selectOptionWidth) > frameWidth) {
-        posLeft = frameWidth - numOfSelectOptions * selectOptionWidth;
+      if ((posLeft + numOfSelectOptions * selectOptionWidth +
+           this.DISTANCE_FROM_BOUNDARY) > frameWidth) {
+        posLeft = frameWidth - numOfSelectOptions * selectOptionWidth -
+          this.DISTANCE_FROM_BOUNDARY;
       }
 
       return {

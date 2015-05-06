@@ -2,7 +2,7 @@
           Basket, ConfirmDialog, ScreenLayout,
           DataMobile, SimManager, SdManager,
           Tutorial, TimeManager, WifiManager,
-          WifiUI, WifiHelper, FxAccountsIACHelper  */
+          WifiUI, WifiHelper, FxAccountsIACHelper, SettingsListener */
 /* exported UIManager */
 'use strict';
 
@@ -80,6 +80,7 @@ var UIManager = {
     'hidden-wifi-ssid',
     'hidden-wifi-security',
     'hidden-wifi-password',
+    'hidden-wifi-password-box',
     'hidden-wifi-identity',
     'hidden-wifi-identity-box',
     'hidden-wifi-show-password',
@@ -90,9 +91,9 @@ var UIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-switch',
+    'data-connection-checkbox',
     // Geolocation
-    'geolocation-switch',
+    'geolocation-checkbox',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',
@@ -122,6 +123,29 @@ var UIManager = {
       this[toCamelCase(name)] = document.getElementById(name);
     }.bind(this));
 
+    // Setup settings observers
+    this._settingsObserveHandler = {
+      'geolocation.enabled': {
+        // the "checked" attribute in the DOM is currently the source of truth
+        // for default value, when the setting is not initially defined
+        defaultValue: this.geolocationCheckbox.checked,
+        callback: function(value) {
+          var isEnabled = !!value;
+          if (this.geolocationCheckbox.checked !== isEnabled) {
+            this.geolocationCheckbox.checked = isEnabled;
+          }
+        }.bind(this)
+      }
+    };
+
+    for (var name in this._settingsObserveHandler) {
+      SettingsListener.observe(
+        name,
+        this._settingsObserveHandler[name].defaultValue,
+        this._settingsObserveHandler[name].callback
+      );
+    }
+
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = _('shortTimeFormat');
@@ -139,7 +163,7 @@ var UIManager = {
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
-    this.dataConnectionSwitch.addEventListener('click', this);
+    this.dataConnectionCheckbox.addEventListener('change', this);
 
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
@@ -149,13 +173,18 @@ var UIManager = {
     this.hiddenWifiSecurity.addEventListener('change', this);
     this.wifiJoinButton.disabled = true;
 
-    this.hiddenWifiPassword.addEventListener('keyup', function() {
-      this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
-        this.hiddenWifiSecurity.value,
-        this.hiddenWifiPassword.value,
-        this.hiddenWifiIdentity.value
+    var checkHiddenWifiJoin = function() {
+      this.wifiJoinButton.disabled =  this.hiddenWifiSsid.value === '' ||
+             !WifiHelper.isValidInput(this.hiddenWifiSecurity.value,
+                                      this.hiddenWifiPassword.value,
+                                      this.hiddenWifiIdentity.value
       );
-    }.bind(this));
+    }.bind(this);
+
+    this.hiddenWifiSsid.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiIdentity.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiPassword.addEventListener('keyup', checkHiddenWifiJoin);
+    this.hiddenWifiSecurity.addEventListener('change', checkHiddenWifiJoin);
 
     this.hiddenWifiShowPassword.onchange = function togglePasswordVisibility() {
       UIManager.hiddenWifiPassword.type = this.checked ? 'text' : 'password';
@@ -164,7 +193,7 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
 
-    this.geolocationSwitch.addEventListener('click', this);
+    this.geolocationCheckbox.addEventListener('change', this);
 
     this.fxaCreateAccount.addEventListener('click', this);
 
@@ -351,10 +380,9 @@ var UIManager = {
         window.setTimeout(SdManager.importContacts, 0);
         break;
       // 3G
-      case 'data-connection-switch':
+      case 'data-connection-checkbox':
         this.dataConnectionChangedByUsr = true;
-        var status = event.target.checked;
-        DataMobile.toggle(status);
+        DataMobile.toggle(event.target.checked);
         break;
       // WIFI
       case 'wifi-refresh-button':
@@ -371,7 +399,8 @@ var UIManager = {
         WifiUI.addHiddenNetwork();
         break;
       case 'hidden-wifi-security':
-        var securityType = event.target.value;
+        // Assuming that [0] is None, we prefer '' for collision on translations
+        var securityType = event.target.selectedIndex ? event.target.value : '';
         WifiUI.handleHiddenWifiSecurity(securityType);
         break;
       // Date & Time
@@ -382,7 +411,7 @@ var UIManager = {
         this.setDate();
         break;
       // Geolocation
-      case 'geolocation-switch':
+      case 'geolocation-checkbox':
         this.updateSetting(event.target.name, event.target.checked);
         break;
       // Privacy
@@ -403,12 +432,11 @@ var UIManager = {
   },
 
   updateSetting: function ui_updateSetting(name, value) {
-    var settings = window.navigator.mozSettings;
-    if (!name || !settings) {
+    if (!name) {
       return;
     }
     var cset = {}; cset[name] = value;
-    settings.createLock().set(cset);
+    return SettingsListener.getSettingsLock().set(cset);
   },
 
   setForwardButtonLabel: function ui_setForwardButtonLabel(label) {
@@ -568,7 +596,7 @@ var UIManager = {
   },
 
   updateDataConnectionStatus: function ui_udcs(status) {
-    this.dataConnectionSwitch.checked = status;
+    this.dataConnectionCheckbox.checked = status;
   },
 
   changeStatusBarColor: function ui_csbc(color) {

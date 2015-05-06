@@ -48,6 +48,8 @@
 
   background-repeat: no-repeat;
   background-position: center center;
+
+  overflow: hidden;
 }
 
 #screen.software-button-enabled #windows > .appWindow:not(.lockScreenWindow):not(.lockScreenInputWindow),
@@ -129,6 +131,11 @@
 .appWindow.searchWindow > div {
   top: 0;
   height: 100%;
+}
+
+.appWindow.searchWindow > .value-selector {
+  top: calc(-1 * (var(--rocketbar-urlbar-height) + var(--statusbar-height)));
+  height: calc(100% + var(--rocketbar-urlbar-height) + var(--statusbar-height));
 }
 
 .appWindow > .fade-overlay,

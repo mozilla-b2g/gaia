@@ -1,5 +1,6 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications, Animations */
 /* global BookmarksDatabase, XScrollable, KeyNavigationAdapter, SharedUtils */
+/* global focusManager */
 
 (function(window) {
   'use strict';
@@ -23,15 +24,11 @@
 
     this.keyNavigationAdapter = new KeyNavigationAdapter();
     this.keyNavigationAdapter.on('move', function(key) {
-      this.scrollable.move(key);
+      this.scrollable && this.scrollable.move(key);
     }.bind(this));
+
     // All behaviors which no need to have multple events while holding the
-        // key should use keyup.
-    this.keyNavigationAdapter.on('enter-keyup', function() {
-      this.scrollable.currentItem.click();
-    }.bind(this));
-    // All behaviors which no need to have multple events while holding the
-        // key should use keyup
+    // key should use keyup
     this.keyNavigationAdapter.on('esc-keyup', this.hide.bind(this));
 
     this.circleAnimation = Animations
@@ -44,14 +41,7 @@
 
   BrowserContextMenu.prototype.handleFocus = function(scrollable, elem) {
     if (elem.nodeName) {
-      elem.classList.add('hover');
       elem.focus();
-    }
-  };
-
-  BrowserContextMenu.prototype.handleUnfocus = function(scrollable, elem) {
-    if (elem.nodeName) {
-      elem.classList.remove('hover');
     }
   };
 
@@ -109,14 +99,13 @@
   };
 
   BrowserContextMenu.prototype.kill = function() {
+    focusManager.removeUI(this);
     this.keyNavigationAdapter.uninit();
     this.containerElement.removeChild(this.element);
   };
 
   BrowserContextMenu.prototype.show = function(evt) {
     var detail = evt.detail;
-
-    this.keyNavigationAdapter.init();
 
     var hasContextMenu = detail.contextmenu &&
       detail.contextmenu.items.length > 0;
@@ -145,27 +134,44 @@
     evt.preventDefault();
     evt.stopPropagation();
     this.showMenu(items);
+
+    // We need to init this after showMenu for fetching this.element
+    this.keyNavigationAdapter.init(this.element);
   };
 
-  BrowserContextMenu.prototype.hasMenuVisible = function() {
+  BrowserContextMenu.prototype.isFocusable = function() {
     return this.element && this.element.classList.contains('visible');
   };
 
   BrowserContextMenu.prototype.focus = function() {
-    document.activeElement.blur();
-    this.scrollable.catchFocus();
+    // XXX: We need to wait a short interval before we can focus on the
+    // button element. (This is NOT related to bubble animation above)
+    // so we temporarily use setTimeout here.
+    // This may need to be fixed from Gecko.
+    setTimeout(function() {
+      document.activeElement.blur();
+      this.scrollable.catchFocus();
+    }.bind(this), 100);
+  };
+
+  BrowserContextMenu.prototype.getElement = function() {
+    return this.element;
   };
 
   BrowserContextMenu.prototype.showMenu = function(menu) {
     if (!this._injected) {
+      focusManager.addUI(this);
       this.render();
     }
     this._injected = true;
     this.buildMenu(menu);
-    document.activeElement.blur();
-    this.scrollable.catchFocus();
-    this.circleAnimation.play({type: 'grow'}, function() {
+
+    this._createCloseMenuHandler();
+    this.circleAnimation.play('grow', function() {
       this.element.classList.add('visible');
+      Animations.doBubbleAnimation(
+                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100);
+      focusManager.focus();
     }.bind(this));
   },
 
@@ -173,17 +179,19 @@
     var self = this;
 
     var container = document.createElement('div');
-    var action = document.createElement('button');
+    var action = document.createElement('smart-button');
     var icon = document.createElement('div');
+
     action.dataset.id = item.id;
     action.dataset.value = item.value;
     var l10nPayload = item.labelL10nId ? item.labelL10nId : {raw: item.label};
     SharedUtils.localizeElement(action, l10nPayload);
 
     action.className = self.ELEMENT_PREFIX + 'button';
+    action.setAttribute('type', 'contextmenu');
 
+    icon.classList.add('icon');
     if (item.icon) {
-      icon.classList.add(item.iconClass || 'icon');
       icon.style.backgroundImage = 'url(' + item.icon + ')';
     }
 
@@ -198,7 +206,7 @@
     this.elements.list.appendChild(container);
   },
 
-  BrowserContextMenu.prototype._createTransitionHandler = function() {
+  BrowserContextMenu.prototype._createCloseMenuHandler = function() {
     var self = this;
     var onFrameDisappear = function onFrameDisappear(evt) {
       if (evt.propertyName === 'opacity' &&
@@ -207,10 +215,8 @@
         self.contextFrame.classList.remove('disappear');
         self.contextFrame.removeEventListener(
                              'transitionend', onFrameDisappear);
-        self.circleAnimation.play({type: 'shrink'}, function() {
-          if (self.app) {
-            self.app.focus();
-          }
+        self.circleAnimation.play('shrink', function() {
+          focusManager.focus();
           if (self.clickedItemCallback) {
             self.clickedItemCallback();
           }
@@ -227,16 +233,13 @@
     this.elements.list.innerHTML = '';
     items.forEach(this._createElement, this);
 
-    this._createTransitionHandler();
-
     this.scrollable = new XScrollable({
       frameElem: this.elements.listFrame,
       listElem: this.elements.list,
       itemClassName: self.ELEMENT_PREFIX + 'button',
-      margin: 8.2
+      spacing: 8.2
     });
     this.scrollable.on('focus', this.handleFocus.bind(this));
-    this.scrollable.on('unfocus', this.handleUnfocus.bind(this));
   };
 
   BrowserContextMenu.prototype._listItems = function(detail) {

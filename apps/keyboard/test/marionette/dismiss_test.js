@@ -9,6 +9,7 @@ marionette('Dimiss the keyboard', function() {
   var keyboardTestApp = null;
   var keyboard = null;
   var systemInputMgmt = null;
+  var system = null;
   var actions;
 
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
@@ -17,10 +18,6 @@ marionette('Dimiss the keyboard', function() {
     apps: apps,
     prefs: {
       'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
     }
   });
 
@@ -35,6 +32,7 @@ marionette('Dimiss the keyboard', function() {
   setup(function() {
     actions = client.loader.getActions();
     systemInputMgmt = client.loader.getAppClass('system', 'input_management');
+    system = client.loader.getAppClass('system');
     keyboard = new Keyboard(client);
 
     // create a keyboard test app
@@ -47,9 +45,9 @@ marionette('Dimiss the keyboard', function() {
     systemInputMgmt.switchToActiveKeyboardFrame();
   });
 
-  test('Longpressing the space bar should dimiss the keyboard', function() {
-    // The time needed for dimiss is 700ms.
-    longPressSpaceBar(1.0);
+  test('Longpressing the space bar should dismiss the keyboard', function() {
+    // The time needed for dismiss is 500ms.
+    longPressSpaceBar(0.7);
 
     client.waitFor(function() {
       return !systemInputMgmt.keyboardFrameDisplayed();
@@ -65,5 +63,29 @@ marionette('Dimiss the keyboard', function() {
       client.findElement('.keyboard-type-container[data-active]');
 
     assert.ok(keyboardContainer.displayed());
+  });
+
+  test('Click on a non-input field, should dimiss keyboard', function() {
+    // Switch to test app frame.
+    client.switchToFrame();
+    client.apps.switchToApp(KeyboardTestApp.ORIGIN);
+
+    keyboardTestApp.nonInputArea.click();
+
+    client.waitFor(function() {
+      return !systemInputMgmt.keyboardFrameDisplayed();
+    });
+
+    assert.ok(true);
+  });
+
+  test('Pressing [Home] button should dimiss keyboard', function() {
+    system.tapHome();
+
+    client.waitFor(function() {
+      return !systemInputMgmt.keyboardFrameDisplayed();
+    });
+
+    assert.ok(true);
   });
 });

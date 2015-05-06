@@ -1,6 +1,7 @@
 'use strict';
 
 /* global Rest */
+/* global utils */
 
 if (!window.LiveConnector) {
   window.LiveConnector = (function() {
@@ -111,16 +112,14 @@ if (!window.LiveConnector) {
           }]
         };
 
-        var byear = liveContact.birth_year;
-        var bmonth = liveContact.birth_month;
+        // Months in JS goes from 0 to 11 :(
+        var bmonth = liveContact.birth_month - 1;
         var bday = liveContact.birth_day;
         if (bmonth && bday) {
           var birthdate = out.bday = new Date();
           birthdate.setUTCDate(bday);
           birthdate.setUTCMonth(bmonth, bday);
-          if (byear) {
-            birthdate.setUTCFullYear(byear);
-          }
+          birthdate.setUTCFullYear(utils.misc.FLAG_YEAR_IGNORED);
         }
 
         var liveEmails = liveContact.emails || {};

@@ -13,7 +13,7 @@
  localization_code_best_practices#Writing_APIs_that_operate_on_L10nIDs + 'raw'
  can be Node aw well.
 
- Options should follow the following structure:
+ The constructor parameter should follow the following structure:
 
  {
   title: { raw: 'Non localizable title' },
@@ -21,6 +21,7 @@
     id: 'localizableStringWithArgument',
     args: { n: count }
   },
+  classes: ['specific-class'], // optional
   options: {
     // Cancel is a mandatory option. You need to define at least the text.
     cancel: {
@@ -70,6 +71,10 @@ var Dialog = function(params) {
   // Pick up option_menu.css styling
   this.form.dataset.subtype = 'menu';
 
+  if (params.classes) {
+    this.form.classList.add(...params.classes);
+  }
+
   var infoSection = document.createElement('section');
   infoSection.appendChild(createLocalizedElement('h1', params.title));
   infoSection.appendChild(createLocalizedElement('p', params.body));
@@ -111,9 +116,7 @@ var Dialog = function(params) {
       form.focus();
     }
 
-    // If we add a class, the animation will not be perform properly.
-    // see Bug 1095338 for further information
-    document.body.style.pointerEvents = 'initial';
+    document.body.classList.remove('dialog-animating');
   });
 
   menu.addEventListener('click', function(event) {
@@ -148,9 +151,7 @@ Dialog.prototype.show = function() {
     this.form.clientTop;
   }
   this.form.classList.add('visible');
-  // If we add a class, the animation will not be perform properly.
-  // see Bug 1095338 for further information
-  document.body.style.pointerEvents = 'none';
+  document.body.classList.add('dialog-animating');
 };
 
 Dialog.prototype.hide = function() {

@@ -339,6 +339,8 @@
     // `tuples` is an array containing all the extra properties
     var tuples = parsed[1].split(/[;,]/);
     var fieldName = tuples.shift().toLowerCase();
+    fieldName = fieldName.split('.').pop(); // If grouped element, get real name
+
     // Value will be an empty array if there is only whitespace and
     // semi-colons.
     var fieldValue = /[^\s;]/.test(parsed[2]) ? parsed[2].split(';') : [];

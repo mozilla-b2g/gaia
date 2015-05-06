@@ -81,8 +81,9 @@
      * If the item is an icon, add it to icons.
      * @param {Object} item The grid object, should inherit from GridItem.
      * @param {Object} insertTo The position to insert the item into our list.
+     * @param {Boolean} expandGroup Expand the group this item is will be in.
      */
-    add: function(item, insertTo) {
+    add: function(item, insertTo, expandGroup) {
       if (!item) {
         return;
       }
@@ -111,7 +112,21 @@
       if (!isNaN(parseFloat(insertTo)) && isFinite(insertTo)) {
         this.items.splice(insertTo, 0, item);
       } else {
+        insertTo = this.items.length;
         this.items.push(item);
+      }
+
+      if (expandGroup) {
+        for (var i = insertTo + 1, iLen = this.items.length;
+             i < iLen; i++) {
+          var divider = this.items[i];
+          if (divider.detail.type === 'divider') {
+            if (divider.detail.collapsed) {
+              divider.expand();
+            }
+            break;
+          }
+        }
       }
     },
 
@@ -351,10 +366,12 @@
       this.items.forEach(function(item, idx) {
         if (item instanceof GaiaGrid.Placeholder) {
 
-          // If the previous item is a divider, and we are in edit mode
-          // we do not remove the placeholder. This is so the section will
-          // remain even if the user drags the icon around. Bug 1014982
-          if (previousItem && previousItem instanceof GaiaGrid.Divider &&
+          // If the previous item is a divider, or there is no previous item,
+          // and we are in edit mode, we do not remove the placeholder.
+          // This is so the section will remain even if the user drags the
+          // icon around. Bug 1014982
+          if ((!previousItem ||
+               (previousItem && previousItem instanceof GaiaGrid.Divider)) &&
               this.dragdrop && this.dragdrop.inDragAction) {
             return;
           }
@@ -382,6 +399,9 @@
           // We must de-reference element explicitly so we can re-use item
           // objects the next time we call render.
           item.element = null;
+          item.lastX = null;
+          item.lastY = null;
+          item.lastScale = null;
         }
       }
       this.items = [];
@@ -396,12 +416,20 @@
      * @param {Integer} idx The number of placeholders to create.
      */
     createPlaceholders: function(coordinates, idx, count) {
+      var isRTL = (document.documentElement.dir === 'rtl');
       for (var i = 0; i < count; i++) {
         var item = new GaiaGrid.Placeholder();
         this.items.splice(idx + i, 0, item);
         item.setPosition(idx + i);
-        item.setCoordinates((coordinates[0] + i) * this.layout.gridItemWidth,
-                            this.layout.offsetY);
+
+        var xPosition = (coordinates[0] + i) * this.layout.gridItemWidth;
+        if (isRTL) {
+          xPosition =
+            (this.layout.constraintSize - this.layout.gridItemWidth) -
+            xPosition;
+        }
+        item.setCoordinates(xPosition, this.layout.offsetY);
+
         item.render();
       }
     },
@@ -422,6 +450,7 @@
       this.cleanItems(options.skipDivider);
 
       // Reset offset steps
+      var oldHeight = this.layout.offsetY;
       this.layout.offsetY = 0;
 
       // Grid render coordinates
@@ -454,7 +483,7 @@
       var nextDivider = null;
       var oddDivider = true;
       var isRTL = (document.documentElement.dir === 'rtl');
-      for (var idx = 0; idx <= this.items.length - 1; idx++) {
+      for (var idx = 0; idx < this.items.length; idx++) {
         var item = this.items[idx];
 
         // Remove the element if we are re-rendering.
@@ -496,9 +525,6 @@
 
           // Insert placeholders to fill remaining space
           var remaining = this.layout.cols - x;
-          if (isRTL) {
-            x = (this.layout.gridWidth - this.layout.gridItemWidth) - x;
-          }
           this.createPlaceholders([x, y], idx, remaining);
 
           // Increment the current index due to divider insertion
@@ -518,19 +544,19 @@
           var xPosition = x * this.layout.gridItemWidth;
           if (isRTL) {
             xPosition =
-              (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+              (this.layout.constraintSize - this.layout.gridItemWidth) -
+              xPosition;
           }
-          item.setCoordinates(xPosition,
-                              this.layout.offsetY);
+          item.setCoordinates(xPosition, this.layout.offsetY);
           if (!item.active) {
             item.render();
+          }
 
-            if (item.detail.type === 'divider') {
-              if (oddDivider) {
-                item.element.classList.add('odd');
-              } else {
-                item.element.classList.remove('odd');
-              }
+          if (item.detail.type === 'divider') {
+            if (oddDivider) {
+              item.element.classList.add('odd');
+            } else {
+              item.element.classList.remove('odd');
             }
           }
         }
@@ -538,15 +564,24 @@
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
-        if (x >= this.layout.cols) {
+        if ((x >= this.layout.cols) && (idx < this.items.length - 1)) {
           step(item);
         }
       }
 
       // All the children of this element are absolutely positioned and then
-      // transformed, so manually set a height for the convenience of
-      // embedders.
-      this.element.style.height = this.layout.offsetY + 'px';
+      // transformed, so the grid actually has no height. Fire an event that
+      // embedders can listen to discover the grid height.
+      if (this.layout.offsetY != oldHeight) {
+        if (this.dragdrop && this.dragdrop.inDragAction) {
+          // Delay size changes during drags to avoid jankiness when dragging
+          // items around due to touch positions changing.
+          this.layout.offsetY = oldHeight;
+        } else {
+          this.element.dispatchEvent(new CustomEvent('gaiagrid-resize',
+                                       { detail: this.layout.offsetY }));
+        }
+      }
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();

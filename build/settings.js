@@ -1,5 +1,4 @@
 'use strict';
-/* global exports, require */
 
 var utils = require('./utils');
 
@@ -223,8 +222,8 @@ function writeSettings(settings, config) {
   utils.writeContent(settingsFile, content + '\n');
   utils.log('settings.js', 'Writing settings file: ' + settingsFile.path);
 
-  profileDir.append('defaults');
-  utils.ensureFolderExists(profileDir);
+  var defaultSettingFolder = utils.getFile(profileDir.path, 'defaults');
+  utils.ensureFolderExists(defaultSettingFolder);
   utils.writeContent(defaultsSettings, content + '\n');
   utils.log('settings.js', 'Writing settings file: ' + defaultsSettings.path);
 }
@@ -257,6 +256,9 @@ function execute(config) {
   // Set the ftu ping URL -- we set this regardless of NOFTU for now
   settings['ftu.pingURL'] = config.FTU_PING_URL;
 
+  // Whether or not performance and usage data are shared by default
+  settings['debug.performance_data.shared'] = config.SHARE_PERF_USAGE === '1';
+
   // Set the rocketbar URL
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
@@ -265,17 +267,19 @@ function execute(config) {
   settings['rocketbar.newTabAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
-  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER === '1' ? 
+  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER === '1' ?
     'adb-only' : 'disabled';
 
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
     settings['debugger.remote-mode'] = 'disabled';
+    settings['gaia.system.checkForUpdates'] = true;
   }
 
   if (config.PRODUCTION === '0') {
     settings['dom.mozApps.signed_apps_installable_from'] =
       'https://marketplace.firefox.com,https://marketplace.allizom.org';
+    settings['devtools.qps.enabled'] = true;
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
@@ -289,7 +293,7 @@ function execute(config) {
     settings['lockscreen.locked'] = false;
   }
 
-  var screenTimeout = parseInt(config.SCREEN_TIMEOUT);
+  var screenTimeout = parseInt(config.SCREEN_TIMEOUT, 10);
   if (screenTimeout >= 0) {
     settings['screen.timeout'] = screenTimeout;
   }

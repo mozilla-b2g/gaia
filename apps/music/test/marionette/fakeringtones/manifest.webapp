@@ -8,7 +8,6 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "storage":{},
     "device-storage:music":{ "access": "readwrite" },
     "audio-channel-ringer":{}
   }

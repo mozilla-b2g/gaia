@@ -1,14 +1,13 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('controllers/recurring_events');
-var nextTick = require('next_tick');
-var providerFactory = require('provider/provider_factory');
+var Responder = require('common/responder');
+var core = require('core');
+var debug = require('common/debug')('controllers/recurring_events');
+var nextTick = require('common/next_tick');
 
-function RecurringEvents(app) {
-  this.app = app;
-  this.accounts = app.store('Account');
+function RecurringEvents() {
+  this.accounts = core.storeFactory.get('Account');
   Responder.call(this);
 }
 module.exports = RecurringEvents;
@@ -55,19 +54,19 @@ RecurringEvents.prototype = {
   pending: false,
 
   unobserve: function() {
-    this.app.timeController.removeEventListener(
+    core.timeController.removeEventListener(
       'monthChange',
       this
     );
 
-    this.app.syncController.removeEventListener(
+    core.syncController.removeEventListener(
       'syncComplete',
       this
     );
   },
 
   observe: function() {
-    var time = this.app.timeController;
+    var time = core.timeController;
 
     // expand initial time this is necessary
     // for cases where user has device off for long periods of time.
@@ -80,14 +79,14 @@ RecurringEvents.prototype = {
 
     // we must re-expand after sync so events at least
     // expand to the current position....
-    this.app.syncController.on('syncComplete', this);
+    core.syncController.on('syncComplete', this);
   },
 
   handleEvent: function(event) {
     switch (event.type) {
       case 'syncComplete':
         this.queueExpand(
-          this.app.timeController.position
+          core.timeController.position
         );
         break;
 
@@ -234,7 +233,7 @@ RecurringEvents.prototype = {
     var providers = [];
     Object.keys(accounts).forEach(key => {
       var account = accounts[key];
-      var provider = providerFactory.get(account.providerType);
+      var provider = core.providerFactory.get(account.providerType);
       if (provider &&
           provider.canExpandRecurringEvents &&
           providers.indexOf(provider) === -1) {

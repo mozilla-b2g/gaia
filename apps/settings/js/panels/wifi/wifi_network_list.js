@@ -1,4 +1,3 @@
-/* global PerformanceTestingHelper */
 define(function(require) {
   'use strict';
 
@@ -34,8 +33,7 @@ define(function(require) {
         list.dataset.state = addScanningItem ? 'on' : 'off';
       },
       scan: function() {
-        window.performance.measure('settingPanelWifiVisible', 'wifiListStart');
-        PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+        window.performance.measure('settingsPanelWifiVisible', 'wifiListStart');
 
         // scan wifi networks and display them in the list
         var self = this;
@@ -111,7 +109,6 @@ define(function(require) {
           list.dataset.state = 'ready';
 
           window.performance.measure('settingsPanelWifiReady', 'wifiListStart');
-          PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
 
           // auto-rescan if requested
           if (self._autoscan) {
@@ -126,7 +123,6 @@ define(function(require) {
           self._scanning = false;
 
           window.performance.measure('settingsPanelWifiReady', 'wifiListStart');
-          PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
 
           window.setTimeout(self.scan.bind(self), self._scanRate);
         };

@@ -216,10 +216,6 @@ plugins, run this:
 
 See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaia-ui-tests/README.md)
 
-#### Endurance
-
-See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
-
 ### Build System Tests
 
 Build system has its own unit test and integration test. Both are running on [Node.js](http://nodejs.org)

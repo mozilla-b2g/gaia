@@ -33,7 +33,7 @@ class TestSmsWithPictureAttached(GaiaTestCase):
         new_message = messages.tap_create_new_message()
 
         # type phone number
-        new_message.type_phone_number(self.testvars['local_phone_numbers'][0])
+        new_message.type_phone_number(self.environment.phone_numbers[0])
 
         # type text message
         new_message.type_message(self._text_message_content)

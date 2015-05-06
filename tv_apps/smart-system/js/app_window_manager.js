@@ -195,9 +195,8 @@
             this._updateActiveApp(appCurrent.instanceID);
           } else {
             this._updateActiveApp(appNext.instanceID);
+            appCurrent.close('immediate');
             appNext.open('immediate');
-            // HomescreenWindowManager will take care of "appCurrent.close()" so
-            // it's unnecessary to be handled here.
           }
         }.bind(this);
 
@@ -257,7 +256,7 @@
                       ((switching === true) ? 'invoked' : openAnimation));
         if (appCurrent && appCurrent.instanceID !== appNext.instanceID) {
           appCurrent.close(immediateTranstion ? 'immediate' :
-            ((switching === true) ? 'invoking' : closeAnimation));
+            ((switching === true) ? 'fade-out' : closeAnimation));
         } else {
           this.debug('No current running app!');
         }
@@ -317,9 +316,6 @@
       window.addEventListener('orientationchange', this);
       window.addEventListener('sheets-gesture-begin', this);
       window.addEventListener('sheets-gesture-end', this);
-      // XXX: PermissionDialog is shared so we need AppWindowManager
-      // to focus the active app after it's closed.
-      window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
 
@@ -390,7 +386,6 @@
       window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheets-gesture-begin', this);
       window.removeEventListener('sheets-gesture-end', this);
-      window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
       window.removeEventListener('mozChromeEvent', this);
@@ -410,9 +405,6 @@
       var activeApp = this._activeApp;
       var detail = evt.detail;
       switch (evt.type) {
-        case 'permissiondialoghide':
-          activeApp && activeApp.broadcast('focus');
-          break;
         case 'orientationchange':
           this.broadcastMessage(evt.type);
           break;

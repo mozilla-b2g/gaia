@@ -1,7 +1,7 @@
 'use strict';
 
-/* global require, process, suite, setup, test, teardown */
-/* jshint -W101 */
+/* jshint maxlen: 130 */
+
 var rmrf = require('rimraf').sync;
 var AdmZip = require('adm-zip');
 var helper = require('./helper');
@@ -276,16 +276,19 @@ suite('Distribution mechanism', function() {
 
   function validateHomescreen() {
     var appZip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
+      'webapps', 'verticalhome.gaiamobile.org', 'application.zip'));
     var config = JSON.parse(appZip.readAsText(appZip.getEntry('js/init.json')));
 
     assert.equal(config.grid[0][0].name, 'Camera');
     assert.equal(config.grid[0][1].entry_point, 'dialer');
     assert.equal(config.grid[0][2].name, 'Messages');
     assert.equal(config.grid[0][3].name, 'Marketplace');
-    assert.equal(config.grid[1][0].name, 'Social');
-    assert.equal(config.grid[1][1].name, 'Games');
-    assert.equal(config.grid[1][2].name, 'Music');
+
+    // Collections
+    assert.equal(config.grid[1][0].id, 289); // social
+    assert.equal(config.grid[1][1].id, 207); // games
+    assert.equal(config.grid[1][2].id, 142); // music
+
     assert.equal(config.grid[2][0].name, 'Gallery');
 
     assert.isTrue(fs.existsSync(path.join(process.cwd(), 'profile',

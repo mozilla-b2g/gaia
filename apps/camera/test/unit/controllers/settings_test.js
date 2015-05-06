@@ -217,17 +217,6 @@ suite('SettingsController#configureRecorderProfiles()', function() {
       this.controller.notify(this.setting);
       sinon.assert.notCalled(this.notification.display);
     });
-
-    test('It localizes the option title', function() {
-      this.controller.notify(this.setting);
-      sinon.assert.calledWith(this.app.l10nGet, 'l10n-key');
-    });
-
-    test('It doesn\'t localize the title if `localizeOption` is `false`', function() {
-      this.setting.get.withArgs('optionsLocalizable').returns(false);
-      this.controller.notify(this.setting);
-      assert.isFalse(this.app.l10nGet.calledWith('l10n-key'));
-    });
   });
 
   suite('SettingsController#validMenuItem()', function() {

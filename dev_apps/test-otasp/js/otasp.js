@@ -4,12 +4,8 @@
 'use strict';
 
 window.addEventListener('load', function() {
-
-  // XXX: check bug-926169
-  // this is used to keep all tests passing while introducing multi-sim APIs
-  var mobileConnection = navigator.mozMobileConnection ||
-    window.navigator.mozMobileConnections &&
-      window.navigator.mozMobileConnections[0];
+  var mobileConnection = window.navigator.mozMobileConnections &&
+                         window.navigator.mozMobileConnections[0];
 
   if (!mobileConnection)
     return;

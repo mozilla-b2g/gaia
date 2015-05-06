@@ -445,12 +445,15 @@
         return null;
       }
       var mainPart = mime.slice(0, index);
-      var secondPart = mime.substr(index + 1);
+      var secondPart = mime.substr(index + 1).toLowerCase();
 
       switch (mainPart) {
         case 'image':
           return 'img';
         case 'text':
+          if(secondPart.indexOf('vcard') !== -1) {
+            return 'vcard';
+          }
           if (secondPart !== 'plain') {
             return 'ref';
           }
@@ -470,7 +473,7 @@
       });
       return parsed;
     },
-    /*
+    /**
       Using a contact resolver, a function that can looks for contacts,
       get the format for the dissambiguation.
 
@@ -482,14 +485,18 @@
 
       Phone number comes directly from the activity in the case we call 'pick'
       from SMS App.
+
+      @param resolver A contact resolver that returns a Promise<{ contacts }>.
+      @param phoneNumber The phone number to retrieve.
+      @returns Promise<Structured Contact>
     */
-    getContactDisplayInfo: function(resolver, phoneNumber, callback) {
-      resolver(phoneNumber, function onContacts(contacts) {
-        callback(Utils.basicContact(phoneNumber, contacts));
-      });
+    getContactDisplayInfo: function(resolver, phoneNumber) {
+      return resolver(phoneNumber).then(
+        (contacts) => Utils.basicContact(phoneNumber, contacts)
+      );
     },
 
-    basicContact: function(number, records, callback) {
+    basicContact: function(number, records) {
       var record;
       if (Array.isArray(records)) {
         if (records.length > 0) {
@@ -501,9 +508,6 @@
 
       // Only exit when no record and no phone number case.
       if (!record && !number) {
-        if (typeof callback === 'function') {
-          callback(null);
-        }
         return;
       }
 

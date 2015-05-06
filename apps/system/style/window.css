@@ -1,6 +1,6 @@
 .appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.attentionWindow):not(.lockScreenInputWindow) {
   opacity: 0;
-  transform: none;
+  transform: translateX(0);
 }
 
 #screen.utility-tray #windows > .appWindow {
@@ -63,7 +63,8 @@
 }
 
 .appWindow.enlarge {
-  animation: openApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: openApp var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.transition-closing.perpendicular {
@@ -71,8 +72,8 @@
 }
 
 .appWindow.from-cardview {
-  overflow: hidden;
-  animation: openAppFromCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: openAppFromCardView var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
@@ -83,7 +84,8 @@
 
 .appWindow.zoom-in {
   transform: scale(1);
-  animation: zoom-in 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: zoom-in var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-in {
@@ -97,11 +99,11 @@
 }
 
 .appWindow.invoked {
-  animation: invokedApp .3s forwards linear;
+  animation: invokedApp var(--transition-duration) forwards linear;
 }
 
 .appWindow.invoking {
-  animation: invokingApp .3s forwards linear;
+  animation: invokingApp var(--transition-duration) forwards linear;
 }
 
 /* Invoking app moves out */
@@ -117,11 +119,13 @@
 }
 
 .appWindow.fade-in {
-  animation: fadeInApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: fadeInApp var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.fade-out {
-  animation: fadeOutApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: fadeOutApp var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Invoking secure app moves out */
@@ -150,11 +154,12 @@
 
 #windows.slow-transition .appWindow.transition-closing,
 #windows.slow-transition .appWindow.transition-opening {
-  animation-duration: 3s;
+  animation-duration: 2s;
 }
 
 .appWindow.reduce {
-  animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: closeApp var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.transition-opening.perpendicular {
@@ -171,7 +176,8 @@
  */
 .appWindow.zoom-out {
   transform: scale(3);
-  animation: zoom-out 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: zoom-out var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-out {
@@ -180,8 +186,8 @@
 }
 
 .appWindow.to-cardview {
-  overflow: hidden;
-  animation: closeAppTowardsCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: closeAppTowardsCardView var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes closeApp {
@@ -194,13 +200,31 @@
   100% { transform: scale(0.48); }
 }
 
+.appWindow.home-from-cardview {
+  animation: home-from-cardview 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.home-to-cardview {
+  animation: home-to-cardview 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes home-from-cardview {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes home-to-cardview {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .appWindow.back {
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0), visibility 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
   transform: scale(0.86);
 }
 
 .appWindow.restored {
-  transform: none;
+  transform: translateX(0);
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -234,7 +258,6 @@
 
 .appWindow.overlay .touch-blocker,
 .appWindow.transition-closing .touch-blocker,
-.appWindow.enlarge .touch-blocker,
 .appWindow.transition-opening .touch-blocker {
   /* The animation takes .3 seconds so users cannot touch the app while the
    * closing animation is performing */
@@ -325,6 +348,10 @@
   transition: opacity 0.2s ease-in, visibility 0.2s;
 }
 
+.appWindow.private > .identification-overlay {
+  background: rgba(57, 46, 84, 0.9);
+}
+
 .appWindow.suspended > .identification-overlay,
 .appWindow:not(.active):not(.in-task-manager).overlay > .identification-overlay {
   transition: none;
@@ -333,11 +360,23 @@
   opacity: 1;
 }
 
+.appWindow.in-task-manager.overlay.no-screenshot > .identification-overlay {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.2s ease-in, visibility 0.2s;
+}
+.appWindow.overlay.no-screenshot.from-cardview.overlay > .identification-overlay {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease-in, visibility 0.2s;
+}
+
+
 /* we don't want to show the overlay at all during the opening
    transition (from the homescreen and from the cardview) */
-#screen .appWindow.in-task-manager.overlay > .identification-overlay,
+#screen .appWindow.in-task-manager:not(.no-screenshot).overlay > .identification-overlay,
 .appWindow.enlarge.overlay > .identification-overlay,
-.appWindow.from-cardview.overlay > .identification-overlay {
+.appWindow:not(.no-screenshot).from-cardview.overlay > .identification-overlay {
   opacity: 0 !important;
   transition: none !important;
 }
@@ -356,8 +395,7 @@
   left: calc(50% - 3rem);
   width: 6rem;
   height: 6rem;
-
-  background-size: contain;
+  background: no-repeat center / contain;
 }
 
 .identification-overlay > div .title {
@@ -373,10 +411,15 @@
   font-size: 1.6rem;
   font-style: italic;
   line-height: 1.8rem;
+  font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
 
   overflow: hidden;
+}
+
+.private .identification-overlay > div .title {
+  color: #e7e7e7;
 }
 
 .appWindow iframe.hidden {
@@ -410,39 +453,47 @@
 }
 
 .appWindow.slideleft {
-  animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideLeft var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slideright {
-  animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideRight var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-from-bottom {
-  animation: slideFromDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideFromDown var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-to-bottom {
-  animation: slideToDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideToDown var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-from-top {
-  animation: slideFromUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideFromUp var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #windows.slow-transition .appWindow.slide-from-top {
-  animation: slideFromUp 3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideFromUp 2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.slide-to-top {
-  animation: slideToUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideToUp var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.in-from-left {
-  animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: inFromLeft var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.out-to-right {
-  animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: outToRight var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes slideLeft {
@@ -471,7 +522,8 @@
 }
 
 .appWindow.slidedown {
-  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: slideDown var(--transition-duration) forwards
+             cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes slideFromDown {
@@ -513,12 +565,13 @@
 /* Edges */
 #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow) {
   /* not in the viewport */
-  transform: translateX(-100%);
+  transform: translateY(-100%);
   opacity: 1;
 }
 
 /* making the appWindows moz-elementable for the cardview */
 #screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow):not(.lockScreenInputWindow).in-task-manager {
+  position: fixed;
   transform: none;
 }
 
@@ -534,7 +587,7 @@
 #screen #windows > .appWindow.will-become-active,
 #screen #windows > .appWindow.inside-edges {
   opacity: 1;
-  transform: none;
+  transform: translateX(0);
 }
 
 #screen #windows > .appWindow.outside-edges-left {
@@ -562,7 +615,7 @@
 
 #windows .appWindow.active iframe {
   transition-property: transform;
-  transition-duration: 0.5s;
+  transition-duration: var(--transition-duration);
 }
 
 #screen.locked #windows .appWindow.active iframe {

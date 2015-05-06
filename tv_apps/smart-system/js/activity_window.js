@@ -1,4 +1,4 @@
-/* global AppWindow, BrowserFrame, OrientationManager */
+/* global AppWindow, BrowserFrame, OrientationManager, focusManager */
 'use strict';
 
 (function(exports) {
@@ -99,6 +99,7 @@
     this.publish('creating');
     this.render();
     this.publish('created');
+    focusManager.addUI(this);
   };
 
   ActivityWindow.prototype = Object.create(AppWindow.prototype);
@@ -177,9 +178,9 @@
     };
 
   ActivityWindow.prototype.view = function acw_view() {
-    this.instanceID = _id;
+    this.instanceID = this.CLASS_NAME + '_' + _id++;
     return '<div class="appWindow activityWindow inline-activity' +
-            '" id="activity-window-' + _id++ + '">' +
+            '" id="' + this.instanceID + '">' +
             '<div class="titlebar">' +
             ' <div class="notifications-shadow"></div>' +
             '</div>' +
@@ -225,7 +226,7 @@
     };
     this.browser = new BrowserFrame(this.browser_config);
     this.element =
-      document.getElementById('activity-window-' + this.instanceID);
+      document.getElementById(this.instanceID);
 
     if (this.transparent) {
       this.element.classList.add('transparent-inline-activity');

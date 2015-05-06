@@ -143,15 +143,16 @@ ul li > a:not(.info-item) span:nth-of-type(2):not(.button) {
 }
 
 /* text ellipsis */
-ul li > *, ul li > label > *, ul li > a > * {
+ul li > *,
+ul li > label > *,
+ul li > a > * {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* sublines */
-ul li > small, ul li > label > small , ul li > a > small {
+ul li > small,
+ul li > label > small,
+ul li > a > small {
   display: block;
   font-size: 1.4rem;
   color: #505859;
@@ -252,6 +253,7 @@ ul li > label.pack-checkbox > .memory-item:before {
 ul li button {
   display: inline-block;
   margin: 1rem 0;
+  white-space: normal;
 }
 
 /******************************************************************************
@@ -469,7 +471,7 @@ dl dd {
  */
 
 html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
-  left: 0;
+  left: 1.5rem;
   right: unset;
 }
 
@@ -499,4 +501,8 @@ html[dir="rtl"] ul li.pack-split:after {
 html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
   left: unset;
   right: 1.5rem;
+}
+
+html[dir="rtl"] ul li .info-item .info-item-content {
+  text-align: left;
 }

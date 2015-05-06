@@ -1,5 +1,6 @@
 'use strict';
 /* global _ */
+/* global Cache */
 /* global ConfirmDialog */
 /* global Contacts */
 /* global ContactsBTExport */
@@ -509,11 +510,13 @@ contacts.Settings = (function() {
     fbImportCheck.checked = true;
     fbImportCheckContainer.setAttribute('aria-checked', true);
     document.dispatchEvent(new CustomEvent('facebookEnabled'));
+    Cache.evict();
   }
 
   function fbSetDisabledState() {
     fbImportCheck.checked = false;
     fbImportCheckContainer.setAttribute('aria-checked', false);
+    Cache.evict();
   }
 
   // Get total number of contacts imported from fb
@@ -713,6 +716,7 @@ contacts.Settings = (function() {
     newOrderByLastName = !orderCheckBox.checked;
     utils.cookie.update({order: newOrderByLastName});
     updateOrderingUI();
+    Cache.evict();
   };
 
   // Import contacts from SIM card and updates ui
@@ -839,6 +843,7 @@ contacts.Settings = (function() {
 
     utils.sdcard.retrieveFiles([
       'text/vcard',
+      'text/x-vcard',
       'text/directory;profile=vCard',
       'text/directory'
     ], ['vcf', 'vcard'], function(err, fileArray) {
@@ -948,7 +953,7 @@ contacts.Settings = (function() {
   // Dismiss settings window and execute operations if values got modified
   var close = function close() {
     if (newOrderByLastName != null &&
-      newOrderByLastName != orderByLastName && contacts.List) {
+        newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
       // Force the reset of the dom, we know that we changed the order
       contacts.List.load(null, true);

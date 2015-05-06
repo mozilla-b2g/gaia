@@ -56,7 +56,7 @@ define(function(require) {
       [].forEach.call(titles, function(title) {
         title.textContent = title.textContent;
       });
-    },
+    }
   };
 
   return SettingsUtils;

@@ -1,4 +1,5 @@
-/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation, KeyEvent */
+/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation, KeyEvent,
+          focusManager */
 'use strict';
 
 (function(exports) {
@@ -19,6 +20,10 @@
   exports.AppModalDialog = function AppModalDialog(app) {
     this.app = app;
     this.containerElement = app.element;
+    this.smartBubble = document.createElement('smart-bubbles');
+    this.smartBubble.addEventListener('all-items-bubbled', function() {
+      focusManager.focus();
+    });
     this.events = [];
     // One to one mapping.
     this.instanceID = _id++;
@@ -50,6 +55,7 @@
     evt.stopPropagation();
     this.events.push(evt);
     if (!this._injected) {
+      focusManager.addUI(this);
       this.render();
     }
     this.show();
@@ -58,6 +64,14 @@
 
   AppModalDialog.prototype._fetchElements = function amd__fetchElements() {
     this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+    this.element.setAttribute('tabIndex', -1);
+    this.element.addEventListener('opened', function() {
+      this._makeBubbleAnimation();
+    }.bind(this));
+    this.element.addEventListener('closed', function() {
+      focusManager.focus();
+    }.bind(this));
+
     this.elements = {};
 
     var toCamelCase = function toCamelCase(str) {
@@ -106,7 +120,7 @@
     // event should be prevented since it works on keydown. We can remove this
     // workaround after changing containers from <form> to other DOM elements.
     this.element.addEventListener('submit', function(evt){
-      evt.explicitOriginalTarget.focus();
+      focusManager.focus();
       evt.preventDefault();
     }.bind(this));
   };
@@ -132,91 +146,123 @@
   };
 
   AppModalDialog.prototype.view = function amd_view() {
-    return '<div class="modal-dialog"' +
-            ' id="' + this.CLASS_NAME + this.instanceID + '">' +
+    return '<smart-dialog class="modal-dialog" esc-close="false"' +
+            ' id="' + this.CLASS_NAME + this.instanceID + '"' +
+            ' smart-bubbles="true">' +
             '<form class="modal-dialog-alert generic-dialog" ' +
+              'role="dialog" tabindex="-1">' +
+              '<div class="modal-dialog-message-container inner">' +
+                '<h3 class="modal-dialog-alert-title"></h3>' +
+              '</div>' +
+              '<div class="modal-dialog-section-container">' +
+                '<section>' +
+                  '<div class="inner">' +
+                    '<p>' +
+                      '<span class="modal-dialog-alert-message"></span>' +
+                    '</p>' +
+                  '</div>' +
+                  '<menu data-items="1">' +
+                    '<smart-button type="circle-text" ' +
+                      'class="modal-dialog-alert-ok confirm affirmative" ' +
+                      'data-l10n-id="ok">OK</smart-button>' +
+                  '</menu>' +
+                '</section>' +
+              '</div>' +
+            '</form>' +
+            '<form class="modal-dialog-confirm generic-dialog" ' +
             'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-alert-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-alert-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu>' +
-              '<smart-button type="circle-text" ' +
-                'class="modal-dialog-alert-ok confirm affirmative" ' +
-                'data-l10n-id="ok">OK</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-confirm generic-dialog" ' +
-          'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-confirm-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-confirm-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<smart-button type="circle-text"' +
-                'class="modal-dialog-confirm-cancel cancel"' +
-                'data-l10n-id="cancel">Cancel</smart-button>' +
-              '<smart-button type="circle-text"' +
-                'class="modal-dialog-confirm-ok confirm affirmative"' +
-                'data-l10n-id="ok">OK</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-prompt generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-prompt-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-prompt-message"></span>' +
-                '<input class="modal-dialog-prompt-input" />' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<smart-button type="circle-text" ' +
-                'class="modal-dialog-prompt-cancel cancel"' +
-                'data-l10n-id="cancel">Cancel</smart-button>' +
-              '<smart-button type="circle-text" ' +
-                'class="modal-dialog-prompt-ok confirm affirmative" ' +
-                'data-l10n-id="ok">OK</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-select-one generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-select-one-title"></h3>' +
-              '<ul class="modal-dialog-select-one-menu"></ul>' +
-            '</div>' +
-            '<menu>' +
-              '<smart-button type="circle-text" ' +
-              'class="modal-dialog-select-one-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</smart-button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-custom-prompt generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-custom-prompt-title"></h3>' +
-              '<p class="modal-dialog-custom-prompt-message"></p>' +
-              '<label class="pack-checkbox">' +
-                '<input class="modal-dialog-custom-prompt-checkbox" ' +
-                'type="checkbox"/>' +
-                '<span></span>' +
-              '</label>' +
-            '</div>' +
-            '<menu class="modal-dialog-custom-prompt-buttons"></menu>' +
-          '</form>' +
-        '</div>';
+              '<div class="modal-dialog-message-container inner">' +
+                '<h3 class="modal-dialog-confirm-title"></h3>' +
+              '</div>' +
+              '<div class="modal-dialog-section-container">' +
+                '<section>' +
+                  '<div class="inner">' +
+                    '<p>' +
+                      '<span class="modal-dialog-confirm-message"></span>' +
+                    '</p>' +
+                  '</div>' +
+                  '<menu data-items="2">' +
+                    '<smart-button type="circle-text"' +
+                      'class="modal-dialog-confirm-cancel cancel"' +
+                      'data-l10n-id="cancel">Cancel</smart-button>' +
+                    '<smart-button type="circle-text"' +
+                      'class="modal-dialog-confirm-ok confirm affirmative"' +
+                      'data-l10n-id="ok">OK</smart-button>' +
+                  '</menu>' +
+                '</section>' +
+              '</div>' +
+            '</form>' +
+            '<form class="modal-dialog-prompt generic-dialog" ' +
+              'role="dialog" tabindex="-1">' +
+              '<div class="modal-dialog-message-container inner">' +
+                '<h3 class="modal-dialog-prompt-title"></h3>' +
+              '</div>' +
+              '<div class="modal-dialog-section-container">' +
+                '<section>' +
+                  '<div class="inner">' +
+                    '<p>' +
+                      '<span class="modal-dialog-prompt-message"></span>' +
+                      '<input class="modal-dialog-prompt-input" />' +
+                    '</p>' +
+                  '</div>' +
+                  '<menu data-items="2">' +
+                    '<smart-button type="circle-text" ' +
+                      'class="modal-dialog-prompt-cancel cancel"' +
+                      'data-l10n-id="cancel">Cancel</smart-button>' +
+                    '<smart-button type="circle-text" ' +
+                      'class="modal-dialog-prompt-ok confirm affirmative" ' +
+                      'data-l10n-id="ok">OK</smart-button>' +
+                  '</menu>' +
+                '</section>' +
+              '</div>' +
+            '</form>' +
+            '<form class="modal-dialog-select-one generic-dialog" ' +
+              'role="dialog" ' +
+              'tabindex="-1">' +
+              '<div class="modal-dialog-message-container inner">' +
+                '<h3 class="modal-dialog-select-one-title"></h3>' +
+              '</div>' +
+              '<div class="modal-dialog-section-container">' +
+                '<section>' +
+                  '<div class="inner">' +
+                    '<ul class="modal-dialog-select-one-menu"></ul>' +
+                  '</div>' +
+                  '<menu>' +
+                    '<smart-button type="circle-text" ' +
+                    'class="modal-dialog-select-one-cancel cancel" ' +
+                    'data-l10n-id="cancel">Cancel</smart-button>' +
+                  '</menu>' +
+                '</section>' +
+              '</div>' +
+            '</form>' +
+            '<form class="modal-dialog-custom-prompt generic-dialog" ' +
+              'role="dialog" ' +
+              'tabindex="-1">' +
+              '<div class="modal-dialog-message-container inner">' +
+                '<h3 class="modal-dialog-custom-prompt-title"></h3>' +
+              '</div>' +
+              '<div class="modal-dialog-section-container">' +
+                '<section>' +
+                  '<div class="inner">' +
+                    '<p class="modal-dialog-custom-prompt-message"></p>' +
+                    '<label class="pack-checkbox">' +
+                      '<input class="modal-dialog-custom-prompt-checkbox" ' +
+                      'type="checkbox"/>' +
+                      '<span></span>' +
+                    '</label>' +
+                  '</div>' +
+                  '<menu class="modal-dialog-custom-prompt-buttons"></menu>' +
+                '</section>' +
+              '</div>' +
+            '</form>' +
+          '</smart-dialog>';
   };
 
   AppModalDialog.prototype.processNextEvent = function amd_processNextEvent() {
     this.events.splice(0, 1);
     if (this.events.length) {
       this.show();
+      this._makeBubbleAnimation();
     } else {
       this.hide();
     }
@@ -224,10 +270,14 @@
 
   AppModalDialog.prototype.kill = function amd_kill() {
     this.containerElement.removeChild(this.element);
+    focusManager.removeUI(this);
   };
 
   // Show relative dialog and set message/input value well
   AppModalDialog.prototype.show = function amd_show() {
+    // If a alert/confirm/prompt... events are called during closing state,
+    // we should not show it until the dialog is closed, which will be handled
+    // in closed event in _fetchElements function.
     if (!this.events.length) {
       return;
     }
@@ -252,12 +302,13 @@
       message = escapeHTML(message);
     }
 
+    this._dialogType = type;
     // TODO: Currently we only implmented key navigation for prompt dialog.
     // Other dialogs also need to be implemented.
     switch (type) {
       case 'alert':
-        elements.alertTitle.innerHTML = title;
-        elements.alertMessage.innerHTML = message;
+        elements.alertTitle.textContent = title;
+        elements.alertMessage.textContent = message;
         elements.alert.classList.add('visible');
         if (evt.yesText) {
           elements.alertOk.removeAttribute('data-l10n-id');
@@ -267,21 +318,17 @@
         }
 
         this.simpleKeyNavigation.start(
-                  [elements.alertOk], SimpleKeyNavigation.DIRECTION.HORIZONTAL);
+          [elements.alertOk],
+          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+          {target: elements.alert});
 
-        // XXX: Focusing smart-button fails at the second time popup if we don't
-        // postpone it. We need to find the root cause.
-        setTimeout(function() {
-          document.activeElement.blur();
-          this.simpleKeyNavigation.focus();
-        }.bind(this), 100);
         break;
 
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptTitle.innerHTML = title;
-        elements.promptMessage.innerHTML = message;
+        elements.promptTitle.textContent = title;
+        elements.promptMessage.textContent = message;
 
         if (evt.yesText) {
           elements.promptOk.removeAttribute('data-l10n-id');
@@ -297,22 +344,22 @@
           elements.promptCancel.setAttribute('data-l10n-id', 'cancel');
         }
 
-        document.activeElement.blur();
         var horizontalButtonNavigation = new SimpleKeyNavigation();
         horizontalButtonNavigation.start(
-            [elements.promptCancel, elements.promptOk],
-            SimpleKeyNavigation.DIRECTION.HORIZONTAL,
-            true);
+          [elements.promptCancel, elements.promptOk],
+          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+          {isChild: true});
         this.simpleKeyNavigation.start(
           [elements.promptInput, horizontalButtonNavigation],
-          SimpleKeyNavigation.DIRECTION.VERTICAL);
+          SimpleKeyNavigation.DIRECTION.VERTICAL,
+          {target: elements.prompt});
         elements.promptInput.select();
         break;
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmTitle.innerHTML = title;
-        elements.confirmMessage.innerHTML = message;
+        elements.confirmTitle.textContent = title;
+        elements.confirmMessage.textContent = message;
 
         if (evt.yesText) {
           elements.confirmOk.removeAttribute('data-l10n-id');
@@ -328,29 +375,21 @@
           elements.confirmCancel.setAttribute('data-l10n-id', 'cancel');
         }
 
-        document.activeElement.blur();
         this.simpleKeyNavigation.start(
           [elements.confirmCancel, elements.confirmOk],
-          SimpleKeyNavigation.DIRECTION.HORIZONTAL);
-
-        // XXX: Focusing smart-button fails at the second time popup if we don't
-        // postpone it. We need to find the root cause.
-        setTimeout(function() {
-          document.activeElement.blur();
-          this.simpleKeyNavigation.focus();
-        }.bind(this), 100);
+          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+          {target: elements.confirm});
         break;
 
       case 'selectone':
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
-        elements.selectOne.focus();
         break;
 
       case 'custom-prompt':
         var customPrompt = evt.detail;
         elements.customPrompt.classList.add('visible');
-        elements.customPromptMessage.innerHTML = customPrompt.message;
+        elements.customPromptMessage.textContent = customPrompt.message;
         // Display custom list of buttons
         elements.customPromptButtons.innerHTML = '';
         elements.customPromptButtons.setAttribute('data-items',
@@ -389,22 +428,23 @@
           checkbox.parentNode.classList.add('hidden');
         }
 
-        elements.customPrompt.focus();
         break;
     }
+    // simpleKeyNavigation.start will focus the default element, however, we do
+    // not want to have any button or input focused before bubbling animation.
+    this.simpleKeyNavigation.blur();
 
     this.app.browser.element.setAttribute('aria-hidden', true);
-    this.element.classList.add('visible');
+    this.element.open();
   };
 
   AppModalDialog.prototype.hide = function amd_hide() {
     this.simpleKeyNavigation.blur();
     this.simpleKeyNavigation.stop();
     this.app.browser.element.removeAttribute('aria-hidden');
-    this.element.classList.remove('visible');
-    if (this.app) {
-      this.app.focus();
-    }
+    this.element.close();
+    focusManager.focus();
+
     if (!this.events.length) {
       return;
     }
@@ -414,13 +454,34 @@
     this.elements[type].classList.remove('visible');
   };
 
-  AppModalDialog.prototype.isVisible = function amd_isVisible() {
-    return !!this.element && this.element.classList.contains('visible');
+  AppModalDialog.prototype.isFocusable = function amd_isFocusable() {
+    return !!this.element && !this.element.classList.contains('closed');
   };
 
   AppModalDialog.prototype.focus = function amd_show() {
+    // XXX: Focusing smart-button fails at the second time popup if we don't
+    // postpone it. We need to find the root cause.
     document.activeElement.blur();
-    this.simpleKeyNavigation && this.simpleKeyNavigation.focus();
+    if (!this.element.classList.contains('opened')) {
+      this.element.focus();
+      return;
+    }
+
+    switch(this._dialogType) {
+      case 'selectone':
+        this.elements.selectOne.focus();
+        break;
+      case 'custom-prompt':
+        this.elements.customPrompt.focus();
+        break;
+      default:
+        this.simpleKeyNavigation && this.simpleKeyNavigation.focus();
+        break;
+    }
+  };
+
+  AppModalDialog.prototype.getElement = function amd_getElement() {
+    return this.element;
   };
 
   // When user clicks OK button on alert/confirm/prompt
@@ -555,5 +616,15 @@
       }
 
       return title;
+    };
+
+  AppModalDialog.prototype._makeBubbleAnimation =
+    function amd__makeBubbleAnimation(target) {
+      var menuElement = this.elements[this._dialogType].querySelector('menu');
+      var buttons = [];
+      for(var i = 0; i < menuElement.children.length; i++) {
+        buttons.push(menuElement.children[i]);
+      }
+      this.smartBubble.play(buttons);
     };
 }(window));

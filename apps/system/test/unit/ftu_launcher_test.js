@@ -136,4 +136,56 @@ suite('launch ftu >', function() {
       FtuLauncher.retrieve();
     });
   });
+
+  suite('stepReady', function() {
+    setup(function() {
+      FtuLauncher._stepsList = [];
+      FtuLauncher._done = false;
+      FtuLauncher._skipped = false;
+    });
+    test('When FTU is closed, any step should be ready', function(done) {
+      FtuLauncher.close();
+      FtuLauncher.stepReady('#wifi').then(function() {
+        done();
+      });
+    });
+    test('When FTU is skipped, any step should be ready', function(done) {
+      FtuLauncher.skip();
+      FtuLauncher.stepReady('#wifi').then(function() {
+        done();
+      });
+    });
+    test('Navigator to #languages', function(done) {
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#languages'
+        }
+      });
+      FtuLauncher.handleEvent(evt);
+      FtuLauncher.stepReady('#languages').then(function() {
+        done();
+      });
+    });
+
+    test('Navigate to wifi', function(done) {
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#languages'
+        }
+      });
+      FtuLauncher.handleEvent(evt);
+      var evt2 = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#wifi'
+        }
+      });
+      FtuLauncher.handleEvent(evt2);
+      FtuLauncher.stepReady('#wifi').then(function() {
+        done();
+      });
+    });
+  });
 });

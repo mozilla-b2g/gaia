@@ -1,5 +1,6 @@
 .DS_Store
 *.rej
+*.log
 *.orig
 *.swp
 *.swn
@@ -8,7 +9,7 @@
 *~
 manifest.appcache
 
-/apps/calendar/js/presets.js
+/apps/calendar/js/common/presets.js
 /apps/camera/js/config.js
 /apps/gallery/js/config.js
 /apps/findmydevice/js/config.js
@@ -34,6 +35,7 @@ manifest.appcache
 /shared/test/integration/node_modules
 /shared/resources/keyboard_layouts.json
 /shared/pages/import/js/parameters.js
+/shared/js/search_providers.json
 
 /b2g
 /profile/
@@ -54,6 +56,7 @@ manifest.appcache
 /coverage/
 /local.mk
 /raptor.log
+/npm-debug.log
 
 /tools/xpcwindow/vendor/
 
@@ -62,6 +65,7 @@ manifest.appcache
 /distribution/
 /node_modules/
 /.modules.tar
+/modules_tar_cachedir
 ENV/
 .env
 modules.tar

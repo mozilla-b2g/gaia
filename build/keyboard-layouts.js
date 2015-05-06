@@ -1,9 +1,11 @@
-// Generate the default keyboard layout config
-// (shared/resources/keyboard_layouts.json), which is used to setup which
-// layouts we should enable for each language
-
-/* global require, exports */
 'use strict';
+
+/**
+ * Generate the default keyboard layout config
+ * (shared/resources/keyboard_layouts.json)
+ * which is used to setup which layouts we should enable for each language
+ */
+
 var utils = require('./utils');
 
 // To get the manifestURL of an app from webapps collection.
@@ -11,9 +13,9 @@ var utils = require('./utils');
 // For now, we would not allow multiple apps with the same appName.
 function getManifestURL(webappsMapping, appName) {
   if (!webappsMapping[appName]) {
-    throw new Error(
-      'Can not find application ' + appName + 'in webappsMapping'
-    );
+    utils.log('keyboard-layouts', 'Can not find application ' + appName +
+      ' in webappsMapping');
+    return '';
   }
 
   return webappsMapping[appName].manifestURL;
@@ -28,8 +30,8 @@ function getLayoutEntry(layout, webappsMapping) {
   };
 }
 
-// Generate the default layout mapping from language-> keyboard layouts
-// config:  the build config
+// Generate the default layout mapping from language -> keyboard layouts
+// config: build config
 // webappsMapping: all the webapps mapping
 // allLayouts: all the preloaded keyboard layouts
 function genDefaultLayouts(config, webappsMapping, allLayouts) {
@@ -47,7 +49,7 @@ function genDefaultLayouts(config, webappsMapping, allLayouts) {
     langIndependentLayouts: []
   };
 
-  // handle language -> layouts mapping
+  // Handle language -> layouts mapping
   let mapping = defaultKeyboards.layout;
 
   Object.keys(defaultKeyboards.layout).forEach(function(lang) {
@@ -66,7 +68,7 @@ function genDefaultLayouts(config, webappsMapping, allLayouts) {
     });
   });
 
-  // handle language-independent layouts
+  // Handle language-independent layouts
   let langIndLayouts = defaultKeyboards.langIndependentLayouts;
   langIndLayouts.forEach(function parseLayout(layout) {
     result.langIndependentLayouts.push(getLayoutEntry(layout, webappsMapping));
@@ -74,9 +76,8 @@ function genDefaultLayouts(config, webappsMapping, allLayouts) {
 
   // Write the result to file
   let content = JSON.stringify(result, null, 2);
-  let resultFile = utils.resolve(
-    utils.joinPath('shared', 'resources', 'keyboard_layouts.json'),
-    config.GAIA_DIR);
+  let resultFile = utils.resolve(utils.joinPath('shared', 'resources',
+    'keyboard_layouts.json'), config.GAIA_DIR);
   if (resultFile.exists()) {
     let prev = utils.getFileContent(resultFile);
     if (prev === content) {

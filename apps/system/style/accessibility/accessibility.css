@@ -15,7 +15,7 @@
   visibility: hidden;
   opacity: 0;
   text-align: center;
-  transition: visibility 0.5s, opacity 0.5s;
+  transition: visibility var(--transition-duration), opacity var(--transition-duration);
   border-radius: 0.5rem 0.5rem 0 0;
 }
 

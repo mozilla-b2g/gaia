@@ -90,8 +90,8 @@
   AppTransitionController.prototype._waitingForLoad = false;
   AppTransitionController.prototype.openAnimation = 'enlarge';
   AppTransitionController.prototype.closeAnimation = 'reduce';
-  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 350;
-  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 350;
+  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 200;
+  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 200;
   AppTransitionController.prototype.SLOW_TRANSITION_TIMEOUT = 3500;
   AppTransitionController.prototype.changeTransitionState =
     function atc_changeTransitionState(evt) {
@@ -171,7 +171,6 @@
     }
   };
 
-
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
       this.app.debug('timer to ensure opened does occur.');
@@ -221,6 +220,7 @@
           !this.app.isInputMethod) {
         this.app.setVisible(false);
       }
+      this.app.setNFCFocus(false);
 
       this.app.element.classList.remove('active');
     };
@@ -284,16 +284,16 @@
     if (this._shouldFocusApp()) {
       this.app.debug('focusing this app.');
       this.app.focus();
+      this.app.setNFCFocus(true);
     }
   };
 
   AppTransitionController.prototype._shouldFocusApp = function() {
-    // XXX: Rocketbar losing input focus
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-    // XXX: We should let HierarchyManager to manage the focus.
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1079748
+    // SearchWindow should not focus itself,
+    // because the input is inside system app.
     var bottomWindow = this.app.getBottomMostWindow();
-    return (this._transitionState == 'opened' &&
+    return (this.app.CLASS_NAME !== 'SearchWindow' &&
+            this._transitionState == 'opened' &&
             Service.query('getTopMostWindow') === this.app &&
             Service.query('getTopMostUI').name ===
             bottomWindow.HIERARCHY_MANAGER);
@@ -345,7 +345,8 @@
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
         'will-become-active', 'will-become-inactive',
         'slide-to-top', 'slide-from-top',
-        'slide-to-bottom', 'slide-from-bottom'];
+        'slide-to-bottom', 'slide-from-bottom',
+        'home-from-cardview', 'home-to-cardview'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);
@@ -379,6 +380,9 @@
           break;
         case 'animationend':
           evt.stopPropagation();
+          // Hide touch-blocker when launching animation is ended.
+          this.app.element.classList.remove('transition-opening');
+
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
           if (Service.isBusyLoading()) {

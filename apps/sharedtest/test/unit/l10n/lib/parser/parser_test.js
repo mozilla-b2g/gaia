@@ -1,5 +1,5 @@
 /* global it, assert:true, describe */
-/* global navigator, process */
+/* global navigator */
 'use strict';
 
 if (typeof navigator !== 'undefined') {
@@ -7,9 +7,7 @@ if (typeof navigator !== 'undefined') {
 } else {
   var assert = require('assert');
   var L10n = {
-    PropertiesParser: process.env.L20N_COV ?
-      require('../../../build/cov/lib/l20n/parser')
-      : require('../../../lib/l20n/format/properties/parser')
+    PropertiesParser: require('../../../src/lib/format/properties/parser')
   };
 }
 
@@ -20,12 +18,21 @@ describe('L10n Parser', function() {
     assert.strictEqual(ast[0].$v, 'string');
   });
 
+  it('empty value', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id =');
+    assert.equal(ast[0].$v, '');
+  });
+
+  it('empty value with white spaces', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id =  ');
+    assert.equal(ast[0].$v, '');
+  });
+
   it('basic errors', function() {
     var strings = [
       '',
       'id',
       'id ',
-      'id =',
       '+id',
       '=id',
     ];
@@ -41,6 +48,16 @@ describe('L10n Parser', function() {
   it('basic attributes', function() {
     var ast = L10n.PropertiesParser.parse(null, 'id.attr1 = foo');
     assert.equal(ast[0].attr1, 'foo');
+  });
+
+  it('empty attribute', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id.attr1 =');
+    assert.equal(ast[0].attr1, '');
+  });
+
+  it('empty attribute with white spaces', function() {
+    var ast = L10n.PropertiesParser.parse(null, 'id.attr1 = ');
+    assert.equal(ast[0].attr1, '');
   });
 
   it('attribute errors', function() {

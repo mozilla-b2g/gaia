@@ -155,8 +155,18 @@ function Composer(newRecords, account, identity) {
 
   body.attachments.forEach(function(attachment) {
     try {
-      var attachmentNode = new MimeNode(attachment.type,
-                                        { filename: attachment.name });
+      var attachmentNode = new MimeNode(
+        attachment.type,
+        {
+          // This implies Content-Disposition: attachment
+          filename: attachment.name
+        });
+      // Explicitly indicate that the attachment is base64 encoded.  mailbuild
+      // only picks base64 for non-text/* MIME parts, but our attachment logic
+      // encodes *all* attachments in base64, so base64 is the only correct
+      // answer.  (Also, failure to base64 encode our _uniqueBlobBoundary breaks
+      // the replace logic in withMessageBlob.  So base64 all the things!)
+      attachmentNode.setHeader('Content-Transfer-Encoding', 'base64');
       attachmentNode.setContent(this._uniqueBlobBoundary);
       root.appendChild(attachmentNode);
       this._blobReplacements.push(new Blob(attachment.file));
@@ -182,8 +192,12 @@ Composer.prototype = {
    * Request that a body be produced as a single Blob with the given options.
    * Multiple calls to this method may overlap concurrently.
    *
-   * @param {object} opts
-   *   { includeBcc: true } if the BCC header should be included.
+   * @param {Object} opts
+   * @param {Boolean} [opts.includeBcc=true]
+   * @param {Boolean} [opts.smtp=false]
+   *   Is this for an SMTP server?  Matters for dot-stuffing.  Our use of
+   *   Blobs currently has the side-effect of making it impossible for
+   *   smtpclient's dot-stuffing to work, which is somewhat of a problem.
    * @param {function(blob)} callback
    */
   withMessageBlob: function(opts, callback) {
@@ -206,6 +220,11 @@ Composer.prototype = {
     }
 
     var str = this._rootNode.build();
+    // smtpclient knows how to do dot-stuffing, but we bypass its dot-stuffing
+    // logic because smtpclient doesn't understand Blobs.
+    if (opts.smtp) {
+      str = str.replace(/\n\./g, '\n..');
+    }
 
     if (hasBcc) {
       str = str.replace(TEMP_BCC_REGEX, 'Bcc: ');

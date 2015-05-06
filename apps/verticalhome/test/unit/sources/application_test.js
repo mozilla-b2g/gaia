@@ -2,8 +2,6 @@
 /* global App, ApplicationSource, GaiaGrid, ItemStore */
 /* global MocksHelper, MockNavigatormozApps, loadBodyHTML */
 
-require('/shared/js/performance_testing_helper.js');
-require('/shared/js/usertiming.js');
 require('/shared/js/l10n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');

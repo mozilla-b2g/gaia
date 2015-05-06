@@ -128,9 +128,13 @@ var SubListView = {
       this.setAlbumName(albumName, albumNameL10nId);
       this.setAlbumSrc(data);
 
+      var inPlaylist = (option !== 'artist' &&
+                        option !== 'album' &&
+                        option !== 'title');
+
       dataArray.forEach(function(songData) {
         songData.multidisc = (maxDiscNum > 1);
-        this.update(songData);
+        this.update(songData, inPlaylist);
       }.bind(this));
 
       if (callback) {
@@ -139,12 +143,15 @@ var SubListView = {
     }.bind(this));
   },
 
-  update: function slv_update(result) {
+  // Set inPlaylist to true if you want the index instead of the track #
+  // By default it is the track #
+  update: function slv_update(result, useIndexNumber) {
     if (result === null) {
       return;
     }
 
-    this.anchor.appendChild(createListElement('song', result, this.index));
+    var option = useIndexNumber ? 'song-index' : 'song';
+    this.anchor.appendChild(createListElement(option, result, this.index));
 
     this.index++;
   },

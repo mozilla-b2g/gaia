@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
@@ -10,9 +10,6 @@ SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 BUILDAPP=${BUILDAPP:-desktop}
-
-# where all gaia specific customizations for mocha-marionette live.
-SHARED=$DIR/../shared/test/integration
 
 safe_which() {
   if [ "$(which $1)" ];
@@ -124,7 +121,7 @@ fi
 
 RUNTIME_OPTS=""
 if [ "$RUNTIME" ]; then
-  RUNTIME_OPTS="--runtime=$RUNTIME"
+  RUNTIME_OPTS="--runtime $RUNTIME"
 fi
 
 # Dirty hack until we can kill this file or fix passing DEBUG to profile
@@ -137,6 +134,7 @@ fi
 if [ "$BUILDAPP" != "desktop" ] ; then
   LANG="en_US.UTF-8"
   export LANG
+  BUILDAPP_OPTS="--buildapp $BUILDAPP"
 fi
 
 DEVICE_OPTS=""
@@ -160,16 +158,20 @@ else
   TARGET=$DIR/../node_modules/.bin/marionette-mocha
 fi
 
+export PATH=$XPCSHELL_DIR:$PATH
+
+if [ ! -z $TEST_MANIFEST ]; then
+  TEST_FILES=$(./node_modules/.bin/apply-manifest $TEST_MANIFEST $TEST_FILES)
+fi
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
-PATH=$XPCSHELL_DIR:$PATH $TARGET \
+$TARGET \
+  --timeout 60s \
   $VERBOSE_OPTS \
   $OOP_OPTS \
   $RUNTIME_OPTS \
   $DEVICE_OPTS \
-  --timeout 60s \
-  --profile-builder $SHARED/profile_builder.js \
-  --profile-base $SHARED/profile.js \
-  $SHARED/setup.js \
+  $BUILDAPP_OPTS \
   $TEST_FILES \
   $@

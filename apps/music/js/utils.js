@@ -33,12 +33,14 @@ function formatTime(secs) {
 function createListElement(option, data, index, highlight) {
   var li = document.createElement('li');
   li.className = 'list-item';
+  li.setAttribute('role', 'presentation');
 
   var a = document.createElement('a');
   a.dataset.index = index;
   a.dataset.option = option;
+  a.setAttribute('role', 'option');
 
-  var titleSpan;
+  var titleBdi;
 
   li.appendChild(a);
 
@@ -60,28 +62,28 @@ function createListElement(option, data, index, highlight) {
 
   switch (option) {
     case 'playlist':
-      titleSpan = document.createElement('span');
-      titleSpan.className = 'list-playlist-title';
+      titleBdi = document.createElement('bdi');
+      titleBdi.className = 'list-playlist-title';
       if (data.metadata.l10nId) {
-        titleSpan.textContent = navigator.mozL10n.get(data.metadata.l10nId);
-        titleSpan.dataset.l10nId = data.metadata.l10nId;
+        titleBdi.textContent = navigator.mozL10n.get(data.metadata.l10nId);
+        titleBdi.dataset.l10nId = data.metadata.l10nId;
       } else {
-        titleSpan.textContent =
+        titleBdi.textContent =
           data.metadata.title || navigator.mozL10n.get('unknownTitle');
-        titleSpan.dataset.l10nId =
+        titleBdi.dataset.l10nId =
           data.metadata.title ? '' : 'unknownTitle';
       }
 
       a.dataset.keyRange = 'all';
       a.dataset.option = data.option;
 
-      li.appendChild(titleSpan);
+      a.appendChild(titleBdi);
 
       if (index === 0) {
         var shuffleIcon = document.createElement('div');
         shuffleIcon.className = 'list-playlist-icon';
         shuffleIcon.dataset.icon = 'shuffle';
-        li.appendChild(shuffleIcon);
+        a.appendChild(shuffleIcon);
       }
 
       break;
@@ -89,7 +91,7 @@ function createListElement(option, data, index, highlight) {
     case 'artist':
     case 'album':
     case 'title':
-      var artistSpan;
+      var artistBdi;
       // Use background image instead of creating img elements can reduce
       // the amount of total elements in the DOM tree, it can save memory
       // and gecko can render the elements faster as well.
@@ -98,49 +100,49 @@ function createListElement(option, data, index, highlight) {
       });
 
       if (option === 'artist') {
-        artistSpan = document.createElement('span');
-        artistSpan.className = 'list-single-title';
-        artistSpan.textContent =
+        artistBdi = document.createElement('bdi');
+        artistBdi.className = 'list-single-title';
+        artistBdi.textContent =
           data.metadata.artist || navigator.mozL10n.get('unknownArtist');
-        artistSpan.dataset.l10nId =
+        artistBdi.dataset.l10nId =
           data.metadata.artist ? '' : 'unknownArtist';
 
         // Highlight the text when the highlight argument is passed
         // This should only happens when we are creating searched results
         if (highlight) {
-          highlightText(artistSpan, highlight);
+          highlightText(artistBdi, highlight);
         }
 
-        li.appendChild(artistSpan);
+        a.appendChild(artistBdi);
       } else {
-        var albumOrTitleSpan = document.createElement('span');
-        artistSpan = document.createElement('span');
-        albumOrTitleSpan.className = 'list-main-title';
-        artistSpan.className = 'list-sub-title';
+        var albumOrTitleBdi = document.createElement('bdi');
+        artistBdi = document.createElement('bdi');
+        albumOrTitleBdi.className = 'list-main-title';
+        artistBdi.className = 'list-sub-title';
         if (option === 'album') {
-          albumOrTitleSpan.textContent =
+          albumOrTitleBdi.textContent =
             data.metadata.album || navigator.mozL10n.get('unknownAlbum');
-          albumOrTitleSpan.dataset.l10nId =
+          albumOrTitleBdi.dataset.l10nId =
             data.metadata.album ? '' : 'unknownAlbum';
         } else {
-          albumOrTitleSpan.textContent =
+          albumOrTitleBdi.textContent =
             data.metadata.title || navigator.mozL10n.get('unknownTitle');
-          albumOrTitleSpan.dataset.l10nId =
+          albumOrTitleBdi.dataset.l10nId =
             data.metadata.title ? '' : 'unknownTitle';
         }
-        artistSpan.textContent =
+        artistBdi.textContent =
           data.metadata.artist || navigator.mozL10n.get('unknownArtist');
-        artistSpan.dataset.l10nId =
+        artistBdi.dataset.l10nId =
           data.metadata.artist ? '' : 'unknownArtist';
 
         // Highlight the text when the highlight argument is passed
         // This should only happens when we are creating searched results
         if (highlight) {
-          highlightText(albumOrTitleSpan, highlight);
+          highlightText(albumOrTitleBdi, highlight);
         }
 
-        li.appendChild(albumOrTitleSpan);
-        li.appendChild(artistSpan);
+        a.appendChild(albumOrTitleBdi);
+        a.appendChild(artistBdi);
       }
 
       a.dataset.keyRange = data.metadata[option];
@@ -149,29 +151,35 @@ function createListElement(option, data, index, highlight) {
       break;
 
     case 'song':
+    case 'song-index':
       var songTitle =
         data.metadata.title || navigator.mozL10n.get('unknownTitle');
 
-      var indexSpan = document.createElement('span');
-      indexSpan.className = 'list-song-index';
-      var trackNum = data.metadata.tracknum;
-      if (data.metadata.discnum && data.multidisc) {
-        trackNum = data.metadata.discnum + '.' +
-          (trackNum < 10 ? '0' + trackNum : trackNum);
+      var indexBdi = document.createElement('bdi');
+      indexBdi.className = 'list-song-index';
+      // 'song-index' mean we want the index and not the track #
+      if (option === 'song-index') {
+        indexBdi.textContent = index + 1;
+      } else {
+        var trackNum = data.metadata.tracknum;
+        if (data.metadata.discnum && data.multidisc) {
+          trackNum = data.metadata.discnum + '.' +
+            (trackNum < 10 ? '0' + trackNum : trackNum);
+        }
+        indexBdi.textContent = trackNum;
       }
-      indexSpan.textContent = trackNum;
 
-      titleSpan = document.createElement('span');
-      titleSpan.className = 'list-song-title';
-      titleSpan.textContent = songTitle;
-      titleSpan.dataset.l10nId = data.metadata.title ? '' : 'unknownTitle';
+      titleBdi = document.createElement('bdi');
+      titleBdi.className = 'list-song-title';
+      titleBdi.textContent = songTitle;
+      titleBdi.dataset.l10nId = data.metadata.title ? '' : 'unknownTitle';
 
-      var lengthSpan = document.createElement('span');
-      lengthSpan.className = 'list-song-length';
+      var lengthBdi = document.createElement('bdi');
+      lengthBdi.className = 'list-song-length';
 
-      li.appendChild(indexSpan);
-      li.appendChild(titleSpan);
-      li.appendChild(lengthSpan);
+      a.appendChild(indexBdi);
+      a.appendChild(titleBdi);
+      a.appendChild(lengthBdi);
 
       break;
   }

@@ -16,7 +16,6 @@
     "systemXHR":{},
     "alarms":{},
     "browser": {},
-    "storage":{},
     "settings":{ "access": "readonly" },
     "desktop-notification":{},
     "audio-channel-notification":{}

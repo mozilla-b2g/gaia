@@ -1,10 +1,12 @@
+'use strict';
+
 var Gallery = require('./lib/gallery.js'),
     Marionette = require('marionette-client'),
     assert = require('assert');
 
 marionette('editing an image', function() {
 
-  var app, actions, client, chrome;
+  var app, actions, client;
 
   client = marionette.client({
     prefs: {
@@ -12,10 +14,6 @@ marionette('editing an image', function() {
       'device.storage.testing': true,
       'device.storage.prompt.testing': true,
       'webgl.force-enabled': true
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 

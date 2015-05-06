@@ -7,7 +7,7 @@ define(function(require) {
 var AccountModel = require('models/account');
 var CalendarModel = require('models/calendar');
 var Caldav = require('ext/caldav');
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Factory = require('test/support/factory');
 
 /**

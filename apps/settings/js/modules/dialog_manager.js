@@ -228,7 +228,7 @@ define(function(require) {
         if (foundPanel.onSubmit && options._type === 'submit') {
           promise = foundPanel.onSubmit();
         // custom dialog - onCancel
-        } else if (foundPanel.onCancel && options._type === 'cacnel') {
+        } else if (foundPanel.onCancel && options._type === 'cancel') {
           promise = foundPanel.onCancel();
         // if no onSubmit & onCancel, pass directly
         } else {
@@ -248,7 +248,11 @@ define(function(require) {
         return self._transit('close', dialog, options);
       })
       .then(function() {
-        // 5. Get result and cleanup dialog
+        // 5. call hide
+        return foundPanel.hide();
+      })
+      .then(function() {
+        // 6. Get result and cleanup dialog
         var result;
 
         // for prompt dialog, we have to get its own result from input text.

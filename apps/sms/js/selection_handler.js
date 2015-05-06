@@ -8,8 +8,8 @@ const REQUIRED_KEYS = [
   'container',
   'checkUncheckAllButton',
   // methods
-  'checkInputs',
-  'getAllInputs',
+  'updateSelectionStatus',
+  'getIdIterator',
   'isInEditMode'
 ];
 
@@ -47,6 +47,26 @@ SelectionHandler.prototype = {
     return Array.from(this.selected);
   },
 
+  get inputIdSet() {
+    var itemIdSet = new Set();
+    for(var id of this.getIdIterator()) {
+      itemIdSet.add(id.toString());
+    }
+    return itemIdSet;
+  },
+
+  allSelected: function sel_allSelected() {
+    /*jshint unused: false */
+    var allItemCount = 0;
+    var selectedCount = this.selectedCount;
+    for (var id of this.getIdIterator()) {
+      if (++allItemCount > selectedCount) {
+        return false;
+      }
+    }
+    return true;
+  },
+
   onSelected: function sel_onSelected(event) {
     if (!this.isInEditMode()) {
       return;
@@ -64,7 +84,7 @@ SelectionHandler.prototype = {
       return;
     }
 
-    this.checkInputs();
+    this.updateSelectionStatus();
   },
 
   select: function sel_select(id) {
@@ -88,21 +108,18 @@ SelectionHandler.prototype = {
   // if no message or few are checked : select all the messages
   // and if all messages are checked : deselect them all.
   toggleCheckedAll: function sel_toggleCheckedAll() {
-    var selected = this.selected.size;
-    var allInputs = this.getAllInputs();
-    var allSelected = (selected === allInputs.length);
+    var allInputs = this.inputIdSet;
+    var allSelected = (this.selected.size === allInputs.size);
 
     if (allSelected) {
       this.selected.clear();
     } else {
-      Array.prototype.forEach.call(allInputs, (data) => {
-        this.selected.add(data.value);
-      });
+      this.selected = allInputs;
     }
 
     this.updateCheckboxes();
 
-    this.checkInputs();
+    this.updateSelectionStatus();
   },
 
   cleanForm: function sel_cleanForm() {
@@ -112,7 +129,7 @@ SelectionHandler.prototype = {
     this.updateCheckboxes();
 
     // Reset vars for deleting methods
-    this.checkInputs();
+    this.updateSelectionStatus();
   }
 };
 

@@ -12,10 +12,6 @@ marionette('media playback tests', function() {
       // This is true on Gonk, but false on desktop, so override.
       'dom.inter-app-communication-api.enabled': true
     },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: apps
   });
 

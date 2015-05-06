@@ -1,9 +1,10 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global Service, LazyLoader */
 
 'use strict';
 
 var Wifi = {
+  name: 'Wifi',
+
   wifiEnabled: true,
 
   wifiDisabledByWakelock: false,
@@ -23,12 +24,30 @@ var Wifi = {
 
   _scanTimer: null,
 
+  _enabled: false,
+
+  get enabled() {
+    return this._enabled;
+  },
+
   init: function wf_init() {
     if (!window.navigator.mozSettings)
       return;
 
-    if (!window.navigator.mozWifiManager)
+    if (!window.navigator.mozWifiManager) {
       return;
+    }
+
+    this.wifiManager = window.navigator.mozWifiManager;
+
+    Service.request('stepReady', '#wifi').then(function() {
+      return LazyLoader.load(['js/wifi_icon.js']);
+    }.bind(this)).then(function() {
+      this.icon = new WifiIcon(this);
+      this.icon.start();
+    }.bind(this))['catch'](function(err) { // XXX: workaround gjslint
+      console.error(err);
+    });
 
     window.addEventListener('screenchange', this);
 
@@ -61,18 +80,24 @@ var Wifi = {
     var wifiManager = window.navigator.mozWifiManager;
     // when wifi is really enabled, emit event to notify QuickSettings
     wifiManager.onenabled = function onWifiEnabled() {
+      self._enabled = true;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-enabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
+      self.icon && self.icon.update();
     };
 
     // when wifi is really disabled, emit event to notify QuickSettings
     wifiManager.ondisabled = function onWifiDisabled() {
+      this._enabled = false;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-disabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
+      if (self.icon) {
+        self.icon.update();
+      }
     };
 
     // when wifi status change, emit event to notify StatusBar/UpdateManager
@@ -81,6 +106,11 @@ var Wifi = {
       evt.initCustomEvent('wifi-statuschange',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
+      self.icon && self.icon.update();
+    };
+
+    wifiManager.onconnectioninfoupdate = function() {
+      self.icon && self.icon.update();
     };
 
     SettingsListener.observe(
@@ -91,6 +121,8 @@ var Wifi = {
     SettingsListener.observe('wifi.sleepMode', true, function(value) {
       self.wifiSleepMode = value;
     });
+
+    Service.registerState('enabled', this);
 
     // Track the wifi.enabled mozSettings value
     SettingsListener.observe('wifi.enabled', true, function(value) {
@@ -109,6 +141,9 @@ var Wifi = {
       }
 
       self.wifiEnabled = value;
+      if (self.icon) {
+        self.icon && self.icon.update();
+      }
 
       clearTimeout(self._scanTimer);
       if (!value)
@@ -167,22 +202,10 @@ var Wifi = {
     var lock = SettingsListener.getSettingsLock();
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
-    // But if wifi wake lock is held, turn wifi into power save mode instead of
-    // turning wifi off.
     if (!ScreenManager.screenEnabled && !battery.charging) {
-      // When the screen is off and the phone is not charging,
-      // go to power save mode. It will be restored when screen
-      // is turned on or the phone is charging.
-      if (this.wifiEnabled) {
-        wifiManager.setPowerSavingMode(true);
-      }
-
-      // Wifi wake lock is held while screen and wifi are off, turn on wifi and
-      // get into power save mode.
       if (!this.wifiEnabled && this._wakeLockManager.isHeld) {
         lock.set({ 'wifi.enabled': true });
         window.addEventListener('wifi-enabled', function() {
-          wifiManager.setPowerSavingMode(true);
           releaseCpuLock();
         });
         return;
@@ -228,12 +251,6 @@ var Wifi = {
         this._alarmId = null;
       }
 
-      if (this.wifiEnabled) {
-        // Restore from power save mode before the possible scan request if
-        // wifi is already enabled.
-        wifiManager.setPowerSavingMode(false);
-      }
-
       // If wifi is enabled but disconnected.
       // we would need to call getNetworks() so we could join known wifi network
       if (this.wifiEnabled && wifiManager.connection.status == 'disconnected') {
@@ -249,8 +266,6 @@ var Wifi = {
       this.wifiDisabledByWakelock = false;
 
       if (this.wifiEnabled) {
-        // Restore from power save mode is wifi is already enabled.
-        wifiManager.setPowerSavingMode(false);
         releaseCpuLock();
         return;
       }
@@ -292,18 +307,6 @@ var Wifi = {
     this.wifiDisabledByWakelock = true;
 
     var request = null;
-    // If Wifi wake lock is held, change wifi to power save mode instead of
-    // disable it.
-    if (this._wakeLockManager.isHeld) {
-      var wifiManager = window.navigator.mozWifiManager;
-      if (wifiManager) {
-        request = wifiManager.setPowerSavingMode(true);
-        request.onsuccess = releaseWakeLockForWifi;
-        request.onerror = releaseWakeLockForWifi;
-        return;
-      }
-    }
-
     var lock = SettingsListener.getSettingsLock();
 
     // Actually turn off the wifi

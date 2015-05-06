@@ -1,17 +1,19 @@
 'use strict';
 
 /* global MocksHelper, InputWindowManager, MockKeyboardManager, MockPromise,
-   InputWindow, MockSettingsListener */
+   InputWindow, MockSettingsListener, MockService */
 
 require('/shared/test/unit/mocks/mock_custom_event.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/test/unit/mock_orientation_manager.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/test/unit/mock_keyboard_manager.js');
 require('/js/input_window_manager.js');
 
 var mocksForInputWindowManager = new MocksHelper([
-  'OrientationManager', 'SettingsListener', 'KeyboardManager', 'CustomEvent'
+  'OrientationManager', 'SettingsListener', 'KeyboardManager', 'CustomEvent',
+  'Service'
 ]).init();
 
 suite('InputWindowManager', function() {
@@ -19,7 +21,6 @@ suite('InputWindowManager', function() {
 
   var manager;
   var stubIWConstructor;
-  var realGetFeature;
 
   suiteSetup(function(done) {
     require('/js/browser_frame.js');
@@ -32,6 +33,13 @@ suite('InputWindowManager', function() {
   });
 
   setup(function() {
+    var getDeviceMemoryPromise = new MockPromise();
+    this.sinon.stub(MockService, 'request', (requestService) => {
+      if (requestService === 'getDeviceMemory') {
+        return getDeviceMemoryPromise;
+      }
+    });
+
     var realIWPrototype = InputWindow.prototype;
     stubIWConstructor = this.sinon.stub(window, 'InputWindow', () =>
       // simulate |sinon.createStubInstance|: we want a new stubbed instance
@@ -39,22 +47,14 @@ suite('InputWindowManager', function() {
       this.sinon.stub(Object.create(realIWPrototype))
     );
 
-    realGetFeature = navigator.getFeature;
-    var getFeaturePromise = new MockPromise();
-    navigator.getFeature = this.sinon.stub().returns(getFeaturePromise);
-
     manager = new InputWindowManager();
-
-    getFeaturePromise.mFulfillToValue(768);
-  });
-
-  teardown(function() {
-    navigator.getFeature = realGetFeature;
+    getDeviceMemoryPromise.mFulfillToValue(768);
   });
 
   test('Hardware memory is correctly retrieved', function() {
+    assert.isTrue(MockService.request.calledOnce);
+    assert.isTrue(MockService.request.calledWith('getDeviceMemory'));
     assert.equal(manager._totalMemory, 768);
-    assert.isTrue(navigator.getFeature.calledWith('hardware.memory'));
   });
 
   suite('Event handling', function() {
@@ -327,6 +327,10 @@ suite('InputWindowManager', function() {
         navigator.mozInputMethod = {
           removeFocus: this.sinon.stub()
         };
+
+        MockService.currentApp = {
+          blur: this.sinon.stub()
+        };
       });
 
       teardown(function() {
@@ -341,6 +345,7 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isFalse(navigator.mozInputMethod.removeFocus.called);
+          assert.isFalse(MockService.currentApp.blur.called);
         });
 
         test(evtType + ' remove focus if there is active keyboard', function() {
@@ -349,10 +354,12 @@ suite('InputWindowManager', function() {
           manager.handleEvent(new CustomEvent(evtType));
 
           assert.isTrue(navigator.mozInputMethod.removeFocus.called);
+          assert.isTrue(MockService.currentApp.blur.called);
         });
       };
 
-      ['lockscreen-appopened', 'sheets-gesture-begin'].forEach(evtType => {
+      ['lockscreen-appopened', 'sheets-gesture-begin',
+        'cardviewbeforeshow'].forEach(evtType => {
         testForRemoveFocus(evtType);
       });
     });

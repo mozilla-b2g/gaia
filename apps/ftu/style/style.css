@@ -84,6 +84,55 @@ gaia-buttons.forward-only .icon-previous {
   display: none !important;
 }
 
+/******************************************************************************
+ * Boolean inputs
+ */
+
+/* custom styles for boolean inputs (see /shared/style/switches.css)
+ * (incremental parity with Settings)
+ */
+
+[data-type="list"] li > label.pack-switch {
+  text-transform: none;
+  -moz-margin-start: -1.5rem;
+  -moz-margin-end: -1.5rem;
+  width: 100%;
+  min-height: 5rem;
+  overflow: visible;
+  display: flex;
+  /* override switches.css treatment */
+  pointer-events: auto;
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+}
+
+[data-type="list"] li > label.pack-switch > span {
+  text-decoration: none;
+  outline: 0;
+  color: #000;
+  -moz-box-sizing: border-box;
+  font-size: 1.9rem;
+  padding: 1rem 1.5rem;
+  -moz-padding-end: 9rem;
+  margin: 0 -1.5rem;
+  line-height: normal;
+  height: auto;
+  overflow: hidden;
+  display: block;
+}
+
+[data-type="list"] li > .pack-switch input ~ span::after {
+  left: auto;
+  right: 0;
+}
+[dir="rtl"][data-type="list"] li > .pack-switch input ~ span::after {
+  left: 0;
+  right: auto;
+}
+
 /*
   Header conditional button
 */
@@ -319,12 +368,14 @@ gaia-buttons.forward-only .icon-previous {
 #wifi [data-type="list"] li > p {
   pointer-events: none;
   -moz-padding-end: 6.2rem;
+  line-height: 1.33;
 }
 
 #wifi li {
-  padding: 0 1.5rem;
+  padding: 0 1.5rem 0.5rem 1.5rem;
   display: flex;
   flex-direction: column;
+  -moz-box-sizing: padding-box;
 }
 #wifi li.connected p {
   color: #00AACC;
@@ -685,6 +736,13 @@ aside.connecting {
   font-size: 1.4rem;
   font-weight: 500;
   margin: auto;
+  box-sizing: content-box;
+  display: inline-block;
+  width: auto;
+  min-width: 4.5rem;
+  max-width: 40%;
+  padding: 0 0.8rem;
+  -moz-padding-end: 1.8rem;
 }
 
 
@@ -763,10 +821,20 @@ aside.connecting {
   margin-top: 1.6rem;
 }
 
+#import_contacts [data-type="list"] li p {
+  text-overflow: unset;
+  overflow: unset;
+  white-space: unset;
+}
+
 
 #fb_after_import1 {
   background: url('images/import_fb.png') no-repeat center left / 3rem;
 }
+html[dir="rtl"] #fb_after_import1 {
+  background-position: right center;
+}
+
 
 #statusMsg.ftu {
   bottom: 6.5rem;
@@ -999,8 +1067,17 @@ i.hack-first-child {
  */
 
 /* Overwrite "BB lists" */
+[data-type="list"] li {
+  height: auto;
+  min-height: 6rem;
+}
+
 [data-type="list"]:first-child {
   padding-top: 1.5rem;
+}
+
+[data-type="list"] li p:last-of-type {
+  padding-bottom: 1rem;
 }
 
 [data-type="list"] li > a {
@@ -1094,7 +1171,7 @@ i.hack-first-child {
 
 #data_3g [data-type="list"] li,
 #geolocation [data-type="list"] li {
-  -moz-padding-start: 1.5rem;
+  -moz-padding-start: 3rem;
 }
 
 #data_3g .content,
@@ -1105,11 +1182,6 @@ i.hack-first-child {
 #data_3g .content p,
 #geolocation .content p {
   font-size: 1.4rem;
-}
-
-#data_3g .pack-switch,
-#geolocation .pack-switch {
-  height: 100%;
 }
 
 /*
@@ -1196,9 +1268,4 @@ html[dir="rtl"] #hidden-wifi-authentication .pack-checkbox,
 html[dir="rtl"] #configure_network_params .pack-checkbox {
   left: unset;
   right: auto;
-}
-
-html[dir="rtl"] #import_contacts li button.icon {
-    -moz-padding-start: unset;
-    -moz-padding-end: 4rem;
 }

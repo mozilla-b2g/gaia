@@ -3,7 +3,7 @@ var FakeDialerApp = require('./lib/fakedialerapp.js');
 
 marionette('Software Home Button - Call screen Appearance', function() {
   var apps = {};
-  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/fakedialerapp';
+  apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
 
   var client = marionette.client({
     prefs: {
@@ -11,8 +11,6 @@ marionette('Software Home Button - Call screen Appearance', function() {
       'dom.w3c_touch_events.enabled': 1
     },
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
       'software-button.enabled': true
     },
     apps: apps

@@ -27,8 +27,6 @@ define(function(require) {
        */
       LazyLoader.load([
         'js/firefox_accounts/menu_loader.js',
-        'js/icc_menu.js',
-        'js/dsds_settings.js',
         'js/telephony_settings.js',
         'js/telephony_items_handler.js'
       ], function() {

@@ -5,6 +5,7 @@ Keyboards.hu = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'hu',
+  lang: 'hu',
   alt: {
     a: 'áàâäåãāæª',
     c: 'çćč',

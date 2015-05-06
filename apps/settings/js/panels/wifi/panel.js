@@ -111,6 +111,8 @@ define(function(require) {
             this._openBadCredentialsDialog(currentNetwork);
           }
         }.bind(this));
+
+        window.performance.mark('wifiListStart');
       },
       onBeforeShow: function() {
         this._wifiSectionVisible = true;

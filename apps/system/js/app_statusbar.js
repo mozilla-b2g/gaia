@@ -43,7 +43,7 @@
       return;
     }
     // If system is at fullscreen mode, let utility tray to handle the event.
-    if (!this.app || (!this.app.isFullScreen() && !document.mozFullScreen)) {
+    if (!this.app || !this.app.isFullScreen()) {
       return;
     }
     this.app.debug('processing touch event...', evt.type);
@@ -62,6 +62,8 @@
 
         this.chromeBar.style.transition = 'transform';
         this.titleBar.style.transition = 'transform';
+
+        this.chromeBar.classList.add('dragging');
         break;
 
       case 'touchmove':
@@ -127,6 +129,7 @@
     var chromeBar = this.chromeBar;
 
     chromeBar.classList.remove('dragged');
+    chromeBar.classList.remove('dragging');
     chromeBar.style.transform = '';
     chromeBar.style.transition = '';
 
@@ -154,6 +157,7 @@
     chromeBar.style.transform = '';
     chromeBar.style.transition = '';
     chromeBar.classList.add('dragged');
+    chromeBar.classList.remove('dragging');
 
     self._releaseTimeout = setTimeout(function() {
       self._releaseBar();

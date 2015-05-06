@@ -36,7 +36,7 @@ var NfcDispatchDemo = {
     var ndef = Array.isArray(ndefRecords) && ndefRecords[0];
     var uri = ndefHelper.parseURI(ndef);
     tagUri.textContent = uri;
-    if (uri == 'http://www.mozilla.org') {
+    if (uri.startsWith('https://www.mozilla.org')) {
       result.textContent = 'Default Prevented';
       return false;
     } else {

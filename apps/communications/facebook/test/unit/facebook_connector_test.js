@@ -1,3 +1,4 @@
+/* globals MockFbQuery, MockOauthflow*/
 'use strict';
 
 require('/shared/js/contacts/import/facebook/fb_contact_utils.js');
@@ -13,16 +14,16 @@ var realFbUtils,
     realOauthflow,
     subject;
 
-if (!this.FacebookConnector) {
-  this.FacebookConnector = null;
+if (!window.FacebookConnector) {
+  window.FacebookConnector = null;
 }
 
-if (!this.fb) {
-  this.fb = null;
+if (!window.fb) {
+  window.fb = null;
 }
 
-if (!this.oauthflow) {
-  this.oauthflow = null;
+if (!window.oauthflow) {
+  window.oauthflow = null;
 }
 
 suite('Facebook Connector Tests', function() {

@@ -1,4 +1,3 @@
-/* global PerformanceTestingHelper, TelephonySettingHelper */
 'use strict';
 
 /**
@@ -7,7 +6,7 @@
  * `uncaught exception: 2147500033' message (= 0x80004001).
  */
 
-var Settings = {
+window.Settings = {
   get mozSettings() {
     // return navigator.mozSettings when properly supported, null otherwise
     // (e.g. when debugging on a browser...)
@@ -58,18 +57,21 @@ var Settings = {
       return;
     }
 
-    if (hash === '#wifi') {
-      window.performance.mark('wifiListStart');
-      PerformanceTestingHelper.dispatch('start-wifi-list-test');
-    }
-
     // take off # first
     var panelID = hash;
     if (panelID.startsWith('#')) {
       panelID = panelID.substring(1);
     }
 
-    this.SettingsService.navigate(panelID);
+    this.SettingsService.navigate(panelID, this._initialOptions);
+  },
+
+  get _initialOptions() {
+    // After initial navigation, initial panel options are not necessary.
+    delete this._initialOptions;
+    // If initial panel has options, use them once at initial navigation.
+    return window.LaunchContext.activityHandler &&
+      window.LaunchContext.activityHandler.targetPanelOptions;
   },
 
   init: function settings_init(options) {
@@ -101,34 +103,8 @@ var Settings = {
       if (this.isTabletAndLandscape()) {
         this.currentPanel = this.initialPanelForTablet;
       }
-
-      window.addEventListener('keydown', this.handleSpecialKeys);
     }).bind(this));
 
-    PerformanceTestingHelper.dispatch('startup-path-done');
-  },
-
-  /**
-   * back button = close dialog || back to the root page
-   * + prevent the [Return] key to validate forms
-   */
-  handleSpecialKeys: function settings_handleSpecialKeys(event) {
-    if (Settings.currentPanel != '#root' &&
-        event.keyCode === event.DOM_VK_ESCAPE) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      var dialog = document.querySelector('#dialogs .active');
-      if (dialog) {
-        dialog.classList.remove('active');
-        document.body.classList.remove('dialog');
-      } else {
-        Settings.currentPanel = '#root';
-      }
-    } else if (event.keyCode === event.DOM_VK_RETURN) {
-      event.target.blur();
-      event.stopPropagation();
-      event.preventDefault();
-    }
+    window.performance.mark('startupPathEnd');
   }
 };

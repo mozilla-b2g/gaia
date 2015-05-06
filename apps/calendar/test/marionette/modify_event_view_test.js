@@ -13,10 +13,6 @@ marionette('modify event view', function() {
       // Do not require the B2G-desktop app window to have focus (as per the
       // system window manager) in order for it to do focus-related things.
       'focusmanager.testmode': true
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
   var editEvent;
@@ -26,6 +22,8 @@ marionette('modify event view', function() {
     editEvent = app.editEvent;
     app.launch();
     app.openModifyEventView();
+    // we need a title or location otherwise event can't be saved
+    editEvent.title = 'Reminder Test';
   });
 
   suite('reminders', function() {

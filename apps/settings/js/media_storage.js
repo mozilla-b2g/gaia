@@ -1,6 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global Storage, DeviceStorageHelper */
 'use strict';
 
 /**
@@ -15,7 +13,7 @@ require([
   'modules/settings_cache',
   'shared/toaster',
   'shared/settings_listener'
-], function(exports, SettingsCache, Toaster, SettingsListener) {
+], function(SettingsCache, Toaster, SettingsListener) {
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
   const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
   const DEFAULT_MEDIA_VOLUME_KEY = 'device.storage.writable.name';
@@ -213,7 +211,7 @@ require([
       var element =
         self.rootElement.querySelector('[data-l10n-id="total-space"] + .size');
       DeviceStorageHelper.showFormatedSize(element, 'storageSize',
-                                           sizes['sdcard'] + sizes['free']);
+                                           sizes.sdcard + sizes.free);
       element.hidden = false;
     });
   };
@@ -286,13 +284,13 @@ require([
       if (enabled) {
         // storage details
         ITEM_TYPE.forEach(function(type) {
-          var rule = 'li[class="color-' + type + '"]';
-          this.rootElement.querySelector(rule).hidden = enabled;
+          this.rootElement.querySelector(
+            'li[class="color-' + type + '"]').hidden = enabled;
         }.bind(this));
 
         // total space size
-        var rule = 'li[class="total-space"]';
-        this.rootElement.querySelector(rule).hidden = enabled;
+        this.rootElement.querySelector(
+          'li[class="total-space"]').hidden = enabled;
       }
 
       return;
@@ -300,13 +298,13 @@ require([
 
     // storage details
     ITEM_TYPE.forEach(function(type) {
-      var rule = 'li[class="color-' + type + '"]';
-      this.rootElement.querySelector(rule).hidden = !enabled;
+      this.rootElement.querySelector(
+        'li[class="color-' + type + '"]').hidden = !enabled;
     }.bind(this));
 
     // total space size
-    var rule = 'li[class="total-space"]';
-    this.rootElement.querySelector(rule).hidden = !enabled;
+    this.rootElement.querySelector(
+      'li[class="total-space"]').hidden = !enabled;
   };
 
   Volume.prototype.getStats = function volume_getStats(callback) {
@@ -318,11 +316,12 @@ require([
       storage.usedSpace().onsuccess = function(e) {
         results[type] = e.target.result;
         current--;
-        if (current == 0) {
+        if (current === 0) {
           storage.freeSpace().onsuccess = function(e) {
-            results['free'] = e.target.result;
-            if (callback)
+            results.free = e.target.result;
+            if (callback) {
               callback(results);
+            }
           };
         }
       };
@@ -353,8 +352,9 @@ require([
           self.enableFormatSDCardBtn(true);
           break;
       }
-      if (callback)
+      if (callback) {
         callback(state);
+      }
     };
   };
 
@@ -939,4 +939,4 @@ require([
   };
 
   navigator.mozL10n.once(MediaStorage.init.bind(MediaStorage));
-}.bind(null, this));
+});

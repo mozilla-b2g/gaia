@@ -5,39 +5,42 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import smtplib
-
 from email.mime.text import MIMEText
 
 
 class EmailUtil:
 
-    def send(self, senders_account, mock_email):
+    def send(self, account, email):
         """
-        Usage:
-        senders_account = dict
-        Sender's account details: email, password, smtp_hostname, smtp_port
-
-        mock_email = gaitest.mocks.mock_email.MockObject
-        Mock email object.
+        account = {
+            'email': 'from@example.com',
+            'ssl': False,
+            'hostname': 'smtp.example.com',
+            'port': 25,
+            'username': 'username (optional)',
+            'password': 'password (optional)'}
+        email = {
+            'from': 'from@example.com',
+            'to': 'to@example.com',
+            'subject': 'Subject',
+            'message': 'Message'}
         """
+        if account.get('ssl'):
+            smtp = smtplib.SMTP_SSL(account['hostname'], account['port'])
+        else:
+            smtp = smtplib.SMTP(account['hostname'], account['port'])
+        smtp.set_debuglevel(False)
 
-        self.senders_account = senders_account
+        authentication = (account.get('username'), account.get('password'))
+        if all(authentication):
+            smtp.login(*authentication)
 
-        # connect to SMTP server
-        self.server = smtplib.SMTP_SSL(self.senders_account['smtp_hostname'],
-                                       str(self.senders_account['smtp_port']))
-        self.server.set_debuglevel(False)
+        message = MIMEText(email.get('message'))
+        message['Subject'] = email.get('subject')
+        message['From'] = email['from']
+        message['To'] = email['to']
 
-        self.server.login(self.senders_account['email'],
-                          self.senders_account['password'])
-
-        msg = MIMEText(mock_email.message)
-        msg['Subject'] = mock_email.subject
-        msg['To'] = mock_email.recipients_email
-        msg['from'] = self.senders_account['email']
-
-        self.server.sendmail(self.senders_account['email'],
-                             mock_email.recipients_email,
-                             msg.as_string())
-
-        self.server.quit()
+        smtp.sendmail(email['from'],
+                      email['to'],
+                      message.as_string())
+        smtp.quit()

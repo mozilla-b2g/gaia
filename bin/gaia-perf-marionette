@@ -92,12 +92,11 @@ for app in $APPS; do
   export CURRENT_APP="$app"
   OUT=`PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
     --timeout 60s \
-    --profile-builder $SHARED/profile_builder.js \
-    --profile-base $SHARED/profile.js \
-    --host $MARIONETTE_RUNNER_HOST \
     --reporter $MOZPERFREPORTER \
-    $SHARED/setup.js \
-    $GAIA_DIR/tests/performance/perf.js $SHARED_PERF $FILES_PERF \
+    --host $MARIONETTE_RUNNER_HOST \
+    $GAIA_DIR/tests/performance/perf.js \
+    $SHARED_PERF \
+    $FILES_PERF \
     $@`
   # Bug 987383 if there is no output report an error.
   if [ -z "$OUT" ]; then

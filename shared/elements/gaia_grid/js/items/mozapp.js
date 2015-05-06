@@ -19,6 +19,19 @@
   var APP_PAUSED = 'paused';
   var APP_READY = 'ready';
 
+  function localizeString(str) {
+    var userLang = document.documentElement.lang;
+
+    // We want to make sure that we translate only if we're using
+    // a runtime pseudolocale.
+    // mozL10n.ctx.qps contains only runtime pseudolocales
+    if (navigator.mozL10n &&
+        navigator.mozL10n.ctx.qps.indexOf(userLang) !== -1) {
+      return navigator.mozL10n.qps[userLang].translate(str);
+    }
+    return str;
+  }
+
   /**
    * Represents  single app icon on the homepage.
    */
@@ -172,13 +185,29 @@
       var userLang = document.documentElement.lang;
 
       if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
-        return navigator.mozL10n.qps[userLang].translate(this.descriptor.name);
+        return navigator.mozL10n.qps[userLang].
+          translate(this.descriptor.short_name || this.descriptor.name);
       }
 
       var locales = this.descriptor.locales;
-      var localized = locales && locales[userLang] && locales[userLang].name;
+      var localized =
+        locales && locales[userLang] &&
+        (locales[userLang].short_name || locales[userLang].name);
 
-      return localized || this.descriptor.name;
+      return localized || this.descriptor.short_name || this.descriptor.name;
+    },
+
+    asyncName: function() {
+      var userLang = document.documentElement.lang;
+
+      var ep = this.entryPoint || undefined;
+
+      return this.app.getLocalizedValue('short_name', userLang, ep).then(
+        shortName => localizeString(shortName),
+        this.app.getLocalizedValue.bind(this.app, 'name', userLang, ep)).then(
+          name => localizeString(name),
+          () => this.name
+        );
     },
 
     /**
@@ -305,9 +334,11 @@
           return this.cancel();
       }
 
-      if (window.performance.mark) {
-        window.performance.mark('appLaunch@' + app.manifest.name);
-      }
+      var appContext = app.manifestURL
+        .replace('app://', '')
+        .replace('/manifest.webapp', '');
+
+      window.performance.mark('appLaunch@' + appContext);
 
       if (this.entryPoint) {
         return app.launch(this.entryPoint);

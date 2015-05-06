@@ -4,16 +4,8 @@
 
 import time
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.marionette import Actions
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.marionette import Actions
+from marionette_driver import expected, By, Wait
+from marionette_driver.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -43,8 +35,9 @@ class Homescreen(Base):
         import time
         time.sleep(1)
         self.marionette.switch_to_frame()
-        time.sleep(1)
+        Wait(self.marionette).until(lambda m: not self.keyboard.is_keyboard_displayed)
         self.marionette.find_element('id', 'rocketbar-form').tap()
+        Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
 
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)

@@ -1,6 +1,6 @@
 'use strict';
 
-/* global KeyEvent */
+/* global KeyEvent, Promise */
 
 (function(exports) {
 
@@ -28,8 +28,11 @@ DefaultTargetHandler.prototype.longPress = function() {
   this.ignoreCommitActions = true;
 
   var keyCode = this.target.longPressKeyCode;
-  this.app.inputMethodManager.currentIMEngine.click(keyCode);
+  var promise =
+    Promise.resolve(this.app.inputMethodManager.currentIMEngine.click(keyCode));
   this.app.visualHighlightManager.hide(this.target);
+
+  return promise;
 };
 DefaultTargetHandler.prototype.moveOut = function() {
   this.app.console.log('DefaultTargetHandler.moveOut()');
@@ -51,25 +54,17 @@ DefaultTargetHandler.prototype.commit = function() {
   var engine = this.app.inputMethodManager.currentIMEngine;
 
   /*
-   * XXX: A hack to send both keycode and uppercase keycode to latin IME,
-   * since latin IME would maintain a promise queue for each key, and
-   * send correct keycode based on the current capitalization state.
-   * See bug 1013570 and bug 987809 for details.
-   * This hack should be removed and the state/input queue should be
-   * maintained out of latin.js.
+   * Return promise here, and rely on the action queue in TargetHandlerManager
+   * to make sure the key code is sent with the right capitalization state.
    */
-  if (this.app.layoutManager.currentPage.imEngine === 'latin') {
-    this.app.console.log('DefaultTargetHandler.commit()::latin::engine.click',
-      keyCode, keyCodeUpper);
-    engine.click(keyCode, keyCodeUpper);
-  } else {
-    var code =
-      this.app.upperCaseStateManager.isUpperCase ? keyCodeUpper : keyCode;
-    this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
-    engine.click(code);
-  }
+  var code =
+    this.app.upperCaseStateManager.isUpperCase ? keyCodeUpper : keyCode;
+  this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
+  var promise = Promise.resolve(engine.click(code));
 
   this.app.visualHighlightManager.hide(this.target);
+
+  return promise;
 };
 DefaultTargetHandler.prototype.cancel = function() {
   this.app.console.log('DefaultTargetHandler.cancel()');
@@ -77,7 +72,7 @@ DefaultTargetHandler.prototype.cancel = function() {
 };
 DefaultTargetHandler.prototype.doubleTap = function() {
   this.app.console.log('DefaultTargetHandler.doubleTap()');
-  this.commit();
+  return this.commit();
 };
 DefaultTargetHandler.prototype.newTargetActivate = function() {
   // According to UX requirement, the current target need to be committed when
@@ -221,15 +216,19 @@ CompositeTargetHandler.prototype.commit = function() {
     return;
   }
 
+  var promise = Promise.resolve();
   // Keys with this attribute set send more than a single character
   // Like ".com" or "2nd" or (in Catalan) "l·l".
   var compositeString = this.target.compositeKey;
   var engine = this.app.inputMethodManager.currentIMEngine;
   for (var i = 0; i < compositeString.length; i++) {
-    engine.click(compositeString.charCodeAt(i));
+    var sendKeyPromise =
+      Promise.resolve(engine.click(compositeString.charCodeAt(i)));
+    promise = promise.then(sendKeyPromise, sendKeyPromise);
   }
 
   this.app.visualHighlightManager.hide(this.target);
+  return promise;
 };
 
 var PageSwitchingTargetHandler = function(target, app) {

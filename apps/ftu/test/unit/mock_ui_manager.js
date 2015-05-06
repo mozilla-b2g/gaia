@@ -1,4 +1,6 @@
 'use strict';
+/* global DataMobile */
+/* exported MockUIManager */
 
 var MockUIManager = {
   domSelectors: [
@@ -39,6 +41,7 @@ var MockUIManager = {
     'xck-retries-left',
     'xck-input',
     'xck-error',
+    'xck-info',
     // SIM info
     'sim-info-screen',
     'sim-info-back',
@@ -78,9 +81,9 @@ var MockUIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-switch',
+    'data-connection-checkbox',
     // Geolocation
-    'geolocation-switch',
+    'geolocation-checkbox',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',

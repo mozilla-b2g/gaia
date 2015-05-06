@@ -12,11 +12,6 @@ marionette('Messages as "new" activity target', function() {
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
     apps: apps
   });
 
@@ -64,9 +59,9 @@ marionette('Messages as "new" activity target', function() {
         messagesApp.send();
 
         // Verify that everything is fine with rendered message content
-        var message = messagesApp.Thread.message;
+        var message = messagesApp.Conversation.message;
         assert.equal(
-          messagesApp.Thread.getMessageContent(message).text(),
+          messagesApp.Conversation.getMessageContent(message).text(),
           content
         );
 

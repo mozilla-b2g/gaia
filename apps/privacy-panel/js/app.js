@@ -21,8 +21,8 @@ require.config({
     'shared/async_storage': {
       exports: 'asyncStorage'
     },
-    'shared/l10n': {
-      exports: 'navigator.mozL10n'
+    'shared/manifest_helper': {
+      exports: 'ManifestHelper'
     }
   }
 });
@@ -50,7 +50,6 @@ require([
   'panels',
   'root/main',
   'about/main',
-  'shared/l10n'
 ],
 
 function(panels, root, about) {

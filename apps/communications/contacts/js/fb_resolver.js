@@ -28,8 +28,7 @@ fb.resolver = function(item, loader) {
           var renderPhoto = false;
           if (!hasPhoto) {
             renderPhoto = contacts.List.updatePhoto(fbData, id);
-          }
-          else {
+          } else {
             renderPhoto = true;
           }
           if (renderPhoto) {
@@ -51,8 +50,7 @@ fb.resolver = function(item, loader) {
             }
           }
           contacts.List.renderFbData(contactObj, item);
-        }
-        else {
+        } else {
           window.console.warn('FB Data could not be retrieved by the resolver',
                               'for UID: ', item.dataset.fbUid);
           item.dataset.status = 'loaded';
@@ -63,8 +61,7 @@ fb.resolver = function(item, loader) {
         item.dataset.status = 'error';
       };
    });
-  }
-  else if (status === 'loaded' || !isFbContact) {
+  } else if (status === 'loaded' || !isFbContact) {
     loader.defaultLoad(item);
   }
 };

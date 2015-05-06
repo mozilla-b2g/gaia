@@ -10,19 +10,20 @@
   border:0;
 }
 
-
 /**
- * Root panel
+ * Disable selection by default except for input, text area, and elements with
+ * "contenteditable".
  */
 
-section[data-settings="false"] #back-to-settings {
-  visibility: hidden;
+* {
+  -moz-user-select: none;
 }
 
-section[data-settings="true"] #back-to-settings {
-  visibility: visible;
+input,
+textarea,
+[contenteditable="true"] {
+  -moz-user-select: text;
 }
-
 
 /**
  * Lists
@@ -122,6 +123,18 @@ section[data-geolocation="true"][data-ala="true"][data-type="user-defined"] .typ
   opacity: 1;
 }
 
+/* Only links below should be shown */
+#tc-permList ul li > *,
+#tc-permList ul li > label > *,
+#tc-permList ul li > a > *,
+#tc-permDetails ul li > *,
+#tc-permDetails ul li > label > *,
+#tc-permDetails ul li > a > * {
+  text-overflow: clip;
+  overflow: visible;
+  white-space: normal;
+}
+
 .panel-link {
   padding-left: 30px;
 }
@@ -163,6 +176,29 @@ section[role="region"] .permission-group header h2 {
 
 ul li > a span:nth-of-type(2):not(.button) {
   line-height: 3rem;
+}
+
+/* Apps search mode */
+
+section[role="region"].search #tc-sortApps {
+  display: none;
+}
+
+section[role="region"].search #tc-appList {
+  height: calc(100% - 3.8rem);
+  overflow-y: scroll;
+}
+
+#tc-appSearch {
+  height: 3.8rem;
+}
+
+#tc-appSearch button[type="submit"] {
+  display: none;
+}
+
+.search #tc-appSearch button[type="submit"] {
+  display: block;
 }
 
 
@@ -252,6 +288,10 @@ section[role="region"] > div.gt-box {
   position: absolute;
   top: 0;
   width: 100%;
+}
+
+html[dir=rtl] .gt-pager {
+  transform: scaleX(-1);
 }
 
 .gt-pager.page-2 {
@@ -355,16 +395,28 @@ section[data-section="gt"] .btn {
  * Remote Protection
  */
 
+#rp-features ul li > *,
+#rp-features ul li > label > *,
+#rp-features ul li > a > *{
+  text-overflow: clip;
+  overflow: visible;
+  white-space: normal;
+}
+
 .rp-box {
   display: none;
 }
 
 .validation-message,
 .pin-validation-message {
-  color: red;
   font-size: 1.4rem;
   white-space: normal;
   margin: 1rem;
+}
+
+.validation-message,
+.pin-error-message {
+  color: red;
 }
 
 
@@ -612,6 +664,11 @@ span.passcode-digit[data-dot]::before {
  * when in right-to-left direction.
  */
 
-[dir='rtl'] .icon-back:before {
+[dir="rtl"] .icon-back:before {
   content: 'forward';
+}
+
+[dir="rtl"] .app-element img {
+  left: unset;
+  right: 0;
 }

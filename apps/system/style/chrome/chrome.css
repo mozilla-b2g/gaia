@@ -4,7 +4,8 @@
   height: calc(var(--statusbar-height) + var(--rocketbar-urlbar-height));
   transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
   transform-origin: top left;
-  transition: transform 0.2s ease-in-out, background-color 0.5s ease;
+  transition: transform var(--transition-duration) ease-in-out,
+              background-color var(--transition-duration) ease;
 
   background-color: black;
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
@@ -24,7 +25,7 @@
 
 .appWindow.private > .chrome {
   background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
-  background-color: #9a2ebd;
+  background-color: #392e54;
   color: #fff;
 }
 
@@ -142,14 +143,14 @@
 }
 
 .appWindow.private.collapsible .controls .urlbar {
-  background-color: #922cb3; /* Adjusted for background + opacity overlay */
+  background-color: #392e54;
 }
 
 .appWindow.private .maximized .controls .urlbar {
   background-color: rgba(204, 204, 204, 0.2);
 }
 
-.chrome .controls .urlbar .title {
+.chrome-combined .chrome-title-container {
   width: calc(100% - 3.2rem);
   padding-top: 0;
   padding-bottom: 0;
@@ -157,14 +158,19 @@
   -moz-padding-end: 0.8rem;
   box-sizing: padding-box;
   overflow: hidden;
-  white-space: nowrap;
-  font-weight: 300;
-  font-size: 1.8rem;
   float: none;
   background-color: rgba(204,204,204,0.2);
   border-radius: 1.8rem;
-  text-overflow: ellipsis;
+}
+
+.chrome-combined .title {
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: 300;
+  font-size: 1.8rem;
   font-style: italic;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .search-app .chrome.maximized .controls .urlbar:after {
@@ -180,11 +186,11 @@
   background-position: center right;
 }
 
-.appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
+.appWindow.light .chrome-combined:not(.maximized) .chrome-title-container {
   background-color: rgba(204,204,204,0.4);
 }
 
-.maximized .controls .urlbar .title {
+.chrome-combined.maximized .chrome-title-container {
   background-color: transparent;
 }
 
@@ -219,6 +225,15 @@
   transition: transform 0.2s ease-in-out;
 }
 
+.appWindow.fullscreen-app .chrome.dragged,
+.appWindow.fullscreen-app .chrome.dragging {
+  visibility: visible;
+}
+
+.appWindow.fullscreen-app .chrome {
+  visibility: hidden;
+}
+
 .appWindow.collapsible.active .urlbar {
   will-change: transform;
 }
@@ -232,16 +247,70 @@
   transform: scaleX(1);
 }
 
-.chrome.maximized .title[data-ssl="secure"] {
-  -moz-padding-start: 3rem;
-  background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
+
+/* Private browser icon in rocketbar */
+.appWindow.private > .chrome-plain.maximized .title,
+.appWindow.private > .chrome-combined.maximized .chrome-title-container {
+  -moz-padding-start: 4rem;
 }
 
-.chrome.maximized .title[data-ssl="broken"] {
-  -moz-padding-start: 3rem;
-  background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
+.appWindow.private > .chrome.maximized .pb-icon {
+  display: block;
+  width: 4rem;
+  height: 100%;
+  position: absolute;
+  top: 0.1rem;
+  left: 0.3rem;
+  right: 0.3rem;
+  background: url("images/pb_rocketbar.png") no-repeat 0.8rem center / 2.5rem;
 }
 
+
+/* SSL Lock Icons in rocketbar */
+.chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  -moz-padding-start: 3rem;
+
+  background-repeat: no-repeat;
+  background-position: 0.1rem center;
+  background-size: 3rem;
+}
+
+.private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  -moz-padding-start: 6.5rem;
+  background-position: 3.7rem 0.1rem;
+}
+
+.chrome-plain .chrome-ssl-indicator {
+  display: none;
+
+  width: 1rem;
+
+  background: no-repeat center / 3rem content-box;
+}
+
+.chrome-ssl-indicator-ltr {
+  padding-right: .5rem; /* give some space between the indicator and the title */
+}
+
+.chrome-ssl-indicator-rtl {
+  padding-left: .5rem; /* give some space between the indicator and the title */
+  padding-right: 1rem; /* give some space between the indicator and the window's edge */
+}
+
+.chrome-plain:-moz-dir(ltr) .chrome-has-ssl-indicator .chrome-ssl-indicator-ltr,
+.chrome-plain:-moz-dir(rtl) .chrome-has-ssl-indicator .chrome-ssl-indicator-rtl {
+  display: unset;
+}
+
+.maximized .chrome-has-ssl-indicator[data-ssl="secure"] .chrome-ssl-indicator {
+  background-image: url("images/light/ssl.png");
+}
+
+.maximized .chrome-has-ssl-indicator[data-ssl="broken"] .chrome-ssl-indicator {
+  background-image: url("images/light/ssl_broken.png");
+}
+
+/* Handle urlbar sizing when back or forward buttons are disabled */
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
 .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
@@ -477,7 +546,7 @@ gaia-overflow-menu button#share {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
+.appWindow:not(.collapsible) > .chrome-combined .title {
   width: calc(100%);
 }
 
@@ -497,7 +566,6 @@ html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
 
 html[dir="rtl"] .controls .urlbar {
   transform-origin: top right;
-  
 }
 
 html[dir="rtl"] .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
@@ -554,9 +622,12 @@ html[dir="rtl"] .light .controls .forward-button:active {
   background-image: url("images/light/back_active.png");
 }
 
-html[dir="rtl"] .chrome.maximized .title[data-ssl="broken"],
-html[dir="rtl"] .chrome.maximized .title[data-ssl="secure"] {
-  background-position: calc(100% - 0.1rem) center
+html[dir="rtl"] .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 0.1rem top 0.1rem;
+}
+
+html[dir="rtl"] .private > .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
+  background-position: right 3.7rem top 0.1rem;
 }
 
 /*

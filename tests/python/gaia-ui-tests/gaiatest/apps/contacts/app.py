@@ -2,16 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.errors import JavascriptException
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.errors import JavascriptException
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import JavascriptException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -35,8 +27,6 @@ class Contacts(Base):
 
     def launch(self):
         Base.launch(self)
-        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded;') is True)
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._settings_button_locator))))
@@ -44,8 +34,6 @@ class Contacts(Base):
     def switch_to_contacts_frame(self):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
-        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded;') is True)
 
     @property
     def contacts(self):

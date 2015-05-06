@@ -1,3 +1,5 @@
+/* global DownloadFormatter, NotificationScreen, DownloadUI, DownloadHelper,
+          MozActivity, DownloadStore */
 
 'use strict';
 
@@ -13,11 +15,17 @@ function DownloadNotification(download) {
   this.state = 'started';
   this.id = DownloadFormatter.getUUID(download);
 
-  NotificationScreen.addNotification(this._getInfo());
-
   // We have to listen for state changes
   this.listener = this._update.bind(this);
   this.download.addEventListener('statechange', this.listener);
+
+  if (download.state === 'started') {
+    NotificationScreen.addNotification(this._getInfo());
+  } else {
+    // For adopted downloads, it is possible for the download to already be
+    // completed.
+    this._update();
+  }
 }
 
 DownloadNotification.prototype = {
@@ -83,17 +91,17 @@ DownloadNotification.prototype = {
 
     switch (result) {
       case DownloadUI.ERRORS.NO_MEMORY:
-        DownloadUI.show(DownloadUI.TYPE['NO_MEMORY'],
+        DownloadUI.show(DownloadUI.TYPE.NO_MEMORY,
                         this.download,
                         true);
         break;
       case DownloadUI.ERRORS.NO_SDCARD:
-        DownloadUI.show(DownloadUI.TYPE['NO_SDCARD'],
+        DownloadUI.show(DownloadUI.TYPE.NO_SDCARD,
                         this.download,
                         true);
         break;
       case DownloadUI.ERRORS.UNMOUNTED_SDCARD:
-        DownloadUI.show(DownloadUI.TYPE['UNMOUNTED_SDCARD'],
+        DownloadUI.show(DownloadUI.TYPE.UNMOUNTED_SDCARD,
                         this.download,
                         true);
         break;
@@ -101,7 +109,7 @@ DownloadNotification.prototype = {
       default:
         DownloadHelper.getFreeSpace((function gotFreeMemory(bytes) {
           if (bytes === 0) {
-            DownloadUI.show(DownloadUI.TYPE['NO_MEMORY'], this.download, true);
+            DownloadUI.show(DownloadUI.TYPE.NO_MEMORY, this.download, true);
           }
         }).bind(this));
     }
@@ -204,16 +212,20 @@ DownloadNotification.prototype = {
       done();
     }).bind(this);
 
+    var req;
+
     switch (this.download.state) {
       case 'downloading':
         // Launching settings > download list
-        var activity = new MozActivity({
+        /* jshint nonew: false */
+        new MozActivity({
           name: 'configure',
           data: {
             target: 'device',
             section: 'downloads'
           }
         });
+        /* jshint nonew: true */
 
         // The notification won't be removed when users open the download list
         // activity.onsuccess = activity.onerror = cb;
@@ -222,7 +234,7 @@ DownloadNotification.prototype = {
 
       case 'stopped':
         // Prompts the user if he wishes to retry the download
-        var req = DownloadUI.show(null, this.download, true);
+        req = DownloadUI.show(null, this.download, true);
 
         // The notification won't be removed when users decline to resume
         // req.oncancel = cb;
@@ -234,7 +246,7 @@ DownloadNotification.prototype = {
       case 'succeeded':
         // Attempts to open the file
         var download = this.download;
-        var req = DownloadHelper.open(download);
+        req = DownloadHelper.open(download);
 
         req.onerror = function req_onerror() {
           DownloadHelper.handlerError(req.error, download);

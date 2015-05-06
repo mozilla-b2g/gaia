@@ -15,6 +15,7 @@ var cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
     cmpInvalidAddressesNode = require('tmpl!./cmp/invalid_addresses.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
     evt = require('evt'),
+    htmlCache = require('html_cache'),
     toaster = require('toaster'),
     model = require('model'),
     iframeShims = require('iframe_shims'),
@@ -67,6 +68,10 @@ return [
   require('./editor_mixins'),
   {
     createdCallback: function() {
+      // Save a cached version before anything is changed on the pristine
+      // template state.
+      htmlCache.cloneAndSave(module.id, this);
+
       this.sending = false;
 
       // Management of attachment work, to limit memory use
@@ -1013,7 +1018,8 @@ return [
         var activity = new MozActivity({
           name: 'pick',
           data: {
-            type: ['image/*', 'video/*', 'audio/*', 'application/*'],
+            type: ['image/*', 'video/*', 'audio/*', 'application/*',
+                   'text/vcard'],
             nocrop: true
           }
         });

@@ -1,4 +1,3 @@
-/*global process, require*/
 'use strict';
 
 var Mocha = require('mocha');

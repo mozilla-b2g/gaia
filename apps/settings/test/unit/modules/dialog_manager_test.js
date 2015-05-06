@@ -134,6 +134,12 @@ suite('DialogManager > ', function() {
         },
         onSubmit: function() {
           return Promise.resolve(result);
+        },
+        onCancel: function() {
+          return Promise.resolve(result);
+        },
+        hide: function() {
+          return Promise.resolve();
         }
       };
 
@@ -196,6 +202,24 @@ suite('DialogManager > ', function() {
       dialogManager._close(dialog, options).then(function(gotResult) {
         assert.equal(gotResult, result);
       }).then(done, done);
+    });
+
+    test('if submit button is clicked, onSubmit will get called',
+      function(done) {
+        options._type = 'submit';
+        this.sinon.spy(panel, 'onSubmit');
+        dialogManager._close(dialog, options).then(function() {
+          assert.ok(panel.onSubmit.called);
+        }).then(done, done);
+    });
+
+    test('if cancel button is clicked, onCancel will get called',
+      function(done) {
+        options._type = 'cancel';
+        this.sinon.spy(panel, 'onCancel');
+        dialogManager._close(dialog, options).then(function() {
+          assert.ok(panel.onCancel.called);
+        }).then(done, done);
     });
   });
 });

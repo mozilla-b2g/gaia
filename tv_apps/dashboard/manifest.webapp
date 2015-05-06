@@ -1,0 +1,23 @@
+{
+  "name": "Dashboard",
+  "description": "Smart Screen Dashboard ",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "deck",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Dashboard",
+      "description": "Smart Screen Dashboard"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "336": "/style/icons/dashboard_336.png",
+    "672": "/style/icons/dashboard_672.png"
+  },
+  "orientation": "landscape"
+}

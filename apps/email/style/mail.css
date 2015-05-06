@@ -1,3 +1,7 @@
+/* Only include gaia-theme to get CSS variables, the transition-duration one
+   in particular. Other parts of gaia-theme are not used. */
+@import url('../shared/elements/gaia-theme/gaia-theme.css');
+
 @import url('../shared/style/input_areas.css');
 @import url('../shared/style/headers.css');
 @import url('../shared/style/switches.css');

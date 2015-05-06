@@ -103,6 +103,13 @@ define(function(require) {
 
         switch (evt.target) {
           case this.passcodeInput:
+            // key code for key strokes from the keypad are 0 (numbers) and 8
+            // (backspace). Filter out the events that are not from the keypad.
+            var keyCode = evt.keyCode;
+            if (keyCode !== 0 && keyCode !== 8) {
+              return;
+            }
+
             evt.preventDefault();
             if (this._passcodeBuffer === '') {
               this._hideErrorMessage();

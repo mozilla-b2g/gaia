@@ -8,17 +8,25 @@ gaia-buttons {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 7rem;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+gaia-buttons:not(.inline) {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 10;
-  height: 7rem;
-  box-sizing: border-box;
-  padding: 0 1.5rem 0 0;
   border-top: 0.1rem solid #e7e7e7;
+  padding: 0 1.5rem 0 0;
   background-color: #f4f4f4;
-  pointer-events: auto;
+}
+
+gaia-buttons.inline a,
+gaia-buttons.inline button {
+  margin: 0;
 }
 
 button::-moz-focus-inner {
@@ -34,7 +42,7 @@ button {
   width: 100%;
   height: 4rem;
   margin: 0 0 0 1rem;
-  padding: 0 1.2rem;
+  padding: 0 0.2rem;
   box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
@@ -129,12 +137,14 @@ button.icon:before {
 
 a.icon-next:before,
 button.icon-next:before {
-  background-image: url(images/next.png);
+  background-image: url(images/forward-light.svg);
+  background-size: 3rem;
 }
 
 a.icon-previous:before,
 button.icon-previous:before {
-  background-image: url(images/next.png);
+  background-image: url(images/forward-light.svg);
+  background-size: 3rem;
   transform: rotate(180deg);
   left: 0.5rem;
 }
@@ -177,7 +187,7 @@ gaia-buttons[skin="dark"] {
 
 [transition] {
   display: flex;
-  transition: visibility 0.4s;
+  transition: visibility var(--transition-duration);
 }
 
 [transition][hidden] {
@@ -186,7 +196,8 @@ gaia-buttons[skin="dark"] {
 
 [transition="slide"] {
   transform: translateY(0);
-  transition: transform 0.4s ease, visibility 0.4s;
+  transition: transform var(--transition-duration) ease,
+              visibility var(--transition-duration);
 }
 
 [transition="slide"][hidden] {
@@ -195,7 +206,8 @@ gaia-buttons[skin="dark"] {
 
 [transition="fade"] {
   opacity: 1;
-  transition: opacity 0.4s ease, visibility 0.4s;
+  transition: opacity var(--transition-duration) ease,
+              visibility var(--transition-duration);
 }
 
 [transition="fade"][hidden] {

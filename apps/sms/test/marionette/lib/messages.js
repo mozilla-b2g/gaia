@@ -34,7 +34,6 @@
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
-    attachmentMenu: '#attachment-options',
 
     Composer: {
       toField: '#messages-to-field',
@@ -52,30 +51,35 @@
       messageConvertNotice: '#messages-convert-notice'
     },
 
-    Thread: {
+    Conversation: {
+      main: '#thread-messages',
       message: '.message .bubble',
-      headerTitle: '#messages-header-text'
+      headerTitle: '#messages-header-text',
+      container: '#messages-container'
     },
 
     Message: {
       content: '.message-content > p:first-child',
-      vcardAttachment: '[data-attachment-type="ref"]',
+      vcardAttachment: '[data-attachment-type="vcard"]',
       fileName: '.file-name'
     },
 
-    ThreadList: {
-      firstThread: '.threadlist-item',
-      smsThread: '.threadlist-item[data-last-message-type="sms"]',
-      mmsThread: '.threadlist-item[data-last-message-type="mms"]',
+    Inbox: {
+      main: '#thread-list',
+      firstConversation: '.threadlist-item',
+      smsConversation: '.threadlist-item[data-last-message-type="sms"]',
+      mmsConversation: '.threadlist-item[data-last-message-type="mms"]',
       navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
     Report: {
-      main: '.report-information'
+      main: '#information-report',
+      header: '#information-report-header'
     },
 
     Participants: {
-      main: '.participants-information'
+      main: '#information-participants',
+      header: '#information-group-header'
     }
   });
 
@@ -150,44 +154,66 @@
           }
         },
 
-        Thread: {
+        Conversation: {
           get message() {
-            return client.helper.waitForElement(SELECTORS.Thread.message);
+            return client.helper.waitForElement(SELECTORS.Conversation.message);
           },
 
           get headerTitle() {
-            return client.helper.waitForElement(SELECTORS.Thread.headerTitle);
+            return client.helper.waitForElement(
+              SELECTORS.Conversation.headerTitle
+            );
           },
 
           getMessageContent: function(message) {
             return client.helper.waitForElement(
               message.findElement(SELECTORS.Message.content)
             );
+          },
+
+          findMessage: function(id) {
+            return client.findElement('.message[data-message-id="' + id + '"]');
+          },
+
+          scrollUp: function() {
+            var conversationContainer = client.findElement(
+              SELECTORS.Conversation.container
+            );
+
+            actions.flick(conversationContainer, 50, 50, 50, 350).perform();
+          },
+
+          waitToAppear: function() {
+            return client.helper.waitForElement(SELECTORS.Conversation.main);
           }
         },
 
-        ThreadList: {
-          get firstThread() {
+        Inbox: {
+          get firstConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.firstThread
+              SELECTORS.Inbox.firstConversation
             );
           },
 
-          get smsThread() {
+          get smsConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.smsThread
+              SELECTORS.Inbox.smsConversation
             );
           },
 
-          get mmsThread() {
+          get mmsConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.mmsThread
+              SELECTORS.Inbox.mmsConversation
             );
+          },
+
+          waitToAppear: function() {
+            return client.helper.waitForElement(SELECTORS.Inbox.main);
           },
 
           navigateToComposer: function() {
             client.helper.waitForElement(
-              SELECTORS.ThreadList.navigateToComposerHeaderButton
+              SELECTORS.Inbox.navigateToComposerHeaderButton
             ).tap();
           }
         },
@@ -195,12 +221,20 @@
         Report: {
           get main() {
             return client.findElement(SELECTORS.Report.main);
+          },
+
+          get header() {
+            return client.findElement(SELECTORS.Report.header);
           }
         },
 
         Participants: {
           get main() {
             return client.findElement(SELECTORS.Participants.main);
+          },
+
+          get header() {
+            return client.findElement(SELECTORS.Participants.header);
           }
         },
 
@@ -212,10 +246,6 @@
 
         get optionMenu() {
           return client.helper.waitForElement(SELECTORS.optionMenu);
-        },
-
-        get attachmentMenu() {
-          return client.helper.waitForElement(SELECTORS.attachmentMenu);
         },
 
         launch: function() {
@@ -240,10 +270,6 @@
 
         selectAppMenuOption: function(text) {
           this.selectMenuOption(this.optionMenu, text);
-        },
-
-        selectAttachmentMenuOption: function(text) {
-          this.selectMenuOption(this.attachmentMenu, text);
         },
 
         selectSystemMenuOption: function(text) {
@@ -283,6 +309,12 @@
           });
         },
 
+        getRecipient: function(number) {
+          return client.helper.waitForElement(
+            '#messages-recipients-list .recipient[data-number="' + number + '"]'
+          );
+        },
+
         clearRecipient: function() {
           this.Composer.recipientsInput.clear();
         },
@@ -294,8 +326,8 @@
           }.bind(this));
           this.Composer.sendButton.tap();
 
-          // Wait when after send we're redirected to Thread panel
-          client.helper.waitForElement(this.Thread.message);
+          // Wait when after send we're redirected to Conversation panel
+          client.helper.waitForElement(this.Conversation.message);
         },
 
         showSubject: function() {
@@ -318,6 +350,51 @@
             event.initEvent('action', true, true);
             header.dispatchEvent(event);
           });
+        },
+
+        performReportHeaderAction: function() {
+          this.Report.header.scriptWith(function(header) {
+            var event = document.createEvent('HTMLEvents');
+            event.initEvent('action', true, true);
+            header.dispatchEvent(event);
+          });
+        },
+
+        performGroupHeaderAction: function() {
+          this.Participants.header.scriptWith(function(header) {
+            var event = document.createEvent('HTMLEvents');
+            event.initEvent('action', true, true);
+            header.dispatchEvent(event);
+          });
+        },
+
+        /**
+         * Sets pre-populated thread/message storage.
+         * @param {Array.<Thread>} threads List of the thread to pre-populate
+         * storage with.
+         * @param {Number} uniqueMessageIdCounter Start value for the unique
+         * message id counter, it's used to avoid message "id" collision between
+         * message ids from predefined store and message ids that can be
+         * generated during test (e.g. send or receive new message).
+         */
+        setStorage: function(threads, uniqueMessageIdCounter) {
+          client.executeScript(function(threads, uniqueMessageIdCounter) {
+            var recipientToThreadId = new Map();
+
+            var threadMap = new Map(threads.map(function(thread) {
+              recipientToThreadId.set(thread.participants[0], thread.id);
+
+              return [thread.id, thread];
+            }));
+
+            window.wrappedJSObject.TestStorages.setStorage('messagesDB', {
+              threads: threadMap,
+              recipientToThreadId: recipientToThreadId,
+              uniqueMessageIdCounter: uniqueMessageIdCounter
+            });
+
+            window.wrappedJSObject.TestStorages.setStorageReady('messagesDB');
+          }, [threads || [], uniqueMessageIdCounter || 0]);
         }
       };
     },

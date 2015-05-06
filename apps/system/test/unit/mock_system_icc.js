@@ -1,7 +1,7 @@
 'use strict';
 
 /* exported MockSystemICC */
-function MockSystemICC(iccManager) {
+function MockSystemICC(iccManager, mobileConnections) {
   return {
     onresponse: function() {},
     _iccManager: iccManager,
@@ -29,11 +29,20 @@ function MockSystemICC(iccManager) {
       return timeout;
     },
 
-    confirm: function icc_confirm(stkMessage, message, timeout, callback) {
+    confirm: function icc_confirm(stkMessage, message, icons,
+      timeout, callback) {
       callback(true);   // User accepted the message
     },
 
     hideViews: function() {},
+
+    getConnection: function(iccId) {
+      return mobileConnections[iccId];
+    },
+
+    getIcc: function(iccId){
+      return iccManager.getIccById(iccId);
+    },
 
     discardCurrentMessageIfNeeded: function(new_message) {}
   };

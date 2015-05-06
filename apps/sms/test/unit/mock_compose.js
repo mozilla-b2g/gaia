@@ -9,9 +9,7 @@ var MockCompose = {
   offAll: function() {},
   getContent: function() {},
   getText: function() {},
-  isEmpty: function() {
-    return this.mEmpty;
-  },
+  isEmpty: () => true,
   isSubjectMaxLength: () => false,
   lock: function() {},
   unlock: function() {},
@@ -19,12 +17,8 @@ var MockCompose = {
   scrollToTarget: function(target) {},
   scrollMessageContent: function() {},
   prepend: function(item) {},
-  append: function(aContent) {
-    this.mEmpty = false;
-  },
-  clear: function() {
-    this.mEmpty = true;
-  },
+  append: () => {},
+  clear: () => {},
   focus: function() {},
   updateType: function() {},
 
@@ -35,12 +29,10 @@ var MockCompose = {
   fromDraft: function() {},
   fromMessage: function() {},
 
-  mEmpty: true,
   mSubjectEmpty: true,
   mSubjectShowing: false,
 
   mSetup: function() {
-    this.mEmpty = true;
     this.mSubjectEmpty = true;
     this.mSubjectShowing = false;
     this.size = null;

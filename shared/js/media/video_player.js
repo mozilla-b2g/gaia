@@ -18,12 +18,32 @@
 // screenshot and display it, and unload the video. If shown again
 // and if the user clicks play again, we resume the video where we left off.
 //
+// WARNING (bug 1135278):
+//
+// The VideoPlayer object registers event listeners on the window object
+// and never unregisters them. This means that VideoPlayer objects will
+// never be garbage collected since the window will always have a reference
+// to every one that has been created.
+//
+// A conscious decision has been made to not fix this issue because:
+//
+// 1) Currently only gallery and camera use the object and they use a
+//    fixed number of objects whose lifetime is the same as that of the
+//    app.
+// 2) We are moving towards replacing this VideoPlayer object with web
+//    components (bug 1117885, bug 1131321)
+//
 function VideoPlayer(container) {
   if (typeof container === 'string') {
     container = document.getElementById(container);
   }
 
-  function newelt(parent, type, classes, l10n_id) {
+  // Add a class to the container so we could find it later and use it as
+  // a key in the instance weakmap.
+  container.classList.add('video-player-container');
+  VideoPlayer.instancesToLocalize.set(container, this);
+
+  function newelt(parent, type, classes, l10n_id, attributes) {
     var e = document.createElement(type);
     if (classes) {
       e.className = classes;
@@ -31,20 +51,30 @@ function VideoPlayer(container) {
     if (l10n_id) {
       e.dataset.l10nId = l10n_id;
     }
+    if (attributes) {
+      for (var attribute in attributes) {
+        e.setAttribute(attribute, attributes[attribute]);
+      }
+    }
     parent.appendChild(e);
     return e;
   }
 
   // This copies the controls structure of the Video app
   var poster = newelt(container, 'img', 'videoPoster');
-  var player = newelt(container, 'video', 'videoPlayer');
+  var player = newelt(container, 'video', 'videoPlayer', null,
+                      { 'aria-hidden': true }); // Since Video Player controls
+                                                // are custom, we need to hide
+                                                // the video element to not
+                                                // confuse screen reader users.
   var controls = newelt(container, 'div', 'videoPlayerControls');
   var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton',
                           'playbackPlay');
   var footer = newelt(controls, 'div', 'videoPlayerFooter hidden');
   var pausebutton = newelt(footer, 'button', 'videoPlayerPauseButton',
                            'playbackPause');
-  var slider = newelt(footer, 'div', 'videoPlayerSlider');
+  var slider = newelt(footer, 'div', 'videoPlayerSlider', null,
+                      { 'role': 'slider', 'aria-valuemin': 0 });
   var elapsedText = newelt(slider, 'span', 'videoPlayerElapsedText');
   var progress = newelt(slider, 'div', 'videoPlayerProgress');
   var backgroundBar = newelt(progress, 'div', 'videoPlayerBackgroundBar');
@@ -71,6 +101,7 @@ function VideoPlayer(container) {
   var videourl;   // the url of the video to play
   var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
+  var videotimestamp;
   var orientation = 0; // current player orientation
 
   // These are the raw (unrotated) size of the poster image, which
@@ -80,18 +111,26 @@ function VideoPlayer(container) {
   var playbackTime;
   var capturedFrame;
 
-  this.load = function(video, posterimage, width, height, rotate) {
+  this.load = function(video, posterimage, width, height, rotate, timestamp) {
     this.reset();
     videourl = video;
     posterurl = posterimage;
     rotation = rotate || 0;
     videowidth = width;
     videoheight = height;
+    videotimestamp = timestamp;
+
+    // If a locale is present and ready, go ahead and localize now.
+    if (navigator.mozL10n.readyState === 'complete') {
+      this.localize();
+    }
+
     this.init();
     setPlayerSize();
   };
 
   this.reset = function() {
+    videotimestamp = 0;
     hidePlayer();
     hidePoster();
   };
@@ -227,8 +266,8 @@ function VideoPlayer(container) {
 
   // A click anywhere else on the screen should toggle the footer
   // But only when the video is playing.
-  controls.addEventListener('tap', function(e) {
-    if (e.target === controls && !player.paused) {
+  container.addEventListener('tap', function(e) {
+    if ((e.target === player || e.target === container) && !player.paused) {
       footer.classList.toggle('hidden');
       controlsHidden = !controlsHidden;
     }
@@ -236,7 +275,12 @@ function VideoPlayer(container) {
 
   // Set the video duration when we get metadata
   player.onloadedmetadata = function() {
-    durationText.textContent = formatTime(player.duration);
+    var formattedTime = formatTime(player.duration);
+    durationText.textContent = formattedTime;
+    slider.setAttribute('aria-valuemax', player.duration);
+    // This sets the aria-label to a localized slider description
+    navigator.mozL10n.setAttributes(slider, 'playbackSeekBar',
+                                    {'duration': formattedTime});
     // start off in the paused state
     self.pause();
   };
@@ -269,7 +313,10 @@ function VideoPlayer(container) {
   // Set the elapsed time and slider position
   function updateTime() {
     if (!controlsHidden) {
-      elapsedText.textContent = formatTime(player.currentTime);
+      var formattedTime = formatTime(player.currentTime);
+      elapsedText.textContent = formattedTime;
+      slider.setAttribute('aria-valuenow', player.currentTime);
+      slider.setAttribute('aria-valuetext', formattedTime);
 
       // We can't update a progress bar if we don't know how long
       // the video is. It is kind of a bug that the <video> element
@@ -471,6 +518,22 @@ function VideoPlayer(container) {
     }
   });
 
+  slider.addEventListener('keypress', function(e) {
+    // The standard accessible control for sliders is arrow up/down keys.
+    // Our screenreader synthesizes those events on swipe up/down gestures.
+    // Currently, we only allow screen reader users to adjust sliders with a
+    // constant step size (there is no page up/down equivalent). In the case
+    // of videos, we make sure that the maximum amount of steps for the entire
+    // duration is 20, or 2 second increments if the duration is less then 40
+    // seconds.
+    var step = Math.max(player.duration/20, 2);
+    if (e.keyCode == e.DOM_VK_DOWN) {
+      player.currentTime -= step;
+    } else if (e.keyCode == e.DOM_VK_UP) {
+      player.currentTime += step;
+    }
+  });
+
   function formatTime(time) {
     time = Math.round(time);
     var minutes = Math.floor(time / 60);
@@ -496,6 +559,32 @@ function VideoPlayer(container) {
       }
     });
   }
+
+  this.localize = function() {
+    // XXX: Ideally, we would add the duration too, but that is not
+    // available via fileinfo metadata yet.
+    var label;
+    var portrait = videowidth < videoheight;
+    if (rotation == 90 || rotation == 270) {
+      // If rotated sideways, then width and height are swapped.
+      portrait = !portrait;
+    }
+
+    var orientation = navigator.mozL10n.get(
+      portrait ? 'orientationPortrait' : 'orientationLandscape');
+    if (videotimestamp) {
+      var locale_entry = navigator.mozL10n.get(
+        'videoDescription', { orientation: orientation });
+      if (!self.dtf) {
+        self.dtf = new navigator.mozL10n.DateTimeFormat();
+      }
+      label = self.dtf.localeFormat(videotimestamp, locale_entry);
+    } else {
+      label = navigator.mozL10n.get(
+        'videoDescriptionNoTimestamp', { orientation: orientation });
+    }
+    poster.setAttribute('aria-label', label);
+  };
 }
 
 VideoPlayer.prototype.hide = function() {
@@ -507,3 +596,15 @@ VideoPlayer.prototype.show = function() {
   // Call init() to show the poster
   this.controls.style.display = 'block';
 };
+
+VideoPlayer.instancesToLocalize = new WeakMap();
+
+navigator.mozL10n.ready(function() {
+  // Retrieve VideoPlayer instances by searching for container nodes.
+  for (var container of document.querySelectorAll('.video-player-container')) {
+    var instance = VideoPlayer.instancesToLocalize.get(container);
+    if (instance) {
+      instance.localize();
+    }
+  }
+});

@@ -97,12 +97,19 @@ EditEvent.prototype = {
     return this.getFormValue('endTime');
   },
 
+  get allDayCheckbox() {
+    return this.findElement('input[name="allday"]');
+  },
+
+  get allDay() {
+    // checked is a boolean attribute, should return "null" when not checked
+    return this.allDayCheckbox.getAttribute('checked') != null;
+  },
+
   set allDay(value) {
-    var checkbox = this.findElement('input[name="allday"]');
-    var checked = checkbox.getAttribute('checked');
-    if (value !== checked) {
+    if (value !== this.allDay) {
       // click needs to happen on label!
-      this.client.helper.closest(checkbox, 'label').click();
+      this.client.helper.closest(this.allDayCheckbox, 'label').click();
     }
   },
 
@@ -144,9 +151,11 @@ EditEvent.prototype = {
       .click();
   },
 
+  get saveButton() {
+    return this.findElement('.save');
+  },
+
   save: function() {
-    this
-      .findElement('.save')
-      .click();
+    this.saveButton.click();
   }
 };

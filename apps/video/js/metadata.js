@@ -1,3 +1,6 @@
+/* global playerShowing,showThrobber,hideThrobber,updateDialog,videodb,
+  addVideo,getVideoRotation,THUMBNAIL_WIDTH,THUMBNAIL_HEIGHT */
+/* exported addToMetadataQueue,stopParsingMetadata */
 // This file is part of the Gaia Video app.
 //
 // It includes functions to obtain metadata for video files. The most
@@ -28,6 +31,7 @@
 // metadata is ready, it is saved to MediaDB, and then addVideo() is invoked
 // to display the video title and thumbnail.
 //
+'use strict';
 
 var metadataQueue = [];
 var processingQueue = false;
@@ -46,8 +50,9 @@ function addToMetadataQueue(fileinfo) {
 // Start or resume metadata parsing, if conditions are right
 function startParsingMetadata() {
   // If we're already working, return right away
-  if (processingQueue)
+  if (processingQueue) {
     return;
+  }
 
   // If there is no work queued, fire noMoreWorkCallback event and return right
   // away.
@@ -77,8 +82,9 @@ function startParsingMetadata() {
 function stopParsingMetadata(callback) {
   // If we're not processing metadata, just call the callback right away
   if (!processingQueue) {
-    if (callback)
+    if (callback) {
       callback();
+    }
     return;
   }
 
@@ -106,8 +112,9 @@ function processFirstQueuedItem() {
     processingQueue = false;
     hideThrobber();
 
-    if (callback !== true)
+    if (callback !== true) {
       callback();  // Okay, we've stopped.
+    }
     return;
   }
 
@@ -181,7 +188,7 @@ function getMetadata(videofile, callback) {
 
   offscreenVideo.onerror = function(e) {
     // Something went wrong. Maybe the file was corrupt?
-    console.error("Can't play video", videofile.name, e);
+    console.error('Can\'t play video', videofile.name, e);
     metadata.isVideo = false;
     unload();
     callback(metadata);
@@ -218,10 +225,12 @@ function getMetadata(videofile, callback) {
     // in shared/js/media/get_video_rotation.js
     if (/.3gp$/.test(videofile.name)) {
       getVideoRotation(videofile, function(rotation) {
-        if (typeof rotation === 'number')
+        if (typeof rotation === 'number') {
           metadata.rotation = rotation;
-        else if (typeof rotation === 'string')
+        }
+        else if (typeof rotation === 'string') {
           console.warn('Video rotation:', rotation);
+        }
         createThumbnail();
       });
     } else {
@@ -270,8 +279,10 @@ function getMetadata(videofile, callback) {
       callback(metadata);
     }
     offscreenVideo.onseeked = function() {   // Seeking success case
-      if (failed) // Avoid race condition: if we already failed, stop now
+      // Avoid race condition: if we already failed, stop now
+      if (failed) {
         return;
+      }
       clearTimeout(timeout);
       captureFrame(offscreenVideo, metadata, function(poster) {
         metadata.poster = poster;

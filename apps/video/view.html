@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <title>Videos</title>
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/video.{locale}.properties">
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
@@ -15,47 +15,62 @@
   </head>
   <body role="application" class="skin-dark layout-fullscreen-player view-activity theme-media">
     <!-- display this at startup while we create thumbnails -->
-    <div id="spinner-overlay"><div id="spinner"></div></div>
-    <section role="region" id="player-view">
-      <div id="video-container">
-        <video id="player" preload="metadata"></video>
+    <div id="spinner-overlay" class="hidden" role="progress"
+             data-l10n-id="spinner-overlay"><div id="spinner"></div></div>
+    <section role="region" id="player-view" class="video-controls-hidden">
+      <!-- video controls header -->
+      <gaia-header id="player-header" action="back" class="video-controls">
+        <h1 id="video-title"></h1>
+        <button id="save" data-l10n-id="save" hidden></button>
+      </gaia-header>
+      <!-- In order for the screen reader to be able to activate the container
+             to toggle controls, it must have the semantics of the button -->
+      <div id="video-container" role="button">
+        <!-- Hiding the video element from the screen reader since the
+             controls are implemented elsewhere. -->
+        <video id="player" preload="metadata" aria-hidden="true"></video>
       </div>
-      <!-- video controls -->
-      <div id="videoControls" class="hidden">
-        <section role="region">
-          <gaia-header id="player-header" action="back">
-            <h1 id="video-title"></h1>
-            <button id="save" data-l10n-id="save" hidden></button>
-          </gaia-header>
-
-          <footer id="videoBar">
-            <div id="timeSlider">
-              <span id="elapsed-text"></span>
-              <div id="slider-wrapper">
-                <div id="elapsedTime" class="progress"></div>
-                <div id="bufferedTime" class="progress"></div>
-                <div id="timeBackground" class="progress"></div>
-                <button id="playHead"></button>
-              </div>
-              <span id="duration-text"></span>
+      <!-- video controls footer toolbar -->
+      <div role="toolbar" class="video-controls bottom">
+        <!-- It is simpler and less verbose (for the screen reader) to not
+             expose that this block is a footer and consider it part of
+             its toolbar container. -->
+        <footer id="videoBar" role="presentation">
+          <div id="timeSlider" role="slider">
+            <!-- We need to use aria hideen for the text nodes in the slider
+                 subtree because the screen reader treats sliders as atomic
+                 elements and does not step inside their subtree. All the
+                 information is conveyed via the slider attributes instead -->
+            <span id="elapsed-text" aria-hidden="true"></span>
+            <div id="slider-wrapper" aria-hidden="true">
+              <div id="elapsedTime" class="progress"></div>
+              <div id="bufferedTime" class="progress"></div>
+              <div id="timeBackground" class="progress"></div>
+              <button id="playHead"></button>
             </div>
-          </footer>
-          <footer id="videoControlBar">
-            <div id="videoToolBar">
-              <button id="seek-backward" class="player-controls-button" data-icon="skip-back"></button>
-              <button id="play" class="player-controls-button" data-icon="pause"></button>
-              <button id="seek-forward" class="player-controls-button" data-icon="skip-forward"></button>
-            </div>
-          </footer>
+            <span id="duration-text" aria-hidden="true"></span>
+          </div>
+        </footer>
+        <!-- It is simpler and less verbose (for the screen reader) to not
+             expose that this block is a footer and consider it part of
+             its toolbar container. -->
+        <footer id="videoControlBar" role="presentation">
+          <div id="videoToolBar">
+            <button id="seek-backward" class="player-controls-button"
+                    data-icon="skip-back" data-l10n-id="seek-backward"></button>
+            <button id="play" class="player-controls-button" data-icon="pause"></button>
+            <button id="seek-forward" class="player-controls-button"
+                    data-icon="skip-forward" data-l10n-id="seek-forward"></button>
+          </div>
+        </footer>
+      </div>
+      <!-- display messages like "Cannot load video" here -->
+      <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
+        <section id="in-use-overlay-content">
+          <h1 id="in-use-overlay-title"></h1>
+          <p id="in-use-overlay-text"></p>
         </section>
-        <!-- display messages like "Cannot load video" here -->
-        <form id="in-use-overlay" role="dialog" data-type="confirm" class="hidden">
-          <section id="in-use-overlay-content">
-            <h1 id="in-use-overlay-title"></h1>
-            <p id="in-use-overlay-text"></p>
-          </section>
-        </form>
-      </div>
+      </form>
     </section>
     <section id="banner" role="status" hidden>
       <p id="message"></p>

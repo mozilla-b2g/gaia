@@ -38,7 +38,8 @@ suite('search/providers/local_apps', function() {
     },{
       manifest: {
         launch_path: '/fakeapp3/index.html',
-        name: 'Mooilla Fake App 3'
+        name: 'Mooilla Fake App 3',
+        short_name: 'shorty'
       }
     },{
       manifest: {
@@ -128,6 +129,28 @@ suite('search/providers/local_apps', function() {
       var results = subject.find('localized');
       assert.equal(results.length, 1);
     });
+
+    test('Search returns correct applications', function() {
+      var results = subject.find('shorty');
+      assert.equal(results.length, 1);
+    });
+
+    test('hidden role which downloads is not listed', function() {
+      var resultLength = subject.appListing.length;
+      var mockApp = {
+        manifestURL: 'marketplace/langpack',
+        downloading: true,
+        manifest: {
+          role: 'langpack'
+        }
+      };
+      navigator.mozApps.mgmt.oninstall({
+        application: mockApp
+      });
+      mockApp.ondownloadapplied();
+      assert.equal(resultLength, subject.appListing.length);
+    });
+
   });
 
 });

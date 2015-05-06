@@ -5,7 +5,9 @@
 
 'use strict';
 
-requireApp('wappush/js/messagedb.js');
+require('/shared/js/event_dispatcher.js');
+
+require('/js/messagedb.js');
 
 suite('MessageDB', function() {
   var messages = {
@@ -209,6 +211,10 @@ suite('MessageDB', function() {
   });
 
   suite('message actions', function() {
+    teardown(function() {
+      MessageDB.offAll('messagedeleted');
+    });
+
     test('delete action removes all message with same id', function(done) {
       var results = {};
 
@@ -237,6 +243,19 @@ suite('MessageDB', function() {
           assert.isNull(message);
         });
       }, done);
+    });
+
+    test('delete action messages dispatch a `messagedeleted\' event',
+    function(done) {
+      var onMessageDeletedStub = sinon.stub();
+
+      MessageDB.on('messagedeleted', onMessageDeletedStub);
+      MessageDB.put(messages.current).then(function() {
+        return MessageDB.put(messages.delete);
+      }).then(function() {
+        sinon.assert.calledOnce(onMessageDeletedStub);
+        sinon.assert.calledWith(onMessageDeletedStub, messages.current);
+      }).then(done, done);
     });
 
     test('old delete action is ignored', function(done) {
@@ -297,6 +316,19 @@ suite('MessageDB', function() {
           assert.isNull(message_high);
         });
       }, done);
+    });
+
+    test('a `messagedeleted\' event is dispatched', function(done) {
+      var onMessageDeletedStub = sinon.stub();
+
+      MessageDB.on('messagedeleted', onMessageDeletedStub);
+      MessageDB.put(messages.current).then(function() {
+        return MessageDB.deleteByTimestamp(messages.current.timestamp);
+      }).then(function() {
+        MessageDB.off('messagedeleted', onMessageDeletedStub);
+        sinon.assert.calledOnce(onMessageDeletedStub);
+        sinon.assert.calledWith(onMessageDeletedStub, messages.current);
+      }).then(done, done);
     });
   });
 });

@@ -10,5 +10,5 @@
     "name": "Mozilla QA"
   },
   "installs_allowed_from": ["*"],
-  "launch_path": "/"
+  "launch_path": "/webapps/mozqa.com/index.html"
 }

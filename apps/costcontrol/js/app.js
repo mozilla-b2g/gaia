@@ -46,7 +46,8 @@ var CostControlApp = (function() {
 
   var costcontrol,
       initialized = false,
-      hashFromLastRun;
+      hashFromLastRun,
+      hashFromNotification;
   var vmanager;
 
   // Set the application in waiting for SIM mode. During this mode, the
@@ -318,7 +319,7 @@ var CostControlApp = (function() {
           var app = evt.target.result;
           app.launch();
 
-          var type = notification.imageURL.split('?')[1];
+          var type = notification.data;
           debug('Notification type:', type);
           handleNotification(type);
         };
@@ -357,8 +358,10 @@ var CostControlApp = (function() {
       case 'lowBalance':
       case 'zeroBalance':
         window.location.hash = '#balance-tab';
+        hashFromNotification = '#balance-tab';
         break;
       case 'dataUsage':
+        hashFromNotification = '#datausage-tab';
         tabmanager.changeViewTo('datausage-tab');
         break;
     }
@@ -402,8 +405,10 @@ var CostControlApp = (function() {
                         '#telephony-tab#';
             }
           }
-          window.location.hash = hashFromLastRun || newHash;
-          hashFromLastRun = null;
+          window.location.hash = hashFromNotification ||
+                                 hashFromLastRun ||
+                                 newHash;
+          hashFromLastRun = hashFromNotification = null;
 
           // XXX: Break initialization to allow Gecko to render the animation on
           // time.
@@ -427,7 +432,7 @@ var CostControlApp = (function() {
             }
           });
         }
-        callback && callback();
+        (typeof callback === 'function') && callback();
       });
     });
   }

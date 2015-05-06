@@ -4,7 +4,7 @@
 
 (function(exports) {
 
-var LayoutItemView = function(layoutItem) {
+var LayoutItemView = function(list, layoutItem) {
   BaseView.apply(this);
 
   this._statusEl = null;
@@ -16,6 +16,7 @@ var LayoutItemView = function(layoutItem) {
       'please pass an approate instance as the model.');
   }
 
+  this.list = list;
   this._model = layoutItem;
 };
 
@@ -31,8 +32,10 @@ LayoutItemView.prototype.IN_LIST_INSTALLABLE = 1;
 LayoutItemView.prototype.TEMPLATE_ID = 'installable-keyboard-list-item';
 
 LayoutItemView.prototype.start = function() {
+  this._model.onerror = this._showError.bind(this);
   this._model.onprogress = this._updateProgress.bind(this);
   this._model.onstatechange = this._updateUI.bind(this);
+  this._model.oninstall = this._showEnableDialog.bind(this);
 
   var template = document.getElementById(this.TEMPLATE_ID);
   var el = this.container =
@@ -154,28 +157,80 @@ LayoutItemView.prototype._updateUI = function() {
   }
 };
 
+LayoutItemView.prototype._showEnableDialog = function() {
+  this.list.confirmEnable(this._model.name).then(function(confirmed) {
+    if (confirmed) {
+      return this.list.enableLayout(this._model.id);
+    }
+  }.bind(this)).catch(function(e) {
+    e && console.error(e);
+  });
+};
+
+LayoutItemView.prototype._showError = function(errorInfo) {
+  switch (errorInfo.error) {
+    case errorInfo.ERROR_DOWNLOADERROR:
+      this.list.showDownloadErrorToast();
+      break;
+
+    case errorInfo.ERROR_INSTALLERROR:
+      console.error('LayoutItemView: layout installation error.');
+      break;
+
+    case errorInfo.ERROR_REMOVEERROR:
+      console.error('LayoutItemView: layout removal error.');
+      break;
+
+    default:
+      console.error('LayoutItemView: undefined onerror call,', errorInfo);
+
+      break;
+  }
+};
+
 LayoutItemView.prototype.handleEvent = function(evt) {
   var el = evt.target;
 
   // This is intentionally kept at minimum. We do not check if the currect state
   // is applicable for certain action, nor we keep the returned promise and
-  // react on it. UI updates are all tie to state updates,
-  // and state updates only.
+  // react on it.
+  // UI updates are all tie to state updates, and state updates only.
+  // We do, however, wire confirmation dialog here.
+  var p;
   switch (el.dataset.action) {
     case 'download':
-      this._model.install();
+      p = this.list.confirmDownload().then(function(confirmed) {
+        if (confirmed) {
+          return this._model.install();
+        }
+      }.bind(this));
 
       break;
 
     case 'cancelDownload':
-      this._model.cancelInstall();
+      p = this._model.cancelInstall();
 
       break;
 
     case 'remove':
-      this._model.remove();
+      p = this.list.confirmRemoval(this._model.name).then(function(confirmed) {
+        if (!confirmed) {
+          return;
+        }
+
+        return this.list.disableLayout(this._model.id)
+          .then(function() {
+            return this._model.remove();
+          }.bind(this));
+      }.bind(this));
 
       break;
+  }
+
+  if (p) {
+    p.catch(function(e) {
+      e && console.error(e);
+    });
   }
 };
 

@@ -14,7 +14,7 @@
     <!-- stylesheets of fling sender -->
     <link rel="stylesheet" type="text/css" href="style/fling_sender.css">
 
-
+    <script defer src="shared/js/async_storage.js"></script>
     <!-- main javascript code -->
     <script defer src="js/fling_sender.js"></script>
   </head>
@@ -28,14 +28,14 @@
         <button id="close-btn" disabled type="underlined-text">Close Session</button>
         <br>
         URL:
-        <input type="text" id="url-text-box" disabled value="http://tinyurl.com/yc2c4rh">
+        <input type="text" id="url-text-box" disabled value="">
         <button id="load-btn" disabled type="underlined-text">Load</button>
         <br>
         <button id="play-btn" disabled type="underlined-text">Play</button>
         <button id="pause-btn" disabled type="underlined-text">Pause</button>
         <br/>
         <button id="seek-btn" disabled type="underlined-text">Seek to</button>
-        <input type="text" id="seek-text-box" value="200" disabled>
+        <input type="text" id="seek-text-box" value="50" disabled>
       </nav>
     </section>
     <section role="region" id="result-panel">

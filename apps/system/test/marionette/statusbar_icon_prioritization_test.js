@@ -9,10 +9,6 @@ marionette('Status Bar icons - Prioritization', function() {
   var client = marionette.client({
     prefs: {
       'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 
@@ -31,22 +27,24 @@ marionette('Status Bar icons - Prioritization', function() {
     var hasHiddenIcon = false;
 
     // Let's show all the icons.
-    StatusBar.Icons.forEach(function(iconName) {
-      statusBar[iconName].show();
-    });
+    statusBar.showAllRunningIcons();
 
     // Force the reprioritization all the icons.
-    statusBar.networkActivity.hide();
-    statusBar.dispatchEvent('moznetworkupload');
+    system.request('NetworkActivityIcon:hide');
+    system.request('NetworkActivityIcon:show');
 
     StatusBar.Icons.forEach(function(iconName) {
-      if (iconName === 'label') {
+      if (iconName === 'operator') {
         // Label is a special case, so ignoring for now.
         return;
       }
 
-      var icon = statusBar[iconName].icon;
-      var hidden = (icon.cssProperty('display') === 'none');
+      var iconElement = statusBar.minimised[iconName].icon;
+      // The icon is not running.
+      if (iconElement.getAttribute('class').indexOf('active') < 0) {
+        return;
+      }
+      var hidden = (iconElement.cssProperty('display') === 'none');
 
       if (hasHiddenIcon) {
         assert.equal(hidden, true, 'The `' + iconName +

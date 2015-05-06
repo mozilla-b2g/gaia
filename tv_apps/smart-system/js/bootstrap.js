@@ -8,26 +8,9 @@
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory,
          applications, LayoutManager, PermissionManager, Accessibility,
-         TextSelectionDialog, SleepMenu, InteractiveNotifications,
-         ExternalStorageMonitor */
+         SleepMenu, InteractiveNotifications, ExternalStorageMonitor */
 'use strict';
 
-
-/* === Shortcuts === */
-/* For hardware key handling that doesn't belong to anywhere */
-var Shortcuts = {
-  init: function rm_init() {
-    window.addEventListener('keyup', this);
-  },
-
-  handleEvent: function rm_handleEvent(evt) {
-    if (!ScreenManager.screenEnabled || evt.keyCode !== evt.DOM_VK_F6) {
-      return;
-    }
-
-    document.location.reload();
-  }
-};
 
 window.addEventListener('load', function startup() {
   /**
@@ -43,9 +26,6 @@ window.addEventListener('load', function startup() {
     }
 
     window.AppWindowManager.init();
-
-    /** @global */
-    window.textSelectionDialog = new TextSelectionDialog();
   }
 
   function safelyLaunchFTU() {
@@ -92,7 +72,6 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-  Shortcuts.init();
   ScreenManager.turnScreenOn();
 
   // To make sure homescreen window manager can intercept webapps-launch event,

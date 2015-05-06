@@ -214,7 +214,7 @@ marionette('Contacts > ICE contacts', function() {
         .text();
 
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'ICERepeatedContact');
       assert.equal(confirmText, expectedResult);
     });
@@ -227,7 +227,7 @@ marionette('Contacts > ICE contacts', function() {
         .text();
 
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'ICEContactNoNumber');
 
       assert.equal(confirmText, expectedResult);
@@ -242,14 +242,7 @@ marionette('Contacts > ICE contacts', function() {
       actions.wait(0.5).tap(header, 10, 10).perform();
     }
 
-    setup(function() {
-      addTestContact(true);
-      setFirstContactAsICE();
-      clickBackArrow();
-
-      var closeSettings = client.helper.waitForElement(selectors.settingsClose);
-      subject.clickOn(closeSettings);
-
+    function deleteFirstContactFirstTel() {
       var firstContact =
         client.helper.waitForElement(selectors.listContactFirst);
       subject.clickOn(firstContact);
@@ -262,28 +255,74 @@ marionette('Contacts > ICE contacts', function() {
       var save = client.findElement(selectors.formSave);
       save.enabled();
       save.click();
+    }
+
+    function closeSettings() {
+      var close = client.helper.waitForElement(selectors.settingsClose);
+      subject.clickOn(close);
+    }
+
+    suite('With one phone number', function() {
+      setup(function() {
+        addTestContact(true);
+        setFirstContactAsICE();
+        clickBackArrow();
+        closeSettings();
+        deleteFirstContactFirstTel();
+      });
+
+      test('Confirm window appears with correct message', function() {
+        var confirmBody = client.helper.waitForElement(selectors.confirmBody);
+
+        var expectedResult = subject.l10n(
+          '/locales-obj/contacts.index.en-US.json',
+          'ICEContactDelTelAll');
+
+        assert.equal(confirmBody.text(), expectedResult);
+      });
+
+      test('Contact is deleted from ICE when no numbers left', function() {
+        dismissAndGoBack();
+        openICESettings();
+        var iceButton1 = client.helper.waitForElement(selectors.iceButton1);
+        assert.ok(!iceButton1.enabled());
+      });
+
+      test('ICE list empty after removing phone', function() {
+        dismissAndGoBack();
+        client.helper.waitForElement(selectors.contactListHeader);
+        assert.ok(isIceContactsGroupHidden());
+      });
     });
 
-    test('Confirm window appears with correct message', function() {
-      var confirmBody = client.helper.waitForElement(selectors.confirmBody);
+    suite('With more than one phone number', function() {
+      test('Deleting the first number keeps the contact as ICE', function() {
+        var mozContact = {
+          tel: [
+            {
+              value: '01234',
+              type: ['home']
+            },
+            {
+              value: '56789',
+              type:['home']
+            }
+          ],
+          givenName: ['Hello'],
+          familyName: ['World'],
+          name: ['Hello World']
+        };
+        createMozContact(mozContact);
+        setFirstContactAsICE();
+        clickBackArrow();
+        closeSettings();
+        deleteFirstContactFirstTel();
+        dismissAndGoBack();
 
-      var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
-        'ICEContactDelTelAll');
-
-      assert.equal(confirmBody.text(), expectedResult);
-    });
-
-    test('Contact is deleted from ICE when no numbers left', function() {
-      dismissAndGoBack();
-      openICESettings();
-      assert.ok(!client.helper.waitForElement(selectors.iceButton1).enabled());
-    });
-
-    test('ICE list empty after removing phone', function() {
-      dismissAndGoBack();
-      client.helper.waitForElement(selectors.contactListHeader);
-      assert.ok(isIceContactsGroupHidden());
+        subject.waitForFadeIn(client.helper.waitForElement(selectors.list));
+        openICESettings();
+        assertICEContact(1, mozContact.name[0]);
+      });
     });
   });
 

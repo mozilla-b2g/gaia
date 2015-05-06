@@ -5,7 +5,7 @@
   <!-- The theme color starts off blank. The card logic wants to choose a start
   card first, since the color schemes are different for New Account vs Message
   List. This means email starts up with a black header that fades to the correct
-  color once the card logic makes a choice. Due to the cookie cache, a black
+  color once the card logic makes a choice. Due to the html cache, a black
   status color is shown at first, then fades to the right color. This is
   preferred to the alternative of starting up in default orange. If New Account
   is the start card, it looks gross to have the orange on top of the white card
@@ -16,7 +16,7 @@
   <link rel="stylesheet" type="text/css" href="style/mail.css">
   <!-- Localization -->
   <meta name="defaultLanguage" content="en-US">
-  <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+  <meta name="availableLanguages" content="en-US">
   <link rel="localization" href="locales/email.{locale}.properties">
   <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
 
@@ -57,7 +57,7 @@
   </div>
   <script data-targetid="cards"
           data-loader="js/alameda.js"
-          data-loadsrc="js/mail_app.js"
+          data-loadsrc="js/config.js"
           src="js/html_cache_restore.js"></script>
 </body>
 </html>

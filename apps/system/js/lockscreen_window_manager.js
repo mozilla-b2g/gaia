@@ -167,6 +167,9 @@
           app = evt.detail;
           this.unregisterApp(app);
           break;
+        case 'lockscreen-appclose':
+          this.publish(this.EVENT_PREFIX + '-deactivated', this);
+          break;
         case 'secure-appclosed':
           this.states.instance.lockOrientation();
           break;
@@ -306,7 +309,6 @@
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
       this.toggleLockedSetting(false);
-      this.publish(this.EVENT_PREFIX + '-deactivated', this);
     };
 
   /**

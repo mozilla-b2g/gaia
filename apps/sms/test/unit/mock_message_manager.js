@@ -17,10 +17,6 @@ var MockMessageManager = {
       callback();
     }
   },
-  launchComposer: function() {},
-  handleActivity: function() {},
-  handleForward: function() {},
-  registerMessage: function() {},
   sendSMS: function() {
     return {};
   },

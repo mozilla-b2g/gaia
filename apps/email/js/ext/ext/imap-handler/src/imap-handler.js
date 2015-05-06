@@ -20,18 +20,18 @@
 
 // UMD shim, see: https://github.com/umdjs/umd/blob/master/returnExports.js
 (function(root, factory) {
-    "use strict";
+    'use strict';
 
-    if (typeof define === "function" && define.amd) {
-        define(["./imap-parser", "./imap-compiler"], factory);
+    if (typeof define === 'function' && define.amd) {
+        define(['./imap-parser', './imap-compiler'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require("./imap-parser"), require("./imap-compiler"));
+        module.exports = factory(require('./imap-parser'), require('./imap-compiler'));
     } else {
         root.imapHandler = factory(root.imapParser, root.imapCompiler);
     }
 }(this, function(imapParser, imapCompiler) {
 
-    "use strict";
+    'use strict';
 
     return {
         parser: imapParser,

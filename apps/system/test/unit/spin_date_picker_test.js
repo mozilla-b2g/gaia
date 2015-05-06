@@ -1,3 +1,4 @@
+/* global MockL10n, SpinDatePicker */
 'use strict';
 
 requireApp('system/js/value_selector/value_picker.js');
@@ -24,7 +25,7 @@ suite('value selector/spin date picker', function() {
 
   setup(function() {
     // mockup element
-    function mock_obj() {};
+    function mock_obj() {}
     mock_obj.prototype.querySelector = function() {
       return document.createElement('div').
         appendChild(document.createElement('div'));

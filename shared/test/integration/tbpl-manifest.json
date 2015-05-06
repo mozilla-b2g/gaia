@@ -1,9 +1,8 @@
-{
+ {
   "blacklist": {
     "apps/calendar/test/marionette/alarm_test.js": "Bug 994976 - Perma-red TBPL test, alarm > without alarm mocks create two events with simultaneous reminders",
     "apps/calendar/test/marionette/caldav_test.js": "Bug 972631 - CalDAV setup causing tbpl timeouts",
     "apps/calendar/test/marionette/day_view_test.js": "Bug 1076716 - TEST-UNEXPECTED-FAIL | day view before each hook",
-    "apps/calendar/test/marionette/month_view_test.js": "Bug 1128483 - TEST-UNEXPECTED-FAIL | apps/calendar/test/marionette/month_view_test.js | month view should gray out numbers outside current month",
     "apps/calendar/test/marionette/server_test.js": "",
     "apps/calendar/test/marionette/week_view_test.js": "Bug 1060447 - Re-enable week_view_test.js",
     "apps/calendar/test/marionette/toggle_calendar_test.js": "Bug 1007519 - Perma failing test, toggle calendar > regular event disable calendar day view",
@@ -27,25 +26,24 @@
     "apps/email/test/marionette/search_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/ftu/test/marionette/statusbar_test.js": "Bug 1117976 - Intermittent statusbar_test.js | First Time Use > statusbar icons should change",
-    "apps/homescreen/test/marionette/install_bookmark_test.js": "legacy",
-    "apps/homescreen/test/marionette/remove_bookmark_test.js": "legacy",
-    "apps/homescreen/test/marionette/update_bookmark_test.js": "legacy",
-    "apps/search/test/marionette/suggestions_test.js": "TEST-UNEXPECTED-FAIL | Search - Suggestions Test Test suggestions",
+    "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
-    "apps/sms/test/marionette/composer_test.js": "Bug 1121766 - TEST-UNEXPECTED-FAIL | Messages Composer Messages Composer Test Suite Message char counter and MMS label",
     "apps/system/test/marionette/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
+    "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
     "apps/system/test/marionette/global_overlay_window_test.js": "Bug 1117125 - Update b2g desktop in tbpl after bug 1101029 lands",
+    "apps/system/test/marionette/statusbar_home_button_test.js": "Bug 1154405 - TEST-UNEXPECTED-FAIL | Closing statusbar via home button > Home screen keeps scroll position AssertionError: false == true",
     "apps/system/test/marionette/software_home_file_open_error_test.js": "Bug 1119079 - Intermittent software_home_file_open_error_test.js | Software Home Button - File Open Error Proper layout for file error dialog",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/collection_pin_result_uninstall_test.js": "Bug 1098310 - TEST-UNEXPECTED-FAIL | Vertical - Collection uninstall pinned collection web result",
     "apps/verticalhome/test/marionette/collection_rename_test.js": "Bug 1090756 - TEST-UNEXPECTED-FAIL | Vertical - Collection Rename rename collection",
     "apps/verticalhome/test/marionette/group_collapse_drag_into_test.js": "Bug 1125696 - Intermittent failing test, TEST-UNEXPECTED-FAIL | Vertical - Group check dragging icon into collapsed group",
-    "apps/verticalhome/test/marionette/search_test.js": "Bug 1126025 - Reenable or remove tests disabled in new search behaviour",
-    "apps/system/test/marionette/browser_chrome_bookmark_web_result_test.js": "Bug 1126025 - Reenable or remove tests disabled in new search behaviour",
-    "apps/system/test/marionette/browser_chrome_share_web_result_test.js": "Bug 1126025 - Reenable or remove tests disabled in new search behaviour"
+    "apps/communications/contacts/test/marionette/ice_test.js": "Bug 1147601 - Intermittent failures",
+    "apps/system/test/marionette/hierarchy_test.js": "Bug 1147618 - Disable intermittent test",
+    "apps/system/test/marionette/keyboard_edge_resize_test.js": "Bug 1147618",
+    "apps/system/test/marionette/notification_behavior_test.js": "Bug 1148336"
   }
 }

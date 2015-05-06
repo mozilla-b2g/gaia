@@ -1,4 +1,5 @@
 'use strict';
+/* global Template */
 
 function MockTemplate(idOrNode) {
   if (!(this instanceof Template)) {

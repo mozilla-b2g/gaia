@@ -1,3 +1,5 @@
+/* global DeviceStorageWatcher, MocksHelper, MockL10n,
+          MockNavigatorGetDeviceStorage, MockSystemBanner */
 'use strict';
 
 requireApp('system/js/storage_watcher.js');
@@ -18,7 +20,6 @@ suite('system/DeviceStorageWatcher >', function() {
   var realL10n;
   var realNavigatorGetDeviceStorage;
   var fakeNotif;
-  var tinyTimeout = 25;
 
   mocksForStorageWatcher.attachTestHelpers();
   suiteSetup(function(done) {
@@ -76,7 +77,7 @@ suite('system/DeviceStorageWatcher >', function() {
     });
 
     test('should add change event listener', function(done) {
-      assert.equal(typeof DeviceStorageWatcher._appStorage._listeners['change'],
+      assert.equal(typeof DeviceStorageWatcher._appStorage._listeners.change,
                    'object');
       done();
     });

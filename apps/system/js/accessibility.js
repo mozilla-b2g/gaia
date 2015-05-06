@@ -45,6 +45,12 @@
     CONTRAST_CAP: 0.6,
 
     /**
+     * Timeout (in milliseconds) between when a vc-change event fires
+     * and when interaction hints (if any) are spoken
+     */
+    HINTS_TIMEOUT: 2000,
+
+    /**
      * Current counter for button presses in short succession.
      * @type {Number}
      * @memberof Accessibility.prototype
@@ -123,6 +129,7 @@
       window.addEventListener('volumeup', this);
       window.addEventListener('volumedown', this);
       window.addEventListener('logohidden', this);
+      window.addEventListener('screenchange', this);
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
@@ -233,14 +240,14 @@
       this.reset();
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
-        this.speechSynthesizer.cancel();
+        this.cancelSpeech();
         this.announceScreenReader(function onEnd() {
           this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS);
         }.bind(this));
         return;
       }
 
-      this.speechSynthesizer.cancel();
+      this.cancelSpeech();
       this.resetSpeaking();
       SettingsListener.getSettingsLock().set({
         'accessibility.screenreader':
@@ -284,11 +291,28 @@
     },
 
     /**
+     * Start a timeout that waits to display hints
+     * @memberof Accessibility.prototype
+     */
+    setHintsTimeout: function ar_setHintsTimeout(aHints) {
+      clearTimeout(this.hintsTimer);
+      this.hintsTimer = setTimeout(function onHintsTimeout() {
+        this.isSpeakingHints = true;
+        this.speak(aHints, function onSpeakHintsEnd() {
+          this.isSpeakingHints = false;
+        }.bind(this), {
+          enqueue: true
+        });
+      }.bind(this), this.HINTS_TIMEOUT);
+    },
+
+    /**
      * Handle accessfu mozChromeEvent.
      * @param  {Object} accessfu details object.
      * @memberof Accessibility.prototype
      */
     handleAccessFuOutput: function ar_handleAccessFuOutput(aDetails) {
+      this.cancelHints();
       var options = aDetails.options || {};
       window.dispatchEvent(new CustomEvent('accessibility-action'));
       switch (aDetails.eventType) {
@@ -309,17 +333,33 @@
           return;
       }
 
-      this.speak(aDetails.data, null, {
+      this.speak(aDetails.data, function hintsCallback() {
+        if (options.hints) {
+          this.setHintsTimeout(options.hints);
+        }
+      }.bind(this), {
         enqueue: options.enqueue
       });
     },
 
     handleAccessFuControl: function ar_handleAccessFuControls(aDetails) {
+      this.cancelHints();
       if (aDetails.eventType === 'quicknav-menu') {
         if (!this.quicknav) {
           this.quicknav = new AccessibilityQuicknavMenu();
         }
         this.quicknav.show();
+      }
+    },
+
+    /**
+     * Listen for screen change events and stop speaking if the
+     * screen is disabled (in 'off' state)
+     * @memberof Accessibility.prototype
+     */
+    handleScreenChange: function ar_handleScreenChange(aDetail){
+      if(!aDetail.screenEnabled){
+        this.cancelHints();
       }
     },
 
@@ -342,6 +382,9 @@
      */
     handleEvent: function ar_handleEvent(aEvent) {
       switch (aEvent.type) {
+        case 'screenchange':
+          this.handleScreenChange(aEvent.detail);
+          break;
         case 'logohidden':
           this.activateScreen();
           break;
@@ -359,6 +402,18 @@
         case 'volumedown':
           this.handleVolumeButtonPress(aEvent);
           break;
+      }
+    },
+
+    /**
+     * Check for Hints speech/timer and clear.
+     * @memberof Accessibility.prototype
+     */
+    cancelHints: function ar_cancelHints() {
+      clearTimeout(this.hintsTimer);
+      if(this.isSpeakingHints){
+        this.cancelSpeech();
+        this.isSpeakingHints = false;
       }
     },
 
@@ -388,6 +443,14 @@
     speak: function ar_speak(aData, aCallback, aOptions = {}) {
       this.speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
         aCallback);
+    },
+
+    /**
+     * Cancel any utterances currently being spoken by speechSynthesis.
+     * @memberof Accessibility.prototype
+     */
+    cancelSpeech: function ar_cancelSpeech() {
+      this.speechSynthesizer.cancel();
     }
   };
 
@@ -530,7 +593,7 @@
       }
       window.clearTimeout(this.captionsHideTimeout);
       this.captionsHideTimeout = null;
-      this.captionsBox.innerHTML = aUtterance;
+      this.captionsBox.textContent = aUtterance;
       this.captionsBox.classList.add('visible');
     },
 

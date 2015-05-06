@@ -7,7 +7,7 @@ var fsPath = require('path');
 var Agent = TestAgent,
     Apps = Agent.server,
     Suite = Agent.Suite,
-    suite = new Suite({
+    testSuite = new Suite({
       paths: [fsPath.resolve(__dirname + '/../../apps/'),
               fsPath.resolve(__dirname + '/../../tv_apps/'),
               fsPath.resolve(__dirname + '/../../dev_apps/')],
@@ -17,4 +17,4 @@ var Agent = TestAgent,
       testSuffix: '_test.js'
     });
 
-server.use(Apps.Suite, suite);
+server.use(Apps.Suite, testSuite);

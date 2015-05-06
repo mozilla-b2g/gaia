@@ -11,7 +11,6 @@
 
 (function(exports) {
   var _id = 0;
-  var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
   SettingsListener.observe('rocketbar.newTabAppURL', '',
@@ -109,15 +108,18 @@
   AppChrome.prototype.combinedView = function an_combinedView() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
-                <div class="urlbar">
-                  <div class="title" data-ssl=""></div>
+                <div class="urlbar js-chrome-ssl-information">
+                  <span class="pb-icon"></span>
+                  <div class="chrome-ssl-indicator chrome-title-container">
+                    <span class="title" dir="auto"></span>
+                  </div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
                   <button type="button" class="stop-button"
@@ -133,11 +135,15 @@
   AppChrome.prototype.view = function an_view() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-plain" id="${className}">
             <gaia-progress></gaia-progress>
             <section role="region" class="bar">
-              <gaia-header action="close">
+              <gaia-header action="close" class='js-chrome-ssl-information'>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-ltr">
+                </div>
                 <h1 class="title"></h1>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-rtl">
+                </div>
               </gaia-header>
             </section>
           </div>`;
@@ -182,6 +188,8 @@
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.title');
+    this.sslIndicator =
+      this.element.querySelector('.js-chrome-ssl-information');
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
@@ -241,7 +249,7 @@
         this.handleScrollAreaChanged(evt);
         break;
 
-      case 'mozbrowsersecuritychange':
+      case '_securitychange':
         this.handleSecurityChanged(evt);
         break;
 
@@ -278,10 +286,7 @@
         break;
 
       case this.title:
-        if (Service && Service.locked) {
-          return;
-        }
-        window.dispatchEvent(new CustomEvent('global-search-request'));
+        this.titleClicked();
         break;
 
       case this.menuButton:
@@ -313,6 +318,16 @@
         this.onShare();
         break;
     }
+  };
+
+  AppChrome.prototype.titleClicked = function ac_titleClicked() {
+    var contextMenu = this.app.contextmenu && this.app.contextmenu.isShown();
+    var locked = Service && Service.locked;
+
+    if (locked || contextMenu) {
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('global-search-request'));
   };
 
   AppChrome.prototype.handleActionEvent = function ac_handleActionEvent(evt) {
@@ -371,7 +386,7 @@
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('mozbrowserscrollareachanged', this);
-    this.app.element.addEventListener('mozbrowsersecuritychange', this);
+    this.app.element.addEventListener('_securitychange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
@@ -435,6 +450,9 @@
   // Name has priority over the rest
   AppChrome.prototype.handleNameChanged =
     function ac_handleNameChanged(evt) {
+      if (this._fixedTitle) {
+        return;
+      }
       this.title.textContent = this.app.name;
       this._gotName = true;
     };
@@ -472,7 +490,11 @@
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
-    this.title.dataset.ssl = evt.detail.state;
+    var sslState = this.app.getSSLState();
+    this.sslIndicator.dataset.ssl = sslState;
+    this.sslIndicator.classList.toggle(
+      'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
+    );
   };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
@@ -503,12 +525,20 @@
     };
 
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
-
     // Do not set theme color for private windows
     if (this.app.isPrivateBrowser()) {
       return;
     }
 
+    var bottomApp = this.app.getBottomMostWindow();
+
+    if (this.app.CLASS_NAME === 'PopupWindow' &&
+      bottomApp &&
+      bottomApp.themeColor) {
+      color = bottomApp.themeColor;
+    }
+
+    this.app.themeColor = color;
     this.element.style.backgroundColor = color;
 
     if (!this.app.isHomescreen) {
@@ -523,11 +553,15 @@
 
     var self = this;
     var finishedFade = false;
-    var endBackgroundFade = function() {
+    var endBackgroundFade = function(evt) {
+      if (evt && evt.propertyName != 'background-color') {
+        return;
+      }
       finishedFade = true;
-      self.element.removeEventListener('transitionend', endBackgroundFade);
+      if (self.element) {
+        self.element.removeEventListener('transitionend', endBackgroundFade);
+      }
     };
-    this.element.addEventListener('transitionend', endBackgroundFade);
     eventSafety(this.element, 'transitionend', endBackgroundFade, 1000);
 
     window.requestAnimationFrame(function updateAppColor() {
@@ -664,6 +698,16 @@
         }
         this.scrollable.scrollTop = 0;
       }
+
+      // Set the title for the private browser landing page.
+      // This is explicitly placed in the locationchange handler as it's
+      // currently possibly to navigate back to the landing page with the
+      // back button. Otherwise it could be in the constructor.
+      if (this.app.isPrivateBrowser() &&
+        this.app.config.url.startsWith('app:')) {
+        this._gotName = true;
+        this.title.dataset.l10nId = 'search-or-enter-address';
+      }
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
@@ -676,7 +720,10 @@
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
-    if (this.useCombinedChrome()) {
+    if (evt.detail && evt.detail.type === 'fatal') {
+      return;
+    }
+    if (this.useCombinedChrome() && this.app.config.chrome.scrollable) {
       // When we get an error, keep the rocketbar maximized.
       this.element.classList.add('maximized');
       this.containerElement.classList.remove('scrollable');
@@ -691,14 +738,7 @@
     if (!callback) {
       return;
     }
-
-    var finish = function(evt) {
-      if (evt && evt.target !== element) {
-        return;
-      }
-      callback();
-    };
-    eventSafety(element, 'transitionend', finish, 250);
+    eventSafety(element, 'transitionend', callback, 250);
   };
 
   AppChrome.prototype.collapse = function ac_collapse() {
@@ -767,19 +807,27 @@
       }
     }
 
-    var data = {
-      title: _('add-to-home-screen'),
-      options: []
-    };
+    var title = 'add-to-home-screen';
+    var options = [];
 
     if (this.isSearch()) {
       var dataset = this.app.config;
-      data.options.push({ id: 'search', text: dataset.searchName });
+      options.push({
+        id: 'search',
+        text: {
+          raw: dataset.searchName
+        }
+      });
     } else {
-      data.options.push({ id: 'origin', text: this.title.textContent });
+      options.push({
+        id: 'origin',
+        text: {
+          raw: this.title.textContent
+        }
+      });
     }
 
-    ModalDialog.selectOne(data, selected);
+    ModalDialog.selectOne(title, options, selected);
   };
 
   AppChrome.prototype.showWindows = function ac_showWindows() {

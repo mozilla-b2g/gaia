@@ -1,18 +1,26 @@
 'use strict';
 
-var realMozSettings, htmlHelper;
+var htmlHelper, simcardUnlock, realMozSettings, realMozL10n;
 
 suite('RP Auth panels', function() {
   suiteSetup(function(done) {
     require([
       'html_helper',
-      'mocks/mock_navigator_moz_settings'
+      'mymocks/mock_simcard_unlock',
+      'mocks/mock_navigator_moz_settings',
+      'mocks/mock_l10n'
     ],
 
-    function(html, mozSettings) {
+    function(html, simcard, mozSettings, mozL10n) {
       htmlHelper = html;
+      simcardUnlock = simcard;
+
       realMozSettings = navigator.mozSettings;
       navigator.mozSettings = mozSettings;
+
+      realMozL10n = navigator.mozL10n;
+      navigator.mozL10n = mozL10n;
+
       done();
     });
   });
@@ -52,6 +60,7 @@ suite('RP Auth panels', function() {
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
+    navigator.mozL10n = realMozL10n;
   });
 
   suite('validate passphrase', function() {
@@ -93,7 +102,7 @@ suite('RP Auth panels', function() {
 
   });
 
-  suite('validate pin', function() {
+  suite('compare pin', function() {
 
     test('should validate given pin during change request', function() {
       var p1 = '1337';
@@ -121,6 +130,37 @@ suite('RP Auth panels', function() {
       var p2 = '';
       var result = this.subject.comparePINs(p1, p2);
       assert.equal(result, 'pin-empty');
+    });
+
+  });
+
+  suite('validate pin', function() {
+
+    setup(function() {
+      this.pintry = this.changeHTML.querySelector('.pin-tries-left');
+      this.pintryID = 'pin-tries-left'; // l10n key
+
+      this.validPIN = '1234'; // as expected by the mock
+      this.wrongPIN = '1337';
+
+      this.sinon.stub(navigator.mozL10n, 'setAttributes');
+    });
+
+    test('should result with error (2 tries left)', function() {
+      this.subject.verifySIMPIN(simcardUnlock, this.wrongPIN);
+      sinon.assert.calledWith(navigator.mozL10n.setAttributes,
+        this.pintry, this.pintryID, { n: 2 });
+    });
+
+    test('should result with error (last try)', function() {
+      this.subject.verifySIMPIN(simcardUnlock, this.wrongPIN);
+      sinon.assert.calledWith(navigator.mozL10n.setAttributes,
+        this.pintry, this.pintryID, { n: 1 });
+    });
+
+    test('should pass', function() {
+      this.subject.verifySIMPIN(simcardUnlock, this.validPIN);
+      sinon.assert.notCalled(navigator.mozL10n.setAttributes);
     });
 
   });

@@ -58,7 +58,7 @@ textarea,
 }
 
 #screen > div#poweroff-splash.step1 {
-  animation: poweroff-splash-fade-in 0.5s;
+  animation: poweroff-splash-fade-in var(--transition-duration);
 }
 
 @keyframes poweroff-splash-fade-in {
@@ -288,7 +288,7 @@ textarea,
 
 #screen:not(.crash-dialog) #crash-dialog,
 #screen:not(.trustedui) #trustedui-container {
-  visibility: hidden;
+  display: none;
 }
 
 /* `.dialog` is set by system_dialog.js when a dialog is shown */

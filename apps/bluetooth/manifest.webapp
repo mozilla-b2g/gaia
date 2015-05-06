@@ -42,6 +42,15 @@
       "disposition": "inline",
       "returnValue": true,
       "href": "/transfer.html"
+    },
+    "share-via-bluetooth-only": {
+      "filters": {
+        "type": "text/vcard",
+        "blobs": { "required":true }
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/transfer.html"
     }
   },
   "messages": [

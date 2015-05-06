@@ -1,5 +1,5 @@
 /* globals Service, AppWindowManager, homescreenLauncher, SettingsListener,
-           AttentionIndicator */
+           AttentionIndicator, focusManager */
 'use strict';
 
 (function(exports) {
@@ -112,6 +112,7 @@
           this._openedInstances.delete(attention);
           if (this._topMostWindow !== attention) {
             attention.close();
+            focusManager.focus();
             break;
           }
 
@@ -127,10 +128,12 @@
           }
           if (!candidate) {
             attention.close();
+            focusManager.focus();
             break;
           }
           candidate.ready(function() {
             attention.close();
+            focusManager.focus();
           });
           break;
 
@@ -209,7 +212,7 @@
 
         case 'launchapp':
           if (evt.detail && evt.detail.stayBackground) {
-            break; 
+            break;
           } // jshint ignore:line
         case 'holdhome':
         case 'emergencyalert':

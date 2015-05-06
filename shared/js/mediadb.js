@@ -125,6 +125,7 @@
  *   ----------------------------------------------------------------------
  *   'opening'    MediaDB.OPENING    MediaDB is initializing itself
  *   'upgrading'  MediaDB.UPGRADING  MediaDB is upgrading database
+ *   'enumerable' MediaDB.ENUMERABLE Not fully ready but can be enumerated
  *   'ready'      MediaDB.READY      MediaDB is available and ready for use
  *   'nocard'     MediaDB.NOCARD     Unavailable because there is no sd card
  *   'unmounted'  MediaDB.UNMOUNTED  Unavailable because the card is unmounted
@@ -283,6 +284,7 @@
  *   Event         Meaning
  *  --------------------------------------------------------------------------
  *   ready         MediaDB is ready for use. Also fired when new volumes added.
+ *   enumerable    Fired when DB can be enumerated but before fully ready
  *   unavailable   MediaDB is unavailable (often because of USB file transfer)
  *   created       One or more files were created
  *   deleted       One or more files were deleted
@@ -387,6 +389,7 @@ var MediaDB = (function() {
     this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
+    this.initialScanComplete = false; // becomes true once endscan is called
     this.parsingBigFiles = false;
 
     // These are for data upgrade from the client.
@@ -498,6 +501,12 @@ var MediaDB = (function() {
         console.error('MediaDB: ',
                       event.target.error && event.target.error.name);
       };
+
+      // At this point, the db is open and can be queried. We have not
+      // checked device storage yet, so we are not fully ready, but apps
+      // that need to enumerate existing files before scanning for new files
+      // can start that enumeration now.
+      changeState(media, MediaDB.ENUMERABLE);
 
       // Query the db to find the modification time of the newest file
       var cursorRequest =
@@ -1072,8 +1081,8 @@ var MediaDB = (function() {
     // arguments.  If one argument is passed, it is the callback. If two
     // arguments are passed, they are assumed to be the range and callback.
     count: function(key, range, callback) {
-      if (this.state !== MediaDB.READY) {
-        throw Error('MediaDB is not ready. State: ' + this.state);
+      if (this.state !== MediaDB.READY && this.state !== MediaDB.ENUMERABLE) {
+        throw Error('MediaDB is not ready or enumerable. State: ' + this.state);
       }
 
       // range is an optional argument
@@ -1128,8 +1137,8 @@ var MediaDB = (function() {
     // 'cancelled', or 'error'
     //
     enumerate: function enumerate(key, range, direction, callback) {
-      if (this.state !== MediaDB.READY) {
-        throw Error('MediaDB is not ready. State: ' + this.state);
+      if (this.state !== MediaDB.READY && this.state !== MediaDB.ENUMERABLE) {
+        throw Error('MediaDB is not ready or enumerable. State: ' + this.state);
       }
 
       var handle = { state: 'enumerating' };
@@ -1319,8 +1328,8 @@ var MediaDB = (function() {
     // records in the database in one big batch. The records will be
     // sorted by filename
     getAll: function getAll(callback) {
-      if (this.state !== MediaDB.READY) {
-        throw Error('MediaDB is not ready. State: ' + this.state);
+      if (this.state !== MediaDB.READY && this.state !== MediaDB.ENUMERABLE) {
+        throw Error('MediaDB is not ready or enumerable. State: ' + this.state);
       }
 
       var store = this.db.transaction('files').objectStore('files');
@@ -1377,12 +1386,13 @@ var MediaDB = (function() {
   // These are the values of the state property of a MediaDB object
   // The NOCARD, UNMOUNTED, and CLOSED values are also used as the detail
   // property of 'unavailable' events
-  MediaDB.OPENING = 'opening';     // MediaDB is initializing itself
-  MediaDB.UPGRADING = 'upgrading'; // MediaDB is upgrading database
-  MediaDB.READY = 'ready';         // MediaDB is available and ready for use
-  MediaDB.NOCARD = 'nocard';       // Unavailable because there is no sd card
-  MediaDB.UNMOUNTED = 'unmounted'; // Unavailable because card unmounted
-  MediaDB.CLOSED = 'closed';       // Unavailable because MediaDB has closed
+  MediaDB.OPENING = 'opening';       // MediaDB is initializing itself
+  MediaDB.UPGRADING = 'upgrading';   // MediaDB is upgrading database
+  MediaDB.ENUMERABLE = 'enumerable'; // Not fully ready, but can be enumerated
+  MediaDB.READY = 'ready';           // MediaDB is available and ready for use
+  MediaDB.NOCARD = 'nocard';         // Unavailable because there is no sd card
+  MediaDB.UNMOUNTED = 'unmounted';   // Unavailable because card unmounted
+  MediaDB.CLOSED = 'closed';         // Unavailable because MediaDB has closed
 
   /* Details of helper functions follow */
 
@@ -1684,6 +1694,7 @@ var MediaDB = (function() {
   // unmounted during a scan.
   function endscan(media) {
     if (media.scanning) {
+      media.initialScanComplete = true;
       media.scanning = false;
       media.parsingBigFiles = false;
       dispatchEvent(media, 'scanend');
@@ -2086,10 +2097,15 @@ var MediaDB = (function() {
   function changeState(media, state) {
     if (media.state !== state) {
       media.state = state;
-      if (state === MediaDB.READY) {
-        dispatchEvent(media, 'ready');
-      } else {
+
+      switch (state) {
+      case MediaDB.READY:
+      case MediaDB.ENUMERABLE:
+        dispatchEvent(media, state);
+        break;
+      default:
         dispatchEvent(media, 'unavailable', state);
+        break;
       }
     }
   }

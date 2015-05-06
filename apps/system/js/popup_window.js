@@ -21,6 +21,24 @@
     };
 
     AppWindow.call(this, configs);
+
+    // Replicate the theme color from the parent window.
+    // See http://bugzil.la/1132418
+    if (!this.rearWindow) {
+      return;
+    }
+
+    this.themeColor = this.rearWindow.themeColor;
+
+    if (this.rearWindow.appChrome) {
+      this.element.classList.toggle('light',
+        this.rearWindow.appChrome.useLightTheming());
+
+      // We have to apply the style on the title bar element because the
+      // popup appChrome element doesn't overlap. See http://bugzil.la/1132418
+      this.statusbar.titleBar.style.backgroundColor =
+        this.rearWindow.appChrome.element.style.backgroundColor;
+    }
   };
 
   /**
@@ -40,9 +58,12 @@
     'modalDialog': window.AppModalDialog,
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
     'statusbar': window.AppStatusbar
+  };
+
+  PopupWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   /**

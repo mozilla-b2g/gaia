@@ -5,6 +5,7 @@ Keyboards.sk = {
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'sk',
   menuLabel: 'Slovenčina',
+  lang: 'sk',
   alt: {
     a: 'áä',
     c: 'č',

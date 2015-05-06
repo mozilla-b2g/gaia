@@ -27,7 +27,8 @@ function execute(config) {
 
   // Starts by parsing the CSS files from apps/
   gaia.webapps.forEach(function getAllFilesFor(webapp) {
-    if (webapp.sourceDirectoryFile.parent.leafName != 'apps') {
+    var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
+    if (sourceDirectoryFile.parent.leafName != 'apps') {
       return;
     }
 
@@ -35,7 +36,7 @@ function execute(config) {
       webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
       return;
     }
-    files = files.concat(getCSSFilesFor(webapp.sourceDirectoryFile));
+    files = files.concat(getCSSFilesFor(webapp.sourceDirectoryFilePath));
   });
 
   if (config.BUILD_APP_NAME == '*') {
@@ -272,6 +273,18 @@ function checkForParsingErrors(content) {
   // Get messages from the console and reset it.
   let messages = Services.console.getMessageArray();
   Services.console.reset();
+
+  // Temporary fix for bug 1133971.
+  // Allow CSS properties which we support in later versions of B2G.
+  // Once we have bug 1089710 landed we can remove this workaround.
+  messages = messages.filter(function(message) {
+    var msg = message.message;
+    if (msg.indexOf('offset-inline') !== -1 ||
+        msg.indexOf('offset-block') !== -1) {
+      return false;
+    }
+    return true;
+  });
 
   return messages;
 }

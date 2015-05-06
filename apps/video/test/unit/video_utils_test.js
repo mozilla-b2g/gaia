@@ -1,10 +1,11 @@
+/* global VideoUtils */
 'use strict';
 
 requireApp('/video/js/video_utils.js');
 
-suite('Video Utils Unit Tests', function() {
+ suite('Video Utils Unit Tests', function() {
 
-  suite('#fitContiner tests - 4:3 video fit HVGA', function() {
+ suite('#fitContiner tests - 4:3 video fit HVGA', function() {
     test('fit 640x480 to HVGA, 0deg', function() {
       var testPlayer = {videoWidth: 640, videoHeight: 480, style: {}};
       VideoUtils.fitContainer({clientWidth: 320, clientHeight: 480},
@@ -227,8 +228,7 @@ suite('Video Utils Unit Tests', function() {
 
     test('title fits within max lines, maxLine not specified', function() {
 
-      inputTitleText = '1111111111222222222233333333334444444444';
-      var inputTitleText = '11111111112222222222';
+      inputTitleText = '11111111112222222222';
       var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
                                                    {
                                                      node: titleNode

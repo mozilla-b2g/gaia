@@ -63,13 +63,13 @@ if (!contacts.MatchingUI) {
       if (type === 'matching') {
         // "Suggested duplicate contacts for xxx"
         navigator.mozL10n.setAttributes(duplicateMessage,
-                                        'suggestedDuplicateContacts',
+                                        'suggestedDuplicatesMessage',
                                         params);
       } else {
         title.setAttribute('data-l10n-id', 'duplicatesFoundTitle');
         // "xxx duplicates information in the following contacts"
         navigator.mozL10n.setAttributes(duplicateMessage,
-                                        'duplicatesFoundMessage',
+                                        'foundDuplicatesMessage',
                                         params);
       }
 
@@ -219,13 +219,19 @@ if (!contacts.MatchingUI) {
     function getActionOverList(event) {
       // 40% percent of the horizontal width will be consider 'check' area
       var CHECKING_AREA_WIDTH = 0.4;
+      var shouldShowDetail = true;
 
-      var out = 'detail';
-      if (event.clientX <= window.innerWidth * CHECKING_AREA_WIDTH) {
-        out = 'check';
+      // In case of an RTL language we need to swap the areas
+      if (document.dir === 'rtl') {
+        CHECKING_AREA_WIDTH = 0.6;
+        shouldShowDetail = false;
       }
 
-      return out;
+      if (event.clientX <= window.innerWidth * CHECKING_AREA_WIDTH) {
+        shouldShowDetail = !shouldShowDetail;
+      }
+
+      return shouldShowDetail ? 'detail' : 'check';
     }
 
     function onClick(e) {

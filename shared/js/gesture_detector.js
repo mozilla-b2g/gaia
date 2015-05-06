@@ -90,20 +90,9 @@ var GestureDetector = (function() {
     }
     // If this is a touch event handle each changed touch separately
     if (e.changedTouches) {
-      // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=785554
-      // causes touchend events to list all touches as changed, so
-      // warn if we see that bug
-      if (e.type === 'touchend' && e.changedTouches.length > 1) {
-        console.warn('gesture_detector.js: spurious extra changed touch on ' +
-                     'touchend. See ' +
-                     'https://bugzilla.mozilla.org/show_bug.cgi?id=785554');
-      }
-
       for (var i = 0; i < e.changedTouches.length; i++) {
         handler(this, e, e.changedTouches[i]);
-        // The first changed touch might have changed the state of the
-        // FSM. We need this line to workaround the bug 785554, but it is
-        // probably the right thing to have here, even once that bug is fixed.
+        // The first changed touch might have changed the state of the FSM.
         handler = this.state[e.type];
       }
     }

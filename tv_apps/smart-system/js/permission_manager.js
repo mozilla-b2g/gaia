@@ -1,5 +1,5 @@
 /* global LazyLoader, AppWindowManager, applications, ManifestHelper*/
-/* global Template*/
+/* global Template, focusManager */
 'use strict';
 (function(exports) {
   /**
@@ -97,6 +97,8 @@
       this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
         evt.preventDefault();
       });
+
+      focusManager.addUI(this);
     },
 
     /**
@@ -104,6 +106,7 @@
      * @memberof PermissionManager.prototype
      */
     stop: function pm_stop() {
+      focusManager.removeUI(this);
       this.currentOrigin = null;
       this.permissionType = null;
       this.currentPermissions = null;
@@ -422,10 +425,8 @@
       this.hideInfoLink.removeEventListener('click',
         this.moreInfoHandler);
       this.moreInfo.classList.add('hidden');
-      // XXX: This is telling AppWindowManager to focus the active app.
-      // After we are moving into AppWindow, we need to remove that
-      // and call this.app.focus() instead.
       this.publish('permissiondialoghide');
+      focusManager.focus();
     },
 
     publish: function(eventName, detail) {
@@ -615,6 +616,7 @@
       }
       // Make the screen visible
       this.overlay.classList.add('visible');
+      focusManager.focus();
     },
 
     /**
@@ -654,6 +656,35 @@
       this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
       this.hidePermissionPrompt();
       this.pending = [];
+    },
+
+    /**
+     * Check if any prompt is focusable
+     * @memberof PermissionManager.prototype
+     * @return {Boolean} If any prompt is focusable or not.
+     */
+    isFocusable: function pm_isFocusable() {
+      return this.overlay.classList.contains('visible');
+    },
+
+    /**
+     * get the dom element of this UI.
+     * @memberof PermissionManager.prototype
+     * @return {HTMLElement} dom element.
+     */
+    getElement: function pm_getElement() {
+      return this.overlay;
+    },
+
+    /**
+     * try to focus the default element
+     * @memberof PermissionManager.prototype
+     */
+    focus: function pm_focus() {
+      setTimeout(function() {
+        document.activeElement.blur();
+        this.no.focus();
+      }.bind(this));
     }
   };
 

@@ -8,10 +8,12 @@
   // The actual functions will be defined too.
   var HardwareButtonsBaseState;
   var HardwareButtonsHomeState;
+  var HardwareButtonsCameraState;
   var HardwareButtonsSleepState;
   var HardwareButtonsVolumeState;
   var HardwareButtonsWakeState;
   var HardwareButtonsScreenshotState;
+  var HardwareButtonsSystemLogState;
 
   /**
    * After bug 989198 landing, we will be able to listen to KeyboardEvent
@@ -58,6 +60,10 @@
    * | volumedown  | volume down pressed and released or autorepeated          |
    * | volumedown  | volume down and sleep pressed at same time (used for      |
    * |   + sleep   | screenshots)                                              |
+   * | volumeup    | volume up and sleep pressed at same time (used for        |
+   * |   + sleep   | systemlog capture)                                        |
+   * | camera      | short press and release of camera button                  |
+   * | holdcamera  | long press and hold of camera button                      |
    *
    * Because these events are fired at the window object, they cannot be
    * captured.  Many modules listen for the home event. Those that want
@@ -292,10 +298,14 @@
       case 'volume-down-button-press':
         this.hardwareButtons.setState('volume', type);
         return;
+      case 'camera-button-press':
+        this.hardwareButtons.setState('camera', type);
+        return;
       case 'home-button-release':
       case 'sleep-button-release':
       case 'volume-up-button-release':
       case 'volume-down-button-release':
+      case 'camera-button-release':
         // Ignore button releases that occur in this state.
         // These can happen after volumedown+sleep and home+volume.
         return;
@@ -429,8 +439,11 @@
         this.hardwareButtons.setState('screenshot', type);
         return;
       case 'volume-up-button-press':
-        this.hardwareButtons.setState('volume', type);
-        this.hardwareButtons.setState('base', type);
+        /**
+         * When the user presses Volume Up button, before HOLD_INTERVAL,
+         * while holding the Sleep button.
+         */
+        this.hardwareButtons.setState('systemlog', type);
         return;
       case 'home-button-press':
         this.hardwareButtons.setState('base', type);
@@ -518,6 +531,13 @@
            * while holding the Volume Down button.
            */
           this.hardwareButtons.setState('screenshot', type);
+          return;
+        } else if (this.direction === 'volume-up-button-press') {
+          /**
+           * When the user presses Sleep button, before HOLD_INTERVAL,
+           * while holding the Volume Up button.
+           */
+          this.hardwareButtons.setState('systemlog', type);
           return;
         }
         this.hardwareButtons.setState('sleep', type);
@@ -673,6 +693,112 @@
     this.hardwareButtons.setState('base', type);
   };
 
+  /**
+   * We enter the systemlog home state when the user presses the Power button
+   * and Volume Down button within less than HOLD_INTERVAL of each other
+   * We can fire home or holdhome events from this state
+   *
+   * @class HardwareButtonsSystemLogState
+   */
+  HardwareButtonsSystemLogState =
+    HardwareButtons.STATES.systemlog =
+    function HardwareButtonsSystemLogState(hb) {
+      this.hardwareButtons = hb;
+      this.timer = undefined;
+    };
+
+  /**
+   * Entering the state.
+   * @memberof HardwareButtonsSystemLogState.prototype
+   */
+  HardwareButtonsSystemLogState.prototype.enter = function() {
+    this.timer = setTimeout(function() {
+      /**
+       * When the user holds Volume Up and Power button
+       * more than HOLD_INTERVAL.
+       * @event HardwareButtonsHomeState#volumeup+sleep
+       */
+      this.hardwareButtons.publish('volumeup+sleep');
+      this.hardwareButtons.setState('base');
+    }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
+  };
+
+  /**
+   * Leaving the state.
+   * @memberof HardwareButtonsSystemLogState.prototype
+   */
+  HardwareButtonsSystemLogState.prototype.exit = function() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  };
+
+  /**
+   * Pressing any other hardware button will cancel this state.
+   * @memberof HardwareButtonsSystemLogState.prototype
+   * @param  {String} type Name of the event to process.
+   */
+  HardwareButtonsSystemLogState.prototype.process = function(type) {
+    this.hardwareButtons.setState('base', type);
+  };
+
+  /**
+   * We enter the camera state when the user presses the Camera button
+   * We can fire camera or holdcamera events from this state
+   *
+   * @class HardwareButtonsCameraState
+   */
+  HardwareButtonsCameraState =
+    HardwareButtons.STATES.camera = function HardwareButtonsCameraState(hb) {
+      this.hardwareButtons = hb;
+      this.timer = undefined;
+    };
+
+  /**
+   * Entering the state.
+   * @memberof HardwareButtonsCameraState.prototype
+   */
+  HardwareButtonsCameraState.prototype.enter = function() {
+    this.timer = setTimeout(function() {
+      /**
+       * When the user holds Camera button more than HOLD_INTERVAL.
+       * @event HardwareButtonsCameraState#holdcamera
+       */
+      this.hardwareButtons.publish('holdcamera');
+      navigator.vibrate(50);
+      this.hardwareButtons.setState('base');
+    }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
+  };
+
+  /**
+   * Leaving the state.
+   * @memberof HardwareButtonsCameraState.prototype
+   */
+  HardwareButtonsCameraState.prototype.exit = function() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  };
+
+  /**
+   * Process the event, maybe transition the state.
+   * @memberof HardwareButtonsCameraState.prototype
+   * @param  {String} type Name of the event to process.
+   */
+  HardwareButtonsCameraState.prototype.process = function(type) {
+    switch (type) {
+      case 'camera-button-release':
+        /**
+         * When the user releases Camera button before HOLD_INTERVAL.
+         * @event HardwareButtonsCameraState#camera
+         */
+        this.hardwareButtons.setState('base', type);
+        return;
+    }
+    this.hardwareButtons.setState('base', type);
+  };
 
   /*
    * Start the hardware buttons events.

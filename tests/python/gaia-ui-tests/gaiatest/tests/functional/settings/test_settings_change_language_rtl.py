@@ -13,7 +13,7 @@ class TestChangeLanguageRTL(GaiaTestCase):
     def test_change_language_settings_rtl(self):
         lang_name = self.marionette.execute_script("""
             var qps = window.wrappedJSObject.navigator.mozL10n.qps;
-            return qps['qps-plocm'].name;
+            return qps['qps-plocm'].translate('Packaged Mirrored');
         """)
         header = self.marionette.execute_script("""
             var qps = window.wrappedJSObject.navigator.mozL10n.qps;

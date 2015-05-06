@@ -29,15 +29,6 @@ body > section {
   display: none;
 }
 
-/*
- * while videoControls is hidden,
- * it should be stay on screen for mousedown event
- */
-#videoControls.hidden {
-  display: block;
-  visibility: visible;
-}
-
 ul {
   padding: 0;
   margin: 0;
@@ -104,7 +95,7 @@ span.line-break {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #player-view {
+#thumbnail-views, #player-view {
   position: absolute;
   top: 0;
   left: 0;
@@ -164,37 +155,15 @@ span.line-break {
 }
 
 /*
- * When the user holds their finger over a thumbnail, change the background
- * color to highlight it
- */
-.thumbnail:active {
-  background-color: #0ac;
-}
-
-/*
- * And make all the children translucent so the color shows through
- */
-.thumbnail:active div {
-  opacity: 0.85;
-}
-
-/*
- * And make all the text color to white while selection
- */
-.thumbnail:active span {
-  color: #FFF;
-}
-
-/*
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
- * for normal thumbnail-list-view case, it is 4rem at bottom.
+ * for normal thumbnails-list case, it is 4rem at bottom.
  */
 #thumbnails>li:last-child{
   margin-bottom: 4rem;
 }
 /*
- * for normal thumbnail-select-view case, it is 5rem at top and 4rem at bottom.
+ * for normal thumbnails-select case, it is 5rem at top and 4rem at bottom.
  */
 #thumbnails.select>li:last-child{
   margin-bottom: 9rem;
@@ -223,6 +192,10 @@ span.line-break {
   height: 100%;
 }
 
+#video-container:active {
+  background: none;
+}
+
 #player {
   /* size and position are set in JS depending on*/
   /* video size and screen orientation */
@@ -230,7 +203,6 @@ span.line-break {
   top: 0;
   left: 0;
   transform-origin: 0 0;
-  z-index: 10;
 }
 
 /*
@@ -262,11 +234,11 @@ span.line-break {
 
 /*
  * In view.html (but not index.html) we put the in-use-overlay element
- * inside videoControls. In that case there is a 5rem title bar that needs
+ * inside video-controls. In that case there is a 5rem title bar that needs
  * to be visible, so we alter the top position. And if we're handling
  * a pick activity, we also need the title bar with the back button to show.
  */
-#videoControls > #in-use-overlay,
+.video-controls > #in-use-overlay,
 body.pick-activity > #in-use-overlay {
   top: 5rem;
 }
@@ -441,23 +413,22 @@ header .icon:after {
 }
 
 /* video player controls */
-#videoControls {
+.video-controls {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
   z-index: 10;
   opacity: 1;
-  will-change: opacity;
-  -moz-transition: opacity 0.5s;
+  will-change: opacity, visibility;
+  transition: visibility 0s, opacity var(--transition-duration);
 }
-#videoControls.hidden {
+.video-controls-hidden .video-controls {
   opacity: 0;
+  visibility: hidden;
+  transition-delay: 0.5s, 0s;
 }
 
-#videoControls.hidden > * {
-  pointer-events: none;
+.video-controls.bottom {
+  bottom: 0;
 }
 
 /* main control bar: play|pause, timeupdate, rwd|fwd
@@ -621,7 +592,19 @@ header .icon:after {
   top: calc(50% - 1.15rem);
   width: 2.3rem;
   height: 2.3rem;
+
+  /* For LTR langauges, position the playhead 1.15 rems to the left 
+   * so that the center of the playhead aligns with the beginning of
+   * the time slider.
+   */
   margin-left: -1.15rem;
+
+  /* For RTL langauges, position the playhead 1.15 rems to the right 
+   * so that the center of the playhead aligns with the end of
+   * the time slider.
+   */
+  margin-right: -1.15rem;
+ 
   border: none;
   background: none;
   pointer-events: none;
@@ -666,7 +649,8 @@ body:not(.pick-activity) #picker-close {
  *    in shadow-dom.
  */
 
-body:not(.pick-activity) #picker-done {
+body:not(.pick-activity) #picker-done,
+body:not(.pick-activity) #picker-header {
   display: none !important; /* 1 */
 }
 
@@ -692,6 +676,7 @@ body.pick-activity #thumbnails-bottom {
   order: 1;
   align-self: auto;
   word-break: break-all;
+  direction: ltr /* the title is from the file name : always ltr */
 }
 
 .thumbnail .details .duration-text {
@@ -725,23 +710,24 @@ body.pick-activity #thumbnails-bottom {
   display: none !important; /* 1 */
 }
 
-/* selection mode */
-.layout-selection #thumbnail-list-view,
-.layout-selection #player-view {
-  display: none;
+/* not selection mode */
+body:not(.layout-selection) .thumbnails-select,
+/* not list mode */
+body:not(.layout-list) .thumbnails-list,
+/* not fullscreen-player mode */
+body:not(.layout-fullscreen-player) #player-view {
+  display: none !important; /* 1 */
 }
 
-/* list mode */
-.layout-list #thumbnail-select-view,
-.layout-list #player-view {
-  display: none;
-}
-
-/* fullscreen-player mode */
-.layout-fullscreen-player #thumbnail-select-view,
-.layout-fullscreen-player #thumbnail-list-view,
 .layout-fullscreen-player #thumbnails {
   display: none;
+}
+
+/* overlay mode */
+.overlay #app-container, .info-view #app-container,
+.options-view #app-container, .in-use-overlay #app-container,
+.confirm-dialog #app-container {
+  visibility: hidden;
 }
 
 /* spinner is only valid for tablet and landscape mode */
@@ -750,7 +736,7 @@ body:not(.view-activity) #spinner-overlay {
 }
 
 /* make videocontrolbar visible  when picking */
-body.pick-activity #videoControls #videoBar{
+body.pick-activity .video-controls #videoBar {
   bottom: 4.4rem;
 }
 
@@ -780,4 +766,8 @@ form[role="dialog"][data-type="confirm"] button.hidden {
  */
 * {
   -moz-user-select: none;
+}
+
+html[dir=rtl] #video-title {
+  direction: ltr;
 }

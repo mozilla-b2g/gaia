@@ -34,6 +34,8 @@
         'lockscreen-notification-request-append',
         'lockscreen-notification-request-remove',
         'lockscreen-notification-request-clear',
+        'lockscreen-appopened',
+        'lockscreen-appclosed',
         'touchstart',
         'visibilitychange',
         'scroll'
@@ -94,12 +96,25 @@
           this.onNotificationsBlur();
         }
       break;
+      case 'lockscreen-appopened':
+        // When it's visible because of locking, bind the listener.
+        window.addEventListener('touchstart', this);
+      break;
+      case 'lockscreen-appclosed':
+        // When it's invisible because of unlocking, unbind the listener.
+        window.removeEventListener('touchstart', this);
+      break;
       case 'scroll':
         this.onContainerScrolling();
       break;
       case 'visibilitychange':
         if (!document.hidden) {
+          // When it's visible, bind the listener.
+          window.addEventListener('touchstart', this);
           this.updateTimestamps();
+        } else {
+          // When it's invisible, unbind the listener.
+          window.removeEventListener('touchstart', this);
         }
       break;
     }
@@ -139,7 +154,7 @@
   };
 
   /**
-   * Get the notification at the buttom boundary.
+   * Get the notification at the bottom boundary.
    */
   LockScreenNotifications.prototype.notificationAtBottomBoundary =
   function lsn_notificationAtBottomBoundary() {

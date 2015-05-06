@@ -4,7 +4,7 @@
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/js/remote_debugger.js');
+requireApp('system/js/devtools/remote_debugger.js');
 
 var mocksForRemoteDebugger = new MocksHelper([
   'ModalDialog',
@@ -43,7 +43,18 @@ suite('system/RemoteDebugger', function() {
       var screenStub = this.sinon.stub(ScreenManager, 'turnScreenOn');
       subject.handleEvent({
         detail: {
-          type: 'remote-debugger-prompt'
+          type: 'remote-debugger-prompt',
+          session: {
+            authentication: 'PROMPT',
+            client: {
+              host: '127.0.0.1',
+              port: 12345
+            },
+            server: {
+              host: '0.0.0.0',
+              port: null
+            }
+          }
         }
       });
       assert.ok(screenStub.calledOnce);
@@ -53,7 +64,18 @@ suite('system/RemoteDebugger', function() {
       var dialogStub = this.sinon.stub(ModalDialog, 'showWithPseudoEvent');
       subject.handleEvent({
         detail: {
-          type: 'remote-debugger-prompt'
+          type: 'remote-debugger-prompt',
+          session: {
+            authentication: 'PROMPT',
+            client: {
+              host: '127.0.0.1',
+              port: 12345
+            },
+            server: {
+              host: '0.0.0.0',
+              port: null
+            }
+          }
         }
       });
       assert.ok(dialogStub.calledOnce);
@@ -65,7 +87,7 @@ suite('system/RemoteDebugger', function() {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       subject._dispatchEvent(false);
       var eventDetail = dispatchStub.getCall(0).args[0].detail;
-      assert.equal(eventDetail.value, false);
+      assert.equal(eventDetail.authResult, 'DENY');
       assert.equal(eventDetail.type, 'remote-debugger-prompt');
     });
   });

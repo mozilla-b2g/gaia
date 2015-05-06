@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockHomescreenWindow */
+
 var MockHomescreenWindow = function(value) {
   this.isHomescreen = true;
   this.manifestURL = value;
@@ -47,6 +50,7 @@ var MockHomescreenWindow = function(value) {
   this.calibratedHeight = function() { return false; };
   this.isOOP = function() { return true; };
   this.ensure = function() { return this; };
-  this.isDead = function() { return false};
+  this.isDead = function() { return false; };
   this.reviveBrowser = function() {};
+  this.setNFCFocus = function() {};
 };

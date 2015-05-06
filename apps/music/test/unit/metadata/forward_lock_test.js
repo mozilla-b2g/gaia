@@ -1,5 +1,6 @@
 /* global ForwardLockMetadata, fetchBuffer, ForwardLock, makeBlobView,
-   MockGetDeviceStorage, MockLazyLoader, pass, fail */
+   MockGetDeviceStorage, MockLazyLoader, readBlob, assertBuffersEqual, pass,
+   fail */
 'use strict';
 
 require('/test/unit/metadata/utils.js');
@@ -104,6 +105,53 @@ suite('forwardlock files', function() {
       .then(makeBlobView)
       .then(ForwardLockMetadata.parse)
       .then(fail(done, 'parsing should have failed, but passed'), pass(done));
+  });
+
+  suite('album art', function() {
+    var expectedPicture;
+    setup(function(done) {
+      fetchBuffer('/test-data/album-art.jpg').then(function(buffer) {
+        expectedPicture = buffer;
+        done();
+      });
+    });
+
+    var testInfo = [
+      {test: 'mp3 with non-unsynced album art',
+       filename: '/test-data/id3v2.4-picture.mp3'},
+      {test: 'mp3 with unsynced album art',
+       filename: '/test-data/id3v2.4-framesunsync.mp3'},
+    ];
+    testInfo.forEach(function(info) {
+      test(info.test, function(done) {
+        var vendorMetadata = {vendor: 'Songs for Cool Kids, Inc'}, blob;
+        fetchBuffer(info.filename)
+          .then(function(buffer) {
+            return (blob = ForwardLock.lockBuffer(
+              secret, buffer, 'audio/mpeg', vendorMetadata
+            ));
+          })
+          .then(makeBlobView)
+          .then(ForwardLockMetadata.parse)
+          .then(function(metadata) {
+            assert.strictEqual(metadata.locked, true);
+            assert.strictEqual(metadata.vendor, vendorMetadata.vendor);
+            assert.strictEqual(metadata.artist, 'AC/DC');
+            assert.strictEqual(metadata.album, 'Dirty Deeds Done Dirt Cheap');
+            assert.strictEqual(metadata.title, 'Problem Child');
+            assert.strictEqual(metadata.tracknum, 5);
+            assert.strictEqual(metadata.picture.flavor, 'unsynced');
+            assert.strictEqual(metadata.picture.blob.type, 'image/jpeg');
+
+            return readBlob(metadata.picture.blob);
+          })
+          .then(function(buffer) {
+            assertBuffersEqual(buffer, expectedPicture);
+          })
+          .then(pass(done), fail(done));
+      });
+    });
+
   });
 
 });

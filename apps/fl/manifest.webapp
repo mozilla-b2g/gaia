@@ -51,7 +51,6 @@
   "permissions": {
     "themeable":{},
     "systemXHR":{},
-    "storage":{},
     "settings":{ "access": "readwrite" },
     "device-storage:music":{ "access": "readwrite" }
   },

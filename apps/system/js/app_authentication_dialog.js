@@ -96,12 +96,14 @@
       </gaia-header>
       <span class="authentication-dialog-http-authentication-message">
       </span>
-      <label data-l10n-id="username">
+      <label>
+        <span data-l10n-id="username"></span>
         <input type="text" class="authentication-dialog-http-username-input" />
       </label>
-      <label data-l10n-id="password">
+      <label>
+        <span data-l10n-id="password"></span>
         <input type="password"
-        class="authentication-dialog-http-password-input" />
+               class="authentication-dialog-http-password-input" />
       </label>
     </section>`;
   };

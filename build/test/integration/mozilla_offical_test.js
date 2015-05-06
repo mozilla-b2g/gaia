@@ -1,8 +1,5 @@
 'use strict';
 
-/* jshint node: true, mocha: true */
-/* global suiteSetup */
-
 var path = require('path');
 var helper = require('./helper');
 

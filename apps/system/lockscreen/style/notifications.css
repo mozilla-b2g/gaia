@@ -27,7 +27,7 @@
 
 #notifications-lockscreen-container .notification > div {
   width: calc(100% - 6.5rem);
-  margin-left: 5rem;
+  -moz-margin-start: 5rem;
   color: #bfbfbf;
   font-size: 1.4rem;
   line-height: 1.9rem;
@@ -51,7 +51,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  margin-right: .5rem;
+  -moz-margin-end: .5rem;
 }
 
 #notifications-lockscreen-container .notification.actionable {
@@ -105,7 +105,7 @@
   z-index: -1;  /* make this as 'background' */
   border-top: none;
   border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
-  margin-left: 2.4rem;
+  -moz-margin-start: 2.4rem;
 }
 
 #notifications-lockscreen-container > div:last-child::after {
@@ -131,7 +131,7 @@
   position: absolute;
 
   /* from the border line to the text */
-  padding-left: var(--padleft-button);
+  -moz-padding-start: var(--padleft-button);
 
   /* 0.3rem is the magic number to make it (with the border) vertical-align: middle*/
   top: 0.3rem;
@@ -245,8 +245,8 @@
   border-bottom: 0.1rem solid rgba(0, 0, 0, 0);
   height: 4.8rem;
   margin: 0 0 0 0;
-  padding-left: 2.4rem;
-  padding-right: 2.4rem;
+  -moz-padding-start: 2.4rem;
+  -moz-padding-end: 2.4rem;
   width: calc(100% - 4.8rem);
 }
 
@@ -265,7 +265,7 @@
 
 #notifications-lockscreen-container .notification > div {
   width: calc(100% - 3.6rem);
-  margin-left: 3.6rem;
+  -moz-margin-start: 3.6rem;
   color: #ffffff;
 }
 
@@ -276,6 +276,12 @@
 
 #notifications-lockscreen-container .notification > div.detail {
   margin-top: 0.2rem;
+}
+
+#notifications-lockscreen-container .notification > div.detail .detail-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #notifications-lockscreen-container .notification > .title-container .timestamp {
@@ -299,7 +305,7 @@
 
 #notifications-lockscreen-container .notification > img {
   margin-top: 0.8rem;
-  margin-left: 0;
+  -moz-margin-start: 0;
   width: 2.4rem;
   height: 2.4rem;
 }
@@ -320,7 +326,7 @@
   margin: 0 2.4rem;
 
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-duration) ease;
 }
 
 #lockscreen-notification-arrow.visible {
@@ -354,26 +360,49 @@
 }
 
 /* Right-To-Left layout */
-html[dir="rtl"] #lockscreen-alt-camera {
-  float: left;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > div {
-  margin-left: 0;
-  margin-right: 5rem;
-  text-align: right;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .title {
-  margin-right: 0;
-  margin-left: .5rem;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
-  left: 1.5rem;
-  right: auto;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > img {
+:-moz-dir(rtl) #notifications-lockscreen-container .notification > img {
   float: right;
+}
+
+:-moz-dir(rtl) #notifications-lockscreen-container .notification::before {
+  left: unset;
+  right: 0;
+}
+
+:-moz-dir(rtl) #notifications-lockscreen-container .notification::after {
+  left: unset;
+  right: 0;
+}
+
+:-moz-dir(rtl) #notifications-lockscreen-container .button-actionable {
+  border-left: unset;
+  border-right: 0.1rem rgba(255, 255, 255, 0.15) solid;
+  left: unset;
+  right: calc(100% - var(--width-actionable-button) + 1.4rem);
+}
+
+:-moz-dir(rtl) #notifications-lockscreen-container .notification > .title-container .timestamp {
+  left: 1.5rem;
+  right: unset;
+}
+
+:-moz-dir(rtl) #lockscreen-notification-arrow {
+  left: unset;
+  right: 0;
+}
+
+/*
+ * For the notification title, we need to use dir="auto" to display
+ * parenthesis and periods in their proper place. However, we still
+ * want the text to align right when in an RTL language, so we use
+ * the following override. See bug 1134453 and bug 1142925.
+ */
+:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
+  text-align: right;
+  -moz-margin-end: unset;
+  margin-left: 0.5rem;
+}
+
+:-moz-dir(rtl) #notifications-lockscreen-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
+  text-align: right;
 }

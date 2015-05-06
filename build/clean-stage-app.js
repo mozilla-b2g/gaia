@@ -1,8 +1,6 @@
 'use strict';
 
-/* global require, exports */
-
-var utils = require('utils');
+var utils = require('./utils');
 
 function remove(stageDir, appName) {
   var stageAppDir = utils.getFile(stageDir, appName);

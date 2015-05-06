@@ -1,7 +1,8 @@
 /* global appWindowManager, AppWindow, HomescreenWindowManager, MockShrinkingUI,
           HomescreenWindow, MocksHelper, MockSettingsListener, Service,
           MockRocketbar, rocketbar, homescreenWindowManager,
-          MockTaskManager, MockFtuLauncher, MockService */
+          MockTaskManager, MockFtuLauncher, MockService, MockAppWindowFactory,
+          MockWrapperFactory */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -22,6 +23,8 @@ requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_shrinking_ui.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_wrapper_factory.js');
+requireApp('system/test/unit/mock_app_window_factory.js');
 
 var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow', 'ShrinkingUI',
@@ -324,6 +327,9 @@ suite('system/AppWindowManager', function() {
       appWindowManager.handleEvent({ type: 'cardviewbeforeshow' });
       assert.isTrue(stubBroadcastMessage.calledWith('cardviewbeforeshow'));
 
+      appWindowManager.handleEvent({ type: 'cardviewshown' });
+      assert.isTrue(stubBroadcastMessage.calledWith('cardviewshown'));
+
       appWindowManager.handleEvent({ type: 'cardviewclosed' });
       assert.isTrue(stubBroadcastMessage.calledWith('cardviewclosed'));
     });
@@ -383,6 +389,20 @@ suite('system/AppWindowManager', function() {
       assert.isFalse(stubDisplay.called);
     });
 
+    test('Press home on home not displayed and shrinking ui is active',
+      function() {
+        injectRunningApps(home, app1);
+        var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+        appWindowManager._activeApp = app1;
+        appWindowManager.shrinkingUI = new MockShrinkingUI();
+        this.sinon.stub(appWindowManager.shrinkingUI,
+          'respondToHierarchyEvent').returns(true);
+        this.sinon.stub(MockFtuLauncher, 'respondToHierarchyEvent')
+          .returns(true);
+        appWindowManager.respondToHierarchyEvent({ type: 'home' });
+        assert.isFalse(stubDisplay.called);
+      });
+
     test('app is killed at background', function() {
       injectRunningApps(app1, app2);
       appWindowManager._activeApp = app2;
@@ -422,6 +442,15 @@ suite('system/AppWindowManager', function() {
       appWindowManager.handleEvent({ type: 'ftuskip' });
       assert.isFalse(stubDisplay.calledWith());
       Service.locked = false;
+    });
+
+    test('FTU is skipped when active app is not homescreen', function() {
+      injectRunningApps(app1);
+      appWindowManager._activeApp = app1;
+      var stubDisplay = this.sinon.stub(appWindowManager, 'display');
+
+      appWindowManager.handleEvent({ type: 'ftuskip' });
+      assert.isFalse(stubDisplay.calledWith());
     });
 
     test('System resize', function() {
@@ -697,7 +726,7 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubKill.called);
     });
   });
- 
+
   suite('updateActiveApp()', function() {
     test('update', function() {
       var spyPublish= this.sinon.spy(appWindowManager, 'publish');
@@ -1055,11 +1084,49 @@ suite('system/AppWindowManager', function() {
   });
 
   suite('Hierarchy functions', function() {
+    setup(function() {
+      window.appWindowFactory = MockAppWindowFactory;
+      window.WrapperFactory = MockWrapperFactory;
+    });
+
+    teardown(function() {
+      window.appWindowFactory = null;
+      window.WrapperFactory = null;
+    });
+
     test('getActiveWindow', function() {
       appWindowManager._activeApp = app1;
       assert.equal(appWindowManager.getActiveWindow(), app1);
     });
 
+    test('setHierarchy', function() {
+      this.sinon.stub(MockWrapperFactory, 'isLaunchingWindow').returns(false);
+      this.sinon.stub(MockAppWindowFactory, 'isLaunchingWindow').returns(false);
+      appWindowManager._activeApp = app1;
+      this.sinon.stub(app1, 'focus');
+      this.sinon.stub(app1, 'blur');
+      this.sinon.stub(app1, 'setVisibleForScreenReader');
+      this.sinon.stub(app1, 'setNFCFocus');
+      appWindowManager.setHierarchy(true);
+      assert.isTrue(app1.focus.called);
+      assert.isTrue(app1.setVisibleForScreenReader.calledWith(true));
+      assert.isTrue(app1.setNFCFocus.calledWith(true));
+
+      appWindowManager.setHierarchy(false);
+      assert.isTrue(app1.blur.calledOnce);
+      assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
+    });
+
+    test('setHierarchy(true) while launching a new window', function() { 
+      this.sinon.stub(MockWrapperFactory, 'isLaunchingWindow').returns(true);
+      this.sinon.stub(MockAppWindowFactory, 'isLaunchingWindow').returns(false);
+      appWindowManager._activeApp = app1;
+      this.sinon.stub(app1, 'focus');
+
+      appWindowManager.setHierarchy(true);
+      assert.isFalse(app1.focus.called);
+    });
+      
     test('setHierarchy', function() {
       appWindowManager._activeApp = app1;
       this.sinon.stub(app1, 'focus');

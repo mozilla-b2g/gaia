@@ -13,7 +13,7 @@ function ManifestHelper_get(prop) {
   var lang = navigator.mozL10n.language.code || '';
 
   if (lang in navigator.mozL10n.qps &&
-      (prop === 'name' || prop === 'description')) {
+      (prop === 'name' || prop === 'description' || prop == 'short_name')) {
     value = navigator.mozL10n.qps[navigator.language].translate(value);
   } else if (manifest.locales) {
     // try to replace values from the locales object using the best language
@@ -51,9 +51,16 @@ function ManifestHelper(manifest) {
   }
 }
 
+/**
+ * Getter for display name (short_name if defined, otherwise name).
+ */
+Object.defineProperty(ManifestHelper.prototype, 'displayName', {
+    get: function displayName() {
+      return this.short_name || this.name;
+    }
+});
+
 exports.ManifestHelper = ManifestHelper;
 
 // End outer IIFE
 }(window));
-
-

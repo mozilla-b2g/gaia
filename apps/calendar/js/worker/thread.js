@@ -1,8 +1,8 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('worker/thread');
+var Responder = require('common/responder');
+var debug = require('common/debug')('worker/thread');
 
 function Thread(worker) {
   Responder.call(this);

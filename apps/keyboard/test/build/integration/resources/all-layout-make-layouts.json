@@ -1,5 +1,20 @@
 [
   {
+    "id": "af",
+    "name": "Afrikaans",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 964021,
+    "preloaded": true,
+    "dictFilename": "af.dict",
+    "dictFilePath": "dictionaries/af.dict"
+  },
+  {
     "id": "ar",
     "name": "العربية",
     "types": [
@@ -7,7 +22,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1697,
+    "dictFileSize": 1711,
     "preloaded": true
   },
   {
@@ -73,7 +88,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 3488,
+    "dictFileSize": 3502,
     "preloaded": true
   },
   {
@@ -173,7 +188,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 3698,
+    "dictFileSize": 3712,
     "preloaded": true
   },
   {
@@ -291,7 +306,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1446,
+    "dictFileSize": 1460,
     "preloaded": true
   },
   {
@@ -349,8 +364,10 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1307,
-    "preloaded": true
+    "dictFileSize": 336161,
+    "preloaded": true,
+    "dictFilename": "ff.dict",
+    "dictFilePath": "dictionaries/ff.dict"
   },
   {
     "id": "fr",
@@ -480,7 +497,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 970,
+    "dictFileSize": 984,
     "preloaded": true
   },
   {
@@ -604,7 +621,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1139,
+    "dictFileSize": 1153,
     "preloaded": true
   },
   {
@@ -616,7 +633,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 4876,
+    "dictFileSize": 4890,
     "preloaded": true
   },
   {
@@ -831,7 +848,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 2426,
+    "dictFileSize": 2440,
     "preloaded": true
   },
   {
@@ -910,7 +927,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1314,
+    "dictFileSize": 1328,
     "preloaded": true
   },
   {

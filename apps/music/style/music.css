@@ -130,6 +130,12 @@ body {
   color: #fff;
 }
 
+/* Never show the scan progress when the title bar has a back button, since the
+   progress display would make it impossible to go back! */
+#title[action="back"] ~ #scan-progress {
+  display: none;
+}
+
 #scan-spinner {
   position: absolute;
   top: 1rem;
@@ -193,6 +199,15 @@ body.tiles-mode #views {
   transform: translateX(0%);
 }
 
+body.tiles-mode #views-tiles,
+body.search-from-tiles-mode #views-tiles {
+  visibility: visible;
+}
+
+body.search-from-tiles-mode #views-tiles-anchor {
+  visibility: hidden;
+}
+
 body.search-from-tiles-mode #views {
   transform: translateX(0%) translateY(-5rem);
 }
@@ -206,9 +221,20 @@ body.search-from-list-mode #views {
   transform: translateX(-100%) translateY(-5rem);
 }
 
+body.list-mode #views-list,
+body.picker-mode #views-list,
+body.search-from-list-mode #views-list {
+  visibility: visible;
+}
+
+body.search-from-list-mode #views-list-anchor {
+  visibility: hidden;
+}
+
 body.search-from-tiles-mode #search,
 body.search-from-list-mode #search {
   transform: translateY( calc(-100%) );
+  visibility: visible;
 }
 
 body.search-from-tiles-mode #views-tiles,
@@ -216,10 +242,10 @@ body.search-from-list-mode #views-list {
   overflow-y: hidden;
 }
 
-body.search-from-tiles-mode #tabs,
-body.search-from-list-mode #tabs,
-body.picker-mode #tabs {
-  display: none;
+body.tiles-mode #tabs,
+body.list-mode #tabs,
+body.sublist-mode #tabs {
+  display: inherit;
 }
 
 body.sublist-mode #views {
@@ -227,13 +253,25 @@ body.sublist-mode #views {
   z-index: 20;
 }
 
+body.sublist-mode #views-sublist {
+  visibility: visible;
+}
+
 body.player-mode #views {
   transform: translateX(-300%);
   z-index: 30;
 }
 
+body.player-mode #views-player {
+  visibility: visible;
+}
+
 body.picker-mode #views {
   transition: transform 0ms ease;
+}
+
+body.picker-mode .view {
+  transition: visibility 0ms;
 }
 
 body.player-mode #title-player,
@@ -266,12 +304,32 @@ body.picker-mode #title-player {
   overflow-y: auto;
   background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
   z-index: 10;
-  transition: transform 300ms ease;
+  transition: transform 300ms ease, visibility 300ms;
+  visibility: hidden;
+}
+
+#views-search-no-result {
+  position: absolute;
+  top: 3.7rem;
+  left: 0;
+  right: 0;
+  height: calc(100% - 3.7rem);
+}
+
+#search-no-result {
+  margin: 9.5rem 1.5rem 0;
+  padding-top: 1.5rem;
+  font-size: 2.4rem;
+  font-weight: 300;
+  text-align: left;
+  border-top: 0.1rem solid #bdbdbd;
 }
 
 .view {
   width: 100%;
   height: auto;
+  visibility: hidden;
+  transition: visibility 300ms;
 }
 
 #views-tiles,
@@ -312,6 +370,7 @@ body.picker-mode #title-player {
 
 #views-player.open-mode {
   transform: translateX(0);
+  visibility: visible;
 }
 
 /* Make sure the tiles and list views are tall enough that we can scroll the
@@ -319,6 +378,7 @@ body.picker-mode #title-player {
 #views-tiles-anchor,
 #views-list-anchor {
   min-height: 100%;
+  transition: visibility 300ms;
 }
 
 /*
@@ -371,6 +431,13 @@ body.picker-mode #title-player {
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
+html[dir="rtl"] #views-sublist-header-image,
+html[dir="rtl"] #views-sublist-header-controls {
+  float: right;
+  left: auto;
+  right: 3rem;
+}
+
 #views-sublist-header-image {
   width: 8rem;
   height: 8rem;
@@ -383,6 +450,7 @@ body.picker-mode #title-player {
 
 #views-sublist-header-name {
   position:relative;
+  display: block;
   font-size: 1.9rem;
   padding: 0 1rem;
   width: calc(100% - 2rem);
@@ -391,6 +459,10 @@ body.picker-mode #title-player {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+html[dir="rtl"] #views-sublist-header-name {
+  text-align: right;
 }
 
 #views-sublist-header-controls {
@@ -411,6 +483,11 @@ body.picker-mode #title-player {
   background-repeat: no-repeat;
   background-size: 3rem;
   color: #fff;
+}
+
+html[dir="rtl"] #views-sublist-controls-play,
+html[dir="rtl"] #views-sublist-controls-shuffle {
+  float: right;
 }
 
 .album-controls-button {
@@ -561,6 +638,11 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   font-size: 1.4rem;
 }
 
+html[dir="rtl"] .tile-title-artist,
+html[dir="rtl"] .tile-title-album {
+  text-align: right;
+}
+
 .main-tile-title {
   font-size: 1.9rem;
 }
@@ -607,10 +689,12 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
 
 #player-cover.slideOut #player-cover-caption {
   transform: translateY(100%);
+  visibility: visible;
 }
 
 #player-cover.slideOut #player-cover-buttons {
   transform: translateY(-100%);
+  visibility: visible;
 }
 
 #player-cover-caption,
@@ -619,7 +703,8 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   width: 100%;
   height: 5rem;
   background-color: rgba(0, 0, 0, 0.5);
-  transition: transform 700ms ease-in-out;
+  transition: transform 700ms ease-in-out, visibility 700ms ease-in-out;
+  visibility: hidden;
 }
 
 #player-cover-caption {
@@ -916,6 +1001,7 @@ html[dir="rtl"] .rating-star {
   bottom: 0;
   width: 100%;
   z-index: 20;
+  display: none;
 }
 
 #tabs li:last-child {
@@ -985,14 +1071,8 @@ html[dir="rtl"] li.list-item {
 
 li.list-item a {
   display: block;
-  color: #fff;
   text-decoration: none;
-  outline: none;
   margin: 0;
-  text-shadow: black 0.1rem 0.1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   width: 100%;
   height: 6rem;
   background-color: transparent;
@@ -1000,8 +1080,6 @@ li.list-item a {
 }
 
 li.list-item a:active {
-  color: black;
-  text-shadow: rgba(255, 255, 255, 0.5) 0.1rem 0.1rem;
   background-color: rgba(52,140,158, .6);
 }
 
@@ -1028,6 +1106,7 @@ li.list-item a:active {
 }
 
 html[dir="rtl"] .list-main-title {
+  text-align: right;
   padding: 0 3rem 0 0.5rem;
 }
 
@@ -1040,6 +1119,7 @@ html[dir="rtl"] .list-main-title {
 }
 
 html[dir="rtl"] .list-sub-title {
+  text-align: right;
   padding: 0 3rem 0 0.5rem;
 }
 
@@ -1053,6 +1133,7 @@ html[dir="rtl"] .list-sub-title {
 }
 
 html[dir="rtl"] .list-single-title {
+  text-align: right;
   padding: 0 3rem 0 0.5rem;
 }
 
@@ -1068,6 +1149,7 @@ html[dir="rtl"] .list-single-title {
 }
 
 html[dir="rtl"] .list-playlist-title {
+  text-align: right;
   padding-left: 0.5rem;
   padding-right: 3rem;
 }
@@ -1115,11 +1197,26 @@ html[dir="rtl"] .list-playlist-icon {
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
+html[dir="rtl"] .list-song-title {
+  text-align: right;
+  right: 3rem;
+  padding-left: 0.5rem;
+  padding-right: 0;
+}
+
 .list-song-length {
   right: 0;
   width: 5rem;
   padding-right: 0.5rem;
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+}
+
+html[dir="rtl"] .list-song-length {
+  text-align: right;
+  left: 0;
+  right: auto;
+  padding-left: 0.5rem;
+  padding-right: 0;
 }
 
 .search-highlight {
@@ -1137,3 +1234,11 @@ html[dir="rtl"] .list-playlist-icon {
   opacity: 1;
   transition: all 600ms ease;
 }
+
+/* See bug 1158043 */
+#title-text bdi {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

@@ -1,0 +1,28 @@
+{
+  "card_list": [
+    {
+      "type": "Deck",
+      "deckClass": "tv",
+      "manifestURL": "app://tv-deck.gaiamobile.org/manifest.webapp",
+      "group": "tv"
+    },
+    {
+      "type": "Deck",
+      "deckClass": "application",
+      "manifestURL": "app://app-deck.gaiamobile.org/manifest.webapp",
+      "group": "app"
+    },
+    {
+      "type": "Deck",
+      "deckClass": "device",
+      "manifestURL": "app://device-deck.gaiamobile.org/manifest.webapp",
+      "group": "device"
+    },
+    {
+      "type": "Deck",
+      "deckClass": "dashboard",
+      "manifestURL": "app://dashboard.gaiamobile.org/manifest.webapp",
+      "group": "dashboard"
+    }
+  ]
+}

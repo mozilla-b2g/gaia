@@ -37,7 +37,7 @@ class TestReceiveCallWithContactPhoto(GaiaTestCase):
             self.testvars['plivo']['phone_number']
         )
         self.call_uuid = self.plivo.make_call(
-            to_number=self.testvars['local_phone_numbers'][0].replace('+', ''))
+            to_number=self.environment.phone_numbers[0].replace('+', ''))
 
         call_screen = CallScreen(self.marionette)
         call_screen.wait_for_incoming_call()

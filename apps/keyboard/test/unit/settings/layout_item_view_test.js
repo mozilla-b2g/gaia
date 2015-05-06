@@ -1,19 +1,35 @@
 'use strict';
 
-/* global LayoutItemView, LayoutItem */
+/* global LayoutItemListView, LayoutItemView, LayoutItem, LayoutItemErrorInfo */
 
 require('/js/settings/base_view.js');
 
 require('/js/settings/layout_item.js');
 require('/js/settings/layout_item_view.js');
+require('/js/settings/layout_item_list_view.js');
 
-suite('LayoutItemListView', function() {
+var Deferred = function() {
+  this.promise = new Promise(function(resolve, reject) {
+    this.resolve = resolve;
+    this.reject = reject;
+  }.bind(this));
+};
+
+suite('LayoutItemView', function() {
   var view;
+
   var itemStub;
+  var listViewStub;
 
   var labelEl;
   var statusEl;
   var progressEl;
+
+  var confirmRemovalDeferred;
+  var confirmDownloadDeferred;
+  var confirmEnableDeferred;
+  var disableLayoutDeferred;
+  var enableLayoutDeferred;
 
   setup(function() {
     navigator.mozL10n = {
@@ -21,11 +37,25 @@ suite('LayoutItemListView', function() {
     };
 
     itemStub = this.sinon.stub(LayoutItem.prototype);
+    itemStub.id = 'foo';
     itemStub.name = 'Pig Latin';
     itemStub.fileSize = 24601;
     itemStub.state = itemStub.STATE_PRELOADED;
 
-    view = new LayoutItemView(itemStub);
+    confirmRemovalDeferred = new Deferred();
+    confirmDownloadDeferred = new Deferred();
+    confirmEnableDeferred = new Deferred();
+    disableLayoutDeferred = new Deferred();
+    enableLayoutDeferred = new Deferred();
+
+    listViewStub = this.sinon.stub(Object.create(LayoutItemListView.prototype));
+    listViewStub.confirmRemoval.returns(confirmRemovalDeferred.promise);
+    listViewStub.confirmDownload.returns(confirmDownloadDeferred.promise);
+    listViewStub.confirmEnable.returns(confirmEnableDeferred.promise);
+    listViewStub.disableLayout.returns(disableLayoutDeferred.promise);
+    listViewStub.enableLayout.returns(enableLayoutDeferred.promise);
+
+    view = new LayoutItemView(listViewStub, itemStub);
 
     var templateEl = document.createElement('template');
     templateEl.innerHTML =
@@ -91,6 +121,20 @@ suite('LayoutItemListView', function() {
     assert.isFalse(progressEl.classList.contains('hide'));
     assert.equal(progressEl.value, '1234');
     assert.equal(progressEl.max, '24601');
+
+    itemStub.downloadLoadedSize = 2345;
+
+    itemStub.onprogress();
+
+    assert.equal(view.oninlistchange.callCount, 1);
+    assert.equal(view.container.dataset.enabledAction, 'cancel-download');
+    assert.equal(statusEl.dataset.l10nId, 'downloadingStatus');
+    assert.equal(statusEl.dataset.l10nArgs,
+      '{"loadedSize":"2.29","loadedSizeUnit":"l10n_get_byteUnit-KB",' +
+      '"totalSize":"24.02","totalSizeUnit":"l10n_get_byteUnit-KB"}');
+    assert.isFalse(progressEl.classList.contains('hide'));
+    assert.equal(progressEl.value, '2345');
+    assert.equal(progressEl.max, '24601');
   });
 
   test('STATE_INSTALLING', function() {
@@ -136,18 +180,34 @@ suite('LayoutItemListView', function() {
   });
 
   suite('handleEvent', function() {
-    test('download', function() {
-      var evt = {
-        type: 'click',
-        target: {
-          dataset: {
-            action: 'download'
+    suite('download', function() {
+      setup(function() {
+        var evt = {
+          type: 'click',
+          target: {
+            dataset: {
+              action: 'download'
+            }
           }
-        }
-      };
-      view.handleEvent(evt);
+        };
+        view.handleEvent(evt);
 
-      assert.isTrue(itemStub.install.calledOnce);
+        assert.isTrue(listViewStub.confirmDownload.calledOnce);
+      });
+
+      test('confirmed', function(done) {
+        confirmDownloadDeferred.resolve(true);
+        confirmDownloadDeferred.promise.then(function() {
+          assert.isTrue(itemStub.install.calledOnce);
+        }).then(done, done);
+      });
+
+      test('cancelled', function(done) {
+        confirmDownloadDeferred.resolve(false);
+        confirmDownloadDeferred.promise.then(function() {
+          assert.isFalse(itemStub.install.calledOnce);
+        }).then(done, done);
+      });
     });
 
     test('cancelDownload', function() {
@@ -164,18 +224,94 @@ suite('LayoutItemListView', function() {
       assert.isTrue(itemStub.cancelInstall.calledOnce);
     });
 
-    test('cancelDownload', function() {
-      var evt = {
-        type: 'click',
-        target: {
-          dataset: {
-            action: 'remove'
+    suite('remove', function() {
+      setup(function() {
+        var evt = {
+          type: 'click',
+          target: {
+            dataset: {
+              action: 'remove'
+            }
           }
-        }
-      };
-      view.handleEvent(evt);
+        };
+        view.handleEvent(evt);
 
-      assert.isTrue(itemStub.remove.calledOnce);
+        assert.isTrue(
+          listViewStub.confirmRemoval.calledWith('Pig Latin'));
+      });
+
+      test('confirmed', function(done) {
+        confirmRemovalDeferred.resolve(true);
+        confirmRemovalDeferred.promise.then(function() {
+          assert.isTrue(listViewStub.disableLayout.calledWith('foo'));
+          disableLayoutDeferred.resolve();
+
+          return disableLayoutDeferred.promise;
+        }).then(function() {
+          assert.isTrue(itemStub.remove.calledOnce);
+        }).then(done, done);
+      });
+
+      test('cancelled', function(done) {
+        confirmRemovalDeferred.resolve(false);
+        confirmRemovalDeferred.promise.then(function() {
+          assert.isFalse(listViewStub.disableLayout.calledOnce);
+          assert.isFalse(itemStub.remove.calledOnce);
+        }).then(done, done);
+      });
+    });
+  });
+
+  suite('oninstall', function() {
+    setup(function() {
+      itemStub.oninstall();
+      assert.isTrue(listViewStub.confirmEnable.calledWith('Pig Latin'));
+    });
+
+    test('confirmed', function(done) {
+      confirmEnableDeferred.resolve(true);
+      confirmEnableDeferred.promise.then(function() {
+        assert.isTrue(listViewStub.enableLayout.calledWith('foo'));
+        enableLayoutDeferred.resolve();
+
+        return enableLayoutDeferred.promise;
+      }).then(done, done);
+    });
+
+    test('cancelled', function(done) {
+      confirmEnableDeferred.resolve(false);
+      confirmEnableDeferred.promise.then(function() {
+        assert.isFalse(listViewStub.enableLayout.calledOnce);
+      }).then(done, done);
+    });
+  });
+
+  suite('onerror', function() {
+    test('ERROR_DOWNLOADERROR', function() {
+      var errorInfo = Object.create(LayoutItemErrorInfo.prototype);
+      errorInfo.error = errorInfo.ERROR_DOWNLOADERROR;
+
+      itemStub.onerror(errorInfo);
+
+      assert.isTrue(listViewStub.showDownloadErrorToast.calledOnce);
+    });
+
+    test('ERROR_INSTALLERROR', function() {
+      var errorInfo = Object.create(LayoutItemErrorInfo.prototype);
+      errorInfo.error = errorInfo.ERROR_INSTALLERROR;
+
+      itemStub.onerror(errorInfo);
+
+      assert.isFalse(listViewStub.showDownloadErrorToast.calledOnce);
+    });
+
+    test('ERROR_REMOVEERROR', function() {
+      var errorInfo = Object.create(LayoutItemErrorInfo.prototype);
+      errorInfo.error = errorInfo.ERROR_REMOVEERROR;
+
+      itemStub.onerror(errorInfo);
+
+      assert.isFalse(listViewStub.showDownloadErrorToast.calledOnce);
     });
   });
 });

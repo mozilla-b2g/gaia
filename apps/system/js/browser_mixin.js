@@ -65,11 +65,13 @@
           this._nfcActive === enable ||
           (this.CLASS_NAME !== 'AppWindow' &&
            this.CLASS_NAME !== 'ActivityWindow' &&
-           this.CLASS_NAME !== 'PopupWindow')) {
+           this.CLASS_NAME !== 'PopupWindow') &&
+           this.CLASS_NAME !== 'HomescreenWindow') {
           // XXX: Implement this.belongToAppWindow()
         return;
       }
-      this.debug(this.name + ' is setting nfc active to: ' + enable);
+      this.debug(this.name + ':' + this.instanceID +
+        ' is setting nfc active to: ' + enable);
       try {
         this._nfcActive = enable;
         this.browser.element.setNFCFocus(enable);
@@ -84,7 +86,8 @@
      * @param  {Function} callback The callback function to be invoked
      *                             after we get the screenshot.
      */
-    getScreenshot: function bm_getScreenshot(callback, width, height, timeout) {
+    getScreenshot: function bm_getScreenshot(callback, width, height, timeout,
+                                             ignoreFront) {
       if (!this.browser || !this.browser.element) {
         if (callback) {
           callback();
@@ -95,9 +98,12 @@
       var invoked = false;
       var timer;
 
+
       // First, let's check if we have a frontWindow, if so this is the one
-      // we will want a screenshot of!
-      if (this.frontWindow) {
+      // we will want a screenshot of, passing ignoreFront lets us skip this
+      // if we want a screenshot of the browser element
+      ignoreFront = (typeof ignoreFront === 'undefined') ? false : ignoreFront;
+      if (!ignoreFront && this.frontWindow) {
         this.frontWindow.getScreenshot(callback, width, height, timeout);
         return;
       }
@@ -167,14 +173,31 @@
       }
     },
 
+    /**
+     * For test purpose, we create this method for changing active element. The
+     * activeElement is readonly property. We may use defineProperty to override
+     * it. But we get undefined with getOwnPropertyDescriptor. As to
+     * window.document, it is also a readonly and non-configurable property. We
+     * cannot override it directly.
+     *
+     * @return {HTMLDOMElement} the active element of current document.
+     */
+    getActiveElement: function bm_getActiveElement() {
+      return document.activeElement;
+    },
+
     focus: function bm_focus() {
-      if (this.browser && this.browser.element) {
+      if (this.contextmenu && this.contextmenu.isShown()) {
+        this.contextmenu.focus();
+      } else if (this.browser && this.browser.element &&
+                 this.getActiveElement() !== this.browser.element) {
         this.browser.element.focus();
       }
     },
 
     blur: function bm_blur() {
-      if (this.browser.element) {
+      if (this.browser && this.browser.element &&
+          this.getActiveElement() === this.browser.element) {
         this.browser.element.blur();
       }
     },

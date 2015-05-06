@@ -6,12 +6,9 @@ marionette('Fullscreen layout status bar visibility >', function() {
   var FULLSCREEN_LAYOUT_APP = 'app://fullscreen_layout.gaiamobile.org';
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: {
-      'fullscreen_layout.gaiamobile.org': __dirname + '/fullscreen_layout'
+      'fullscreen_layout.gaiamobile.org':
+        __dirname + '/../apps/fullscreen_layout'
     }
   });
 
@@ -22,8 +19,6 @@ marionette('Fullscreen layout status bar visibility >', function() {
 
   setup(function() {
     system.waitForStartup();
-    assert(system.statusbarMaximizedWrapper.displayed(),
-      'The status bar maximized wrapper is visible');
     system.waitForLaunch(FULLSCREEN_LAYOUT_APP);
   });
 

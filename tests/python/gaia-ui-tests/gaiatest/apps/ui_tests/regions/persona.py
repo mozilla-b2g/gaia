@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -28,8 +25,10 @@ class Persona(Base):
         return persona
 
     def switch_to_frame(self):
-        self.wait_for_element_displayed(*self._frame_locator)
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._frame_locator))
+        frame = Wait(self.marionette).until(
+            expected.element_present(*self._frame_locator))
+        Wait(self.marionette).until(expected.element_displayed(frame))
+        self.marionette.switch_to_frame(frame)
         self.wait_for_ready_event()
 
     def get_assertion(self):
@@ -38,18 +37,25 @@ class Persona(Base):
         return self.marionette.find_elements(*self._app_login_assertion_text)[-1].text
 
     def tap_standard_button(self):
-        self.wait_for_element_displayed(*self._app_std_request_button_locator)
-        self.marionette.find_element(*self._app_std_request_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._app_std_request_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_logout_button(self):
-        self.wait_for_element_displayed(*self._app_logout_button_locator)
-        self.marionette.find_element(*self._app_logout_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._app_logout_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def wait_for_logout_event(self):
-        self.wait_for_element_displayed(*self._app_logout_event)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._app_logout_event))
 
     def wait_for_ready_event(self):
-        self.wait_for_element_present(*self._app_ready_event)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._app_ready_event))
 
     def wait_for_login_event(self):
-        self.wait_for_element_displayed(*self._app_login_event)
+        Wait(self.marionette).until(
+            expected.element_displayed(*self._app_login_event))

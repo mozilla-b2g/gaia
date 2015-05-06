@@ -5,7 +5,7 @@
 
 .menu-item {
   position: static;
-  padding-left: 5.5rem;
+  -moz-padding-start: 5.5rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
   background-size: 3rem 3rem;
@@ -15,10 +15,10 @@ a.menu-item:after  {
   font-family: "gaia-icons";
   content: "forward";
   position: absolute;
-  top: 0;
+  top: 50%;
+  margin-top: -1.25rem;
   right: 0.3rem;
   font-size: 2.5rem;
-  line-height: 6rem;
   color: #657073;
 }
 
@@ -49,11 +49,6 @@ label > .menu-item + small {
 /******************************************************************************
  * Right-To-Left layout
  */
-html[dir="rtl"] .menu-item {
-  padding-left: 0;
-  padding-right: 5.5rem;
-}
-
 html[dir="rtl"] a.menu-item::after  {
   right: auto;
   left: -0.5rem;

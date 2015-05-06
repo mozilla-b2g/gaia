@@ -35,6 +35,10 @@
     /**
      * Request a service and get a promise.
      * The service name may include the name of server or not if it is unique.
+     *
+     * The request and query format are different,
+     * request does not accept getter format.
+     *
      * @example
      * Service.request('locked').then(function() {});
      * Service.request('addObserver', 'test.enabled', this).then(function() {});
@@ -132,8 +136,8 @@
       if (!this._services.has(service)) {
         this._services.set(service, server);
       } else {
-        console.warn('the service [' + service + '] has already been ' +
-          'registered by other server.');
+        this.debug('the service [' + service + '] has already been ' +
+          'registered by other server:', this._services.get(service).name);
         return;
       }
 
@@ -151,12 +155,14 @@
     /* Helper function to unwrap the promise in service request */
     _unwrapPromise: function(returnValue, resolve, reject) {
       if (returnValue && returnValue.then && returnValue.catch) {
+        this.debug('return value is promise', returnValue);
         returnValue.then(function(result) {
           resolve(result);
         }).catch(function(error) {
           reject(error);
         });
       } else {
+        this.debug('return value is non-promise', returnValue);
         resolve(returnValue);
       }
     },
@@ -200,7 +206,7 @@
      * Service.query('isFtuRunning');
      * 
      * @param  {String} state The machine name and the state name.
-     * @return {String|Boolean|Number}       
+     * @return {String|Boolean|Number|Object}
      */
     query: function(stateString) {
       this.debug(stateString);
@@ -218,7 +224,8 @@
         return undefined;
       }
       if (typeof(provider[state]) === 'function') {
-        return provider[state]();
+        var functionArgs = Array.prototype.slice.call(arguments, 1);
+        return provider[state].apply(provider, functionArgs);
       } else {
         return provider[state];
       }

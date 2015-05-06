@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsCache,
-          AttentionWindow, MozActivity */
+          AttentionWindow, MozActivity, focusManager */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -40,12 +40,13 @@
 
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
-      // Handle event from child window.
-      if (evt.detail && evt.detail.instanceID &&
-          evt.detail.instanceID !== this.app.instanceID) {
-        if (this['_handle_child_' + evt.type]) {
-          this['_handle_child_' + evt.type](evt);
-        }
+      // ChildWindowFactory handles window.open and activities. It listens the
+      // closing event on the element of PopupWindow and ActivityWindow. Once
+      // receiving _closing event, we can say this event is fired by one of
+      // PopupWindow and ActivityWindow. So, we don't need to check if current
+      // window is the same as closing one.
+      if (evt.type === '_closing') {
+        this._handle_child__closing(evt);
         return;
       }
       // Skip to wrapperWindowFactory.
@@ -205,11 +206,7 @@
 
     this.app.setOrientation();
     this.app.requestForeground();
-    // An activity handled by ActivityWindow is always an inline activity.
-    // All window activities are handled by AppWindow. All inline
-    // activities have a rearWindow. Once this inline activity is killed,
-    // the focus should be transfered to its rear window.
-    evt.detail.rearWindow.focus();
+    focusManager.focus();
   };
 
   ChildWindowFactory.prototype.createActivityWindow = function(evt) {

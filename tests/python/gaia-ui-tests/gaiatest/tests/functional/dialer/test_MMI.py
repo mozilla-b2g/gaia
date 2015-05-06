@@ -23,5 +23,5 @@ class TestMMI(GaiaTestCase):
         attention_screen = AttentionScreen(self.marionette)
 
         # Go through all expected IMEIs and check they are in the message
-        for imei in self.testvars['imei']:
+        for imei in self.environment.imei_numbers:
             self.assertIn(imei, attention_screen.message)

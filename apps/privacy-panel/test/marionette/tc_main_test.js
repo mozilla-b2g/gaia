@@ -24,6 +24,9 @@ marionette('transparency control panels', function() {
     settings: {
       'privacy-panel-gt-complete': true
     },
+    prefs: {
+      'focusmanager.testmode': true
+    },
     apps: {
       'mighty.duck.com':     __dirname + '/apps/mighty-duck',
       'chubby.unicorn.com':  __dirname + '/apps/chubby-unicorn',
@@ -86,6 +89,33 @@ marionette('transparency control panels', function() {
     assert.ok(find(app.chubbyU + ' ~ ' + app.flyingP));
     assert.ok(find(app.flyingP + ' ~ ' + app.mightyD));
 
+    // use the search box to filter apps
+    subject.enterSearchMode();
+    subject.sendSearchKeys('i'); // our 3 fake apps have an 'i' in their name
+    assert.ok(find(app.chubbyU).displayed());
+    assert.ok(find(app.flyingP).displayed());
+    assert.ok(find(app.mightyD).displayed());
+    subject.sendSearchKeys('g'); // only 'Mighty Duck' has 'ig' in its name
+    assert.ok(!find(app.chubbyU).displayed());
+    assert.ok(!find(app.flyingP).displayed());
+    assert.ok(find(app.mightyD).displayed());
+    subject.clearSearch(); // empty the search box
+    assert.ok(subject.searchPattern === '');
+    assert.ok(find(app.chubbyU).displayed());
+    assert.ok(find(app.flyingP).displayed());
+    assert.ok(find(app.mightyD).displayed());
+
+    // enter the search mode again, get out of it by selecting an app
+    subject.sendSearchKeys('browser');
+    assert.ok(find(app.browser).displayed());
+    find(app.browser).tap();
+    assert.ok(subject.isAppDetailDisplayed());
+    assert.ok(subject.appDetail.findElement(perm.contacts));
+    // press the 'back' button, ensure we're not in search mode any more
+    subject.tapOnAppDetailBack();
+    assert.ok(!subject.isSearchCloseDisplayed());
+    assert.ok(subject.isSortKeyDisplayed());
+
     // switch to "Trust Level" order
     subject.sortApps('Trust Level', trust.web);
     // check that each app is in its 'Trust Level' group
@@ -104,11 +134,6 @@ marionette('transparency control panels', function() {
     // check that 'Vendor' groups are sorted alphabetically
     assert.ok(find(vendor.mightyD + ' ~ ' + vendor.flyingP));
     assert.ok(find(vendor.flyingP + ' ~ ' + vendor.chubbyU));
-
-    // open 'Browser' details and check that 'Contacts' is listed
-    find(app.browser).tap();
-    assert.ok(subject.isAppDetailDisplayed());
-    assert.ok(subject.appDetail.findElement(perm.contacts));
 
   });
 

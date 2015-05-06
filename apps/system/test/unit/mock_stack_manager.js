@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockStackManager */
+
 var MockStackManager = {
   mCurrent: 0,
   mStack: [],

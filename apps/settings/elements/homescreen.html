@@ -2,28 +2,29 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="vertical-homescreen-header"> Homescreen </h1>
+      <h1 data-l10n-id="vertical-homescreen-header"></h1>
     </gaia-header>
 
     <div>
       <section data-type="list">
         <header>
-          <h2 data-l10n-id="vertical-homescreen-layout">Layout</h2>
+          <h2 data-l10n-id="vertical-homescreen-layout"></h2>
         </header>
         <ul>
           <li>
-            <p data-l10n-id="vertical-homescreen-icon-layout">Icon Layout</p>
+            <p data-l10n-id="vertical-homescreen-icon-layout"></p>
             <div class="button icon icon-dialog">
               <select name="grid.layout.cols">
-                <option value="3" data-l10n-id="vertical-homescreen-three-columns">Three Columns</option>
-                <option value="4" data-l10n-id="vertical-homescreen-four-columns">Four Columns</option>
+                <option value="3" data-l10n-id="vertical-homescreen-three-columns"></option>
+                <option value="4" data-l10n-id="vertical-homescreen-four-columns"></option>
               </select>
             </div>
           </li>
         </ul>
       </section>
     </div>
-    <script src="shared/js/homescreens/vertical_preferences.js"></script>
-    <script src="js/vertical_homescreen.js"></script>
+
+    <panel data-path="panels/homescreen/panel"></panel>
+
   </template>
 </element>

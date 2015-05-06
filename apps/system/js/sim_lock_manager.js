@@ -10,13 +10,16 @@
     'ftuopen',
     'appopened',
     'lockscreen-request-unlock',
+    'simslot-updated',
     'simslot-cardstatechange',
     'simslot-iccinfochange',
     'attentionopening',
     'attentionterminated',
     'simlockskip',
     'simlockback',
-    'simlockrequestclose'
+    'simlockrequestclose',
+    'airplanemode-enabled',
+    'rocketbar-activating'
   ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
@@ -33,6 +36,10 @@
 
     _sim_lock_system_dialog_loaded: function() {
       this.showIfLocked();
+    },
+
+    '_handle_simslot-updated': function(evt) {
+      this.showIfLocked(evt.detail.index);
     },
 
     '_handle_simslot-iccinfochange': function(evt) {
@@ -156,16 +163,29 @@
       // https://bugzilla.mozilla.org/show_bug.cgi?id=SIMPIN-Dialog
     },
 
-    isBothSlotsLocked: function sl_isBothSlotsLocked(){
-      if(!SIMSlotManager.isMultiSIM() ||
-          SIMSlotManager.hasOnlyOneSIMCardDetected()){
+    '_handle_airplanemode-enabled': function(evt) {
+      this.simLockSystemDialog.close();
+      this._alreadyShown = false;
+    },
+
+    '_handle_rocketbar-activating': function(evt) {
+      this.simLockSystemDialog.close();
+      this._alreadyShown = false;
+    },
+
+    isBothSlotsLocked: function sl_isBothSlotsLocked() {
+      if (!SIMSlotManager.isMultiSIM() ||
+          SIMSlotManager.hasOnlyOneSIMCardDetected()) {
         return false;
       }
 
       var simSlots = SIMSlotManager.getSlots();
       var isBothLocked = true;
       for (var i = 0; i < simSlots.length; i++) {
-        isBothLocked = isBothLocked && simSlots[i].isLocked();
+        var currentSlot = simSlots[i];
+        var unknownState = currentSlot.isUnknownState();
+        var currentLocked = currentSlot.isLocked() || unknownState;
+        isBothLocked = isBothLocked && currentLocked;
       }
       return isBothLocked;
     },
@@ -231,7 +251,7 @@
           return false;
         }
 
-        switch (slot.simCard.cardState) {
+        switch (slot.getCardState()) {
           // do nothing in either unknown or null card states
           case null:
           case 'unknown':

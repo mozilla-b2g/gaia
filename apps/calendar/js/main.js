@@ -18,8 +18,7 @@ require.config({
     'shared/gesture_detector': { exports: 'GestureDetector' },
     'shared/input_parser': { exports: 'InputParser' },
     'shared/lazy_loader': { exports: 'LazyLoader' },
-    'shared/notification_helper': { exports: 'NotificationHelper' },
-    'shared/performance_testing_helper': { exports: 'PerformanceTestingHelper' }
+    'shared/notification_helper': { exports: 'NotificationHelper' }
   }
 });
 
@@ -27,7 +26,6 @@ require.config({
 // call to list modules that are bundled to avoid duplicate defines
 require.config({
   paths: {
-    'views/current_time': 'lazy_loaded',
     'views/week': 'lazy_loaded',
     'views/advanced_settings': 'lazy_loaded',
     'views/create_account': 'lazy_loaded',

@@ -83,13 +83,13 @@ suite('OptionMenu', function() {
       test('Prevent pointer events and focus', function() {
         menu.show();
         sinon.assert.called(HTMLElement.prototype.blur);
-        assert.equal(document.body.style.pointerEvents, 'none');
+        assert.isTrue(document.body.classList.contains('dialog-animating'));
         var transitionend = new TransitionEvent('transitionend', {
           bubbles: true,
           propertyName: 'transform'
         });
         menu.form.dispatchEvent(transitionend);
-        assert.equal(document.body.style.pointerEvents, 'initial');
+        assert.isFalse(document.body.classList.contains('dialog-animating'));
         sinon.assert.called(menu.form.focus);
       });
 

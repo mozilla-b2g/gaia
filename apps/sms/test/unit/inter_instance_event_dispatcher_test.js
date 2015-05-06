@@ -1,33 +1,35 @@
 /*global InterInstanceEventDispatcher,
-         MockSharedWorker,
-         SharedWorker
+         MockBroadcastChannel,
+         BroadcastChannel
 */
 
 'use strict';
 
-require('/js/event_dispatcher.js');
-require('/js/iac/event_dispatcher.js');
-require('/test/unit/mock_shared_worker.js');
+require('/shared/js/event_dispatcher.js');
+
+require('/js/inter_instance_event_dispatcher.js');
+require('/test/unit/mock_broadcast_channel.js');
 
 suite('InterInstanceEventDispatcher >', function() {
-  var realSharedWorker;
+  var realBroadcastChannel;
 
   suiteSetup(function() {
-    realSharedWorker = Object.getOwnPropertyDescriptor(window, 'SharedWorker');
-    window.SharedWorker = MockSharedWorker;
+    realBroadcastChannel = Object.getOwnPropertyDescriptor(
+      window, 'BroadcastChannel'
+    );
+    window.BroadcastChannel = MockBroadcastChannel;
   });
 
   suiteTeardown(function() {
-    Object.defineProperty(window, 'SharedWorker', realSharedWorker);
+    Object.defineProperty(window, 'BroadcastChannel', realBroadcastChannel);
   });
 
   setup(function() {
-    this.sinon.spy(window, 'SharedWorker');
-    this.sinon.stub(SharedWorker.prototype.port, 'addEventListener');
-    this.sinon.stub(SharedWorker.prototype.port, 'removeEventListener');
-    this.sinon.stub(SharedWorker.prototype.port, 'start');
-    this.sinon.stub(SharedWorker.prototype.port, 'close');
-    this.sinon.stub(SharedWorker.prototype.port, 'postMessage');
+    this.sinon.spy(window, 'BroadcastChannel');
+    this.sinon.stub(BroadcastChannel.prototype, 'addEventListener');
+    this.sinon.stub(BroadcastChannel.prototype, 'removeEventListener');
+    this.sinon.stub(BroadcastChannel.prototype, 'close');
+    this.sinon.stub(BroadcastChannel.prototype, 'postMessage');
     this.sinon.spy(window, 'addEventListener');
 
     InterInstanceEventDispatcher.connect();
@@ -37,41 +39,43 @@ suite('InterInstanceEventDispatcher >', function() {
     InterInstanceEventDispatcher.disconnect();
   });
 
-  test('correctly connects to SharedWorker', function() {
-    sinon.assert.calledWith(SharedWorker, 'js/iac/shared_worker.js');
+  test('correctly connects to BroadcastChannel', function() {
+    sinon.assert.calledWith(BroadcastChannel, 'messages-channel');
     sinon.assert.calledWith(
-      SharedWorker.prototype.port.addEventListener,
+      BroadcastChannel.prototype.addEventListener,
       'message'
     );
-    sinon.assert.called(SharedWorker.prototype.port.start);
 
-    // Doesn't create new SharedWorker on subsequent connects
     InterInstanceEventDispatcher.connect();
-    sinon.assert.calledOnce(SharedWorker);
+    InterInstanceEventDispatcher.connect();
+    sinon.assert.calledOnce(BroadcastChannel);
 
     InterInstanceEventDispatcher.disconnect();
     InterInstanceEventDispatcher.connect();
-    sinon.assert.calledTwice(SharedWorker);
+    sinon.assert.calledTwice(BroadcastChannel);
   });
 
-  test('correctly disconnects from SharedWorker', function() {
+  test('correctly disconnects from BroadcastChannel', function() {
+    var addEventListenerArgs =
+      BroadcastChannel.prototype.addEventListener.lastCall.args;
     window.addEventListener.withArgs('unload').yield();
 
+    sinon.assert.called(BroadcastChannel.prototype.close);
     sinon.assert.calledWith(
-      SharedWorker.prototype.port.postMessage,
-      { name: 'closed' }
-    );
-    sinon.assert.callOrder(
-      SharedWorker.prototype.port.postMessage,
-      SharedWorker.prototype.port.close
+      BroadcastChannel.prototype.removeEventListener,
+      addEventListenerArgs[0],
+      // Reference to "onmessage" listener function
+      addEventListenerArgs[1]
     );
   });
 
-  test('correctly handles incoming SharedWorker messages', function() {
+  test('correctly handles incoming BroadcastChannel messages', function() {
+    BroadcastChannel.prototype.postMessage.reset();
+
     var onDraftsChangedStub = sinon.stub();
     InterInstanceEventDispatcher.on('drafts-changed', onDraftsChangedStub);
 
-    SharedWorker.prototype.port.addEventListener.withArgs('message').yield({
+    BroadcastChannel.prototype.addEventListener.withArgs('message').yield({
       data: {
         name: 'drafts-changed',
         parameters: { key: 'value' }
@@ -79,9 +83,8 @@ suite('InterInstanceEventDispatcher >', function() {
     });
 
     sinon.assert.calledWith(onDraftsChangedStub, { key: 'value' });
-    sinon.assert.notCalled(SharedWorker.prototype.port.postMessage);
 
-    SharedWorker.prototype.port.addEventListener.withArgs('message').yield({
+    BroadcastChannel.prototype.addEventListener.withArgs('message').yield({
       data: {
         name: 'drafts-changed',
         parameters: { key: 'value#2' }
@@ -90,20 +93,11 @@ suite('InterInstanceEventDispatcher >', function() {
 
     sinon.assert.calledTwice(onDraftsChangedStub);
     sinon.assert.calledWith(onDraftsChangedStub, { key: 'value#2' });
-    sinon.assert.notCalled(SharedWorker.prototype.port.postMessage);
 
-    // correctly handles ping messages
-    SharedWorker.prototype.port.addEventListener.withArgs('message').yield({
-      data: { name: 'ping' }
-    });
-    sinon.assert.calledTwice(onDraftsChangedStub);
-    sinon.assert.calledWith(
-      SharedWorker.prototype.port.postMessage,
-      { name: 'pong' }
-    );
+    sinon.assert.notCalled(BroadcastChannel.prototype.postMessage);
   });
 
-  test('correctly handles outgoing SharedWorker messages', function() {
+  test('correctly handles outgoing BroadcastChannel messages', function() {
     var onDraftsChangedStub = sinon.stub();
     InterInstanceEventDispatcher.on('drafts-changed', onDraftsChangedStub);
 
@@ -114,11 +108,11 @@ suite('InterInstanceEventDispatcher >', function() {
     InterInstanceEventDispatcher.disconnect();
     assert.throws(() => {
       InterInstanceEventDispatcher.emit('drafts-changed', { key: 'value' });
-    }, 'Worker is not connected!');
+    }, 'Channel is not created!');
     InterInstanceEventDispatcher.connect();
 
     InterInstanceEventDispatcher.emit('drafts-changed', { key: 'value' });
-    sinon.assert.calledWith(SharedWorker.prototype.port.postMessage, {
+    sinon.assert.calledWith(BroadcastChannel.prototype.postMessage, {
       name: 'drafts-changed',
       parameters: { key: 'value' }
     });

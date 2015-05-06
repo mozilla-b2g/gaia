@@ -1,7 +1,9 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow,
-   MockService, MockPromise, MockAppWindow */
+   MockService, MockPromise, MockAppWindow, MockUtilityTray */
 
+require('/js/browser.js');
+require('/js/browser_config_helper.js');
 require('/shared/js/event_safety.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
@@ -10,6 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_iac_handler.js');
+requireApp('system/test/unit/mock_utility_tray.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
@@ -17,7 +20,8 @@ var mocksForRocketbar = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'Service',
-  'IACPort'
+  'IACPort',
+  'UtilityTray'
 ]).init();
 
 suite('system/Rocketbar', function() {
@@ -157,7 +161,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('apploading'));
     assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    var trayOpenedEvent = 'utility-tray-overlayopening';
+    var trayOpenedEvent = 'utilitytray-overlayopening';
     assert.ok(windowAddEventListenerStub.calledWith(trayOpenedEvent));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
@@ -253,6 +257,15 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
+  test('handleEvent() - simlockrequestfocus', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'simlockrequestfocus'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
   test('handleEvent() - apploading', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
@@ -289,10 +302,19 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
-  test('handleEvent() - utility-tray-overlayopening', function() {
+  test('handleEvent() - utilitytray-overlayopening', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
-    var event = {type: 'utility-tray-overlayopening'};
+    var event = {type: 'utilitytray-overlayopening'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - cardviewbeforeshow', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'cardviewbeforeshow'};
     subject.handleEvent(event);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(deactivateStub.calledOnce);
@@ -362,10 +384,12 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleEvent() - click clear button', function() {
-    var clearStub = this.sinon.stub(subject, 'clear');
+    var setInputStub = this.sinon.stub(subject, 'setInput');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var event = {type: 'click', target: subject.clearBtn};
     subject.handleEvent(event);
-    assert.ok(clearStub.calledOnce);
+    assert.ok(setInputStub.calledWith(''));
+    assert.ok(hideResultsStub.calledOnce);
   });
 
   test('handleEvent() - click backdrop', function() {
@@ -650,19 +674,26 @@ suite('system/Rocketbar', function() {
         resize: function() {}
       };
       var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
-      var respond =
+      var stopsPropagation =
         subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
 
       assert.ok(stub.calledOnce);
-      assert.isFalse(respond);
+      assert.isFalse(stopsPropagation);
 
       stub.restore();
     });
 
     test('Search window without front window', function() {
-      var respond =
+      var stopsPropagation =
         subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
-      assert.isTrue(respond);
+      assert.isFalse(stopsPropagation);
+    });
+
+    test('Rocketbar is inactive', function() {
+      subject.deactivate();
+      var stopsPropagation =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+      assert.isTrue(stopsPropagation);
     });
   });
 
@@ -675,30 +706,59 @@ suite('system/Rocketbar', function() {
     assert.ok(hideResultsStub.calledOnce);
   });
 
-  test('handleInput()', function() {
-    MockService.currentApp = {
-      isPrivateBrowser: function() {
-        return false;
-      }
-    };
-    var showResultsStub = this.sinon.stub(subject, 'showResults');
+  test('_handle_home - during activate', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    this.sinon.stub(subject, 'isActive').returns(true);
 
-    // With input
-    subject.input.value = 'abc';
-    subject.results.classList.add('hidden');
-    subject.handleInput();
-    assert.ok(showResultsStub.calledOnce);
-    assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    var fakePromise = new MockPromise();
+    subject._activateCall = fakePromise;
 
-    // With no input
-    subject.input.value = '';
-    subject.results.classList.remove('hidden');
-    subject.handleInput();
+    subject._handle_home();
+    fakePromise.mFulfillToValue();
+    assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
+  });
 
-    showResultsStub.restore();
-    hideResultsStub.restore();
+  suite('handleInput()', function() {
+    var showResultsStub, hideResultsStub, closeSearchStub;
+
+    setup(function() {
+      MockService.currentApp = {
+        isPrivateBrowser: function() {
+          return false;
+        }
+      };
+      showResultsStub = this.sinon.stub(subject, 'showResults');
+      hideResultsStub = this.sinon.stub(subject, 'hideResults');
+      closeSearchStub = this.sinon.stub(subject, '_closeSearch');
+    });
+
+    test('With input', function() {
+      subject.input.value = 'abc';
+      subject.results.classList.add('hidden');
+      subject.handleInput();
+      assert.ok(showResultsStub.calledOnce);
+      assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    });
+
+    test('With no input', function() {
+      subject.input.value = '';
+      subject.results.classList.remove('hidden');
+      subject.handleInput();
+      assert.ok(hideResultsStub.calledOnce);
+      assert.isFalse(closeSearchStub.calledOnce);
+    });
+
+    test('With utility tray active', function() {
+      MockUtilityTray.active = true;
+      subject.input.value = 'abc';
+      subject.results.classList.remove('hidden');
+      subject.handleInput();
+      assert.ok(closeSearchStub.calledOnce);
+      MockUtilityTray.active = false;
+    });
+
   });
 
   test('handleSubmit()', function(done) {
@@ -800,6 +860,16 @@ suite('system/Rocketbar', function() {
     subject.handleSearchMessage(event);
     assert.ok(hideResultsStub.calledOnce);
 
+    // private-window message
+    var eventStub = sinon.spy(window, 'dispatchEvent');
+    subject.handleSearchMessage({
+      type: 'iac-search-results',
+      detail: {
+        action: 'private-window'
+      }
+    });
+    assert.equal(eventStub.getCall(0).args[0].type, 'new-private-window');
+
     // No _port
     subject._port = null;
     subject.handleSearchMessage(event);
@@ -808,6 +878,7 @@ suite('system/Rocketbar', function() {
 
     initSearchConnectionStub.restore();
     hideResultsStub.restore();
+    eventStub.restore();
   });
 
   test('updateSearchIndex()', function() {
@@ -908,6 +979,18 @@ suite('system/Rocketbar', function() {
     sinon.assert.notCalled(focusStub);
     activation.then(function() {
       sinon.assert.calledOnce(focusStub);
+      done();
+    });
+  });
+
+  test('calls _closeSearch if the utility tray is active', function(done) {
+    subject.active = true;
+    MockUtilityTray.active = true;
+
+    var stub = this.sinon.stub(subject, '_closeSearch');
+    subject.activate().then(() => {
+      assert.ok(stub.calledOnce);
+      MockUtilityTray.active = false;
       done();
     });
   });

@@ -113,6 +113,7 @@
       window.addEventListener('secure-appclosed', this);
       window.addEventListener('secure-appopened', this);
       window.addEventListener('rocketbar-overlayopened', this);
+      window.addEventListener('languagechange', this);
       Service.request('registerHierarchy', this);
     },
 
@@ -135,6 +136,7 @@
       window.removeEventListener('secure-appclosed', this);
       window.removeEventListener('secure-appopened', this);
       window.removeEventListener('rocketbar-overlayopened', this);
+      window.removeEventListener('languagechange', this);
       Service.request('unregisterHierarchy', this);
     },
 
@@ -250,7 +252,7 @@
 
         case 'launchapp':
           if (evt.detail && evt.detail.stayBackground) {
-            break; 
+            break;
           } // jshint ignore:line
         case 'emergencyalert':
         case 'rocketbar-overlayopened':
@@ -262,6 +264,7 @@
         case 'lockscreen-appopened':
         case 'secure-appopened':
         case 'secure-appclosed':
+        case 'languagechange':
           this._instances.forEach(function(instance) {
             instance.broadcast(evt.type);
           });

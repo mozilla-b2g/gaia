@@ -52,18 +52,32 @@ exports.LanguageList = {
   _readSetting: readSetting,
 
   _extendPseudo: function(languages, currentLang, qpsEnabled) {
-    if (!navigator.mozL10n) {
-      return languages;
-    }
+    var lang;
+    var isCurrent;
 
-    for (var lang in navigator.mozL10n.qps) {
-      var isCurrent = (lang === currentLang);
-      if (isCurrent || qpsEnabled) {
-        languages[lang] = navigator.mozL10n.qps[lang].name;
+    if (!qpsEnabled) {
+      // remove buildtime pseudolocales
+      for (lang in languages) {
+        isCurrent = (lang === currentLang);
+        if (lang.indexOf('qps') === 0 && !isCurrent) {
+          delete languages[lang];
+        }
       }
     }
 
-    return languages;
+    if (navigator.mozL10n) {
+      // add runtime pseudolocales
+      for (lang in navigator.mozL10n.qps) {
+        if (lang in languages) {
+          continue;
+        }
+        isCurrent = (lang === currentLang);
+        if (isCurrent || qpsEnabled) {
+          languages[lang] = navigator.mozL10n.qps[lang].name;
+        }
+      }
+    }
+
   },
 
   _extendAdditional: function(languages, ver, additional) {
@@ -77,8 +91,14 @@ exports.LanguageList = {
         }
       }
     }
+  },
 
-    return languages;
+  _copyObj: function(obj) {
+    var copy = Object.create(null);
+    for (var prop in obj) {
+      copy[prop] = obj[prop];
+    }
+    return copy;
   },
 
   _parseVersion: function(ver) {
@@ -93,7 +113,7 @@ exports.LanguageList = {
       this._readSetting('devtools.qps.enabled'),
       navigator.mozApps.getAdditionalLanguages()
     ]).then(function([langsFromFile, ver, current, qpsEnabled, addl]) {
-      var langs = Object.create(langsFromFile);
+      var langs = this._copyObj(langsFromFile);
       this._extendPseudo(langs, current, qpsEnabled);
       this._extendAdditional(langs, this._parseVersion(ver), addl);
       return [langs, current];

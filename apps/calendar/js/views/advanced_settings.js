@@ -3,7 +3,8 @@ define(function(require, exports, module) {
 
 var AlarmTemplate = require('templates/alarm');
 var View = require('view');
-var providerFactory = require('provider/provider_factory');
+var core = require('core');
+var router = require('router');
 var template = require('templates/account');
 
 require('dom!advanced-settings-view');
@@ -25,7 +26,7 @@ AdvancedSettings.prototype = {
     createAccountButton: '#advanced-settings-view .create-account',
     accountListHeader: '#advanced-settings-view .account-list-header',
     syncFrequency: '#setting-sync-frequency',
-
+    header: '#advanced-settings-header',
     standardAlarmLabel: '#default-event-alarm',
     alldayAlarmLabel: '#default-allday-alarm'
   },
@@ -54,6 +55,10 @@ AdvancedSettings.prototype = {
     return this._findElement('alldayAlarmLabel');
   },
 
+  get header() {
+    return this._findElement('header');
+  },
+
   get standardAlarm() {
     return this.standardAlarmLabel.querySelector('select');
   },
@@ -73,13 +78,14 @@ AdvancedSettings.prototype = {
   },
 
   _displayAccount: function(account) {
-    var provider = providerFactory.get(account.providerType);
+    var provider = core.providerFactory.get(account.providerType);
     return provider.hasAccountSettings;
   },
 
   _initEvents: function() {
-    var account = this.app.store('Account');
-    var setting = this.app.store('Setting');
+    var storeFactory = core.storeFactory;
+    var account = storeFactory.get('Account');
+    var setting = storeFactory.get('Setting');
 
     account.on('add', this._addAccount.bind(this));
     account.on('update', this._updateAccount.bind(this));
@@ -103,7 +109,7 @@ AdvancedSettings.prototype = {
   },
 
   handleSettingUiChange: function(type, value) {
-    var store = this.app.store('Setting');
+    var store = core.storeFactory.get('Setting');
     // basic conversions
     if (value === 'null') {
       value = null;
@@ -136,7 +142,7 @@ AdvancedSettings.prototype = {
   onCreateAccount: function(event) {
     event.stopPropagation();
     event.preventDefault();
-    this.app.router.show(event.target.getAttribute('href'));
+    router.show(event.target.getAttribute('href'));
   },
 
   _addAccount: function(id, model) {
@@ -236,8 +242,11 @@ AdvancedSettings.prototype = {
       };
     }
 
-    var settings = this.app.store('Setting');
-    var accounts = this.app.store('Account');
+    this.header.runFontFitSoon();
+
+    var storeFactory = core.storeFactory;
+    var settings = storeFactory.get('Setting');
+    var accounts = storeFactory.get('Account');
 
     settings.getValue('syncFrequency', renderSyncFrequency);
     settings.getValue('standardAlarmDefault', renderAlarmDefault('standard'));

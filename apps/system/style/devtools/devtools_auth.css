@@ -1,0 +1,36 @@
+#devtools-auth-dialog:before {
+  display: none;
+}
+
+#devtools-auth-dialog {
+  padding: 0;
+}
+
+#devtools-auth-dialog .container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#devtools-auth-dialog header {
+  font-size: 1.5rem;
+  font-weight: normal;
+  padding: 1rem 1.5rem;
+  white-space: normal;
+}
+
+#devtools-auth-dialog .video-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#devtools-auth-dialog video {
+  height: 100%;
+  object-fit: cover;
+}
+
+#devtools-auth-dialog menu {
+  position: static;
+}

@@ -1,4 +1,4 @@
-/* global IACHandler, SimpleKeyNavigation, KeyEvent, AppWindowManager */
+/* global IACHandler, SimpleKeyNavigation, KeyEvent, focusManager */
 
 (function(exports) {
   'use strict';
@@ -61,6 +61,8 @@
 
     this._banner = $('notification-container');
     this._banner.setAttribute('aria-hidden', 'true');
+    this._banner.tabIndex = -1;
+    focusManager.addUI(this);
   }
 
   InteractiveNotifications.TYPE = Object.freeze(TYPE);
@@ -100,7 +102,7 @@
     // back key in other cases.
     window.addEventListener('keyup', this);
 
-    this._banner.addEventListener('transitionend', this);
+    this._banner.addEventListener('hidden', this);
     this._banner.on('opened', this._focusNotification.bind(this));
   };
 
@@ -115,11 +117,13 @@
             break;
         }
         break;
-      case 'transitionend':
-        this._handleTransition(e);
-        break;
       case 'keyup':
         this._handleKeyEvent(e);
+        break;
+      case 'hidden':
+        this.onHide();
+        this._banner.classList.add('hidden');
+        this._showPendings();
         break;
     }
   };
@@ -134,21 +138,6 @@
         break;
     }
   },
-
-  proto._handleTransition = function in_handleTransition(e) {
-    if (e.propertyName !== 'opacity') {
-      return;
-    }
-
-    if (this._banner.classList.contains('fading-out')) {
-      // keep fade-out for next opening.
-      this._banner.classList.add('hidden');
-      this._showPendings();
-    } else if (this._banner.classList.contains('closed') &&
-        !this._banner.classList.contains('hidden')) {
-      this._banner.open();
-    }
-  };
 
   proto._updateNotificationUI = function in_updateNotificationUI(type, msg) {
     var banner = this._banner;
@@ -192,14 +181,7 @@
     }
 
     banner.classList.remove('hidden');
-    // XXX: This is a workaround to let banner be shown and recalculate the
-    // opacity. If we don't add any number here, it still not work. The first
-    // known workable value is 10. But we should use larger value if we want to
-    // run it at non-high-end device.
-    // Without this workaround, the banner will not have a fade in transition.
-    setTimeout(function() {
-      banner.classList.remove('fading-out');
-    }, 100);
+    banner.flyOpen();
   };
 
   proto._focusNotification = function in_focusNotification() {
@@ -209,9 +191,27 @@
       // focus() for us when the focus switches to another button.
       this._keyNavigator.start([$('notification-button-0'),
                                 $('notification-button-1')],
-                               SimpleKeyNavigation.DIRECTION.HORIZONTAL);
-    } else {
+                               SimpleKeyNavigation.DIRECTION.HORIZONTAL,
+                               {target: this._banner});
+    }
+    focusManager.focus();
+  };
+
+  proto.focus = function in_focus() {
+    if (this.isFocusable()) {
       document.activeElement.blur();
+      this._activeMessage.buttons ?
+                        this._keyNavigator.focus() : this._banner.focus();
+    }
+  };
+
+  proto.isFocusable = function in_isFocusable() {
+    return !!this._activeMessage;
+  };
+
+  proto.getElement = function in_getElement() {
+    if (this.isFocusable()) {
+      return this._banner;
     }
   };
 
@@ -225,7 +225,7 @@
                 this._activeType === TYPE.ALERT)) {
       // already have one, just pending it.
       this._pendingMessages[TYPE.NORMAL].push(msg);
-    } else  if (type === TYPE.ALERT && this._activeMessage) {
+    } else if (type === TYPE.ALERT && this._activeMessage) {
       // type === alert and _activeType is null or normal.
       // We show alert anyway and hide the normal one if one is shown.
       window.clearTimeout(this._activeTimeout);
@@ -270,24 +270,30 @@
            this._pendingMessages[TYPE.NORMAL].length;
   };
 
+  proto.onHide = function in_onHide() {
+    if (this._activeMessage.onClosed) {
+      this._activeMessage.onClosed(this._activeMessage.closedBy);
+    }
+
+    if (this._activeMessage.buttons &&
+        this._activeMessage.buttons.length > 0) {
+      // We need to stop KeyNavigator while we don't need it.
+      this._keyNavigator.stop();
+    }
+
+    if (!this.hasPendings()) {
+      focusManager.focus();
+    }
+
+    this._activeType = null;
+    this._activeMessage = null;
+  };
+
   proto.hideNotification = function in_hideNotification(type, msg, button) {
     if (this._activeType === type && this._activeMessage === msg) {
       this._banner.setAttribute('aria-hidden', 'true');
-      this._banner.classList.add('fading-out');
-      this._banner.close();
-      if (msg.onClosed) {
-        msg.onClosed(button);
-      }
-      this._activeType = null;
-      this._activeMessage = null;
-
-      if (!this.hasPendings() && window.AppWindowManager &&
-          AppWindowManager.getActiveApp()) {
-        // We need to stop KeyNavigator while we don't need it.
-        this._keyNavigator.stop();
-        // If there is active app, we need to focus it back.
-        AppWindowManager.getActiveApp().getTopMostWindow().focus();
-      }
+      this._activeMessage.closedBy = button;
+      this._banner.hide();
     } else {
       var queue = this._pendingMessages[type];
       var idx = queue.indexOf(msg);
@@ -298,6 +304,7 @@
         }
       }
     }
+    focusManager.focus();
   };
 
   exports.InteractiveNotifications = InteractiveNotifications;

@@ -1,7 +1,6 @@
 'use strict';
 /* global BatteryOverlay,
           NotificationHelper,
-          MockBluetooth,
           MockNavigatorBattery,
           MockNavigatorSettings,
           MockSettingsListener,
@@ -13,26 +12,26 @@ requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_notification_helper.js');
-requireApp('system/test/unit/mock_bluetooth.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/js/service.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/base_icon.js');
+requireApp('system/js/battery_icon.js');
 requireApp('system/js/power_save.js');
 requireApp('system/js/battery_overlay.js');
 
 var mocksForPowerSave = new MocksHelper([
-  'SettingsListener', 'NotificationHelper'
+  'SettingsListener', 'NotificationHelper', 'LazyLoader'
 ]).init();
 
 suite('power save >', function() {
 
-  var realBluetooth;
   var realMozSettings;
   var subject;
   var realBattery, battery;
 
   mocksForPowerSave.attachTestHelpers();
   suiteSetup(function() {
-    realBluetooth = window.Bluetooth;
-    window.Bluetooth = MockBluetooth;
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -52,7 +51,6 @@ suite('power save >', function() {
     window.batteryOverlay = null;
 
     navigator.mozSettings = realMozSettings;
-    window.Bluetooth = realBluetooth;
   });
 
   suite('restores state >', function() {

@@ -195,6 +195,43 @@ suite('SettingsPromiseManager', function() {
       done();
     });
   });
+
+  test('update one', function(done) {
+    var mozSettings = navigator.mozSettings = new MockNavigatorMozSettings();
+    var createLockStub = this.sinon.stub(mozSettings, 'createLock');
+    var lock = new MockNavigatorMozSettingsLock();
+    var lockGetSpy = this.sinon.spy(lock, 'get');
+    var lockSetSpy = this.sinon.spy(lock, 'set');
+    createLockStub.returns(lock);
+
+    var callback = this.sinon.spy(function(val) {
+      return 'bar2';
+    });
+
+    var promiseManager = new SettingsPromiseManager();
+    var p = promiseManager.updateOne('foo', callback);
+
+    assert.isTrue(createLockStub.calledOnce);
+
+    assert.isTrue(lockGetSpy.calledOnce);
+    assert.isTrue(lockGetSpy.calledWith('foo'));
+
+    var req = lockGetSpy.getCall(0).returnValue;
+    req.fireSuccess({ 'foo': 'bar' });
+
+    assert.isTrue(callback.calledOnce);
+
+    assert.isTrue(lockSetSpy.calledOnce);
+    assert.isTrue(lockSetSpy.calledWith({ 'foo': 'bar2' }));
+
+    var req2 = lockSetSpy.getCall(0).returnValue;
+    req2.fireSuccess(0);
+
+    p.then(function() {
+      assert.isTrue(createLockStub.calledOnce, 'Use one lock only.');
+      assert.isTrue(callback.calledOnce, 'callback called once only.');
+    }).then(done, done);
+  });
 });
 
 suite('SettingsManagerBase', function() {

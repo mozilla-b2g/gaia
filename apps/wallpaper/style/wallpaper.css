@@ -1,8 +1,16 @@
+* {
+  /**
+    By default do not allow any user text selection, only enable
+    for certain parts on a per-element/region area
+  */
+    -moz-user-select: none;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   font-size: 10px;
-  background-color: #26272c;
+  background-color: #000;
   overflow: hidden;
   height: 100%;
 }
@@ -14,16 +22,20 @@ html, body {
 }
 
 .wallpaper {
-  border-bottom: 0.1rem solid #000000;
-  border-right: 0.1rem solid #000000;
   position: relative;
   overflow: hidden;
   float: left;
   width: 33%;
+  -moz-margin-end: 0.1rem;
+  margin-bottom: 0.1rem;
+}
+
+html[dir="rtl"] .wallpaper {
+  float: right;
 }
 
 #wallpapers .wallpaper:nth-child(3n) {
-  border-right: none;
+  -moz-margin-end: 0;
 }
 
 /* for the share activity */
@@ -34,6 +46,11 @@ html, body {
   width: 100%;
   height: 100%;
   overflow:hidden;
+  /*
+   * The image positioning code in share.js assumes the preview image
+   * is positioned in the upper-left corner
+   */
+  direction: ltr;
 }
 
 #buttons {

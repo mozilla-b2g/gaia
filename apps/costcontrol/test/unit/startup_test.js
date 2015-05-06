@@ -6,7 +6,6 @@
 /* exported PerformanceTestingHelper */
 'use strict';
 
-require('/shared/js/usertiming.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_debug.js');

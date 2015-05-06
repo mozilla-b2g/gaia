@@ -698,11 +698,13 @@ suite('Settings Test Suite >', function() {
         dataLimitInput.value = '124.56';
         dataLimitInput.dispatchEvent(evtInput);
 
-        var limitUnitValue = dataLimitSwitchUnitButton
-          .querySelector('span.tag');
-        assert.equal(limitUnitValue.textContent, 'MB');
+        assert.equal(dataLimitSwitchUnitButton.getAttribute('data-l10n-id'),
+                     'unit-MB');
+        assert.equal(limitUnitValue.getAttribute('data-l10n-id'), 'MB');
         triggerEvent(dataLimitSwitchUnitButton, 'click');
-        assert.equal(limitUnitValue.textContent, 'GB');
+        assert.equal(dataLimitSwitchUnitButton.getAttribute('data-l10n-id'),
+                     'unit-GB');
+        assert.equal(limitUnitValue.getAttribute('data-l10n-id'), 'GB');
 
         sinon.stub(SimManager, 'requestDataSimIcc', function() {});
         triggerEvent(dataLimitOkButton, 'click');

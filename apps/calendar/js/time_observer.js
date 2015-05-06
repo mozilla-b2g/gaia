@@ -1,138 +1,108 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Timespan = require('timespan');
+// this module abstracts minute and day changes, it should be used by all the
+// views that needs to listen for time changes (ie. update current time/date).
+// listeners are enabled/disabled when the document visibility changes,
+// reducing battery usage and making sure we always display the proper value.
+// ---
+// XXX: we don't listen to moztimechange here because the app forces a restart
+// when the time changes; even if the app did not restart we would still need
+// to trigger a refresh of most of the views (timezone affects the way we
+// busytimes are rendered in all the views, even the view/edit event views)
+// see: https://bugzilla.mozilla.org/show_bug.cgi?id=1093016#c9
 
-function TimeObserver() {
-  this._timeObservers = [];
-}
-module.exports = TimeObserver;
+var EventEmitter2 = require('ext/eventemitter2');
 
-TimeObserver.enhance = function(given) {
-  var key;
-  var proto = TimeObserver.prototype;
-  for (key in proto) {
-    if (proto.hasOwnProperty(key)) {
-      given[key] = proto[key];
-    }
+exports = module.exports = new EventEmitter2();
+
+exports.on = function() {
+  EventEmitter2.prototype.on.apply(this, arguments);
+  this._start();
+};
+
+exports.once = function() {
+  EventEmitter2.prototype.once.apply(this, arguments);
+  this._start();
+};
+
+exports.off = function() {
+  EventEmitter2.prototype.off.apply(this, arguments);
+  this._autoStop();
+};
+
+exports.removeAllListeners = function() {
+  EventEmitter2.prototype.removeAllListeners.apply(this, arguments);
+  this._autoStop();
+};
+
+exports._autoStop = function() {
+  if (!this._hasListeners()) {
+    this._stop();
   }
 };
 
-TimeObserver.prototype = {
- /**
-   * Adds observer for timespan.
-   *
-   * Object example:
-   *
-   *    object.handleEvent = function(e) {
-   *      // e.type
-   *      // e.data
-   *      // e.time
-   *    }
-   *
-   *    // when given an object
-   *    EventStore.observe(timespan, object)
-   *
-   *
-   * Callback example:
-   *
-   *    EventStore.observe(timespan, function(event) {
-   *      // e.type
-   *      // e.data
-   *      // e.time
-   *    });
-   *
-   * @param {Calendar.Timespan} timespan span to observe.
-   * @param {Function|Object} callback function or object follows
-   *                                   EventTarget pattern.
-   */
-  observeTime: function(timespan, callback) {
-    if (!(timespan instanceof Timespan)) {
-      throw new Error(
-        'must pass an instance of Timespan as first argument'
-      );
-    }
-    this._timeObservers.push([timespan, callback]);
-  },
+exports._hasListeners = function() {
+  return this.listeners('day').length > 0 ||
+    this.listeners('minute').length > 0;
+};
 
-  /**
-   * Finds index of timespan/object|callback pair.
-   *
-   * Used internally and in tests has little practical use
-   * unless you have the original timespan object.
-   *
-   * @param {Calendar.Timespan} timespan original (===) timespan used.
-   * @param {Function|Object} callback original callback/object.
-   * @return {Numeric} -1 when not found otherwise index.
-   */
-  findTimeObserver: function(timespan, callback) {
-    var len = this._timeObservers.length;
-    var field;
-    var i = 0;
+exports._timeout = null;
+exports._prevTick = null;
 
-    for (; i < len; i++) {
-      field = this._timeObservers[i];
-
-      if (field[0] === timespan &&
-          field[1] === callback) {
-
-        return i;
-      }
-    }
-
-    return -1;
-  },
-
-  /**
-   * Removes a time observer you
-   * must pass the same instance of both
-   * the timespan and the callback/object
-   *
-   *
-   * @param {Calendar.Timespan} timespan timespan object.
-   * @param {Function|Object} callback original callback/object.
-   * @return {Boolean} true when found & removed callback.
-   */
-  removeTimeObserver: function(timespan, callback) {
-    var idx = this.findTimeObserver(timespan, callback);
-
-    if (idx !== -1) {
-      this._timeObservers.splice(idx, 1);
-      return true;
-    } else {
-      return false;
-    }
-  },
-
-  /**
-   * Fires a time based event.
-   *
-   * @param {String} type name of event.
-   * @param {Date|Numeric} start start position of time event.
-   * @param {Date|Numeric} end end position of time event.
-   * @param {Object} data data related to event.
-   */
-  fireTimeEvent: function(type, start, end, data) {
-    var i = 0;
-    var len = this._timeObservers.length;
-    var observer;
-    var event = {
-      time: true,
-      data: data,
-      type: type
-    };
-
-    for (; i < len; i++) {
-      observer = this._timeObservers[i];
-      if (observer[0].overlaps(start, end)) {
-        if (typeof(observer[1]) === 'object') {
-          observer[1].handleEvent(event);
-        } else {
-          observer[1](event);
-        }
-      }
-    }
+exports._start = function() {
+  if (this._timeout || !this._hasListeners()) {
+    return;
   }
+  this._prevTick = new Date();
+  this._timeout = setTimeout(this._tick, this._nextMinute());
+};
+
+exports._stop = function() {
+  if (this._timeout) {
+    window.clearTimeout(this._timeout);
+    this._timeout = null;
+  }
+};
+
+exports._tick = function() {
+  this._stop();
+  this._exec();
+  this._start();
+}.bind(exports);
+
+exports._nextMinute = function() {
+  var now = new Date();
+  return (60 - now.getSeconds()) * 1000;
+};
+
+exports._exec = function() {
+  var now = new Date();
+  var prev = this._prevTick;
+  if (prev.getMinutes() !== now.getMinutes()) {
+    this.emit('minute');
+  }
+  if (prev.getDate() !== now.getDate()) {
+    this.emit('day');
+  }
+};
+
+exports.init = function() {
+  document.addEventListener('visibilitychange', () => {
+    exports._toggleStatusOnVisibilityChange(document.hidden);
+  });
+  exports._start();
+};
+
+exports._toggleStatusOnVisibilityChange = function(hidden) {
+  // we trigger an update as soon as document is visible to avoid issues with
+  // timer not being fired (eg. timer was disabled and day/minute changed while
+  // app was hidden)
+  if (!hidden) {
+    exports._exec();
+  }
+  var method = hidden ? '_stop' : '_start';
+  exports[method]();
 };
 
 });

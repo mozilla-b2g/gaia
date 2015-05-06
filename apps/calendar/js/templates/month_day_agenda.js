@@ -36,7 +36,7 @@ var MonthDayAgenda = create({
       <div class="gaia-icon icon-calendar-dot" style="color:${color}"
           aria-hidden="true"></div>
         <div class="event-time">${eventTime}</div>
-        <div class="event-details">${eventDetails}</div>
+        <div class="event-details" dir="auto">${eventDetails}</div>
         <div id="${busytimeId}-icon-calendar-alarm" aria-hidden="true"
           class="gaia-icon icon-calendar-alarm" style="color:${color}"
           data-l10n-id="icon-calendar-alarm"></div>

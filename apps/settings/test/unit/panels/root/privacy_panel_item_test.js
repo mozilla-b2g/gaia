@@ -58,14 +58,4 @@ suite('PrivacyPanelItem', function() {
       }
     ).then(done, done);
   });
-
-  test('launch privacy panel app (_launch method)', function(done) {
-    navigator.mozSettings.addObserver('privacypanel.launched.by.settings',
-      function(value) {
-        assert.isTrue(value.settingValue);
-        done();
-      }
-    );
-    this.element.click();
-  });
 });

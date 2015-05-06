@@ -75,6 +75,13 @@ ul.compact li label:active {
   display: none;
 }
 
+#time-select {
+  /* Bug 1117652: copypaste bubble would be triggered if tapping or longpressing
+                  on the input field, so we let the cursor out of the screen to
+                  prevent it. */
+  text-indent: 110%;
+}
+
 /**
  * 1. COMPLEX: Scoped style-sheets within <gaia-header>
  * trump all other rules. !important is required

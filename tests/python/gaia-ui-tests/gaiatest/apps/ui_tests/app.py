@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette.by import By
-except:
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -30,43 +27,51 @@ class UiTests(Base):
         Base.launch(self, launch_timeout=120000)
 
     def tap_ui_button(self):
-        self.wait_for_element_displayed(*self._ui_page_locator)
-        self.marionette.find_element(*self._ui_page_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._ui_page_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_api_button(self):
-        self.wait_for_element_displayed(*self._api_page_locator)
-        self.marionette.find_element(*self._api_page_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._api_page_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_hw_button(self):
-        self.wait_for_element_displayed(*self._hw_page_locator)
-        self.marionette.find_element(*self._hw_page_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._hw_page_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()
 
     def tap_moz_id_button(self):
-        self.wait_for_element_displayed(*self._moz_id_persona_tests_button_locator, timeout=120)
+        element = Wait(self.marionette, timeout=120).until(
+            expected.element_present(*self._moz_id_persona_tests_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
         # Hack to make the identity button visible from underneath the toolbar
-        mozId_button = self.marionette.find_element(*self._moz_id_persona_tests_button_locator)
-        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [mozId_button])
-        mozId_button.tap()
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [element])
+        element.tap()
 
         from gaiatest.apps.ui_tests.regions.persona import Persona
 
         return Persona(self.marionette)
 
     def tap_keyboard_option(self):
-        self.wait_for_element_displayed(*self._keyboard_locator, timeout=120)
+        element = Wait(self.marionette, timeout=120).until(
+            expected.element_present(*self._keyboard_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
         # Hack to make the keyboard button visible from underneath the toolbar
-        keyboard_button = self.marionette.find_element(*self._keyboard_locator)
-        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [keyboard_button])
-        keyboard_button.tap()
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [element])
+        element.tap()
 
         from gaiatest.apps.ui_tests.regions.keyboard import KeyboardPage
 
         return KeyboardPage(self.marionette)
 
     def tap_back_button(self):
-        self.wait_for_element_displayed(*self._test_panel_header_locator)
-
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._test_panel_header_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
         # TODO: remove tap with coordinates after Bug 1061698 is fixed
-        self.marionette.find_element(*self._test_panel_header_locator).tap(25, 25)
-
-        self.wait_for_element_not_displayed(*self._test_panel_header_locator)
+        element.tap(25, 25)
+        Wait(self.marionette).until(expected.element_not_displayed(element))

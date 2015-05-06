@@ -8,7 +8,7 @@ gaia-overflow-menu {
   z-index: 1001;
   padding: 11.4rem 3rem 0;
   background-color: rgba(231, 231, 231, 0.6);
-  transition: opacity 0.3s;
+  transition: opacity var(--transition-duration);
   pointer-events: auto;
 }
 
@@ -39,7 +39,7 @@ gaia-overflow-menu.showing::before {
   will-change: transform;
 
   animation-name: grow;
-  animation-duration: 0.4s;
+  animation-duration: var(--transition-duration);
 }
 
 gaia-overflow-menu.hiding {

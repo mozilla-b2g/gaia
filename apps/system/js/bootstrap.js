@@ -1,11 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, SecureWindowFactory,
+/*global ActivityHandler, ActivityWindowManager, Browser, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher, HomescreenWindowManager,
-         FtuLauncher, SourceView, ScreenManager, Places, Activities,
+         FtuLauncher, SourceView, ScreenManager, Places,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, UsbStorage, TaskManager,
+         VisibilityManager, UsbStorage, TaskManager, Import,
          SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
@@ -15,7 +15,8 @@
          ExternalStorageMonitor, TrustedWindowManager,
          BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager */
+         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
+         DevToolsAuth */
 'use strict';
 
 /* === Shortcuts === */
@@ -137,7 +138,6 @@ window.addEventListener('load', function startup() {
   window.homescreenWindowManager.start();
 
   // Please sort it alphabetically
-  window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
   window.appMigrator = new AppMigrator();
@@ -154,6 +154,7 @@ window.addEventListener('load', function startup() {
   window.cpuManager.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
+  window.devToolsAuth = new DevToolsAuth();
   /** @global */
   window.attentionWindowManager = new window.AttentionWindowManager();
   window.attentionWindowManager.start();
@@ -238,36 +239,12 @@ window.addEventListener('wallpaperchange', function(evt) {
     'url(' + evt.detail.url + ')';
 });
 
+
+window.browser = new Browser();
+window.browser.start();
+window.import = new Import();
+window.import.start();
+window.activityHandler = new ActivityHandler();
+window.activityHandler.start();
 window.browserSettings = new BrowserSettings();
 window.browserSettings.start();
-
-
-/* === XXX Bug 900512 === */
-// On some devices touching the hardware home button triggers
-// touch events at position 0,0. In order to make sure those does
-// not trigger unexpected behaviors those are captured here.
-function cancelHomeTouchstart(e) {
-  if (e.touches[0].pageX === 0 && e.touches[0].pageY === 0) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-  }
-}
-
-function cancelHomeTouchend(e) {
-  if (e.changedTouches[0].pageX === 0 && e.changedTouches[0].pageY === 0) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-  }
-}
-
-function cancelHomeClick(e) {
-  if (e.pageX === 0 && e.pageY === 0) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-  }
-}
-
-window.addEventListener('touchstart', cancelHomeTouchstart, true);
-window.addEventListener('touchend', cancelHomeTouchend, true);
-window.addEventListener('mousedown', cancelHomeClick, true);
-window.addEventListener('mouseup', cancelHomeClick, true);

@@ -17,7 +17,7 @@
 
     <!-- Shared libraries -->
     <script src="shared/js/l10n.js"></script>
-    <script defer src="tv_shared/js/vendor/evt.js"></script>
+    <script defer src="bower_components/evt/index.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/notification_sender.js"></script>
@@ -35,7 +35,7 @@
       <header>
         <h1>Notification Sender</h1>
       </header>
-      <input id="url-input" type="text" value="http://www.test.url.goes.here"></input><br>
+      <input id="url-input" type="text" value="app://notification-receiver.gaiamobile.org/index.html"></input><br>
       <button type="underlined-text" id="connect-btn" label="connect">
         Connect
       </button><br>
@@ -44,14 +44,17 @@
       </button><br>
       <hr>
       <section id="send-panel">
-        <button type="underlined-text" data-message-type="start-ringing">
-          Start ringing
+        <button type="underlined-text" data-message-title="Smart Phone" data-message-body="You’ve got a new message." data-message-type="Message">
+          Message
         </button><br>
-        <button type="underlined-text" data-message-type="stop-ringing">
-          Stop ringing
+        <button type="underlined-text" data-message-title="Washing Machine" data-message-body="Your laundry is ready." data-message-type="Laundry">
+          Laundry
         </button><br>
-        <button type="underlined-text" data-message-type="sms" data-message-body="hello world">
-          Send SMS
+        <button type="underlined-text" data-message-title="Smart Watch" data-message-body="Welcome Home." data-message-type="Home">
+          Home
+        </button>
+        <button type="underlined-text" data-message-title="Smart Phone" data-message-body="You’ve got a new mail." data-message-type="Mail">
+          Mail
         </button>
       </section>
       <section role="status">

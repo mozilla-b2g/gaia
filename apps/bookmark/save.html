@@ -12,6 +12,7 @@
     <script type="text/javascript" defer src="shared/js/url_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/bookmarks_database.js"></script>
     <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
+    <script type="text/javascript" defer src="shared/js/web_manifest_helper.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -39,18 +40,27 @@
           <span class="icon icon-close" data-l10n-id="cancel-action"></span>
         </button>
         <menu type="toolbar">
-          <button id="done-button" type="button" role="menuitem" data-l10n-id="done-action"></button>
+          <button id="done-button" type="button" role="menuitem" data-l10n-id="add-action"></button>
         </menu>
-        <h1 id="add-bookmark-header" data-l10n-id="add-to-home-screen-title"></h1>
+        <h1 id="add-bookmark-header" data-l10n-id="add-to-home-title"></h1>
         <h1 id="edit-bookmark-header" data-l10n-id="edit-bookmark-title"></h1>
       </header>
       <form id="bookmark-form">
         <img id="bookmark-icon">
+        <p id="bookmark-url"></p>
         <p>
           <input type="text" id="bookmark-title" dir="auto"></input>
           <button id="bookmark-title-clear" type="reset">Clear</button>
         </p>
       </form>
+      <div id="app-installation" class="hidden">
+        <h2><span data-l10n-id="add-application">Add Application</span></h2>
+        <img id="app-icon-placeholder" src="../shared/elements/gaia_grid/images/default_icon.png">
+        <img id="app-icon" class="hidden">
+        <p id="app-name"></p>
+        <button id="install-app-button" data-l10n-id="add">Add</button>
+        <p data-l10n-id="application-available">An application is available for this web site.</p>
+      </div>
     </section>
   </body>
 </html>

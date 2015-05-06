@@ -2,14 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -24,6 +17,7 @@ class Activities(Base):
     _gallery_button_locator = (By.XPATH, '//*[text()="Gallery"]')
     _camera_button_locator = (By.XPATH, '//*[text()="Camera"]')
     _messages_button_locator = (By.XPATH, '//*[text()="Messages"]')
+    _ringtones_button_locator = (By.XPATH, '//*[text()="Ringtones"]')
     _cancel_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-action="cancel"]')
 
     _save_image_locator = (By.CSS_SELECTOR, 'button[data-id="save-image"]')
@@ -110,3 +104,9 @@ class Activities(Base):
             expected.element_not_displayed(actions_menu))
         from gaiatest.apps.messages.regions.new_message import NewMessage
         return NewMessage(self.marionette)
+
+    def share_to_ringtones(self):
+        self.marionette.find_element(*self._ringtones_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._actions_menu_locator)
+        from gaiatest.apps.ring_tone.app import RingTone
+        return RingTone(self.marionette)

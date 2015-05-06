@@ -11,12 +11,13 @@
 
   marionette('hierarchyManager', function() {
     var apps = {};
-    apps['activitycaller.gaiamobile.org'] = __dirname + '/activitycaller';
-    apps['activitycallee.gaiamobile.org'] = __dirname + '/activitycallee';
-    apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/fakedialerapp';
+    apps['activitycaller.gaiamobile.org'] =
+      __dirname + '/../apps/activitycaller';
+    apps['activitycallee.gaiamobile.org'] =
+      __dirname + '/../apps/activitycallee';
+    apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
     var client = marionette.client({
       settings: {
-        'ftu.manifestURL': null,
         'lockscreen.enabled': true
       },
       apps: apps,

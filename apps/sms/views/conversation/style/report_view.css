@@ -1,0 +1,180 @@
+/* Message information page for report details*/
+.report-view {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+}
+
+.report-view > .description {
+  padding-top: 2rem;
+  -moz-padding-end: 1.5rem;
+  padding-bottom: 3rem;
+  -moz-padding-start: 3rem;
+}
+
+.report-view p,
+.report-view span {
+  font-size: 1.5rem;
+  line-height: 1rem;
+  color: #858585;
+}
+
+.report-view p {
+  padding-top: 1.5rem;
+}
+
+.report-view .description > .type {
+  padding-top: 0;
+
+  font-size: 1.6rem;
+  color: #ff4e00;
+}
+
+.report-view .description .detail {
+  color: #333;
+}
+
+.report-view .description > .type[data-l10n-id="message-type-sms"] {
+  color: #000;
+}
+
+/* Default layout (sent message) */
+.report-view .received-block,
+.report-view[data-delivery="error"] .sent-title,
+.report-view[data-delivery="sending"] .sent-timestamp {
+  display: none;
+}
+
+/* Layout for received message */
+.report-view[data-delivery="received"] .received-block,
+.report-view[data-delivery="not-downloaded"] .received-block {
+  display: block;
+}
+
+/* Hide sent timestamp label if we don't have valid value to display */
+.report-view.no-valid-sent-timestamp .sent-block {
+  display: none;
+}
+
+.report-view .contact-title {
+  color: #008787;
+  font-size: 1.6rem;
+  -moz-padding-start: 3rem;
+}
+
+.report-view > ul.contact-list {
+  /* Showing 4 complete contacts and part of the contact name if list
+     contains more than 4 contacts */
+  position: static;
+
+  margin-top: 0.5rem;
+  flex-grow: 1;
+}
+
+.report-view > .contact-list > li {
+  height: auto;
+  min-height: 9rem;
+  padding-top: 0.7rem;
+  padding-bottom: 1rem;
+  -moz-padding-end: 0;
+  -moz-padding-start: 1.5rem;
+
+  border-top: solid 0.1rem #e7e7e7;
+  border-bottom: medium none;
+}
+
+.report-view > .contact-list a {
+  height: auto;
+}
+
+.report-view > .contact-list p,
+.report-view > .contact-list span {
+  font-size: 1.4rem;
+  line-height: 1.6rem;
+}
+
+.report-view > .contact-list .name {
+  padding-top: 0;
+
+  font-size: 1.8rem;
+  font-weight: 500;
+  line-height: 2.6rem;
+}
+
+.report-view > .contact-list aside {
+  /* margin-top = (li - padding - aside) / 2 = (9rem - 2rem - 5.5rem) / 2 */
+  margin-top: 0.8rem;
+}
+
+.report-view > .contact-list .number {
+  padding-top: 0.6rem;
+}
+
+.report-view .network-status {
+  padding-top: 0.7rem;
+}
+
+.report-view .name + .network-status {
+  padding-top: 1rem;
+}
+
+.report-view .network-status,
+.report-view .network-status span {
+  line-height: 1.4rem;
+}
+
+.contact-list p.number .phone-carrier {
+  color: #008787;
+}
+
+.report-view > .contact-list .icon {
+  float: left;
+
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: -0.1rem 0 0.1rem;
+  -moz-margin-end: 0.7rem;
+
+  background: no-repeat center center / 1.6rem transparent;
+}
+
+.contact-list [data-delivery-status="delivered"] .icon {
+  background-image: url('images/icons/deliveredtick.png');
+}
+
+.contact-list [data-delivery-status="read"] .icon {
+  background-image: url('images/icons/message_read.png');
+}
+
+.contact-list [data-delivery-status="error"] .icon {
+  background-image: url('images/icons/exclamation.png');
+}
+
+.contact-list [data-delivery-status="not-applicable"],
+.contact-list [data-delivery-status="pending"] .icon,
+.contact-list [data-delivery-status="pending"] .timestamp,
+.contact-list [data-delivery-status="error"] .timestamp,
+.contact-list [data-delivery-status="rejected"] .icon,
+.contact-list [data-delivery-status="rejected"] .timestamp{
+  display: none;
+}
+
+.report-view .resend-btn {
+  display: none;
+  width: calc(100% - 3rem);
+
+  flex-shrink: 0;
+  margin: 0 1.5rem 2rem;
+
+  background-color: #00caf2;
+  color: #fff;
+}
+
+.report-view[data-delivery="error"] .resend-btn {
+  display: block;
+}
+
+/* RTL modifications */
+.contact-list:-moz-dir(rtl) .icon {
+  float: right;
+}

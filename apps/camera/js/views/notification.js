@@ -20,6 +20,9 @@ module.exports = View.extend({
   initialize: function() {
     this.counter = 0;
     this.hash = {};
+    // For accessibility purposes list/listitem semantics is not necessary.
+    // Instead notifications are presented as status ARIA live regions.
+    this.el.setAttribute('role', 'presentation');
   },
 
   /**
@@ -27,7 +30,12 @@ module.exports = View.extend({
    *
    * Options:
    *
-   *   - `text {String}`
+   *   - `text {L10nId}`
+   *         L10nId may be:
+   *         a string -> l10nId
+   *         an object -> {id: l10nId, args: l10nArgs}
+   *         an object -> {html: string}
+   *       read more at: http://mzl.la/1A76Fby
    *   - `className {String}`
    *   - `persistent {Boolean}`
    *
@@ -42,8 +50,21 @@ module.exports = View.extend({
 
     item.el = document.createElement('li');
     item.el.className = options.className || '';
-    item.el.innerHTML = '<span>' + options.text + '</span>';
+
+    var span = document.createElement('span');
+    if (typeof(options.text) === 'string') {
+      span.setAttribute('data-l10n-id', options.text);
+    } else {
+      if (options.text.html) {
+        span.innerHTML = options.text.html;
+      }
+    }
+    item.el.appendChild(span);
     if (options.attrs) { this.setAttributes(item.el, options.attrs); }
+    // Notification should have the semantics of the status ARIA live region.
+    item.el.setAttribute('role', 'status');
+    // Making notfication assertive, so it is spoken right away and not queued.
+    item.el.setAttribute('aria-live', 'assertive');
     this.el.appendChild(item.el);
 
     // Remove last temporary

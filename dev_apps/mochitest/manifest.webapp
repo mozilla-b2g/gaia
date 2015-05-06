@@ -19,7 +19,6 @@
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:sdcard":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
-    "storage":{},
     "camera":{},
     "geolocation":{},
     "desktop-notification":{},

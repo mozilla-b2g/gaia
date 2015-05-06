@@ -185,8 +185,7 @@
 }
 
 [role="dialog"][data-type="time-selector"] .animation-on {
-  transition-duration: 0.5s;
-  transition-property: transform;
+  transition: transform var(--transition-duration) cubic-bezier(0, 0, 0.4, 1);
 }
 
 [role="dialog"][data-type="time-selector"]  .picker-unit {

@@ -3,6 +3,7 @@
 /* global AppWindow */
 /* global BrowserConfigHelper */
 /* global SettingsListener */
+/* global Service */
 
 (function(exports) {
 
@@ -24,9 +25,12 @@
 
   SearchWindow.SUB_COMPONENTS = {
     'childWindowFactory': window.ChildWindowFactory,
-    'contextmenu': window.BrowserContextMenu,
     'transitionController': window.AppTransitionController,
     'valueSelector': window.ValueSelector
+  };
+
+  SearchWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   SearchWindow.prototype = Object.create(AppWindow.prototype);
@@ -37,7 +41,7 @@
 
   SearchWindow.prototype._DEBUG = false;
 
-  SearchWindow.prototype.CLASS_NAME = 'Search';
+  SearchWindow.prototype.CLASS_NAME = 'SearchWindow';
 
   SearchWindow.prototype.CLASS_LIST = 'appWindow searchWindow';
 
@@ -59,9 +63,11 @@
            </div>`;
   };
 
-  // The search window orientation depends on the orientation of the
-  // current displayed app. So don't do anything here.
+  // The search window orientation depends on the orientation of
+  // current root app.
   SearchWindow.prototype.lockOrientation = function() {
+    var currentApp = Service.currentApp;
+    currentApp.setOrientation();
   };
 
   // We don't need to wait.
@@ -108,6 +114,7 @@
     this.browser_config.isSearch = true;
     this.config = this.browser_config;
     this.isSearch = true;
+    this.name = this.manifest.name;
 
     this.render();
     this.open();

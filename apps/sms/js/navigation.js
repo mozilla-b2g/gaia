@@ -42,35 +42,37 @@ var Navigation = {
 
   panels: {
     'thread': {
-      behaviour: 'ThreadUI',
+      behaviour: 'ConversationView',
       wrapperPosition: 'left',
       container: 'thread-messages'
     },
     'thread-list': {
-      behaviour: 'ThreadListUI',
+      behaviour: 'InboxView',
       wrapperPosition: 'right',
       container: 'thread-list'
     },
     'composer': {
-      behaviour: 'ThreadUI',
+      behaviour: 'ConversationView',
       wrapperPosition: 'left',
       container: 'thread-messages'
     },
     'group-view': {
       behaviour: 'GroupView',
       wrapperPosition: 'left',
-      container: 'thread-messages'
+      container: 'information-participants'
     },
     'report-view': {
       behaviour: 'ReportView',
       wrapperPosition: 'left',
-      container: 'thread-messages'
+      container: 'information-report'
     }
   },
 
   init: function n_init() {
     this.mainWrapper = document.getElementById('main-wrapper');
-    this.transitioning = false;
+    this.transitionPromise = null;
+
+    currentPanel = null;
 
     Startup.on('post-initialize', function() {
       this.isReady = true;
@@ -116,6 +118,23 @@ var Navigation = {
   },
 
   /**
+   * Ensures that current panel is correctly set, if no current panel set and
+   * we're not in the process of transitioning then set default panel as current
+   * one.
+   */
+  ensureCurrentPanel: function() {
+    if (this.transitionPromise) {
+      return this.transitionPromise;
+    }
+
+    if (!currentPanel) {
+      return this.toPanel(this.defaultPanel);
+    }
+
+    return Promise.resolve();
+  },
+
+  /**
    * Lifecycle methods are called in this order:
    * - previousPanel.beforeLeave
    * - nextPanel.beforeEnter
@@ -152,7 +171,7 @@ var Navigation = {
     //   - Panel is still transitioning
     //   - trying to navigate when the app is not loaded completely
     var notReadyNavigate = (panel !== this.defaultPanel && !this.isReady);
-    if (this.transitioning || notReadyNavigate) {
+    if (this.transitionPromise || notReadyNavigate) {
       queuedPanel = {
         panel: panel,
         args: args
@@ -172,8 +191,6 @@ var Navigation = {
     }
 
     var transitionArgs = args || {};
-
-    this.transitioning = true;
 
     document.activeElement.blur();
 
@@ -257,7 +274,7 @@ var Navigation = {
 
     promise = promise.then(
       function resolved() {
-        this.transitioning = false;
+        this.transitionPromise = null;
         if (nextPanelContainer === currentPanelContainer) {
           return;
         }
@@ -268,7 +285,7 @@ var Navigation = {
       }.bind(this),
       function rejected(e) {
         catchError(e);
-        this.transitioning = false;
+        this.transitionPromise = null;
         return Promise.reject(new Error('Error while transitioning'));
       }.bind(this)
     );
@@ -277,7 +294,7 @@ var Navigation = {
       then(() => this.emit('navigated', { panel: panel, args: args })).
       then(nextQueuedPanel, nextQueuedPanel);
 
-    return promise;
+    return (this.transitionPromise = promise);
   },
 
   getPanelName: function n_getPanelName() {

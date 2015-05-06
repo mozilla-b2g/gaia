@@ -1,10 +1,11 @@
+'use strict';
 /*global requireApp, suite, suiteSetup, testConfig, test,
   assert, suiteTeardown */
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 
 
-suite('email/mail_app', function() {
+suite('email/query_uri', function() {
   var queryURI;
 
   suiteSetup(function(done) {

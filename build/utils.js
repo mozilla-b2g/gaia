@@ -1,10 +1,10 @@
+'use strict';
+
 /**
  * This file exports all 'utils' functions, which indeed exports the
  * implementations inside the 'utils-node' and 'utils-xpc' files.
  */
 
-'use strict';
-/* global exports, require, process*/
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
@@ -242,16 +242,52 @@ function serializeDocument(doc) {
   return doctypeStr + htmlStr;
 }
 
-/**
- * NodeJS library Q for promise.
- * @exports Q
- */
-exports.Q = utils.Q;
+function makeWebappsObject(appdirs, config) {
+  var apps = [];
+  appdirs.forEach(function(app) {
+    var webapp = utils.getWebapp(app, config);
+    if (webapp) {
+      apps.push(webapp);
+    }
+  });
+  return apps;
+}
 
 /**
- * Common function.
- * @exports isSubjectToBranding
+ * Information of Gaia building session. For example, if we `getInstance`
+ * from it, the result would be:
+ * {
+ *    stageDir: the path of the `build_stage` directory,
+ *    engine: 'firefox' or 'b2g'
+ *    ...
+ *    distributionDir: the path of the `distribution` directory
+ * }
  */
+var gaia = {
+  config: {},
+  aggregatePrefix: 'gaia_build_',
+  getInstance: function(config) {
+    if (JSON.stringify(this.config) !== JSON.stringify(config) ||
+      !this.instance) {
+      config.rebuildAppDirs = config.rebuildAppDirs || [];
+      this.config = config;
+      this.instance = {
+        stageDir: utils.getFile(this.config.STAGE_DIR),
+        engine: this.config.GAIA_ENGINE,
+        sharedFolder: utils.getFile(this.config.GAIA_DIR, 'shared'),
+        webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
+                                   this.config),
+        rebuildWebapps: makeWebappsObject(this.config.rebuildAppDirs,
+                                          this.config),
+        distributionDir: this.config.GAIA_DISTRIBUTION_DIR
+      };
+    }
+    return this.instance;
+  }
+};
+
+
+exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.isSubjectToDeviceType = isSubjectToDeviceType;
 exports.ls = utils.ls;
@@ -261,21 +297,11 @@ exports.getFile = utils.getFile;
 exports.ensureFolderExists = utils.ensureFolderExists;
 exports.getJSON = utils.getJSON;
 exports.getFileAsDataURI = utils.getFileAsDataURI;
-
-/**
- * Common function.
- * @exports gaiaOriginURL
- */
 exports.gaiaOriginURL = gaiaOriginURL;
-
-/**
- * Common function.
- * @exports gaiaManifestURL
- */
 exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = utils.getDistributionFileContent;
 exports.resolve = utils.resolve;
-exports.gaia = utils.gaia;
+exports.gaia = gaia;
 exports.getBuildConfig = utils.getBuildConfig;
 exports.getAppsByList = utils.getAppsByList;
 exports.getApp = utils.getApp;
@@ -290,25 +316,16 @@ exports.getNewURI = utils.getNewURI;
 exports.getOsType = utils.getOsType;
 exports.generateUUID = utils.generateUUID;
 exports.copyRec = utils.copyRec;
-
-/**
- * Common function.
- * @exports getAppStatus
- */
 exports.getAppStatus = getAppStatus;
 exports.createZip = utils.createZip;
+exports.closeZip = utils.closeZip;
+exports.hasFileInZip = utils.hasFileInZip;
 exports.scriptParser = utils.scriptParser;
-// ===== the following functions support node.js compitable interface.
 exports.scriptLoader = utils.scriptLoader;
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
 exports.deleteFile = utils.deleteFile;
 exports.listFiles = utils.listFiles;
-
-/**
- * Common function.
- * @exports psParser
- */
 exports.psParser = psParser;
 exports.fileExists = utils.fileExists;
 exports.mkdirs = utils.mkdirs;
@@ -316,6 +333,7 @@ exports.joinPath = utils.joinPath;
 exports.copyFileTo = utils.copyFileTo;
 exports.copyToStage = utils.copyToStage;
 exports.createXMLHttpRequest = utils.createXMLHttpRequest;
+exports.download = utils.download;
 exports.downloadJSON = utils.downloadJSON;
 exports.readJSONFromPath = utils.readJSONFromPath;
 exports.readZipManifest = utils.readZipManifest;
@@ -326,7 +344,9 @@ exports.getExtension = getExtension;
 exports.killAppByPid = utils.killAppByPid;
 exports.getEnv = utils.getEnv;
 exports.setEnv = utils.setEnv;
-exports.getProcess = utils.getProcess;
+exports.spawnProcess = utils.spawnProcess;
+exports.processIsRunning = utils.processIsRunning;
+exports.getProcessExitCode = utils.getProcessExitCode;
 exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;
 exports.getUUIDMapping = utils.getUUIDMapping;
@@ -335,21 +355,16 @@ exports.Services = utils.Services;
 exports.concatenatedScripts = utils.concatenatedScripts;
 exports.dirname = utils.dirname;
 exports.basename = utils.basename;
-exports.addEntryContentWithTime = utils.addEntryContentWithTime;
+exports.addFileToZip = utils.addFileToZip;
 exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.removeFiles = utils.removeFiles;
 exports.getAppNameRegex = getAppNameRegex;
 exports.serializeDocument = serializeDocument;
-/**
- * Common function.
- * @exports cloneJSON
- */
 exports.cloneJSON = cloneJSON;
-
-/**
- * Common function.
- * @exports jsComparator
- */
 exports.jsComparator = jsComparator;
+exports.NodeHelper = utils.NodeHelper;
+exports.relativePath = utils.relativePath;
+exports.normalizePath = utils.normalizePath;
+exports.getMD5hash = utils.getMD5hash;

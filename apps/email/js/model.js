@@ -1,10 +1,22 @@
 'use strict';
 define(function(require) {
-  var evt = require('evt');
+  var evt = require('evt'),
+      // Expect a module to provide a function that allows setting up model/api
+      // pieces that depend on specific UI or localizations.
+      modelInit = require('model_init');
 
   function dieOnFatalError(msg) {
     console.error('FATAL:', msg);
     throw new Error(msg);
+  }
+
+  function saveHasAccount(acctsSlice) {
+    // Save localStorage value to improve startup choices
+    localStorage.setItem('data_has_account',
+                         (acctsSlice.items.length ? 'yes' : 'no'));
+
+    console.log('WRITING LOCAL STORAGE ITEM: ' + 'data_has_account',
+                (acctsSlice.items.length ? 'yes' : 'no'));
   }
 
 /**
@@ -127,55 +139,60 @@ define(function(require) {
      * Call this to initialize the model. It can be called more than once
      * per the lifetime of an app. The usual use case for multiple calls
      * is when a new account has been added.
+     *
+     * It is *not* called by default in this module to allow for lazy startup,
+     * and for cases like unit tests that may not want to trigger a full model
+     * creation for a simple UI test.
+     *
      * @param  {boolean} showLatest Choose the latest account in the
      * acctsSlice. Otherwise it choose the account marked as the default
      * account.
      */
     init: function(showLatest, callback) {
       require(['api'], function(api) {
-        var onApi = function() {
-          // If already initialized before, clear out previous state.
-          this.die();
-
-          var acctsSlice = api.viewAccounts(false);
-          acctsSlice.oncomplete = (function() {
-            // To prevent a race between Model.init() and
-            // acctsSlice.oncomplete, only assign model.acctsSlice when
-            // the slice has actually loaded (i.e. after
-            // acctsSlice.oncomplete fires).
-            model.acctsSlice = acctsSlice;
-            if (acctsSlice.items.length) {
-              // For now, just use the first one; we do attempt to put unified
-              // first so this should generally do the right thing.
-              // XXX: Because we don't have unified account now, we should
-              //      switch to the latest account which user just added.
-              var account = showLatest ? acctsSlice.items.slice(-1)[0] :
-                                         acctsSlice.defaultAccount;
-
-              this.changeAccount(account, callback);
-            }
-
-            this.inited = true;
-            this._callEmit('acctsSlice');
-
-            // Once the API/worker has started up and we have received account
-            // data, consider the app fully loaded: we have verified full flow
-            // of data from front to back.
-            evt.emit('metrics:apiDone');
-          }).bind(this);
-        }.bind(this);
-
         if (!this.api) {
-          // Register work to be done after any other listeners have done work.
-          // _callEmit is async, and before we try to load up accounts, give
-          // other code a chance to register api.on* handlers.
-          this.once('api', onApi);
-
           this.api = api;
-          this._callEmit('api', this.api);
-        } else {
-          onApi();
+          modelInit(this, api);
         }
+
+        // If already initialized before, clear out previous state.
+        this.die();
+
+        var acctsSlice = api.viewAccounts(false);
+        acctsSlice.oncomplete = (function() {
+          // To prevent a race between Model.init() and
+          // acctsSlice.oncomplete, only assign model.acctsSlice when
+          // the slice has actually loaded (i.e. after
+          // acctsSlice.oncomplete fires).
+          model.acctsSlice = acctsSlice;
+
+          saveHasAccount(acctsSlice);
+
+          if (acctsSlice.items.length) {
+            // For now, just use the first one; we do attempt to put unified
+            // first so this should generally do the right thing.
+            // XXX: Because we don't have unified account now, we should
+            //      switch to the latest account which user just added.
+            var account = showLatest ? acctsSlice.items.slice(-1)[0] :
+                                       acctsSlice.defaultAccount;
+
+            this.changeAccount(account, callback);
+          } else if (callback) {
+            callback();
+          }
+
+          this.inited = true;
+          this._callEmit('acctsSlice');
+
+          // Once the API/worker has started up and we have received account
+          // data, consider the app fully loaded: we have verified full flow
+          // of data from front to back.
+          evt.emitWhenListener('metrics:apiDone');
+        }).bind(this);
+
+        acctsSlice.onchange = function() {
+          saveHasAccount(acctsSlice);
+        };
       }.bind(this));
     },
 

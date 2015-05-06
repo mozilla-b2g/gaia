@@ -3,8 +3,8 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-
-    <title>Privacy Panel</title>
+    <meta name="theme-color" content="#eeeeee">
+    <title>Privacy Controls</title>
 
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -23,7 +23,7 @@
 
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
 
     <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="locales/regions.{locale}.properties">
@@ -67,7 +67,8 @@
     <link rel="import" href="/templates/about/main.html">
 
     <!-- Shared JavaScripts -->
-    <!-- <script src="shared/js/l10n.js"></script> -->
+    <script defer src="shared/js/l10n.js"></script>
+    <!-- <script src="shared/js/manifest_helper.js"></script> -->
     <!-- <script src="shared/js/settings_listener.js"></script> -->
     <!-- <script src="shared/js/settings_helper.js"></script> -->
     <!-- <script src="shared/js/settings_url.js"></script> -->
@@ -84,7 +85,7 @@
         <menu type="toolbar">
           <a class="pp-link" href="#about"><span class="icon gaia-icon-about">about</span></a>
         </menu>
-        <h1 data-l10n-id="privacy-panel"></h1>
+        <h1 data-l10n-id="privacy-controls"></h1>
       </header>
       <ul>
         <li>
@@ -93,7 +94,7 @@
           </a>
         </li>
         <li>
-          <a id="menu-item-rp" class="menu-item pp-link" data-icon="messages" href="#rp-main">
+          <a id="menu-item-rp" class="menu-item pp-link" data-icon="lock" href="#rp-main">
             <span data-l10n-id="privacy-protection"></span>
           </a>
         </li>

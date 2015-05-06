@@ -41,8 +41,7 @@ contacts.Search = (function() {
       imgLoader,
       searchEnabled = false,
       source = null,
-      navigationController = null,
-      highlightClass = 'highlight';
+      navigationController = null;
 
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
@@ -128,17 +127,20 @@ contacts.Search = (function() {
       blurList = false;
     });
 
-    imgLoader = new ImageLoader('#groups-list-search', 'li');
-    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
+    LazyLoader.load([
+      '/contacts/js/fb_resolver.js',
+      '/shared/js/contacts/utilities/image_loader.js'
+    ], function() {
+      imgLoader = new ImageLoader('#groups-list-search', 'li');
       imgLoader.setResolver(fb.resolver);
     });
   };
 
   var clearHighlights = function(node) {
-    // We traverse the DOM tree and remove highlighting spans.
+    // We traverse the DOM tree and remove highlighting marks.
     // getElements instead of querySelector here because of
     // performance.
-    var highlights = node.getElementsByClassName(highlightClass);
+    var highlights = node.getElementsByTagName('mark');
     while(highlights.length) {
       var parent = highlights[0].parentNode;
       while(highlights[0].firstChild) {
@@ -179,7 +181,7 @@ contacts.Search = (function() {
       return tagLocation;
     }
 
-    var textNode = node.querySelector('.contact-text');
+    var textNode = node.querySelector('.contact-text bdi');
     if (textNode === null) {
       return;
     }
@@ -401,7 +403,9 @@ contacts.Search = (function() {
       done();
     }
 
-    imgLoader.reload();
+    if (imgLoader) {
+      imgLoader.reload();
+    }
   }
 
   function doSearch(contacts, from, searchText, pattern, state) {
@@ -678,9 +682,6 @@ contacts.Search = (function() {
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
     'selectRow': selectRow,
-    'updateSearchList': updateSearchList,
-    'getHighlightClass': function(){
-      return highlightClass;
-    }
+    'updateSearchList': updateSearchList
   };
 })();

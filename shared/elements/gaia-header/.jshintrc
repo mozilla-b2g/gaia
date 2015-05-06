@@ -1,5 +1,6 @@
 {
-  "strict": false,
-  "node": true,
-  "esnext": true
+  "laxbreak": true,
+  "esnext": true,
+  "boss": true,
+  "node": true
 }

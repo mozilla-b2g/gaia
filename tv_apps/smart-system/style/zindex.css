@@ -243,7 +243,7 @@
   z-index: 18;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.homescreen):not(.attentionWindow) {
+#screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.attentionWindow) {
   z-index: 16;
 }
 
@@ -269,8 +269,7 @@
   z-index: 6;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-opening,
-#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-closing {
+#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-opening {
   z-index: 0;
 }
 

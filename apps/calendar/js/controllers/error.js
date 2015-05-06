@@ -1,21 +1,17 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Authentication = require('error').Authentication;
-var InvalidServer = require('error').InvalidServer;
-var Responder = require('responder');
-var nextTick = require('next_tick');
+var Authentication = require('common/error').Authentication;
+var InvalidServer = require('common/error').InvalidServer;
+var Responder = require('common/responder');
+var nextTick = require('common/next_tick');
 var notification = require('notification');
 
 /**
  * Global error handler / default handling for errors.
- *
- * @param {Calendar.App} app current application.
  */
-function ErrorController(app) {
+function ErrorController() {
   Responder.call(this);
-
-  this.app = app;
   this._handlers = Object.create(null);
 }
 module.exports = ErrorController;
@@ -67,7 +63,6 @@ ErrorController.prototype = {
     var description = l10n.get('notification-error-sync-description');
 
     var url = this.accountErrorUrl + account._id;
-    notification.app = this.app;
     notification.sendNotification(title, description, url).then(() => {
       callback && callback();
       lock.unlock();

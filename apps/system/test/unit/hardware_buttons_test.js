@@ -201,6 +201,21 @@ suite('system/HardwareButtons', function() {
                                                  bubbles: false }));
   });
 
+  test('hold volume-up and press sleep (screen enabled)', function() {
+    fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Power', false);
+    fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeUp', false);
+
+    // hold timeout was cancelled, capture timeout called
+    assert.isTrue(stubClearTimeout.calledOnce);
+    assert.isTrue(stubSetTimeout.calledTwice);
+
+    // Fire the capturelog timeout
+    stubSetTimeout.getCall(1).args[0].call(window);
+    assert.isTrue(stubDispatchEvent.calledOnce);
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volumeup+sleep',
+                                                 bubbles: false }));
+  });
+
   test('hold volume-down and press sleep (screen disabled)', function() {
     ScreenManager.screenEnabled = false;
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Power', false);
@@ -527,6 +542,24 @@ suite('system/HardwareButtons', function() {
     assert.isTrue(
       stubDispatchEvent.getCall(1).calledWith({ type: 'volumedown',
                                                 bubbles: false }));
+    assert.isTrue(stubClearTimeout.calledOnce);
+    assert.equal(stubClearTimeout.getCall(0).args[0],
+      stubSetTimeout.getCall(0).returnValue);
+  });
+
+  test('press and hold camera', function() {
+    fireHardwareKeyEvent('mozbrowserafterkeydown', 'Camera', false);
+
+    assert.isTrue(stubSetTimeout.calledOnce);
+    assert.equal(stubSetTimeout.getCall(0).args[1],
+      hardwareButtons.HOLD_INTERVAL);
+    stubSetTimeout.getCall(0).args[0].call(window);
+
+    fireHardwareKeyEvent('mozbrowserafterkeyup', 'Camera', false);
+
+    assert.isTrue(stubDispatchEvent.calledOnce);
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'holdcamera',
+                                                 bubbles: false }));
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);

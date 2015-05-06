@@ -15,10 +15,6 @@ marionette('Edges gesture >', function() {
       'devtools.debugger.forbid-certified-apps': false
     },
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
-      'edgesgesture.debug': true,
-      'edgesgesture.enabled': true,
       'devtools.overlay': true,
       'hud.reflows': true
     }

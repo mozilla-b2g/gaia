@@ -1,5 +1,7 @@
 'use strict';
 
+/* global UserPressManagerSettings */
+
 // This file absorbs touch events and mouse events and convert them to
 // fake "UserPress events". UserPress instances will contain the element
 // which the user is moved on (located with document.elementFromPoint() since
@@ -17,12 +19,17 @@ var UserPress = function(obj, coords) {
   // |target| is an abstract key object, not a DOM element
   this.target = obj;
   this.updateCoords(coords, false);
+
+  this.startTime = Date.now();
+  this.startCoords = coords;
+  this.startTarget = obj;
 };
 
 UserPress.prototype.updateCoords = function(coords, moved) {
   this.moved = moved;
   this.clientX = coords.clientX;
   this.clientY = coords.clientY;
+  this.endTime = Date.now();
 };
 
 /**
@@ -50,6 +57,8 @@ UserPressManager.prototype.onpressmove = null;
 UserPressManager.prototype.onpressend = null;
 
 UserPressManager.prototype.MOVE_LIMIT = 5;
+UserPressManager.prototype.MIN_BOGUS_EVENT_DISTANCE = 20;
+UserPressManager.prototype.MIN_BOGUS_EVENT_VELOCITY = 0.3;
 
 UserPressManager.prototype.start = function() {
   this.app.console.log('UserPressManager.start()');
@@ -65,6 +74,19 @@ UserPressManager.prototype.start = function() {
   this._container.addEventListener('mousedown', this);
 
   this._container.addEventListener('contextmenu', this);
+
+  this._isLowEndDevice = false;
+  
+  this.settings = new UserPressManagerSettings();
+  this.settings.promiseManager = this.app.settingsPromiseManager;
+  this.settings.onsettingchange =
+    this._handleSettingsChange.bind(this);
+  this.settings.initSettings().then(
+    this._handleSettingsChange.bind(this),
+    function rejected(err) {
+      console.error('Fatal Error! Failed to get initial ' +
+                    'targetHandlersManager settings.', err);
+    });
 };
 
 UserPressManager.prototype.stop = function() {
@@ -82,6 +104,8 @@ UserPressManager.prototype.stop = function() {
   this._container.removeEventListener('mouseleave', this);
 
   this._container.removeEventListener('contextmenu', this);
+
+  this.settings = null;
 };
 
 UserPressManager.prototype.handleEvent = function(evt) {
@@ -229,6 +253,11 @@ UserPressManager.prototype._handleChangedPress = function(el, coords, id) {
 
 UserPressManager.prototype._handleFinishPress = function(el, coords, id) {
   this.app.console.info('UserPressManager._handleFinishPress()');
+  if (this._isLowEndDevice) {
+    this._handleLowEndDeviceFinishPress(el, coords, id);
+    return;
+  } 
+
   var press = this.presses.get(id);
   press.target = this.app.layoutRenderingManager.getTargetObject(el);
   press.updateCoords(coords,
@@ -241,6 +270,83 @@ UserPressManager.prototype._handleFinishPress = function(el, coords, id) {
   this.presses.delete(id);
 };
 
+UserPressManager.prototype._handleLowEndDeviceFinishPress = 
+function(el, coords, id) {
+  this.app.console.info('UserPressManager._handleLowEndDeviceFinishPress()');
+  var press = this.presses.get(id);
+  press.target = this.app.layoutRenderingManager.getTargetObject(el);
+  press.updateCoords(coords,
+    press.moved || this._distanceReachesLimit(id, coords));
+
+  if(this._exceedSpeedLimit(press) &&
+     press.target.keyCode !== press.startTarget.keyCode) {
+    // Save current target object
+    var currentTargetObject = press.target;
+
+    // Move current press back to starting point
+    press.target = press.startTarget;
+    press.updateCoords(press.startCoords, true);
+
+    // Handle fake move
+    if (typeof this.onpressmove === 'function') {
+      this.onpressmove(press, id);
+    }
+
+    // Commit current press
+    if (typeof this.onpressend === 'function') {
+      this.onpressend(press, id);
+    }
+
+    this.presses.delete(id);
+
+    // Create synthetic press at end point
+    var syntheticPress = new UserPress(currentTargetObject, coords);
+    if (typeof this.onpressstart === 'function') {
+      this.onpressstart(syntheticPress, id);
+    }
+
+    syntheticPress.updateCoords(coords, false);
+
+    // Commit synthetic press
+    if (typeof this.onpressend === 'function') {
+      this.onpressend(syntheticPress, id);
+    }
+  } else {
+    if (typeof this.onpressend === 'function') {
+      this.onpressend(press, id);
+    }
+
+    this.presses.delete(id);
+  }
+};
+
+/*
+   * A hack to detect bogus touch events on low-end devices.
+   * Due to a hardware limitation the multitouch does not work
+   * properly on low-end devices. In this function we try to
+   * detect improbable touch events. These bogus events occur
+   * when users type fast and do not lift up their finger before
+   * initiating a new touch.
+   * See bug 1080652.
+   */
+UserPressManager.prototype._exceedSpeedLimit = function(press) {
+  var dx = press.startCoords.clientX - press.clientX;
+  var dy = press.startCoords.clientY - press.clientY;
+
+  if (dx + dy === 0) {
+    return false;
+  }
+
+  var time = press.endTime - press.startTime;
+  var distance = Math.sqrt(dx * dx + dy * dy);
+
+  // Minimum distance to consider bogus events
+  if (distance < this.MIN_BOGUS_EVENT_DISTANCE) {
+    return false;
+  }
+  return (distance / time > this.MIN_BOGUS_EVENT_VELOCITY);
+};
+
 UserPressManager.prototype._distanceReachesLimit = function(id, newCoord) {
   var press = this.presses.get(id);
 
@@ -249,6 +355,13 @@ UserPressManager.prototype._distanceReachesLimit = function(id, newCoord) {
   var limit = this.MOVE_LIMIT;
 
   return (dx >= limit || dx <= -limit || dy >= limit || dy <= -limit);
+};
+
+UserPressManager.prototype._handleSettingsChange = function(values) {
+  this._isLowEndDevice = values.deviceinfoHardware === 'sp8810' || // Tarako
+                       values.deviceinfoHardware === 'roamer2' || // ZTE Open
+                       values.deviceinfoProductModel === 'GP-KEON' ||
+                       values.deviceinfoProductModel === 'GoFox F15';
 };
 
 exports.UserPress = UserPress;

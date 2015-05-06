@@ -1,0 +1,51 @@
+<element name="addon-details" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#addons" hidden>
+      <h1 class="addon-details-header" data-l10n-id="addon-details-header"></h1>
+    </gaia-header>
+
+    <div class="addon-details-body" hidden>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input class="addon-enabled" type="checkbox" data-ignore>
+            <span data-l10n-id="addon-enable"></span>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="addon-description-header"></h2>
+      </header>
+      <p class="addon-paragraph">
+        <img class="addon-details-icon">
+        <span class="addon-description-text"></span>
+        <button data-l10n-id="addon-rename" class="addon-rename"></button>
+      </p>
+      <p class="addon-developer addon-paragraph"></p>
+
+      <header>
+        <h2 data-l10n-id="addon-targets"></h2>
+      </header>
+      <p class="addon-no-targets addon-paragraph"
+         data-l10n-id="addon-no-targets" hidden>
+      </p>
+      <ul class="addon-targets">
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="addon-options"></h2>
+      </header>
+      <ul>
+        <li>
+          <button class="addon-delete danger" data-l10n-id="addon-delete">
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <panel data-path="panels/addon_details/panel"></panel>
+
+  </template>
+</element>

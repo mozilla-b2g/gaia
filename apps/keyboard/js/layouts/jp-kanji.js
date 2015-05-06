@@ -7,6 +7,7 @@ Keyboards['jp-kanji'] = {
   needsCandidatePanel: true,
   disableAlternateLayout: true,
   hidesSwitchKey: true,
+  lang: 'ja',
   pages: [ { // JP panel
     width: 10,
     keys: [

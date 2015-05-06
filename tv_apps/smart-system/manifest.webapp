@@ -18,7 +18,6 @@
     "device-storage:sdcard":{ "access": "readwrite" },
     "device-storage:pictures":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
-    "storage":{},
     "geolocation":{},
     "audio-capture": {},
     "video-capture": {},

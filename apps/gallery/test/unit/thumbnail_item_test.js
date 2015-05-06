@@ -2,6 +2,7 @@
  * Thumbnail Item tests
  */
 'use strict';
+/* global ThumbnailItem */
 
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
@@ -12,6 +13,7 @@ suite('Thumbnail Item Unit Tests', function() {
   suite('#test object creation', function() {
     test('#empty gallery object', function() {
       try {
+        /* jshint nonew: false */
         new ThumbnailItem();
         assert.fail('undefined or null galleryitem should not be ok.');
       } catch (ex) {

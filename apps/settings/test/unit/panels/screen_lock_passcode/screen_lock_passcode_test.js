@@ -146,6 +146,36 @@ suite('ScreenLockPasscode > ', function() {
       window.navigator.mozSettings.mTeardown();
     });
 
+    suite('basic check > ', function() {
+      suite('only accepts events from the keypad', function() {
+        var fakeEvent;
+        setup(function() {
+          fakeEvent = {
+            target: screenLockPasscode.passcodeInput,
+            preventDefault: sinon.spy()
+          };
+        });
+
+        test('numbers', function() {
+          fakeEvent.keyCode = 0;
+          screenLockPasscode.handleEvent(fakeEvent);
+          assert.ok(fakeEvent.preventDefault.called);
+        });
+
+        test('backspace', function() {
+          fakeEvent.keyCode = 8;
+          screenLockPasscode.handleEvent(fakeEvent);
+          assert.ok(fakeEvent.preventDefault.called);
+        });
+
+        test('others', function() {
+          fakeEvent.keyCode = 100;
+          screenLockPasscode.handleEvent(fakeEvent);
+          assert.ok(fakeEvent.preventDefault.notCalled);
+        });
+      });
+    });
+
     suite('create/new lock > ', function() {
       suite('with right passcode', function() {
         setup(function() {
@@ -155,6 +185,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 48,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });
@@ -171,6 +202,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 49,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });
@@ -191,6 +223,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 48,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });
@@ -213,6 +246,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 48,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });
@@ -235,6 +269,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 48,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });
@@ -258,6 +293,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 48,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });
@@ -280,6 +316,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 48,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });
@@ -299,6 +336,7 @@ suite('ScreenLockPasscode > ', function() {
           screenLockPasscode.handleEvent({
             target: screenLockPasscode.passcodeInput,
             charCode: 48,
+            keyCode: 0,
             preventDefault: function() {}
           });
         });

@@ -45,8 +45,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     // default to the SIM codes if necessary.
     var mcc, mnc;
 
-    var connections = window.navigator.mozMobileConnections ||
-                      [navigator.mozMobileConnection];
+    var connections = window.navigator.mozMobileConnections || [];
 
     for (var i = 0; i < connections.length; ++i) {
       var conn = connections[i];

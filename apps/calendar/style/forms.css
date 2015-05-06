@@ -48,6 +48,10 @@ form li {
   opacity: 0;
   /* input should not be selectable otherwise it might affect the layout */
   -moz-user-select: none;
+  /* Bug 1117652: copypaste bubble would be triggered if tapping or longpressing
+                  on the input field, so we let the cursor out of the screen to
+                  prevent it. */
+  text-indent: 110%;
 }
 
 /* RTL View */

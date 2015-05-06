@@ -57,6 +57,17 @@ IndicatorsController.prototype.bindEvents = function() {
   this.app.on('change:batteryStatus', this.view.setter('battery'));
   this.app.on('change:recording', this.view.setter('recording'));
   this.app.on('settings:configured', this.configure);
+
+  // Handle indicators screen reader visibility depending on settings
+  // visibility. When settings are open, though the view is behind an overlay
+  // and not hidden off screen, it still needs to be hidden from the screen
+  // reader.
+  this.app.on('settings:opened', this.view.setter('ariaHidden', true));
+  this.app.on('settings:closed', this.view.setter('ariaHidden', false));
+
+  // Preview gallery
+  this.app.on('previewgallery:opened', this.view.hide);
+  this.app.on('previewgallery:closed', this.view.show);
   debug('events bound');
 };
 

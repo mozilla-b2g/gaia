@@ -20,21 +20,20 @@ function assertDeepEqual(test, expected) {
 } 
 
 suite('Threads', function() {
+  var message;
 
   mocksHelperForThreadsTest.attachTestHelpers();
+
+  setup(function() {
+    // Create a message with read status 'true'
+    message = MockMessages.sms();
+  });
 
   teardown(function() {
     Threads.clear();
   });
 
   suite('create', function() {
-    var message;
-
-    setup(function() {
-      // Create a message with read status 'true'
-      message = MockMessages.sms();
-    });
-
     test('Thread.fromMessage, Thread.fromDraft', function() {
       assert.ok(Thread.fromMessage);
       assert.ok(Thread.fromDraft);
@@ -112,7 +111,7 @@ suite('Threads', function() {
         unreadCount: 0,
         lastMessageSubject: undefined,
         lastMessageType: 'sms',
-        messages: []
+        messages: new Map()
       });
     });
 
@@ -137,7 +136,7 @@ suite('Threads', function() {
         unreadCount: 0,
         lastMessageSubject: undefined,
         lastMessageType: 'sms',
-        messages: []
+        messages: new Map()
       });
     });
   });
@@ -165,7 +164,7 @@ suite('Threads', function() {
         participants: undefined,
         timestamp: undefined,
         unreadCount: undefined,
-        messages: []
+        messages: new Map()
       });
       assert.equal(Threads.size, 1);
     });
@@ -173,7 +172,7 @@ suite('Threads', function() {
     test('Threads.get(key)', function() {
       Threads.set(1, {});
       var value = Threads.get(1);
-      assert.ok(Array.isArray(value.messages));
+      assert.ok(value.messages instanceof Map);
       assert.equal(Threads.size, 1);
     });
 
@@ -206,6 +205,32 @@ suite('Threads', function() {
       sinon.assert.calledWith(Drafts.delete, { threadId: 1 });
       sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
+
+    suite('Threads.registerMessage/unregisterMessage', function () {
+      setup(function() {
+        this.sinon.spy(Threads, 'get');
+      });
+      test('thread existed', function() {
+        Threads.set(1, {});
+        Threads.registerMessage(message);
+        assert.equal(Threads.get(1).messages.get(message.id), message);
+
+        // unregister the message
+        Threads.unregisterMessage(message.id);
+        assert.isUndefined(Threads.get(1).messages.get(message.id));
+      });
+
+      test('thread does not exist', function() {
+        Threads.registerMessage(message);
+        assert.isTrue(Threads.has(1));
+        assert.equal(Threads.get(1).messages.get(message.id), message);
+      });
+
+      test('remove the message that does not exist in Threads', function() {
+        Threads.unregisterMessage(message);
+        sinon.assert.notCalled(Threads.get);
+      });
+    });
   });
 
   suite('Operational', function() {
@@ -224,7 +249,7 @@ suite('Threads', function() {
         participants: undefined,
         timestamp: undefined,
         unreadCount: undefined,
-        messages: []
+        messages: new Map()
       });
 
       Threads.currentId = null;
@@ -271,7 +296,7 @@ suite('Thread', function() {
       body: 'Hello 555',
       timestamp: date,
       unreadCount: 0,
-      messages: []
+      messages: new Map()
     });
   });
 
@@ -295,7 +320,7 @@ suite('Thread', function() {
       body: 'Hello 555',
       timestamp: date,
       unreadCount: 0,
-      messages: []
+      messages: new Map()
     });
 
     assert.equal(Threads.get(1).drafts.length, 1);
@@ -312,7 +337,7 @@ suite('Thread', function() {
       body: 'Hello 555',
       timestamp: date,
       unreadCount: 0,
-      messages: []
+      messages: new Map()
     });
 
     assert.equal(Threads.get(1).drafts.length, 0);

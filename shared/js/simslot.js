@@ -151,11 +151,21 @@
     }
   };
 
+  SIMSlot.prototype.isUnknownState = function ss_isUnknownState() {
+    var empty = (this.simCard.cardState === '');
+    var unknown = (this.simCard.cardState === 'unknown');
+    return !this.simCard.cardState || unknown || empty;
+  };
+
   /**
    * Indicate SIM card in the slot is locked or not.
    * @return {Boolean} SIM card locked or not.
    */
   SIMSlot.prototype.isLocked = function ss_isLocked() {
     return this.constructor.LOCK_TYPES.indexOf(this.simCard.cardState) >= 0;
+  };
+
+  SIMSlot.prototype.getCardState = function ss_getCardState() {
+    return this.simCard.cardState;
   };
 }(window));

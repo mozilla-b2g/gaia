@@ -164,7 +164,6 @@ CommonjsRunner.prototype.run = function() {
       output += this.appDirFile.leafName;
     }
     output += '/' + this.module;
-    dump('run-js-command ' + output + '\n');
 
     this.require(this.module).execute(options);
 

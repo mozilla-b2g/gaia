@@ -11,10 +11,6 @@ marionette('Global search >', function() {
     prefs: {
       'dom.w3c_touch_events.enabled': 1,
       'devtools.debugger.forbid-certified-apps': false
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 

@@ -23,14 +23,19 @@
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
-    <link rel="stylesheet" type="text/css" href="style/message.css">
+    <link rel="stylesheet" type="text/css" href="views/conversation/style/message.css">
+    <link rel="stylesheet" type="text/css" href="style/edit-mode.css">
     <link rel="stylesheet" type="text/css" href="style/notification.css">
-    <link rel="stylesheet" type="text/css" href="style/report_view.css">
-    <link rel="stylesheet" type="text/css" href="style/attachment.css">
-    <link rel="stylesheet" type="text/css" href="style/composer.css">
+    <link rel="stylesheet" type="text/css" href="views/conversation/style/report_view.css">
+    <link rel="stylesheet" type="text/css" href="views/conversation/style/attachment.css">
+    <link rel="stylesheet" type="text/css" href="views/conversation/style/composer.css">
+    <link rel="stylesheet" type="text/css" href="views/conversation/style/conversation.css">
+    <link rel="stylesheet" type="text/css" href="views/conversation/style/edit-mode.css">
+    <link rel="stylesheet" type="text/css" href="views/inbox/style/inbox.css">
+    <link rel="stylesheet" type="text/css" href="views/inbox/style/edit-mode.css">
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/sms.{locale}.properties">
     <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
     <!-- Firefox Desktop shims -->
@@ -58,8 +63,6 @@
     <!-- Should be removed while gecko support navigator.mozHour12 API -->
     <script defer src="shared/js/date_time_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
-    <script defer src="shared/js/usertiming.js"></script>
-    <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/sticky_header.js"></script>
@@ -67,15 +70,15 @@
     <script defer src="shared/js/fb/fb_request.js"></script>
     <script defer src="shared/js/fb/fb_data_reader.js"></script>
     <script defer src="shared/js/fb/fb_reader_utils.js"></script>
-    <script defer src="js/event_dispatcher.js"></script>
+    <script defer src="shared/js/event_dispatcher.js"></script>
     <script defer src="js/navigation.js"></script>
-    <script defer src="js/iac/event_dispatcher.js"></script>
+    <script defer src="js/inter_instance_event_dispatcher.js"></script>
     <script defer src="js/time_headers.js"></script>
     <script defer src="js/contacts.js"></script>
     <script defer src="js/drafts.js"></script>
     <script defer src="js/threads.js"></script>
-    <script defer src="js/thread_list_ui.js"></script>
     <script defer src="js/utils.js"></script>
+    <script defer src="views/inbox/js/inbox.js"></script>
     <script defer src="js/settings.js"></script>
     <script defer src="js/message_manager.js"></script>
     <script defer src="js/app.js"></script>
@@ -90,45 +93,48 @@
     <script defer src="shared/js/multi_sim_action_button.js"></script>
     <script defer src="shared/js/option_menu.js"></script>
     <script defer src="shared/js/image_utils.js"></script>
-    <script defer src="js/iac/shared_worker.js"></script>
     <script defer src="js/errors.js"></script>
     <script defer src="js/shared_components.js"></script>
     <script defer src="js/dialog.js"></script>
     <script defer src="js/error_dialog.js"></script>
     <script defer src="js/task_runner.js"></script>
     <script defer src="js/silent_sms.js"></script>
-    <script defer src="js/recipients.js"></script>
-    <script defer src="js/attachment.js"></script>
-    <script defer src="js/attachment_renderer.js"></script>
-    <script defer src="js/attachment_menu.js"></script>
-    <script defer src="js/thread_ui.js"></script>
-    <script defer src="js/subject_composer.js"></script>
-    <script defer src="js/compose.js"></script>
+    <script defer src="views/conversation/js/recipients.js"></script>
+    <script defer src="views/conversation/js/attachment.js"></script>
+    <script defer src="views/conversation/js/attachment_renderer.js"></script>
+    <script defer src="views/conversation/js/conversation.js"></script>
+    <script defer src="views/conversation/js/subject_composer.js"></script>
+    <script defer src="views/conversation/js/compose.js"></script>
     <script defer src="js/waiting_screen.js"></script>
     <script defer src="js/activity_picker.js"></script>
     <script defer src="js/wbmp.js"></script>
     <script defer src="js/smil.js"></script>
-    <script defer src="js/link_helper.js"></script>
-    <script defer src="js/link_action_handler.js"></script>
+    <script defer src="views/conversation/js/link_helper.js"></script>
+    <script defer src="views/conversation/js/link_action_handler.js"></script>
     <script defer src="js/notify.js"></script>
     <script defer src="js/activity_handler.js"></script>
     <script defer src="js/contact_renderer.js"></script>
-    <script defer src="js/information.js"></script>
+    <script defer src="views/conversation/js/information.js"></script>
     -->
   </head>
 
   <body role="application" class="skin-comms theme-communications">
     <article id="main-wrapper" class="wrapper" data-position='right'>
-      <section id="thread-list" class="panel" role="region">
-        <gaia-header class="view-header regular-header">
-          <h1 data-l10n-id="messages">Messages</h1>
+      <section id="thread-list" class="panel default-panel" role="region">
+        <!-- title-start and title-end indicates the button widths respectively
+          at the start and end of the line -->
+        <!-- see https://github.com/gaia-components/gaia-header/ for more information -->
+        <!-- WARNING: the actual value depends on the actual CSS being used in gaia-header -->
+        <gaia-header class="view-header regular-header" title-start="0" title-end="100">
+          <h1 data-l10n-id="messages"></h1>
           <a href="#composer" id="threads-composer-link" data-icon="compose"></a>
           <a id="threads-options-button" data-icon="more"></a>
+          <a id="threads-settings-button" data-icon="settings"></a>
         </gaia-header>
         <article id="threads-container" class="view-body edit-container" data-type="list">
         </article>
 
-        <div id="threads-no-messages" class="hide">
+        <div id="threads-no-messages">
           <div id="no-result-message">
             <p data-l10n-id="noMessages-title">No messages</p>
             <p data-l10n-id="noMessages-text">Start communicating now</p>
@@ -137,15 +143,15 @@
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
           <section role="region" class="theme-settings">
-            <gaia-header id="threads-edit-header" action="close">
-              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title">Select</h1>
+            <gaia-header id="threads-edit-header" action="close" no-font-fit>
+              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title"></h1>
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
           <div class="bottom-tab" role="region" >
             <ul class="bb-tablist">
               <li role="presentation">
-                <button id="threads-delete-button" data-action="delete-button"></button>
+                <button id="threads-delete-button" class="disable-when-dialog-animates" data-action="delete-button"></button>
               </li>
               <li role="presentation">
                 <button id="threads-read-unread-button" data-action="mark-as-read"></button>
@@ -162,7 +168,7 @@
       </section>
 
       <section id="thread-messages" class="panel editable-select-mode" role="region" aria-hidden="true">
-        <gaia-header id="messages-header" class="view-header regular-header" action="back">
+        <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
           <button id="messages-call-number-button" data-icon="call" class="hide"></button>
           <button id="messages-options-button" data-icon="more"></button>
@@ -223,48 +229,16 @@
             <section id="messages-new-message-notice"
                     role="notification"
                     class="hide">
-              <div>
+              <div class="text-container">
                 <div data-l10n-id="new-message-notice-text">You have new messages</div>
                 <div class="contact">Contact</div>
               </div>
-              <div>
+              <div class="button-container">
                 <button class="notice-button" data-l10n-id="new-message-notice-a-text">read it</button>
               </div>
             </section>
           </div>
         </div>
-        <article id="information-participants" class="view-body article-list hide" data-type="list">
-          <ul class="contact-list"></ul>
-        </article>
-        <article id="information-report" class="view-body article-list report-view hide" data-type="list">
-          <div class="description">
-            <p class="type"></p>
-            <p class="subject">
-              <span data-l10n-id="message-subject"></span>
-              <span class="detail"></span>
-            </p>
-            <p class="sent-block">
-              <span class="sent-title"></span>
-              <span class="sent-timestamp l10n-contains-date detail"></span>
-            </p>
-            <p class="received-block">
-              <span data-l10n-id="message-received"></span>
-              <span class="received-timestamp l10n-contains-date detail"></span>
-            </p>
-            <p class="size-block">
-              <span data-l10n-id="message-size-was"></span>
-              <span class="size detail"></span>
-            </p>
-            <p class="sim-info hide">
-              <span data-l10n-id="message-via"></span>
-              <span class="sim-detail detail"></span>
-            </p>
-          </div>
-          <span class="contact-title"></span>
-          <ul class="contact-list"></ul>
-          <button class="resend-btn" data-l10n-id="message-resend">
-          </button>
-        </article>
         <article id="composer-container" class="view-body">
           <div class="flex-composer">
             <div id="messages-container" data-type="list" class="article-list"></div>
@@ -304,15 +278,15 @@
         </article>
         <form role="dialog" id="messages-edit-form" data-type="edit" >
           <section role="region" class="theme-settings">
-            <gaia-header id="messages-edit-header" action="close">
-              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
+            <gaia-header id="messages-edit-header" action="close" no-font-fit>
+              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title"></h1>
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
           <div class="bottom-tab" role="region" >
             <ul class="bb-tablist">
               <li role="presentation">
-                <button id="messages-delete-button" data-action="delete-button"></button>
+                <button id="messages-delete-button" class="disable-when-dialog-animates" data-action="delete-button"></button>
               </li>
             </ul>
           </div>
@@ -320,6 +294,50 @@
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
           <ul class="contact-list recipient-suggestions-list" role="listbox"></ul>
         </section>
+      </section>
+
+      <section id="information-participants" class="panel hide" role="region">
+        <gaia-header id="information-group-header" class="header" action="back" no-font-fit>
+          <h1 data-l10n-id="participant" class="header-text"></h1>
+        </gaia-header>
+        <article class="view-body article-list" data-type="list">
+          <ul class="contact-list"></ul>
+        </article>
+      </section>
+
+      <section id="information-report" class="panel hide" role="region">
+        <gaia-header id="information-report-header" class="header" action="close" no-font-fit>
+          <h1 data-l10n-id="message-report"></h1>
+        </gaia-header>
+        <article class="view-body article-list report-view container" data-type="list">
+          <div class="description">
+            <p class="type"></p>
+            <p class="subject">
+              <span data-l10n-id="message-subject"></span>
+              <span class="detail"></span>
+            </p>
+            <p class="sent-block">
+              <span class="sent-title"></span>
+              <span class="sent-timestamp l10n-contains-date detail"></span>
+            </p>
+            <p class="received-block">
+              <span data-l10n-id="message-received"></span>
+              <span class="received-timestamp l10n-contains-date detail"></span>
+            </p>
+            <p class="size-block">
+              <span data-l10n-id="message-size-was"></span>
+              <span class="size detail"></span>
+            </p>
+            <p class="sim-info hide">
+              <span data-l10n-id="message-via"></span>
+              <span class="sim-detail detail"></span>
+            </p>
+          </div>
+          <span class="contact-title"></span>
+          <ul class="contact-list"></ul>
+          <button class="resend-btn" data-l10n-id="message-resend">
+          </button>
+        </article>
       </section>
     </article>
 
@@ -334,20 +352,6 @@
       </form>
     </article>
 
-    <menu id="attachment-options-menu" tabindex="-1">
-      <div>
-        <form id="attachment-options" role="dialog" data-type="action">
-          <header></header>
-          <menu>
-            <button id="attachment-options-view"></button>
-            <button id="attachment-options-remove"></button>
-            <button id="attachment-options-replace"></button>
-            <button id="attachment-options-cancel" data-l10n-id="cancel"></button>
-          </menu>
-        </form>
-      </div>
-    </menu>
-
     <!--
       -  Templates
       -->
@@ -355,13 +359,25 @@
     <div id="contact-suggestion-tmpl" class="hide">
       <!--
       <li role="presentation">
-        <a class="suggestion" role="option"
+        <a class="suggestion js-contact-info" role="option"
           data-number="${number}" data-source="contacts" data-name="${name}"
           data-type="${type}" data-carrier="${carrier}">
           ${photoHTML}
-          <p class="name"><bdi>${nameHTML}</bdi></p>
+          <p class="name"><bdi class="ellipsis-dir-fix">${nameHTML}</bdi></p>
           <p class="number">${phoneDetailsHTML}</p>
         </a>
+      </li>
+      -->
+    </div>
+
+    <div id="contact-report-tmpl" class="hide">
+      <!--
+      <li>
+        <div class="js-contact-info">
+          ${photoHTML}
+          <p class="name"><bdi class="ellipsis-dir-fix">${nameHTML}</bdi></p>
+          <p class="number">${phoneDetailsHTML}</p>
+        </div>
       </li>
       -->
     </div>
@@ -386,7 +402,7 @@
       <!--
       <div class="contact-header">
         ${photoHTML}
-        <p class="name"><bdi>${name}</bdi></p>
+        <p class="name"><bdi class="ellipsis-dir-fix">${name}</bdi></p>
         <p class="details">${phoneDetailsHTML}</p>
       </div>
       -->
@@ -408,8 +424,8 @@
 
     <div id="messages-number-tmpl" class="hide">
       <!--
-      <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
-        <p class="name"><bdi>${number}</bdi></p>
+      <a class="suggestion js-contact-info" data-number="${number}" data-source="manual" data-name="${number}">
+        <p class="name"><bdi class="ellipsis-dir-fix">${number}</bdi></p>
       </a>
       -->
     </div>
@@ -504,11 +520,11 @@
                data-l10n-id="contact-photo">
           <span data-type="img"></span>
         </aside>
-        <p class="threadlist-item-title"><bdi>${number}</bdi></p>
+        <p class="threadlist-item-title"><bdi class="ellipsis-dir-fix">${number}</bdi></p>
         <p class="summary">
           <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
           <span class="mms-icon" data-l10n-id="mms-label">MMS</span>
-          <span dir="auto" class="body-text">${bodyHTML}</span>
+          <span dir="auto" class="body-text ellipsis-dir-fix">${bodyHTML}</span>
         </p>
       </a>
       -->
@@ -527,7 +543,7 @@
 
     <div id="attachment-nopreview-tmpl" class="hide">
       <!--
-      <div class="attachment ${errorClass}">
+      <div class="attachment ${errorClass}" data-attachment-type="${type}">
         <div class="thumbnail-placeholder ${type}-placeholder">
         </div>
         <div class="js-size-indicator size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
@@ -552,8 +568,8 @@
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
         <meta charset="utf-8">
         <base href="${baseURL}">
-        <link rel="stylesheet" type="text/css" href="style/attachment_draft.css">
-        <link rel="stylesheet" type="text/css" href="style/attachment.css">
+        <link rel="stylesheet" type="text/css" href="views/conversation/style/attachment_draft.css">
+        <link rel="stylesheet" type="text/css" href="views/conversation/style/attachment.css">
       </head>
       <body class="attachment-draft ${cssClass}">${baseHTML}</body>
       -->
@@ -580,13 +596,13 @@
 
     <div id="messages-group-header-tmpl" class="hide">
       <!--
-      <bdi>${name}</bdi><bdi dir="ltr"> (+${participantCount})</bdi>
+      <span class="group-header-title"><bdi class="ellipsis-dir-fix">${name}</bdi>&nbsp;<bdi dir="ltr">(+${participantCount})</bdi></span>
       -->
     </div>
 
     <div id="messages-header-tmpl" class="hide">
       <!--
-      <bdi>${name}</bdi>
+      <bdi class="ellipsis-dir-fix">${name}</bdi>
       -->
     </div>
 

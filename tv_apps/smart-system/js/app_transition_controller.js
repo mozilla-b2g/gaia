@@ -1,7 +1,14 @@
-/* global AppWindowManager, SettingsCache, Service */
+/* global AppWindowManager, SettingsCache, Service, Animations,
+          homescreenWindowManager, focusManager */
 'use strict';
 
 (function(exports) {
+
+  const GRAY_BACKGROUND_APPS = [
+    'app://app-deck.gaiamobile.org/manifest.webapp'
+  ];
+
+
   var TransitionEvents =
     ['open', 'close', 'complete', 'timeout',
       'immediate-open', 'immediate-close'];
@@ -170,18 +177,33 @@
     }
   };
 
-
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
+      this._waitingForLoad = false;
+      var animation = this.getAnimationName('open');
+      if (animation === 'invoked') {
+        var color = (GRAY_BACKGROUND_APPS.indexOf(this.app.manifestURL) > -1)?
+                    '#E0E0E0' : 'black';
+        Animations.createCircleAnimation( this.app.element.parentNode, color)
+          .play('grow', function() {
+            // XXX: show the homescreen's fadeoverlay so we will not see the
+            // system background during fast-fade-in transition. We may create
+            // another overlay instead of reusing this overlay in the future
+            homescreenWindowManager.getHomescreen().fadeOut();
+            homescreenWindowManager.getHomescreen().showFadeOverlay(color);
+            this.app.element.classList.add('fast-fade-in');
+          }.bind(this));
+      } else {
+        this.app.element.classList.add('transition-opening');
+        this.app.element.classList.add(animation);
+      }
+
       this.app.debug('timer to ensure opened does occur.');
       this._openingTimeout = window.setTimeout(function() {
         this.app.broadcast('openingtimeout');
       }.bind(this),
       AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                                         this.OPENING_TRANSITION_TIMEOUT);
-      this._waitingForLoad = false;
-      this.app.element.classList.add('transition-opening');
-      this.app.element.classList.add(this.getAnimationName('open'));
       this.app.debug(this.app.element.classList);
     };
 
@@ -278,7 +300,7 @@
 
     if (this._shouldFocusApp()) {
       this.app.debug('focusing this app.');
-      this.app.focus();
+      focusManager.focus();
     }
   };
 
@@ -292,6 +314,9 @@
     this.currentAnimation = animation || this.openAnimation;
     this.app.debug('open with ' + this.currentAnimation);
     if (this.currentAnimation == 'immediate') {
+      // The immediate-open state fires 'open' event directly. We have to
+      // fire the willopen before change to immediate-open state
+      this.app.publish('willopen');
       this.changeTransitionState('immediate-open');
     } else {
       this.changeTransitionState('open');
@@ -302,6 +327,9 @@
     this.currentAnimation = animation || this.closeAnimation;
     this.app.debug('close with ' + this.currentAnimation);
     if (this.currentAnimation == 'immediate') {
+      // The immediate-close state fires 'close' event directly. We have to
+      // fire the willclose before change to immediate-close state
+      this.app.publish('willclose');
       this.changeTransitionState('immediate-close');
     } else {
       this.changeTransitionState('close');
@@ -332,7 +360,7 @@
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate', 'fadeout',
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
-        'will-become-active', 'will-become-inactive',
+        'will-become-active', 'will-become-inactive', 'fast-fade-in',
         'slide-to-top', 'slide-from-top',
         'slide-to-bottom', 'slide-from-bottom'];
 
@@ -377,7 +405,7 @@
                * focusing the app will have some side effect,
                * but we don't care if we are opening the homescreen.
                */
-              this.app.focus();
+              focusManager.focus();
             }
             return;
           }

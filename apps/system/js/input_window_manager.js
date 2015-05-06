@@ -1,6 +1,7 @@
 'use strict';
 
-/* global applications, InputWindow, SettingsListener, KeyboardManager */
+/* global applications, InputWindow, SettingsListener, KeyboardManager,
+   Service */
 
 (function(exports) {
 
@@ -121,6 +122,7 @@
     window.addEventListener('notification-clicked', this);
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('sheets-gesture-begin', this);
+    window.addEventListener('cardviewbeforeshow', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('mozmemorypressure', this);
   };
@@ -149,6 +151,7 @@
     window.removeEventListener('notification-clicked', this);
     window.removeEventListener('applicationsetupdialogshow', this);
     window.removeEventListener('sheets-gesture-begin', this);
+    window.removeEventListener('cardviewbeforeshow', this);
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('mozmemorypressure', this);
   };
@@ -237,9 +240,16 @@
         break;
       case 'lockscreen-appopened':
       case 'sheets-gesture-begin':
+      case 'cardviewbeforeshow':
         if (this._hasActiveInputApp()) {
           // Instead of hideInputWindow(), we should removeFocus() here.
           // (and removing the focus cause Gecko to ask us to hideInputWindow())
+
+          // We need to blur the app to prevent the keyboard from refocusing
+          // right away.
+          // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1138977
+          var app = Service.currentApp;
+          app && app.blur();
           navigator.mozInputMethod.removeFocus();
         }
         break;
@@ -259,14 +269,9 @@
   };
 
   InputWindowManager.prototype._getMemory = function iwm_getMemory() {
-    if ('getFeature' in navigator) {
-      navigator.getFeature('hardware.memory').then(mem => {
-        this._totalMemory = mem;
-      }, () => {
-        console.error('InputWindowManager: ' +
-          'Failed to retrieve total memory of the device.');
-      });
-    }
+    Service.request('getDeviceMemory').then((mem) => {
+      this._totalMemory = mem;
+    });
   };
 
   InputWindowManager.prototype._oopSettingCallback =

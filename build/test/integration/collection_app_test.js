@@ -1,10 +1,4 @@
 'use strict';
-/* global process */
-/* global require */
-/* global suite */
-/* global suiteSetup */
-/* global teardown */
-/* global test */
 
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;

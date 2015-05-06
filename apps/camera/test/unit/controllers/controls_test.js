@@ -50,6 +50,14 @@ suite('controllers/controls', function() {
   });
 
   suite('ControlsController()', function() {
+    test('Should listen to the following events', function() {
+      assert.ok(this.app.on.calledWith('localized', this.view.localize));
+      assert.ok(this.app.on.calledWith('previewgallery:opened',
+        this.view.hide));
+      assert.ok(this.app.on.calledWith('previewgallery:closed',
+        this.view.show));
+    });
+
     test('Should *not* show the cancel button when *not* within a \'pick\' activity', function() {
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', false));
     });
@@ -123,6 +131,21 @@ suite('controllers/controls', function() {
     });
   });
 
+  suite('Set view screen reader visibility based on settings opened/closed',
+    function() {
+      test('settings opened -> hide view from screen reader', function() {
+        // Check the view is hidden from the screen reader.
+        this.app.on.withArgs('settings:opened').args[0][1]();
+        sinon.assert.calledWith(this.view.setScreenReaderVisible, false);
+      });
+
+      test('settings closed -> show view to screen reader', function() {
+        // Check the view is visible to the screen reader.
+        this.app.on.withArgs('settings:closed').args[0][1]();
+        sinon.assert.calledWith(this.view.setScreenReaderVisible, true);
+      });
+    });
+
   suite('ControlsController#configureMode()', function() {
     test('It\'s not switchable when only one mode is available', function() {
 
@@ -148,6 +171,15 @@ suite('controllers/controls', function() {
 
     test('Should fire a \'capture\' event on the app', function() {
       assert.isTrue(this.app.emit.calledWith('capture'));
+    });
+  });
+
+  suite('ControlsController#onRecordingChange', function() {
+    test('When recording view\'s setCaptureLabel should be called', function() {
+      [true, false].forEach(function(recording) {
+        this.controller.onRecordingChange(recording);
+        assert.isTrue(this.view.setCaptureLabel.calledWith(recording));
+      }, this);
     });
   });
 

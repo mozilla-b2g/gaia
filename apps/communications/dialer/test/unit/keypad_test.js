@@ -67,6 +67,46 @@ suite('dialer/keypad', function() {
 
   mocksHelperForKeypad.attachTestHelpers();
 
+  // Helpers for testing abbreviated dialing codes
+  var node;
+  var fakeEventStart;
+  var fakeEventEnd;
+
+  /**
+   * Create the mock elements needed to test abbreviated dialing codes.
+   */
+  function setupAbbreviatedDialingCodesMocks() {
+    subject._phoneNumber = '';
+    node = document.createElement('div');
+    fakeEventStart = {
+      target: node,
+      preventDefault: function() {},
+      stopPropagation: function() {},
+      type: 'touchstart'
+    };
+    fakeEventEnd = {
+      target: node,
+      preventDefault: function() {},
+      stopPropagation: function() {},
+      type: 'touchend'
+    };
+  }
+
+  /**
+   * Send the fake events needed to emulate the typing of an abbreviated
+   * dialing code.
+   *
+   * @param {String} number The abbrevited dialing code to type.
+   */
+  function typeAbbreviatedDialingCode(number) {
+    for (var i = 0, end = number.length; i < end; i++) {
+      fakeEventStart.target.dataset.value = number.charAt(i);
+      subject.keyHandler(fakeEventStart);
+      fakeEventEnd.target.dataset.value = number.charAt(i);
+      subject.keyHandler(fakeEventEnd);
+    }
+  }
+
   suiteSetup(function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = new MockIccManager();
@@ -107,13 +147,13 @@ suite('dialer/keypad', function() {
   });
 
   suite('Keypad Manager', function() {
-    test('initializates the TonePlayer to use the default audio channel',
+    test('initializates the TonePlayer to use the notification audio channel',
     function() {
       this.sinon.spy(MockTonePlayer, 'init');
       KeypadManager.init(/* oncall */ false);
 
       sinon.assert.calledOnce(MockTonePlayer.init);
-      sinon.assert.calledWithExactly(MockTonePlayer.init, null);
+      sinon.assert.calledWithExactly(MockTonePlayer.init, 'notification');
     });
 
     test('sanitizePhoneNumber', function(done) {
@@ -143,42 +183,15 @@ suite('dialer/keypad', function() {
       done();
     });
 
-    suite('IMEI', function() {
+    suite('Abbreviated dialing codes', function() {
       var mmi = '*#06#';
-      var node;
-      var fakeEventStart;
-      var fakeEventEnd;
+      var speedDialNum = '1#';
 
       setup(function() {
-        subject._phoneNumber = '';
-        node = document.createElement('div');
-        fakeEventStart = {
-          target: node,
-          stopPropagation: function() {},
-          type: 'touchstart'
-        };
-        fakeEventEnd = {
-          target: node,
-          stopPropagation: function() {},
-          type: 'touchend'
-        };
+        setupAbbreviatedDialingCodesMocks();
       });
 
-      test('Get IMEI via send MMI', function() {
-        this.sinon.spy(MockMultiSimActionButtonSingleton, 'performAction');
-
-        for (var i = 0, end = mmi.length; i < end; i++) {
-          fakeEventStart.target.dataset.value = mmi.charAt(i);
-          subject.keyHandler(fakeEventStart);
-          fakeEventEnd.target.dataset.value = mmi.charAt(i);
-          subject.keyHandler(fakeEventEnd);
-        }
-
-        sinon.assert.calledOnce(
-          MockMultiSimActionButtonSingleton.performAction);
-      });
-
-      test('Properly highlight the keys when typing the IMEI code(s)',
+      test('Properly highlight the last key in an abbreviated dialing code',
       function() {
         for (var i = 0, end = mmi.length; i < end; i++) {
           fakeEventStart.target.dataset.value = mmi.charAt(i);
@@ -188,6 +201,42 @@ suite('dialer/keypad', function() {
           subject.keyHandler(fakeEventEnd);
           assert.isFalse(node.classList.contains('active'));
         }
+      });
+
+      test('Start an abbreviated dialing code operation only upon pressing #',
+      function() {
+        this.sinon.spy(KeypadManager, '_getSpeedDialNumber');
+        /* This simulates the user having typed a number with a # in the middle
+         * without triggering a an abbreviated dial operation, possibly by
+         * moving  the cursor to insert the #. In this scenario an abbreviated
+         * dialing operation should not be triggered. */
+        subject._phoneNumber = '1#1';
+
+        fakeEventStart.target.dataset.value = 'delete';
+        subject.keyHandler(fakeEventStart);
+        fakeEventEnd.target.dataset.value = 'delete';
+        subject.keyHandler(fakeEventEnd);
+
+        sinon.assert.notCalled(KeypadManager._getSpeedDialNumber);
+      });
+
+      test('Get IMEI via send MMI', function() {
+        this.sinon.spy(MockMultiSimActionButtonSingleton, 'performAction');
+
+        typeAbbreviatedDialingCode(mmi);
+
+        sinon.assert.calledOnce(
+          MockMultiSimActionButtonSingleton.performAction);
+      });
+
+      test('Starts speed dial upon typing ' + speedDialNum, function() {
+        this.sinon.stub(KeypadManager, '_getSpeedDialNumber', function() {
+          return Promise.resolve('123');
+        });
+
+        typeAbbreviatedDialingCode(speedDialNum);
+
+        sinon.assert.calledWith(KeypadManager._getSpeedDialNumber, 1);
       });
     });
 
@@ -236,6 +285,7 @@ suite('dialer/keypad', function() {
             remove: function() {}
           }
         },
+        preventDefault: function() {},
         stopPropagation: function() {},
         type: null
       };
@@ -254,6 +304,7 @@ suite('dialer/keypad', function() {
     test('Adds active class to keys when pressed', function() {
       var fakeEvent = {
         target: document.createElement('div'),
+        preventDefault: function() {},
         stopPropagation: function() {},
         type: null
       };
@@ -371,6 +422,15 @@ suite('dialer/keypad', function() {
         subject.init(/* oncall */ false);
       });
 
+      test('Disable abbreviated dialing codes', function() {
+        this.sinon.spy(KeypadManager, '_getSpeedDialNumber');
+
+        setupAbbreviatedDialingCodesMocks();
+        typeAbbreviatedDialingCode('1#');
+
+        sinon.assert.notCalled(KeypadManager._getSpeedDialNumber);
+      });
+
       suite('Audible and DTMF tones', function() {
         test('Pressing a button during a call plays a long tone', function() {
           var startSpy = this.sinon.spy(MockTonePlayer, 'start');
@@ -471,6 +531,7 @@ suite('dialer/keypad', function() {
               remove: function() {}
             }
           },
+          preventDefault: function() {},
           stopPropagation: function() {},
           type: null
         };
@@ -701,37 +762,6 @@ suite('dialer/keypad', function() {
         assert.isFalse(subject._isSpeedDialNumber('*#31#'));
       });
 
-      test('Starts speed dial upon typing ' + speedDialNum, function() {
-        var node;
-        var fakeEventStart;
-        var fakeEventEnd;
-
-        node = document.createElement('div');
-        fakeEventStart = {
-          target: node,
-          stopPropagation: function() {},
-          type: 'touchstart'
-        };
-        fakeEventEnd = {
-          target: node,
-          stopPropagation: function() {},
-          type: 'touchend'
-        };
-
-        this.sinon.stub(KeypadManager, '_getSpeedDialNumber', function() {
-          return Promise.resolve('123');
-        });
-
-        for (var i = 0, end = speedDialNum.length; i < end; i++) {
-          fakeEventStart.target.dataset.value = speedDialNum.charAt(i);
-          subject.keyHandler(fakeEventStart);
-          fakeEventEnd.target.dataset.value = speedDialNum.charAt(i);
-          subject.keyHandler(fakeEventEnd);
-        }
-
-        sinon.assert.calledWith(KeypadManager._getSpeedDialNumber, 1);
-      });
-
       suite('Getting a speed dial number', function() {
         var speedDialIndex = '1';
         var numbers = [ '123', '456' ];
@@ -757,6 +787,7 @@ suite('dialer/keypad', function() {
         test('The overlay is displayed and then hidden', function(done) {
           subject._getSimContactsList(0).then(function() {
             sinon.assert.calledOnce(ConfirmDialog.show);
+            sinon.assert.calledWith(ConfirmDialog.show, 'loadingSimContacts');
             sinon.assert.calledOnce(ConfirmDialog.hide);
           }).then(done, done);
         });
@@ -793,6 +824,8 @@ suite('dialer/keypad', function() {
         test('0# is ignored', function(done) {
           subject._getSpeedDialNumber('0').then(function(number) {
             assert.ok(false, 'the promise should be rejected');
+          }, function(error) {
+            assert.equal(error, 'noContactsWereFound');
           }).then(done, done);
         });
 

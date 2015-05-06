@@ -4,6 +4,7 @@ Keyboards.th = {
   menuLabel: 'ไทย', /*ไทย*/
   basicLayoutKey: 'กขค', /*กขค*/
   types: ['text', 'url', 'email'],
+  lang: 'th',
   pages: [ {                    // default page
     width: 11,
     secondLayout: true,

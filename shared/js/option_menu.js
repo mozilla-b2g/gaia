@@ -154,9 +154,7 @@ var OptionMenu = function(options) {
       this.form.focus();
     }
 
-    // If we add a class, the animation will not be perform properly.
-    // see Bug 1095338 for further information
-    document.body.style.pointerEvents = 'initial';
+    document.body.classList.remove('dialog-animating');
   }.bind(this));
 
   menu.addEventListener('click', function(event) {
@@ -198,10 +196,7 @@ OptionMenu.prototype.show = function() {
     this.form.clientTop;
   }
   this.form.classList.add('visible');
-  // Prevent to execute another action.
-  // If we add a class, the animation will not be perform properly.
-  // see Bug 1095338 for further information
-  document.body.style.pointerEvents = 'none';
+  document.body.classList.add('dialog-animating');
 };
 
 OptionMenu.prototype.hide = function() {

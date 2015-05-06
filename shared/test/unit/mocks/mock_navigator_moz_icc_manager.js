@@ -108,15 +108,39 @@
       };
 
       object.unlockCardLock = function(options) {
-        var req = {
-          // fires success handler immediately
-          set onsuccess(handler) {
-            return handler();
-          },
-          get onsuccess() {
-            return function() {};
-          }
-        };
+        var pin;
+        if (typeof options.pin !== 'undefined') {
+          pin = options.pin;
+        } else if (typeof options.puk !== 'undefined') {
+          pin = options.puk;
+        }
+
+        // Fail sim unlock for 0000/00000000 pins/puks/xcks.
+        var req;
+        if (parseInt(pin, 10) !== 0) {
+          req = {
+            // fires success handler immediately
+            set onsuccess(handler) {
+              return handler();
+            },
+            get onsuccess() {
+              return function() {};
+            }
+          };
+        } else {
+          req = {
+            error: {
+              retryCount: object.retryCount
+            },
+            // fires onerror handler immediately
+            set onerror(handler) {
+              return handler();
+            },
+            get onerror() {
+              return function() {};
+            }
+          };
+        }
         return req;
       };
 
@@ -158,6 +182,7 @@
 
       object.sendStkResponse = function() {};
       object.sendStkMenuSelection = function() {};
+      object.sendStkEventDownload = function() {};
 
       return object;
     },

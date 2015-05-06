@@ -2,6 +2,7 @@
 
 define(function(require) {
 
+  require('shared/format');
   var SearchProvider = require('shared/search_provider');
 
   function Search() {

@@ -6,9 +6,12 @@ var EventBase = require('./event_base');
 var InputParser = require('shared/input_parser');
 var Local = require('provider/local');
 var QueryString = require('querystring');
+var core = require('core');
 var dateFormat = require('date_format');
-var getTimeL10nLabel = require('calc').getTimeL10nLabel;
-var nextTick = require('next_tick');
+var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
+var nextTick = require('common/next_tick');
+var router = require('router');
+var viewFactory = require('./factory');
 
 require('dom!modify-event-view');
 
@@ -35,6 +38,7 @@ ModifyEvent.prototype = {
     element: '#modify-event-view',
     alarmList: '#modify-event-view .alarms',
     form: '#modify-event-view form',
+    startTimeLocale: '#start-time-locale',
     endDateLocale: '#end-date-locale',
     endTimeLocale: '#end-time-locale',
     status: '#modify-event-view section[role="status"]',
@@ -51,7 +55,7 @@ ModifyEvent.prototype = {
   _initEvents: function() {
     EventBase.prototype._initEvents.apply(this, arguments);
 
-    var calendars = this.app.store('Calendar');
+    var calendars = core.storeFactory.get('Calendar');
 
     calendars.on('add', this._addCalendarId.bind(this));
     calendars.on('preRemove', this._removeCalendarId.bind(this));
@@ -61,6 +65,7 @@ ModifyEvent.prototype = {
     this.deleteButton.addEventListener('click', this.deleteRecord);
     this.form.addEventListener('click', this.focusHandler);
     this.form.addEventListener('submit', this.primary);
+    this.form.addEventListener('input', this._toggleSave.bind(this));
 
     var allday = this.getEl('allday');
     allday.addEventListener('change', this._toggleAllDay);
@@ -80,6 +85,10 @@ ModifyEvent.prototype = {
     } else {
       // disable case
       this.element.classList.remove(this.ALLDAY);
+      if (e) {
+        // only reset the start/end time if coming from an user interaction
+        this._resetDateTime();
+      }
     }
 
     // because of race conditions it is theoretically possible
@@ -93,6 +102,23 @@ ModifyEvent.prototype = {
     if (e) {
       this.event.alarms = [];
       this.updateAlarms(allday);
+    }
+  },
+
+  _resetDateTime: function() {
+    // if start event was "all day" and switch to regular event start/end time
+    // will be the same, so we reset to default start time, otherwise we keep
+    // the previously selected value
+    var startDateTime = this._getStartDateTime();
+    if (startDateTime === this._getEndDateTime()) {
+      var startDate = new Date(startDateTime);
+      this._setDefaultHour(startDate);
+      this.getEl('startTime').value = InputParser.exportTime(startDate);
+      this._renderDateTimeLocale(
+        this._findElement('startTimeLocale'), startDate);
+      // default event duration is 1 hour
+      this._duration = 60 * 60 * 1000;
+      this._setEndDateTimeWithCurrentDuration();
     }
   },
 
@@ -142,7 +168,7 @@ ModifyEvent.prototype = {
     // than 1% of the time)
     this.getEl('calendarId').classList.add(self.LOADING);
 
-    var calendarStore = this.app.store('Calendar');
+    var calendarStore = core.storeFactory.get('Calendar');
     calendarStore.all(function(err, calendars) {
       if (err) {
         return console.error('Could not build list of calendars');
@@ -178,7 +204,7 @@ ModifyEvent.prototype = {
   _updateCalendarId: function(id, calendar) {
     var element = this.getEl('calendarId');
     var option = element.querySelector('[value="' + id + '"]');
-    var store = this.app.store('Calendar');
+    var store = core.storeFactory.get('Calendar');
 
     store.providerFor(calendar, function(err, provider) {
       var caps = provider.calendarCapabilities(
@@ -208,7 +234,7 @@ ModifyEvent.prototype = {
    * @param {Calendar.Model.Calendar} calendar calendar to add.
    */
   _addCalendarId: function(id, calendar, callback) {
-    var store = this.app.store('Calendar');
+    var store = core.storeFactory.get('Calendar');
     store.providerFor(calendar, function(err, provider) {
       var caps = provider.calendarCapabilities(
         calendar
@@ -373,10 +399,10 @@ ModifyEvent.prototype = {
         }
 
         // move the position in the calendar to the added/edited day
-        self.app.timeController.move(moveDate);
+        core.timeController.move(moveDate);
         // order is important the above method triggers the building
         // of the dom elements so selectedDay must come after.
-        self.app.timeController.selectedDay = moveDate;
+        core.timeController.selectedDay = moveDate;
 
         // we pass the date so we are able to scroll to the event on the
         // day/week views
@@ -389,14 +415,14 @@ ModifyEvent.prototype = {
           //   /week -> /event/view -> /event/save -> /event/view
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
-          self.app.view('ViewEvent', function(view) {
-            self.app.go(view.returnTop(), state);
+          viewFactory.get('ViewEvent', function(view) {
+            router.go(view.returnTop(), state);
           });
 
           return;
         }
 
-        self.app.go(self.returnTo(), state);
+        router.go(self.returnTo(), state);
       });
     }
   },
@@ -422,8 +448,8 @@ ModifyEvent.prototype = {
           //   /week -> /event/view -> /event/save -> /event/view
           // We need to return all the way to the top of the stack
           // We can remove this once we have a history stack
-          self.app.view('ViewEvent', function(view) {
-            self.app.go(view.returnTop());
+          viewFactory.get('ViewEvent', function(view) {
+            router.go(view.returnTop());
           });
         });
       };
@@ -534,11 +560,15 @@ ModifyEvent.prototype = {
   },
 
   enablePrimary: function() {
-    this.primaryButton.removeAttribute('aria-disabled');
+    var btn = this.primaryButton;
+    btn.removeAttribute('aria-disabled');
+    btn.removeAttribute('disabled');
   },
 
   disablePrimary: function() {
-    this.primaryButton.setAttribute('aria-disabled', 'true');
+    var btn = this.primaryButton;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.setAttribute('disabled', 'disabled');
   },
 
   /**
@@ -622,20 +652,16 @@ ModifyEvent.prototype = {
     }
 
     this.getEl('startDate').value = InputParser.exportDate(startDate);
-    this._setupDateTimeSync(
-      'date', 'startDate', 'start-date-locale', startDate);
+    this._setupDateTimeSync('startDate', 'start-date-locale', startDate);
 
     this.getEl('endDate').value = InputParser.exportDate(endDate);
-    this._setupDateTimeSync(
-      'date', 'endDate', 'end-date-locale', endDate);
+    this._setupDateTimeSync('endDate', 'end-date-locale', endDate);
 
     this.getEl('startTime').value = InputParser.exportTime(startDate);
-    this._setupDateTimeSync(
-      'time', 'startTime', 'start-time-locale', startDate);
+    this._setupDateTimeSync('startTime', 'start-time-locale', startDate);
 
     this.getEl('endTime').value = InputParser.exportTime(endDate);
-    this._setupDateTimeSync(
-      'time', 'endTime', 'end-time-locale', endDate);
+    this._setupDateTimeSync('endTime', 'end-time-locale', endDate);
 
     this.getEl('description').textContent = model.description;
 
@@ -653,19 +679,30 @@ ModifyEvent.prototype = {
     }
 
     this.updateAlarms(model.isAllDay);
+    this._toggleSave();
+  },
+
+  _toggleSave: function() {
+    var enabled = this.getEl('title').value || this.getEl('location').value;
+    if (enabled) {
+      this.enablePrimary();
+    } else {
+      this.disablePrimary();
+    }
   },
 
   /**
    * Handling a layer over <input> to have localized
    * date/time
    */
-  _setupDateTimeSync: function(type, src, target, value) {
+  _setupDateTimeSync: function(src, target, value) {
     var targetElement = document.getElementById(target);
     if (!targetElement) {
       return;
     }
-    this._renderDateTimeLocale(type, targetElement, value);
+    this._renderDateTimeLocale(targetElement, value);
 
+    var type = targetElement.dataset.type;
     var callback = type === 'date' ?
       this._updateDateLocaleOnInput : this._updateTimeLocaleOnInput;
 
@@ -698,10 +735,10 @@ ModifyEvent.prototype = {
     var date = new Date(this._getStartDateTime() + this._duration);
     var endDateLocale = this._findElement('endDateLocale');
     var endTimeLocale = this._findElement('endTimeLocale');
-    this.getEl('endDate').value = date.toLocaleFormat('%Y-%m-%d');
-    this.getEl('endTime').value = date.toLocaleFormat('%H:%M:%S');
-    this._renderDateTimeLocale('date', endDateLocale, date);
-    this._renderDateTimeLocale('time', endTimeLocale, date);
+    this.getEl('endDate').value = InputParser.exportDate(date);
+    this.getEl('endTime').value = InputParser.exportTime(date);
+    this._renderDateTimeLocale(endDateLocale, date);
+    this._renderDateTimeLocale(endTimeLocale, date);
   },
 
   _getStartDateTime: function() {
@@ -714,8 +751,9 @@ ModifyEvent.prototype = {
       this.getEl('endTime').value).getTime();
   },
 
-  _renderDateTimeLocale: function(type, targetElement, value) {
+  _renderDateTimeLocale: function(targetElement, value) {
     // we inject the targetElement to make it easier to test
+    var type = targetElement.dataset.type;
     var localeFormat = dateFormat.localeFormat;
     var formatKey = this.formats[type];
     if (type === 'time') {
@@ -732,7 +770,7 @@ ModifyEvent.prototype = {
     var selected = InputParser.importDate(e.target.value);
     // use date constructor to avoid issues, see Bug 966516
     var date = new Date(selected.year, selected.month, selected.date);
-    this._renderDateTimeLocale('date', targetElement, date);
+    this._renderDateTimeLocale(targetElement, date);
   },
 
   _updateTimeLocaleOnInput: function(targetElement, e) {
@@ -741,7 +779,7 @@ ModifyEvent.prototype = {
     date.setHours(selected.hours);
     date.setMinutes(selected.minutes);
     date.setSeconds(0);
-    this._renderDateTimeLocale('time', targetElement, date);
+    this._renderDateTimeLocale(targetElement, date);
   },
 
   /**
@@ -763,7 +801,7 @@ ModifyEvent.prototype = {
       }
     }
 
-    var settings = this.app.store('Setting');
+    var settings = core.storeFactory.get('Setting');
     var layout = isAllDay ? 'allday' : 'standard';
     settings.getValue(layout + 'AlarmDefault', next.bind(this));
 

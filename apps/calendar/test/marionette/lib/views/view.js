@@ -64,8 +64,13 @@ View.prototype = {
     // e.g. Set the start date to trigger doing auto change end date.
     this.form.findElement('[name="' + name + '"]')
       .scriptWith(function(el) {
-        el.dispatchEvent(new CustomEvent('input'));
+        el.dispatchEvent(new Event('input'));
+        el.dispatchEvent(new Event('change'));
       });
+    this.form.scriptWith(function(el) {
+      el.dispatchEvent(new Event('input'));
+      el.dispatchEvent(new Event('change'));
+    });
   },
 
   setFormData: function(formData) {

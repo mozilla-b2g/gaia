@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+/* exported MockFxModuleServerRequest */
 
 var MockFxModuleServerRequest = {
   error: false,

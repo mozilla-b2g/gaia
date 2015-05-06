@@ -17,10 +17,11 @@ define(function(require, exports) {
 // It's way simpler to use a day-based logic for the whole calendar front-end,
 // instead of knowing how to handle months/weeks.
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var EventEmitter2 = require('ext/eventemitter2');
-var binsearch = require('binsearch');
-var compare = require('compare');
+var binsearch = require('common/binsearch');
+var compare = require('common/compare');
+var core = require('core');
 var daysBetween = Calc.daysBetween;
 var debounce = require('utils/mout').debounce;
 var getDayId = Calc.getDayId;
@@ -61,32 +62,27 @@ var cacheLocked = false;
 // emitter exposed because of unit tests
 var emitter = exports.emitter = new EventEmitter2();
 
-// TODO: convert these dependencies into static modules to avoid ugly injection
-// injected later to avoid circular dependencies
-exports.busytimeStore = null;
-exports.calendarStore = null;
-exports.eventStore = null;
-exports.syncController = null;
-exports.timeController = null;
-
 exports.init = function() {
   // both "change" and "add" operations triggers a "persist" event
-  this.eventStore.on('persist', (id, event) => cacheEvent(event));
-  this.eventStore.on('remove', removeEventById);
+  var eventStore = core.storeFactory.get('Event');
+  eventStore.on('persist', (id, event) => cacheEvent(event));
+  eventStore.on('remove', removeEventById);
 
-  this.busytimeStore.on('persist', (id, busy) => cacheBusytime(busy));
-  this.busytimeStore.on('remove', removeBusytimeById);
+  var busytimeStore = core.storeFactory.get('Busytime');
+  busytimeStore.on('persist', (id, busy) => cacheBusytime(busy));
+  busytimeStore.on('remove', removeBusytimeById);
 
-  this.syncController.on('syncStart', () => {
+  core.syncController.on('syncStart', () => {
     cacheLocked = true;
   });
-  this.syncController.on('syncComplete', () => {
+  core.syncController.on('syncComplete', () => {
     cacheLocked = false;
     pruneCache();
     dispatch();
   });
 
-  this.calendarStore.on('calendarVisibilityChange', (id, calendar) => {
+  var calendarStore = core.storeFactory.get('Calendar');
+  calendarStore.on('calendarVisibilityChange', (id, calendar) => {
     var type = calendar.localDisplayed ? 'add' : 'remove';
     busytimes.forEach((busy, busyId) => {
       if (busy.calendarId === id) {
@@ -95,11 +91,11 @@ exports.init = function() {
     });
   });
 
-  this.timeController.on('monthChange', loadMonth);
+  core.timeController.on('monthChange', loadMonth);
 
   // make sure loadMonth is called during setup if 'monthChange' was dispatched
   // before we added the listener
-  var month = this.timeController.month;
+  var month = core.timeController.month;
   if (month) {
     loadMonth(month);
   }
@@ -155,14 +151,16 @@ function queryBusytime(busytimeId) {
   if (busytimes.has(busytimeId)) {
     return Promise.resolve(busytimes.get(busytimeId));
   }
-  return exports.busytimeStore.get(busytimeId);
+  var busytimeStore = core.storeFactory.get('Busytime');
+  return busytimeStore.get(busytimeId);
 }
 
 function queryEvent(eventId) {
   if (events.has(eventId)) {
     return Promise.resolve(events.get(eventId));
   }
-  return exports.eventStore.get(eventId);
+  var eventStore = core.storeFactory.get('Event');
+  return eventStore.get(eventId);
 }
 
 function cacheBusytime(busy) {
@@ -220,9 +218,10 @@ function registerBusytimeChange(id, type) {
   // which would include one day more than expected for daysBetween
   var end = new Date(endDate.getTime() - 1);
 
+  var calendarStore = core.storeFactory.get('Calendar');
   // events from hidden calendars should not be displayed
   var isRemove = type === 'remove' ||
-    !exports.calendarStore.shouldDisplayCalendar(busy.calendarId);
+    !calendarStore.shouldDisplayCalendar(busy.calendarId);
 
   daysBetween(startDate, end).forEach(date => {
     if (outsideSpans(date)) {
@@ -262,10 +261,11 @@ function sortedInsert(group, busy) {
     return compare(date, record.busytime.startDate);
   });
   var event = events.get(busy.eventId);
+  var calendarStore = core.storeFactory.get('Calendar');
   group.splice(index, 0, {
     event: event,
     busytime: busy,
-    color: exports.calendarStore.getColorByCalendarId(event.calendarId)
+    color: calendarStore.getColorByCalendarId(event.calendarId)
   });
 }
 
@@ -298,7 +298,8 @@ function loadMonth(newMonth) {
   // cache the whole month instead of `toLoad` because we purge whole months
   cachedSpans.push(span);
 
-  exports.busytimeStore.loadSpan(toLoad, onBusytimeSpanLoad);
+  var busytimeStore = core.storeFactory.get('Busytime');
+  busytimeStore.loadSpan(toLoad, onBusytimeSpanLoad);
 }
 
 function onBusytimeSpanLoad(err, busytimes) {
@@ -312,7 +313,8 @@ function onBusytimeSpanLoad(err, busytimes) {
     busytimes.map(b => b.eventId).filter(id => !events.has(id))
   ));
 
-  exports.eventStore.findByIds(eventIds).then(events => {
+  var eventStore = core.storeFactory.get('Event');
+  eventStore.findByIds(eventIds).then(events => {
     // it's very important to cache the events before the busytimes otherwise
     // the records won't contain the event data
     Object.keys(events).forEach(key => cacheEvent(events[key]));
@@ -336,7 +338,7 @@ function trimCachedSpans() {
   while (cachedSpans.length > MAX_CACHED_MONTHS) {
     // since most changes are sequential, remove the timespans that are further
     // away from the current month
-    var baseDate = exports.timeController.month;
+    var baseDate = core.timeController.month;
     var maxDiff = 0;
     var maxDiffIndex = 0;
     cachedSpans.forEach((span, i) => {

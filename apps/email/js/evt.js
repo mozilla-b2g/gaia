@@ -9,11 +9,7 @@
  *   code via a throw within the listener group notification.
  * - new evt.Emitter() can be used to create a new instance of an
  *   event emitter.
- * - Uses "this" insternally, so always call object with the emitter args
- * - emit takes an async turn before notifying listeners.
- * - However, `latest` and `latestOnce` will call the function in the same turn
- *   if the target of the `latest` calls is available at that time. of the first
- *   latest call.
+ * - Uses "this" internally, so always call object with the emitter args.
  */
 'use strict';
 define(function() {
@@ -130,29 +126,26 @@ define(function() {
     },
 
     emit: function(id) {
-      var args = slice.call(arguments, 1);
+      var args = slice.call(arguments, 1),
+          listeners = this._events[id];
 
-      // Trigger an async resolution by using a promise.
-      Promise.resolve().then(function() {
-        var listeners = this._events[id];
-        if (listeners) {
-          listeners.forEach(function(fn) {
-            try {
-              fn.apply(null, args);
-            } catch (e) {
-              // Throw at later turn so that other listeners
-              // can complete. While this messes with the
-              // stack for the error, continued operation is
-              // valued more in this tradeoff.
-              // This also means we do not need to .catch()
-              // for the wrapping promise.
-              setTimeout(function() {
-                throw e;
-              });
-            }
-          });
-        }
-      }.bind(this));
+      if (listeners) {
+        listeners.forEach(function(fn) {
+          try {
+            fn.apply(null, args);
+          } catch (e) {
+            // Throw at later turn so that other listeners
+            // can complete. While this messes with the
+            // stack for the error, continued operation is
+            // valued more in this tradeoff.
+            // This also means we do not need to .catch()
+            // for the wrapping promise.
+            setTimeout(function() {
+              throw e;
+            });
+          }
+        });
+      }
     }
   };
 

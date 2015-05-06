@@ -2,16 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-try:
-    from marionette import (expected,
-                            Wait)
-    from marionette.by import By
-    from marionette.errors import StaleElementException
-except:
-    from marionette_driver import (expected,
-                                   Wait)
-    from marionette_driver.by import By
-    from marionette_driver.errors import StaleElementException
+from marionette_driver import expected, By, Wait
+from marionette_driver.errors import StaleElementException
 
 from gaiatest.apps.phone.app import Phone
 from gaiatest.apps.base import PageRegion
@@ -57,7 +49,10 @@ class CallLog(Phone):
         self.accessibility.click(self.marionette.find_element(*self._all_calls_tab_link_locator))
 
     def tap_edit_button(self):
-        self.marionette.find_element(*self._call_log_edit_button_locator).tap()
+        edit = Wait(self.marionette).until(
+            expected.element_present(*self._call_log_edit_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(edit))
+        edit.tap()
 
     def tap_select_all_button(self):
         # TODO Add a wait for the element to be displayed and a proper tap when Bug 1101504 is fixed
