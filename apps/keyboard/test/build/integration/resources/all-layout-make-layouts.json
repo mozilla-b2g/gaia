@@ -207,17 +207,6 @@
     "dictFilePath": "dictionaries/el.dict"
   },
   {
-    "id": "emoji",
-    "name": "Emoji",
-    "types": [
-      "email",
-      "text",
-      "url"
-    ],
-    "dictFileSize": 28035,
-    "preloaded": true
-  },
-  {
     "id": "en",
     "name": "English",
     "imEngineId": "latin",
