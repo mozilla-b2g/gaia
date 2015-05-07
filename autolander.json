@@ -10,7 +10,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -47,7 +47,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -86,7 +86,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -125,7 +125,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -164,7 +164,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -202,7 +202,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -236,7 +236,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -270,7 +270,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
@@ -304,7 +304,7 @@
           "owner": "kevin@mozilla.com"
         },
         "workerType": "gaia",
-        "provisionerId": "aws-provisioner",
+        "provisionerId": "aws-provisioner-v1",
         "scopes": [
           "docker-worker:cache:gaia-misc-caches"
         ],
