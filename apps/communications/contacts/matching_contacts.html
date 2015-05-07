@@ -18,6 +18,7 @@
     <script type="text/javascript" src="/shared/pages/import/js/curtain.js"></script>
     <script type="text/javascript" src="/shared/js/contacts/import/utilities/misc.js"></script>
     <script type="text/javascript" src="/contacts/js/contacts_matching_controller.js"></script>
+    <script type="text/javascript" src="/shared/js/tagged.js"></script>
 
     <!-- Lazy loaded, when rendering duplicate list
     <script type="text/javascript" src="/shared/js/contacts/utilities/image_loader.js"></script>
@@ -58,21 +59,6 @@
         <!-- Contacts List Section -->
         <section id="contacts-list-container" data-type="list" class="active">
           <ol>
-            <li data-template data-uuid="#id#" class="block-item">
-              <label class="pack-checkbox">
-                <input type="checkbox" checked>
-                <span></span>
-              </label>
-              <aside class="pack-end">
-                <img data-src="#thumb#">
-              </aside>
-              <p>
-                <bdi class="ellipsis-dir-fix">#displayName#</bdi>
-              </p>
-              <p class="match-main-reason">
-                <bdi class="ellipsis-dir-fix">#mainReason#</bdi>
-              </p>
-            </li>
           </ol>
         </section> <!-- contacts-list-container -->
         <form id="footer" role="dialog" data-type="confirm">
