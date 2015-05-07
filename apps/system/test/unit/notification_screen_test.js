@@ -11,8 +11,6 @@
 
 'use strict';
 
-require('/test/unit/mock_screen_manager.js');
-require('/test/unit/mock_statusbar.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_navigator_moz_chromenotifications.js');
 require('/test/unit/mock_version_helper.js');
@@ -29,7 +27,6 @@ require('/shared/test/unit/mocks/mock_audio.js');
 
 var mocksForNotificationScreen = new MocksHelper([
   'Audio',
-  'StatusBar',
   'GestureDetector',
   'NavigatorMozChromeNotifications',
   'NavigatorSettings',

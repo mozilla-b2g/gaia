@@ -56,7 +56,7 @@
     /* Whether or not status bar is actively updating or not */
     active: true,
 
-    _minimizedStatusBarWidth: window.innerWidth,
+    _minimizedStatusbarWidth: window.innerWidth,
 
     _pausedForGesture: false,
 
@@ -165,6 +165,7 @@
         window.addEventListener('ftudone', this);
       }
       Service.registerState('height', this);
+      Service.register('pauseUpdate', this);
     },
 
     /**
@@ -242,7 +243,7 @@
           this._updateIconVisibility();
           break;
         case 'iconwidthchanged':
-          this._updateMinimizedStatusBarWidth();
+          this._updateMinimizedStatusbarWidth();
           icon = evt.detail;
           if (icon.name === 'OperatorIcon') {
             this.updateOperatorWidth(icon);
@@ -287,7 +288,7 @@
           // Reprioritize icons when:
           // * Screen orientation changes
           // * Software home button is enabled/disabled
-          this._updateMinimizedStatusBarWidth();
+          this._updateMinimizedStatusbarWidth();
           break;
 
         case 'sheets-gesture-end':
@@ -305,7 +306,7 @@
 
         case 'appchromecollapsed':
           this.setAppearance();
-          this._updateMinimizedStatusBarWidth();
+          this._updateMinimizedStatusbarWidth();
           break;
 
         case 'appopened':
@@ -313,11 +314,11 @@
         case 'appchromeexpanded':
           this.setAppearance();
           this.element.classList.remove('hidden');
-          this._updateMinimizedStatusBarWidth();
+          this._updateMinimizedStatusbarWidth();
           break;
 
         case 'activityopened':
-          this._updateMinimizedStatusBarWidth();
+          this._updateMinimizedStatusbarWidth();
           /* falls through */
         case 'apptitlestatechanged':
         case 'activitytitlestatechanged':
@@ -341,7 +342,7 @@
           this.element.classList.remove('fullscreen-layout');
           break;
         case 'activitydestroyed':
-          this._updateMinimizedStatusBarWidth();
+          this._updateMinimizedStatusbarWidth();
           break;
         case 'updatepromptshown':
           this.element.classList.remove('light');
@@ -375,14 +376,14 @@
            app.isLockscreen);
     },
 
-    _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
+    _getMaximizedStatusbarWidth: function sb_getMaximizedStatusbarWidth() {
       // Let's consider the style of the status bar:
       // * padding: 0 0.3rem;
       return Math.round((Service.query('LayoutManager.width') ||
         window.innerWidth) - (3 * 2));
     },
 
-    _updateMinimizedStatusBarWidth: function() {
+    _updateMinimizedStatusbarWidth: function() {
       var app = Service.query('getTopMostWindow');
       var appChrome = app && app.appChrome;
 
@@ -399,13 +400,13 @@
         appChrome.element.querySelector('.urlbar .chrome-title-container');
 
       if (element) {
-        this._minimizedStatusBarWidth = Math.round(
+        this._minimizedStatusbarWidth = Math.round(
             ((Service.query('LayoutManager.width') || window.innerWidth)) -
             element.getBoundingClientRect().width -
             // Remove padding and margin
             5 - 3);
       } else {
-        this._minimizedStatusBarWidth = this._getMaximizedStatusBarWidth();
+        this._minimizedStatusbarWidth = this._getMaximizedStatusbarWidth();
       }
 
       this._updateIconVisibility();
@@ -446,8 +447,8 @@
       // Let's refresh the minimized clone.
       this.cloneStatusbar();
 
-      var maximizedStatusBarWidth = this._getMaximizedStatusBarWidth();
-      var minimizedStatusBarWidth = this._minimizedStatusBarWidth;
+      var maximizedStatusbarWidth = this._getMaximizedStatusbarWidth();
+      var minimizedStatusbarWidth = this._minimizedStatusbarWidth;
 
       this.PRIORITIES.forEach(function sb_updateIconVisibilityForEach(iconObj) {
         var iconId = iconObj[0];
@@ -462,7 +463,7 @@
 
         var className = 'sb-hide-' + iconId;
 
-        if (maximizedStatusBarWidth < 0) {
+        if (maximizedStatusbarWidth < 0) {
           this.statusbarIcons.classList.add(className);
           return;
         }
@@ -472,15 +473,15 @@
 
         var iconWidth = this._getIconWidth(iconObj);
 
-        maximizedStatusBarWidth -= iconWidth;
-        if (maximizedStatusBarWidth < 0) {
+        maximizedStatusbarWidth -= iconWidth;
+        if (maximizedStatusbarWidth < 0) {
           // Add a class to the container so that both status bars inherit it.
           this.statusbarIcons.classList.add(className);
           return;
         }
 
-        minimizedStatusBarWidth -= iconWidth;
-        if (minimizedStatusBarWidth < 0) {
+        minimizedStatusbarWidth -= iconWidth;
+        if (minimizedStatusbarWidth < 0) {
           // This icon needs to be hidden on the minimized status bar only.
           this.statusbarIconsMin.classList.add(className);
         }

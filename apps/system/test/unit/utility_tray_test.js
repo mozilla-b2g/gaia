@@ -4,14 +4,12 @@
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'LazyLoader',
   'Service',
-  'StatusBar',
   'SoftwareButtonManager'
 ]);
 mocksHelperForUtilityTray.init();

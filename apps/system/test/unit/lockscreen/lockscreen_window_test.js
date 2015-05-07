@@ -9,12 +9,11 @@ requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForLockScreenWindow = new window.MocksHelper([
   'Service', 'Applications', 'SettingsListener', 'LazyLoader',
-  'ManifestHelper', 'ScreenLayout', 'LayoutManager', 'StatusBar'
+  'ManifestHelper', 'ScreenLayout', 'LayoutManager'
 ]).init();
 
 suite('system/LockScreenWindow', function() {

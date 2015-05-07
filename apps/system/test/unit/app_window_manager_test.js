@@ -13,7 +13,6 @@ requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
-requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
@@ -34,7 +33,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow', 'ShrinkingUI',
   'Applications',
-  'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
+  'ManifestHelper', 'KeyboardManager', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'NfcHandler',
   'TaskManager', 'NavigatorSettings', 'LazyLoader'
 ]).init();
