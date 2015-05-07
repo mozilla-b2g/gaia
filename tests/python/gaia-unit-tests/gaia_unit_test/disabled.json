@@ -1,5 +1,6 @@
 [
   "communications/facebook/test/unit/facebook_connector_test.js",
+  "demo-keyboard/test/unit/worker_test.js",
   "keyboard/test/unit/jspinyin_test.js",
   "keyboard/test/unit/render_test.js",
   "keyboard/test/unit/worker_test.js"
