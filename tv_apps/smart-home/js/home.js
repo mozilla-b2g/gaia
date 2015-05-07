@@ -1,7 +1,7 @@
 'use strict';
 /* global Application, CardFilter, CardManager, Clock, Deck, Edit, Folder, Home,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
-          SharedUtils, SpatialNavigator, URL, XScrollable, Animations */
+          SharedUtils, SpatialNavigator, URL, XScrollable, Animations, Utils */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -159,7 +159,7 @@
 
     onVisibilityChange: function() {
       if (document.visibilityState === 'visible') {
-        this._focusScrollable && this._focusScrollable.currentItem.blur();
+        Utils.holdFocusForAnimation();
         var that = this;
         Promise.all([new Promise(function(resolve) {
           that.skipBubble = Animations.doBubbleAnimation(
