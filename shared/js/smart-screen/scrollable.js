@@ -117,8 +117,12 @@
       this.listElem.style.transitionDuration = null;
 
       // set positions of other nodes to create moving effect
-      this._setOtherNodesPosition(this.newCardIndex);
-      this.focus(this.newCardIndex);
+      if (!this.isHovering) {
+        // If a card is hovering over a folder, the positions and focus will not
+        // be set here.
+        this._setOtherNodesPosition(this.newCardIndex);
+        this.focus(this.newCardIndex);
+      }
       this.fire('slideEnd');
       this.isSliding = false;
     },
@@ -377,11 +381,25 @@
       }, this);
 
       var newFocus = this.getItemFromNode(this.nodes[newFocusIdx]);
+      var isRemovingHoveringItem = this.isHovering &&
+          indices.length === 1 &&
+          this.hoveringItem === this.getItemFromNode(this.nodes[indices[0]]);
       this.nodes = newNodes;
-      if (!this.isHovering) {
+      // XXX newFocus check is a workaround to check if there's no node
+      //     in the scrollable, after discussion we leave it here temporarily.
+      if (!this.isHovering && newFocus) {
+        // When currently no node is hovering over a folder and the scrollable
+        // is not empty after removing nodes,
+        // reset node positions and the next focus item.
         this._setNodesPosition();
         this.spatialNavigator.focus(newFocus);
-      } else {
+      } else if (isRemovingHoveringItem) {
+        // In case of hovering, we only remove the hovering item.
+        // When the removed node was hovering over a folder, after it's removed,
+        // reset the idx of the remaining nodes, set the focus to the hovered
+        // folder, fire the event to notify the remaining move to folder actions
+        // and unhover silently without firing an event.
+        this._setNodesIdx();
         this.spatialNavigator.focusSilently(this.hoveredItem);
         this.fire('hovering-node-removed', this.hoveringItem, this.hoveredItem);
         this.unhoverSilently();
@@ -410,6 +428,31 @@
       return true;
     },
 
+    insertNodeOver: function(newNode, startNode) {
+      if (typeof startNode === 'number') {
+        startNode = this.nodes[startNode];
+      }
+
+      var itemElem = this.getItemFromNode(newNode);
+      if (!itemElem) {
+        return false;
+      }
+
+      var newIdx =  parseInt(startNode.dataset.idx, 10);
+
+      this.nodes.splice(newIdx, 0, newNode);
+      this.listElem.appendChild(newNode);
+      this._setNodesPosition();
+
+      this.spatialNavigator.add(itemElem);
+      this._slide(this.getItemFromNode(startNode), newIdx + 1);
+      this.hover(itemElem, this.getItemFromNode(startNode));
+      this.focus(newIdx);
+      this.fire('node-inserted-over-folder');
+
+      return true;
+    },
+
     get currentItem() {
       return this.spatialNavigator.getFocusedElement();
     },
@@ -428,6 +471,12 @@
         if (idx != skipIdx) {
           this._setNodePosition(idx);
         }
+      }
+    },
+
+    _setNodesIdx: function() {
+      for(var idx in this.nodes) {
+        this.nodes[idx].dataset.idx = idx;
       }
     },
 
