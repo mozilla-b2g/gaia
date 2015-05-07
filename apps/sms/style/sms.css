@@ -235,7 +235,7 @@ html {
   -moz-user-select: none;
 }
 
-.editable-select-mode [contenteditable] {
+.editable-select-mode [contenteditable="true"] {
   -moz-user-select: text;
 }
 
