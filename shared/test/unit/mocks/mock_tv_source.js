@@ -5,8 +5,6 @@
 
   function MockTVSource() {
 
-    var handlers = {};
-
     this.channels = [];
     this.currentChannel = null;
 
@@ -35,18 +33,6 @@
     channel.number = '4';
     this.channels.push(channel);
 
-    this.startScanning = function() {
-      var handler = handlers.scanningstatechanged;
-      var name;
-      for (name in handler) {
-        if (handler[name]) {
-          handler[name]({
-            state: 'completed'
-          });
-        }
-      }
-    };
-
     this.getChannels = function() {
       return {
         then: function(callback) {
@@ -62,19 +48,6 @@
           callback();
         }.bind(this)
       };
-    };
-
-    this.addEventListener = function(name, fn) {
-      if (!handlers[name]) {
-        handlers[name] = {};
-      }
-      handlers[name][fn.name] = fn;
-    };
-
-    this.removeEventListener = function(name, fn) {
-      if (handlers[name]) {
-        handlers[name][fn.name] = null;
-      }
     };
   }
 

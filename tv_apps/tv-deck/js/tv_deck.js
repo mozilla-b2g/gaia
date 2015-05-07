@@ -20,7 +20,8 @@
         // Initialize TVDeck. Fetch initial (tuner, source, channel) values from
         // either URL hash or asyncStorage, and then scan all available tuners,
         // sources and channels.
-        this.channelManager.fetchSettingFromHash().then(function() {
+        var hash = window.location.hash;
+        this.channelManager.fetchSettingFromHash(hash).then(function() {
           this.channelManager.scanTuners();
         }.bind(this));
       }
@@ -33,8 +34,8 @@
 
     // lastChannelId maintains number of channel-switching user did.
     this.lastChannelId = 0;
-    this.channelManager = new ChannelManager(this);
-    this.channelManager.on('tuned', this.setHash.bind(this));
+    this.channelManager = new ChannelManager();
+    this.channelManager.on('scanned', this.setHash.bind(this));
     this.channelManager.on('error', this._showErrorState.bind(this));
 
     // enterNumberTimeoutDelay determines the waiting time for switching TV

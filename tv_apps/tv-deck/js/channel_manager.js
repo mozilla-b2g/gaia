@@ -143,57 +143,20 @@
    */
   proto.scanChannels = function cm_scanChannels() {
     var sourceObject = this.getSource();
-    var source = sourceObject.source;
-
-    sourceObject.channels = [];
-    sourceObject.channelIndexHash = {};
-    if (source.isScanning) {
-      return;
-    }
-
-    var onscanningstatechanged = function(event) {
-      var state = event.state;
-      switch (state) {
-        case 'completed':
-        /* falls through */
-        case 'stopped':
-          this._onScanningCompleted();
-          source.removeEventListener(
-                                'scanningstatechanged', onscanningstatechanged);
-          break;
-        default:
-          break;
-      }
-    }.bind(this);
-
-    source.addEventListener('scanningstatechanged', onscanningstatechanged);
-
-    source.startScanning({
-      isRescanned: true
-    });
-  };
-
-  /**
-   * Retrieve all the currently available TV channels from current TV source.
-   * Sort channels for channel switching.
-   */
-  proto._onScanningCompleted = function cm_onScanningCompleted() {
-    var sourceObject = this.getSource();
     sourceObject.source.getChannels().then(function onsuccess(channels) {
+      sourceObject.channels = [];
+      sourceObject.channelIndexHash = {};
       if (channels.length === 0) {
         console.error('Error, no channel found!');
         return;
       }
-
-      // Sort channels. Channel number can be XX-XX-XX
-      channels.sort(this._compareChannel.bind(this));
 
       var i;
       for (i = 0; i < channels.length; i++) {
         sourceObject.channelIndexHash[channels[i].number] = i;
         sourceObject.channels[i] = {
           channel: channels[i],
-          programs: {},
+          programs: [],
         };
       }
 
@@ -207,7 +170,7 @@
       }
 
       this.isReady = true;
-      this.fire('tuned');
+      this.fire('scanned');
     }.bind(this), function onerror(error) {
       console.error(error);
     });
@@ -245,26 +208,6 @@
       }.bind(this), function() {
         console.error('Channel not found');
       });
-  };
-
-  proto._compareChannel = function cm__compareChannel(channelA, channelB) {
-    var numberA = channelA.number.split('-');
-    var numberB = channelB.number.split('-');
-    for(var i = 0; i < Math.max(numberA.length, numberB.length); i++) {
-      numberA[i] = parseInt(numberA[i], 10);
-      numberB[i] = parseInt(numberB[i], 10);
-
-      if (numberA[i] !== 0 && !numberA[i]) {
-        return -1;
-      } else if (numberB[i] !== 0 && !numberB[i]) {
-        return 1;
-      } else if (numberA[i] < numberB[i]) {
-        return -1;
-      } else if (numberA[i] > numberB[i]) {
-        return 1;
-      }
-    }
-    return 0;
   };
 
   proto.switchChannel = function cm_switchChannel(direction) {

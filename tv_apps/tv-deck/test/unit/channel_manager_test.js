@@ -249,14 +249,6 @@ suite('tv-deck/channel_manager', function() {
       assert.equal(channelManager.playingState.channelNumber, '0');
     });
 
-    test('Channels should be sorted', function() {
-      channelManager.scanChannels();
-      var channels = sourceObject.channels;
-      channels.forEach(function(channelObject, index) {
-        assert(channelObject.channel.number, index + '');
-      });
-    });
-
     test('isReady is set to be true', function() {
       channelManager.scanChannels();
       assert.isTrue(channelManager.isReady);
