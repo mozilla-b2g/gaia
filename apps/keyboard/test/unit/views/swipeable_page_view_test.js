@@ -4,6 +4,7 @@
 require('/js/views/key_view.js');
 require('/js/views/layout_page_view.js');
 require('/js/views/swipeable_section_view.js');
+require('/js/views/swiping_detector.js');
 require('/js/views/swipeable_panel_view.js');
 require('/js/views/swipeable_page_view.js');
 

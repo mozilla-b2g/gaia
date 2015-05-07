@@ -1,6 +1,6 @@
 'use strict';
 
-/* global EmojiKeyView, KeyView */
+/* global EmojiKeyView, KeyView, SwipingDetector */
 
 (function(exports) {
 
@@ -20,6 +20,8 @@ function SwipeablePanelView(layout, options, viewManager) {
   this.indicators = [];
 
   this.startX = 0;
+
+  this.swipingDetector = null;
 }
 
 SwipeablePanelView.prototype.COLUMN_COUNT = 6;
@@ -28,11 +30,19 @@ SwipeablePanelView.prototype.KEY_COUNT_PER_PANEL = 18;
 
 SwipeablePanelView.prototype.SWIPE_THRESHOLD = 20;
 
+SwipeablePanelView.prototype.SWIPE_FRACTION = 0.25;
+
+SwipeablePanelView.prototype.SWIPE_SPEED = 0.5;
+
 SwipeablePanelView.prototype.render = function() {
   var panel = document.createElement('div');
   panel.classList.add('swipe-panel');
 
-  panel.addEventListener('touchstart', this);
+  this.swipingDetector = new SwipingDetector(panel);
+  this.swipingDetector.start();
+  this.swipingDetector.ontouchstart = this._handleTouchStart.bind(this);
+  this.swipingDetector.onpan = this._handlePan.bind(this);
+  this.swipingDetector.onswipe = this._handleSwipe.bind(this);
 
   var i = 0;
   while (true) {
@@ -109,101 +119,90 @@ SwipeablePanelView.prototype._updateIndicator = function() {
   }, this);
 };
 
-SwipeablePanelView.prototype.handleEvent = function(evt) {
-  var totalWidth;
+SwipeablePanelView.prototype._handleTouchStart = function(evt) {
+  this.startX = evt.position.clientX;
+  this.deltaX = 0;
+};
 
-  switch (evt.type) {
-    case 'touchstart':
-      this.touchStartTimestamp = evt.timeStamp;
-      this.startX = evt.touches[0].pageX;
-      this.deltaX = 0;
-      this.element.addEventListener('touchmove', this);
-      break;
+SwipeablePanelView.prototype._handlePan = function(evt) {
+  var totalWidth = this.options.totalWidth;
 
-    case 'touchmove':
-      // Clear all transition styles
-      this.sections.forEach(function(section) {
-        section.style.transition = '';
-      });
+  // Clear all transition styles
+  this.sections.forEach(function(section) {
+    section.style.transition = '';
+  });
 
-      totalWidth = this.options.totalWidth;
-      var currentX = evt.touches[0].pageX;
-      this.deltaX = currentX - this.startX;
+  var currentX = evt.position.clientX;
+  this.deltaX = currentX - this.startX;
 
-      var previous;
-      var next;
-      var current;
-      var forward = this.deltaX < 0;
+  var previous;
+  var next;
+  var current;
+  var forward = this.deltaX < 0;
 
-      if (this.currentSectionIndex === 0) {
-        if (forward) {
-          this.sections[1].style.transform =
-            'translateX(' + (totalWidth + this.deltaX) + 'px)';
-          this.sections[0].style.transform =
-            'translateX(' + this.deltaX + 'px)';
-        } else {
-          this.startX = currentX;
-        }
-      } else if (this.currentSectionIndex === this.sections.length - 1) {
-        previous =
-          this.sections[this.currentSectionIndex - 1].style;
+  if (this.currentSectionIndex === 0) {
+    if (forward) {
+      this.sections[1].style.transform =
+        'translateX(' + (totalWidth + this.deltaX) + 'px)';
+      this.sections[0].style.transform =
+        'translateX(' + this.deltaX + 'px)';
+    } else {
+      this.startX = currentX;
+    }
+  } else if (this.currentSectionIndex === this.sections.length - 1) {
+    previous =
+      this.sections[this.currentSectionIndex - 1].style;
 
-        if (this.deltaX >= 0) {
-          previous.transform =
-            'translateX(' + (-totalWidth + this.deltaX) + 'px)';
-          this.sections[this.currentSectionIndex].style.transform =
-            'translateX(' + this.deltaX + 'px)';
-        } else {
-          this.startX = currentX;
-        }
-      } else {
-        previous = this.sections[this.currentSectionIndex - 1].style;
-        next = this.sections[this.currentSectionIndex + 1].style;
-        if (this.deltaX >= 0) {
-          previous.transform =
-            'translateX(' + (-totalWidth + this.deltaX) + 'px)';
-          // If we change direction make sure there isn't any part
-          // of the page on the other side that stays visible.
-          if (forward) {
-            forward = false;
-            next.transform = 'translateX(' + totalWidth + 'px)';
-          }
-        } else {
-          next.transform = 'translateX(' + (totalWidth + this.deltaX) + 'px)';
-          // If we change direction make sure there isn't any part
-          // of the page on the other side that stays visible.
-          if (!forward) {
-            forward = true;
-            previous.transform =
-              'translateX(-' + totalWidth + 'px)';
-          }
-        }
+    if (this.deltaX >= 0) {
+      previous.transform =
+        'translateX(' + (-totalWidth + this.deltaX) + 'px)';
+      this.sections[this.currentSectionIndex].style.transform =
+        'translateX(' + this.deltaX + 'px)';
+    } else {
+      this.startX = currentX;
+    }
+  } else {
+    previous = this.sections[this.currentSectionIndex - 1].style;
+    next = this.sections[this.currentSectionIndex + 1].style;
+    if (this.deltaX >= 0) {
+      previous.transform =
+        'translateX(' + (-totalWidth + this.deltaX) + 'px)';
+      // If we change direction make sure there isn't any part
+      // of the page on the other side that stays visible.
+      next.transform = 'translateX(' + totalWidth + 'px)';
+    } else {
+      next.transform = 'translateX(' + (totalWidth + this.deltaX) + 'px)';
+      // If we change direction make sure there isn't any part
+      // of the page on the other side that stays visible.
+      previous.transform =
+        'translateX(-' + totalWidth + 'px)';
+    }
 
-        current = this.sections[this.currentSectionIndex].style;
-        current.transform = 'translateX(' + this.deltaX + 'px)';
-      }
-
-      this.element.addEventListener('touchend', this);
-      break;
-
-    case 'touchend':
-      this.element.removeEventListener('touchmove', this);
-      // If the actual distance plus the coast distance is more than 20px,
-      // transition to the next page.
-      // XXX: need a better way to decide when to go to the other page.
-      var targetIndex = this.currentSectionIndex;
-      if (Math.abs(this.deltaX) > this.SWIPE_THRESHOLD) {
-        forward = this.deltaX < 0;
-        if (forward && this.currentSectionIndex < this.sections.length - 1) {
-          targetIndex = this.currentSectionIndex + 1;
-        } else if (!forward && this.currentSectionIndex > 0) {
-          targetIndex = this.currentSectionIndex - 1;
-        }
-      }
-
-      this.gotoSection(targetIndex);
-      break;
+    current = this.sections[this.currentSectionIndex].style;
+    current.transform = 'translateX(' + this.deltaX + 'px)';
   }
+};
+
+SwipeablePanelView.prototype._handleSwipe = function(evt) {
+  var totalWidth = this.options.totalWidth;
+
+  var targetIndex = this.currentSectionIndex;
+  var forward = evt.direction === 'left';
+
+  var isFarEnough = Math.abs(this.deltaX) > totalWidth * this.SWIPE_FRACTION;
+  var velocity = evt.vx;
+  var isFastEnough = Math.abs(velocity) > this.SWIPE_SPEED;
+  var isSameDirection = velocity === 0 || this.deltaX / velocity >= 0;
+
+  if ((isFarEnough || isFastEnough) && isSameDirection) {
+    if (forward && this.currentSectionIndex < this.sections.length - 1) {
+      targetIndex = this.currentSectionIndex + 1;
+    } else if (!forward && this.currentSectionIndex > 0) {
+      targetIndex = this.currentSectionIndex - 1;
+    }
+  }
+
+  this.gotoSection(targetIndex);
 };
 
 SwipeablePanelView.prototype._renderSection = function(index) {
