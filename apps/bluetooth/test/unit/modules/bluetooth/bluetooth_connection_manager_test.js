@@ -47,7 +47,7 @@ suite('BluetoothContext', function() {
       return this.MockAsyncStorage;
     }.bind(this));
 
-    testRequire(modules, map, function(AdapterManager, AsyncStorage, 
+    testRequire(modules, map, function(AdapterManager, AsyncStorage,
                                        ConnectionManager) {
       adapterManager = AdapterManager;
       asyncStorage = AsyncStorage;
@@ -420,9 +420,9 @@ suite('BluetoothContext', function() {
 
     test('onattributechanged should be unregistered ', function() {
       connectionManager._unwatchDefaultAdapterOnattributechanged(mockAdapter);
-      assert.equal(mockAdapter.removeEventListener.args[0][0], 
+      assert.equal(mockAdapter.removeEventListener.args[0][0],
         'attributechanged');
-      assert.equal(mockAdapter.removeEventListener.args[0][1], 
+      assert.equal(mockAdapter.removeEventListener.args[0][1],
         connectionManager._onAdapterAttributeChanged);
     });
   });
@@ -449,7 +449,7 @@ suite('BluetoothContext', function() {
       });
 
       ['enabling', 'disabling', 'disabled'].forEach(function(state) {
-        test('_restoreConnection() should not be called when ' + state, 
+        test('_restoreConnection() should not be called when ' + state,
           function() {
           mockAdapter.state = state;
           connectionManager._onAdapterAttributeChanged(mockAdapter, evt);
