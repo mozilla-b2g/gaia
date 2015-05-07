@@ -15,6 +15,7 @@ var MockNotificationHelper = {
           }
         };
         resolve(notification);
+        return Promise.resolve();
       }
     };
   },
