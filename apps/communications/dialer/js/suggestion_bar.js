@@ -1,5 +1,5 @@
 /* globals CallHandler, Contacts, fb, KeypadManager, LazyLoader,
-           SimplePhoneMatcher, SimSettingsHelper */
+           SimplePhoneMatcher, SimSettingsHelper, Tagged */
 
 // Suggestion_bar.js will be loaded on init of KeypadManager through
 // lazy loader. So we call its init() directly at the end of file.
@@ -326,8 +326,11 @@ var SuggestionBar = {
         end = i;
       }
     }
-    return str.substr(0, start) + '<mark class="ci__mark">' +
-           str.substr(start, end - start + 1) + '</mark>' + str.substr(end + 1);
+    var startStr = str.substr(0, start);
+    var middleStr = str.substr(start, end - start + 1);
+    var endStr = str.substr(end + 1);
+    return Tagged.escapeHTML `${startStr}<mark class="ci__mark"
+      >${middleStr}</mark>${endStr}`;
   },
 
   _initOverlay: function() {
