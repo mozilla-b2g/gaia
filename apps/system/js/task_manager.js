@@ -542,9 +542,9 @@
       filter = (evt.detail && evt.detail.filter) || null;
     }
 
-
-    var shouldResize = (OrientationManager.defaultOrientation !=
-                        OrientationManager.fetchCurrentOrientation());
+    var currOrientation = OrientationManager.fetchCurrentOrientation();
+    var shouldResize = (OrientationManager.defaultOrientation.split('-')[0] !=
+                        currOrientation.split('-')[0]);
     var shouldHideKeyboard = layoutManager.keyboardEnabled;
 
     this.publish('cardviewbeforeshow'); // Will hide the keyboard if needed
@@ -561,6 +561,7 @@
 
       screen.mozLockOrientation(OrientationManager.defaultOrientation);
       if (shouldResize) {
+        // aspect ratio change will produce resize event
         window.addEventListener('resize', function resized() {
           window.removeEventListener('resize', resized);
           shouldResize = false;
