@@ -382,8 +382,8 @@ var icc = {
       this.icc_confirm_icons = document.getElementById('icc-confirm-icons');
       this.icc_confirm_msg = document.getElementById('icc-confirm-msg');
       this.icc_confirm_btn = document.getElementById('icc-confirm-btn');
-      this.icc_confirm_btn_back =
-        document.getElementById('icc-confirm-btn_back');
+      this.icc_confirm_header =
+        document.getElementById('icc-confirm-header');
       this.icc_confirm_btn_close =
         document.getElementById('icc-confirm-btn_close');
       this.setupView(this.icc_confirm);
@@ -405,12 +405,12 @@ var icc = {
     var self = this;
 
     // STK Default response (BACK and CLOSE)
-    this.icc_confirm_btn_back.onclick = function() {
+    this.icc_confirm_header.addEventListener('action', function() {
       clearTimeout(timeoutId);
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
-    };
+    });
     this.icc_confirm_btn_close.onclick = function() {
       clearTimeout(timeoutId);
       self.hideViews();
