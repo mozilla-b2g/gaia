@@ -659,13 +659,6 @@ var InboxView = {
       // Register all threads to the Threads object.
       Threads.set(thread.id, thread);
 
-      // If one of the requested threads is also the currently displayed thread,
-      // update the header immediately
-      // TODO: Revise necessity of this code in bug 1050823
-      if (Navigation.isCurrentPanel('thread', { id: thread.id })) {
-        ConversationView.updateHeaderData();
-      }
-
       if (!hasThreads) {
         hasThreads = true;
         this.startRendering();

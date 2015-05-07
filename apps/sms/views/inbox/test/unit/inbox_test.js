@@ -1391,18 +1391,6 @@ suite('thread_list_ui', function() {
           threadList.forEach((thread) => assert.isTrue(Threads.has(thread.id)));
         }).then(done, done);
       });
-
-      test('Updates thread UI header if thread to render is currently active',
-      function(done) {
-        this.sinon.spy(ConversationView, 'updateHeaderData');
-        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-        Navigation.isCurrentPanel.withArgs('thread', { id: threadList[0].id }).
-          returns(true);
-
-        InboxView.renderThreads(
-          () => sinon.assert.calledOnce(ConversationView.updateHeaderData)
-        ).then(done, done);
-      });
     });
   });
 

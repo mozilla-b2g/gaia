@@ -3,6 +3,7 @@
   'use strict';
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
+  var MANIFEST_URL= ORIGIN_URL + '/manifest.webapp';
 
   var Chars = {
     ENTER: '\ue007',
@@ -89,6 +90,8 @@
 
       return {
         Selectors: SELECTORS,
+
+        manifestURL: MANIFEST_URL,
 
         Composer: {
           get toField() {
@@ -253,6 +256,39 @@
           client.apps.launch(ORIGIN_URL);
           client.apps.switchToApp(ORIGIN_URL);
           client.helper.waitForElement(SELECTORS.main);
+        },
+
+        close: function() {
+          client.apps.close(ORIGIN_URL);
+        },
+
+        /**
+         * Sends system message to the Messages app using SystemMessageInternal
+         * class available in chrome context. Should be replaced by marionette
+         * apps built-in method or shared lib (see bug 1162165).
+         * @param {string} name Name of the system message to send.
+         * @param {Object} parameters Parameters object to pass with system
+         * message.
+         */
+        sendSystemMessage: function(name, parameters) {
+          var chromeClient = client.scope({ context: 'chrome' });
+          chromeClient.executeScript(function(manifestURL, name, parameters) {
+            /* global Components, Services */
+            var managerClass = Components.classes[
+              '@mozilla.org/system-message-internal;1'
+            ];
+
+            var systemMessageManager = managerClass.getService(
+              Components.interfaces.nsISystemMessagesInternal
+            );
+
+            systemMessageManager.sendMessage(
+              name,
+              parameters,
+              null, /* pageURI */
+              Services.io.newURI(manifestURL, null, null)
+            );
+          }, [MANIFEST_URL, name, parameters]);
         },
 
         switchTo: function() {

@@ -103,6 +103,51 @@ Services.obs.addObserver(function(document) {
     });
   }
 
+  function getMessageParticipants(message) {
+    var numbers = [];
+
+    if (message.sender) {
+      numbers.push(message.sender);
+    }
+
+    if (message.receiver) {
+      numbers.push(message.receiver);
+    }
+
+    if (message.receivers) {
+      numbers.push(...message.receivers);
+    }
+
+    return numbers;
+  }
+
+  function getMessagesWithFilter(threads, filter) {
+    var messages = [];
+
+    if (filter.threadId) {
+      var threadByFilter = threads.get(filter.threadId);
+      if (threadByFilter) {
+        messages = threadByFilter.messages;
+      }
+    } else if (filter.numbers && filter.numbers.length) {
+      for (var thread of threads.values()) {
+        for (var message of thread.messages) {
+          // It's very simplified number matching logic, in real code matching
+          // strategy is more complex and based on PhoneNumberUtils.
+          var isRequestedMessage = getMessageParticipants(message).some(
+            (number) => filter.numbers.indexOf(number) >= 0
+          );
+
+          if (isRequestedMessage) {
+            messages.push(message);
+          }
+        }
+      }
+    }
+
+    return new Set(messages).values();
+  }
+
   var MobileMessage = {
     getSegmentInfoForText: function(text) {
       var request = Services.DOMRequest.createRequest(window);
@@ -220,14 +265,9 @@ Services.obs.addObserver(function(document) {
 
       var cursor = Services.DOMRequest.createCursor(window, handleCursor);
 
-      // Currently we need only "threadId" filter parameter.
-      if (filter && filter.threadId) {
+       if (filter) {
         getStorage().then(function(storage) {
-          var thread = storage.threads.get(filter.threadId);
-
-          // Remove this once Array.prototype.values() is landed (bug 875433).
-          messages = new Set(thread && thread.messages || []).values();
-
+          messages = getMessagesWithFilter(storage.threads, filter);
           handleCursor();
         });
       } else {
