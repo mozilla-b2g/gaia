@@ -57,8 +57,10 @@
 }
 
 .confirm-controls > button {
-   height: 3.8rem;
+  height: 3.8rem;
   -moz-margin-end: 1rem;
+  /* override shared/style/buttons.css, until strings can be shortened */
+  padding: 0 0.2rem;
 }
 
 .confirm-controls > button:last-child {
