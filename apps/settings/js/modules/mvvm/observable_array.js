@@ -57,6 +57,8 @@
  *   // Second event:
  *   // event.type is 'insert'
  *   // event.detail is {index: 2, count: 3, items: [4, 5, 6]}
+ *
+ * @module modules/mvvm/observable_array
  */
 define(function(require) {
   'use strict';
