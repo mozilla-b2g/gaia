@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette_driver import expected, By, Wait
-from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
+from marionette_driver.errors import NoSuchWindowException
 
 from gaiatest.apps.base import Base
 
@@ -25,7 +25,7 @@ class AlarmAlertScreen(Base):
         Wait(self.marionette).until(expected.element_displayed(stop_alarm_button))
         try:
             stop_alarm_button.tap()
-        except (FrameSendFailureError, NoSuchWindowException):
+        except NoSuchWindowException:
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass
 
