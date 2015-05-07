@@ -16,7 +16,9 @@ function DateTimePanel(client) {
 module.exports = DateTimePanel;
 
 DateTimePanel.Selectors = {
-  'timezoneRegion': '#dateTime .timezone-region'
+  'timezoneRegion': '#dateTime .timezone-region',
+  'timezoneInfoText': '#dateTime .timezone-info-text',
+  'timeFormatSelect': '#dateTime .time-format-time'
 };
 
 DateTimePanel.prototype = {
@@ -25,6 +27,14 @@ DateTimePanel.prototype = {
 
   selectRegion: function(value) {
     this.tapSelectOption('timezoneRegion', value);
+  },
+
+  selectTimeFormat: function(value) {
+    this.tapSelectOption('timeFormatSelect', value);
+  },
+
+  get timezoneInfoText() {
+    return this.waitForElement('timezoneInfoText').text();
   }
 
 };
