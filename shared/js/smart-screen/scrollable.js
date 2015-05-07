@@ -64,7 +64,6 @@
 
     this.listElem.addEventListener('transitionend', this);
 
-    this.scale = param.scale || 1;
     this._setNodesPosition();
 
     var defaultItem = this.listElem.dataset.defaultItem;
@@ -74,7 +73,7 @@
     this.spatialNavigator.on('focus', this.handleSelection.bind(this));
     this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
 
-    this.setScale();
+    this.setScale(param.scale || 1);
 
     this.isSliding = false;
     this.isHovering = false;
@@ -445,9 +444,9 @@
       this._setNodesPosition();
 
       this.spatialNavigator.add(itemElem);
-      this._slide(this.getItemFromNode(startNode), newIdx + 1);
       this.hover(itemElem, this.getItemFromNode(startNode));
       this.focus(newIdx);
+      this._slide(this.getItemFromNode(startNode), newIdx + 1);
       this.fire('node-inserted-over-folder');
 
       return true;

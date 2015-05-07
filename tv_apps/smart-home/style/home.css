@@ -99,6 +99,22 @@ section {
   transition-delay: 0s;
 }
 
+#folder-list .card smart-button[type="app-button"].new-card {
+  opacity: 1;
+  transform: translateY(-44rem);
+}
+
+#folder-list .card smart-button[type="app-button"].new-card-transition,
+#card-list .card smart-button[type="app-button"].new-card-transition.hover {
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1),
+              opacity 0.4s cubic-bezier(0.25, 0, 0, 1);
+}
+
+#card-list .card smart-button[type="app-button"].new-card.hover {
+  opacity: 1;
+  transform: translateY(44rem) scale(1.72);
+}
+
 .card-panel {
   position: absolute;
   top: -23.14rem;
