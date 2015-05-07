@@ -93,7 +93,7 @@
         this.service.request('HomescreenLauncher:launch',
           homescreenManifestURL, true).then(() => {
             return Promise.all([
-              this.service.request('LogoManager:animatePoweronLogo'),
+              this.service.request('CoverScreen:animatePoweronLogo'),
               this.scheduler.release()
             ]);
           })
@@ -112,7 +112,7 @@
             return this.service.request('LockScreenLauncher:launch');
           }).then(() => {
             return Promise.all([
-              this.service.request('LogoManager:animatePoweronLogo'),
+              this.service.request('CoverScreen:animatePoweronLogo'),
               this.service.request('HomescreenLauncher:launch',
                 homescreenManifestURL),
               this.scheduler.release()
@@ -131,7 +131,7 @@
             return Promise.all([
               this.service.request('HomescreenLauncher:launch',
                 homescreenManifestURL),
-              this.service.request('LogoManager:animatePoweronLogo'),
+              this.service.request('CoverScreen:animatePoweronLogo'),
               this.scheduler.release()
             ]);
           }),

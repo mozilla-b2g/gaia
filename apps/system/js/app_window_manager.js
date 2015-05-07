@@ -28,8 +28,6 @@
     'isBusyLoading'
   ];
   AppWindowManager.EVENTS = [
-    'cardviewbeforeshow',
-    'cardviewclosed',
     'launchapp',
     'appcreated',
     'appterminated',
@@ -68,6 +66,7 @@
     'launchtrusted',
     'taskmanager-activated',
     'hierarchytopmostwindowchanged',
+    'cardviewbeforeshow',
     'cardviewclosed',
     'cardviewshown'
   ];

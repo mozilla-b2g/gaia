@@ -10,7 +10,7 @@
    * The height of the windows would be affected by some global factor:
    *
    *
-   * * The height of StatusBar.
+   * * The height of Statusbar.
    * * The existence of Software Home Button.
    * * The existence of Keyboard.
    *
@@ -22,7 +22,6 @@
    *
    * @class LayoutManager
    * @requires SoftwareButtonManager
-   * @requires StatusBar
    * @requires Service
    */
   var LayoutManager = function LayoutManager() {};

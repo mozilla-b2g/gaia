@@ -19,7 +19,7 @@ suite('system/launcher', function() {
   var realMozSettings;
   mocksForLauncher.attachTestHelpers();
   var fakeFtuLauncher, fakeHomescreenLauncher, fakeLockscreenLauncher;
-  var fakeWallpaperManager, fakeLogoManager;
+  var fakeWallpaperManager, fakeCoverScreen;
   var deferreds = {};
 
   suiteSetup(function() {
@@ -49,7 +49,7 @@ suite('system/launcher', function() {
     deferreds['LockScreenLauncher:launch'] = new Deferred();
     deferreds['LockScreenLauncher:standby'] = new Deferred();
     deferreds['WallpaperManager:initializeWallpaper'] = new Deferred();
-    deferreds['LogoManager:animatePoweronLogo'] = new Deferred();
+    deferreds['CoverScreen:animatePoweronLogo'] = new Deferred();
     settingsCore = BaseModule.instantiate('SettingsCore');
     settingsCore.start();
     fakeFtuLauncher = {
@@ -85,10 +85,10 @@ suite('system/launcher', function() {
         return deferreds['WallpaperManager:initializeWallpaper'].promise;
       })
     };
-    fakeLogoManager = {
-      name: 'LogoManager',
+    fakeCoverScreen = {
+      name: 'CoverScreen',
       animatePoweronLogo: sinon.spy(function() {
-        return deferreds['LogoManager:animatePoweronLogo'].promise;
+        return deferreds['CoverScreen:animatePoweronLogo'].promise;
       })
     };
     Service.register('launch', fakeFtuLauncher);
@@ -101,7 +101,7 @@ suite('system/launcher', function() {
 
     Service.register('launch', fakeLockscreenLauncher);
     Service.register('standby', fakeLockscreenLauncher);
-    Service.register('LogoManager', fakeLogoManager);
+    Service.register('animatePoweronLogo', fakeCoverScreen);
     subject = BaseModule.instantiate('Launcher');
   });
 
@@ -134,7 +134,7 @@ suite('system/launcher', function() {
     deferreds['FtuLauncher:launch'].resolve();
     deferreds['WallpaperManager:initializeWallpaper'].resolve();
     deferreds['HomescreenLauncher:launch'].resolve();
-    deferreds['LogoManager:animatePoweronLogo'].resolve();
+    deferreds['CoverScreen:animatePoweronLogo'].resolve();
     deferreds['FtuLauncher:stepReady'].resolve();
     deferreds['LockScreenLauncher:standby'].resolve();
   });
@@ -150,7 +150,7 @@ suite('system/launcher', function() {
     deferreds['FtuLauncher:skip'].resolve();
     deferreds['WallpaperManager:initializeWallpaper'].resolve();
     deferreds['LockScreenLauncher:launch'].resolve();
-    deferreds['LogoManager:animatePoweronLogo'].resolve();
+    deferreds['CoverScreen:animatePoweronLogo'].resolve();
     deferreds['HomescreenLauncher:launch'].resolve();
   });
 
@@ -166,7 +166,7 @@ suite('system/launcher', function() {
     deferreds['WallpaperManager:initializeWallpaper'].resolve();
     deferreds['LockScreenLauncher:standby'].resolve();
     deferreds['HomescreenLauncher:launch'].resolve();
-    deferreds['LogoManager:animatePoweronLogo'].resolve();
+    deferreds['CoverScreen:animatePoweronLogo'].resolve();
   });
 
   test('should read settings', function(done) {

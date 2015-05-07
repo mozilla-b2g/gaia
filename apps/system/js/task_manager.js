@@ -78,6 +78,11 @@
     this._registerEvents();
     this._appClosedHandler = this._appClosed.bind(this);
     Service.request('registerHierarchy', this);
+    return LazyLoader.load([
+      'js/card.js',
+      'js/cards_helper.js',
+      'shared/js/tagged.js'
+    ]);
   };
 
   TaskManager.prototype.stop = function() {
@@ -344,12 +349,7 @@
       windowWidth: this.windowWidth,
       windowHeight: this.windowHeight
     };
-    LazyLoader.load(['js/card.js', 'js/cards_helper.js',
-      'shared/js/tagged.js']).then(function() {
-      this.instantiateCard(config);
-    }.bind(this))['catch'](function (err) {
-      console.error(err);
-    });
+    this.instantiateCard(config);
   };
 
   TaskManager.prototype.instantiateCard = function(config) {

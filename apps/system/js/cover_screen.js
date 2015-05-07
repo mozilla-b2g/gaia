@@ -18,16 +18,16 @@
   const ATT_PWROFF_VIDEO = 'poweroff.video';
   const ATT_PWROFF_IMG = 'poweroff.image';
 
-  var LogoManager = function() {};
-  LogoManager.SETTINGS = [
+  var CoverScreen = function() {};
+  CoverScreen.SETTINGS = [
     'operatorResources.power'
   ];
-  LogoManager.SERVICES = [
+  CoverScreen.SERVICES = [
     'poweroff',
     'animatePoweronLogo'
   ];
-  BaseModule.create(LogoManager, {
-    name: 'LogoManager',
+  BaseModule.create(CoverScreen, {
+    name: 'CoverScreen',
     EVENT_PREFIX: 'initlogo',
     ready: false,
     animated: false,
@@ -330,6 +330,6 @@
   });
 
   // We need to start as early as possible.
-  exports.logoManager = BaseModule.instantiate('LogoManager');
-  exports.logoManager.start();
+  exports.CoverScreen = BaseModule.instantiate('CoverScreen');
+  exports.CoverScreen.start();
 }(window));

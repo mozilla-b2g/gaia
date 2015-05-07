@@ -42,7 +42,7 @@
      * @example
      * Service.request('locked').then(function() {});
      * Service.request('addObserver', 'test.enabled', this).then(function() {});
-     * Service.request('StatusBar:height').then(function() {});
+     * Service.request('Statusbar:height').then(function() {});
      *
      * @param  {String} service Service name
      * @return {Promise}

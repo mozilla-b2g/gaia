@@ -104,7 +104,7 @@
         }
       };
 
-      // when wifi status change, emit event to notify StatusBar/UpdateManager
+      // when wifi status change, emit event to notify Statusbar/UpdateManager
       wifiManager.onstatuschange = function onWifiDisabled() {
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('wifi-statuschange',

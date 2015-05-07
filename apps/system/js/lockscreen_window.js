@@ -108,7 +108,7 @@
   LockScreenWindow.prototype._resize = function aw__resize() {
     var height, width;
 
-    // We want the lockscreen to go below the StatusBar
+    // We want the lockscreen to go below the Statusbar
     height = Service.query('LayoutManager.height') || window.innerHeight;
     width = Service.query('LayoutManager.width') || window.innerWidth;
 
