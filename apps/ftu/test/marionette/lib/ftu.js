@@ -10,8 +10,7 @@ function Ftu(client) {
 
 Ftu.clientOptions = {
   prefs: {
-    'focusmanager.testmode': true,
-    'dom.w3c_touch_events.enabled': 1
+    'focusmanager.testmode': true
   },
   settings: {
     'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp'

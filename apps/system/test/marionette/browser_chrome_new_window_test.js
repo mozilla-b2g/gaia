@@ -6,11 +6,7 @@ var Rocketbar = require('./lib/rocketbar');
 
 marionette('Browser Chrome - Open New Window', function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    }
-  });
+  var client = marionette.client();
 
   var actions, home, rocketbar, search, server, system;
 

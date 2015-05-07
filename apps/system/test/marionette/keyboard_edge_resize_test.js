@@ -10,7 +10,6 @@ var SMS_APP = 'app://sms.gaiamobile.org';
 marionette('Keyboard and edge gestures >', function() {
   var client = marionette.client({
     prefs: {
-      'dom.w3c_touch_events.enabled': 1,
       'focusmanager.testmode': true
     }
   });

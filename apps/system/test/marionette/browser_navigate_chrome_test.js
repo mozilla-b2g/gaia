@@ -7,11 +7,7 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser - Chrome on browser navigation',
   function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    }
-  });
+  var client = marionette.client();
 
   var home, rocketbar, search, server, system;
 

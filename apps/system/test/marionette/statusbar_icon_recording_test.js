@@ -6,11 +6,7 @@ var APP = 'app://sms.gaiamobile.org';
 
 marionette('Status Bar icons - Recording', function() {
 
-  var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    }
-  });
+  var client = marionette.client();
 
   var system;
   var statusBar;

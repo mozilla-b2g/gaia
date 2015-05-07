@@ -6,8 +6,7 @@ marionette('Secure app (camera from lockscreen) statusbar icons', function() {
 
   var client = marionette.client({
     prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+      'focusmanager.testmode': true
     },
     settings: {
       'software-button.enabled': true
