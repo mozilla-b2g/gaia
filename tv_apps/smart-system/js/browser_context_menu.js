@@ -170,7 +170,10 @@
     this.circleAnimation.play('grow', function() {
       this.element.classList.add('visible');
       Animations.doBubbleAnimation(
-                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100);
+                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100,
+                  function() {
+                    this.app.publish('contextmenu-shown');
+                  }.bind(this));
       focusManager.focus();
     }.bind(this));
   },
@@ -220,6 +223,7 @@
           if (self.clickedItemCallback) {
             self.clickedItemCallback();
           }
+          self.app.publish('contextmenu-hidden');
         });
       }
     };
