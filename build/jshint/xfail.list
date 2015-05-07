@@ -12,7 +12,6 @@ apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/wifi_test.js
 shared/js/blobview.js
-shared/js/dialer/contacts.js
 shared/js/keyboard_helper.js
 shared/js/mediadb.js
 shared/js/operator_variant_helper.js
