@@ -1,12 +1,15 @@
+/**
+ * DependencyGraph is a basic data structure that helps decide the evaluation
+ * order of a certain node.
+ *
+ * @module modules/base/dependency_graph
+ */
 define(function(require) {
   'use strict';
 
   var Module = require('modules/base/module');
 
   /**
-   * DependencyGraph is a basic data structure that helps decide the evaluation
-   * order of a certain node.
-   *
    * @class DependencyGraph
    * @requires module:modules/base/module
    * @params {DependencyGraph} dpGraph
