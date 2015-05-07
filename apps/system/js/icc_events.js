@@ -259,7 +259,7 @@ var icc_events = {
           if (!app) {
             return;
           }
-          if (app.manifest.permissions.browser) {
+          if (app.manifest.name === 'Browser') {
             icc_events.handleBrowserTerminationEvent(message, e);
           }
         };
