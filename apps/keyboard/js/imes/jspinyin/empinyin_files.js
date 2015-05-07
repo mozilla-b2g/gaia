@@ -1,11 +1,20 @@
-
+/* jshint sub: true */
+/* global Module */
+'use strict';
 (function() {
-
-  if (typeof Module == 'undefined') Module = {};
-  if (!Module['preRun']) Module['preRun'] = [];
+  if (typeof Module == 'undefined') {
+    /*jshint -W020 */
+    Module = {};
+    /*jshint +W020 */
+  }
+  if (!Module['preRun']) {
+    Module['preRun'] = [];
+  }
   Module['preRun'].push(function() {
     function assert(check, msg) {
-      if (!check) throw msg + new Error().stack;
+      if (!check) {
+        throw msg + new Error().stack;
+      }
     }
 
     Module['FS_createPath']('/', 'data', true, true);
@@ -47,8 +56,6 @@
     (Module['empinyin_files_path'] ? Module['empinyin_files_path'] + '/' : '') +
       'empinyin_files.data';
 
-    var PACKAGE_UUID = '64577897-299a-4825-b6d2-4b93c3b6972d';
-
     function fetchRemotePackage(packageName, callback, errback) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', packageName, true);
@@ -58,7 +65,9 @@
         if (event.loaded && event.total) {
           if (!xhr.addedTotal) {
             xhr.addedTotal = true;
-            if (!Module.dataFileDownloads) Module.dataFileDownloads = {};
+            if (!Module.dataFileDownloads) {
+              Module.dataFileDownloads = {};
+            }
             Module.dataFileDownloads[url] = {
               loaded: event.loaded,
               total: event.total
@@ -88,7 +97,7 @@
         callback(packageData);
       };
       xhr.send(null);
-    };
+    }
 
     function processPackageData(arrayBuffer) {
       Module.finishedDataFileDownloads++;
@@ -104,19 +113,20 @@
         curr.onload();
                 Module['removeRunDependency']('datafile_empinyin_files.data');
 
-    };
+    }
+
     Module['addRunDependency']('datafile_empinyin_files.data');
 
     function handleError(error) {
       console.error('package error:', error);
-    };
+    }
 
-    if (!Module.preloadResults)
+    if (!Module.preloadResults) {
       Module.preloadResults = {};
+    }
 
-      Module.preloadResults[PACKAGE_NAME] = {fromCache: false};
-      fetchRemotePackage(REMOTE_PACKAGE_NAME, processPackageData, handleError);
-      });
-
+    Module.preloadResults[PACKAGE_NAME] = {fromCache: false};
+    fetchRemotePackage(REMOTE_PACKAGE_NAME, processPackageData, handleError);
+  });
 })();
 

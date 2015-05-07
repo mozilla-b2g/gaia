@@ -1,9 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/* global
-  PAGE_INDEX_DEFAULT
- */
+/* global PAGE_INDEX_DEFAULT, InputMethods, KeyEvent, PromiseStorage */
 
 'use strict';
 
@@ -59,7 +56,7 @@
     setLayoutParams: setLayoutParams,
     setLanguage: setLanguage,
     selectionChange: selectionChange,
-    generateNearbyKeyMap: nearbyKeys
+    generateNearbyKeyMap: findNearbyKeys
   };
 
   // This is the object that is passed to init().
@@ -192,7 +189,7 @@
           default:
             return (type === 'textarea') ? 'latin-prose' : 'latin';
         }
-
+        break;
       default:
         return 'verbatim';
     }
@@ -207,10 +204,11 @@
     inputMode = getInputMode(state.type, state.inputmode);
     inputText = state.value;
     cursor = state.selectionStart;
-    if (state.selectionEnd > state.selectionStart)
+    if (state.selectionEnd > state.selectionStart) {
       selection = state.selectionEnd;
-    else
+    } else {
       selection = 0;
+    }
 
     // Figure out what kind of input assistance we're providing for this
     // activation.
@@ -268,16 +266,18 @@
     // thread created and that it knows what language we're using, and then
     // start things off by requesting a first batch of suggestions.
     if (suggesting || correcting) {
-      if (!worker || lang !== language)
+      if (!worker || lang !== language) {
         setLanguage(lang);  // This calls updateSuggestions
-      else
+      } else {
         updateSuggestions();
+      }
     }
   }
 
   function deactivate() {
-    if (!worker || idleTimer)
+    if (!worker || idleTimer) {
       return;
+    }
     idleTimer = setTimeout(terminateWorker, WORKER_TIMEOUT);
   }
 
@@ -297,8 +297,9 @@
   function setLanguage(newlang) {
     // If there is no worker and no language, or if there is a worker and
     // the language has not changed, then there is nothing to do here.
-    if ((!worker && !newlang) || (worker && newlang === language))
+    if ((!worker && !newlang) || (worker && newlang === language)) {
       return;
+    }
 
     language = newlang;
 
@@ -350,8 +351,9 @@
     if (!worker) {
       // If we haven't created the worker before, do it now
       worker = new Worker('js/imes/latin/worker.js');
-      if (layoutParams && nearbyKeyMap)
+      if (layoutParams && nearbyKeyMap) {
         worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
+      }
 
       worker.onmessage = function(e) {
         switch (e.data.cmd) {
@@ -542,8 +544,9 @@
           // If we have temporarily disabled auto correction for the current
           // word and we've just backspaced over the entire word, then we can
           // re-enabled it again
-          if (correctionDisabled && !wordBeforeCursor())
+          if (correctionDisabled && !wordBeforeCursor()) {
             correctionDisabled = false;
+          }
         }
       } else {
         if (selection) {
@@ -661,10 +664,11 @@
   function autoPunctuate(keycode) {
     switch (keycode) {
     case SPACE:
-      if (Date.now() - lastSpaceTimestamp < DOUBLE_SPACE_TIME)
+      if (Date.now() - lastSpaceTimestamp < DOUBLE_SPACE_TIME) {
         return fixPunctuation(PERIOD, SPACE);
-      else
+      } else {
         return handleKey(keycode);
+      }
       break;
 
     case PERIOD:
@@ -915,8 +919,9 @@
     layoutParams = params;
 
     // We don't need to update the nearbyKeys when using number/digit layout.
-    if (inputMode === 'verbatim')
+    if (inputMode === 'verbatim') {
       return;
+    }
 
     // XXX We call nearbyKeys() every time the keyboard pops up.
     // Maybe it would be better to compute it once in keyboard.js and
@@ -924,10 +929,11 @@
 
     // We get called every time the keyboard case changes. Don't bother
     // passing this data to the prediction engine if nothing has changed.
-    var newmap = nearbyKeys(params);
+    var newmap = findNearbyKeys(params);
     var serialized = JSON.stringify(newmap);
-    if (serialized === serializedNearbyKeyMap)
+    if (serialized === serializedNearbyKeyMap) {
       return;
+    }
 
     nearbyKeyMap = newmap;
     serializedNearbyKeyMap = serialized;
@@ -939,33 +945,35 @@
     }
   }
 
-  function nearbyKeys(layout) {
+  function findNearbyKeys(layout) {
     var nearbyKeys = {};
     var keys = layout.keyArray;
-    var keysize = Math.min(layout.keyWidth, layout.keyHeight) * 1.2;
-    var threshold = keysize * keysize;
 
     // Make sure that all the keycodes are lowercase, not uppercase
-    for (var n = 0; n < keys.length; ++n) {
-      keys[n].code =
-        String.fromCharCode(keys[n].code).toLowerCase().charCodeAt(0);
+    for (var p = 0; p < keys.length; ++p) {
+      keys[p].code =
+        String.fromCharCode(keys[p].code).toLowerCase().charCodeAt(0);
     }
 
     // For each key, calculate the keys nearby.
     for (var n = 0; n < keys.length; ++n) {
       var key1 = keys[n];
-      if (SpecialKey(key1))
+      if (SpecialKey(key1)) {
         continue;
+      }
       var nearby = {};
       for (var m = 0; m < keys.length; ++m) {
-        if (m === n)
+        if (m === n) {
           continue; // don't compare a key to itself
+        }
         var key2 = keys[m];
-        if (SpecialKey(key2))
+        if (SpecialKey(key2)) {
           continue;
+        }
         var d = distance(key1, key2);
-        if (d !== 0)
+        if (d !== 0) {
           nearby[key2.code] = d;
+        }
       }
       nearbyKeys[key1.code] = nearby;
     }
@@ -998,10 +1006,11 @@
         return 0;
       }
 
-      if (distanceSquared > 2.5 * 2.5)
+      if (distanceSquared > 2.5 * 2.5) {
         return 0;
-      else
+      } else {
         return 1 / distanceSquared;
+      }
     }
 
     // Determine whether the key is a special character or a regular letter.
@@ -1024,16 +1033,19 @@
   function updateSuggestions(repeat) {
     // If the user hasn't enabled suggestions, or if they're not appropriate
     // for this input type, or are turned off by the input mode, do nothing
-    if (!suggesting && !correcting)
+    if (!suggesting && !correcting) {
       return;
+    }
 
     // If there is no dictionary language, do nothing
-    if (!language)
+    if (!language) {
       return;
+    }
 
     // If we are still loading the dictionary, do nothing
-    if (getDictionaryDataPromise)
+    if (getDictionaryDataPromise) {
       return;
+    }
 
     // This shouldn't happen -- we previously allow layout to be selected
     // without the dictionary, but the build script has since prevent that.
@@ -1058,8 +1070,9 @@
     // If we're not at the end of a word, we want to clear any suggestions
     // that might already be there
     if (!atWordEnd()) {
-      if (suggesting)
+      if (suggesting) {
         keyboard.sendCandidates([]);
+      }
       return;
     }
 
@@ -1121,9 +1134,11 @@
   // different than the character
   function isUpperCase(s) {
     var lc = s.toLowerCase();
-    for (var i = 0, n = s.length; i < n; i++)
-      if (s[i] === lc[i])
+    for (var i = 0, n = s.length; i < n; i++) {
+      if (s[i] === lc[i]) {
         return false;
+      }
+    }
     return true;
   }
 
@@ -1137,18 +1152,21 @@
   // must be whitespace.  If there is a selection we never return true.
   function atWordEnd() {
     // If there is a selection we never want suggestions
-    if (selection)
+    if (selection) {
       return false;
+    }
 
     // If we're not at the end of the line and the character after the
     // cursor is not whitespace, don't offer a suggestion
     // Note that we purposely use WS here, not WORDSEP.
-    if (cursor < inputText.length && !WS.test(inputText[cursor]))
+    if (cursor < inputText.length && !WS.test(inputText[cursor])) {
       return false;
+    }
 
     // If the cursor is at position 0 then we're not at the end of a word
-    if (cursor <= 0)
+    if (cursor <= 0) {
       return false;
+    }
 
     // We're at the end of a word if the character before the cursor is
     // not a word separator character
@@ -1173,18 +1191,22 @@
   function atSentenceStart() {
     var i = cursor - 1;
 
-    if (i === -1)    // This is the empty string case
+    if (i === -1) {   // This is the empty string case
       return true;
+    }
 
     // Verify that the position before the cursor is whitespace
-    if (!isWhiteSpace(inputText[i--]))
+    if (!isWhiteSpace(inputText[i--])) {
       return false;
+    }
     // Now skip any additional whitespace before that
-    while (i >= 0 && isWhiteSpace(inputText[i]))
+    while (i >= 0 && isWhiteSpace(inputText[i])) {
       i--;
+    }
 
-    if (i < 0)     // whitespace all the way back to the end of the string
+    if (i < 0) {    // whitespace all the way back to the end of the string
       return true;
+    }
 
     var c = inputText[i];
     return c === '.' || c === '?' || c === '!';
@@ -1211,6 +1233,7 @@
     updateSuggestions();
   }
 
-  if (!('PAGE_INDEX_DEFAULT' in window))
+  if (!('PAGE_INDEX_DEFAULT' in window)) {
     window.PAGE_INDEX_DEFAULT = null;
+  }
 }());

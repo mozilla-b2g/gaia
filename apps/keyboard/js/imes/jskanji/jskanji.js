@@ -1,5 +1,9 @@
+/* global PAGE_INDEX_DEFAULT, InputMethods, IDBKeyRange, define, KeyEvent */
 'use strict';
 
+// TODO current bugs
+// 1. little case hiragana cannot convert to katakana
+// 2. getSuggestion
 (function() {
 
   var MAX_FREQUENCY = 10000;
@@ -40,7 +44,7 @@
 
 
   var IMEHalfWidthCharactorCandidateList = [
-    '!', '“', '$', '%', '&amp;', "'", '(', ')', '*', '+', ',', '-',
+    '!', '“', '$', '%', '&amp;', '\'', '(', ')', '*', '+', ',', '-',
     '.', '/', ':', ';', '&lt', '=', '>', '?', '@', '[', '\\', ']',
     '^', '_', '`', '{', '|', '}', '~'
   ];
@@ -93,12 +97,12 @@
     'ｋ': 'k', 'ｌ': 'l', 'ｍ': 'm', 'ｎ': 'n', 'ｏ': 'o', 'ｐ': 'p',
     'ｑ': 'q', 'ｒ': 'r', 'ｓ': 's', 'ｔ': 't', 'ｕ': 'u', 'ｖ': 'v',
     'ｗ': 'w', 'ｘ': 'x', 'ｙ': 'y', 'ｚ': 'z'
-  };*/
+  };
 
   var IMENumberTable = {
     '1': '１', '2': '２', '3': '３', '4': '４', '5': '５', '6': '６', '7': '７',
     '8': '８', '9': '９', '0': '０'
-  };
+  };*/
 
   // Key loop
   // Ex.
@@ -460,7 +464,6 @@
       var immiReturn = true;
 
       switch (code) {
-
         case KeyEvent.DOM_VK_SPACE:
           _glue.sendKey(code);
           break;
@@ -897,22 +900,19 @@
 
         var __getSentenceCallback = function getSentenceCallback(sentence) {
           // sentence = [term, term]
-
+          var i;
           debug('getSentenceCallback:' + JSON.stringify(sentence));
 
           if (sentence.length !== 0) {
-
             var sentenceKana = '';
             var sentenceKanji = '';
-
-            var i;
 
             for (i = 0; i < sentence.length; i++) {
               sentenceKanji += sentence[i].kanji;
               sentenceKana += sentence[i].kana;
             }
 
-            var kanaStr = SyllableUtils.arrayToString(_inputBuf);
+            SyllableUtils.arrayToString(_inputBuf);
 
             // look for candidate that is already in the list
             var exists = candidates.some(function sentenceExists(candidate) {
@@ -1138,16 +1138,6 @@
     }
   };
 
-  // for non-Mozilla browsers
-  if (!KeyEvent) {
-    var KeyEvent = {
-      DOM_VK_BACK_SPACE: 0x8,
-      DOM_VK_RETURN: 0xd,
-      DOM_VK_SPACE: 0x20
-    };
-  }
-  /* end copy */
-
   var SyllableUtils = {
     /**
      * Converts a syllables array to a string.
@@ -1248,7 +1238,7 @@
      */
     getRange: function index_getRange(lower, upper, lowerOpen, upperOpen) {
       var indices = [];
-      if (this._sortedKeys.length == 0) {
+      if (this._sortedKeys.length === 0) {
         return indices;
       }
 
@@ -1593,7 +1583,6 @@
           return;
         }
 
-        var response;
         if (xhr.responseType == 'json') {
           try {
             // clone everything under response because it's readonly.
@@ -1642,7 +1631,7 @@
     },
 
     isEmpty: function jsonStorage_isEmpty() {
-      return this._dataArray.length == 0;
+      return this._dataArray.length === 0;
     },
 
     getAllTerms: function jsonStorage_getAllTerms(callback) {
@@ -1816,8 +1805,8 @@
         }
 
         // create ObjectStore
-        var store = self._IDBDatabase.createObjectStore('homonyms',
-            { keyPath: 'kana' });
+        self._IDBDatabase.createObjectStore('homonyms',
+          { keyPath: 'kana' });
 
         // no callback() here
         // onupgradeneeded will follow by onsuccess event
@@ -1885,7 +1874,7 @@
     },
 
     isEmpty: function indexedDBStorage_isEmpty() {
-      return this._count == 0;
+      return this._count === 0;
     },
 
     getAllTerms: function indexedDBStorage_getAllTerms(callback) {
@@ -1938,7 +1927,7 @@
       var n = homonymsArray.length;
 
       // Check if the storage is ready.
-      if (!this.isReady() || n == 0) {
+      if (!this.isReady() || n === 0) {
         doCallback();
         return;
       }
@@ -2097,10 +2086,6 @@
   // Query processes in indexedDBStorage if possible, otherwise in jsonStorage
   var IMEngineDatabase = function imedb(dbName, jsonUrl) {
     var settings;
-
-    // Dictionary words' total frequency.
-    var kDictTotalFreq = 770216270;
-
     var jsonStorage = new JsonStorage(jsonUrl);
     var indexedDBStorage = new IndexedDBStorage(dbName);
 
@@ -2137,8 +2122,9 @@
 
       var ready = function() {
         debug('Ready.');
-        if (settings.ready)
+        if (settings.ready) {
           settings.ready();
+        }
       };
 
       if (!settings.enableIndexedDB) {
@@ -2218,10 +2204,12 @@
       var result = [];
 
       var _matchTerm = function getSuggestions_matchTerm(term) {
-        if (term.kanji.substr(0, kanjiStr.length) !== kanjiStr)
+        if (term.kanji.substr(0, kanjiStr.length) !== kanjiStr) {
           return;
-        if (term.kanji === kanjiStr)
+        }
+        if (term.kanji === kanjiStr) {
           return;
+        }
         result.push(term);
       };
 
@@ -2234,14 +2222,12 @@
         var result = [];
         var t = [];
         r.forEach(function terms_foreach(term) {
-          if (t.indexOf(term.kanji) !== -1) return;
+          if (t.indexOf(term.kanji) !== -1) { return; }
           t.push(term.kanji);
           result.push(term);
         });
         return result;
       };
-
-      var result = [];
 
       debug('Get suggestion for ' + kanjiStr + '.');
 
@@ -2255,19 +2241,19 @@
       // by prefix
       storage.getTermsByKanaPrefix(kanaStr,
         function getTermsByKanaPrefix_callback(homonymsArray) {
-
-        for (var i = 0; i < homonymsArray.length; i++) {
-          var homonyms = homonymsArray[i];
-          homonyms.terms.forEach(_matchTerm);
-        }
-        if (result.length) {
-          result = _processResult(result);
-        } else {
-          result = [];
-        }
-        cacheSetTimeout();
-        iDBCache['SUGGESTION:' + kanjiStr] = result;
-        callback(result);
+          var result = [];
+          for (var i = 0; i < homonymsArray.length; i++) {
+            var homonyms = homonymsArray[i];
+            homonyms.terms.forEach(_matchTerm);
+          }
+          if (result.length) {
+            result = _processResult(result);
+          } else {
+            result = [];
+          }
+          cacheSetTimeout();
+          iDBCache['SUGGESTION:' + kanjiStr] = result;
+          callback(result);
       });
 
     };
@@ -2294,7 +2280,7 @@
         var result = [];
         var t = [];
         r.forEach(function(term) {
-          if (t.indexOf(term.kanji) !== -1) return;
+          if (t.indexOf(term.kanji) !== -1) { return; }
           t.push(term.kanji);
           result.push(term);
         });
@@ -2338,7 +2324,7 @@
       debug('getTermWithHighestScore ' + syllables);
       self.getTerms(syllables,
         function getTermsCallback(terms) {
-          if (terms.length == 0) {
+          if (terms.length === 0) {
             debug('no terms');
             callback(false);
             return;
@@ -2362,7 +2348,7 @@
 
       var n = kanaArr.length;
 
-      if (n == 0) {
+      if (n === 0) {
         callback([]);
       }
 
@@ -2395,7 +2381,6 @@
         if (sentences.length < sentenceLength + 1) {
           sentences.push([]);
         }
-        var maxProb = probabilities[sentenceLength];
         var s = kanaArr.slice(sentenceLength -
             lastPhraseLength, sentenceLength);
 
@@ -2440,7 +2425,3 @@
   };
   /* end IMEngineDatabase */
 })();
-
-// TODO current bugs
-// 1. little case hiragana cannot convert to katakana
-// 2. getSuggestion

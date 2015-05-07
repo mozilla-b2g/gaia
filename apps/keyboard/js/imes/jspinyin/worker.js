@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* jshint sub: true */
 'use strict';
 
 var Module;
@@ -97,8 +97,9 @@ function initProcFunctions() {
     var resultLen = emEngineSearch(query, query.length);
     var results;
     if (numberToReturn) {
-      if (numberToReturn < 0 || numberToReturn > resultLen)
+      if (numberToReturn < 0 || numberToReturn > resultLen) {
         numberToReturn = resultLen;
+      }
       results = getSearchResult(emEngineGetAt, {
         start: 0,
         count: numberToReturn
@@ -112,6 +113,7 @@ function initProcFunctions() {
 
   procFunction = {};
 
+  /*jshint -W040 */
   procFunction['im_search'] =
     search.bind(this, emEngine.search, emEngine.getCandidateAt);
 
@@ -123,6 +125,7 @@ function initProcFunctions() {
 
   procFunction['im_get_predicts'] =
     getSearchResult.bind(this, emEngine.getPredictAt);
+  /*jshint +W040 */
 
   procFunction['im_flush_cache'] =
     emEngine.flushCache;
@@ -151,8 +154,9 @@ function initProcFunctions() {
   };
 
   procFunction['im_get_user_dict_data'] = function() {
-    if (!Module['FS'])
+    if (!Module['FS']) {
       return null;
+    }
 
     emEngine.flushCache();
     return Module['FS'].findObject('data/user_dict.data').contents;

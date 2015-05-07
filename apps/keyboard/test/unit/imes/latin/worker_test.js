@@ -1,6 +1,5 @@
+/*global InputMethodDatabaseLoader, WordListConverter, InputMethods, dump */
 'use strict';
-
-/*global InputMethodDatabaseLoader, WordListConverter */
 
 require('/test/unit/setup_engine.js');
 require('/js/imes/latin/latin.js');
@@ -470,24 +469,6 @@ suite('Latin worker', function() {
     }, 20);
   }
 
-  function assertOnMessageCalledWith(args) {
-    args = JSON.stringify(args);
-
-    var res = worker.onmessage.args.filter(function(call) {
-      return call[0].data &&
-        JSON.stringify(call[0].data) === args;
-    });
-
-    if (res.length === 0) {
-      worker.onmessage.args.map(function(call) {
-        if (!call[0].data) return;
-        console.log(call[0].data);
-      });
-    }
-
-    assert.notEqual(res.length, 0);
-  }
-
   function prediction(input, expected, next) {
     worker.postMessage({cmd: 'predict', args: [input]});
 
@@ -505,8 +486,9 @@ suite('Latin worker', function() {
       assert.equal(suggestions[0], expected[0]);
 
       for (var i = 1; i < 6; i++) {
-        if (expected[i] !== null)
+        if (expected[i] !== null) {
           assert.equal(suggestions[i], expected[i], 'index: ' + i);
+        }
       }
 
       next();
@@ -569,11 +551,11 @@ suite('Latin worker', function() {
     });
 
     test('Non existing word should not be matched', function(next) {
-      prediction('sadjasuufehwuefhwejfd', [, null, null, null], next);
+      prediction('sadjasuufehwuefhwejfd', [undefined, null, null, null], next);
     });
 
     test('$ should not yield autosuggest', function(next) {
-      prediction('$', [, null, null, null], next);
+      prediction('$', [undefined, null, null, null], next);
     });
 
     suite('Capitalization and suggestions', function() {
