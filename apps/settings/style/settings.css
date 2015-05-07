@@ -904,6 +904,7 @@ ul li > label.range-icons.volume input {
   height: 10rem;
   padding: 1rem 1rem 1.2rem;
   resize: none;
+  white-space: normal;
 }
 
 #sendFeedback .pack-checkbox span {
