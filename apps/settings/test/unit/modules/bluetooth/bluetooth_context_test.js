@@ -75,8 +75,8 @@ suite('BluetoothContext', function() {
       return this.MockConnectionManager;
     }.bind(this));
 
-    testRequire(modules, map, function(AdapterManager, BluetoothContext, 
-                                       BluetoothDevice, ConnectionManager, 
+    testRequire(modules, map, function(AdapterManager, BluetoothContext,
+                                       BluetoothDevice, ConnectionManager,
                                        MockSettingsCache, ObservableArray) {
       adapterManager = AdapterManager;
       btContext = BluetoothContext;
@@ -646,7 +646,7 @@ suite('BluetoothContext', function() {
           {'bluetooth.enabled': mockEnabled}));
       });
     });
-    
+
     suite('set with same state ', function() {
       setup(function() {
         mockEnabled = true;
@@ -1623,7 +1623,7 @@ suite('BluetoothContext', function() {
 
   suite('_updateDeviceConnectionInfo > ', function() {
     suite('"disconnected" event is coming from connectionManager ', function() {
-      var mockEvent, findConnectingDeviceOptions, updateOptions, 
+      var mockEvent, findConnectingDeviceOptions, updateOptions,
       mockExistedDevice;
       setup(function() {
         mockEvent = {
@@ -1647,19 +1647,19 @@ suite('BluetoothContext', function() {
           mockExistedDevice);
       });
 
-      test('_findDeviceByAddress() should be called with options, ' + 
+      test('_findDeviceByAddress() should be called with options, ' +
            'updateConnectionInfo() should be called with options', function() {
         btContext._updateDeviceConnectionInfo(mockEvent);
         assert.isTrue(btContext._findDeviceByAddress.calledWith(
           findConnectingDeviceOptions));
         assert.isTrue(mockExistedDevice.updateConnectionInfo.calledWith(
           updateOptions));
-      });      
+      });
     });
 
-    suite('"profileChanged" event is coming from connectionManager ', 
+    suite('"profileChanged" event is coming from connectionManager ',
     function() {
-      var mockEvent, findConnectingDeviceOptions, updateOptions, 
+      var mockEvent, findConnectingDeviceOptions, updateOptions,
       mockExistedDevice;
       setup(function() {
         mockEvent = {
@@ -1684,14 +1684,14 @@ suite('BluetoothContext', function() {
           mockExistedDevice);
       });
 
-      test('_findDeviceByAddress() should be called with options, ' + 
+      test('_findDeviceByAddress() should be called with options, ' +
            'updateConnectionInfo() should be called with options', function() {
         btContext._updateDeviceConnectionInfo(mockEvent);
         assert.isTrue(btContext._findDeviceByAddress.calledWith(
           findConnectingDeviceOptions));
         assert.isTrue(mockExistedDevice.updateConnectionInfo.calledWith(
           updateOptions));
-      });      
+      });
     });
   });
 });
