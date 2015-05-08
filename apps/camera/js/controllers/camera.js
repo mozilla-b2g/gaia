@@ -66,7 +66,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
-  app.on('previewgallery:opened', this.shutdownCamera);
+  app.on('previewgallery:opened', this.onGalleryOpened);
   app.on('previewgallery:closed', this.onGalleryClosed);
   app.on('stoprecording', this.camera.stopRecording);
   app.on('storage:volumechanged', this.onStorageVolumeChanged);
@@ -92,11 +92,13 @@ CameraController.prototype.bindEvents = function() {
 
 /**
  * Check to see if we're in the middle of a share activity,
- * and if so, prevent the camera app from loading the hardware.
+ * or we are still in the preview-gallery and if so, prevent
+ * the camera app from loading the hardware.
  */
 CameraController.prototype.onVisible = function() {
   debug('visible');
-  if (this.app.isSharingActive() && !this.app.activity.pick) {
+  if ((this.app.isSharingActive() && !this.app.activity.pick) ||
+    this.galleryOpen) {
     return;
   }
   this.camera.load();
@@ -450,6 +452,11 @@ CameraController.prototype.onCameraClosed = function(reason) {
   }
 };
 
+CameraController.prototype.onGalleryOpened = function() {
+  this.galleryOpen = true;
+  this.shutdownCamera();
+};
+
 /**
  * As the camera is shutdown when the
  * preview gallery is opened, we must
@@ -463,9 +470,10 @@ CameraController.prototype.onCameraClosed = function(reason) {
  * @private
  */
 CameraController.prototype.onGalleryClosed = function(reason) {
+  this.galleryOpen = false;
   if (this.app.hidden) { return; }
   this.app.showSpinner();
-  this.camera.load(this.app.clearSpinner);
+  this.camera.load();
 };
 
 /**
