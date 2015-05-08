@@ -95,6 +95,7 @@ var UpdateManager = {
       this.downloadViaDataConnectionDialog.querySelector('h1');
 
     this.container.onclick = this.containerClicked.bind(this);
+    this.toaster.onclick = this.toasterClicked.bind(this);
     this.laterButton.onclick = this.cancelPrompt.bind(this);
     this.downloadButton.onclick = this.requestDownloads.bind(this);
     this.downloadDialogList.onchange = this.updateDownloadButton.bind(this);
@@ -293,6 +294,15 @@ var UpdateManager = {
       this.showDownloadPrompt();
     }
 
+    UtilityTray.hide();
+  },
+
+  toasterClicked: function um_toasterClicked() {
+    if (this._downloading) {
+      return;
+    }
+
+    this.showDownloadPrompt();
     UtilityTray.hide();
   },
 
