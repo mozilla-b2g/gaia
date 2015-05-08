@@ -220,11 +220,15 @@
       window.addEventListener('iac-search-results', this);
     },
 
-    '_handle_system-resize': function() {
+    '_handle_system-resize': function(evt) {
       if (this.isActive()) {
-        this.searchWindow &&
-        this.searchWindow.frontWindow &&
-        this.searchWindow.frontWindow.resize();
+        var p = this.searchWindow &&
+          this.searchWindow.frontWindow &&
+          this.searchWindow.frontWindow.resize();
+
+        if (evt.detail && typeof evt.detail.waitUntil === 'function') {
+          evt.detail.waitUntil(p);
+        }
         return false;
       }
       return true;

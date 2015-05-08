@@ -26,7 +26,7 @@
     this.focus = function() {};
     this.blur = function() {};
     this.debug = function() {};
-    this.ensureFullRepaint = function() {};
+    this.waitForNextPaint = function() {};
     this.forward = function() {};
     this.canGoForward = function() {};
     this.canGoBack = function() {};

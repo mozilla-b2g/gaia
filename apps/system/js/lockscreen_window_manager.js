@@ -175,7 +175,10 @@
           break;
         case 'system-resize':
           if (this.states.instance && this.states.instance.isActive()) {
-            this.states.instance.resize();
+            var p = this.states.instance.resize();
+            if (typeof evt.detail.waitUntil === 'function') {
+              evt.detail.waitUntil(p);
+            }
           }
           break;
         case 'screenchange':
@@ -386,7 +389,7 @@
       this.states.windowCreating = true;
       var app = new LockScreenWindow();
       // XXX: Before we can use real InputWindow and InputWindowManager,
-      // we need this to 
+      // we need this to
       app.inputWindow = new LockScreenInputWindow();
       this.states.windowCreating = false;
       return app;
@@ -419,7 +422,7 @@
 
   LockScreenWindowManager.prototype.unlock =
     function lwm_unlock(detail) {
-      // XXX: 
+      // XXX:
       // There is a self-routing here:
       // Service.request('unlock') ->
       // LockscreenWindowManager#unlock ->
@@ -433,7 +436,7 @@
       // The reason not using lockscreen-appclosing/lockscreen-appclosed
       // is the race of mozActivity launch coming from lockscreen
       // and homescreen will race to be opened and cause performance issue.
-      // 
+      //
       // We should adjust LockScreenWindow to use lockscreen-appclosing/closed
       // to have the activitiy/notification info hence we could change
       // VisibilityManager later to avoid this workaround.

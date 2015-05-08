@@ -229,16 +229,23 @@ suite('system/AppWindow', function() {
     var app1;
     setup(function() {
       app1 = new AppWindow(fakeAppConfig1);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+      this.sinon.stub(app1.browser.element, 'addNextPaintListener');
     });
     teardown(function() {});
 
-    test('Resize in foreground', function() {
+    test('Resize in foreground', function(done) {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       this.sinon.stub(app1, 'reviveBrowser');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.isTrue(app1.resized);
       assert.isTrue(app1.reviveBrowser.called);
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
     test('Resize in background', function() {
@@ -246,50 +253,71 @@ suite('system/AppWindow', function() {
       stubIsActive.returns(false);
       app1.resize();
       assert.isUndefined(app1.resized);
+
+      assert.isFalse(app1.browser.element.addNextPaintListener.calledOnce);
     });
 
-    test('Resize if we are fullscreen', function() {
+    test('Resize if we are fullscreen', function(done) {
       var stubIsFullScreen = this.sinon.stub(app1, 'isFullScreen');
       stubIsFullScreen.returns(true);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.equal(app1.height, layoutManager.height);
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Resize if we are not fullscreen', function() {
+    test('Resize if we are not fullscreen', function(done) {
       var stubIsFullScreen = this.sinon.stub(app1, 'isFullScreen');
       stubIsFullScreen.returns(false);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.equal(app1.height, layoutManager.height);
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Send message to appChrome: w/o keyboard', function() {
+    test('Send message to appChrome: w/o keyboard', function(done) {
       layoutManager.keyboardEnabled = false;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.isTrue(stubbroadcast.calledWith('withoutkeyboard'));
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Send message to appChrome: w/ keyboard', function() {
+    test('Send message to appChrome: w/ keyboard', function(done) {
       layoutManager.keyboardEnabled = true;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.isTrue(stubbroadcast.calledWith('withkeyboard'));
+
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
-    test('Reset the screenshot overlay visibilty', function() {
+    test('Reset the screenshot overlay visibilty', function(done) {
       app1.screenshotOverlay.style.visibility = 'hidden';
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      app1.resize();
+      var p = app1.resize();
       assert.equal(app1.screenshotOverlay.style.visibility, '');
+
+      assert.isTrue(app1.browser.element.addNextPaintListener.calledOnce);
+      app1.browser.element.addNextPaintListener.firstCall.args[0]();
+      p.catch((e) => { throw e || 'Should not reject'; }).then(done, done);
     });
 
     test('No navigation setting in manifest', function() {
@@ -319,21 +347,35 @@ suite('system/AppWindow', function() {
       assert.isTrue(spy.calledWithNew());
     });
 
-    test('resize to bottom window thru top most window', function() {
+    test('resize to bottom window thru top most window', function(done) {
       var popups = openPopups(5);
-      var stubTop1Resize = this.sinon.stub(popups[4], '_resize');
-      var stubTop2Resize = this.sinon.stub(popups[3], '_resize');
-      var stubTop3Resize = this.sinon.stub(popups[2], '_resize');
-      var stubTop4Resize = this.sinon.stub(popups[1], '_resize');
-      var stubBottomResize = this.sinon.stub(popups[0], '_resize');
+      injectFakeMozBrowserAPI(popups[0].browser.element);
+      this.sinon.stub(popups[0].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[1].browser.element);
+      this.sinon.stub(popups[1].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[2].browser.element);
+      this.sinon.stub(popups[2].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[3].browser.element);
+      this.sinon.stub(popups[3].browser.element, 'addNextPaintListener');
+      injectFakeMozBrowserAPI(popups[4].browser.element);
+      this.sinon.stub(popups[4].browser.element, 'addNextPaintListener');
       var stubAppIsActive = this.sinon.stub(popups[0], 'isActive');
       stubAppIsActive.returns(true);
-      popups[0].resize();
-      assert.isTrue(stubTop1Resize.called);
-      assert.isTrue(stubTop2Resize.called);
-      assert.isTrue(stubTop3Resize.called);
-      assert.isTrue(stubTop4Resize.called);
-      assert.isTrue(stubBottomResize.called);
+      var p = popups[0].resize();
+
+      assert.isTrue(popups[0].browser.element.addNextPaintListener.calledOnce);
+      popups[0].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[1].browser.element.addNextPaintListener.calledOnce);
+      popups[1].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[2].browser.element.addNextPaintListener.calledOnce);
+      popups[2].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[3].browser.element.addNextPaintListener.calledOnce);
+      popups[3].browser.element.addNextPaintListener.firstCall.args[0]();
+      assert.isTrue(popups[4].browser.element.addNextPaintListener.calledOnce);
+      popups[4].browser.element.addNextPaintListener.firstCall.args[0]();
+
+      p.then(() => undefined, (e) => { throw e || 'Should not reject'; })
+        .then(done, done);
     });
   });
 
@@ -1343,7 +1385,7 @@ suite('system/AppWindow', function() {
       assert.isTrue(callback.called);
     });
 
-    test('MozBrowser API: NextPaint', function() {
+    test('MozBrowser API: NextPaint (pass callback)', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       var callback = this.sinon.spy();
@@ -1359,6 +1401,23 @@ suite('system/AppWindow', function() {
       app1.waitForNextPaint(callback2);
       this.sinon.clock.tick(app1.NEXTPAINT_TIMEOUT);
       assert.isTrue(callback2.called);
+    });
+
+    test('MozBrowser API: NextPaint (Promise)', function(done) {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      var stubAddNextPaintListener = this.sinon.stub(app1.browser.element,
+        'addNextPaintListener');
+
+      var p = app1.waitForNextPaint();
+      assert.isTrue(stubAddNextPaintListener.called);
+      stubAddNextPaintListener.getCall(0).args[0]();
+      p.then(function() {
+        var p2 = app1.waitForNextPaint();
+        this.sinon.clock.tick(app1.NEXTPAINT_TIMEOUT);
+
+        return p2;
+      }.bind(this)).then(done, done);
     });
   });
 
@@ -2175,6 +2234,9 @@ suite('system/AppWindow', function() {
     test('Orientation change event on active app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+      injectFakeMozBrowserAPI(app2.browser.element);
 
       app1.frontWindow = app2;
       this.sinon.stub(app1, 'isActive').returns(true);
@@ -2193,6 +2255,9 @@ suite('system/AppWindow', function() {
 
     test('Orientation change event on active but not top most app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+
       this.sinon.stub(app1, 'isActive').returns(true);
 
       layoutManager.mKeyboardHeight = 100;
