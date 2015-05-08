@@ -11,31 +11,31 @@
 
 'use strict';
 
-requireApp('sms/js/utils.js');
+require('/views/shared/js/utils.js');
 require('/views/conversation/js/recipients.js');
-requireApp('sms/js/drafts.js');
-requireApp('sms/js/threads.js');
+require('/services/js/drafts.js');
+require('/services/js/threads.js');
 require('/views/inbox/js/inbox.js');
 
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_time_headers.js');
-requireApp('sms/test/unit/mock_message_manager.js');
-requireApp('sms/test/unit/mock_messages.js');
-requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_waiting_screen.js');
+require('/views/shared/test/unit/mock_contact.js');
+require('/views/shared/test/unit/mock_contacts.js');
+require('/views/shared/test/unit/mock_time_headers.js');
+require('/services/test/unit/mock_message_manager.js');
+require('/views/shared/test/unit/mock_messages.js');
+require('/views/shared/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_waiting_screen.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
-require('/test/unit/thread_list_mockup.js');
-require('/test/unit/utils_mockup.js');
-require('/test/unit/mock_conversation.js');
+require('/views/shared/test/unit/thread_list_mockup.js');
+require('/views/shared/test/unit/utils_mockup.js');
+require('/views/shared/test/unit/mock_conversation.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
-require('/test/unit/mock_navigation.js');
-require('/test/unit/mock_settings.js');
-require('/test/unit/mock_inter_instance_event_dispatcher.js');
-require('/test/unit/mock_selection_handler.js');
+require('/views/shared/test/unit/mock_navigation.js');
+require('/views/shared/test/unit/mock_settings.js');
+require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
+require('/views/shared/test/unit/mock_selection_handler.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForInboxView = new MocksHelper([

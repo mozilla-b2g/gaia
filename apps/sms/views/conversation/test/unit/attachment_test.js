@@ -6,13 +6,13 @@
 'use strict';
 
 require('/views/conversation/js/attachment.js');
-require('/js/utils.js');
+require('/views/shared/js/utils.js');
 
-require('/test/unit/mock_attachment_renderer.js');
+require('/views/shared/test/unit/mock_attachment_renderer.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/test/unit/mock_utils.js');
-require('/test/unit/mock_moz_activity.js');
-require('/test/unit/mock_mime_mapper.js');
+require('/views/shared/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_moz_activity.js');
+require('/views/shared/test/unit/mock_mime_mapper.js');
 
 var MocksHelperForAttachment = new MocksHelper([
   'Utils',

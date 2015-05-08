@@ -38,11 +38,11 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "84": "/style/icons/sms_84.png",
-    "126": "/style/icons/sms_126.png",
-    "142": "/style/icons/sms_142.png",
-    "189": "/style/icons/sms_189.png",
-    "284": "/style/icons/sms_284.png"
+    "84": "/icons/sms_84.png",
+    "126": "/icons/sms_126.png",
+    "142": "/icons/sms_142.png",
+    "189": "/icons/sms_189.png",
+    "284": "/icons/sms_284.png"
   },
   "orientation": "default",
   "activities": {

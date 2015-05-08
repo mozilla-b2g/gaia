@@ -7,12 +7,12 @@
 'use strict';
 
 require('/views/conversation/js/attachment_renderer.js');
-require('/js/utils.js');
+require('/views/shared/js/utils.js');
 
 require('/shared/js/image_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/test/unit/mock_attachment.js');
-require('/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_attachment.js');
+require('/views/shared/test/unit/mock_utils.js');
 
 var MocksHelperForAttachment = new MocksHelper([
   'Attachment',
@@ -57,6 +57,7 @@ suite('AttachmentRenderer >', function() {
       type: 'image/jpeg'
     });
 
+    var mediaFolder = '/views/shared/test/unit/media';
     var blobPromises = [
       AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.25).then(
         (blob) => testImageBlob_small = blob
@@ -64,13 +65,13 @@ suite('AttachmentRenderer >', function() {
       AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
         (blob) => testImageBlob = blob
       ),
-      AssetsHelper.loadFileBlob('/test/unit/media/audio.oga').then(
+      AssetsHelper.loadFileBlob(`${mediaFolder}/audio.oga`).then(
         (blob) => testAudioBlob = blob
       ),
-      AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
+      AssetsHelper.loadFileBlob(`${mediaFolder}/video.ogv`).then(
         (blob) => testVideoBlob = blob
       ),
-      AssetsHelper.loadFileBlob('/test/unit/media/contacts.vcf').then(
+      AssetsHelper.loadFileBlob(`${mediaFolder}/contacts.vcf`).then(
         (blob) => testVcardBlob = blob
       )
     ];

@@ -22,39 +22,39 @@ require('/shared/js/event_dispatcher.js');
 
 require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
-require('/js/drafts.js');
-require('/js/threads.js');
+require('/services/js/drafts.js');
+require('/services/js/threads.js');
 require('/views/conversation/js/conversation.js');
-require('/js/shared_components.js');
-require('/js/utils.js');
-require('/js/errors.js');
-require('/js/task_runner.js');
+require('/views/shared/js/shared_components.js');
+require('/views/shared/js/utils.js');
+require('/views/shared/js/errors.js');
+require('/views/shared/js/task_runner.js');
 
-require('/test/unit/mock_time_headers.js');
-require('/test/unit/mock_link_action_handler.js');
-require('/test/unit/mock_attachment.js');
+require('/views/shared/test/unit/mock_time_headers.js');
+require('/views/shared/test/unit/mock_link_action_handler.js');
+require('/views/shared/test/unit/mock_attachment.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/test/unit/mock_utils.js');
-require('/test/unit/mock_link_helper.js');
-require('/test/unit/mock_moz_activity.js');
+require('/views/shared/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_link_helper.js');
+require('/views/shared/test/unit/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/test/unit/mock_messages.js');
-require('/test/unit/mock_contact.js');
-require('/test/unit/mock_contacts.js');
-require('/test/unit/mock_recipients.js');
-require('/test/unit/mock_settings.js');
-require('/test/unit/mock_activity_picker.js');
-require('/test/unit/mock_dialog.js');
-require('/test/unit/mock_smil.js');
-require('/test/unit/mock_compose.js');
-require('/test/unit/mock_activity_handler.js');
-require('/test/unit/mock_information.js');
-require('/test/unit/mock_contact_renderer.js');
-require('/test/unit/mock_message_manager.js');
-require('/test/unit/mock_waiting_screen.js');
-require('/test/unit/mock_navigation.js');
-require('/test/unit/mock_inbox.js');
-require('/test/unit/mock_selection_handler.js');
+require('/views/shared/test/unit/mock_messages.js');
+require('/views/shared/test/unit/mock_contact.js');
+require('/views/shared/test/unit/mock_contacts.js');
+require('/views/shared/test/unit/mock_recipients.js');
+require('/views/shared/test/unit/mock_settings.js');
+require('/views/shared/test/unit/mock_activity_picker.js');
+require('/views/shared/test/unit/mock_dialog.js');
+require('/views/shared/test/unit/mock_smil.js');
+require('/views/shared/test/unit/mock_compose.js');
+require('/views/shared/test/unit/mock_activity_handler.js');
+require('/views/shared/test/unit/mock_information.js');
+require('/views/shared/test/unit/mock_contact_renderer.js');
+require('/services/test/unit/mock_message_manager.js');
+require('/views/shared/test/unit/mock_waiting_screen.js');
+require('/views/shared/test/unit/mock_navigation.js');
+require('/views/shared/test/unit/mock_inbox.js');
+require('/views/shared/test/unit/mock_selection_handler.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -112,7 +112,6 @@ suite('conversation.js >', function() {
 
   var testImageBlob;
   var oversizedImageBlob;
-  var testAudioBlob;
   var testVideoBlob;
 
   function mockAttachment(size) {
@@ -143,6 +142,7 @@ suite('conversation.js >', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    var mediafolder = '/views/shared/test/unit/media';
     var blobPromises = [
       AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
         (blob) => oversizedImageBlob = blob
@@ -150,10 +150,7 @@ suite('conversation.js >', function() {
       AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.5).then(
         (blob) => testImageBlob = blob
       ),
-      AssetsHelper.loadFileBlob('/test/unit/media/audio.oga').then(
-        (blob) => testAudioBlob = blob
-      ),
-      AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
+      AssetsHelper.loadFileBlob(`${mediafolder}/video.ogv`).then(
         (blob) => testVideoBlob = blob
       )
     ];
