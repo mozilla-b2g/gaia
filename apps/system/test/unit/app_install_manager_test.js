@@ -624,10 +624,12 @@ suite('system/AppInstallManager >', function() {
         test(testCase.name, function() {
           MockFtuLauncher.mIsRunning = testCase.value;
           dispatchInstallEvent();
-          assert.equal(MockSystemBanner.mMessage,
+          assert.deepEqual(MockSystemBanner.mMessage,
                        FtuLauncher.isFtuRunning() ?
-                        null :
-                        'app-install-success{"appName":"' + mockAppName + '"}');
+                        null : {
+                          id: 'app-install-success',
+                          args: { appName: mockAppName}
+                        });
         });
       });
     });
@@ -659,8 +661,10 @@ suite('system/AppInstallManager >', function() {
       });
 
       test('should display a confirmation', function() {
-        assert.equal(MockSystemBanner.mMessage,
-        'app-install-success{"appName":"' + mockAppName + '"}');
+        assert.deepEqual(MockSystemBanner.mMessage, {
+          id: 'app-install-success',
+          args: { appName: mockAppName }
+        });
       });
 
     });
@@ -696,8 +700,10 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should display a confirmation', function() {
-            assert.equal(MockSystemBanner.mMessage,
-            'app-install-success{"appName":"' + mockAppName + '"}');
+            assert.deepEqual(MockSystemBanner.mMessage, {
+              id: 'app-install-success',
+              args: { appName: mockAppName }
+            });
           });
 
         });
@@ -738,10 +744,10 @@ suite('system/AppInstallManager >', function() {
 
         function downloadErrorTests(errorName) {
           test('should display an error', function() {
-            var expectedErrorMsg = knownErrors[errorName] +
-                                   '{"appName":"' + mockAppName + '"}';
-
-            assert.equal(MockSystemBanner.mMessage, expectedErrorMsg);
+            assert.deepEqual(MockSystemBanner.mMessage, {
+              id: knownErrors[errorName],
+              args: { appName: mockAppName }
+            });
           });
 
           test('should not display the error dialog', function() {
@@ -875,8 +881,10 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should display a confirmation', function() {
-              assert.equal(MockSystemBanner.mMessage,
-              'app-install-success{"appName":"' + mockAppName + '"}');
+              assert.deepEqual(MockSystemBanner.mMessage, {
+                id: 'app-install-success',
+                args: { appName: mockAppName }
+              });
             });
           });
 
@@ -1099,8 +1107,10 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should display a confirmation', function() {
-              assert.equal(MockSystemBanner.mMessage,
-              'app-install-success{"appName":"' + mockAppName + '"}');
+              assert.deepEqual(MockSystemBanner.mMessage, {
+                id: 'app-install-success',
+                args: { appName: mockAppName }
+              });
             });
           });
 
@@ -1241,8 +1251,10 @@ suite('system/AppInstallManager >', function() {
       });
 
       test('should display the special text for langpacks', function() {
-        assert.equal(MockSystemBanner.mMessage,
-        'langpack-install-success2{"appName":"' + mockAppName + '"}');
+        assert.deepEqual(MockSystemBanner.mMessage, {
+          id: 'langpack-install-success2',
+          args: { appName: mockAppName }
+        });
       });
     });
 

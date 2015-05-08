@@ -36,22 +36,24 @@ suite('system/SystemBanner', function() {
 
   suite('show', function() {
     test('with no button', function() {
-      subject.show('free the web');
-      assert.equal(subject.banner.textContent, 'free the web');
+      subject.show('free_the_web');
+      assert.equal(subject.banner.getAttribute('data-l10n-id', 'free_the_web'));
       assert.equal(subject.banner.dataset.button, 'false');
     });
 
     test('with a button', function() {
-      subject.show('see the web', { label: 'mozilla' });
-      assert.equal(subject.banner.firstElementChild.textContent, 'see the web');
-      assert.equal(subject.banner.lastElementChild.textContent, 'mozilla');
+      subject.show('see_the_web', { label: 'mozillaL10nId' });
+      assert.equal(subject.banner.firstElementChild
+        .getAttribute('data-l10n-id'), 'see_the_web');
+      assert.equal(subject.banner.lastElementChild
+        .getAttribute('data-l10n-id'), 'mozillaL10nId');
       assert.ok(subject.banner.dataset.button);
     });
 
     test('removes visible class after close animation', function() {
       var bannerClasses = subject.banner.classList;
 
-      subject.show('eat the web', { label: 'btn'});
+      subject.show('eat_the_web', { label: 'btn'});
       assert.ok(bannerClasses.contains('visible'));
 
       var animationEnd = new AnimationEvent('animationend');
