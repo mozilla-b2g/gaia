@@ -29,6 +29,12 @@
     bottom: 0;
     right: var(--software-home-button-height);
   }
+
+  /* Dialogs inside an appWindow don't need to take the SHB into account */
+  #screen.software-button-enabled .appWindow [role="dialog"][data-type="object"],
+  #screen.software-button-enabled .appWindow [role="dialog"][data-type="action"] {
+    right: 0;
+  }
 }
 
 /* Extending action menu with icon capability & transition*/
