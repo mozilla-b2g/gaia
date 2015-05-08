@@ -112,8 +112,8 @@ define(function(require) {
 
         // create found devices list view
         _pairedDevicesListView = ListView(elements.paired.pairedDevicesList,
-                                         BtContext.getPairedDevices(),
-                                         pairedDeviceTemplate);
+                                          BtContext.getPairedDevices(),
+                                          pairedDeviceTemplate);
 
         // found devices list item click events
         foundDeviceTemplate =
@@ -271,7 +271,7 @@ define(function(require) {
 
       _onRenameSubmit: function(nameEntered) {
         Debug('_onRenameSubmit(): nameEntered = ' + nameEntered);
-        // Before set the entered name to platform, we check length of name is 
+        // Before set the entered name to platform, we check length of name is
         // over threshold or not.
         nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
         if (nameEntered.length > MAX_DEVICE_NAME_LENGTH) {
@@ -280,7 +280,7 @@ define(function(require) {
           return;
         }
 
-        // Only set non-empty string to be new name. 
+        // Only set non-empty string to be new name.
         // Otherwise, set name by product model.
         if (nameEntered !== '') {
           Debug('_onRenameSubmit(): set new name = ' + nameEntered);
@@ -442,7 +442,7 @@ define(function(require) {
         switch (deviceItem.type) {
           case 'audio-card':
           case 'audio-input-microphone':
-            // We only support 'audio-card', 'audio-input-microphone' device 
+            // We only support 'audio-card', 'audio-input-microphone' device
             // to connect. Before pop out a dialog for operation, we should
             // check the paired device is connected or not.
             this._showActionMenu(deviceItem);
@@ -464,7 +464,7 @@ define(function(require) {
             elements.actionMenu.actionMenuDialog.hidden = true;
           };
           elements.actionMenu.unpairOption.onclick = () => {
-            // Show a confirmation dialog while a user wants to unpair 
+            // Show a confirmation dialog while a user wants to unpair
             // the connected device. Because the device is connected to use now.
             this._confirmUserWantToUnpairDeviceWhileItisConnected(deviceItem);
             elements.actionMenu.actionMenuDialog.hidden = true;
@@ -558,7 +558,7 @@ define(function(require) {
         }, (reason) => {
           Debug('_onFoundDeviceItemClick(): pair failed, ' +
                 'reason = ' + reason);
-          // Reset the paired status back to false, 
+          // Reset the paired status back to false,
           // since the 'pairing' status is given in Gaia side.
           deviceItem.paired = false;
           // Show alert message while pair device failed.
@@ -575,7 +575,7 @@ define(function(require) {
         BtConnectionManager.connect(deviceItem.data).then(() => {
           Debug('_connectHeadsetDevice(): connect device successfully');
         }, (reason) => {
-          Debug('_connectHeadsetDevice(): connect device failed, ' + 
+          Debug('_connectHeadsetDevice(): connect device failed, ' +
                 'reason = ' + reason);
           // Show alert message while connect device failed.
           this._alertConnectErrorMessage();
