@@ -1,3 +1,28 @@
+#messages-container {
+  /* We'll set flex-basis with a shrink factor of 0 to do min-height.
+   * formula: flex-basis = a % + b)
+   * a = (gap2 - gap1) / keyboard_height
+   * b = gap2 - (gap2 - gap1) * (buri_height - header) / keyboard_height + subheader + time_header
+   *
+   * with :
+   * gap1 = 4rem
+   *   minimal visible part of a thread when the keyboard is displayed, on buri
+   * gap2 = 8rem
+   *   minimal visible part of a thread when the keyboard is hidden, on a buri
+   * keyboard_height = 26rem
+   *   measured on a buri, standard english keyboard with suggestions
+   * header = 5rem
+   * subheader = 2rem
+   * buri_height = 48rem
+   * time_header = 2rem
+   *
+   * See https://bugzilla.mozilla.org/show_bug.cgi?id=1015867#c12 for more
+   * information
+   */
+  flex: 1 0 calc(15.4% + 5.38rem);
+  overflow: auto;
+}
+
 #messages-new-message-notice {
   display: flex;
   flex-direction: row;
