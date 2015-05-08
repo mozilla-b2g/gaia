@@ -61,20 +61,21 @@
      * window is changed to notify nfc module in gecko.
      */
     setNFCFocus: function(enable) {
-      if (!this.browser || !this.browser.element ||
-          this._nfcActive === enable ||
-          (this.CLASS_NAME !== 'AppWindow' &&
-           this.CLASS_NAME !== 'ActivityWindow' &&
-           this.CLASS_NAME !== 'PopupWindow') &&
-           this.CLASS_NAME !== 'HomescreenWindow') {
+      var topWindow = this.getTopMostWindow();
+      if (!topWindow.browser || !topWindow.browser.element ||
+          topWindow._nfcActive === enable ||
+          (topWindow.CLASS_NAME !== 'AppWindow' &&
+           topWindow.CLASS_NAME !== 'ActivityWindow' &&
+           topWindow.CLASS_NAME !== 'PopupWindow') &&
+           topWindow.CLASS_NAME !== 'HomescreenWindow') {
           // XXX: Implement this.belongToAppWindow()
         return;
       }
-      this.debug(this.name + ':' + this.instanceID +
+      this.debug(topWindow.name + ':' + topWindow.instanceID +
         ' is setting nfc active to: ' + enable);
       try {
-        this._nfcActive = enable;
-        this.browser.element.setNFCFocus(enable);
+        topWindow._nfcActive = enable;
+        topWindow.browser.element.setNFCFocus(enable);
       } catch (err) {
         this.debug('set nfc active is not implemented');
       }
@@ -187,18 +188,20 @@
     },
 
     focus: function bm_focus() {
-      if (this.contextmenu && this.contextmenu.isShown()) {
-        this.contextmenu.focus();
-      } else if (this.browser && this.browser.element &&
-                 this.getActiveElement() !== this.browser.element) {
-        this.browser.element.focus();
+      var topWindow = this.getTopMostWindow();
+      if (topWindow.contextmenu && topWindow.contextmenu.isShown()) {
+        topWindow.contextmenu.focus();
+      } else if (topWindow.browser && topWindow.browser.element &&
+                 topWindow.getActiveElement() !== topWindow.browser.element) {
+        topWindow.browser.element.focus();
       }
     },
 
     blur: function bm_blur() {
-      if (this.browser && this.browser.element &&
-          this.getActiveElement() === this.browser.element) {
-        this.browser.element.blur();
+      var topWindow = this.getTopMostWindow();
+      if (topWindow.browser && topWindow.browser.element &&
+          topWindow.getActiveElement() === topWindow.browser.element) {
+        topWindow.browser.element.blur();
       }
     },
 
