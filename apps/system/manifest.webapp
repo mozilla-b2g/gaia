@@ -140,6 +140,12 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "about-service-workers": {
+      "description": "about:serviceworkers proxy",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {

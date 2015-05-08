@@ -74,6 +74,9 @@ require.config({
       exports: 'tzSelect',
       deps: ['shared/icc_helper']
     },
+    'shared/uuid': {
+      exports: 'uuid'
+    },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
     },

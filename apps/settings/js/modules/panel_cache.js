@@ -30,7 +30,8 @@ define(function(require) {
                        'style/screen_lock.css',
                        'style/simcard.css',
                        'style/updates.css',
-                       'style/downloads.css'],
+                       'style/downloads.css',
+                       'style/developer_service_workers.css'],
       function callback() {
         _panelStylesheetsLoaded = true;
       });
