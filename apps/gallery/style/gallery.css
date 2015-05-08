@@ -257,17 +257,6 @@ body.pickView #thumbnails {
   padding-bottom: calc((100% - 0.2rem) / 3 );
 }
 
-/* Favor scrolling performance for the thumbnails list while
- * scrolling.
- */
-#thumbnails.scrolling .thumbnail {
-  image-rendering: -moz-crisp-edges;
-}
-
-#thumbnails.scrolling .thumbnail-group-header {
-  text-rendering: optimizeSpeed;
-}
-
 .thumbnail:nth-child(3n) {
   -moz-margin-end: 0;
 }

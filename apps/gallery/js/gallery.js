@@ -1073,16 +1073,6 @@ function resizeHandler() {
   }
 }
 
-// Change the thumbnails quality while scrolling using the scrollstart/scrollend
-// events from shared/js/scroll_detector.js.
-window.addEventListener('scrollstart', function onScrollStart(e) {
-  thumbnails.classList.add('scrolling');
-});
-
-window.addEventListener('scrollend', function onScrollEnd(e) {
-  thumbnails.classList.remove('scrolling');
-});
-
 /*
  * This is a temporary workaround to bug 1039943: when the user launches
  * the gallery and then switches to another app gallery's scanning and
