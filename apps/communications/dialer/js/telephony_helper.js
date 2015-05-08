@@ -36,20 +36,6 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    var telephony = navigator.mozTelephony;
-    var openLines = telephony.calls.length +
-        ((telephony.conferenceGroup &&
-          telephony.conferenceGroup.calls.length) ? 1 : 0);
-    // User can make call only when there are less than 2 calls by spec.
-    // If the limit reached, return early to prevent holding active call.
-    if (openLines >= 2) {
-      loadTelephonyMessages(function() {
-        TelephonyMessages.displayMessage('UnableToCall');
-      });
-
-      return;
-    }
-
     startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
               ondisconnected, onerror);
   };
