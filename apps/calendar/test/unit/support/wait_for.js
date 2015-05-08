@@ -1,15 +1,17 @@
 define(function(require, exports, module) {
 'use strict';
 
-module.exports = function waitFor(test, callback) {
+var denodeify = require('common/promise').denodeify;
+
+function waitFor(test, callback) {
   var result = test();
   if (result) {
     return callback();
   }
 
-  setTimeout(() => {
-    waitFor(test, callback);
-  }, 500);
-};
+  setTimeout(() => waitFor(test, callback), 500);
+}
+
+module.exports = denodeify(waitFor);
 
 });
