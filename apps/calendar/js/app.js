@@ -26,6 +26,7 @@ var timeObserver = require('time_observer');
 var viewFactory = require('views/factory');
 
 var loadLazyStyles = null;
+var l10nReady = new Promise(resolve => navigator.mozL10n.once(() => resolve()));
 var pendingManager = new PendingManager();
 var startingURL = window.location.href;
 
@@ -124,7 +125,7 @@ function setupControllers() {
   alarms.autoQueue = true;
 }
 
-function setupUI() {
+function *setupUI() {
   // re-localize dates on screen
   dateL10n.init();
 
@@ -145,18 +146,16 @@ function setupUI() {
 
   nextTick(() => viewFactory.get('Errors'));
 
-  return Promise.all([
+  yield [
     renderView('TimeHeader'),
     renderView('ViewSelector')
-  ])
-  .then(() => {
-    // at this point we remove the .loading class and user will see the main
-    // app frame
-    document.body.classList.remove('loading');
-    performance.domLoaded();
-    setupRouter();
-  });
+  ];
 
+  // at this point we remove the .loading class and user will see the main
+  // app frame
+  document.body.classList.remove('loading');
+  performance.domLoaded();
+  setupRouter();
 }
 
 function renderView(viewName) {
@@ -173,16 +172,20 @@ function startDayObserver() {
   // calendars data, otherwise we might display events from calendars
   // that are not visible. this also makes sure we load the calendars
   // as soon as possible
-  var storeFactory = core.storeFactory;
-  var calendars = storeFactory.get('Calendar');
-  return calendars.all().then(() => dayObserver.init());
+  return co(function *() {
+    var storeFactory = core.storeFactory;
+    var calendars = storeFactory.get('Calendar');
+    yield calendars.all();
+    dayObserver.init();
+  });
 }
 
 function startUI() {
   // we init the UI after the db.load to increase perceived performance
   // (will feel like busytimes are displayed faster)
-  return new Promise(resolve => {
-    navigator.mozL10n.once(() => setupUI().then(resolve));
+  return co(function *() {
+    yield l10nReady;
+    yield setupUI();
   });
 }
 
