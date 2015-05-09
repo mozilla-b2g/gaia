@@ -93,15 +93,4 @@ suite('cards helper >', function() {
     });
   });
 
-  test('test escapeHTML', function() {
-    var escapedStr1 =
-      CardsHelper.escapeHTML('<script>"\'script  \n\r</script>', false);
-    var escapedStr2 =
-      CardsHelper.escapeHTML('<script>"\'script  \n\r</script>', true);
-    assert.equal(escapedStr1,
-      '&#60;script>"\'script &nbsp;<br/><br/>&#60;/script>');
-    assert.equal(escapedStr2,
-      '&#60;script>&quot;&#x27;script &nbsp;<br/><br/>&#60;/script>');
-  });
-
 });

@@ -81,25 +81,9 @@
   }
   getOffOrigin.cache = {};
 
-  function escapeHTML(str, escapeQuotes) {
-    var stringHTML = str;
-    stringHTML = stringHTML.replace(/</g, '&#60;');// jshint ignore: line
-    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-    stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
-
-    if (escapeQuotes) {
-      // The //" is to help dumb editors understand that there's not a
-      // open string at EOL.
-      return stringHTML.replace(/"/g, '&quot;') //"
-                       .replace(/'/g, '&#x27;');
-    }
-    return stringHTML;
-  }
-
   exports.CardsHelper = {
     getIconURIForApp: getIconURIForApp,
-    getOffOrigin: getOffOrigin,
-    escapeHTML: escapeHTML
+    getOffOrigin: getOffOrigin
   };
 
 })(window);
