@@ -125,37 +125,39 @@ function setupControllers() {
   alarms.autoQueue = true;
 }
 
-function *setupUI() {
-  // re-localize dates on screen
-  dateL10n.init();
+function setupUI() {
+  return co(function *() {
+    // re-localize dates on screen
+    dateL10n.init();
 
-  timeObserver.init();
-  core.timeController.move(new Date());
+    timeObserver.init();
+    core.timeController.move(new Date());
 
-  // Restart the calendar when the timezone changes.
-  // We do this on a timer because this event may fire
-  // many times. Refreshing the url of the calendar frequently
-  // can result in crashes so we attempt to do this only after
-  // the user has completed their selection.
-  window.addEventListener('moztimechange', () => {
-    // for info on why we need to restart the app when the time changes see:
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1093016#c9
-    debug('Noticed timezone change!');
-    nextTick(() => window.location.href = startingURL);
+    // Restart the calendar when the timezone changes.
+    // We do this on a timer because this event may fire
+    // many times. Refreshing the url of the calendar frequently
+    // can result in crashes so we attempt to do this only after
+    // the user has completed their selection.
+    window.addEventListener('moztimechange', () => {
+      // for info on why we need to restart the app when the time changes see:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1093016#c9
+      debug('Noticed timezone change!');
+      nextTick(() => window.location.href = startingURL);
+    });
+
+    nextTick(() => viewFactory.get('Errors'));
+
+    yield [
+      renderView('TimeHeader'),
+      renderView('ViewSelector')
+    ];
+
+    // at this point we remove the .loading class and user will see the main
+    // app frame
+    document.body.classList.remove('loading');
+    performance.domLoaded();
+    setupRouter();
   });
-
-  nextTick(() => viewFactory.get('Errors'));
-
-  yield [
-    renderView('TimeHeader'),
-    renderView('ViewSelector')
-  ];
-
-  // at this point we remove the .loading class and user will see the main
-  // app frame
-  document.body.classList.remove('loading');
-  performance.domLoaded();
-  setupRouter();
 }
 
 function renderView(viewName) {
