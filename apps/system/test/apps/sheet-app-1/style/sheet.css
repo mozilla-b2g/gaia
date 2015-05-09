@@ -19,7 +19,7 @@ html, body {
 #app-icon.hidden,
 #header.hidden,
 #icon.hidden {
-  display: n
+  display: none;
 }
 
 #content {
