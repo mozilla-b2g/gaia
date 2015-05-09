@@ -250,7 +250,7 @@ module.exports = {
     return appname.replace(' ', '-').toLowerCase().replace(/\W/g, '');
   },
 
-  ls: function(dir, recursive, pattern, include) {
+  ls: function(dir, recursive) {
     var files = [];
     if (!dir || !dir.exists()) {
       return [];
@@ -260,10 +260,7 @@ module.exports = {
         // Skip error
         return;
       }
-      var file = this.getFile(filePath);
-      if (!pattern || !(include ^ pattern.test(file.leafName))) {
-        files.push(file);
-      }
+      files.push(this.getFile(filePath));
     }.bind(this));
     return files;
   },

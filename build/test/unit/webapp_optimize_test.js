@@ -132,6 +132,10 @@ suite('webapp-optimize.js', function() {
       return true;
     };
 
+    mockUtils.getOsType = function() {
+      return 'Unix';
+    };
+
     mockConfig = {
       GAIA_DEFAULT_LOCALE: 'default-locale',
       GAIA_CONCAT_LOCALES: '1',
