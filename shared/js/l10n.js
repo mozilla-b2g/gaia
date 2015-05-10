@@ -1101,7 +1101,7 @@
     });
   }
 
-  // strftime tokens (%a, %Eb), template {vars}, HTML entities (&#x202a;),
+  // strftime tokens (%a, %Eb), template {vars}, HTML entities (&#x202a;)
   // and HTML tags.
   var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
