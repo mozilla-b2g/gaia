@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Template, LazyLoader, MozActivity */
+/* global MozActivity, Tagged */
 (function(exports) {
   /**
    * ImeMenu displays a list of currently enabled IMEs in an overlay.
@@ -23,7 +23,7 @@
      * @memberof ImeMenu.prototype
      */
     start: function() {
-      LazyLoader.load('shared/js/template.js', this.initUI.bind(this));
+      this.initUI();
     },
 
     /**
@@ -34,7 +34,7 @@
       var dummy = document.createElement('div');
       var _ = navigator.mozL10n ? navigator.mozL10n.get : function(){};
 
-      dummy.innerHTML = Template('ime-menu-template').interpolate({
+      dummy.innerHTML = this.imeMenuView({
         title: this.title,
         cancelLabel: _('cancel')
       });
@@ -76,15 +76,49 @@
     },
 
     /**
+     * Returns the view for the ime menu.
+     * @memberof ImeMenu.prototype
+     */
+    imeMenuView: function({title, cancelLabel}) {
+      return Tagged.escapeHTML `<form role="dialog" data-type="value-selector"
+        class="ime-menu value-selector-container"
+        data-z-index-level="action-menu">
+        <section>
+          <h1>${title}</h1>
+          <ol class="value-selector-options-container ime-menu-list"
+            aria-multiselectable="false" role="listbox">
+          </ol>
+        </section>
+        <menu class="ime-menu-button-container">
+          <button class="ime-menu-button" data-type="cancel"
+            data-action="cancel" data-l10n-id="cancel">
+            ${cancelLabel}</button>
+        </menu>
+      </div>`;
+    },
+
+    /**
+     * Returns the view for a menu item.
+     * @memberof ImeMenu.prototype
+     */
+    menuItemView: function({layoutName, appName, layoutId, selected}) {
+      return Tagged.escapeHTML `<li role="option" aria-selected="${selected}"
+        data-id="${layoutId}">
+        <label role="presentation">
+          <span class="item-label">${layoutName}</span>
+          <span class="item-note">${appName}</span>
+        </label>
+      </li>`;
+    },
+
+    /**
      * Builds the dom for the menu.
      * @memberof ImeMenu.prototype
      */
     buildMenu: function(items) {
       this.menu.innerHTML = '';
-      var itemTemplate = new Template('ime-menu-item-template');
-
       items.forEach(function traveseItems(item) {
-        this.menu.innerHTML += itemTemplate.interpolate({
+        this.menu.innerHTML += this.menuItemView({
           layoutName: item.layoutName,
           appName: item.appName,
           layoutId: item.value.toString(),

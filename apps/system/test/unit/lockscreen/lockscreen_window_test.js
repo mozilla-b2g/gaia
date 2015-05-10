@@ -2,7 +2,7 @@
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
-requireApp('system/shared/js/template.js');
+requireApp('system/shared/js/tagged.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -29,11 +29,7 @@ suite('system/LockScreenWindow', function() {
 
       var element = document.createElement('div');
 
-      // Must give a node with comment node for Template.
-      if ('lockscreen-overlay-template' === id) {
-        var comment = document.createComment('<div id="lockscreen"></div>');
-        element.appendChild(comment);
-      } else if (id.indexOf('AppWindow') >= 0) {
+      if (id.indexOf('AppWindow') >= 0) {
         var container = document.createElement('div');
         container.className = 'browser-container';
         element.appendChild(container);

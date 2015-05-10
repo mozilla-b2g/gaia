@@ -3,7 +3,7 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/js/template.js');
+require('/shared/js/tagged.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_service.js');
