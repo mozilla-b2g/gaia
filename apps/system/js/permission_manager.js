@@ -572,7 +572,6 @@
     listDeviceOptions: function pm_listDeviceOptions() {
       var _ = navigator.mozL10n.get;
       var self = this;
-      var template = new Template('device-list-item-tmpl');
       var checked;
 
       // show description
@@ -588,11 +587,14 @@
 
         var item_li = document.createElement('li');
         item_li.className = 'device-cell';
-        item_li.innerHTML = template.interpolate({
-                              id: option,
-                              checked: checked,
-                              label: _('device-' + option)
-                            });
+        var label = _('device-' + option);
+        item_li.innerHTML = Tagged.escapeHTML `
+          <label class="device-list deviceEnable">
+            <input class="input-enable" id="${option}" type="checkbox"
+              ${checked}>
+            <span></span>
+          </label>
+          <span class="device-item">${label}</span>`;
         self.devices.appendChild(item_li);
       });
       this.devices.addEventListener('click',
