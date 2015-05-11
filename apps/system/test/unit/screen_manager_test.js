@@ -1,11 +1,12 @@
 /* globals ScreenManager, ScreenBrightnessTransition,
            ScreenWakeLockManager,
            MocksHelper, MockLockScreen, MockMozPower,
+           MockService,MockAppWindow,
            MockSettingsListener, MocksleepMenu */
 
 'use strict';
 
-require('/test/unit/mock_app_window_manager.js');
+require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_lock_screen.js');
 require('/test/unit/mock_statusbar.js');
 require('/test/unit/mock_bluetooth.js');
@@ -411,9 +412,15 @@ suite('system/ScreenManager', function() {
       assert.isTrue(powerOffSpy.withArgs(false).calledOnce);
     });
 
-    suite('Testing lockscreen opened event', function() {
+    suite('Testing logohidden event', function() {
+      var fakeAppConfig1 = {
+        url: 'app://www.fake/index.html',
+        manifest: {},
+        manifestURL: 'app://wwww.fake/ManifestURL',
+        origin: 'app://www.fake'
+      };
+
       setup(function() {
-        MockService.locked = true;
         var stubSecureWindowManager = {
           isActive: function() {
             return false;
@@ -422,22 +429,31 @@ suite('system/ScreenManager', function() {
         switchProperty(window, 'secureWindowManager',
           stubSecureWindowManager, reals);
         this.sinon.spy(ScreenManager, '_setIdleTimeout');
-        window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+        this.sinon.stub(window, 'removeEventListener');
       });
 
       teardown(function() {
         restoreProperty(window, 'secureWindowManager', reals);
       });
 
-      test('Set 10 seconds timeout', function() {
+      test('Lockscreen is displayed', function() {
+        MockService.locked = true;
+        window.dispatchEvent(new CustomEvent('logohidden'));
         assert.ok(ScreenManager._setIdleTimeout
           .withArgs(ScreenManager.LOCKING_TIMEOUT, true).calledOnce);
       });
 
+      test('An app is displayed', function() {
+        MockService.currentApp = new MockAppWindow(fakeAppConfig1);
+        window.dispatchEvent(new CustomEvent('logohidden'));
+        assert.ok(ScreenManager._setIdleTimeout
+          .withArgs(ScreenManager._idleTimeout, false).calledOnce);
+      });
+
       test('Remove the event listener', function() {
-        this.sinon.spy(ScreenManager, '_reconfigScreenTimeout');
-        window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
-        assert.ok(ScreenManager._reconfigScreenTimeout.notCalled);
+        window.dispatchEvent(new CustomEvent('logohidden'));
+        assert.ok(window.removeEventListener
+          .withArgs('logohidden', ScreenManager).calledOnce);
       });
     });
   });

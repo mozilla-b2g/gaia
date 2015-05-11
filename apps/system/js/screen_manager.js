@@ -131,7 +131,7 @@ var ScreenManager = {
     window.addEventListener('secure-appopened', this);
     window.addEventListener('secure-appterminated', this);
 
-    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('logohidden', this);
 
     // User is actively using the screen reader.
     window.addEventListener('accessibility-action', this);
@@ -336,9 +336,9 @@ var ScreenManager = {
         window.addEventListener('userproximity', this);
         break;
 
-      // The first time to be in the Lockscreen app after booting.
-      case 'lockscreen-appopened':
-        window.removeEventListener('lockscreen-appopened', this);
+      // Reconfig screen time out after booting.
+      case 'logohidden':
+        window.removeEventListener('logohidden', this);
         this._reconfigScreenTimeout();
         break;
 
