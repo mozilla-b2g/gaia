@@ -31,11 +31,6 @@
  * the constructor. The MediaFrame code also includes a runtime check for
  * the amount of RAM available on the device, and may limit the image decode
  * size on low-memory devices.
- *
- * MediaFrame uses the CSS background-image property to display images. This
- * means that the images are decoded even if the MediaFrame is offscreen and
- * the image is not visible. So if you create a lot of these and display big
- * images in them, you will use a lot of memory. Be careful!
  */
 function MediaFrame(container, includeVideo, maxImageSize) {
   this.clear(); // Set all the properties we'll use to default values
@@ -44,6 +39,22 @@ function MediaFrame(container, includeVideo, maxImageSize) {
     container = document.getElementById(container);
   this.container = container;
   this.maximumImageSize = maxImageSize || 0;
+
+  // Create an <img> element to display the image
+  this.image = new Image();
+  this.image.className = 'image-view';
+  this.image.style.opacity = 0;                        // Start off hidden.
+  this.image.onload = function () {                    // When image loads...
+    this.style.opacity = 1;                            // make it visible
+  };
+  this.image.style.transformOrigin = 'center center';  // for zooming
+  this.image.style.backgroundImage = 'none';
+  this.image.style.backgroundSize = 'contain';
+  this.image.style.backgroundRepeat = 'no-repeat';
+  this.image.style.backgroundColor = '#222'; // should be overridable somehow
+  this.container.appendChild(this.image);
+
+  // Create the video player element unless we know we'll never need it
   if (includeVideo !== false) {
     this.video = new VideoPlayer(container);
     this.video.hide();
@@ -141,29 +152,17 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   // but the Gallery app uses it.
   this.imageblob = blob;
 
-  // Create an element to display the image (using CSS background-image)
-  this.image = document.createElement('div');
-  this.container.appendChild(this.image);
-  this.image.className = 'image-view';
-  this.image.style.transformOrigin = 'center center';
-  this.image.style.backgroundImage = 'none';
-  this.image.style.backgroundSize = 'contain';
-  this.image.style.backgroundRepeat = 'no-repeat';
-  // It would be nice if users of this module could override this
-  // background color.
-  this.image.style.backgroundColor = '#222';
-  this.image.setAttribute('role', 'img');
-
   // Figure out if we are going to downsample the image before displaying it
   // We expose fullSampleSize as part of the public api only for testing.
   this.fullSampleSize = computeFullSampleSize(blob, width, height);
   this.fullsizeWidth = this.fullSampleSize.scale(width);
   this.fullsizeHeight = this.fullSampleSize.scale(height);
 
-  // Create a blob URL for it, combine it with the media fragment for
-  // downsampling, and put it in CSS background-image format.
+  // Create a blob URL for the image and combine it with the media fragment.
+  // imageurl is what we'll call revokeObjectURL on. fullImageURL may
+  // have a media fragment appended, so we need to track both properties.
   this.imageurl = URL.createObjectURL(blob);
-  this.fullBackgroundImage = 'url(' + this.imageurl + this.fullSampleSize + ')';
+  this.fullImageURL = this.imageurl + this.fullSampleSize;
 
   // Note: There is a default value for orientation/mirrored since some
   // images don't have EXIF data to retrieve this information.
@@ -247,19 +246,18 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   function gotPreview(previewblob, previewWidth, previewHeight) {
     // Create a blob URL for the preview
     self.previewurl = URL.createObjectURL(previewblob);
-    // And put it in CSS background-image syntax
-    self.previewBackgroundImage = 'url(' + self.previewurl + ')';
+    // In this case previewImageURL is the same as previewurl. In some other
+    // cases, previewImageURL may have a media fragment appended, so we need
+    // two distinct properties, however.
+    self.previewImageURL = self.previewurl;
+
     // Remember the preview size
     self.previewWidth = previewWidth;
     self.previewHeight = previewHeight;
-    // Update the CSS background image spec for the full image to use
-    // both images so that the transition from the preview to the full
-    // image is smooth.
-    self.fullBackgroundImage += ', ' + self.previewBackgroundImage;
 
     // Start off with the preview image displayed
     self.displayingPreview = true;
-    self._displayImage(self.previewBackgroundImage,
+    self._displayImage(self.previewImageURL,
                        self.previewWidth, self.previewHeight);
   }
 
@@ -273,27 +271,23 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
     // If we can create a preview by downsampling...
     if (previewSampleSize !== Downsample.NONE) {
       // Combine the full image url with the downsample media fragment
-      // to create a background image spec for the downsampled preview.
-      self.previewBackgroundImage =
-        'url(' + self.imageurl + previewSampleSize + ')';
+      // to create a url for the downsampled preview.
+      self.previewImageURL = self.imageurl + previewSampleSize;
       // Compute the preview size based on the downsample amount.
       self.previewWidth = previewSampleSize.scale(width);
       self.previewHeight = previewSampleSize.scale(height);
 
-      // Update the full-size CSS background image spec to include this preview
-      self.fullBackgroundImage += ', ' + self.previewBackgroundImage;
-
       // Now start off with the downsampled image displayed
       self.displayingPreview = true;
-      self._displayImage(self.previewBackgroundImage,
+      self._displayImage(self.previewImageURL,
                          self.previewWidth, self.previewHeight);
     }
     else {
       // If we can't (or don't need to) downsample the full image then note
       // that we don't have a preview and display the image at full size.
-      self.previewBackgroundImage = null;
+      self.previewImageURL = null;
       self.displayingPreview = false;
-      self._displayImage(self.fullBackgroundImage,
+      self._displayImage(self.fullImageURL,
                          self.fullsizeWidth, self.fullsizeHeight);
     }
   }
@@ -356,19 +350,30 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   }
 };
 
-// An internal method to set the background image and size styles of
-// the image div and to reposition the image appropriately. We use this when
-// first displaying an image and when switching from the preview image to the
-// full image and back. Note that the backgroundImage argument must be a
-// string suitable for use in a CSS background-image property. When switching
-// from the preview image to the full image, we actually use a string with
-// two urls in it so that the full image replaces the preview image when it
-// is loaded.
-MediaFrame.prototype._displayImage = function(backgroundImage, width, height) {
-  // The background image should be a string in CSS format.
-  this.image.style.backgroundImage = backgroundImage;
+// An internal method to set the url and size of the img element and to
+// reposition the image appropriately. We use this when first displaying an
+// image and when switching from the preview image to the full image and back.
+// The url argument is used as the img.src. The bg argument, if specified, is
+// a URL used for the CSS background-image property.  This is useful for
+// switching from a preview image to a full-size image (when the user zooms
+// in) without a flash while the full-size image is decoded.
+MediaFrame.prototype._displayImage = function(url, width, height, bg) {
+  // Set the size of the image
   this.image.style.width = width + 'px';
   this.image.style.height = height + 'px';
+
+  // If a background was specfied, use it. If this is the preview image URL
+  // and it is already decoded, it gives us something to display while the
+  // full-size image is decoding.
+  if (bg) {
+    this.image.style.backgroundImage = 'url(' + bg + ')';
+  }
+  else {
+    this.image.style.backgroundImage = 'none';
+  }
+
+  // Start loading and decoding the main image
+  this.image.src = url;
 
   // Remember the width and height, but swap them for rotated images.
   if (this.rotation == 0 || this.rotation == 180) {
@@ -428,20 +433,21 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   if (!this.displayingImage || !this.displayingPreview)
     return;
   this.displayingPreview = false;
-  this._displayImage(this.fullBackgroundImage,
-                     this.fullsizeWidth, this.fullsizeHeight);
+  this._displayImage(this.fullImageURL,
+                     this.fullsizeWidth, this.fullsizeHeight,
+                     this.previewImageURL);
 };
 
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
   // If we're not displaying an image or already displaying preview
   // or don't have a preview to display then there is nothing to do.
   if (!this.displayingImage || this.displayingPreview ||
-      !this.previewBackgroundImage) {
+      !this.previewImageURL) {
     return;
   }
 
   this.displayingPreview = true;
-  this._displayImage(this.previewBackgroundImage,
+  this._displayImage(this.previewImageURL,
                      this.previewWidth, this.previewHeight);
 };
 
@@ -486,8 +492,8 @@ MediaFrame.prototype.clear = function clear() {
   this.videoblob = null;
   this.posterblob = null;
   this.fullSampleSize = null;
-  this.fullBackgroundImage = null;
-  this.previewBackgroundImage = null;
+  this.fullImageURL = null;
+  this.previewImageURL = null;
   this.fullsizeWidth = this.fullsizeHeight = null;
   this.previewWidth = this.previewHeight = null;
   this.fit = null;
@@ -502,11 +508,13 @@ MediaFrame.prototype.clear = function clear() {
   }
   this.previewurl = null;
 
+  // hide the image and release anything it was displaying
   if (this.image) {
-    this.container.removeChild(this.image);
+    this.image.style.opacity = 0;
     this.image.style.backgroundImage = 'none';
+    this.image.src = '';
+    this.image.removeAttribute('aria-label');
   }
-  this.image = null;
 
   // Hide the video player
   if (this.video) {
@@ -586,7 +594,7 @@ MediaFrame.prototype.reset = function reset() {
   // If we're not displaying the preview image, but we have one,
   // and it is the right size, then switch to it
   if (this.displayingImage && !this.displayingPreview &&
-      this.previewBackgroundImage) {
+      this.previewImageURL) {
     this._switchToPreviewImage(); // resets image size and position
     return;
   }
@@ -734,7 +742,7 @@ MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
     var self = this;
     this.image.addEventListener('transitionend', function done() {
       self.image.removeEventListener('transitionend', done);
-      self.image.style.transition = null;
+      self.image.style.transition = '';
     });
   }
 

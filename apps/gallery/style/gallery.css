@@ -360,6 +360,7 @@ html[dir=rtl] #thumbnails-number-selected {
   margin: 0;
   pointer-events: none;
   -moz-user-select: none;
+  transition: opacity 100ms ease-in;
 }
 
 .frame > video {
