@@ -138,6 +138,15 @@ suite('SimLockManager', function() {
       assert.isFalse(subject.simLockSystemDialog.visible);
     });
 
+    test('when enabling the rocketbar, the dialog gets closed', function() {
+      subject.simLockSystemDialog.visible = true;
+      subject.handleEvent({
+        type: 'rocketbar-activating'
+      });
+      assert.isTrue(subject.simLockSystemDialog.close.called);
+      assert.isFalse(subject.simLockSystemDialog.visible);
+    });
+
     suite('simslot-updated events', function() {
 
       setup(function() {
