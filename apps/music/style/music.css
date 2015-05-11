@@ -549,13 +549,6 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   right: 0.5%;
 }
 
-/* Favor scrolling performance over quality while scrolling */
-#views.scroll li.list-item,
-#views.scrolling .tile {
-  image-rendering: -moz-crisp-edges;
-  text-rendering: optimizeSpeed;
-}
-
 .main-tile {
   width: 66%;
   height: 0;
