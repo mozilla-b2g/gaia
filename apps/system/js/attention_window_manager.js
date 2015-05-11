@@ -68,9 +68,12 @@
       return true;
     },
 
-    '_handle_system-resize': function() {
+    '_handle_system-resize': function(evt) {
       if (this._topMostWindow) {
-        this._topMostWindow.resize();
+        var p = this._topMostWindow.resize();
+        if (typeof evt.detail.waitUntil === 'function') {
+          evt.detail.waitUntil(p);
+        }
         return false;
       }
       return true;
