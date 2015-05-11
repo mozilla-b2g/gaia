@@ -31,6 +31,7 @@ class FullscreenImage(Base):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._current_image_locator))))
+        Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._current_image_locator).get_attribute('src') != '')
 
     @property
     def is_photo_toolbar_displayed(self):
@@ -38,7 +39,7 @@ class FullscreenImage(Base):
 
     @property
     def current_image_source(self):
-        return self.marionette.find_element(*self._current_image_locator).value_of_css_property('background-image')
+        return self.marionette.find_element(*self._current_image_locator).get_attribute('src')
 
     @property
     def current_image_size_width(self):
