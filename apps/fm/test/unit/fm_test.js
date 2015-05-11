@@ -12,15 +12,10 @@
   updateEnablingState,
   updateFreqUI,
   updateWarningModeUI */
-/* exported PerformanceTestingHelper */
 
 requireApp('shared/js/airplane_mode_helper.js');
 requireApp('fm/js/fm.js');
 require('/shared/test/unit/load_body_html_helper.js');
-
-var PerformanceTestingHelper = {
-  dispatch: function() { }
-};
 
 suite('FM', function() {
   function setFrequency(frequency) {
