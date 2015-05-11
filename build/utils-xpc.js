@@ -45,9 +45,9 @@ function ls(dir, recursive, pattern, include) {
     //    false |     true         |   false
     if (!pattern || !(include ^ pattern.test(file.leafName))) {
       results.push(file);
-      if (recursive && file.isDirectory()) {
-        results = results.concat(ls(file, true, pattern, include));
-      }
+    }
+    if (recursive && file.isDirectory()) {
+      results = results.concat(ls(file, true, pattern, include));
     }
   }
   return results;
