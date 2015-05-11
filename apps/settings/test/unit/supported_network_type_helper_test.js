@@ -93,7 +93,8 @@ suite('SupportedNetworkTypeHelper', function() {
           'wcdma',
           'wcdma/gsm-auto',
           'lte/wcdma/gsm',
-          'lte'
+          'lte',
+          'lte/wcdma'
         ]);
       });
 
@@ -123,7 +124,8 @@ suite('SupportedNetworkTypeHelper', function() {
           'lte/cdma/evdo',
           'lte/wcdma/gsm',
           'lte/wcdma/gsm/cdma/evdo',
-          'lte'
+          'lte',
+          'lte/wcdma'
         ]);
       });
     });
@@ -177,6 +179,8 @@ suite('SupportedNetworkTypeHelper', function() {
         assert.equal(helper.l10nIdForType('lte'), 'operator-networkType-LTE');
         assert.equal(helper.l10nIdForType('lte/wcdma/gsm'),
           'operator-networkType-auto');
+        assert.equal(helper.l10nIdForType('lte/wcdma'),
+          'operator-networkType-auto-3G-4G');
       });
 
       test('evdo, cdma, lte', function() {
@@ -209,6 +213,8 @@ suite('SupportedNetworkTypeHelper', function() {
           'operator-networkType-auto-WCDMA-GSM-CDMA-EVDO');
         assert.equal(helper.l10nIdForType('lte'),
           'operator-networkType-LTE');
+        assert.equal(helper.l10nIdForType('lte/wcdma'),
+          'operator-networkType-auto-LTE-WCDMA');
         assert.equal(helper.l10nIdForType('lte/cdma/evdo'),
           'operator-networkType-auto-LTE-CDMA-EVDO');
         assert.equal(helper.l10nIdForType('lte/wcdma/gsm'),
