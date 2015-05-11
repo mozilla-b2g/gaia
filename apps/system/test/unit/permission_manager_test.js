@@ -250,17 +250,14 @@ suite('system/permission manager', function() {
 
     test('showPermissionPrompt must use the right strings', function() {
       sendFullscreenRequest();
-      // When showing the prompt we need to show the right Strings
-      assert.isTrue(navigator.mozL10n.get.calledOnce);
+      var l10nAttrs =
+        navigator.mozL10n.getAttributes(permissionManager.message);
+      assert.equal(l10nAttrs.id, 'fullscreen-request');
+
       var detail = permissionManager.showPermissionPrompt.args[0][0];
-      // We are trying to translate, so l10n must be called...
-      // ... with the right key
-      assert.equal(navigator.mozL10n.get.args[0][0], 'fullscreen-request');
-      // ... and right params
-      assert.equal(
-        navigator.mozL10n.get.args[0][1].origin,
-        detail.fullscreenorigin
-      );
+      assert.deepEqual(l10nAttrs.args, {
+        origin: detail.fullscreenorigin
+      });
       // No "more info" string should be translated
       var strings = permissionManager.getStrings(detail);
 
@@ -493,12 +490,10 @@ suite('system/permission manager', function() {
       MockApplications.mRegisterMockApp(appMock);
       this.sinon.spy(permissionManager, 'handlePermissionPrompt');
       sendMediaEvent('permission-prompt', {'audio-capture': ['']});
-      this.sinon.spy(navigator.mozL10n, 'get');
     });
 
     teardown(function() {
       MockApplications.mTeardown();
-      navigator.mozL10n.get.restore();
     });
 
     test('permission-prompt', function() {
@@ -511,14 +506,13 @@ suite('system/permission manager', function() {
         {'audio-capture': ['']},
         false
       );
-      permissionManager.getStrings(detail);
+      var strings = permissionManager.getStrings(detail);
       // l10n must be Web related
-      assert.equal(
-        navigator.mozL10n.get.args[0][0],
-        'perm-audio-capture-webRequest'
-      );
+      assert.equal(strings.message.id, 'perm-audio-capture-webRequest');
       // In this case we will take the origin of the requester
-      assert.equal(navigator.mozL10n.get.args[0][1].site, detail.origin);
+      assert.deepEqual(strings.message.args, {
+        site: detail.origin
+      });
     });
 
     test('App: All strings are matching', function() {
@@ -527,13 +521,13 @@ suite('system/permission manager', function() {
         {'audio-capture': ['']},
         true
       );
-      permissionManager.getStrings(detail);
+      var strings = permissionManager.getStrings(detail);
       // l10n must be APP related
-      assert.equal(
-        navigator.mozL10n.get.args[0][0], 'perm-audio-capture-appRequest');
+      assert.equal(strings.message.id, 'perm-audio-capture-appRequest');
       // In this case we will take the origin of the requester
-      assert.equal(
-        navigator.mozL10n.get.args[0][1].app, appMock.manifest.name);
+      assert.deepEqual(strings.message.args, {
+        app: appMock.manifest.name
+      });
     });
 
     test('Remember me is disabled by default', function() {
@@ -574,12 +568,10 @@ suite('system/permission manager', function() {
         'permission-prompt',
         {'video-capture': ['back', 'front']}
       );
-      this.sinon.spy(navigator.mozL10n, 'get');
     });
 
     teardown(function() {
       MockApplications.mTeardown();
-      navigator.mozL10n.get.restore();
     });
 
     test('permission-prompt', function() {
@@ -593,13 +585,13 @@ suite('system/permission manager', function() {
         {'audio-capture': ['']},
         false
       );
-      permissionManager.getStrings(detail);
+      var strings = permissionManager.getStrings(detail);
       // l10n must be Web related
-      assert.equal(
-        navigator.mozL10n.get.args[0][0], 'perm-video-capture-webRequest');
+      assert.equal(strings.message.id, 'perm-video-capture-webRequest');
       // In this case we will take the origin of the requester
-      assert.equal(
-        navigator.mozL10n.get.args[0][1].site, detail.origin);
+      assert.deepEqual(strings.message.args, {
+        site: detail.origin
+      });
     });
 
     test('App: All strings are matching', function() {
@@ -608,13 +600,13 @@ suite('system/permission manager', function() {
         {'audio-capture': ['']},
         true
       );
-      permissionManager.getStrings(detail);
+      var strings = permissionManager.getStrings(detail);
       // l10n must be APP related
-      assert.equal(
-        navigator.mozL10n.get.args[0][0], 'perm-video-capture-appRequest');
+      assert.equal(strings.message.id, 'perm-video-capture-appRequest');
       // In this case we will take the origin of the requester
-      assert.equal(
-        navigator.mozL10n.get.args[0][1].app, appMock.manifest.name);
+      assert.deepEqual(strings.message.args, {
+        app: appMock.manifest.name
+      });
     });
 
     test('Remember me is disabled by default', function() {
@@ -726,13 +718,13 @@ suite('system/permission manager', function() {
         {'audio-capture': ['']},
         false
       );
-      permissionManager.getStrings(detail);
+      var strings = permissionManager.getStrings(detail);
       // l10n must be Web related
-      assert.equal(
-        navigator.mozL10n.get.args[0][0], 'perm-media-capture-webRequest');
+      assert.equal(strings.message.id, 'perm-media-capture-webRequest');
       // In this case we will take the origin of the requester
-      assert.equal(
-        navigator.mozL10n.get.args[0][1].site, detail.origin);
+      assert.deepEqual(strings.message.args, {
+        site: detail.origin
+      });
     });
 
     test('App: All strings are matching', function() {
@@ -741,13 +733,13 @@ suite('system/permission manager', function() {
         {'audio-capture': ['']},
         true
       );
-      permissionManager.getStrings(detail);
+      var strings = permissionManager.getStrings(detail);
       // l10n must be APP related
-      assert.equal(
-        navigator.mozL10n.get.args[0][0], 'perm-media-capture-appRequest');
+      assert.equal(strings.message.id, 'perm-media-capture-appRequest');
       // In this case we will take the origin of the requester
-      assert.equal(
-        navigator.mozL10n.get.args[0][1].app, appMock.manifest.name);
+      assert.deepEqual(strings.message.args, {
+        app: appMock.manifest.name
+      });
     });
 
     test('default choice', function() {
