@@ -1,5 +1,4 @@
-/* global LazyLoader, Service, applications, ManifestHelper*/
-/* global Template*/
+/* global Service, applications, ManifestHelper, Tagged */
 'use strict';
 (function(exports) {
   /**
@@ -99,6 +98,18 @@
       this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
         evt.preventDefault();
       });
+    },
+
+    /**
+     * Returns the view for each device option.
+     * @memberof PermissionManager.prototype
+     */
+    deviceOptionView: function({id, checked, label}) {
+      return Tagged.escapeHTML `<label class="device-list deviceEnable">
+          <input class="input-enable" id="${id}" type="checkbox" ${checked}>
+          <span></span>
+        </label>
+        <span class="device-item">${label}</span>`;
     },
 
     /**
@@ -345,7 +356,6 @@
       if (detail.permissions) {
         if ('video-capture' in detail.permissions) {
           this.isVideo = true;
-          LazyLoader.load('shared/js/template.js');
 
           // video selector is only for app
           if (detail.isApp && detail.isGranted &&
@@ -361,8 +371,6 @@
           this.permissionType = detail.permission;
           if ('video-capture' === detail.permission) {
             this.isVideo = true;
-
-            LazyLoader.load('shared/js/template.js');
           }
           if ('audio-capture' === detail.permission) {
             this.isAudio = true;
@@ -571,29 +579,27 @@
      */
     listDeviceOptions: function pm_listDeviceOptions() {
       var _ = navigator.mozL10n.get;
-      var self = this;
-      var template = new Template('device-list-item-tmpl');
       var checked;
 
       // show description
       this.deviceSelector.classList.remove('hidden');
       // build device list
-      this.currentPermissions['video-capture'].forEach(function(option) {
+      this.currentPermissions['video-capture'].forEach(option => {
         // Match currentChoices
-        checked = (self.currentChoices['video-capture'] === option) ?
+        checked = (this.currentChoices['video-capture'] === option) ?
             'checked=true disabled=true' : '';
         if (checked) {
-          self.currentChoices['video-capture'] = option;
+          this.currentChoices['video-capture'] = option;
         }
 
         var item_li = document.createElement('li');
         item_li.className = 'device-cell';
-        item_li.innerHTML = template.interpolate({
+        item_li.innerHTML = this.deviceOptionView({
                               id: option,
                               checked: checked,
                               label: _('device-' + option)
                             });
-        self.devices.appendChild(item_li);
+        this.devices.appendChild(item_li);
       });
       this.devices.addEventListener('click',
         this.optionClickhandler.bind(this));

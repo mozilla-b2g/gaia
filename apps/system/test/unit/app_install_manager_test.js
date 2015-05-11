@@ -14,7 +14,7 @@ requireApp('system/test/unit/mock_ftu_launcher.js');
 require('/js/input_window_manager.js');
 require('/js/service.js');
 
-require('/shared/js/template.js');
+require('/shared/js/tagged.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
@@ -43,7 +43,7 @@ suite('system/AppInstallManager >', function() {
 
   var fakeDialog, fakeNotif;
   var fakeInstallCancelDialog, fakeDownloadCancelDialog;
-  var fakeSetupDialog, fakeImeListDialog, fakeImeListTemplate;
+  var fakeSetupDialog, fakeImeListDialog;
 
   var lastL10nParams = null;
   var lastDispatchedResponse = null;
@@ -199,27 +199,12 @@ suite('system/AppInstallManager >', function() {
       '</section>'
     ].join('');
 
-    fakeImeListTemplate = document.createElement('div');
-    fakeImeListTemplate.id = 'ime-list-template';
-    fakeImeListTemplate.innerHTML = [
-        '<!--',
-        '<li>',
-          '<a>${displayName}</a>',
-          '<label class="pack-checkbox ime">',
-            '<input type="checkbox" name="keyboards" value="${imeName}">',
-            '<span></span>',
-          '</label>',
-        '</li>',
-        '-->'
-    ].join('');
-
     document.body.appendChild(fakeDialog);
     document.body.appendChild(fakeInstallCancelDialog);
     document.body.appendChild(fakeDownloadCancelDialog);
     document.body.appendChild(fakeNotif);
     document.body.appendChild(fakeSetupDialog);
     document.body.appendChild(fakeImeListDialog);
-    document.body.appendChild(fakeImeListTemplate);
 
     window.inputWindowManager =
       this.sinon.stub(Object.create(InputWindowManager.prototype));
@@ -234,7 +219,6 @@ suite('system/AppInstallManager >', function() {
     fakeNotif.parentNode.removeChild(fakeNotif);
     fakeSetupDialog.parentNode.removeChild(fakeSetupDialog);
     fakeImeListDialog.parentNode.removeChild(fakeImeListDialog);
-    fakeImeListTemplate.parentNode.removeChild(fakeImeListTemplate);
     lastDispatchedResponse = null;
     lastL10nParams = null;
 
@@ -267,8 +251,6 @@ suite('system/AppInstallManager >', function() {
         AppInstallManager.resumeButton.id);
       assert.equal('ime-layout-dialog',
         AppInstallManager.imeLayoutDialog.id);
-      assert.equal('ime-list-template',
-        AppInstallManager.imeListTemplate.id);
       assert.equal('ime-list',
         AppInstallManager.imeList.id);
       assert.equal('ime-cancel-button',
@@ -1533,12 +1515,10 @@ suite('system/AppInstallManager >', function() {
     test('should show ime list', function(done) {
       waitForEvent('installpromptshown', done);
 
-      this.sinon.spy(Template.prototype, 'interpolate');
       AppInstallManager.handleInstallSuccess(mockAppTwo);
       AppInstallManager.setupConfirmButton.click();
       assert.isTrue(AppInstallManager.
                       imeLayoutDialog.classList.contains('visible'));
-      assert.isTrue(Template.prototype.interpolate.calledTwice);
     });
 
     test('should not show list', function() {
