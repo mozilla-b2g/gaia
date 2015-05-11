@@ -111,8 +111,9 @@ suite('ImeMenu', function() {
     test(' > check title', function() {
       var menu = new ImeMenu(imeListMockup, title);
       menu.start();
-      assert.equal(getMenu().querySelector('section > h1').textContent,
-                   title);
+      assert.equal(
+        getMenu().querySelector('section > h1').getAttribute('data-l10n-id'),
+        title);
       menu.stop();
     });
 

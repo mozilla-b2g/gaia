@@ -109,7 +109,7 @@
           <input class="input-enable" id="${id}" type="checkbox" ${checked}>
           <span></span>
         </label>
-        <span class="device-item">${label}</span>`;
+        <span class="device-item" data-l10n-id="${label}"></span>`;
     },
 
     /**
@@ -117,15 +117,13 @@
      * @memberof PermissionManager.prototype
      */
     getStrings: function getStrings(detail) {
-      var _ = navigator.mozL10n.get;
-
       // If we are in fullscreen, the strings are slightly different.
       if (this.isFullscreenRequest) {
-        var fullscreenMessage = _(
-          'fullscreen-request',
-          {
+        var fullscreenMessage = {
+          id: 'fullscreen-request',
+          args: {
             'origin': detail.fullscreenorigin
-          }) || '';
+          }};
         return {
           message: fullscreenMessage,
           moreInfoText: null
@@ -139,24 +137,20 @@
       var message = '';
       if (detail.isApp) {
         var appName = new ManifestHelper(app.manifest).name;
-        message =
-          _(
-            permissionID + '-appRequest',
-            {
-              'app': appName
-            }
-          );
+        message = {
+          id: permissionID + '-appRequest',
+          args: {
+            'app': appName
+          }};
       } else {
-        message =
-          _(
-            permissionID + '-webRequest',
-            {
-              'site': detail.origin
-            }
-          );
+        message = {
+          id: permissionID + '-webRequest',
+          args: {
+            'site': detail.origin
+          }};
       }
 
-      var moreInfoText = _(permissionID + '-more-info') || null;
+      var moreInfoText = permissionID + '-more-info';
       return {
         message : message,
         moreInfoText: moreInfoText
@@ -578,7 +572,6 @@
      * @memberof PermissionManager.prototype
      */
     listDeviceOptions: function pm_listDeviceOptions() {
-      var _ = navigator.mozL10n.get;
       var checked;
 
       // show description
@@ -597,7 +590,7 @@
         item_li.innerHTML = this.deviceOptionView({
                               id: option,
                               checked: checked,
-                              label: _('device-' + option)
+                              label: 'device-' + option
                             });
         this.devices.appendChild(item_li);
       });
@@ -615,17 +608,20 @@
       // Note plain text since this may include text from
       // untrusted app manifests, for example.
       var text = this.getStrings(detail);
-      this.message.textContent = text.message;
-      if (text.moreInfoText &&
-          text.moreInfoText &&
-          text.moreInfoText.length > 0) {
+      if (typeof(text.message) === 'object') {
+        navigator.mozL10n.setAttributes(this.message,
+          text.message.id, text.message.args);
+      } else {
+        this.message.setAttribute('data-l10n-id', text.message);
+      }
+      if (text.moreInfoText) {
         // Show the "More info… " link.
         this.moreInfo.classList.remove('hidden');
         this.moreInfoHandler = this.clickHandler.bind(this);
         this.hideInfoHandler = this.clickHandler.bind(this);
         this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
         this.hideInfoLink.addEventListener('click', this.hideInfoHandler);
-        this.moreInfoBox.textContent = text.moreInfoText;
+        this.moreInfoBox.setAttribute('data-l10n-id', text.moreInfoText);
       }
       this.currentRequestId = detail.id;
 

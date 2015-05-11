@@ -499,8 +499,6 @@
 
     if (this.elements.optionsTitle) {
       this.elements.optionsTitle.dataset.l10nId = titleL10nId;
-      this.elements.optionsTitle.textContent = navigator.mozL10n.get(
-        titleL10nId);
     }
   };
 

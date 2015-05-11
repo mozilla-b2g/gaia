@@ -6,7 +6,7 @@
    * ImeMenu displays a list of currently enabled IMEs in an overlay.
    * @class ImeMenu
    * @param {Array} listItems An array of objects to display.
-   * @param {String} title The content of the header.
+   * @param {String} title L10n ID of the the content of the header.
    * @param {Function} successCb Called when the user selects an option.
    * @param {Function} cancelCb Called when the menu is cancelled.
    */
@@ -32,11 +32,9 @@
      */
     initUI: function() {
       var dummy = document.createElement('div');
-      var _ = navigator.mozL10n ? navigator.mozL10n.get : function(){};
 
       dummy.innerHTML = this.imeMenuView({
-        title: this.title,
-        cancelLabel: _('cancel')
+        title: this.title
       });
       this.container = dummy.firstElementChild;
 
@@ -84,15 +82,14 @@
         class="ime-menu value-selector-container"
         data-z-index-level="action-menu">
         <section>
-          <h1>${title}</h1>
+          <h1 data-l10n-id="${title}"></h1>
           <ol class="value-selector-options-container ime-menu-list"
             aria-multiselectable="false" role="listbox">
           </ol>
         </section>
         <menu class="ime-menu-button-container">
           <button class="ime-menu-button" data-type="cancel"
-            data-action="cancel" data-l10n-id="cancel">
-            ${cancelLabel}</button>
+            data-action="cancel" data-l10n-id="cancel"></button>
         </menu>
       </div>`;
     },
