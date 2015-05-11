@@ -94,6 +94,9 @@ var GestureDetector = (function() {
         handler(this, e, e.changedTouches[i]);
         // The first changed touch might have changed the state of the FSM.
         handler = this.state[e.type];
+        if (!handler) {
+          return;
+        }
       }
     }
     else {    // Otherwise, just dispatch the event to the handler
@@ -273,7 +276,7 @@ var GestureDetector = (function() {
   // for an event to start a gesture and ignoring others
   var initialState = {
     name: 'initialState',
-    init: function(d) {
+    init: function(d, e, t) {
       // When we enter or return to the initial state, clear
       // the detector properties that were tracking gestures
       // Don't clear d.lastTap here, though. We need it for dbltap events
@@ -285,6 +288,11 @@ var GestureDetector = (function() {
       d.startDirection = d.lastDirection = null;
       d.lastMidpoint = null;
       d.scaled = d.rotated = null;
+
+      // If we were invoked with an event and touch, then process it.
+      if (e && t && e.type === 'touchstart') {
+        initialState.touchstart(d, e, t);
+      }
     },
 
     // Switch to the touchstarted state and process the touch event there
@@ -317,7 +325,21 @@ var GestureDetector = (function() {
       // If another finger goes down in this state, then
       // go to transform state to start 2-finger gestures.
       d.clearTimer('holdtimeout');
-      d.switchTo(transformState, e, t);
+
+      if (e.touches.length > 1) { // verify that we have 2 fingers
+        d.switchTo(transformState, e, t);
+      }
+      else {
+        // If Gecko fails to deliver a touchend event to us (bug 1162771, e.g.)
+        // then we might get two touchstart events in a row and end up here
+        // when there is actually only one finger currently on the screen.
+        // In that case, we switch back to the initial state and process
+        // this touch from that state. (We don't switch directly to
+        // touchStartedState because we need to reset things in the
+        // initialState init() function.)
+        console.warn('Ignoring missing touchend event. See bug 1162771.');
+        d.switchTo(initialState, e, t);
+      }
     },
     touchmove: function(d, e, t) {
       // Ignore any touches but the initial one
