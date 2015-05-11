@@ -33,6 +33,9 @@ define(function(require) {
         }
         isHomeKeyPressed = false;
       },
+      onShow: function() {
+        elements.ssid.focus();
+      },
       onHide: function() {
         isHomeKeyPressed = document.hidden;
         if (!isHomeKeyPressed) {
