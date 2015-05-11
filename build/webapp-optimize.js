@@ -1,7 +1,5 @@
 'use strict';
 
-/* global exports, require */
-
 /**
  * webpp-optimize will do below things.
  * 1. Inline embeded html from <link rel="import" href="test.html" name="name">
@@ -636,9 +634,13 @@ WebappOptimize.prototype.execute = function(config) {
 
   // remove excluded condition /^(shared|tests?)$/)
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
-  var files = utils.ls(buildDirectoryFile, true,
-    /^(shared|tests?)$/);
-    // We need to optimize shared pages as well
+  var buildDirectoryPath = buildDirectoryFile.path.replace(/\\/g, '/');
+  var excluded = new RegExp(buildDirectoryPath + '.*\/(shared|tests?)');
+  var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
+    return !(excluded.test(file.path.replace(/\\/g, '/')));
+  });
+
+  // We need to optimize shared pages as well
   var sharedPagesDir = buildDirectoryFile;
   sharedPagesDir.append('shared');
   sharedPagesDir.append('pages');
