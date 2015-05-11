@@ -1,4 +1,4 @@
-/* global evt, Folder, SmartModalDialog */
+/* global evt, Folder, SmartModalDialog, Utils */
 
 'use strict';
 
@@ -393,7 +393,7 @@
     },
 
     openDeleteCardDialog: function(scrollable, nodeElem) {
-      document.activeElement.blur();
+      Utils.holdFocusForAnimation();
       this.modalDialog.open({
         message: {
           textL10nId: 'delete-card-alert'
