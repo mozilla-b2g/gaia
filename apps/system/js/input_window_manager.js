@@ -484,7 +484,7 @@
           }
 
           // No point to put it into the queue if it's not a then-able.
-          if (typeof p.then !== 'function') {
+          if (!p || typeof p.then !== 'function') {
             return;
           }
 
