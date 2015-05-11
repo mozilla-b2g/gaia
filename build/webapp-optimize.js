@@ -1,6 +1,6 @@
 'use strict';
 
-/* global exports, require */
+/* jshint node: true */
 
 /**
  * webpp-optimize will do below things.
@@ -634,10 +634,14 @@ WebappOptimize.prototype.execute = function(config) {
     return;
   }
 
-  // remove excluded condition /^(shared|tests?)$/)
+  // Excluded files
   var buildDirectoryFile = utils.getFile(this.webapp.buildDirectoryFilePath);
-  var files = utils.ls(buildDirectoryFile, true,
-    /^(shared|tests?)$/);
+  var slash = utils.getOsType().indexOf('WIN') === -1 ? '\/' : '\\\\\\\\';
+  var excluded = new RegExp(this.webapp.buildDirectoryFilePath + '.*' + slash +
+      '(shared|tests?)');
+  var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
+    return !(excluded.test(file.path));
+  });
     // We need to optimize shared pages as well
   var sharedPagesDir = buildDirectoryFile;
   sharedPagesDir.append('shared');
