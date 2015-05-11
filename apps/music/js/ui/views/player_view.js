@@ -1,5 +1,5 @@
 /* exported PlayerView */
-/* global LazyLoader, TitleBar, MusicComms, musicdb, ModeManager, App,
+/* global LazyLoader, MusicComms, musicdb, ModeManager, App,
           AlbumArtCache, AudioMetadata, ListView, ForwardLock, formatTime,
           MozActivity, asyncStorage, SETTINGS_OPTION_KEY, MODE_PLAYER */
 'use strict';
@@ -56,10 +56,6 @@ var PlayerView = {
       if (this.sourceType === TYPE_MIX || this.sourceType === TYPE_LIST) {
         // Shuffle button will be disabled if an album only contains one song
         this.shuffleButton.disabled = (this._dataSource.length < 2);
-
-        // Also, show or hide the Now Playing button depending on
-        // whether content is queued
-        TitleBar.playerIcon.hidden = (this._dataSource.length < 1);
       } else {
         // These buttons aren't necessary when playing a blob or a single track
         this.shuffleButton.disabled = true;
@@ -626,6 +622,7 @@ var PlayerView = {
         ModeManager.pop();
       } else {
         ModeManager.updateTitle();
+        ModeManager.updatePlayerIcon();
       }
     }
 

@@ -23,6 +23,7 @@ Music.Selector = Object.freeze({
   coverImage: '#player-cover-image',
 
   // search fields
+  searchField: '#views-search-input',
   searchTiles: '#views-tiles-search',
   searchTilesField: '#views-tiles-search-input',
   searchList: '#views-list-search',
@@ -33,11 +34,15 @@ Music.Selector = Object.freeze({
   searchTitles: '#views-search-titles',
   searchNoResult: '#views-search-no-result',
 
+  tilesView: '#views-tiles',
+  listView: '#views-list',
   viewsList: '#views-list-anchor',
+  sublistView: '#views-sublist',
   viewsSublist: '#views-sublist-anchor',
   firstListItem: '.list-item',
   firstSong: '.list-item',
   firstSongSublist: '#views-sublist .list-item',
+  playerView: '#views-player',
   playButton: '#player-controls-play',
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
@@ -230,6 +235,18 @@ Music.prototype = {
     }.bind(this));
   },
 
+  waitForListView: function() {
+    this.client.helper.waitForElement(Music.Selector.listView);
+  },
+
+  waitForSubListView: function() {
+    this.client.helper.waitForElement(Music.Selector.sublistView);
+  },
+
+  waitForPlayerView: function() {
+    this.client.helper.waitForElement(Music.Selector.playerView);
+  },
+
   // Because bug 862156 so we couldn't get the correct displayed value for the
   // player icon, instead we use the display property to check the visibility
   // of the player icon.
@@ -239,20 +256,25 @@ Music.prototype = {
     assert.equal(shouldBeShown, result);
   },
 
+  showSearchInput: function(viewSelector) {
+    var tilesView = this.client.findElement(viewSelector);
+    var chain = this.actions.press(tilesView, 10, 10).perform();
+    chain.moveByOffset(0, 110).perform();
+    chain.release().perform();
+  },
+
   searchArtists: function(searchTerm) {
-    this.search(Music.Selector.searchList,
-                Music.Selector.searchListField, searchTerm);
+    this.search(Music.Selector.searchList, searchTerm);
   },
 
   searchTiles: function(searchTerm) {
-    this.search(Music.Selector.searchTiles,
-                Music.Selector.searchTilesField, searchTerm);
+    this.search(Music.Selector.searchTiles, searchTerm);
   },
 
-  search: function(viewSelector, fieldSelector, searchTerm) {
-    this.client.helper.waitForElement(viewSelector);
+  search: function(viewSelector, searchTerm) {
+    this.client.findElement(viewSelector).tap();
 
-    var input = this.client.helper.waitForElement(fieldSelector);
+    var input = this.client.helper.waitForElement(Music.Selector.searchField);
     assert.ok(input);
 
     input.clear();

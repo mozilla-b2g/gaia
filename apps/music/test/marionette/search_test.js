@@ -103,11 +103,14 @@ marionette('Music player search', function() {
       music.launch();
       music.waitForFirstTile();
 
-      music.searchTiles('the');
+      // Here we wait 1.5 seconds for the search input hides completely.
+      // it will re-show after we scroll the target view.
+      client.helper.wait(1500);
+      music.showSearchInput(Music.Selector.tilesView);
     });
 
-
     test('Check simple search results in artists.', function() {
+      music.searchTiles('the');
       // check for the results in "artists"
       var resultsList = testSearchResults(Music.Selector.searchArtists, 2);
 
@@ -120,6 +123,7 @@ marionette('Music player search', function() {
     });
 
     test('Check simple search results in tracks.', function() {
+      music.searchTiles('the');
       // check for the results in "artists"
       var resultsList = testSearchResults(Music.Selector.searchTitles, 1);
 
@@ -157,6 +161,9 @@ marionette('Music player search', function() {
 
     test('Check the context for artists', function() {
       music.switchToArtistsView();
+      music.waitForListView();
+
+      music.showSearchInput(Music.Selector.listView);
       music.searchArtists('the');
 
       var resultsList = testSearchResults(Music.Selector.searchArtists, 2);

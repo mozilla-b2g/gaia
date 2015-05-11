@@ -129,8 +129,10 @@ marionette('Music player tests', function() {
       music.waitForFirstTile();
       music.switchToSongsView();
       music.playFirstSong();
+      music.waitForPlayerView();
 
       music.tapHeaderActionButton();
+      music.waitForListView();
       music.checkPlayerIconShown(true);
     });
   });
@@ -153,6 +155,7 @@ marionette('Music player tests', function() {
 
       music.switchToMe();
       music.playFirstSong();
+      music.waitForPlayerView();
 
       // check the status bar
       client.switchToFrame();
@@ -230,24 +233,9 @@ marionette('Music player tests', function() {
     test('Check that the back button works', function() {
       // the navigation test back from the tab
       function tabNavTest() {
-        assert.equal(client.findElement(Music.Selector.viewsList)
-                       .cssProperty('visibility'), 'hidden',
-                     'list is displayed');
-        assert.equal(client.findElement(Music.Selector.viewsSublist)
-                       .cssProperty('visibility'), 'visible',
-                     'sublist is not displayed');
-
+        music.waitForSubListView();
         music.tapHeaderActionButton();
-        // make sure we have switched back....
-        client.helper.waitForElement(Music.Selector.viewsList);
-        music.firstListItem;
-
-        assert.equal(client.findElement(Music.Selector.viewsList)
-                       .cssProperty('visibility'), 'visible',
-                     'list is not displayed');
-        assert.equal(client.findElement(Music.Selector.viewsSublist)
-                       .cssProperty('visibility'), 'hidden',
-                     'sublist is displayed');
+        music.waitForListView();
       }
 
       // the actual navigation test
@@ -260,6 +248,9 @@ marionette('Music player tests', function() {
         } else {
           music.playFirstSong();
         }
+
+        // Wait for the player view or the title is not changed yet.
+        music.waitForPlayerView();
 
         assert.notEqual(title, music.header.findElement('#title-text').text());
 

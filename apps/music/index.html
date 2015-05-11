@@ -28,9 +28,6 @@
     <script defer src="shared/js/accessibility_helper.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/image_utils.js"></script>
-    <script defer src="shared/js/text_normalizer.js"></script>
-    <script defer src="shared/js/bluetooth_helper.js"></script>
-    <script defer src="shared/js/media/remote_controls.js"></script>
     <script defer src="shared/js/omadrm/fl.js"></script>
     <!-- Web components -->
     <script defer src="shared/js/component_utils.js"></script>
@@ -43,11 +40,18 @@
     <script defer src="js/ui/title_bar.js"></script>
     <script defer src="js/ui/tab_bar.js"></script>
     <script defer src="js/ui/views/mode_manager.js"></script>
+    <!-- Lazy load code -->
+    <!--
+    <script defer src="shared/js/text_normalizer.js"></script>
+    <script defer src="shared/js/bluetooth_helper.js"></script>
+    <script defer src="shared/js/media/remote_controls.js"></script>
+    <script defer src="js/metadata/*.js"></script>
+    <script defer src="js/communications.js"></script>
     <script defer src="js/ui/views/tiles_view.js"></script>
     <script defer src="js/ui/views/list_view.js"></script>
     <script defer src="js/ui/views/subList_view.js"></script>
     <script defer src="js/ui/views/search_view.js"></script>
-    <script defer src="js/communications.js"></script>
+     -->
   </head>
 
   <body role="application" class="theme-media">
@@ -131,31 +135,42 @@
         </div>
         <audio id="player-audio" class="hidden"></audio>
       </div>
-    </div>
-    <div id="search" class="hidden">
-      <div id="views-search-no-result" class="search-category hidden">
-        <p id="search-no-result" data-l10n-id="search-no-result">No musiC founD</p>
-      </div>
-      <div id="views-search-artists" class="search-category hidden">
-        <gaia-subheader skin="dark">
-          <span data-l10n-id="search-artists">ArtistS</span>
-            (<span class="search-result-count"></span>)
-        </gaia-subheader>
-        <div class="search-results" role="listbox"></div>
-      </div>
-      <div id="views-search-albums" class="search-category hidden">
-        <gaia-subheader skin="dark">
-          <span data-l10n-id="search-albums">AlbumS</span>
-            (<span class="search-result-count"></span>)
-        </gaia-subheader>
-        <div class="search-results" role="listbox"></div>
-      </div>
-      <div id="views-search-titles" class="search-category hidden">
-        <gaia-subheader skin="dark">
-          <span data-l10n-id="search-titles">TrackS</span>
-            (<span class="search-result-count"></span>)
-        </gaia-subheader>
-        <div class="search-results" role="listbox"></div>
+      <div id="views-search" class="view hidden">
+        <form id="views-search-form" role="search" class="skin-dark">
+          <button id="views-search-close" data-l10n-id="search-close" type="submit">close</button>
+          <p>
+            <input id="views-search-input" type="search" dir="auto"
+                   x-inputmode="verbatim"
+                   data-l10n-id="search-music" placeholder="SearcH MusiC">
+            <button id="views-search-clear" type="reset">Clear</button>
+          </p>
+        </form>
+        <div id="views-search-no-result" class="search-category hidden">
+          <p id="search-no-result" data-l10n-id="search-no-result">No musiC founD</p>
+        </div>
+        <div id="views-search-anchor">
+          <div id="views-search-artists" class="search-category hidden">
+            <gaia-subheader skin="dark">
+              <span data-l10n-id="search-artists">ArtistS</span>
+                (<span class="search-result-count"></span>)
+            </gaia-subheader>
+            <div class="search-results" role="listbox"></div>
+          </div>
+          <div id="views-search-albums" class="search-category hidden">
+            <gaia-subheader skin="dark">
+              <span data-l10n-id="search-albums">AlbumS</span>
+                (<span class="search-result-count"></span>)
+            </gaia-subheader>
+            <div class="search-results" role="listbox"></div>
+          </div>
+          <div id="views-search-titles" class="search-category hidden">
+            <gaia-subheader skin="dark">
+              <span data-l10n-id="search-titles">TrackS</span>
+                (<span class="search-result-count"></span>)
+            </gaia-subheader>
+            <div class="search-results" role="listbox"></div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- BB tabs -->
