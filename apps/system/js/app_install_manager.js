@@ -240,6 +240,11 @@ var AppInstallManager = {
     // Wrap manifest to get localized properties
     manifest = new ManifestHelper(manifest);
 
+    if (manifest.role === 'theme') {
+      this.dispatchResponse(id, 'webapps-uninstall-granted');
+      return;
+    }
+
     var unrecoverable = app.installState === 'pending' &&
                         !app.downloadAvailable &&
                         !app.readyToApplyDownload;
