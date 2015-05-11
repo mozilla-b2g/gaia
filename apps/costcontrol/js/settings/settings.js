@@ -1,6 +1,6 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
           ResetMenuDialog, ConfirmDialog, ViewManager, dataLimitConfigurer,
-          Formatting, PerformanceTestingHelper
+          Formatting
 */
 /* exported debug, sendBalanceThresholdNotification */
 /*
@@ -274,7 +274,6 @@ var Settings = (function() {
       }
       if (endLoadSettingsNotified) {
         window.performance.measure('loadSettings', 'loadSettingsStart');
-        PerformanceTestingHelper.dispatch('end-load-settings');
         endLoadSettingsNotified = true;
       }
     });
