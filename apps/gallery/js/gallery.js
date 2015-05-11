@@ -93,10 +93,10 @@ const LAYOUT_MODE = {
 
 var currentView;
 
-// Register orientation watcher in ScreenLayout
-ScreenLayout.watch('portrait', '(orientation: portrait)');
-var isPortrait = ScreenLayout.getCurrentLayout('portrait');
-var isPhone = ScreenLayout.getCurrentLayout('tiny');
+// These variables were used for tablet support.
+// We've disabled that support, but still need dummy values here.
+var isPortrait = false;
+var isPhone = true;
 
 var fullscreenButtonIds = ['back', 'delete', 'edit', 'share', 'camera', 'info'];
 var fullscreenButtons = {};
@@ -739,8 +739,6 @@ function share(blobs, blobName) {
 // As a workaround for Bug 961636, use resize event handler
 // in place of screenlayoutchange event handler.
 function resizeHandler() {
-  isPortrait = ScreenLayout.getCurrentLayout('portrait');
-
   // In list view when video is playing, if user rotate screen from
   // landscape to portrait, the video pause.
   // Check if currentFrame is undefined for cases where frame_script.js
