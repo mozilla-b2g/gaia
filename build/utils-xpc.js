@@ -23,10 +23,13 @@ const UUID_FILENAME = 'uuid.json';
  *
  * @param  {nsIFile} dir       directory to read.
  * @param  {boolean} recursive set to true in order to walk recursively.
+ * @param  {RegExp}  filter    optional filter for file names.
+ * @param  {boolean} include   set to true in order to include file matched by
+ *                             filter, set to false to exclude.
  *
  * @returns {Array}            list of nsIFile's.
  */
-function ls(dir, recursive) {
+function ls(dir, recursive, pattern, include) {
   let results = [];
   if (!dir || !dir.exists()) {
     return results;
@@ -35,9 +38,16 @@ function ls(dir, recursive) {
   let files = dir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    results.push(file);
-    if (recursive && file.isDirectory()) {
-      results = results.concat(ls(file, true));
+    //  include |  pattern.test()  |  result
+    //    true  |     false        |   false
+    //    true  |     true         |   true
+    //    false |     false        |   true
+    //    false |     true         |   false
+    if (!pattern || !(include ^ pattern.test(file.leafName))) {
+      results.push(file);
+      if (recursive && file.isDirectory()) {
+        results = results.concat(ls(file, true, pattern, include));
+      }
     }
   }
   return results;
@@ -544,7 +554,7 @@ function listFiles(path, type, recursive, exclude) {
 
 /**
  * Check if a file or directory exists.
- * Note: this function is a wrapper function for node.js
+ * Note: this function is a wrapper function  for node.js
  *
  * @param path {string} - the path; must not come with '../' or './'
  */
@@ -554,7 +564,7 @@ function fileExists(path) {
 
 /**
  * Create dir and its parents.
- * Note: this function is a wrapper function for node.js
+ * Note: this function is a wrapper function  for node.js
  *
  * @param path {string} - the path; must not come with '../' or './'
  */
@@ -564,7 +574,7 @@ function mkdirs(path) {
 
 /**
  * join all path.
- * Note: this function is a wrapper function for node.js
+ * Note: this function is a wrapper function  for node.js
  */
 function joinPath() {
   return OS.Path.join.apply(OS.Path, arguments);
