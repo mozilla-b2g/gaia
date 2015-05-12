@@ -138,38 +138,21 @@ suite('navigation >', function() {
       this.sinon.stub(Navigation, 'toPanel');
     });
 
-    test('currentPanel is the default panel', function() {
-      Navigation.init();
-      assert.isFalse(Navigation.isReady);
-      sinon.assert.calledWith(Navigation.toPanel, 'panel1');
-    });
-
     test('ready is false while init and true when Startup ready', function() {
       this.sinon.stub(Startup, 'on');
       Navigation.init();
+      assert.isFalse(Navigation.isReady);
       Startup.on.withArgs('post-initialize').yield();
       assert.isTrue(Navigation.isReady);
-    });
-
-    test('The hash is controlling the panel', function() {
-      window.location.hash = '#panel2';
-      Navigation.init();
-      sinon.assert.calledWith(Navigation.toPanel, 'panel2');
-    });
-
-    test('The hash is controlling panels and args', function() {
-      window.location.hash = '#panel2&id=1';
-      Navigation.init();
-      sinon.assert.calledWithMatch(Navigation.toPanel, 'panel2', { id: '1' });
     });
   });
 
   suite('toPanel >', function() {
-    setup(function(done) {
+    setup(function() {
       this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
       this.sinon.stub(Startup, 'on');
       Navigation.isReady = true;
-      Navigation.init().then(done, done);
+      Navigation.init();
     });
 
     test('Return a rejected promise if the panel is unknown', function(done) {
@@ -197,6 +180,7 @@ suite('navigation >', function() {
 
     test('Queue panel requests while not ready', function(done) {
       Navigation.isReady = false;
+      Navigation.toPanel('panel1');
       Navigation.toPanel('panel2').then(function() {
         sinon.assert.callOrder(
           Panel1.beforeLeave,
@@ -480,10 +464,38 @@ suite('navigation >', function() {
     });
   });
 
+  test('toDefaultPanel() correctly navigates to default panel', function(done) {
+    this.sinon.stub(Navigation, 'toPanel').returns(Promise.resolve());
+
+    Navigation.init();
+
+    Navigation.toDefaultPanel({ argument: 'argument '}).then(() => {
+      sinon.assert.calledWith(
+        Navigation.toPanel, Navigation.defaultPanel, { argument: 'argument '}
+      );
+    }).then(done, done);
+  });
+
+  test('isDefaultPanel() correctly determines default panel', function() {
+    Navigation.init();
+
+    // If hash is empty.
+    window.location.hash = '';
+    assert.isTrue(Navigation.isDefaultPanel());
+
+    // If hash set to default panel.
+    window.location.hash = Navigation.defaultPanel;
+    assert.isTrue(Navigation.isDefaultPanel());
+
+    // False if hash set to some different panel.
+    window.location.hash = 'other-panel';
+    assert.isFalse(Navigation.isDefaultPanel());
+  });
+
   suite('isCurrentPanel()', function() {
-    setup(function(done) {
+    setup(function() {
       this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
-      Navigation.init().then(done, done);
+      Navigation.init();
     });
 
     test('returns false if the argument is falsy', function() {
@@ -522,23 +534,11 @@ suite('navigation >', function() {
   });
 
   suite('ensureCurrentPanel >', function() {
-    setup(function(done) {
+    setup(function() {
       this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
       this.sinon.spy(Navigation, 'toPanel');
 
-      // Set custom hash to have non-initialized current panel
-      window.location.hash = '#notification';
-
-      Navigation.init().catch((e) => {
-        Navigation.toPanel.reset();
-
-        // It's expected error for the unknown panel
-        if (e.message === 'Panel notification is unknown.') {
-          return;
-        }
-
-        throw e;
-      }).then(done, done);
+      Navigation.init();
     });
 
     test('navigates to default panel when current panel is not set',
