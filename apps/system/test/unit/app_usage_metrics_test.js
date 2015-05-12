@@ -117,7 +117,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     function getUsage(metrics, app) {
-      return metrics.getAppUsage(app.manifestURL);
+      return metrics.getAppUsage(app ? app.manifestURL : null);
     }
 
     test('isEmpty method', function() {
@@ -145,8 +145,8 @@ suite('AppUsageMetrics:', function() {
     });
 
     suite('should track app', function() {
-      var metrics, invalidApp, undefOriginApp;
-
+      var metrics, invalidApp, undefOriginApp, privateBrowserApp;
+      var invalidApps = [];
       setup(function() {
         metrics = new UsageData();
         invalidApp = new MockApp({
@@ -159,12 +159,15 @@ suite('AppUsageMetrics:', function() {
           manifestURL: 'https://marketplace.firefox.com/app/1-2-3-4'
         };
 
+        privateBrowserApp = new MockApp({
+          isPrivateBrowser: function() {
+            return true;
+          }
+        });
+
+        invalidApps = [null, invalidApp, privateBrowserApp];
         MockApplications.mRegisterMockApp(undefOriginApp);
       });
-
-      function getInvalidAppUsage() {
-        return getUsage(metrics, invalidApp);
-      }
 
       test('valid apps', function() {
         // Certified app w/o marketplace origin
@@ -195,32 +198,54 @@ suite('AppUsageMetrics:', function() {
         })));
       });
 
-      test('invalid apps', function() {
-        assert.ok(!metrics.shouldTrackApp(null));
-        assert.ok(!metrics.shouldTrackApp(invalidApp));
+      test('don\'t track invalid apps', function() {
+        invalidApps.forEach(function(app) {
+          assert.ok(!metrics.shouldTrackApp(app));
+        });
       });
 
       test('doesn\'t record install/uninstall', function() {
-        var recorded = metrics.recordInstall(invalidApp);
-        assert.equal(getInvalidAppUsage().installs, 0);
-        assert.ok(!recorded);
+        invalidApps.forEach(function(app) {
+            var recorded = metrics.recordInstall(app);
+            assert.equal(getUsage(metrics, app).installs, 0);
+            assert.ok(!recorded);
 
-        recorded = metrics.recordInstall(invalidApp);
-        assert.equal(getInvalidAppUsage().uninstalls, 0);
-        assert.ok(!recorded);
+            recorded = metrics.recordUninstall(app);
+            assert.equal(getUsage(metrics, app).uninstalls, 0);
+            assert.ok(!recorded);
+        });
       });
 
       test('doesn\'t record invocation/activity', function() {
-        var recorded = metrics.recordInvocation(invalidApp, 10000);
-        assert.equal(getInvalidAppUsage().invocations, 0);
-        assert.equal(getInvalidAppUsage().usageTime, 0);
-        assert.ok(!recorded);
+        invalidApps.forEach(function(app) {
+          var recorded = metrics.recordInvocation(app, 10000);
+          var usage = getUsage(metrics, app);
+          assert.equal(usage.invocations, 0);
+          assert.equal(usage.usageTime, 0);
+          assert.ok(!recorded);
 
-        recorded = metrics.recordActivity(invalidApp, 'activity');
-        assert.equal(Object.keys(getInvalidAppUsage().activities).length, 0);
-        assert.ok(!('activity' in getInvalidAppUsage().activities));
-        assert.ok(!recorded);
+          recorded = metrics.recordActivity(app, 'activity');
+          usage = getUsage(metrics, app);
+          assert.equal(Object.keys(usage.activities).length, 0);
+          assert.ok(!('activity' in usage.activities));
+          assert.ok(!recorded);
+        });
       });
+
+      test('valid then invalid still counts valid app', function() {
+        metrics.recordInvocation(app1, 10000);
+        metrics.recordInvocation(privateBrowserApp, 10000);
+        metrics.recordInvocation(app1, 5000);
+
+        var usage1 = getUsage(metrics, app1);
+        assert.equal(usage1.invocations, 2);
+        assert.equal(usage1.usageTime, 15);
+
+        var usagePb = getUsage(metrics, privateBrowserApp);
+        assert.equal(usagePb.invocations, 0);
+        assert.equal(usagePb.usageTime, 0);
+      });
+
     });
 
     test('record install', function() {
