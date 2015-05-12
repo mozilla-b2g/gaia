@@ -174,7 +174,7 @@
     var topMostWindow = app.getTopMostWindow();
     if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
       var name = topMostWindow.name;
-      this.title = CardsHelper.escapeHTML(name || '', true);
+      this.title = name || '';
       this.viewClassList.push('trustedui');
     } else if (!this.app.killable()) {
       // unclosable app
