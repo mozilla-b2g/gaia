@@ -25,14 +25,23 @@ var AppStorage = (function AppStorage() {
     DeviceStorageHelper.getStat('apps', _callback);
   }
 
+  function updatePanelInfo (e) {
+    if(e.detail.current !== '#applicationStorage') {
+      return;
+    }
+    getSpaceInfo();
+  }
+
   function attachListeners() {
     _appStorage.addEventListener('change', getSpaceInfo);
     window.addEventListener('localized', getSpaceInfo);
+    window.addEventListener('panelready', updatePanelInfo);
   }
 
   function detachListeners() {
     _appStorage.removeEventListener('change', getSpaceInfo);
     window.removeEventListener('localized', getSpaceInfo);
+    window.removeEventListener('panelready', updatePanelInfo);
   }
 
 
