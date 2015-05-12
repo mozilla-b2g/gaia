@@ -12,6 +12,8 @@
     "debug": "*",
     "download": "0.1.7",
     "ecstatic": "0.5.4",
+    "eslint": "0.21.0",
+    "eslint-plugin-no-unsafe-innerhtml": "0.1.2",
     "ejs": "0.8.4",
     "empty-port": "~0.0.1",
     "es6-promise": "2.0.1",
