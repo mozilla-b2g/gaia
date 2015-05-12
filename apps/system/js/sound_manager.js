@@ -502,9 +502,6 @@
     // observe settings
     SettingsListener.observe(SoundManager.VIBRATION_SETTINGS_KEY,
                              true, function(vibration) {
-      if (vibration) {
-        window.navigator.vibrate(200);
-      }
       var setBySelf = false;
       var toggleVibrationEnabled = function toggle_vibration_enabled() {
         // XXX: If the value does not set by sound manager,
