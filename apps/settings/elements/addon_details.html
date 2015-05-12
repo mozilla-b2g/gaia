@@ -9,34 +9,34 @@
       <ul>
         <li>
           <label class="pack-switch">
-            <input class="addon-enabled" type="checkbox" data-ignore>
-            <span data-l10n-id="addon-enable"></span>
+            <input class="addon-enabled" type="checkbox">
+            <span data-l10n-id="addon"></span>
+            <small class="addon-enabled-state"></small>
           </label>
         </li>
       </ul>
 
-      <header>
-        <h2 data-l10n-id="addon-description-header"></h2>
-      </header>
-      <p class="addon-paragraph">
-        <img class="addon-details-icon">
-        <span class="addon-description-text"></span>
-        <button data-l10n-id="addon-rename" class="addon-rename"></button>
-      </p>
-      <p class="addon-developer addon-paragraph"></p>
+      <ul>
+        <li>
+          <label class="addon-details-info">
+            <img class="addon-details-icon">
+            <span class="addon-details-name"></span>
+            <small class="addon-developer"></small>
+          </label>
+          <p class="addon-description-text addon-paragraph"></p>
+          <button data-l10n-id="addon-rename" class="addon-rename"></button>
+        </li>
+      </ul>
 
       <header>
         <h2 data-l10n-id="addon-targets"></h2>
       </header>
-      <p class="addon-no-targets addon-paragraph"
-         data-l10n-id="addon-no-targets" hidden>
-      </p>
-      <ul class="addon-targets">
+      <ul>
+        <li>
+          <p class="addon-targets addon-paragraph"></p>
+        </li>
       </ul>
 
-      <header>
-        <h2 data-l10n-id="addon-options"></h2>
-      </header>
       <ul>
         <li>
           <button class="addon-delete danger" data-l10n-id="addon-delete">

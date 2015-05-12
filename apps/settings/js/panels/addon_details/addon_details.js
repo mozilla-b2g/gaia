@@ -15,8 +15,22 @@ define(function(require) {
    * @returns {AddonDetails}
    */
   function AddonDetails(elements) {
+    this._boundUpdateEnabledState = this._updateEnabledState.bind(this);
     this._elements = elements;
+    this._curApp = null;
   }
+
+  /**
+   * Update the enabled state of an addon.
+   *
+   * @access private
+   * @memberOf AddonDetails.prototype
+   * @param {Boolean} newState
+   */
+  AddonDetails.prototype._updateEnabledState = function _update(newState) {
+    this._elements.enabledState
+      .setAttribute('data-l10n-id', newState ? 'enabled' : 'disabled');
+  };
 
   /**
    * Render details of an app to the UI elements.
@@ -24,11 +38,20 @@ define(function(require) {
    * @access public
    * @memberOf AddonDetails.prototype
    * @param {JSON} options that contain:
-   *          {Object}  app        Add-on to render
-   *          {Boolean} isActivity A flag indicating if the panel is accessed
-   *                               via activity handling.
+   *        {Object}  app        Add-on to render
+   *        {Boolean} isActivity A flag indicating if the panel is accessed
+   *                             via activity handling.
    */
   AddonDetails.prototype.render = function render({app, isActivity}) {
+    if (this._curApp !== null) {
+      this._curApp.unobserve('enabled', this._boundUpdateEnabledState);
+    }
+    this._curApp = app;
+    if (this._curApp) {
+      this._curApp.observe('enabled', this._boundUpdateEnabledState);
+      this._updateEnabledState(this._curApp.enabled);
+    }
+
     var l10n = navigator.mozL10n;
     this.noRename = !isActivity || !AddonManager.canDelete(app);
     var manifest =
@@ -36,6 +59,7 @@ define(function(require) {
 
     this._elements.body.classList.toggle('no-rename', this.noRename);
     this.updateNames(manifest);
+
     // Put an icon next to the description
     navigator.mozApps.mgmt.getIcon(app, PREFERRED_ICON_SIZE).then((blob) => {
       this._elements.icon.src = URL.createObjectURL(blob);
@@ -73,25 +97,16 @@ define(function(require) {
       targets.forEach(function(target) {
         var manifest =
           new ManifestHelper(target.manifest || target.updateManifest);
-        names.push(manifest.name);
+        names.push(manifest.displayName);
       });
 
       names.sort();
 
-      names.forEach((name) => {
-        var item = document.createElement('li');
-        var para = document.createElement('p');
-        para.textContent = name;
-        item.appendChild(para);
-        this._elements.targetsList.appendChild(item);
-      });
-
-      if (names.length === 0) {
-        this._elements.targetsList.hidden = true;
-        this._elements.noTargetsMsg.hidden = false;
+      if (names.length < 1) {
+        this._elements.targetsList
+          .setAttribute('data-l10n-id', 'addon-no-targets');
       } else {
-        this._elements.targetsList.hidden = false;
-        this._elements.noTargetsMsg.hidden = true;
+        this._elements.targetsList.textContent = names.join(', ');
       }
     });
   };
@@ -110,6 +125,8 @@ define(function(require) {
 
     l10n.setAttributes(
       this._elements.header, 'addon-details-header', appnameArgs);
+    l10n.setAttributes(
+      this._elements.name, 'addon-details-header', appnameArgs);
     // Put text description for an icon
     l10n.setAttributes(this._elements.icon, 'accessible-app-icon', appnameArgs);
   };
