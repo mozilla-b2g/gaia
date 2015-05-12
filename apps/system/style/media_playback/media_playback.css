@@ -32,6 +32,11 @@
   overflow: hidden;
   text-align: center;
   font-size: 0; /* ensure there's no space between the buttons */
+
+  /* If we inherit the tray visibility, we end up causing Bug 1155091 when
+   * the icon font loads in the playback controls.
+   */
+  visibility: visible;
 }
 
 .media-playback-controls > [data-icon] {

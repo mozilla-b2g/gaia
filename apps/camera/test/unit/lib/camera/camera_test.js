@@ -755,6 +755,7 @@ suite('lib/camera/camera', function() {
 
       this.camera.load();
       assert.isTrue(this.camera.setupNewCamera.called);
+      sinon.assert.called(this.camera.ready);
       assert.isFalse(this.camera.requestCamera.called);
     });
 

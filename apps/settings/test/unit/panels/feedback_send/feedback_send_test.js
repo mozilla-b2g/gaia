@@ -65,9 +65,14 @@ suite('sendFeedback > ', function() {
     description: 'test'
   };
 
-  var mock_options = {
+  var mock_happy_options = {
     feel: 'feedback-happy'
   };
+
+  var mock_sad_options = {
+    feel: 'feedback-sad'
+  };
+
 
   var mock_settings = {
     'feedback.url': 'testfeedbackurl',
@@ -93,7 +98,7 @@ suite('sendFeedback > ', function() {
       };
       this.sinon.stub(sendFeedback._SettingsService, 'navigate');
       sendFeedback._xhr = MockXMLHttpRequest;
-      sendFeedback.init(mock_elements, mock_options);
+      sendFeedback.init(mock_elements, mock_happy_options);
     });
 
     teardown(function() {
@@ -108,12 +113,12 @@ suite('sendFeedback > ', function() {
     });
 
     test('update title and get previous inputs', function() {
-      sendFeedback.options = mock_options;
+      sendFeedback.options = mock_happy_options;
       sendFeedback.updateTitle();
       sendFeedback.getPreviousInputs();
       assert.equal(sendFeedback.elements.title.getAttribute('data-l10n-id'),
         'feedback_whyfeel_' +
-        (mock_options.feel === 'feedback-happy' ? 'happy' : 'sad'));
+        (mock_happy_options.feel === 'feedback-happy' ? 'happy' : 'sad'));
       assert.deepEqual(sendFeedback._inputData, {
         description: test_data.description,
         email: '',
@@ -125,6 +130,14 @@ suite('sendFeedback > ', function() {
       sendFeedback.alertConfirm();
       assert.equal(sendFeedback.elements.alertDialog.hidden, true);
       assert.equal(sendFeedback.elements.alertMsg.textContent, '');
+    });
+
+    test('_isHappy', function() {
+      sendFeedback.options = mock_happy_options;
+      assert.isTrue(sendFeedback._isHappy());
+
+      sendFeedback.options = mock_sad_options;
+      assert.isFalse(sendFeedback._isHappy());
     });
 
     test('done', function() {
@@ -154,6 +167,7 @@ suite('sendFeedback > ', function() {
       sendFeedback.elements.emailColumn.hidden = false;
       sendFeedback.elements.emailInput.value = 'testemailInput';
       sendFeedback.elements.description.value = 'testDescription';
+      sendFeedback.options = mock_happy_options;
       sendFeedback.send();
       assert.equal(sendFeedback._xhr.data.requestUrl,
         mock_settings['feedback.url']);
@@ -164,11 +178,12 @@ suite('sendFeedback > ', function() {
         email: 'testemailInput',
         version: mock_settings['deviceinfo.os'],
         device: mock_settings['deviceinfo.hardware'],
-        locale: mock_settings['language.current']
+        locale: mock_settings['language.current'],
+        happy: (mock_happy_options.feel === 'feedback-happy')
       }));
 
       sendFeedback._xhr.readyState = 4;
-      sendFeedback._xhr.triggerReadyStateChange(201);
+      sendFeedback._xhr.triggerOnLoad(201);
       assert.equal(sendFeedback.elements.doneDialog.hidden, false);
       assert.equal(sendFeedback.elements.sendBtn.disabled, false);
     });
@@ -184,8 +199,7 @@ suite('sendFeedback > ', function() {
 
       sendFeedback._xhr.status = 429;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
-        'feedback-errormessage-just-sent');
+      assert.equal(sendFeedback.elements.alertDialog.hidden, false);
 
       sendFeedback._xhr.status = 404;
       sendFeedback._responseHandler();

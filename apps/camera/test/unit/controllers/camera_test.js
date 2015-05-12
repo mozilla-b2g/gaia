@@ -483,22 +483,52 @@ suite('controllers/camera', function() {
     });
   });
 
+  suite('CameraController#onVisible()', function() {
+    setup(function() {
+      this.app.isSharingActivity = sinon.stub();
+    });
+
+    test('It doesn\'t load the camera if gallery is open', function() {
+      this.app.activity.pick = false;
+      this.app.isSharingActivity.returns(false);
+      this.controller.galleryOpen = true;
+      this.controller.onVisible();
+      sinon.assert.notCalled(this.camera.load);
+    });
+
+    test('It does load the camera if gallery is closed', function() {
+      this.app.activity.pick = false;
+      this.app.isSharingActivity.returns(false);
+      this.controller.galleryOpen = false;
+      this.controller.onVisible();
+      sinon.assert.called(this.camera.load);
+    });
+  });
+
+  suite('CameraController#onGalleryOpened()', function() {
+    test('Should store gallery open state', function() {
+      this.controller.galleryOpen = false;
+      this.controller.onGalleryOpened();
+      assert.isTrue(this.controller.galleryOpen);
+      sinon.assert.called(this.camera.shutdown);
+    });
+  });
+
   suite('CameraController#onGalleryClosed()', function() {
     test('It loads the camera', function() {
+      this.controller.galleryOpen = true;
       this.controller.onGalleryClosed();
+      assert.isFalse(this.controller.galleryOpen);
       sinon.assert.called(this.camera.load);
     });
 
-    test('It clears loading after the camera has loaded', function() {
-      this.controller.onGalleryClosed();
-      this.camera.load.args[0][0]();
-      sinon.assert.called(this.app.clearSpinner);
-    });
-
     test('It doesn\'t load the camera if the app is hidden', function() {
+      this.controller.galleryOpen = true;
       this.app.hidden = true;
       this.controller.onGalleryClosed();
+      assert.isFalse(this.controller.galleryOpen);
       sinon.assert.notCalled(this.camera.load);
+    });
     });
   });
 });
