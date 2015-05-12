@@ -44,16 +44,6 @@ var App = (function() {
         }
       });
     });
-
-    window.addEventListener('scrollstart', function onScroll(e) {
-      var views = document.getElementById('views');
-      views.classList.add('scrolling');
-    });
-
-    window.addEventListener('scrollend', function onScroll(e) {
-      var views = document.getElementById('views');
-      views.classList.remove('scrolling');
-    });
   }
 
   function setStartMode() {
