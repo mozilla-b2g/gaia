@@ -54,6 +54,10 @@ var TelephonyMessages = {
       dialogTitle = 'otherConnectionInUseTitle';
       dialogBody = 'otherConnectionInUseMessage';
       break;
+    case 'OperatorDeterminedBarring':
+      dialogTitle = 'unableToCallTitle';
+      dialogBody = 'callBarredByTheOperatorMessage';
+      break;
     case 'EmergencyCallOnly':
       dialogTitle = 'emergency-call-only';
       dialogBody = 'emergency-call-error';
@@ -110,6 +114,8 @@ var TelephonyMessages = {
       this.displayMessage('FixedDialingNumbers', number);
     } else if (errorName === 'OtherConnectionInUse') {
       this.displayMessage('OtherConnectionInUse');
+    } else if (errorName === 'OperatorDeterminedBarringError') {
+      this.displayMessage('OperatorDeterminedBarring');
     } else {
       // If the call failed for some other reason we should still
       // display something to the user. See bug 846403.
