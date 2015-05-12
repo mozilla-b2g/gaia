@@ -115,7 +115,7 @@ if (!window.LiveConnector) {
         // Months in JS goes from 0 to 11 :(
         var bmonth = liveContact.birth_month - 1;
         var bday = liveContact.birth_day;
-        if (bmonth && bday) {
+        if (bmonth > -1 && bday) {
           var birthdate = out.bday = new Date();
           birthdate.setUTCDate(bday);
           birthdate.setUTCMonth(bmonth, bday);
