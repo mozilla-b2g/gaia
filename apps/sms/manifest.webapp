@@ -72,7 +72,7 @@
   "messages": [
      { "alarm": "/index.html" },
      { "sms-received": "/index.html" },
-     { "notification": "/index.html#notification" }
+     { "notification": "/index.html" }
   ],
   "connections": {
     "costcontrolSmsQuery": {

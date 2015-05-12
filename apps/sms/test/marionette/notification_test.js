@@ -10,6 +10,12 @@ var NotificationList = require(
 ).NotificationList;
 
 marionette('Message notification tests', function() {
+  var MOCKS = [
+    '/mocks/mock_test_storages.js',
+    '/mocks/mock_navigator_moz_icc_manager.js',
+    '/mocks/mock_navigator_moz_mobile_message.js'
+  ];
+
   var client = marionette.client();
 
   var messagesApp, notificationList, utilityTray;
@@ -25,19 +31,37 @@ marionette('Message notification tests', function() {
     notificationList = new NotificationList(client);
     utilityTray = new UtilityTray(client);
 
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_test_storages.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(__dirname + mock);
+    });
   });
 
   suite('Run application via notification', function() {
     var smsMessage, storage;
+
+    function openNotification() {
+      client.switchToFrame();
+      notificationList.waitForNotificationCount(1);
+
+      utilityTray.open();
+      utilityTray.waitForOpened();
+
+      // Make sure we have our notification to click and tap on it.
+      notificationList.refresh();
+      notificationList.tap(
+        notificationList.getForApp(messagesApp.manifestURL)[0]
+      );
+
+      // Switch to messages so that it's able to remove notification.
+      messagesApp.switchTo();
+      messagesApp.setStorage(storage);
+
+      // Verify that notification has been removed.
+      client.switchToFrame();
+      notificationList.waitForNotificationCount(0);
+
+      messagesApp.switchTo();
+    }
 
     function assertMessagesIsInCorrectState() {
       // Verify that we entered the right thread
@@ -100,6 +124,7 @@ marionette('Message notification tests', function() {
     test('when user taps on notification in Utility tray', function() {
       // Receive 'sms-received' system message and generate notification.
       messagesApp.sendSystemMessage('sms-received', smsMessage);
+
       // We should make Messages app visible, otherwise switchToApp won't work.
       messagesApp.launch();
       messagesApp.setStorage(storage);
@@ -111,19 +136,18 @@ marionette('Message notification tests', function() {
       // Close Message app since we want to run fresh instance.
       messagesApp.close();
 
-      // Show utility tray.
-      utilityTray.open();
-      utilityTray.waitForOpened();
+      openNotification();
 
-      // Make sure we have our notification to click and tap on it.
-      notificationList.refresh();
-      notificationList.tap(
-        notificationList.getForApp(messagesApp.manifestURL)[0]
-      );
+      assertMessagesIsInCorrectState();
 
-      // Wait for Message app to run and set correct storage.
+      // Let's go to the inbox and see if we still can receive new messages.
       messagesApp.switchTo();
-      messagesApp.setStorage(storage);
+      messagesApp.performHeaderAction();
+      messagesApp.Inbox.waitToAppear();
+
+      messagesApp.sendSystemMessage('sms-received', smsMessage);
+
+      openNotification();
 
       assertMessagesIsInCorrectState();
     });
