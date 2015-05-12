@@ -117,7 +117,8 @@ SmtpAccount.prototype = {
       sendMessage: function(conn) {
         // Then send the actual message if everything was cool
         slog.log('smtp:building-blob');
-        composer.withMessageBlob({ includeBcc: false }, function(blob) {
+        composer.withMessageBlob({ includeBcc: false, smtp: true },
+                                 function(blob) {
           slog.log('smtp:sending-blob', { size: blob.size });
           // simplesmtp's SMTPClient does not understand Blobs, so we
           // issue the write directly. All that it cares about is
