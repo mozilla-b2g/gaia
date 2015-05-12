@@ -1,7 +1,7 @@
-reruns: 4
+reruns: 2
 task:
   metadata:
-    name: 'Raptor Result Task'
+    name: '{{raptorSuiteName}}'
     description: Compare raptor results and detect performance regression
 
   workerType: '{{workerType}}'
@@ -10,11 +10,14 @@ task:
     - docker-worker:image:quay.io/mozilla/raptor-results:latest
 
   payload:
-    maxRunTime: 600
+    maxRunTime: 1800
     image: quay.io/mozilla/raptor-results:latest
     env:
       RAPTOR_COMPLETED_BRANCH: '{{completedBranchTask}}'
       RAPTOR_COMPLETED_PATCH: '{{completedPatchTask}}'
+      RAPTOR_BRANCH_GAIA: '{{branchGaiaRev}}'
+      RAPTOR_PATCH_GAIA: '{{patchGaiaRev}}'
+      RAPTOR_EMULATOR_URL: '{{emulatorURL}}'
       RAPTOR_REGRESSION_METRIC: coldlaunch.visuallyLoaded
       RAPTOR_REGRESSION_COMPARATOR: p95
       RAPTOR_REGRESSION_THRESHOLD: 15
