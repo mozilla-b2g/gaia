@@ -32,6 +32,10 @@
 # Use "make lint" to lint using gjslint for blacklisted files, and jshint for #
 # other files.                                                                #
 #                                                                             #
+# Use "make eslint" to lint using eslint. This is currently used for checks   #
+# that are beyond the other linter's scope, i.e., customized checks for       #
+# discouraged coding patterns or deprecated APIs.                             #
+#                                                                             #
 # APP=<app name> will hint/lint only this app.                                #
 # LINTED_FILES=<list of files> will (h/l)int only these space-separated files #
 # JSHINTRC=<path> will use this config file when running jshint               #
@@ -704,7 +708,7 @@ endif
 
 # this lists the programs we need in the Makefile and that are installed by npm
 
-NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
+NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha node_modules/.bin/eslint
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
@@ -927,7 +931,7 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint gjslint hint csslint
+.PHONY: lint gjslint hint csslint eslint
 
 # Lint apps
 ## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
@@ -968,6 +972,10 @@ endif
 hint: node_modules/.bin/jshint
 	@echo Running jshint...
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
+
+eslint: node_modules/.bin/eslint
+	@echo Running eslint...
+	@./node_modules/.bin/eslint --ignore-path .eslintignore --ignore-path build/eslint/xfail.list -f compact -c .eslintrc $(JSHINTED_PATH) $(LINTED_FILES)
 
 csslint: b2g_sdk
 	@$(call $(BUILD_RUNNER),csslint)
