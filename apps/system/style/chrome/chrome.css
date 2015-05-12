@@ -168,6 +168,13 @@
   display: block;
 }
 
+.chrome-plain .title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+}
+
 .search-app .chrome.maximized .controls .urlbar:after {
   content: '';
   width: 2rem;
@@ -242,7 +249,7 @@
 
 
 /* Private browser icon in rocketbar */
-.appWindow.private > .chrome-plain.maximized .title,
+.appWindow.private > .chrome-plain.maximized .chrome-title-container,
 .appWindow.private > .chrome-combined.maximized .chrome-title-container {
   -moz-padding-start: 4rem;
 }
