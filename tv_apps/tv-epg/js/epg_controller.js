@@ -8,6 +8,7 @@
     this.totalTimeslotCount = 0;
     this.timelineUnit = timelineUnit;
     this.timelineOffset = timelineOffset;
+    this.channelOffset = 0;
     this.channelManager = new ChannelManager();
     this.programTable = [];
 
@@ -32,6 +33,7 @@
   proto.fetchPrograms = function epg_fetchPrograms(startTime, duration) {
     return new Promise(function (resolve) {
       this._addTimeline(startTime, duration);
+      this.fire('allTimelineAdded');
 
       var fetchedChannelCount = 0;
       var channelItems = this.channelManager.getSource().channels;
@@ -45,7 +47,9 @@
           if (fetchedChannelCount === channelItems.length) {
             resolve();
           }
-        }.bind(this));
+        }.bind(this)).catch(function(err) {
+          console.error(err);
+        });
       }.bind(this));
     }.bind(this));
   };
@@ -56,7 +60,6 @@
   proto._addTimeline = function epg__addTimeline(startTime, duration) {
     var time;
     var i;
-
     // Scan from left to right, append to end if the timeslot does not exist.
     for(i = 0; i < duration; i++) {
       time = startTime + i;
@@ -112,6 +115,9 @@
         // filter out non-existing timeline
         if (this.programTable[column]) {
           // only the first timeslot within the interval will be displayed
+          this.programTable[column][row] = {
+            program: program
+          };
           if (isFirstProgramSlot) {
             this.fire('updateProgram', {
               title: new Date(program.startTime).getHours() + ':' +
@@ -121,27 +127,33 @@
               row: row,
               column: column,
               duration: endTime - time,
-              isVisible: true
+              isVisible: true,
+              item: this.programTable[column][row]
             });
             isFirstProgramSlot = false;
           } else {
+            // Easier to index the first visible element of a program
+            this.programTable[column][row].element =
+              this.programTable[column - 1][row].element;
             this.fire('updateProgram', {
               row: row,
               column: column,
               isVisible: false
             });
           }
-          this.programTable[column][row] = {
-            program: program
-          };
         }
       }
     }
   };
 
   proto._createChannelList = function epg__createChannelList(channels) {
-    channels.forEach(function(channelItem) {
-      this.fire('appendChannel', channelItem.channel);
+    var fetchedChannelCount = 0;
+    channels.forEach(function(channelItem, index) {
+      this.fire('appendChannel', channelItem.channel, index);
+      fetchedChannelCount++;
+      if (fetchedChannelCount === channels.length) {
+        this.fire('allChannelFetched');
+      }
     }.bind(this));
   };
 

@@ -101,6 +101,7 @@ a:hover, a:active, a:focus {
   transition: transform 0.3s;
   background-color: #5e5e5e;
   position: relative;
+  transform: translateZ(0.01rem);
 }
 
 #channel-list > li {
@@ -111,6 +112,10 @@ a:hover, a:active, a:focus {
   padding-left: 1.6rem;
   margin-bottom: 0.1rem;
   position: relative;
+}
+
+#channel-list > li.hidden {
+  display: none;
 }
 
 #channel-list > li > .title {
@@ -126,7 +131,6 @@ a:hover, a:active, a:focus {
 }
 
 #timeline-container {
-  float: left;
   overflow: hidden;
   padding-left: 2rem;
   display: inline-block;
@@ -144,7 +148,10 @@ a:hover, a:active, a:focus {
   display: block;
   overflow: hidden;
   white-space: nowrap;
+  transition: transform 0.3s;
   position: relative;
+  display: inline-block;
+  transform: translateZ(0.01rem);
 }
 
 #timeline > li {
@@ -160,12 +167,14 @@ a:hover, a:active, a:focus {
   overflow: hidden;
   position: relative;
   height: calc(100% - 4.6rem);
+  margin-top: -0.7rem;
 }
 
 #program-list {
   display: inline-block;
   transition: transform 0.3s;
   position: relative;
+  transform: translateZ(0.01rem);
 }
 
 #program-list > ul {
@@ -179,20 +188,31 @@ a:hover, a:active, a:focus {
   height: 10.8rem;
 }
 
+#program-list > ul.hidden {
+  display: none;
+}
+
 #program-list > ul > li {
   display: inline-block;
   position: relative;
   width: 33.8rem;
   font-size: 2.5rem;
   line-height: 10.8rem;
-  padding-left: 2rem;
   overflow: hidden;
-  box-sizing: border-box;
-  text-overflow: ellipsis;
   padding-bottom: 0.3rem;
   border-bottom: 0.1rem #5e5e5e solid;
   margin-top: 0.3rem;
   background-color: #404040;
+  height: 10.8rem;
+}
+
+#program-list > ul > li > div {
+  margin-left: 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: calc(100% - 2rem);
+  box-sizing: border-box;
+  position: relative;
 }
 
 #program-list > ul > li:after {

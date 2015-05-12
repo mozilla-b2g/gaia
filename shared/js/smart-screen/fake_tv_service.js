@@ -164,7 +164,7 @@
       var quarterHour = 15 * 60000; // 15 min
       var halfHour = 30 * 60000;
       var startTime =
-            new Date((Math.floor(Date.now() / halfHour) - 10) * halfHour)
+            new Date((Math.floor(Date.now() / halfHour) - 20) * halfHour)
             .getTime();
       var duration;
       var programs = [];
@@ -186,26 +186,26 @@
         program.duration = duration;
         programs.push(program);
         startTime += Math.ceil(duration / halfHour) * halfHour;
-
-        // Add random null program slot
-        if (Math.random() < 0.2) {
-          startTime += halfHour;
-        }
       }
       this._programs = programs;
     };
 
     TVChannel.prototype.getPrograms = function() {
-      return {
-        then: function(success) {
+      var promise = {
+        then: function(callback) {
           if (!this._programs) {
             this._generatePrograms();
           }
           setTimeout(function() {
-            success(this._programs);
+            callback(this._programs);
           }.bind(this), 800);
-        }.bind(this)
+          return promise;
+        }.bind(this),
+        catch: function() {
+          return promise;
+        }
       };
+      return promise;
     };
   })();
 })(window);
