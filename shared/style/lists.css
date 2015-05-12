@@ -127,9 +127,6 @@ li a:active {
   box-sizing: border-box;
   background: transparent center center / cover;
   position: relative;
-
-  /* Favor performance over quality */
-  image-rendering: -moz-crisp-edges;
 }
 
 [data-type="list"] [data-icon] {
