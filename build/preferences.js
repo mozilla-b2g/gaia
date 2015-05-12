@@ -249,6 +249,9 @@ PreferencesBuilder.prototype.setDebugPref = function() {
 };
 
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {
+  this.userPrefs['dom.apps.developer_mode'] = true;
+  this.userPrefs['network.disable.ipc.security'] = true;
+  this.userPrefs['dom.webcomponents.enabled'] = true;
   this.userPrefs['devtools.debugger.prompt-connection'] = false;
   this.userPrefs['devtools.debugger.forbid-certified-apps'] = false;
   // Bug 1001348: This optimization prevents debugger to fetch script sources

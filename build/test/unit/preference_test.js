@@ -357,6 +357,9 @@ suite('preferences.js', function() {
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
         'javascript.options.discardSystemSource': false,
+        'dom.apps.developer_mode': true,
+        'network.disable.ipc.security': true,
+        'dom.webcomponents.enabled': true,
         'b2g.adb.timeout': 0
       });
     });
