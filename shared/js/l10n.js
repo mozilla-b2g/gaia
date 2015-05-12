@@ -775,6 +775,13 @@
   var MAX_PLACEABLE_LENGTH = 2500;
   var rePlaceables = /\{\{\s*(.+?)\s*\}\}/g;
 
+  // Matches characters outside of the Latin-1 character set
+  var nonLatin1 = /[^\x01-\xFF]/;
+
+  // Unicode bidi isolation characters
+  var FSI = '\u2068';
+  var PDI = '\u2069';
+
   function createEntry(node, env) {
     var keys = Object.keys(node);
 
@@ -873,7 +880,7 @@
     throw new L10nError('Unknown reference: ' + id);
   }
 
-  function subPlaceable(args, env, id) {
+  function subPlaceable(locals, args, env, id) {
     var res;
 
     try {
@@ -895,6 +902,14 @@
                             value.length + ', max allowed is ' +
                             MAX_PLACEABLE_LENGTH + ')');
       }
+
+      if (locals.contextIsNonLatin1 || value.match(nonLatin1)) {
+        // When dealing with non-Latin-1 text
+        // we wrap substitutions in bidi isolate characters
+        // to avoid bidi issues.
+        res[1] = FSI + value + PDI;
+      }
+
       return res;
     }
 
@@ -906,7 +921,7 @@
       if (typeof cur === 'string') {
         return [prev[0], prev[1] + cur];
       } else if (cur.t === 'idOrVar'){
-        var placeable = subPlaceable(args, env, cur.v);
+        var placeable = subPlaceable(locals, args, env, cur.v);
         if (placeable[0].overlay) {
           prev[0].overlay = true;
         }
@@ -960,6 +975,9 @@
     }
 
     if (Array.isArray(expr)) {
+      locals.contextIsNonLatin1 = expr.some(function($_) {
+        return typeof($_) === 'string' && $_.match(nonLatin1);
+      });
       return interpolate(locals, args, env, expr);
     }
 
