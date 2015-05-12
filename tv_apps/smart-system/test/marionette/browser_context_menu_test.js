@@ -11,10 +11,6 @@ var Keys = {
 };
 
 var assert = require('chai').assert;
-// We should use client.loader.getAppClass('system'); to load the system helper.
-// But the current implementation of loader doesn't support tv_apps. We use
-// normal require here and change to getAppClass() while bug 1163460 is fixed.
-var SmartSystem = require(__dirname + '/lib/system');
 
 marionette('Test Context Menu Events', function() {
 
@@ -40,7 +36,7 @@ marionette('Test Context Menu Events', function() {
 
   setup(function() {
     actions = client.loader.getActions();
-    system = new SmartSystem(client);
+    system = client.loader.getAppClass('smart-system', 'system', 'tv_apps');
   });
 
   function launchContextMenu() {
