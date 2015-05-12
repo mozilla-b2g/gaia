@@ -288,19 +288,7 @@
     var title = this._getTitle(evt.detail.title);
     var elements = this.elements;
 
-    function escapeHTML(str) {
-      var stringHTML = str;
-      stringHTML = stringHTML.replace(/</g, '&#60;');
-      stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-      stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
-
-      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    }
-
     var type = evt.detail.promptType || evt.detail.type;
-    if (type !== 'selectone') {
-      message = escapeHTML(message);
-    }
 
     this._dialogType = type;
     // TODO: Currently we only implmented key navigation for prompt dialog.
