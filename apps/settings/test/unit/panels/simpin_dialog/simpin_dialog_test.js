@@ -41,7 +41,8 @@ suite('SimPinDialog > ', function() {
           pinInput: createInput(),
           pukInput: createInput(),
           newPinInput: createInput(),
-          confirmPinInput: createInput()
+          confirmPinInput: createInput(),
+          dialogDone: createButton()
         });
         done();
     });
@@ -114,9 +115,98 @@ suite('SimPinDialog > ', function() {
     });
   });
 
+  suite('_updateDoneButtonState > ', function() {
+    test('in change_pin mode, but length of pinInput is less than 4',
+      function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, but length of newPinInput is less than 4',
+      function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '1';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, but length of confirmPinInput is less than 4',
+      function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '5678';
+        simPinDialog._elements.confirmPinInput.value = '1';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, ' +
+      'but length of confirmPinInput & newPinInput is different', function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '5678';
+        simPinDialog._elements.confirmPinInput.value = '567';
+        simPinDialog._updateDoneButtonState();
+        assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in change_pin mode, ' +
+      'and length of confirmPinInput & newPinInput is the same', function() {
+        simPinDialog._mode = 'change_pin';
+        simPinDialog._elements.pinInput.value = '1234';
+        simPinDialog._elements.newPinInput.value = '5678';
+        simPinDialog._elements.confirmPinInput.value = '5679';
+        simPinDialog._updateDoneButtonState();
+        assert.isFalse(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in pin mode, and length of pinInput is less than 4', function() {
+      simPinDialog._mode = 'pin';
+      simPinDialog._elements.pinInput.value = '1';
+      simPinDialog._updateDoneButtonState();
+      assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in pin mode, but length of pinInput is >= 4', function() {
+      simPinDialog._mode = 'pin';
+      simPinDialog._elements.pinInput.value = '1234';
+      simPinDialog._updateDoneButtonState();
+      assert.isFalse(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in puk mode, and length of pukInput is less than 4', function() {
+      simPinDialog._mode = 'puk';
+      simPinDialog._elements.pukInput.value = '1';
+      simPinDialog._updateDoneButtonState();
+      assert.isTrue(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in puk mode, but length of pukInput is >= 4', function() {
+      simPinDialog._mode = 'puk';
+      simPinDialog._elements.pukInput.value = '1234';
+      simPinDialog._updateDoneButtonState();
+      assert.isFalse(simPinDialog._elements.dialogDone.disabled);
+    });
+
+    test('in unknown mode, but length of pukInput is >= 4', function() {
+      this.sinon.stub(window.console, 'error');
+      simPinDialog._mode = 'unknown_mode';
+      simPinDialog._updateDoneButtonState();
+      assert.isTrue(window.console.error.called);
+    });
+  });
+
   function createInput() {
     var input = document.createElement('input');
     input.type = 'text';
     return input;
+  }
+
+  function createButton() {
+    var button = document.createElement('button');
+    return button;
   }
 });
