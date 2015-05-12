@@ -209,7 +209,7 @@ var Bluetooth = {
   updateConnected: function bt_updateConnected() {
     var bluetooth = window.navigator.mozBluetooth;
 
-    if (!bluetooth || !('isConnected' in bluetooth)) {
+    if (!bluetooth) {
       return;
     }
 
