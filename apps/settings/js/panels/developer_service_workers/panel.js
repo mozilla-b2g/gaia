@@ -26,6 +26,9 @@ define(function(require) {
             panel.querySelector('#service-workers-empty-section')
         };
         developerServiceWorkers.init(elements);
+      },
+      onShow: function() {
+        developerServiceWorkers.refresh();
       }
     });
   };

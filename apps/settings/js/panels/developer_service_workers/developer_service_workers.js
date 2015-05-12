@@ -53,7 +53,6 @@ define(function(require) {
       this._elements = elements;
       this.listeners = {};
       this.serviceWorkersCount = 0;
-      this.refresh();
     },
 
     renderServiceWorkerInfo: function(serviceWorkersInfo) {
