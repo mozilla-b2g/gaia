@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export LC_ALL=C NO_XFAIL=1
 
@@ -148,3 +148,58 @@ then
 fi
 
 echo "No errors - committing"
+
+############################# locale check #####################################
+locales_changed_files=`git diff --staged --name-only --diff-filter=ACMRT | grep '\.properties$'`
+if [ -n "$locales_changed_files" ]
+then
+  updatedL10nIds=()
+  needToHintDevelopers=0
+
+  for file in $locales_changed_files ; do
+    grepRuleForBoth="^[+-].*=.*"
+    grepRuleForAddition="^[+](.*)="
+    grepRuleForDeletion="^[-](.*)="
+
+    addition_locale_ids=()
+    deletion_locale_ids=()
+    count=0
+
+    while read -r eachLine
+    do
+      if [[ "$eachLine" =~ $grepRuleForAddition ]]
+      then
+        addition_locale_ids+=(${BASH_REMATCH[1]})
+      fi
+
+      if [[ "$eachLine" =~ $grepRuleForDeletion ]]
+      then
+        deletion_locale_ids+=(${BASH_REMATCH[1]})
+      fi
+    # check http://mywiki.wooledge.org/BashFAQ/024
+    done < <(git diff HEAD~ --staged $file | grep $grepRuleForBoth)
+
+    # final compare
+    for eachAdditionId in "${addition_locale_ids[@]}"
+    do
+      for eachDeletionId in "${deletion_locale_ids[@]}"
+      do
+        if [[ "$eachAdditionId" =~ "$eachDeletionId" ]]
+        then
+          needToHintDevelopers=1
+          updatedL10nIds+=($eachAdditionId)
+        fi
+      done
+    done
+  done
+
+  if [ $needToHintDevelopers -ne 0 ]
+  then
+    echo "[NOTE] You are updating the same translation under these locale ids :"
+    for eachL10nId in "${updatedL10nIds[@]}"
+    do
+      echo "Updated id : $eachL10nId"
+    done
+    echo "Please double check whether you should introduce a new locale id or not."
+  fi
+fi
