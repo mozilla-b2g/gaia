@@ -1,17 +1,11 @@
 # Marionette JS Console plugin
 
-[![Build
-Status](https://travis-ci.org/mozilla-b2g/marionette-js-logger.png)](https://travis-ci.org/mozilla-b2g/marionette-js-logger)
-
 Installs code into the client to buffer all of the logged console messages.
 Because of the presumed synchronous operation of marionette-js-runner, Messages
 are retrieved when explicitly requested or as an implict byproduct of waiting
 for specific log messages.
 
-
-
-## Usage
-
+### Usage
 ```js
 
 // create the plugin. This must run before startSession.
@@ -64,11 +58,9 @@ client.startSession(function() {
 });
 ```
 
-## LICENSE
+### LICENSE
 
-Copyright (c) 2013 Mozilla Foundation
-
-Contributors: Sahaja James Lal jlal@mozilla.com
+Copyright (c) 2015 Mozilla Foundation
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
