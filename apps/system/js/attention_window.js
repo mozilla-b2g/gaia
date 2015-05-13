@@ -56,7 +56,6 @@
    * @event AttentionWindow#attentionrendered
    */
   var AttentionWindow = function AttentionWindow(config) {
-    this.isAttentionWindow = true;
     this.reConfig(config);
     this.render();
     if (this._DEBUG) {
@@ -87,6 +86,8 @@
 
   AttentionWindow.prototype.openAnimation = 'immediate';
   AttentionWindow.prototype.closeAnimation = 'immediate';
+
+  AttentionWindow.prototype.isAttentionWindow = true;
 
   AttentionWindow.prototype.view = function attw_view() {
     this.debug('intance id: ' + this.instanceID);

@@ -72,6 +72,11 @@ suite('system/CallscreenWindow', function() {
     stubById.restore();
   });
 
+  test('Should be an attention window', function() {
+    var callscreen = new CallscreenWindow();
+    assert.isTrue(callscreen.isAttentionWindow);
+  });
+
   test('Hide right away if we are not active while window.close()', function() {
     var callscreen = new CallscreenWindow();
     this.sinon.stub(callscreen, 'isActive').returns(false);
