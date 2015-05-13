@@ -189,19 +189,13 @@
     var windowWidth = this.manager.windowWidth || window.innerWidth;
     var offset = this.position - this.manager.position;
     var positionX = deltaX + offset * (windowWidth * 0.55);
-    var appliedX = positionX;
-
-    var rightLimit =  windowWidth / 2 + windowWidth * 0.24 - 0.001;
-    appliedX = Math.min(appliedX, rightLimit);
-    appliedX = Math.max(appliedX, -1 * rightLimit);
 
     this.element.dataset.positionX = positionX;
-    this.element.dataset.keepLayerDelta = Math.abs(positionX - appliedX);
 
     var style = { transform: '' };
 
     if (deltaX || offset) {
-      style.transform = 'translateX(' + appliedX + 'px)';
+      style.transform = 'translateX(' + positionX + 'px)';
     }
 
     if (deltaY) {
