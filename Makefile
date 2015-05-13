@@ -346,7 +346,11 @@ export SEP_FOR_SED
 include build/common.mk
 
 ifndef GAIA_APP_CONFIG
-GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)$(GAIA_DEVICE_TYPE)$(SEP)apps-$(GAIA_APP_TARGET).list
+	ifeq ($(REPORTER),mocha-tbpl-reporter)
+		GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)$(GAIA_DEVICE_TYPE)$(SEP)apps-treeherder.list
+	else
+		GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)$(GAIA_DEVICE_TYPE)$(SEP)apps-$(GAIA_APP_TARGET).list
+	endif
 endif
 
 ifndef GAIA_DISTRIBUTION_DIR
