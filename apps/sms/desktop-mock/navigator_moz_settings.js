@@ -28,7 +28,9 @@
           }, 0);
 
           return request;
-        }
+        },
+
+        set() {}
       };
     },
 

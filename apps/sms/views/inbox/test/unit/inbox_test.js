@@ -11,7 +11,6 @@
 'use strict';
 
 require('/views/shared/js/utils.js');
-require('/services/js/threads.js');
 require('/views/inbox/js/inbox.js');
 
 require('/shared/test/unit/mocks/mock_async_storage.js');
@@ -33,6 +32,7 @@ require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_inter_instance_event_dispatcher.js');
 require('/views/shared/test/unit/mock_selection_handler.js');
 require('/services/test/unit/mock_drafts.js');
+require('/services/test/unit/mock_threads.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForInboxView = new MocksHelper([
@@ -51,7 +51,9 @@ var mocksHelperForInboxView = new MocksHelper([
   'LazyLoader',
   'Settings',
   'Drafts',
-  'Draft'
+  'Draft',
+  'Threads',
+  'Thread'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -68,6 +70,7 @@ suite('thread_list_ui', function() {
 
     this.sinon.stub(MessageManager, 'on');
     this.sinon.stub(InterInstanceEventDispatcher, 'on');
+    this.sinon.stub(Drafts, 'on');
 
     InboxView.readyDeferred = Utils.Promise.defer();
     InboxView.init();
@@ -248,8 +251,8 @@ suite('thread_list_ui', function() {
 
   suite('updateThread', function() {
     setup(function() {
-      this.sinon.spy(Thread, 'create');
-      this.sinon.spy(Threads, 'has');
+      this.sinon.stub(Thread, 'create');
+      this.sinon.stub(Threads, 'get');
       this.sinon.spy(Threads, 'set');
       this.sinon.spy(InboxView, 'removeThread');
       this.sinon.spy(InboxView, 'appendThread');
@@ -262,30 +265,30 @@ suite('thread_list_ui', function() {
     });
 
     teardown(function() {
-      Threads.clear();
       InboxView.container.innerHTML = '';
     });
 
     suite(' > in empty welcome screen,', function() {
-      var message;
+      var message, thread;
+
       setup(function() {
         message = MockMessages.sms();
+
+        thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender]
+        });
+
+        Thread.create.returns(thread);
+        Threads.get.withArgs(thread.id).returns(thread);
+
         InboxView.updateThread(message);
       });
 
       test('setEmpty & appended', function() {
         sinon.assert.calledOnce(InboxView.setEmpty);
 
-        sinon.assert.calledWithMatch(InboxView.appendThread, {
-          id: message.threadId,
-          body: message.body,
-          lastMessageSubject: message.lastMessageSubject,
-          lastMessageType: 'sms',
-          messages: sinon.match.instanceOf(Map),
-          participants: ['sender'],
-          timestamp: message.timestamp,
-          unreadCount: 0
-        });
+        sinon.assert.calledWithMatch(InboxView.appendThread, thread);
       });
     });
 
@@ -297,12 +300,22 @@ suite('thread_list_ui', function() {
         // A new message of a previous thread
         var nextDate = new Date(2013, 1, 2);
         message = MockMessages.sms({
+          id: 1,
           threadId: 2,
           timestamp: +nextDate
         });
 
+        var thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender]
+        });
+
+        Thread.create.withArgs(message).returns(thread);
+        Threads.get.withArgs(thread.id).returns(thread);
+
         InboxView.updateThread(message);
       });
+
       test(' > create is called', function() {
         sinon.assert.calledOnce(Thread.create);
       });
@@ -315,9 +328,19 @@ suite('thread_list_ui', function() {
       test(' > new message, new thread.', function() {
         var newDate = new Date(2013, 1, 2);
         var newMessage = MockMessages.sms({
+          id: 2,
           threadId: 20,
           timestamp: +newDate
         });
+
+        var newThread = new Thread({
+          id: newMessage.threadId,
+          participants: [newMessage.sender]
+        });
+
+        Thread.create.withArgs(newMessage).returns(newThread);
+        Threads.get.withArgs(newThread.id).returns(newThread);
+
         InboxView.updateThread(newMessage, { unread: true });
         // As this is a new message we dont have to remove threads
         // So we have only one removeThread for the first appending
@@ -329,9 +352,19 @@ suite('thread_list_ui', function() {
       test('only refreshes StickyHeader with new container', function() {
         var sameDate = new Date(2013, 1, 2);
         var newMessage = MockMessages.sms({
+          id: 3,
           threadId: 3,
           timestamp: +sameDate
         });
+
+        var newThread = new Thread({
+          id: newMessage.threadId,
+          participants: [newMessage.sender]
+        });
+
+        Thread.create.withArgs(newMessage).returns(newThread);
+        Threads.get.withArgs(newThread.id).returns(newThread);
+
         InboxView.updateThread(newMessage);
         // It had to be called once before during setup() since that created a
         // new container.
@@ -350,13 +383,16 @@ suite('thread_list_ui', function() {
           threadId: 2,
           timestamp: +nextDate
         });
-        thread = Thread.create(message);
-        InboxView.updateThread(message);
-      });
 
-      teardown(function() {
-        message = null;
-        thread = null;
+        thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender]
+        });
+
+        Thread.create.withArgs(message).returns(thread);
+        Threads.get.withArgs(thread.id).returns(thread);
+
+        InboxView.updateThread(message);
       });
 
       test('new thread is appended/updated', function() {
@@ -382,13 +418,16 @@ suite('thread_list_ui', function() {
           threadId: 3,
           timestamp: +nextDate
         });
-        thread = Thread.create(message);
-        InboxView.updateThread(message);
-      });
 
-      teardown(function() {
-        message = null;
-        thread = null;
+        thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender]
+        });
+
+        Thread.create.withArgs(message).returns(thread);
+        Threads.get.withArgs(thread.id).returns(thread);
+
+        InboxView.updateThread(message);
       });
 
       test('new thread is appended', function() {
@@ -398,7 +437,7 @@ suite('thread_list_ui', function() {
       });
 
       test('no thread is removed', function() {
-        assert.isFalse(InboxView.removeThread.called);
+        sinon.assert.notCalled(InboxView.removeThread);
       });
 
       test('Refresh the fixed header', function() {
@@ -418,15 +457,25 @@ suite('thread_list_ui', function() {
           threadId: 2,
           timestamp: +prevDate
         });
+
+        var thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender],
+          timestamp: message.timestamp
+        });
+
+        Thread.create.withArgs(message).returns(thread);
+        Threads.get.withArgs(thread.id).returns(thread);
+
         InboxView.updateThread(message, { unread: true });
       });
 
       test('no new thread is appended', function() {
-        assert.isFalse(InboxView.appendThread.called);
+        sinon.assert.notCalled(InboxView.appendThread);
       });
 
       test('no old thread is removed', function() {
-        assert.isFalse(InboxView.removeThread.called);
+        sinon.assert.notCalled(InboxView.removeThread);
       });
 
       test('old thread is marked unread', function() {
@@ -453,6 +502,15 @@ suite('thread_list_ui', function() {
           threadId: 2,
           timestamp: +someDate
         });
+
+        var thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender],
+          timestamp: message.timestamp
+        });
+
+        Thread.create.withArgs(message).returns(thread);
+
         threadContainer = document.getElementById('thread-2');
         InboxView.updateThread(message, { deleted: true });
       });
@@ -479,6 +537,16 @@ suite('thread_list_ui', function() {
           threadId: 2,
           timestamp: +newDate
         });
+
+        var thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender],
+          timestamp: message.timestamp
+        });
+
+        Thread.create.withArgs(message).returns(thread);
+        Threads.get.withArgs(thread.id).returns(thread);
+
         threadContainer = document.getElementById('thread-2');
         InboxView.updateThread(message, { deleted: true });
       });
@@ -514,10 +582,11 @@ suite('thread_list_ui', function() {
           unreadCount: 0
         });
 
-        Threads.set(1, firstThread);
+        Thread.create.withArgs(firstThread).returns(firstThread);
+        Threads.get.withArgs(firstThread.id).returns(firstThread);
 
-        // This is used to reset the spy record
-        Threads.set.reset();
+        Thread.create.withArgs(secondThread).returns(secondThread);
+        Threads.get.withArgs(secondThread.id).returns(secondThread);
       });
 
       test('Threads.set is called', function() {
@@ -536,6 +605,8 @@ suite('thread_list_ui', function() {
 
   suite('markReadUnread', function() {
     setup(function() {
+      this.sinon.stub(Threads, 'get');
+
       var threads = [{
         id: 1,
         date: new Date(2013, 1, 2),
@@ -562,12 +633,20 @@ suite('thread_list_ui', function() {
         unread: false
       }];
 
-      threads.forEach((threadInfo) => {
-        var thread = Thread.create(MockMessages.sms({
+      threads.forEach((threadInfo, index) => {
+        var message = MockMessages.sms({
+          id: index,
           threadId: threadInfo.id,
           timestamp: +threadInfo.date
-        }), { unread: threadInfo.unread });
-        Threads.set(thread.id, thread);
+        });
+
+        var thread = new Thread({
+          id: message.threadId,
+          timestamp: message.timestamp,
+          unreadCount: threadInfo.unread ? 1 : 0,
+          participants: [message.sender]
+        });
+        Threads.get.withArgs(sinon.match(thread.id)).returns(thread);
         InboxView.appendThread(thread);
       });
 
@@ -631,6 +710,9 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.stub(MessageManager, 'getMessages');
       this.sinon.stub(Drafts, 'byDraftId');
+      this.sinon.stub(Threads, 'get');
+      this.sinon.stub(Threads, 'has');
+      this.sinon.stub(Threads, 'delete');
 
       var drafts = threadDraftIds.map((id) => {
         var draft = new Draft({
@@ -641,9 +723,18 @@ suite('thread_list_ui', function() {
           timestamp: Date.now(),
           type: 'sms'
         });
-        var thread = Thread.create(draft);
 
-        Threads.set(draft.id, thread);
+        var thread = new Thread({
+          id: draft.id,
+          timestamp: draft.timestamp,
+          participants: [],
+          isDraft: true
+        });
+
+        this.sinon.stub(thread, 'getDraft').returns(draft);
+
+        Threads.get.withArgs(draft.id).returns(thread);
+        Threads.has.withArgs(draft.id).returns(true);
 
         Drafts.byDraftId.withArgs(draft.id).returns(draft);
 
@@ -651,12 +742,19 @@ suite('thread_list_ui', function() {
       });
 
       var threads = threadIds.map((id) => {
-        var thread = Thread.create(MockMessages.sms({
+        var message = MockMessages.sms({
           threadId: id,
           timestamp: Date.now()
-        }));
+        });
 
-        Threads.set(id, thread);
+        var thread = new Thread({
+          id: message.threadId,
+          participants: [message.sender],
+          timestamp: message.timestamp
+        });
+
+        Threads.get.withArgs(thread.id).returns(thread);
+        Threads.has.withArgs(thread.id).returns(true);
 
         return thread;
       });
@@ -697,7 +795,6 @@ suite('thread_list_ui', function() {
         this.sinon.stub(WaitingScreen, 'show');
         this.sinon.stub(WaitingScreen, 'hide');
         this.sinon.stub(MessageManager, 'deleteMessages');
-        this.sinon.spy(Drafts, 'delete');
         this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
       });
 
@@ -720,8 +817,6 @@ suite('thread_list_ui', function() {
 
       suite('delete drafts only', function() {
         setup(function(done) {
-          this.sinon.spy(Drafts, 'store');
-
           threadDraftIds.forEach((id) => {
             assert.isNotNull(document.getElementById(`thread-${id}`));
           });
@@ -733,13 +828,12 @@ suite('thread_list_ui', function() {
           sinon.assert.called(WaitingScreen.show);
 
           threadDraftIds.forEach((id) => {
-            sinon.assert.calledWith(Drafts.delete, sinon.match({ id: id }));
+            sinon.assert.calledWith(Threads.delete, id);
           });
 
           assert.isNull(document.getElementById('thread-100'));
           assert.isNull(document.getElementById('thread-200'));
 
-          sinon.assert.called(Drafts.store);
           sinon.assert.called(WaitingScreen.hide);
           sinon.assert.notCalled(MessageManager.getMessages);
           sinon.assert.notCalled(MessageManager.deleteMessages);
@@ -750,7 +844,6 @@ suite('thread_list_ui', function() {
         var threadsToDelete = threadIds.slice(0, 2);
 
         setup(function(done) {
-          this.sinon.spy(Drafts, 'store');
           this.sinon.spy(Utils, 'closeNotificationsForThread');
 
           selectThreadsAndDelete(threadsToDelete).then(done, done);
@@ -799,13 +892,12 @@ suite('thread_list_ui', function() {
 
           threadsToDelete.forEach(function(threadId) {
             assert.isNull(document.getElementById('thread-' + threadId));
-            assert.isFalse(Threads.has(threadId));
+            sinon.assert.calledWith(Threads.delete, threadId);
             sinon.assert.calledWith(
               Utils.closeNotificationsForThread, threadId
             );
           });
 
-          sinon.assert.notCalled(Drafts.store);
           sinon.assert.called(WaitingScreen.hide);
         });
       });
@@ -814,7 +906,6 @@ suite('thread_list_ui', function() {
         var threadsToDelete = threadDraftIds.concat(threadIds);
 
         setup(function(done) {
-          this.sinon.spy(Drafts, 'store');
           this.sinon.spy(Utils, 'closeNotificationsForThread');
 
           selectThreadsAndDelete(threadsToDelete).then(done, done);
@@ -835,7 +926,7 @@ suite('thread_list_ui', function() {
 
           // First drafts are deleted
           threadDraftIds.forEach((id) => {
-            sinon.assert.calledWith(Drafts.delete, sinon.match({ id: id }));
+            sinon.assert.calledWith(Threads.delete, id);
           });
 
           assert.isNotNull(document.getElementById('thread-1'));
@@ -846,7 +937,6 @@ suite('thread_list_ui', function() {
 
           // Don't hide waiting screen until full deletion is finished
           sinon.assert.notCalled(WaitingScreen.hide);
-          sinon.assert.called(Drafts.store);
 
           threadIds.forEach((id) => {
             MessageManager.getMessages.withArgs(getMessagesCallParams(id)).
@@ -878,7 +968,7 @@ suite('thread_list_ui', function() {
 
           threadIds.forEach((id) => {
             assert.isNull(document.getElementById('thread-' + id));
-            assert.isFalse(Threads.has(id));
+            sinon.assert.calledWith(Threads.delete, id);
             sinon.assert.calledWith(
               Utils.closeNotificationsForThread, id
             );
@@ -904,50 +994,40 @@ suite('thread_list_ui', function() {
       this.sinon.spy(MockTimeHeaders, 'update');
     });
 
-    function buildSMSThread(payload) {
-      var o = {
+    test('escapes the body for SMS', function() {
+      var smsThread = new Thread({
         id: 1,
         lastMessageType: 'sms',
         participants: ['1234'],
-        body: payload,
+        body: 'hello <a href="world">world</a>',
         timestamp: Date.now()
-      };
-      Threads.set(o.id, o);
-      return o;
-    }
+      });
 
-    function buildMMSThread(payload) {
-      var o = {
-        id: 1,
-        lastMessageType: 'mms',
-        participants: ['1234', '5678'],
-        body: payload,
-        timestamp: Date.now()
-      };
-      Threads.set(o.id, o);
-      return o;
-    }
+      InboxView.createThread(smsThread);
 
-    test('escapes the body for SMS', function() {
-      var payload = 'hello <a href="world">world</a>';
-      InboxView.createThread(buildSMSThread(payload));
-      assert.ok(Template.escape.calledWith(payload));
-      assert.ok(MockTimeHeaders.update.called);
+      sinon.assert.calledWith(Template.escape, smsThread.body);
+      sinon.assert.called(MockTimeHeaders.update);
     });
 
     test('escapes the body for MMS', function() {
-      var payload = 'hello <a href="world">world</a>';
-      InboxView.createThread(buildMMSThread(payload));
-      assert.ok(Template.escape.calledWith(payload));
-      assert.ok(MockTimeHeaders.update.called);
+      var mmsThread = new Thread({
+        id: 1,
+        lastMessageType: 'mms',
+        participants: ['1234', '5678'],
+        body: 'hello <a href="world">world</a>',
+        timestamp: Date.now()
+      });
+
+      InboxView.createThread(mmsThread);
+
+      sinon.assert.calledWith(Template.escape, mmsThread.body);
+      sinon.assert.called(MockTimeHeaders.update);
     });
 
     suite('Correctly displayed content', function() {
-      var now, message, li;
+      var now, message, thread, li;
 
       setup(function() {
-        this.sinon.stub(Drafts, 'byThreadId');
-
         now = Date.now();
 
         message = MockMessages.sms({
@@ -956,16 +1036,25 @@ suite('thread_list_ui', function() {
           timestamp: now,
           body: 'from a message'
         });
+
+        thread = new Thread({
+          id: message.threadId,
+          timestamp: message.timestamp,
+          participants: [message.receiver],
+          body: message.body,
+          lastMessageType: message.type
+        });
+
+        this.sinon.stub(Threads, 'get').withArgs(thread.id).returns(thread);
       });
 
       test('Message newer than draft is used', function() {
-        Drafts.byThreadId.withArgs(message.threadId).returns({
+        this.sinon.stub(thread, 'getDraft').returns({
           timestamp: now - 60000,
           content: ['from a draft']
         });
-        li = InboxView.createThread(
-          Thread.create(message)
-        );
+
+        li = InboxView.createThread(thread);
 
         assert.equal(
           li.querySelector('.body-text').textContent, 'from a message'
@@ -973,14 +1062,12 @@ suite('thread_list_ui', function() {
       });
 
       test('Draft newer than content is used', function() {
-        Drafts.byThreadId.withArgs(message.threadId).returns({
-          timestamp: now,
+        this.sinon.stub(thread, 'getDraft').returns({
+          timestamp: now + 60000,
           content: ['from a draft']
         });
-        message.timestamp = now - 60000;
-        li = InboxView.createThread(
-          Thread.create(message)
-        );
+
+        li = InboxView.createThread(thread);
 
         assert.equal(
           li.querySelector('.body-text').textContent, 'from a draft'
@@ -988,14 +1075,12 @@ suite('thread_list_ui', function() {
       });
 
       test('Draft newer, but has no content', function() {
-        Drafts.byThreadId.withArgs(message.threadId).returns({
-          timestamp: now,
+        this.sinon.stub(thread, 'getDraft').returns({
+          timestamp: now + 60000,
           content: []
         });
-        message.timestamp = now - 60000;
-        li = InboxView.createThread(
-          Thread.create(message)
-        );
+
+        li = InboxView.createThread(thread);
 
         assert.equal(
           li.querySelector('.body-text').textContent, ''
@@ -1003,14 +1088,13 @@ suite('thread_list_ui', function() {
       });
 
       test('Last message type for draft', function() {
-        Drafts.byThreadId.withArgs(message.threadId).returns({
-          timestamp: now,
+        this.sinon.stub(thread, 'getDraft').returns({
+           timestamp: now,
           content: [],
           type: 'mms'
         });
-        li = InboxView.createThread(
-          Thread.create(message)
-        );
+
+        li = InboxView.createThread(thread);
 
         assert.ok(li.dataset.lastMessageType, 'mms');
       });
@@ -1023,6 +1107,7 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.spy(InboxView, 'updateThread');
       this.sinon.stub(InboxView, 'setContact');
+      this.sinon.stub(Thread, 'create');
 
       firstMessage = MockMessages.sms({
         id: 100,
@@ -1033,10 +1118,13 @@ suite('thread_list_ui', function() {
         id: 200,
         threadId: 1
       });
-    });
 
-    teardown(function() {
-      Threads.clear();
+      [firstMessage, secondMessage].forEach((message) => {
+        Thread.create.withArgs(message).returns(new Thread({
+          id: message.threadId,
+          participants: [message.sender]
+        }));
+      });
     });
 
     test('Thread is correctly updated', function() {
@@ -1080,6 +1168,7 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.spy(InboxView, 'updateThread');
       this.sinon.stub(InboxView, 'setContact');
+      this.sinon.stub(Thread, 'create');
 
       firstMessage = MockMessages.sms({
         id: 100,
@@ -1090,10 +1179,13 @@ suite('thread_list_ui', function() {
         id: 200,
         threadId: 1
       });
-    });
 
-    teardown(function() {
-      Threads.clear();
+       [firstMessage, secondMessage].forEach((message) => {
+        Thread.create.withArgs(message).returns(new Thread({
+          id: message.threadId,
+          participants: [message.sender]
+        }));
+      });
     });
 
     test('Thread is correctly updated', function() {
@@ -1109,6 +1201,7 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.stub(InboxView, 'setContact');
       this.sinon.stub(InboxView, 'updateSelectionStatus');
+      this.sinon.stub(Threads, 'get');
     });
 
     suite('new thread and new message in a day', function() {
@@ -1124,8 +1217,13 @@ suite('thread_list_ui', function() {
           timestamp: +nextDate
         });
 
-        thread = Thread.create(message);
-        Threads.set(thread.id, thread);
+        thread = new Thread({
+          id: message.threadId,
+          timestamp: message.timestamp,
+          participants: [message.sender]
+        });
+
+        Threads.get.withArgs(message.threadId).returns(thread);
       });
 
       test('show up in a new container', function() {
@@ -1154,7 +1252,15 @@ suite('thread_list_ui', function() {
           threadId: 2,
           timestamp: +nextDate
         });
-        thread = Thread.create(message);
+
+        thread = new Thread({
+          id: message.threadId,
+          timestamp: message.timestamp,
+          participants: [message.sender]
+        });
+
+        Threads.get.withArgs(message.threadId).returns(thread);
+
         InboxView.appendThread(thread);
 
         var containerId = 'threadsContainer_' + (+someDate);
@@ -1173,8 +1279,13 @@ suite('thread_list_ui', function() {
           timestamp: +nextDate
         });
 
-        thread = Thread.create(message);
-        Threads.set(thread.id, thread);
+        thread = new Thread({
+          id: message.threadId,
+          timestamp: message.timestamp,
+          participants: [message.sender]
+        });
+
+        Threads.get.withArgs(message.threadId).returns(thread);
       });
 
       test('show up in same container', function() {
@@ -1216,10 +1327,18 @@ suite('thread_list_ui', function() {
       });
 
       test('waits for l10n to render', function() {
-        var thread = Thread.create(MockMessages.sms({
+        var message = MockMessages.sms({
           threadId: 3,
           timestamp: +(new Date(2013, 1, 2))
-        }));
+        });
+
+        var thread = new Thread({
+          id: message.threadId,
+          timestamp: message.timestamp,
+          participants: [message.sender]
+        });
+
+        Threads.get.withArgs(message.threadId).returns(thread);
 
         var containerId = 'threadsContainer_' + thread.timestamp;
 
@@ -1259,8 +1378,6 @@ suite('thread_list_ui', function() {
 
       firstViewDone = sinon.stub();
       panel = document.getElementById('thread-list');
-
-      Threads.clear();
     });
 
     test('Rendering an empty screen', function(done) {
@@ -1343,6 +1460,7 @@ suite('thread_list_ui', function() {
       var threadList;
 
       setup(function() {
+        this.sinon.stub(Threads, 'set');
         threadList = new MockThreadList();
 
         this.sinon.stub(MessageManager, 'getThreads', (options) => {
@@ -1355,7 +1473,9 @@ suite('thread_list_ui', function() {
 
       test('Sets every thread to Threads object', function(done) {
         InboxView.renderThreads(() => {
-          threadList.forEach((thread) => assert.isTrue(Threads.has(thread.id)));
+          threadList.forEach((thread) => {
+            sinon.assert.calledWith(Threads.set, thread.id);
+          });
         }).then(done, done);
       });
     });
@@ -1375,6 +1495,8 @@ suite('thread_list_ui', function() {
       this.sinon.stub(Drafts, 'getAll');
       this.sinon.stub(Drafts, 'byDraftId');
       this.sinon.stub(Drafts, 'byThreadId');
+      this.sinon.stub(Threads, 'get');
+      this.sinon.stub(Thread, 'create');
 
       var someDate = new Date(2013, 1, 1).getTime();
       insertMockMarkup(someDate);
@@ -1385,8 +1507,14 @@ suite('thread_list_ui', function() {
         timestamp: +nextDate
       });
 
-      Threads.registerMessage(message);
-      thread = Threads.get(3);
+      thread = new Thread({
+        id: message.threadId,
+        timestamp: message.timestamp,
+        participants: [message.sender]
+      });
+      Thread.create.withArgs(thread).returns(thread);
+      Threads.get.withArgs(thread.id).returns(thread);
+
       InboxView.appendThread(thread);
 
       threadDraft = new Draft({
@@ -1397,6 +1525,7 @@ suite('thread_list_ui', function() {
         timestamp: Date.now(),
         type: 'sms'
       });
+      this.sinon.stub(thread, 'getDraft').returns(threadDraft);
 
       draft = new Draft({
         id: 101,
@@ -1407,15 +1536,21 @@ suite('thread_list_ui', function() {
         type: 'sms'
       });
 
+      var draftThread = new Thread({
+        id: draft.id,
+        timestamp: draft.timestamp,
+        participants: [],
+        isDraft: true
+      });
+      this.sinon.stub(draftThread, 'getDraft').returns(draft);
+
+      Thread.create.withArgs(draft).returns(draftThread);
+      Threads.get.withArgs(draft.id).returns(draftThread);
+
       Drafts.byDraftId.withArgs(draft.id).returns(draft);
-      Drafts.byThreadId.withArgs(threadDraft.threadId).returns(threadDraft);
       Drafts.getAll.returns([threadDraft, draft]);
 
       InboxView.renderDrafts().then(done, done);
-    });
-
-    teardown(function() {
-      Threads.clear();
     });
 
     test('Draft.request is called', function() {
@@ -1446,7 +1581,7 @@ suite('thread_list_ui', function() {
     });
   });
 
-  suite('draftSaved', function() {
+  suite('showDraftSavedBanner', function() {
 
     setup(function() {
       this.sinon.useFakeTimers();
@@ -1454,7 +1589,7 @@ suite('thread_list_ui', function() {
 
     test('draft saved banner shown and hidden', function() {
       assert.isTrue(draftSavedBanner.classList.contains('hide'));
-      InboxView.onDraftSaved();
+      InboxView.showDraftSavedBanner();
       assert.isFalse(draftSavedBanner.classList.contains('hide'));
       this.sinon.clock.tick(InboxView.DRAFT_SAVED_DURATION - 1);
       assert.isFalse(draftSavedBanner.classList.contains('hide'));
@@ -1472,30 +1607,32 @@ suite('thread_list_ui', function() {
       this.sinon.stub(Contacts, 'findByAddress');
       this.sinon.spy(Contacts, 'addUnknown');
       this.sinon.stub(window.URL, 'revokeObjectURL');
+      this.sinon.stub(Threads, 'get');
 
       realWindowInnerHeight = Object.getOwnPropertyDescriptor(
         window, 'innerWidth'
       );
 
-      var oneToOneThread = {
+      var oneToOneThread = new Thread({
         id: 1,
         participants: ['555'],
         lastMessageType: 'sms',
         body: 'Hello 555',
         timestamp: Date.now(),
         unreadCount: 0
-      };
+      });
 
-      var oneToManyThread = {
+      var oneToManyThread = new Thread({
         id: 2,
         participants: ['555', '666'],
         lastMessageType: 'mms',
         body: 'Hello 555',
         timestamp: Date.now(),
         unreadCount: 0
-      };
-      Threads.set(oneToOneThread.id, oneToOneThread);
-      Threads.set(oneToManyThread.id, oneToManyThread);
+      });
+
+      Threads.get.withArgs(oneToOneThread.id).returns(oneToOneThread);
+      Threads.get.withArgs(oneToManyThread.id).returns(oneToManyThread);
 
       var node = InboxView.createThread(oneToOneThread);
       thread = {
@@ -1695,16 +1832,19 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.stub(Contacts, 'findByAddress');
       this.sinon.spy(Utils.Promise, 'defer');
-      var thread = {
+      this.sinon.stub(Threads, 'get');
+
+      var thread = new Thread({
         id: 1,
         participants: ['a@b.com'],
         lastMessageType: 'mms',
         body: 'Hello a@b.com',
         timestamp: Date.now(),
         unreadCount: 0
-      };
+      });
 
-      Threads.set(1, thread);
+      Threads.get.withArgs(thread.id).returns(thread);
+
       node = InboxView.createThread(thread);
       pictureContainer = node.querySelector('.threadlist-item-picture');
       picture = node.querySelector('[data-type=img]');
@@ -1770,6 +1910,8 @@ suite('thread_list_ui', function() {
       this.sinon.stub(Navigation, 'toPanel');
       this.sinon.stub(Drafts, 'getAll');
       this.sinon.stub(Drafts, 'byDraftId');
+      this.sinon.stub(Thread, 'create');
+      this.sinon.stub(Threads, 'get');
 
       insertMockMarkup(new Date(2013, 1, 1));
 
@@ -1782,8 +1924,18 @@ suite('thread_list_ui', function() {
         type: 'sms'
       });
 
+      var thread = new Thread({
+        id: draft.id,
+        timestamp: draft.timestamp,
+        participants: [],
+        isDraft: true
+      });
+      this.sinon.stub(thread, 'getDraft').returns(draft);
+
       Drafts.byDraftId.withArgs(draft.id).returns(draft);
       Drafts.getAll.returns([draft]);
+      Thread.create.withArgs(draft).returns(thread);
+      Threads.get.withArgs(thread.id).returns(thread);
 
       InboxView.renderDrafts().then(() => {
         thread1 = document.getElementById('thread-1');
@@ -1794,7 +1946,6 @@ suite('thread_list_ui', function() {
 
     teardown(function() {
       InboxView.inEditMode = false;
-      Threads.clear();
     });
 
     test('clicking on a list item', function() {
@@ -1836,13 +1987,24 @@ suite('thread_list_ui', function() {
       this.sinon.stub(InboxView, 'delete');
       this.sinon.stub(Drafts, 'getAll');
       this.sinon.stub(Drafts, 'byDraftId');
+      this.sinon.stub(Threads, 'get');
+      this.sinon.stub(Thread, 'create');
 
       threads.forEach((threadInfo) => {
-        var thread = Thread.create(MockMessages.sms({
+        var message = MockMessages.sms({
           threadId: threadInfo.id,
           timestamp: +threadInfo.date
-        }), { unread: threadInfo.unread });
-        Threads.set(thread.id, thread);
+        });
+
+        var thread = new Thread({
+          id: message.threadId,
+          timestamp: message.timestamp,
+          participants: [message.sender],
+          unreadCount: threadInfo.unread ? 1 : 0,
+        });
+
+        Threads.get.withArgs(thread.id).returns(thread);
+
         InboxView.appendThread(thread);
       });
 
@@ -1855,15 +2017,25 @@ suite('thread_list_ui', function() {
         type: 'sms'
       });
 
+      var draftThread = new Thread({
+        id: draft.id,
+        timestamp: draft.timestamp,
+        participants: [],
+        isDraft: true
+      });
+      this.sinon.stub(draftThread, 'getDraft').returns(draft);
+
       Drafts.byDraftId.withArgs(draft.id).returns(draft);
       Drafts.getAll.returns([draft]);
+
+      Thread.create.withArgs(draft).returns(draftThread);
+      Threads.get.withArgs(draftThread.id).returns(draftThread);
 
       InboxView.renderDrafts().then(done, done);
     });
 
     teardown(function() {
       InboxView.inEditMode = false;
-      Threads.clear();
     });
 
     //mark as read action on thread
@@ -1991,6 +2163,195 @@ suite('thread_list_ui', function() {
       InboxView.whenReady().then(() => {
         sinon.assert.callOrder(firstPageRenderedStub, allThreadsRenderedStub);
       }).then(done, done);
+    });
+  });
+
+  suite('onDraftSaved', function() {
+    var realThread, threadFromDraft, threadLessDraft;
+
+    setup(function() {
+      this.sinon.stub(Threads, 'get');
+      this.sinon.stub(Thread, 'create');
+      this.sinon.stub(Drafts, 'byDraftId');
+
+      threadLessDraft = new Draft({
+        id: 100,
+        timestamp: Date.now(),
+        type: 'sms',
+        content: ['old draft content']
+      });
+      Drafts.byDraftId.withArgs(threadLessDraft.id).returns(threadLessDraft);
+
+      threadFromDraft = new Thread({
+        id: threadLessDraft.id,
+        timestamp: threadLessDraft.timestamp,
+        participants: [],
+        lastMessageType: threadLessDraft.type,
+        body: threadLessDraft.content[0],
+        isDraft: true
+      });
+
+      realThread = new Thread({
+        id: 1,
+        timestamp: Date.now(),
+        participants: ['+1'],
+        lastMessageType: 'sms',
+        body: 'thread content'
+      });
+
+      [realThread, threadFromDraft].forEach((thread) => {
+        Threads.get.withArgs(thread.id).returns(thread);
+        Thread.create.withArgs(
+          thread.isDraft ? threadLessDraft : thread
+        ).returns(thread);
+
+        this.sinon.stub(thread, 'getDraft').returns(
+          thread.isDraft ? threadLessDraft : null
+        );
+
+        InboxView.appendThread(thread);
+
+        var threadNode = document.getElementById('thread-' + thread.id);
+        assert.equal(
+          threadNode.querySelector('.body-text').textContent, thread.body
+        );
+        assert.equal(
+          threadNode.dataset.lastMessageType, thread.lastMessageType
+        );
+      });
+    });
+
+    test('updates thread if thread draft is updated', function() {
+      var threadDraft = new Draft({
+        id: 101,
+        threadId: realThread.id,
+        content: ['draft content'],
+        type: 'mms',
+        timestamp: realThread.timestamp + 600
+      });
+      realThread.getDraft.returns(threadDraft);
+
+      Drafts.on.withArgs('saved').yield(threadDraft);
+
+      var threadNode = document.getElementById('thread-' + realThread.id);
+      assert.equal(
+        threadNode.querySelector('.body-text').textContent,
+        threadDraft.content[0]
+      );
+      assert.equal(threadNode.dataset.lastMessageType, threadDraft.type);
+    });
+
+    test('updates thread-less draft if it is updated', function() {
+      var newDraft = new Draft({
+        id: threadLessDraft.id,
+        content: ['new draft content'],
+        type: 'mms',
+        timestamp: threadLessDraft.timestamp + 600
+      });
+
+      threadFromDraft.getDraft.returns(newDraft);
+      Thread.create.withArgs(newDraft).returns(new Thread({
+        id: newDraft.id,
+        timestamp: newDraft.timestamp,
+        participants: [],
+        lastMessageType: newDraft.type,
+        body: newDraft.content[0],
+        isDraft: true
+      }));
+
+      Drafts.on.withArgs('saved').yield(newDraft);
+
+      var threadNode = document.getElementById('thread-' + threadFromDraft.id);
+      assert.equal(
+        threadNode.querySelector('.body-text').textContent,
+        newDraft.content[0]
+      );
+      assert.equal(threadNode.dataset.lastMessageType, newDraft.type);
+    });
+  });
+
+  suite('onDraftDeleted', function() {
+    var realThread, threadFromDraft, threadLessDraft, threadDraft;
+
+    setup(function() {
+      this.sinon.stub(Threads, 'get');
+      this.sinon.stub(Thread, 'create');
+      this.sinon.stub(Drafts, 'byDraftId');
+
+      threadLessDraft = new Draft({
+        id: 100,
+        timestamp: Date.now(),
+        type: 'sms',
+        content: ['draft content']
+      });
+      Drafts.byDraftId.withArgs(threadLessDraft.id).returns(threadLessDraft);
+
+      threadFromDraft = new Thread({
+        id: threadLessDraft.id,
+        timestamp: threadLessDraft.timestamp,
+        participants: [],
+        lastMessageType: threadLessDraft.type,
+        body: threadLessDraft.content[0],
+        isDraft: true
+      });
+
+      realThread = new Thread({
+        id: 1,
+        timestamp: Date.now(),
+        participants: ['+1'],
+        lastMessageType: 'sms',
+        body: 'thread content'
+      });
+
+      threadDraft = new Draft({
+        id: 101,
+        threadId: realThread.id,
+        timestamp: Date.now() + 600,
+        type: 'sms',
+        content: ['thread draft content']
+      });
+
+      [realThread, threadFromDraft].forEach((thread) => {
+        Threads.get.withArgs(thread.id).returns(thread);
+        Thread.create.withArgs(
+          thread.isDraft ? threadLessDraft : thread
+        ).returns(thread);
+
+        var draft = thread.isDraft ? threadLessDraft : threadDraft;
+
+        this.sinon.stub(thread, 'getDraft').returns(draft);
+
+        InboxView.appendThread(thread);
+
+        var threadNode = document.getElementById('thread-' + thread.id);
+        assert.equal(
+          threadNode.querySelector('.body-text').textContent, draft.content[0]
+        );
+        assert.equal(
+          threadNode.dataset.lastMessageType, draft.type
+        );
+      });
+    });
+
+    test('removes draft from the thread', function() {
+      realThread.getDraft.returns(null);
+
+      Drafts.on.withArgs('deleted').yield(threadDraft);
+
+      var threadNode = document.getElementById('thread-' + realThread.id);
+      assert.equal(
+        threadNode.querySelector('.body-text').textContent,
+        realThread.body
+      );
+      assert.equal(
+        threadNode.dataset.lastMessageType, realThread.lastMessageType
+      );
+    });
+
+    test('removes thread-less draft entirely', function() {
+      Drafts.on.withArgs('deleted').yield(threadLessDraft);
+
+      assert.isNull(document.getElementById('thread-' + threadFromDraft.id));
     });
   });
 });

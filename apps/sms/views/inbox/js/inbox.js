@@ -109,6 +109,9 @@ var InboxView = {
     MessageManager.on('message-received', this.onMessageReceived.bind(this));
     MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
 
+    Drafts.on('deleted', this.onDraftDeleted.bind(this));
+    Drafts.on('saved', this.onDraftSaved.bind(this));
+
     InterInstanceEventDispatcher.on(
       'drafts-changed',
       this.renderDrafts.bind(this, true /* force update */)
@@ -146,7 +149,7 @@ var InboxView = {
     var draftId = node.dataset.draftId;
 
     var threadOrDraft = draftId ?
-      Drafts.byDraftId(+draftId) : Threads.get(threadId);
+      Drafts.byDraftId(+draftId) : Threads.get(+threadId);
 
     if (!threadOrDraft) {
       throw new Error('Thread node is invalid!');
@@ -376,7 +379,7 @@ var InboxView = {
 
   markReadUnread: function inbox_markReadUnread(selected, isRead) {
     selected.forEach((id) => {
-      var thread = Threads.get(id);
+      var thread = Threads.get(+id);
 
       var markable = thread && !thread.isDraft &&
         (isRead || !thread.getDraft());
@@ -973,7 +976,21 @@ var InboxView = {
     }
   },
 
-  onDraftSaved: function inbox_onDraftSaved() {
+  onDraftDeleted: function inbox_onDraftDeleted(draft) {
+    var thread = Threads.get(draft.threadId || draft.id);
+    if (thread.isDraft) {
+      this.removeThread(thread.id);
+    } else {
+      this.updateThread(thread);
+    }
+  },
+
+  onDraftSaved: function inbox_onDraftSaved(draft) {
+    var threadToUpdate = draft.threadId ? Threads.get(draft.threadId) : draft;
+    this.updateThread(threadToUpdate);
+  },
+
+  showDraftSavedBanner: function() {
     this.draftSavedBanner.classList.remove('hide');
 
     clearTimeout(this.timeouts.onDraftSaved);

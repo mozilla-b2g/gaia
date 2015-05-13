@@ -37,7 +37,6 @@ var MockConversationView = {
   on: function() {},
   initSentAudio: function() {},
   getIdIterator: function() {},
-  getSelectedInputs: function() {},
   messageComposerInputHandler: function() {},
   assimilateRecipients: function() {},
   resizeHandler: function() {},
@@ -67,7 +66,6 @@ var MockConversationView = {
   startEdit: function() {},
   delete: function() {},
   cancelEdit: function() {},
-  chooseMessage: function() {},
   updateSelectionStatus: function() {},
   handleMessageClick: function() {},
   handleEvent: function() {},
@@ -89,7 +87,6 @@ var MockConversationView = {
   prompt: function() {},
   saveDraft: function() {},
   discardDraft: function() {},
-  onCreateContact: function() {},
   isShowMessageErrorCalledTimes: 0,
   showMessageError: function() {
     this.isShowMessageErrorCalledTimes += 1;
