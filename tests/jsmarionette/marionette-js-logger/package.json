@@ -14,7 +14,6 @@
 
   "dependencies": {
     "debug": "2.2.0",
-    "empty-port": "0.0.x",
-    "websocket": "1.0.x"
+    "empty-port": "0.0.x"
   }
 }
