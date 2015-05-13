@@ -89,8 +89,10 @@ suite('system/LockScreenWindowManager', function() {
       var app = new window.MockLockScreenWindow();
       subject.states.instance = app;
       this.sinon.stub(app, 'isActive').returns(true);
+      this.sinon.stub(subject, 'publish');
       subject.closeApp();
-      assert.isFalse(subject.elements.screen.classList.contains('locked'));
+      assert.isTrue(subject.publish.calledWith(
+        subject.EVENT_PREFIX + '-deactivated'));
     });
 
     test('Should be active if the instance is active', function() {
@@ -147,16 +149,6 @@ suite('system/LockScreenWindowManager', function() {
         window.assert.isObject(subject
           .states.instance,
         'the app was not registered in the maanger');
-      subject.unregisterApp(appFake);
-    });
-
-    test('App close', function() {
-      this.sinon.stub(subject, 'publish');
-      subject.handleEvent(
-        { type: 'lockscreen-appclose',
-          detail: appFake });
-      assert.isTrue(subject.publish
-        .calledWith('lockscreenwindowmanager-deactivated'));
       subject.unregisterApp(appFake);
     });
 
