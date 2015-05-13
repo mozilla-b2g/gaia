@@ -121,12 +121,9 @@ suite('system/CallscreenWindow', function() {
       test('it should open the call screen and force a hashchange',
       function() {
         var callscreen = new CallscreenWindow();
-        this.sinon.stub(callscreen, 'show');
         callscreen.ensure();
         assert.equal(CSORIGIN + 'index.html#&timestamp=0',
                      callscreen.browser.element.src);
-        assert.isTrue(callscreen.show.calledOnce,
-          'AttentionWindow#show called.');
       });
     });
 
@@ -141,12 +138,9 @@ suite('system/CallscreenWindow', function() {
 
       test('it should open the call screen on #locked', function() {
         var callscreen = new CallscreenWindow();
-        this.sinon.stub(callscreen, 'show');
         callscreen.ensure();
         assert.equal(CSORIGIN + 'index.html#locked&timestamp=0',
                      callscreen.browser.element.src);
-        assert.isTrue(callscreen.show.calledOnce,
-          'AttentionWindow#show called.');
       });
     });
   });

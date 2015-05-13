@@ -445,14 +445,11 @@
       Service.request('unregisterHierarchy', this);
     },
 
-    '_handle_system-resize': function(evt) {
+    '_handle_system-resize': function() {
       if (this._activeApp) {
         this.debug(' Resizing ' + this._activeApp.name);
         if (!this._activeApp.isTransitioning()) {
-          var p = this._activeApp.resize();
-          if (typeof evt.detail.waitUntil === 'function') {
-            evt.detail.waitUntil(p);
-          }
+          this._activeApp.resize();
           return false;
         }
       }

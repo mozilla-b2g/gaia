@@ -209,7 +209,7 @@
   HomescreenWindow.prototype.resize = function aw_resize() {
     this.debug('request RESIZE...');
     this.debug(' will resize... ');
-    return this._resize();
+    this._resize();
   };
 
   /**

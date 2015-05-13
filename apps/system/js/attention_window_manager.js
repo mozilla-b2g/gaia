@@ -68,12 +68,9 @@
       return true;
     },
 
-    '_handle_system-resize': function(evt) {
+    '_handle_system-resize': function() {
       if (this._topMostWindow) {
-        var p = this._topMostWindow.resize();
-        if (typeof evt.detail.waitUntil === 'function') {
-          evt.detail.waitUntil(p);
-        }
+        this._topMostWindow.resize();
         return false;
       }
       return true;

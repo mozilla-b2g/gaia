@@ -1,7 +1,7 @@
 'use strict';
 
 /* global applications, InputWindow, SettingsListener, KeyboardManager,
-   Service, Promise */
+   Service */
 
 (function(exports) {
 
@@ -100,6 +100,7 @@
       this._oopSettingCallbackBind);
 
     window.addEventListener('input-appopened', this);
+    window.addEventListener('input-appclosing', this);
     window.addEventListener('input-appclosed', this);
     window.addEventListener('input-apprequestclose', this);
     window.addEventListener('input-appready', this);
@@ -132,6 +133,7 @@
     this._oopSettingCallbackBind = null;
 
     window.removeEventListener('input-appopened', this);
+    window.removeEventListener('input-appclosing', this);
     window.removeEventListener('input-appclosed', this);
     window.removeEventListener('input-apprequestclose', this);
     window.removeEventListener('input-appready', this);
@@ -181,6 +183,13 @@
             this._lastWindow.close('immediate');
           }
           this._lastWindow = null;
+        }
+        break;
+      case 'input-appclosing':
+        // for closing/closed events, make sure we don't have any displayed
+        // InputWindow, to send out this system-wide event.
+        if (!this._currentWindow) {
+          this._kbPublish('keyboardhide', undefined);
         }
         break;
       case 'input-appclosed':
@@ -400,9 +409,6 @@
       nextWindow = this._makeInputWindow(configs);
     }
 
-    // Prevent any pending async hideInputWindow from being triggered.
-    this._inputWindowToHide = false;
-
     if (this._currentWindow && nextWindow !== this._currentWindow) {
       // we have some displayed InputWindow and the new window is a different IW
       // let the new one show immediately, and this._lastWindow will also be
@@ -425,22 +431,9 @@
       return;
     }
 
-    // Set this flag so showInputWindow can cancel us.
-    this._inputWindowToHide = true;
-
-    // First we publish an keyboardhide event that would cause the
-    // foreground app to resize.
-    return this._kbPublish('keyboardhide', undefined)
-      .then(function iwm_hideInputWindowSync() {
-        if (!this._inputWindowToHide) {
-          return;
-        }
-
-        var windowToClose = this._currentWindow;
-        this._currentWindow = null;
-        windowToClose.close();
-      }.bind(this))
-      .catch((e) => { console.error(e); });
+    var windowToClose = this._currentWindow;
+    this._currentWindow = null;
+    windowToClose.close();
   };
 
   InputWindowManager.prototype.hideInputWindowImmediately =
@@ -449,10 +442,12 @@
       return;
     }
 
-    this._kbPublish('keyboardhide', undefined);
-
     var windowToClose = this._currentWindow;
     this._currentWindow = null;
+
+    // simulate anything we would do in 'closing' event
+    this._kbPublish('keyboardhide', undefined);
+
     windowToClose.close('immediate');
   };
 
@@ -463,35 +458,13 @@
 
   // As per bug 952441, we want to use a special way to broadcast system-wide
   // keyboard-related events
-  // This function returns a promise and it will only resolves when all
-  // promises passed into evt.detail.waitUntil() is resolved.
   InputWindowManager.prototype._kbPublish =
-  function iwm_kbPublish(type, height) {
-    var chainedPromise = Promise.resolve();
-    var returned = false;
-
+  function iwm_kbPublish(type, height){
     var eventInitDict = {
       bubbles: true,
       cancelable: true,
       detail: {
-        height: height,
-        waitUntil: function(p) {
-          // Need an extra protection here since waitUntil will be an no-op
-          // when chainedPromise is already returned.
-          if (returned) {
-            throw new Error('InputWindowManager: You must call waitUntil()' +
-              ' within the event handling loop.');
-          }
-
-          // No point to put it into the queue if it's not a then-able.
-          if (!p || typeof p.then !== 'function') {
-            return;
-          }
-
-          chainedPromise = chainedPromise
-            .then(function() { return p; })
-            .catch((e) => { console.error(e); });
-        }
+        height: height
       }
     };
 
@@ -499,9 +472,6 @@
     // them and prevent page resizing where desired.
     var evt = new CustomEvent(type, eventInitDict);
     document.body.dispatchEvent(evt);
-
-    returned = true;
-    return chainedPromise;
   };
 
   exports.InputWindowManager = InputWindowManager;

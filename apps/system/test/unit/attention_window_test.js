@@ -1,4 +1,4 @@
-/* globals AttentionWindow, MocksHelper, MockApplications,
+/* globals AttentionWindow, MocksHelper, AppWindow, MockApplications,
            MockL10n, MockLayoutManager, MockManifestHelper, BaseModule,
            MockContextMenu */
 'use strict';
@@ -28,7 +28,14 @@ suite('system/AttentionWindow', function() {
     'url': 'app://fakeatt.gaiamobile.org/pick.html',
     'manifestURL': 'app://fakeatt.gaiamobile.org/manifest.webapp',
     iframe: document.createElement('iframe'),
-    origin: 'app://fakeatt.gaiamobile.org',
+    origin: 'app://fakeatt.gaiamobile.org'
+  };
+  var fakeAppConfig = {
+    iframe: document.createElement('iframe'),
+    frame: document.createElement('div'),
+    origin: 'http://fake',
+    url: 'http://fakeurl/index.html',
+    manifestURL: 'app://fakeatt.gaiamobile.org/manifest.webapp',
     name: 'fake',
     manifest: {
       orientation: 'default',
@@ -41,7 +48,7 @@ suite('system/AttentionWindow', function() {
   setup(function(done) {
     realLayoutManager = window.layoutManager;
     window.layoutManager = new MockLayoutManager();
-    MockApplications.mRegisterMockApp(fakeAttentionConfig);
+    MockApplications.mRegisterMockApp(fakeAppConfig);
     realApplications = window.applications;
     window.applications = MockApplications;
     realL10n = navigator.mozL10n;
@@ -76,17 +83,19 @@ suite('system/AttentionWindow', function() {
   });
 
   suite('attention window instance.', function() {
+    var app;
+    setup(function() {
+      app = new AppWindow(fakeAppConfig);
+    });
+
     test('show()', function() {
-      var attention = new AttentionWindow(fakeAttentionConfig);
-      this.sinon.stub(attention, '_resize');
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
       attention.show();
       assert.equal(attention.element.style.width, '');
-      assert.isTrue(attention._resize.calledOnce, '_resize called.');
     });
 
     test('show should re-translate the fake notification', function() {
-      var attention = new AttentionWindow(fakeAttentionConfig);
-      this.sinon.stub(attention, '_resize');
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
       MockManifestHelper.prototype.name = 'translated';
       this.sinon.clock.tick(); // l10n ready
       assert.equal(attention.notificationTitle.textContent, 'translated');
@@ -99,27 +108,27 @@ suite('system/AttentionWindow', function() {
     });
 
     test('clear the fake notification node when removed.', function() {
-      var attention = new AttentionWindow(fakeAttentionConfig);
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
       attention.destroy();
       assert.isNull(attention.notification);
     });
 
     test('make a fake notification', function() {
-      var attention = new AttentionWindow(fakeAttentionConfig);
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
       assert.isNotNull(attention.notification);
       assert.isTrue(attention.notification.classList
                     .contains('attention-notification'));
     });
 
     test('translate the fake notification', function() {
-      var attention = new AttentionWindow(fakeAttentionConfig);
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
       MockManifestHelper.prototype.name = 'translated';
       this.sinon.clock.tick(); // l10n ready
       assert.equal(attention.notificationTitle.textContent, 'translated');
     });
 
     test('ready', function() {
-      var attention = new AttentionWindow(fakeAttentionConfig);
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
       var callback1 = this.sinon.spy();
       attention.loaded = false;
       attention.ready(callback1);
@@ -139,7 +148,7 @@ suite('system/AttentionWindow', function() {
 
     test('_languagechange should re-translate the fake notification',
     function() {
-      var attention = new AttentionWindow(fakeAttentionConfig);
+      var attention = new AttentionWindow(fakeAttentionConfig, app);
       MockManifestHelper.prototype.name = 'translated';
       this.sinon.clock.tick(); // l10n ready
       assert.equal(attention.notificationTitle.textContent, 'translated');
