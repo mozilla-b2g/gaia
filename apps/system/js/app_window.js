@@ -1242,12 +1242,11 @@
   AppWindow.prototype._showScreenshotOverlay =
     function aw__showScreenshotOverlay() {
       if (this.frontWindow && this.frontWindow.isActive()) {
-        this.frontWindow._showScreenshotOverlay();
-        return;
+        return this.frontWindow._showScreenshotOverlay();
       }
       if (!this.screenshotOverlay ||
           this.screenshotOverlay.classList.contains('visible')) {
-        return;
+        return Promise.resolve();
       }
       if (this.identificationOverlay) {
         this.element.classList.add('overlay');
