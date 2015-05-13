@@ -94,11 +94,15 @@ define(function(require) {
      * @access public
      */
     clear: function() {
-      this._elements.errorMsg.hidden = true;
+      this._elements.errorMsgHeader.textContent = '';
+      this._elements.errorMsgBody.textContent = '';
+      this._elements.triesLeftMsg.textContent = '';
       this._elements.pinInput.value = '';
       this._elements.pukInput.value = '';
       this._elements.newPinInput.value = '';
       this._elements.confirmPinInput.value = '';
+      this._elements.errorMsg.hidden = true;
+      this._elements.triesLeftMsg.hidden = true;
     },
 
     /**
