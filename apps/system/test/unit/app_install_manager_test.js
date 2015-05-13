@@ -15,6 +15,7 @@ require('/js/input_window_manager.js');
 require('/js/service.js');
 
 require('/shared/js/tagged.js');
+require('/shared/js/homescreens/confirm_dialog_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
@@ -553,6 +554,38 @@ suite('system/AppInstallManager >', function() {
             assert.equal(null, AppInstallManager.installCancelCallback);
           });
         });
+      });
+    });
+
+    suite('webapps-ask-uninstall >', function() {
+      var evt;
+      setup(function() {
+        this.sinon.stub(ConfirmDialogHelper.prototype, 'show');
+
+        evt = new MockChromeEvent({
+          type: 'webapps-ask-uninstall',
+          id: 42,
+          app: {
+            manifest: {
+              name: 'Fake app',
+              developer: {
+                name: 'Fake dev',
+                url: 'http://fakesoftware.com'
+              }
+            }
+          }
+        });
+      });
+
+      test('should show the confirm dialog', function() {
+        AppInstallManager.handleAppUninstallPrompt(evt.detail);
+        sinon.assert.calledOnce(ConfirmDialogHelper.prototype.show);
+      });
+
+      test('should not show the confirm dialog for themes', function() {
+        evt.detail.app.manifest.role = 'theme';
+        AppInstallManager.handleAppUninstallPrompt(evt.detail);
+        sinon.assert.notCalled(ConfirmDialogHelper.prototype.show);
       });
     });
   });
