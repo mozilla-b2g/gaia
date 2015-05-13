@@ -51,3 +51,8 @@ class TestLaunchApp(GaiaTestCase):
         self.homescreen.installed_app(self.test_data['name']).tap_icon()
         Wait(self.marionette).until(
             lambda m: m.title == self.test_data['title'])
+
+    def tearDown(self):
+        self.apps.uninstall(self.test_data['name'])
+
+        GaiaTestCase.tearDown(self)
