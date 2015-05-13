@@ -365,17 +365,5 @@ suite('system/Card', function() {
       var expected = 'translateX(100px)';
       assert.equal(style.transform, expected);
     });
-
-    test('but trick gecko by always keeping it barely in the viewport',
-    function() {
-      this.card.move(400, 0);
-      var style = this.card.element.style;
-      var expected = 'translateX(236.799px)';
-      assert.equal(style.transform, expected);
-
-      var dataset = this.card.element.dataset;
-      assert.equal(dataset.positionX, 400);
-      assert.equal(dataset.keepLayerDelta, 163.201);
-    });
   });
 });
