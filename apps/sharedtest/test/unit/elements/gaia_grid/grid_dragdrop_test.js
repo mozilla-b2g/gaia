@@ -145,6 +145,16 @@ suite('GaiaGrid > DragDrop', function() {
     assert.isFalse(firstBookmark.classList.contains('active'));
   });
 
+  test('long-press listener not activated during dragging', function() {
+    grid.dragdrop.icon = grid.items[0];
+    grid.dragdrop.handleEvent({
+      type: 'touchstart',
+      touches: [ { pageX: 0, pageY: 0, screenX: 0, screenY: 0 } ],
+      target: grid.items[0].element
+    });
+    assert.equal(grid.dragdrop.longPressTimeout, null);
+  });
+
   test('rearrange uses reference of icon for position', function() {
     var subject = grid.dragdrop;
     subject.icon = grid.items[0];
