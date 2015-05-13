@@ -382,7 +382,7 @@ suite('system/NotificationScreen >', function() {
       var detail = {icon: imgpath,
                     title: 'title',
                     detail: 'detail',
-                    dir: dir};
+                    bidi: dir};
       NotificationScreen.addNotification(detail);
       assert.equal(dir, toaster.dir);
       var notificationNode =

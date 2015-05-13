@@ -417,8 +417,8 @@ var NotificationScreen = {
      * which creates a UI mess we can't control by changing
      * the system language.
      */
-    var dir = (detail.dir === 'auto' || typeof detail.dir === 'undefined') ?
-      document.documentElement.dir : detail.dir;
+    var dir = (detail.bidi === 'auto' || typeof detail.bidi === 'undefined') ?
+      document.documentElement.dir : detail.bidi;
 
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
@@ -431,7 +431,7 @@ var NotificationScreen = {
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
     notificationNode.lang = detail.lang;
-    notificationNode.dataset.predefinedDir = detail.dir;
+    notificationNode.dataset.predefinedDir = detail.bidi;
 
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
@@ -494,7 +494,7 @@ var NotificationScreen = {
       // but we still need to update type, lang and dir.
       oldNotif.dataset.type = type;
       oldNotif.lang = detail.lang;
-      oldNotif.dataset.predefinedDir = detail.dir;
+      oldNotif.dataset.predefinedDir = detail.bidi;
 
       notificationNode = oldNotif;
     } else {

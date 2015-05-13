@@ -71,7 +71,7 @@
     if (detailsA.lang && detailsB.lang !== detailsA.lang) {
       return false;
     }
-    if (detailsA.dir && detailsB.dir !== detailsA.dir) {
+    if (detailsA.bidi && detailsB.bidi !== detailsA.bidi) {
       return false;
     }
     return true;
