@@ -119,9 +119,6 @@
     if (detailsA.lang && detailsB.lang !== detailsA.lang) {
       return false;
     }
-    if (detailsA.bidi && detailsB.bidi !== detailsA.bidi) {
-      return false;
-    }
     if (detailsA.dir && detailsB.dir !== detailsA.dir) {
       return false;
     }
