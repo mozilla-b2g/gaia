@@ -53,6 +53,11 @@ suite('system/AppChrome', function() {
     stubById.restore();
   });
 
+  var fakeActivityConfig = {
+    url: 'http://google.com/index.html',
+    origin: 'app://google.com'
+  };
+
   var fakeWebSite = {
     url: 'http://google.com/index.html',
     origin: 'app://google.com',
@@ -163,6 +168,12 @@ suite('system/AppChrome', function() {
       chrome.handleEvent({ type: '_securitychange' });
       assert.isTrue(stubHandleSecurityChanged.called);
       assert.equal(chrome.sslIndicator.dataset.ssl, 'broken');
+    });
+
+    test('Activities should use combined chrome', function() {
+      var app = new AppWindow(fakeActivityConfig);
+      var chrome = new AppChrome(app);
+      assert.isTrue(chrome.useCombinedChrome());
     });
   });
 
