@@ -148,3 +148,61 @@ then
 fi
 
 echo "No errors - committing"
+
+############################# locale check #####################################
+locales_changed_files=`git diff --staged --name-only --diff-filter=ACMRT | grep '\.properties$'`
+if [ -n "$locales_changed_files" ]
+then
+  updatedL10nIds=()
+  needToHintDevelopers=0
+
+  for file in $locales_changed_files ; do
+    grepRuleForAddition="^[+].*=.*"
+    grepRuleForDeletion="^[-].*=.*"
+
+    addition_locale_ids=()
+    deletion_locale_ids=()
+
+    addition_lines=($(git diff HEAD $file | grep $grepRuleForAddition | tr -d ' '))
+    deletion_lines=($(git diff HEAD $file | grep $grepRuleForDeletion | tr -d ' '))
+
+    for each_addition_line in "${addition_lines[@]}"
+    do
+      if [[ "$each_addition_line" =~ ^[+-](.*)= ]]
+      then
+        addition_locale_ids+=(${BASH_REMATCH[1]})
+      fi
+    done
+
+    for each_deletion_line in "${deletion_lines[@]}"
+    do
+      if [[ "$each_deletion_line" =~ ^[+-](.*)= ]]
+      then
+        deletion_locale_ids+=(${BASH_REMATCH[1]})
+      fi
+    done
+
+    # final compare
+    for eachAdditionId in "${addition_locale_ids[@]}"
+    do
+      for eachDeletionId in "${deletion_locale_ids[@]}"
+      do
+        if [[ "$eachAdditionId" =~ "$eachDeletionId" ]]
+        then
+          needToHintDevelopers=1
+          updatedL10nIds+=($eachAdditionId)
+        fi
+      done
+    done
+  done
+
+  if [ $needToHintDevelopers -ne 0 ]
+  then
+    echo "[NOTE] You are updating the same translation under these locale ids :"
+    for eachL10nId in "${updatedL10nIds[@]}"
+    do
+      echo "Updated id : $eachL10nId"
+    done
+    echo "Please double check whether you should introduce a new locale id or not."
+  fi
+fi
