@@ -75,9 +75,9 @@ ul li > a > span {
 ul li.active a,
 ul li.active span,
 ul li:not([aria-disabled="true"]) > small + a:active,
-ul li:not([aria-disabled="true"]) > a[href]:active,
+ul li:not([aria-disabled="true"]) > a:active,
 ul li:not([aria-disabled="true"]) > small + a:focus,
-ul li:not([aria-disabled="true"]) > a[href]:focus {
+ul li:not([aria-disabled="true"]) > a:focus {
   background-color: #b2f2ff;
   color: #222;
 }
