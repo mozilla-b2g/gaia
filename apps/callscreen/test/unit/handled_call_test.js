@@ -304,6 +304,7 @@ suite('dialer/handled_call', function() {
       this.sinon.spy(AudioCompetingHelper, 'compete');
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
+      this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
       mockCall._connect();
     });
 
@@ -364,6 +365,10 @@ suite('dialer/handled_call', function() {
 
     test('the merge and on hold buttons status is updated', function() {
       sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
+    });
+
+    test('the mute and speaker buttons\' status is updated', function() {
+      sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
     });
 
     test('AudioCompetingHelper compete gets called when connected', function() {
@@ -472,6 +477,12 @@ suite('dialer/handled_call', function() {
         sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
       });
 
+      test('the mute and speaker buttons\' status is updated', function() {
+        this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
+        mockCall._disconnect();
+        sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
+      });
+
       test('AudioCompetingHelper leaveCompetition gets called on disconnected',
         function() {
           this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
@@ -512,6 +523,7 @@ suite('dialer/handled_call', function() {
     setup(function() {
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
+      this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
       this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
       mockCall._hold();
     });
@@ -534,12 +546,18 @@ suite('dialer/handled_call', function() {
       // Call passes through the 'holding' and 'held' states.
       sinon.assert.calledTwice(MockCallsHandler.updateMergeAndOnHoldStatus);
     });
+
+    test('the mute and speaker buttons status is updated', function() {
+      // Call passes through the 'holding' and 'held' states.
+      sinon.assert.calledTwice(MockCallsHandler.updateMuteAndSpeakerStatus);
+    });
   });
 
   suite('resuming', function() {
     setup(function() {
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
+      this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
       mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
       MockCallScreen.mEnableKeypadCalled = false;
@@ -569,6 +587,11 @@ suite('dialer/handled_call', function() {
       // Call passes through the 'holding', 'held', 'resuming' and 'connected'
       //  states.
       sinon.assert.callCount(MockCallsHandler.updateMergeAndOnHoldStatus, 4);
+    });
+
+    test('the mute and speaker buttons status is updated', function() {
+      // Call passes through the 'holding' and 'held' states.
+      sinon.assert.callCount(MockCallsHandler.updateMuteAndSpeakerStatus, 4);
     });
   });
 
