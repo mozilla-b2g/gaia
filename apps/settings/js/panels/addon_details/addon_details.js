@@ -124,9 +124,9 @@ define(function(require) {
     var l10n = navigator.mozL10n;
 
     l10n.setAttributes(
-      this._elements.header, 'addon-details-header', appnameArgs);
+      this._elements.header, 'addon-details-header1', appnameArgs);
     l10n.setAttributes(
-      this._elements.name, 'addon-details-header', appnameArgs);
+      this._elements.name, 'addon-details-header1', appnameArgs);
     // Put text description for an icon
     l10n.setAttributes(this._elements.icon, 'accessible-app-icon', appnameArgs);
   };
