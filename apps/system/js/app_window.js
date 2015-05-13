@@ -1595,8 +1595,6 @@
      */
     this.publish('resize');
     this.debug('W:', width, 'H:', height);
-
-    return this.waitForNextPaint();
   };
 
   /**
@@ -1623,12 +1621,12 @@
       return;
     }
     if (this.frontWindow) {
-      return Promise.all(
-        [this._resize(), this.frontWindow.resize()]);
+      this._resize();
+      this.frontWindow.resize();
     } else {
       // resize myself if no child.
       this.debug(' will resize... ');
-      return this._resize();
+      this._resize();
     }
   };
 

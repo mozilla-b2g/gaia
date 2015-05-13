@@ -340,26 +340,17 @@ suite('system/LockScreenWindowManager', function() {
         states: {
           instance: {
             isActive: function() { return true; },
-            resize: this.sinon.stub().returns({ stub: 'promise' })
+            resize: this.sinon.stub()
           }
         }
       };
-
-      var stubWaitUntil = this.sinon.stub();
-
       handleEvent.call(mockSubject,
         {
-          type: 'system-resize',
-          detail: {
-            waitUntil: stubWaitUntil
-          }
+          type: 'system-resize'
         });
       assert.isTrue(
         mockSubject.states.instance.resize.called,
         'it doesn\'t resize the window while system-resize comes');
-      assert.isTrue(stubWaitUntil.calledWith({ stub: 'promise' }),
-        'it doesn\'t pass the promise from the subject to waitUntil() ' +
-        'function.');
     });
 
     test('LockScreen request to unlock without activity detail', function() {

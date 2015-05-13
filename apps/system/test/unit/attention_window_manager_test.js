@@ -255,28 +255,10 @@ suite('system/AttentionWindowManager', function() {
     test('System resize request', function() {
       attentionWindowManager._topMostWindow = att1;
       var stubResize = this.sinon.stub(att1, 'resize');
-      attentionWindowManager.respondToHierarchyEvent({
-        type: 'system-resize',
-        detail: {
-        }
-      });
+      attentionWindowManager.respondToHierarchyEvent(
+        new CustomEvent('system-resize')
+      );
       assert.isTrue(stubResize.called);
-    });
-
-    test('System resize request (w/ waitUntil)', function() {
-      attentionWindowManager._topMostWindow = att1;
-      var p = Promise.resolve();
-      var stubResize =
-        this.sinon.stub(att1, 'resize').returns(p);
-      var stubWaitUntil = this.sinon.stub();
-      attentionWindowManager.respondToHierarchyEvent({
-        type: 'system-resize',
-        detail: {
-          waitUntil: stubWaitUntil
-        }
-      });
-      assert.isTrue(stubResize.called);
-      assert.isTrue(stubWaitUntil.calledWith(p));
     });
 
     test('Home button', function() {

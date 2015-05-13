@@ -143,21 +143,13 @@ suite('system/LayoutManager >', function() {
       assert.isTrue(layoutManager.keyboardEnabled);
     });
 
-    test('keyboardhide (w/ waitUntil() function)', function() {
+    test('keyboardhide', function() {
       var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      var stubWaitUntil = this.sinon.stub();
       layoutManager.handleEvent({
-        type: 'keyboardhide',
-        detail: {
-          waitUntil: stubWaitUntil
-        }
+        type: 'keyboardhide'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
       assert.isFalse(layoutManager.keyboardEnabled);
-
-      var evtDetail = stubPublish.firstCall.args[1];
-      evtDetail.waitUntil({ stub: 'promise' });
-      assert.isTrue(stubWaitUntil.calledWith({ stub: 'promise' }));
     });
 
     test('mozfullscreenchange', function() {

@@ -673,20 +673,11 @@ suite('system/Rocketbar', function() {
       subject.searchWindow.frontWindow = {
         resize: function() {}
       };
-      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize')
-        .returns({ stub: 'promise'});
-      var stubWaitUntil = this.sinon.stub();
-      var evt = new CustomEvent('system-resize', {
-        detail: {
-          waitUntil: stubWaitUntil
-        }
-      });
-
-
-      var stopsPropagation = subject.respondToHierarchyEvent(evt);
+      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
+      var stopsPropagation =
+        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
 
       assert.ok(stub.calledOnce);
-      assert.ok(stubWaitUntil.calledWith({ stub: 'promise' }));
       assert.isFalse(stopsPropagation);
 
       stub.restore();

@@ -24,13 +24,10 @@
      * The use case is for the moment just before we turn on
      * the iframe visibility, so the TIMEOUT isn't too long.
      *
-     * Note: for some reason we intend to use waitForNextPaint now.
+     * Note: for some reason we intend to use ensureFullRepaint now.
      *
      * @param  {Function} callback The callback function to be invoked
      *                             after we get next paint event.
-     *
-     * @return {Object} Promise that resolves when the next paint triggers.
-     *                  The promise never rejects.
      */
     waitForNextPaint: function bm_waitForNextPaint(callback) {
       if (!this.browser || !this.browser.element) {
@@ -42,35 +39,21 @@
       var iframe = this.browser.element;
       var nextPaintTimer;
       var self = this;
-      var resolver;
-      var p = new Promise(function(resolve) {
-        resolver = resolve;
-      });
-
       var onNextPaint = function aw_onNextPaint() {
         self.debug(' nextpainted.');
         iframe.removeNextPaintListener(onNextPaint);
         clearTimeout(nextPaintTimer);
 
-        resolver();
-
-        if (callback) {
-          callback();
-        }
+        callback();
       };
 
       nextPaintTimer = setTimeout(function ifNextPaintIsTooLate() {
         self.debug(' nextpaint is timeouted.');
         iframe.removeNextPaintListener(onNextPaint);
-        resolver();
-        if (callback) {
-          callback();
-        }
+        callback();
       }, this.NEXTPAINT_TIMEOUT);
 
       iframe.addNextPaintListener(onNextPaint);
-
-      return p;
     },
 
     /**
