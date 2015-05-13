@@ -41,6 +41,10 @@ class Marketplace(Base):
         Wait(self.marionette).until(expected.element_displayed(iframe))
         self.marionette.switch_to_frame(iframe)
 
+        # This sleep seems necessary, otherwise on device we get timeout failure on display search_box sometimes, see bug 1136791
+        import time
+        time.sleep(10)
+
         search_box = Wait(self.marionette).until(
             expected.element_present(*self._search_locator))
         Wait(self.marionette).until(expected.element_displayed(search_box))
