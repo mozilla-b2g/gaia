@@ -831,6 +831,16 @@ suite('system/AppWindow', function() {
       assert.isFalse(app2.screenshotOverlay.classList.contains('visible'));
     });
 
+    test('should return promise and resolve directly if the frontest app is' +
+         ' active and its screenshot is visible', function(done) {
+      app1.frontWindow = app2;
+      this.sinon.stub(app2, 'isActive').returns(true);
+      app2.screenshotOverlay.classList.add('visible');
+      app1._showScreenshotOverlay().then(() => {
+        done();
+      });
+    });
+
     test('hideScreenshotOverlay', function() {
       app1.screenshotOverlay.classList.add('visible');
       app1.element.classList.add('overlay');
