@@ -118,9 +118,9 @@
       var self = this;
       // We should wait for lockscreen-appclosed event sent before checking
       // the value of Service.locked in showIfLocked method.
-      window.addEventListener('lockscreen-appclosed',
+      window.addEventListener('lockscreen-appclose',
         function lockscreenOnClosed() {
-          window.removeEventListener('lockscreen-appclosed',
+          window.removeEventListener('lockscreen-appclose',
             lockscreenOnClosed);
           self.showIfLocked();
         });

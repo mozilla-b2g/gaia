@@ -153,7 +153,7 @@ suite('system/LockScreenWindowManager', function() {
     test('App close', function() {
       this.sinon.stub(subject, 'publish');
       subject.handleEvent(
-        { type: 'lockscreen-appclose',
+        { type: 'lockscreen-appclosed',
           detail: appFake });
       assert.isTrue(subject.publish
         .calledWith('lockscreenwindowmanager-deactivated'));
