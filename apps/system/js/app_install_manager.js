@@ -327,8 +327,7 @@ var AppInstallManager = {
     var name = appManifest.displayName;
     var l10nId = appManifest.role === 'langpack' ?
       'langpack-install-success2' : 'app-install-success';
-    this.systemBanner.show(
-      navigator.mozL10n.get(l10nId, { appName: name }));
+    this.systemBanner.show({id: l10nId, args: { appName: name }});
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {
@@ -443,7 +442,6 @@ var AppInstallManager = {
 
   handleDownloadError: function ai_handleDownloadError(evt) {
     var app = evt.application;
-    var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
     var name = new ManifestHelper(manifest).displayName;
 
@@ -462,8 +460,10 @@ var AppInstallManager = {
         console.info('downloadError event, error code is', errorName);
 
         var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
-        var msg = _('app-install-' + key, { appName: name });
-        this.systemBanner.show(msg);
+        this.systemBanner.show({
+          id: 'app-install-' + key,
+          args: { appName: name }
+        });
     }
 
     this.onDownloadStop(app);

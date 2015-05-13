@@ -84,13 +84,13 @@ var CrashReporter = (function() {
 
   function showBanner(crashID, isChrome) {
     var appName = crashedAppName || _('crash-dialog-app-noname');
-    var message = isChrome ? _('crash-banner-os2') :
-      _('crash-banner-app', { name: appName });
+    var message = isChrome ? 'crash-banner-os2' :
+      {id: 'crash-banner-app', args: { name: appName }};
 
     var button = null;
     if (showReportButton) {
       button = {
-        label: _('crash-banner-report'),
+        label: 'crash-banner-report',
         callback: function reportCrash() {
           submitCrash(crashID);
         },

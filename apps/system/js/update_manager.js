@@ -172,11 +172,10 @@ var UpdateManager = {
     if (this._errorTimeout)
       return;
 
-    var _ = navigator.mozL10n.get;
     var self = this;
     this._errorTimeout = setTimeout(function waitForMore() {
       var systemBanner = new SystemBanner();
-      systemBanner.show(_('downloadError'));
+      systemBanner.show('downloadError');
       self._errorTimeout = null;
     }, this.NOTIFICATION_BUFFERING_TIMEOUT);
   },
