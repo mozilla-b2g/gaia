@@ -12,7 +12,6 @@ from gaiatest.apps.email.app import SetupEmail
 
 
 class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
-
     def setUp(self):
         if not GaiaTestEnvironment(self.testvars).email.get('imap'):
             raise SkipTest('IMAP account details not present in test variables.')
@@ -33,11 +32,19 @@ class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
         https://moztrap.mozilla.org/manage/case/6114/
         """
         # setup IMAP account
-        self.email.setup_IMAP_email(self.environment.email['imap'],
-                                    self.environment.email['smtp'])
+        self.setup_IMAP_email(self.environment.email['imap'],
+                              self.environment.email['smtp'])
+
+        # take picture of the menu
+        Wait(self.marionette).until(lambda m: self.email.header.is_menu_visible)
+        self.email.wait_for_emails_to_sync()
+        self.email.header.tap_menu()
+        self.take_screenshot()
+        self.email.header.tap_menu()
 
         _subject = 'Testing Images'
         _body = 'The quick brown fox jumps over the lazy dog ~!@#$#%^&*)(_+ <>?,./:";[]{}\\'
+        Wait(self.marionette).until(lambda m: self.email.header.is_compose_visible)
         new_email = self.email.header.tap_compose()
         self.take_screenshot()
 
@@ -49,7 +56,7 @@ class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
         # Commented out due to Bug 1131095
         # Exit to homescreen
         # self.device.touch_home_button()
-        #self.email.launch()
+        # self.email.launch()
 
         self.email = new_email.tap_send()
 
@@ -60,13 +67,6 @@ class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
         read_email = self.email.tap_email_subject(_subject)
         Wait(self.marionette, timeout = 20).until(
             lambda m: _subject == read_email.subject)
-        self.take_screenshot()
-
-        read_email.tap_star_button()
-        self.take_screenshot()
-
-        read_email.tap_mark_button()
-        self.take_screenshot()
 
         read_email.tap_move_button()
         self.take_screenshot()
@@ -75,7 +75,6 @@ class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
         read_email.tap_reply_button()
         self.take_screenshot()
         read_email.cancel_reply()
-        self.take_screenshot()
 
         # delete the message to avoid using stale message in future runs
         read_email.tap_delete_button()
