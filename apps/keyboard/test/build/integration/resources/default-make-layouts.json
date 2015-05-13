@@ -919,6 +919,19 @@
     "preloaded": true
   },
   {
+      "id": "yo",
+      "name": "Yorùbá",
+      "imEngineId": "latin",
+      "types": [
+	"email",
+	"password",
+	"text",
+	"url"
+      ],
+      "dictFileSize": 1402,
+      "preloaded": true
+  },
+  {
     "id": "zh-Hans-Pinyin",
     "name": "拼音",
     "imEngineId": "jspinyin",
