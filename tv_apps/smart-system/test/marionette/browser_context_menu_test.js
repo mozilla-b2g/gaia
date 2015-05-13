@@ -21,6 +21,14 @@ marionette('Test Context Menu Events', function() {
         width: 1920,
         height: 1080
       }
+    },
+    prefs: {
+      'b2g.system_startup_url':
+        'app://smart-system.gaiamobile.org/index.html',
+      'b2g.system_manifest_url':
+        'app://smart-system.gaiamobile.org/manifest.webapp',
+      'b2g.neterror.url':
+        'app://smart-system.gaiamobile.org/net_error.html'
     }
   };
 
