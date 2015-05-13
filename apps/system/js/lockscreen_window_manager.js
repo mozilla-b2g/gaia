@@ -57,7 +57,7 @@
       listens: ['lockscreen-request-unlock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
-                'lockscreen-appclose',
+                'lockscreen-appclosed',
                 'screenchange',
                 'system-resize',
                 'ftuopen',
@@ -167,7 +167,7 @@
           app = evt.detail;
           this.unregisterApp(app);
           break;
-        case 'lockscreen-appclose':
+        case 'lockscreen-appclosed':
           this.publish(this.EVENT_PREFIX + '-deactivated', this);
           break;
         case 'secure-appclosed':
