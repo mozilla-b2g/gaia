@@ -33,3 +33,4 @@ dev_apps/theme-test-3
 dev_apps/nfc-api-test
 apps/settings/test/fixtures/addon1
 apps/settings/test/fixtures/addon2
+tv_apps/smart-system

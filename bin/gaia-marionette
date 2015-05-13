@@ -59,21 +59,21 @@ fi
 if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
     if [ -z "$SKIP_TEST_FILES" ]; then
-      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
+      TEST_FILES=$(find $DIR/.. -path "*/tv_apps/*/test/marionette/*_test.js" \
                             -or -path "*/dev_apps/*/test/marionette/*_test.js" \
                             -or -path "*/tests/integration/*/*_test.js")
     else
-      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+      TEST_FILES=$(find $DIR/.. -path "*/tv_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
     fi
   else
     if [ -z "$SKIP_TEST_FILES" ]; then
-      TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
+      TEST_FILES=$(find $DIR/.. -path "*/tv_apps/$APP/test/marionette/*_test.js" \
                             -or -path "*/dev_apps/$APP/test/marionette/*_test.js" \
                             -or -path "*/tests/integration/$APP/*_test.js")
     else
-      TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+      TEST_FILES=$(find $DIR/.. -path "*/tv_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/dev_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/tests/integration/$APP/*_test.js" $SKIP_TEST_FILES)
     fi
