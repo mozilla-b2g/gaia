@@ -145,9 +145,6 @@ NotificationList.prototype = {
       if (details.lang && notification.lang !== details.lang) {
         continue;
       }
-      if (details.bidi && notification.bidi !== details.bidi) {
-        continue;
-      }
       if (details.dir && notification.dir !== details.dir) {
         continue;
       }
