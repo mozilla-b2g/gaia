@@ -15,6 +15,7 @@ define(function(require) {
     this._localize = l10n.setAttributes;
     this._elements = elements;
     this._method = '';
+    this._mode = '';
     this._cardIndex = 0;
     this._pinOptions = {};
     this._allowedRetryCounts = {
@@ -431,6 +432,7 @@ define(function(require) {
      * @access private
      */
     _setMode: function(mode) {
+      this._mode = mode;
       this._elements.pinArea.hidden = (mode === 'puk');
       this._elements.pukArea.hidden = (mode !== 'puk');
       this._elements.newPinArea.hidden =
@@ -493,10 +495,46 @@ define(function(require) {
 
       inputs.forEach((inputName) => {
         var input = elements[inputName];
-        input.oninput = function() {
-          elements.dialogDone.disabled = (this.value.length < 4);
+        input.oninput = () => {
+          this._updateDoneButtonState();
         };
       });
+    },
+
+    /**
+     * We have to control `done` button in each condition to make sure
+     * its state is right based on user's input
+     *
+     * @memberOf SimPinDialog
+     * @access private
+     */
+    _updateDoneButtonState: function() {
+      var elements = this._elements;
+      switch (this._mode) {
+        case 'change_pin':
+          if (elements.pinInput.value.length < 4 ||
+            elements.newPinInput.value.length < 4 ||
+            elements.confirmPinInput.value.length < 4 ||
+            elements.newPinInput.value.length !==
+            elements.confirmPinInput.value.length) {
+              elements.dialogDone.disabled = true;
+          } else {
+            elements.dialogDone.disabled = false;
+          }
+          break;
+
+        case 'pin':
+          elements.dialogDone.disabled = (elements.pinInput.value.length < 4);
+          break;
+
+        case 'puk':
+          elements.dialogDone.disabled = (elements.pukInput.value.length < 4);
+          break;
+
+        default:
+          console.error('we should not jump to this condition');
+          break;
+      }
     },
 
     /**
@@ -571,7 +609,7 @@ define(function(require) {
           break;
 
         case 'change_pin':
-          this._setMode('new');
+          this._setMode('change_pin');
           this._localize(this._elements.pinArea.querySelector('div'),
             'simPin');
           this._localize(this._elements.newPinArea.querySelector('div'),
@@ -600,7 +638,7 @@ define(function(require) {
 
         case 'change_pin2':
           lockType = 'pin2';
-          this._setMode('new');
+          this._setMode('change_pin');
           this._localize(this._elements.pinArea.querySelector('div'),
             'simPin2');
           this._localize(this._elements.newPinArea.querySelector('div'),
