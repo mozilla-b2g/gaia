@@ -47,6 +47,10 @@ define(function(require) {
       }
     },
 
+    updateInfo: function as_updateInfo() {
+      this._getSpaceInfo();
+    },
+
     _attachListeners: function as_attachListeners() {
       this._appStorage.addEventListener('change', this);
     },
