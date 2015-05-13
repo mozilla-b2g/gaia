@@ -7,6 +7,10 @@
 
     get: stringify,
 
+    formatValue: function(id, args) {
+      return Promise.resolve(stringify(id, args));
+    },
+
     translateFragment: function() {},
 
     // XXX Remove in https://bugzil.la/1020137
