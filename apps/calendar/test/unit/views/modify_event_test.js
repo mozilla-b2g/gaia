@@ -966,7 +966,7 @@ suite('views/modify_event', function() {
       var allday = subject.getEl('allday');
       allday.checked = isAllDay;
       subject.event.isAllDay = isAllDay;
-      subject.updateAlarms(isAllDay, function() {
+      subject.updateAlarms(isAllDay).then(() => {
         var allAlarms = subject.alarmList.querySelectorAll('select');
         assert.equal(allAlarms.length, 2);
 
@@ -992,7 +992,7 @@ suite('views/modify_event', function() {
 
     test('populated with no existing alarms', function(done) {
       subject.event.alarms = [];
-      subject.updateAlarms(true, function() {
+      subject.updateAlarms(true).then(() => {
         var allAlarms = subject.alarmList.querySelectorAll('select');
         assert.equal(allAlarms.length, 2);
         assert.equal(allAlarms[0].value, defaultAllDayAlarm);
@@ -1005,7 +1005,7 @@ suite('views/modify_event', function() {
       subject.event.alarms = [
         {trigger: -300}
       ];
-      subject.updateAlarms(true, function() {
+      subject.updateAlarms(true).then(() => {
         var allAlarms = subject.alarmList.querySelectorAll('select');
         assert.equal(allAlarms.length, 2);
         assert.equal(allAlarms[0].value, -300);
@@ -1019,7 +1019,7 @@ suite('views/modify_event', function() {
       subject.isSaved = function() {
         return true;
       };
-      subject.updateAlarms(true, function() {
+      subject.updateAlarms(true).then(() => {
         var allAlarms = subject.alarmList.querySelectorAll('select');
         assert.equal(allAlarms.length, 1);
         assert.equal(allAlarms[0].value, 'none');
@@ -1065,7 +1065,7 @@ suite('views/modify_event', function() {
           var allday = subject.getEl('allday');
           allday.checked = isAllDay;
           subject.event.isAllDay = isAllDay;
-          subject.updateAlarms(isAllDay, function() {
+          subject.updateAlarms(isAllDay).then(() => {
             var allAlarms = subject.alarmList.querySelectorAll('select');
             var firstSelect = allAlarms[0];
             assert.ok(firstSelect);
