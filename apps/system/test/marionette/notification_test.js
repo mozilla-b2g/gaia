@@ -51,7 +51,7 @@ marionette('notification tests', function() {
     });
   }
 
-  test('fire notification', function() {
+  test.skip('fire notification', function() {
     var details = {tag: 'test tag',
                    title: 'test title',
                    body: 'test body',
@@ -79,7 +79,7 @@ marionette('notification tests', function() {
     });
   });
 
-  test('system replace notification', function() {
+  test.skip('system replace notification', function() {
     var oldDetails = {tag: 'test tag, replace',
                       title: 'test title, replace',
                       body: 'test body, replace',
