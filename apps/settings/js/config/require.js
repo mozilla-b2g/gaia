@@ -363,7 +363,8 @@ require.config({
       name: 'panels/about/panel',
       exclude: [
         'main',
-        'panels/about/update_manager'
+        'panels/about/system_update_manager',
+        'panels/about/app_update_manager'
       ]
     },
     {

@@ -1,4 +1,3 @@
-/* global DeviceStorageHelper */
 /**
  * Handle Update check related functionality
  *
@@ -7,18 +6,19 @@
 define(function(require) {
   'use strict';
 
-  var UpdateManager = require('panels/about/update_manager');
+  var SystemUpdateManager = require('panels/about/system_update_manager');
+  var AppUpdateManager = require('panels/about/app_update_manager');
 
   var STATUS_MAP = {
-    [UpdateManager.UPDATE_STATUS.CHECKING]: 'checking-for-update',
-    [UpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE]: 'update-found',
-    [UpdateManager.UPDATE_STATUS.UPDATE_READY]: 'ready-to-update',
-    [UpdateManager.UPDATE_STATUS.UPDATE_UNAVAILABLE]: 'no-updates',
-    [UpdateManager.UPDATE_STATUS.ALREADY_LATEST_VERSION]:
+    [SystemUpdateManager.UPDATE_STATUS.CHECKING]: 'checking-for-update',
+    [SystemUpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE]: 'update-found',
+    [SystemUpdateManager.UPDATE_STATUS.UPDATE_READY]: 'ready-to-update',
+    [SystemUpdateManager.UPDATE_STATUS.UPDATE_UNAVAILABLE]: 'no-updates',
+    [SystemUpdateManager.UPDATE_STATUS.ALREADY_LATEST_VERSION]:
       'already-latest-version',
-    [UpdateManager.UPDATE_STATUS.OFFLINE]: 'retry-when-online',
-    [UpdateManager.UPDATE_STATUS.ERROR]: 'check-error',
-    [UpdateManager.UPDATE_STATUS.UNKNOWN]: null
+    [SystemUpdateManager.UPDATE_STATUS.OFFLINE]: 'retry-when-online',
+    [SystemUpdateManager.UPDATE_STATUS.ERROR]: 'check-error',
+    [SystemUpdateManager.UPDATE_STATUS.UNKNOWN]: null
   };
 
   /**
@@ -29,10 +29,6 @@ define(function(require) {
   var UpdateCheck = function() {
     this._elements = null;
     this._settings = window.navigator.mozSettings;
-    this._checkStatus = {
-      'gecko.updateStatus': {},
-      'apps.updateStatus': {}
-    };
     this._ = navigator.mozL10n.get;
   };
 
@@ -47,39 +43,64 @@ define(function(require) {
     init: function uc_init(elements) {
       this._elements = elements;
 
-      UpdateManager.observe('status', this._updateStatus.bind(this));
-      UpdateManager.observe('lastUpdateDate',
-        this._updateLastUpdateDate.bind(this));
+      SystemUpdateManager.observe('status', () => {
+        this._updateStatus();
+      });
+      AppUpdateManager.observe('status', () => {
+        this._updateStatus();
+      });
+      SystemUpdateManager.observe('lastUpdateDate', () => {
+        this._updateLastUpdateDate();
+      });
 
-      this._updateStatus(UpdateManager.status);
-      this._updateLastUpdateDate(UpdateManager.lastUpdateDate);
+      this._updateStatus();
+      this._updateLastUpdateDate();
 
       this._elements.checkUpdateNow.addEventListener('click', () => {
         if (!navigator.onLine) {
           alert(this._('no-network-when-update'));
           return;
         }
-        UpdateManager.checkForUpdate();
+        SystemUpdateManager.checkForUpdate();
       });
     },
 
-    _updateStatus: function(status) {
-      var l10nId = STATUS_MAP[status];
-      if (l10nId) {
-        this._elements.systemUpdateInfoMenuItem.hidden = false;
-        if (status === UpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE) {
-          DeviceStorageHelper.showFormatedSize(this._elements.systemUpdateInfo,
-            l10nId, UpdateManager.availableUpdate.size);
-        } else {
-          this._elements.systemUpdateInfo.setAttribute('data-l10n-id', l10nId);
-        }
-      } else {
+    _updateStatus: function() {
+      var systemStatus = SystemUpdateManager.status;
+      var appStatus = AppUpdateManager.status;
+
+      var notReady =
+        systemStatus === SystemUpdateManager.UPDATE_STATUS.UNKNOWN ||
+        appStatus === AppUpdateManager.UPDATE_STATUS.UNKNOWN;
+      var checking =
+        systemStatus === SystemUpdateManager.UPDATE_STATUS.CHECKING ||
+        appStatus === AppUpdateManager.UPDATE_STATUS.CHECKING;
+      var updateAvailable =
+        systemStatus === SystemUpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE ||
+        appStatus === AppUpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE;
+
+      if (notReady) {
         this._elements.systemUpdateInfoMenuItem.hidden = true;
+      } else {
+        if (checking) {
+          this._elements.systemUpdateInfo.setAttribute('data-l10n-id',
+            'checking-for-update');
+        } else if (updateAvailable) {
+          this._elements.systemUpdateInfo.setAttribute('data-l10n-id',
+            'update-found');
+        } else {
+          // It is guaranteed that there is no app update avaialbe when in this
+          // case, so we only update the text solely based on system update
+          // status.
+          this._elements.systemUpdateInfo.setAttribute('data-l10n-id',
+            STATUS_MAP[systemStatus]);
+        }
+        this._elements.systemUpdateInfoMenuItem.hidden = false;
       }
     },
 
-    _updateLastUpdateDate: function(date) {
-      // XXX: should change to format value?
+    _updateLastUpdateDate: function() {
+      var date = SystemUpdateManager.lastUpdateDate;
       if (date) {
         this._elements.lastUpdateDate.hidden = false;
         var f = new navigator.mozL10n.DateTimeFormat();

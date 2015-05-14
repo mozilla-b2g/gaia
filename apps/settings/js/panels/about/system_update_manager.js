@@ -17,7 +17,9 @@ define(function(require) {
     UNKNOWN: -1
   };
 
-  var UpdateManager = Module.create(function UpdateManager() {
+  const APP_UPDATE_KEY = 'apps.updateStatus';
+
+  var SystemUpdateManager = Module.create(function SystemUpdateManager() {
     if (!window.navigator.updateManager) {
       this.throw('Update service is not available');
     }
@@ -35,24 +37,24 @@ define(function(require) {
     });
   }).extend(Observable);
 
-  Observable.defineObservableProperty(UpdateManager.prototype, 'status', {
+  Observable.defineObservableProperty(SystemUpdateManager.prototype, 'status', {
     readonly: true,
     value: UPDATE_STATUS.UNKNOWN
   });
 
-  Observable.defineObservableProperty(UpdateManager.prototype,
+  Observable.defineObservableProperty(SystemUpdateManager.prototype,
     'lastUpdateDate', {
       readonly: true,
       value: null
   });
 
-  Observable.defineObservableProperty(UpdateManager.prototype,
+  Observable.defineObservableProperty(SystemUpdateManager.prototype,
     'availableUpdate', {
       readonly: true,
       value: null
   });
 
-  UpdateManager.prototype._ready = function() {
+  SystemUpdateManager.prototype._ready = function() {
     if (!this._readyPromise) {
       this._readyPromise =
       this._updateManager.getProviders().then((providerInfos) => {
@@ -103,16 +105,16 @@ define(function(require) {
    * to check if this is still current
    */
 
-  UpdateManager.prototype._onUpdateAvailable = function(event) {
+  SystemUpdateManager.prototype._onUpdateAvailable = function(event) {
     this._availableUpdate = event.detail.packageInfo;
     this._status = UPDATE_STATUS.UPDATE_AVAILABLE;
   };
 
-  UpdateManager.prototype._onUpdateReady = function() {
+  SystemUpdateManager.prototype._onUpdateReady = function() {
     this._status = UPDATE_STATUS.UPDATE_READY;
   };
 
-  UpdateManager.prototype._onError = function(event) {
+  SystemUpdateManager.prototype._onError = function(event) {
     this._availableUpdate = null;
     switch(event.message) {
       case 'no-updates':
@@ -130,16 +132,24 @@ define(function(require) {
     }
   };
 
-  UpdateManager.prototype.checkForUpdate = function() {
+  SystemUpdateManager.prototype.checkForUpdate = function() {
     this._ready().then(() => {
       if (this._activeProvider) {
         this._status = UPDATE_STATUS.CHECKING;
         this._activeProvider.checkForUpdate();
+
+        // XXX: provider.checkForUpdate also triggers checking for web app
+        //      update. Setting to settings db is ugly but the only way to
+        //      keep the app update status consistent. In the long term we
+        //      should have web api for checking web app update.
+        window.navigator.mozSettings.createLock().set({
+          [APP_UPDATE_KEY]: 'checking' 
+        });
       }
     });
   };
 
-  var instance = new UpdateManager();
+  var instance = new SystemUpdateManager();
   Object.defineProperty(instance, 'UPDATE_STATUS', {
     get: function() {
       return UPDATE_STATUS;
