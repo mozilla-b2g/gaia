@@ -8,6 +8,7 @@ var View = require('view');
 var core = require('core');
 var nextTick = require('common/next_tick');
 var suiteGroup = require('test/support/suite_group');
+var waitFor = require('test/support/wait_for');
 
 requireCommon('test/synthetic_gestures.js');
 
@@ -199,26 +200,24 @@ suiteGroup('views/settings', function() {
 
     suite('remove', function() {
       setup(function(done) {
-        accountStore.remove(accounts.sync._id);
-        subject.onupdatesyncbutton = function() {
-          subject.onupdatesyncbutton = null;
-          done();
-        };
+        accountStore.remove(accounts.sync._id).then(done);
       });
 
-      suite('add', function() {
-        setup(function(done) {
-          delete syncAccount._id;
-
-          accountStore.persist(syncAccount);
-          subject.onupdatesyncbutton = function() {
-            subject.onupdatesyncbutton = null;
-            done();
-          };
-        });
+      test('should remove sync button', function(done) {
+        waitFor(() => subject.toolbar.classList.contains('noaccount'), done);
       });
     });
 
+    suite('add', function() {
+      setup(function(done) {
+        delete syncAccount._id;
+        accountStore.persist(syncAccount).then(done);
+      });
+
+      test('should show sync button', function(done) {
+        waitFor(() => !subject.toolbar.classList.contains('noaccount'), done);
+      });
+    });
   });
 
   suite('#_observeCalendarStore', function() {
