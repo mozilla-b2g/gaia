@@ -2,11 +2,11 @@
   ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
   ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
   MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
-  captureFrame,VideoStats,Template,noMoreWorkCallback:true */
+  captureFrame,VideoStats,noMoreWorkCallback:true */
 /* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
   showThrobber,hideThrobber,$ */
 'use strict';
- 
+
 // Layout Mode Transition:
 // list <-> selection
 // list <-> fullscreen player
@@ -167,9 +167,6 @@ if (!isPhone) {
 
 function init() {
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
-  // configure the template id for template group and view.
-  ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
-  ThumbnailItem.Template = new Template('thumbnail-template');
   ThumbnailItem.titleMaxLines = isPhone ? 2 : (isPortrait ? 4 : 2);
 
   initDB();
