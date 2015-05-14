@@ -80,22 +80,28 @@ suite('system/Bluetooth_v1', function() {
     assert.isTrue(Bluetooth.icon.update.called);
   });
 
-  test('Update transfer icon on system message', function() {
+  test('Update bluetooth and transfer icon on system message', function() {
+    this.sinon.stub(Bluetooth.icon, 'update');
     this.sinon.stub(Bluetooth.transferIcon, 'update');
     MockNavigatormozSetMessageHandler.mTrigger(
       'bluetooth-opp-transfer-start', {});
+    assert.isTrue(Bluetooth.icon.update.called);
     assert.isTrue(Bluetooth.transferIcon.update.called);
     MockNavigatormozSetMessageHandler.mTrigger(
       'bluetooth-opp-transfer-complete', {});
+    assert.isTrue(Bluetooth.icon.update.calledTwice);
     assert.isTrue(Bluetooth.transferIcon.update.calledTwice);
   });
 
-  test('Update headset icon on adapter notifying', function() {
+  test('Update bluetooth and headset icon on adapter notifying', function() {
+    this.sinon.stub(Bluetooth.icon, 'update');
     this.sinon.stub(Bluetooth.headphoneIcon, 'update');
     MockMozBluetooth.triggerOnGetAdapterSuccess();
     MockBTAdapter.ona2dpstatuschanged({status: true});
+    assert.isTrue(Bluetooth.icon.update.called);
     assert.isTrue(Bluetooth.headphoneIcon.update.called);
     MockBTAdapter.ona2dpstatuschanged({status: false});
+    assert.isTrue(Bluetooth.icon.update.calledTwice);
     assert.isTrue(Bluetooth.headphoneIcon.update.calledTwice);
   });
 
