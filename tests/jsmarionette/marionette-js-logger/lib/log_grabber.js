@@ -507,6 +507,9 @@ function LogGrabber(client, logLimit) {
     context: 'chrome',
     searchTimeout: this._desiredTimeoutMS
   });
+
+  this.grabLogMessages = this.grabLogMessages.bind(this);
+  this._pollInterval = null;
 }
 util.inherits(LogGrabber, EventEmitter);
 
@@ -566,10 +569,15 @@ LogGrabber.prototype._processMessages = function(messages, specificHandler) {
  * `waitForLogMessage()` in that case!
  */
 LogGrabber.prototype.grabLogMessages = function(processFunc) {
-  var messages = this._client.executeScript(function() {
-    return window.MARIONETTE_LOG_GRABBER.grabAndClearLogs();
-  });
-  return this._processMessages(messages, processFunc);
+  try {
+    var messages = this._client.executeScript(function() {
+      return window.MARIONETTE_LOG_GRABBER.grabAndClearLogs();
+    });
+
+    return this._processMessages(messages, processFunc);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 /**
@@ -638,6 +646,16 @@ LogGrabber.prototype.waitForLogMessage = function(checkFunc, timeoutMS) {
 };
 
 /**
+ * Note that logs are only fetched continuously from the message queue
+ * asynchronously. Messages will not be fetched while synchronous operations
+ * are performed during a given tick of the event loop.
+ */
+LogGrabber.prototype.pollMessages = function(freq) {
+  freq = freq || 50;
+  this._pollInterval = setInterval(this.grabLogMessages, freq);
+};
+
+/**
  * @deprecated legacy function used by marionette-js-runner.
  *
  * This method does not need to do anything because marionette-js-runner's
@@ -646,6 +664,7 @@ LogGrabber.prototype.waitForLogMessage = function(checkFunc, timeoutMS) {
  * http server to be shutdown.
  */
 LogGrabber.prototype.close = function() {
+  clearInterval(this._pollInterval);
 };
 
-module.exports.LogGrabber = LogGrabber;
+exports.LogGrabber = LogGrabber;
