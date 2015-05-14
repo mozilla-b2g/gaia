@@ -50,10 +50,6 @@ var MockUpdateManager = {
     this.mErrorBannerRequested = true;
   },
 
-  checkForUpdates: function mum_checkForUpdate(forced) {
-    this.mCheckForUpdatesCalledWith = forced;
-  },
-
   mErrorBannerRequested: false,
   mUpdates: [],
   mDownloads: [],
@@ -63,7 +59,6 @@ var MockUpdateManager = {
   mLastDownloadsAdd: null,
   mLastDownloadsRemoval: null,
   mProgressCalledWith: null,
-  mCheckForUpdatesCalledWith: null,
   mStartedUncompressingCalled: false,
   mDownloadedCalled: false,
   mTeardown: function mum_mTeardown() {
@@ -76,7 +71,6 @@ var MockUpdateManager = {
     this.mLastDownloadsAdd = null;
     this.mLastDownloadsRemoval = null;
     this.mProgressCalledWith = null;
-    this.mCheckForUpdatesCalledWith = null;
     this.mStartedUncompressingCalled = false;
     this.mDownloadedCalled = false;
     this.mUpdates = [];

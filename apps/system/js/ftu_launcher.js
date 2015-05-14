@@ -1,6 +1,6 @@
 'use strict';
 /* globals applications, VersionHelper, dump, FtuPing, BaseModule,
-           LazyLoader, SettingsMigrator */
+           LazyLoader, SettingsMigrator, Service */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
@@ -226,7 +226,8 @@
 
     finish: function() {
       this.loadWhenIdle(['NewsletterManager']);
-      this.writeSetting({'gaia.system.checkForUpdates': true});
+      // Check system and app update
+      Service.request('updateCheck');
       // XXX: remove after bug 1109451 is fixed
       LazyLoader.load(['js/migrators/settings_migrator.js']).then(function() {
         var settingsMigrator = new SettingsMigrator();

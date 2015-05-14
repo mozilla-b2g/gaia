@@ -1,5 +1,5 @@
 /* global AppUpdatable, LazyLoader, NotificationScreen, Service,
-          SettingsListener, SystemBanner, SystemUpdatable */
+          SystemBanner, SystemUpdatable */
 
 'use strict';
 
@@ -109,19 +109,26 @@
       this.downloadViaDataConnectionButton.onclick =
         this.requestDownloads.bind(this);
 
-      window.addEventListener('mozChromeEvent', this);
       window.addEventListener('applicationinstall', this);
       window.addEventListener('applicationuninstall', this);
       window.addEventListener('online', this);
       window.addEventListener('offline', this);
       window.addEventListener('lockscreen-appopened', this);
 
-      SettingsListener.observe('gaia.system.checkForUpdates', false,
-                               this.checkForUpdates.bind(this));
-
       // We maintain the the edge and nowifi data attributes to show
       // a warning on the download dialog
       window.addEventListener('wifi-statuschange', this);
+
+      Service.register('addToUpdatableApps', this);
+      Service.register('addToDownloadsQueue', this);
+      Service.register('addToUpdatesQueue', this);
+      Service.register('downloaded', this);
+      Service.register('removeFromDownloadsQueue', this);
+      Service.register('removeFromUpdatesQueue', this);
+      Service.register('requestErrorBanner', this);
+      Service.register('downloadProgressed', this);
+      Service.register('startedUncompressing', this);
+
       this.updateWifiStatus();
       this.updateOnlineStatus();
     },
@@ -690,7 +697,7 @@
         this._uncompressing = false;
         Service.request('decDownloads');
         this._downloadedBytes = 0;
-        this.checkStatuses();
+        this.checkStatus();
 
         if (this._wifiLock) {
           try {
@@ -721,7 +728,7 @@
       }
     },
 
-    checkStatuses: function um_checkStatuses() {
+    checkStatus: function um_checkStatus() {
       this.updatableApps.forEach(function(updatableApp) {
         var app = updatableApp.app;
         if (app.downloadAvailable) {
@@ -781,18 +788,6 @@
           }
           break;
       }
-
-      if (evt.type !== 'mozChromeEvent') {
-        return;
-      }
-
-      var detail = evt.detail;
-
-      if (detail.type && detail.type === 'update-available') {
-        this.systemUpdatable.size = detail.size;
-        this.systemUpdatable.rememberKnownUpdate();
-        this.addToUpdatesQueue(this.systemUpdatable);
-      }
     },
 
     updateOnlineStatus: function su_updateOnlineStatus() {
@@ -811,23 +806,6 @@
 
     updateWifiStatus: function su_updateWifiStatus() {
       this.downloadDialog.dataset.nowifi = !this._wifiAvailable();
-    },
-
-    checkForUpdates: function su_checkForUpdates(shouldCheck) {
-      if (!shouldCheck) {
-        return;
-      }
-
-      this._dispatchEvent('force-update-check');
-
-      if (!this._settings) {
-        return;
-      }
-
-      var lock = this._settings.createLock();
-      lock.set({
-        'gaia.system.checkForUpdates': false
-      });
     },
 
     _openDownloadViaDataDialog: function um_downloadViaDataDialog() {
@@ -884,17 +862,6 @@
       });
 
       return dataRoamingSettingPromise;
-    },
-
-    _dispatchEvent: function um_dispatchEvent(type, result) {
-      var event = document.createEvent('CustomEvent');
-      var data = { type: type };
-      if (result) {
-        data.result = result;
-      }
-
-      event.initCustomEvent('mozContentEvent', true, true, data);
-      window.dispatchEvent(event);
     },
 
     // This is going to be part of l10n.js
