@@ -106,17 +106,17 @@ var Startup = {
       MessageManager.init();
       Navigation.init();
 
-      // If target panel is different from the default one, let's load remaining
-      // scripts as soon as possible, otherwise we can wait until first page of
-      // threads is loaded and rendered.
-      var panelName = Navigation.getPanelName();
-      if (panelName && panelName !== 'thread-list') {
-        // Initialize default panel only after target panel is ready.
+      // If initial panel is default one and app isn't run from notification,
+      // then just navigate to it, otherwise we can delay default panel
+      // initialization until we navigate to requested non-default panel.
+      if (Navigation.isDefaultPanel() &&
+        !navigator.mozHasPendingMessage('notification')) {
+        Navigation.toDefaultPanel();
+        initializeDefaultPanel(this._lazyLoadInit.bind(this));
+      } else {
         Navigation.on('navigated', initializeDefaultPanel);
 
         this._lazyLoadInit();
-      } else {
-        initializeDefaultPanel(this._lazyLoadInit.bind(this));
       }
 
       // dispatch navigationInteractive when thread list related modules
