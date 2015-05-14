@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: gaia-runner-service
+Version: 0.3
+Summary: A utility for running tests over a socket from JS to python
+Home-page: UNKNOWN
+Author: Andrew Halberstadt
+Author-email: ahalberstadt@mozilla.com
+License: MPL 2.0
+Description: See https://github.com/mozilla-b2g/gaia/tree/master/tests/python/runner-service
+Keywords: mozilla
+Platform: UNKNOWN
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

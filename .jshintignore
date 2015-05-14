@@ -63,4 +63,7 @@ tv_apps/smart-system/bower_components/**
 tv_apps/tv-deck/bower_components/**
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
-tests/jsmarionette/marionette-js-logger/lib/log_grabber.js
+tests/jsmarionette/plugins/marionette-js-logger/lib/log_grabber.js
+tests/jsmarionette/runner/marionette-js-runner/test/fixtures/**
+tests/jsmarionette/runner/marionette-js-runner/test/bin/fixtures/**
+tests/jsmarionette/runner/mozilla-profile-builder/test/fixtures/**
