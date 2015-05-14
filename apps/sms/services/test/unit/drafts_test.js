@@ -22,12 +22,13 @@ var MocksHelperForDraftsTest = new MocksHelper([
 suite('Drafts', function() {
   var mocksHelper = MocksHelperForDraftsTest;
 
-  var d1, d2, d3, d4, d5, d6, d7;
+  var threadDraft1, threadDraft2, threadDraft3, threadDraft4, threadDraft5;
+  var draft1, draft2;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
 
-    d1 = new Draft({
+    threadDraft1 = new Draft({
       recipients: ['555', '666'],
       content: ['This is a draft message'],
       timestamp: 1,
@@ -36,7 +37,7 @@ suite('Drafts', function() {
       type: 'sms',
       id: 1
     });
-    d2 = new Draft({
+    threadDraft2 = new Draft({
       recipients: ['555'],
       content: ['This is a draft message'],
       timestamp: 2,
@@ -45,7 +46,7 @@ suite('Drafts', function() {
       type: 'sms',
       id: 2
     });
-    d3 = new Draft({
+    threadDraft3 = new Draft({
       recipients: ['555', '222'],
       content: ['This is a draft message'],
       timestamp: 3,
@@ -54,7 +55,7 @@ suite('Drafts', function() {
       type: 'sms',
       id: 3
     });
-    d4 = new Draft({
+    threadDraft4 = new Draft({
       recipients: ['555', '333'],
       content: ['This is a draft message'],
       timestamp: 4,
@@ -63,7 +64,7 @@ suite('Drafts', function() {
       type: 'sms',
       id: 4
     });
-    d5 = new Draft({
+    draft1 = new Draft({
       recipients: ['555', '444'],
       content: ['This is a draft message'],
       timestamp: 5,
@@ -72,7 +73,7 @@ suite('Drafts', function() {
       type: 'sms',
       id: 5
     });
-    d6 = new Draft({
+    threadDraft5 = new Draft({
       recipients: ['123456'],
       content: [
         'This is a draft MMS...',
@@ -90,7 +91,7 @@ suite('Drafts', function() {
       type: 'mms',
       id: 6
     });
-    d7 = new Draft({
+    draft2 = new Draft({
       recipients: ['555', '444'],
       content: ['This is a draft message'],
       timestamp: 5,
@@ -105,72 +106,60 @@ suite('Drafts', function() {
     mocksHelper.suiteTeardown();
   });
 
-  suite('Drafts() >', function() {
-
-    test('Draft', function() {
-      assert.ok(Drafts);
-      assert.ok(Drafts.add);
-      assert.ok(Drafts.delete);
-      assert.ok(Drafts.byThreadId);
-      assert.ok(Drafts.clear);
-    });
-
-  });
-
   suite('add() >', function() {
-    var added;
-
     suiteTeardown(function() {
       Drafts.clear();
     });
 
-    test('add first draft', function() {
-      added = [];
-      Drafts.add(d1);
-      Drafts.byThreadId(d1.threadId).forEach(function(e) {
-        added.push(e);
-      });
-      assert.deepEqual(added, [d1]);
-      assert.equal(Drafts.byThreadId(d1.threadId).length, 1);
+    test('correctly adds thread bound drafts', function() {
+      Drafts.add(threadDraft1);
+
+      assert.deepEqual(Drafts.byThreadId(threadDraft1.threadId), threadDraft1);
+      assert.isNull(Drafts.byThreadId(threadDraft2.threadId));
+
+      Drafts.add(threadDraft2);
+
+      assert.deepEqual(Drafts.byThreadId(threadDraft1.threadId), threadDraft1);
+      assert.deepEqual(Drafts.byThreadId(threadDraft2.threadId), threadDraft2);
     });
 
-    test('add second draft', function() {
-      added = [];
-      Drafts.add(d2);
-      Drafts.byThreadId(d2.threadId).forEach(function(e) {
-        added.push(e);
-      });
-      assert.deepEqual(added, [d2]);
-      assert.equal(Drafts.byThreadId(d2.threadId).length, 1);
+    test('correctly adds thread less drafts', function() {
+      Drafts.add(draft1);
+
+      assert.deepEqual(Drafts.byDraftId(draft1.id), draft1);
+      assert.isNull(Drafts.byDraftId(draft2.id));
+
+      Drafts.add(draft2);
+
+      assert.deepEqual(Drafts.byDraftId(draft1.id), draft1);
+      assert.deepEqual(Drafts.byDraftId(draft2.id), draft2);
     });
 
     test('add draft of same threadId replaces previous', function() {
-      Drafts.add(d2);
+      assert.equal(
+        Drafts.add(threadDraft2).byThreadId(threadDraft2.threadId).id,
+        threadDraft2.id
+      );
 
-      var latestId = Drafts.byThreadId(44).latest.id;
-
-      Drafts.add({
+      Drafts.add(new Draft({
         recipients: ['555'],
         content: ['This is a new draft for thread 44'],
         subject: 'This is a subject',
         timestamp: 2,
         threadId: 44,
         type: 'sms'
-      });
+      }));
 
-      assert.notEqual(Drafts.byThreadId(44).latest.id, latestId);
-      assert.equal(Drafts.byThreadId(44).length, 1);
+      assert.notEqual(Drafts.byThreadId(44).id, threadDraft2.id);
     });
 
     test('add threadless draft of same draft.id replaces previous', function() {
-      Drafts.add(d5);
-
       assert.equal(
-        Drafts.byThreadId(null).latest.content,
+        Drafts.add(draft1).byDraftId(draft1.id).content,
         'This is a draft message'
       );
 
-      Drafts.add({
+      Drafts.add(new Draft({
         recipients: ['555', '444'],
         content: ['This is a new draft message'],
         timestamp: 5,
@@ -178,21 +167,21 @@ suite('Drafts', function() {
         subject: 'This is a subject',
         type: 'sms',
         id: 5
-      });
+      }));
 
       assert.equal(
-        Drafts.byThreadId(null).latest.content,
+        Drafts.byDraftId(draft1.id).content,
         'This is a new draft message'
       );
-      assert.equal(Drafts.byThreadId(null).length, 1);
     });
-
   });
 
   suite('delete() >', function() {
 
     suiteSetup(function() {
-      [d1, d2, d6, d7].forEach(Drafts.add, Drafts);
+      [threadDraft1, threadDraft2, threadDraft5, draft2].forEach(
+        Drafts.add, Drafts
+      );
     });
 
     suiteTeardown(function() {
@@ -200,21 +189,24 @@ suite('Drafts', function() {
     });
 
     test('Delete draft with reference', function() {
-      Drafts.delete(d1);
-      assert.equal(Drafts.byThreadId(d1.threadId).length, 0);
+      assert.isNotNull(Drafts.byThreadId(threadDraft1.threadId));
+      assert.isNull(
+        Drafts.delete(threadDraft1).byThreadId(threadDraft1.threadId)
+      );
     });
 
-    test('delete by only threadId', function() {
-      Drafts.delete({ threadId: 2 });
-      assert.equal(Drafts.byThreadId(2).length, 0);
-    });
     test('Deleting new message drafts', function() {
-      Drafts.delete(d6);
-      // First draft removes only the draft from the Drafts.List
-      assert.equal(Drafts.byThreadId(null).length, 1);
-      Drafts.delete(d7);
+      assert.isNotNull(Drafts.byThreadId(threadDraft5.threadId));
+      assert.isNotNull(Drafts.byDraftId(draft2.id));
+
+      // First draft removes only the draft from the drafts
+      assert.isNull(
+        Drafts.delete(threadDraft5).byThreadId(threadDraft5.threadId)
+      );
+      assert.isNotNull(Drafts.byDraftId(draft2.id));
+
       // The last draft in the thread removes the thread from the index
-      assert.equal(Drafts.byThreadId(null).length, 0);
+      assert.isNull(Drafts.delete(draft2).byDraftId(draft2.id));
     });
 
     test('delete by non-draft object', function() {
@@ -229,22 +221,22 @@ suite('Drafts', function() {
 
       Drafts.add(draft);
 
-      assert.equal(Drafts.byThreadId(999).length, 1);
+      assert.deepEqual(Drafts.byThreadId(999), draft);
 
-      Drafts.delete({
+      Drafts.delete(new Draft({
         threadId: 999,
         id: draft.id
-      });
+      }));
 
-      assert.equal(Drafts.byThreadId(999).length, 0);
+      assert.isNull(Drafts.byThreadId(999));
     });
   });
 
   suite('Select drafts', function() {
-    var list;
-
     suiteSetup(function() {
-      [d1, d2, d3, d4, d5].forEach(Drafts.add, Drafts);
+      [threadDraft1, threadDraft2, threadDraft3, threadDraft4, draft1].forEach(
+        Drafts.add, Drafts
+      );
     });
 
     suiteTeardown(function() {
@@ -252,27 +244,19 @@ suite('Drafts', function() {
     });
 
     suite('byThreadId', function() {
-
       test('get drafts for id 1', function() {
-        list = Drafts.byThreadId(1);
-        assert.equal(list.length, 1);
+        assert.deepEqual(
+          Drafts.byThreadId(threadDraft3.threadId), threadDraft3
+        );
       });
 
-      test('get drafts for null id', function() {
-        list = Drafts.byThreadId(null);
-        assert.equal(list.length, 1);
+      test('throws if threadId is not a number', function() {
+        assert.throws(() => Drafts.byThreadId(null));
       });
 
-      test('get drafts for non-existent id', function() {
-        list = Drafts.byThreadId(10);
-        assert.equal(list.length, 0);
+      test('returns null if there is no draft for the thread id', function() {
+        assert.isNull(Drafts.byThreadId(10));
       });
-    });
-
-    test('no drafts for a threadId returns useful state', function() {
-      list = Drafts.byThreadId(999);
-      assert.equal(list.length, 0);
-      assert.equal(list.latest, null);
     });
   });
 
@@ -280,12 +264,12 @@ suite('Drafts', function() {
     var id = 101;
 
     suiteSetup(function() {
-      Drafts.add({
+      Drafts.add(new Draft({
         id: id,
         recipients: [],
         content: ['A new message draft with no recipients'],
         type: 'sms'
-      });
+      }));
     });
 
     suiteTeardown(function() {
@@ -293,112 +277,67 @@ suite('Drafts', function() {
     });
 
     test('get draft for id 101', function() {
-      var draft = Drafts.get(id);
+      var draft = Drafts.byDraftId(id);
 
       assert.equal(draft.id, id);
       assert.equal(draft.threadId, null);
     });
 
     test('get no draft for non-existant id', function() {
-      var draft = Drafts.get(9999999);
-
-      assert.equal(typeof draft, 'undefined');
+      assert.isNull(Drafts.byDraftId(9999999));
     });
   });
 
-  suite('forEach()>', function() {
-
-    var spy;
-
-    suiteSetup(function() {
-      [d1, d2, d3, d4, d5, d6, d7].forEach(Drafts.add, Drafts);
+  suite('getAll()>', function() {
+    setup(function() {
+      [
+        threadDraft1,
+        threadDraft2,
+        threadDraft3,
+        threadDraft4,
+        threadDraft5,
+        draft1,
+        draft2
+      ].forEach(Drafts.add, Drafts);
     });
 
-    suiteTeardown(function() {
+    teardown(function() {
       Drafts.clear();
     });
 
-    setup(function() {
-      spy = sinon.spy();
+    test('getAll returns all drafts', function() {
+      var orderedDrafts = [
+        threadDraft1,
+        threadDraft2,
+        threadDraft3,
+        threadDraft4,
+        threadDraft5,
+        draft1,
+        draft2
+      ];
+
+      for (var draft of Drafts.getAll()) {
+        assert.deepEqual(draft, orderedDrafts.shift());
+      }
+
+      // All drafts were examined
+      assert.equal(orderedDrafts.length, 0);
     });
-
-    test('callback called on each draft', function() {
-      Drafts.forEach(spy);
-      assert.equal(spy.callCount, 7);
-
-      // threadId = Number
-      assert.deepEqual(spy.args[0][0], d1);
-      assert.deepEqual(spy.args[1][0], d2);
-      assert.deepEqual(spy.args[2][0], d3);
-      assert.deepEqual(spy.args[3][0], d4);
-      assert.deepEqual(spy.args[4][0], d5);
-
-      // threadId = null
-      assert.deepEqual(spy.args[5][0], d7);
-      assert.deepEqual(spy.args[6][0], d6);
-    });
-
   });
 
   suite('clear() >', function() {
-
     suiteSetup(function() {
-      [d1, d2, d3, d4].forEach(Drafts.add, Drafts);
+      [threadDraft1, threadDraft2, threadDraft3, threadDraft4].forEach(
+        Drafts.add, Drafts
+      );
     });
 
     test('clear the entire draft index', function() {
       Drafts.clear();
-      assert.equal(Drafts.byThreadId(42).length, 0);
-      assert.equal(Drafts.byThreadId(1).length, 0);
-      assert.equal(Drafts.byThreadId(2).length, 0);
-    });
-  });
 
-  suite('Drafts.List() >', function() {
-
-    var spy;
-    var list;
-
-    setup(function() {
-      spy = sinon.spy();
-    });
-
-    test('Drafts.List', function() {
-      var list = new Drafts.List();
-      assert.ok(list);
-      assert.ok(list.forEach);
-    });
-
-    test('length of new Drafts.List', function() {
-      var list = new Drafts.List();
-      assert.equal(list.length, 0);
-    });
-
-    test('length of populated Drafts.List', function() {
-      var list = new Drafts.List([d1, d2, d3, d4]);
-      assert.equal(list.length, 4);
-    });
-
-    test('latest of populated Drafts.List', function() {
-      var list = new Drafts.List([d1, d2, d3, d4]);
-      assert.equal(list.latest, d4);
-    });
-
-    test('callback function on each draft in Drafts.List', function() {
-      list = new Drafts.List([d1, d2, d3, d4]);
-      list.forEach(spy);
-      assert.equal(spy.callCount, 4);
-      assert.deepEqual(spy.args[0][0], d1);
-      assert.deepEqual(spy.args[1][0], d2);
-      assert.deepEqual(spy.args[2][0], d3);
-      assert.deepEqual(spy.args[3][0], d4);
-    });
-
-    test('forEach does not leak backing array via arguments', function() {
-      new Drafts.List([d1]).forEach(function(draft) {
-        assert.equal(draft, d1);
-        assert.equal(arguments.length, 1);
-      });
+      assert.isNull(Drafts.byThreadId(42));
+      assert.isNull(Drafts.byThreadId(1));
+      assert.isNull(Drafts.byThreadId(2));
     });
   });
 
@@ -419,7 +358,7 @@ suite('Drafts', function() {
     });
 
     test('Draft from Draft object', function() {
-      draft = new Draft(d1);
+      draft = new Draft(threadDraft1);
       assert.deepEqual(draft.recipients, ['555', '666']);
       assert.deepEqual(draft.content, ['This is a draft message']);
       assert.equal(draft.timestamp, 1);
@@ -464,57 +403,54 @@ suite('Drafts', function() {
     });
 
     test('Store fresh drafts', function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d5);
+      Drafts.add(threadDraft1);
+      Drafts.add(threadDraft2);
+      Drafts.add(draft1);
 
       sinon.assert.calledThrice(Drafts.store);
     });
 
     test('Store draft with distinct content', function() {
-      Drafts.add(d5);
-      // d6 is almost the same as d5, b/w different content
-      Drafts.add(d6);
+      Drafts.add(draft1);
+      // threadDraft5 is almost the same as draft1, b/w different content
+      Drafts.add(threadDraft5);
 
       sinon.assert.calledTwice(Drafts.store);
     });
 
     test('Store draft with distinct subject', function() {
-      Drafts.add(d5);
-      // d7 is almost the same as d5, b/w different subject
-      Drafts.add(d7);
+      Drafts.add(draft1);
+      // draft2 is almost the same as draft1, b/w different subject
+      Drafts.add(draft2);
 
       sinon.assert.calledTwice(Drafts.store);
     });
 
     test('Load drafts, has stored data', function(done) {
       this.sinon.stub(asyncStorage, 'getItem').yields([
-        [42, [d1]],
-        [44, [d2]],
-        [null, [d5, d6, d7]]
+        [42, [threadDraft1]],
+        [44, [threadDraft2]],
+        [null, [draft1, draft2]]
       ]);
 
       Drafts.request().then(function() {
-        assert.equal(Drafts.byThreadId(42).length, 1);
-        Drafts.byThreadId(42).forEach(function(elem) {
-          assert.deepEqual(elem, d1);
-        });
+        assert.deepEqual(Drafts.byThreadId(42), threadDraft1);
 
-        assert.equal(Drafts.byThreadId(44).length, 1);
-        Drafts.byThreadId(44).forEach(function(elem) {
-          assert.deepEqual(elem, d2);
-        });
+        assert.deepEqual(Drafts.byThreadId(44), threadDraft2);
 
-        assert.equal(Drafts.byThreadId(null).length, 3);
-        assert.equal(Drafts.byThreadId(5).length, 0);
+        var threadLessDrafts = Array.from(Drafts.getAll()).filter(
+          (draft) => !draft.threadId
+        );
+        assert.equal(threadLessDrafts.length, 2);
+        assert.isNull(Drafts.byThreadId(5));
       }).then(done, done);
     });
 
     test('Load, clear, restore drafts', function(done) {
       this.sinon.stub(asyncStorage, 'getItem').yields([
-        [42, [d1]],
-        [44, [d2]],
-        [null, [d5, d6, d7]]
+        [42, [threadDraft1]],
+        [44, [threadDraft2]],
+        [null, [draft1, draft2]]
       ]);
 
       // Load

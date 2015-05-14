@@ -18,6 +18,11 @@
     this.messages = new Map();
   }
 
+  Thread.prototype.getDraft = function() {
+    return this.isDraft ?
+      Drafts.byDraftId(this.id) : Drafts.byThreadId(this.id);
+  };
+
   Thread.FIELDS = [
     'body', 'id', 'lastMessageSubject', 'lastMessageType',
     'participants', 'timestamp', 'unreadCount', 'isDraft'
@@ -46,24 +51,24 @@
     });
   };
 
-  Thread.fromDraft = function(record, options) {
-    var participants = record.recipients && record.recipients.length ?
-      record.recipients : [''];
+  Thread.fromDraft = function(draft, options) {
+    var participants = draft.recipients && draft.recipients.length ?
+      draft.recipients : [''];
 
-    var body = record.content && record.content.length ?
-      record.content.find(function(content) {
+    var body = draft.content && draft.content.length ?
+      draft.content.find(function(content) {
         if (typeof content === 'string') {
           return true;
         }
       }) : '';
 
     return new Thread({
-      id: record.threadId || record.id,
+      id: draft.threadId || draft.id,
       participants: participants,
       body: body,
-      timestamp: new Date(record.timestamp),
+      timestamp: new Date(draft.timestamp),
       unreadCount: (options && options.unread) ? 1 : 0,
-      lastMessageType: record.type || 'sms',
+      lastMessageType: draft.type || 'sms',
       isDraft: true
     });
   };
@@ -75,16 +80,6 @@
     return record.delivery ?
       Thread.fromMessage(record, options) :
       Thread.fromDraft(record, options);
-  };
-
-  Thread.prototype = {
-    constructor: Thread,
-    get drafts() {
-      return Drafts.byThreadId(this.id);
-    },
-    get hasDrafts() {
-      return !!this.drafts.length;
-    }
   };
 
   var Threads = exports.Threads = {
@@ -134,14 +129,11 @@
 
       var thread = this.get(id);
 
-      if (thread && (thread.hasDrafts || thread.isDraft)) {
-        var draft = thread.isDraft ?
-          Drafts.get(id) :
-          { threadId: id };
-
-        Drafts.delete(draft);
-        Drafts.store();
+      var draft = thread && thread.getDraft();
+      if (draft) {
+        Drafts.delete(draft).store();
       }
+
       return threads.delete(id);
     },
     clear: function() {

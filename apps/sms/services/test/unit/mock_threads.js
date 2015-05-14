@@ -25,7 +25,5 @@ var MockThreads = {
   set: function() {
 
   },
-  get: function() {
-    return {};
-  }
+  get: () => { return { getDraft: () => null }; }
 };

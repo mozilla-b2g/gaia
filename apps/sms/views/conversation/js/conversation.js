@@ -558,8 +558,7 @@ var ConversationView = {
       this.handleActivity(args.activity);
     } else if (args.forward) {
       this.handleForward(args.forward);
-    } else if (this.draft || args.draftId || Threads.currentId) {
-      // It would be nice to revisit these conditions in Bug 1010216.
+    } else if (args.draftId) {
       this.handleDraft(+args.draftId);
     } else {
       this.recipients.focus();
@@ -578,15 +577,14 @@ var ConversationView = {
       this.renderMessages(threadId);
 
       // Populate draft if there is one
-      // TODO merge with handleDraft ? Bug 1010216
+      // TODO merge with handleDraft ? Bug 1164431
       Drafts.request().then(() => {
-        var thread = Threads.get(threadId);
-        if (thread.hasDrafts) {
-          this.draft = thread.drafts.latest;
-          Compose.fromDraft(this.draft);
+        this.draft = Threads.get(threadId).getDraft();
+
+        if (this.draft) {
           this.draft.isEdited = false;
-        } else {
-          this.draft = null;
+
+          Compose.fromDraft(this.draft);
         }
       });
     }
@@ -724,17 +722,16 @@ var ConversationView = {
   },
 
   // recalling draft for composer only
-  // Bug 1010216 might use it for thread drafts too
-  handleDraft: function conv_handleDraft(threadId) {
-    // TODO Bug 1010216: remove this.draft
-    var draft = this.draft ||
-      Drafts.get(threadId || Threads.currentId);
+  // Bug 1164431 might use it for thread drafts too
+  handleDraft: function conv_handleDraft(draftId) {
+    // We'll revisit this.draft necessity in bug 1164435.
+    this.draft = Drafts.byDraftId(draftId);
 
     // Draft recipients are added as the composer launches
-    if (draft) {
+    if (this.draft) {
       // Recipients will exist for draft messages in threads
       // Otherwise find them from draft recipient numbers
-      draft.recipients.forEach(function(number) {
+      this.draft.recipients.forEach(function(number) {
         Contacts.findByAddress(number).then(function(contacts) {
           var recipient;
           if (contacts.length) {
@@ -752,16 +749,14 @@ var ConversationView = {
       }, this);
 
       // Render draft contents into the composer input area.
-      Compose.fromDraft(draft);
+      Compose.fromDraft(this.draft);
 
       // Discard this draft object and update the backing store
-      Drafts.delete(draft).store();
+      Drafts.delete(this.draft).store();
+
+      this.draft.isEdited = false;
     } else {
       this.recipients.focus();
-    }
-
-    if (this.draft) {
-      this.draft.isEdited = false;
     }
   },
 

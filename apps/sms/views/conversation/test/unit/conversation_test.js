@@ -22,7 +22,6 @@ require('/shared/js/event_dispatcher.js');
 
 require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
-require('/services/js/drafts.js');
 require('/services/js/threads.js');
 require('/views/conversation/js/conversation.js');
 require('/views/shared/js/shared_components.js');
@@ -55,6 +54,7 @@ require('/views/shared/test/unit/mock_waiting_screen.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_inbox.js');
 require('/views/shared/test/unit/mock_selection_handler.js');
+require('/services/test/unit/mock_drafts.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -93,7 +93,9 @@ var mocksHelperForConversationView = new MocksHelper([
   'Navigation',
   'Notification',
   'InboxView',
-  'SelectionHandler'
+  'SelectionHandler',
+  'Drafts',
+  'Draft'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -5540,20 +5542,11 @@ suite('conversation.js >', function() {
         sinon.assert.calledOnce(updateSpy);
       });
 
-      test('saves brand new threadless draft if not within thread', function() {
-        Drafts.clear();
-
-        ConversationView.draft = {id: 1};
+      test('correctly saves threadless draft', function() {
+        ConversationView.draft = { id: 1 };
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(null).length, 1);
 
-        ConversationView.draft = {id: 2};
-        ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(null).length, 2);
-
-        ConversationView.draft = {id: 3};
-        ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(null).length, 3);
+        sinon.assert.calledWith(Drafts.add, sinon.match({ id: 1 }));
       });
     });
 
@@ -5575,15 +5568,24 @@ suite('conversation.js >', function() {
 
       test('saves draft to existing thread', function() {
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(1).length, 1);
+
+        sinon.assert.calledWith(
+          Drafts.add, sinon.match({ threadId: 1, content: ['foo'] })
+        );
 
         Compose.append('baz');
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(1).length, 1);
+
+        sinon.assert.calledWith(
+          Drafts.add, sinon.match({ threadId: 1, content: ['foobaz'] })
+        );
 
         Compose.append('foo');
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(1).length, 1);
+
+         sinon.assert.calledWith(
+          Drafts.add, sinon.match({ threadId: 1, content: ['foobazfoo'] })
+        );
       });
 
       test('Update thread timestamp', function() {
@@ -6311,11 +6313,15 @@ suite('conversation.js >', function() {
   });
 
   suite('handleDraft()', function() {
+    var draft;
+
     setup(function() {
-      ConversationView.draft = new Draft({
-        threadId: 1234,
-        recipients: []
+      draft = new Draft({
+        id: 1234,
+        recipients: [],
+        content: []
       });
+
       ConversationView.initRecipients();
       this.sinon.spy(Compose, 'fromDraft');
       this.sinon.stub(Compose, 'focus');
@@ -6324,6 +6330,8 @@ suite('conversation.js >', function() {
       this.sinon.spy(ConversationView.recipients, 'add');
       this.sinon.spy(ConversationView, 'updateHeaderData');
       this.sinon.stub(Contacts, 'findByAddress');
+
+      this.sinon.stub(Drafts, 'byDraftId').withArgs(draft.id).returns(draft);
     });
 
     teardown(function() {
@@ -6331,7 +6339,7 @@ suite('conversation.js >', function() {
     });
 
     test('Calls Compose.fromDraft(), no recipients loaded', function() {
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
 
       sinon.assert.calledOnce(Compose.fromDraft);
       sinon.assert.notCalled(ConversationView.recipients.add);
@@ -6340,7 +6348,7 @@ suite('conversation.js >', function() {
     });
 
     test('with recipients', function(done) {
-      ConversationView.draft.recipients = ['800 732 0872', '+346578888888'];
+      draft.recipients = ['800 732 0872', '+346578888888'];
 
       Contacts.findByAddress.withArgs('800 732 0872').returns(
         Promise.resolve([])
@@ -6350,7 +6358,8 @@ suite('conversation.js >', function() {
         Promise.resolve([new MockContact()])
       );
 
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
+
       Contacts.findByAddress.lastCall.returnValue.then(() => {
         sinon.assert.calledWith(ConversationView.recipients.add, {
           number: '800 732 0872',
@@ -6370,17 +6379,13 @@ suite('conversation.js >', function() {
     });
 
     test('discards draft record', function() {
-      ConversationView.draft = new Draft({
-        recipients: []
-      });
-
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
 
       sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
 
     test('focus composer', function() {
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
       sinon.assert.called(Compose.focus);
     });
   });
@@ -7035,10 +7040,7 @@ suite('conversation.js >', function() {
 
           draft = {};
           Threads.get.withArgs(threadId).returns({
-            hasDrafts: true,
-            drafts: {
-              latest: draft
-            }
+            getDraft: () => draft
           });
 
           ConversationView.afterEnter(transitionArgs);
@@ -7064,10 +7066,7 @@ suite('conversation.js >', function() {
         };
 
         Threads.get.withArgs(threadId).returns({
-          hasDrafts: true,
-          drafts: {
-            latest: {}
-          }
+          getDraft: () => { return {}; }
         });
 
         Navigation.isCurrentPanel.withArgs('report-view').returns(true);
@@ -7108,10 +7107,7 @@ suite('conversation.js >', function() {
         };
 
         Threads.get.withArgs(threadId).returns({
-          hasDrafts: true,
-          drafts: {
-            latest: {}
-          }
+          getDraft: () => { return {}; }
         });
 
         Navigation.isCurrentPanel.withArgs('group-view').returns(true);
