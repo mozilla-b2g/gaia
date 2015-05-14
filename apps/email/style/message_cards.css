@@ -406,6 +406,14 @@ html:-moz-dir(rtl) .msg-header-attachments-yes {
   word-wrap: break-word;
 }
 
+html:-moz-dir(rtl) .msg-envelope-subject {
+  text-align: right;
+}
+
+html:-moz-dir(ltr) .msg-envelope-subject {
+  text-align: left;
+}
+
 /* Copy/paste select all could reach across the whole DOM so only scope the
   selection to the center "active" card. Bug 1152172. */
 .center .msg-envelope-subject {
