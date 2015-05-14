@@ -422,6 +422,7 @@
     // not want to have any button or input focused before bubbling animation.
     this.simpleKeyNavigation.blur();
 
+    this.app.publish('modaldialog-' + type + '-shown');
     this.app.browser.element.setAttribute('aria-hidden', true);
     this.element.open();
   };
@@ -439,6 +440,7 @@
 
     var evt = this.events[0];
     var type = evt.detail.promptType;
+    this.app.publish('modaldialog-' + type + '-hidden');
     this.elements[type].classList.remove('visible');
   };
 

@@ -422,6 +422,13 @@ GAIA_APPDIRS?=$(shell $(call run-js-command,scan-appdir, \
 		GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)" \
 		GAIA_APP_SRCDIRS="$(GAIA_APP_SRCDIRS)"))
 
+ifeq ($(REPORTER),mocha-tbpl-reporter)
+  $(shell mkdir -p outoftree_apps \
+    $(foreach dir,$(GAIA_DIR)$(SEP)tv_apps,\
+      $(foreach appdir,$(wildcard $(dir)/*),\
+	&& ln -sf $(appdir) outoftree_apps/)))
+endif
+
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
   $(shell mkdir -p outoftree_apps \
     $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
