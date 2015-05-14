@@ -172,4 +172,42 @@ suite('client', function() {
     });
     assert(gotEmitted);
   });
+
+  test('#pollMessages should catch all logs', function(done) {
+    var remaining = ['a', 'b', 'c', '1', '2', '3'];
+
+    client.logger.on('message', function onmessage(msg) {
+      var index = remaining.indexOf(msg.message);
+      if (index !== -1) {
+        return;
+      }
+
+      remaining.splice(index, 1);
+      if (!remaining.length) {
+        client.logger.removeListener('message', onmessage);
+        done();
+      }
+    });
+
+    client.executeScript(function() {
+      console.log('a');
+      setTimeout(function() {
+        console.log('b');
+        setTimeout(function() {
+          console.log('c');
+          setTimeout(function() {
+            console.log('1');
+            setTimeout(function() {
+              console.log('2');
+              setTimeout(function() {
+                console.log('3');
+              }, 20);
+            }, 20);
+          }, 20);
+        }, 20);
+      }, 20);
+    });
+
+    client.logger.pollMessages(10);
+  });
 });
