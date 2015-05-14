@@ -82,6 +82,7 @@
   height: 48%;
 
   margin: 0;
+  transition: transform;
   will-change: transform;
 }
 

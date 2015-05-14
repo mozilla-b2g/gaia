@@ -770,10 +770,7 @@
    */
   TaskManager.prototype.alignCurrentCard = function(duration, callback) {
     this._setupCardsTransition(duration || this.DURATION);
-
-    setTimeout(function(self) {
-      self._placeCards();
-    }, 0, this);
+    this._placeCards();
   };
 
   /**
@@ -949,7 +946,6 @@
   };
 
   TaskManager.prototype._setupCardsTransition = function(duration) {
-    var currentCard = this.currentCard;
     var position = this.position;
 
     var self = this;
@@ -961,40 +957,10 @@
         return;
       }
 
-      // The 5 cards at the center should be visible but we need to adjust the
-      // transitions durations/delays to account for the layer trickery.
-      // Layer Trickery: nf, cards that should be completely outside the
-      // viewport but are in fact 0.001 pixel in.
       card.element.style.visibility = '';
 
-      var distance = card.element.dataset.keepLayerDelta;
-      var currentCardDistance = Math.abs(currentCard.element.dataset.positionX);
-      if (idx == position + 2 || idx == position - 2) {
-        var cardWidth = self.windowWidth * 0.48;
-        var destination = self.windowWidth / 2 + cardWidth / 2;
-        if (card.element.dataset.positionX < 0) {
-          destination *= -1;
-        }
-
-        distance = Math.abs(destination - card.element.dataset.positionX);
-
-        var shorterDuration = distance * duration / currentCardDistance;
-        var fast = { transition: 'transform ' + shorterDuration + 'ms linear'};
-        card.applyStyle(fast);
-        return;
-      }
-
-      if (!distance) {
-        var style = { transition: 'transform ' + duration + 'ms linear'};
-        card.applyStyle(style);
-        return;
-      }
-
-      var delay = duration * distance / currentCardDistance;
-      var delayed = { transition: 'transform ' +
-                                   (duration - delay) + 'ms linear ' +
-                                   delay + 'ms'};
-      card.applyStyle(delayed);
+      var style = { transition: 'transform ' + duration + 'ms linear'};
+      card.applyStyle(style);
     });
 
   };
