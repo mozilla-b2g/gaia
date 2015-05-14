@@ -65,10 +65,8 @@ MockSystemUpdatable.prototype.forgetKnownUpdate = function() {
   delete this.mKnownUpdate;
 };
 
-MockSystemUpdatable.prototype.checkKnownUpdate = function(callback) {
-  if (this.mKnownUpdate && typeof callback === 'function') {
-    callback();
-  }
+MockSystemUpdatable.prototype.checkKnownUpdate = function() {
+  return Promise.resolve();
 };
 
 MockSystemUpdatable.prototype.declineInstallWait = function() {};

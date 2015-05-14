@@ -108,15 +108,11 @@
       this.downloadViaDataConnectionButton.onclick =
         this.requestDownloads.bind(this);
 
-      window.addEventListener('mozChromeEvent', this);
       window.addEventListener('applicationinstall', this);
       window.addEventListener('applicationuninstall', this);
       window.addEventListener('online', this);
       window.addEventListener('offline', this);
       window.addEventListener('lockscreen-appopened', this);
-
-      SettingsListener.observe('gaia.system.checkForUpdates', false,
-                               this.checkForUpdates.bind(this));
 
       // We maintain the the edge and nowifi data attributes to show
       // a warning on the download dialog
@@ -769,18 +765,6 @@
           Service.request('hideCustomDialog');
           break;
       }
-
-      if (evt.type !== 'mozChromeEvent') {
-        return;
-      }
-
-      var detail = evt.detail;
-
-      if (detail.type && detail.type === 'update-available') {
-        this.systemUpdatable.size = detail.size;
-        this.systemUpdatable.rememberKnownUpdate();
-        this.addToUpdatesQueue(this.systemUpdatable);
-      }
     },
 
     updateOnlineStatus: function su_updateOnlineStatus() {
@@ -799,23 +783,6 @@
 
     updateWifiStatus: function su_updateWifiStatus() {
       this.downloadDialog.dataset.nowifi = !this._wifiAvailable();
-    },
-
-    checkForUpdates: function su_checkForUpdates(shouldCheck) {
-      if (!shouldCheck) {
-        return;
-      }
-
-      this._dispatchEvent('force-update-check');
-
-      if (!this._settings) {
-        return;
-      }
-
-      var lock = this._settings.createLock();
-      lock.set({
-        'gaia.system.checkForUpdates': false
-      });
     },
 
     _openDownloadViaDataDialog: function um_downloadViaDataDialog() {
