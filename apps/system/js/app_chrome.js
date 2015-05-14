@@ -617,7 +617,7 @@
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
-    return this.app.config.chrome && !this.app.config.chrome.bar;
+    return !this.app.config.chrome || !this.app.config.chrome.bar;
   };
 
   AppChrome.prototype._updateLocation =
