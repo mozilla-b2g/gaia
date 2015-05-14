@@ -1,5 +1,4 @@
 /* global Promise,
-      Utils,
       Startup,
       EventDispatcher
 */
@@ -78,8 +77,6 @@ var Navigation = {
       this.isReady = true;
       nextQueuedPanel();
     }.bind(this));
-
-    return this.toPanelFromHash();
   },
 
   /**
@@ -115,6 +112,17 @@ var Navigation = {
     }
 
     return true;
+  },
+
+  /**
+   * Checks if current location.hash corresponds to default panel.
+   * @returns {boolean} True if current location.hash corresponds to default
+   * panel or empty.
+   */
+  isDefaultPanel: function n_isDefaultPanel() {
+    var panelName = this.getPanelName();
+
+    return !panelName || panelName === this.defaultPanel;
   },
 
   /**
@@ -297,6 +305,17 @@ var Navigation = {
     return (this.transitionPromise = promise);
   },
 
+  /**
+   * Navigates to default panel using specified arguments.
+   * @param {*?} args Any arguments that will be passed into default panel
+   * lifecycle methods.
+   * @returns {Promise} Promise that will be resolved once navigation to default
+   * panel is completed.
+   */
+  toDefaultPanel: function n_toDefaultPanel(args) {
+    return this.toPanel(this.defaultPanel, args);
+  },
+
   getPanelName: function n_getPanelName() {
     var hash = window.location.hash;
     if (hash.length && hash.startsWith('#')) {
@@ -309,11 +328,6 @@ var Navigation = {
     }
 
     return hash;
-  },
-
-  toPanelFromHash: function n_toPanelFromHash() {
-    var panelName = this.getPanelName() || this.defaultPanel;
-    return this.toPanel(panelName, Utils.params(window.location.hash));
   },
 
   slide: function n_slide(position) {
