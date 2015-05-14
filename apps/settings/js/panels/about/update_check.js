@@ -1,3 +1,4 @@
+/* global DeviceStorageHelper */
 /**
  * Handle Update check related functionality
  *
@@ -5,6 +6,20 @@
  */
 define(function(require) {
   'use strict';
+
+  var UpdateManager = require('panels/about/update_manager');
+
+  var STATUS_MAP = {
+    [UpdateManager.UPDATE_STATUS.CHECKING]: 'checking-for-update',
+    [UpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE]: 'update-found',
+    [UpdateManager.UPDATE_STATUS.UPDATE_READY]: 'ready-to-update',
+    [UpdateManager.UPDATE_STATUS.UPDATE_UNAVAILABLE]: 'no-updates',
+    [UpdateManager.UPDATE_STATUS.ALREADY_LATEST_VERSION]:
+      'already-latest-version',
+    [UpdateManager.UPDATE_STATUS.OFFLINE]: 'retry-when-online',
+    [UpdateManager.UPDATE_STATUS.ERROR]: 'check-error',
+    [UpdateManager.UPDATE_STATUS.UNKNOWN]: null
+  };
 
   /**
    * @alias module:about/UpdateCheck
@@ -32,142 +47,47 @@ define(function(require) {
     init: function uc_init(elements) {
       this._elements = elements;
 
-      this._loadLastUpdated();
+      UpdateManager.observe('status', this._updateStatus.bind(this));
+      UpdateManager.observe('lastUpdateDate',
+        this._updateLastUpdateDate.bind(this));
 
-      this._elements.checkUpdateNow.addEventListener('click',
-        this._checkForUpdates.bind(this));
-    },
+      this._updateStatus(UpdateManager.status);
+      this._updateLastUpdateDate(UpdateManager.lastUpdateDate);
 
-    /**
-     * Show last update date.
-     *
-     * @access private
-     * @memberOf UpdateCheck.prototype
-     */
-    _loadLastUpdated: function uc__loadLastUpdated() {
-      var key = 'deviceinfo.last_updated';
-      var request = this._settings.createLock().get(key);
-
-      request.onsuccess = function() {
-        var lastUpdated = request.result[key];
-        if (!lastUpdated) {
+      this._elements.checkUpdateNow.addEventListener('click', () => {
+        if (!navigator.onLine) {
+          alert(this._('no-network-when-update'));
           return;
         }
+        UpdateManager.checkForUpdate();
+      });
+    },
 
+    _updateStatus: function(status) {
+      var l10nId = STATUS_MAP[status];
+      if (l10nId) {
+        this._elements.systemUpdateInfoMenuItem.hidden = false;
+        if (status === UpdateManager.UPDATE_STATUS.UPDATE_AVAILABLE) {
+          DeviceStorageHelper.showFormatedSize(this._elements.systemUpdateInfo,
+            l10nId, UpdateManager.availableUpdate.size);
+        } else {
+          this._elements.systemUpdateInfo.setAttribute('data-l10n-id', l10nId);
+        }
+      } else {
+        this._elements.systemUpdateInfoMenuItem.hidden = true;
+      }
+    },
+
+    _updateLastUpdateDate: function(date) {
+      // XXX: should change to format value?
+      if (date) {
+        this._elements.lastUpdateDate.hidden = false;
         var f = new navigator.mozL10n.DateTimeFormat();
         this._elements.lastUpdateDate.textContent =
-          f.localeFormat(new Date(lastUpdated),
-            this._('shortDateTimeFormat'));
-      }.bind(this);
-    },
-
-    /**
-     * update result based on return states
-     *
-     * @access private
-     * @memberOf UpdateCheck.prototype
-     */
-    _statusCompleteUpdater: function uc__statusCompleteUpdater() {
-      var hasAllCheckComplete =
-        Object.keys(this._checkStatus).some((setting) =>
-          this._checkStatus[setting].value === 'check-complete'
-        );
-
-      var hasAllResponses =
-        Object.keys(this._checkStatus).every((setting) =>
-          !!this._checkStatus[setting].value
-        );
-
-      if (hasAllCheckComplete) {
-        this._elements.updateStatus.classList.remove('visible');
-        this._elements.systemStatus.textContent = '';
+          f.localeFormat(new Date(date), this._('shortDateTimeFormat'));
+      } else {
+        this._elements.lastUpdateDate.hidden = true;
       }
-
-      // On no-updates we should also remove the checking class.
-      var hasNoUpdatesResult =
-        Object.keys(this._checkStatus).some((setting) =>
-          this._checkStatus[setting].value === 'no-updates'
-        );
-
-      if (hasAllResponses || hasNoUpdatesResult) {
-        this._elements.updateStatus.classList.remove('checking');
-      }
-    },
-
-    /**
-     * handler for update status.
-     *
-     * @access private
-     * @memberOf UpdateCheck.prototype
-     * @param  {String} setting gecko or app setting
-     * @param  {Object} event   event contains SettingValue
-     */
-    _onUpdateStatus: function uc__onUpdateStatus(setting, event) {
-      var value = event.settingValue;
-      this._checkStatus[setting].value = value;
-
-      /**
-       * possible return values:
-       *
-       * - for system updates:
-       *   - no-updates
-       *   - already-latest-version
-       *   - check-complete
-       *   - retry-when-online
-       *   - check-error-$nsresult
-       *   - check-error-http-$code
-       *
-       * - for apps updates:
-       *   - check-complete
-       *
-       * use
-       * http://mxr.mozilla.org/mozilla-central/ident?i=setUpdateStatus&tree=mozilla-central&filter=&strict=1
-       * to check if this is still current
-       */
-
-      var l10nValues = [
-        'no-updates', 'already-latest-version', 'retry-when-online'];
-
-      if (value !== 'check-complete') {
-        var id = l10nValues.indexOf(value) !== -1 ? value : 'check-error';
-        this._elements.systemStatus.setAttribute('data-l10n-id', id);
-        if (id === 'check-error') {
-          console.error('Error checking for system update:', value);
-        }
-      }
-
-      this._statusCompleteUpdater();
-
-      this._settings.removeObserver(setting, this._checkStatus[setting].cb);
-      this._checkStatus[setting].cb = null;
-    },
-
-    /**
-     * Check if there's any update.
-     *
-     * @access private
-     * @memberOf UpdateCheck.prototype
-     */
-    _checkForUpdates: function uc__checkForUpdates() {
-      if (!navigator.onLine) {
-        alert(this._('no-network-when-update'));
-        return;
-      }
-
-      this._elements.updateStatus.classList.add('checking', 'visible');
-
-      /* remove whatever was there before */
-      this._elements.systemStatus.textContent = '';
-
-      for (var setting in this._checkStatus) {
-        this._checkStatus[setting].cb =
-          this._onUpdateStatus.bind(this, setting);
-        this._settings.addObserver(setting, this._checkStatus[setting].cb);
-      }
-
-      this._settings.createLock().set({
-        'gaia.system.checkForUpdates': true
-      });
     }
   };
 
