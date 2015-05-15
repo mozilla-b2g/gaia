@@ -23,6 +23,7 @@ task:
       RAPTOR_APPS: '{{raptorApps}}'
       RAPTOR_TIMEOUT: '{{raptorTimeout}}'
       RAPTOR_LAUNCH_DELAY: 6000
+      HEAD_MINUS_ONE: '{{headMinusOne}}'
     command:
       - /home/tester/bin/go-raptor.sh
 

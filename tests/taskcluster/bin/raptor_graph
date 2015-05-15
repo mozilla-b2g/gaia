@@ -32,17 +32,22 @@ function params() {
 // Map of task ids to task names.
 var taskIdMap = {};
 
+// the first raptor task will always run on master/base
+// if testing a pr, the second task will run on master+pr/head
+// if not testing a pr (i.e. running on gaia-master) the second
+// task will run against master head -1 commit, so set flag
+
 var config = {
   task1: {
     definition: 'raptor_launch',
     params: {
       provisionerId: 'aws-provisioner-v1',
       workerType: 'gaia',
-      raptorRuns: 15,
+      raptorRuns: 30,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_BASE_REV,
       raptorTimeout: 600000,
-      raptorBootSleep: 180,
+      headMinusOne: false,
       treeherderSym: 'se1'
     }
   },
@@ -51,11 +56,11 @@ var config = {
     params: {
       provisionerId: 'aws-provisioner-v1',
       workerType: 'gaia',
-      raptorRuns: 15,
+      raptorRuns: 30,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_HEAD_REV,
       raptorTimeout: 600000,
-      raptorBootSleep: 180,
+      headMinusOne: process.env.GITHUB_PULL_REQUEST === 1 ? false : true,
       treeherderSym: 'se2'
     }
   },
