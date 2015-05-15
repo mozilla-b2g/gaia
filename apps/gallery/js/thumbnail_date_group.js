@@ -11,16 +11,6 @@
  * two groups as different groups. ThumbnailDateGroup also sorts the added file
  * data descendant. We can just put a item into group and let it sort the list.
  *
- * Before use it, we need to initialize the static property Template with
- * template.js object. It is used when rendering group header, the HTML DOM
- * node of this object. The initialization may look like this:
- *
- *    `ThumbnailDateGroup.Template = new Template('thumbnail-group-header');`
- *
- *
- * The HTML Node of this object contains all UI of its children. If we move it,
- * all items under this group are also moved.
- *
  * CONSTRUCTOR:
  *   To create a group, we need to supply one argument:
  *      item: the first data object for this group. It will be used for
