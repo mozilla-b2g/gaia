@@ -258,7 +258,8 @@
   DnsErrorAppErrorView.prototype.populateMessages =
   function noew_populateMessages() {
     localizeElement(this.title, this.titleText);
-    localizeElement(this.message, this.messageText, { name: this.error.u });
+    localizeElement(this.message, this.messageText,
+                    { name: '\u2068' + this.error.u + '\u2069' });
   };
 
   var DnsErrorFramedErrorView = function(error, title, message) {
@@ -270,7 +271,8 @@
   DnsErrorFramedErrorView.prototype.populateMessages =
   function noew_populateMessages() {
     localizeElement(this.title, this.titleText);
-    localizeElement(this.message, this.messageText, { name: this.error.u });
+    localizeElement(this.message, this.messageText,
+                    { name: '\u2068' + this.error.u + '\u2069' });
   };
 
   // Offline view
