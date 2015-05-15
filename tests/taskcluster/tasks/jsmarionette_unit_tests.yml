@@ -1,0 +1,32 @@
+reruns: 2
+task:
+  metadata:
+    name: JSMarionette Unit Tests
+    description: Runs unit tests with tests/jsmarionette.
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
+    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
+
+  payload:
+    image: quay.io/mozilla/gaia-taskenv:0.8.9
+    cache:
+      gaia-misc-caches: /home/tester/caches/
+
+    env:
+      REPORTER: 'mocha-tbpl-reporter'
+      NODE_MODULES_SRC: npm-cache
+
+    command:
+      - entrypoint
+      - ./bin/ci run jsmarionette_unit_tests
+
+  extra:
+    treeherder:
+      groupSymbol: JSM
+      groupName: "JSMarionette unit tests"
+      symbol: JSM

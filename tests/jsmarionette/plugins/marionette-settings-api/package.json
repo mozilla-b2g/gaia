@@ -1,0 +1,10 @@
+{
+  "name": "marionette-settings-api",
+  "version": "0.1.0",
+  "license": "MIT",
+
+  "author": {
+    "name": "Bob Silverberg",
+    "email": "bsilverberg@mozilla.com"
+  }
+}

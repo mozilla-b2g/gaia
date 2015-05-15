@@ -802,6 +802,17 @@ test-integration-test: b2g
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
 
+.PHONY: jsmarionette-unit-tests
+jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
+	PROFILE_FOLDER=$(PROFILE_FOLDER) ./tests/jsmarionette/run_tests.js
+
+tests/jsmarionette/runner/marionette-js-runner/venv:
+	# Install virtualenv
+	cd tests/jsmarionette/runner/marionette-js-runner && npm install
+	# Still want to use $GAIA/node_modules
+	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
+
+
 .PHONY: caldav-server-install
 caldav-server-install:
 	source tests/ci/venv.sh; \
