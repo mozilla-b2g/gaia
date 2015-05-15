@@ -40,6 +40,7 @@
     "downloads":{},
     "firefox-accounts": {},
     "engineering-mode": {},
-    "secureelement-manage": {}
+    "secureelement-manage": {},
+    "presentation-device-manage": {}
   }
 }
