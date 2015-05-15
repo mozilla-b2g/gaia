@@ -1,0 +1,14 @@
+{
+  "name": "Gij TV",
+  "description": "Gij TV hosts all integrations for TV apps",
+  "launch_path": "/index.html",
+  "role": "system",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  },
+  "orientation": "landscape-primary"
+}
