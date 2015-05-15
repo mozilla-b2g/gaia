@@ -37,7 +37,7 @@ var config = {
     definition: 'raptor_launch',
     params: {
       provisionerId: 'aws-provisioner-v1',
-      workerType: 'gaia',
+      workerType: 'b2gtest',
       raptorRuns: 15,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_BASE_REV,
@@ -50,7 +50,7 @@ var config = {
     definition: 'raptor_launch',
     params: {
       provisionerId: 'aws-provisioner-v1',
-      workerType: 'gaia',
+      workerType: 'b2gtest',
       raptorRuns: 15,
       raptorApps: 'settings',
       gaiaRev: process.env.GITHUB_HEAD_REV,
@@ -65,7 +65,7 @@ var config = {
       completedBranchTask: '',
       completedPatchTask: '',
       provisionerId: 'aws-provisioner-v1',
-      workerType: 'gaia',
+      workerType: 'b2gtest',
       treeherderSym: 'se'
     }
   }
