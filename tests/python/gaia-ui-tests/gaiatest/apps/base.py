@@ -39,9 +39,9 @@ class Base(object):
             pass
         self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
-    def wait_for_element_displayed(self, by, locator, timeout=None):
+    def wait_for_element_displayed(self, by, locator, timeout=None, message=None):
         Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
-            lambda m: m.find_element(by, locator).is_displayed())
+            lambda m: m.find_element(by, locator).is_displayed(), message=message)
 
     def wait_for_element_not_displayed(self, by, locator, timeout=None):
         self.marionette.set_search_timeout(0)
