@@ -1,5 +1,5 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindow */
+/* global applications, BrowserConfigHelper, AppWindow, Service */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -194,13 +194,25 @@
           app.browser.element.src = config.url;
         }
         app.reviveBrowser();
+
+        // Always relaunch background app locally
+        this.publish('launchapp', config);
       } else {
-        // homescreenWindowManager already listens webapps-launch and open-app.
-        // We don't need to check if the launched app is homescreen.
-        this.forgetLastLaunchingWindow();
-        this.trackLauchingWindow(config);
+        var launchApp = () => {
+          // homescreenWindowManager already listens webapps-launch and
+          // open-app. We don't need to check if the launched app is homescreen.
+          this.forgetLastLaunchingWindow();
+          this.trackLauchingWindow(config);
+
+          this.publish('launchapp', config);
+        };
+
+        if (Service.query('MultiScreenController.enabled')) {
+          Service.request('chooseDisplay', config).catch(launchApp);
+        } else {
+          launchApp();
+        }
       }
-      this.publish('launchapp', config);
     },
 
     trackLauchingWindow: function(config) {
