@@ -51,11 +51,6 @@ if [ "$BUILDAPP" == "desktop" ]; then
     make -C $DIR/../ b2g
 fi
 
-# tests can timeout without the profile-test folder so build it here.
-if [ ! -d $DIR/../profile-test ]; then
-  PROFILE_FOLDER=profile-test make -C $DIR/../
-fi
-
 if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
     if [ -z "$SKIP_TEST_FILES" ]; then

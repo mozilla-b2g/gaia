@@ -93,7 +93,11 @@ GaiaBuilder.prototype = {
   build: function(overrides, callback) {
     overrides = overrides || {};
 
-    var env = { 'PROFILE_FOLDER': PROFILE_FOLDER };
+    var env = {
+      'PROFILE_FOLDER': PROFILE_FOLDER,
+      // Run all app builds in parallel....
+      'P': '1'
+    };
     var profile = fsPath.join(GAIA_ROOT, PROFILE_FOLDER);
 
     // set the base profile to the newly minted profile build.
@@ -110,7 +114,9 @@ GaiaBuilder.prototype = {
 
     // TODO: in the future we can expose build time options
     //       (like customizations)
+    var now = Date.now();
     make({ env: env }, function(err) {
+      console.log(Date.now() - now, '<<!');
       if (err) {
         // do an epic fail because gaia tests won't run without
         // this working successfully.
