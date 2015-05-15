@@ -22,11 +22,11 @@ marionette('Messages Composer', function() {
   var messagesApp, activityCallerApp;
 
   function assertIsDisplayed(element) {
-    assert.isTrue(element.displayed(), 'Element should be displayed');
+    client.helper.waitForElement(element);
   }
 
   function assertIsNotDisplayed(element) {
-    assert.isFalse(element.displayed(), 'Element should not be displayed');
+    client.helper.waitForElementToDisappear(element);
   }
 
   function assertIsFocused(element, message) {
@@ -125,13 +125,13 @@ marionette('Messages Composer', function() {
       // Case #3: Enter some more text to see available char counter
       composer.messageInput.sendKeys(message.slice(0, 70));
 
-      client.helper.waitForElement(composer.charCounter);
+      assertIsDisplayed(composer.charCounter);
       assert.equal(composer.charCounter.text(), '20/1');
       assertIsNotDisplayed(composer.mmsLabel);
 
       // Case #4: Remove one character and char counter should disappear
       composer.messageInput.sendKeys(Messages.Chars.BACKSPACE);
-      client.helper.waitForElementToDisappear(composer.charCounter);
+      assertIsNotDisplayed(composer.charCounter);
       assertIsNotDisplayed(composer.mmsLabel);
 
       // Case #5: Add empty subject, if subject is empty then we still have SMS
@@ -146,7 +146,7 @@ marionette('Messages Composer', function() {
       // counter while subject is empty
       composer.messageInput.sendKeys('ab');
 
-      client.helper.waitForElement(composer.charCounter);
+      assertIsDisplayed(composer.charCounter);
       assert.equal(composer.charCounter.text(), '19/1');
       assertIsNotDisplayed(composer.mmsLabel);
 
@@ -155,8 +155,8 @@ marionette('Messages Composer', function() {
       // available char counter should disappear
       composer.subjectInput.sendKeys('subject');
 
-      client.helper.waitForElement(composer.mmsLabel);
-      client.helper.waitForElementToDisappear(composer.charCounter);
+      assertIsDisplayed(composer.mmsLabel);
+      assertIsNotDisplayed(composer.charCounter);
 
       // Case #8: Enter some text to message input while subject is not empty
       // and visible. In this case we still update available char counter, but
@@ -170,8 +170,8 @@ marionette('Messages Composer', function() {
       // char counter (with actual value), message converted to SMS
       messagesApp.hideSubject();
 
-      client.helper.waitForElementToDisappear(composer.mmsLabel);
-      client.helper.waitForElement(composer.charCounter);
+      assertIsNotDisplayed(composer.mmsLabel);
+      assertIsDisplayed(composer.charCounter);
       assert.equal(composer.charCounter.text(), '17/1');
 
       // Case #10: Add attachment, message is converted to MMS and appropriate
@@ -187,8 +187,8 @@ marionette('Messages Composer', function() {
 
       messagesApp.switchTo();
 
-      client.helper.waitForElement(composer.mmsLabel);
-      client.helper.waitForElementToDisappear(composer.charCounter);
+      assertIsDisplayed(composer.mmsLabel);
+      assertIsNotDisplayed(composer.charCounter);
       // Since we have an attachment we don't track available characters and old
       // available char value should be removed to not confusing user
       assert.equal(composer.charCounter.text(), '');
@@ -222,13 +222,15 @@ marionette('Messages Composer', function() {
       composer.attachment.tap();
       messagesApp.selectAppMenuOption('Remove image');
 
-      client.helper.waitForElementToDisappear(composer.mmsLabel);
-      client.helper.waitForElement(composer.charCounter);
+      assertIsNotDisplayed(composer.mmsLabel);
+      assertIsDisplayed(composer.charCounter);
       assert.equal(composer.charCounter.text(), '15/1');
 
       // Case #14: add an email recipient, the message is converted to MMS.
       messagesApp.addRecipient('a@b.com');
       assertIsDisplayed(composer.mmsLabel);
+
+      client.helper.wait(600);
 
       // Case #15: remove the email recipient, the message is converted to SMS.
       messagesApp.getRecipient('a@b.com').tap();
