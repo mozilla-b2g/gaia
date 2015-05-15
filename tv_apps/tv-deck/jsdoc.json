@@ -1,5 +1,5 @@
 {
-  "smart-home": {
+  "tv-deck": {
     "src": [
       "tv_apps/tv-deck/js/**/*.js"
     ],

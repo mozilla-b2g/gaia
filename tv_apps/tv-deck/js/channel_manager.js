@@ -1,14 +1,18 @@
-/* global evt, Promise, asyncStorage */
+/* global evt */
 
 'use strict';
 
 (function(exports) {
 
-  function ChannelManager() {
+  function ChannelManager(tunerId) {
 
     this.isReady = false;
     this.currentTuners = {};
-    this.playingState = {};
+    this.playingState = {
+      tunerId: tunerId || null,
+      sourceType: null,
+      channelNumber: null
+    };
   }
 
   var proto = Object.create(new evt());
@@ -50,32 +54,17 @@
   };
 
   /**
-   * Fetch tuner, source and channel settings from URL hash. If URL hash is
-   * empty, then fetch settings from asyncStorage.
+   * Fetch tuner, source and channel settings from URL hash.
    */
   proto.fetchSettingFromHash = function cm_fetchSettingFromHash(hash) {
-    return new Promise(function(resolve, reject) {
-      var fetch = function(hash) {
-        if(hash) {
-          hash = hash.substring(1).split(',');
-          this.playingState = {
-            tunerId: hash[0],
-            sourceType: hash[1],
-            channelNumber: hash[2]
-          };
-        }
-      }.bind(this);
-
-      if (hash) {
-        fetch(hash);
-        resolve();
-      } else {
-        asyncStorage.getItem('TV_Hash', function(item) {
-          fetch(item);
-          resolve();
-        });
-      }
-    }.bind(this));
+    if(hash) {
+      hash = hash.substring(1).split(',');
+      this.playingState = {
+        tunerId: hash[0],
+        sourceType: hash[1],
+        channelNumber: hash[2]
+      };
+    }
   };
 
   /**
@@ -108,16 +97,16 @@
    * Retrieve all the currently available TV sources from current TV tuner.
    */
   proto.scanSources = function cm_scanSources() {
-    var tunerObject = this.getTuner();
-    tunerObject.tuner.getSources().then(function getSources(sources) {
-      tunerObject.sources = {};
+    var tunerItem = this.getTuner();
+    tunerItem.tuner.getSources().then(function getSources(sources) {
+      tunerItem.sources = {};
       if (sources.length === 0) {
         console.error('Error, no source found!');
         return;
       }
 
       sources.forEach(function initSource(source) {
-        tunerObject.sources[source.type] = {
+        tunerItem.sources[source.type] = {
           source: source,
           channels: [],
           channelIndexHash: {}
@@ -125,7 +114,11 @@
       }.bind(this));
 
       if (!this.playingState.sourceType) {
-        this.playingState.sourceType = sources[0].type;
+        if (tunerItem.tuner.currentSource) {
+          this.playingState.sourceType = tunerItem.tuner.currentSource.type;
+        } else {
+          this.playingState.sourceType = sources[0].type;
+        }
       }
 
       if (!this.getSource()) {
@@ -142,10 +135,10 @@
    * We have to scan the channels before calling getChannels.
    */
   proto.scanChannels = function cm_scanChannels() {
-    var sourceObject = this.getSource();
-    sourceObject.source.getChannels().then(function onsuccess(channels) {
-      sourceObject.channels = [];
-      sourceObject.channelIndexHash = {};
+    var sourceItem = this.getSource();
+    sourceItem.source.getChannels().then(function onsuccess(channels) {
+      sourceItem.channels = [];
+      sourceItem.channelIndexHash = {};
       if (channels.length === 0) {
         console.error('Error, no channel found!');
         return;
@@ -153,15 +146,20 @@
 
       var i;
       for (i = 0; i < channels.length; i++) {
-        sourceObject.channelIndexHash[channels[i].number] = i;
-        sourceObject.channels[i] = {
+        sourceItem.channelIndexHash[channels[i].number] = i;
+        sourceItem.channels[i] = {
           channel: channels[i],
           programs: [],
         };
       }
 
       if (!this.playingState.channelNumber) {
-        this.playingState.channelNumber = channels[0].number;
+        if (sourceItem.source.currentChannel) {
+          this.playingState.channelNumber =
+            sourceItem.source.currentChannel.number;
+        } else {
+          this.playingState.channelNumber = channels[0].number;
+        }
       }
 
       if (!this.getChannel()) {
@@ -177,13 +175,13 @@
   };
 
   proto.setPlayingSource = function cm_setPlayingSource(callback) {
-    var tunerObject = this.getTuner();
-    if (tunerObject.tuner.currentSource === this.getSource().source) {
+    var tunerItem = this.getTuner();
+    if (tunerItem.tuner.currentSource === this.getSource().source) {
       this.setPlayingChannel(callback);
       return;
     }
 
-    tunerObject.tuner.setCurrentSource(this.playingState.sourceType)
+    tunerItem.tuner.setCurrentSource(this.playingState.sourceType)
       .then(function() {
         this.setPlayingChannel(callback);
       }.bind(this), function() {

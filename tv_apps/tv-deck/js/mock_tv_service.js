@@ -9,7 +9,7 @@
  * which is insufficient to test and build a prototype.
  */
 (function(exports) {
-  var channels = [];
+
   var channelInfo = [
     {
       name: 'HBO',
@@ -59,14 +59,11 @@
     }
   ];
 
+  var channels = [];
   var randomDelay = ['400', '600', '800'];
-
-  var proto = {};
 
   window.TVChannel = function() {
   };
-
-  TVChannel.prototype = proto;
 
   for(var i = 0; i < channelInfo.length; i++) {
     var channel = new TVChannel();
@@ -75,24 +72,41 @@
     channels.push(channel);
   }
 
+  // Delete native property in order to override it
+  delete TVSource.prototype.currentChannel;
   TVSource.prototype.getChannels = function() {
+    var lastChannel;
+    var lastChannelNumber = localStorage.getItem('_Mock-Channel-Number');
+    channels.some(function(channel) {
+      if (channel.number === lastChannelNumber) {
+        lastChannel = channel;
+        return true;
+      }
+      return false;
+    }.bind(this));
+    this.currentChannel = lastChannel;
     return {
       then: function(success) {
         setTimeout(function() {
           success(channels);
-        }, 2000);
+        }, 500);
       }
     };
   };
 
-  TVSource.prototype.setCurrentChannel = function() {
+  TVSource.prototype.setCurrentChannel = function(channelNumber) {
     var duration = randomDelay[Math.floor(Math.random() * 3)];
     var resolve;
-    setTimeout(function() {
+    if (this._lastTimeoutId) {
+      clearTimeout(this._lastTimeoutId);
+    }
+    this._lastTimeoutId = setTimeout(function() {
+      this.currentChannel = channels[channelNumber];
+      localStorage.setItem('_Mock-Channel-Number', channelNumber);
       if (resolve) {
         resolve();
       }
-    }, duration);
+    }.bind(this), duration);
 
     return {
       then: function(success) {
