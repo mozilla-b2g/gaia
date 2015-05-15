@@ -38,11 +38,13 @@
     this.scrollable = app.browserContainer;
     this.render();
 
+    var chrome = this.app.config.chrome;
     if (this.app.themeColor) {
       this.setThemeColor(this.app.themeColor);
+    } else if (chrome.scrollable && !this.app.isPrivateBrowser()) {
+      this.app.element.classList.add('light');
     }
 
-    var chrome = this.app.config.chrome;
     if (!this.app.isBrowser() && chrome && !chrome.scrollable) {
       this._fixedTitle = true;
       this.title.dataset.l10nId = 'search-the-web';
@@ -79,6 +81,13 @@
       this.app.element.classList.remove('search-app');
     }
 
+    if (this.app.isHomescreen) {
+      this.app.element.classList.add('home-app');
+      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
+    } else {
+      this.app.element.classList.remove('home-app');
+    }
+
     if (chrome.bar) {
       this.app.element.classList.add('bar');
       this.bar.classList.add('visible');
@@ -89,8 +98,6 @@
 
       if (this.app.isPrivateBrowser()) {
         this.element.classList.add('private');
-      } else {
-        this.app.element.classList.add('light');
       }
 
       this.scrollable.scrollgrab = true;
@@ -99,7 +106,7 @@
     if (chrome.maximized) {
       this.element.classList.add('maximized');
 
-      if (!this.app.isBrowser()) {
+      if (!this.app.isBrowser() && !this.app.isHomescreen) {
         this.app.element.classList.add('scrollable');
       }
     }
@@ -477,7 +484,8 @@
     // with a page oscillating between scrollable/non-scrollable states, and
     // other similar issues that Firefox for Android is still dealing with
     // today.
-    if (this.containerElement.classList.contains('scrollable')) {
+    if (this.app.isHomescreen ||
+        this.containerElement.classList.contains('scrollable')) {
       return;
     }
 

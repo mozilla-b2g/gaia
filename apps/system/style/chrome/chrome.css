@@ -65,8 +65,6 @@
 [data-manifest-name="FTU"]:not(.bar) > .chrome .progress,
 .lockScreenWindow:not(.bar) > .chrome .controls,
 .lockScreenWindow:not(.bar) > .chrome gaia-progress,
-.homescreen:not(.bar) > .chrome .controls,
-.homescreen:not(.bar) > .chrome gaia-progress,
 .globalOverlayWindow:not(.bar) > .chrome .controls,
 .globalOverlayWindow:not(.bar) > .chrome gaia-progress {
   visibility: hidden;
@@ -75,10 +73,6 @@
 .lockScreenWindow:not(.bar) > .chrome,
 .globalOverlayWindow:not(.bar) > .chrome {
   background-color: transparent;
-}
-
-.homescreen:not(.bar) > .chrome {
-  background-image: none;
 }
 
 #screen.attention .lockScreenWindow:not(.bar) > .chrome {
@@ -95,10 +89,13 @@
   width: calc(100% - 1rem);
 }
 
-/* Special cases for rocketbar on the Top Sites view */
+/* Special cases for rocketbar on the Top Sites view and homescreens */
+.home-app .menu-button,
+.home-app .controls .reload-button,
+.home-app .controls .stop-button,
 .search-app .menu-button,
 .search-app .controls .reload-button,
-.search-app .controls .stop-button
+.search-app .controls .stop-button,
 .chrome .controls .windows-button {
   display: none;
 }
@@ -577,6 +574,7 @@ html[dir="rtl"] .appWindow:not(.browser) .controls .back-button:not([disabled]) 
   transform: translateX(-7.5rem);
 }
 
+html[dir="rtl"] .home-app .chrome.maximized .controls .urlbar:after,
 html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
   left: 0.8rem;
   right: unset;
