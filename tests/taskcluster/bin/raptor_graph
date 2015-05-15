@@ -133,7 +133,7 @@ var getEmulator = function() {
 var setpatchTaskRev = function() {
   return new Promise(function(resolve, reject) {
     if (process.env.GITHUB_PULL_REQUEST === '0') {
-      var cmd = "cd /home/rwood/gaia/ && git rev-parse HEAD~1";
+      var cmd = "cd /home/tester/git_checkout && git rev-parse HEAD~1";
       do_command(cmd).then(function(baseMinusOne) {
         config.patchTask1.params.GITHUB_BASE_REV = baseMinusOne;
         config.patchTask1.params.raptorSuiteName = "Settings Launch Test (on base -1 commit)";
