@@ -21,7 +21,7 @@
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
-    <script defer src="shared/js/template.js"></script>
+    <script defer src="shared/js/tagged.js"></script>
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
@@ -174,35 +174,6 @@
       </menu>
     </form>
 
-    <!-- This element is the template of each thumbnail item -->
-    <div id="thumbnail-group-header" class="hidden">
-      <!--
-        <li role="presentation">
-          <div class="thumbnail-group-header" role="heading"
-               aria-level="1"></div>
-          <ul class="thumbnail-group-container" role="listbox"
-              data-l10n-id="videos-list" aria-multiselectable="true"></ul>
-        </li>
-      -->
-    </div>
-    <div id="thumbnail-template" class="hidden">
-      <!--
-        <li class="thumbnail" role="option">
-          <div class="inner">
-            <div class="unwatched"></div>
-            <div class="img" role="presentation"></div>
-            <div class="details">
-              <span class="title">${title}</span>
-              <span class="duration-text after line-break"> ${duration-text}</span>
-              <span class="size-type-group">
-                <span class="size-text after"></span>
-                <span class="type-text after"> ${type-text}</span>
-              </span>
-            </div>
-          </div>
-        </li>
-      -->
-    </div>
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->
     <div id="throbber" class="hidden"><div></div></div>

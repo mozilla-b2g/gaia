@@ -1,11 +1,11 @@
 /* global ThumbnailItem: true,MockThumbnailItem,MockL10n,MediaUtils,
-  ThumbnailDateGroup,Template */
+  ThumbnailDateGroup */
 /*
  *  Thumbnail Date Group tests
  */
 'use strict';
 
-require('/shared/js/template.js');
+require('/shared/js/tagged.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
@@ -65,46 +65,6 @@ suite('Thumbnail Date Group Unit Tests', function() {
       }
     });
 
-    test('#no template', function() {
-      try {
-        delete ThumbnailDateGroup.Template;
-        new ThumbnailDateGroup({date: 1375873140000}); // jshint ignore:line
-        assert.fail('new object without template is not allowed.');
-      } catch (ex) {
-        assert.ok('correct behavior caught');
-      }
-    });
-
-    test('#template with empty content', function() {
-      try {
-        var dummyDiv = document.createElement('div');
-        dummyDiv.innerHTML = '<!-- empty -->';
-
-        ThumbnailDateGroup.Template = new Template(dummyDiv);
-        new ThumbnailDateGroup({date: 1375873140000}); // jshint ignore:line
-        assert.fail('empty template is not allowed.');
-      } catch (ex) {
-        assert.ok('correct behavior caught');
-      }
-    });
-  });
-
-  suite('#error handling', function() {
-    var videoData;
-
-    suiteSetup(function() {
-      videoData = {date: 1375873140000};
-
-    });
-
-    test('#render without template', function() {
-      try {
-        new ThumbnailDateGroup(videoData, 'test-id'); // jshint ignore:line
-        assert.fail('render() should throw error without template');
-      } catch (ex) {
-        assert.ok('expected error caught.');
-      }
-    });
   });
 
   suite('#rendering', function() {
@@ -114,16 +74,6 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
     suiteSetup(function() {
       videoData = {date: 1375873140000};
-
-      var dummyDiv = document.createElement('div');
-      dummyDiv.innerHTML = '<!--' +
-        '<li>' +
-        '  <div class="thumbnail-group-header"></div>' +
-        '  <ul class="thumbnail-group-container"></ul>' +
-        '</li>' +
-        '-->';
-
-      ThumbnailDateGroup.Template = new Template(dummyDiv);
       dateGroup = new ThumbnailDateGroup(videoData, 'test-id');
       domNode = dateGroup.htmlNode;
     });
@@ -142,25 +92,12 @@ suite('Thumbnail Date Group Unit Tests', function() {
     var videoData;
     var domNode;
     var groupContainerNode;
-    var dummyContainer;
 
     setup(function() {
       videoData = {date: 1375873140000};
-
-      dummyContainer = document.createElement('div');
-      var dummyDiv = document.createElement('div');
-      dummyDiv.innerHTML = '<!--' +
-        '<li>' +
-        '  <div class="thumbnail-group-header"></div>' +
-        '  <ul class="thumbnail-group-container"></ul>' +
-        '</li>' +
-        '-->';
-
-      ThumbnailDateGroup.Template = new Template(dummyDiv);
       dateGroup = new ThumbnailDateGroup(videoData);
       domNode = dateGroup.htmlNode;
       groupContainerNode = domNode.querySelector('.thumbnail-group-container');
-      dummyContainer.appendChild(domNode);
     });
 
     test('#addItem, simple', function() {
