@@ -35,3 +35,5 @@ definitions:
 
   unit_tests_b2g:
     chunks: 30
+
+  raptor_decision:

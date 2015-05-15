@@ -30,12 +30,12 @@
           "image": "quay.io/mozilla/gaia-taskenv:0.8.9",
           "command": [
             "entrypoint",
-            "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && node tests/taskcluster/bin/raptor_graph > /raptor_graph.json && cat /graph.json && cat /raptor_graph.json"
+            "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
           ],
           "env": {
             "NODE_MODULES_SRC": "npm-cache"
           },
-          "graphs": ["/graph.json", "/raptor_graph.json"],
+          "graphs": ["/graph.json"],
           "artifacts": {
             "public/package.json": {
               "type": "file",
