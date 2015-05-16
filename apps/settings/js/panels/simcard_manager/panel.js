@@ -9,7 +9,6 @@ define(function(require) {
       onInit: function(panel) {
         var simcardManager = new SimCardManager({
           simCardContainer: panel.querySelector('.sim-card-container'),
-          simCardTmpl: panel.querySelector('.sim-card-tmpl'),
           simSettingsHeader:
             panel.querySelector('.sim-manager-settings-header'),
           simSettingsList: panel.querySelector('.sim-manager-select-list'),

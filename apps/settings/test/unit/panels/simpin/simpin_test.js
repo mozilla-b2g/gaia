@@ -9,7 +9,6 @@ suite('SimPin > ', function() {
     '*': {
       'shared/airplane_mode_helper': 'MockAirplaneModeHelper',
       'shared/simslot_manager': 'MockSIMSlotManager',
-      'shared/template': 'MockTemplate',
       'shared/toaster': 'MockToaster',
       'modules/dialog_service': 'MockDialogService',
       'modules/sim_security': 'MockSimSecurity'
@@ -27,10 +26,6 @@ suite('SimPin > ', function() {
 
     this.MockSIMSlotManager = {
       isMultiSIM: function() {}
-    };
-
-    this.MockTemplate = {
-
     };
 
     this.MockToaster = {
@@ -57,10 +52,6 @@ suite('SimPin > ', function() {
 
     define('MockSIMSlotManager', () => {
       return this.MockSIMSlotManager;
-    });
-
-    define('MockTemplate', () => {
-      return this.MockTemplate;
     });
 
     define('MockToaster', () => {
@@ -117,13 +108,11 @@ suite('SimPin > ', function() {
   });
 
   suite('initSimPinsUI > ', function() {
-    var interpolateSpy;
+    var viewSpy;
 
     setup(function() {
-      interpolateSpy = this.sinon.spy();
-      simpin.simPinTemplate = {
-        interpolate: interpolateSpy
-      };
+      viewSpy = this.sinon.spy();
+      simpin.simPinView = viewSpy;
     });
 
     suite('in single sim structure', function() {
@@ -136,11 +125,11 @@ suite('SimPin > ', function() {
 
       test('init SimPinsUI successfully, we won\'t put SIM [n] PIN on UI',
         function() {
-          var firstCallArgs = interpolateSpy.getCall(0).args[0];
-          assert.equal(firstCallArgs['sim-index'], '0');
-          assert.equal(firstCallArgs['sim-name'],
+          var firstCallArgs = viewSpy.getCall(0).args[0];
+          assert.equal(firstCallArgs.simIndex, '0');
+          assert.equal(firstCallArgs.simName,
             'simPinWithIndex{"index":""}');
-          assert.equal(firstCallArgs['change-sim-label'], 'changeSimPin');
+          assert.equal(firstCallArgs.changeSimLabel, 'changeSimPin');
       });
     });
 
@@ -153,17 +142,17 @@ suite('SimPin > ', function() {
       });
 
       test('init SimPinsUI successfully', function() {
-        var firstCallArgs = interpolateSpy.getCall(0).args[0];
-        assert.equal(firstCallArgs['sim-index'], '0');
-        assert.equal(firstCallArgs['sim-name'],
+        var firstCallArgs = viewSpy.getCall(0).args[0];
+        assert.equal(firstCallArgs.simIndex, '0');
+        assert.equal(firstCallArgs.simName,
           'simPinWithIndex{"index":1}');
-        assert.equal(firstCallArgs['change-sim-label'], 'changeSimPin');
+        assert.equal(firstCallArgs.changeSimLabel, 'changeSimPin');
 
-        var secondCallArgs = interpolateSpy.getCall(1).args[0];
-        assert.equal(secondCallArgs['sim-index'], '1');
-        assert.equal(secondCallArgs['sim-name'],
+        var secondCallArgs = viewSpy.getCall(1).args[0];
+        assert.equal(secondCallArgs.simIndex, '1');
+        assert.equal(secondCallArgs.simName,
           'simPinWithIndex{"index":2}');
-        assert.equal(secondCallArgs['change-sim-label'], 'changeSimPin');
+        assert.equal(secondCallArgs.changeSimLabel, 'changeSimPin');
       });
     });
   });

@@ -24,11 +24,11 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/screen_layout': {
         exports: 'ScreenLayout'
       },
+      'shared/tagged': {
+        exports: 'Tagged'
+      },
       'shared/tz_select': {
         exports: 'tzSelect'
-      },
-      'shared/template': {
-        exports: 'Template'
       },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'

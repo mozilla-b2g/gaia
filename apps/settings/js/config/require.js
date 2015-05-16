@@ -64,8 +64,8 @@ require.config({
     'shared/toaster': {
       exports: 'Toaster'
     },
-    'shared/template': {
-      exports: 'Template'
+    'shared/tagged': {
+      exports: 'Tagged'
     },
     'shared/sim_settings_helper': {
       exports: 'SimSettingsHelper'
