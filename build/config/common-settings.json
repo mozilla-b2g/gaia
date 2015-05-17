@@ -218,7 +218,7 @@
    "tethering.wifi.prefix": "24",
    "tethering.wifi.dhcpserver.startip": "192.168.1.10",
    "tethering.wifi.dhcpserver.endip": "192.168.1.30",
-   "tethering.wifi.ssid": "FirefoxHotspot",
+   "tethering.wifi.ssid": "",
    "tethering.wifi.security.type": "wpa2-psk",
    "tethering.wifi.security.password": "",
    "tethering.wifi.connectedClients": 0,

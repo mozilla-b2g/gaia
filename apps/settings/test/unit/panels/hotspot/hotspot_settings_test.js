@@ -81,6 +81,7 @@ suite('Hotspot settings panel >', function() {
 
   suite('Generate password', function() {
     var setting = 'tethering.wifi.security.password';
+    var settingSSID = 'tethering.wifi.ssid';
 
     setup(function() {
       var cset = [];
@@ -93,6 +94,13 @@ suite('Hotspot settings panel >', function() {
         hotspotSettings._updatePasswordIfNeeded();
         var generatedPassword = MockNavigatorSettings.mSettings[setting];
         assert.isTrue(re.test(generatedPassword));
+    });
+
+    test('SSID should be generate correctly', function() {
+      var re = new RegExp('FirefoxOS_[a-zA-Z0-9]{10}');
+      hotspotSettings._updateSSIDIfNeeded();
+      var generatedSSID = MockNavigatorSettings.mSettings[settingSSID];
+      assert.isTrue(re.test(generatedSSID));
     });
   });
 });
