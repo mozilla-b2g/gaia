@@ -692,11 +692,14 @@ var ConversationView = {
     // Add recipients and fill+focus the Compose area.
     var recipientPromise;
     if (activity.contact && number) {
-      recipientPromise = Utils.getContactDisplayInfo(findByAddress, number)
-        .then(function onData(data) {
-          data.source = 'contacts';
-          return data;
-        });
+      findByAddress(phoneNumber).then((contacts) => {
+        return Object.assign(
+          Utils.basicContact(phoneNumber, contacts),
+          { 
+            source: 'contacts' 
+          }
+        );
+      });
     } else if (number) {
       // If the activity delivered the number of an unknown recipient,
       // create a recipient directly.
