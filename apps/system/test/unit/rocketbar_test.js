@@ -161,7 +161,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('apploading'));
     assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    var trayOpenedEvent = 'utility-tray-overlayopening';
+    var trayOpenedEvent = 'utilitytray-overlayopening';
     assert.ok(windowAddEventListenerStub.calledWith(trayOpenedEvent));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
@@ -257,6 +257,15 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
+  test('handleEvent() - simlockrequestfocus', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'simlockrequestfocus'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
   test('handleEvent() - apploading', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
@@ -293,10 +302,19 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
-  test('handleEvent() - utility-tray-overlayopening', function() {
+  test('handleEvent() - utilitytray-overlayopening', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
-    var event = {type: 'utility-tray-overlayopening'};
+    var event = {type: 'utilitytray-overlayopening'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - cardviewbeforeshow', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'cardviewbeforeshow'};
     subject.handleEvent(event);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(deactivateStub.calledOnce);
@@ -684,6 +702,20 @@ suite('system/Rocketbar', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     this.sinon.stub(subject, 'isActive').returns(true);
     subject._handle_home();
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
+  });
+
+  test('_handle_home - during activate', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    this.sinon.stub(subject, 'isActive').returns(true);
+
+    var fakePromise = new MockPromise();
+    subject._activateCall = fakePromise;
+
+    subject._handle_home();
+    fakePromise.mFulfillToValue();
     assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
   });

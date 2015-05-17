@@ -28,15 +28,62 @@ suite('SIMSlotManager', function() {
     navigator.mozMobileConnections = realMobileConnections;
   });
 
-  test('isMultiSIM', function() {
-    MockNavigatorMozMobileConnections.mAddMobileConnection();
+  test('Multi-SIM with 1st slot ready and 2nd slot absent.', function() {
+    // Add 2nd MobileConnection for Multi-SIM scenario.
     MockNavigatorMozMobileConnections.mAddMobileConnection();
     var stubAddEventListener = this.sinon.stub(
       MockIccManager, 'addEventListener');
+
+    // Have 1st slot ready to test.
+    MockNavigatorMozMobileConnections[0].iccId = 0;
+    MockIccManager.iccIds = [0];
+    var getIccById = MockIccManager.getIccById;
+    MockIccManager.getIccById = function(iccId) {
+      return (iccId !== 0) ? null : {
+        cardState: 'ready',
+        iccInfo: { iccid: 0 }
+      };
+    };
+
+    // Reset SIMSlotManager before testing.
+    SIMSlotManager.length = 0;
+    SIMSlotManager._instances = [];
+    SIMSlotManager.ready = false;
+
+    // Start the test.
     SIMSlotManager.init();
+
+    // Verdict.
     assert.isTrue(SIMSlotManager.isMultiSIM());
     assert.equal(SIMSlotManager.length,
       MockNavigatorMozMobileConnections.length);
+    assert.isFalse(SIMSlotManager.ready);
+    assert.isTrue(
+      stubAddEventListener.calledWith('iccdetected', SIMSlotManager));
+
+    // Reset MockIccManager.getIccById.
+    MockIccManager.getIccById = getIccById;
+  });
+
+  test('Multi-SIM with 2 slots ready.', function() {
+    // Add 2nd MobileConnection for Multi-SIM scenario.
+    MockNavigatorMozMobileConnections.mAddMobileConnection();
+    var stubAddEventListener = this.sinon.stub(
+      MockIccManager, 'addEventListener');
+
+    // Reset SIMSlotManager before testing.
+    SIMSlotManager.length = 0;
+    SIMSlotManager._instances = [];
+    SIMSlotManager.ready = false;
+
+    // Start the test.
+    SIMSlotManager.init();
+
+    // Verdict.
+    assert.isTrue(SIMSlotManager.isMultiSIM());
+    assert.equal(SIMSlotManager.length,
+      MockNavigatorMozMobileConnections.length);
+    assert.isTrue(SIMSlotManager.ready);
     assert.isTrue(
       stubAddEventListener.calledWith('iccdetected', SIMSlotManager));
   });

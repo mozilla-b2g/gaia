@@ -86,7 +86,7 @@ suite('Bluetooth app > PairManager ', function() {
     }.bind(this));
 
     var requireCtx = testRequire([], maps, function() {});
-    requireCtx(modules, function(pairExpiredDialog, pairview, adapterManager, 
+    requireCtx(modules, function(pairExpiredDialog, pairview, adapterManager,
                                  btContext, pairManager) {
       PairExpiredDialog = pairExpiredDialog;
       Pairview = pairview;
@@ -117,6 +117,7 @@ suite('Bluetooth app > PairManager ', function() {
       this.sinon.stub(PairManager, '_watchOnenterpincodereq');
       this.sinon.stub(PairManager, '_watchOnpairingconfirmationreq');
       this.sinon.stub(PairManager, '_watchOnpairingconsentreq');
+      this.sinon.stub(PairManager, '_watchOnpairingaborted');
       this.sinon.stub(PairManager, '_onRequestPairingFromSystemMessage');
       this.sinon.stub(PairManager, 'showPendingPairing');
       this.sinon.stub(PairManager, 'onBluetoothDisabled');
@@ -129,7 +130,7 @@ suite('Bluetooth app > PairManager ', function() {
 
     suite('observe "defaultAdapter" from AdapterManager > ', function() {
       test('AdapterManager "defaultAdapter" property should be observed, ' +
-           'and access defaultAdapter from AdapterManager manually ', 
+           'and access defaultAdapter from AdapterManager manually ',
       function() {
         assert.isTrue(AdapterManager.observe.calledWith('defaultAdapter'));
         assert.isTrue(PairManager._onDefaultAdapterChanged.calledWith(
@@ -139,12 +140,13 @@ suite('Bluetooth app > PairManager ', function() {
 
     suite('should watch pairing request events from dom event > ', function() {
       test('"_watchOndisplaypasskeyreq", "_watchOnenterpincodereq", ' +
-           '"_watchOnpairingconfirmationreq", "_watchOnpairingconsentreq" ' +
-           'should be called ', function() {
+           '"_watchOnpairingconfirmationreq", "_watchOnpairingconsentreq", ' +
+           '"_watchOnpairingaborted" should be called ', function() {
         assert.isTrue(PairManager._watchOndisplaypasskeyreq.called);
         assert.isTrue(PairManager._watchOnenterpincodereq.called);
         assert.isTrue(PairManager._watchOnpairingconfirmationreq.called);
         assert.isTrue(PairManager._watchOnpairingconsentreq.called);
+        assert.isTrue(PairManager._watchOnpairingaborted.called);
       });
     });
 
@@ -217,23 +219,89 @@ suite('Bluetooth app > PairManager ', function() {
   });
 
   suite('_watchOndisplaypasskeyreq > ', function() {
+    var mockDefaultAdapter, mockEvent, mockEventName, expectedPairingInfo;
     setup(function() {
-      PairManager._defaultAdapter = {
+      mockDefaultAdapter = {
         pairingReqs: {
-          ondisplaypasskeyreq: null
+          addEventListener: function() {}
         }
+      };
+      PairManager._defaultAdapter = mockDefaultAdapter;
+      this.sinon.stub(PairManager._defaultAdapter.pairingReqs,
+                      'addEventListener');
+      this.sinon.stub(PairManager, '_handlePairingRequest');
+      mockEvent = {};
+      mockEventName = 'displaypasskey';
+      expectedPairingInfo = {
+        method: mockEventName,
+        evt: mockEvent
       };
     });
 
-    test('pairingReqs.ondisplaypasskeyreq should be accessed with callback',
+    test('pairingReqs.ondisplaypasskeyreq should be registered callback',
     function() {
       PairManager._watchOndisplaypasskeyreq();
-      assert.isDefined(
-        PairManager._defaultAdapter.pairingReqs.ondisplaypasskeyreq);
+      // addEventListener
+      assert.equal(
+        PairManager._defaultAdapter.pairingReqs.addEventListener.args[0][0],
+        'displaypasskeyreq');
+      PairManager._defaultAdapter.pairingReqs.addEventListener.args[0][1](
+        mockEvent, mockEventName);
+      // _handlePairingRequest
+      assert.deepEqual(PairManager._handlePairingRequest.args[0][0],
+        expectedPairingInfo);
     });
   });
 
-  suite('_onRequestPairing > ', function() {
+  suite('_watchOnpairingaborted > ', function() {
+    var mockDefaultAdapter, mockEvent;
+    setup(function() {
+      mockDefaultAdapter = {
+        addEventListener: function() {}
+      };
+      PairManager._defaultAdapter = mockDefaultAdapter;
+      this.sinon.stub(PairManager._defaultAdapter, 'addEventListener');
+      this.sinon.stub(PairManager, '_onPairingAborted');
+      mockEvent = {};
+    });
+
+    test('_defaultAdapter.onpairingaborted should be registered callback ' +
+         'function ', function() {
+      PairManager._watchOnpairingaborted();
+      assert.equal(PairManager._defaultAdapter.addEventListener.args[0][0],
+        'pairingaborted');
+      PairManager._defaultAdapter.addEventListener.args[0][1](mockEvent);
+      assert.isTrue(PairManager._onPairingAborted.calledWith(mockEvent));
+    });
+  });
+
+  suite('_onPairingAborted > ', function() {
+    var mockEvent;
+    setup(function() {
+      this.sinon.stub(Pairview, 'closeInput');
+      PairManager.pendingPairing = {};
+      PairManager.childWindow = {
+        Pairview: Pairview,
+        close: this.sinon.spy()
+      };
+      switchReadOnlyProperty(PairExpiredDialog, 'isVisible', true);
+      this.sinon.stub(PairExpiredDialog, 'close');
+      this.sinon.stub(window, 'close');
+    });
+
+    test('Pairview.closeInput() should be called, childWindow should be close' +
+         'window.close() should be called, pendingPairing should be null, ' +
+         'PairExpiredDialog.close() should be called ', function() {
+        PairManager._onPairingAborted(mockEvent);
+        assert.isTrue(PairManager.childWindow.Pairview.closeInput.called);
+        assert.isTrue(PairManager.childWindow.close.called);
+        assert.isNull(PairManager.pendingPairing);
+        assert.isTrue(PairExpiredDialog.close.called);
+        assert.isTrue(window.close.called);
+    });
+  });
+
+  suite('_handlePairingRequest > ', function() {
     var pairingInfo = {
       method: 'confirmation',
       evt: {}
@@ -244,20 +312,20 @@ suite('Bluetooth app > PairManager ', function() {
         this.sinon.stub(PairManager, 'cleanPendingPairing');
         this.sinon.stub(PairManager, 'showPairview');
         MockNavigatorSettings.mSettings['lockscreen.locked'] = true;
-        PairManager._onRequestPairing(pairingInfo);
+        PairManager._handlePairingRequest(pairingInfo);
         setTimeout(done);
       });
 
-      test('handle showPairview() from _onRequestPairing() ', function() {
+      test('handle showPairview() from _handlePairingRequest() ', function() {
         assert.isTrue(PairManager.fireNotification.calledWith(pairingInfo),
-        'fireNotification() should be called after do _onRequestPairing() ' +
-        'in screen lock mode');
+        'fireNotification() should be called after do _handlePairingRequest()' +
+        ' in screen lock mode');
         assert.isFalse(PairManager.cleanPendingPairing.called,
         'cleanPendingPairing() should not be called after do ' +
-        '_onRequestPairing() in screen lock mode');
+        '_handlePairingRequest() in screen lock mode');
         assert.isFalse(PairManager.showPairview.called,
-        'showPairview() should not be called after do _onRequestPairing() ' +
-        'in screen lock mode');
+        'showPairview() should not be called after do _handlePairingRequest()' +
+        ' in screen lock mode');
       });
     });
 
@@ -267,17 +335,17 @@ suite('Bluetooth app > PairManager ', function() {
         this.sinon.stub(PairManager, 'cleanPendingPairing');
         this.sinon.stub(PairManager, 'showPairview');
         MockNavigatorSettings.mSettings['lockscreen.locked'] = false;
-        PairManager._onRequestPairing(pairingInfo);
+        PairManager._handlePairingRequest(pairingInfo);
         setTimeout(done);
       });
 
-      test('handle showPairview() from _onRequestPairing() ', function() {
+      test('handle showPairview() from _handlePairingRequest() ', function() {
         assert.isFalse(PairManager.fireNotification.called,
         'fireNotification() should not be called after ' +
-        'do _onRequestPairing() in screen lock mode');
+        'do _handlePairingRequest() in screen lock mode');
         assert.isTrue(PairManager.cleanPendingPairing.called,
         'cleanPendingPairing() should not be called after do ' +
-        '_onRequestPairing() in screen lock mode');
+        '_handlePairingRequest() in screen lock mode');
         assert.isTrue(PairManager.showPairview.calledWith(pairingInfo),
         'showPairview() should be called after do onRequestPairing() ' +
         'in screen unlock mode');

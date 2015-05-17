@@ -5,6 +5,9 @@ require.config({
     'panels': 'panels',
     'shared': '../shared/js'
   },
+  // This is the default value of the loading timeout, we will disable the
+  // timeout in the production build
+  waitSeconds: 7,
   shim: {
     'settings': {
       exports: 'Settings'
@@ -14,6 +17,9 @@ require.config({
     },
     'simcard_lock': {
       exports: 'SimPinLock'
+    },
+    'vendor/jszip': {
+      exports: 'JSZip'
     },
     'shared/apn_helper': {
       exports: 'ApnHelper'
@@ -46,6 +52,9 @@ require.config({
     'shared/settings_url': {
       exports: 'SettingsURL'
     },
+    'shared/settings_helper': {
+      exports: 'SettingsHelper'
+    },
     'shared/omadrm/fl': {
       exports: 'ForwardLock'
     },
@@ -64,6 +73,9 @@ require.config({
     'shared/tz_select': {
       exports: 'tzSelect',
       deps: ['shared/icc_helper']
+    },
+    'shared/uuid': {
+      exports: 'uuid'
     },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
@@ -119,7 +131,8 @@ require.config({
         'main',
         'panels/root/low_priority_items',
         'modules/apps_cache',
-        'modules/bluetooth/version_detector'
+        'modules/bluetooth/version_detector',
+        'modules/addon_manager'
       ]
     },
     {
@@ -129,7 +142,15 @@ require.config({
         'modules/bluetooth/version_detector',
         'modules/app_storage',
         'modules/battery',
-        'modules/wifi_context'
+        'modules/wifi_context',
+        'modules/sim_security'
+      ]
+    },
+    {
+      name: 'panels/simpin/panel',
+      exclude: [
+        'main',
+        'modules/sim_security'
       ]
     },
     {

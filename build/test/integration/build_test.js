@@ -66,7 +66,10 @@ suite('Integration tests', function() {
       var fileInZip = zipEntries[f];
       var fileName = fileInZip.entryName;
       if (/\.(png|gif|jpg)$/.test(fileName)) {
-        if (reso !== 1 && fileName.indexOf('browser_') === -1) {
+        // Manually modify the pathname of the browser branding images as
+        // these are packaged differently than normal images.
+        if (reso !== 1 &&
+            fileName.indexOf('shared/resources/branding/browser_') === -1) {
           fileName = fileName.replace(
             /(.*)(\.(png|gif|jpg))$/, '$1@' + reso + 'x$2');
         }

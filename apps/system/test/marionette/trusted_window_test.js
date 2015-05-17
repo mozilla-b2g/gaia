@@ -8,10 +8,6 @@ var FAKE_APP_URL = 'app://fakeapp.gaiamobile.org';
 marionette('trusted window tests', function() {
   var system, frame, server;
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: {
       'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
     }

@@ -7,22 +7,7 @@
     border-right: 0.2rem solid transparent;
     border-top: 0.2rem solid white;
   }
-  10% {
-    width: 8.6rem;
-    background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
-    border-top: 0.2rem solid white;
-  }
-  30% {
-    opacity: 1;
-    width: 8.6rem;
-    background-color: transparent;
-    border-left: 0.2rem solid transparent;
-    border-right: 0.2rem solid transparent;
-    border-top: 0.2rem solid #B3F3FF;
-  }
-  60% {
+  50% {
     opacity: 1;
     width: 8.6rem;
     background-color: transparent;
@@ -47,6 +32,8 @@
   background-color: transparent;
   visibility: hidden;
   transform: translateY(-5rem);
+
+  /* This transition is used when hiding the toaster. */
   transition: transform ease .3s, background-color 0s ease .3s, visibility 0s ease .3s;
 }
 
@@ -102,7 +89,8 @@
 
 #notification-toaster.displayed {
   transform: translateY(0);
-  transition: transform .2s ease 1.2s, background-color 0s ease 1.2s, visibility 0s ease 1.2s;
+  /* We keep the visibility transition to make Marionette tests easier to write. */
+  transition: transform .2s ease .4s, visibility 0s ease .4s;
   background-color: #00BCE2;
   visibility: visible;
 }
@@ -126,10 +114,10 @@
 
 #notification-toaster.displayed:after {
   animation-name: toaster;
-  animation-duration: 1.2s;
+  animation-duration: .4s;
   border-color: #00BCE2;
   transform: translateY(.2rem);
-  transition: border-color 0s ease 1.2s;
+  transition: border-color 0s ease .4s;
 }
 
 #notification-bar {
@@ -242,8 +230,6 @@
 
 #notifications-container .notification > div.title-container .timestamp {
   flex: initial;
-  top: -.2rem;
-  right: 1.5rem;
   padding: 0;
   max-width: 7.5rem;
   font-size: 1.4rem;
@@ -259,16 +245,22 @@
   color: #858585;
 }
 
+#notifications-container .notification > div.detail .detail-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #notifications-container .notification.snapback,
 .notification-toaster.snapback {
-  transition: transform 0.3s ease-out;
+  transition: transform var(--transition-duration) ease-out;
   transform: translateX(0);
 }
 
 #notifications-container .notification.disappearing,
 #notifications-container .notification.disappearing-via-clear-all,
 .notification-toaster.disappearing {
-  transition: transform 0.3s linear;
+  transition: transform var(--transition-duration) linear;
   transform: translateX(100%);
 }
 
@@ -278,7 +270,7 @@
 }
 
 #notifications-container .notification.disappearing ~ .notification {
-  transition: transform 0.3s linear;
+  transition: transform var(--transition-duration) linear;
   transform: translateY(-6.2rem);
 }
 
@@ -293,6 +285,15 @@
 }
 
 /* RTL View */
+
+#notifications-container .notification[data-predefined-dir="rtl"] > div.detail {
+  direction: rtl;
+}
+
+#notifications-container .notification[data-predefined-dir="ltr"] > div.detail {
+  direction: ltr;
+}
+
 
 html[dir="rtl"] #toaster-icon{
   left: unset;
@@ -313,16 +314,23 @@ html[dir="rtl"] #notifications-container .notification > img {
   float: right;
 }
 
-html[dir="rtl"] #notifications-container .notification > div.title-container .timestamp {
-  left: 1.5rem;
-  right: unset;
-}
-
 html[dir="rtl"] #notifications-container .notification > div {
   margin-left: unset;
   margin-right: 3.7rem;
 }
 
-html[dir="rtl"] #notifications-container .notification > div:-moz-dir(ltr) {
+/*
+ * For the notification title, we need to use dir="auto" to display
+ * parenthesis and periods in their proper place. However, we still
+ * want the text to align right when in an RTL language, so we use
+ * the following override. See bug 1134453 and bug 1142925.
+ */
+html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .title-container .title:-moz-dir(ltr) {
+  text-align: right;
+  -moz-margin-end: unset;
+  margin-left: 0.5rem;
+}
+
+html[dir="rtl"] #notifications-container .notification:not([data-predefined-dir="ltr"]) .detail-content:-moz-dir(ltr) {
   text-align: right;
 }

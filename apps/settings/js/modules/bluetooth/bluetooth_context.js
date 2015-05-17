@@ -17,6 +17,8 @@ define(function(require) {
 
   var AdapterManager = require('modules/bluetooth/bluetooth_adapter_manager');
   var BtDevice = require('modules/bluetooth/bluetooth_device');
+  var ConnectionManager =
+    require('modules/bluetooth/bluetooth_connection_manager');
   var Observable = require('modules/mvvm/observable');
   var ObservableArray = require('modules/mvvm/observable_array');
   var SettingsCache = require('modules/settings_cache');
@@ -138,6 +140,22 @@ define(function(require) {
       AdapterManager.observe('defaultAdapter',
                              this._onDefaultAdapterChanged.bind(this));
       this._onDefaultAdapterChanged(AdapterManager.defaultAdapter);
+
+      // Watch 'connecting' event for reaching connecting device.
+      ConnectionManager.addEventListener('connecting',
+        this._updateDeviceConnectionInfo.bind(this));
+
+      // Watch 'connected' event for reaching connected device.
+      ConnectionManager.addEventListener('connected',
+        this._updateDeviceConnectionInfo.bind(this));
+
+      // Watch 'disconnected' event for reaching disconnected device.
+      ConnectionManager.addEventListener('disconnected',
+        this._updateDeviceConnectionInfo.bind(this));
+
+      // Watch 'profileChange' event for reaching device connection profile.
+      ConnectionManager.addEventListener('profileChanged',
+        this._updateDeviceConnectionInfo.bind(this));
     },
 
     /**
@@ -154,9 +172,6 @@ define(function(require) {
       this.name = adapter.name;
       this.discoverable = adapter.discoverable;
       this.discovering = adapter.discovering;
-
-      // init paired device information
-      this._refreshPairedDevicesInfo(adapter);
     },
 
     /**
@@ -188,8 +203,8 @@ define(function(require) {
      */
     _watchDefaultAdapterOnattributechanged:
     function btc__watchDefaultAdapterOnattributechanged(adapter) {
-      adapter.onattributechanged =
-        this._onAdapterAttributeChanged.bind(this, adapter);
+      adapter.addEventListener('attributechanged',
+        this._onAdapterAttributeChanged.bind(this, adapter));
     },
 
     /**
@@ -202,7 +217,8 @@ define(function(require) {
      */
     _unwatchDefaultAdapterOnattributechanged:
     function btc__unwatchDefaultAdapterOnattributechanged(adapter) {
-      adapter.onattributechanged = null;
+      adapter.removeEventListener('attributechanged',
+        this._onAdapterAttributeChanged);
     },
 
     /**
@@ -284,6 +300,8 @@ define(function(require) {
           case 'state':
             this._updateStatus(adapter.state);
             if (adapter.state === 'enabled') {
+              // Init paired device information while Bluetooth is enabled.
+              this._refreshPairedDevicesInfo(adapter);
               // Manually start discovery while the adapter state
               // is already enabled.
               this.startDiscovery();
@@ -319,7 +337,7 @@ define(function(require) {
     _onAdapterDevicepaired:
     function btc__onAdapterDevicepaired(adapter, evt) {
       Debug('_onAdapterDevicepaired evt = ' + evt);
-      // have to get device object in this event handler 
+      // have to get device object in this event handler
       // Ex. evt.device --> device
 
       // Remove the paired device from remote devices list.
@@ -379,6 +397,10 @@ define(function(require) {
         this._watchDefaultAdapterOnattributechanged(newAdapter);
         this._watchDefaultAdapterOndevicepaired(newAdapter);
         this._watchDefaultAdapterOndeviceunpaired(newAdapter);
+        // init paired device information while Bluetooth is enabled
+        if (newAdapter.state === 'enabled') {
+          this._refreshPairedDevicesInfo(newAdapter);
+        }
       } else {
         // reset properties only
         this._resetProperties();
@@ -421,6 +443,9 @@ define(function(require) {
         this.firstPairedDeviceName = this._pairedDevices.get(0).name;
         // update property 'hasPairedDevice'
         this.hasPairedDevice = true;
+        // Update connection status and profile for these paired devices.
+        this._initConnectingDevices();
+        this._initConnectedDevices();
       }
 
       this.numberOfPairedDevices = pairedDevices.length;
@@ -445,20 +470,32 @@ define(function(require) {
         enabled = false;
       }
 
+      // Update state
+      this.state = state;
+      Debug('_updateStatus(): set state = ' + state);
+
+      // Update enabled
+      this.enabled = enabled;
+      Debug('_updateStatus(): set enabled = ' + enabled);
+
       // Sync with settings key
+      this._syncWithSettingsKey(enabled);
+    },
+
+    /**
+     * The function provides to set booleans to update the 'bluetooth.enabled'
+     * settings key if the value is not sync.
+     *
+     * @access private
+     * @memberOf BluetoothContext
+     * @param {Boolean} enabled
+     */
+    _syncWithSettingsKey: function btc__syncWithSettingsKey(enabled) {
       SettingsCache.getSettings((results) => {
         var btEnabled = results['bluetooth.enabled'];
         if (btEnabled !== enabled) {
           settings.createLock().set({'bluetooth.enabled': enabled});
         }
-
-        // Update state
-        this.state = state;
-        Debug('_updateStatus(): set state = ' + state);
-
-        // Update enabled
-        this.enabled = enabled;
-        Debug('_updateStatus(): set enabled = ' + enabled);
       });
     },
 
@@ -517,10 +554,10 @@ define(function(require) {
       }
 
       return this._defaultAdapter.setDiscoverable(enabled).then(() => {
-        Debug('setDiscoverable(): set discoverable ' + 
+        Debug('setDiscoverable(): set discoverable ' +
               enabled + ' successfully :)');
       }, (reason) => {
-        Debug('setDiscoverable(): set discoverable failed: ' + 
+        Debug('setDiscoverable(): set discoverable failed: ' +
               'reason = ' + reason);
         return Promise.reject(reason);
       });
@@ -629,7 +666,7 @@ define(function(require) {
         // ondevicefound event handler
         this._setDiscoveryHandler(handle);
       }, (reason) => {
-        Debug('startDiscovery(): startDiscovery failed: ' + 
+        Debug('startDiscovery(): startDiscovery failed: ' +
               'reason = ' + reason);
         return Promise.reject(reason);
       });
@@ -709,20 +746,20 @@ define(function(require) {
      * @param {Object Observable} device
      */
     _saveDevice: function btc__saveDevice(device) {
-      // distinguish the found device is paired or not
-      var operatingDevices =
-        (device.paired) ? this.getPairedDevices() : this.getRemoteDevices();
-
-      // check the device is existed or not in remote/paired devices array
-      var index = operatingDevices.array.findIndex(
-                    this._findDeviceByAddress.bind(this, device.address));
-
+      // Find the device is existed in devices list or not.
+      var existedDevice =
+        this._findDeviceByAddress({
+          paired: device.paired,
+          address: device.address
+        });
       // If the device is not existed yet, create observable object
       // for saving this device.
-      if (index === -1) {
+      if (!existedDevice) {
         // create observable BtDevice
         var observableBtDevice = BtDevice(device);
         // push device in devices list with observable object
+        var operatingDevices =
+          (device.paired) ? this.getPairedDevices() : this.getRemoteDevices();
         operatingDevices.push(observableBtDevice);
       } else {
         // The device is existed, no need to do any thing here.
@@ -742,14 +779,41 @@ define(function(require) {
      */
     _removeItemFromList: function btc__removeItemFromList(list, address) {
       // check the device is existed or not in remote/paired devices array
-      var index = 
-        list.array.findIndex(this._findDeviceByAddress.bind(this, address));
+      var index =
+        list.array.findIndex(this._matchDeviceByAddress.bind(this, address));
       if (index > -1) {
         // The device is existed, remove it from observable list.
         list.splice(index, 1);
         Debug('_removeItemFromList(): index = ' + index);
       } else {
         // The device is not existed, no need to do any thing here.
+      }
+    },
+
+    /**
+     * Given paired, address properties to find out device element
+     * from remote/paired devices list.
+     *
+     * @access private
+     * @memberOf BluetoothContext
+     * @param {Object} options
+     * @param {String} options.paired - is paired or not
+     * @param {String} options.address - the address of the device
+     * @return {Object} device
+     */
+    _findDeviceByAddress:
+    function btc__findDeviceByAddress(options) {
+      // Distinguish to find the specific device in remote/paired devices list.
+      var operatingDevices =
+        (options.paired) ? this.getPairedDevices() : this.getRemoteDevices();
+      // Check the device is existed or not in remote/paired devices array.
+      var index = operatingDevices.array.findIndex(
+        this._matchDeviceByAddress.bind(this, options.address));
+
+      if (index > -1) {
+        return operatingDevices.get(index);
+      } else {
+        return null;
       }
     },
 
@@ -762,8 +826,8 @@ define(function(require) {
      * @param {BluetoothDevice} btDevice
      * @return {Boolean}
      */
-    _findDeviceByAddress:
-    function btc__findDeviceByAddress(address, btDevice) {
+    _matchDeviceByAddress:
+    function btc__matchDeviceByAddress(address, btDevice) {
       return btDevice.address && (btDevice.address === address);
     },
 
@@ -802,8 +866,8 @@ define(function(require) {
         return Promise.reject('default adapter is not existed!!');
       }
 
-      // Note on Bluedroid stack, discovery has to be stopped before pairing 
-      // (i.e., call stopDiscovery() before pair()) otherwise stack callbacks 
+      // Note on Bluedroid stack, discovery has to be stopped before pairing
+      // (i.e., call stopDiscovery() before pair()) otherwise stack callbacks
       // with pairing failure.
       return this.stopDiscovery().then(() => {
         return this._defaultAdapter.pair(address).then(() => {
@@ -811,7 +875,7 @@ define(function(require) {
         }, (reason) => {
           Debug('pair(): Reject with this reason: ' + reason);
           return Promise.reject(reason);
-        });  
+        });
       }, (reason) => {
         return Promise.reject(reason);
       });
@@ -836,6 +900,135 @@ define(function(require) {
         Debug('unpair(): Reject with this reason: ' + reason);
         return Promise.reject(reason);
       });
+    },
+
+    /**
+     * The method starts sending file to a remote device with the device's
+     * adapter.
+     *
+     * @access public
+     * @memberOf BluetoothContext
+     * @param {String} address - address of target device
+     * @param {Object} blob - blob(file) to send
+     * @returns {Promise}
+     */
+    sendFile: function btc_sendFile(address, blob) {
+      if (!this._defaultAdapter) {
+        return Promise.reject('default adapter is not existed!!');
+      }
+
+      return this._defaultAdapter.sendFile(address, blob).then(() => {
+        Debug('sendFile(): Resolved with void value');
+      }, (reason) => {
+        Debug('sendFile(): Reject with this reason: ' + reason);
+        return Promise.reject(reason);
+      });
+    },
+
+    /**
+     * Init the connecting device which is browsed in paired devices list.
+     * Get connection info from ConnectionManager.
+     *
+     * @access private
+     * @memberOf BluetoothContext
+     */
+    _initConnectingDevices: function btc__initConnectingDevices() {
+      // Init the paired device connection status for connecting device.
+      if (!ConnectionManager.connectingAddress) {
+        return;
+      }
+
+      var existedDevice =
+        this._findDeviceByAddress({
+          paired: true,
+          address: ConnectionManager.connectingAddress
+        });
+      if (existedDevice) {
+        // The connecting device is existed. Init connection status for it.
+        var options = {
+          connectionStatus: 'connecting'
+        };
+        Debug('_initConnectingDevices(): options = ' + JSON.stringify(options));
+        existedDevice.updateConnectionInfo(options);
+      }
+    },
+
+    /**
+     * Init the connected device which is browsed in paired devices list.
+     * Get connection info from ConnectionManager.
+     *
+     * @access private
+     * @memberOf BluetoothContext
+     */
+    _initConnectedDevices: function btc__initConnectedDevices() {
+      // Init the connection status of paired device for connected device.
+      ConnectionManager.getConnectedDevices().then((connectedDevices) => {
+        for (var address in connectedDevices) {
+          var existedDevice =
+            this._findDeviceByAddress({paired: true, address: address});
+
+          if (existedDevice) {
+            // The connected device is existed.
+            // Init connection status/profiles for it.
+            var options = {
+              connectionStatus: 'connected',
+              profiles: connectedDevices[address].connectedProfiles
+            };
+            Debug('_initConnectedDevices(): address = ' + address +
+                  ', options = ' + JSON.stringify(options));
+            existedDevice.updateConnectionInfo(options);
+          }
+        }
+      }, (reason) => {
+        Debug('_initConnectedDevices(): getConnectedDevices(): failed, ' +
+              'reason = ' + reason);
+      });
+    },
+
+    /**
+     * Device 'connecting', 'connected', 'disconnected', and 'profiles'
+     * properties are changed from ConnectionManager operation.
+     * Update device properties of connection info via event 'type', 'detail'.
+     *
+     * @access private
+     * @memberOf BluetoothContext
+     * @param {Object} event
+     * @param {String} event.type - type of event name
+     * @param {Object} event.detail - device info in this object
+     * @param {Object} event.detail.address - address of device
+     * @param {Object} event.detail.profiles - connection profiles of device
+     */
+    _updateDeviceConnectionInfo:
+    function btc__updateDeviceConnectionInfo(event) {
+      Debug('_updateDeviceConnectionInfo(): event = ' + JSON.stringify(event));
+      var existedDevice =
+        this._findDeviceByAddress(
+          {paired: true, address: event.detail.address});
+      if (existedDevice) {
+        // The device is existed, update device info by event type.
+        var options;
+        switch (event.type) {
+          case 'connecting':
+          case 'connected':
+          case 'disconnected':
+            options = {
+              connectionStatus: event.type
+            };
+            break;
+          case 'profileChanged':
+            options = {
+              profiles: event.detail.profiles
+            };
+            break;
+          default:
+            break;
+        }
+        Debug('_updateDeviceConnectionInfo(): options = ' +
+              JSON.stringify(options));
+        existedDevice.updateConnectionInfo(options);
+      } else {
+        // If the device is not existed yet, do nothing here.
+      }
     }
   };
 

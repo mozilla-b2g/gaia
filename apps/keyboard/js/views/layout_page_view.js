@@ -23,6 +23,9 @@ function LayoutPageView(layout, options, viewManager) {
 
   this.candidatePanel = null;
   this.candidatePanelHeight = 3.2;
+
+  // Cache the visual data here
+  this.keyArrays = new Map();
 }
 
 LayoutPageView.prototype.render = function render() {
@@ -143,6 +146,8 @@ LayoutPageView.prototype.render = function render() {
 
   container.appendChild(content);
 
+  container.setAttribute('lang', layout.lang);
+
   this.element = container;
 };
 
@@ -203,6 +208,8 @@ LayoutPageView.prototype.unHighlightKey = function unHighlightKey(target) {
 };
 
 LayoutPageView.prototype.resize = function resize(totalWidth) {
+  this.options.totalWidth = totalWidth;
+
   // Set width and height for handwriting pad.
   if (this.handwritingPadView) {
     var placeHolderWidth = totalWidth / (this.layout.width || 10);
@@ -217,12 +224,18 @@ LayoutPageView.prototype.resize = function resize(totalWidth) {
 };
 
 LayoutPageView.prototype.getVisualData = function getVisualData() {
+  var totalWidth = this.options.totalWidth;
+  var keyArray = this.keyArrays.get(totalWidth);
+
+  if (keyArray) {
+    return keyArray;
+  }
+
+  keyArray = [];
   // Now that key sizes have been set and adjusted for the row,
   // loop again and record the size and position of each. If we
   // do this as part of the loop above, we get bad position data.
   // We do this in a seperate loop to avoid reflowing
-  var keyArray = [];
-
   this.rows.forEach(function (row) {
     row.keys.forEach(function(keyView) {
       var visualKey = keyView.element.querySelector('.visual-wrapper');
@@ -235,6 +248,8 @@ LayoutPageView.prototype.getVisualData = function getVisualData() {
       });
     });
   });
+
+  this.keyArrays.set(totalWidth, keyArray);
 
   return keyArray;
 };

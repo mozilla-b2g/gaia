@@ -6,10 +6,15 @@
 }
 
 /* Fav star in header */
-#contact-name-title.favorite {
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 3rem;
-  padding-right: 3rem;
-  margin-right: -1rem;
+.favorite-indicator {
+  display: none;
+
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center / 3rem;
+  padding: 0 1rem;
+}
+
+.favorite .favorite-indicator {
+  display: unset;
 }
 
 section[role="region"] > gaia-header .icon.icon-edit-contact {
@@ -96,7 +101,7 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .view-contact-profile .view-body-inner.up {
-  transition: transform 0.5s ease-out;
+  transition: transform var(--transition-duration) ease-out;
 }
 
 .view-contact-profile .view-body-inner hr {
@@ -1088,6 +1093,13 @@ html[dir="rtl"] nav[data-type="scrollbar"] p {
   right: 10rem;
 }
 
+/* TODO: Remove this workaround once bug 883884 fixed */
+.ellipsis-dir-fix {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 /* Overwrite input-areas bb */
 #custom-tag-reset {
   right: 1rem;
@@ -1096,4 +1108,19 @@ html[dir="rtl"] nav[data-type="scrollbar"] p {
 html[dir="rtl"] #custom-tag-reset {
   left: 1rem;
   right: unset;
+}
+
+#multiple-select-view aside {
+  border-bottom: 0.1rem solid #FFFFFF;
+  margin-right: 0;
+  padding-right: 1.5rem;
+}
+
+/* Force align with system because dir="auto" will ignore text-align: start*/
+.force-align[dir="auto"] {
+  text-align: left;
+}
+
+html[dir="rtl"] .force-align[dir="auto"] {
+  text-align: right;
 }

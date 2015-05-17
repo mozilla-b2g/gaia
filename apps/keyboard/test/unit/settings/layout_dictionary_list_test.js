@@ -1,13 +1,15 @@
 'use strict';
 
-/* global LayoutDictionary, LayoutDictionaryList */
+/* global LayoutDictionary, LayoutDictionaryList, PromiseStorage */
 
 require('/js/settings/layout_dictionary_list.js');
 require('/js/settings/layout_dictionary.js');
+require('/js/shared/promise_storage.js');
 
 suite('LayoutDictionaryList', function() {
   var layoutListStub;
   var layoutDicts;
+  var promiseStorageStub;
 
   var list;
 
@@ -23,14 +25,19 @@ suite('LayoutDictionaryList', function() {
       return layoutDict;
     }.bind(this));
 
-    layoutListStub = {
-      dbStore: { stub: 'dbStore' }
-    };
+    var PromiseStoragePrototype = PromiseStorage.prototype;
+    promiseStorageStub =
+      this.sinon.stub(Object.create(PromiseStoragePrototype));
+    this.sinon.stub(window, 'PromiseStorage')
+      .returns(promiseStorageStub);
+
+    layoutListStub = {};
 
     list = new LayoutDictionaryList(layoutListStub);
     list.start();
 
-    assert.equal(list.dbStore, layoutListStub.dbStore);
+    assert.isTrue(window.PromiseStorage.calledWith(list.DATABASE_NAME));
+    assert.isTrue(promiseStorageStub.start.calledOnce);
   });
 
   teardown(function() {

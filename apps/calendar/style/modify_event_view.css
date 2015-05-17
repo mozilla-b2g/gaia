@@ -98,6 +98,13 @@
   display: none;
 }
 
+/* remove button padding and set the input height to avoid cropping arabic text
+ * (Bug 1154633) */
+#modify-event-view .current-calendar .button {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 #modify-event-view .calendar-id,
 #modify-event-view .current-calendar {
   clear: both;

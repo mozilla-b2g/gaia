@@ -2,28 +2,27 @@ define(function(require) {
 'use strict';
 
 var Abstract = require('store/abstract');
-var Calc = require('calc');
+var Calc = require('common/calc');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
+var Responder = require('common/responder');
 var notificationsController = require('controllers/notifications');
 
 suite('store/alarm', function() {
+  var core;
   var subject;
   var db;
-  var app;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
-    subject = db.getStore('Alarm');
-    subject.app = app;
+    core = testSupport.calendar.core();
+    db = core.db;
+    subject = core.storeFactory.get('Alarm');
 
     db.open(done);
   });
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      subject.db,
+      core.db,
       ['alarms'],
       done
     );
@@ -115,17 +114,26 @@ suite('store/alarm', function() {
 
   suite('#_addDependents', function() {
     var worksQueue = 0;
+    var auto;
+    var originalWork;
 
     setup(function() {
       worksQueue = 0;
+      auto = subject.autoQueue;
+      originalWork = subject.workQueue;
       subject.autoQueue = true;
       subject.workQueue = function() {
         worksQueue++;
       };
     });
 
+    teardown(function() {
+      subject.autoQueue = auto;
+      subject.workQueue = originalWork;
+    });
+
     test('after persist transaction', function(done) {
-      var trans = subject.db.transaction('alarms', 'readwrite');
+      var trans = core.db.transaction('alarms', 'readwrite');
 
       subject.persist({}, trans);
       subject.persist({}, trans);
@@ -142,7 +150,6 @@ suite('store/alarm', function() {
 
   test('initialization', function() {
     assert.instanceOf(subject, Abstract);
-    assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
 

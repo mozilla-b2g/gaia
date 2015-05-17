@@ -11,13 +11,13 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
-  transition: visibility 0.4s;
+  transition: visibility var(--transition-duration);
 }
 
 /* Header */
 [role="dialog"][data-type="edit"] [role="region"] > gaia-header {
   background-color: #f4f4f4;
-  transition: transform 0.4s ease;
+  transition: transform var(--transition-duration) ease;
   pointer-events: auto;
 }
 
@@ -43,7 +43,7 @@
   right: 0;
   bottom: 0;
   display: flex;
-  transition: transform 0.4s ease;
+  transition: transform var(--transition-duration) ease;
   pointer-events: auto;
 }
 
@@ -53,7 +53,7 @@
   height: 4rem;
   margin: 0;
   -moz-margin-start: 1rem;
-  padding: 0 1.2rem;
+  padding: 0 0.2rem;
   -moz-box-sizing: border-box;
   display: block;
   text-overflow: ellipsis;

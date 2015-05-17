@@ -238,7 +238,7 @@
         this.screenElement.classList.add('software-button-enabled');
         this.screenElement.classList.remove('software-button-disabled');
 
-        this.element.addEventListener('click', this._emptyEventHandler);
+        this.element.addEventListener('mousedown', this._preventFocus);
         this.homeButtons.forEach(function sbm_addTouchListeners(b) {
           b.addEventListener('touchstart', this);
           b.addEventListener('mousedown', this);
@@ -249,7 +249,7 @@
         this.screenElement.classList.remove('software-button-enabled');
         this.screenElement.classList.add('software-button-disabled');
 
-        this.element.removeEventListener('click', this._emptyEventHandler);
+        this.element.removeEventListener('mousedown', this._preventFocus);
         this.homeButtons.forEach(function sbm_removeTouchListeners(b) {
           b.removeEventListener('touchstart', this);
           b.removeEventListener('mousedown', this);
@@ -352,9 +352,13 @@
       }
     },
 
-    // We just add this handler to prevent fuzzing issues where tapping the SHB
-    // will trigger events in the current app.
-    _emptyEventHandler: function() {
+    /**
+     * Used to prevent taps on the SHB container from stealing focus, and to
+     * prevent fuzzing issues where tapping will trigger events in the app.
+     * @memberof SoftwareButtonManager.prototype
+     */
+    _preventFocus: function(evt) {
+      evt.preventDefault();
     },
 
     /**

@@ -1,7 +1,9 @@
-/* global AppWindowManager, ScreenManager */
+/* global AppWindowManager, ScreenManager, SettingsCache */
 
 (function(exports) {
   'use strict';
+
+  var SETTINGS_AUTO_FIXING = 'focusmanager.autofix.enabled';
 
   // The following keys are handled by state machine. If we prevent the
   // following keys, we may break the state machine. Before a total solution,
@@ -34,12 +36,20 @@
 
   proto.start = function ff_start() {
     window.addEventListener('screenchange', this);
-    this.startFallbackCatcher();
+    SettingsCache.get(SETTINGS_AUTO_FIXING, function(enabled) {
+      if (enabled === true) {
+        this._autoFixingEnabled = true;
+        this.startFallbackCatcher();
+      }
+    }.bind(this));
   };
 
   proto.stop = function ff_stop() {
     window.removeEventListener('screenchange', this);
-    this.stopFallbackCatcher();
+    if (this._autoFixingEnabled) {
+      this.stopFallbackCatcher();
+      this._autoFixingEnabled = false;
+    }
   };
 
   proto._getAncestors = function ff__getAncestors(elem) {
@@ -131,8 +141,9 @@
     setTimeout(function() {
       // list all visible system UI
       var visible = this._systemUIs.filter(function(item) {
-        return item && item.isVisible() &&
-               this._isUnderDOMTree(item.getElement());
+        return item && item.isFocusable() &&
+               this._isUnderDOMTree(item.getElement()) &&
+               this.isElementVisible(item.getElement());
       }.bind(this));
       if (visible.length > 0) {
         var topMost = null;
@@ -160,7 +171,7 @@
             var zOrderB = this._getElementZOrder(nodes.b);
             if (zOrderB > zOrderA) {
               topMost = item;
-            } else {
+            } else if (zOrderA === zOrderB) {
               var domIndexA = this._getElementIndex(nodes.a);
               var domIndexB = this._getElementIndex(nodes.b);
               if (domIndexB > domIndexA) {
@@ -193,8 +204,8 @@
     window.removeEventListener('mozbrowserbeforekeyup', this, true);
   };
 
-  proto.isActiveElementVisible = function ff_isActiveElementVisible() {
-    var active = document.activeElement;
+  proto.isElementVisible = function ff_isElementVisible(element) {
+    var active = element;
     var style = active ? window.getComputedStyle(active) : null;
     var visible = true;
     // check its ancestor is all visible.
@@ -203,7 +214,8 @@
       // AFAIK, if ancestor's visibility is hidden and descendant's visibility
       // is visibile, the descendant is displayed at screen. But we should have
       // such cases in smart system app. So, we view this caes as invisible.
-      if (style.display === 'none' || style.visibility === 'hidden') {
+      if (style.display === 'none' || style.visibility === 'hidden' ||
+          active.getAttribute('aria-hidden') === 'true') {
         visible = false;
         break;
       }
@@ -222,7 +234,7 @@
     }
     // If one of ancestor of active element is invisible, we should view it as
     // in wrong focus
-    if (!this.isActiveElementVisible()) {
+    if (!this.isElementVisible(document.activeElement)) {
       return true;
     }
 

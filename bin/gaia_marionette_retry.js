@@ -47,18 +47,26 @@ function main() {
   // Pull everything off from the first arg.
   args = args.concat(filenames.splice(index, filenames.length - index));
 
+  if (!filenames || !filenames.length) {
+    return summarize({ pass: 0, fail: 0, pending: 0 });
+  }
+
   if (filenames[0].indexOf('setup') !== -1) {
     // Special case for setup script.
     args.push(filenames.shift());
   }
 
-  runTests(filenames, args, 5 /* retry */).then(function(results) {
-    // Summarize.
-    console.log('*~*~* Results *~*~*');
-    console.log('passed: %d', results.pass);
-    console.log('failed: %d', results.fail);
-    console.log('todo: %d', results.pending);
-  });
+  runTests(filenames, args, 5 /* retry */).then(summarize);
+}
+
+function summarize(results) {
+  console.log('*~*~* Results *~*~*');
+  console.log('passed: %d', results.pass);
+  console.log('failed: %d', results.fail);
+  console.log('todo: %d', results.pending);
+  if (results.fail > 0) {
+    process.exit(1);
+  }
 }
 
 /**
@@ -164,6 +172,7 @@ function runTest(filename, args, retry) {
     });
 
     jsmarionette.stderr.on('data', function(data) {
+      console.error('[marionette-mocha] ' + data);
       stderr += data.toString();
     });
 

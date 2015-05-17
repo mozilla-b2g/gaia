@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Apps</title>
+
+    <!-- stylesheets of building blocks -->
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-icons/smart-icons.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-button/style.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/smart-bubbles/style.css">
+
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/navigation.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/icons.css">
+    <link rel="stylesheet" type="text/css" href="style/tv_deck.css">
+
+    <!-- default cards for first time launch -->
+    <link rel="resource" type="application/json" href="shared/resources/default-cards.json">
+
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
+
+    <!-- Shared libraries -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/manifest_helper.js"></script>
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="shared/js/async_semaphore.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
+    <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
+    <script defer src="shared/js/smart-screen/simple_key_navigation.js"></script>
+    <script defer src="shared/js/smart-screen/shared_utils.js"></script>
+    <script defer src="shared/js/smart-screen/applications.js"></script>
+    <script defer src="shared/js/smart-screen/piped_promise.js"></script>
+    <script defer src="shared/js/smart-screen/card_store.js"></script>
+    <script defer src="shared/js/smart-screen/cards/card.js"></script>
+    <script defer src="shared/js/smart-screen/cards/application.js"></script>
+    <script defer src="shared/js/smart-screen/cards/deck.js"></script>
+    <script defer src="shared/js/smart-screen/cards/folder.js"></script>
+    <script defer src="shared/js/smart-screen/card_manager.js"></script>
+
+    <!-- building blocks -->
+    <script defer src="bower_components/smart-button/script.js"></script>
+    <script defer src="bower_components/smart-bubbles/script.js"></script>
+
+    <!-- Specific code -->
+    <script defer src="js/mock_tv_service.js"></script>
+    <script defer src="js/pin_card.js"></script>
+    <script defer src="js/channel_manager.js"></script>
+    <script defer src="js/tv_deck.js"></script>
+    <script defer src="js/index.js"></script>
+
+    <!-- L10n properties -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/tv-deck.{locale}.properties"/>
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties"/>
+  </head>
+
+  <body>
+    <article id="main-section" contextmenu="context-menu">
+      <smart-bubbles id="bubble-animation"></smart-bubbles>
+      <section role="region">
+        <div id="overlay"></div>
+        <div id="channel-container">
+            <div id="loading-icon"></div>
+            <div id="channel-panel" tabindex="-1">
+                <div id="channel-number"></div>
+                <div id="channel-title"></div>
+            </div>
+        </div>
+        <video id="tv-stream" width="100%" height="100%"></video>
+        <div id="button-group-panel" class="hidden" smart-bubbles="true">
+            <smart-button id="pin-button" data-icon="pin"></smart-button>
+            <smart-button id="menu-button" data-icon="menu"></smart-button>
+        </div>
+      </section>
+      <menu type="context" id="context-menu">
+        <menuitem icon="style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-button-contextmenu"></menuitem>
+      </menu>
+    </article>
+  </body>
+
+</html>

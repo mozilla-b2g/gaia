@@ -1,5 +1,5 @@
-/* global BaseUI, LazyLoader, InputParser, ValueSelector, SpinDatePicker,
-          ValuePicker, Template */
+/* global BaseUI, InputParser, ValueSelector, SpinDatePicker,
+          ValuePicker, Tagged */
 
 'use strict';
 
@@ -26,6 +26,7 @@
 
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
+    app.element.addEventListener('_closed', this);
     app.element.addEventListener('_inputmethod-contextchange', this);
     app.element.addEventListener('_localized', this);
     window.addEventListener('timeformatchange', this);
@@ -72,6 +73,7 @@
         break;
       case '_opening':
       case '_closing':
+      case '_closed':
         if (this._injected) {
           this.hide();
         }
@@ -107,23 +109,31 @@
           this.show(evt.detail);
         } else {
           this.render(function afterRender() {
-            this.show(evt.detail);
+            // Nesting two requestionAnimationFrames stops the style changes
+            // from this.show coalescing with the creation of the elements,
+            // without forcing a synchronous style flush.
+            window.requestAnimationFrame(() => {
+              window.requestAnimationFrame(() => {
+                this.show(evt.detail);
+              });
+            });
           }.bind(this));
         }
+        break;
+      case 'transitionend':
+        this.element.classList.remove('transitioning');
         break;
     }
   };
 
   ValueSelector.prototype.render = function vs_render(callback) {
     this.publish('willrender');
-    LazyLoader.load('shared/js/template.js', function onTemplateLoaded(){
-      this.containerElement.insertAdjacentHTML('beforeend', this.view());
-      this._fetchElements();
-      this._registerEvents();
-      this._injected = true;
-      this.publish('rendered');
-      callback();
-    }.bind(this));
+    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    this._fetchElements();
+    this._registerEvents();
+    this._injected = true;
+    this.publish('rendered');
+    callback();
   };
 
   ValueSelector.prototype._fetchElements = function vs__fetchElements() {
@@ -144,10 +154,86 @@
   };
 
   ValueSelector.prototype.view = function vs_view() {
-    var template = new Template('value-selector-template');
-    return template.interpolate({
-      id: this.CLASS_NAME + this.instanceID
-    });
+    /* jshint maxlen: false */
+    var id = this.CLASS_NAME + this.instanceID;
+    return Tagged.escapeHTML `<div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
+      <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
+        <section class="value-selector-container">
+          <h1 class="value-selector-options-title" data-l10n-id="choose-option"></h1>
+          <ol class="value-selector-options-container" role="listbox"></ol>
+        </section>
+        <menu class="value-selector-select-options-buttons value-selector-buttons">
+          <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok"></button>
+        </menu>
+      </form>
+      <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
+        <h1 data-l10n-id="select-time">Select time</h1>
+        <div class="value-selector-time-picker">
+          <div class="value-selector-time-picker-container picker-container">
+            <div class="picker-bar-background"></div>
+            <div class="value-picker-hours-wrapper">
+              <div class="value-picker-hours animation-on"></div>
+            </div>
+            <div class="value-picker-minutes-wrapper">
+              <div class="value-picker-minutes animation-on"></div>
+            </div>
+            <div class="value-picker-hour24-wrapper">
+              <div class="value-picker-hour24-state animation-on"></div>
+            </div>
+            <div class="value-indicator">
+              <div aria-hidden="true" class="value-indicator-colon hours-minutes-separator">:</div>
+            </div>
+          </div>
+        </div>
+        <menu class="value-selector-time-picker-buttons value-selector-buttons" data-items="2">
+          <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel"></button>
+          <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok"></button>
+        </menu>
+      </div>
+      <div role="dialog" data-type="date-selector" class="value-selector-spin-date-picker-popup" hidden>
+        <h1 data-l10n-id="select-day"></h1>
+        <div class="value-selector-spin-date-picker">
+          <div class="picker-container">
+            <div class="picker-bar-background"></div>
+            <div class="value-picker-date-wrapper">
+              <div class="value-picker-date animation-on"></div>
+              <div class="value-picker-date animation-on"></div>
+              <div class="value-picker-date animation-on"></div>
+              <div class="value-picker-date animation-on"></div>
+            </div>
+            <div class="value-picker-month-wrapper">
+              <div class="value-picker-month animation-on"></div>
+            </div>
+            <div class="value-picker-year-wrapper">
+              <div class="value-picker-year animation-on"></div>
+            </div>
+            <div class="value-indicator"></div>
+          </div>
+        </div>
+        <menu class="value-selector-spin-date-picker-buttons value-selector-buttons" data-items="2">
+          <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel"></button>
+          <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok"></button>
+        </menu>
+      </div>
+    </div>`;
+  };
+
+  ValueSelector.prototype.optionView = function(
+    {index, checked, labelFor,text}) {
+    return Tagged.escapeHTML `<li role="option" data-option-index="${index}"
+        aria-selected="${checked}" dir="auto">
+        <label role="presentation" for="${labelFor}">
+          <span>${text}</span>
+        </label>
+      </li>`;
+  };
+
+  ValueSelector.prototype.groupView = function({text}) {
+    return Tagged.escapeHTML `<li role="subheader" dir="auto">
+        <label role="presentation">
+          <span>${text}</span>
+        </label>
+      </li>`;
   };
 
   ValueSelector.prototype._registerEvents = function vs__registerEvents() {
@@ -155,6 +241,7 @@
     // Prevent the form from submit.
     this.elements.selectOptionPopup.addEventListener('submit', this);
     this.element.addEventListener('mousedown', this);
+    this.element.addEventListener('transitionend', this);
     ['selectOptionsButtons', 'timePickerButtons',
       'spinDatePickerButtons'].forEach(function(elementId) {
         this.elements[elementId].addEventListener('click', this);
@@ -191,6 +278,7 @@
 
     this.app._setVisibleForScreenReader(false);
     if (this.element.hidden) {
+      this.element.classList.add('transitioning');
       this.element.hidden = false;
     }
 
@@ -231,8 +319,9 @@
       return;
     }
     this.element.blur();
+    this.element.classList.add('transitioning');
     this.element.hidden = true;
-    if (this.app) {
+    if (this.app.getBottomMostWindow().isActive() && this.app.isActive()) {
       this.app.focus();
     }
     this.publish('hidden');
@@ -380,9 +469,6 @@
       return;
     }
 
-    var groupTemplate = new Template('value-selector-groupoption-template');
-    var template = new Template('value-selector-option-template');
-
     // Add ARIA property to notify if this is a multi-select or not.
     this.elements.optionsContainer.setAttribute('aria-multiselectable',
       this._currentPickerType !== 'select-one');
@@ -390,15 +476,15 @@
     options.forEach(function(option) {
       if (option.group) {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          groupTemplate.interpolate({
+          this.groupView({
             text: option.text
           }));
       } else {
         this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-          template.interpolate({
+          this.optionView({
             index: option.optionIndex.toString(10),
             checked: option.selected.toString(),
-            for: 'gaia-option-' + option.optionIndex,
+            labelFor: 'gaia-option-' + option.optionIndex,
             text: option.text
           }));
       }
@@ -413,8 +499,6 @@
 
     if (this.elements.optionsTitle) {
       this.elements.optionsTitle.dataset.l10nId = titleL10nId;
-      this.elements.optionsTitle.textContent = navigator.mozL10n.get(
-        titleL10nId);
     }
   };
 

@@ -33,13 +33,17 @@ section.month > ol
   margin-right: 0.3rem;
 }
 
-/* Applies to both #month-days and day squares */
+section.month > ol {
+  display: flex;
+}
+
 section.month li {
   -moz-user-select: none;
   font-size: 1.4rem;
   line-height: 120%;
   -moz-margin-end: 0.1rem;
-  width: 4.4rem;
+  flex-grow: 1;
+  flex-basis: 4.4rem;
 }
 
 /* The margin-right is used elsewhere to create horizontal space
@@ -48,10 +52,6 @@ section.month li {
  */
 section.month li:last-child {
   -moz-margin-end: 0;
-}
-
-section.month li {
-  float: left;
 }
 
 #month-days {
@@ -328,9 +328,6 @@ section.month .icon-calendar-dot:before {
 }
 
 /* RTL View */
-html[dir="rtl"] section.month li {
-  float: left;
-}
 
 html[dir="rtl"] section.month .busy-indicator {
   flex-direction: row-reverse;
@@ -354,7 +351,12 @@ html[dir="rtl"] #month-day-agenda .event-time {
 html[dir="rtl"] #month-day-agenda .event-details {
   left: unset;
   right: 11.5rem;
+  width: 19rem;
   text-align: right;
+}
+
+html[dir="rtl"] #month-day-agenda .has-alarms .event-details {
+  width: 16rem;
 }
 
 html[dir="rtl"] #month-day-agenda .has-alarms .icon-calendar-alarm {

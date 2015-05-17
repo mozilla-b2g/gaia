@@ -41,14 +41,9 @@
   position: absolute;
   transform-origin: 0 0;
   display: inline-block;
-  width: calc(100% / 3);
   text-align: center;
   background: no-repeat top center;
   z-index: 3;
-}
-
-.dragging .icon {
-  will-change: transform;
 }
 
 .icon.launching {
@@ -83,7 +78,7 @@
   width: calc(100% - 0.4rem);
   box-sizing: border-box;
   vertical-align: top;
-  transition: opacity 0.5s;
+  transition: opacity var(--transition-duration);
 }
 
 /* We allow more space for text in the search app by hooking into the text-rows attribute on gaia-grid. */
@@ -133,7 +128,7 @@
   margin: 0 25%;
   width: 50%;
   height: 0.2rem;
-  transition: opacity 0.5s;
+  transition: opacity var(--transition-duration);
 }
 
 .dragging .icon.active:not(.hidden) {
@@ -144,7 +139,12 @@
 .dragging .divider:not(.group),
 .icon:not(.active),
 .dropped {
-  transition: transform 0.5s, opacity 0.5s;
+  transition: transform var(--transition-duration),
+              opacity var(--transition-duration);
+}
+
+.icon.active {
+  will-change: transform;
 }
 
 .edit-mode .icon .remove {
@@ -205,15 +205,18 @@ instead of the context menu.
   display: block;
   position: absolute;
   width: 100%;
-  transition: background-color 0.5s, opacity 0.5s;
-}
-
-.dragging .group > span {
-  will-change: transform;
+  transition: background-color var(--transition-duration),
+              opacity var(--transition-duration);
 }
 
 .group:not(.active):not(.newly-created) > span {
-  transition: background-color 0.5s, opacity 0.5s, transform 0.5s;
+  transition: background-color var(--transition-duration),
+              opacity var(--transition-duration),
+              transform var(--transition-duration);
+}
+
+.group.active > span {
+  will-change: transform;
 }
 
 .group .header {
@@ -390,7 +393,6 @@ instead of the context menu.
  * creation hint.
  */
 .edit-mode {
-  will-change: transform;
   transition: transform 0.25s;
 }
 
@@ -402,9 +404,4 @@ instead of the context menu.
 :-moz-dir(rtl) .group .header .toggle {
   left: 0;
   right: unset;
-}
-
-/* RTL fixes being tracked in bug 1008013 */
-:-moz-dir(rtl) gaia-grid {
-  direction: ltr;
 }

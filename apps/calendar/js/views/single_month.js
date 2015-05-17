@@ -1,9 +1,10 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var MonthDay = require('./month_day');
 var View = require('view');
+var core = require('core');
 var daysBetween = Calc.daysBetween;
 var daysInWeek = Calc.daysInWeek;
 var getDayId = Calc.getDayId;
@@ -17,7 +18,6 @@ function SingleMonth() {
   View.apply(this, arguments);
   this.days = [];
   this.timespan = spanOfMonth(this.date);
-  this.timeController = this.app.timeController;
 }
 module.exports = SingleMonth;
 
@@ -95,8 +95,8 @@ SingleMonth.prototype = {
 
     this.onactive();
     this.days.forEach(day => day.activate());
-    this._onSelectedDayChange(this.timeController.selectedDay);
-    this.timeController.on('selectedDayChange', this);
+    this._onSelectedDayChange(core.timeController.selectedDay);
+    core.timeController.on('selectedDayChange', this);
   },
 
   deactivate: function() {
@@ -107,7 +107,7 @@ SingleMonth.prototype = {
 
     this.oninactive();
     this.days.forEach(day => day.deactivate());
-    this.timeController.off('selectedDayChange', this);
+    core.timeController.off('selectedDayChange', this);
   },
 
   destroy: function() {

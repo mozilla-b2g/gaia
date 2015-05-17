@@ -255,9 +255,6 @@ p {
   box-shadow: 0 0 0 1px #dedede;
   background: transparent center center / cover;
   position: relative;
-
-  /* Favor performance over quality */
-  image-rendering: -moz-crisp-edges;
 }
 
 .gaia-list li button,

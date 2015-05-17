@@ -271,6 +271,9 @@ suite('system/UpdateManager', function() {
       assert.equal(UpdateManager.containerClicked.name,
                    UpdateManager.container.onclick.name);
 
+      assert.equal(UpdateManager.toasterClicked.name,
+                   UpdateManager.toaster.onclick.name);
+
       assert.equal(UpdateManager.requestDownloads.name,
                    UpdateManager.downloadButton.onclick.name);
 
@@ -406,6 +409,14 @@ suite('system/UpdateManager', function() {
         assert.isFalse(UpdateManager.downloadViaDataConnectionDialog.
           classList.contains('visible'));
         assert.isFalse(MockCustomDialog.mShown);
+      });
+
+      test('should decline install if showing apply prompt', function() {
+        this.sinon.spy(UpdateManager.systemUpdatable, 'declineInstallWait');
+        UpdateManager.systemUpdatable.showingApplyPrompt = true;
+        window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+        assert.isTrue(
+          UpdateManager.systemUpdatable.declineInstallWait.calledOnce);
       });
 
       var testCases = [
@@ -789,6 +800,22 @@ suite('system/UpdateManager', function() {
           this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
           var method1 = 'addUnreadNotification';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
+        });
+      });
+
+      suite('should show download prompt when tap on toaster', function() {
+        setup(function() {
+          UpdateManager._downloading = false;
+          UpdateManager.toasterClicked();
+        });
+
+        test('should hide the utility tray', function() {
+          assert.isFalse(MockUtilityTray.mShown);
+        });
+
+        test('should show the download dialog', function() {
+          var css = UpdateManager.downloadDialog.classList;
+          assert.isTrue(css.contains('visible'));
         });
       });
 
@@ -1241,6 +1268,22 @@ suite('system/UpdateManager', function() {
 
         UpdateManager.cancelAllDownloads();
         assert.isFalse(MockCustomDialog.mShown);
+      });
+    });
+
+    suite('cancel prompt continued', function() {
+      setup(function() {
+        var systemUpdatable = new MockSystemUpdatable();
+        UpdateManager.addToUpdatesQueue(systemUpdatable);
+        UpdateManager.addToDownloadsQueue(systemUpdatable);
+        UpdateManager.startedUncompressing();
+        MockUtilityTray.show();
+        UpdateManager.containerClicked();
+      });
+
+      test('should not display prompt while uncompressing', function() {
+        assert.isFalse(MockCustomDialog.mShown);
+        assert.isTrue(MockUtilityTray.mShown);
       });
     });
 

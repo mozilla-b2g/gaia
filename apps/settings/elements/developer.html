@@ -1,3 +1,7 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
 <element name="developer" extends="section">
   <template>
 
@@ -23,8 +27,12 @@
         <li data-show-name="devtools.remote.wifi.visible" hidden>
           <label class="pack-checkbox">
             <input type="checkbox" name="devtools.remote.wifi.enabled">
-            <span data-l10n-id="dev-tools-wifi"></span>
+            <span data-l10n-id="devtools-wifi"></span>
           </label>
+        </li>
+        <li data-show-name="devtools.remote.wifi.visible" hidden>
+            <p data-l10n-id="devtools-device-name"></p>
+            <input type="text" name="devtools.discovery.device" dir="auto">
         </li>
         <li>
           <a class="menu-item" href="#developer-hud">
@@ -32,11 +40,11 @@
           </a>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.qps.enabled">
-            <span data-l10n-id="dev-tools-qps"></span>
-          </label>
+          <a class="menu-item" href="#developer-service-workers">
+            Service Workers
+          </a>
         </li>
+
       </ul>
       <header>
         <h2 data-l10n-id="graphics"></h2>
@@ -149,11 +157,23 @@
             <span data-l10n-id="copypaste"></span>
           </label>
         </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="multiscreen.enabled">
+            <span data-l10n-id="multi-screen"></span>
+          </label>
+        </li>
       </ul>
       <header>
         <h2 data-l10n-id="debug"></h2>
       </header>
       <ul>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="devtools.qps.enabled">
+            <span data-l10n-id="devtools-qps"></span>
+          </label>
+        </li>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="debug.log-animations.enabled">
@@ -200,6 +220,18 @@
           <label class="pack-checkbox">
             <input type="checkbox" name="ril.debugging.enabled">
             <span data-l10n-id="ril-debugging"></span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="network.debugging.enabled">
+            <span data-l10n-id="network-debugging"></span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="mms.debugging.enabled">
+            <span data-l10n-id="mms-debugging"></span>
           </label>
         </li>
         <li>

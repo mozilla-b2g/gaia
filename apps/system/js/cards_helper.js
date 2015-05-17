@@ -9,16 +9,7 @@
    * @module CardsHelper
    */
 
-  var HVGA;
-
-  function isHVGA() {
-    if (undefined === HVGA) {
-      HVGA = document.documentElement.clientWidth < 480;
-    }
-    return HVGA;
-  }
-
-  function getIconURIForApp(app) {
+  function getIconURIForApp(app, maxSize) {
     if (!app) {
       return null;
     }
@@ -32,8 +23,16 @@
 
       sizes.sort(function(x, y) { return y - x; });
 
-      var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-      iconPath = icons[index];
+      iconPath = icons[0]; // The biggest icon available
+      for (var i = 0; i < sizes.length; i++) {
+        var size = sizes[i];
+
+        if (size < maxSize) {
+          break;
+        }
+
+        iconPath = icons[size];
+      }
     } else {
       iconPath = app.icon;
     }
@@ -82,26 +81,9 @@
   }
   getOffOrigin.cache = {};
 
-  function escapeHTML(str, escapeQuotes) {
-    var stringHTML = str;
-    stringHTML = stringHTML.replace(/</g, '&#60;');// jshint ignore: line
-    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-    stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
-
-    if (escapeQuotes) {
-      // The //" is to help dumb editors understand that there's not a
-      // open string at EOL.
-      return stringHTML.replace(/"/g, '&quot;') //"
-                       .replace(/'/g, '&#x27;');
-    }
-    return stringHTML;
-  }
-
   exports.CardsHelper = {
     getIconURIForApp: getIconURIForApp,
-    getOffOrigin: getOffOrigin,
-    escapeHTML: escapeHTML,
-    isHVGA: isHVGA
+    getOffOrigin: getOffOrigin
   };
 
 })(window);

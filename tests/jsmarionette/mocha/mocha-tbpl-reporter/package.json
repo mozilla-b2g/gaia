@@ -1,0 +1,11 @@
+{
+  "name": "mocha-tbpl-reporter",
+  "version": "0.2.1",
+  "author": "The Gaia Team <dev-gaia@lists.mozilla.org>",
+  "description": "Mocha reporter for TBPL (tinderboxpushlog)",
+  "license": "MIT",
+
+  "peerDependencies": {
+    "mocha": "1.x"
+  }
+}

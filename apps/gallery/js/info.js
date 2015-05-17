@@ -1,3 +1,13 @@
+'use strict';
+/* exported showFileInformation */
+/* global
+  $,
+  getCurrentFile,
+  MediaUtils,
+  NFC,
+  videostorage
+*/
+
 // Hide the information view again, when clicking on cancel
 $('info-close-button').onclick = function hideFileInformation() {
   // Enable NFC sharing when user closes info and returns to fullscreen view

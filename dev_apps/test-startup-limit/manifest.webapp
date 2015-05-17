@@ -1,0 +1,19 @@
+{
+  "name": "Test Startup Limit",
+  "description": "Counter application that does the theoretical least amount of work on startup",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Test Startup Limit",
+      "description": "Counter application that does the theoretical least amount of work on startup"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}

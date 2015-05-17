@@ -23,13 +23,10 @@ const UUID_FILENAME = 'uuid.json';
  *
  * @param  {nsIFile} dir       directory to read.
  * @param  {boolean} recursive set to true in order to walk recursively.
- * @param  {RegExp}  filter    optional filter for file names.
- * @param  {boolean} include   set to true in order to include file matched by
- *                             filter, set to false to exclude.
  *
  * @returns {Array}            list of nsIFile's.
  */
-function ls(dir, recursive, pattern, include) {
+function ls(dir, recursive) {
   let results = [];
   if (!dir || !dir.exists()) {
     return results;
@@ -38,16 +35,9 @@ function ls(dir, recursive, pattern, include) {
   let files = dir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    //  include |  pattern.test()  |  result
-    //    true  |     false        |   false
-    //    true  |     true         |   true
-    //    false |     false        |   true
-    //    false |     true         |   false
-    if (!pattern || !(include ^ pattern.test(file.leafName))) {
-      results.push(file);
-      if (recursive && file.isDirectory()) {
-        results = results.concat(ls(file, true, pattern, include));
-      }
+    results.push(file);
+    if (recursive && file.isDirectory()) {
+      results = results.concat(ls(file, true));
     }
   }
   return results;
@@ -310,7 +300,31 @@ function getUUIDMapping(config) {
   }
   return UUID_MAPPING;
 }
-exports.getUUIDMapping = getUUIDMapping;
+
+function getMD5hash(filePath) {
+  var file = getFile(filePath);
+  var istream = Cc['@mozilla.org/network/file-input-stream;1']
+    .createInstance(Ci.nsIFileInputStream);
+    istream.init(file, 0x01, 0o444, 0);
+  var hasher = Cc['@mozilla.org/security/hash;1']
+    .createInstance(Ci.nsICryptoHash);
+  hasher.init(hasher.MD5);
+
+  const PR_UINT32_MAX = 0xffffffff;
+  hasher.updateFromStream(istream, PR_UINT32_MAX);
+
+  function toHexString(charCode) {
+    return ('0' + charCode.toString(16)).slice(-2);
+  }
+
+  let data = hasher.finish(false);
+  let hash = [];
+  for (let i in data) {
+    hash.push(toHexString(data.charCodeAt(i)));
+  }
+
+  return hash.join('');
+}
 
 /**
  * Get an app's detail in an object. For example:
@@ -408,7 +422,7 @@ function getWebapp(app, config) {
   } else {
     webappTargetDirName = webapp.domain;
   }
-  webapp.profileDirectoryFilePath = joinPath(config.PROFILE_DIR, 'webapps',
+  webapp.profileDirectoryFilePath = joinPath(config.COREWEBAPPS_DIR, 'webapps',
                                               webappTargetDirName);
 
   return webapp;
@@ -530,7 +544,7 @@ function listFiles(path, type, recursive, exclude) {
 
 /**
  * Check if a file or directory exists.
- * Note: this function is a wrapper function  for node.js
+ * Note: this function is a wrapper function for node.js
  *
  * @param path {string} - the path; must not come with '../' or './'
  */
@@ -540,7 +554,7 @@ function fileExists(path) {
 
 /**
  * Create dir and its parents.
- * Note: this function is a wrapper function  for node.js
+ * Note: this function is a wrapper function for node.js
  *
  * @param path {string} - the path; must not come with '../' or './'
  */
@@ -550,7 +564,7 @@ function mkdirs(path) {
 
 /**
  * join all path.
- * Note: this function is a wrapper function  for node.js
+ * Note: this function is a wrapper function for node.js
  */
 function joinPath() {
   return OS.Path.join.apply(OS.Path, arguments);
@@ -581,19 +595,16 @@ function basename(path) {
  * @param  {string}  path       the file to copy,
  * @param  {string}  toParent   where to put the new file,
  * @param  {string}  name       the name of the new file,
- * @param  {boolean} override   set to true to overwride it if it is existed.
 
  * Note: this function is a wrapper function for node.js
  */
-function copyFileTo(path, toParent, name, override) {
+function copyFileTo(path, toParent, name) {
   var file = ((typeof path === 'string') ? getFile(path) : path);
   var parentFile = getFile(toParent);
   ensureFolderExists(parentFile);
-  if (override) {
-    var toFile = getFile(toParent, name);
-    if (toFile.exists()) {
-      toFile.remove(true);
-    }
+  var toFile = getFile(toParent, name);
+  if (toFile.exists()) {
+    toFile.remove(true);
   }
   file.copyTo(parentFile, name);
 }
@@ -605,11 +616,10 @@ function copyFileTo(path, toParent, name, override) {
  * @param  {string}  path       the directory to copy,
  * @param  {string}  toParent   where to put the new directory,
  * @param  {string}  name       the name of the copied directory,
- * @param  {boolean} override   set to true to overwride it if it is existed.
 
  * Note: this function is a wrapper function for node.js
  */
-function copyDirTo(path, toParent, name, override) {
+function copyDirTo(path, toParent, name) {
   var dir = ((typeof path === 'string') ? getFile(path) : path);
   var parentFile = getFile(toParent);
   ensureFolderExists(parentFile);
@@ -618,9 +628,9 @@ function copyDirTo(path, toParent, name, override) {
   var files = ls(dir, false);
   files.forEach(function(file) {
     if (file.isFile()) {
-      copyFileTo(file.path, newFolderName, file.leafName, true);
+      copyFileTo(file.path, newFolderName, file.leafName);
     } else if (file.isDirectory()) {
-      copyDirTo(file.path, newFolderName, file.leafName, true);
+      copyDirTo(file.path, newFolderName, file.leafName);
     }
   });
 }
@@ -1271,6 +1281,10 @@ function relativePath(from, to) {
   return toFile.getRelativeDescriptor(fromFile);
 }
 
+function normalizePath(path) {
+  return OS.Path.normalize(path);
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -1334,3 +1348,6 @@ exports.removeFiles = removeFiles;
 exports.scriptLoader = scriptLoader;
 exports.NodeHelper = NodeHelper;
 exports.relativePath = relativePath;
+exports.normalizePath = normalizePath;
+exports.getUUIDMapping = getUUIDMapping;
+exports.getMD5hash = getMD5hash;

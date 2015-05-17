@@ -258,7 +258,7 @@ var UpdateManager = {
     focusManager.focus();
   },
 
-  isVisible: function um_isVisible() {
+  isFocusable: function um_isFocusable() {
     return this.downloadDialog.classList.contains('visible');
   },
 
@@ -268,7 +268,11 @@ var UpdateManager = {
 
   focus: function um_focus() {
     document.activeElement.blur();
-    this.downloadButton.focus();
+    if (!this.downloadButton.disabled) {
+      this.downloadButton.focus();
+    } else {
+      this.laterButton.focus();
+    }
   },
 
   downloadProgressed: function um_downloadProgress(bytes) {

@@ -75,7 +75,7 @@ var FtuLauncher = {
 
     var remainingRequest = [];
     this._storedStepRequest.forEach(function(request, index) {
-      if (this._skipped || this._stepsList.indexOf(request.step) >= 0) {
+      if (this.isStepFinished(request.step)) {
         request.resolve();
       } else {
         remainingRequest.push(request);
@@ -116,9 +116,14 @@ var FtuLauncher = {
     return true;
   },
 
+  isStepFinished: function(step) {
+    return this._done || this._skipped ||
+      this._stepsList.indexOf(step) >= 0;
+  },
+
   stepReady: function(step) {
     return new Promise(function(resolve) {
-      if (this._stepsList.indexOf(step) >= 0 || this._skipped) {
+      if (this.isStepFinished(step)) {
         resolve();
       } else {
         this._storedStepRequest.push({
@@ -161,6 +166,7 @@ var FtuLauncher = {
   close: function fl_close() {
     this._isRunningFirstTime = false;
     this._isUpgrading = false;
+    this._done = true;
     window.asyncStorage.setItem('ftu.enabled', false);
     // update the previous_os setting (asyn)
     // so we dont try and handle upgrade again

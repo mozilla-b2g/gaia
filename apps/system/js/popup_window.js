@@ -58,9 +58,12 @@
     'modalDialog': window.AppModalDialog,
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
     'statusbar': window.AppStatusbar
+  };
+
+  PopupWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   /**

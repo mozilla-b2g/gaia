@@ -173,39 +173,46 @@
    * Send a notification for the provided message
    *
    * @param {Object} message The message the user needs to be notified of
+   *
+   * @return {Object} A promise that is resolved once the notification has been
+   *         sent and its events hooked up properly.
    */
   function wpm_sendNotification(message) {
-    var _ = navigator.mozL10n.get;
     var iconURL = NotificationHelper.getIconURI(app);
 
     /* Build the notification's text, for text/vnd.wap.connectivity-xml
      * messages this needs to be localized. */
-    var text = '';
+    var body;
 
-    if (message.text) {
-      text = (message.type == 'text/vnd.wap.connectivity-xml') ?
-             _(message.text) : message.text;
-    }
-
-    if (message.href) {
-      text += (text ? ' ' : '');
-      text += message.href;
+    if (message.type === 'text/vnd.wap.connectivity-xml') {
+      body = message.text; // The text will be localized
+    } else {
+      body = {
+        id: (message.type === 'text/vnd.wap.si') ? 'si-message-body'
+                                                 : 'sl-message-body',
+        args: {
+          text: message.text || '', // The text won't be localized
+          url: message.href
+        }
+      };
     }
 
     var title = Utils.prepareMessageTitle(message);
 
     var options = {
       icon: iconURL,
-      body: text,
+      bodyL10n: body,
       tag: message.timestamp
     };
 
-    var notification = new Notification(title, options);
-    notification.addEventListener('click',
-      function wpm_onNotificationClick(event) {
-        wpm_displayWapPushMessage(event.target.tag);
-      }
-    );
+    return NotificationHelper.send(title, options)
+                             .then(function(notification) {
+      notification.addEventListener('click',
+        function wpm_onNotificationClick(event) {
+          wpm_displayWapPushMessage(event.target.tag);
+        }
+      );
+    });
   }
 
   /**
@@ -250,9 +257,9 @@
         pendingMessages--;
         return wpm_displayWapPushMessage(message.timestamp);
       } else {
-        wpm_sendNotification(message);
-        wpm_finish();
-        return Promise.resolve();
+        return wpm_sendNotification(message).then(function() {
+          wpm_finish();
+        });
       }
     }).catch(function wpm_saveRejected(error) {
       console.log('Could not add a message to the database: ' + error + '\n');

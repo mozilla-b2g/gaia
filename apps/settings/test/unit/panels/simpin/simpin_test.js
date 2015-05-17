@@ -11,7 +11,8 @@ suite('SimPin > ', function() {
       'shared/simslot_manager': 'MockSIMSlotManager',
       'shared/template': 'MockTemplate',
       'shared/toaster': 'MockToaster',
-      'modules/dialog_service': 'MockDialogService'
+      'modules/dialog_service': 'MockDialogService',
+      'modules/sim_security': 'MockSimSecurity'
     }
   };
 
@@ -46,6 +47,10 @@ suite('SimPin > ', function() {
       getIccById: function() {}
     };
 
+    this.MockSimSecurity = {
+      getCardLock: function() {}
+    };
+
     define('MockAirplaneModeHelper', () => {
       return this.MockAirplaneModeHelper;
     });
@@ -68,6 +73,10 @@ suite('SimPin > ', function() {
 
     define('MockIccManager', () => {
       return this.MockIccManager;
+    });
+
+    define('MockSimSecurity', () => {
+      return this.MockSimSecurity;
     });
 
     var requireCtx = testRequire([], map, function() {});
@@ -191,57 +200,52 @@ suite('SimPin > ', function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
           cardState: null
         });
-        simpin.updateSimPinUI(0);
-      });
-      test('checkbox will be disabled and div will be hidden', function() {
-        assert.ok(cachedDoms.checkbox.disabled);
-        assert.ok(cachedDoms.div.hidden);
+        test('checkbox will be disabled, div will be hidden', function(done) {
+          simpin.updateSimPinUI(0).then(function() {
+            assert.ok(cachedDoms.checkbox.disabled);
+            assert.ok(cachedDoms.div.hidden);
+          }).then(done, done);
+        });
       });
     });
 
     suite('icc has cardState, but not in airplane mode > ', function() {
       setup(function() {
-        var getCardLockObject = {
-          result: {
+        this.sinon.stub(this.MockSimSecurity, 'getCardLock', function() {
+          return Promise.resolve({
             enabled: true
-          }
-        };
+          });
+        });
 
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
-          cardState: 'normal',
-          getCardLock: function() {
-            return getCardLockObject;
-          }
+          cardState: 'normal'
         });
 
         simpin.isAirplaneMode = false;
-        simpin.updateSimPinUI(0);
-        getCardLockObject.onsuccess();
       });
 
-      test('will get right icc, exec onsuccess() and change UI', function() {
-        assert.isFalse(cachedDoms.checkbox.disabled);
-        assert.isTrue(cachedDoms.checkbox.checked);
-        assert.isFalse(cachedDoms.div.hidden);
+      test('will get right icc, and change UI', function(done) {
+        simpin.updateSimPinUI(0).then(function() {
+          assert.isFalse(cachedDoms.checkbox.disabled);
+          assert.isTrue(cachedDoms.checkbox.checked);
+          assert.isFalse(cachedDoms.div.hidden);
+        }).then(done, done);
       });
     });
 
     suite('icc has cardState, but in airplane mode > ', function() {
       setup(function() {
         this.sinon.stub(this.MockIccManager, 'getIccById').returns({
-          cardState: 'normal',
-          getCardLock: function() {
-            return {};
-          }
+          cardState: 'normal'
         });
-
         simpin.isAirplaneMode = true;
-        simpin.updateSimPinUI(0);
       });
 
-      test('checkbox will be disabled and div will be hidden', function() {
-        assert.ok(cachedDoms.checkbox.disabled);
-        assert.ok(cachedDoms.div.hidden);
+      test('checkbox will be disabled and div will be hidden', function(done) {
+        simpin.updateSimPinUI(0).then(function() {
+          assert.ok(cachedDoms.checkbox.disabled);
+          assert.ok(cachedDoms.div.hidden);
+        }).then(done, done);
       });
     });
   });

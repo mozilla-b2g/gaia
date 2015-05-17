@@ -1,12 +1,12 @@
 'use strict';
 
-var fb = this.fb || {};
-this.fb = fb;
+var fb = self.fb || {};
+self.fb = fb;
 
 // Only will be executed in the case of not loading fb.utils previously
 // i.e. dialer and call log FB integration
-fb.utils = this.fb.utils || {};
-this.fb.utils = fb.utils;
+fb.utils = self.fb.utils || {};
+self.fb.utils = fb.utils;
 
 if (typeof fb.utils.Request !== 'function') {
 /**

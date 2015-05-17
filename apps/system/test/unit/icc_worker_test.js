@@ -1,14 +1,14 @@
 'use strict';
 
 /* global MocksHelper, MockNavigatorMozIccManager, MockSystemICC, icc_worker,
-          MockNotifications */
+          MockNotificationHelper */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mock_stk_helper.js');
 requireApp('system/js/icc_worker.js');
@@ -18,7 +18,7 @@ var mocksForIcc = new MocksHelper([
   'Service',
   'L10n',
   'Dump',
-  'Notification',
+  'NotificationHelper',
   'STKHelper'
 ]).init();
 
@@ -117,7 +117,34 @@ suite('STK (icc_worker) >', function() {
             }
           }
         }
-      }
+      },
+
+      STK_CMD_SET_UP_CALL: {
+         iccId: '1010011010',
+         command: {
+           commandNumber: 1,
+           typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_CALL,
+           commandQualifier: 0,
+           options: {
+             address:'800',
+             confirmMessage:{
+               text:'TestService'
+             }
+           }
+         }
+       },
+
+       STK_CMD_SET_UP_CALL_NO_CONFIRM_MSG: {
+         iccId: '1010011010',
+         command: {
+           commandNumber: 1,
+           typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_CALL,
+           commandQualifier: 0,
+           options: {
+             address:'800'
+           }
+         }
+       }
     };
   });
 
@@ -129,7 +156,7 @@ suite('STK (icc_worker) >', function() {
       }
       return '0x' + CMD.toString(16);
     }
-    icc_worker[stkCmd(cmd.command.typeOfCommand)](cmd);
+    return icc_worker[stkCmd(cmd.command.typeOfCommand)](cmd);
   }
 
   test('Check Dummy response', function(done) {
@@ -188,14 +215,50 @@ suite('STK (icc_worker) >', function() {
   });
 
   test('STK_CMD_SET_UP_IDLE_MODE_TEXT', function(done) {
+    var fakeNotification = {
+      close: function() {}
+    };
+    this.sinon.stub(MockNotificationHelper, 'send', function() {
+      return Promise.resolve(fakeNotification);
+    });
+
     window.icc.onresponse = function(message, response) {
       // Notification showed
       assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
       done();
     };
-    launchStkCommand(stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT);
-    MockNotifications[0].onshow();
+    launchStkCommand(stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT).then(() => {
+      fakeNotification.onshow();
+    });
   });
+
+  test('STK_CMD_SET_UP_CALL', function(done) {
+    window.icc.asyncConfirm = function(stkMsg, message, icons, callback) {
+       assert.equal(stkTestCommands.STK_CMD_SET_UP_CALL.
+         command.options.confirmMessage.text,
+         message);
+       callback(false);
+     };
+     window.icc.onresponse = function(message, response) {
+       assert.equal(response.resultCode,
+         navigator.mozIccManager.STK_RESULT_OK);
+       done();
+     };
+     launchStkCommand(stkTestCommands.STK_CMD_SET_UP_CALL);
+   });
+
+   test('STK_CMD_SET_UP_CALL (No Confirm Message)', function(done) {
+     window.icc.asyncConfirm = function(stkMsg, message, icons, callback) {
+       assert.equal('icc-confirmCall-defaultmessage', message);
+       callback(false);
+     };
+     window.icc.onresponse = function(message, response) {
+       assert.equal(response.resultCode,
+         navigator.mozIccManager.STK_RESULT_OK);
+       done();
+     };
+     launchStkCommand(stkTestCommands.STK_CMD_SET_UP_CALL_NO_CONFIRM_MSG);
+   });
 
   test('STK_CMD_REFRESH', function() {
     var spy = this.sinon.spy(icc_worker, '0x1');

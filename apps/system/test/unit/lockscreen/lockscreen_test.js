@@ -1,3 +1,4 @@
+/* global MockCanvas, MockCanvasRenderingContext2D, MockImage */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -19,25 +20,17 @@ requireApp('system/test/unit/mock_orientation_manager.js',
     requireApp('system/lockscreen/js/lockscreen.js');
   });
 
-if (!this.FtuLauncher) {
-  this.FtuLauncher = null;
-}
-
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
-}
-
 var mocksForLockScreen = new window.MocksHelper([
   'OrientationManager', 'AppWindowManager', 'AppWindow', 'LockScreenSlide',
   'SettingsListener', 'Image', 'Canvas'
 ]).init();
 
 requireApp('system/test/unit/mock_orientation_manager.js',
-function() {
-  window.realOrientationManager = window.OrientationManager;
-  window.OrientationManager = window.MockOrientationManager;
-  requireApp('system/lockscreen/js/lockscreen.js');
-});
+  function() {
+    window.realOrientationManager = window.OrientationManager;
+    window.OrientationManager = window.MockOrientationManager;
+    requireApp('system/lockscreen/js/lockscreen.js');
+  });
 
 suite('system/LockScreen >', function() {
   var subject;
@@ -134,6 +127,9 @@ suite('system/LockScreen >', function() {
       start: function() {},
       stop: function() {}
     };
+    realClock = window.Clock;
+    window.Clock = mockClock;
+
     subject.overlay = domOverlay;
     subject.mainScreen = domMainScreen;
     subject.camera = domCamera;
@@ -166,6 +162,79 @@ suite('system/LockScreen >', function() {
     delete subject._lockscreenConnInfoManager;
   });
 
+  test('When checkPassCodeTimeout, it would check intervals',
+  function() {
+    var method = window.LockScreen.prototype.checkPassCodeTimeout;
+    var mockThis = {
+      passCodeRequestTimeout: 60,
+      fetchLockedInterval: function() {},
+      fetchUnlockedInterval: function() {}
+    };
+    var stubFetchLockedInterval = this.sinon.stub().returns(61 * 1000);
+    var stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isTrue(method.call(mockThis));
+    stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
+    stubFetchUnlockedInterval = this.sinon.stub().returns(61 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isTrue(method.call(mockThis));
+    stubFetchLockedInterval = this.sinon.stub().returns(59 * 1000);
+    stubFetchUnlockedInterval = this.sinon.stub().returns(59 * 1000);
+    mockThis.fetchLockedInterval = stubFetchLockedInterval;
+    mockThis.fetchUnlockedInterval = stubFetchUnlockedInterval;
+    assert.isFalse(method.call(mockThis));
+  });
+
+  test('Fetch locked interval update the interval when it\'s still locked',
+  function() {
+    var method = window.LockScreen.prototype.fetchLockedInterval;
+    var mockThis = {
+      locked: true,
+      _lastLockedInterval: -1,
+      _lastLockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.isTrue(mockThis._lastLockedInterval > -1);
+  });
+
+  test('Fetch locked interval update no interval after it\'s unlocked',
+  function() {
+    var method = window.LockScreen.prototype.fetchLockedInterval;
+    var mockThis = {
+      locked: false,
+      _lastLockedInterval: -1,
+      _lastLockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.equal(mockThis._lastLockedInterval, -1);
+  });
+
+  test('Fetch unlocked interval update the interval when it\'s still unlocked',
+  function() {
+    var method = window.LockScreen.prototype.fetchUnlockedInterval;
+    var mockThis = {
+      locked: false,
+      _lastUnlockedInterval: -1,
+      _lastUnlockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.isTrue(mockThis._lastUnlockedInterval > -1);
+  });
+
+  test('Fetch unlocked interval update no interval after it\'s locked',
+  function() {
+    var method = window.LockScreen.prototype.fetchUnlockedInterval;
+    var mockThis = {
+      locked: true,
+      _lastUnlockedInterval: -1,
+      _lastUnlockedTimeStamp: 0
+    };
+    method.call(mockThis);
+    assert.equal(mockThis._lastUnlockedInterval, -1);
+  });
+
   test('L10n initialization: it should init the conn info manager if it\'s' +
        ' undefined', function() {
     var stubConnInfoManager = this.sinon.stub(window,
@@ -192,9 +261,18 @@ suite('system/LockScreen >', function() {
   });
 
   test('Lock: can actually lock', function() {
+    subject._lastUnlockedInterval = -1;
+    subject._lastUnlockedTimeStamp = 0;
+    subject._lastLockedTimeStamp = -1;
+
     subject.overlay = domOverlay;
+    subject.locked = false;
     subject.lock();
     assert.isTrue(subject.locked);
+    assert.isTrue(subject._lastUnlockedInterval > -1,
+    'it didn\'t update "_lastUnlockedInterval" when ends the unlocked session');
+    assert.isTrue(subject._lastLockedTimeStamp > -1,
+    'it didn\'t update "_lastLockedTimeStamp" when it locks');
   });
 
   test('Lock: would create the clock widget', function() {
@@ -206,9 +284,17 @@ suite('system/LockScreen >', function() {
   });
 
   test('Unlock: can actually unlock', function() {
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
     subject.overlay = domOverlay;
     subject.unlock(true);
     assert.isFalse(subject.locked);
+    assert.isTrue(subject._lastLockedInterval > -1,
+    'it didn\'t update "_lastLockedInterval" when it ends the locked session');
+    assert.isTrue(subject._lastUnlockedTimeStamp > -1,
+    'it didn\'t update "_lastUnlockedTimeStamp" when it unlocks');
   });
 
   test('Unlock: would destroy the clock widget', function() {
@@ -447,6 +533,23 @@ suite('system/LockScreen >', function() {
       'it didn\'t lock after the lock-immediately setting got changed');
   });
 
+  test('Locks the screen: the overlay would be set as locked', function() {
+    var method = window.LockScreen.prototype.lock;
+    var stubOverlayLocked = this.sinon.stub();
+    var mockThis = {
+      locked: false,
+      overlayLocked: stubOverlayLocked,
+      mainScreen: document.createElement('div'),
+      createClockWidget: function() {},
+      dispatchEvent: function() {},
+      _checkGenerateMaskedBackgroundColor: function() {
+        return false;
+      }
+    };
+    method.call(mockThis);
+    assert.isTrue(stubOverlayLocked.called);
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   suite('Background functionality', function() {
@@ -679,7 +782,7 @@ suite('system/LockScreen >', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozTelephony = realMozTelephony;
-    window.Clock = window.realClock;
+    window.Clock = realClock;
     window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
     window.SettingsListener = realSettingsListener;

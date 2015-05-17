@@ -1,22 +1,15 @@
 /* global SettingsListener, Service, BluetoothIcon, BluetoothTransferIcon,
-          BluetoothHeadphoneIcon, LazyLoader */
-/* exported Bluetooth */
+          BluetoothHeadphoneIcon, LazyLoader, BluetoothTransfer */
+/* exported Bluetooth1 */
 'use strict';
 
+(function(exports) {
 var Bluetooth = {
   name: 'Bluetooth',
-  get Profiles() {
-    return {
-      HFP: 'hfp',   // Hands-Free Profile
-      OPP: 'opp',   // Object Push Profile
-      A2DP: 'a2dp', // A2DP status
-      SCO: 'sco'    // Synchronous Connection-Oriented
-    };
-  },
 
   _setProfileConnected: function bt_setProfileConnected(profile, connected) {
     var value = this['_' + profile + 'Connected'];
-    if (value != connected) {
+    if (value !== connected) {
       this['_' + profile + 'Connected'] = connected;
 
       // Raise an event for the profile connection changes.
@@ -40,11 +33,11 @@ var Bluetooth = {
   /**
    * check if bluetooth profile is connected.
    *
-   * @public
+   * @private
    * @param {String} profile profile name
    * @return {Boolean} connected state
    */
-  isProfileConnected: function bt_isProfileConnected(profile) {
+  _isProfileConnected: function bt__isProfileConnected(profile) {
     var isConnected = this['_' + profile + 'Connected'];
     if (isConnected === undefined) {
       return false;
@@ -55,13 +48,10 @@ var Bluetooth = {
 
   /* this property store a reference of the default adapter */
   defaultAdapter: null,
-
-  /**
-   * keep a global connected property.
-   *
-   * @public
-   */
-  connected: false,
+  /* to host single adapter promise for Bluetooth:adapter */
+  _getAdapterPromise: null,
+  /* to resolve adapter request for Bluetooth:adapter */
+  _getAdapterPromiseResolve: null,
 
   init: function bt_init() {
     if (!window.navigator.mozBluetooth || this._started) {
@@ -115,6 +105,7 @@ var Bluetooth = {
     // when bluetooth is really disabled, emit event to notify QuickSettings
     bluetooth.addEventListener('disabled', function bt_onDisabled() {
       self.icon && self.icon.update();
+      self._getAdapterPromise = null;
       window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
     });
 
@@ -128,7 +119,7 @@ var Bluetooth = {
      */
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
       function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected(self.Profiles.OPP, true);
+        self._setProfileConnected('opp', true);
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-start',
           /* canBubble */ true, /* cancelable */ false,
@@ -139,7 +130,7 @@ var Bluetooth = {
 
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
       function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected(self.Profiles.OPP, false);
+        self._setProfileConnected('opp', false);
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-complete',
           /* canBubble */ true, /* cancelable */ false,
@@ -151,10 +142,22 @@ var Bluetooth = {
     window.addEventListener('request-enable-bluetooth', this);
     window.addEventListener('request-disable-bluetooth', this);
 
+    // expose functions to Service.request
+    Service.register('adapter', this);
+    Service.register('pair', this);
+    Service.register('getPairedDevices', this);
+    // expose functions to Service.query
     Service.registerState('isEnabled', this);
-    LazyLoader.load(['js/bluetooth_icon.js',
+    Service.registerState('getAdapter', this);
+    Service.registerState('isOPPProfileConnected', this);
+    Service.registerState('isA2DPProfileConnected', this);
+    Service.registerState('isSCOProfileConnected', this);
+
+    LazyLoader.load(['js/bluetooth_transfer.js',
+                     'js/bluetooth_icon.js',
                      'js/bluetooth_transfer_icon.js',
                      'js/bluetooth_headphone_icon.js']).then(function() {
+      BluetoothTransfer.start();
       this.icon = new BluetoothIcon(this);
       this.icon.start();
       this.transferIcon = new BluetoothTransferIcon(this);
@@ -186,7 +189,6 @@ var Bluetooth = {
   // Get adapter for BluetoothTransfer when everytime bluetooth is enabled
   initDefaultAdapter: function bt_initDefaultAdapter() {
     var bluetooth = window.navigator.mozBluetooth;
-    var self = this;
 
     if (!bluetooth || !bluetooth.enabled ||
         !('getDefaultAdapter' in bluetooth)) {
@@ -194,13 +196,17 @@ var Bluetooth = {
     }
 
     var req = bluetooth.getDefaultAdapter();
-    req.onsuccess = function bt_gotDefaultAdapter(evt) {
-      self.defaultAdapter = req.result;
-      self.initWithAdapter(self.defaultAdapter);
+    req.onsuccess = () => {
+      this.defaultAdapter = req.result;
+      // resolve the adapter request
+      if (this._getAdapterPromiseResolve) {
+        this._getAdapterPromiseResolve(this.defaultAdapter);
+      }
+      this._adapterAvailableHandler(this.defaultAdapter);
     };
   },
 
-  initWithAdapter: function bt_initWithAdapter(adapter) {
+  _adapterAvailableHandler: function bt__adapterAvailableHandler(adapter) {
     /* for v1, we only support two use cases for bluetooth connection:
      *   1. connecting with a headset
      *   2. transfering a file to/from another device
@@ -211,24 +217,89 @@ var Bluetooth = {
     // In headset connected case:
     var self = this;
     adapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
-      self._setProfileConnected(self.Profiles.HFP, evt.status);
+      self._setProfileConnected('hfp', evt.status);
     };
 
     adapter.ona2dpstatuschanged = function bt_a2dpStatusChanged(evt) {
-      self._setProfileConnected(self.Profiles.A2DP, evt.status);
+      self._setProfileConnected('a2dp', evt.status);
     };
 
     adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
-      self._setProfileConnected(self.Profiles.SCO, evt.status);
+      self._setProfileConnected('sco', evt.status);
     };
   },
 
   /**
-   * called by external for re-use adapter.
+   * Get adapter from bluetooth through promise interface.
+   * XXX: Since BTv1 get onenabled event before onadapteradded event,
+   * We need to watch if adapter is retrieved.
+   *
+   * _getAdapterPromise is used to make sure we return the same
+   * promise to outter caller.
+   * resolve is cached in _getAdapterPromiseResolve and will execute
+   * when the adapter is set.
+   *
+   * @public
+   * @return {Promise} A promise that resolve the Bluetooth Adapter
+   */
+  adapter: function bt__adapter() {
+    if (!this._getAdapterPromise) {
+      this._getAdapterPromise = new Promise((resolve) => {
+        if (this.defaultAdapter !== null) {
+          resolve(this.defaultAdapter);
+        } else {
+          // cache the resolve and execute when adapter is ready
+          this._getAdapterPromiseResolve = resolve;
+        }
+      });
+    }
+    return this._getAdapterPromise;
+  },
+
+  /**
+   * Return device pairing result.
+   *
+   * @public
+   * @param {string} mac target device address
+   * @return {Promise} A promise that resolve when pair successfully,
+   *                   reject when pair failed
+   */
+  pair: function bt__pair(mac) {
+    return new Promise((resolve, reject) => {
+      var req = this._adapter.pair(mac);
+      req.onsuccess = () => {
+        resolve();
+      };
+      req.onerror = () => {
+        reject(req.error.name);
+      };
+    });
+  },
+
+  /**
+   * Return paired devices list.
+   *
+   * @public
+   * @returns {Object[]} sequence of BluetoothDevice
+   */
+  getPairedDevices: function bt__getPairedDevices() {
+    return new Promise((resolve, reject) => {
+      var req = this._adapter.getPairedDevices();
+      req.onsuccess = () => {
+        resolve(req.result);
+      };
+      req.onerror = () => {
+        reject(req.error.name);
+      };
+    });
+  },
+
+  /**
+   * Return bluetooth adapter.
    *
    * @public
    */
-  getAdapter: function bt_getAdapter() {
+  get getAdapter() {
     return this.defaultAdapter;
   },
 
@@ -239,5 +310,51 @@ var Bluetooth = {
    */
   get isEnabled() {
     return this._settingsEnabled;
+  },
+
+  /**
+   * Check if bluetooth OPP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isOPPProfileConnected() {
+    return this._isProfileConnected('opp');
+  },
+
+  /**
+   * Check if bluetooth A2DP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isA2DPProfileConnected() {
+    return this._isProfileConnected('a2dp');
+  },
+
+  /**
+   * Check if bluetooth SCO profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isSCOProfileConnected() {
+    return this._isProfileConnected('sco');
+  },
+
+  /**
+   * Check if any of bluetooth profiles is connected.
+   * Referenced by Bluetooth icon update
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get connected() {
+    return this._isProfileConnected('hfp') ||
+      this._isProfileConnected('a2dp') ||
+      this._isProfileConnected('opp');
   }
 };
+
+exports.Bluetooth1 = Bluetooth;
+})(window);

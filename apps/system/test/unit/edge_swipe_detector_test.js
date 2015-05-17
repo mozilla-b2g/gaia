@@ -102,7 +102,7 @@ suite('system/EdgeSwipeDetector >', function() {
     window.dispatchEvent(evt);
   }
 
-  function launchDownloadDialogEvent(type) {
+  function launchEvent(type) {
     window.dispatchEvent(new CustomEvent(type));
   }
 
@@ -449,6 +449,24 @@ suite('system/EdgeSwipeDetector >', function() {
         });
       });
 
+      suite('if the edge are disabled mid way', function() {
+        test('it should snap in place', function() {
+          var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
+          swipe(this.sinon.clock, panel, 0, 2, 240, 240, true);
+          launchEvent('rocketbar-deactivating');
+          assert.isTrue(snapSpy.calledOnce);
+        });
+
+        test('and ignore the rest of the gesture', function() {
+          swipe(this.sinon.clock, panel, 0, 2, 240, 240, 10, true);
+          launchEvent('rocketbar-activating');
+          var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+          this.sinon.clock.tick(1);
+          touchMove(panel, [width / 2], [240]);
+          assert.isTrue(moveSpy.notCalled);
+        });
+      });
+
       test('it should compute the progress correctly', function() {
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
         swipe(this.sinon.clock, panel, 0, (width / 2), 240, 240);
@@ -617,6 +635,37 @@ suite('system/EdgeSwipeDetector >', function() {
       setup(function() {
         centerX = Math.floor(window.innerWidth / 2);
         centerY = Math.floor(window.innerHeight / 2);
+      });
+
+      suite('if it\'s actually a two fingers tap', function() {
+        var gesture;
+        setup(function() {
+          var screenWidth = window.innerWidth;
+          gesture = (function() {
+            touchStart(panel, [screenWidth], [100, 100]);
+            this.sinon.clock.tick();
+            touchStart(panel, [0], [100, 100]);
+            this.sinon.clock.tick();
+            touchEnd(panel, [(screenWidth - 2), 2], [100, 100]);
+            this.sinon.clock.tick();
+            touchEnd(panel, [2], [100, 100]);
+            this.sinon.clock.tick();
+          }).bind(this);
+        });
+
+        test('it should not move the sheets', function() {
+          var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+          gesture();
+          assert.isFalse(moveSpy.called);
+        });
+
+        test('it should not move in the stack', function() {
+          var backSpy = this.sinon.spy(MockStackManager, 'goNext');
+          var fwSpy = this.sinon.spy(MockStackManager, 'goPrev');
+          gesture();
+          assert.isFalse(backSpy.called);
+          assert.isFalse(fwSpy.called);
+        });
       });
 
       test('it should not move the sheets', function() {
@@ -981,7 +1030,7 @@ suite('system/EdgeSwipeDetector >', function() {
     });
   });
 
-  suite('handleEvent: download dialog events', function() {
+  suite('handleEvent: lifecycle events', function() {
     setup(function() {
       subject.lifecycleEnabled = true;
       MockService.currentApp = {
@@ -994,28 +1043,47 @@ suite('system/EdgeSwipeDetector >', function() {
       MockService.currentApp = null;
     });
 
-    test('the edges should be disabled', function() {
-      launchDownloadDialogEvent('updatepromptshown');
-      assert.isTrue(subject.previous.classList.contains('disabled'));
-      assert.isTrue(subject.next.classList.contains('disabled'));
-    });
-
-    test('the edges should be enabled', function() {
-      launchDownloadDialogEvent('updateprompthidden');
-      assert.isFalse(subject.previous.classList.contains('disabled'));
-      assert.isFalse(subject.next.classList.contains('disabled'));
-    });
-
-    test('the edges should stay disabled when homescreen is active',
-      function() {
-        subject.lifecycleEnabled = false;
-        MockService.currentApp.isHomescreen = true;
-        launchDownloadDialogEvent('updatepromptshown');
+    function testLifecycleEvents(opt) {
+      test('the edges should be disabled on ' + opt.on, function() {
+        launchEvent(opt.on);
         assert.isTrue(subject.previous.classList.contains('disabled'));
         assert.isTrue(subject.next.classList.contains('disabled'));
-        launchDownloadDialogEvent('updateprompthidden');
-        assert.isTrue(subject.previous.classList.contains('disabled'));
-        assert.isTrue(subject.next.classList.contains('disabled'));
+      });
+
+      test('the edges should be enabled on ' + opt.off, function() {
+        launchEvent(opt.off);
+        assert.isFalse(subject.previous.classList.contains('disabled'));
+        assert.isFalse(subject.next.classList.contains('disabled'));
+      });
+
+      test('the edges should stay disabled when homescreen is active',
+        function() {
+          subject.lifecycleEnabled = false;
+          MockService.currentApp.isHomescreen = true;
+          launchEvent(opt.on);
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+          launchEvent(opt.off);
+          assert.isTrue(subject.previous.classList.contains('disabled'));
+          assert.isTrue(subject.next.classList.contains('disabled'));
+      });
+    }
+
+    testLifecycleEvents({
+      on: 'updatepromptshown',
+      off: 'updateprompthidden'
+    });
+    testLifecycleEvents({
+      on: 'installpromptshown',
+      off: 'installprompthidden'
+    });
+    testLifecycleEvents({
+      on: 'rocketbar-activating',
+      off: 'rocketbar-deactivated'
+    });
+    testLifecycleEvents({
+      on: 'shrinking-start',
+      off: 'shrinking-stop'
     });
   });
 

@@ -1,3 +1,4 @@
+/* globals fb */
 'use strict';
 
 importScripts('/shared/js/fb/fb_request.js',
@@ -153,9 +154,10 @@ importScripts('/shared/js/fb/fb_request.js',
 
       debug('Worker acks contacts to check: ', Object.keys(uids).length);
 
-      if (forceUpdateUids && forceUpdateUids.length > 0)
+      if (forceUpdateUids && forceUpdateUids.length > 0) {
         debug('These friends are forced to be updated: ' ,
               JSON.stringify(forceUpdateUids));
+      }
 
       getFriendsToBeUpdated(Object.keys(uids), Object.keys(forceUpdateUids));
     }
@@ -287,10 +289,11 @@ importScripts('/shared/js/fb/fb_request.js',
 
       // Once an image is ready friend update is notified
       imgSync.onimageready = function(uid, blob) {
+        var friendData;
         if (blob) {
           debug('Image retrieved correctly for ', uid);
 
-          var friendData = friendsImgToBeUpdated[uid];
+          friendData = friendsImgToBeUpdated[uid];
           friendData.fbInfo = {};
           friendData.fbInfo.photo = [blob];
           fb.setFriendPictureUrl(friendData.fbInfo, friendData.pic_big);
@@ -299,7 +302,7 @@ importScripts('/shared/js/fb/fb_request.js',
           self.console.error('Img for UID', uid, ' could not be retrieved ');
           // This friend has to be marked in a special state just to be
           // synced later on
-          var friendData = friendsImgToBeUpdated[uid];
+          friendData = friendsImgToBeUpdated[uid];
           friendData.fbInfo = {};
           friendData.fbInfo.photo = [];
           // TODO: This should only remove the URL of the profile picture

@@ -12,7 +12,7 @@
 /* global MockURL */
 
 require('/shared/js/lazy_loader.js');
-require('/shared/js/contacts/utilities/templates.js');
+require('/shared/js/tagged.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 requireApp('communications/contacts/test/unit/' +
@@ -48,16 +48,18 @@ suite('Matching duplicate contacts UI Test Suite', function() {
   };
 
   function checkItem(item, contact) {
-    var paragraphs = item.querySelectorAll('p');
+    var bdiNodes = item.querySelectorAll('bdi');
 
     // Given and family names are displayed fine
-    assert.isTrue(paragraphs[0].textContent === contact.givenName[0] + ' ' +
-                                                         contact.familyName[0]);
+    assert.equal(
+      bdiNodes[0].textContent,
+      contact.givenName[0] + ' ' + contact.familyName[0]
+    );
 
-    // The second paragraph is the main reason for matching
+    // The second bdi node is the main reason for matching
     // The current preference is tel, email and name
     // Check in selectMainReason() of contacts_matching_ui.js
-    assert.equal(paragraphs[1].textContent, CORRECT_MATCHED_VALUE);
+    assert.equal(bdiNodes[1].textContent, CORRECT_MATCHED_VALUE);
 
     // The image is ready for the image loader
     assert.isTrue(item.querySelector('img').dataset.src == dataImage);

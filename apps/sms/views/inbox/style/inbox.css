@@ -1,0 +1,195 @@
+#sticky {
+  position: absolute;
+
+  /* The sticky element is positioned at the beginning of the list. */
+  top: 5rem;
+
+  /* The width is not 100% so the scrollbar is visible. */
+  width: calc(100% - 2rem);
+
+  /* The height needs to be kept in sync with the header height. */
+  height: 3.1rem;
+
+  /* Leaving 1rem margin for both side to makes scrollbar visible in LTR/RTL */
+  margin: 0 1rem;
+
+  /* The sticky element needs to be above the list. */
+  z-index: 2;
+
+  /* Hide sticky header when content is not ready */
+  visibility: hidden;
+
+  /* Those style will affect the backgroundImage: -moz-element. */
+  background: white no-repeat center top;
+}
+
+#sticky.has-content {
+  /* Set sticky header visible only when content is ready */
+  visibility: visible;
+}
+
+#threads-container[data-type="list"] header {
+  background: #fff;
+}
+
+#threads-container[data-type="list"] ul {
+  padding: 0 1.0rem;
+  background-color: #fff;
+}
+
+#threads-container[data-type="list"] .mms-icon {
+  display: none;
+
+  font-size: 1.5rem;
+  color: #ff6622;
+}
+
+#threads-container[data-type="list"] [data-last-message-type="mms"] .mms-icon {
+  display: inline;
+}
+
+#threads-container[data-type="list"] [data-last-message-type="mms"] .body-text {
+  display: none;
+}
+
+.threadlist-item-picture {
+  display: none;
+}
+
+.threadlist-item-picture.has-picture {
+  display: block;
+}
+
+.threadlist-item .default-picture > span[data-type=img],
+.threadlist-item .group-picture > span[data-type=img] {
+  /* Please keep this image in sync with what is used in js/inbox.js */
+  background: url('images/default_contact_image.png') top left;
+}
+
+.threadlist-item:nth-child(even) .default-picture > span[data-type=img],
+.threadlist-item:nth-child(even) .group-picture > span[data-type=img] {
+  background-position: bottom right;
+}
+
+.threadlist-item:nth-child(3n+1) .default-picture > span[data-type=img],
+.threadlist-item:nth-child(3n+1) .group-picture > span[data-type=img] {
+  background-position: top right;
+}
+
+.threadlist-item:nth-child(4n+4) .default-picture > span[data-type=img],
+.threadlist-item:nth-child(4n+4) .group-picture > span[data-type=img] {
+  background-position: center center;
+}
+
+.threadlist-item-picture.group-picture > span[data-type=img] {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #fff;
+  font-size: 2.5rem;
+}
+
+/**
+ * Bug 967878, 979018 -[Messages] Background doesn't
+ * scroll with the threads causing expensive over-invalidation
+ */
+#threads-container > div {
+  background-color: #fff;
+}
+
+[data-type="list"] aside.icon-unread {
+  margin: 0;
+  width: 1.9rem;
+  visibility: hidden;
+}
+
+[data-type="list"] .unread aside.icon-unread {
+  background: url("images/unread.png") no-repeat left center / 1rem;
+  visibility: visible;
+}
+
+[data-type="list"] .threadlist-item a * {
+  pointer-events: none;
+}
+
+[data-type="list"] .summary {
+  display: flex;
+}
+
+[data-type="list"] .draft .icon-draft {
+  background: url("images/draft.png") no-repeat left center / 1.2rem;
+  visibility: visible;
+}
+
+[data-type="list"] .is-draft .pack-end {
+  opacity: 0.5;
+}
+
+[data-type="list"] .is-draft .threadlist-item-title {
+  font-style: italic;
+  color: #5f5f5f;
+}
+
+/* Override time margin for flex layout */
+[data-type="list"] .summary time {
+  display: inline-block;
+  -moz-margin-end: 1rem;
+}
+
+[data-type="list"] .unread .summary time {
+  color: #1D8399;
+}
+
+/* Empty Inbox layout */
+
+#threads-no-messages {
+  background: url("images/SMS_200x200_bubble.png")
+              no-repeat center;
+  background-size: 20rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100% - 5rem);
+  width: 100%;
+}
+
+#no-result-message {
+  position: relative;
+  top: 50%;
+
+  width: 27rem;
+  padding: 2rem 0.5rem;
+  margin: -8rem auto;
+  border-top: .1rem solid rgba(96,96,96,.5);
+
+  line-height: 3rem;
+  text-align: start;
+  font-weight: 300;
+  font-size: 2.2rem;
+  color: #606060;
+}
+
+#threads-no-messages, .threadlist-is-empty #threads-container {
+  display: none;
+}
+
+/* Using !important to override scoped style in gaia-header component. */
+#threads-settings-button, .threadlist-is-empty #threads-options-button {
+  display: none !important;
+}
+
+/* Using flex to center the content. */
+.threadlist-is-empty #threads-settings-button {
+  display: flex !important;
+}
+
+.threadlist-is-empty #threads-no-messages {
+  display: block;
+}
+
+/* RTL View */
+html[dir="rtl"] [data-type="list"] .unread aside.icon-unread,
+html[dir="rtl"] [data-type="list"] .draft .icon-draft {
+  background-position: right center;
+}

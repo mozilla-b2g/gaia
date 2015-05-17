@@ -3,7 +3,6 @@
          MockApplications, Applications, MockNavigatormozSetMessageHandler,
          MockGetDeviceStorages, MockVersionHelper, MockKeyboardManager */
 
-requireApp('system/shared/js/performance_testing_helper.js');
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
@@ -20,7 +19,9 @@ require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
+requireApp('system/js/activity_handler.js');
 requireApp('system/js/browser.js');
+requireApp('system/js/import.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/accessibility_quicknav_menu.js');
 requireApp('system/js/activities.js');

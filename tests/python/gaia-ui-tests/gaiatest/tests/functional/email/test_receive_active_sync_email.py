@@ -5,6 +5,7 @@
 from marionette import SkipTest
 
 from gaiatest import GaiaTestCase
+from gaiatest import GaiaTestEnvironment
 from gaiatest.apps.email.app import Email
 from gaiatest.mocks.mock_email import MockEmail
 from gaiatest.utils.email.email_util import EmailUtil
@@ -14,11 +15,11 @@ from gaiatest.apps.system.app import System
 class TestReceiveActiveSyncEmail(GaiaTestCase):
 
     def setUp(self):
-        try:
-            self.testvars['email']['activesync']
-            self.testvars['email']['smtp']
-        except KeyError:
-            raise SkipTest('account details not present in test variables')
+        email = GaiaTestEnvironment(self.testvars).email
+        if not email.get('activesync'):
+            raise SkipTest('ActiveSync account details not present in test variables.')
+        elif not email.get('smtp'):
+            raise SkipTest('SMTP account details not present in test variables.')
 
         GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
@@ -29,7 +30,7 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         email.launch()
 
         email.setup_active_sync_email(
-            self.testvars['email']['activesync'])
+            self.environment.email['activesync'])
 
         # wait for sync to complete
         email.wait_for_emails_to_sync()
@@ -38,9 +39,9 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         self.device.touch_home_button()
 
         # send email to active sync account
-        mock_email = MockEmail(self.testvars['email']['imap']['email'],
-                               self.testvars['email']['activesync']['email'])
-        EmailUtil().send(self.testvars['email']['smtp'], mock_email)
+        mock_email = MockEmail(self.environment.host['smtp']['email'],
+                               self.environment.email['activesync']['email'])
+        EmailUtil().send(self.environment.host['smtp'], mock_email)
 
         self.marionette.switch_to_frame()
         system = System(self.marionette)

@@ -57,7 +57,7 @@ var StatusBar = {
 
   // XXX: Use Service.query('getTopMostWindow') instead of maintaining
   // in statusbar
-  /* Whether or not the lockscreen is displayed */   
+  /* Whether or not the lockscreen is displayed */
   _inLockScreenMode: false,
 
   _minimizedStatusBarWidth: window.innerWidth,
@@ -66,9 +66,10 @@ var StatusBar = {
 
   /* For other modules to acquire */
   get height() {
+    var current = Service.currentApp && Service.currentApp.getTopMostWindow();
     if (document.mozFullScreen ||
-               (Service.currentApp &&
-                Service.currentApp.isFullScreen())) {
+               (current &&
+                current.isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -79,7 +80,7 @@ var StatusBar = {
   /* jshint ignore: start */
   iconView: function() {
     return `<!-- System -->
-    <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" 
+    <div id="statusbar-alarm" class="sb-icon sb-icon-alarm"
       hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
     <div id="statusbar-playing" class="sb-icon sb-icon-playing"
       hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
@@ -179,6 +180,7 @@ var StatusBar = {
     window.addEventListener('utility-tray-abortclose', this);
     window.addEventListener('cardviewshown', this);
     window.addEventListener('cardviewclosed', this);
+    window.addEventListener('rocketbar-deactivated', this);
 
     // Listen to 'lockscreen-appopened', 'lockscreen-appclosing', and
     // 'lockpanelchange' in order to correctly set the visibility of
@@ -190,11 +192,11 @@ var StatusBar = {
     // Listen to orientation change and SHB activation/deactivation.
     window.addEventListener('system-resize', this);
 
+    window.addEventListener('attentionopened', this);
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
     window.addEventListener('hierarchytopmostwindowchanged', this);
     window.addEventListener('activityopened', this);
-    window.addEventListener('activityterminated', this);
     window.addEventListener('activitydestroyed', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
@@ -251,7 +253,7 @@ var StatusBar = {
 
       case 'lockscreen-appclosing':
         this._inLockScreenMode = false;
-        this.setAppearance(Service.currentApp);
+        this.setAppearance();
         break;
 
       case 'attentionopened':
@@ -302,37 +304,27 @@ var StatusBar = {
 
       case 'sheets-gesture-end':
         this.element.classList.remove('hidden');
-        this._pausedForGesture = false;
-        this.resumeUpdate();
+        if (this._pausedForGesture) {
+          this.resumeUpdate();
+          this._pausedForGesture = false;
+        }
         break;
 
       case 'stackchanged':
-        this.setAppearance(Service.currentApp);
+      case 'rocketbar-deactivated':
+        this.setAppearance();
         this.element.classList.remove('hidden');
         break;
 
       case 'appchromecollapsed':
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         this._updateMinimizedStatusBarWidth();
         break;
 
       case 'appopened':
       case 'hierarchytopmostwindowchanged':
       case 'appchromeexpanded':
-        var app = null;
-        if (evt.type === 'appopened') {
-          app = evt.detail;
-        } else if (evt.type === 'hierarchytopmostwindowchanged') {
-          app = evt.detail.getTopMostWindow();
-        }
-
-        if (app) {
-          this.element.classList.toggle('fullscreen',
-            app.isFullScreen());
-          this.element.classList.toggle('fullscreen-layout',
-            app.isFullScreenLayout());
-        }
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
         break;
@@ -342,7 +334,7 @@ var StatusBar = {
         /* falls through */
       case 'apptitlestatechanged':
       case 'activitytitlestatechanged':
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         if (!this.isPaused()) {
           this.element.classList.remove('hidden');
         }
@@ -352,7 +344,7 @@ var StatusBar = {
         // quickly he press the home button, we might miss the
         // |sheets-gesture-end| event so we must resume the statusbar
         // if needed
-        this.setAppearance(evt.detail);
+        this.setAppearance();
         if (this._pausedForGesture) {
           this.resumeUpdate();
           this._pausedForGesture = false;
@@ -361,12 +353,6 @@ var StatusBar = {
         this.element.classList.remove('fullscreen');
         this.element.classList.remove('fullscreen-layout');
         break;
-      case 'activityterminated':
-        // In this particular case, we want to restore the original color of
-        // the bottom window as it will *become* the shown window.
-        this.setAppearance(evt.detail, true);
-        this.element.classList.remove('hidden');
-        break;
       case 'activitydestroyed':
         this._updateMinimizedStatusBarWidth();
         break;
@@ -374,34 +360,44 @@ var StatusBar = {
         this.element.classList.remove('light');
         break;
       case 'updateprompthidden':
-        this.setAppearance(Service.currentApp);
+        this.setAppearance();
         break;
     }
   },
 
-  setAppearance: function(app, useBottomWindow) {
+  setAppearance: function() {
     // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
       this.element.classList.add('maximized');
       return;
     }
 
-    // Fetch top-most (or bottom-most) window to figure out color theming.
-    var themeWindow =
-      useBottomWindow ? app.getBottomMostWindow() : app.getTopMostWindow();
+    var app = Service.query('getTopMostWindow');
+    // In some cases, like when opening an app from the task manager, there
+    // temporarily is no top most window, so we cannot set an appearance.
+    if (!app) {
+      return;
+    }
 
-    if (themeWindow) {
+    // Fetch top-most window to figure out color theming.
+    var topWindow = app.getTopMostWindow();
+    if (topWindow) {
       this.element.classList.toggle('light',
-        !!(themeWindow.appChrome && themeWindow.appChrome.useLightTheming())
+        !!(topWindow.appChrome && topWindow.appChrome.useLightTheming())
+      );
+
+      this.element.classList.toggle('fullscreen',
+        topWindow.isFullScreen()
+      );
+
+      this.element.classList.toggle('fullscreen-layout',
+        topWindow.isFullScreenLayout()
       );
     }
 
-    // Maximized state must be based on the bottom window if we're using it but
-    // use the currently showing window for other cases.
-    var maximizedWindow = useBottomWindow ? themeWindow : app;
-    this.element.classList.toggle('maximized', maximizedWindow.isHomescreen ||
-      !!(maximizedWindow.appChrome && maximizedWindow.appChrome.isMaximized())
-    );
+    this.element.classList.toggle('maximized',
+      app.isHomescreen || app.isAttentionWindow ||
+      !!(app.appChrome && app.appChrome.isMaximized()));
   },
 
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
@@ -426,7 +422,7 @@ var StatusBar = {
     // Get the actual width of the rocketbar, and determine the remaining
     // width for the minimized statusbar.
     var element = appChrome && appChrome.element &&
-      appChrome.element.querySelector('.urlbar .title');
+      appChrome.element.querySelector('.urlbar .chrome-title-container');
 
     if (element) {
       this._minimizedStatusBarWidth = Math.round(
@@ -469,7 +465,7 @@ var StatusBar = {
   },
 
   _updateIconVisibility: function sb_updateIconVisibility() {
-    if (this._paused !== 0) {
+    if (this.isPaused()) {
       return;
     }
 

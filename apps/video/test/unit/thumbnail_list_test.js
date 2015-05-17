@@ -1,13 +1,25 @@
+/* global MockL10n,MockThumbnailGroup,ThumbnailList */
 /*
  * Thumbnail List tests
  */
 'use strict';
 
-require('/shared/js/l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/video/test/unit/mock_thumbnail_group.js');
 requireApp('/video/js/thumbnail_list.js');
 
 suite('Thumbnail List Unit Tests', function() {
+
+  var realL10n;
+
+  suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
+  });
 
   suite('#constructor tests', function() {
     var dummyContainer;
@@ -17,20 +29,20 @@ suite('Thumbnail List Unit Tests', function() {
     });
 
     test('normal', function() {
-      new ThumbnailList(MockThumbnailGroup, dummyContainer);
+      new ThumbnailList(MockThumbnailGroup, dummyContainer); //jshint ignore:line
       assert.ok('everything should be ok');
     });
 
     test('missing arguments', function() {
       try {
-        new ThumbnailList(MockThumbnailGroup);
+        new ThumbnailList(MockThumbnailGroup); //jshint ignore:line
         assert.fail('it should throws an error.');
       } catch (ex) {
         assert.ok('everything should be ok');
       }
 
       try {
-        new ThumbnailList();
+        new ThumbnailList(); //jshint ignore:line
         assert.fail('it should throws an error.');
       } catch (ex) {
         assert.ok('everything should be ok');

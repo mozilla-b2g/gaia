@@ -111,7 +111,9 @@
 
   TaskManager.prototype._appClosed = function cs_appClosed(evt) {
     window.removeEventListener('appclosed', this._appClosedHandler);
+    window.removeEventListener('homescreenclosed', this._appClosedHandler);
     this.screenElement.classList.add('cards-view');
+    this.element.classList.remove('from-home');
   };
 
   /**
@@ -133,6 +135,8 @@
     }
     this.calculateDimensions();
     this.newStackPosition = null;
+    // start listening for the various events we need to handle while
+    // the card view is showing
     this._registerShowingEvents();
 
     if (this.filter(filterName)) {
@@ -163,8 +167,9 @@
     if (activeApp.isHomescreen) {
       // Ensure the homescreen is in a closed state, as the user may choose
       // one of the app.
-      activeApp.close();
-      screenElement.classList.add('cards-view');
+      activeApp.close('home-to-cardview');
+      this.element.classList.add('from-home');
+      window.addEventListener('homescreenclosed', this._appClosedHandler);
     } else {
       window.addEventListener('appclosed', this._appClosedHandler);
     }
@@ -184,6 +189,7 @@
     this._removeCards();
     this.setActive(false);
     window.removeEventListener('appclosed', this._appClosedHandler);
+    window.removeEventListener('homescreenclosed', this._appClosedHandler);
     this.screenElement.classList.remove('cards-view');
 
     var detail;
@@ -194,7 +200,13 @@
   };
 
 
+  TaskManager.prototype._showingEventsRegistered = false;
+
   TaskManager.prototype._registerShowingEvents = function() {
+    if (this._showingEventsRegistered) {
+      return;
+    }
+    this._showingEventsRegistered = true;
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('appopen', this);
@@ -208,16 +220,21 @@
   };
 
   TaskManager.prototype._unregisterShowingEvents = function() {
+    if (!this._showingEventsRegistered) {
+      return;
+    }
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('attentionopened', this);
     window.removeEventListener('appopen', this);
     window.removeEventListener('appterminated', this);
     window.removeEventListener('wheel', this);
     window.removeEventListener('resize', this);
-
-    this.element.removeEventListener('touchstart', this);
-    this.element.removeEventListener('touchmove', this);
-    this.element.removeEventListener('touchend', this);
+    if (this.element) {
+      this.element.removeEventListener('touchstart', this);
+      this.element.removeEventListener('touchmove', this);
+      this.element.removeEventListener('touchend', this);
+    }
+    this._showingEventsRegistered = false;
   };
 
   /**
@@ -414,20 +431,20 @@
 
       case 'select' :
 
-        if (this.position == card.position) {
-          this.exitToApp(card.app);
-        } else {
+        if (this.position != card.position) {
           // Make the target app, the selected app
           this.position = card.position;
           this.alignCurrentCard();
+        }
 
-          var self = this;
-          this.currentCard.element.addEventListener('transitionend',
-                                                    function onCenter(e) {
-            e.target.removeEventListener('transitionend', onCenter);
+        var self = this;
+        this.currentCard.element.addEventListener('transitionend',
+          function afterTransition(e) {
+            e.target.removeEventListener('transitionend', afterTransition);
             self.exitToApp(card.app);
           });
-        }
+        this.currentCard.element.classList.add('select');
+
         break;
     }
   };
@@ -436,6 +453,8 @@
     // The cards view class is removed here in order to let the window
     // manager repaints everything.
     this.screenElement.classList.remove('cards-view');
+    // immediately stop listening for input events
+    this._unregisterShowingEvents();
 
     if (this._shouldGoBackHome) {
       app = app || homescreenLauncher.getHomescreen(true);
@@ -454,17 +473,19 @@
 
     setTimeout(() => {
       var finish = () => {
+        this.element.classList.remove('to-home');
         this.hide();
       };
+      eventSafety(app.element, '_opened', finish, 400);
 
       if (app.isHomescreen) {
-        app.open();
-        finish();
+        this.element.classList.add('to-home');
+        app.open('home-from-cardview');
       } else {
         app.open('from-cardview');
-        eventSafety(app.element, '_opened', finish, 400);
       }
     }, 100);
+
   };
 
   /**
@@ -521,9 +542,9 @@
       filter = (evt.detail && evt.detail.filter) || null;
     }
 
-
-    var shouldResize = (OrientationManager.defaultOrientation !=
-                        OrientationManager.fetchCurrentOrientation());
+    var currOrientation = OrientationManager.fetchCurrentOrientation();
+    var shouldResize = (OrientationManager.defaultOrientation.split('-')[0] !=
+                        currOrientation.split('-')[0]);
     var shouldHideKeyboard = layoutManager.keyboardEnabled;
 
     this.publish('cardviewbeforeshow'); // Will hide the keyboard if needed
@@ -540,6 +561,7 @@
 
       screen.mozLockOrientation(OrientationManager.defaultOrientation);
       if (shouldResize) {
+        // aspect ratio change will produce resize event
         window.addEventListener('resize', function resized() {
           window.removeEventListener('resize', resized);
           shouldResize = false;
@@ -552,7 +574,7 @@
       if (app && !app.isHomescreen) {
         app.getScreenshot(function onGettingRealtimeScreenshot() {
           this.show(filter);
-        }.bind(this), 0, 0, 400);
+        }.bind(this), 0, 0, 300);
       } else {
         this.show(filter);
       }
@@ -748,10 +770,7 @@
    */
   TaskManager.prototype.alignCurrentCard = function(duration, callback) {
     this._setupCardsTransition(duration || this.DURATION);
-
-    setTimeout(function(self) {
-      self._placeCards();
-    }, 0, this);
+    this._placeCards();
   };
 
   /**
@@ -927,7 +946,6 @@
   };
 
   TaskManager.prototype._setupCardsTransition = function(duration) {
-    var currentCard = this.currentCard;
     var position = this.position;
 
     var self = this;
@@ -939,40 +957,10 @@
         return;
       }
 
-      // The 5 cards at the center should be visible but we need to adjust the
-      // transitions durations/delays to account for the layer trickery.
-      // Layer Trickery: nf, cards that should be completely outside the
-      // viewport but are in fact 0.001 pixel in.
       card.element.style.visibility = '';
 
-      var distance = card.element.dataset.keepLayerDelta;
-      var currentCardDistance = Math.abs(currentCard.element.dataset.positionX);
-      if (idx == position + 2 || idx == position - 2) {
-        var cardWidth = self.windowWidth * 0.48;
-        var destination = self.windowWidth / 2 + cardWidth / 2;
-        if (card.element.dataset.positionX < 0) {
-          destination *= -1;
-        }
-
-        distance = Math.abs(destination - card.element.dataset.positionX);
-
-        var shorterDuration = distance * duration / currentCardDistance;
-        var fast = { transition: 'transform ' + shorterDuration + 'ms linear'};
-        card.applyStyle(fast);
-        return;
-      }
-
-      if (!distance) {
-        var style = { transition: 'transform ' + duration + 'ms linear'};
-        card.applyStyle(style);
-        return;
-      }
-
-      var delay = duration * distance / currentCardDistance;
-      var delayed = { transition: 'transform ' +
-                                   (duration - delay) + 'ms linear ' +
-                                   delay + 'ms'};
-      card.applyStyle(delayed);
+      var style = { transition: 'transform ' + duration + 'ms linear'};
+      card.applyStyle(style);
     });
 
   };

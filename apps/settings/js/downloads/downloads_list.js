@@ -1,6 +1,5 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global DownloadItem, DownloadUI, DownloadApiManager, DownloadsList,
+          LazyLoader, DownloadHelper */
 /*
  * This file is in charge of rendering & update the list of downloads.
  */
@@ -59,7 +58,7 @@
       return;
     }
 
-    if (!downloads || downloads.length == 0) {
+    if (!downloads || downloads.length === 0) {
       _checkEmptyList();
       return;
     }
@@ -119,16 +118,6 @@
     }
     DownloadItem.refresh(elementToUpdate, download);
     DownloadApiManager.updateDownload(download);
-  }
-
-  function _delete(id) {
-    var elementToDelete = _getElementForId(id);
-    if (!elementToDelete) {
-      console.error('Item to delete not found');
-      return;
-    }
-    downloadsContainer.removeChild(elementToDelete);
-    _checkEmptyList();
   }
 
   function _onDownloadAction(event) {
@@ -206,7 +195,7 @@
         });
       }
     };
-  };
+  }
 
   function _showDownloadActions(download) {
 
@@ -275,7 +264,7 @@
       numberOfDownloads = _getAllChecks().length;
     }
     // Delete button status
-    deleteButton.disabled = !(numberOfCheckedDownloads > 0);
+    deleteButton.disabled = (numberOfCheckedDownloads <= 0);
 
     // "Select all" button status
     selectAllButton.disabled = (numberOfCheckedDownloads === numberOfDownloads);
@@ -434,10 +423,6 @@
         deselectAllButton =
           document.getElementById('downloads-edit-deselect-all');
 
-        // Localization of the nodes for avoiding weird repaintings
-        var noDownloadsTextEl = document.getElementById('dle-text');
-        var editModeTitle = document.getElementById('downloads-title-edit');
-
         // Initialize the Api Manager and set our listener.
         DownloadApiManager.init();
         DownloadApiManager.setListener(_downloadApiManagerListener.bind(this));
@@ -467,7 +452,7 @@
 
   exports.DownloadsList = DownloadsList;
 
-}(this));
+}(window));
 
 // startup
 navigator.mozL10n.once(DownloadsList.init.bind(DownloadsList));

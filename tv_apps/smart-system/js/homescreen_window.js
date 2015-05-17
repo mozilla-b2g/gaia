@@ -1,4 +1,4 @@
-/* global BrowserConfigHelper, AppWindow */
+/* global BrowserConfigHelper, AppWindow, focusManager */
 
 'use strict';
 (function(exports) {
@@ -18,6 +18,7 @@
     this.render();
     this.publish('created');
     this.createdTime = this.launchTime = Date.now();
+    focusManager.addUI(this);
     return this;
   };
 

@@ -54,6 +54,7 @@ define(function(require) {
         AppStorage.storage.observe('freeSize', _updateFreeSize);
 
         _updateElements();
+        AppStorage.updateInfo();
       },
 
       onHide: function() {

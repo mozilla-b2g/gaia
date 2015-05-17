@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette_driver import By
+from marionette_driver import expected, By, Wait
 
 from gaiatest.apps.base import Base
 
@@ -13,10 +13,13 @@ class GeolocationPage(Base):
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='geolocation']")
 
     def switch_to_frame(self):
-        self.wait_for_element_displayed(*self._frame_locator)
-        geolocation_frame = self.marionette.find_element(*self._frame_locator)
-        self.marionette.switch_to_frame(geolocation_frame)
+        frame = Wait(self.marionette).until(
+            expected.element_present(*self._frame_locator))
+        Wait(self.marionette).until(expected.element_displayed(frame))
+        self.marionette.switch_to_frame(frame)
 
     def tap_find_location_button(self):
-        self.wait_for_element_displayed(*self._submit_button_locator)
-        self.marionette.find_element(*self._submit_button_locator).tap()
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._submit_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        element.tap()

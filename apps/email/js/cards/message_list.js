@@ -758,6 +758,15 @@ return [
         return;
       }
 
+      // For accessibility purposes, focus on the first newly loaded item in the
+      // messages list. This will ensure that screen reader's cursor position
+      // will get updated to the right place.
+      this.vScroll.once('recalculated', function(calledFromTop, refIndex) {
+        // refIndex is the index of the first new message item.
+        this.messagesContainer.querySelector(
+          '[data-index="' + refIndex + '"]').focus();
+      }.bind(this));
+
       headerCursor.messagesSlice.requestGrowth(1, true);
     },
 
@@ -1545,6 +1554,14 @@ return [
         var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
         if (inboxFolder === this.curFolder) {
           evt.emit('inboxShown', account.id);
+        }
+
+        // If user tapped in search box on message_list before the JS for the
+        // card is attached, then treat that as the signal to go to search. Only
+        // do this when first starting up though.
+        if (this.mode === 'nonsearch' &&
+            document.activeElement === this.searchTextTease) {
+          this.onSearchButton();
         }
       }
     },

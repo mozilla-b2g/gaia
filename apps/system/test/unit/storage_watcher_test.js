@@ -1,3 +1,5 @@
+/* global DeviceStorageWatcher, MocksHelper, MockL10n,
+          MockNavigatorGetDeviceStorage, MockSystemBanner */
 'use strict';
 
 requireApp('system/js/storage_watcher.js');
@@ -18,7 +20,6 @@ suite('system/DeviceStorageWatcher >', function() {
   var realL10n;
   var realNavigatorGetDeviceStorage;
   var fakeNotif;
-  var tinyTimeout = 25;
 
   mocksForStorageWatcher.attachTestHelpers();
   suiteSetup(function(done) {
@@ -76,7 +77,7 @@ suite('system/DeviceStorageWatcher >', function() {
     });
 
     test('should add change event listener', function(done) {
-      assert.equal(typeof DeviceStorageWatcher._appStorage._listeners['change'],
+      assert.equal(typeof DeviceStorageWatcher._appStorage._listeners.change,
                    'object');
       done();
     });
@@ -114,22 +115,16 @@ suite('system/DeviceStorageWatcher >', function() {
     test('should show system banner', function() {
 
       assert.equal(1, MockSystemBanner.mShowCount);
-      assert.equal(
-        'low-device-storagefree-space{"value":0,"unit":"byteUnit-B"}',
-        MockSystemBanner.mMessage);
-      assert.equal(getSpy.getCall(0).args[0], 'byteUnit-B');
-      assert.equal(getSpy.getCall(1).args[0], 'low-device-storage');
-      assert.equal(getSpy.getCall(2).args[0], 'free-space');
-      assert.deepEqual(getSpy.getCall(2).args[1], {
-        unit: 'byteUnit-B',
-        value: 0
-      });
+      assert.deepEqual(['low-device-storage', {
+        id: 'free-space',
+        args: { value: 0, unit: 'byteUnit-B'}
+      }], MockSystemBanner.mMessage);
     });
 
     test('should display the notification', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
-      assert.equal(fakeNotif.querySelector('.title-container').innerHTML,
-                   'low-device-storage');
+      assert.equal(fakeNotif.querySelector('.title-container')
+        .getAttribute('data-l10n-id'), 'low-device-storage');
       var l10nAttrs = navigator.mozL10n.getAttributes(
         fakeNotif.querySelector('.detail'));
       assert.equal(l10nAttrs.id, 'free-space');
@@ -170,17 +165,14 @@ suite('system/DeviceStorageWatcher >', function() {
 
     test('should show system banner with unknown space', function() {
       assert.equal(1, MockSystemBanner.mShowCount);
-      assert.equal('low-device-storageunknown-free-space',
+      assert.deepEqual(['low-device-storage', 'unknown-free-space'],
                    MockSystemBanner.mMessage);
-      assert.equal(getSpy.getCall(0).args[0], 'low-device-storage');
-      assert.equal(getSpy.getCall(1).args[0], 'unknown-free-space');
-      assert.equal(getSpy.getCall(1).args[1], undefined);
     });
 
     test('should display the notification with unknown space', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
-      assert.equal(fakeNotif.querySelector('.title-container').innerHTML,
-                   'low-device-storage');
+      assert.equal(fakeNotif.querySelector('.title-container').
+        getAttribute('data-l10n-id'), 'low-device-storage');
       assert.equal(
         fakeNotif.querySelector('.detail').getAttribute('data-l10n-id'),
         'unknown-free-space');

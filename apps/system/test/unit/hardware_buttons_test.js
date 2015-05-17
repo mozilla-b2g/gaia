@@ -201,6 +201,24 @@ suite('system/HardwareButtons', function() {
                                                  bubbles: false }));
   });
 
+  test('hold volume-down and press volume-up (screen enabled)', function() {
+    fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeDown', false);
+    fireHardwareKeyEvent('mozbrowserafterkeydown', 'VolumeUp', false);
+
+    // hold timeout was cancelled, capture timeout called
+    assert.isTrue(stubClearTimeout.calledOnce);
+    assert.isTrue(stubSetTimeout.calledTwice);
+
+    fireHardwareKeyEvent('mozbrowserbeforekeyup', 'VolumeUp', false);
+    fireHardwareKeyEvent('mozbrowserafterkeyup', 'VolumeDown', false);
+
+    // Fire the capturelog timeout
+    stubSetTimeout.getCall(1).args[0].call(window);
+    assert.isTrue(stubDispatchEvent.calledOnce);
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volumeup+volumedown',
+                                                 bubbles: false }));
+  });
+
   test('hold volume-down and press sleep (screen disabled)', function() {
     ScreenManager.screenEnabled = false;
     fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Power', false);

@@ -18,10 +18,6 @@ marionette('Dimiss the keyboard', function() {
     apps: apps,
     prefs: {
       'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
     }
   });
 
@@ -49,9 +45,9 @@ marionette('Dimiss the keyboard', function() {
     systemInputMgmt.switchToActiveKeyboardFrame();
   });
 
-  test('Longpressing the space bar should dimiss the keyboard', function() {
-    // The time needed for dimiss is 700ms.
-    longPressSpaceBar(1.0);
+  test('Longpressing the space bar should dismiss the keyboard', function() {
+    // The time needed for dismiss is 500ms.
+    longPressSpaceBar(0.7);
 
     client.waitFor(function() {
       return !systemInputMgmt.keyboardFrameDisplayed();

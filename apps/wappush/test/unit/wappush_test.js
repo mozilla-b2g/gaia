@@ -3,8 +3,9 @@
 
 /* global loadBodyHTML, MockL10n, MessageDB, MockNavigatormozApps,
           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
-          MockNavigatorSettings, MockNotification, MocksHelper, Notification,
-          WapPushManager, MockParsedProvisioningDoc, SiSlScreenHelper */
+          MockNavigatorSettings, MockNotification, MockNotificationHelper,
+          MocksHelper, WapPushManager, MockParsedProvisioningDoc,
+          SiSlScreenHelper */
 
 'use strict';
 
@@ -161,12 +162,22 @@ suite('WAP Push', function() {
     };
 
     test('the notification is sent and populated correctly', function(done) {
-      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(MockNotificationHelper, 'send');
 
       WapPushManager.onWapPushReceived(message).then(function() {
         done(function checks() {
-          sinon.assert.calledWithMatch(Notification, message.sender,
-            { body: 'check this out http://www.mozilla.org' });
+          sinon.assert.calledWithMatch(MockNotificationHelper.send, {
+            id: 'message-title',
+            args: { title: message.sender }
+          }, {
+            bodyL10n: {
+              args: {
+                text: 'check this out',
+                url: 'http://www.mozilla.org'
+              },
+              id: 'si-message-body'
+            }
+          });
         });
       }, done);
     });
@@ -180,6 +191,7 @@ suite('WAP Push', function() {
 
       this.sinon.stub(Date, 'now').returns(0);
       this.sinon.spy(MockNotification.prototype, 'close');
+      this.sinon.spy(MockL10n, 'setAttributes');
 
       WapPushManager.onWapPushReceived(message).then(function() {
         return WapPushManager.displayWapPushMessage(0);
@@ -187,7 +199,8 @@ suite('WAP Push', function() {
         done(function checks() {
           sinon.assert.calledWith(MockNotification.get, { tag: 0 });
           sinon.assert.calledOnce(MockNotification.prototype.close);
-          assert.equal(title.textContent, message.sender);
+          sinon.assert.calledWith(MockL10n.setAttributes, title,
+            'message-title', { title: message.sender });
           assert.equal(text.textContent, 'check this out');
           assert.equal(link.textContent, 'http://www.mozilla.org');
           assert.equal(link.dataset.url, 'http://www.mozilla.org');
@@ -198,7 +211,7 @@ suite('WAP Push', function() {
 
     suite('DSDS scenarios', function() {
       setup(function() {
-        this.sinon.spy(window, 'Notification');
+        this.sinon.spy(MockNotificationHelper, 'send');
 
         MockNavigatorMozIccManager.addIcc(1, {});
       });
@@ -206,8 +219,12 @@ suite('WAP Push', function() {
       test('the notification is populated correctly for SIM1', function(done) {
         WapPushManager.onWapPushReceived(message).then(function() {
           done(function checks() {
-            sinon.assert.calledWithMatch(Notification, /1/, {
-              body: 'check this out http://www.mozilla.org'
+            sinon.assert.calledWithMatch(MockNotificationHelper.send, {
+              args: {
+                id: 1,
+                title: message.sender
+              },
+              id: 'message-title-with-sim'
             });
           });
         }, done);
@@ -218,8 +235,12 @@ suite('WAP Push', function() {
 
         WapPushManager.onWapPushReceived(message).then(function() {
           done(function checks() {
-            sinon.assert.calledWithMatch(Notification, /2/, {
-              body: 'check this out http://www.mozilla.org'
+            sinon.assert.calledWithMatch(MockNotificationHelper.send, {
+              args: {
+                id: 2,
+                title: message.sender
+              },
+              id: 'message-title-with-sim'
             });
           });
         }, done);
@@ -236,12 +257,21 @@ suite('WAP Push', function() {
     };
 
     test('the notification is sent and populated correctly', function(done) {
-      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(MockNotificationHelper, 'send');
 
       WapPushManager.onWapPushReceived(message).then(function() {
         done(function checks() {
-          sinon.assert.calledWithMatch(Notification, message.sender,
-            { body: 'http://www.mozilla.org' });
+          sinon.assert.calledWithMatch(MockNotificationHelper.send, {
+            id: 'message-title',
+            args: { title: message.sender }
+          }, {
+            bodyL10n: {
+              args: {
+                url: 'http://www.mozilla.org'
+              },
+              id: 'sl-message-body'
+            }
+          });
         });
       }, done);
     });
@@ -255,6 +285,7 @@ suite('WAP Push', function() {
 
       this.sinon.stub(Date, 'now').returns(0);
       this.sinon.spy(MockNotification.prototype, 'close');
+      this.sinon.spy(MockL10n, 'setAttributes');
 
       WapPushManager.onWapPushReceived(message).then(function() {
         return WapPushManager.displayWapPushMessage(0);
@@ -263,7 +294,8 @@ suite('WAP Push', function() {
           sinon.assert.calledWith(MockNotification.get, { tag: 0 });
           sinon.assert.calledOnce(MockNotification.prototype.close);
 
-          assert.equal(title.textContent, message.sender);
+          sinon.assert.calledWith(MockL10n.setAttributes, title,
+            'message-title', { title: message.sender });
           assert.equal(text.textContent, '');
           assert.equal(link.textContent, 'http://www.mozilla.org');
           assert.equal(link.dataset.url, 'http://www.mozilla.org');
@@ -316,11 +348,15 @@ suite('WAP Push', function() {
     };
 
     test('the notification is sent and populated correctly', function(done) {
-      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(MockNotificationHelper, 'send');
       WapPushManager.onWapPushReceived(messages.netwpin).then(function() {
         done(function checks() {
-          sinon.assert.calledWithMatch(Notification, messages.netwpin.sender,
-            { body: 'cp-message-received' });
+          sinon.assert.calledWithMatch(MockNotificationHelper.send, {
+            args: { title: messages.netwpin.sender },
+            id: 'message-title'
+          }, {
+            bodyL10n: 'cp-message-received'
+          });
         });
       }, done);
     });
@@ -415,6 +451,7 @@ suite('WAP Push', function() {
 
         this.sinon.stub(Date, 'now').returns(0);
         this.sinon.spy(MockNotification.prototype, 'close');
+        this.sinon.spy(MockL10n, 'setAttributes');
 
         WapPushManager.onWapPushReceived(messages.netwpin).then(function() {
           return WapPushManager.displayWapPushMessage(0);
@@ -424,7 +461,8 @@ suite('WAP Push', function() {
 
             acceptCfgButton.click();
 
-            assert.equal(title.textContent, messages.netwpin.sender);
+            sinon.assert.calledWith(MockL10n.setAttributes, title,
+              'message-title', { title: messages.netwpin.sender });
             assert.isFalse(screen.classList.contains('left') ||
                            screen.classList.contains('right'),
                            'the details screen should be visible');
@@ -456,6 +494,7 @@ suite('WAP Push', function() {
 
         this.sinon.stub(Date, 'now').returns(0);
         this.sinon.spy(MockNotification.prototype, 'close');
+        this.sinon.spy(MockL10n, 'setAttributes');
 
         WapPushManager.onWapPushReceived(messages.netwpin).then(function() {
           return WapPushManager.displayWapPushMessage(0);
@@ -465,12 +504,14 @@ suite('WAP Push', function() {
 
             acceptCfgButton.click();
 
-            assert.equal(titleApn.textContent, messages.netwpin.sender);
+            sinon.assert.calledWith(MockL10n.setAttributes, titleApn,
+              'message-title', { title: messages.netwpin.sender });
             assert.isFalse(apnScreen.classList.contains('left') ||
                            apnScreen.classList.contains('right'),
                            'the apn screen should be visible');
 
-            assert.equal(titleDetails.textContent, messages.netwpin.sender);
+            sinon.assert.calledWith(MockL10n.setAttributes, titleDetails,
+              'message-title', { title: messages.netwpin.sender });
             assert.isTrue(detailsScreen.classList.contains('right'),
                            'the details screen should not be visible');
 
@@ -510,6 +551,7 @@ suite('WAP Push', function() {
 
         this.sinon.stub(Date, 'now').returns(0);
         this.sinon.spy(MockNotification.prototype, 'close');
+        this.sinon.spy(MockL10n, 'setAttributes');
 
         WapPushManager.onWapPushReceived(messages.netwpin).then(function() {
           return WapPushManager.displayWapPushMessage(0);
@@ -518,7 +560,9 @@ suite('WAP Push', function() {
             sinon.assert.notCalled(MockNotification.prototype.close);
             acceptInstallButton.click();
             acceptButton.click();
-            assert.equal(title.textContent, messages.netwpin.sender);
+
+            sinon.assert.calledWith(MockL10n.setAttributes, title,
+              'message-title', { title: messages.netwpin.sender });
             assert.isFalse(screen.classList.contains('left') ||
                            screen.classList.contains('right'),
                            'the details screen should be visible');
@@ -544,6 +588,7 @@ suite('WAP Push', function() {
 
         this.sinon.stub(Date, 'now').returns(0);
         this.sinon.spy(MockNotification.prototype, 'close');
+        this.sinon.spy(MockL10n, 'setAttributes');
 
         WapPushManager.onWapPushReceived(messages.userpin).then(function() {
           return WapPushManager.displayWapPushMessage(0);
@@ -553,7 +598,8 @@ suite('WAP Push', function() {
             acceptInstallButton.click();
             acceptButton.click();
 
-            assert.equal(title.textContent, messages.userpin.sender);
+            sinon.assert.calledWith(MockL10n.setAttributes, title,
+              'message-title', { title: messages.netwpin.sender });
             assert.isFalse(screen.classList.contains('left') ||
                            screen.classList.contains('right'),
                            'the details screen should be visible');
@@ -595,7 +641,7 @@ suite('WAP Push', function() {
       var container = screen.querySelector('.container');
       var text = container.querySelector('p');
 
-      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(MockNotificationHelper, 'send');
       this.sinon.stub(Date, 'now')
         .onFirstCall().returns(0)
         .onSecondCall().returns(1);
@@ -606,8 +652,12 @@ suite('WAP Push', function() {
         return WapPushManager.displayWapPushMessage(0);
       }).then(function() {
         done(function checks() {
-          sinon.assert.alwaysCalledWithMatch(Notification,
-            messages.current.sender, { tag: '0' });
+          sinon.assert.alwaysCalledWithMatch(MockNotificationHelper.send, {
+            id: 'message-title',
+            args: { title: messages.current.sender }
+          }, {
+            tag: '0'
+          });
           assert.equal(text.textContent, 'current message');
         });
       }, done);
@@ -618,7 +668,7 @@ suite('WAP Push', function() {
       var container = screen.querySelector('.container');
       var text = container.querySelector('p');
 
-      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(MockNotificationHelper, 'send');
       this.sinon.stub(Date, 'now')
         .onFirstCall().returns(0)
         .onSecondCall().returns(1);
@@ -629,9 +679,13 @@ suite('WAP Push', function() {
         return WapPushManager.displayWapPushMessage(0);
       }).then(function() {
         done(function checks() {
-          sinon.assert.calledOnce(Notification);
-          sinon.assert.calledWithMatch(Notification, messages.current.sender,
-            { tag: '0' });
+          sinon.assert.calledOnce(MockNotificationHelper.send);
+          sinon.assert.calledWithMatch(MockNotificationHelper.send, {
+            id: 'message-title',
+            args: { title: messages.current.sender }
+          }, {
+            tag: '0'
+          });
           assert.equal(text.textContent, 'current message');
         });
       }, done);
@@ -665,12 +719,14 @@ suite('WAP Push', function() {
       this.sinon.stub(Date, 'now')
         .onFirstCall().returns(0)
         .onSecondCall().returns(1378204533001);
+      this.sinon.spy(MockL10n, 'setAttributes');
 
       WapPushManager.onWapPushReceived(message).then(function() {
         return WapPushManager.displayWapPushMessage(0);
       }).then(function() {
         done(function checks() {
-          assert.equal(text.textContent, 'this-message-has-expired');
+          sinon.assert.calledWith(MockL10n.setAttributes, text,
+            'this-message-has-expired');
         });
       }, done);
     });
@@ -733,7 +789,7 @@ suite('WAP Push', function() {
     setup(function() {
       clock = this.sinon.useFakeTimers();
       isDocumentHidden = true;
-      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(MockNotificationHelper, 'send');
       this.sinon.spy(window, 'close');
     });
 
@@ -743,8 +799,15 @@ suite('WAP Push', function() {
     test('action=signal-none sends a notification', function(done) {
       WapPushManager.onWapPushReceived(messages.none).then(function() {
         clock.tick(100);
-        sinon.assert.calledWithMatch(Notification, messages.none.sender,
-          { body: 'check this out' });
+        sinon.assert.calledWithMatch(MockNotificationHelper.send, {
+          id: 'message-title',
+          args: { title: messages.none.sender }
+        }, {
+          bodyL10n: {
+            id: 'si-message-body',
+            args: { text: 'check this out' }
+          }
+        });
         sinon.assert.calledOnce(window.close);
         assert.isFalse(MockNavigatormozApps.mAppWasLaunched);
       }).then(done, done);
@@ -756,7 +819,7 @@ suite('WAP Push', function() {
 
       WapPushManager.onWapPushReceived(messages.signal_high).then(function() {
         clock.tick(100);
-        sinon.assert.notCalled(Notification);
+        sinon.assert.notCalled(MockNotificationHelper.send);
         sinon.assert.notCalled(window.close);
         sinon.assert.calledOnce(SiSlScreenHelper.populateScreen);
         assert.isTrue(MockNavigatormozApps.mAppWasLaunched);
@@ -769,7 +832,7 @@ suite('WAP Push', function() {
 
       WapPushManager.onWapPushReceived(messages.execute_high).then(function() {
         clock.tick(100);
-        sinon.assert.notCalled(Notification);
+        sinon.assert.notCalled(MockNotificationHelper.send);
         sinon.assert.notCalled(window.close);
         sinon.assert.calledOnce(SiSlScreenHelper.populateScreen);
         assert.isTrue(MockNavigatormozApps.mAppWasLaunched);
@@ -784,7 +847,7 @@ suite('WAP Push', function() {
       WapPushManager.onWapPushReceived(messages.no_action).then(function() {
         return WapPushManager.onWapPushReceived(messages.delete);
       }).then(function() {
-        sinon.assert.calledOnce(Notification);
+        sinon.assert.calledOnce(MockNotificationHelper.send);
         sinon.assert.calledWith(MockNotification.get, { tag: 0 });
         sinon.assert.calledOnce(MockNotification.prototype.close);
       }).then(done, done);

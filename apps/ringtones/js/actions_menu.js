@@ -112,9 +112,9 @@ ActionsMenu.prototype = {
     var self = this;
     this.close();
 
-    var descKey = 'delete-desc';
+    var messageKey = 'delete-message';
     if (self._inUseAs.length) {
-      descKey += '-default-' + self._inUseAs[0];
+      messageKey += '-default-' + self._inUseAs[0];
     }
 
     var cancelButton = {
@@ -139,7 +139,7 @@ ActionsMenu.prototype = {
     };
     CustomDialog.show(
       'delete-title',
-      {id: descKey, args: {tone: self._tone.name}},
+      {id: messageKey, args: {tone: self._tone.name}},
       cancelButton, confirmButton
     );
   },

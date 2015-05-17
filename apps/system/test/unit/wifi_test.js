@@ -291,7 +291,6 @@ suite('WiFi > ', function() {
       Wifi.wifiEnabled = true;
 
       var isGetNetworksCalled = false;
-      var isPowerSavingModeEnabled = false;
       var stubMozWifiManager = this.sinon.stub(navigator,
         'mozWifiManager', {
           connection: {
@@ -299,48 +298,12 @@ suite('WiFi > ', function() {
           },
           getNetworks: function getNetworks() {
             isGetNetworksCalled = true;
-          },
-          setPowerSavingMode: function(enabled) {
-            isPowerSavingModeEnabled = enabled;
           }
         });
 
       Wifi.maybeToggleWifi();
 
       assert.equal(isGetNetworksCalled, true);
-      assert.equal(isPowerSavingModeEnabled, false);
-
-      stubMozWifiManager.restore();
-    });
-
-    test('Test setPowerSavingMode should be called when screen off ' +
-         'and not charging', function() {
-      SettingsListener.mCallbacks['wifi.screen_off_timeout'](100);
-
-      ScreenManager.screenEnabled = false;
-      Wifi.wifiDisabledByWakelock = true;
-      Wifi.wifiWakeLocked = false;
-      Wifi.wifiEnabled = true;
-
-      var isPowerSavingModeEnabled;
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {
-            isPowerSavingModeEnabled = enabled;
-          }
-        });
-
-      var stubMozAlarms = this.sinon.stub(navigator,
-        'mozAlarms', MockMozAlarms);
-
-      navigator.battery = { charging: false };
-
-      Wifi.maybeToggleWifi();
-
-      assert.equal(isPowerSavingModeEnabled, true);
-
-      navigator.battery = realBattery;
-      stubMozAlarms.restore();
       stubMozWifiManager.restore();
     });
 
@@ -357,13 +320,6 @@ suite('WiFi > ', function() {
         isSleepCalled = true;
       });
 
-      // We will test if setPowerSavingMode gets called in other test case.
-      // Simply provide
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {}
-        });
-
       var stubMozAlarms = this.sinon.stub(navigator,
         'mozAlarms', null);
       navigator.battery = { charging: false };
@@ -375,9 +331,7 @@ suite('WiFi > ', function() {
       navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSleep.restore();
-      stubMozWifiManager.restore();
     });
-
 
     test('Test starting with a timer if turn on wifi sleep mode', function() {
       SettingsListener.mCallbacks['wifi.screen_off_timeout'](100);
@@ -387,9 +341,6 @@ suite('WiFi > ', function() {
       Wifi.wifiDisabledByWakelock = true;
       stubWifiWakeLockManager.isHeld = false;
       Wifi.wifiEnabled = true;
-      Wifi.wifiSleepMode = true;
-
-      assert.equal(Wifi.wifiSleepMode, true);
 
       var stubMozAlarms = this.sinon.stub(navigator,
         'mozAlarms', MockMozAlarms);
@@ -398,12 +349,8 @@ suite('WiFi > ', function() {
         this.sinon.stub(Wifi, 'setSystemMessageHandler', function() {
           isSetSystemMessageHandlerCalled = true;
         });
-      navigator.battery = { charging: false };
 
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {}
-        });
+      navigator.battery = { charging: false };
 
       Wifi.maybeToggleWifi();
       if (Wifi.wifiSleepMode == true) {
@@ -415,7 +362,6 @@ suite('WiFi > ', function() {
       navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSetSystemMessageHandler.restore();
-      stubMozWifiManager.restore();
     });
 
     test('Test starting with a timer if turn off wifi sleep mode', function() {
@@ -435,13 +381,9 @@ suite('WiFi > ', function() {
       var stubSetSystemMessageHandler =
         this.sinon.stub(Wifi, 'setSystemMessageHandler', function() {
           isSetSystemMessageHandlerCalled = true;
-        });
-      navigator.battery = { charging: false };
+      });
 
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {}
-        });
+      navigator.battery = { charging: false };
 
       Wifi.maybeToggleWifi();
       if (Wifi.wifiSleepMode == true) {
@@ -453,7 +395,6 @@ suite('WiFi > ', function() {
       navigator.battery = realBattery;
       stubMozAlarms.restore();
       stubSetSystemMessageHandler.restore();
-      stubMozWifiManager.restore();
     });
   });
 
@@ -472,10 +413,6 @@ suite('WiFi > ', function() {
 
     teardown(function() {
       stubAddEventListener.restore();
-    });
-
-    test('Test wifiDisabledByWakelock should be changed', function() {
-      assert.equal(Wifi.wifiDisabledByWakelock, true);
     });
 
     test('Test wakeLockForWifi should be unlocked', function() {
@@ -510,7 +447,7 @@ suite('WiFi > ', function() {
   });
 
   suite('wifiWakeLock', function() {
-    test('Test wifi should stay enabled and in power saving mode', function() {
+    test('Test wifi should stay enabled', function() {
       // Test flow : Wifi Enabled, Hold Wifi Lock
       //             -> Screen off
       //             ->maybeToggleWifi()
@@ -518,48 +455,21 @@ suite('WiFi > ', function() {
 
       // Screen off while wifi wake lock held.
       MockScreenManager.screenEnabled = false;
-      Wifi.wifiDisabledByWakelock = false;
-      stubWifiWakeLockManager.isHeld = true;
+      Wifi.wifiDisabledByWakelock = true;
       Wifi.wifiEnabled = true;
       navigator.battery = { charging: false };
 
-      var isWifiPowerSavingMode = false;
-      var isSetPowerSavingModeCalled = false;
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {
-            isSetPowerSavingModeCalled = true;
-            isWifiPowerSavingMode = enabled;
-            return fakeDOMRequest;
-          }
-      });
-
       Wifi.maybeToggleWifi();
 
-      // Expect power saving mode API is called with proper state.
-      fakeClock.tick(1000);
-      assert.equal(isSetPowerSavingModeCalled, true);
-      assert.equal(isWifiPowerSavingMode, true);
-
       // Expect wifi stay enabled.
-      fakeDOMRequest.onsuccess();
       fakeClock.tick(1000);
       assert.equal(Wifi.wifiEnabled, true);
       assert.equal(Wifi.wifiDisabledByWakelock, true);
 
       navigator.battery = realBattery;
-      stubMozWifiManager.restore();
-
-      Wifi.wifiEnabled = true;
-      stubWifiWakeLockManager.isHeld = true;
-      Wifi.wifiDisabledByWakelock = false;
     });
 
-    test('Test wifi should be turned on and in power saving mode', function() {
+    test('Test wifi should be turned on', function() {
       // Scenario : Screen off, Wifi Disabled by screen off
       //            -> Hold Wifi Wake Lock
       //            -> maybeToggleWifi()
@@ -571,21 +481,6 @@ suite('WiFi > ', function() {
       stubWifiWakeLockManager.isHeld = true;
       Wifi.wifiEnabled = false;
       navigator.battery = { charging: false };
-
-      var isWifiPowerSavingMode = false;
-      var isSetPowerSavingModeCalled = false;
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {
-            isSetPowerSavingModeCalled = true;
-            isWifiPowerSavingMode = enabled;
-            return fakeDOMRequest;
-          }
-      });
 
       MockLock.clear();
       stubWifiWakeLockManager.onwakelockchange(true);
@@ -600,12 +495,9 @@ suite('WiFi > ', function() {
       window.dispatchEvent(evt);
 
       // Expect power saving mode API is called with proper state.
-      assert.equal(isSetPowerSavingModeCalled, true);
-      assert.equal(isWifiPowerSavingMode, true);
       assert.equal(Wifi.wifiDisabledByWakelock, true);
 
       navigator.battery = realBattery;
-      stubMozWifiManager.restore();
 
       Wifi.wifiEnabled = true;
       stubWifiWakeLockManager.isHeld = true;
@@ -625,38 +517,20 @@ suite('WiFi > ', function() {
       Wifi.wifiEnabled = false;
       navigator.battery = { charging: false };
 
-      var isWifiPowerSavingMode = false;
-      var isSetPowerSavingModeCalled = false;
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {
-            isSetPowerSavingModeCalled = true;
-            isWifiPowerSavingMode = enabled;
-            return fakeDOMRequest;
-          }
-      });
-
       stubWifiWakeLockManager.onwakelockchange(true);
 
       // Expect wifi stay enabled and enter power saving mode.
       assert.equal(Wifi.wifiEnabled, false);
-      assert.equal(isSetPowerSavingModeCalled, false);
-      assert.equal(isWifiPowerSavingMode, false);
       assert.equal(Wifi.wifiDisabledByWakelock, false);
 
       navigator.battery = realBattery;
-      stubMozWifiManager.restore();
 
       Wifi.wifiEnabled = false;
       stubWifiWakeLockManager.isHeld = false;
       Wifi.wifiDisabledByWakelock = false;
     });
 
-    test('Test wifi should be turned on in power saving mode, then turn off.',
+    test('Test wifi should be turned on, then turn off.',
       function() {
       // Scenario : Screen off, Wifi Disabled by screen off
       //            -> Hold Wifi Wake Lock
@@ -672,21 +546,6 @@ suite('WiFi > ', function() {
       Wifi.wifiEnabled = false;
       navigator.battery = { charging: false };
 
-      var isWifiPowerSavingMode = false;
-      var isSetPowerSavingModeCalled = false;
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-      var stubMozWifiManager = this.sinon.stub(navigator,
-        'mozWifiManager', {
-          setPowerSavingMode: function(enabled) {
-            isSetPowerSavingModeCalled = true;
-            isWifiPowerSavingMode = enabled;
-            return fakeDOMRequest;
-          }
-      });
-
       MockLock.clear();
       stubWifiWakeLockManager.onwakelockchange(false);
 
@@ -699,9 +558,6 @@ suite('WiFi > ', function() {
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
 
-      // Expect power saving mode API is called with proper state.
-      assert.equal(isSetPowerSavingModeCalled, true);
-      assert.equal(isWifiPowerSavingMode, true);
       assert.equal(Wifi.wifiDisabledByWakelock, true);
 
       // Release Wifi wake lock.
@@ -716,7 +572,6 @@ suite('WiFi > ', function() {
       assert.equal(MockLock.locks[1]['wifi.disabled_by_wakelock'], true);
 
       navigator.battery = realBattery;
-      stubMozWifiManager.restore();
 
       Wifi.wifiEnabled = false;
       Wifi.wifiWakeLocked = true;

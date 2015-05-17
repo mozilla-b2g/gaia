@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
@@ -10,9 +10,6 @@ SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 BUILDAPP=${BUILDAPP:-desktop}
-
-# where all gaia specific customizations for mocha-marionette live.
-SHARED=$DIR/../shared/test/integration
 
 safe_which() {
   if [ "$(which $1)" ];
@@ -59,16 +56,36 @@ if [ ! -d $DIR/../profile-test ]; then
   PROFILE_FOLDER=profile-test make -C $DIR/../
 fi
 
+HARNESS_PATHS=$(cat ./tests/jsmarionette/marionette_tests.txt)
+
 if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
     if [ -z "$SKIP_TEST_FILES" ]; then
-      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
-                            -or -path "*/dev_apps/*/test/marionette/*_test.js" \
-                            -or -path "*/tests/integration/*/*_test.js")
+      if [ -z "$HARNESS_ONLY" ]; then
+        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js" \
+                              -or -path "*/tests/integration/*/*_test.js")
+      else
+        TEST_FILES=""
+      fi
+
+      for wildcard in $HARNESS_PATHS; do
+        HARNESS_FILES=$(find tests/jsmarionette -path $wildcard)
+        TEST_FILES="$TEST_FILES $HARNESS_FILES"
+      done
     else
-      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
+      if [ -z "$HARNESS_ONLY" ]; then
+        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
+      else
+        TEST_FILES=""
+      fi
+
+      for wildcard in $HARNESS_PATHS; do
+        HARNESS_FILES=$(find tests/jsmarionette -path $wildcard $SKIP_TEST_FILES)
+        TEST_FILES="$TEST_FILES $HARNESS_FILES"
+      done
     fi
   else
     if [ -z "$SKIP_TEST_FILES" ]; then
@@ -137,6 +154,7 @@ fi
 if [ "$BUILDAPP" != "desktop" ] ; then
   LANG="en_US.UTF-8"
   export LANG
+  BUILDAPP_OPTS="--buildapp $BUILDAPP"
 fi
 
 DEVICE_OPTS=""
@@ -160,16 +178,20 @@ else
   TARGET=$DIR/../node_modules/.bin/marionette-mocha
 fi
 
+export PATH=$XPCSHELL_DIR:$PATH
+
+if [ ! -z $TEST_MANIFEST ]; then
+  TEST_FILES=$(./node_modules/.bin/apply-manifest $TEST_MANIFEST $TEST_FILES)
+fi
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
-PATH=$XPCSHELL_DIR:$PATH $TARGET \
+$TARGET \
+  --timeout 60s \
   $VERBOSE_OPTS \
   $OOP_OPTS \
   $RUNTIME_OPTS \
   $DEVICE_OPTS \
-  --timeout 60s \
-  --profile-builder $SHARED/profile_builder.js \
-  --profile-base $SHARED/profile.js \
-  $SHARED/setup.js \
+  $BUILDAPP_OPTS \
   $TEST_FILES \
   $@

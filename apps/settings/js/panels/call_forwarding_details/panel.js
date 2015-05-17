@@ -15,6 +15,9 @@ define(function(require) {
         this._elements.telInput.value = options.number || '';
         this._elements.checkboxInput.checked = !!options.enabled;
       },
+      onShow: function() {
+        this._elements.telInput.focus();
+      },
       onSubmit: function() {
         return Promise.resolve({
           number: this._elements.telInput.value,

@@ -6,7 +6,7 @@
           PageSwitchingTargetHandler, CapsLockTargetHandler,
           SwitchKeyboardTargetHandler, ToggleCandidatePanelTargetHandler,
           DismissSuggestionsTargetHandler, BackspaceTargetHandler,
-          HandwritingPadTargetHandler */
+          HandwritingPadTargetHandler, Promise */
 
 (function(exports) {
 
@@ -14,6 +14,7 @@ var TargetHandlersManager = function(app) {
   this.handlers = undefined;
   this.activeTargetsManager = null;
   this.app = app;
+  this.promiseQueue = Promise.resolve();
 };
 
 TargetHandlersManager.prototype.start = function() {
@@ -105,7 +106,12 @@ TargetHandlersManager.prototype._callTargetAction = function(action,
     }
   }
 
-  handler[action](press);
+  this.promiseQueue = this.promiseQueue.then(function() {
+    return handler[action](press);
+  }).catch(function(e) {
+    console.warn('TargetHandlersManager: ' +
+        'Error occurred for ' + action + ': ', e);
+  });
 };
 
 // This method decide which of the TargetHandler is the right one to

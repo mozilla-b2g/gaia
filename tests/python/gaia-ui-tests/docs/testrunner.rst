@@ -185,6 +185,21 @@ Expected variables
       'password': 'password'
     }
 
+* host - Variables associated with the host machine running the tests (as opposed to the target Firefox OS instance).
+
+.. code-block:: javascript
+
+    'host': {
+      'smtp': {
+        'email': 'from@example.com',
+        'ssl': false
+        'hostname': 'smtp.example.com',
+        'port': 25,
+        'username': 'username (optional)',
+        'password': 'password (optional)'
+      }
+    }
+
 * settings - Custom settings to override the Gaia default settings. These will be set before each test run but are not mandatory.
 
 .. code-block:: javascript

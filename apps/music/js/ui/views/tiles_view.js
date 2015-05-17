@@ -93,15 +93,19 @@ var TilesView = {
     titleBar.className = 'tile-title-bar';
     var artistName = document.createElement('div');
     artistName.className = 'tile-title-artist';
+    var artistNameText = document.createElement('bdi');
+    artistName.appendChild(artistNameText);
     var albumName = document.createElement('div');
     albumName.className = 'tile-title-album';
-    artistName.textContent =
+    var albumNameText = document.createElement('bdi');
+    albumName.appendChild(albumNameText);
+    artistNameText.textContent =
       result.metadata.artist || navigator.mozL10n.get('unknownArtist');
-    artistName.dataset.l10nId =
+    artistNameText.dataset.l10nId =
       result.metadata.artist ? '' : 'unknownArtist';
-    albumName.textContent =
+    albumNameText.textContent =
       result.metadata.album || navigator.mozL10n.get('unknownAlbum');
-    albumName.dataset.l10nId = result.metadata.album ? '' : 'unknownAlbum';
+    albumNameText.dataset.l10nId = result.metadata.album ? '' : 'unknownAlbum';
     titleBar.appendChild(artistName);
 
     // There are 6 tiles in one group
@@ -188,13 +192,8 @@ var TilesView = {
           this.hideSearch();
           evt.preventDefault();
         } else if (target.dataset.index) {
-          var handler;
-          var index = target.dataset.index;
-
-          var data = this.dataSource[index];
-          handler = tv_playAlbum.bind(this, data, index);
-
-          target.addEventListener('transitionend', handler);
+          tv_playAlbum(this.dataSource[target.dataset.index],
+                       target.dataset.index);
         }
 
         break;
@@ -254,8 +253,6 @@ var TilesView = {
           }
         );
       });
-
-      target.removeEventListener('transitionend', handler);
     }
   }
 };

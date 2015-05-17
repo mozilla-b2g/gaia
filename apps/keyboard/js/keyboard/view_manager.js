@@ -19,9 +19,6 @@ function ViewManager(app) {
 
   // How many keys in a row
   this.columnCount = 10;
-
-  // Key metrics info for calculating proximity info for predictive text
-  this.keyArray = [];
 }
 
 ViewManager.prototype = {
@@ -258,12 +255,9 @@ ViewManager.prototype.resize = function(callback) {
   // keyboard.clientWidth because that causes a costy reflow...
   this.currentPageView.resize(this.cachedWindowWidth);
 
-  window.requestAnimationFrame(function() {
-    this.keyArray = this.currentPageView.getVisualData();
-    if (callback) {
-      callback();
-    }
-  }.bind(this));
+  if (callback) {
+    window.requestAnimationFrame(callback);
+  }
 };
 
 ViewManager.prototype.getWidth = function() {
@@ -307,8 +301,9 @@ ViewManager.prototype.getNumberOfCandidatesPerRow = function() {
   return this.currentPageView.getNumberOfCandidatesPerRow();
 };
 
+// Key metrics info for calculating proximity info for predictive text
 ViewManager.prototype.getKeyArray = function() {
-  return this.keyArray;
+  return this.currentPageView.getVisualData();
 };
 
 ViewManager.prototype.getKeyWidth = function() {

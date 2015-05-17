@@ -53,7 +53,12 @@
       try {
         xhr.send(null);
       } catch (e) {
-        callback(new L10nError('Not found: ' + url));
+        if (e.name === 'NS_ERROR_FILE_NOT_FOUND') {
+          // the app: protocol throws on 404, see https://bugzil.la/827243
+          callback(new L10nError('Not found: ' + url));
+        } else {
+          throw e;
+        }
       }
     },
 
@@ -568,7 +573,6 @@
 
   var MAX_PLACEABLES = 100;
 
-
   var PropertiesParser = {
     patterns: null,
     entryIds: null,
@@ -659,11 +663,14 @@
       this.setEntityValue(name, attr, key, this.unescapeString(value), ast);
     },
 
-    setEntityValue: function(id, attr, key, value, ast) {
+    setEntityValue: function(id, attr, key, rawValue, ast) {
       var pos, v;
 
-      if (value.indexOf('{{') !== -1) {
-        value = this.parseString(value);
+      var value = rawValue.indexOf('{{') > -1 ?
+        this.parseString(rawValue) : rawValue;
+
+      if (rawValue.indexOf('<') > -1 || rawValue.indexOf('&') > -1) {
+        value = { $o: value };
       }
 
       if (attr) {
@@ -766,10 +773,390 @@
 
 
 
+  var MAX_PLACEABLES_L20N = 100;
+
+  var L20nParser = {
+    _patterns: {
+      identifier: /[A-Za-z_]\w*/g,
+      unicode: /\\u([0-9a-fA-F]{1,4})/g,
+      index: /@cldr\.plural\(\$?(\w+)\)/g,
+      placeables: /\{\{\s*\$?([^\s]*?)\s*\}\}/,
+      unesc: /\\({{|u[0-9a-fA-F]{4}|.)/g,
+    },
+
+    parse: function (ctx, string, simple) {
+      this._source = string;
+      this._index = 0;
+      this._length = this._source.length;
+      this.simpleMode = simple;
+      this.ctx = ctx;
+
+      return this.getL20n();
+    },
+
+    getAttributes: function() {
+      var attrs = Object.create(null);
+      var attr, ws1, ch;
+
+      while (true) {
+        attr = this.getKVPWithIndex();
+        attrs[attr[0]] = attr[1];
+        ws1 = this.getRequiredWS();
+        ch = this._source.charAt(this._index);
+        if (ch === '>') {
+          break;
+        } else if (!ws1) {
+          throw this.error('Expected ">"');
+        }
+      }
+      return attrs;
+    },
+
+    getKVP: function() {
+      var key = this.getIdentifier();
+      this.getWS();
+      if (this._source.charAt(this._index) !== ':') {
+        throw this.error('Expected ":"');
+      }
+      ++this._index;
+      this.getWS();
+      return [key, this.getValue()];
+    },
+
+    getKVPWithIndex: function() {
+      var key = this.getIdentifier();
+      var index = null;
+
+      if (this._source.charAt(this._index) === '[') {
+        ++this._index;
+        this.getWS();
+        index = this.getIndex();
+      }
+      this.getWS();
+      if (this._source.charAt(this._index) !== ':') {
+        throw this.error('Expected ":"');
+      }
+      ++this._index;
+      this.getWS();
+      return [
+        key,
+        this.getValue(false, undefined, index)
+      ];
+    },
+
+    getHash: function() {
+      ++this._index;
+      this.getWS();
+      var hi, comma, hash = Object.create(null);
+      while (true) {
+        hi = this.getKVP();
+        hash[hi[0]] = hi[1];
+        this.getWS();
+
+        comma = this._source.charAt(this._index) === ',';
+        if (comma) {
+          ++this._index;
+          this.getWS();
+        }
+        if (this._source.charAt(this._index) === '}') {
+          ++this._index;
+          break;
+        }
+        if (!comma) {
+          throw this.error('Expected "}"');
+        }
+      }
+      return hash;
+    },
+
+    unescapeString: function(str, opchar) {
+      function replace(match, p1) {
+        switch (p1) {
+          case '\\':
+            return '\\';
+          case '{{':
+            return '{{';
+          case opchar:
+            return opchar;
+          default:
+            if (p1.length === 5 && p1.charAt(0) === 'u') {
+              return String.fromCharCode(parseInt(p1.substr(1), 16));
+            }
+            throw this.error('Illegal unescape sequence');
+        }
+      }
+      return str.replace(this._patterns.unesc, replace.bind(this));
+    },
+
+    getString: function(opchar) {
+      var overlay = false;
+
+      var opcharPos = this._source.indexOf(opchar, this._index + 1);
+
+      outer:
+      while (opcharPos !== -1) {
+        var backtrack = opcharPos - 1;
+        // 92 === '\'
+        while (this._source.charCodeAt(backtrack) === 92) {
+          if (this._source.charCodeAt(backtrack - 1) === 92) {
+            backtrack -= 2;
+          } else {
+            opcharPos = this._source.indexOf(opchar, opcharPos + 1);
+            continue outer;
+          }
+        }
+        break;
+      }
+
+      if (opcharPos === -1) {
+        throw this.error('Unclosed string literal');
+      }
+
+      var buf = this._source.slice(this._index + 1, opcharPos);
+
+      this._index = opcharPos + 1;
+
+      if (!this.simpleMode && buf.indexOf('\\') !== -1) {
+        buf = this.unescapeString(buf, opchar);
+      }
+
+      if (buf.indexOf('<') > -1 || buf.indexOf('&') > -1) {
+        overlay = true;
+      }
+
+      if (!this.simpleMode && buf.indexOf('{{') !== -1) {
+        return [this.parseString(buf), overlay];
+      }
+
+      return [buf, overlay];
+    },
+
+    getValue: function(optional, ch, index) {
+      var val;
+
+      if (ch === undefined) {
+        ch = this._source.charAt(this._index);
+      }
+      if (ch === '\'' || ch === '"') {
+        var valAndOverlay = this.getString(ch);
+        if (valAndOverlay[1]) {
+          val = {'v': valAndOverlay[0], 'o': true};
+        } else {
+          val = valAndOverlay[0];
+        }
+      } else if (ch === '{') {
+        val = this.getHash();
+      }
+
+      if (val === undefined) {
+        if (!optional) {
+          throw this.error('Unknown value type');
+        }
+        return null;
+      }
+
+      if (index) {
+        return {'$v': val, '$x': index};
+      }
+
+      return val;
+    },
+
+    getRequiredWS: function() {
+      var pos = this._index;
+      var cc = this._source.charCodeAt(pos);
+      // space, \n, \t, \r
+      while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
+        cc = this._source.charCodeAt(++this._index);
+      }
+      return this._index !== pos;
+    },
+
+    getWS: function() {
+      var cc = this._source.charCodeAt(this._index);
+      // space, \n, \t, \r
+      while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
+        cc = this._source.charCodeAt(++this._index);
+      }
+    },
+
+
+    getIdentifier: function() {
+      var reId = this._patterns.identifier;
+      reId.lastIndex = this._index;
+      var match = reId.exec(this._source);
+      if (reId.lastIndex !== this._index + match[0].length) {
+        throw this.error('Identifier has to start with [a-zA-Z_]');
+      }
+      this._index = reId.lastIndex;
+
+      return match[0];
+    },
+
+    getComment: function() {
+      this._index += 2;
+      var start = this._index;
+      var end = this._source.indexOf('*/', start);
+
+      if (end === -1) {
+        throw this.error('Comment without closing tag');
+      }
+      this._index = end + 2;
+      return;
+    },
+
+    getEntity: function(id, index) {
+      var entity = {'$i': id};
+
+      if (index) {
+        entity.$x = index;
+      }
+
+      if (!this.getRequiredWS()) {
+        throw this.error('Expected white space');
+      }
+
+      var ch = this._source.charAt(this._index);
+      var value = this.getValue(index === null, ch);
+      var attrs = null;
+      if (value === null) {
+        if (ch === '>') {
+          throw this.error('Expected ">"');
+        }
+        attrs = this.getAttributes();
+      } else {
+        entity.$v = value;
+        var ws1 = this.getRequiredWS();
+        if (this._source.charAt(this._index) !== '>') {
+          if (!ws1) {
+            throw this.error('Expected ">"');
+          }
+          attrs = this.getAttributes();
+        }
+      }
+
+      // skip '>'
+      ++this._index;
+
+      if (attrs) {
+        /* jshint -W089 */
+        for (var key in attrs) {
+          entity[key] = attrs[key];
+        }
+      }
+
+      return entity;
+    },
+
+    getEntry: function() {
+      // 60 === '<'
+      if (this._source.charCodeAt(this._index) === 60) {
+        ++this._index;
+        var id = this.getIdentifier();
+        // 91 == '['
+        if (this._source.charCodeAt(this._index) === 91) {
+          ++this._index;
+          return this.getEntity(id,
+                           this.getIndex());
+        }
+        return this.getEntity(id, null);
+      }
+      if (this._source.charCodeAt(this._index) === 47 &&
+          this._source.charCodeAt(this._index + 1) === 42) {
+        return this.getComment();
+      }
+      throw this.error('Invalid entry');
+    },
+
+    getL20n: function() {
+      var ast = [];
+
+      this.getWS();
+      while (this._index < this._length) {
+        try {
+          var entry = this.getEntry();
+          if (entry) {
+            ast.push(entry);
+          }
+        } catch (e) {
+          if (this.ctx) {
+            this.ctx._emitter.emit('parsererror', e);
+          } else {
+            throw e;
+          }
+        }
+
+        if (this._index < this._length) {
+          this.getWS();
+        }
+      }
+
+      return ast;
+    },
+
+    getIndex: function() {
+      this.getWS();
+      this._patterns.index.lastIndex = this._index;
+      var match = this._patterns.index.exec(this._source);
+      this._index = this._patterns.index.lastIndex;
+      this.getWS();
+      this._index++;
+
+      return [{t: 'idOrVar', v: 'plural'}, match[1]];
+    },
+
+    parseString: function(str) {
+      var chunks = str.split(this._patterns.placeables);
+      var complexStr = [];
+
+      var len = chunks.length;
+      var placeablesCount = (len - 1) / 2;
+
+      if (placeablesCount >= MAX_PLACEABLES_L20N) {
+        throw new L10nError('Too many placeables (' + placeablesCount +
+                            ', max allowed is ' + MAX_PLACEABLES_L20N + ')');
+      }
+
+      for (var i = 0; i < chunks.length; i++) {
+        if (chunks[i].length === 0) {
+          continue;
+        }
+        if (i % 2 === 1) {
+          complexStr.push({t: 'idOrVar', v: chunks[i]});
+        } else {
+          complexStr.push(chunks[i]);
+        }
+      }
+      return complexStr;
+    },
+
+    error: function(message, pos) {
+      if (pos === undefined) {
+        pos = this._index;
+      }
+      var start = this._source.lastIndexOf('<', pos - 1);
+      var lastClose = this._source.lastIndexOf('>', pos - 1);
+      start = lastClose > start ? lastClose + 1 : start;
+      var context = this._source.slice(start, pos + 10);
+
+      var msg = message + ' at pos ' + pos + ': "' + context + '"';
+      return new L10nError(msg, pos, context);
+    }
+  };
+
+
+
   var KNOWN_MACROS = ['plural'];
 
   var MAX_PLACEABLE_LENGTH = 2500;
   var rePlaceables = /\{\{\s*(.+?)\s*\}\}/g;
+
+  // Matches characters outside of the Latin-1 character set
+  var nonLatin1 = /[^\x01-\xFF]/;
+
+  // Unicode bidi isolation characters
+  var FSI = '\u2068';
+  var PDI = '\u2069';
 
   function createEntry(node, env) {
     var keys = Object.keys(node);
@@ -783,6 +1170,7 @@
 
     /* jshint -W084 */
     for (var i = 0, key; key = keys[i]; i++) {
+      // skip $i (id), $v (value), $x (index)
       if (key[0] === '$') {
         continue;
       }
@@ -795,7 +1183,7 @@
 
     return {
       id: node.$i,
-      value: node.$v === undefined ? null : node.$v,
+      value: node.$v !== undefined ? node.$v : null,
       index: node.$x || null,
       attrs: attrs || null,
       env: env,
@@ -809,14 +1197,9 @@
       return node;
     }
 
-    var value;
-    if (Array.isArray(node)) {
-      value = node;
-    }
-
     return {
       id: id,
-      value: value || node.$v || null,
+      value: node.$v || (node !== undefined ? node : null),
       index: node.$x || null,
       env: env,
       dirty: false
@@ -825,8 +1208,12 @@
 
 
   function format(args, entity) {
+    var locals = {
+      overlay: false
+    };
+
     if (typeof entity === 'string') {
-      return entity;
+      return [locals, entity];
     }
 
     if (entity.dirty) {
@@ -834,26 +1221,28 @@
     }
 
     entity.dirty = true;
-    var val;
+
+    var rv;
+
     // if format fails, we want the exception to bubble up and stop the whole
     // resolving process;  however, we still need to clean up the dirty flag
     try {
-      val = resolveValue(args, entity.env, entity.value, entity.index);
+      rv = resolveValue(locals, args, entity.env, entity.value, entity.index);
     } finally {
       entity.dirty = false;
     }
-    return val;
+    return rv;
   }
 
   function resolveIdentifier(args, env, id) {
     if (KNOWN_MACROS.indexOf(id) > -1) {
-      return env['__' + id];
+      return [{}, env['__' + id]];
     }
 
     if (args && args.hasOwnProperty(id)) {
       if (typeof args[id] === 'string' || (typeof args[id] === 'number' &&
           !isNaN(args[id]))) {
-        return args[id];
+        return [{}, args[id]];
       } else {
         throw new L10nError('Arg must be a string or a number: ' + id);
       }
@@ -868,16 +1257,19 @@
     throw new L10nError('Unknown reference: ' + id);
   }
 
-  function subPlaceable(args, env, id) {
-    var value;
+  function subPlaceable(locals, args, env, id) {
+    var res;
+
     try {
-      value = resolveIdentifier(args, env, id);
+      res = resolveIdentifier(args, env, id);
     } catch (err) {
-      return '{{ ' + id + ' }}';
+      return [{ error: err }, '{{ ' + id + ' }}'];
     }
 
+    var value = res[1];
+
     if (typeof value === 'number') {
-      return value;
+      return res;
     }
 
     if (typeof value === 'string') {
@@ -887,25 +1279,37 @@
                             value.length + ', max allowed is ' +
                             MAX_PLACEABLE_LENGTH + ')');
       }
-      return value;
+
+      if (locals.contextIsNonLatin1 || value.match(nonLatin1)) {
+        // When dealing with non-Latin-1 text
+        // we wrap substitutions in bidi isolate characters
+        // to avoid bidi issues.
+        res[1] = FSI + value + PDI;
+      }
+
+      return res;
     }
 
-    return '{{ ' + id + ' }}';
+    return [{}, '{{ ' + id + ' }}'];
   }
 
-  function interpolate(args, env, arr) {
+  function interpolate(locals, args, env, arr) {
     return arr.reduce(function(prev, cur) {
       if (typeof cur === 'string') {
-        return prev + cur;
+        return [prev[0], prev[1] + cur];
       } else if (cur.t === 'idOrVar'){
-        return prev + subPlaceable(args, env, cur.v);
+        var placeable = subPlaceable(locals, args, env, cur.v);
+        if (placeable[0].overlay) {
+          prev[0].overlay = true;
+        }
+        return [prev[0], prev[1] + placeable[1]];
       }
-    }, '');
+    }, [locals, '']);
   }
 
   function resolveSelector(args, env, expr, index) {
       var selectorName = index[0].v;
-      var selector = resolveIdentifier(args, env, selectorName);
+      var selector = resolveIdentifier(args, env, selectorName)[1];
 
       if (typeof selector !== 'function') {
         // selector is a simple reference to an entity or args
@@ -913,7 +1317,7 @@
       }
 
       var argValue = index[1] ?
-        resolveIdentifier(args, env, index[1]) : undefined;
+        resolveIdentifier(args, env, index[1])[1] : undefined;
 
       if (selector === env.__plural) {
         // special cases for zero, one, two if they are defined on the hash
@@ -931,16 +1335,27 @@
       return selector(argValue);
   }
 
-  function resolveValue(args, env, expr, index) {
+  function resolveValue(locals, args, env, expr, index) {
+    if (!expr) {
+      return [locals, expr];
+    }
+
+    if (expr.$o) {
+      expr = expr.$o;
+      locals.overlay = true;
+    }
+
     if (typeof expr === 'string' ||
         typeof expr === 'boolean' ||
-        typeof expr === 'number' ||
-        !expr) {
-      return expr;
+        typeof expr === 'number') {
+      return [locals, expr];
     }
 
     if (Array.isArray(expr)) {
-      return interpolate(args, env, expr);
+      locals.contextIsNonLatin1 = expr.some(function($_) {
+        return typeof($_) === 'string' && $_.match(nonLatin1);
+      });
+      return interpolate(locals, args, env, expr);
     }
 
     // otherwise, it's a dict
@@ -948,13 +1363,13 @@
       // try to use the index in order to select the right dict member
       var selector = resolveSelector(args, env, expr, index);
       if (expr.hasOwnProperty(selector)) {
-        return resolveValue(args, env, expr[selector]);
+        return resolveValue(locals, args, env, expr[selector]);
       }
     }
 
     // if there was no index or no selector was found, try 'other'
     if ('other' in expr) {
-      return resolveValue(args, env, expr.other);
+      return resolveValue(locals, args, env, expr.other);
     }
 
     // XXX Specify entity id
@@ -1076,8 +1491,9 @@
     });
   }
 
-  // strftime tokens (%a, %Eb) and template {vars}
-  var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\})/;
+  // strftime tokens (%a, %Eb), template {vars}, HTML entities (&#x202a;)
+  // and HTML tags.
+  var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
   function mapContent(fn, val) {
     if (!val) {
@@ -1182,6 +1598,14 @@
       onL10nLoaded(err);
     }
 
+    function onL20nLoaded(err, source) {
+      if (!err && source) {
+        var ast = L20nParser.parse(ctx, source);
+        self.addAST(ast);
+      }
+      onL10nLoaded(err);
+    }
+
     var idToFetch = this.isPseudo() ? ctx.defaultLocale : this.id;
     var appVersion = null;
     var source = 'app';
@@ -1203,6 +1627,9 @@
         case 'properties':
           cb = onPropLoaded;
           break;
+        case 'l20n':
+          io.load(path, onL20nLoaded, sync);
+          break;
       }
       bindingsIO[source](this.id,
         appVersion, path, type, cb, onL10nLoaded, sync);
@@ -1221,8 +1648,8 @@
     var createEntry = this.isPseudo() ?
       createPseudoEntry.bind(this) : Resolver.createEntry;
 
-    for (var i = 0, node; node = ast[i]; i++) {
-      this.entries[node.$i] = createEntry(node, this.entries);
+    for (var i = 0; i < ast.length; i++) {
+      this.entries[ast[i].$i] = createEntry(ast[i], this.entries);
     }
   };
 
@@ -1280,35 +1707,49 @@
       '"' + id + '"' + ' missing from all supported locales in ' + this.id, id);
   }
 
+  function formatTuple(args, entity) {
+    try {
+      return Resolver.format(args, entity);
+    } catch (err) {
+      this._emitter.emit('resolveerror', err);
+      var locals = {
+        error: err
+      };
+      return [locals, entity.id];
+    }
+  }
+
   function formatValue(args, entity) {
     if (typeof entity === 'string') {
       return entity;
     }
 
-    try {
-      return Resolver.format(args, entity);
-    } catch (err) {
-      this._emitter.emit('resolveerror', err);
-      return entity.id;
-    }
+    // take the string value only
+    return formatTuple.call(this, args, entity)[1];
   }
 
   function formatEntity(args, entity) {
-    if (!entity.attrs) {
-      return {
-        value: formatValue.call(this, args, entity),
-        attrs: null
-      };
-    }
+    var entityTuple = formatTuple.call(this, args, entity);
+    var locals = entityTuple[0];
+    var value = entityTuple[1];
 
     var formatted = {
-      value: formatValue.call(this, args, entity),
-      attrs: Object.create(null)
+      value: value,
+      attrs: null,
+      overlay: locals.overlay
     };
+
+    if (entity.attrs) {
+      formatted.attrs = Object.create(null);
+    }
 
     for (var key in entity.attrs) {
       /* jshint -W089 */
-      formatted.attrs[key] = formatValue.call(this, args, entity.attrs[key]);
+      var attrTuple = formatTuple.call(this, args, entity.attrs[key]);
+      formatted.attrs[key] = attrTuple[1];
+      if (attrTuple[0].overlay) {
+        formatted.overlay = true;
+      }
     }
 
     return formatted;
@@ -1488,8 +1929,31 @@
 
 
 
-  var DEBUG = false;
-  var isPretranslated = false;
+  var allowed = {
+    elements: [
+      'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data',
+      'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u',
+      'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'
+    ],
+    attributes: {
+      global: [ 'title', 'aria-label', 'aria-valuetext', 'aria-moz-hint' ],
+      a: [ 'download' ],
+      area: [ 'download', 'alt' ],
+      // value is special-cased in isAttrAllowed
+      input: [ 'alt', 'placeholder' ],
+      menuitem: [ 'label' ],
+      menu: [ 'label' ],
+      optgroup: [ 'label' ],
+      option: [ 'label' ],
+      track: [ 'label' ],
+      img: [ 'alt' ],
+      textarea: [ 'placeholder' ],
+      th: [ 'abbr']
+    }
+  };
+
+
+
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
@@ -1505,7 +1969,7 @@
   // Public API
 
   navigator.mozL10n = {
-    ctx: new Context(window.document ? document.URL : null),
+    ctx: null,
     get: function get(id, ctxdata) {
       return navigator.mozL10n.ctx.get(id, ctxdata);
     },
@@ -1544,6 +2008,7 @@
     _config: {
       appVersion: null,
       localeSources: Object.create(null),
+      isPretranslated: false,
     },
     _getInternalAPI: function() {
       return {
@@ -1556,29 +2021,12 @@
         translateDocument: translateDocument,
         onMetaInjected: onMetaInjected,
         PropertiesParser: PropertiesParser,
+        L20nParser: L20nParser,
         walkContent: walkContent,
         buildLocaleList: buildLocaleList
       };
     }
   };
-
-  navigator.mozL10n.ctx.ready(onReady.bind(navigator.mozL10n));
-
-  navigator.mozL10n.ctx.addEventListener('notfounderror',
-    function reportMissingEntity(e) {
-      if (DEBUG || e.loc === 'en-US') {
-        console.warn(e.toString());
-      }
-  });
-
-  if (DEBUG) {
-    navigator.mozL10n.ctx.addEventListener('fetcherror',
-      console.error.bind(console));
-    navigator.mozL10n.ctx.addEventListener('parseerror',
-      console.error.bind(console));
-    navigator.mozL10n.ctx.addEventListener('resolveerror',
-      console.error.bind(console));
-  }
 
   function getDirection(lang) {
     return (rtlList.indexOf(lang) >= 0) ? 'rtl' : 'ltr';
@@ -1603,19 +2051,6 @@
         callback();
       }
     });
-  }
-
-  if (window.document) {
-    isPretranslated =
-      navigator.mozL10n.ctx.qps.indexOf(navigator.language) === -1 &&
-        (document.documentElement.lang === navigator.language);
-
-    // XXX always pretranslate if data-no-complete-bug is set;  this is
-    // a workaround for a netError page not firing some onreadystatechange
-    // events;  see https://bugzil.la/444165
-    var pretranslate = document.documentElement.dataset.noCompleteBug ?
-      true : !isPretranslated;
-    waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
   }
 
   function initObserver() {
@@ -1701,7 +2136,7 @@
   function buildLocaleList(meta, extraLangs) {
     var loc, lp;
     var localeSources = Object.create(null);
-    var defaultLocale = meta.defaultLocale || this.ctx.defaultLocale;
+    var defaultLocale = meta.defaultLanguage || this.ctx.defaultLocale;
 
     if (meta.availableLanguages) {
       for (loc in meta.availableLanguages) {
@@ -1811,10 +2246,10 @@
   }
 
   function onReady() {
-    if (!isPretranslated) {
+    if (!navigator.mozL10n._config.isPretranslated) {
       translateDocument.call(this);
     }
-    isPretranslated = false;
+    navigator.mozL10n._config.isPretranslated = false;
 
     if (pendingElements) {
       /* jshint boss:true */
@@ -1841,7 +2276,6 @@
     window.dispatchEvent(event);
   }
 
-  /* jshint -W104 */
 
   function translateDocument() {
     document.documentElement.lang = this.language.code;
@@ -1878,14 +2312,18 @@
     return element ? element.querySelectorAll('*[data-l10n-id]') : [];
   }
 
-  var allowedHtmlAttrs = {
-    'ariaLabel': 'aria-label',
-    'ariaValueText': 'aria-valuetext',
-    'ariaMozHint': 'aria-moz-hint',
-    'label': 'label',
-    'placeholder': 'placeholder',
-    'title': 'title'
-  };
+  function camelCaseToDashed(string) {
+    // XXX workaround for https://bugzil.la/1141934
+    if (string === 'ariaValueText') {
+      return 'aria-valuetext';
+    }
+
+    return string
+      .replace(/[A-Z]/g, function (match) {
+        return '-' + match.toLowerCase();
+      })
+      .replace(/^-/, '');
+  }
 
   function translateElement(element) {
     if (!this.ctx.isReady) {
@@ -1904,37 +2342,201 @@
 
     var entity = this.ctx.getEntity(l10n.id, l10n.args);
 
-    if (!entity) {
-      return false;
+    var value;
+    if (entity.attrs && entity.attrs.innerHTML) {
+      // XXX innerHTML is treated as value (https://bugzil.la/1142526)
+      value = entity.attrs.innerHTML;
+      console.warn(
+        'L10n Deprecation Warning: using innerHTML in translations is unsafe ' +
+        'and will not be supported in future versions of l10n.js. ' +
+        'See https://bugzil.la/1027117');
+    } else {
+      value = entity.value;
     }
 
-    if (typeof entity.value === 'string') {
-      setTextContent.call(this, l10n.id, element, entity.value);
-    }
-
-    for (var key in entity.attrs) {
-      var attr = entity.attrs[key];
-      if (allowedHtmlAttrs.hasOwnProperty(key)) {
-        element.setAttribute(allowedHtmlAttrs[key], attr);
-      } else if (key === 'innerHTML') {
-        // XXX: to be removed once bug 994357 lands
-        element.innerHTML = attr;
+    if (typeof value === 'string') {
+      if (!entity.overlay) {
+        element.textContent = value;
+      } else {
+        // start with an inert template element and move its children into
+        // `element` but such that `element`'s own children are not replaced
+        var translation = element.ownerDocument.createElement('template');
+        translation.innerHTML = value;
+        // overlay the node with the DocumentFragment
+        overlayElement(element, translation.content);
       }
     }
 
-    return true;
+    for (var key in entity.attrs) {
+      var attrName = camelCaseToDashed(key);
+      if (isAttrAllowed({ name: attrName }, element)) {
+        element.setAttribute(attrName, entity.attrs[key]);
+      }
+    }
   }
 
-  function setTextContent(id, element, text) {
-    if (element.firstElementChild) {
-      throw new L10nError(
-        'setTextContent is deprecated (https://bugzil.la/1053629). ' +
-        'Setting text content of elements with child elements is no longer ' +
-        'supported by l10n.js. Offending data-l10n-id: "' + id +
-        '" on element ' + element.outerHTML + ' in ' + this.ctx.id);
+  // The goal of overlayElement is to move the children of `translationElement`
+  // into `sourceElement` such that `sourceElement`'s own children are not
+  // replaced, but onle have their text nodes and their attributes modified.
+  //
+  // We want to make it possible for localizers to apply text-level semantics to
+  // the translations and make use of HTML entities. At the same time, we
+  // don't trust translations so we need to filter unsafe elements and
+  // attribtues out and we don't want to break the Web by replacing elements to
+  // which third-party code might have created references (e.g. two-way
+  // bindings in MVC frameworks).
+  function overlayElement(sourceElement, translationElement) {
+    var result = translationElement.ownerDocument.createDocumentFragment();
+    var k, attr;
+
+    // take one node from translationElement at a time and check it against
+    // the allowed list or try to match it with a corresponding element
+    // in the source
+    var childElement;
+    while ((childElement = translationElement.childNodes[0])) {
+      translationElement.removeChild(childElement);
+
+      if (childElement.nodeType === Node.TEXT_NODE) {
+        result.appendChild(childElement);
+        continue;
+      }
+
+      var index = getIndexOfType(childElement);
+      var sourceChild = getNthElementOfType(sourceElement, childElement, index);
+      if (sourceChild) {
+        // there is a corresponding element in the source, let's use it
+        overlayElement(sourceChild, childElement);
+        result.appendChild(sourceChild);
+        continue;
+      }
+
+      if (isElementAllowed(childElement)) {
+        for (k = 0, attr; (attr = childElement.attributes[k]); k++) {
+          if (!isAttrAllowed(attr, childElement)) {
+            childElement.removeAttribute(attr.name);
+          }
+        }
+        result.appendChild(childElement);
+        continue;
+      }
+
+      // otherwise just take this child's textContent
+      result.appendChild(
+        document.createTextNode(childElement.textContent));
     }
 
-    element.textContent = text;
+    // clear `sourceElement` and append `result` which by this time contains
+    // `sourceElement`'s original children, overlayed with translation
+    sourceElement.textContent = '';
+    sourceElement.appendChild(result);
+
+    // if we're overlaying a nested element, translate the allowed
+    // attributes; top-level attributes are handled in `translateElement`
+    // XXX attributes previously set here for another language should be
+    // cleared if a new language doesn't use them; https://bugzil.la/922577
+    if (translationElement.attributes) {
+      for (k = 0, attr; (attr = translationElement.attributes[k]); k++) {
+        if (isAttrAllowed(attr, sourceElement)) {
+          sourceElement.setAttribute(attr.name, attr.value);
+        }
+      }
+    }
+  }
+
+  // XXX the allowed list should be amendable; https://bugzil.la/922573
+  function isElementAllowed(element) {
+    return allowed.elements.indexOf(element.tagName.toLowerCase()) !== -1;
+  }
+
+  function isAttrAllowed(attr, element) {
+    var attrName = attr.name.toLowerCase();
+    var tagName = element.tagName.toLowerCase();
+    // is it a globally safe attribute?
+    if (allowed.attributes.global.indexOf(attrName) !== -1) {
+      return true;
+    }
+    // are there no allowed attributes for this element?
+    if (!allowed.attributes[tagName]) {
+      return false;
+    }
+    // is it allowed on this element?
+    // XXX the allowed list should be amendable; https://bugzil.la/922573
+    if (allowed.attributes[tagName].indexOf(attrName) !== -1) {
+      return true;
+    }
+    // special case for value on inputs with type button, reset, submit
+    if (tagName === 'input' && attrName === 'value') {
+      var type = element.type.toLowerCase();
+      if (type === 'submit' || type === 'button' || type === 'reset') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Get n-th immediate child of context that is of the same type as element.
+  // XXX Use querySelector(':scope > ELEMENT:nth-of-type(index)'), when:
+  // 1) :scope is widely supported in more browsers and 2) it works with
+  // DocumentFragments.
+  function getNthElementOfType(context, element, index) {
+    /* jshint boss:true */
+    var nthOfType = 0;
+    for (var i = 0, child; child = context.children[i]; i++) {
+      if (child.nodeType === Node.ELEMENT_NODE &&
+          child.tagName === element.tagName) {
+        if (nthOfType === index) {
+          return child;
+        }
+        nthOfType++;
+      }
+    }
+    return null;
+  }
+
+  // Get the index of the element among siblings of the same type.
+  function getIndexOfType(element) {
+    var index = 0;
+    var child;
+    while ((child = element.previousElementSibling)) {
+      if (child.tagName === element.tagName) {
+        index++;
+      }
+    }
+    return index;
+  }
+
+
+  var DEBUG = false;
+
+  navigator.mozL10n.ctx = new Context(window.document ? document.URL : null);
+  navigator.mozL10n.ctx.ready(onReady.bind(navigator.mozL10n));
+
+  navigator.mozL10n.ctx.addEventListener('notfounderror',
+    function reportMissingEntity(e) {
+      if (DEBUG || e.loc === 'en-US') {
+        console.warn(e.toString());
+      }
+  });
+
+  if (DEBUG) {
+    navigator.mozL10n.ctx.addEventListener('fetcherror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('parseerror',
+      console.error.bind(console));
+    navigator.mozL10n.ctx.addEventListener('resolveerror',
+      console.error.bind(console));
+  }
+
+  if (window.document) {
+    navigator.mozL10n._config.isPretranslated =
+      document.documentElement.lang === navigator.language;
+
+    // XXX always pretranslate if data-no-complete-bug is set;  this is
+    // a workaround for a netError page not firing some onreadystatechange
+    // events;  see https://bugzil.la/444165
+    var pretranslate = document.documentElement.dataset.noCompleteBug ?
+      true : !navigator.mozL10n._config.isPretranslated;
+    waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
   }
 
 })(this);

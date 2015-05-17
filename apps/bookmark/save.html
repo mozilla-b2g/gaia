@@ -12,6 +12,7 @@
     <script type="text/javascript" defer src="shared/js/url_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/bookmarks_database.js"></script>
     <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
+    <script type="text/javascript" defer src="shared/js/web_manifest_helper.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -27,7 +28,6 @@
     <script type="text/javascript" defer src="js/bookmark_editor.js"></script>
     <script type="text/javascript" defer src="js/components/status.js"></script>
     <script type="text/javascript" defer src="js/activity_handler.js"></script>
-    <script type="text/javascript" defer src="js/web_manifest_helper.js"></script>
 
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
@@ -47,6 +47,7 @@
       </header>
       <form id="bookmark-form">
         <img id="bookmark-icon">
+        <p id="bookmark-url"></p>
         <p>
           <input type="text" id="bookmark-title" dir="auto"></input>
           <button id="bookmark-title-clear" type="reset">Clear</button>
@@ -54,6 +55,8 @@
       </form>
       <div id="app-installation" class="hidden">
         <h2><span data-l10n-id="add-application">Add Application</span></h2>
+        <img id="app-icon-placeholder" src="../shared/elements/gaia_grid/images/default_icon.png">
+        <img id="app-icon" class="hidden">
         <p id="app-name"></p>
         <button id="install-app-button" data-l10n-id="add">Add</button>
         <p data-l10n-id="application-available">An application is available for this web site.</p>

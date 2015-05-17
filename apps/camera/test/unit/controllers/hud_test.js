@@ -78,6 +78,11 @@ suite('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('timer:ended'));
       assert.ok(this.app.on.calledWith('settings:opened'));
       assert.ok(this.app.on.calledWith('settings:closed'));
+
+      assert.ok(this.app.on.calledWith('previewgallery:opened',
+        this.view.hide));
+      assert.ok(this.app.on.calledWith('previewgallery:closed',
+        this.view.show));
     });
 
     test('Should update the flash support once settings are configured', function() {

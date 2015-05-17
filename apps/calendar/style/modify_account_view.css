@@ -24,8 +24,7 @@
 }
 
 #modify-account-view.in-progress .during-progress > div {
-  display: inline-block;
-  margin: 16rem 1.5rem 0;
+ margin: 16rem 1.5rem 0;
   padding-top: 1.2rem;
   border-top: 0.1rem solid #bebebe;
 }

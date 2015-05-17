@@ -1,7 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/* global LinkActionHandler, WapPushManager */
+/* global LinkActionHandler, Utils, WapPushManager */
 
 /* exported SiSlScreenHelper */
 
@@ -47,13 +44,13 @@ var SiSlScreenHelper = (function() {
   }
 
   function sssh_populateScreen(message) {
-    var _ = navigator.mozL10n.get;
-
     screen.hidden = false;
 
     // Populate the message
     if (message && !message.isExpired()) {
-      title.textContent = message.sender;
+      var l10nTitle = Utils.prepareMessageTitle(message);
+
+      navigator.mozL10n.setAttributes(title, l10nTitle.id, l10nTitle.args);
       text.textContent = message.text;
       link.textContent = message.href;
       link.href = message.href;
@@ -61,8 +58,8 @@ var SiSlScreenHelper = (function() {
     } else {
       /* If we couldn't retrieve the message then it means that the
        * message has been expired before it was displayed. */
-      title.textContent = _('wap-push-message');
-      text.textContent = _('this-message-has-expired');
+      navigator.mozL10n.setAttributes(title, 'wap-push-message');
+      navigator.mozL10n.setAttributes(text, 'this-message-has-expired');
       link.textContent = '';
       link.href = '';
       link.dataset.url = '';

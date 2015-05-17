@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global KeyEvent, define, InputMethods */
 'use strict';
 
 (function() {
@@ -31,8 +31,9 @@ var debug = function jspinyin_debug(str) {
 };
 
 var assert = function jspinyin_assert(condition, msg) {
-  if (!debugging)
+  if (!debugging) {
     return;
+  }
   if (!condition) {
     var str = typeof msg === 'undefined' ? assert.caller.toString() : msg;
     if (typeof alert === 'function') {
@@ -42,14 +43,6 @@ var assert = function jspinyin_assert(condition, msg) {
     }
   }
 };
-
-/* for non-Mozilla browsers */
-if (!KeyEvent) {
-  var KeyEvent = {
-    DOM_VK_BACK_SPACE: 0x8,
-    DOM_VK_RETURN: 0xd
-  };
-}
 
 var IMEngineBase = function engineBase_constructor() {
   this._glue = {};
@@ -155,11 +148,13 @@ var emEngineWrapper = {
   _initialized: false,
 
   post: function(id, param, callback) {
-    if (!this._initialized && id != 'init')
+    if (!this._initialized && id != 'init') {
       throw 'Database not ready!';
+    }
 
-    if (!this._callback[id])
+    if (!this._callback[id]) {
       this._callback[id] = [];
+    }
 
     this._callback[id].push(callback);
     this._worker.postMessage({
@@ -190,8 +185,9 @@ var emEngineWrapper = {
         break;
       default:
         var msgCallback = self._callback[data.id].shift();
-        if (msgCallback)
+        if (msgCallback) {
           msgCallback(data.returnValue);
+        }
       }
     };
 
@@ -208,8 +204,9 @@ var emEngineWrapper = {
   },
 
   uninit: function() {
-    if (this._worker)
+    if (this._worker) {
       this._worker.terminate();
+    }
     this._worker = null;
     this._callback = null;
     this._initialized = false;
@@ -300,7 +297,7 @@ IMEngine.prototype = {
     var len = candidates.length;
     for (var id = 0; id < len; id++) {
       var cand = candidates[id];
-      if (id == 0) {
+      if (id === 0) {
         this._firstCandidate = cand;
       }
       list.push([cand, id]);
@@ -310,8 +307,9 @@ IMEngine.prototype = {
   },
 
   _start: function engine_start() {
-    if (this._isWorking)
+    if (this._isWorking) {
       return;
+    }
 
     if (!emEngineWrapper.isReady()) {
       debug('emEngineWrapper is not ready!');
@@ -334,9 +332,9 @@ IMEngine.prototype = {
 
     var code = this._keypressQueue.shift();
     // We use keycode 65 to represent "'" for pinyin input method
-    var realCode = (code == SPECIAL_KEYCODE_FOR_DELIMITER) ? 39 : code;
+    var realCode = (code === SPECIAL_KEYCODE_FOR_DELIMITER) ? 39 : code;
 
-    if (code == 0) {
+    if (code === 0) {
       // This is a select function operation.
       this._updateCandidatesAndSymbols(this._next.bind(this));
       return;
@@ -452,8 +450,9 @@ IMEngine.prototype = {
           var num = returnValue.length;
           var predicts = returnValue.results;
 
-          if (num > numberOfCandidatesPerRow + 1)
+          if (num > numberOfCandidatesPerRow + 1) {
             self._candidatesLength = num;
+          }
 
           self._sendCandidates(predicts);
           callback();
@@ -473,8 +472,9 @@ IMEngine.prototype = {
         var num = returnValue.length;
         var candidates = returnValue.results;
 
-        if (num > numberOfCandidatesPerRow + 1)
+        if (num > numberOfCandidatesPerRow + 1) {
           self._candidatesLength = num;
+        }
 
         self._sendCandidates(candidates);
         callback();
@@ -509,9 +509,10 @@ IMEngine.prototype = {
 
     request.onsuccess = function opendb_onsuccess(event) {
       var db = event.target.result;
+      var request;
 
       if (action == 'load') {
-        var request = db.transaction([STORE_NAME], 'readonly')
+        request = db.transaction([STORE_NAME], 'readonly')
                         .objectStore(STORE_NAME).get(USER_DICT);
 
         request.onsuccess = function readdb_oncomplete(event) {
@@ -534,7 +535,7 @@ IMEngine.prototype = {
           content: param
         };
 
-        var request = db.transaction([STORE_NAME], 'readwrite')
+        request = db.transaction([STORE_NAME], 'readwrite')
                         .objectStore(STORE_NAME).put(obj);
 
         request.onsuccess = function readdb_oncomplete(event) {
@@ -582,8 +583,9 @@ IMEngine.prototype = {
       this._uninitTimer = null;
     }
 
-    if (emEngineWrapper.isReady())
+    if (emEngineWrapper.isReady()) {
       emEngineWrapper.uninit();
+    }
 
     this._resetKeypressQueue();
     this.empty();
@@ -605,8 +607,9 @@ IMEngine.prototype = {
   select: function engine_select(text, data) {
     IMEngineBase.prototype.select.call(this, text, data);
 
-    if (!emEngineWrapper.isReady())
+    if (!emEngineWrapper.isReady()) {
       return;
+    }
 
     var self = this;
     var nextStep = function(text) {
@@ -701,8 +704,9 @@ IMEngine.prototype = {
     IMEngineBase.prototype.deactivate.call(this);
     debug('Deactivate.');
 
-    if (!this._isActive)
+    if (!this._isActive) {
       return;
+    }
 
     this._isActive = false;
 
@@ -729,7 +733,7 @@ IMEngine.prototype = {
   },
 
   getMoreCandidates: function engine_getMore(indicator, maxCount, callback) {
-    if (this._candidatesLength == 0) {
+    if (this._candidatesLength === 0) {
       callback(null);
       return;
     }
@@ -756,8 +760,9 @@ IMEngine.prototype = {
 var jspinyin = new IMEngine();
 
 // Expose jspinyin as an AMD module
-if (typeof define === 'function' && define.amd)
+if (typeof define === 'function' && define.amd) {
   define('jspinyin', [], function() { return jspinyin; });
+}
 
 // Expose the engine to the Gaia keyboard
 if (typeof InputMethods !== 'undefined') {

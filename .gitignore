@@ -1,6 +1,8 @@
 .DS_Store
 *.rej
+*.log
 *.orig
+*.pyc
 *.swp
 *.swn
 *.swo
@@ -8,7 +10,7 @@
 *~
 manifest.appcache
 
-/apps/calendar/js/presets.js
+/apps/calendar/js/common/presets.js
 /apps/camera/js/config.js
 /apps/gallery/js/config.js
 /apps/findmydevice/js/config.js
@@ -64,6 +66,7 @@ manifest.appcache
 /distribution/
 /node_modules/
 /.modules.tar
+/modules_tar_cachedir
 ENV/
 .env
 modules.tar

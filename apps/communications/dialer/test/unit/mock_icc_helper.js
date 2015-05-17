@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockIccHelper */
+
 var MockIccHelper = {
   mCardState: 'ready',
 

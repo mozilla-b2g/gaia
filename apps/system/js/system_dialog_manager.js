@@ -57,15 +57,19 @@
      */
     configs: {
       listens: ['system-dialog-created',
+                'simlockcreated',
+                'actionmenucreated',
                 'system-dialog-show',
                 'system-dialog-hide',
                 'simlockshow',
+                'actionmenushow',
                 'simlockhide',
+                'actionmenuhide',
                 'system-dialog-requestfocus',
+                'simlockrequestfocus',
                 'home',
                 'holdhome',
-                'homescreeneopened',
-                'appopened']
+                'hierarchytopmostwindowchanged']
     }
   };
 
@@ -158,10 +162,14 @@
     switch (evt.type) {
       // We only care about appWindow's fullscreen state because
       // we are on top of the appWindow.
-      case 'appopened':
-      case 'homescreenopened':
-        this.elements.containerElement.classList.toggle('fullscreen',
-          evt.detail.isFullScreen());
+      case 'hierarchytopmostwindowchanged':
+        var appWindow = evt.detail.getTopMostWindow();
+        var isFullScreen = appWindow && appWindow.isFullScreen();
+        var container = this.elements.containerElement;
+        container.classList.toggle('fullscreen', isFullScreen);
+        if (this.states.activeDialog) {
+          this.states.activeDialog.resize();
+        }
         break;
       case 'system-dialog-requestfocus':
       case 'simlockrequestfocus':
@@ -171,16 +179,19 @@
         Service.request('focus', this);
         break;
       case 'simlockcreated':
+      case 'actionmenucreated':
       case 'system-dialog-created':
         dialog = evt.detail;
         this.registerDialog(dialog);
         break;
       case 'simlockshow':
       case 'system-dialog-show':
+      case 'actionmenushow':
         dialog = evt.detail;
         this.activateDialog(dialog);
         break;
       case 'simlockhide':
+      case 'actionmenuhide':
       case 'system-dialog-hide':
         dialog = evt.detail;
         this.deactivateDialog(dialog);

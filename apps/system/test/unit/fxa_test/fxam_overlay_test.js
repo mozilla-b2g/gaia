@@ -1,3 +1,4 @@
+/* global FxaModuleOverlay */
 'use strict';
 
 require('/shared/js/utilities.js');

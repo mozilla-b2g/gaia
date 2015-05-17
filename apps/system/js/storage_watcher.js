@@ -1,3 +1,4 @@
+/* global MozActivity, NotificationScreen, SystemBanner */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -38,6 +39,7 @@ var DeviceStorageWatcher = {
     // we have so far. In the future, we must expose how much storage each app
     // consumes, so the user has a better idea of which apps are consuming
     // more (see Bug 862408).
+    /* jshint nonew: false */
     new MozActivity({
       name: 'configure',
       data: {
@@ -63,20 +65,22 @@ var DeviceStorageWatcher = {
   },
 
   lowDiskSpaceNotification: function dsw_lowDiskSpaceNotification(space) {
-    var msg = this._('low-device-storage');
-    var notification;
+    var notification = ['low-device-storage'];
     if (space && typeof space.size !== 'undefined' && space.unit) {
-      notification = msg + this._('free-space', {
-        value: space.size,
-        unit: space.unit
+      notification.push({
+        id: 'free-space',
+        args: {
+          value: space.size,
+          unit: space.unit
+        }
       });
     } else {
-      notification = msg + this._('unknown-free-space');
+      notification.push('unknown-free-space');
     }
     var systemBanner = new SystemBanner();
     systemBanner.show(notification);
 
-    this._message.textContent = msg;
+    this._message.setAttribute('data-l10n-id', 'low-device-storage');
     this.updateAvailableSpace(space);
     this.displayNotification();
   },

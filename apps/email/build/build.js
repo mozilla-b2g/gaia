@@ -3,6 +3,7 @@
 /*global require, exports */
 /*jshint evil: true */
 var utils = require('utils');
+var esomin = require('esomin');
 var sharedUtils = require('shared-utils');
 var { Cc, Ci } = require('chrome');
 var converter =
@@ -24,14 +25,13 @@ function toHexString(charCode) {
  * Copy the services.json file to the root of the staging dir.
  */
 function generateServicesConfig(options) {
-  var servicesPath,
-      path = options.EMAIL_SERVICES_PATH,
+  var path = options.EMAIL_SERVICES_PATH,
       stageJsPath = utils.joinPath(options.STAGE_APP_DIR, 'js');
 
   // Just copy over the default file
   if (!path) {
     var sourcePath = utils.joinPath(options.APP_DIR, 'js', 'services.js');
-    utils.copyFileTo(sourcePath, stageJsPath, 'services.js', true);
+    utils.copyFileTo(sourcePath, stageJsPath, 'services.js');
     return;
   }
 
@@ -86,8 +86,6 @@ function runOptimizer(args, r) {
 }
 
 function optimize(options, r) {
-  var optimizeOption = 'optimize=' + (options.GAIA_OPTIMIZE === '1' ?
-    'uglify2' : 'none');
   var gelamConfigFile = utils.getFile(options.APP_DIR,
                         'build', 'gelam_worker.build.js');
   var mainFrameConfigFile = utils.getFile(options.APP_DIR,
@@ -105,7 +103,7 @@ function optimize(options, r) {
 
   // Do gelam worker stuff first. This will copy over all of the js/ext
   // directory.
-  return runOptimizer([gelamConfigFile.path, optimizeOption], r)
+  return runOptimizer([gelamConfigFile.path], r)
   .then(function() {
     // Now do main-frame-setup build for the main thread side of gelam. It is
     // a single file optimization, so need to manually delete files it combines
@@ -126,8 +124,8 @@ function optimize(options, r) {
     mainFrameOptions.out = utils.getFile(options.STAGE_APP_DIR,
                            'js', 'ext', 'main-frame-setup.js').path;
 
-    mainFrameOptions.optimize = (options.GAIA_OPTIMIZE === '1' ?
-                                'uglify2' : 'none');
+    // Minification handled later by esomin
+    mainFrameOptions.optimize = 'none';
 
     mainFrameOptions.onModuleBundleComplete = function(data) {
       // Called on layer completion. Get data.included for included files and
@@ -150,7 +148,7 @@ function optimize(options, r) {
   .then(function() {
     // Now the rest of the gaia app optimization. This build run explicitly
     // ignores the ext directory.
-    return runOptimizer([appConfigFile.path, optimizeOption], r);
+    return runOptimizer([appConfigFile.path], r);
   });
 }
 
@@ -168,7 +166,9 @@ function removeFiles(options) {
     utils.getFile(options.STAGE_APP_DIR, '.jshintrc')
   ];
   files.forEach(function(file) {
-    file.remove(false);
+    if (utils.fileExists(file.path)) {
+      file.remove(false);
+    }
   });
 }
 
@@ -211,8 +211,16 @@ exports.execute = function(options) {
       writeCacheValue(options);
       removeLoader(options);
       removeFiles(options);
-    }, function (err) {
+    })
+    .then(function() {
+      if (options.GAIA_OPTIMIZE === '1') {
+        utils.log('email', 'Using esomin to minify');
+        return esomin.minifyDir(stageAppDir);
+      }
+    })
+    .catch(function (err) {
       utils.log(err);
+      utils.log(err.stack);
       throw err;
     });
 };

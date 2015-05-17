@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 
 var COPY_METHODS = ['start', 'stop', 'show'];
 
+var core = require('core');
 var page = require('ext/page');
 
 function Router() {
@@ -113,7 +114,7 @@ Router.prototype = {
 
       /*jshint loopfunc: true */
       for (i = 0; i < numViews; i++) {
-        self.app.view(views[i], function(view) {
+        core.viewFactory.get(views[i], function(view) {
           viewObjs.push(view);
           len--;
 

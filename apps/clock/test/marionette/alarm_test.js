@@ -179,6 +179,41 @@ marionette('Alarm', function() {
     assert(alarm.list[0].enabled, 'Alarm is re-enabled after toggling');
   });
 
+  test('After snoozing, alarm should be canceled.', function() {
+    // Create an alarm and make it fire.
+    alarm.create();
+    alarm.fire(0, new Date(), function() {
+      // Click the snooze button.
+      var el = $('#ring-button-snooze');
+      try {
+        el.click();
+      } catch(e) {
+        // Marionette throws an error because the frame closes while
+        // handling the click event. This is expected.
+      }
+    });
+
+    // Fire the snooze alarm.
+    alarm.fire(0, new Date(), function() {
+      // Click the "stop" button
+      var el = $('#ring-button-stop');
+      try {
+        el.click();
+      } catch(e) {
+        // Marionette throws an error because the frame closes while
+        // handling the click event. This is expected.
+      }
+    }, 'snooze');
+
+    // The alarm must disable itself after the snooze fires.
+    $.client.waitFor(function() {
+      return !alarm.list[0].enabled;
+    }.bind(this));
+
+    // Make sure we can see the analog clock again.
+    $('#analog-clock').waitToAppear();
+  });
+
   test('Fire an alarm', function() {
     alarm.create();
     alarm.fire(0, new Date(), function() {

@@ -10,7 +10,7 @@ html, body {
   -moz-user-select: none;
 }
 
-label, a, p, small, h2 {
+label, a, p, small, gaia-subheader {
   -moz-user-select: none;
 }
 
@@ -22,7 +22,8 @@ section[role="region"], section[role="dialog"] {
 }
 
 section[role="region"] {
-  transition: transform 0.4s ease, visibility 0.4s;
+  transition: transform var(--transition-duration) ease,
+              visibility var(--transition-duration);
   transform: translateX(100%);
   visibility: hidden;
 }
@@ -38,7 +39,8 @@ section[role="region"].current {
 }
 
 section[role="dialog"] {
-  transition: visibility 0.5s, opacity 0.5s ease;
+  transition: visibility var(--transition-duration),
+              opacity var(--transition-duration) ease;
   opacity: 0;
   visibility: hidden;
 }
@@ -73,10 +75,6 @@ aside.pack-end > label {
 section[data-type="list"] p>label {
   width: 100%;
   display: inline-block;
-}
-
-section[role="region"] header h2, section[role="dialog"] header h2 {
-  padding: 0.8rem 3rem;
 }
 
 /* XXX we're trying to offset what we have inherted from lists.css only to make
@@ -207,7 +205,7 @@ input:focus {
   font-family: "gaia-icons";
   content: "forward-light";
   left: auto; /* overrides lists.css */
-  right: 2.2rem;
+  right: 1.5rem;
   font-size: 25px;
   line-height: 6rem;
   color: #657073;

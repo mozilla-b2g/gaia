@@ -1,0 +1,236 @@
+#! /usr/bin/env node
+
+/**
+Entrypoint for the task graph extension / decisions for gaia raptor tests.
+*/
+var decorate = require('../lib/decorate_task');
+var yaml = require('js-yaml');
+var fs = require('fs');
+var fsPath = require('path');
+var slugid = require('slugid');
+var util = require('util');
+var template = require('json-templater/object');
+var exec = require('child_process').exec;
+var Promise = require('promise');
+var url = require('url');
+var taskcluster = require('taskcluster-client');
+var emulatorBuildURL;
+var raptorTimeout = 600000;
+var appLaunchDelay = 6000;
+
+const TC_CLIENT_OPTS = { timeout: 30 * 1000 };
+
+// Cache for task definitions...
+var TASK_DEFINITIONS = {};
+function loadTask(name, parameters) {
+  if (!TASK_DEFINITIONS[name]) {
+    var path = fsPath.resolve(__dirname + '/../tasks/' + name + '.yml');
+    TASK_DEFINITIONS[name] = yaml.safeLoad(fs.readFileSync(path));
+  }
+  return decorate(TASK_DEFINITIONS[name], parameters);
+}
+
+function params() {
+  return Array.prototype.slice.call(arguments).reduce(function(target, props) {
+    for (var key in props) target[key] = props[key];
+    return target;
+  }, {});
+}
+
+// Map of task ids to task names
+var taskIdMap = {};
+
+/**
+baseTask: run test on 'base' build
+patchTask: run test on 'patch' build
+resultTask: compare results, check for regression
+
+'base build' will always be the provided BASE_REV
+
+'patch build' will change accordingly:
+if testing a PULL_REQUEST 'patch build' will be the pr/
+provided HEAD_REV; else it will be BASE_REV -1 commit
+*/
+
+var config = {
+  baseTask1: {
+    definition: 'raptor_launch',
+    params: {
+      raptorSuiteName: 'Settings Launch Test (on base)',
+      gaiaRev: process.env.GITHUB_BASE_REV,
+      raptorRuns: 30,
+      raptorApps: 'settings',
+      treeherderSym: 'se1'
+    }
+  },
+  patchTask1: {
+    definition: 'raptor_launch',
+    params: {
+      raptorSuiteName: 'Settings Launch Test (on base + pr)',
+      gaiaRev: process.env.GITHUB_HEAD_REV,
+      raptorRuns: 30,
+      raptorApps: 'settings',
+      treeherderSym: 'se2'
+    }
+  },
+  resultTask: {
+    definition: 'raptor_result',
+    requires: ['baseTask1', 'patchTask1'],
+    params: {
+      raptorSuiteName: 'Settings Results',
+      treeherderSym: 'se'
+    }
+  }
+};
+
+/**
+ * Execute the built command in a child process
+ * @returns {Promise}
+ */
+var do_command = function(cmd) {
+  return new Promise(function(resolve, reject) {
+    exec(cmd, function(err, stdout, stderr) {
+      if (err) {
+        return reject(err, stderr);
+      }
+      resolve(stdout.trim());
+    });
+  });
+};
+
+/**
+ * Resolve when latest emulator build url has been retrieved
+ * @returns {Promise}
+ */
+var getEmulator = function() {
+  return new Promise(function(resolve, reject) {
+
+    // Get taskId for the last successful emulator-ics build task
+    var taskId = 99;
+    var ns = "buildbot.branches.mozilla-central.emulator-ics";
+
+    // Find task in namespace
+    var index = new taskcluster.Index(TC_CLIENT_OPTS);
+    index.findTask(ns)
+      .then(function(foundTask) {
+        // Url for build is
+        // https://queue.taskcluster.net/v1/task/{taskId}/artifacts/{artifact}
+        emulatorBuildURL = url.format({
+          protocol: 'https',
+          host: 'queue.taskcluster.net',
+          pathname: '/v1/task/' + foundTask.taskId + '/artifacts/public/build/emulator.tar.gz'
+        });
+        resolve();
+      });
+  });
+};
+
+/**
+ * Resolve when patchTask gaia rev has been retrieved and set
+ * When not a PR, we want patchTask rev to be BASE_REV -1 commit
+ * @returns {Promise}
+ */
+var setpatchTaskRev = function() {
+  return new Promise(function(resolve, reject) {
+    if (process.env.GITHUB_PULL_REQUEST === '0') {
+      var cmd = "cd /home/tester/git_checkout && git rev-parse HEAD~1";
+      do_command(cmd).then(function(baseMinusOne) {
+        config.patchTask1.params.GITHUB_BASE_REV = baseMinusOne;
+        config.patchTask1.params.raptorSuiteName = "Settings Launch Test (on base -1 commit)";
+        config.patchTask1.params.gaiaRev = baseMinusOne;
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  });
+};
+
+// Final task graph definition place holder...
+var raptorGraph = {
+  tasks: []
+};
+
+// XXX: When extending the task graph the scopes and metadata fields are invalid
+// according to the schema so for local testing we need the --full option so the
+// task graph can be submitted.
+if (process.argv[2] == '--full') {
+  raptorGraph.scopes = [
+    'docker-worker:cache:resources',
+
+    util.format(
+      'queue:define-task:%s/%s',
+      config.baseTask1.params.provisionerId, config.baseTask1.params.workerType
+    ),
+
+    util.format(
+      'queue:create-task:%s/%s',
+      config.baseTask1.params.provisionerId, config.baseTask1.params.workerType
+    ),
+  ];
+
+  raptorGraph.metadata = {
+    source: process.env.GITHUB_HEAD_GIT + '/blob/tests/taskcluster/bin/raptor_graph',
+    owner: 'rwood@mozilla.com', // TODO: Obviously change this...
+    description: 'Generated task graph for gaia raptor',
+    name: 'Gaia Raptor'
+  };
+}
+
+var nextYear = new Date(Date.now());
+nextYear.setFullYear(nextYear.getFullYear() + 1);
+nextYear = nextYear.toJSON();
+var reqTask1, reqTask2, branchElement, patchElement;
+
+getEmulator()
+  .then(setpatchTaskRev)
+  .then(function() {
+
+    // Expand all tasks based on the config object
+    Object.keys(config).forEach(function(raptorTask) {
+      var definition = config[raptorTask].definition;
+
+      config[raptorTask].params.workerType = 'raptor';
+      config[raptorTask].params.provisionerId = 'aws-provisioner-v1';
+      config[raptorTask].params.raptorTimeout = raptorTimeout;
+      config[raptorTask].params.emulatorURL = emulatorBuildURL;
+      config[raptorTask].params.raptorLaunchDelay = appLaunchDelay;
+
+      taskIdMap[raptorTask] = slugid.v4();
+
+      // for result tasks, specify the two tasks that they are dependent upon
+      if (definition == 'raptor_result') {
+        reqTask1 = config[raptorTask].requires[0];
+        reqTask2 = config[raptorTask].requires[1];
+
+        // dependent taskIDs
+        config[raptorTask].params.completedBranchTask = taskIdMap[reqTask1];
+        config[raptorTask].params.completedPatchTask = taskIdMap[reqTask2];
+
+        // dependent gaia revs
+        config[raptorTask].params.branchGaiaRev = config[reqTask1].params.gaiaRev;
+        config[raptorTask].params.patchGaiaRev = config[reqTask2].params.gaiaRev;
+      }
+
+      var task = loadTask(definition, params(config[raptorTask].params, {
+        // Useful for environment variables
+        process: process,
+        // For dependencies
+        nextYear: nextYear
+      }));
+      task.taskId = taskIdMap[raptorTask];
+      if (definition == 'raptor_result') {
+        task.requires = [raptorGraph.tasks[0].taskId, raptorGraph.tasks[1].taskId];
+      }
+      raptorGraph.tasks.push(task);
+
+      return;
+    });
+
+    raptorGraph.tasks = raptorGraph.tasks.map(function(task) {
+      return template(task, { tasks: taskIdMap });
+    });
+
+    // Output the entire task graph for extension....
+    process.stdout.write(JSON.stringify(raptorGraph, null, 2));
+  });

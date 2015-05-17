@@ -11,8 +11,29 @@
     init: function wf_init() {
       window.addEventListener('mozbrowseropenwindow', this, true);
     },
+    uninit: function() {
+      window.removeEventListener('mozbrowseropenwindow', this, true);
+    },
+
+    isLaunchingWindow: function() {
+      return !!this._launchingApp;
+    },
+
+    forgetLastLaunchingWindow: function() {
+      if (this._launchingApp && this._launchingApp.element) {
+        this._launchingApp.element.removeEventListener('_opened', this);
+        this._launchingApp.element.removeEventListener('_terminated', this);
+      }
+      this._launchingApp = null;
+    },
 
     handleEvent: function wf_handleEvent(evt) {
+      if (evt.type === '_opened' || evt.type === '_terminated') {
+        if (this._launchingApp === evt.detail) {
+          this.forgetLastLaunchingWindow();
+        }
+        return;
+      }
       var detail = evt.detail;
 
       // If it's a normal window.open request, ignore.
@@ -123,12 +144,19 @@
         config.chrome = {
           scrollable: true
         };
-        app = new AppWindow(config);
+        this.forgetLastLaunchingWindow();
+        this.trackLauchingWindow(config);
       } else {
         app.updateName(config.title);
       }
 
       this.publish('launchapp', { origin: config.origin });
+    },
+
+    trackLauchingWindow: function(config) {
+      this._launchingApp = new AppWindow(config);
+      this._launchingApp.element.addEventListener('_opened', this);
+      this._launchingApp.element.addEventListener('_terminated', this);
     },
 
     hasPermission: function wf_hasPermission(app, permission) {

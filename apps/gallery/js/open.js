@@ -1,3 +1,19 @@
+'use strict';
+/* global
+  CONFIG_MAX_IMAGE_PIXEL_SIZE,
+  CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT,
+  CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
+  Downsample,
+  GestureDetector,
+  getImageSize,
+  getStorageIfAvailable,
+  getUnusedFilename,
+  MediaFrame,
+  MimeMapper,
+  NFC,
+  parseJPEGMetadata
+*/
+
 navigator.mozL10n.once(function() {
   var activity;         // The activity object we're handling
   var activityData;     // The data sent by the initiating app
@@ -11,56 +27,6 @@ navigator.mozL10n.once(function() {
   navigator.mozSetMessageHandler('activity', handleOpenActivity);
 
   function $(id) { return document.getElementById(id); }
-
-  function handleOpenActivity(request) {
-    activity = request;
-    activityData = activity.source.data;
-
-    // Set up the UI, if it is not already set up
-    if (!frame) {
-
-      // Hook up the buttons
-      $('header').addEventListener('action', done);
-      $('save').addEventListener('click', save);
-
-      // And register event handlers for gestures
-      frame = new MediaFrame($('frame'), false, CONFIG_MAX_IMAGE_PIXEL_SIZE);
-
-      if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
-        frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
-                                    CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
-      }
-
-      var gestureDetector = new GestureDetector(frame.container);
-      gestureDetector.startDetecting();
-      frame.container.addEventListener('dbltap', handleDoubleTap);
-      frame.container.addEventListener('transform', handleTransform);
-      frame.container.addEventListener('pan', handlePan);
-      frame.container.addEventListener('swipe', handleSwipe);
-
-      window.addEventListener('resize', frame.resize.bind(frame));
-      if (activityData.exitWhenHidden) {
-        window.addEventListener('visibilitychange', function() {
-          if (document.hidden) {
-            done();
-          }
-        });
-      }
-
-      // Report errors if we're passed an invalid image
-      frame.onerror = function invalid() {
-        displayError('imageinvalid');
-      };
-    }
-
-    // Display the filename in the header, if there was one
-    title = baseName(activityData.filename || '');
-    $('filename').textContent = title;
-
-    blob = activityData.blob;
-    open(blob);
-    NFC.share(blob);
-  }
 
   // Display the specified blob, unless it is too big to display
   function open(blob) {
@@ -95,8 +61,9 @@ navigator.mozL10n.once(function() {
       // handle images that are quite a bit larger
       //
       var imagesizelimit = CONFIG_MAX_IMAGE_PIXEL_SIZE;
-      if (blob.type === 'image/jpeg')
+      if (blob.type === 'image/jpeg') {
         imagesizelimit *= Downsample.MAX_AREA_REDUCTION;
+      }
 
       //
       // Even if we can downsample an image while decoding it, we still
@@ -186,6 +153,56 @@ navigator.mozL10n.once(function() {
     }
   }
 
+  function handleOpenActivity(request) {
+    activity = request;
+    activityData = activity.source.data;
+
+    // Set up the UI, if it is not already set up
+    if (!frame) {
+
+      // Hook up the buttons
+      $('header').addEventListener('action', done);
+      $('save').addEventListener('click', save);
+
+      // And register event handlers for gestures
+      frame = new MediaFrame($('frame'), false, CONFIG_MAX_IMAGE_PIXEL_SIZE);
+
+      if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
+        frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
+                                    CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
+      }
+
+      var gestureDetector = new GestureDetector(frame.container);
+      gestureDetector.startDetecting();
+      frame.container.addEventListener('dbltap', handleDoubleTap);
+      frame.container.addEventListener('transform', handleTransform);
+      frame.container.addEventListener('pan', handlePan);
+      frame.container.addEventListener('swipe', handleSwipe);
+
+      window.addEventListener('resize', frame.resize.bind(frame));
+      if (activityData.exitWhenHidden) {
+        window.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            done();
+          }
+        });
+      }
+
+      // Report errors if we're passed an invalid image
+      frame.onerror = function invalid() {
+        displayError('imageinvalid');
+      };
+    }
+
+    // Display the filename in the header, if there was one
+    title = baseName(activityData.filename || '');
+    $('filename').textContent = title;
+
+    blob = activityData.blob;
+    open(blob);
+    NFC.share(blob);
+  }
+
   function checkFilename() {
     // Hide save button for file names having hidden
     // .gallery/ directories. See Bug 992426
@@ -216,10 +233,11 @@ navigator.mozL10n.once(function() {
 
   function handleDoubleTap(e) {
     var scale;
-    if (frame.fit.scale > frame.fit.baseScale)
+    if (frame.fit.scale > frame.fit.baseScale) {
       scale = frame.fit.baseScale / frame.fit.scale;
-    else
+    } else {
       scale = 2;
+    }
 
     frame.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
   }
@@ -237,8 +255,9 @@ navigator.mozL10n.once(function() {
   function handleSwipe(e) {
     var direction = e.detail.direction;
     var velocity = e.detail.vy;
-    if (direction === 'down' && velocity > 2)
+    if (direction === 'down' && velocity > 2) {
       done();
+    }
   }
 
   function save() {

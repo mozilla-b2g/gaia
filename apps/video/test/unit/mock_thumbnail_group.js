@@ -1,4 +1,6 @@
-MockThumbnailGroup = function(item) {
+'use strict';
+ 
+var MockThumbnailGroup = function(item) {
   var counter = 0;
   var dummyNode = document.createElement('div');
   dummyNode.textContent = MockThumbnailGroup._GroupID;
@@ -18,7 +20,7 @@ MockThumbnailGroup = function(item) {
   MockThumbnailGroup._GroupMap[MockThumbnailGroup._GroupID] = {
     // api
     addItem: addItem,
-    getCount: function() {return counter},
+    getCount: function() {return counter;},
     removeItem: removeItem,
     // properties.
     groupID: MockThumbnailGroup._GroupID,

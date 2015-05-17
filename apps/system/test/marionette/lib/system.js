@@ -21,6 +21,10 @@ System.Selector = Object.freeze({
     'gaia-header',
   appAuthDialogLogin: '.appWindow.active .authentication-dialog.visible ' +
     'button.authentication-dialog-http-authentication-ok',
+  appAuthDialogUsername: '.appWindow.active .authentication-dialog.visible ' +
+    '.authentication-dialog-http-username-input',
+  appAuthDialogPassword: '.appWindow.active .authentication-dialog.visible ' +
+    '.authentication-dialog-http-password-input',
   appContextMenuSaveLink:
     '.appWindow.active .contextmenu [data-id="save-link"]',
   appWindow: '.appWindow',
@@ -64,8 +68,8 @@ System.Selector = Object.freeze({
   leftPanel: '#left-panel',
   rightPanel: '#right-panel',
   utilityTray: '#utility-tray',
-  visibleForm: '#screen > form.visible',
-  cancelActivity: 'form.visible button[data-action="cancel"]',
+  visibleForm: '#action-menu > form.visible',
+  cancelActivity: '#action-menu form.visible button[data-action="cancel"]',
   nfcIcon: '.statusbar-nfc',
   activeKeyboard: '.inputWindow.active'
 });
@@ -108,6 +112,16 @@ System.prototype = {
   get appAuthDialogLogin() {
     return this.client.helper.waitForElement(
       System.Selector.appAuthDialogLogin);
+  },
+
+  get appAuthDialogUsername() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogUsername);
+  },
+
+  get appAuthDialogPassword() {
+    return this.client.helper.waitForElement(
+      System.Selector.appAuthDialogPassword);
   },
 
   get appContextMenuSaveLink() {
@@ -359,6 +373,12 @@ System.prototype = {
     this.client.helper.waitForElement(System.Selector.activeKeyboard);
   },
 
+  waitForKeyboardToDisappear: function() {
+    this.client.helper.waitForElementToDisappear(
+      System.Selector.activeKeyboard
+    );
+  },
+
   goHome: function() {
     this.client.switchToFrame();
     this.client.executeAsyncScript(function() {
@@ -419,6 +439,18 @@ System.prototype = {
   stopDevtools: function() {
     this.client.executeScript(function() {
       window.wrappedJSObject.developerHUD.stop();
+    });
+  },
+
+  // The activity menu has a transform transition where it appears from the
+  // bottom of the screen. This waits for that to complete.
+  waitForActivityMenu: function() {
+    var form = this.client.helper.waitForElement(System.Selector.visibleForm);
+    this.client.waitFor(function() {
+      return form.scriptWith(function(element) {
+        return window.getComputedStyle(element).transform ===
+          'matrix(1, 0, 0, 1, 0, 0)';
+      });
     });
   },
 

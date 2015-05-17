@@ -7,12 +7,11 @@
 define(function(require) {
   'use strict';
 
-  var AddonsManager = require('panels/addons/addons_manager');
+  var AddonManager = require('modules/addon_manager');
 
   function AddonsItem(element) {
     this._enabled = false;
     this._element = element;
-    this.addonsManager = AddonsManager();
     this.init();
   }
 
@@ -53,14 +52,12 @@ define(function(require) {
      * @return {Promise}
      */
     init: function() {
-      this.addonsManager.init().then( () => {
-        var _handleEvent = this._updateAddonSectionVisibility.bind(this);
-        this.addonsManager.addons.observe('insert', _handleEvent);
-        this.addonsManager.addons.observe('remove', _handleEvent);
-        this.addonsManager.addons.observe('reset', _handleEvent);
+      var _handleEvent = this._updateAddonSectionVisibility.bind(this);
+      AddonManager.addons.observe('insert', _handleEvent);
+      AddonManager.addons.observe('remove', _handleEvent);
+      AddonManager.addons.observe('reset', _handleEvent);
 
-        this._updateAddonSectionVisibility();
-      });
+      this._updateAddonSectionVisibility();
     },
 
     /**
@@ -69,7 +66,7 @@ define(function(require) {
      * @memberOf AddonsItem
      */
     _updateAddonSectionVisibility: function() {
-      this._element.hidden = this.addonsManager.length === 0;
+      this._element.hidden = AddonManager.length === 0;
     }
   };
 

@@ -1,3 +1,6 @@
+/* global getStorageIfAvailable,getVideoRotation,VideoUtils,
+  ForwardRewindController,MimeMapper,getUnusedFilename,MediaUtils,
+  VideoLoadingChecker,MediaError */
 'use strict';
 
 /*
@@ -12,18 +15,15 @@
 navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var dom = {};            // document elements
   var playing = false;
-  var endedTimer;
   var controlShowing = false;
   var controlFadeTimeout = null;
   var dragging = false;
   var data = activity.source.data;
   var blob = data.blob;
-  var type = data.type;
   var url = data.url;
   var title = data.title || '';
   var storage;       // A device storage object used by the save button
   var saved = false; // Did we save it?
-  var endedTimer;    // The workaround of bug 783512.
   var videoRotation = 0;
   // touch start id is the identifier of touch event. we only need to process
   // events related to this id.
@@ -126,7 +126,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     var ids = ['player', 'player-view',
                'player-header', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
-               'slider-wrapper', 'spinner-overlay',
+               'slider-wrapper', 'spinner-overlay', 'timeSlider',
                'save', 'banner', 'message', 'seek-forward',
                'seek-backward', 'videoControlBar', 'in-use-overlay',
                'in-use-overlay-title', 'in-use-overlay-text'];
@@ -235,8 +235,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     sliderRect = dom.sliderWrapper.getBoundingClientRect();
 
     // We can't do anything if we don't know our duration
-    if (dom.player.duration === Infinity)
+    if (dom.player.duration === Infinity) {
       return;
+    }
 
     if (!isPausedWhileDragging) {
       dom.player.pause();
@@ -390,31 +391,11 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
     dom.timeSlider.setAttribute('aria-valuetext',
       MediaUtils.formatDuration(dom.player.currentTime));
-
-    // Since we don't always get reliable 'ended' events, see if
-    // we've reached the end this way.
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-    // If we're within 1 second of the end of the video, register
-    // a timeout a half a second after we'd expect an ended event.
-    if (!endedTimer) {
-      if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
-        var timeUntilEnd = (dom.player.duration - dom.player.currentTime + .5);
-        endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
-      }
-    } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
-      // If there is a timer set and we drag away from the end, cancel the timer
-      clearTimeout(endedTimer);
-      endedTimer = null;
-    }
   }
 
   function playerEnded() {
     if (dragging) {
       return;
-    }
-    if (endedTimer) {
-      clearTimeout(endedTimer);
-      endedTimer = null;
     }
 
     // If we are still playing when this 'ended' event arrives, then the
@@ -454,8 +435,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
 
     var percent = (dom.player.currentTime / dom.player.duration) * 100;
-    if (isNaN(percent)) // this happens when we end the activity
+    if (isNaN(percent)) { // this happens when we end the activity
       return;
+    }
     percent += '%';
 
     dom.elapsedText.textContent = MediaUtils.formatDuration(
@@ -549,8 +531,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // Strip directories and just return the base filename
   function baseName(filename) {
-    if (!filename)
+    if (!filename) {
       return '';
+    }
     return filename.substring(filename.lastIndexOf('/') + 1);
   }
 

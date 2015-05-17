@@ -5,6 +5,7 @@ Keyboards.nl = {
   imEngine: 'latin',
   autoCorrectLanguage: 'nl',
   types: ['text', 'url', 'email', 'password'],
+  lang: 'nl',
   alt: {
     a: 'áäâàæãåā',
     e: 'éëêèęėē€',

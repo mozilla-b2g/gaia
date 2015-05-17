@@ -23,7 +23,6 @@
 /* FB info (non-editable) */
 .view-edit-contact .facebook fieldset legend,
 .view-edit-contact .facebook fieldset input[type="date"] {
-  width: 100%;
   border-color: #acbee4;
   color: #8d9abb;
   background-image: url(fb/dialog.svg);

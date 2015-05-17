@@ -52,9 +52,11 @@ suite('system/TimeIcon', function() {
       assert.equal(timeFormat, '123');
     });
 
-    test('Should ask operator icon to update', function() {
+    test('Should ask operator icon to update and publish changed', function() {
+      this.sinon.stub(subject, 'publish');
       subject.update();
       assert.isTrue(Service.request.calledWith('OperatorIcon:update'));
+      assert.isTrue(subject.publish.calledWith('changed'));
     });
   });
 });

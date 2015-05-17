@@ -1,5 +1,6 @@
 /* global MozActivity, IconsHelper, LazyLoader, applications, Animations */
 /* global BookmarksDatabase, XScrollable, KeyNavigationAdapter, SharedUtils */
+/* global focusManager */
 
 (function(window) {
   'use strict';
@@ -98,6 +99,7 @@
   };
 
   BrowserContextMenu.prototype.kill = function() {
+    focusManager.removeUI(this);
     this.keyNavigationAdapter.uninit();
     this.containerElement.removeChild(this.element);
   };
@@ -137,17 +139,28 @@
     this.keyNavigationAdapter.init(this.element);
   };
 
-  BrowserContextMenu.prototype.hasMenuVisible = function() {
+  BrowserContextMenu.prototype.isFocusable = function() {
     return this.element && this.element.classList.contains('visible');
   };
 
   BrowserContextMenu.prototype.focus = function() {
-    document.activeElement.blur();
-    this.scrollable.catchFocus();
+    // XXX: We need to wait a short interval before we can focus on the
+    // button element. (This is NOT related to bubble animation above)
+    // so we temporarily use setTimeout here.
+    // This may need to be fixed from Gecko.
+    setTimeout(function() {
+      document.activeElement.blur();
+      this.scrollable.catchFocus();
+    }.bind(this), 100);
+  };
+
+  BrowserContextMenu.prototype.getElement = function() {
+    return this.element;
   };
 
   BrowserContextMenu.prototype.showMenu = function(menu) {
     if (!this._injected) {
+      focusManager.addUI(this);
       this.render();
     }
     this._injected = true;
@@ -157,15 +170,11 @@
     this.circleAnimation.play('grow', function() {
       this.element.classList.add('visible');
       Animations.doBubbleAnimation(
-                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100);
-      // XXX: We need to wait a short interval before we can focus on the
-      // button element. (This is NOT related to bubble animation above)
-      // so we temporarily use setTimeout here.
-      // This may need to be fixed from Gecko.
-      setTimeout(function() {
-        document.activeElement.blur();
-        this.scrollable.catchFocus();
-      }.bind(this), 100);
+                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100,
+                  function() {
+                    this.app.publish('contextmenu-shown');
+                  }.bind(this));
+      focusManager.focus();
     }.bind(this));
   },
 
@@ -210,12 +219,11 @@
         self.contextFrame.removeEventListener(
                              'transitionend', onFrameDisappear);
         self.circleAnimation.play('shrink', function() {
-          if (self.app) {
-            self.app.focus();
-          }
+          focusManager.focus();
           if (self.clickedItemCallback) {
             self.clickedItemCallback();
           }
+          self.app.publish('contextmenu-hidden');
         });
       }
     };

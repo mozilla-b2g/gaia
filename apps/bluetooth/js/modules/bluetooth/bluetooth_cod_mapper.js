@@ -141,7 +141,7 @@ define(function() {
      *
      * @access public
      * @memberOf BluetoothClassOfDeviceMapper
-     * @param {Object BluetoothClassOfDevice} cod
+     * @param {Object} BluetoothClassOfDevice cod
      * @return {String}
      */
     getDeviceType: function btcodm_getDeviceType(cod) {
@@ -163,9 +163,31 @@ define(function() {
         // drop in LAN/Network Access Point Major Class
         Debug('return in major class, type = network-wireless');
         return majorDeviceClass;
-      } else {
-        // Not in any Major Class which is defined in Gaia.
+      } else if (cod.majorServiceClass & 0x100) {
+        // Not in any Major Device Class which is defined in Gaia.
         // Ex: Wearable, Toy, Health.
+
+        // Since there is no icon to display wearable, toy, health devices, 
+        // file a bug 1163479[2] to define them for specification needed. 
+        // But some of these devices probably service 'Audio' per Bluetooth 
+        // specification[1].
+        // Property 'type' may be missed due to CoD of major class is TOY(0x08).
+        // But we need to assign 'type' as 'audio-card' if service class 
+        // is 'Audio'. This is for PTS test case TC_AG_COD_BV_02_I. 
+        // As HFP specification defines that service class is 'Audio' can 
+        // be considered as HFP HF.
+        // [1]: HFP_SPEC_V16.pdf: A device implementing the HF role of HFP shall
+        //      set the "Audio" bit in the Service Class field.
+        // [2]: Bug 1163479 - [Gaia][Bluetooth] Device icon definition for 
+        //      wearable, toy, health(Major Device Class) devices.
+        //      (https://bugzilla.mozilla.org/show_bug.cgi?id=1163479)
+
+        // Major Service Class: Audio(Speaker, Microphone, Headset service, ...)
+        deviceType = 'audio-card';
+        Debug('return in major service class, type = audio-card');
+        return deviceType;
+      } else {
+        // Not in any Class which is defined in Gaia.
         Debug('not mapping in any class, return type = ' + deviceType);
         return deviceType;
       }

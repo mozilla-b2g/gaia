@@ -6,7 +6,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
-require('/apps/homescreen/test/unit/mock_xmlhttprequest.js');
+require('/apps/system/test/unit/mock_xmlhttprequest.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
@@ -17,6 +17,13 @@ require('/shared/js/uuid.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/apps/system/js/ftu_ping.js');
+
+function switchReadOnlyProperty(originObject, propName, targetObj) {
+  Object.defineProperty(originObject, propName, {
+    configurable: true,
+    get: function() { return targetObj; }
+  });
+}
 
 if (!window.asyncStorage) {
   window.asyncStorage = null;
@@ -38,6 +45,7 @@ suite('FtuPing', function() {
   var realMozSettings, realAsyncStorage, realXHR;
   var realMobileConnections, realIccManager;
   var realMobileOperator, realSIMSlotManager;
+  var realNavigatorLanguage;
   var realMozApps;
   var FtuPing;
 
@@ -50,6 +58,7 @@ suite('FtuPing', function() {
     realMobileOperator = window.MobileOperator;
     realSIMSlotManager = window.SIMSlotManager;
     realMozApps = navigator.mozApps;
+    realNavigatorLanguage = navigator.language;
 
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
@@ -59,6 +68,7 @@ suite('FtuPing', function() {
     window.MobileOperator = MockMobileOperator;
     window.SIMSlotManager = MockSIMSlotManager;
     navigator.mozApps = { mgmt: MockAppsMgmt };
+    switchReadOnlyProperty(navigator,'language', realNavigatorLanguage);
   });
 
   suiteTeardown(function() {
@@ -70,6 +80,7 @@ suite('FtuPing', function() {
     window.MobileOperator = realMobileOperator;
     window.SIMSlotManager = realSIMSlotManager;
     navigator.mozApps = realMozApps;
+    switchReadOnlyProperty(navigator,'language', realNavigatorLanguage);
   });
 
   setup(function() {
@@ -139,7 +150,7 @@ suite('FtuPing', function() {
     test('window properties are set', function(done) {
       this.timeout(3000);
       doneCallback = function() {
-        var pingData = FtuPing.getPingData();
+        var pingData = FtuPing.assemblePingData();
         assert.equal(pingData.screenHeight, window.screen.height);
         assert.equal(pingData.screenWidth, window.screen.width);
         assert.equal(pingData.devicePixelRatio, window.devicePixelRatio);
@@ -152,7 +163,7 @@ suite('FtuPing', function() {
     test('empty settings are generated', function(done) {
       this.timeout(3000);
       doneCallback = function() {
-        var pingData = FtuPing.getPingData();
+        var pingData = FtuPing.assemblePingData();
         assert.ok(pingData.pingID);
         assert.equal(pingData.pingID, MockasyncStorage.mItems['ftu.pingID']);
 
@@ -192,7 +203,7 @@ suite('FtuPing', function() {
       mockSettings['app.update.channel'] = 'test_channel';
 
       doneCallback = function() {
-        var pingData = FtuPing.getPingData();
+        var pingData = FtuPing.assemblePingData();
         assert.equal(pingData.pingID, 'test_ping_id');
         assert.equal(pingData.activationTime, 'test_activation');
         assert.equal(FtuPing.isEnabled(), false);
@@ -204,12 +215,15 @@ suite('FtuPing', function() {
 
         assert.equal(pingData['deviceinfo.os'], 'test_os');
         assert.equal(pingData['deviceinfo.software'], 'test_software');
-        assert.equal(pingData['deviceinfo.platform_build_id'], 'test_build_id');
-        assert.equal(pingData['deviceinfo.platform_version'], 'test_version');
         assert.equal(pingData['deviceinfo.product_model'], 'test_model');
         assert.equal(pingData['deviceinfo.firmware_revision'], 'test_revision');
         assert.equal(pingData['deviceinfo.hardware'], 'test_hardware');
-        assert.equal(pingData['app.update.channel'], 'test_channel');
+
+        var infoData = FtuPing.getInfoData();
+        assert.equal(infoData['deviceinfo.platform_build_id'], 'test_build_id');
+        assert.equal(infoData['deviceinfo.platform_version'], 'test_version');
+        assert.equal(infoData['app.update.channel'], 'test_channel');
+
         done();
       };
       FtuPing.ensurePing();
@@ -223,11 +237,22 @@ suite('FtuPing', function() {
 
     test('preinstalled apps are fetched', function(done) {
       doneCallback = function() {
-        var pingData = FtuPing.getPingData();
+        var pingData = FtuPing.assemblePingData();
         assert.ok(pingData.preinstalled);
         assert.equal(Object.keys(pingData.preinstalled).length, 1);
         assert.equal(pingData.preinstalled['app://testapp.org/manifest.webapp'],
                      'Test');
+        done();
+      };
+      FtuPing.ensurePing();
+    });
+    test('ping asks assemblePingData for data', function(done) {
+      var spy = this.sinon.spy(FtuPing, 'assemblePingData');
+      FtuPing.initSettings().then(function() {
+        FtuPing.ping();
+      });
+      doneCallback = function() {
+        assert.ok(spy.called);
         done();
       };
       FtuPing.ensurePing();
@@ -338,7 +363,7 @@ suite('FtuPing', function() {
       FtuPing.initSettings().then(function() {
         assert.doesNotThrow(function() { FtuPing.checkMobileNetwork(); });
 
-        var pingData = FtuPing.getPingData();
+        var pingData = FtuPing.assemblePingData();
         assert.ok(!pingData.network);
         assert.ok(!pingData.icc);
         done();
@@ -382,7 +407,7 @@ suite('FtuPing', function() {
       FtuPing.initSettings().then(function() {
         assert.ok(FtuPing.tryPing());
 
-        var pingData = FtuPing.getPingData();
+        var pingData = FtuPing.assemblePingData();
         assert.ok(pingData.icc);
         assert.equal(pingData.icc.mnc, 'icc_mnc');
         assert.equal(pingData.icc.mcc, 'icc_mcc');
@@ -481,7 +506,7 @@ suite('FtuPing', function() {
 
     test('gets preinstalled apps', function(done) {
       FtuPing.initPreinstalledApps().then(function() {
-        var preinstalled = FtuPing.getPingData().preinstalled;
+        var preinstalled = FtuPing.assemblePingData().preinstalled;
         assert.equal(Object.keys(preinstalled).length, 2);
         assert.equal(preinstalled['app://testapp1.org/path/manifest.webapp'],
                      'TestWithPath');
@@ -489,6 +514,26 @@ suite('FtuPing', function() {
                      'HttpTest');
         done();
       });
+    });
+  });
+
+  suite('locale', function() {
+    setup(function() {
+      FtuPing.initSettings();
+    });
+    teardown(function() {
+      switchReadOnlyProperty(navigator,'language', realNavigatorLanguage);
+    });
+
+    test('initial language', function() {
+      assert.equal(FtuPing.assemblePingData().locale,
+                   window.navigator.language);
+    });
+
+    test('late change to language', function() {
+      var newLocale = 'zh-TW';
+      switchReadOnlyProperty(navigator,'language', newLocale);
+      assert.equal(FtuPing.assemblePingData().locale, newLocale);
     });
   });
 });

@@ -6,43 +6,59 @@
 define(function(require) {
   'use strict';
 
-  function addonsTemplate(addonEnabler, item, recycled) {
-    var manifest = item.manifest || item.updateManifest;
+  var ManifestHelper = require('shared/manifest_helper');
+
+  const PREFERRED_ICON_SIZE = 30 * (window.devicePixelRatio || 1);
+
+  function addonsTemplate(onClick, addon, recycled) {
+    var manifest = new ManifestHelper(addon.instance.manifest ||
+      addon.instance.updateManifest);
     var container = null;
-    var span, toggle;
+    var link, span, small, icon;
     if (recycled) {
       container = recycled;
-      toggle = container.querySelector('input');
+      link = container.querySelector('a');
       span = container.querySelector('span');
+      small = container.querySelector('small');
+      icon = container.querySelector('img');
     } else {
-      var kind = 'checkbox';
       container = document.createElement('li');
-      toggle = document.createElement('input');
-      var label = document.createElement('label');
+      link = document.createElement('a');
       span = document.createElement('span');
-      label.className = 'pack-' + kind;
-      toggle.type = kind;
-      toggle.value = item.manifestURL;
-      toggle.checked = item.enabled;
-      label.appendChild(toggle);
-      label.appendChild(span);
-      container.appendChild(label);
+      small = document.createElement('small');
+      icon = document.createElement('img');
+
+      link.href = '#';
+      link.classList.add('menu-item');
+      small.classList.add('menu-item-desc');
+
+      link.appendChild(icon);
+      link.appendChild(span);
+      link.appendChild(small);
+      container.appendChild(link);
     }
 
-    span.textContent = manifest.name;
-    toggle.onclick = () => {
-      if (item.enabled) {
-        addonEnabler.disableAddon(item);
-      } else {
-        addonEnabler.enableAddon(item);
-      }
+    navigator.mozApps.mgmt
+      .getIcon(addon.instance, PREFERRED_ICON_SIZE).then((blob) => {
+        icon.src = URL.createObjectURL(blob);
+    }).catch(() => {
+      icon.src = '../style/images/default.png';
+    });
+
+    span.textContent = manifest.displayName;
+    small.setAttribute('data-l10n-id', addon.enabled ? 'enabled' : 'disabled');
+    addon.observe('enabled', function(enabled) {
+      small.setAttribute('data-l10n-id', enabled ? 'enabled' : 'disabled');
+    });
+
+    link.onclick = () => {
+      onClick(addon);
     };
 
     return container;
   }
 
-  return function ctor_addonsTemplate(enabler, item, recycled) {
-    return addonsTemplate.bind(null, enabler);
+  return function ctor_addonsTemplate(onClick) {
+    return addonsTemplate.bind(null, onClick);
   };
-
 });

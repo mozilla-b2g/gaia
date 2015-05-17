@@ -238,6 +238,20 @@ suite('system/AttentionWindowManager', function() {
       assert.isTrue(stubBroadcast[2].calledWith('lockscreen-appclosed'));
     });
 
+    test('broadcast languagechange event', function() {
+      attentionWindowManager._instances =
+        new Map([[att3, att3], [att2, att2], [att1, att1]]);
+      var stubBroadcast = [
+        this.sinon.stub(att1, 'broadcast'),
+        this.sinon.stub(att2, 'broadcast'),
+        this.sinon.stub(att3, 'broadcast')
+      ];
+      window.dispatchEvent(new CustomEvent('languagechange'));
+      assert.isTrue(stubBroadcast[0].calledWith('languagechange'));
+      assert.isTrue(stubBroadcast[1].calledWith('languagechange'));
+      assert.isTrue(stubBroadcast[2].calledWith('languagechange'));
+    });
+
     test('System resize request', function() {
       attentionWindowManager._topMostWindow = att1;
       var stubResize = this.sinon.stub(att1, 'resize');

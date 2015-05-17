@@ -9,8 +9,9 @@
 define(function(require, exports) {
 'use strict';
 
-var Responder = require('responder');
-var debug = require('debug')('controllers/periodic_sync');
+var Responder = require('common/responder');
+var core = require('core');
+var debug = require('common/debug')('controllers/periodic_sync');
 var messageHandler = require('message_handler');
 
 /**
@@ -49,14 +50,11 @@ exports.events = events;
 var accounts;
 var settings;
 
-// Will be injected...
-exports.app = null;
-
 exports.observe = function() {
   debug('Will start periodic sync controller...');
-  var app = exports.app;
-  accounts = app.store('Account');
-  settings = app.store('Setting');
+  var storeFactory = core.storeFactory;
+  accounts = storeFactory.get('Account');
+  settings = storeFactory.get('Setting');
   return Promise.all([
     settings.getValue('syncAlarm'),
     settings.getValue('syncFrequency')
@@ -150,8 +148,7 @@ function sync() {
       var cpuLock = navigator.requestWakeLock('cpu');
       var wifiLock = navigator.requestWakeLock('wifi');
       debug('Will start periodic sync...');
-      var app = exports.app;
-      app.syncController.all(() => {
+      core.syncController.all(() => {
         debug('Sync complete! Will release cpu and wifi wake locks...');
         cpuLock.unlock();
         wifiLock.unlock();

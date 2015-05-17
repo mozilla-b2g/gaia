@@ -98,6 +98,7 @@
           class="msg-search-tease-bar msg-nonsearch-only">
       <p>
         <input data-event="focus:onSearchButton"
+               data-prop="searchTextTease"
                class="msg-search-text-tease" type="text"
                dir="auto"
                data-l10n-id="message-search-input" />
@@ -110,12 +111,14 @@
          regardless of their displayed status so we don't scroll them
          out of the way -->
     <div class="msg-messages-sync-container">
-      <p data-prop="syncingNode" class="msg-messages-syncing collapsed">
+      <p data-prop="syncingNode" class="msg-messages-syncing collapsed"
+         role="progressbar" data-l10n-id="messages-syncing-progressbar">
         <span data-l10n-id="messages-syncing"></span>
       </p>
       <p data-prop="syncMoreNode"
          data-event="click:onGetMoreMessages"
-         class="msg-messages-sync-more collapsed">
+         class="msg-messages-sync-more collapsed"
+         role="button">
         <span data-l10n-id="messages-load-more"></span>
       </p>
     </div>

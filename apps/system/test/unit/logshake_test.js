@@ -159,14 +159,13 @@ suite('system/LogShake', function() {
 
   suite('Capture success handling', function() {
     var filename = 'logs/2014-06-03-00-00/log.log';
-    var logPrefix = 'logs/2014-06-03-00-00/';
     var notificationSpy;
 
     setup(function() {
       notificationSpy = this.sinon.spy(window, 'Notification');
 
       window.dispatchEvent(new CustomEvent('capture-logs-success',
-        { detail: { logFilenames: [filename], logPrefix: logPrefix } }));
+        { detail: { logFilenames: [filename]  } }));
     });
 
     test('Notification sent', function() {
@@ -176,7 +175,7 @@ suite('system/LogShake', function() {
       assert.equal(notificationSpy.firstCall.args[0],
         'logsSaved');
       assert.equal(notificationSpy.firstCall.args[1].body,
-        logPrefix);
+        'logsSavedBody');
       assert.equal(notificationSpy.firstCall.args[1].tag,
         expectedLogTag);
     });
@@ -207,6 +206,7 @@ suite('system/LogShake', function() {
       var expectedActivity = {
         name: 'share',
         data: {
+          type: 'application/vnd.moz-systemlog',
           blobs: [ mockBlob ],
           filenames: [ filename ]
         }
@@ -328,6 +328,39 @@ suite('system/LogShake', function() {
                                           'logsGenericError',
                                           { title: 'ok' }));
         sinon.assert.calledOnce(closeSpy);
+      });
+    });
+  });
+
+  suite('Use sdcard device storage', function() {
+    var sdcard, sdcard1, extsdcard;
+    var expected = 'sdcard';
+
+    suiteSetup(function() {
+      sdcard = { storageName: 'sdcard' };
+      sdcard1 = { storageName: 'sdcard1' };
+      extsdcard = { storageName: 'extsdcard' };
+    });
+
+    suite('only one device storage', function() {
+      setup(function() {
+        this.sinon.stub(navigator, 'getDeviceStorages')
+          .withArgs('sdcard').returns([sdcard]);
+      });
+
+      test('device storage name is sdcard', function() {
+        assert.equal(expected, logshake.getDeviceStorage().storageName);
+      });
+    });
+
+    suite('multiple device storages', function() {
+      setup(function() {
+        this.sinon.stub(navigator, 'getDeviceStorages')
+          .withArgs('sdcard').returns([sdcard, sdcard1, extsdcard]);
+      });
+
+      test('device storage name is sdcard', function() {
+        assert.equal(expected, logshake.getDeviceStorage().storageName);
       });
     });
   });

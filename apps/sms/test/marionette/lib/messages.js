@@ -3,6 +3,7 @@
   'use strict';
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
+  var MANIFEST_URL= ORIGIN_URL + '/manifest.webapp';
 
   var Chars = {
     ENTER: '\ue007',
@@ -34,7 +35,6 @@
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
-    attachmentMenu: '#attachment-options',
 
     Composer: {
       toField: '#messages-to-field',
@@ -52,9 +52,11 @@
       messageConvertNotice: '#messages-convert-notice'
     },
 
-    Thread: {
+    Conversation: {
+      main: '#thread-messages',
       message: '.message .bubble',
-      headerTitle: '#messages-header-text'
+      headerTitle: '#messages-header-text',
+      container: '#messages-container'
     },
 
     Message: {
@@ -63,10 +65,11 @@
       fileName: '.file-name'
     },
 
-    ThreadList: {
-      firstThread: '.threadlist-item',
-      smsThread: '.threadlist-item[data-last-message-type="sms"]',
-      mmsThread: '.threadlist-item[data-last-message-type="mms"]',
+    Inbox: {
+      main: '#thread-list',
+      firstConversation: '.threadlist-item',
+      smsConversation: '.threadlist-item[data-last-message-type="sms"]',
+      mmsConversation: '.threadlist-item[data-last-message-type="mms"]',
       navigateToComposerHeaderButton: '#threads-composer-link'
     },
 
@@ -87,6 +90,8 @@
 
       return {
         Selectors: SELECTORS,
+
+        manifestURL: MANIFEST_URL,
 
         Composer: {
           get toField() {
@@ -152,44 +157,66 @@
           }
         },
 
-        Thread: {
+        Conversation: {
           get message() {
-            return client.helper.waitForElement(SELECTORS.Thread.message);
+            return client.helper.waitForElement(SELECTORS.Conversation.message);
           },
 
           get headerTitle() {
-            return client.helper.waitForElement(SELECTORS.Thread.headerTitle);
+            return client.helper.waitForElement(
+              SELECTORS.Conversation.headerTitle
+            );
           },
 
           getMessageContent: function(message) {
             return client.helper.waitForElement(
               message.findElement(SELECTORS.Message.content)
             );
+          },
+
+          findMessage: function(id) {
+            return client.findElement('.message[data-message-id="' + id + '"]');
+          },
+
+          scrollUp: function() {
+            var conversationContainer = client.findElement(
+              SELECTORS.Conversation.container
+            );
+
+            actions.flick(conversationContainer, 50, 50, 50, 350).perform();
+          },
+
+          waitToAppear: function() {
+            return client.helper.waitForElement(SELECTORS.Conversation.main);
           }
         },
 
-        ThreadList: {
-          get firstThread() {
+        Inbox: {
+          get firstConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.firstThread
+              SELECTORS.Inbox.firstConversation
             );
           },
 
-          get smsThread() {
+          get smsConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.smsThread
+              SELECTORS.Inbox.smsConversation
             );
           },
 
-          get mmsThread() {
+          get mmsConversation() {
             return client.helper.waitForElement(
-              SELECTORS.ThreadList.mmsThread
+              SELECTORS.Inbox.mmsConversation
             );
+          },
+
+          waitToAppear: function() {
+            return client.helper.waitForElement(SELECTORS.Inbox.main);
           },
 
           navigateToComposer: function() {
             client.helper.waitForElement(
-              SELECTORS.ThreadList.navigateToComposerHeaderButton
+              SELECTORS.Inbox.navigateToComposerHeaderButton
             ).tap();
           }
         },
@@ -224,15 +251,44 @@
           return client.helper.waitForElement(SELECTORS.optionMenu);
         },
 
-        get attachmentMenu() {
-          return client.helper.waitForElement(SELECTORS.attachmentMenu);
-        },
-
         launch: function() {
           client.switchToFrame();
           client.apps.launch(ORIGIN_URL);
           client.apps.switchToApp(ORIGIN_URL);
           client.helper.waitForElement(SELECTORS.main);
+        },
+
+        close: function() {
+          client.apps.close(ORIGIN_URL);
+        },
+
+        /**
+         * Sends system message to the Messages app using SystemMessageInternal
+         * class available in chrome context. Should be replaced by marionette
+         * apps built-in method or shared lib (see bug 1162165).
+         * @param {string} name Name of the system message to send.
+         * @param {Object} parameters Parameters object to pass with system
+         * message.
+         */
+        sendSystemMessage: function(name, parameters) {
+          var chromeClient = client.scope({ context: 'chrome' });
+          chromeClient.executeScript(function(manifestURL, name, parameters) {
+            /* global Components, Services */
+            var managerClass = Components.classes[
+              '@mozilla.org/system-message-internal;1'
+            ];
+
+            var systemMessageManager = managerClass.getService(
+              Components.interfaces.nsISystemMessagesInternal
+            );
+
+            systemMessageManager.sendMessage(
+              name,
+              parameters,
+              null, /* pageURI */
+              Services.io.newURI(manifestURL, null, null)
+            );
+          }, [MANIFEST_URL, name, parameters]);
         },
 
         switchTo: function() {
@@ -250,10 +306,6 @@
 
         selectAppMenuOption: function(text) {
           this.selectMenuOption(this.optionMenu, text);
-        },
-
-        selectAttachmentMenuOption: function(text) {
-          this.selectMenuOption(this.attachmentMenu, text);
         },
 
         selectSystemMenuOption: function(text) {
@@ -310,8 +362,8 @@
           }.bind(this));
           this.Composer.sendButton.tap();
 
-          // Wait when after send we're redirected to Thread panel
-          client.helper.waitForElement(this.Thread.message);
+          // Wait when after send we're redirected to Conversation panel
+          client.helper.waitForElement(this.Conversation.message);
         },
 
         showSubject: function() {
@@ -350,6 +402,35 @@
             event.initEvent('action', true, true);
             header.dispatchEvent(event);
           });
+        },
+
+        /**
+         * Sets pre-populated thread/message storage.
+         * @param {Array.<Thread>} threads List of the thread to pre-populate
+         * storage with.
+         * @param {Number} uniqueMessageIdCounter Start value for the unique
+         * message id counter, it's used to avoid message "id" collision between
+         * message ids from predefined store and message ids that can be
+         * generated during test (e.g. send or receive new message).
+         */
+        setStorage: function(threads, uniqueMessageIdCounter) {
+          client.executeScript(function(threads, uniqueMessageIdCounter) {
+            var recipientToThreadId = new Map();
+
+            var threadMap = new Map(threads.map(function(thread) {
+              recipientToThreadId.set(thread.participants[0], thread.id);
+
+              return [thread.id, thread];
+            }));
+
+            window.wrappedJSObject.TestStorages.setStorage('messagesDB', {
+              threads: threadMap,
+              recipientToThreadId: recipientToThreadId,
+              uniqueMessageIdCounter: uniqueMessageIdCounter
+            });
+
+            window.wrappedJSObject.TestStorages.setStorageReady('messagesDB');
+          }, [threads || [], uniqueMessageIdCounter || 0]);
         }
       };
     },

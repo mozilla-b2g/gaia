@@ -1,3 +1,4 @@
+/* global MediaUtils,Tagged,ThumbnailItem */
 /**
  * ThumbnailDateGroup is a grouping mechanism supported in video app. It
  * groups video data by its year and month, see bug 908380. The grouping
@@ -5,12 +6,8 @@
  * two groups as different groups. ThumbnailDateGroup also sorts the added video
  * data descendant. We can just put a item into group and let it sort the list.
  *
- * Before use it, we need to initialize the static property Template with
- * template.js object. It is used when rendering group header, the HTML DOM
- * node of this object. The initialization may look like this:
- *
- *    `ThumbnailDateGroup.Template = new Template('thumbnail-group-header');`
- *
+ * The tagged.js library is used to escape HTML within the view method.
+ * It is used when rendering group header, the HTML DOM node of this object.
  *
  * The HTML Node of this object contains all UI of its children. If we move it,
  * all items under this group are also moved.
@@ -43,6 +40,7 @@
  *   compareGroupID
  *
  */
+'use strict';
 function ThumbnailDateGroup(item) {
   if (!item) {
     throw new Error('item should not be null or undefined.');
@@ -52,11 +50,7 @@ function ThumbnailDateGroup(item) {
   this.groupID = ThumbnailDateGroup.getGroupID(item);
   this.date = item.date;
 
-  if (!ThumbnailDateGroup.Template) {
-    throw new Error('template is required while rendering.');
-  }
-
-  var htmlText = ThumbnailDateGroup.Template.interpolate();
+  var htmlText = ThumbnailDateGroup.view();
 
   // create dummy node for converting to DOM node.
   var dummyDiv = document.createElement('DIV');
@@ -79,6 +73,15 @@ function ThumbnailDateGroup(item) {
 }
 
 // static functions
+ThumbnailDateGroup.view = function() {
+  return Tagged.escapeHTML `<li role="presentation">
+      <div class="thumbnail-group-header" role="heading"
+           aria-level="1"></div>
+      <ul class="thumbnail-group-container" role="listbox"
+          data-l10n-id="videos-list" aria-multiselectable="true"></ul>
+    </li>`;
+};
+
 ThumbnailDateGroup.getGroupID = function(item) {
   // id is group_yyyy-mm. this id will be used as a key
   var dateObj = new Date(item.date);

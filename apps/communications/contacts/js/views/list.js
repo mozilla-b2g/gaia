@@ -679,16 +679,9 @@ contacts.List = (function() {
   function loadChunk(chunk) {
     var nodes = [];
     for (var i = 0, n = chunk.length; i < n; ++i) {
-      if (i === getRowsPerPage()) {
-        notifyAboveTheFold();
-      }
 
       var newNodes = appendToLists(chunk[i]);
       nodes.push.apply(nodes, newNodes);
-    }
-
-    if (i < getRowsPerPage()) {
-      notifyAboveTheFold();
     }
 
     // If the search view has been activated by the user, then send newly
@@ -699,28 +692,17 @@ contacts.List = (function() {
     }
   }
 
-  // Time until we show the first contacts "above the fold" is a very
-  // important usability metric.  Emit an event when as soon as we reach
-  // this point so tools can measure the time.
-  var notifiedAboveTheFold = false;
-  function notifyAboveTheFold() {
-    if (notifiedAboveTheFold) {
-      return;
-    }
-
-    notifiedAboveTheFold = true;
-    // Replacing the old 'above-the-fold-ready' message
-    // Don't bother loading the monitor until we have rendered our
-    // first screen of contacts.  This avoids the overhead of
-    // onscreen() calls when adding those first contacts.
-    var vm_file = '/shared/js/tag_visibility_monitor.js';
-    LazyLoader.load([vm_file], function() {
-      var scrollMargin = ~~(getViewHeight() * 1.5);
-      // NOTE: Making scrollDelta too large will cause janky scrolling
-      //       due to bursts of onscreen() calls from the monitor.
-      var scrollDelta = ~~(scrollMargin / 15);
-      monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
-                                     scrollDelta, onscreen, offscreen);
+  function loadVisibilityMonitor() {
+    return new Promise((resolve) => {
+      LazyLoader.load('/shared/js/tag_visibility_monitor.js', () => {
+        var scrollMargin = ~~(getViewHeight() * 1.5);
+        // NOTE: Making scrollDelta too large will cause janky scrolling
+        //       due to bursts of onscreen() calls from the monitor.
+        var scrollDelta = ~~(scrollMargin / 15);
+        monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
+                                       scrollDelta, onscreen, offscreen);
+        resolve();
+      });
     });
   }
 
@@ -797,7 +779,9 @@ contacts.List = (function() {
     ph = ph || createPlaceholder(contact, group);
     var list = getGroupList(group);
 
-    var inCache = (Cache.active && Cache.hasContact(contact.id));
+    var inCache = Cache.active &&
+                  (Cache.hasContact(contact.id)) ||
+                  (group == 'favorites' && Cache.hasFavorite(contact.id));
 
     // If above the fold for list or if the contact is in the cache,
     // create the DOM node. If the contact is in the cache and has not
@@ -818,7 +802,12 @@ contacts.List = (function() {
     // Otherwise, we remove the DOM node and let the flow continue so we
     // can append the new node with the updated information.
     if (inCache) {
-      var cachedContact = Cache.getContact(contact.id);
+      var cachedContact;
+      if (group == 'favorites') {
+        cachedContact = Cache.getFavorite(contact.id);
+      } else {
+        cachedContact = Cache.getContact(contact.id);
+      }
       // We don't add Facebook information while creating the placeholder,
       // this information is added afterwards in renderFbData.
       // Because of that, we need to get rid of the additional information
@@ -876,10 +865,7 @@ contacts.List = (function() {
     // and we didn't unselected any other contact
     selectAllPending = false;
 
-    // If there are zero contacts, then we still need to notify
-    // that the initial screen has been displayed.  This is a no-op
-    // if the notification has already happened.
-    notifyAboveTheFold();
+    loadVisibilityMonitor();
 
     // Replacing old message 'startup-path-done'
     utils.PerformanceHelper.loadEnd();
@@ -1167,8 +1153,8 @@ contacts.List = (function() {
       var posH = ['left','center','right'];
       var posV = ['top','center','bottom'];
       var position =
-        posH[Math.floor(Math.random()*3)] + ' ' +
-        posV[Math.floor(Math.random()*3)];
+        posH[Math.floor(Math.random() * 3)] + ' ' +
+        posV[Math.floor(Math.random() * 3)];
 
       img.style.backgroundPosition = position;
 
@@ -1302,7 +1288,6 @@ contacts.List = (function() {
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     return Contacts.asyncScriptsLoaded.then(() => {
-      notifiedAboveTheFold = false;
       if (contacts) {
         if (!contacts.length) {
           toggleNoContactsScreen(true);
@@ -1572,7 +1557,7 @@ contacts.List = (function() {
     var showNoContacts = visibleElements.length === 0;
     toggleNoContactsScreen(showNoContacts);
 
-    if (selectedContacts[id]) {
+    if (selectedContacts[id] !== undefined) {
       delete selectedContacts[id];
     }
   };
@@ -1709,6 +1694,7 @@ contacts.List = (function() {
       return;
     }
     iceGroup = null;
+    ICELoaded = false;
     utils.dom.removeChildNodes(groupsList);
     headers = {};
     loadedContacts = {};
@@ -2267,6 +2253,25 @@ contacts.List = (function() {
     _notifyRowOnScreenUUID = null;
   }
 
+  // After merging one or more contacts, we need to remove all the matches
+  // except the master one from the contacts list.
+  function onContactsMerged(ids) {
+    Object.keys(ids).forEach(id => {
+      if (id in selectedContacts) {
+        remove(id);
+      }
+    });
+    Cache.evict(false /* undo applied cache */,
+                true /* instant eviction */);
+  }
+
+  window.onmessage = (e) => {
+    if (e.data.type != 'duplicate_contacts_merged' || !e.data.data) {
+      return;
+    }
+    onContactsMerged(e.data.data);
+  };
+
   /**
    * Cache related functionality.
    */
@@ -2350,6 +2355,9 @@ contacts.List = (function() {
 
   var cacheRequestTimer;
   function cacheContactsList() {
+    if (inSelectMode) {
+      return;
+    }
     // The Cache mechanism accesses localStorage.
     // Use the following logic to cache the contact list in a
     // moderate pattern.
@@ -2371,6 +2379,20 @@ contacts.List = (function() {
     }, 1000);
   }
 
+  function removeCachedContactFromList(id) {
+    remove(id);
+    // We may also need to remove it from the list of ICE contacts.
+    ICEData.load().then((contacts) => {
+      for (var i = 0; i < contacts.length; i++) {
+        if (contacts[i].id == id) {
+          ICEData.removeICEContact(contacts[i].id);
+        }
+      }
+    });
+    // We also remove it from the cache
+    Cache.removeContact(id);
+  }
+
   function verifyAndRebuildCache() {
     if (!Cache.active || !Cache.length) {
       // Everything is fine.
@@ -2378,21 +2400,28 @@ contacts.List = (function() {
       return;
     }
 
-    // If there is still any contact to consume in the cache it
-    // means that this contact is no longer part of the contacts
-    // source, but it is still in the DOM, so we need to eliminate it.
-    // This can happen if the contact was removed while the app
-    // was closed.
+    // If there are still contacts to consume in the cache it
+    // means that these contacts are no longer part of the contacts
+    // source, but they are still in the DOM, so we need to eliminate them.
+    // This can happen if the contacts were removed while the app
+    // was closed for instance.
     for (var id of Cache.contacts) {
-      remove(id);
-      // We may also need to remove it from the list of ICE contacts.
-      ICEData.load().then((contacts) => {
-        for (var i = 0; i < contacts.length; i++) {
-          ICEData.removeICEContact(contacts[i].id);
-        }
-      });
-      // We also remove it from the cache
-      Cache.removeContact(id);
+      removeCachedContactFromList(id);
+      // If the contact is also cached as a favorite contact, we don't need to
+      // try to remove it again from the DOM when processing the pending
+      // favorites. So we simply remove them from the cache (getting the
+      // contact does the deletion from the cache).
+      if (Cache.hasFavorite(id)) {
+        Cache.getFavorite(id);
+      }
+    }
+
+    // It is possible that we have favorite contacts that are in the favorites
+    // group (which is cached for being the first group) but are also outside
+    // of the first chunk. In that case, we remove them from the favorites
+    // group.
+    for (var favId of Cache.favorites) {
+      removeCachedContactFromList(favId);
     }
 
     // Once we cleaned up the DOM, we can create the cache again.
@@ -2446,6 +2475,7 @@ contacts.List = (function() {
     // For testing purposes only
     set ICELoaded(loaded) {
       ICELoaded = loaded;
-    }
+    },
+    'loadVisibilityMonitor': loadVisibilityMonitor
   };
 })();

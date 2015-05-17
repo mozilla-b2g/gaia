@@ -1,7 +1,24 @@
 'use strict';
 
-requireApp('system/js/updatable.js');
+/* global
+   AppUpdatable,
+   appWindowManager,
+   asyncStorage,
+   MocksHelper,
+   MockApp,
+   MockAppWindowManager,
+   MockAppsMgmt,
+   MockChromeEvent,
+   MockCustomDialog,
+   MockNavigatorBattery,
+   MockNavigatorSettings,
+   MockService,
+   MockUpdateManager,
+   MockUtilityTray,
+   SystemUpdatable
+ */
 
+requireApp('system/js/updatable.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_update_manager.js');
@@ -145,7 +162,7 @@ suite('system/Updatable', function() {
 
     test('should remember about the update on startup', function() {
       asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG] = true;
-      var systemUpdatable = new SystemUpdatable();
+      var systemUpdatable = new SystemUpdatable(); // jshint ignore:line
       assert.equal(MockUpdateManager.mCheckForUpdatesCalledWith, true);
     });
 
@@ -904,31 +921,64 @@ suite('system/Updatable', function() {
       });
 
       suite('low battery', function() {
+        var event;
         setup(function() {
           asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
           MockUtilityTray.show();
           MockNavigatorBattery.level = 0.1;
-          var event = new MockChromeEvent({
+          event = new MockChromeEvent({
             type: 'update-prompt-apply'
           });
-          subject.handleEvent(event);
         });
 
-        testSystemApplyPromptBatteryNok(MID_CHARGE);
+        suite('ota update package', function() {
+          setup(function() {
+            event.detail.isOSUpdate = false;
+            subject.handleEvent(event);
+          });
+
+          testSystemApplyPromptBatteryOk();
+        });
+
+        suite('fota update package', function() {
+          setup(function() {
+            event.detail.isOSUpdate = true;
+            subject.handleEvent(event);
+          });
+
+          testSystemApplyPromptBatteryNok(MID_CHARGE);
+        });
       });
 
       suite('high battery', function() {
+        var event;
         setup(function() {
           asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
           MockUtilityTray.show();
           MockNavigatorBattery.level = 0.9;
-          var event = new MockChromeEvent({
+          event = new MockChromeEvent({
             type: 'update-prompt-apply'
           });
           subject.handleEvent(event);
         });
 
-        testSystemApplyPromptBatteryOk();
+        suite('ota update package', function() {
+          setup(function() {
+            event.detail.isOSUpdate = false;
+            subject.handleEvent(event);
+          });
+
+          testSystemApplyPromptBatteryOk();
+        });
+
+        suite('fota update package', function() {
+          setup(function() {
+            event.detail.isOSUpdate = true;
+            subject.handleEvent(event);
+          });
+
+          testSystemApplyPromptBatteryOk();
+        });
       });
     });
   }

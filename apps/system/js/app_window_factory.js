@@ -99,6 +99,12 @@
 
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
+      if (evt.type === '_opened' || evt.type === '_terminated') {
+        if (this._launchingApp === detail) {
+          this.forgetLastLaunchingWindow();
+        }
+        return;
+      }
       if (!detail.url && !detail.manifestURL) {
         return;
       }
@@ -191,9 +197,32 @@
       } else {
         // homescreenWindowManager already listens webapps-launch and open-app.
         // We don't need to check if the launched app is homescreen.
-        new AppWindow(config);
+        this.forgetLastLaunchingWindow();
+        this.trackLauchingWindow(config);
       }
       this.publish('launchapp', config);
+    },
+
+    trackLauchingWindow: function(config) {
+      var app = new AppWindow(config);
+      if (config.stayBackground) {
+        return;
+      }
+      this._launchingApp = app;
+      this._launchingApp.element.addEventListener('_opened', this);
+      this._launchingApp.element.addEventListener('_terminated', this);
+    },
+
+    forgetLastLaunchingWindow: function() {
+      if (this._launchingApp && this._launchingApp.element) {
+        this._launchingApp.element.removeEventListener('_opened', this);
+        this._launchingApp.element.removeEventListener('_terminated', this);
+      }
+      this._launchingApp = null;
+    },
+
+    isLaunchingWindow: function() {
+      return !!this._launchingApp;
     },
 
     /**

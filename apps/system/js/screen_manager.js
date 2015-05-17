@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals SettingsListener, Bluetooth, Service,
+/* globals SettingsListener, Service,
            ScreenBrightnessTransition, ScreenWakeLockManager,
            ScreenAutoBrightness                               */
 
@@ -103,6 +103,8 @@ var ScreenManager = {
     // And when it's down, reset the timeout.
     window.addEventListener('secure-appopened', this);
     window.addEventListener('secure-appterminated', this);
+
+    window.addEventListener('logohidden', this);
 
     // User is actively using the screen reader.
     window.addEventListener('accessibility-action', this);
@@ -225,7 +227,7 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
-        if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
+        if (Service.query('Bluetooth.isSCOProfileConnected') ||
             telephony.speakerEnabled ||
             Service.query('isHeadsetConnected')) {
             // XXX: Remove this hack in Bug 868348
@@ -285,6 +287,13 @@ var ScreenManager = {
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
         break;
+
+      // Reconfig screen time out after booting.
+      case 'logohidden':
+        window.removeEventListener('logohidden', this);
+        this._reconfigScreenTimeout();
+        break;
+
       case 'lockscreen-appclosing' :
       case 'lockpanelchange' :
         window.removeEventListener('lockscreen-appclosing', this);
@@ -437,9 +446,11 @@ var ScreenManager = {
   },
 
   _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
-    // Remove idle timer if screen wake lock is acquired or
-    // if no app has been displayed yet.
-    if (this._wakeLockManager.isHeld || !Service.currentApp) {
+    // Remove idle timer if screen wake lock is acquired,
+    // if no app has been displayed yet,
+    // or if Lockscreen is not displayed.
+    if (this._wakeLockManager.isHeld ||
+        (!Service.currentApp && !Service.locked)) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.

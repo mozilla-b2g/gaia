@@ -32,6 +32,16 @@
       "password": ""
     }
   },
+  "host": {
+    "smtp": {
+      "email": "",
+      "ssl": false,
+      "hostname": "",
+      "port": 25,
+      "username": "",
+      "password": ""
+    }
+  },
   "plivo": {
     "auth_id": "",
     "auth_token": "",

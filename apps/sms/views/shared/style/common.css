@@ -1,0 +1,25 @@
+/*
+  Structure of app
+*/
+
+.view-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: -moz-calc(100% - 5rem);
+  width: 100%;
+  /* This box-sizing is necessary to prevent vertical scrolling in views that
+   * specify vertical paddings and/or borders. */
+  -moz-box-sizing: border-box;
+  will-change: scroll-position;
+}
+
+/* Style of highlighted text. */
+.highlight {
+  background-color: #b2f2ff;
+}
+
+/* Hidden elements */
+.hide, [data-template] {
+  display: none !important;
+}
+

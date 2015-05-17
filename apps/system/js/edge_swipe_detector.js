@@ -42,6 +42,12 @@
       window.addEventListener('mozChromeEvent', this);
       window.addEventListener('updatepromptshown', this);
       window.addEventListener('updateprompthidden', this);
+      window.addEventListener('installpromptshown', this);
+      window.addEventListener('installprompthidden', this);
+      window.addEventListener('rocketbar-activating', this);
+      window.addEventListener('rocketbar-deactivated', this);
+      window.addEventListener('shrinking-start', this);
+      window.addEventListener('shrinking-stop', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -122,6 +128,8 @@
           }
           break;
         case 'homescreenopened':
+        case 'rocketbar-activating':
+        case 'shrinking-start':
           this.lifecycleEnabled = false;
           break;
         case 'cardviewclosed':
@@ -144,9 +152,13 @@
             }
             break;
         case 'updatepromptshown':
+        case 'installpromptshown':
           this.lifecycleEnabled = false;
           break;
         case 'updateprompthidden':
+        case 'installprompthidden':
+        case 'rocketbar-deactivated':
+        case 'shrinking-stop':
           if (Service.currentApp && !Service.currentApp.isHomescreen) {
             this.lifecycleEnabled = true;
           }
@@ -162,6 +174,11 @@
       var enabled = this._lifecycleEnabled && this._settingEnabled;
       this.previous.classList.toggle('disabled', !enabled);
       this.next.classList.toggle('disabled', !enabled);
+
+      if (!enabled && this._touchStartEvt) {
+        this._touchStartEvt = null; // we ignore the rest of the gesture
+        SheetsTransition.snapInPlace();
+      }
     },
 
     _touchStartEvt: null,
@@ -210,6 +227,9 @@
     },
 
     _touchMove: function esd_touchMove(e) {
+      if (!this._touchStartEvt) {
+        return;
+      }
       var touch = e.touches[0];
       this._updateProgress(touch);
       var delta = Math.max(Math.abs(this._deltaX), Math.abs(this._deltaY));
@@ -250,6 +270,18 @@
     },
 
     _touchEnd: function esd_touchEnd(e) {
+      if (!this._touchStartEvt) {
+        return;
+      }
+
+      // Edge gestures are never multi-touch
+      var touches = e.touches.length + e.changedTouches.length;
+      if (touches > 1 && !this._forwarding) {
+        this._touchStartEvt = null;
+        SheetsTransition.snapInPlace();
+        return;
+      }
+
       var touch = e.changedTouches[0];
       this._updateProgress(touch);
 

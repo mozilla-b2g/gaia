@@ -1,7 +1,7 @@
 'use strict';
 
 /* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings,
-          MockSIMSlotManager, MockAppsMgmt, MockApp */
+          MockSIMSlotManager, MockAppsMgmt, MockApp, MockApplications */
 
 
 require('/shared/js/settings_listener.js');
@@ -16,6 +16,8 @@ require('/shared/test/unit/mocks/mock_simslot.js');
 
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
+requireApp('system/test/unit/mock_applications.js');
+
 /*
  * This test suite has several sub-suites that verify that:
  * 1) methods of the UsageData class properly record data
@@ -28,7 +30,7 @@ requireApp('system/test/unit/mock_app.js');
  */
 suite('AppUsageMetrics:', function() {
   var realMozSettings, realOnLine, realSIMSlotManager, realPerformanceNow,
-      realMozApps;
+      realMozApps, realApplications;
   var isOnLine = true;
 
   function navigatorOnLine() {
@@ -65,6 +67,9 @@ suite('AppUsageMetrics:', function() {
     realPerformanceNow = window.performance.now;
     window.performance.now = function() { return Date.now(); };
 
+    realApplications = window.applications;
+    window.applications = MockApplications;
+    window.applications.ready = true;
     AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
   });
 
@@ -84,6 +89,7 @@ suite('AppUsageMetrics:', function() {
     }
 
     window.performance.now = realPerformanceNow;
+    window.applications = realApplications;
   });
 
   teardown(function() {
@@ -111,7 +117,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     function getUsage(metrics, app) {
-      return metrics.getAppUsage(app.manifestURL);
+      return metrics.getAppUsage(app ? app.manifestURL : null);
     }
 
     test('isEmpty method', function() {
@@ -139,19 +145,29 @@ suite('AppUsageMetrics:', function() {
     });
 
     suite('should track app', function() {
-      var metrics, invalidApp;
-
+      var metrics, invalidApp, undefOriginApp, privateBrowserApp;
+      var invalidApps = [];
       setup(function() {
         metrics = new UsageData();
         invalidApp = new MockApp({
           manifestURL: 'foobar',
           installOrigin: 'http://www.foo.com'
         });
-      });
 
-      function getInvalidAppUsage() {
-        return getUsage(metrics, invalidApp);
-      }
+        undefOriginApp = {
+          installOrigin: 'https://marketplace.firefox.com',
+          manifestURL: 'https://marketplace.firefox.com/app/1-2-3-4'
+        };
+
+        privateBrowserApp = new MockApp({
+          isPrivateBrowser: function() {
+            return true;
+          }
+        });
+
+        invalidApps = [null, invalidApp, privateBrowserApp];
+        MockApplications.mRegisterMockApp(undefOriginApp);
+      });
 
       test('valid apps', function() {
         // Certified app w/o marketplace origin
@@ -172,34 +188,64 @@ suite('AppUsageMetrics:', function() {
 
         // Non-certified gaiamobile app
         assert.ok(metrics.shouldTrackApp(new MockApp()));
+
+        // Marketplace app w/o installOrigin. This ensures we
+        // get the installOrigin from the applications cache if
+        // the installOrigin is not sent in an appopened event.
+        // See Bug 1137063
+        assert.ok(metrics.shouldTrackApp(new MockApp({
+          manifestURL: undefOriginApp.manifestURL
+        })));
       });
 
-      test('invalid apps', function() {
-        assert.ok(!metrics.shouldTrackApp(null));
-        assert.ok(!metrics.shouldTrackApp(invalidApp));
+      test('don\'t track invalid apps', function() {
+        invalidApps.forEach(function(app) {
+          assert.ok(!metrics.shouldTrackApp(app));
+        });
       });
 
       test('doesn\'t record install/uninstall', function() {
-        var recorded = metrics.recordInstall(invalidApp);
-        assert.equal(getInvalidAppUsage().installs, 0);
-        assert.ok(!recorded);
+        invalidApps.forEach(function(app) {
+            var recorded = metrics.recordInstall(app);
+            assert.equal(getUsage(metrics, app).installs, 0);
+            assert.ok(!recorded);
 
-        recorded = metrics.recordInstall(invalidApp);
-        assert.equal(getInvalidAppUsage().uninstalls, 0);
-        assert.ok(!recorded);
+            recorded = metrics.recordUninstall(app);
+            assert.equal(getUsage(metrics, app).uninstalls, 0);
+            assert.ok(!recorded);
+        });
       });
 
       test('doesn\'t record invocation/activity', function() {
-        var recorded = metrics.recordInvocation(invalidApp, 10000);
-        assert.equal(getInvalidAppUsage().invocations, 0);
-        assert.equal(getInvalidAppUsage().usageTime, 0);
-        assert.ok(!recorded);
+        invalidApps.forEach(function(app) {
+          var recorded = metrics.recordInvocation(app, 10000);
+          var usage = getUsage(metrics, app);
+          assert.equal(usage.invocations, 0);
+          assert.equal(usage.usageTime, 0);
+          assert.ok(!recorded);
 
-        recorded = metrics.recordActivity(invalidApp, 'activity');
-        assert.equal(Object.keys(getInvalidAppUsage().activities).length, 0);
-        assert.ok(!('activity' in getInvalidAppUsage().activities));
-        assert.ok(!recorded);
+          recorded = metrics.recordActivity(app, 'activity');
+          usage = getUsage(metrics, app);
+          assert.equal(Object.keys(usage.activities).length, 0);
+          assert.ok(!('activity' in usage.activities));
+          assert.ok(!recorded);
+        });
       });
+
+      test('valid then invalid still counts valid app', function() {
+        metrics.recordInvocation(app1, 10000);
+        metrics.recordInvocation(privateBrowserApp, 10000);
+        metrics.recordInvocation(app1, 5000);
+
+        var usage1 = getUsage(metrics, app1);
+        assert.equal(usage1.invocations, 2);
+        assert.equal(usage1.usageTime, 15);
+
+        var usagePb = getUsage(metrics, privateBrowserApp);
+        assert.equal(usagePb.invocations, 0);
+        assert.equal(usagePb.usageTime, 0);
+      });
+
     });
 
     test('record install', function() {
@@ -981,16 +1027,16 @@ suite('AppUsageMetrics:', function() {
       assert.equal(info.screen.width, screen.width);
       assert.equal(info.screen.height, screen.height);
       assert.equal(info.screen.devicePixelRatio, window.devicePixelRatio);
+      assert.equal(info.appBuildID, 'unknown');
+      assert.equal(info.appVersion, 'unknown');
+      assert.equal(info.appUpdateChannel, 'unknown');
 
       var deviceInfo = info.deviceinfo;
       assert.equal(deviceInfo['developer.menu.enabled'], 'true');
       assert.equal(deviceInfo['deviceinfo.hardware'], 'hardware');
       assert.equal(deviceInfo['deviceinfo.product_model'], 'model');
       assert.equal(deviceInfo['deviceinfo.os'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_build_id'], 'unknown');
-      assert.equal(deviceInfo['deviceinfo.platform_version'], 'unknown');
       assert.equal(deviceInfo['deviceinfo.software'], 'unknown');
-      assert.equal(deviceInfo['app.update.channel'], 'unknown');
 
       // Make sure we're recording a new batch of metrics
       assert.notEqual(metrics, aum.metrics);

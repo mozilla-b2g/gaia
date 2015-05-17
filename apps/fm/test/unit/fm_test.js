@@ -1,10 +1,21 @@
+'use strict';
+/* global
+  $,
+  $$,
+  airplaneModeEnabled:true,
+  enabling,
+  favoritesList,
+  frequencyDialer,
+  historyList,
+  init,
+  mozFMRadio,
+  updateEnablingState,
+  updateFreqUI,
+  updateWarningModeUI */
+
 requireApp('shared/js/airplane_mode_helper.js');
 requireApp('fm/js/fm.js');
 require('/shared/test/unit/load_body_html_helper.js');
-
-var PerformanceTestingHelper = {
-  dispatch: function() { }
-};
 
 suite('FM', function() {
   function setFrequency(frequency) {
@@ -83,7 +94,7 @@ suite('FM', function() {
 
     test('compare new set frequency with aria-valuenow', function() {
       var frequency = 95.7;
-      var freq = frequencyDialer.setFrequency(frequency);
+      frequencyDialer.setFrequency(frequency);
       assert.equal($('dialer-container').getAttribute('aria-valuenow'),
         frequency.toString());
     });
@@ -133,7 +144,9 @@ suite('FM', function() {
 
   suite('history list', function() {
     setup(function() {
-      historyList._save = function() {return true};
+      historyList._save = function() {
+        return true;
+      };
     });
 
     test('item added to history list', function() {

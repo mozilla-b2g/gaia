@@ -33,6 +33,14 @@ suite('system/HierarchyManager', function() {
     setHierarchy: function() {},
     respondToHierarchyEvent: function() {}
   };
+  var fakeActionMenu = {
+    name: 'ActionMenu',
+    EVENT_PREFIX: 'actionmenu',
+    isActive: function() {},
+    getActiveWindow: function() {},
+    setHierarchy: function() {},
+    respondToHierarchyEvent: function() {}
+  };
   var fakeSystemDialogManager = {
     name: 'SystemDialogManager',
     EVENT_PREFIX: 'sdm',
@@ -123,12 +131,14 @@ suite('system/HierarchyManager', function() {
   suite('Update Hierarchy', function() {
     setup(function() {
       subject.registerHierarchy(fakeAppWindowManager);
+      subject.registerHierarchy(fakeActionMenu);
       subject.registerHierarchy(fakeSystemDialogManager);
       subject.registerHierarchy(fakeRocketbar);
     });
 
     teardown(function() {
       subject.unregisterHierarchy(fakeAppWindowManager);
+      subject.unregisterHierarchy(fakeActionMenu);
       subject.unregisterHierarchy(fakeSystemDialogManager);
       subject.unregisterHierarchy(fakeRocketbar);
     });
@@ -171,6 +181,16 @@ suite('system/HierarchyManager', function() {
         window.dispatchEvent(
           new CustomEvent(fakeRocketbar.EVENT_PREFIX + '-deactivated'));
         assert.equal(subject.getTopMostUI(), fakeAppWindowManager);
+
+        var stubAMisActive = this.sinon.stub(fakeActionMenu, 'isActive');
+        stubAMisActive.returns(true);
+        window.dispatchEvent(
+          new CustomEvent(fakeActionMenu.EVENT_PREFIX + '-activated'));
+        assert.equal(subject.getTopMostUI(), fakeActionMenu);
+        stubAMisActive.returns(false);
+        window.dispatchEvent(
+          new CustomEvent(fakeActionMenu.EVENT_PREFIX + '-deactivated'));
+        assert.equal(subject.getTopMostUI(), fakeAppWindowManager);
       });
   });
 
@@ -209,6 +229,15 @@ suite('system/HierarchyManager', function() {
         subject.focus(fakeAppWindowManager);
         assert.isFalse(fakeAppWindowManager.setHierarchy.calledOnce);
       });
+
+    test('should focus top most without a module', function() {
+      this.sinon.stub(fakeAppWindowManager, 'setHierarchy');
+      this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
+      // use registerHierarchy to update top most
+      subject.registerHierarchy(fakeAppWindowManager);
+      subject.focus();
+      assert.isTrue(fakeAppWindowManager.setHierarchy.called);
+    });
   });
 
   suite('unregisterHierarchy', function() {
@@ -242,6 +271,7 @@ suite('system/HierarchyManager', function() {
     setup(function() {
       subject.registerHierarchy(fakeSystemDialogManager);
       subject.registerHierarchy(fakeRocketbar);
+      subject.registerHierarchy(fakeActionMenu);
       subject.registerHierarchy(fakeTaskManager);
       subject.registerHierarchy(fakeAppWindowManager);
       subject.registerHierarchy(fakeAttentionWindowManager);
@@ -250,6 +280,7 @@ suite('system/HierarchyManager', function() {
     teardown(function() {
       subject.unregisterHierarchy(fakeSystemDialogManager);
       subject.unregisterHierarchy(fakeRocketbar);
+      subject.unregisterHierarchy(fakeActionMenu);
       subject.unregisterHierarchy(fakeTaskManager);
       subject.unregisterHierarchy(fakeAppWindowManager);
       subject.unregisterHierarchy(fakeAttentionWindowManager);
@@ -258,12 +289,15 @@ suite('system/HierarchyManager', function() {
     test('Should broadcast event from top to bottom until blocked', function() {
       this.sinon.stub(fakeRocketbar, 'isActive').returns(true);
       this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
+      this.sinon.stub(fakeActionMenu, 'isActive').returns(true);
       this.sinon.stub(fakeAppWindowManager, 'isActive').returns(true);
       this.sinon.stub(fakeTaskManager, 'isActive').returns(true);
       this.sinon.stub(fakeAttentionWindowManager, 'isActive').returns(true);
       this.sinon.stub(fakeRocketbar,
         'respondToHierarchyEvent').returns(true);
       this.sinon.stub(fakeSystemDialogManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeActionMenu,
         'respondToHierarchyEvent').returns(true);
       this.sinon.stub(fakeAppWindowManager,
         'respondToHierarchyEvent').returns(false);
@@ -279,6 +313,8 @@ suite('system/HierarchyManager', function() {
         .respondToHierarchyEvent.calledWith(homeEvt));
       assert.isTrue(fakeSystemDialogManager
         .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeActionMenu
+        .respondToHierarchyEvent.calledWith(homeEvt));
       assert.isTrue(fakeAppWindowManager
         .respondToHierarchyEvent.calledWith(homeEvt));
       assert.isFalse(fakeTaskManager
@@ -289,6 +325,7 @@ suite('system/HierarchyManager', function() {
       this.sinon.stub(fakeRocketbar, 'isActive').returns(true);
       this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(true);
       this.sinon.stub(fakeAppWindowManager, 'isActive').returns(false);
+      this.sinon.stub(fakeActionMenu, 'isActive').returns(true);
       this.sinon.stub(fakeTaskManager, 'isActive').returns(true);
       this.sinon.stub(fakeAttentionWindowManager, 'isActive').returns(true);
       this.sinon.stub(fakeRocketbar,
@@ -299,6 +336,8 @@ suite('system/HierarchyManager', function() {
         'respondToHierarchyEvent').returns(false);
       this.sinon.stub(fakeTaskManager,
         'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeActionMenu,
+        'respondToHierarchyEvent').returns(true);
       this.sinon.stub(fakeAttentionWindowManager,
         'respondToHierarchyEvent').returns(true);
       var homeEvt = new CustomEvent('home');
@@ -306,6 +345,8 @@ suite('system/HierarchyManager', function() {
       assert.isTrue(fakeAttentionWindowManager
         .respondToHierarchyEvent.calledWith(homeEvt));
       assert.isTrue(fakeRocketbar
+        .respondToHierarchyEvent.calledWith(homeEvt));
+      assert.isTrue(fakeActionMenu
         .respondToHierarchyEvent.calledWith(homeEvt));
       assert.isTrue(fakeSystemDialogManager
         .respondToHierarchyEvent.calledWith(homeEvt));
@@ -321,6 +362,7 @@ suite('system/HierarchyManager', function() {
       this.sinon.stub(fakeSystemDialogManager, 'isActive').returns(false);
       this.sinon.stub(fakeAppWindowManager, 'isActive').returns(false);
       this.sinon.stub(fakeTaskManager, 'isActive').returns(false);
+      this.sinon.stub(fakeActionMenu, 'isActive').returns(false);
       this.sinon.stub(fakeAttentionWindowManager, 'isActive').returns(false);
       this.sinon.stub(fakeRocketbar,
         'respondToHierarchyEvent').returns(true);
@@ -329,6 +371,8 @@ suite('system/HierarchyManager', function() {
       this.sinon.stub(fakeAppWindowManager,
         'respondToHierarchyEvent').returns(true);
       this.sinon.stub(fakeTaskManager,
+        'respondToHierarchyEvent').returns(true);
+      this.sinon.stub(fakeActionMenu,
         'respondToHierarchyEvent').returns(true);
       this.sinon.stub(fakeAttentionWindowManager,
         'respondToHierarchyEvent').returns(true);
@@ -339,6 +383,8 @@ suite('system/HierarchyManager', function() {
       assert.isFalse(fakeRocketbar
         .respondToHierarchyEvent.calledWith(holdhomeEvt));
       assert.isFalse(fakeSystemDialogManager
+        .respondToHierarchyEvent.calledWith(holdhomeEvt));
+      assert.isFalse(fakeActionMenu
         .respondToHierarchyEvent.calledWith(holdhomeEvt));
       assert.isFalse(fakeAppWindowManager
         .respondToHierarchyEvent.calledWith(holdhomeEvt));

@@ -1,0 +1,172 @@
+/* Global */
+html, body {
+  height: 100%;
+}
+
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: #000;
+  font-size: 1.6rem;
+  line-height: 2.2rem;
+  vertical-align: middle;
+  background-color: #FFF;
+}
+
+/* Text conventions */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+ul, ol, dl, dt, dd {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+p, li {
+  word-wrap: break-word;
+  margin: 0;
+  padding: 0;
+}
+
+q {
+  quotes: none;
+  display: block;
+}
+
+pre, blockquote {
+  padding: 0;
+  margin: 0;
+}
+
+em {
+  font-style: italic;
+}
+
+address {
+  font-style: normal;
+  display: inline;
+}
+
+abbr, acronym {
+  cursor: default;
+  border: none;
+}
+
+strong {
+  font-weight: 700;
+}
+
+b {
+  font-weight: 600;
+}
+
+small {
+  font-size: 1.1rem;
+  line-height: 1rem;
+  color: #999;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  outline: none;
+  color: #ff4e00;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+a img {
+  border: none;
+}
+
+a abbr {
+  cursor: pointer;
+}
+
+/* Forms */
+form {
+  margin: 0;
+}
+
+fieldset {
+  margin: 2rem 0 0 0;
+  padding: 0;
+  border: none;
+}
+fieldset.first {
+  margin: 0;
+}
+
+legend {
+  padding: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  font: 0/0 a;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: none;
+}
+
+input, textarea, select, button {
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+}
+
+textarea {
+  resize: none;
+  overflow: auto;
+  height: 4.6rem;
+}
+
+input[type="text"], textarea {
+  font-size: 1.3rem;
+  line-height: 4rem;
+}
+
+input[type="text"]:focus, textarea:focus {
+  border-color: #7a7a7a;
+}
+
+[contenteditable] {
+  outline: none;
+  word-wrap: break-word;
+}
+
+/* Media */
+img {
+  display: block;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+img:-moz-broken {
+  line-height: 1.1rem;
+  overflow: hidden;
+}
+
+/* HTML 5 */
+article, aside, details, figcaption, figure, footer, header, hgroup,
+menu, nav, section, video, audio, canvas, progress, meter, time {
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+

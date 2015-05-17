@@ -71,9 +71,9 @@
         message.args
       );
       var button = banner.querySelector('button');
-      focusManager.addUI(this);
 
       if (buttonParams) {
+        focusManager.addUI(this);
         banner.dataset.button = true;
         button.setAttribute('data-l10n-id', buttonParams.labelL10nId);
         this._clickCallback = function() {
@@ -86,9 +86,9 @@
       banner.addEventListener('animationend', function animationend() {
         banner.removeEventListener('animationend', animationend);
         banner.classList.remove('visible');
-        focusManager.removeUI(this);
 
         if (buttonParams) {
+          focusManager.removeUI(this);
           if (buttonParams.dismiss && !this._clicked) {
             buttonParams.dismiss();
           }
@@ -103,18 +103,18 @@
       banner.classList.add('visible');
     },
 
-    isVisible: function() {
+    isFocusable: function() {
       return this._banner && this._banner.classList.contains('visible');
     },
 
     getElement: function() {
-      if (this.isVisible()) {
+      if (this.isFocusable()) {
         return this._banner;
       }
     },
 
     focus: function() {
-      if (this.isVisible()) {
+      if (this.isFocusable()) {
         document.activeElement.blur();
         this._banner.querySelector('button').focus();
       }

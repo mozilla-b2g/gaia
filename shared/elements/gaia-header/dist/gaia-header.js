@@ -52,7 +52,7 @@ var BUFFER = 3;
  *   - {Number} `max` Max font-size (px) (optional)
  *
  * @param  {Object} config
- * @return {Object} {fontSize,textWidth}
+ * @return {Object} {fontSize,overflowing,textWidth}
  */
 module.exports = function(config) {
   debug('font fit', config);
@@ -71,7 +71,8 @@ module.exports = function(config) {
 
   return {
     textWidth: textWidth,
-    fontSize: fontSize
+    fontSize: fontSize,
+    overflowing: textWidth > space
   };
 };
 
@@ -140,21 +141,10 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('font-fit',this));
  */
 
 var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
-var removeAttribute = HTMLElement.prototype.removeAttribute;
-var setAttribute = HTMLElement.prototype.setAttribute;
+var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+var removeAttribute = Element.prototype.removeAttribute;
+var setAttribute = Element.prototype.setAttribute;
 var noop  = function() {};
-
-/**
- * Detects presence of shadow-dom
- * CSS selectors.
- *
- * @return {Boolean}
- */
-var hasShadowCSS = (function() {
-  var div = document.createElement('div');
-  try { div.querySelector(':host'); return true; }
-  catch (e) { return false; }
-})();
 
 /**
  * Register a new component.
@@ -164,12 +154,10 @@ var hasShadowCSS = (function() {
  * @return {constructor}
  * @public
  */
-module.exports.register = function(name, props) {
+exports.register = function(name, props) {
+  var baseProto = getBaseProto(props.extends);
 
-  // Decide on a base protoype, create a handy
-  // reference to super (extended) class, then clean up.
-  var parent = props.extends ? props.extends.prototype : base;
-  props.super = parent;
+  // Clean up
   delete props.extends;
 
   // Pull out CSS that needs to be in the light-dom
@@ -191,137 +179,192 @@ module.exports.register = function(name, props) {
 
   // Merge base getter/setter attributes with the user's,
   // then define the property descriptors on the prototype.
-  var descriptors = Object.assign(props.attrs || {}, baseAttrs);
+  var descriptors = Object.assign(props.attrs || {}, base.descriptors);
 
   // Store the orginal descriptors somewhere
   // a little more private and delete the original
   props._attrs = props.attrs;
   delete props.attrs;
 
-  // Create the prototype, extended from the parent
-  var proto = Object.assign(Object.create(parent), props);
-
-  // Define the properties directly on the prototype
+  // Create the prototype, extended from base and
+  // define the descriptors directly on the prototype
+  var proto = createProto(baseProto, props);
   Object.defineProperties(proto, descriptors);
 
   // Register the custom-element and return the constructor
-  return document.registerElement(name, { prototype: proto });
+  try {
+    return document.registerElement(name, { prototype: proto });
+  } catch (e) {
+    if (e.name !== 'NotSupportedError') {
+      throw e;
+    }
+  }
 };
 
-var base = Object.assign(Object.create(HTMLElement.prototype), {
-  attributeChanged: noop,
-  attached: noop,
-  detached: noop,
-  created: noop,
+var base = {
+  properties: {
+    GaiaComponent: true,
+    attributeChanged: noop,
+    attached: noop,
+    detached: noop,
+    created: noop,
 
-  createdCallback: function() {
-    injectLightCss(this);
-    this.created();
-  },
-
-  /**
-   * It is very common to want to keep object
-   * properties in-sync with attributes,
-   * for example:
-   *
-   *   el.value = 'foo';
-   *   el.setAttribute('value', 'foo');
-   *
-   * So we support an object on the prototype
-   * named 'attrs' to provide a consistent
-   * way for component authors to define
-   * these properties. When an attribute
-   * changes we keep the attr[name]
-   * up-to-date.
-   *
-   * @param  {String} name
-   * @param  {String||null} from
-   * @param  {String||null} to
-   */
-  attributeChangedCallback: function(name, from, to) {
-    var prop = toCamelCase(name);
-    if (this._attrs && this._attrs[prop]) { this[prop] = to; }
-    this.attributeChanged(name, from, to);
-  },
-
-  attachedCallback: function() { this.attached(); },
-  detachedCallback: function() { this.detached(); },
-
-  /**
-   * A convenient method for setting up
-   * a shadow-root using the defined template.
-   *
-   * @return {ShadowRoot}
-   */
-  setupShadowRoot: function() {
-    if (!this.template) { return; }
-    var node = document.importNode(this.template.content, true);
-    this.createShadowRoot().appendChild(node);
-    return this.shadowRoot;
-  },
-
-  /**
-   * Sets an attribute internally
-   * and externally. This is so that
-   * we can style internal shadow-dom
-   * content.
-   *
-   * @param {String} name
-   * @param {String} value
-   */
-  setAttr: function(name, value) {
-    var internal = this.shadowRoot.firstElementChild;
-    setAttribute.call(internal, name, value);
-    setAttribute.call(this, name, value);
-  },
-
-  /**
-   * Removes an attribute internally
-   * and externally. This is so that
-   * we can style internal shadow-dom
-   * content.
-   *
-   * @param {String} name
-   * @param {String} value
-   */
-  removeAttr: function(name) {
-    var internal = this.shadowRoot.firstElementChild;
-    removeAttribute.call(internal, name);
-    removeAttribute.call(this, name);
-  }
-});
-
-var baseAttrs = {
-  textContent: {
-    set: function(value) {
-      var node = firstChildTextNode(this);
-      if (node) { node.nodeValue = value; }
+    createdCallback: function() {
+      if (this.rtl) { addDirObserver(); }
+      injectLightCss(this);
+      this.created();
     },
 
-    get: function() {
-      var node = firstChildTextNode(this);
-      return node && node.nodeValue;
+    /**
+     * It is very common to want to keep object
+     * properties in-sync with attributes,
+     * for example:
+     *
+     *   el.value = 'foo';
+     *   el.setAttribute('value', 'foo');
+     *
+     * So we support an object on the prototype
+     * named 'attrs' to provide a consistent
+     * way for component authors to define
+     * these properties. When an attribute
+     * changes we keep the attr[name]
+     * up-to-date.
+     *
+     * @param  {String} name
+     * @param  {String||null} from
+     * @param  {String||null} to
+     */
+    attributeChangedCallback: function(name, from, to) {
+      var prop = toCamelCase(name);
+      if (this._attrs && this._attrs[prop]) { this[prop] = to; }
+      this.attributeChanged(name, from, to);
+    },
+
+    attachedCallback: function() { this.attached(); },
+    detachedCallback: function() { this.detached(); },
+
+    /**
+     * A convenient method for setting up
+     * a shadow-root using the defined template.
+     *
+     * @return {ShadowRoot}
+     */
+    setupShadowRoot: function() {
+      if (!this.template) { return; }
+      var node = document.importNode(this.template.content, true);
+      this.createShadowRoot().appendChild(node);
+      return this.shadowRoot;
+    },
+
+    /**
+     * Sets an attribute internally
+     * and externally. This is so that
+     * we can style internal shadow-dom
+     * content.
+     *
+     * @param {String} name
+     * @param {String} value
+     */
+    setAttr: function(name, value) {
+      var internal = this.shadowRoot.firstElementChild;
+      setAttribute.call(internal, name, value);
+      setAttribute.call(this, name, value);
+    },
+
+    /**
+     * Removes an attribute internally
+     * and externally. This is so that
+     * we can style internal shadow-dom
+     * content.
+     *
+     * @param {String} name
+     * @param {String} value
+     */
+    removeAttr: function(name) {
+      var internal = this.shadowRoot.firstElementChild;
+      removeAttribute.call(internal, name);
+      removeAttribute.call(this, name);
+    }
+  },
+
+  descriptors: {
+    textContent: {
+      set: function(value) {
+        textContent.set.call(this, value);
+        if (this.lightStyle) { this.appendChild(this.lightStyle); }
+      },
+
+      get: textContent.get
+    },
+
+    innerHTML: {
+      set: function(value) {
+        innerHTML.set.call(this, value);
+        if (this.lightStyle) { this.appendChild(this.lightStyle); }
+      },
+
+      get: innerHTML.get
     }
   }
 };
 
 /**
- * Return the first child textNode.
+ * The default base prototype to use
+ * when `extends` is undefined.
  *
- * @param  {Element} el
- * @return {TextNode}
+ * @type {Object}
  */
-function firstChildTextNode(el) {
-  for (var i = 0; i < el.childNodes.length; i++) {
-    var node = el.childNodes[i];
-    if (node && node.nodeType === 3) { return node; }
-  }
+var defaultPrototype = createProto(HTMLElement.prototype, base.properties);
+
+/**
+ * Returns a suitable prototype based
+ * on the object passed.
+ *
+ * @param  {HTMLElementPrototype|undefined} proto
+ * @return {HTMLElementPrototype}
+ * @private
+ */
+function getBaseProto(proto) {
+  if (!proto) { return defaultPrototype; }
+  proto = proto.prototype || proto;
+  return !proto.GaiaComponent
+    ? createProto(proto, base.properties)
+    : proto;
 }
 
+/**
+ * Extends the given proto and mixes
+ * in the given properties.
+ *
+ * @param  {Object} proto
+ * @param  {Object} props
+ * @return {Object}
+ */
+function createProto(proto, props) {
+  return Object.assign(Object.create(proto), props);
+}
+
+/**
+ * Detects presence of shadow-dom
+ * CSS selectors.
+ *
+ * @return {Boolean}
+ */
+var hasShadowCSS = (function() {
+  var div = document.createElement('div');
+  try { div.querySelector(':host'); return true; }
+  catch (e) { return false; }
+})();
+
+/**
+ * Regexs used to extract shadow-css
+ *
+ * @type {Object}
+ */
 var regex = {
   shadowCss: /(?:\:host|\:\:content)[^{]*\{[^}]*\}/g,
   ':host': /(?:\:host)/g,
-  ':host()': /\:host\((.+)\)/g,
+  ':host()': /\:host\((.+)\)(?: \:\:content)?/g,
   ':host-context': /\:host-context\((.+)\)([^{,]+)?/g,
   '::content': /(?:\:\:content)/g
 };
@@ -379,7 +422,25 @@ function injectGlobalCss(css) {
   if (!css) return;
   var style = document.createElement('style');
   style.innerHTML = css.trim();
-  document.head.appendChild(style);
+  headReady().then(() => {
+    document.head.appendChild(style)
+  });
+}
+
+
+/**
+ * Resolves a promise once document.head is ready.
+ *
+ * @private
+ */
+function headReady() {
+  return new Promise(resolve => {
+    if (document.head) { return resolve(); }
+    window.addEventListener('load', function fn() {
+      window.removeEventListener('load', fn);
+      resolve();
+    });
+  });
 }
 
 
@@ -420,6 +481,37 @@ function toCamelCase(string) {
   return string.replace(/-(.)/g, function replacer(string, p1) {
     return p1.toUpperCase();
   });
+}
+
+/**
+ * Observer (singleton)
+ *
+ * @type {MutationObserver|undefined}
+ */
+var dirObserver;
+
+/**
+ * Observes the document `dir` (direction)
+ * attribute and dispatches a global event
+ * when it changes.
+ *
+ * Components can listen to this event and
+ * make internal changes if need be.
+ *
+ * @private
+ */
+function addDirObserver() {
+  if (dirObserver) { return; }
+
+  dirObserver = new MutationObserver(onChanged);
+  dirObserver.observe(document.documentElement, {
+    attributeFilter: ['dir'],
+    attributes: true
+  });
+
+  function onChanged(mutations) {
+    document.dispatchEvent(new Event('dirchanged'));
+  }
 }
 
 });})(typeof define=='function'&&define.amd?define
@@ -568,6 +660,10 @@ module.exports = component.register('gaia-header', {
 
     this.unresolved = {};
     this.pending = {};
+    this._resizeThrottlingId = null;
+
+    // bind the listener in advance so that we can remove it when detaching.
+    this.onResize = this.onResize.bind(this);
   },
 
   /**
@@ -588,6 +684,7 @@ module.exports = component.register('gaia-header', {
     debug('attached');
     this.runFontFitSoon();
     this.observerStart();
+    window.addEventListener('resize', this.onResize);
   },
 
   /**
@@ -598,12 +695,13 @@ module.exports = component.register('gaia-header', {
    */
   detached: function() {
     debug('detached');
+    window.removeEventListener('resize', this.onResize);
     this.observerStop();
     this.clearPending();
   },
 
   /**
-   * Clears pending `.nextTick()`s
+   * Clears pending `.nextTick()`s and requestAnimationFrame's.
    *
    * @private
    */
@@ -612,6 +710,9 @@ module.exports = component.register('gaia-header', {
       this.pending[key].clear();
       delete this.pending[key];
     }
+
+    window.cancelAnimationFrame(this._resizeThrottlingId);
+    this._resizeThrottlingId = null;
   },
 
   /**
@@ -637,7 +738,7 @@ module.exports = component.register('gaia-header', {
 
     var titles = this.els.titles;
     var space = this.getTitleSpace();
-    var styles = [].map.call(titles, (el) => this.getTitleStyle(el, space));
+    var styles = [].map.call(titles, el => this.getTitleStyle(el, space));
 
     // Update the title styles using the latest
     // styles. This function can be called many
@@ -671,21 +772,22 @@ module.exports = component.register('gaia-header', {
   getTitleStyle: function(el, space) {
     debug('get el style', el, space);
     var text = el.textContent;
-    var styleId = text + space.value;
+    var styleId = space.start + text + space.end + '#' + space.value;
 
     // Bail when there's no text (or just whitespace)
-    if (!text || !text.trim()) { return false; }
+    if (!text || !text.trim()) { return debug('exit: no text'); }
 
     // If neither the text or the titleSpace
     // changed, there's no reason to continue.
-    if (getStyleId(el) === styleId) { return false; }
+    if (getStyleId(el) === styleId) { return debug('exit: no change'); }
 
     var marginStart = this.getTitleMarginStart();
     var textSpace = space.value - Math.abs(marginStart);
-    var fontFitResult = this.fontFit(
-      text, textSpace, { min: MINIMUM_FONT_SIZE_CENTERED }
-    );
-    var overflowing = fontFitResult.textWidth > textSpace;
+    var fontFitResult = this.fontFit(text, textSpace, {
+      min: MINIMUM_FONT_SIZE_CENTERED
+    });
+
+    var overflowing = fontFitResult.overflowing;
     var padding = { start: 0, end: 0 };
 
     // If the text is overflowing in the
@@ -803,6 +905,7 @@ module.exports = component.register('gaia-header', {
   /**
    * Start the observer listening
    * for DOM mutations.
+   * Start the listener for 'resize' event.
    *
    * @private
    */
@@ -828,8 +931,30 @@ module.exports = component.register('gaia-header', {
   observerStop: function() {
     if (!this.observing) { return; }
     this.observer.disconnect();
+
     this.observing = false;
     debug('observer stopped');
+  },
+
+  /**
+   * Handle 'resize' events.
+   * @param {Event} The DOM Event that's being handled.
+   *
+   * @private
+   */
+  onResize: function(e) {
+    debug('onResize', this._resizeThrottlingId);
+
+    if (this._resizeThrottlingId !== null) {
+      return;
+    }
+
+    /* Resize events can arrive at a very high rate, so we're trying to
+     * reasonably throttle these events. */
+    this._resizeThrottlingId = window.requestAnimationFrame(() => {
+      this._resizeThrottlingId = null;
+      this.runFontFitSoon();
+    });
   },
 
   /**
@@ -952,7 +1077,8 @@ module.exports = component.register('gaia-header', {
     for (var i = 0; i < l; i++) {
       var el = children[i];
       if (el.tagName === 'H1') { break; }
-      if (!isButton(el)) { continue; }
+      if (!contributesToLayout(el)) { continue; }
+
       els.push(el);
     }
 
@@ -975,7 +1101,8 @@ module.exports = component.register('gaia-header', {
     for (var i = children.length - 1; i >= 0; i--) {
       var el = children[i];
       if (el.tagName === 'H1') { break; }
-      if (!isButton(el)) { continue; }
+      if (!contributesToLayout(el)) { continue; }
+
       els.push(el);
     }
 
@@ -1085,13 +1212,14 @@ module.exports = component.register('gaia-header', {
     <button class="action-button">
       <content select=".l10n-action"></content>
     </button>
-    <content select="h1,a,button"></content>
+    <content></content>
   </div>
 
   <style>
 
   :host {
     display: block;
+    -moz-user-select: none;
 
     --gaia-header-button-color:
       var(--header-button-color,
@@ -1120,6 +1248,7 @@ module.exports = component.register('gaia-header', {
     display: flex;
     min-height: 50px;
     direction: ltr;
+    -moz-user-select: none;
 
     background:
       var(--header-background,
@@ -1135,18 +1264,20 @@ module.exports = component.register('gaia-header', {
    */
 
   .action-button {
-    display: none; /* 1 */
     position: relative;
+
+    display: none; /* 1 */
     width: 50px;
     font-size: 30px;
     margin: 0;
     padding: 0;
     border: 0;
+    outline: 0;
+
     align-items: center;
     background: none;
     cursor: pointer;
     transition: opacity 200ms 280ms;
-
     color:
       var(--header-action-button-color,
       var(--header-icon-color,
@@ -1250,7 +1381,6 @@ module.exports = component.register('gaia-header', {
     font-weight: 300;
     font-style: italic;
     font-size: 24px;
-    -moz-user-select: none;
 
     color:
       var(--header-title-color,
@@ -1285,12 +1415,13 @@ module.exports = component.register('gaia-header', {
     z-index: 1;
     box-sizing: border-box;
     display: flex;
-    border: none;
     width: auto;
     height: auto;
     min-width: 50px;
     margin: 0;
     padding: 0 10px;
+    outline: 0;
+    border: 0;
 
     font-size: 14px;
     line-height: 1;
@@ -1391,13 +1522,12 @@ module.exports = component.register('gaia-header', {
 
 /**
  * Determines whether passed element
- * is regarded as a button in the
- * scope of gaia-header.
+ * contributes to the layout in gaia-header.
  *
  * @param  {Element}  el
  * @return {Boolean}
  */
-function isButton(el) { return { BUTTON: true, A: true }[el.tagName]; }
+function contributesToLayout(el) { return el.tagName !== 'STYLE'; }
 
 /**
  * Set a 'style id' property that

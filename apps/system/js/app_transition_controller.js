@@ -90,8 +90,8 @@
   AppTransitionController.prototype._waitingForLoad = false;
   AppTransitionController.prototype.openAnimation = 'enlarge';
   AppTransitionController.prototype.closeAnimation = 'reduce';
-  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 350;
-  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 350;
+  AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 200;
+  AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 200;
   AppTransitionController.prototype.SLOW_TRANSITION_TIMEOUT = 3500;
   AppTransitionController.prototype.changeTransitionState =
     function atc_changeTransitionState(evt) {
@@ -170,7 +170,6 @@
       return 'immediate';
     }
   };
-
 
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
@@ -346,7 +345,8 @@
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
         'will-become-active', 'will-become-inactive',
         'slide-to-top', 'slide-from-top',
-        'slide-to-bottom', 'slide-from-bottom'];
+        'slide-to-bottom', 'slide-from-bottom',
+        'home-from-cardview', 'home-to-cardview'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);
@@ -380,6 +380,9 @@
           break;
         case 'animationend':
           evt.stopPropagation();
+          // Hide touch-blocker when launching animation is ended.
+          this.app.element.classList.remove('transition-opening');
+
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
           if (Service.isBusyLoading()) {

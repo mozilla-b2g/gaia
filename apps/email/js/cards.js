@@ -6,6 +6,7 @@ var cardsInit = require('cards_init'),
     mozL10n = require('l10n!'),
     evt = require('evt'),
     toaster = require('toaster'),
+    transitionEnd = require('transition_end'),
     hookupInputAreaResetButtons = require('input_areas');
 
 function addClass(domNode, name) {
@@ -121,9 +122,7 @@ var cards = {
 
     // XXX be more platform detecty. or just add more events. unless the
     // prefixes are already gone with webkit and opera?
-    this._cardsNode.addEventListener('transitionend',
-                                     this._onTransitionEnd.bind(this),
-                                     false);
+    transitionEnd(this._cardsNode, this._onTransitionEnd.bind(this), false);
 
     // Listen for visibility changes to let current card know of them too.
     // Do this here instead of each card needing to listen, and needing to know
@@ -863,14 +862,11 @@ var cards = {
         // Cache already loaded, so at this point the content shown is wired
         // to event handlers.
         window.performance.mark('contentInteractive');
-        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
       } else {
         // Cache was not used, so only now is the chrome dom loaded.
         window.performance.mark('navigationLoaded');
-        window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
       }
       window.performance.mark('navigationInteractive');
-      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
       // If a card that has a simple static content DOM, content is complete.
       // Otherwise, like message_list, need backend data to call complete.

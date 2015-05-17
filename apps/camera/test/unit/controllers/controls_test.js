@@ -50,6 +50,14 @@ suite('controllers/controls', function() {
   });
 
   suite('ControlsController()', function() {
+    test('Should listen to the following events', function() {
+      assert.ok(this.app.on.calledWith('localized', this.view.localize));
+      assert.ok(this.app.on.calledWith('previewgallery:opened',
+        this.view.hide));
+      assert.ok(this.app.on.calledWith('previewgallery:closed',
+        this.view.show));
+    });
+
     test('Should *not* show the cancel button when *not* within a \'pick\' activity', function() {
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', false));
     });
@@ -163,6 +171,15 @@ suite('controllers/controls', function() {
 
     test('Should fire a \'capture\' event on the app', function() {
       assert.isTrue(this.app.emit.calledWith('capture'));
+    });
+  });
+
+  suite('ControlsController#onRecordingChange', function() {
+    test('When recording view\'s setCaptureLabel should be called', function() {
+      [true, false].forEach(function(recording) {
+        this.controller.onRecordingChange(recording);
+        assert.isTrue(this.view.setCaptureLabel.calledWith(recording));
+      }, this);
     });
   });
 

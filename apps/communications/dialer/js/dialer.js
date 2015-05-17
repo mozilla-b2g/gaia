@@ -1,7 +1,7 @@
 'use strict';
 
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
-          KeypadManager, LazyL10n, LazyLoader, MmiManager, Notification,
+          KeypadManager, LazyLoader, MmiManager, Notification,
           NotificationHelper, SettingsListener, SimSettingsHelper,
           SuggestionBar, TelephonyHelper, Utils, Voicemail, MozActivity */
 
@@ -221,47 +221,52 @@ var CallHandler = (function callHandler() {
   function sendNotification(number, serviceId) {
     LazyLoader.load('/shared/js/dialer/utils.js', function() {
       Contacts.findByNumber(number, function lookup(contact, matchingTel) {
-        LazyL10n.get(function localized(_) {
-          var title;
-          if (navigator.mozIccManager.iccIds.length > 1) {
-            title = _('missedCallMultiSims', {n: serviceId + 1});
-          } else {
-            title = _('missedCall');
-          }
+        var title;
+        if (navigator.mozIccManager.iccIds.length > 1) {
+          title = { id: 'missedCallMultiSims', args: { n: serviceId + 1 } };
+        } else {
+          title = 'missedCall';
+        }
 
-          var body;
-          if (!number) {
-            body = _('from-withheld-number');
-          } else if (contact) {
-            var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
-              contact);
-            if (primaryInfo) {
-              if (primaryInfo !== matchingTel.value) {
-                // primaryInfo is an object here
-                body = _('from-contact', {contact: primaryInfo.toString()});
-              } else {
-                body = _('from-number', {number: primaryInfo});
-              }
+        var body;
+        if (!number) {
+          body = 'from-withheld-number';
+        } else if (contact) {
+          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+            contact);
+          if (primaryInfo) {
+            if (primaryInfo !== matchingTel.value) {
+              // primaryInfo is an object here
+              body = {
+                id: 'from-contact',
+                args: { contact: primaryInfo.toString() }
+              };
             } else {
-              body = _('from-withheld-number');
+              body = { id: 'from-number', args: { number: primaryInfo } };
             }
           } else {
-            body = _('from-number', {number: number});
+            body = 'from-withheld-number';
           }
+        } else {
+          body = { id: 'from-number', args: { number: number } };
+        }
 
-          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-            var app = evt.target.result;
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
 
-            var iconURL = NotificationHelper.getIconURI(app, 'dialer');
-            var clickCB = function() {
-              app.launch('dialer');
-              window.location.hash = '#call-log-view';
-            };
-            var notification =
-              new Notification(title, {body: body, icon: iconURL});
-            notification.addEventListener('click', clickCB);
+          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+          var clickCB = function() {
+            app.launch('dialer');
+            window.location.hash = '#call-log-view';
           };
-        });
+
+          NotificationHelper.send(title, {
+            bodyL10n: body,
+            icon: iconURL
+          }).then(function(notification) {
+            notification.addEventListener('click', clickCB);
+          });
+        };
       });
     });
   }

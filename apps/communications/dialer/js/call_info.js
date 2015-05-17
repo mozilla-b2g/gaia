@@ -1,7 +1,7 @@
 'use strict';
 
-/* global CallLogDBManager, LazyLoader, MozActivity, Utils, ContactsButtons,
-          Contacts, SimplePhoneMatcher */
+/* global CallLog, CallLogDBManager, Contacts, ContactsButtons, LazyLoader,
+          MozActivity, SimplePhoneMatcher, Utils */
 
 (function(exports) {
   var currentGroup;
@@ -27,6 +27,7 @@
     updateCallDurations(group);
     updateActionButtons(group);
     callInfoView.hidden = false;
+    CallLog.hideEditModeButton();
   }
 
   function isMissedCall(group) {
@@ -180,6 +181,7 @@
 
     window.removeEventListener('CallLogDbNewCall', updateViewIfNeeded);
     callInfoView.hidden = true;
+    CallLog.showEditModeButton();
   }
 
   function viewContact() {

@@ -5,6 +5,7 @@ Keyboards.gl = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'gl',
+  lang: 'gl',
   pages: [ {   // default page
     alt: {
       a: 'áªàâäåãāæ',

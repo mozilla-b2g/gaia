@@ -326,7 +326,6 @@ window.KeyboardManager = {
     var showedGroup = this._showingInputGroup;
     var activeLayoutIdx =
       this.inputLayouts.layouts[showedGroup]._activeLayoutIdx;
-    var actionMenuTitle = navigator.mozL10n.get('choose-option');
 
     this._waitForSwitchTimeout(function listLayouts() {
       var items = this.inputLayouts.layouts[showedGroup].map(
@@ -341,7 +340,7 @@ window.KeyboardManager = {
 
       inputWindowManager.hideInputWindow();
 
-      var menu = new ImeMenu(items, actionMenuTitle,
+      var menu = new ImeMenu(items, 'choose-option',
         this._imeMenuCallback.bind(this, showedGroup),
         this._imeMenuCallback.bind(this, showedGroup));
 

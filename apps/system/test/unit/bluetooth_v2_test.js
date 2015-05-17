@@ -4,10 +4,10 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/base_ui.js');
@@ -67,19 +67,10 @@ suite('system/bluetooth_v2', function() {
     window.Bluetooth = new window.Bluetooth2();
   });
 
-  suite('default variables', function() {
-    test('profiles', function() {
-      assert.equal(Bluetooth.Profiles.HFP, 'hfp');
-      assert.equal(Bluetooth.Profiles.OPP, 'opp');
-      assert.equal(Bluetooth.Profiles.A2DP, 'a2dp');
-      assert.equal(Bluetooth.Profiles.SCO, 'sco');
-    });
-  });
-
   suite('setProfileConnected', function() {
     var profiles = ['hfp', 'opp', 'a2dp', 'sco'];
     setup(function() {
-      this.sinon.stub(window, 'dispatchEvent');
+      this.sinon.spy(window, 'dispatchEvent');
     });
 
     test('nothing is called when wasConnected', function() {
@@ -106,23 +97,38 @@ suite('system/bluetooth_v2', function() {
       });
     });
 
+    test('event is dispatched with right detail object', function(done) {
+      Bluetooth._oppConnected = false;
+      var handler = function(evt) {
+        assert.equal(evt.detail.name, 'opp');
+        assert.isTrue(evt.detail.connected);
+        done();
+      };
+      var bindHandler = handler.bind(this);
+      window.addEventListener('bluetoothprofileconnectionchange',
+        bindHandler);
+      Bluetooth._setProfileConnected('opp', true);
+      window.removeEventListener('bluetoothprofileconnectionchange',
+        bindHandler);
+    });
+
     test('transferIcon is not updated with non-OPP profile',
       function() {
         Bluetooth.transferIcon = { update: function() {} };
         this.sinon.stub(Bluetooth.transferIcon, 'update');
-        Bluetooth._setProfileConnected(Bluetooth.Profiles.HFP, false);
+        Bluetooth._setProfileConnected('hfp', false);
         assert.isFalse(Bluetooth.transferIcon.update.called);
-        Bluetooth._setProfileConnected(Bluetooth.Profiles.A2DP, false);
+        Bluetooth._setProfileConnected('a2dp', false);
         assert.isFalse(Bluetooth.transferIcon.update.called);
-        Bluetooth._setProfileConnected(Bluetooth.Profiles.SCO, false);
+        Bluetooth._setProfileConnected('sco', false);
     });
 
     test('transferIcon is updated with OPP profile', function() {
       Bluetooth.transferIcon = { update: function() {} };
       this.sinon.stub(Bluetooth.transferIcon, 'update');
-      Bluetooth._setProfileConnected(Bluetooth.Profiles.OPP, false);
+      Bluetooth._setProfileConnected('opp', false);
       assert.isTrue(Bluetooth.transferIcon.update.called);
-      Bluetooth._setProfileConnected(Bluetooth.Profiles.OPP, true);
+      Bluetooth._setProfileConnected('opp', true);
       assert.isTrue(Bluetooth.transferIcon.update.calledTwice);
     });
   });
@@ -135,7 +141,7 @@ suite('system/bluetooth_v2', function() {
         Bluetooth['_' + profile + 'Connected'] = false;
       });
       profiles.forEach(function(profile) {
-        assert.isFalse(Bluetooth.isProfileConnected(profile));
+        assert.isFalse(Bluetooth._isProfileConnected(profile));
       });
     });
 
@@ -144,7 +150,7 @@ suite('system/bluetooth_v2', function() {
         Bluetooth['_' + profile + 'Connected'] = true;
       });
       profiles.forEach(function(profile) {
-        assert.ok(Bluetooth.isProfileConnected(profile));
+        assert.ok(Bluetooth._isProfileConnected(profile));
       });
     });
   });
@@ -156,7 +162,9 @@ suite('system/bluetooth_v2', function() {
       this.sinon.stub(Bluetooth, '_initDefaultAdapter');
       this.sinon.spy(window, 'addEventListener');
       this.sinon.spy(window, 'dispatchEvent');
-      this.sinon.stub(Service, 'registerState');
+      this.sinon.spy(Service, 'register');
+      this.sinon.spy(Service, 'registerState');
+      window.BluetoothTransfer = { start: function() {} };
       Bluetooth.start();
     });
 
@@ -199,13 +207,24 @@ suite('system/bluetooth_v2', function() {
         assert.ok(window.dispatchEvent.called);
     });
 
+    test('register request', function() {
+      assert.ok(Service.register.calledWith('adapter'));
+      assert.ok(Service.register.calledWith('pair'));
+      assert.ok(Service.register.calledWith('getPairedDevices'));
+    });
+
     test('register state', function() {
       assert.ok(Service.registerState.calledWith('isEnabled'));
+      assert.ok(Service.registerState.calledWith('getAdapter'));
+      assert.ok(Service.registerState.calledWith('isOPPProfileConnected'));
+      assert.ok(Service.registerState.calledWith('isA2DPProfileConnected'));
+      assert.ok(Service.registerState.calledWith('isSCOProfileConnected'));
     });
 
     test('Should lazy load icons', function() {
       assert.isTrue(MockLazyLoader.load.calledWith(
-        ['js/bluetooth_icon.js',
+        ['js/bluetooth_transfer.js',
+        'js/bluetooth_icon.js',
         'js/bluetooth_transfer_icon.js',
         'js/bluetooth_headphone_icon.js']
       ));
@@ -214,7 +233,6 @@ suite('system/bluetooth_v2', function() {
 
   suite('initDefaultAdapter', function() {
     setup(function() {
-      this.sinon.stub(Bluetooth, '_dispatchAdapterState');
       this.sinon.stub(Bluetooth, '_dispatchEnableState');
       Bluetooth._bluetooth = MockMozBluetooth;
     });
@@ -224,7 +242,6 @@ suite('system/bluetooth_v2', function() {
       Bluetooth._initDefaultAdapter();
 
       assert.equal(Bluetooth._adapter, navigator.mozBluetooth.defaultAdapter);
-      assert.ok(Bluetooth._dispatchAdapterState.calledWith(true));
       assert.ok(Bluetooth._dispatchEnableState.called);
     });
 
@@ -233,7 +250,6 @@ suite('system/bluetooth_v2', function() {
       Bluetooth._initDefaultAdapter();
 
       assert.equal(Bluetooth._adapter, null);
-      assert.ok(Bluetooth._dispatchAdapterState.calledWith(false));
     });
   });
 
@@ -362,9 +378,7 @@ suite('system/bluetooth_v2', function() {
 
   suite('btManagerHandler', function() {
     setup(function() {
-      this.sinon.stub(Bluetooth, '_dispatchAdapterState');
       this.sinon.stub(Bluetooth, '_adapterUnavailableHandler');
-      this.sinon.spy(Promise, 'resolve');
       Bluetooth._bluetooth = window.navigator.mozBluetooth;
     });
 
@@ -384,7 +398,6 @@ suite('system/bluetooth_v2', function() {
 
         assert.equal(Bluetooth._adapter, MockBTAdapter);
         assert.ok(Bluetooth._isEnabled, true);
-        assert.ok(Bluetooth._dispatchAdapterState.called);
     });
 
     test('functions are not called when defaultAdapter is null',
@@ -408,8 +421,70 @@ suite('system/bluetooth_v2', function() {
         Bluetooth._btManagerHandler(evt);
 
         assert.equal(Bluetooth._adapter, null);
-        assert.ok(!Bluetooth._dispatchAdapterState.called);
         assert.ok(!Bluetooth._adapterUnavailableHandler.called);
+    });
+  });
+
+  suite('oppTransferStartHandler', function() {
+    test('event is dispatched with right detail object', function(done) {
+      this.sinon.stub(Bluetooth, '_setProfileConnected');
+      var transferInfo = this.sinon.stub();
+      var handler = function(evt) {
+        assert.equal(evt.detail.transferInfo, transferInfo);
+        done();
+      };
+      var bindHandler = handler.bind(this);
+      window.addEventListener('bluetooth-opp-transfer-start',
+        bindHandler);
+      Bluetooth._oppTransferStartHandler(transferInfo);
+      assert.ok(Bluetooth._setProfileConnected.called);
+      window.removeEventListener('bluetooth-opp-transfer-start',
+        bindHandler);
+    });
+  });
+
+  suite('oppTransferCompleteHandler', function() {
+    test('event is dispatched with right detail object', function(done) {
+      this.sinon.stub(Bluetooth, '_setProfileConnected');
+      var transferInfo = this.sinon.stub();
+      var handler = function(evt) {
+        assert.equal(evt.detail.transferInfo, transferInfo);
+        done();
+      };
+      var bindHandler = handler.bind(this);
+      window.addEventListener('bluetooth-opp-transfer-complete',
+        bindHandler);
+      Bluetooth._oppTransferCompleteHandler(transferInfo);
+      assert.ok(Bluetooth._setProfileConnected.called);
+      window.removeEventListener('bluetooth-opp-transfer-complete',
+        bindHandler);
+    });
+  });
+
+  suite('service requests', function() {
+    test('request the adapter', function() {
+      Bluetooth._adapter = MockBTAdapter;
+      Service.request('Bluetooth:adapter').then(function(value) {
+        assert.equal(value, Bluetooth._adapter);
+      });
+    });
+
+    test('request pair', function() {
+      Bluetooth._adapter = MockBTAdapter;
+      var mac = '01:23:45:67:89:AB';
+      this.sinon.spy(MockBTAdapter, 'pair');
+      Service.request('Bluetooth:pair', mac).then(function() {
+        assert.ok(MockBTAdapter.pair.calledWith(mac));
+      });
+    });
+
+    test('request getPairedDevices', function() {
+      Bluetooth._adapter = MockBTAdapter;
+      this.sinon.spy(MockBTAdapter, 'getPairedDevices');
+      Service.request('Bluetooth:getPairedDevices')
+        .then(function() {
+          assert.ok(MockBTAdapter.getPairedDevices.called);
+      });
     });
   });
 });

@@ -2,7 +2,7 @@
           Basket, ConfirmDialog, ScreenLayout,
           DataMobile, SimManager, SdManager,
           Tutorial, TimeManager, WifiManager,
-          WifiUI, WifiHelper, FxAccountsIACHelper  */
+          WifiUI, WifiHelper, FxAccountsIACHelper, SettingsListener */
 /* exported UIManager */
 'use strict';
 
@@ -122,6 +122,29 @@ var UIManager = {
     this.domSelectors.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
     }.bind(this));
+
+    // Setup settings observers
+    this._settingsObserveHandler = {
+      'geolocation.enabled': {
+        // the "checked" attribute in the DOM is currently the source of truth
+        // for default value, when the setting is not initially defined
+        defaultValue: this.geolocationCheckbox.checked,
+        callback: function(value) {
+          var isEnabled = !!value;
+          if (this.geolocationCheckbox.checked !== isEnabled) {
+            this.geolocationCheckbox.checked = isEnabled;
+          }
+        }.bind(this)
+      }
+    };
+
+    for (var name in this._settingsObserveHandler) {
+      SettingsListener.observe(
+        name,
+        this._settingsObserveHandler[name].defaultValue,
+        this._settingsObserveHandler[name].callback
+      );
+    }
 
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
@@ -409,12 +432,11 @@ var UIManager = {
   },
 
   updateSetting: function ui_updateSetting(name, value) {
-    var settings = window.navigator.mozSettings;
-    if (!name || !settings) {
+    if (!name) {
       return;
     }
     var cset = {}; cset[name] = value;
-    settings.createLock().set(cset);
+    return SettingsListener.getSettingsLock().set(cset);
   },
 
   setForwardButtonLabel: function ui_setForwardButtonLabel(label) {

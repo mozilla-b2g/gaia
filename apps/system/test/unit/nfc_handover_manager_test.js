@@ -1,24 +1,22 @@
 'use strict';
 
-/* globals MocksHelper, MockBluetooth, MockBluetoothTransfer,
-           MockNavigatorSettings, NDEF, NfcConnectSystemDialog,
+/* globals MocksHelper, MockNavigatorSettings, NDEF, Service, MockLazyLoader,
            MockL10n, NDEFUtils, BaseModule, MockMozNfc, NfcUtils,
-           MockNavigatormozSetMessageHandler, MockLazyLoader, MockService */
-
+           MockNavigatormozSetMessageHandler, MockDOMRequest, MockPromise,
+           MockMozBluetooth, MockBTAdapter, NfcConnectSystemDialog */
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_moz_nfc.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/js/nfc_utils.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
+require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_promise.js');
+require('/shared/js/nfc_utils.js');
 requireApp('system/test/unit/mock_system_nfc_connect_dialog.js');
-requireApp('system/shared/test/unit/mocks/mock_event_target.js');
-requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
-requireApp('system/shared/test/unit/mocks/mock_service.js');
-requireApp('system/test/unit/mock_bluetooth_transfer.js');
-requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/js/nfc_manager_utils.js');
 requireApp('system/js/ndef_utils.js');
@@ -33,8 +31,14 @@ var mocksForNfcUtils = new MocksHelper([
   'NfcConnectSystemDialog',
   'NotificationHelper',
   'LazyLoader',
-  'Service'
 ]).init();
+
+function switchReadOnlyProperty(originObject, propName, targetObj) {
+  Object.defineProperty(originObject, propName, {
+    configurable: true,
+    get: function() { return targetObj; }
+  });
+}
 
 suite('Nfc Handover Manager Functions', function() {
   var realMozNfc;
@@ -42,7 +46,6 @@ suite('Nfc Handover Manager Functions', function() {
   var realMozBluetooth;
   var realMozSetMessageHandler;
   var realL10n;
-  var spyDefaultAdapter, spyBluetoothPair;
   var nfcHandoverManager;
   var settingsCore;
 
@@ -50,20 +53,15 @@ suite('Nfc Handover Manager Functions', function() {
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
-    realMozBluetooth = navigator.mozBluetooth;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     realL10n = navigator.mozL10n;
     realMozNfc = navigator.mozNfc;
-    Object.defineProperty(navigator, 'mozBluetooth', {
-      configurable: true,
-      get: function() {
-        return MockBluetooth;
-      }
-    });
+    realMozBluetooth = navigator.mozBluetooth;
     navigator.mozSettings = MockNavigatorSettings;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     navigator.mozL10n = MockL10n;
     navigator.mozNfc = MockMozNfc;
+    switchReadOnlyProperty(window.navigator, 'mozBluetooth', MockMozBluetooth);
 
     MockNavigatormozSetMessageHandler.mSetup();
   });
@@ -71,20 +69,13 @@ suite('Nfc Handover Manager Functions', function() {
   suiteTeardown(function() {
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSettings = realMozSettings;
-    Object.defineProperty(navigator, 'mozBluetooth', {
-      configurable: true,
-      get: function() {
-        return realMozBluetooth;
-      }
-    });
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozL10n = realL10n;
     navigator.mozNfc = realMozNfc;
+    switchReadOnlyProperty(window.navigator, 'mozBluetooth', realMozBluetooth);
   });
 
   setup(function() {
-    spyDefaultAdapter = this.sinon.spy(MockBluetooth, 'getDefaultAdapter');
-    spyBluetoothPair = this.sinon.spy(MockBluetooth.defaultAdapter, 'pair');
     settingsCore = BaseModule.instantiate('SettingsCore');
     settingsCore.start();
     nfcHandoverManager = BaseModule.instantiate('NfcHandoverManager');
@@ -92,19 +83,297 @@ suite('Nfc Handover Manager Functions', function() {
 
   teardown(function() {
     settingsCore.stop();
-    spyDefaultAdapter.restore();
-    spyBluetoothPair.restore();
   });
 
-  var invokeBluetoothGetDefaultAdapter = function() {
-    var adapterRequest = spyDefaultAdapter.firstCall.returnValue;
-    adapterRequest.fireSuccess(MockBluetooth.defaultAdapter);
-  };
+  suite('Initialize', function() {
+    teardown(function() {
+      nfcHandoverManager.stop();
+    });
+
+    test('start', function() {
+      this.sinon.stub(window.navigator, 'mozSetMessageHandler');
+      nfcHandoverManager.start();
+
+      assert.isFalse(nfcHandoverManager.incomingFileTransferInProgress);
+      assert.isFalse(nfcHandoverManager.bluetoothStatusSaved);
+      assert.isFalse(nfcHandoverManager.bluetoothAutoEnabled);
+      assert.ok(window.navigator.mozSetMessageHandler
+        .calledWith('nfc-manager-send-file'));
+    });
+
+    test('SetMessageHandler', function() {
+      nfcHandoverManager.start();
+      this.sinon.stub(nfcHandoverManager, 'handleFileTransfer');
+      var fileRequest = this.sinon.stub();
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'nfc-manager-send-file', fileRequest);
+
+      assert.ok(nfcHandoverManager.handleFileTransfer
+        .calledWith(fileRequest));
+    });
+  });
+
+  suite('Events', function() {
+    teardown(function() {
+      nfcHandoverManager.stop();
+    });
+
+    test('nfc-transfer-started event is handled', function() {
+      this.sinon.spy(nfcHandoverManager, '_transferStarted');
+      nfcHandoverManager.start();
+      window.dispatchEvent(new CustomEvent('nfc-transfer-started',
+        {detail: {}}));
+
+      assert.ok(nfcHandoverManager._transferStarted.called);
+    });
+
+    test('nfc-transfer-completed event is handled', function() {
+      this.sinon.spy(nfcHandoverManager, 'transferComplete');
+      nfcHandoverManager.start();
+      window.dispatchEvent(new CustomEvent('nfc-transfer-completed',
+        {detail: {}}));
+
+      assert.ok(nfcHandoverManager.transferComplete.called);
+    });
+
+    test('bluetooth-disabled event is handled', function() {
+      this.sinon.spy(nfcHandoverManager, '_clearBluetoothStatus');
+      nfcHandoverManager.start();
+      nfcHandoverManager.publish('bluetooth-disabled',
+        nfcHandoverManager, true);
+
+      assert.ok(nfcHandoverManager._clearBluetoothStatus.called);
+    });
+
+    test('adapter is not retrieved', function() {
+      var fakePromise = new MockPromise();
+      var callback = this.sinon.stub();
+      this.sinon.stub(Service, 'request', () => fakePromise);
+      nfcHandoverManager.actionQueue.push({callback: callback});
+
+      nfcHandoverManager.start();
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
+
+      fakePromise.mRejectToError();
+      assert.ok(Service.request.calledWith('Bluetooth:adapter'));
+      Service.request.restore();
+      assert.ok(!callback.called);
+      assert.equal(nfcHandoverManager.actionQueue.length, 1);
+    });
+
+    test('bluetooth-enabled event is handled', function() {
+      var fakePromise = new MockPromise();
+      this.sinon.stub(Service, 'request', () => fakePromise);
+      nfcHandoverManager.start();
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
+
+      fakePromise.mFulfillToValue(MockBTAdapter);
+      assert.ok(Service.request.calledWith('Bluetooth:adapter'));
+      assert.isFalse(nfcHandoverManager.settingsNotified);
+      assert.equal(nfcHandoverManager.actionQueue, 0);
+      Service.request.restore();
+    });
+
+    test('adapter is retrieved with 1 action in queue', function() {
+      var fakePromise = new MockPromise();
+      var callback = this.sinon.stub();
+      this.sinon.stub(Service, 'request', () => fakePromise);
+      nfcHandoverManager.actionQueue.push({callback: callback});
+      nfcHandoverManager.start();
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
+
+      fakePromise.mFulfillToValue(MockBTAdapter);
+      assert.isFalse(nfcHandoverManager.settingsNotified);
+      assert.ok(callback.called);
+      assert.equal(nfcHandoverManager.actionQueue.length, 0);
+
+      Service.request.restore();
+    });
+  });
+
+  suite('saveBluetoothStatus', function() {
+    teardown(function() {
+      nfcHandoverManager.stop();
+    });
+
+    test('bluetoothStatusSaved is false', function() {
+      nfcHandoverManager.bluetoothStatusSaved = false;
+      this.sinon.stub(Service, 'query').returns(true);
+      nfcHandoverManager.start();
+      nfcHandoverManager._saveBluetoothStatus();
+
+      assert.isTrue(nfcHandoverManager.bluetoothStatusSaved);
+      assert.isFalse(nfcHandoverManager.bluetoothAutoEnabled);
+      assert.ok(Service.query.calledWith('Bluetooth.isEnabled'));
+    });
+
+    test('bluetoothStatusSaved is true', function() {
+      this.sinon.stub(Service, 'query').returns(true);
+      nfcHandoverManager.start();
+      nfcHandoverManager.bluetoothStatusSaved = true;
+      nfcHandoverManager._saveBluetoothStatus();
+
+      assert.ok(!Service.query.called);
+    });
+  });
+
+  suite('restoreBluetoothStatus', function() {
+    test('if handover is not in progress, bluetooth transfer queue is empty, ' +
+      'and bluetoothAutoEnabled is true', function() {
+      this.sinon.stub(nfcHandoverManager, 'isHandoverInProgress')
+        .returns(false);
+      this.sinon.stub(Service, 'query').returns(true);
+      this.sinon.spy(nfcHandoverManager, 'publish');
+      nfcHandoverManager.bluetoothAutoEnabled = true;
+      nfcHandoverManager._restoreBluetoothStatus();
+
+      assert.isFalse(nfcHandoverManager.bluetoothAutoEnabled);
+      assert.isFalse(nfcHandoverManager.bluetoothStatusSaved);
+      assert.ok(Service.query
+        .calledWith('BluetoothTransfer.isSendFileQueueEmpty'));
+      assert.ok(nfcHandoverManager.publish
+        .calledWith('request-disable-bluetooth'));
+    });
+
+    test('if handover is not in progress, bluetooth transfer queue is empty, '+
+      'and bluetoothAutoEnabled is false', function() {
+      this.sinon.stub(nfcHandoverManager, 'isHandoverInProgress')
+        .returns(false);
+      this.sinon.stub(Service, 'query').returns(true);
+      this.sinon.spy(nfcHandoverManager, 'publish');
+      nfcHandoverManager.bluetoothAutoEnabled = false;
+      nfcHandoverManager._restoreBluetoothStatus();
+
+      assert.isFalse(nfcHandoverManager.bluetoothAutoEnabled);
+      assert.ok(Service.query
+        .calledWith('BluetoothTransfer.isSendFileQueueEmpty'));
+      assert.ok(!nfcHandoverManager.publish.called);
+    });
+
+    test('if handover is not in progress, bluetooth transfer queue ' +
+      'is not empty', function() {
+      this.sinon.stub(nfcHandoverManager, 'isHandoverInProgress')
+        .returns(false);
+      this.sinon.stub(Service, 'query').returns(false);
+      this.sinon.spy(nfcHandoverManager, 'publish');
+      nfcHandoverManager._restoreBluetoothStatus();
+
+      assert.ok(Service.query
+        .calledWith('BluetoothTransfer.isSendFileQueueEmpty'));
+      assert.ok(!nfcHandoverManager.publish.called);
+    });
+
+    test('if handover is in progress, bluetooth transfer queue is empty',
+      function() {
+      this.sinon.stub(nfcHandoverManager, 'isHandoverInProgress')
+        .returns(true);
+      this.sinon.stub(Service, 'query').returns(true);
+      this.sinon.spy(nfcHandoverManager, 'publish');
+      nfcHandoverManager._restoreBluetoothStatus();
+
+      assert.ok(!Service.query
+        .calledWith('BluetoothTransfer.isSendFileQueueEmpty'));
+      assert.ok(!nfcHandoverManager.publish.called);
+    });
+
+    test('if handover is in progress, bluetooth transfer queue is not empty',
+      function() {
+        this.sinon.stub(nfcHandoverManager, 'isHandoverInProgress')
+          .returns(true);
+        this.sinon.stub(Service, 'query').returns(false);
+        this.sinon.spy(nfcHandoverManager, 'publish');
+        nfcHandoverManager._restoreBluetoothStatus();
+
+        assert.ok(!Service.query
+          .calledWith('BluetoothTransfer.isSendFileQueueEmpty'));
+        assert.ok(!nfcHandoverManager.publish.called);
+    });
+  });
+
+  suite('findPairedDevice', function() {
+    var device = {
+      address: '01:23:45:67:89:AB',
+      connected: true
+    };
+
+    setup(function() {
+      nfcHandoverManager._adapter = MockBTAdapter;
+    });
+
+    teardown(function() {
+      nfcHandoverManager._adapter = null;
+    });
+
+    test('found a paired device', function() {
+      var fakePromise = new MockPromise();
+      this.sinon.stub(Service, 'request', () => fakePromise);
+      var foundCb = this.sinon.stub();
+      var notFoundCb = this.sinon.stub();
+      var mac = device.address;
+      nfcHandoverManager._findPairedDevice(mac, foundCb, notFoundCb);
+
+      fakePromise.mFulfillToValue([device]);
+      assert.ok(Service.request.calledWith('Bluetooth:getPairedDevices'));
+      assert.ok(foundCb.called);
+    });
+
+    test('Not found a paired device', function() {
+      var fakePromise = new MockPromise();
+      this.sinon.stub(Service, 'request', () => fakePromise);
+      var foundCb = this.sinon.stub();
+      var notFoundCb = this.sinon.stub();
+      var mac = '';
+      nfcHandoverManager._findPairedDevice(mac, foundCb, notFoundCb);
+
+      fakePromise.mFulfillToValue([device]);
+      assert.ok(Service.request.calledWith('Bluetooth:getPairedDevices'));
+      assert.ok(notFoundCb.called);
+    });
+  });
+
+  suite('doPairing', function() {
+    var mac = '01:23:45:67:89:AB';
+    setup(function() {
+      nfcHandoverManager._adapter = MockBTAdapter;
+      this.sinon.spy(MockBTAdapter, 'connect');
+      this.sinon.spy(MockBTAdapter, 'pair');
+      this.sinon.spy(nfcHandoverManager, '_findPairedDevice');
+    });
+
+    teardown(function() {
+      nfcHandoverManager._findPairedDevice.restore();
+    });
+
+    test('Attempts to connect to peer after pairing', function() {
+      var fakePromise = new MockPromise();
+      this.sinon.stub(Service, 'request', () => fakePromise);
+      nfcHandoverManager._doPairing(mac);
+
+      fakePromise.mFulfillToValue([{address: mac, connected: true}]);
+      assert.ok(nfcHandoverManager._findPairedDevice.called);
+      assert.ok(Service.request.calledWith('Bluetooth:getPairedDevices'));
+    });
+
+    test('Attempts to restore Bluetooth Status after pairing fail',
+      function() {
+      var fakePromise = new MockPromise();
+      this.sinon.stub(Service, 'request', () => fakePromise);
+      this.sinon.spy(nfcHandoverManager, '_logVisibly');
+      nfcHandoverManager._doPairing(mac);
+
+      fakePromise.mRejectToError();
+      assert.ok(nfcHandoverManager._findPairedDevice.called);
+      assert.ok(Service.request.calledWith('Bluetooth:getPairedDevices'));
+      assert.isTrue(nfcHandoverManager._logVisibly.calledOnce);
+    });
+  });
 
   suite('Activity Routing for nfcHandoverManager', function() {
     var activityInjection1;
     var activityInjection2;
     var nfcUtils;
+    var peerMac;
+    var pairedDevices;
 
     setup(function() {
       nfcUtils = new NfcUtils();
@@ -112,8 +381,8 @@ suite('Nfc Handover Manager Functions', function() {
         type: 'techDiscovered',
         techList: ['NFC_A','NDEF'],
         records: NDEFUtils.encodeHandoverSelect(
-                                    '00:0D:44:E7:95:AB', NDEF.CPS_ACTIVE,
-                                    nfcUtils.fromUTF8('UE MINI BOOM')),
+          '00:0D:44:E7:95:AB', NDEF.CPS_ACTIVE,
+          nfcUtils.fromUTF8('UE MINI BOOM')),
         peer: MockMozNfc.MockNFCPeer
       };
 
@@ -137,6 +406,11 @@ suite('Nfc Handover Manager Functions', function() {
         }],
         peer: MockMozNfc.MockNFCPeer
       };
+      peerMac = '01:23:45:67:89:AB';
+      pairedDevices = [{ address: peerMac, connected: false }];
+      this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
+      this.sinon.spy(nfcHandoverManager, '_handleHandoverRequest');
+      this.sinon.spy(nfcHandoverManager, '_checkConnected');
       nfcHandoverManager.start();
     });
 
@@ -147,44 +421,61 @@ suite('Nfc Handover Manager Functions', function() {
     test('nfc/system_nfc_connect_dialog is loaded', function() {
       this.sinon.stub(MockLazyLoader, 'load');
       nfcHandoverManager.nfcConnectSystemDialog = null;
-      nfcHandoverManager.tryHandover(activityInjection1.records,
-                                     activityInjection1.peer);
+      var btssp = {mac: '', localname: ''};
+      nfcHandoverManager._onRequestConnect(btssp);
+
       assert.ok(MockLazyLoader.load
         .calledWith('js/system_nfc_connect_dialog.js'));
     });
 
-    test('nfc/HandoverSelect', function() {
-      var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
-      var spyPairing = this.sinon.spy(nfcHandoverManager, '_doPairing');
+    test('handleSimplifiedPairingRecord when NDEF message contains ' +
+      'simplified pairing record', function() {
+      this.sinon.stub(Service, 'query').returns(true);
+      this.sinon.spy(nfcHandoverManager, '_handleSimplifiedPairingRecord');
+      this.sinon.stub(MockBTAdapter, 'getConnectedDevices', function() {
+        return new MockDOMRequest();
+      });
+      nfcHandoverManager._adapter = MockBTAdapter;
+      nfcHandoverManager.tryHandover(activityInjection2.records,
+                                     activityInjection2.peer);
 
-      nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
-      nfcHandoverManager.tryHandover(activityInjection1.records,
-                                     activityInjection1.peer);
-      assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
-      assert.isTrue(spyPairing.withArgs('00:0D:44:E7:95:AB').calledOnce);
+      assert.ok(nfcHandoverManager._handleSimplifiedPairingRecord
+        .calledWith(activityInjection2.records));
+      assert.ok(nfcHandoverManager._checkConnected.called);
+      assert.ok(MockBTAdapter.getConnectedDevices.called);
     });
 
     test('nfc/SimplifiedPairingRecord', function() {
-      var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
-      var spyPairing = this.sinon.spy(nfcHandoverManager, '_doPairing');
-
-      nfcHandoverManager.nfcConnectSystemDialog = new NfcConnectSystemDialog();
+      nfcHandoverManager.nfcConnectSystemDialog =
+        new NfcConnectSystemDialog();
       nfcHandoverManager.tryHandover(activityInjection2.records,
                                      activityInjection2.peer);
-      assert.isTrue(spyName.withArgs('MBH10').calledOnce);
-      assert.isTrue(spyPairing.withArgs('4C:21:D0:9F:12:F1').calledOnce);
+      assert.isTrue(NfcConnectSystemDialog.prototype.show
+        .withArgs('MBH10').calledOnce);
     });
 
-    test('Attempts to connect to peer after pairing', function() {
-      var spyConnect = this.sinon.spy(nfcHandoverManager, '_doConnect');
+    /*
+     * Outbound file transfer is a two-phase process: sending handover request
+     * to peer device (result of 'nfc-manager-senf-file' message) and sending
+     * file over Bluetooth (result of peer device responding with hadover
+     * select). Those two phases are tested in two separate test cases.
+     */
+    test('HandoverSelect when request type is RTD_HANDOVER_SELECT ' +
+      'format', function() {
+      this.sinon.spy(nfcHandoverManager, '_handleHandoverSelect');
+      this.sinon.spy(nfcHandoverManager, '_getBluetoothSSP');
 
-      invokeBluetoothGetDefaultAdapter();
+      nfcHandoverManager.nfcConnectSystemDialog =
+        new NfcConnectSystemDialog();
+      nfcHandoverManager.tryHandover(activityInjection1.records,
+                                     activityInjection1.peer);
 
-      nfcHandoverManager._doPairing('01:23:45:67:89:AB');
-      spyBluetoothPair.firstCall.returnValue.fireSuccess();
-
-      assert.isTrue(spyConnect.calledOnce);
-      assert.equal(spyConnect.firstCall.args[0], '01:23:45:67:89:AB');
+      assert.ok(nfcHandoverManager._handleHandoverSelect.called);
+      assert.ok(nfcHandoverManager._getBluetoothSSP
+        .calledWith(activityInjection1.records));
+      assert.ok(nfcHandoverManager._checkConnected.called);
+      assert.isTrue(NfcConnectSystemDialog.prototype.show
+        .withArgs('UE MINI BOOM').calledOnce);
     });
   });
 
@@ -192,51 +483,103 @@ suite('Nfc Handover Manager Functions', function() {
     var cps;
     var mac;
 
-    var spyPairing;
-    var spySendNDEF;
-
     setup(function() {
+      this.sinon.useFakeTimers();
       cps = NDEF.CPS_ACTIVE;
       mac = '01:23:45:67:89:AB';
-      spyPairing = this.sinon.spy(nfcHandoverManager, '_doPairing');
-      spySendNDEF = this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
-
+      this.sinon.spy(nfcHandoverManager, '_doAction');
+      this.sinon.spy(nfcHandoverManager, '_saveBluetoothStatus');
       nfcHandoverManager.start();
-      invokeBluetoothGetDefaultAdapter();
     });
 
     teardown(function() {
-      spyPairing.restore();
-      spySendNDEF.restore();
       nfcHandoverManager.stop();
+      nfcHandoverManager._adapter = null;
     });
 
-    test('_handleHandoverRequest(): sends Hs message to peer', function() {
+    test('handleHandoverRequest: aborting via empty Hs if file transfer ' +
+      'is already in progress', function() {
+      this.sinon.stub(Service, 'query')
+        .withArgs('BluetoothTransfer.isFileTransferInProgress').returns(true);
+      this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
+      var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
+      var hs = NDEFUtils.encodeEmptyHandoverSelect();
+      nfcHandoverManager._handleHandoverRequest(handoverRequest,
+        MockMozNfc.MockNFCPeer);
+
+      assert.isTrue(MockMozNfc.MockNFCPeer.sendNDEF.calledWith(hs));
+    });
+
+    test('handleHandoverRequest: proper handling when file transfer ' +
+      'is not in progress', function() {
+      this.sinon.stub(Service, 'query')
+        .withArgs('BluetoothTransfer.isFileTransferInProgress').returns(false);
       var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
       nfcHandoverManager._handleHandoverRequest(handoverRequest,
         MockMozNfc.MockNFCPeer);
 
-      assert.isTrue(spySendNDEF.calledOnce);
-
-      // Should send self Bluetooth MAC address in return.
-      var OOB = Array.apply([], spySendNDEF.firstCall.args[0][1].payload);
-      var myMAC = NDEFUtils.parseMAC(
-        MockBluetooth.defaultAdapter.address);
-      assert.deepEqual(OOB.slice(2, 8), myMAC);
-
-      var ndefPromise = spySendNDEF.returnValues[0];
-      ndefPromise.mFulfillToValue();
-      assert.isTrue(nfcHandoverManager.incomingFileTransferInProgress);
+      assert.ok(nfcHandoverManager._saveBluetoothStatus.called);
+      assert.ok(nfcHandoverManager._doAction.calledWith({
+        callback: nfcHandoverManager._doHandoverRequest,
+        args: [handoverRequest, MockMozNfc.MockNFCPeer]
+      }));
     });
 
-    test('_handleHandoverSelect() attempts to pair BT devices', function() {
-      var handoverSelect = NDEFUtils.encodeHandoverSelect(mac, cps);
+    test('doHandoverRequest return early when _getBluetoothSSP is null',
+      function() {
+      var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
+      this.sinon.stub(nfcHandoverManager, '_getBluetoothSSP', function() {
+        return null;
+      });
+      this.sinon.stub(Service, 'query').returns(true);
+      nfcHandoverManager._doHandoverRequest(handoverRequest,
+        MockMozNfc.MockNFCPeer);
 
-      nfcHandoverManager.bluetooth.enabled = true;
-      nfcHandoverManager._handleHandoverSelect(handoverSelect);
-      assert.isTrue(spyPairing.calledOnce);
-      assert.equal(mac, spyPairing.firstCall.args[0]);
-      nfcHandoverManager.bluetooth.enabled = false;
+      assert.ok(!Service.query.called);
+    });
+
+    test('doHandoverRequest', function() {
+      var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
+      this.sinon.stub(Service, 'query').returns(true);
+      this.sinon.spy(NDEFUtils, 'encodeHandoverSelect');
+      this.sinon.spy(nfcHandoverManager, '_clearTimeout');
+      this.sinon.spy(nfcHandoverManager, '_restoreBluetoothStatus');
+      this.sinon.spy(nfcHandoverManager, '_logVisibly');
+      this.sinon.spy(nfcHandoverManager, '_cancelIncomingFileTransfer');
+      var fakePromise = new MockPromise();
+      this.sinon.stub(MockMozNfc.MockNFCPeer, 'sendNDEF',
+        () => fakePromise);
+      nfcHandoverManager._adapter = MockBTAdapter;
+      nfcHandoverManager._doHandoverRequest(handoverRequest,
+        MockMozNfc.MockNFCPeer);
+
+      fakePromise.mFulfillToValue();
+      assert.ok(Service.query.calledWith('Bluetooth.isEnabled'));
+      assert.ok(NDEFUtils.encodeHandoverSelect.calledWith(
+        MockBTAdapter.address,
+        NDEF.CPS_ACTIVE));
+      assert.ok(nfcHandoverManager._clearTimeout.called);
+      assert.ok(!nfcHandoverManager._restoreBluetoothStatus.called);
+      // Timeout incoming file transfer
+      this.sinon.clock.tick(nfcHandoverManager.responseTimeoutMillis);
+      assert.ok(nfcHandoverManager._cancelIncomingFileTransfer.called);
+
+      fakePromise.mRejectToError();
+      assert.ok(nfcHandoverManager._logVisibly.called);
+      assert.ok(nfcHandoverManager._clearTimeout.called);
+      assert.ok(nfcHandoverManager._restoreBluetoothStatus.called);
+    });
+
+    test('doHandoverRequest when nfcPeer is lost', function() {
+      var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
+      this.sinon.spy(nfcHandoverManager, '_showFailedNotification');
+      this.sinon.spy(nfcHandoverManager, '_restoreBluetoothStatus');
+      nfcHandoverManager._adapter = MockBTAdapter;
+      nfcHandoverManager._doHandoverRequest(handoverRequest,
+        {isLost: true});
+
+      assert.ok(nfcHandoverManager._showFailedNotification.called);
+      assert.ok(nfcHandoverManager._restoreBluetoothStatus.called);
     });
   });
 
@@ -247,15 +590,12 @@ suite('Nfc Handover Manager Functions', function() {
    * select). Those two phases are tested in two separate test cases.
    */
   suite('File transfer', function() {
-    var spySendNDEF;
-
     var fileRequest;
 
     setup(function() {
       MockNavigatormozSetMessageHandler.mSetup();
-      MockBluetooth.enabled = true;
-
-      spySendNDEF = this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
+      this.sinon.spy(nfcHandoverManager, '_saveBluetoothStatus');
+      this.sinon.spy(nfcHandoverManager, '_initiateFileTransfer');
 
       fileRequest = {
         peer: MockMozNfc.MockNFCPeer,
@@ -265,160 +605,204 @@ suite('Nfc Handover Manager Functions', function() {
 
       nfcHandoverManager.sendFileQueue = [];
       nfcHandoverManager.start();
-      invokeBluetoothGetDefaultAdapter();
     });
 
     teardown(function() {
-      MockBluetooth.enabled = false;
-      MockService.mIsFileTransferInProgress = false;
-
-      spySendNDEF.restore();
       nfcHandoverManager.sendFileQueue = [];
       nfcHandoverManager.stop();
     });
 
-    test('"nfc-manager-send-file" results in handover request sent to peer',
-      function() {
+    test('"nfc-manager-send-file" Proceed with file transfer if no ' +
+      'concurrent filer transfer is in progress.', function() {
+      this.sinon.stub(Service, 'query')
+        .withArgs('BluetoothTransfer.isFileTransferInProgress')
+        .returns(false);
+      this.sinon.stub(nfcHandoverManager, '_doAction');
+      nfcHandoverManager.handleFileTransfer(fileRequest);
 
-      MockNavigatormozSetMessageHandler.mTrigger(
-        'nfc-manager-send-file', fileRequest);
-
-      assert.isTrue(spySendNDEF.calledOnce);
-
-      // CPS should be either active or activating. In this test
-      // MockBluetooths sets it to active, so assert that.
-      var cps = spySendNDEF.firstCall.args[0][0].payload[13];
-      assert.equal(cps, NDEF.CPS_ACTIVE);
-
-      // OOB payload should contain MAC address of this device's
-      // default Bluetooth Adapter (it's being sent to a peer).
-      var OOB = Array.apply([], spySendNDEF.firstCall.args[0][1].payload);
-      var myMAC = NDEFUtils.parseMAC(
-        MockBluetooth.defaultAdapter.address);
-      assert.deepEqual(OOB.slice(2, 8), myMAC);
-
-      assert.isTrue(nfcHandoverManager.isHandoverInProgress());
-
-      var ndefPromise = spySendNDEF.returnValues[0];
-      ndefPromise.mFulfillToValue();
-      assert.equal(1, nfcHandoverManager.sendFileQueue.length);
+      assert.ok(nfcHandoverManager._saveBluetoothStatus.called);
+      assert.ok(nfcHandoverManager._doAction.calledWith({
+        callback: nfcHandoverManager._initiateFileTransfer,
+        args: [fileRequest]}));
     });
 
     test('Sending aborts when another file is transmitted concurrently',
       function() {
+      this.sinon.stub(Service, 'query').returns(true);
+      this.sinon.stub(nfcHandoverManager,'_showTryAgainNotification');
+      this.sinon.stub(nfcHandoverManager, '_dispatchSendFileStatus');
+      nfcHandoverManager.handleFileTransfer(fileRequest);
 
-      MockService.mIsFileTransferInProgress = true;
-
-      var stubShowNotification = this.sinon.stub(nfcHandoverManager,
-                                                 '_showTryAgainNotification');
-      MockNavigatormozSetMessageHandler.mTrigger(
-        'nfc-manager-send-file', fileRequest);
-      assert.isTrue(stubShowNotification.calledOnce,
-                    'Notification not shown');
+      assert.ok(Service.query
+        .calledWith('BluetoothTransfer.isFileTransferInProgress'));
+      assert.ok(nfcHandoverManager._dispatchSendFileStatus.calledWith(
+                1, fileRequest.requestId));
+      assert.ok(nfcHandoverManager._showTryAgainNotification.calledOnce,
+                'Notification not shown');
     });
 
     test('Aborts when sendNDEF() fails.', function() {
+      this.sinon.spy(nfcHandoverManager, 'handleFileTransfer');
+      this.sinon.spy(nfcHandoverManager, '_dispatchSendFileStatus');
+      this.sinon.spy(nfcHandoverManager, '_showTryAgainNotification');
+      this.sinon.stub(Service, 'query').returns(true);
       MockNavigatormozSetMessageHandler.mTrigger(
         'nfc-manager-send-file', fileRequest);
 
-      var spyNotify = this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
-
-      var ndefPromise = spySendNDEF.returnValues[0];
-      ndefPromise.mRejectToError();
+      assert.ok(nfcHandoverManager.handleFileTransfer.called);
       assert.equal(0, nfcHandoverManager.sendFileQueue.length);
-      assert.isTrue(spyNotify.calledOnce);
-      assert.equal(spyNotify.firstCall.args[0], 1);
+      assert.ok(nfcHandoverManager._dispatchSendFileStatus.called);
+      assert.ok(nfcHandoverManager._showTryAgainNotification.called);
     });
 
     test('Aborts when MozNFCPeer lost during file send.', function() {
       fileRequest.peer = {isLost: true};
-      var spyNotify = this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
-      var stubShowNotification = this.sinon.stub(nfcHandoverManager,
-                                                 '_showFailedNotification');
-      var stubRestoreBT = this.sinon.stub(nfcHandoverManager,
-                                          '_restoreBluetoothStatus');
-
+      this.sinon.stub(Service, 'query').returns(true);
+      this.sinon.spy(nfcHandoverManager, 'handleFileTransfer');
+      this.sinon.spy(nfcHandoverManager, '_dispatchSendFileStatus');
+      this.sinon.stub(nfcHandoverManager, '_showTryAgainNotification');
+      this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
+      this.sinon.stub(nfcHandoverManager, '_restoreBluetoothStatus');
       MockNavigatormozSetMessageHandler.mTrigger(
         'nfc-manager-send-file', fileRequest);
-      assert.isTrue(spyNotify.calledOnce);
-      assert.equal(spyNotify.firstCall.args[0], 1);
-      assert.isTrue(stubShowNotification
-                    .withArgs('transferFinished-sentFailed-title',
-                              fileRequest.blob.name)
-                    .calledOnce,
-                    'Notification not shown');
-      assert.isTrue(stubRestoreBT.calledOnce, 'BT status not restored');
+
+      assert.ok(nfcHandoverManager.handleFileTransfer.called);
+      assert.ok(nfcHandoverManager._dispatchSendFileStatus.called);
+      assert.ok(nfcHandoverManager._showTryAgainNotification.called);
+      assert.ok(MockMozNfc.notifySendFileStatus.calledOnce);
+      assert.equal(MockMozNfc.notifySendFileStatus.firstCall.args[0], 1);
+      assert.ok(nfcHandoverManager._showTryAgainNotification
+        .calledOnce, 'Notification not shown');
+      assert.ok(!nfcHandoverManager._saveBluetoothStatus.called);
     });
 
     test('Aborts when MozNFCPeer lost during file receive.', function() {
       var cps = NDEF.CPS_ACTIVE;
       var mac = '01:23:45:67:89:AB';
       var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
-      var stubShowNotification = this.sinon.stub(nfcHandoverManager,
-                                                 '_showFailedNotification');
-      var stubRestoreBT = this.sinon.stub(nfcHandoverManager,
-                                          '_restoreBluetoothStatus');
-
+      this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
+      this.sinon.stub(Service, 'query').returns(false);
+      this.sinon.stub(NDEFUtils, 'encodeEmptyHandoverSelect');
+      this.sinon.stub(nfcHandoverManager, '_doAction');
       nfcHandoverManager._handleHandoverRequest(handoverRequest,
         {isLost: true});
-      assert.isTrue(spySendNDEF.notCalled);
-      assert.isTrue(stubShowNotification
-                    .withArgs('transferFinished-receivedFailed-title')
-                    .calledOnce,
-                    'Notification not shown');
-      assert.isTrue(stubRestoreBT.calledOnce, 'BT status not restored');
+
+      assert.ok(Service.query
+        .calledWith('BluetoothTransfer.isFileTransferInProgress'));
+      assert.ok(!NDEFUtils.encodeEmptyHandoverSelect.called);
+      assert.ok(!MockMozNfc.MockNFCPeer.sendNDEF.called);
+      assert.ok(nfcHandoverManager._saveBluetoothStatus.called);
+      assert.ok(nfcHandoverManager._doAction.called);
     });
 
     test('Handover select results in file being transmitted over Bluetooth',
       function() {
-      this.sinon.stub(nfcHandoverManager, 'publish');
+      this.sinon.stub(Service, 'query').returns(true);
+      var mac = fileRequest.mac;
+      this.sinon.stub(nfcHandoverManager, '_clearTimeout');
+      this.sinon.stub(nfcHandoverManager, '_getBluetoothSSP')
+        .returns({mac: mac});
+      this.sinon.spy(nfcHandoverManager, '_doAction');
+      this.sinon.spy(nfcHandoverManager, '_doFileTransfer');
+      this.sinon.spy(nfcHandoverManager, 'publish');
+
       nfcHandoverManager.sendFileQueue.push(fileRequest);
 
       var select = NDEFUtils.encodeHandoverSelect(
-        '01:23:45:67:89:AB', NDEF.CPS_ACTIVE);
+        mac, NDEF.CPS_ACTIVE);
       nfcHandoverManager._handleHandoverSelect(select);
-      assert.equal(nfcHandoverManager.publish.firstCall.args[0],
-        'bluetooth-sendfile-via-handover');
-      assert.deepEqual(nfcHandoverManager.publish.firstCall.args[1], {
-        mac: '01:23:45:67:89:AB',
-        blob: { name: 'Lorem ipsum' }
-      });
+
+      assert.ok(nfcHandoverManager._clearTimeout.called);
+      assert.ok(nfcHandoverManager._doAction.calledWith({
+        callback: nfcHandoverManager._doFileTransfer,
+        args: [mac]
+      }));
+      assert.ok(nfcHandoverManager._doFileTransfer.called);
+      assert.ok(nfcHandoverManager.publish.calledWith(
+        'bluetooth-sendfile-via-handover', {
+          mac: fileRequest.mac,
+          blob: fileRequest.blob
+        })
+      );
     });
 
-    test('Empty Handover Select results in abort',
-      function() {
-
+    test('Empty Handover Select results in abort', function() {
       fileRequest.onerror = sinon.stub();
       nfcHandoverManager.sendFileQueue.push(fileRequest);
 
-      var stubShowNotification = this.sinon.stub(nfcHandoverManager,
-                                                 '_showTryAgainNotification');
-      var spySendFile = this.sinon.spy(MockBluetoothTransfer,
-        'sendFileViaHandover');
+      this.sinon.stub(nfcHandoverManager, '_showTryAgainNotification');
+      this.sinon.spy(nfcHandoverManager, '_restoreBluetoothStatus');
+      this.sinon.stub(nfcHandoverManager, '_doAction');
 
       var select = NDEFUtils.encodeEmptyHandoverSelect();
       nfcHandoverManager._handleHandoverSelect(select);
 
-      assert.isTrue(spySendFile.notCalled);
+      assert.isTrue(nfcHandoverManager._doAction.notCalled);
       assert.isTrue(fileRequest.onerror.calledOnce);
-      assert.isTrue(stubShowNotification.calledOnce,
+      assert.isTrue(nfcHandoverManager._showTryAgainNotification.calledOnce,
                     'Notification not shown');
+      assert.isTrue(nfcHandoverManager._restoreBluetoothStatus.calledOnce);
+    });
+  });
+
+  suite('Initiate File transfer', function() {
+    var fileRequest;
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+      MockNavigatormozSetMessageHandler.mSetup();
+      this.sinon.spy(nfcHandoverManager, '_restoreBluetoothStatus');
+      this.sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
+      this.sinon.spy(nfcHandoverManager, '_clearTimeout');
+      nfcHandoverManager._adapter = MockBTAdapter;
+
+      fileRequest = {
+        peer: MockMozNfc.MockNFCPeer,
+        blob: { name: 'Lorem ipsum' },
+        requestId: 'request-01'
+      };
+    });
+
+    teardown(function() {
+      nfcHandoverManager._adapter = null;
+    });
+
+    test('sending a Handover Request to the remote device', function() {
+      this.sinon.stub(Service, 'query'). returns(true);
+      this.sinon.spy(NDEFUtils, 'encodeHandoverRequest');
+      this.sinon.spy(nfcHandoverManager, '_cancelSendFileTransfer');
+      nfcHandoverManager._initiateFileTransfer(fileRequest);
+
+      assert.isFalse(nfcHandoverManager._restoreBluetoothStatus.called);
+      assert.equal(nfcHandoverManager.sendFileQueue.length, 1);
+      assert.ok(MockMozNfc.MockNFCPeer.sendNDEF.calledOnce);
+      // CPS should be either active or activating. In this test
+      // MockMozBluetooths sets it to active, so assert that.
+      assert.ok(NDEFUtils.encodeHandoverRequest.calledWith(
+        MockBTAdapter.address,
+        NDEF.CPS_ACTIVE
+      ));
+      assert.ok(nfcHandoverManager._clearTimeout.called);
+      // Timeout outgoing file transfer
+      this.sinon.clock.tick(nfcHandoverManager.responseTimeoutMillis);
+      assert.ok(nfcHandoverManager._cancelSendFileTransfer.called);
     });
   });
 
   suite('Action queuing when Bluetooth disabled', function() {
     setup(function() {
-      MockBluetooth.enabled = false;
+      nfcHandoverManager.actionQueue = [];
       nfcHandoverManager.start();
+      this.sinon.spy(nfcHandoverManager, 'publish');
     });
 
     teardown(function() {
-      MockBluetooth.enabled = true;
       nfcHandoverManager.actionQueue.splice(0);
       nfcHandoverManager.stop();
     });
 
     test('Action are queued when Bluetooth off', function() {
+      this.sinon.stub(Service, 'query').returns(false);
       assert.equal(0, nfcHandoverManager.actionQueue.length);
 
       var action = {};
@@ -426,22 +810,8 @@ suite('Nfc Handover Manager Functions', function() {
       MockNavigatorSettings.mReplyToRequests();
 
       assert.equal(1, nfcHandoverManager.actionQueue.length);
-      assert.isTrue(MockNavigatorSettings.mSettings['bluetooth.enabled']);
-    });
-
-    test('Actions executed when Bluetooth turned on', function() {
-      var action = {
-        callback: this.sinon.spy(),
-        args: ['lorem', 100]
-      };
-
-      nfcHandoverManager._doAction(action);
-
-      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
-      invokeBluetoothGetDefaultAdapter();
-
-      assert.isTrue(action.callback.calledOnce);
-      assert.deepEqual(action.args, action.callback.getCall(0).args);
+      assert.ok(nfcHandoverManager.publish
+        .calledWith('request-enable-bluetooth'));
     });
   });
 
@@ -450,111 +820,70 @@ suite('Nfc Handover Manager Functions', function() {
     var mockFileRequest;
 
     setup(function() {
-      MockService.mIsSendFileQueueEmpty = true;
-      this.sinon.useFakeTimers();
       mockFileRequest = {
-          peer: MockMozNfc.MockNFCPeer,
-          blob: new Blob(),
-          requestId: 'req-id-1'
+        peer: MockMozNfc.MockNFCPeer,
+        blob: new Blob(),
+        requestId: 'req-id-1'
       };
+      spySendNDEF = sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
       nfcHandoverManager.sendFileQueue = [];
       nfcHandoverManager.start();
     });
 
     teardown(function() {
-      MockService.mIsSendFileQueueEmpty = false;
       nfcHandoverManager.stop();
       spySendNDEF.restore();
     });
 
-    var initiateFileTransfer = function() {
-      spySendNDEF = sinon.spy(MockMozNfc.MockNFCPeer, 'sendNDEF');
-      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
-      invokeBluetoothGetDefaultAdapter();
-      nfcHandoverManager.handleFileTransfer(mockFileRequest.peer,
-                                            mockFileRequest.blob,
-                                            mockFileRequest.requestId);
-    };
+    test('Send file with BT enabled', function() {
+      nfcHandoverManager._adapter = MockBTAdapter;
+      nfcHandoverManager.handleFileTransfer(mockFileRequest);
 
-    var finalizeFileTransfer = function() {
+      assert.equal(nfcHandoverManager._adapter, MockBTAdapter);
+
       var hs = NDEFUtils.encodeHandoverSelect('11:22:33:44:55:66',
         NDEF.CPS_ACTIVE);
       nfcHandoverManager._handleHandoverSelect(hs);
-    };
 
-    test('Send file with BT enabled',
-      function() {
-
-      MockBluetooth.enabled = true;
-      initiateFileTransfer();
-      assert.isTrue(MockBluetooth.enabled);
-      finalizeFileTransfer();
-      assert.isTrue(MockBluetooth.enabled);
+      assert.equal(nfcHandoverManager._adapter, MockBTAdapter);
     });
 
     test('Send file with BT disabled and empty send file queue',
       function() {
+      nfcHandoverManager._adapter = null;
+      this.sinon.stub(Service, 'query').returns(false);
+      nfcHandoverManager.settingsNotified = false;
+      this.sinon.spy(nfcHandoverManager, '_doAction');
+      this.sinon.spy(nfcHandoverManager, '_checkConnected');
+      this.sinon.spy(nfcHandoverManager, '_onRequestConnect');
+      this.sinon.spy(nfcHandoverManager, 'publish');
+      nfcHandoverManager.handleFileTransfer(mockFileRequest);
 
-      MockBluetooth.enabled = false;
-      initiateFileTransfer();
-      assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
-        true);
-      MockBluetooth.enabled = true;
+      assert.ok(nfcHandoverManager._doAction.called);
+      //to enable event
+      assert.ok(nfcHandoverManager.publish
+        .calledWith('request-enable-bluetooth'));
+      nfcHandoverManager._adapter = MockBTAdapter;
 
-      finalizeFileTransfer();
+      var hs = NDEFUtils.encodeHandoverSelect('11:22:33:44:55:66',
+      NDEF.CPS_ACTIVE);
+      nfcHandoverManager._handleHandoverSelect(hs);
 
-      spyBluetoothPair.firstCall.returnValue.fireError();
-      assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
-        false);
+      assert.ok(nfcHandoverManager._checkConnected.called);
+      assert.ok(nfcHandoverManager._onRequestConnect.called);
     });
 
     test('Send file with BT disabled and non-empty send file queue',
       function() {
-
-      MockBluetooth.enabled = false;
-      initiateFileTransfer();
-      assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
-              true);
-      MockService.mIsSendFileQueueEmpty = false;
-      finalizeFileTransfer();
-
+      this.sinon.stub(nfcHandoverManager, '_restoreBluetoothStatus');
       // Now finalize the second transfer (the one not initiated
       // via NFC handover)
       var details = {received: false,
                      success: true,
                      viaHandover: false};
-      MockService.mIsSendFileQueueEmpty = true;
-      nfcHandoverManager.transferComplete({
-        detail: details
-      });
-      assert.equal(MockNavigatorSettings.mSettings['bluetooth.enabled'],
-              false);
+      nfcHandoverManager.transferComplete({detail: details});
 
-    });
-
-    test('Timeout outgoing file transfer', function() {
-      MockBluetooth.enabled = true;
-      var spyCancel = this.sinon.spy(nfcHandoverManager,
-                                     '_cancelSendFileTransfer');
-
-      initiateFileTransfer();
-      assert.isTrue(MockBluetooth.enabled);
-      this.sinon.clock.tick(nfcHandoverManager.responseTimeoutMillis);
-      assert.isTrue(spyCancel.calledOnce);
-    });
-
-    test('Timeout incoming file transfer', function() {
-      var cps = NDEF.CPS_ACTIVE;
-      var mac = '01:23:45:67:89:AB';
-      var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
-      MockBluetooth.enabled = true;
-      var spyCancel = sinon.spy(nfcHandoverManager,
-                                '_cancelIncomingFileTransfer');
-      initiateFileTransfer();
-      nfcHandoverManager._handleHandoverRequest(handoverRequest,
-        MockMozNfc.MockNFCPeer);
-      this.sinon.clock.tick(nfcHandoverManager.responseTimeoutMillis);
-      assert.isTrue(spyCancel.calledOnce);
+      assert.ok(nfcHandoverManager._restoreBluetoothStatus.called);
     });
   });
 
@@ -656,12 +985,15 @@ suite('Nfc Handover Manager Functions', function() {
     test('multiple handover records, only first handled', function() {
       var result = nfcHandoverManager.tryHandover([spr, hsr], nfcPeer);
       assert.isTrue(result, 'result');
-      assert.isTrue(stubHandleSPR.withArgs([spr, hsr]).calledOnce, 'handled');
+      assert.isTrue(stubHandleSPR.withArgs([spr, hsr]).calledOnce,
+        'handled');
       assert.isFalse(stubHandleHSR.called, 'not handled');
     });
 
-    test('multiple records, handover record second, not handled', function() {
-      var result = nfcHandoverManager.tryHandover([uriRecord, hsr], nfcPeer);
+    test('multiple records, handover record second, not handled',
+      function() {
+      var result = nfcHandoverManager.tryHandover([uriRecord, hsr],
+         nfcPeer);
       assert.isFalse(result, 'result');
       assert.isFalse(stubHandleHSR.called, 'not handled');
     });

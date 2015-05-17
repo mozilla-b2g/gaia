@@ -8,6 +8,7 @@ suite('BluetoothContext', function() {
   var adapterManager;
   var btContext;
   var btDevice;
+  var connectionManager;
   var mockSettingsCache;
   var observableArray;
 
@@ -25,6 +26,7 @@ suite('BluetoothContext', function() {
       'modules/bluetooth/bluetooth_adapter_manager',
       'modules/bluetooth/bluetooth_context',
       'modules/bluetooth/bluetooth_device',
+      'modules/bluetooth/bluetooth_connection_manager',
       'unit/mock_settings_cache',
       'modules/mvvm/observable_array'
     ];
@@ -33,12 +35,15 @@ suite('BluetoothContext', function() {
       '*': {
         'modules/bluetooth/bluetooth_adapter_manager': 'MockAdapterManager',
         'modules/bluetooth/bluetooth_device': 'MockBluetoothDevice',
+        'modules/bluetooth/bluetooth_connection_manager':
+          'MockConnectionManager',
         'modules/settings_cache': 'unit/mock_settings_cache'
       }
     };
 
     this.MockAdapterManager = {
       defaultAdapter: {
+        addEventListener: function() {},
         getPairedDevices: function() {return [];}
       },
       observe: function() {}
@@ -60,12 +65,23 @@ suite('BluetoothContext', function() {
       return this.MockBluetoothDevice;
     }.bind(this));
 
-    testRequire(modules, map, function(AdapterManager, BluetoothContext, 
-                                       BluetoothDevice, MockSettingsCache, 
-                                       ObservableArray) {
+    this.MockConnectionManager = {
+      addEventListener: function() {},
+      connectingAddress: null,
+      getConnectedDevices: function() {}
+    };
+
+    define('MockConnectionManager', function() {
+      return this.MockConnectionManager;
+    }.bind(this));
+
+    testRequire(modules, map, function(AdapterManager, BluetoothContext,
+                                       BluetoothDevice, ConnectionManager,
+                                       MockSettingsCache, ObservableArray) {
       adapterManager = AdapterManager;
       btContext = BluetoothContext;
       btDevice = BluetoothDevice;
+      connectionManager = ConnectionManager;
       mockSettingsCache = MockSettingsCache;
       observableArray = ObservableArray;
 
@@ -78,14 +94,27 @@ suite('BluetoothContext', function() {
     setup(function() {
       this.sinon.stub(adapterManager, 'observe');
       this.sinon.stub(btContext, '_onDefaultAdapterChanged');
+      this.sinon.stub(btContext, '_updateDeviceConnectionInfo');
+      this.sinon.stub(connectionManager, 'addEventListener');
     });
 
     test('AdapterManager "defaultAdapter" property should be observed, ' +
-         'and access defaultAdapter from AdapterManager manually ', function() {
+         'and access defaultAdapter from AdapterManager manually, ' +
+         'and regedit event listener from ConnectionManager ', function() {
       btContext._init();
       assert.isTrue(adapterManager.observe.calledWith('defaultAdapter'));
       assert.isTrue(btContext._onDefaultAdapterChanged.calledWith(
         adapterManager.defaultAdapter));
+      assert.equal(connectionManager.addEventListener.args[0][0], 'connecting');
+      assert.isDefined(connectionManager.addEventListener.args[0][1]);
+      assert.equal(connectionManager.addEventListener.args[1][0], 'connected');
+      assert.isDefined(connectionManager.addEventListener.args[1][1]);
+      assert.equal(
+        connectionManager.addEventListener.args[2][0], 'disconnected');
+      assert.isDefined(connectionManager.addEventListener.args[2][1]);
+      assert.equal(
+        connectionManager.addEventListener.args[3][0], 'profileChanged');
+      assert.isDefined(connectionManager.addEventListener.args[3][1]);
     });
   });
 
@@ -101,19 +130,15 @@ suite('BluetoothContext', function() {
       };
 
       this.sinon.stub(btContext, '_updateStatus');
-      this.sinon.stub(btContext, '_refreshPairedDevicesInfo');
     });
 
-    test('Observable properties should be inited ' +
-         'and _refreshPairedDevicesInfo() should be called ', function() {
+    test('Observable properties should be inited ', function() {
       btContext._initProperties(mockAdapter);
       assert.isTrue(btContext._updateStatus.calledWith(mockAdapter.state));
       assert.equal(btContext.address, mockAdapter.address);
       assert.equal(btContext.name, mockAdapter.name);
       assert.equal(btContext.discoverable, mockAdapter.discoverable);
       assert.equal(btContext.discovering, mockAdapter.discovering);
-      assert.isTrue(
-        btContext._refreshPairedDevicesInfo.calledWith(mockAdapter));
     });
   });
 
@@ -136,14 +161,17 @@ suite('BluetoothContext', function() {
   suite('_watchDefaultAdapterOnattributechanged > ', function() {
     var mockAdapter;
     setup(function() {
-      mockAdapter = {};
+      mockAdapter = {
+        addEventListener: function() {}
+      };
+      this.sinon.stub(mockAdapter, 'addEventListener');
       this.sinon.stub(btContext, '_onAdapterAttributeChanged');
     });
 
-    test('onattributechanged should be regedit callback function ', function() {
+    test('attributechanged should be registered callback function', function() {
       btContext._watchDefaultAdapterOnattributechanged(mockAdapter);
-      assert.isDefined(mockAdapter.onattributechanged);
-      mockAdapter.onattributechanged();
+      assert.equal(mockAdapter.addEventListener.args[0][0], 'attributechanged');
+      mockAdapter.addEventListener.args[0][1]();
       assert.isTrue(btContext._onAdapterAttributeChanged.calledWith(
         mockAdapter));
     });
@@ -153,14 +181,18 @@ suite('BluetoothContext', function() {
     var mockAdapter;
     setup(function() {
       mockAdapter = {
-        onattributechanged: function() {}
+        removeEventListener: function() {}
       };
+      this.sinon.stub(mockAdapter, 'removeEventListener');
       this.sinon.stub(btContext, '_onAdapterAttributeChanged');
     });
 
     test('onattributechanged should be unregedit ', function() {
       btContext._unwatchDefaultAdapterOnattributechanged(mockAdapter);
-      assert.isNull(mockAdapter.onattributechanged);
+      assert.equal(mockAdapter.removeEventListener.args[0][0],
+        'attributechanged');
+      assert.equal(mockAdapter.removeEventListener.args[0][1],
+        btContext._onAdapterAttributeChanged);
     });
   });
 
@@ -242,6 +274,7 @@ suite('BluetoothContext', function() {
           attrs: ['state']
         };
         this.sinon.stub(btContext, '_updateStatus');
+        this.sinon.stub(btContext, '_refreshPairedDevicesInfo');
         this.sinon.stub(btContext, 'startDiscovery');
       });
 
@@ -249,6 +282,8 @@ suite('BluetoothContext', function() {
            'and startDiscovery() should be called ', function() {
         btContext._onAdapterAttributeChanged(mockAdapter, evt);
         assert.isTrue(btContext._updateStatus.calledWith(mockAdapter.state));
+        assert.isTrue(btContext._refreshPairedDevicesInfo.calledWith(
+          mockAdapter));
         assert.isTrue(btContext.startDiscovery.called);
       });
     });
@@ -260,6 +295,7 @@ suite('BluetoothContext', function() {
           attrs: ['state']
         };
         this.sinon.stub(btContext, '_updateStatus');
+        this.sinon.stub(btContext, '_refreshPairedDevicesInfo');
         this.sinon.stub(btContext, 'startDiscovery');
       });
 
@@ -267,6 +303,7 @@ suite('BluetoothContext', function() {
            'and startDiscovery() should be called ', function() {
         btContext._onAdapterAttributeChanged(mockAdapter, evt);
         assert.isTrue(btContext._updateStatus.calledWith(mockAdapter.state));
+        assert.isFalse(btContext._refreshPairedDevicesInfo.called);
         assert.isFalse(btContext.startDiscovery.called);
       });
     });
@@ -372,12 +409,15 @@ suite('BluetoothContext', function() {
       this.sinon.stub(btContext, '_watchDefaultAdapterOndevicepaired');
       this.sinon.stub(btContext, '_watchDefaultAdapterOndeviceunpaired');
       this.sinon.stub(btContext, '_resetProperties');
+      this.sinon.stub(btContext, '_refreshPairedDevicesInfo');
     });
 
     suite('changed with new/old adapter, ' +
           'in case of having new adapter > ', function() {
       suiteSetup(function() {
-        newAdapter = {};
+        newAdapter = {
+          state: 'enabled'
+        };
       });
 
       test('should unwatch events from old adapter, ' +
@@ -406,6 +446,9 @@ suite('BluetoothContext', function() {
         assert.isTrue(
           btContext._watchDefaultAdapterOndeviceunpaired.calledWith(
             newAdapter));
+        // test init paired devices information
+        assert.isTrue(btContext._refreshPairedDevicesInfo.calledWith(
+          newAdapter));
         // test reset properties
         assert.isFalse(btContext._resetProperties.called);
       });
@@ -438,6 +481,8 @@ suite('BluetoothContext', function() {
         assert.isFalse(btContext._watchDefaultAdapterOnattributechanged.called);
         assert.isFalse(btContext._watchDefaultAdapterOndevicepaired.called);
         assert.isFalse(btContext._watchDefaultAdapterOndeviceunpaired.called);
+        // test init paired devices information
+        assert.isFalse(btContext._refreshPairedDevicesInfo.called);
         // test reset properties
         assert.isTrue(btContext._resetProperties.called);
       });
@@ -450,6 +495,8 @@ suite('BluetoothContext', function() {
       setup(function() {
         mockPairedDvices = [];
         this.sinon.stub(btContext._pairedDevices, 'reset');
+        this.sinon.stub(btContext, '_initConnectingDevices');
+        this.sinon.stub(btContext, '_initConnectedDevices');
         mockAdapter = {
           getPairedDevices: function() {return mockPairedDvices;}
         };
@@ -464,6 +511,8 @@ suite('BluetoothContext', function() {
           btContext._pairedDevices.reset.calledWith(mockPairedDvices));
         assert.equal(btContext.firstPairedDeviceName, '');
         assert.isFalse(btContext.hasPairedDevice);
+        assert.isFalse(btContext._initConnectingDevices.called);
+        assert.isFalse(btContext._initConnectedDevices.called);
         assert.equal(btContext.numberOfPairedDevices, mockPairedDvices.length);
       });
     });
@@ -479,6 +528,8 @@ suite('BluetoothContext', function() {
            name: 'AA-device',
            paired: false}];
         this.sinon.stub(btContext._pairedDevices, 'reset');
+        this.sinon.stub(btContext, '_initConnectingDevices');
+        this.sinon.stub(btContext, '_initConnectedDevices');
         mockAdapter = {
           getPairedDevices: function() {return mockPairedDvices;}
         };
@@ -492,6 +543,8 @@ suite('BluetoothContext', function() {
         assert.isTrue(btContext._pairedDevices.reset.calledWith([]));
         assert.equal(btContext.firstPairedDeviceName, 'AA-device');
         assert.isTrue(btContext.hasPairedDevice);
+        assert.isTrue(btContext._initConnectingDevices.called);
+        assert.isTrue(btContext._initConnectedDevices.called);
         assert.equal(btContext.numberOfPairedDevices, mockPairedDvices.length);
       });
     });
@@ -500,69 +553,120 @@ suite('BluetoothContext', function() {
   suite('_updateStatus > ', function() {
     suite('enabled = false, state = "disabled", ' +
       '_updateStatus with "enabled" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = false;
         btContext.state = 'disabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = true, state = "enabled" ', function() {
         btContext._updateStatus('enabled');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'enabled');
         assert.isTrue(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
       });
     });
 
     suite('enabled = false, state = "disabled", ' +
       '_updateStatus with "enabling" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = false;
         btContext.state = 'disabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = false, state = "enabling"', function() {
         btContext._updateStatus('enabling');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'enabling');
         assert.isFalse(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
       });
     });
 
     suite('enabled = true, state = "enabled", ' +
       '_updateStatus with "disabled" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = true;
         btContext.state = 'enabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = false, state = "disabled"', function() {
         btContext._updateStatus('disabled');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'disabled');
         assert.isFalse(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
       });
     });
 
     suite('enabled = true, state = "enabled", ' +
       '_updateStatus with "disabling" ', function() {
-      var fakeTimer;
       setup(function() {
         btContext.enabled = true;
         btContext.state = 'enabled';
-        fakeTimer = this.sinon.useFakeTimers();
+        this.sinon.stub(btContext, '_syncWithSettingsKey');
       });
 
       test('new state will be enabled = false, state = "disabled"', function() {
         btContext._updateStatus('disabling');
-        fakeTimer.tick();
         assert.equal(btContext.state, 'disabling');
         assert.isTrue(btContext.enabled);
+        assert.isTrue(btContext._syncWithSettingsKey.calledWith(
+          btContext.enabled));
+      });
+    });
+  });
+
+  suite('_syncWithSettingsKey > ', function() {
+    var settingsSetSpy, mockEnabled;
+    suite('set with different state ', function() {
+      setup(function() {
+        mockEnabled = true;
+        mockSettingsCache.mockSettings({'bluetooth.enabled': !mockEnabled});
+        settingsSetSpy = this.sinon.spy();
+        var newCreateLock = function() {
+          return {
+            set: settingsSetSpy
+          };
+        };
+        this.sinon.stub(navigator.mozSettings, 'createLock', newCreateLock);
+      });
+
+      teardown(function() {
+        mockSettingsCache.mTeardown();
+      });
+
+      test('"bluetooth.enabled" settings key should be set with new state ',
+      function() {
+        btContext._syncWithSettingsKey(mockEnabled);
+        assert.isTrue(settingsSetSpy.calledWith(
+          {'bluetooth.enabled': mockEnabled}));
+      });
+    });
+
+    suite('set with same state ', function() {
+      setup(function() {
+        mockEnabled = true;
+        mockSettingsCache.mockSettings({'bluetooth.enabled': mockEnabled});
+        settingsSetSpy = this.sinon.spy();
+        var newCreateLock = function() {
+          return {
+            set: settingsSetSpy
+          };
+        };
+        this.sinon.stub(navigator.mozSettings, 'createLock', newCreateLock);
+      });
+
+      teardown(function() {
+        mockSettingsCache.mTeardown();
+      });
+
+      test('"bluetooth.enabled" settings key should not be set ', function() {
+        btContext._syncWithSettingsKey(mockEnabled);
+        assert.isFalse(settingsSetSpy.called);
       });
     });
   });
@@ -1141,6 +1245,72 @@ suite('BluetoothContext', function() {
   });
 
   suite('_findDeviceByAddress > ', function() {
+    var mockPairedDvices, mockRemoteDevices;
+    setup(function() {
+      mockPairedDvices = observableArray([
+        {address: '00:11:22:AA:BB:03',
+         name: 'device-03',
+         paired: true},
+        {address: '00:21:22:AA:BB:03',
+         name: 'device-04',
+         paired: true}]);
+
+      mockRemoteDevices = observableArray([
+        {address: 'AA:BB:CC:00:11:01',
+         name: 'device-01',
+         paired: false},
+        {address: 'AA:BB:CC:00:11:02',
+         name: 'device-02',
+         paired: false}]);
+    });
+    suite('found out an existed device ', function() {
+      var inputOptions;
+      setup(function() {
+        inputOptions = {
+          address: '00:11:22:AA:BB:03',
+          paired: true
+        };
+        this.sinon.stub(btContext,
+          'getPairedDevices').returns(mockPairedDvices);
+        this.sinon.stub(btContext,
+          'getRemoteDevices').returns(mockRemoteDevices);
+      });
+
+      test('getPairedDevices() should be called ' +
+           'getRemoteDevices() should not be called ' +
+           'and return expected device item ', function() {
+        var foundOutDevice = btContext._findDeviceByAddress(inputOptions);
+        assert.isTrue(btContext.getPairedDevices.called);
+        assert.isFalse(btContext.getRemoteDevices.called);
+        assert.equal(foundOutDevice, mockPairedDvices.get(0));
+      });
+    });
+
+    suite('did not find out match device ', function() {
+      var inputOptions;
+      setup(function() {
+        inputOptions = {
+          address: '00:11:22:AA:BB:04',
+          paired: false
+        };
+        this.sinon.stub(btContext,
+          'getPairedDevices').returns(mockPairedDvices);
+        this.sinon.stub(btContext,
+          'getRemoteDevices').returns(mockRemoteDevices);
+      });
+
+      test('getPairedDevices() should not be called ' +
+           'getRemoteDevices() should be called ' +
+           'and return expected device item ', function() {
+        var foundOutDevice = btContext._findDeviceByAddress(inputOptions);
+        assert.isFalse(btContext.getPairedDevices.called);
+        assert.isTrue(btContext.getRemoteDevices.called);
+        assert.isNull(foundOutDevice);
+      });
+    });
+  });
+
+  suite('_matchDeviceByAddress > ', function() {
     var address, mockDevice;
     suite('address matched ', function() {
       setup(function() {
@@ -1149,7 +1319,7 @@ suite('BluetoothContext', function() {
       });
 
       test('should return ture ', function() {
-        assert.isTrue(btContext._findDeviceByAddress(address, mockDevice));
+        assert.isTrue(btContext._matchDeviceByAddress(address, mockDevice));
       });
     });
 
@@ -1160,14 +1330,14 @@ suite('BluetoothContext', function() {
       });
 
       test('should return false ', function() {
-        assert.isFalse(btContext._findDeviceByAddress(address, mockDevice));
+        assert.isFalse(btContext._matchDeviceByAddress(address, mockDevice));
       });
     });
   });
 
   suite('pair > ', function() {
     suite('has default adapter, trigger pair ', function() {
-      var mockAdapter, address, mockAdapterPairPromise, 
+      var mockAdapter, address, mockAdapterPairPromise,
       mockStopDiscoveryPromise;
       setup(function() {
         mockStopDiscoveryPromise = new Promise(function(resolve) {
@@ -1193,7 +1363,7 @@ suite('BluetoothContext', function() {
           mockStopDiscoveryPromise.then(function() {
             assert.isTrue(btContext._defaultAdapter.pair.calledWith(address));
           }, function() {
-            // reject case  
+            // reject case
           });
         }, function() {
           // reject case
@@ -1201,7 +1371,7 @@ suite('BluetoothContext', function() {
       });
     });
 
-    suite('has default adapter, trigger pair, ' + 
+    suite('has default adapter, trigger pair, ' +
       'stopDiscovery in reject case ', function() {
       var mockAdapter, address, mockStopDiscoveryPromise, mockReason;
       setup(function() {
@@ -1288,6 +1458,239 @@ suite('BluetoothContext', function() {
           // reject case
           assert.equal(reason, 'default adapter is not existed!!');
         }).then(done, done);
+      });
+    });
+  });
+
+  suite('sendFile > ', function() {
+    suite('has default adapter, trigger unpair ', function() {
+      var mockAdapter, address, blob, mockAdapterSendFilePromise;
+      setup(function() {
+        mockAdapterSendFilePromise = new Promise(function(resolve) {
+          resolve();
+        });
+        mockAdapter = {
+          sendFile: function() {return mockAdapterSendFilePromise;}
+        };
+        address = 'AA:BB:CC:00:11:22';
+        blob = {};
+        btContext._defaultAdapter = mockAdapter;
+        this.sinon.spy(btContext._defaultAdapter, 'sendFile');
+      });
+
+      test('_defaultAdapter.sendFile() should be called with addrss, blob, ',
+      function(done) {
+        btContext.sendFile(address, blob).then(function() {
+          assert.equal(btContext._defaultAdapter.sendFile.args[0][0], address);
+          assert.equal(btContext._defaultAdapter.sendFile.args[0][1], blob);
+        }, function() {
+          // reject case
+          assert.isTrue(false);
+        }).then(done, done);
+      });
+    });
+
+    suite('default adapter = null, trigger sendFile, in reject case ',
+    function() {
+      var address, blob;
+      setup(function() {
+        address = 'AA:BB:CC:00:11:22';
+        blob = {};
+        btContext._defaultAdapter = null;
+      });
+
+      test('will reject with reason ' +
+           '"default adapter is not existed!!" ', function(done) {
+        btContext.sendFile(address, blob).then(function() {
+          // resolve case
+          assert.isTrue(false);
+        }, function(reason) {
+          // reject case
+          assert.equal(reason, 'default adapter is not existed!!');
+        }).then(done, done);
+      });
+    });
+  });
+
+  suite('_initConnectingDevices > ', function() {
+    suite('there is no connecting device ', function() {
+      setup(function() {
+        connectionManager.connectingAddress = null;
+        this.sinon.stub(btContext, '_findDeviceByAddress');
+      });
+
+      test('_findDeviceByAddress() should not be called ', function() {
+        btContext._initConnectingDevices();
+        assert.isFalse(btContext._findDeviceByAddress.called);
+      });
+    });
+
+    suite('Has connecting device ', function() {
+      var findConnectingDeviceOptions, updateOptions, mockExistedDevice;
+      setup(function() {
+        connectionManager.connectingAddress = 'AA:BB:CC:00:11:22';
+        findConnectingDeviceOptions = {
+          paired: true,
+          address: connectionManager.connectingAddress
+        };
+        updateOptions = {
+          connectionStatus: 'connecting'
+        };
+        mockExistedDevice = {
+          updateConnectionInfo: function() {}
+        };
+        this.sinon.stub(mockExistedDevice, 'updateConnectionInfo');
+        this.sinon.stub(btContext, '_findDeviceByAddress').returns(
+          mockExistedDevice);
+      });
+
+      test('_findDeviceByAddress() should be called, ' +
+           'updateConnectionInfo() should be called with options', function() {
+        btContext._initConnectingDevices();
+        assert.isTrue(btContext._findDeviceByAddress.calledWith(
+          findConnectingDeviceOptions));
+        assert.isTrue(mockExistedDevice.updateConnectionInfo.calledWith(
+          updateOptions));
+      });
+    });
+  });
+
+  suite('_initConnectedDevices > ', function() {
+    suite('there is no connected device ', function() {
+      var mockGetConnectedDevicesPromise, mockConnectedDevices;
+      setup(function() {
+        mockConnectedDevices = {};
+        mockGetConnectedDevicesPromise = Promise.resolve(mockConnectedDevices);
+        this.sinon.stub(connectionManager, 'getConnectedDevices').returns(
+          mockGetConnectedDevicesPromise);
+        this.sinon.stub(btContext, '_findDeviceByAddress');
+      });
+
+      test('_findDeviceByAddress() should not be called ', function(done) {
+        btContext._initConnectedDevices();
+        mockGetConnectedDevicesPromise.then(() => {
+          assert.isFalse(btContext._findDeviceByAddress.called);
+        }, () => {
+          // reject case
+        }).then(done, done);
+      });
+    });
+
+    suite('has connected device ', function() {
+      var mockGetConnectedDevicesPromise, mockConnectedDevices,
+      findConnectingDeviceOptions, updateOptions, mockExistedDevice;
+      setup(function() {
+        mockConnectedDevices = {
+          'AA:BB:CC:00:11:22': {
+            connectedProfiles: {}
+          }
+        };
+        mockGetConnectedDevicesPromise = Promise.resolve(mockConnectedDevices);
+        this.sinon.stub(connectionManager, 'getConnectedDevices').returns(
+          mockGetConnectedDevicesPromise);
+
+        findConnectingDeviceOptions = {
+          paired: true,
+          address: 'AA:BB:CC:00:11:22'
+        };
+        updateOptions = {
+          connectionStatus: 'connected',
+          profiles: mockConnectedDevices['AA:BB:CC:00:11:22'].connectedProfiles
+        };
+        mockExistedDevice = {
+          updateConnectionInfo: function() {}
+        };
+        this.sinon.stub(mockExistedDevice, 'updateConnectionInfo');
+        this.sinon.stub(btContext, '_findDeviceByAddress').returns(
+          mockExistedDevice);
+      });
+
+      test('_findDeviceByAddress() should be called, ' +
+           'updateConnectionInfo() should be called with options',
+           function(done) {
+        btContext._initConnectedDevices();
+        mockGetConnectedDevicesPromise.then(() => {
+          assert.isTrue(btContext._findDeviceByAddress.calledWith(
+            findConnectingDeviceOptions));
+          assert.isTrue(mockExistedDevice.updateConnectionInfo.calledWith(
+            updateOptions));
+        }, () => {
+          // reject case
+        }).then(done, done);
+      });
+    });
+  });
+
+  suite('_updateDeviceConnectionInfo > ', function() {
+    suite('"disconnected" event is coming from connectionManager ', function() {
+      var mockEvent, findConnectingDeviceOptions, updateOptions,
+      mockExistedDevice;
+      setup(function() {
+        mockEvent = {
+          type: 'disconnected',
+          detail: {
+            address: 'AA:BB:CC:00:11:22'
+          }
+        };
+        findConnectingDeviceOptions = {
+          paired: true,
+          address: mockEvent.detail.address
+        };
+        updateOptions = {
+          connectionStatus: mockEvent.type
+        };
+        mockExistedDevice = {
+          updateConnectionInfo: function() {}
+        };
+        this.sinon.stub(mockExistedDevice, 'updateConnectionInfo');
+        this.sinon.stub(btContext, '_findDeviceByAddress').returns(
+          mockExistedDevice);
+      });
+
+      test('_findDeviceByAddress() should be called with options, ' +
+           'updateConnectionInfo() should be called with options', function() {
+        btContext._updateDeviceConnectionInfo(mockEvent);
+        assert.isTrue(btContext._findDeviceByAddress.calledWith(
+          findConnectingDeviceOptions));
+        assert.isTrue(mockExistedDevice.updateConnectionInfo.calledWith(
+          updateOptions));
+      });
+    });
+
+    suite('"profileChanged" event is coming from connectionManager ',
+    function() {
+      var mockEvent, findConnectingDeviceOptions, updateOptions,
+      mockExistedDevice;
+      setup(function() {
+        mockEvent = {
+          type: 'profileChanged',
+          detail: {
+            address: 'AA:BB:CC:00:11:22',
+            profiles: {}
+          }
+        };
+        findConnectingDeviceOptions = {
+          paired: true,
+          address: mockEvent.detail.address
+        };
+        updateOptions = {
+          profiles: mockEvent.detail.profiles
+        };
+        mockExistedDevice = {
+          updateConnectionInfo: function() {}
+        };
+        this.sinon.stub(mockExistedDevice, 'updateConnectionInfo');
+        this.sinon.stub(btContext, '_findDeviceByAddress').returns(
+          mockExistedDevice);
+      });
+
+      test('_findDeviceByAddress() should be called with options, ' +
+           'updateConnectionInfo() should be called with options', function() {
+        btContext._updateDeviceConnectionInfo(mockEvent);
+        assert.isTrue(btContext._findDeviceByAddress.calledWith(
+          findConnectingDeviceOptions));
+        assert.isTrue(mockExistedDevice.updateConnectionInfo.calledWith(
+          updateOptions));
       });
     });
   });

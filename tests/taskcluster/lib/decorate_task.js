@@ -83,7 +83,7 @@ function decorateTask(task, options) {
   // Default docker image...
   var payload = output.task.payload;
   payload.image = payload.image || (IMAGE.trim()) + ':' + (VERSION.trim());
-  payload.maxRunTime = 30 * 60; // 30 minutes in seconds...
+  payload.maxRunTime = payload.maxRunTime || 30 * 60; // 30 minutes in seconds
 
   // Copy over the important environment variables...
   payload.env = payload.env || {};
@@ -91,13 +91,37 @@ function decorateTask(task, options) {
     payload.env[env] = payload.env[env] || process.env[env];
   });
 
+  output.task.scopes = output.task.scopes || [];
+  // Hack to ensure all tasks have the scope for the given image.
+  output.task.scopes.push('docker-worker:image:' + IMAGE + '*');
+
   if (process.env.TREEHERDER_PROJECT && process.env.TREEHERDER_REVISION) {
+    // defaults to 'tc-treeherder' only so existing tasks need not be changed
+    var prefixes = ['tc-treeherder'];
+
+    if (output.task.extra) {
+      if (output.task.extra.treeherderEnv) {
+        prefixes = [];
+        if (output.task.extra.treeherderEnv.indexOf('staging') != -1) {
+          prefixes.push('tc-treeherder-stage');
+        }
+        if (output.task.extra.treeherderEnv.indexOf('production') != -1) {
+          prefixes.push('tc-treeherder');
+        }
+        // treeherderEnv not staging or production, default to staging
+        if (prefixes.length === 0) {
+          prefixes.push('tc-treeherder-stage');
+        }
+      }
+    }
+
     output.task.routes = output.task.routes || [];
-    output.task.routes.push(
-      'tc-treeherder.' +
-      process.env.TREEHERDER_PROJECT + '.' +
-      process.env.TREEHERDER_REVISION
-    );
+    prefixes.forEach(function(prefix) {
+      output.task.routes.push(
+        [prefix, process.env.TREEHERDER_PROJECT, 
+        process.env.TREEHERDER_REVISION].join('.')
+      );
+    });
   }
 
   return output;

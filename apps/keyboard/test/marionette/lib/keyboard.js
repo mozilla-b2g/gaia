@@ -29,7 +29,11 @@ Keyboard.Selector = Object.freeze({
   key: '.keyboard-type-container[data-active] ' +
     'button.keyboard-key[data-keycode="%s"], ' +
     '.keyboard-type-container[data-active] ' +
-    'button.keyboard-key[data-keycode-upper="%s"]'
+    'button.keyboard-key[data-keycode-upper="%s"]',
+  upperCaseKey: '.keyboard-type-container[data-active] ' +
+    'button.keyboard-key[data-keycode-upper="%s"]',
+  pageSwitchingKey: '.keyboard-type-container[data-active] ' +
+    'button.keyboard-key[data-target-page="%s"]'
 });
 
 Keyboard.prototype = {
@@ -53,7 +57,96 @@ Keyboard.prototype = {
   },
 
   getKey: function getKey(key) {
+    var keySelector = Keyboard.Selector.key;
+
+    if (key >= '0' && key <='9') {
+      this.switchToPage(1);
+    } else if (key >= 'A' && key <= 'Z') {
+      this.switchToPage(0);
+      this.switchCase(true);
+      keySelector  = Keyboard.Selector.upperCaseKey;
+    } else if ((key >= 'a' && key <= 'z') ||
+               key == ' ') {
+      this.switchToPage(0);
+      this.switchCase(false);
+    } else {
+      var index = this.getSymbolPageIndex(key);
+      this.switchToPage(index);
+    }
+
     return this.client.findElement(
-      Keyboard.Selector.key.replace(/%s/g, key.charCodeAt(0)));
+      keySelector.replace(/%s/g, key.charCodeAt(0)));
+  },
+
+  getPageSwitchingKey: function(index) {
+    var selector = Keyboard.Selector.pageSwitchingKey.replace(/%s/g, index);
+    return this.client.findElement(selector);
+  },
+
+  getSymbolPageIndex: function(key) {
+    //First, try page 1
+    this.switchToPage(1);
+    var keySelector = Keyboard.Selector.key.replace(/%s/g, key.charCodeAt(0));
+
+    if (this.isElementPresent(keySelector)) {
+      return 1;
+    }
+
+    return 2;
+  },
+
+  switchCase: function switchCase(upperCase) {
+    if (this.isUpperCase() === upperCase) {
+      return;
+    }
+
+    var shiftKey = this.shiftKey;
+
+    shiftKey.click();
+    this.client.waitFor(function() {
+      var expected = upperCase ? 'true' : 'false';
+      return (shiftKey.getAttribute('aria-pressed') === expected);
+    });
+  },
+
+  switchToPage: function(index) {
+    var pageIndex= this.getCurrentPageIndex();
+    if (pageIndex === index) {
+      return;
+    }
+
+    var pageSwitchingKey = this.getPageSwitchingKey(index);
+    pageSwitchingKey.click();
+  },
+
+  getCurrentPageIndex: function() {
+    return this.client.executeScript(
+      'return window.wrappedJSObject.app.layoutManager.currentPageIndex;');
+  },
+
+  isUpperCase: function () {
+    return this.client.executeScript(
+        'return ' +
+        'window.wrappedJSObject.app.upperCaseStateManager.isUpperCase;');
+  },
+
+  isElementPresent: function(selector) {
+    // XXX: Hack to use faster polling
+    var pollClient = this.client.scope({ searchTimeout: 50 });
+
+    try {
+      pollClient.findElement(selector);
+    } catch (e) {
+      return false;
+    }
+
+    return true;
+  },
+
+  type: function(string) {
+    string.split('').forEach(function(char) {
+      var keyElement = this.getKey(char);
+      keyElement.click();
+    }, this);
   }
 };

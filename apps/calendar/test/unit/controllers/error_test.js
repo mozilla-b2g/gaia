@@ -1,11 +1,12 @@
 define(function(require) {
 'use strict';
 
-var CalendarError = require('error');
+var CalendarError = require('common/error');
 var ErrorController = require('controllers/error');
 var Factory = require('test/support/factory');
-var Responder = require('responder');
-var nextTick = require('next_tick');
+var Responder = require('common/responder');
+var core = require('core');
+var nextTick = require('common/next_tick');
 var notification = require('notification');
 
 suite('controllers/error', function() {
@@ -47,15 +48,14 @@ suite('controllers/error', function() {
     });
   }
 
-  var app;
   var subject;
   var detail;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    subject = new ErrorController(app);
+    testSupport.calendar.core();
+    subject = new ErrorController();
 
-    app.db.open(done);
+    core.db.open(done);
     detail = {
       account: Factory('account')
     };
@@ -63,17 +63,16 @@ suite('controllers/error', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
   });
 
   test('initialization', function() {
-    assert.equal(subject.app, app);
     assert.instanceOf(subject, Responder);
   });
 

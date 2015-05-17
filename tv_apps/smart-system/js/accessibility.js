@@ -511,7 +511,7 @@
       }
       window.clearTimeout(this.captionsHideTimeout);
       this.captionsHideTimeout = null;
-      this.captionsBox.innerHTML = aUtterance;
+      this.captionsBox.textContent = aUtterance;
       this.captionsBox.classList.add('visible');
     },
 

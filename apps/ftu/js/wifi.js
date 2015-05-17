@@ -1,4 +1,4 @@
-/* global utils, UIManager, WifiHelper */
+/* global utils, UIManager, WifiHelper, WifiUI:true */
 /* exported WifiManager, WifiUI */
 'use strict';
 
@@ -249,14 +249,13 @@ var WifiUI = {
 
     // Update network values
     var ssidHeader = document.getElementById('wifi_ssid');
-    var userLabel = document.getElementById('label_wifi_user');
     var userInput = document.getElementById('wifi_user');
     var passwordInput = document.getElementById('wifi_password');
     var showPassword = document.querySelector('input[name=show_password]');
     var joinButton = UIManager.wifiJoinButton;
 
     joinButton.disabled = true;
-    passwordInput.addEventListener('keyup', function validatePassword() {
+    passwordInput.addEventListener('input', function validatePassword() {
       // disable the "Join" button if the password is on wrong format
       joinButton.disabled =
         !WifiHelper.isValidInput(WifiHelper.getKeyManagement(selectedNetwork),

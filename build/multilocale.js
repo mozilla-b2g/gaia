@@ -1,12 +1,7 @@
 'use strict';
 
-/* global exports, require, OS */
-
-const { Cu } = require('chrome');
-Cu.import('resource://gre/modules/osfile.jsm');
-
-const utils = require('utils');
-const qps = require('l10n/qps');
+const utils = require('./utils');
+const qps = require('./l10n/qps');
 const RE_PROPERTY_LINE = /(.*)\s*[:=]\s*(.*)/;
 const MODNAME = 'multilocale';
 
@@ -18,9 +13,12 @@ function L10nManager(gaiaDir,
                      localesFilePath,
                      localeBasedir,
                      subject) {
-  if (arguments.length !== 4) {
+  if (arguments.length < 3 || arguments.length > 4) {
     throw new TypeError('Illegal constructor');
   }
+
+  // subject is for optional arguments and can be omitted
+  subject = subject || {};
 
   var self = this;
   var localesFile = utils.resolve(localesFilePath, gaiaDir);
@@ -57,8 +55,8 @@ function L10nManager(gaiaDir,
     var isOfficialBranding;
 
     // get all <link rel="localization">
-    var links = [...doc.querySelectorAll('link[rel="localization"]')];
-    links.forEach(function(link) {
+    var links = doc.querySelectorAll('link[rel="localization"]');
+    Array.prototype.forEach.call(links, function(link) {
       var resURL = link.getAttribute('href');
       var realURL = resURL;
 
@@ -82,9 +80,10 @@ function L10nManager(gaiaDir,
                                  utils.basename(resURL));
       }
 
-      for (var loc of self.locales) {
+      for (var key in self.locales) {
+        var loc = self.locales[key];
         var relPathInApp =
-          file.parent.path.substr(webapp.buildDirectoryFilePath.length);
+          utils.dirname(file.path).substr(webapp.buildDirectoryFilePath.length);
         var resFile =
           getResourceFile(webapp, relPathInApp,
                           realURL, loc, isOfficialBranding);
@@ -105,8 +104,10 @@ function L10nManager(gaiaDir,
           }
           continue;
         }
-        utils.ensureFolderExists(destFile.parent);
-        resFile.copyTo(destFile.parent, destFile.leafName);
+        var parentOfDestFile = utils.getFile(destFile.path, '..');
+        utils.ensureFolderExists(parentOfDestFile);
+        utils.copyFileTo(resFile, parentOfDestFile.path,
+          destFile.leafName);
       }
     });
   }
@@ -135,7 +136,7 @@ function L10nManager(gaiaDir,
       // foo.properties
       str = str.replace(/locales\//, '');
       str = str.replace('{locale}.', '');
-      return OS.Path.normalize(str);
+      return utils.normalizePath(str);
     }
 
     var isShared = /^\.?\/?shared\//.test(resURL);
@@ -172,7 +173,9 @@ function L10nManager(gaiaDir,
       paths.push(loc);
       if (!isShared) {
         var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
-        paths.push(sourceDirectoryFile.parent.leafName);
+        var parentOfSourceDirFile =
+          utils.getFile(webapp.sourceDirectoryFilePath, '..');
+        paths.push(parentOfSourceDirFile.leafName);
         paths.push(sourceDirectoryFile.leafName);
         paths.push(relPathInApp);
       }
@@ -223,13 +226,16 @@ function L10nManager(gaiaDir,
       date.getMinutes()
     ];
 
-    return chunks.map(c => c < 10 ? '0' + c : c.toString()).join('');
+    return chunks.map(function(c) {
+      return c < 10 ? ('0' + c) : c.toString();
+    }).join('');
   }
 
   function createMeta(doc, name) {
     var meta = doc.createElement('meta');
     meta.setAttribute('name', name);
-    return doc.head.appendChild(meta);
+    var head = doc.querySelector('head');
+    return head.appendChild(meta);
   }
 
   function buildL10nMeta(file, doc) {
@@ -376,7 +382,7 @@ function L10nManager(gaiaDir,
     manifest = utils.cloneJSON(manifest);
     if (!manifest.locales[GAIA_SOURCE_LOCALE]) {
       utils.log(MODNAME,
-        'In manifest file: ' + webapp.buildManifestFile.path + ', ' +
+        'In manifest file: ' + webapp.buildManifestFilePath + ', ' +
         'missing locales key for locale: ' + GAIA_SOURCE_LOCALE);
     }
     var sourceLocaleProps = {
@@ -454,9 +460,8 @@ function L10nManager(gaiaDir,
    * @returns {Object} res    - Manifest l10n resource
    */
   function getManifestProperties(webapp, locale) {
-    var sourceDirectoryFile = utils.getFile(webapp.sourceDirectoryFilePath);
-    var parent = sourceDirectoryFile.parent.leafName;
-    var propFile = utils.getFile(self.localeBasedir, locale, parent,
+    var parent = utils.getFile(webapp.sourceDirectoryFilePath, '..');
+    var propFile = utils.getFile(self.localeBasedir, locale, parent.leafName,
       webapp.sourceDirectoryName, 'manifest.properties');
     if (!propFile.exists()) {
       return null;
@@ -484,7 +489,7 @@ function L10nManager(gaiaDir,
     };
     content.split('\n').forEach(function(line) {
       var matched = line.match(RE_PROPERTY_LINE);
-      if (!matched || line.trim().startsWith('#')) {
+      if (!matched || line.trim().indexOf('#') === 0) {
         return;
       }
       var value = matched[2].trim();
@@ -493,7 +498,8 @@ function L10nManager(gaiaDir,
       // if we got a key with "." such as dialer.name, create an new
       // entry_point for it.
       if (parts.length === 2) {
-        [entryPoint, key] = parts;
+        entryPoint = parts[0];
+        key = parts[1];
         if (!prop.entry_points[entryPoint]) {
           prop.entry_points[entryPoint] = {};
         }
@@ -536,7 +542,10 @@ function execute(options) {
     return;
   }
   var buildDirectoryFile = utils.getFile(webapp.buildDirectoryFilePath);
-  var files = utils.ls(buildDirectoryFile, true, /^tests?$/);
+  var excluded = new RegExp(webapp.buildDirectoryFilePath + '.*\/tests?');
+  var files = utils.ls(buildDirectoryFile, true).filter(function(file) {
+    return !(excluded.test(file.path));
+  });
 
   l10nManager.localize(files.filter(function(file) {
     return /\.html$/.test(file.path);

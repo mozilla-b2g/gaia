@@ -107,7 +107,7 @@ var SheetsTransition = {
   },
 
   snapInPlace: function st_snapInPlace() {
-    var TIMEOUT = 300;
+    var TIMEOUT = 200;
     var duration = TIMEOUT - (TIMEOUT * (1 - this._lastProgress));
     duration = Math.max(duration, 90);
 
@@ -133,7 +133,7 @@ var SheetsTransition = {
     var durationLeft = (1 - this._lastProgress) / speed;
     durationLeft /= 1.2; // boost
 
-    var duration = Math.min(durationLeft, ((1 - this._lastProgress) * 300));
+    var duration = Math.min(durationLeft, ((1 - this._lastProgress) * 200));
 
     this._setDuration(this._current, duration);
     this._setDuration(this._new, duration);

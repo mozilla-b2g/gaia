@@ -18,6 +18,10 @@
   direction: ltr;
 }
 
+.controls.hidden {
+  visibility: hidden;
+}
+
 /**
  * disabled
  */
@@ -43,7 +47,7 @@
 .controls-left {
   justify-content: flex-end;
   opacity: 1;
-  transition: opacity 200ms ease-in-out;
+  transition: opacity 200ms ease-in-out, visibility 0ms;
 }
 
 /**
@@ -51,8 +55,10 @@
  */
 
 .controls.recording .controls-left {
+  visibility: hidden;
   opacity: 0;
   pointer-events: none;
+  transition-delay: 0ms, 200ms;
 }
 
 /** Right
@@ -178,6 +184,7 @@
 
 .controls.switch-disabled .mode-switch,
 .controls.recording .mode-switch {
+  visibility: hidden;
   pointer-events: none;
   opacity: 0;
 }
@@ -274,6 +281,11 @@
   top: calc(50% - 5.1rem);
   width: 10.2rem;
   height: 10.2rem;
+}
+
+/* Override [role="button"] styling. */
+.capture-button:active {
+  background: none;
 }
 
 /** Circle

@@ -5,45 +5,13 @@ source ./bin/buildbot_step
 export DISPLAY=:99
 Xvfb :99 > /dev/null 2>&1 &
 
-checkout_cache='https://s3-us-west-2.amazonaws.com/test-caching/gaia.tar.gz'
 checkout_path="$PWD/git_checkout"
-cache_path="$PWD/caches/"
-
-# buildbot step is sourced directly so we can directly invoke functions from
-# this file in the buildbot steps...
-
-# Ensure cache folder exists (for local testing).
-mkdir -p $cache_path
-
-buildbot_step 'list caches' ls $cache_path
-
-# Helper utility to ensure we have a particular cached file.
-ensure_cached() {
-  local url=$1
-  local target="$cache_path/$2"
-
-  if [ ! -f $target ];
-  then
-    curl --retry 5  $url > $target
-  fi
-  echo $target
-}
 
 # Handle initial clone and caching of the initial clone...
 step_clone() {
-  # If we already have a checkout do not clobber it...
-  if [ -d "$checkout_path" ];
-  then
-    # TODO: Consider clobbering any state here but this could be very dangerous
-    # to run locally then...
-    return 0
-  fi
-
   # Extract the cached clone (this is kept as a tarball to always keep a clean
   # working state without worrying about tree issues).
-  clone_tar=$(ensure_cached "$checkout_cache" "clone_cache.tar.gz")
-  mkdir -p $checkout_path
-  tar -x -z -f $clone_tar --strip-components=1 -C $checkout_path
+  tc-vcs checkout $checkout_path $GITHUB_BASE_GIT
 }
 
 # Run the checkout to the correct url, etc...
@@ -69,6 +37,11 @@ step_checkout() {
   fi
 }
 
+# Set-up our npm-cache.
+step_npm_cache() {
+  taskcluster-npm-cache-get --namespace gaia.npm_cache ./package.json
+}
+
 buildbot_step 'git clone cache' step_clone
 buildbot_step 'git checkout' step_checkout
 
@@ -78,6 +51,9 @@ cd $checkout_path
 
 # Current revision...
 buildbot_step 'git revision...' git --no-pager log -n 1
+
+# node modules
+buildbot_step 'npm-cache-get' step_npm_cache
 
 # virtualenv setup so any python packages can be abused without root access
 buildbot_step 'virtualenv' virtualenv $HOME/.venv --system-site-packages

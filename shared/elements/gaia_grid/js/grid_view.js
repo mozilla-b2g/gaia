@@ -399,6 +399,9 @@
           // We must de-reference element explicitly so we can re-use item
           // objects the next time we call render.
           item.element = null;
+          item.lastX = null;
+          item.lastY = null;
+          item.lastScale = null;
         }
       }
       this.items = [];
@@ -422,7 +425,8 @@
         var xPosition = (coordinates[0] + i) * this.layout.gridItemWidth;
         if (isRTL) {
           xPosition =
-            (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+            (this.layout.constraintSize - this.layout.gridItemWidth) -
+            xPosition;
         }
         item.setCoordinates(xPosition, this.layout.offsetY);
 
@@ -479,7 +483,7 @@
       var nextDivider = null;
       var oddDivider = true;
       var isRTL = (document.documentElement.dir === 'rtl');
-      for (var idx = 0; idx <= this.items.length - 1; idx++) {
+      for (var idx = 0; idx < this.items.length; idx++) {
         var item = this.items[idx];
 
         // Remove the element if we are re-rendering.
@@ -540,7 +544,8 @@
           var xPosition = x * this.layout.gridItemWidth;
           if (isRTL) {
             xPosition =
-              (this.layout.gridWidth - this.layout.gridItemWidth) - xPosition;
+              (this.layout.constraintSize - this.layout.gridItemWidth) -
+              xPosition;
           }
           item.setCoordinates(xPosition, this.layout.offsetY);
           if (!item.active) {
@@ -559,7 +564,7 @@
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
-        if (x >= this.layout.cols) {
+        if ((x >= this.layout.cols) && (idx < this.items.length - 1)) {
           step(item);
         }
       }

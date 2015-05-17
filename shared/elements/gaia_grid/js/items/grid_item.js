@@ -78,6 +78,14 @@
     persistToDB: true,
 
     /**
+     * Cached values of the last transform of the element, to avoid redundant
+     * style changes.
+     */
+    lastX: null,
+    lastY: null,
+    lastScale: null,
+
+    /**
      * Whether or not this item has a cached icon or not.
      */
     get hasCachedIcon() {
@@ -189,6 +197,18 @@
       if (!choices) {
         return this.defaultIcon;
       }
+      var icon;
+      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
+
+      // Check for W3C web manifest format for icons
+      if (Array.isArray(choices)) {
+        var manifest = {
+          'icons': choices
+        };
+        icon = window.WebManifestHelper.iconURLForSize(manifest,
+          this.app.manifestURL, maxSize);
+        return icon.href;
+      }
 
       // Create a list with the sizes and order it by descending size.
       var list = Object.keys(choices).map(function(size) {
@@ -203,7 +223,6 @@
         return this.defaultIcon;
       }
 
-      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
       var accurateSize = list[0]; // The biggest icon available
       for (var i = 0; i < length; i++) {
         var size = list[i];
@@ -215,7 +234,7 @@
         accurateSize = size;
       }
 
-      var icon = choices[accurateSize];
+      icon = choices[accurateSize];
 
       // Handle relative URLs
       if (!UrlHelper.hasScheme(icon)) {
@@ -251,6 +270,14 @@
       };
       background.onerror = () => {
         URL.revokeObjectURL(background.src);
+
+        // If we already have a cached icon, do not overwrite it on error.
+        if (this.hasCachedIcon) {
+          this._stampElementWithIcon('blobcache');
+          this._displayDecoratedIcon(this.detail.decoratedIconBlob, true);
+          return;
+        }
+
         this.renderIconFromSrc(this.defaultIcon);
         this._stampElementWithIcon(this.defaultIcon);
       };
@@ -518,6 +545,7 @@
         tile.dataset.identifier = this.identifier;
         tile.dataset.isDraggable = this.isDraggable();
         tile.setAttribute('role', 'link');
+        tile.style.width = (this.grid.layout.constraintSize / 3) + 'px';
 
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
@@ -529,7 +557,8 @@
 
         var nameEl = document.createElement('span');
         nameEl.className = 'title';
-        nameEl.textContent = this.name;
+        nameEl.setAttribute('dir', 'auto');
+
         nameContainerEl.appendChild(nameEl);
 
         // Add delete link if this icon is removable
@@ -540,6 +569,7 @@
         }
 
         this.element = tile;
+        this.updateTitle();
         this.renderIcon(true);
         this.grid.element.appendChild(tile);
       }
@@ -552,7 +582,17 @@
      */
     transform: function(x, y, scale, element) {
       scale = scale || 1;
-      element = element || this.element;
+
+      if (!element) {
+        if (x === this.lastX && y === this.lastY && scale === this.lastScale) {
+          return;
+        }
+        element = this.element;
+        this.lastX = x;
+        this.lastY = y;
+        this.lastScale = scale;
+      }
+
       element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
     },
@@ -579,7 +619,14 @@
         return;
       }
       var nameEl = this.element.querySelector('.title');
-      nameEl.textContent = this.name;
+
+      if (this.asyncName) {
+        this.asyncName().then(function(name) {
+          nameEl.textContent = name;
+        });
+      } else {
+        nameEl.textContent = this.name;
+      }
     },
 
     /**

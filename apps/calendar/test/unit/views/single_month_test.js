@@ -4,15 +4,14 @@ define(function(require) {
 var SingleMonth = require('views/single_month');
 
 suite('Views.SingleMonth', function() {
+  var core;
   var subject;
   var container;
-  var app;
 
   setup(function() {
-    app = testSupport.calendar.app();
+    core = testSupport.calendar.core();
     container = document.createElement('div');
     subject = new SingleMonth({
-      app: app,
       date: new Date(2014, 6, 1),
       container: container
     });
@@ -50,8 +49,8 @@ suite('Views.SingleMonth', function() {
     var tc;
 
     setup(function() {
-      tc = subject.timeController;
-      subject.timeController = {
+      tc = core.timeController;
+      core.timeController = {
         on: sinon.spy(),
         off: sinon.spy()
       };
@@ -68,7 +67,7 @@ suite('Views.SingleMonth', function() {
     });
 
     teardown(function() {
-      subject.timeController = tc;
+      core.timeController = tc;
       subject.days = days;
       subject._onSelectedDayChange.restore();
       subject.oninactive.restore();
@@ -79,7 +78,7 @@ suite('Views.SingleMonth', function() {
       sinon.assert.calledOnce(subject.days[0].activate, 'activate 1st day');
       sinon.assert.calledOnce(subject.days[1].activate, 'activate 2nd day');
       sinon.assert.calledWith(
-        subject.timeController.on,
+        core.timeController.on,
         'selectedDayChange',
         subject
       );
@@ -92,7 +91,7 @@ suite('Views.SingleMonth', function() {
       subject.deactivate();
       sinon.assert.notCalled(subject.oninactive);
       sinon.assert.notCalled(subject.days[0].deactivate);
-      sinon.assert.notCalled(subject.timeController.off);
+      sinon.assert.notCalled(core.timeController.off);
     });
 
     test('#deactivate: active', function() {
@@ -101,7 +100,7 @@ suite('Views.SingleMonth', function() {
       sinon.assert.calledOnce(subject.oninactive);
       sinon.assert.calledOnce(subject.days[0].deactivate);
       sinon.assert.calledWith(
-        subject.timeController.off,
+        core.timeController.off,
         'selectedDayChange',
         subject
       );

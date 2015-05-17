@@ -64,6 +64,10 @@ IndicatorsController.prototype.bindEvents = function() {
   // reader.
   this.app.on('settings:opened', this.view.setter('ariaHidden', true));
   this.app.on('settings:closed', this.view.setter('ariaHidden', false));
+
+  // Preview gallery
+  this.app.on('previewgallery:opened', this.view.hide);
+  this.app.on('previewgallery:closed', this.view.show);
   debug('events bound');
 };
 

@@ -13,6 +13,7 @@
   var HardwareButtonsVolumeState;
   var HardwareButtonsWakeState;
   var HardwareButtonsScreenshotState;
+  var HardwareButtonsSystemLogState;
 
   /**
    * After bug 989198 landing, we will be able to listen to KeyboardEvent
@@ -48,19 +49,21 @@
    * that are not cancelable and do not bubble.  They are dispatched at the
    * window object.  The type property is set to one of these:
    *
-   * | Event Type  |  Meaning                                                  |
-   * |-------------|-----------------------------------------------------------|
-   * | home        | short press and release of home button                    |
-   * | holdhome    | long press and hold of home button                        |
-   * | sleep       | short press and release of sleep button                   |
-   * | wake        | sleep or home pressed while sleeping                      |
-   * | holdsleep   | long press and hold of sleep button                       |
-   * | volumeup    | volume up pressed and released or autorepeated            |
-   * | volumedown  | volume down pressed and released or autorepeated          |
-   * | volumedown  | volume down and sleep pressed at same time (used for      |
-   * |   + sleep   | screenshots)                                              |
-   * | camera      | short press and release of camera button                  |
-   * | holdcamera  | long press and hold of camera button                      |
+   * | Event Type   |  Meaning                                                 |
+   * |--------------|----------------------------------------------------------|
+   * | home         | short press and release of home button                   |
+   * | holdhome     | long press and hold of home button                       |
+   * | sleep        | short press and release of sleep button                  |
+   * | wake         | sleep or home pressed while sleeping                     |
+   * | holdsleep    | long press and hold of sleep button                      |
+   * | volumeup     | volume up pressed and released or autorepeated           |
+   * | volumedown   | volume down pressed and released or autorepeated         |
+   * | volumedown   | volume down and sleep pressed at same time (used for     |
+   * |   + sleep    | screenshots)                                             |
+   * | volumedown   | volume up and sleep pressed at same time (used for       |
+   * |   + volumeup | systemlog capture)                                       |
+   * | camera       | short press and release of camera button                 |
+   * | holdcamera   | long press and hold of camera button                     |
    *
    * Because these events are fired at the window object, they cannot be
    * captured.  Many modules listen for the home event. Those that want
@@ -435,10 +438,6 @@
          */
         this.hardwareButtons.setState('screenshot', type);
         return;
-      case 'volume-up-button-press':
-        this.hardwareButtons.setState('volume', type);
-        this.hardwareButtons.setState('base', type);
-        return;
       case 'home-button-press':
         this.hardwareButtons.setState('base', type);
         return;
@@ -528,6 +527,10 @@
           return;
         }
         this.hardwareButtons.setState('sleep', type);
+        return;
+      case 'volume-down-button-press':
+      case 'volume-up-button-press':
+        this.hardwareButtons.setState('systemlog', type);
         return;
       case 'volume-up-button-release':
         if (this.direction === 'volume-up-button-press') {
@@ -677,6 +680,56 @@
    * @param  {String} type Name of the event to process.
    */
   HardwareButtonsScreenshotState.prototype.process = function(type) {
+    this.hardwareButtons.setState('base', type);
+  };
+
+  /**
+   * We enter the systemlog home state when the user presses the Power button
+   * and Volume Down button within less than HOLD_INTERVAL of each other
+   * We can fire home or holdhome events from this state
+   *
+   * @class HardwareButtonsSystemLogState
+   */
+  HardwareButtonsSystemLogState =
+    HardwareButtons.STATES.systemlog =
+    function HardwareButtonsSystemLogState(hb) {
+      this.hardwareButtons = hb;
+      this.timer = undefined;
+    };
+
+  /**
+   * Entering the state.
+   * @memberof HardwareButtonsSystemLogState.prototype
+   */
+  HardwareButtonsSystemLogState.prototype.enter = function() {
+    this.timer = setTimeout(function() {
+      /**
+       * When the user holds Volume Up and Volume Down button
+       * more than HOLD_INTERVAL.
+       * @event HardwareButtonsHomeState#volumeup+volumedown
+       */
+      this.hardwareButtons.publish('volumeup+volumedown');
+      this.hardwareButtons.setState('base');
+    }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
+  };
+
+  /**
+   * Leaving the state.
+   * @memberof HardwareButtonsSystemLogState.prototype
+   */
+  HardwareButtonsSystemLogState.prototype.exit = function() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  };
+
+  /**
+   * Pressing any other hardware button will cancel this state.
+   * @memberof HardwareButtonsSystemLogState.prototype
+   * @param  {String} type Name of the event to process.
+   */
+  HardwareButtonsSystemLogState.prototype.process = function(type) {
     this.hardwareButtons.setState('base', type);
   };
 

@@ -1,3 +1,4 @@
+'use strict';
 /*jshint browser: true */
 /*global requireApp, suite, testConfig, test, assert,
   suiteSetup, suiteTeardown */

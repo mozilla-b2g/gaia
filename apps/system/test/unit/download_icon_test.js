@@ -48,6 +48,15 @@ suite('system/DownloadIcon', function() {
     assert.isFalse(subject.isVisible());
   });
 
+  test('Finalize the download', function() {
+    subject.handle(MockDownload);
+    MockDownload.state = 'finalized';
+    MockDownload.onstatechange({
+      download: MockDownload
+    });
+    assert.isFalse(subject.isVisible());
+  });
+
   suite('Download count inc/dec', function() {
     test('incrementing should display the icon', function() {
       subject.incDownloads();

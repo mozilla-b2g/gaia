@@ -19,6 +19,7 @@ dev_apps/test-otasp
 dev_apps/test-receiver-1
 dev_apps/test-receiver-2
 dev_apps/test-receiver-inline
+dev_apps/test-startup-limit
 dev_apps/test-wappush
 dev_apps/uitest
 dev_apps/uitest-privileged

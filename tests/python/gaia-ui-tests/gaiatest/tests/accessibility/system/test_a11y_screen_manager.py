@@ -2,43 +2,38 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
+from marionette_driver import Wait
+from marionette_driver.errors import TimeoutException
 
 from gaiatest import GaiaTestCase
+
+SCREEN_TIMEOUT = 15
+TIMEOUT_TOLERANCE = 10
+
+
+class screen_disabled(object):
+
+    def __init__(self, device, interrupt=None):
+        self.device = device
+        self.interrupt = interrupt
+
+    def __call__(self, marionette):
+        if self.interrupt is not None:
+            self.interrupt()
+        return not self.device.is_screen_enabled
 
 
 class TestScreenManagerAccessibility(GaiaTestCase):
 
-    def setUp(self):
-        GaiaTestCase.setUp(self)
-        # Set idle timeout to 1 seconds.
-        self.data_layer.set_setting('screen.timeout', 1)
+    def modify_settings(self, settings):
+        settings['screen.timeout'] = SCREEN_TIMEOUT
+        return settings
 
     def test_a11y_screen_manager(self):
-
-        # Check if the screen is turned on
-        self.assertTrue(self.device.is_screen_enabled)
-
-        # Wait for 11 seconds: screen timeout + dim notice
-        time.sleep(11)
-
-        # Check if the screen is turned off
-        self.assertFalse(self.device.is_screen_enabled)
-
-        # Turn the screen on again
+        timeout = SCREEN_TIMEOUT + TIMEOUT_TOLERANCE
         self.device.turn_screen_on()
-
-        # Check if the screen is turned on
-        self.assertTrue(self.device.is_screen_enabled)
-
-        # Wait 6 seconds
-        time.sleep(6)
-
-        # Simulate an accessibility action
-        self.accessibility.dispatchEvent()
-
-        # Wait another 5 seconds
-        time.sleep(5)
-
-        # Check if the screen is still turned on
-        self.assertTrue(self.device.is_screen_enabled)
+        Wait(self.marionette, timeout).until(screen_disabled(self.device))
+        self.device.turn_screen_on()
+        with self.assertRaises(TimeoutException):
+            Wait(self.marionette, timeout).until(screen_disabled(
+                self.device, interrupt=self.accessibility.dispatchEvent))

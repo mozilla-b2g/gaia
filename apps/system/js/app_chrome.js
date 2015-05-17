@@ -11,7 +11,6 @@
 
 (function(exports) {
   var _id = 0;
-  var _ = navigator.mozL10n.get;
 
   var newTabManifestURL = null;
   SettingsListener.observe('rocketbar.newTabAppURL', '',
@@ -67,10 +66,6 @@
 
   AppChrome.prototype._DEBUG = false;
 
-  AppChrome.prototype.LOCK_ICON_WIDTH = 30;
-  AppChrome.prototype.CLOSE_BUTTON_WIDTH = 50;
-  AppChrome.prototype.PRIVATE_ICON_WIDTH = 35;
-
   AppChrome.prototype.reConfig = function() {
     var chrome = this.app.config.chrome;
     if (!chrome) {
@@ -113,16 +108,18 @@
   AppChrome.prototype.combinedView = function an_combinedView() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-combined" id="${className}">
               <gaia-progress></gaia-progress>
               <div class="controls">
                 <button type="button" class="back-button"
                         data-l10n-id="back-button" disabled></button>
                 <button type="button" class="forward-button"
                         data-l10n-id="forward-button" disabled></button>
-                <div class="urlbar">
+                <div class="urlbar js-chrome-ssl-information">
                   <span class="pb-icon"></span>
-                  <div class="title" data-ssl=""></div>
+                  <div class="chrome-ssl-indicator chrome-title-container">
+                    <span class="title" dir="auto"></span>
+                  </div>
                   <button type="button" class="reload-button"
                           data-l10n-id="reload-button" disabled></button>
                   <button type="button" class="stop-button"
@@ -138,11 +135,17 @@
   AppChrome.prototype.view = function an_view() {
     var className = this.CLASS_NAME + this.instanceID;
 
-    return `<div class="chrome" id="${className}">
+    return `<div class="chrome chrome-plain" id="${className}">
             <gaia-progress></gaia-progress>
             <section role="region" class="bar">
-              <gaia-header action="close">
-                <h1 class="title"></h1>
+              <gaia-header action="close" class='js-chrome-ssl-information'>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-ltr">
+                </div>
+                <h1 class="chrome-title-container">
+                  <bdi dir="auto" class="title"></bdi>
+                </h1>
+                <div class="chrome-ssl-indicator chrome-ssl-indicator-rtl">
+                </div>
               </gaia-header>
             </section>
           </div>`;
@@ -186,7 +189,9 @@
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
-    this.title = this.element.querySelector('.title');
+    this.title = this.element.querySelector('.chrome-title-container > .title');
+    this.sslIndicator =
+      this.element.querySelector('.js-chrome-ssl-information');
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
@@ -261,11 +266,6 @@
       case '_namechanged':
         this.handleNameChanged(evt);
         break;
-
-      case 'localized':
-        // may need to re-layout header if document direction has changed
-        this._updateHeaderBarLayout();
-        break;
     }
   };
 
@@ -288,10 +288,7 @@
         break;
 
       case this.title:
-        if (Service && Service.locked) {
-          return;
-        }
-        window.dispatchEvent(new CustomEvent('global-search-request'));
+        this.titleClicked();
         break;
 
       case this.menuButton:
@@ -323,6 +320,16 @@
         this.onShare();
         break;
     }
+  };
+
+  AppChrome.prototype.titleClicked = function ac_titleClicked() {
+    var contextMenu = this.app.contextmenu && this.app.contextmenu.isShown();
+    var locked = Service && Service.locked;
+
+    if (locked || contextMenu) {
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('global-search-request'));
   };
 
   AppChrome.prototype.handleActionEvent = function ac_handleActionEvent(evt) {
@@ -385,7 +392,6 @@
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
-    window.addEventListener('localized', this);
 
     var element = this.element;
 
@@ -440,13 +446,15 @@
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_namechanged', this);
-    window.removeEventListener('localized', this);
     this.app = null;
   };
 
   // Name has priority over the rest
   AppChrome.prototype.handleNameChanged =
     function ac_handleNameChanged(evt) {
+      if (this._fixedTitle) {
+        return;
+      }
       this.title.textContent = this.app.name;
       this._gotName = true;
     };
@@ -484,38 +492,12 @@
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
-    this.title.dataset.ssl = this.app.getSSLState();
-    // we may need to show or hide the lock icon
-    this._updateHeaderBarLayout();
-  };
-
-  AppChrome.prototype._updateHeaderBarLayout = function() {
-    if (this.useCombinedChrome()) {
-      return;
-    }
-    // we need to create space for the lock icon at the correct edge
-    // NOTE: gaia-header doesn't handle RTL - see bug 1140668
-    // when it does, we'll need to revisit/remove this
     var sslState = this.app.getSSLState();
-    var isRTL = (document.documentElement.dir === 'rtl');
-    var showLockIcon = (sslState == 'secure' || sslState == 'broken');
-    var beforeIndent = 0;
-
-    if (this.app.isPrivateBrowser()) {
-      beforeIndent += this.PRIVATE_ICON_WIDTH;
-    }
-    if (showLockIcon) {
-      beforeIndent += this.LOCK_ICON_WIDTH;
-    }
-    if (isRTL) {
-      // close button is currently on left in gaia-header in LTR & RTL
-      this.header.titleStart = this.CLOSE_BUTTON_WIDTH;
-      this.header.titleEnd = beforeIndent;
-    } else {
-      this.header.titleEnd = 0;
-      this.header.titleStart = this.CLOSE_BUTTON_WIDTH + beforeIndent;
-    }
-  },
+    this.sslIndicator.dataset.ssl = sslState;
+    this.sslIndicator.classList.toggle(
+      'chrome-has-ssl-indicator', sslState === 'broken' || sslState === 'secure'
+    );
+  };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
     if (this._gotName || this._fixedTitle) {
@@ -573,11 +555,15 @@
 
     var self = this;
     var finishedFade = false;
-    var endBackgroundFade = function() {
+    var endBackgroundFade = function(evt) {
+      if (evt && evt.propertyName != 'background-color') {
+        return;
+      }
       finishedFade = true;
-      self.element.removeEventListener('transitionend', endBackgroundFade);
+      if (self.element) {
+        self.element.removeEventListener('transitionend', endBackgroundFade);
+      }
     };
-    this.element.addEventListener('transitionend', endBackgroundFade);
     eventSafety(this.element, 'transitionend', endBackgroundFade, 1000);
 
     window.requestAnimationFrame(function updateAppColor() {
@@ -631,7 +617,7 @@
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
-    return this.app.config.chrome && !this.app.config.chrome.bar;
+    return !this.app.config.chrome || !this.app.config.chrome.bar;
   };
 
   AppChrome.prototype._updateLocation =
@@ -714,6 +700,16 @@
         }
         this.scrollable.scrollTop = 0;
       }
+
+      // Set the title for the private browser landing page.
+      // This is explicitly placed in the locationchange handler as it's
+      // currently possibly to navigate back to the landing page with the
+      // back button. Otherwise it could be in the constructor.
+      if (this.app.isPrivateBrowser() &&
+        this.app.config.url.startsWith('app:')) {
+        this._gotName = true;
+        this.title.dataset.l10nId = 'search-or-enter-address';
+      }
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
@@ -744,14 +740,7 @@
     if (!callback) {
       return;
     }
-
-    var finish = function(evt) {
-      if (evt && evt.target !== element) {
-        return;
-      }
-      callback();
-    };
-    eventSafety(element, 'transitionend', finish, 250);
+    eventSafety(element, 'transitionend', callback, 250);
   };
 
   AppChrome.prototype.collapse = function ac_collapse() {
@@ -820,19 +809,27 @@
       }
     }
 
-    var data = {
-      title: _('add-to-home-screen'),
-      options: []
-    };
+    var title = 'add-to-home-screen';
+    var options = [];
 
     if (this.isSearch()) {
       var dataset = this.app.config;
-      data.options.push({ id: 'search', text: dataset.searchName });
+      options.push({
+        id: 'search',
+        text: {
+          raw: dataset.searchName
+        }
+      });
     } else {
-      data.options.push({ id: 'origin', text: this.title.textContent });
+      options.push({
+        id: 'origin',
+        text: {
+          raw: this.title.textContent
+        }
+      });
     }
 
-    ModalDialog.selectOne(data, selected);
+    ModalDialog.selectOne(title, options, selected);
   };
 
   AppChrome.prototype.showWindows = function ac_showWindows() {

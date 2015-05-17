@@ -15,11 +15,6 @@ marionette('Messages Composer', function() {
     prefs: {
       'focusmanager.testmode': true
     },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null,
-      'screen.timeout': 0
-    },
 
     apps: apps
   });
@@ -53,15 +48,15 @@ marionette('Messages Composer', function() {
   });
 
   suite('Preserve message input while navigating', function() {
-    var composer, threadList, thread;
+    var composer, inbox, conversation;
     var message = 'test message';
 
-    function waitForThreadList() {
-      client.helper.waitForElement(threadList.mmsThread);
+    function waitForInbox() {
+      client.helper.waitForElement(inbox.mmsConversation);
     }
 
-    function createMMSThread() {
-      threadList.navigateToComposer();
+    function createMMSConversation() {
+      inbox.navigateToComposer();
       messagesApp.addRecipient('a@b.c');
       messagesApp.addRecipient('s@p.c');
       composer.messageInput.sendKeys('MMS thread.');
@@ -69,15 +64,15 @@ marionette('Messages Composer', function() {
     }
 
     setup(function() {
-      thread = messagesApp.Thread;
+      conversation = messagesApp.Conversation;
       composer = messagesApp.Composer;
-      threadList = messagesApp.ThreadList;
+      inbox = messagesApp.Inbox;
 
       messagesApp.launch();
-      createMMSThread();
+      createMMSConversation();
       messagesApp.performHeaderAction();
-      waitForThreadList();
-      threadList.mmsThread.tap();
+      waitForInbox();
+      inbox.mmsConversation.tap();
 
       composer.messageInput.tap();
       composer.messageInput.sendKeys(message);
@@ -85,7 +80,7 @@ marionette('Messages Composer', function() {
 
     test('Message input is preserved when navigating to and from group-view',
     function() {
-      thread.headerTitle.tap();
+      conversation.headerTitle.tap();
       client.helper.waitForElement(messagesApp.Participants.main);
       messagesApp.performHeaderAction();
       assert.equal(composer.messageInput.text(), message);
@@ -93,7 +88,7 @@ marionette('Messages Composer', function() {
 
     test('Message input is preserved when navigating to and from ' +
     'message-report', function() {
-      messagesApp.contextMenu(thread.message);
+      messagesApp.contextMenu(conversation.message);
       messagesApp.selectAppMenuOption('View message report');
       client.helper.waitForElement(messagesApp.Report.main);
       messagesApp.performHeaderAction();
@@ -108,7 +103,7 @@ marionette('Messages Composer', function() {
 
     setup(function() {
       messagesApp.launch();
-      messagesApp.ThreadList.navigateToComposer();
+      messagesApp.Inbox.navigateToComposer();
     });
 
     test('Message char counter and MMS label', function() {
@@ -225,7 +220,7 @@ marionette('Messages Composer', function() {
       client.helper.wait(600);
 
       composer.attachment.tap();
-      messagesApp.selectAttachmentMenuOption('Remove image');
+      messagesApp.selectAppMenuOption('Remove image');
 
       client.helper.waitForElementToDisappear(composer.mmsLabel);
       client.helper.waitForElement(composer.charCounter);

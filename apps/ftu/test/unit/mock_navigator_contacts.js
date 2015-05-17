@@ -14,4 +14,5 @@
       contacts = [];
     }
   };
-})(this);
+})(window);
+

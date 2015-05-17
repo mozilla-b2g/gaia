@@ -237,6 +237,19 @@ suite('system/NotificationScreen >', function() {
       assert.ok(playSpy.calledOnce);
     });
 
+    test('it should stop playing after 4 seconds', function() {
+      var pauseSpy = this.sinon.spy(MockAudio.prototype, 'pause');
+      var loadSpy =  this.sinon.spy(MockAudio.prototype, 'load');
+      var removeAttributeSpy = this.sinon.spy(
+        MockAudio.prototype, 'removeAttribute');
+      sendNotification();
+      sinon.assert.notCalled(pauseSpy);
+      this.sinon.clock.tick(4000);
+      sinon.assert.called(loadSpy);
+      sinon.assert.calledWith(removeAttributeSpy, 'src');
+      sinon.assert.called(pauseSpy);
+    });
+
     test('if active call it should use telephony channel', function() {
       var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
       var mockCall = new MockCall('123456', 'connected');
@@ -369,15 +382,19 @@ suite('system/NotificationScreen >', function() {
       var detail = {icon: imgpath,
                     title: 'title',
                     detail: 'detail',
-                    bidi: dir};
+                    dir: dir};
       NotificationScreen.addNotification(detail);
       assert.equal(dir, toaster.dir);
       var notificationNode =
         document.getElementsByClassName('notification')[0];
       var notificationNodeTitle =
-        document.querySelector('.notification .title-container');
-      assert.equal(dir, notificationNode.dir);
+        document.querySelector('.notification .title-container .title');
+      var notificationNodeDetail =
+        document.querySelector('.notification .detail');
+      assert.equal(dir, notificationNode.dataset.predefinedDir);
       assert.equal('auto', notificationNodeTitle.dir);
+      assert.equal('auto', notificationNodeDetail
+        .querySelector('.detail-content').dir);
     }
 
     test('calling addNotification with rtl direction', function() {
@@ -964,15 +981,6 @@ suite('system/NotificationScreen >', function() {
             dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);
         });
       });
-    });
-  });
-
-  suite('events >', function() {
-
-    test('localization event', function() {
-      var spy = this.sinon.spy(NotificationScreen, 'updateNotificationsDir');
-      window.dispatchEvent(new CustomEvent('localized'));
-      assert.ok(spy.called);
     });
   });
 });

@@ -10,6 +10,7 @@
   // If the inquiries to the object are all performed by requirejs, we can
   // remove the path of the object from the following list.
   paths: {
+    'vendor/jszip': 'empty:',
     'prim': 'empty:',
     'settings': 'empty:',
     'shared/apn_helper': 'empty:',
@@ -38,7 +39,8 @@
     'modules/wifi_context': 'empty:',
     'modules/dialog_panel': 'empty:',
     'shared/tz_select': 'empty:',
-    'modules/defer': 'empty:'
+    'modules/defer': 'empty:',
+    'modules/navigator/mozApps': 'empty:'
   },
 
   findNestedDependencies: true,
@@ -66,6 +68,17 @@
     },
     compress: true,
     mangle: true
+  },
+
+  // Rewrite the waitSeconds directive so that we never time out
+  // waiting for modules to load when DEBUG=1 is not set. See
+  // js/config/require.js for more details.
+  onBuildWrite: function(id, url, contents) {
+    if (id === 'config/require') {
+      return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
+    } else {
+      return contents;
+    }
   },
 
   fileExclusionRegExp: /^\.|^test$|^build$/,

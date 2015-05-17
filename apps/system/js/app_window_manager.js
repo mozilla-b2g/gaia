@@ -1,6 +1,6 @@
 /* global SettingsListener, homescreenWindowManager, inputWindowManager,
           layoutManager, Service, rocketbar, ShrinkingUI,
-          FtuLauncher */
+          FtuLauncher, appWindowFactory, WrapperFactory */
 'use strict';
 
 (function(exports) {
@@ -43,7 +43,11 @@
         return false;
       }
       if (active) {
-        this.focus();
+        // XXX: Use this.appWindowFactory later
+        if (!appWindowFactory.isLaunchingWindow() &&
+            !WrapperFactory.isLaunchingWindow()) {
+          this.focus();
+        }
       } else {
         this._activeApp.blur();
         this._activeApp.setNFCFocus(false);
@@ -313,6 +317,7 @@
         this.element.classList.remove('slow-transition');
       }
       window.addEventListener('cardviewbeforeshow', this);
+      window.addEventListener('cardviewshown', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('appcreated', this);
@@ -394,6 +399,7 @@
      */
     stop: function awm_stop() {
       window.removeEventListener('cardviewbeforeshow', this);
+      window.removeEventListener('cardviewshown', this);
       window.removeEventListener('cardviewclosed', this);
       window.removeEventListener('launchapp', this);
       window.removeEventListener('appcreated', this);
@@ -451,6 +457,10 @@
     },
 
     _handle_home: function(evt) {
+      // When shrinkingUI is enabled, home should be locked.
+      if (this.shrinkingUI && this.shrinkingUI.respondToHierarchyEvent(evt)) {
+        return false;
+      }
       // XXX: FtuLauncher should become submodule of AppWindowManager.
       if (FtuLauncher.respondToHierarchyEvent(evt)) {
         if (!homescreenWindowManager.ready ||
@@ -465,6 +475,10 @@
     },
 
     _handle_holdhome: function(evt) {
+      // When shrinkingUI is enabled, hold home should be locked.
+      if (this.shrinkingUI && this.shrinkingUI.respondToHierarchyEvent(evt)) {
+        return false;
+      }
       // XXX: FtuLauncher should become submodule of AppWindowManager.
       var ret = FtuLauncher.respondToHierarchyEvent(evt);
       return ret;
@@ -531,8 +545,8 @@
 
         case 'appterminated':
           var app = evt.detail; // jshint ignore:line
-          var instanceID = evt.detail.instanceID;
-          if (activeApp && app.instanceID === activeApp.instanceID) {
+          var instanceID = app.instanceID;
+          if (activeApp && instanceID === activeApp.instanceID) {
             activeApp = null;
           }
           delete this._apps[instanceID];
@@ -647,6 +661,10 @@
             this._activeApp.getTopMostWindow().blur();
           }
           this.broadcastMessage('cardviewbeforeshow');
+          break;
+
+        case 'cardviewshown':
+          this.broadcastMessage('cardviewshown');
           break;
 
         case 'cardviewclosed':

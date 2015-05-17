@@ -123,7 +123,7 @@ marionette('Contacts > Activities', function() {
       var duplicateHeader = client.helper.
         waitForElement(selectors.duplicateHeader);
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.matching_contacts.en-US.json',
         'duplicatesFoundTitle');
 
       assert.equal(duplicateHeader.text(), expectedResult);
@@ -151,7 +151,7 @@ marionette('Contacts > Activities', function() {
 
       var confirmMsg = client.findElement(selectors.confirmBody);
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'noContactsActivity2');
       assert.equal(confirmMsg.text(), expectedResult);
     });
@@ -188,7 +188,7 @@ marionette('Contacts > Activities', function() {
         .text();
 
       var expectedResult = subject.l10n(
-        '/locales-obj/en-US.json',
+        '/locales-obj/contacts.index.en-US.json',
         'no_contact_phones');
       assert.equal(confirmText, expectedResult);
     });

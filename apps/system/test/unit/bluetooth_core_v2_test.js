@@ -23,17 +23,11 @@ suite('system/BluetoothCore', function() {
   mocksForBluetoothCore.attachTestHelpers();
 
   setup(function(done) {
-    window.LazyLoader = MockLazyLoader;
     MockLazyLoader.mLoadRightAway = true;
-    sinon.stub(MockLazyLoader, 'load', function() {
-      window.Bluetooth2 = function() {};
-    });
+    sinon.stub(MockLazyLoader, 'load');
 
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
-
-    window.Bluetooth = { init: function() {} };
-    window.BluetoothTransfer = { init: function() {} };
 
     requireApp('system/js/bluetooth_core.js', done);
   });

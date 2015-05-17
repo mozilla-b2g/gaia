@@ -1,4 +1,4 @@
-/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
+/* global AsyncSemaphore, CustomDialog, FtuLauncher, ScreenManager,
           SettingsListener, Service, HeadphoneIcon, PlayingIcon, MuteIcon,
           LazyLoader */
 
@@ -9,7 +9,6 @@
    * and volume/channel change events.
    * @class SoundManager
    * @requires AsyncSemaphore
-   * @requires Bluetooth
    * @requires FtuLauncher
    * @requires ScreenManager
    */
@@ -273,7 +272,7 @@
       this.muteIcon = new MuteIcon(this);
       this.muteIcon.start();
     }.bind(this)).catch(function(err) {
-      console.error(err); 
+      console.error(err);
     });
 
     // mozChromeEvent fired from Gecko is earlier been loaded,
@@ -403,7 +402,7 @@
       return;
     }
 
-    if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) &&
+    if (Service.query('Bluetooth.isSCOProfileConnected') &&
         this.isOnCall()) {
       this.changeVolume(offset, 'bt_sco');
     } else if (this.isHeadsetConnected && offset > 0) {
@@ -720,12 +719,12 @@
           } else if (channel === 'notification' && volume > 0) {
             self.leaveSilentMode('notification',
                             /* skip volume restore */ true);
-            self.icon && self.icon.update();
+            self.muteIcon && self.muteIcon.update();
           } else if (channel === 'notification' && volume === 0) {
             // Enter silent mode when notification volume is 0
             // no matter who sets this value.
             self.enterSilentMode('notification');
-            self.icon && self.icon.update();
+            self.muteIcon && self.muteIcon.update();
           }
 
           if (!self.volumeFetched && ++callbacksReceived === callsMade) {

@@ -1,3 +1,5 @@
+'use strict';
+
 var Email = require('./lib/email');
 var assert = require('assert');
 var format = require('util').format;

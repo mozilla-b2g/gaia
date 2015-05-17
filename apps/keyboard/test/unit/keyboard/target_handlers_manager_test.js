@@ -16,6 +16,15 @@ suite('TargetHandlersManager', function() {
   var handlerStub;
   var activeTargetsManagerStub;
 
+  var actions = [
+    {name: 'commit', eventHandler: 'ontargetcommitted' },
+    {name: 'move', eventHandler: 'ontargetmoved' },
+    {name: 'moveOut', eventHandler: 'ontargetmovedout' },
+    {name: 'cancel', eventHandler: 'ontargetcancelled' },
+    {name: 'doubleTap', eventHandler: 'ontargetdoubletapped' },
+    {name: 'newTargetActivate', eventHandler: 'onnewtargetwillactivate' }
+  ];
+
   setup(function() {
     activeTargetsManagerStub = this.sinon.stub(ActiveTargetsManager.prototype);
     this.sinon.stub(window, 'ActiveTargetsManager')
@@ -60,7 +69,7 @@ suite('TargetHandlersManager', function() {
 
   suite('activate', function() {
     var target;
-    setup(function() {
+    setup(function(done) {
       target = {
         keyCode: 99
       };
@@ -69,7 +78,11 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(window.DefaultTargetHandler.calledWith(target, app));
       assert.isTrue(window.DefaultTargetHandler.calledOnce);
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
     teardown(function() {
@@ -77,90 +90,46 @@ suite('TargetHandlersManager', function() {
         'Same handler was used for every following action.');
     });
 
-    test('commit', function() {
-      activeTargetsManagerStub.ontargetcommitted(target);
+    actions.forEach(function(action) {
+      test(action.name, function(done) {
+        activeTargetsManagerStub[action.eventHandler](target);
 
-      assert.isTrue(handlerStub.commit.calledOnce);
-    });
-
-    test('move', function() {
-      activeTargetsManagerStub.ontargetmoved(target);
-
-      assert.isTrue(handlerStub.move.calledOnce);
-    });
-
-    test('moveOut', function() {
-      activeTargetsManagerStub.ontargetmovedout(target);
-
-      assert.isTrue(handlerStub.moveOut.calledOnce);
-    });
-
-    test('cancel', function() {
-      activeTargetsManagerStub.ontargetcancelled(target);
-
-      assert.isTrue(handlerStub.cancel.calledOnce);
-    });
-
-    test('doubleTap', function() {
-      activeTargetsManagerStub.ontargetdoubletapped(target);
-
-      assert.isTrue(handlerStub.doubleTap.calledOnce);
-    });
-
-    test('New Target activated', function() {
-      activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-      assert.isTrue(handlerStub.newTargetActivate.calledOnce);
+        manager.promiseQueue.then(function() {
+          assert.isTrue(handlerStub[action.name].calledOnce);
+        }, function(e) {
+          assert.isTrue(false, 'promiseQueue should not reject.');
+        }).then(done, done);
+      });
     });
 
     suite('longPress', function() {
-      setup(function() {
+      setup(function(done) {
         activeTargetsManagerStub.ontargetlongpressed(target);
 
-        assert.isTrue(handlerStub.longPress.calledOnce);
+        manager.promiseQueue.then(function() {
+          assert.isTrue(handlerStub.longPress.calledOnce);
+        }, function(e) {
+          assert.isTrue(false, 'promiseQueue should not reject.');
+        }).then(done, done);
       });
 
-      test('commit', function() {
-        activeTargetsManagerStub.ontargetcommitted(target);
+      actions.forEach(function(action) {
+        test(action.name, function(done) {
+          activeTargetsManagerStub[action.eventHandler](target);
 
-        assert.isTrue(handlerStub.commit.calledOnce);
-      });
-
-      test('move', function() {
-        activeTargetsManagerStub.ontargetmoved(target);
-
-        assert.isTrue(handlerStub.move.calledOnce);
-      });
-
-      test('moveOut', function() {
-        activeTargetsManagerStub.ontargetmovedout(target);
-
-        assert.isTrue(handlerStub.moveOut.calledOnce);
-      });
-
-      test('cancel', function() {
-        activeTargetsManagerStub.ontargetcancelled(target);
-
-        assert.isTrue(handlerStub.cancel.calledOnce);
-      });
-
-      test('doubleTap', function() {
-        activeTargetsManagerStub.ontargetdoubletapped(target);
-
-        assert.isTrue(handlerStub.doubleTap.calledOnce);
-      });
-
-      test('New target activated', function() {
-        activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-        assert.isTrue(handlerStub.newTargetActivate.calledOnce);
+          manager.promiseQueue.then(function() {
+            assert.isTrue(handlerStub[action.name].calledOnce);
+          }, function(e) {
+            assert.isTrue(false, 'promiseQueue should not reject.');
+          }).then(done, done);
+        });
       });
     });
   });
 
   suite('moveIn', function() {
     var target;
-    setup(function() {
+    setup(function(done) {
       target = {
         keyCode: 99
       };
@@ -169,7 +138,11 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(window.DefaultTargetHandler.calledWith(target, app));
       assert.isTrue(window.DefaultTargetHandler.calledOnce);
 
-      assert.isTrue(handlerStub.moveIn.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.moveIn.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
     teardown(function() {
@@ -177,89 +150,45 @@ suite('TargetHandlersManager', function() {
         'Same handler was used for every following action.');
     });
 
-    test('commit', function() {
-      activeTargetsManagerStub.ontargetcommitted(target);
+    actions.forEach(function(action) {
+      test(action.name, function(done) {
+        activeTargetsManagerStub[action.eventHandler](target);
 
-      assert.isTrue(handlerStub.commit.calledOnce);
-    });
-
-    test('move', function() {
-      activeTargetsManagerStub.ontargetmoved(target);
-
-      assert.isTrue(handlerStub.move.calledOnce);
-    });
-
-    test('moveOut', function() {
-      activeTargetsManagerStub.ontargetmovedout(target);
-
-      assert.isTrue(handlerStub.moveOut.calledOnce);
-    });
-
-    test('cancel', function() {
-      activeTargetsManagerStub.ontargetcancelled(target);
-
-      assert.isTrue(handlerStub.cancel.calledOnce);
-    });
-
-    test('doubleTap', function() {
-      activeTargetsManagerStub.ontargetdoubletapped(target);
-
-      assert.isTrue(handlerStub.doubleTap.calledOnce);
-    });
-
-    test('New target activated', function() {
-      activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-      assert.isTrue(handlerStub.newTargetActivate.calledOnce);
+        manager.promiseQueue.then(function() {
+          assert.isTrue(handlerStub[action.name].calledOnce);
+        }, function(e) {
+          assert.isTrue(false, 'promiseQueue should not reject.');
+        }).then(done, done);
+      });
     });
 
     suite('longPress', function() {
-      setup(function() {
+      setup(function(done) {
         activeTargetsManagerStub.ontargetlongpressed(target);
 
-        assert.isTrue(handlerStub.longPress.calledOnce);
+        manager.promiseQueue.then(function() {
+          assert.isTrue(handlerStub.longPress.calledOnce);
+        }, function(e) {
+          assert.isTrue(false, 'promiseQueue should not reject.');
+        }).then(done, done);
       });
 
-      test('commit', function() {
-        activeTargetsManagerStub.ontargetcommitted(target);
+      actions.forEach(function(action) {
+        test(action.name, function(done) {
+          activeTargetsManagerStub[action.eventHandler](target);
 
-        assert.isTrue(handlerStub.commit.calledOnce);
-      });
-
-      test('move', function() {
-        activeTargetsManagerStub.ontargetmoved(target);
-
-        assert.isTrue(handlerStub.move.calledOnce);
-      });
-
-      test('moveOut', function() {
-        activeTargetsManagerStub.ontargetmovedout(target);
-
-        assert.isTrue(handlerStub.moveOut.calledOnce);
-      });
-
-      test('cancel', function() {
-        activeTargetsManagerStub.ontargetcancelled(target);
-
-        assert.isTrue(handlerStub.cancel.calledOnce);
-      });
-
-      test('doubleTap', function() {
-        activeTargetsManagerStub.ontargetdoubletapped(target);
-
-        assert.isTrue(handlerStub.doubleTap.calledOnce);
-      });
-
-      test('New target activated', function() {
-        activeTargetsManagerStub.onnewtargetwillactivate(target);
-
-        assert.isTrue(handlerStub.newTargetActivate.calledOnce);
+          manager.promiseQueue.then(function() {
+            assert.isTrue(handlerStub[action.name].calledOnce);
+          }, function(e) {
+            assert.isTrue(false, 'promiseQueue should not reject.');
+          }).then(done, done);
+        });
       });
     });
   });
 
   suite('activate different targets', function() {
-    test('DismissSuggestionsTargetHandler', function() {
+    test('DismissSuggestionsTargetHandler', function(done) {
       var target = {
         isDismissSuggestionsButton: true
       };
@@ -269,10 +198,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.DismissSuggestionsTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('CandidateSelectionTargetHandler', function() {
+    test('CandidateSelectionTargetHandler', function(done) {
       var target = {
         suggestion: 'foo'
       };
@@ -282,10 +215,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.CandidateSelectionTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('CompositeTargetHandler', function() {
+    test('CompositeTargetHandler', function(done) {
       var target = {
         compositeKey: 'lol'
       };
@@ -295,10 +232,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.CompositeTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('BackspaceTargetHandler', function() {
+    test('BackspaceTargetHandler', function(done) {
       var target = {
         keyCode: KeyEvent.DOM_VK_BACK_SPACE
       };
@@ -308,10 +249,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.BackspaceTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('SpaceKeyTargetHandler', function() {
+    test('SpaceKeyTargetHandler', function(done) {
       var target = {
         keyCode: KeyEvent.DOM_VK_SPACE
       };
@@ -321,10 +266,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.SpaceKeyTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('PageSwitchingTargetHandler', function() {
+    test('PageSwitchingTargetHandler', function(done) {
       var target = {
         keyCode: KeyEvent.DOM_VK_ALT
       };
@@ -334,10 +283,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.PageSwitchingTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('SwitchKeyboardTargetHandler', function() {
+    test('SwitchKeyboardTargetHandler', function(done) {
       var target = {
         keyCode: app.layoutManager.KEYCODE_SWITCH_KEYBOARD
       };
@@ -347,10 +300,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.SwitchKeyboardTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('CapsLockTargetHandler', function() {
+    test('CapsLockTargetHandler', function(done) {
       var target = {
         keyCode: KeyEvent.DOM_VK_CAPS_LOCK
       };
@@ -360,11 +317,15 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.CapsLockTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
     suite('DefaultTargetHandler', function() {
-      test('-99', function() {
+      test('-99', function(done) {
         var target = {
           keyCode: -99
         };
@@ -374,10 +335,14 @@ suite('TargetHandlersManager', function() {
         assert.isTrue(
           window.DefaultTargetHandler.calledWith(target, app));
 
-        assert.isTrue(handlerStub.activate.calledOnce);
+        manager.promiseQueue.then(function() {
+          assert.isTrue(handlerStub.activate.calledOnce);
+        }, function(e) {
+          assert.isTrue(false, 'promiseQueue should not reject.');
+        }).then(done, done);
       });
 
-      test('99', function() {
+      test('99', function(done) {
         var target = {
           keyCode: 99
         };
@@ -387,11 +352,15 @@ suite('TargetHandlersManager', function() {
         assert.isTrue(
           window.DefaultTargetHandler.calledWith(target, app));
 
-        assert.isTrue(handlerStub.activate.calledOnce);
+        manager.promiseQueue.then(function() {
+          assert.isTrue(handlerStub.activate.calledOnce);
+        }, function(e) {
+          assert.isTrue(false, 'promiseQueue should not reject.');
+        }).then(done, done);
       });
     });
 
-    test('NullTargetHandler', function() {
+    test('NullTargetHandler', function(done) {
       var target = {};
 
       activeTargetsManagerStub.ontargetactivated(target);
@@ -399,10 +368,14 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.NullTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
 
-    test('HandwritingPadTargetHandler', function() {
+    test('HandwritingPadTargetHandler', function(done) {
       var target = {
         isHandwritingPad: true
       };
@@ -412,15 +385,20 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(
         window.HandwritingPadTargetHandler.calledWith(target, app));
 
-      assert.isTrue(handlerStub.activate.calledOnce);
-      assert.isTrue(activeTargetsManagerStub.blockNewUserPress);
-      assert.isTrue(activeTargetsManagerStub.blockTargetMovedOut);
+      manager.promiseQueue.then(function() {
+        assert.isTrue(handlerStub.activate.calledOnce);
+        assert.isTrue(activeTargetsManagerStub.blockNewUserPress);
+        assert.isTrue(activeTargetsManagerStub.blockTargetMovedOut);
 
-      activeTargetsManagerStub.ontargetcommitted(target);
-
-      assert.isTrue(handlerStub.commit.calledOnce);
-      assert.isFalse(activeTargetsManagerStub.blockNewUserPress);
-      assert.isFalse(activeTargetsManagerStub.blockTargetMovedOut);
+        activeTargetsManagerStub.ontargetcommitted(target);
+      }).then(function() {
+        assert.isTrue(handlerStub.commit.calledOnce);
+        assert.isFalse(activeTargetsManagerStub.blockNewUserPress);
+        assert.isFalse(activeTargetsManagerStub.blockTargetMovedOut);
+        activeTargetsManagerStub.ontargetcommitted(target);
+      }, function(e) {
+        assert.isTrue(false, 'promiseQueue should not reject.');
+      }).then(done, done);
     });
   });
 });

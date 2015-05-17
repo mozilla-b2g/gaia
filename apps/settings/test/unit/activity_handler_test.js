@@ -45,7 +45,7 @@ suite('ActivityHandler', function() {
           callback(mockActivity);
       });
       this.sinon.stub(ActivityHandler, '_handleActivity', function() {
-        return mockSectionId;
+        return { targetPanelId: mockSectionId };
       });
       this.sinon.stub(ActivityHandler, '_registerListener');
 
@@ -68,7 +68,7 @@ suite('ActivityHandler', function() {
 
     setup(function() {
       this.sinon.stub(ActivityHandler._handlers, 'configure', function() {
-        return mockSectionId;
+        return { targetPanelId: mockSectionId };
       });
     });
 
@@ -86,6 +86,7 @@ suite('ActivityHandler', function() {
     suite('configure', function() {
       var handler;
       var mockSectionId = 'mockSection';
+      var mockOptions = { option: 'test' };
       var mockSection;
 
       setup(function() {
@@ -100,7 +101,7 @@ suite('ActivityHandler', function() {
       });
 
       test('without section specified', function() {
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: null
           }
@@ -109,7 +110,7 @@ suite('ActivityHandler', function() {
       });
 
       test('with section other than root specified', function() {
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: mockSectionId
           }
@@ -119,12 +120,26 @@ suite('ActivityHandler', function() {
         assert.ok(mockSection.dataset.dialog, 'the dialog mode should be set');
       });
 
+      test('with section other than root and options specified', function() {
+        var {targetPanelId, options} = handler({
+          data: {
+            section: mockSectionId,
+            options: mockOptions
+          }
+        });
+        assert.ok(targetPanelId === mockSectionId,
+          'should return the specified section id');
+        assert.ok(options === mockOptions,
+          'should return the specified options');
+        assert.ok(mockSection.dataset.dialog, 'the dialog mode should be set');
+      });
+
       test('with root specified but without filter by', function() {
         var rootSection = document.createElement('section');
         rootSection.id = 'root';
         document.body.appendChild(rootSection);
 
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: 'root'
           }
@@ -135,7 +150,7 @@ suite('ActivityHandler', function() {
       });
 
       test('with root specified and with filter by', function() {
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: 'root',
             filterBy: 'connectivity'
@@ -151,7 +166,7 @@ suite('ActivityHandler', function() {
         rootSection.id = 'root';
         document.body.appendChild(rootSection);
 
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: 'invalid'
           }
@@ -166,7 +181,7 @@ suite('ActivityHandler', function() {
         invalidSection.id = 'valid';
         document.body.appendChild(invalidSection);
 
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: 'valid'
           }
@@ -184,7 +199,7 @@ suite('ActivityHandler', function() {
         section.id = 'call';
         document.body.appendChild(section);
 
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: 'call'
           }
@@ -198,7 +213,7 @@ suite('ActivityHandler', function() {
         section.id = 'call';
         document.body.appendChild(section);
 
-        var targetPanelId = handler({
+        var {targetPanelId} = handler({
           data: {
             section: 'call'
           }

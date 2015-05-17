@@ -164,7 +164,7 @@ suite('system/StackManager >', function() {
   }
 
   function home() {
-    window.dispatchEvent(new Event('home'));
+    window.dispatchEvent(new Event('homescreenopened'));
   }
 
   function appOpening(app) {

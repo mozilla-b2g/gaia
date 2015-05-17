@@ -4,18 +4,15 @@ var assert = require('assert');
 var appUrl = 'app://fullscreen_layout.gaiamobile.org';
 
 var ReflowHelper =
-    require('../../../../tests/js-marionette/reflow_helper.js');
+    require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
 marionette('Software Home Button - Fullscreen Layout', function() {
 
   var client = marionette.client({
     prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+      'focusmanager.testmode': true
     },
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
       'software-button.enabled': true,
       'hud.reflows': true
     },
@@ -117,14 +114,13 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     client.switchToFrame(frame);
     newShareActivity();
     client.switchToFrame();
+    system.waitForActivityMenu();
     var bluetooth = system.getActivityOptionMatching('bluetooth');
     actions.tap(bluetooth).perform();
     client.switchToFrame();
-    client.waitFor(function() {
-      return client.findElement('.appWindow.inline-activity').displayed();
-    });
 
-    var bluetoothWindow = client.findElement('.appWindow.inline-activity');
+    var bluetoothWindow =
+      client.helper.waitForElement('.appWindow.inline-activity');
     var bluetoothHeight = bluetoothWindow.cssProperty('height');
     var screenHeight = client.findElement('#screen').size().height;
     var shbSelector = '#software-buttons-fullscreen-layout';

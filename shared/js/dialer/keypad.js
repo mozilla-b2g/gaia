@@ -2,8 +2,8 @@
 
 /* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
            CallScreen, ConfirmDialog, CustomDialog, DtmfTone, FontSizeManager,
-           LazyLoader, LazyL10n, MultiSimActionButton, Promise,
-           SimSettingsHelper, SettingsListener, TonePlayer */
+           LazyLoader, MultiSimActionButton, Promise, SimSettingsHelper,
+           SettingsListener, TonePlayer */
 
 'use strict';
 
@@ -154,26 +154,11 @@ var KeypadManager = {
     // the emergency call version of the keypad.
     if (this.callBarCallAction) {
       if (typeof MultiSimActionButton !== 'undefined') {
-        if (navigator.mozMobileConnections &&
-            navigator.mozMobileConnections.length > 1) {
-          // Use LazyL10n to load l10n.js. Single SIM devices will be slowed
-          // down by the cost of loading l10n.js in the startup path if we don't
-          // do this.
-          var self = this;
-          LazyL10n.get(function localized(_) {
-            self.multiSimActionButton =
-              new MultiSimActionButton(self.callBarCallAction,
-                                       CallHandler.call,
-                                       'ril.telephony.defaultServiceId',
-                                       self.phoneNumber.bind(self));
-          });
-        } else {
-          this.multiSimActionButton =
-            new MultiSimActionButton(this.callBarCallAction,
-                                     CallHandler.call,
-                                     'ril.telephony.defaultServiceId',
-                                     this.phoneNumber.bind(this));
-        }
+        this.multiSimActionButton =
+          new MultiSimActionButton(this.callBarCallAction,
+                                   CallHandler.call,
+                                   'ril.telephony.defaultServiceId',
+                                   this.phoneNumber.bind(this));
       }
       this.callBarCallAction.addEventListener('click',
                                               this.fetchLastCalled.bind(this));
@@ -202,6 +187,7 @@ var KeypadManager = {
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
+                     '/shared/js/tagged.js',
                      '/dialer/js/suggestion_bar.js']);
 
     this._observePreferences();
@@ -406,7 +392,7 @@ var KeypadManager = {
    */
   _touchMove: function kh_touchMove(touch) {
     var target = document.elementFromPoint(touch.pageX, touch.pageY);
-    var key = target.dataset ? target.dataset.value : null;
+    var key = (target && target.dataset) ? target.dataset.value : null;
 
     if (key !== this._lastPressedKey || key === 'delete') {
       this._stopDtmfTone();
@@ -468,7 +454,7 @@ var KeypadManager = {
     // Per certification requirements abbreviated dialing codes need to be
     // called immediately after the user enters the '#' key. This covers
     // retrieving the device's IMEI codes as well as speed dialing.
-    if (key === '#') {
+    if (key === '#' && !this._onCall) {
       if (this._phoneNumber === '*#06#') {
         this.multiSimActionButton.performAction();
         event.target.classList.remove('active');
@@ -751,11 +737,10 @@ var KeypadManager = {
       LazyLoader.load(['/shared/js/component_utils.js',
                        '/shared/elements/gaia_sim_picker/script.js'],
       function() {
-        LazyL10n.get(function(_) {
-          var simPicker = document.getElementById('sim-picker');
-          simPicker.getOrPick(req.result[key], _('voiceMail'),
-                              self._callVoicemailForSim.bind(self));
-        });
+        var _ = navigator.mozL10n.get;
+        var simPicker = document.getElementById('sim-picker');
+        simPicker.getOrPick(req.result[key], _('voiceMail'),
+                            self._callVoicemailForSim.bind(self));
       });
     };
   },

@@ -1,9 +1,14 @@
+'use strict';
+/* global
+  GestureDetector,
+  requireCommon,
+  SyntheticGestures
+*/
+
 requireCommon('test/synthetic_gestures.js');
 require('/shared/js/gesture_detector.js');
 
 suite('GestureDetector', function() {
-
-  var touchDevice = (window.Touch !== undefined);
 
   suite('API', function() {
     test('public methods and constants', function() {
@@ -25,14 +30,14 @@ suite('GestureDetector', function() {
 
     // Return the sequence of events as a string of event types
     function eventseq() {
-      return events.map(function(e) { return e.type }).join(' ');
+      return events.map(function(e) { return e.type; }).join(' ');
     }
 
     setup(function() {
       events = []; // Start a new array of events for each test
       element = document.createElement('div');
       element.setAttribute('style',
-                           'position:fixed;left:0px;top:0px;width:100%;height:100%');
+        'position:fixed;left:0px;top:0px;width:100%;height:100%');
       document.body.appendChild(element);
 
       [
@@ -74,11 +79,6 @@ suite('GestureDetector', function() {
       }, 100, 200);
     });
 
-    function between(v, min, max) {
-      assert.isTrue(v >= min && v <= max,
-                    v + ' is not between ' + min + ' and ' + max);
-    }
-
     var swipes = [
       { name: 'E', x0: 10, y0: 10, x1: 200, y1: 10, direction: 'right' },
       { name: 'W', x0: 200, y0: 10, x1: 10, y1: 10, direction: 'left' },
@@ -98,6 +98,11 @@ suite('GestureDetector', function() {
 // These tests are currently failing and have been temporarily disabled as per
 // Bug 838993. They should be fixed and re-enabled as soon as possible as per
 // Bug 840493.
+    function between(v, min, max) {
+      assert.isTrue(v >= min && v <= max,
+                    v + ' is not between ' + min + ' and ' + max);
+    }
+
     swipes.forEach(function(s) {
       test('swipe ' + s.name, function(done) {
         var startTime = Date.now();
@@ -187,6 +192,7 @@ suite('GestureDetector', function() {
 
 /**
  * Insanely flakey too:
+    var touchDevice = (window.Touch !== undefined);
     if (touchDevice) {
       var pinches = [
         { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 800 },

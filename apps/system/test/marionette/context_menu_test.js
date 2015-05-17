@@ -6,13 +6,13 @@ var APP_NAME = 'contextmenuapp';
 var APP_HOST = APP_NAME + '.gaiamobile.org';
 var APP_URL = 'app://' + APP_HOST;
 
+var ENTER_CHAR = '\ue006';
+
+var assert = require('chai').assert;
+
 marionette('Test Context Menu Events', function() {
 
   var opts = {
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: {}
   };
 
@@ -48,6 +48,35 @@ marionette('Test Context Menu Events', function() {
 
     client.switchToFrame();
     client.helper.waitForElement('[data-id=share-image]');
+
+  });
+
+  test('Close context menu with keyboard', function() {
+    actions = client.loader.getActions();
+
+    // Launch test app
+    client.apps.launch(APP_URL);
+    client.apps.switchToApp(APP_URL);
+
+    // Long press on a link
+    var link = client.helper.waitForElement('#link');
+    actions.longPress(link, 1.5).perform();
+
+    // Ensure the share and open tab menu items are present
+    client.switchToFrame();
+    client.helper.waitForElement('[data-id=open-in-new-window]');
+    client.helper.waitForElement('[data-id=share-link]');
+
+    // Cancel the context menu
+    var cancel = client.helper.waitForElement('#ctx-cancel-button');
+
+    assert.isTrue(cancel.scriptWith(function(el) {
+      return document.activeElement === el;
+    }), 'cancel button should be focused.');
+
+    cancel.sendKeys(ENTER_CHAR);
+
+    client.helper.waitForElementToDisappear(cancel);
 
   });
 

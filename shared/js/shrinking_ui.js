@@ -42,8 +42,6 @@
       tilting: false,
       overThreshold: false,
       toward: 'TOP',
-      suspended: false,
-      delaySlidingID: null,
       touch: {
         initY: -1,
         prevY: -1
@@ -79,8 +77,6 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI.prototype.start = function su_start() {
-    window.addEventListener('home', this);
-    window.addEventListener('holdhome', this);
     window.addEventListener('shrinking-receiving', this);
     this.startTilt();
   };
@@ -94,8 +90,6 @@
     if (this.isActive()) {
       this.stopTilt();
     }
-    window.removeEventListener('home', this);
-    window.removeEventListener('holdhome', this);
     window.removeEventListener('shrinking-receiving', this);
   };
 
@@ -107,18 +101,6 @@
    */
   ShrinkingUI.prototype.handleEvent = function su_handleEvent(evt) {
       switch (evt.type) {
-        // Mimic what the lockscreen does: stop home key event
-        // be passed to the AppWindowManager, which would fade out
-        // the current app and show the homescreen.
-        //
-        // This require that the shrinking file must be loaded before
-        // the AppWindowManager.
-        case 'home':
-        case 'holdhome':
-          if (this.isActive()) {
-            evt.stopImmediatePropagation();
-          }
-          break;
         case 'shrinking-receiving':
           // It should be launched, then received.
           // So we'll get a new app.
@@ -136,6 +118,21 @@
       }
     };
 
+  ShrinkingUI.prototype.respondToHierarchyEvent =
+    function su_respondToHierarchyEvent(evt) {
+      if (this['_handle_' + evt.type]) {
+        return this['_handle_' + evt.type](evt);
+      }
+      return true;
+    };
+
+  ShrinkingUI.prototype._handle_holdhome = function su__handle_holdhome(evt) {
+    return this.isActive();
+  };
+
+  ShrinkingUI.prototype._handle_home = function su__handle_home(evt) {
+    return this.isActive();
+  };
   /**
    * Start tilting the app window.
    *
@@ -246,6 +243,7 @@
   ShrinkingUI.prototype._updateSlideTransition =
     function su_updateSlideTransition(cb) {
       if (this.tip && this.state.slideTransitionCb) {
+        this.elements.foregroundElement.style.transitionDuration = '0s';
         this.tip.removeEventListener('transitionend',
           this.state.slideTransitionCb);
       }
@@ -314,21 +312,31 @@
   ShrinkingUI.prototype._sendingSlideTo =
     function su_sendingSlideTo(y, callback) {
       var foregroundElement = this.elements.foregroundElement;
-      if ('TOP' === y) {
-        y = foregroundElement.parentElement.clientHeight;
-      } else if ('BOTTOM' === y) {
-        y = 0;
-      }
-      if (y < 0) {
-        y = 0;
-      }
-
       var cbDone = (function on_cbDone(evt) {
         foregroundElement.removeEventListener('transitionend', cbDone);
+        // Clear animation, so the shrinkingUI will follow the touchmove event.
+        this.elements.foregroundElement.style.transitionDuration = '0s';
         if ('undefined' !== typeof callback) {
           callback();
         }
       }).bind(this);
+      if ('TOP' === y) {
+        // We should have animation to finish the rest of transformY.
+        foregroundElement.style.transitionDuration = '0.3s';
+        y = foregroundElement.parentElement.clientHeight;
+      } else if ('BOTTOM' === y) {
+        // If no rest transformY is needed, we should trigger the callback
+        // directly.
+        if (this.state.touch.prevY <= 0) {
+          cbDone();
+        } else {
+          foregroundElement.style.transitionDuration = '0.3s';
+        }
+        y = 0;
+      } else if (y < 0) {
+        y = 0;
+      }
+
       foregroundElement.addEventListener('transitionend', cbDone);
       this._updateTiltTransition(cbDone);
       foregroundElement.style.transform =
@@ -425,7 +433,7 @@
         foregroundElement.removeEventListener('transitionend', bounceBack);
         foregroundElement.addEventListener('transitionend', bounceBackEnd);
         this._updateTiltTransition(bounceBackEnd);
-        foregroundElement.style.transition = 'transform 0.3s ease';
+        foregroundElement.style.transition = 'transform ease';
         foregroundElement.style.transform =
           'rotateX(' + this._getTiltingDegree() + ') ';
       }).bind(this);
@@ -494,6 +502,9 @@
    */
   ShrinkingUI.prototype._handleSendingStart =
     function su_handleSendingStart(evt) {
+      // We keep the value of pageY when touchstart, so that we can
+      // use it to calculate the offset of transition of every frame.
+      this.state.touch.initY = evt.touches[0].pageY;
       this.debug('_handleSendingStart(): ', this.isActive());
       // Stop the touch event to affect the inner elements.
       evt.stopImmediatePropagation();
@@ -518,7 +529,7 @@
   ShrinkingUI.prototype._handleSendingSlide =
     function su_handleSendingSlide(evt) {
       var pgy = evt.touches[0].pageY;
-      var slideY = this.elements.backgroundElement.clientHeight - pgy;
+      var slideY = this.state.touch.initY  - pgy;
       if ('undefined' === typeof this.state.touch.initY) {
         this.state.touch.initY = slideY;
       }
@@ -527,20 +538,6 @@
       }
       // User is dragging it back or not.
       this.state.toward = (this.state.touch.prevY < slideY) ? 'TOP' : 'BOTTOM';
-
-      // Don't set new sliding callback if we're suspended.
-      if (this.state.suspended) {
-        return;
-      }
-
-      var handleDelaySliding = (function su_handleDelaySliding() {
-          this._sendingSlideTo(slideY);
-          this.state.suspended = false;
-      }).bind(this);
-
-      this.state.delaySlidingID = window.setTimeout(handleDelaySliding,
-        this.SUSPEND_INTERVAL);
-      this.state.suspended = true;
 
       this._sendingSlideTo(slideY);
       this.state.touch.prevY = slideY;
@@ -557,9 +554,6 @@
   ShrinkingUI.prototype._handleSendingOut =
     function su_handleSendingOut(evt) {
       this.debug('_handleSendingOut(): ', this.isActive());
-      // Clear the last sliding timeout callback to force
-      // it slide to TOP or BOTTOM.
-      clearTimeout(this.state.delaySlidingID);
 
       if (this.state.overThreshold && 'TOP' === this.state.toward) {
         this._sendingSlideTo('TOP' , (function() {
@@ -571,8 +565,6 @@
         // Fallback to the bottom if user cancel it.
         this._sendingSlideTo('BOTTOM',
           (function resumeSending() {
-            // Resume the sending timeout state.
-            this.state.suspended = false;
             this._setTip();
           }).bind(this)
         );
@@ -591,8 +583,6 @@
     return new Promise((resolve, rejected) => {
       this.debug('_cleanEffects(): ', this.isActive());
       this._disableSlidingCover();
-      window.clearTimeout(this.state.delaySlidingID);
-      this.state.suspended = false;
       foregroundElement.style.transition = '';
       foregroundElement.style.transform = '';
       foregroundElement.style.transformOrigin = '50% 50% 0';

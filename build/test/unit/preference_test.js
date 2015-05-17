@@ -343,6 +343,8 @@ suite('preferences.js', function() {
         'extensions.autoDisableScopes': 0,
         'browser.tabs.remote.autostart': false,
         'browser.tabs.remote.autostart.1': false,
+        'browser.tabs.remote.autostart.2': false,
+        'browser.shell.checkDefaultBrowser': false
       });
       assert.isUndefined(preferences.userPrefs['network.http.use-cache']);
     });
@@ -355,6 +357,9 @@ suite('preferences.js', function() {
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
         'javascript.options.discardSystemSource': false,
+        'dom.apps.developer_mode': true,
+        'network.disable.ipc.security': true,
+        'dom.webcomponents.enabled': true,
         'b2g.adb.timeout': 0
       });
     });

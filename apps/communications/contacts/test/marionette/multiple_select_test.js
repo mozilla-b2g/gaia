@@ -48,7 +48,8 @@ marionette('Contacts > MultipleSelect', function() {
 
     test('Importing all contacts', function() {
       client.helper.waitForElement(selectors.multipleSelectSave).click();
-      client.helper.waitForElement(selectors.multipleSelectStatus);
+      var status = client.helper.waitForElement(selectors.multipleSelectStatus);
+      assert.ok(status.text().indexOf('2') >= 0);
       getNumberOfContacts(function(err, value) {
         assert.equal(value, 2);
       });

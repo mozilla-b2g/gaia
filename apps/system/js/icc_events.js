@@ -1,8 +1,9 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global DUMP, icc, applications */
 
 'use strict';
-
+/* exported icc_events */
 var icc_events = {
   downloadEvent: function icc_events_downloadEvent(message, eventObject) {
     DUMP('icc_events_downloadEvent: Downloading event:', eventObject);
@@ -198,16 +199,16 @@ var icc_events = {
     window.removeEventListener('appterminated',
       this.icc_events_browsertermination);
 
-    for (var evt in eventList) {
-      DUMP('icc_events_register - Registering event:', eventList[evt]);
-      switch (eventList[evt]) {
+    eventList.forEach(function(evtId) {
+      DUMP('icc_events_register - Registering event:', evtId);
+      switch (evtId) {
       case icc._iccManager.STK_EVENT_TYPE_MT_CALL:
       case icc._iccManager.STK_EVENT_TYPE_CALL_CONNECTED:
       case icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED:
         DUMP('icc_events_register - Communications changes event');
         DUMP('icc_events_register message: ' + message);
         DUMP('icc_events_register events: ' + eventList);
-        icc_events.registerCallChanged(message, eventList[evt]);
+        icc_events.registerCallChanged(message, evtId);
         break;
       case icc._iccManager.STK_EVENT_TYPE_LOCATION_STATUS:
         DUMP('icc_events_register - Location changes event');
@@ -240,7 +241,7 @@ var icc_events = {
           this.register_icc_event_idlescreen);
         break;
       case icc._iccManager.STK_EVENT_TYPE_CARD_READER_STATUS:
-        DUMP('icc_events_register - TODO event: ', eventList[evt]);
+        DUMP('icc_events_register - TODO event: ', evtId);
         break;
       case icc._iccManager.STK_EVENT_TYPE_LANGUAGE_SELECTION:
         DUMP('icc_events_register - Language selection event');
@@ -258,7 +259,7 @@ var icc_events = {
           if (!app) {
             return;
           }
-          if (app.manifest.permissions.browser) {
+          if (app.manifest.name === 'Browser') {
             icc_events.handleBrowserTerminationEvent(message, e);
           }
         };
@@ -273,10 +274,10 @@ var icc_events = {
       case icc._iccManager.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
       case icc._iccManager.STK_EVENT_TYPE_BROWSING_STATUS:
       case icc._iccManager.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
-        DUMP('icc_events_register - TODO event: ', eventList[evt]);
+        DUMP('icc_events_register - TODO event: ', evtId);
         break;
       }
-    }
+    }, this);
   }
 
 };

@@ -90,10 +90,16 @@
     */
     passCodeRequestTimeout: 0,
 
-    /*
-    * Store the first time the screen went off since unlocking.
-    */
-    _screenOffTime: 0,
+    /**
+     * How long the unlocked session is.
+     */
+    _lastUnlockedInterval: 0,
+    _lastUnlockedTimeStamp: 0,
+    /**
+     * How long the locked session is.
+     */
+    _lastLockedInterval: 0,
+    _lastLockedTimeStamp: 0,
 
     /*
     * Check the timeout of passcode lock
@@ -164,19 +170,12 @@
         // we would need to lock the screen again
         // when it's being turned back on
         if (!evt.detail.screenEnabled) {
-          // Don't update the time after we're already locked otherwise turning
-          // the screen off again will bypass the passcode before the timeout.
-          if (!this.locked) {
-            this._screenOffTime = new Date().getTime();
-          }
-
           // Remove camera once screen turns off
           if (this.camera && this.camera.firstElementChild) {
             this.camera.removeChild(this.camera.firstElementChild);
           }
           this.chargingStatus.stop();
         } else {
-          this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
           if (!this.lockScreenClockWidget) {
             this.createClockWidget();
           }
@@ -191,14 +190,6 @@
         break;
 
       case 'click':
-        if (0 === evt.mozInputSource &&
-            (this.areaUnlock === evt.target ||
-             this.areaCamera === evt.target)) {
-          evt.preventDefault();
-          this.handleIconClick(evt.target);
-          break;
-        }
-
         if (this.altCameraButton === evt.target) {
           this.handleIconClick(evt.target);
           break;
@@ -363,8 +354,6 @@
 
     /* Gesture */
     this.area.addEventListener('touchstart', this);
-    this.areaCamera.addEventListener('click', this);
-    this.areaUnlock.addEventListener('click', this);
     this.altCameraButton.addEventListener('click', this);
     this.iconContainer.addEventListener('touchstart', this);
 
@@ -665,6 +654,10 @@
     if (wasAlreadyUnlocked) {
       return;
     }
+    // It ends the locked session.
+    var now = Date.now();
+    this._lastLockedInterval = now - this._lastLockedTimeStamp;
+    this._lastUnlockedTimeStamp = now;
 
     this.lockScreenClockWidget.stop().destroy();
     delete this.lockScreenClockWidget;
@@ -707,6 +700,12 @@
     this.locked = true;
 
     if (!wasAlreadyLocked) {
+      // It ends the unlocked session.
+      var now = Date.now();
+      this._lastUnlockedInterval = now - this._lastUnlockedTimeStamp;
+      this._lastLockedTimeStamp = now;
+
+      this.overlayLocked();
       // Because 'document.hidden' changes slower than this,
       // so if we depend on that it would create the widget
       // while the screen is off.
@@ -1036,12 +1035,16 @@
    */
   LockScreen.prototype.checkPassCodeTimeout =
     function ls_checkPassCodeTimeout() {
-      var _screenOffInterval = new Date().getTime() - this._screenOffTime;
+      var timeout = this.passCodeRequestTimeout * 1000;
+      var lockedInterval = this.fetchLockedInterval();
+      var unlockedInterval = this.fetchUnlockedInterval();
+
       // If user set timeout, then
       // - if timeout expired, do check
       // - if timeout is valid, do not check
       if (0 !== this.passCodeRequestTimeout) {
-        if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
+        if (lockedInterval > timeout ||
+            unlockedInterval > timeout ) {
           return true;
         } else {
           return false;
@@ -1092,6 +1095,28 @@
     this.lockScreenClockWidget = new LockScreenClockWidget(
       document.getElementById('lockscreen-clock-widget'));
     this.lockScreenClockWidget.start();
+  };
+
+  LockScreen.prototype.fetchLockedInterval = function() {
+    // If: the session is still pending, so need to calculate it.
+    // Else: the session was already over, so need to get it.
+    if (this.locked) {
+      this._lastLockedInterval = Date.now() - this._lastLockedTimeStamp;
+      return this._lastLockedInterval;
+    } else {
+      return this._lastLockedInterval;
+    }
+  };
+
+  LockScreen.prototype.fetchUnlockedInterval = function() {
+    // If: the session is still pending, so need to calculate it.
+    // Else: the session was already over, so need to get it.
+    if (!this.locked) {
+      this._lastUnlockedInterval = Date.now() - this._lastUnlockedTimeStamp;
+      return this._lastUnlockedInterval;
+    } else {
+      return this._lastUnlockedInterval;
+    }
   };
 
   /** @exports LockScreen */

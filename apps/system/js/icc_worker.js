@@ -1,8 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals advanced_timer, DUMP, icc, icc_events, IccHelper, Notification,
-           Service, STKHelper */
+/* globals advanced_timer, DUMP, icc, icc_events, IccHelper,
+           NotificationHelper, Service, STKHelper */
 
 'use strict';
 
@@ -70,13 +70,13 @@ var icc_worker = {
     icc.discardCurrentMessageIfNeeded(message);
 
     if (confirmMessage) {
-      if (STKHelper.isIconSelfExplanatory(options)) {
+      if (STKHelper.isIconSelfExplanatory(options.confirmMessage)) {
         confirmMessage = '';
       }
-      icc.asyncConfirm(message, confirmMessage, options.icons,
-        function(confirmed) {
-          stkSetupCall(confirmed, callMessage);
-        });
+      var icons = options.confirmMessage ? options.confirmMessage.icons : null;
+      icc.asyncConfirm(message, confirmMessage, icons, function(confirmed) {
+        stkSetupCall(confirmed, callMessage);
+      });
     } else {
       stkSetupCall(true, callMessage);
     }
@@ -146,10 +146,11 @@ var icc_worker = {
       resultCode: icc._iccManager.STK_RESULT_OK
     });
     var text = '';
-    if (!STKHelper.isIconSelfExplanatory(options)) {
+    if (!STKHelper.isIconSelfExplanatory(options.confirmMessage)) {
       text = STKHelper.getMessageText(options.confirmMessage);
     }
-    icc.showURL(message, options.url, options.icons, text);
+    var icons = options.confirmMessage ? options.confirmMessage.icons : null;
+    icc.showURL(message, options.url, icons, text);
   },
 
   // STK_CMD_PLAY_TONE
@@ -554,27 +555,33 @@ var icc_worker = {
   '0x28': function STK_CMD_SET_UP_IDLE_MODE_TEXT(message) {
     DUMP('STK_CMD_SET_UP_IDLE_MODE_TEXT:', message.command.options);
     var options = message.command.options;
-    this.idleTextNotifications[message.iccId] = new Notification(
-      'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
+
+    return NotificationHelper.send(
+      {
+        id: 'icc-notification-title',
+        args: { id: icc.getSIMNumber(message.iccId) }
+      },
+      {
         body: options.text,
         icon: 'style/icons/system.png',
         tag: 'stkNotification_' + message.iccId,
         mozbehavior: {
           showOnlyOnce: true
         }
-      });
-    this.idleTextNotifications[message.iccId].onclick =
-      function onClickSTKNotification() {
+      }
+    ).then((notification) => {
+      this.idleTextNotifications[message.iccId] = notification;
+      notification.onclick = function onClickSTKNotification() {
         icc.discardCurrentMessageIfNeeded(message);
         var text = STKHelper.getMessageText(options);
         icc.alert(message, text, options.icons);
       };
-    this.idleTextNotifications[message.iccId].onshow =
-      function onShowSTKNotification() {
+      notification.onshow = function onShowSTKNotification() {
         icc.responseSTKCommand(message, {
           resultCode: icc._iccManager.STK_RESULT_OK
         });
       };
+    });
   }
 
 };

@@ -192,8 +192,7 @@
 #downloadList ul > li[data-state="failed"] .download-status {
   width: 3rem;
   height: 3rem;
-  background: url('images/download_exclamation.png');
-  background-repeat: no-repeat;
+  background: url('images/download_exclamation.png') no-repeat center center;
   left: 0.2rem;
 }
 
@@ -205,20 +204,19 @@
 /* Action in the element. */
 
 #downloadList aside.pack-end {
-  width: 3rem;
-  height: 3rem;
-  padding: 1.4rem;
-  margin: 0;
+  width: 2.6rem;
+  height: 2.3rem;
+  padding: 0;
+  margin: 1.2rem;
   pointer-events: all;
   right: 0;
 }
 
 #downloadList ul > li[data-state="downloading"] .pack-end {
-  width: 3rem;
-  height: 3rem;
-  background: url('images/download_close.png');
+  background-image: url('images/download_close.png');
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: left center;
+  background-size: 2.2rem;
 }
 
 #downloadList ul > li[data-state="succeeded"] .pack-end {
@@ -227,16 +225,21 @@
 
 #downloadList ul > li[data-state="stopped"] .pack-end,
 #downloadList ul > li[data-state="failed"] .pack-end {
-  width: 3rem;
-  height: 3rem;
-  background: url('images/download_refresh.png');
+  background-image: url('images/download_refresh.png');
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: left center;
+  background-size: 2.5rem 2.2rem;
 }
 
 /* RTL rules */
+html:-moz-dir(rtl) #downloadList aside.download-status {
+  margin: 1.75rem 0 0 0.5rem;
+  right: 0.2rem;
+  left: unset;
+}
+
 html:-moz-dir(rtl) #downloadList aside.pack-end {
-  right: auto;
+  right: unset;
   left: 0;
 }
 

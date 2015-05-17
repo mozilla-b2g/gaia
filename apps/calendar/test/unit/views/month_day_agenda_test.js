@@ -2,19 +2,19 @@ define(function(require) {
 'use strict';
 
 var MonthDayAgenda = require('views/month_day_agenda');
+var core = require('core');
 var dateFormat = require('date_format');
 var dayObserver = require('day_observer');
 var template = require('templates/month_day_agenda');
 
 suite('Views.MonthDayAgenda', function() {
-  var subject,
-      app;
+  var subject;
 
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
     dayObserver.removeAllListeners();
-    app.db.close();
+    core.db.close();
   });
 
   setup(function(done) {
@@ -30,9 +30,8 @@ suite('Views.MonthDayAgenda', function() {
 
     document.body.appendChild(div);
 
-    app = testSupport.calendar.app();
-    subject = new MonthDayAgenda({ app: app });
-    app.db.open(done);
+    subject = new MonthDayAgenda();
+    core.db.open(done);
   });
 
   suite('#changeDate', function() {

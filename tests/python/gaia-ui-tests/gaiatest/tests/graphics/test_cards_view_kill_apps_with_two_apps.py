@@ -19,8 +19,10 @@ class TestCardsViewTwoApps(GaiaImageCompareTestCase):
         # Launch the test apps
         for app in self._test_apps:
             self.apps.launch(app)
-            # Let's wait a bit for the app to fully launch
-            time.sleep(2)
+
+            # 10 seconds for the actual user using the app a bit, and going back to homescreen
+            time.sleep(10)
+            self.device.touch_home_button()
 
     def test_cards_view_kill_apps_with_two_apps(self):
         """https://moztrap.mozilla.org/manage/case/1917/"""

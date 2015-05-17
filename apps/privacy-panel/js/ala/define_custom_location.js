@@ -250,8 +250,8 @@ function(panels, SettingsListener, SettingsHelper) {
         this.config.longitude = city.lon;
         this.config.latitude = city.lat;
       } else {
-        this.config.longitude = 0;
-        this.config.latitude = 0;
+        this.config.longitude = null;
+        this.config.latitude = null;
       }
 
       this.updateLongitudeAndLatitude();
@@ -262,8 +262,8 @@ function(panels, SettingsListener, SettingsHelper) {
     },
 
     updateLongitudeAndLatitude: function() {
-      this.longitude.value = this.config.longitude || 0;
-      this.latitude.value = this.config.latitude || 0;
+      this.longitude.value = this.config.longitude || null;
+      this.latitude.value = this.config.latitude || null;
     },
 
     validate: function() {

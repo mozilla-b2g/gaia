@@ -3,6 +3,7 @@ define(function(require) {
 
   var DialogPanel = require('modules/dialog_panel');
   var WifiHelper = require('shared/wifi_helper');
+  var WifiContext = require('modules/wifi_context');
   var wifiManager = WifiHelper.getWifiManager();
 
   return function ctor_statusWifi() {
@@ -28,10 +29,13 @@ define(function(require) {
         } else {
           elements.security.setAttribute('data-l10n-id', 'securityNone');
         }
-        wifiManager.onconnectioninfoupdate = this._updateNetworkInfo;
+
+        WifiContext.addEventListener('wifiConnectionInfoUpdate',
+          this._updateNetworkInfo);
       },
       onBeforeHide: function() {
-        wifiManager.onconnectioninfoupdate = null;
+        WifiContext.removeEventListener('wifiConnectionInfoUpdate',
+          this._updateNetworkInfo);
       },
       _updateNetworkInfo: function() {
         var info = wifiManager.connectionInformation || {};

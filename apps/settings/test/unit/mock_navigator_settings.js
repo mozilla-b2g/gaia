@@ -1,9 +1,9 @@
 'use strict';
 
-(function(window) {
-  var observers = {},
-      settings = {},
-      removedObservers = {};
+(() => {
+  var observers = {};
+  var settings = {};
+  var removedObservers = {};
 
   function mns_mLockSet(obj) {
     var settingsRequest = {};
@@ -87,5 +87,4 @@
       return removedObservers;
     }
   };
-
-})(this);
+})();

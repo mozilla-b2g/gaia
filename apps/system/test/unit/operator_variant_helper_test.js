@@ -1,3 +1,5 @@
+/* global OperatorVariantHelper,
+          MockNavigatorMozIccManager, MockNavigatorSettings */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -13,7 +15,6 @@ suite('operator variant helper', function() {
   const EXPECTED_MNC = '45';
   const EXPECTED_ICCIDS = [FAKE_ICC_ID, null];
   const EXPECTED_ICC_INFO = { mcc: EXPECTED_MCC, mnc: EXPECTED_MNC };
-  const NULL_ICC_INFO = { mcc: '', mnc: '' };
   const PERSIST_KEY_PREFIX = 'operatorvariant';
   const PERSIST_KEY_SUFIX = 'customization';
   const PERSIST_KEY = PERSIST_KEY_PREFIX + '.' +

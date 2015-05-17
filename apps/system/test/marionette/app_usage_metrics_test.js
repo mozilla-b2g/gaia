@@ -28,16 +28,6 @@ marionette('App Usage Metrics >', function() {
       'fakealarm.gaiamobile.org': __dirname + '/../apps/fakealarmapp',
       'fakemedia.gaiamobile.org': __dirname + '/../apps/fakemediaapp',
       'fakemusic.gaiamobile.org': __dirname + '/../apps/fakemusic'
-    },
-    prefs: {
-      'dom.inter-app-communication-api.enabled': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'homescreen.manifestURL':
-        'app://verticalhome.gaiamobile.org/manifest.webapp',
-      'lockscreen.enabled': false
     }
   });
 
@@ -62,8 +52,6 @@ marionette('App Usage Metrics >', function() {
       serverRootURL = serverRootURL.substring(0, serverRootURL.length - 1);
       done(err);
     });
-
-    sys = client.loader.getAppClass('system');
   });
 
   suiteTeardown(function() {
@@ -75,6 +63,7 @@ marionette('App Usage Metrics >', function() {
     appInstall = new AppInstall(client);
     settings = new Settings(client);
     metrics = new AppUsageMetrics(client);
+    sys = client.loader.getAppClass('system');
 
     sys.waitForStartup();
     metrics.waitForStartup();

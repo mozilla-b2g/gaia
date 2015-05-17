@@ -26,7 +26,6 @@
     searchResults: document.getElementById('search-results'),
 
     offlineMessage: document.getElementById('offline-message'),
-    settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
     grid: document.getElementById('icons'),
     gridWrapper: document.getElementById('icons-wrapper'),
@@ -95,6 +94,7 @@
 
       this.contextmenu = new Contextmenu();
       window.addEventListener('resize', this.resize);
+      window.addEventListener('scroll', this.onScroll);
     },
 
     resize: function() {
@@ -104,6 +104,12 @@
           skipDivider: true
         });
       }
+    },
+
+    // Typically an input keeps focus when the user scrolls, here we
+    // want to grab focus and manually dismiss the keyboard.
+    onScroll: function() {
+      window.focus();
     },
 
     /**
@@ -346,7 +352,7 @@
         }
       }
 
-      this.settingsConnectivity.addEventListener(
+      this.offlineMessage.addEventListener(
         'click', function() {
           var activity = new window.MozActivity({
             name: 'configure',

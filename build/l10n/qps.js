@@ -111,8 +111,9 @@ function makeRTL(val) {
   });
 }
 
-// strftime tokens (%a, %Eb) and template {vars}
-var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\})/;
+// strftime tokens (%a, %Eb), template {vars}, HTML entities (&#x202a;)
+// and HTML tags.
+var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
 function mapContent(fn, val) {
   if (!val) {

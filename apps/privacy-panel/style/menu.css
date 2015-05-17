@@ -15,10 +15,10 @@ a.menu-item:after  {
   font-family: "gaia-icons";
   content: "forward";
   position: absolute;
-  top: 0;
+  top: 50%;
+  margin-top: -1.25rem;
   right: 0.3rem;
   font-size: 2.5rem;
-  line-height: 6rem;
   color: #657073;
 }
 

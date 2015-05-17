@@ -15,7 +15,11 @@
   ],
   "dependencies": {
     "evt": "gaia-components/evt#~0.4.0",
-    "smart-button": "smart-components/smart-button",
-    "menu-group": "smart-components/menu-group"
+    "smart-button": "gaia-components/smart-button",
+    "menu-group": "gaia-components/menu-group",
+    "smart-icons": "smart-components/smart-icons",
+    "smart-bubbles": "smart-components/smart-bubbles",
+    "smart-dialog": "smart-components/smart-dialog",
+    "smart-modal-dialog": "smart-components/smart-modal-dialog"
   }
 }

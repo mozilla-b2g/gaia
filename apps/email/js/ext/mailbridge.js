@@ -4,7 +4,7 @@
 
 define(
   [
-    'rdcommon/log',
+    'logic',
     './util',
     './mailchew-strings',
     './date',
@@ -14,7 +14,7 @@ define(
     'exports'
   ],
   function(
-    $log,
+    logic,
     $imaputil,
     $mailchewStrings,
     $date,
@@ -97,7 +97,8 @@ function MailBridge(universe, name) {
   this.universe = universe;
   this.universe.registerBridge(this);
 
-  this._LOG = LOGFAB.MailBridge(this, universe._LOG, name);
+  logic.defineScope(this, 'MailBridge', { name: name });
+
   /** @dictof[@key[handle] @value[BridgedViewSlice]]{ live slices } */
   this._slices = {};
   /** @dictof[@key[namespace] @value[@listof[BridgedViewSlice]]] */
@@ -138,10 +139,19 @@ MailBridge.prototype = {
   __receiveMessage: function mb___receiveMessage(msg) {
     var implCmdName = '_cmd_' + msg.type;
     if (!(implCmdName in this)) {
-      this._LOG.badMessageType(msg.type);
+      logic(this, 'badMessageType', { type: msg.type });
       return;
     }
-    var rval = this._LOG.cmd(msg.type, this, this[implCmdName], msg);
+    logic(this, 'cmd', {
+      type: msg.type,
+      msg: msg
+    });
+    try {
+      this[implCmdName](msg);
+    } catch(ex) {
+      logic.fail(ex);
+      return; // note that we did not throw
+    }
   },
 
   _cmd_ping: function mb__cmd_ping(msg) {
@@ -686,7 +696,7 @@ MailBridge.prototype = {
   _cmd_refreshHeaders: function mb__cmd_refreshHeaders(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      this._LOG.badSliceHandle(msg.handle);
+      logic(this, 'badSliceHandle', { handle: msg.handle });
       return;
     }
 
@@ -697,7 +707,7 @@ MailBridge.prototype = {
   _cmd_growSlice: function mb__cmd_growSlice(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      this._LOG.badSliceHandle(msg.handle);
+      logic(this, 'badSliceHandle', { handle: msg.handle });
       return;
     }
 
@@ -708,7 +718,7 @@ MailBridge.prototype = {
   _cmd_shrinkSlice: function mb__cmd_shrinkSlice(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      this._LOG.badSliceHandle(msg.handle);
+      logic(this, 'badSliceHandle', { handle: msg.handle });
       return;
     }
 
@@ -720,7 +730,7 @@ MailBridge.prototype = {
   _cmd_killSlice: function mb__cmd_killSlice(msg) {
     var proxy = this._slices[msg.handle];
     if (!proxy) {
-      this._LOG.badSliceHandle(msg.handle);
+      logic(this, 'badSliceHandle', { handle: msg.handle });
       return;
     }
 
@@ -957,12 +967,16 @@ MailBridge.prototype = {
 
         if (msg.mode === 'reply') {
           var rTo, rCc, rBcc;
-          // clobber the sender's e-mail with the reply-to
-          var effectiveAuthor = {
-            name: msg.refAuthor.name,
-            address: (header.replyTo && header.replyTo.address) ||
-                     msg.refAuthor.address,
-          };
+          // Clobber the sender's e-mail with the reply-to address if provided.
+          // The Reply-To header can contain multiple addresses, but we only
+          // reply to the first. In the event of a reply-to address, we clobber
+          // both the name and address with the provided value; notably, if the
+          // reply-to header doesn't contain a display name, we leave the
+          // display name blank as intended. A quick survey of some mailings
+          // indicates that most Reply-To headers include a display name
+          // identical to the From header anyway.
+          var replyToAddress = header.replyTo && header.replyTo[0];
+          var effectiveAuthor = replyToAddress || msg.refAuthor;
           switch (msg.submode) {
             case 'list':
               // XXX we can't do this without headers we're not retrieving,
@@ -1342,27 +1356,5 @@ MailBridge.prototype = {
   }
 
 };
-
-var LOGFAB = exports.LOGFAB = $log.register($module, {
-  MailBridge: {
-    type: $log.DAEMON,
-    events: {
-      // NB: under unit test, this is not used and bridgeSnoop is used instead.
-      send: { type: true },
-    },
-    TEST_ONLY_events: {
-      send: { msg: false },
-    },
-    errors: {
-      badMessageType: { type: true },
-      badSliceHandle: { handle: true },
-    },
-    calls: {
-      cmd: { command: true },
-    },
-    TEST_ONLY_calls: {
-    },
-  },
-});
 
 }); // end define

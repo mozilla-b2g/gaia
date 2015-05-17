@@ -6,7 +6,7 @@
     <title>Bluetooth</title>
     <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/bluetooth.{locale}.properties">
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
@@ -59,30 +59,30 @@
       </menu>
     </form>
     <!-- Devices List View -->
-    <section role="region" id="devices-list-view" class="current" data-rendered="true" hidden>
-      <gaia-header id="devices-list-header" action="close">
+    <section role="region" id="devices-list-view" class="devices-list-view current" data-rendered="true" hidden>
+      <gaia-header id="devices-list-header" class="devices-list-header" action="close">
         <h1 data-l10n-id="bluetooth"></h1>
       </gaia-header>
       <div>
         <!-- Devices List View :: Paired Devices List -->
-        <gaia-subheader id="bluetooth-paired-title" skin="organic">
+        <gaia-subheader id="bluetooth-paired-title" class="bluetooth-paired-title" skin="organic">
           <span data-l10n-id="bluetooth-paired-devices">Paired Devices</span>
         </gaia-subheader>
-        <ul id="bluetooth-paired-devices" class="devices">
+        <ul id="bluetooth-paired-devices" class="bluetooth-paired-devices devices">
         </ul>
         <!-- Devices List View :: Found Devices List -->
-        <gaia-subheader id="bluetooth-found-title" skin="organic">
+        <gaia-subheader id="bluetooth-found-title" class="bluetooth-found-title" skin="organic">
           <span data-l10n-id="bluetooth-devices-in-area">Devices found</span>
         </gaia-subheader>
-        <ul id="bluetooth-devices" class="devices">
+        <ul id="bluetooth-devices" class="bluetooth-devices devices">
         </ul>
         <!-- Devices List View :: Search Button -->
-        <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
+        <div id="bluetooth-searching" data-l10n-id="search-for-device" class="bluetooth-searching explanation">
           Searching for devices…
         </div>
-        <ul id="bluetooth-search">
+        <ul id="bluetooth-search" class="bluetooth-search">
           <li>
-            <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
+            <button id="search-device" class="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
           </li>
         </ul>
       </div>

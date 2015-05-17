@@ -3,7 +3,7 @@
   display: none !important;
 }
 
-li button.icon-call:before {
+li .icon-call:before {
   background-image: url("/shared/style/contacts/images/call.png") !important;
 }
 
@@ -16,15 +16,26 @@ li button.send-sms {
 }
 li button.icon-email:before {
   background-image: url("/shared/style/contacts/images/mail.png") !important;
+} 
+
+.has-preferred-sim .button.icon-call {
+  display: flex;
+  align-items: center;
+  padding: 0 1.2rem;
 }
 
-.has-preferred-sim .icon-call b {
-  right: 6.5rem;
+.has-preferred-sim .button.icon-call b {
+  position: unset;
+  order: 1;
+  flex: 1 1 auto;
 }
 
-.has-preferred-sim .icon-call:before {
-  width: 9.5rem !important;
+.has-preferred-sim .activity.icon-call:before {
+  margin-top: 0;
   background-size: 3rem !important;
+  position: unset;
+  order: 2;
+  flex: 0 0 auto;
 }
 
 .call-action .js-sim-indication {
@@ -35,12 +46,9 @@ li button.icon-email:before {
   line-height: 4rem;
   height: 4rem;
   text-align: end;
-  width: 5.5rem;
-  right: 1rem;
-  top: 0;
   margin: 0;
-  position: absolute;
   background: url("/shared/elements/gaia_sim_picker/images/long-tap-indicator.png") no-repeat right bottom 0.2rem / 1.4rem 1rem;
+  order: 3;
 }
 
 .has-preferred-sim .call-action .js-sim-indication {
@@ -87,7 +95,7 @@ li button.icon-email:before {
   -moz-margin-end: 0;
 }
 
-.item-media.pull-right button {
+.item-media.pull-right .activity {
   -moz-padding-end: 3rem;
 }
 
@@ -114,7 +122,7 @@ li button.icon-email:before {
   float: right;
 }
 
-li button.activity > b {
+li .activity > b {
   font-weight: normal;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -136,14 +144,7 @@ li button.activity > b {
 }
 
 /* RTL View */
-html[dir="rtl"] .has-preferred-sim .icon-call b {
-  left: 6.5rem;
-  right: unset;
-}
-
 html[dir="rtl"] .call-action .js-sim-indication {
-  left: 1rem;
-  right: unset;
   background-position: left bottom 0.2rem;
 }
 
@@ -159,7 +160,11 @@ html[dir="rtl"] .pull-right {
   float: left;
 }
 
-html[dir="rtl"] li button.activity > b {
+html[dir="rtl"] li .activity > b {
   left: 3rem;
   right: 1.5rem;
+}
+
+html[dir="rtl"] li .icon-call {
+  text-align: right;
 }

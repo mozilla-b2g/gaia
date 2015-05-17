@@ -21,6 +21,7 @@ class Music(Base):
     _albums_tab_locator = (By.ID, 'tabs-albums')
     _songs_tab_locator = (By.ID, 'tabs-songs')
     _artists_tab_locator = (By.ID, 'tabs-artists')
+    _title_locator = (By.ID, 'title-text')
 
     def launch(self):
         Base.launch(self)
@@ -34,6 +35,11 @@ class Music(Base):
     def wait_for_empty_message_to_load(self):
         element = self.marionette.find_element(*self._empty_music_title_locator)
         Wait(self.marionette).until(lambda m: not element.text == '')
+
+    def wait_for_view_displayed(self, view_name):
+        title = self.marionette.find_element(*self._title_locator)
+        Wait(self.marionette).until(expected.element_displayed(title))
+        Wait(self.marionette).until(lambda m: title.text == view_name)
 
     @property
     def empty_music_title(self):

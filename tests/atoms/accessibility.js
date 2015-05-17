@@ -3,14 +3,15 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
-/* globals SpecialPowers, marionetteScriptFinished */
+
+/* globals Components, marionetteScriptFinished */
 /* exported Accessibility */
 
 var Accessibility = {
 
-  _accRetrieval: SpecialPowers.Cc[
+  _accRetrieval: Components.classes[
     '@mozilla.org/accessibleRetrieval;1'].getService(
-      SpecialPowers.Ci.nsIAccessibleRetrieval),
+      Components.interfaces.nsIAccessibleRetrieval),
 
   _getAccessible:
     function Accessibility__getAccessible(element, callback, once) {
@@ -35,8 +36,7 @@ var Accessibility = {
   },
 
   _matchState: function Accessibility__matchState(acc, stateName) {
-    let stateToMatch = SpecialPowers.wrap(
-      SpecialPowers.Components).interfaces.nsIAccessibleStates[stateName];
+    let stateToMatch = Components.interfaces.nsIAccessibleStates[stateName];
     let state = {};
     let extState = {};
     acc.getState(state, extState);

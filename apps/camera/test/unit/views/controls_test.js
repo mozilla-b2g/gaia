@@ -243,5 +243,26 @@ suite('views/controls', function() {
     view.setMode('video');
     view.appendTo(document.body);
     assert.equal(view.drag.handle.el.style.transform, 'translate(64px, 0px)');
+    assert.equal(view.els.switch.getAttribute('data-l10n-id'),
+      'video-mode-button');
+  });
+
+  test('ControlsView#localize', function() {
+    var view = new this.ControlsView();
+    view.localize();
+    for (var el in view.elsL10n) {
+      assert.equal(view.els[el].getAttribute('data-l10n-id'), view.elsL10n[el]);
+    }
+    assert.equal(view.els.switch.getAttribute('data-l10n-id'),
+      'picture-mode-button');
+  });
+
+  test('ControlsView#setCaptureLabel', function() {
+    var view = new this.ControlsView();
+    [true, false].forEach(function(recording) {
+      view.setCaptureLabel(recording);
+      assert.equal(view.els.capture.getAttribute('data-l10n-id'),
+        recording ? 'stop-capture-button' : 'capture-button');
+    });
   });
 });

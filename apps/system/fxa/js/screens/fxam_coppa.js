@@ -46,7 +46,11 @@ var FxaModuleCoppa = (function() {
 
     this.isFTU = !!(options && options.isftu);
 
-    _populateSelect(this.fxaAgeSelect);
+    // Initially we only have one value ("Year of birth") in the age
+    // selection element.
+    if (this.fxaAgeSelect.length == 1) {
+      _populateSelect(this.fxaAgeSelect);
+    }
 
     _enableNext(this.fxaAgeSelect.value);
 

@@ -31,8 +31,7 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled [role="dialog"].generic-dialog,
   #screen.software-button-enabled > #dialog-screen,
-  #screen.software-button-enabled + #downloadConfirmUI,
-  #screen.software-button-enabled > #dialog-overlay {
+  #screen.software-button-enabled + #downloadConfirmUI {
     right: var(--software-home-button-height);
   }
 
@@ -75,11 +74,11 @@
 [role="dialog"].generic-dialog h3 {
   font-weight: normal;
   font-size: 1.6rem;
-  line-height: 1.5rem;
+  line-height: 2rem;
   color: #fff;
   border-bottom: 0.1rem solid #686868;
   margin: 0 0 1rem;
-  padding: 0 1.5rem 1.5rem;
+  padding: 1.5rem;
 }
 
 [role="dialog"].generic-dialog menu:not([type="toolbar"]) {

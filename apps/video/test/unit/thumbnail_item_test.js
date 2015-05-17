@@ -1,10 +1,11 @@
+/* global MockL10n,MediaUtils,ThumbnailItem */
 /*
  * Thumbnail Item tests
  */
 'use strict';
 
 require('/shared/js/l10n.js');
-require('/shared/js/template.js');
+require('/shared/js/tagged.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/video/js/thumbnail_item.js');
@@ -24,7 +25,7 @@ suite('Thumbnail Item Unit Tests', function() {
   suite('#test object creation', function() {
     test('#empty video object', function() {
       try {
-        new ThumbnailItem();
+        new ThumbnailItem(); // jshint ignore:line
         assert.fail('undefined or null videoitem should not be ok.');
       } catch (ex) {
         assert.ok('correct behavior caught');
@@ -51,46 +52,10 @@ suite('Thumbnail Item Unit Tests', function() {
       };
     });
 
-    setup(function() {
-      delete ThumbnailItem.Template;
-    });
-
-    test('#without template', function() {
-      try {
-        var thumbnail = new ThumbnailItem(videodata);
-        assert.fail('htmlNode should throw error without template.');
-      } catch (ex) {
-        assert.ok('expected error caught.');
-      }
-    });
-
     test('#partial fields of template inexistent', function() {
-      var dummyDiv = document.createElement('div');
-      dummyDiv.innerHTML = '<!--' +
-        '<li class="thumbnail">' +
-        '  <div class="inner">' +
-        '  </div>' +
-        '</li>' +
-        '-->';
-
-      ThumbnailItem.Template = new Template(dummyDiv);
       var thumbnail = new ThumbnailItem(videodata);
-      var domNode = thumbnail.htmlNode;
       thumbnail.updatePoster(new Blob(['empty-image'], {'type': 'image/jpeg'}));
       assert.ok('it is ok without any fields');
-    });
-
-    test('#empty template', function() {
-      var dummyDiv = document.createElement('div');
-      dummyDiv.innerHTML = '<!-- empty -->';
-
-      ThumbnailItem.Template = new Template(dummyDiv);
-      try {
-        var thumbnail = new ThumbnailItem(videodata);
-        assert.fail('htmlNode should throw error without element in template.');
-      } catch (ex) {
-        assert.ok('expected error caught.');
-      }
     });
   });
 
@@ -114,24 +79,6 @@ suite('Thumbnail Item Unit Tests', function() {
         name: 'dummy-file-name'
       };
 
-      var dummyDiv = document.createElement('div');
-      dummyDiv.innerHTML = '<!--' +
-        '<li class="thumbnail">' +
-        '  <div class="inner">' +
-        '    <div class="img"></div>' +
-        '    <div class="unwatched ${unwatched}"></div>' +
-        '    <div class="details">' +
-        '      <span class="title">${title}</span>' +
-        '      <span class="duration-text after ' +
-                     'line-break">${duration-text}</span>' +
-        '      <span class="size-text after">${size-text}</span>' +
-        '      <span class="type-text after">${type-text}</span>' +
-        '    </div>' +
-        '  </div>' +
-        '</li>' +
-        '-->';
-
-      ThumbnailItem.Template = new Template(dummyDiv);
       thumbnail = new ThumbnailItem(videodata);
       domNode = thumbnail.htmlNode;
     });
@@ -185,24 +132,6 @@ suite('Thumbnail Item Unit Tests', function() {
         name: 'dummy-file-name'
       };
 
-      var dummyDiv = document.createElement('div');
-      dummyDiv.innerHTML = '<!--' +
-        '<li class="thumbnail">' +
-        '  <div class="inner">' +
-        '    <div class="img"></div>' +
-        '    <div class="unwatched ${unwatched}"></div>' +
-        '    <div class="details">' +
-        '      <span class="title">${title}</span>' +
-        '      <span class="duration-text after ' +
-                     'line-break">${duration-text}</span>' +
-        '      <span class="size-text after">${size-text}</span>' +
-        '      <span class="type-text after">${type-text}</span>' +
-        '    </div>' +
-        '  </div>' +
-        '</li>' +
-        '-->';
-
-      ThumbnailItem.Template = new Template(dummyDiv);
       thumbnail = new ThumbnailItem(videodata);
       domNode = thumbnail.htmlNode;
     });

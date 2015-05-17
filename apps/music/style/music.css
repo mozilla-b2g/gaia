@@ -130,6 +130,12 @@ body {
   color: #fff;
 }
 
+/* Never show the scan progress when the title bar has a back button, since the
+   progress display would make it impossible to go back! */
+#title[action="back"] ~ #scan-progress {
+  display: none;
+}
+
 #scan-spinner {
   position: absolute;
   top: 1rem;
@@ -425,6 +431,13 @@ body.picker-mode #title-player {
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
+html[dir="rtl"] #views-sublist-header-image,
+html[dir="rtl"] #views-sublist-header-controls {
+  float: right;
+  left: auto;
+  right: 3rem;
+}
+
 #views-sublist-header-image {
   width: 8rem;
   height: 8rem;
@@ -437,6 +450,7 @@ body.picker-mode #title-player {
 
 #views-sublist-header-name {
   position:relative;
+  display: block;
   font-size: 1.9rem;
   padding: 0 1rem;
   width: calc(100% - 2rem);
@@ -445,6 +459,10 @@ body.picker-mode #title-player {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+html[dir="rtl"] #views-sublist-header-name {
+  text-align: right;
 }
 
 #views-sublist-header-controls {
@@ -465,6 +483,11 @@ body.picker-mode #title-player {
   background-repeat: no-repeat;
   background-size: 3rem;
   color: #fff;
+}
+
+html[dir="rtl"] #views-sublist-controls-play,
+html[dir="rtl"] #views-sublist-controls-shuffle {
+  float: right;
 }
 
 .album-controls-button {
@@ -530,13 +553,6 @@ html[dir="rtl"] .tile:nth-child(12n+5),
 html[dir="rtl"] .tile:nth-child(12n+6) {
   float: right;
   right: 0.5%;
-}
-
-/* Favor scrolling performance over quality while scrolling */
-#views.scroll li.list-item,
-#views.scrolling .tile {
-  image-rendering: -moz-crisp-edges;
-  text-rendering: optimizeSpeed;
 }
 
 .main-tile {
@@ -613,6 +629,11 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
 .tile-title-album {
   color: rgba(255, 255, 255, 0.65);
   font-size: 1.4rem;
+}
+
+html[dir="rtl"] .tile-title-artist,
+html[dir="rtl"] .tile-title-album {
+  text-align: right;
 }
 
 .main-tile-title {
@@ -1078,6 +1099,7 @@ li.list-item a:active {
 }
 
 html[dir="rtl"] .list-main-title {
+  text-align: right;
   padding: 0 3rem 0 0.5rem;
 }
 
@@ -1090,6 +1112,7 @@ html[dir="rtl"] .list-main-title {
 }
 
 html[dir="rtl"] .list-sub-title {
+  text-align: right;
   padding: 0 3rem 0 0.5rem;
 }
 
@@ -1103,6 +1126,7 @@ html[dir="rtl"] .list-sub-title {
 }
 
 html[dir="rtl"] .list-single-title {
+  text-align: right;
   padding: 0 3rem 0 0.5rem;
 }
 
@@ -1118,6 +1142,7 @@ html[dir="rtl"] .list-single-title {
 }
 
 html[dir="rtl"] .list-playlist-title {
+  text-align: right;
   padding-left: 0.5rem;
   padding-right: 3rem;
 }
@@ -1165,11 +1190,26 @@ html[dir="rtl"] .list-playlist-icon {
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
+html[dir="rtl"] .list-song-title {
+  text-align: right;
+  right: 3rem;
+  padding-left: 0.5rem;
+  padding-right: 0;
+}
+
 .list-song-length {
   right: 0;
   width: 5rem;
   padding-right: 0.5rem;
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+}
+
+html[dir="rtl"] .list-song-length {
+  text-align: right;
+  left: 0;
+  right: auto;
+  padding-left: 0.5rem;
+  padding-right: 0;
 }
 
 .search-highlight {
@@ -1187,3 +1227,11 @@ html[dir="rtl"] .list-playlist-icon {
   opacity: 1;
   transition: all 600ms ease;
 }
+
+/* See bug 1158043 */
+#title-text bdi {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

@@ -8,12 +8,9 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
 
   var client = marionette.client({
     prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+      'focusmanager.testmode': true
     },
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
       'software-button.enabled': true
     }
   });

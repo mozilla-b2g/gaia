@@ -616,7 +616,7 @@
       }
       // Make the screen visible
       this.overlay.classList.add('visible');
-      this.focus();
+      focusManager.focus();
     },
 
     /**
@@ -659,11 +659,11 @@
     },
 
     /**
-     * Check if any prompt is visible
+     * Check if any prompt is focusable
      * @memberof PermissionManager.prototype
-     * @return {Boolean} If any prompt is visible or not.
+     * @return {Boolean} If any prompt is focusable or not.
      */
-    isVisible: function pm_isVisible() {
+    isFocusable: function pm_isFocusable() {
       return this.overlay.classList.contains('visible');
     },
 

@@ -20,11 +20,6 @@ marionette('Music player playlist', function() {
       'device.storage.prompt.testing': true
     },
 
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
-
     apps: apps
   });
 
@@ -33,6 +28,32 @@ marionette('Music player playlist', function() {
   setup(function() {
     music = new Music(client);
 
+  });
+
+
+  suite('Special names', function() {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        // Title: "dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>"
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/d.ogg'
+        }
+      ]);
+    });
+
+    test('Check name with >, <, ~, &, markup and some Unicode. ' +
+         'moztrap:2346,2347,8499,8491', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+
+      // this will wait on the first song as well.
+      var song = music.firstSong;
+      assert.equal(PlaylistHelper.mainTitle(song),
+                   'dump 2>&1 < ~/® <b>&amp; Injection Vulnerablity</b>');
+    });
   });
 
   suite('Single disc tests', function () {
@@ -166,7 +187,7 @@ marionette('Music player playlist', function() {
     });
   });
 
-  suite('Highest rated playlist', function() {
+  suite('Default playlists', function() {
     setup(function() {
       client.fileManager.removeAllFiles();
       client.fileManager.add([
@@ -203,7 +224,7 @@ marionette('Music player playlist', function() {
       ]);
     });
 
-    test('Rating sort order', function() {
+    test('Highest rated playlist sort order. moztrap:3674', function() {
       music.launch();
       music.waitForFirstTile();
 
@@ -243,6 +264,183 @@ marionette('Music player playlist', function() {
 
       assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
       assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
+    });
+
+    test('Recently added playlist sort order. moztrap:3675', function() {
+      // start the app so the music files are added to the database.
+      music.launch();
+      music.waitForFirstTile();
+      music.waitFinishedScanning();
+
+      // close the app
+      music.close();
+
+      // add more files.
+      client.fileManager.add([
+        {
+          // This song has the title 'The Ecuadorian Embassy'
+          // And the index '1'
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/01.ogg'
+        }
+      ]);
+
+      // start it over. It will add the file above.
+      music.launch();
+      music.waitForFirstTile();
+      music.waitFinishedScanning();
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Recently added');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      var songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]),
+                   'The Ecuadorian Embassy');
+    });
+
+    test('Most played playlist sort order. moztrap:3676,3677', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToAlbumsView();
+
+      music.selectAlbum('We crash computers');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+
+      var songs = music.songs;
+      assert.equal(songs.length, 6);
+
+      // we set the playcount.
+      client.executeScript(function() {
+        var w = window.wrappedJSObject;
+
+        // 'XOXO'
+        var songData = w.SubListView.dataSource[1];
+        songData.metadata.played = 5;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        // 'Crash'
+        songData = w.SubListView.dataSource[3];
+        songData.metadata.played = 4;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[2];
+        songData.metadata.played = 3;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        songData = w.SubListView.dataSource[4];
+        songData.metadata.played = 2;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        // 'Yield to Thread'
+        songData = w.SubListView.dataSource[0];
+        songData.metadata.played = 1;
+        w.musicdb.updateMetadata(songData.name, songData.metadata);
+
+        // 'Abort'
+        // Play count is 0 for that song.
+      });
+
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Most played');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]), 'XOXO');
+
+      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Crash');
+
+      // Trick to go back to the playlistview.
+      // Alternative is to tap the back button.
+      music.switchToAlbumsView();
+      music.switchToPlaylistsView();
+
+      // Least played
+      music.selectPlaylist('Least played');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 6;
+      });
+      songs = music.songs;
+
+      assert.equal(PlaylistHelper.songIndex(songs[0]), '1');
+      assert.equal(PlaylistHelper.songTitle(songs[0]), 'Abort');
+
+      assert.equal(PlaylistHelper.songIndex(songs[1]), '2');
+      assert.equal(PlaylistHelper.songTitle(songs[1]), 'Yield to thread');
+    });
+
+    test('Shuffle all sort order. moztrap:2357', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToPlaylistsView();
+
+      var notrandom = 0;
+      var lastTitle = '';
+      var loopCount = 10;
+      for (var i = 0; i < loopCount; i++) {
+
+        // selecting the playlist will put us into the player.
+        music.selectPlaylist('Shuffle all');
+
+        // wait for the player.
+        client.helper.waitForElement(Music.Selector.coverImage);
+
+        var title = music.title.text();
+        if (title === lastTitle) {
+          notrandom++;
+        }
+        lastTitle = title;
+        // tap back
+        music.tapHeaderActionButton();
+      }
+      // the first loop will never be "notrandom".
+      assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
+    });
+
+    test('Shuffle playlist order. moztrap:2357', function() {
+      music.launch();
+      music.waitForFirstTile();
+
+      music.switchToPlaylistsView();
+
+      music.selectPlaylist('Least played');
+
+      var notrandom = 0;
+      var lastTitle = '';
+      var loopCount = 10;
+      for (var i = 0; i < loopCount; i++) {
+
+        // tapping shuffle will put us into the player.
+        music.sublistShuffleButton.tap();
+
+        // wait for the player.
+        client.helper.waitForElement(Music.Selector.coverImage);
+
+        var title = music.title.text();
+        if (title === lastTitle) {
+          notrandom++;
+        }
+        lastTitle = title;
+        // tap back
+        music.tapHeaderActionButton();
+      }
+      assert.notEqual(notrandom, loopCount - 1, 'we didn\'t randomise');
     });
 
   });

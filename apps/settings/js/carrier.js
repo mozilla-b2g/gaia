@@ -1,12 +1,11 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global DsdsSettings, getSupportedNetworkInfo, IccHandlerForCarrierSettings,
+          SettingsHelper, LazyLoader, IccHandlerForCarrierSettings */
 'use strict';
 
 /**
  * Singleton object that handles some cell and data settings.
  */
-var CarrierSettings = (function(window, document, undefined) {
+var CarrierSettings = (function() {
   var DATA_KEY = 'ril.data.enabled';
   var DATA_ROAMING_KEY = 'ril.data.roaming_enabled';
   var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
@@ -31,7 +30,6 @@ var CarrierSettings = (function(window, document, undefined) {
     'ehrpd': 'cdma'
   };
 
-  var _;
   var _settings;
   var _mobileConnections;
   var _iccManager;
@@ -176,6 +174,7 @@ var CarrierSettings = (function(window, document, undefined) {
     });
     // We need to disable data roaming when data connection is disabled.
     _settings.addObserver(DATA_KEY, function observerCb(event) {
+      dataToggle.checked = event.settingValue;
       if (_restartingDataConnection) {
         return;
       }
@@ -273,24 +272,6 @@ var CarrierSettings = (function(window, document, undefined) {
     desc.textContent = carrier;
   }
 
-  /**
-   * Helper function. Get the value for the ril.data.defaultServiceId setting
-   * from the setting database.
-   *
-   * @param {Function} callback Callback function to be called once the work is
-   *                            done.
-   */
-  function cs_getDefaultServiceIdForData(callback) {
-    var request = _settings.createLock().get('ril.data.defaultServiceId');
-    request.onsuccess = function onSuccessHandler() {
-      var defaultServiceId =
-        parseInt(request.result['ril.data.defaultServiceId'], 10);
-      if (callback) {
-        callback(defaultServiceId);
-      }
-    };
-  }
-
   function cs_initNetworkTypeText(aNext) {
     var req;
     try {
@@ -320,8 +301,9 @@ var CarrierSettings = (function(window, document, undefined) {
    * for the network type.
    */
   function cs_initNetworkTypeSelector() {
-    if (!_mobileConnection.setPreferredNetworkType)
+    if (!_mobileConnection.setPreferredNetworkType) {
       return;
+    }
 
     var alertDialog = document.getElementById('preferredNetworkTypeAlert');
     var message = document.getElementById('preferredNetworkTypeAlertMessage');
@@ -483,7 +465,6 @@ var CarrierSettings = (function(window, document, undefined) {
     // operator network list
     gOperatorNetworkList = (function operatorNetworkList(list) {
       // get the "Searching..." and "Search Again" items, respectively
-      var infoItem = list.querySelector('li[data-state="on"]');
       var scanItem = list.querySelector('li[data-state="ready"]');
       scanItem.onclick = scan;
 
@@ -887,6 +868,6 @@ var CarrierSettings = (function(window, document, undefined) {
   return {
     init: cs_init
   };
-})(this, document);
+})();
 
 CarrierSettings.init();

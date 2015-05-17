@@ -139,9 +139,5 @@ var Utils = {
     }
 
     return result;
-  },
-
-  getPhoneNumberAndType: function ut_getPhoneNumberAndType(matchingTel) {
-    return this._getPhoneNumberType(matchingTel) + ', ' + matchingTel.value;
   }
 };

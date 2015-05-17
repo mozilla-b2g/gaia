@@ -1,10 +1,14 @@
 'use strict';
 
-/* global UserPress, UserPressManager, KeyboardConsole, MockEventTarget */
+/* global UserPress, UserPressManager, KeyboardConsole, MockEventTarget,
+          SettingsPromiseManager, MockNavigatorMozSettings,
+          MockNavigatorMozSettingsLock */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/js/keyboard/user_press_manager.js');
 require('/js/keyboard/console.js');
+require('/js/keyboard/settings.js');
+require('/shared/js/input_mgmt/mock_navigator_mozsettings.js');
 
 suite('UserPress', function() {
   test('(constructor)', function() {
@@ -45,6 +49,9 @@ suite('UserPressManager', function() {
   var app;
   var container;
   var domObjMap;
+  var realMozSettings;
+  var mozSettings;
+  var lock;
 
   setup(function() {
     container = new MockEventTarget();
@@ -53,7 +60,16 @@ suite('UserPressManager', function() {
 
     domObjMap = new WeakMap();
 
+    realMozSettings = navigator.mozSettings;
+    
+    mozSettings = navigator.mozSettings = new MockNavigatorMozSettings();
+    var createLockStub = this.sinon.stub(mozSettings, 'createLock');
+    lock = new MockNavigatorMozSettingsLock();
+    this.sinon.spy(lock, 'get');
+    createLockStub.returns(lock);
+
     app = {
+      settingsPromiseManager: new SettingsPromiseManager(),
       console: this.sinon.stub(KeyboardConsole.prototype),
       getContainer: function() {
         return container;
@@ -70,6 +86,7 @@ suite('UserPressManager', function() {
 
   teardown(function() {
     document.elementFromPoint.restore();
+    navigator.mozSettings = realMozSettings;
   });
 
   test('(constructor)', function() {
@@ -89,7 +106,6 @@ suite('UserPressManager', function() {
     for (var key in expected[0]) {
       assert.equal(args[0][key], expected[0][key], msg);
     }
-    assert.equal(Object.keys(args[0]).length, Object.keys(expected[0]).length);
     assert.equal(args[1], expected[1], msg);
   };
 
@@ -1110,6 +1126,179 @@ suite('UserPressManager', function() {
       assert.isTrue(el.removeEventListener.calledWith('touchend'));
       assert.isTrue(el.removeEventListener.calledWith('touchcancel'));
       assert.equal(el.removeEventListener.callCount, 3);
+
+      manager.stop();
+    });
+  });
+
+  suite('speedlimit', function() {
+    var manager, el, dummyKey, clock;
+
+    setup(function() {
+      clock = sinon.useFakeTimers();
+
+      manager = new UserPressManager(app);
+      manager.onpressstart = this.sinon.stub();
+      manager.onpressmove = this.sinon.stub();
+      manager.onpressend = this.sinon.stub();
+      manager.start();
+      manager._isLowEndDevice = true;
+
+      el = new MockEventTarget();
+
+      dummyKey = {
+        dummy: 'dummy'
+      };
+
+      domObjMap.set(el, dummyKey);
+      var touchstartEvent = {
+        type: 'touchstart',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 100,
+            clientY: 110
+          }
+        ]
+      };
+      container.dispatchEvent(touchstartEvent);
+      assert.isTrue(manager.onpressstart.calledOnce);
+      assert.equal(manager.presses.size, 1);
+      assertOnpressArgs(manager.onpressstart.getCall(0).args,
+        [{
+          target: dummyKey,
+          moved: false,
+          clientX: 100,
+          clientY: 110
+        }, 0]);
+
+      document.elementFromPoint.returns(el);
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('exceeding velocity and distance, move to different key', function() {
+      var el2 = new MockEventTarget();
+      document.elementFromPoint.returns(el2);
+
+      var dummyKey2 = {
+        dummy2: 'dummy2',
+        keyCode: 'dummy2'
+      };
+
+      domObjMap.set(el2, dummyKey2);
+
+      var touchendEvent = {
+        type: 'touchend',
+        target: el2,
+        changedTouches: [
+          {
+            target: el2,
+            identifier: 0,
+            clientX: 120,
+            clientY: 130
+          }
+        ]
+      };
+      el.dispatchEvent(touchendEvent);
+
+      assert.isTrue(manager.onpressend.calledTwice);
+      assert.strictEqual(manager.onpressend.getCall(0).args[0].clientX,
+        100);
+      assert.strictEqual(manager.onpressend.getCall(0).args[0].clientY,
+        110);
+
+      assert.strictEqual(manager.onpressend.getCall(1).args[0].clientX,
+        120);
+      assert.strictEqual(manager.onpressend.getCall(1).args[0].clientY,
+        130);
+
+      manager.stop();
+    });
+
+    test('exceeding velocity and distance, stay on same key', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 120,
+            clientY: 130
+          }
+        ]
+      };
+      el.dispatchEvent(touchendEvent);
+
+      assert.isTrue(manager.onpressend.calledOnce);
+
+      manager.stop();
+    });
+
+    test('exceeding distance not velocity', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 120,
+            clientY: 130
+          }
+        ]
+      };
+      clock.tick(100);
+      el.dispatchEvent(touchendEvent);
+
+      assert.isTrue(manager.onpressend.calledOnce);
+
+      manager.stop();
+    });
+
+    test('not exceeding distance and not velocity', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 101,
+            clientY: 111
+          }
+        ]
+      };
+      clock.tick(100);
+      el.dispatchEvent(touchendEvent);
+
+      assert.isTrue(manager.onpressend.calledOnce);
+
+      manager.stop();
+    });
+
+    test('exceeding velocity not distance', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            clientX: 101,
+            clientY: 111
+          }
+        ]
+      };
+      clock.tick(1);
+      el.dispatchEvent(touchendEvent);
+
+      assert.isTrue(manager.onpressend.calledOnce);
 
       manager.stop();
     });

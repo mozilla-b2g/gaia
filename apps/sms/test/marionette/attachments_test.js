@@ -15,10 +15,6 @@ marionette('Attachment picking and sending tests', function() {
     prefs: {
       'focusmanager.testmode': true
     },
-    settings: {
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
-    },
 
     apps: apps
   });
@@ -41,7 +37,7 @@ marionette('Attachment picking and sending tests', function() {
 
     setup(function() {
       messagesApp.launch();
-      messagesApp.ThreadList.navigateToComposer();
+      messagesApp.Inbox.navigateToComposer();
     });
 
     test('A contact can be enclosed as attachment', function() {

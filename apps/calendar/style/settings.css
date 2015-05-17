@@ -4,7 +4,7 @@ body[data-path^='/day'] #time-views,
 body[data-path^='/week'] #time-views {
   z-index: 200;
   transform: translateX(0%);
-  transition: transform 0.5s ease-in-out;
+  transition: transform var(--transition-duration) ease-in-out;
 }
 
 body[data-path^='/settings'] #settings {
@@ -49,7 +49,7 @@ not actually shown since the top header should be transparent.
 
   opacity: 0;
   transition-property: opacity;
-  transition-duration: 0.3s;
+  transition-duration: var(--transition-duration);
   transition-timing-function: ease;
   transition-delay: 0s;
 }
@@ -78,7 +78,7 @@ not actually shown since the top header should be transparent.
 
   transform: translateY(-100%);
   transition-property: transform;
-  transition-duration: 0.3s;
+  transition-duration: var(--transition-duration);
   transition-timing-function: ease;
   transition-delay: 0s;
 }

@@ -17,10 +17,6 @@
 
   marionette('Triggering activity shows Set As Default option >', function() {
     var client = marionette.client({
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': false
-      },
       apps: {
         'activitycaller.gaiamobile.org': __dirname + '/../apps/activitycaller',
         'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'
@@ -61,6 +57,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
@@ -86,9 +83,12 @@
       client.switchToFrame();
 
       // the app choice doesn't appear this time
-      client.findElement(setDefaultSelector, function(err, element) {
-        assert.equal(err.name, 'NoSuchElement', 'element not found');
-      });
+      try {
+        client.findElement(setDefaultSelector);
+      } catch (exception) {
+        assert(exception.name === 'NoSuchElement');
+      }
+
 
       // Check that CALLEE is open
       client.apps.switchToApp(CALLEE_APP);
@@ -104,6 +104,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
@@ -139,6 +140,7 @@
       client.switchToFrame();
 
       // Check that app choice appear, showing default activity checkbox
+      system.waitForActivityMenu();
       var checkbox = client.findElement(setDefaultSelector);
       assert.ok(checkbox.displayed);
 
@@ -164,9 +166,11 @@
       client.switchToFrame();
 
       // the app choice doesn't appear this time
-      client.findElement(setDefaultSelector, function(err, element) {
-        assert.equal(err.name, 'NoSuchElement', 'element not found');
-      });
+      try {
+        client.findElement(setDefaultSelector);
+      } catch (exception) {
+        assert(exception.name === 'NoSuchElement');
+      }
 
       // Check that CALLEE is open
       client.apps.switchToApp(CALLEE_APP);

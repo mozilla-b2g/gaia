@@ -1,20 +1,20 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Calc = require('calc');
+var Calc = require('common/calc');
 var CurrentTime = require('./current_time');
-var DateSpan = require('templates/date_span');
 var HourDoubleTap = require('./hour_double_tap');
 var Pan = require('./pan');
 var SingleDay = require('./single_day');
-var Timespan = require('timespan');
+var Timespan = require('common/timespan');
 var View = require('view');
-var createDay = require('calc').createDay;
+var animatedScroll = require('utils/animated_scroll');
+var core = require('core');
+var createDay = require('common/calc').createDay;
+var template = require('templates/multi_day');
 var throttle = require('utils/mout').throttle;
 
 function MultiDay(opts) {
-  this.app = opts.app;
-  this.timeController = opts.app.timeController;
   this.children = [];
   this._render = throttle(this._render, 200);
 }
@@ -80,7 +80,7 @@ MultiDay.prototype = {
       this.seen = true;
     }
 
-    var controller = this.timeController;
+    var controller = core.timeController;
     controller.scale = this.scale;
     controller.moveToMostRecentDay();
 
@@ -115,9 +115,11 @@ MultiDay.prototype = {
     this._setupHours();
     this._setupCurrentTime();
     this._setupDoubleTap();
+    this.allDayIcon.id = 'md__all-day-icon-' + this.scale;
     // we keep the localized listener even when view is inactive to avoid
     // rebuilding the hours/dates every time we switch between views
     window.addEventListener('localized', this);
+    window.addEventListener('timeformatchange', this);
     // When screen reader is used, scrolling is done using wheel events.
     this.element.addEventListener('wheel', this);
   },
@@ -146,37 +148,27 @@ MultiDay.prototype = {
     // we need to remove all children because when locale change we rebuild
     // the hours (we can't use data-l10n-id because of special format)
     sidebar.innerHTML = '';
-    var hour, i = -1;
+    var i = -1, hours = '';
     while (++i < 24) {
-      hour = this._createHour(i);
-      sidebar.appendChild(hour);
+      hours += template.hour.render({
+        hour: i,
+        format: this._hourFormat,
+        addAmPmClass: this._addAmPmClass
+      });
     }
-    this._hourHeight = hour.offsetHeight;
-  },
-
-  _createHour: function(hour) {
-    var el = document.createElement('li');
-    el.className = 'md__hour md__hour-' + hour;
-    el.innerHTML = DateSpan.hour.render({
-      hour: hour,
-      format: this._hourFormat,
-      addAmPmClass: this._addAmPmClass,
-      className: 'md__display-hour'
-    });
-    el.setAttribute('aria-label', el.textContent);
-    return el;
+    sidebar.innerHTML = hours;
+    this._hourHeight = sidebar.querySelector('.md__hour').offsetHeight;
   },
 
   _setupCurrentTime: function() {
     this._currentTime = new CurrentTime({
-      container: this.element.querySelector('.md__main-content'),
+      container: this.mainContent,
       sticky: this.alldaysHolder
     });
   },
 
   _setupDoubleTap: function() {
     this._hourDoubleTap = new HourDoubleTap({
-      app: this.app,
       main: this.main,
       daysHolder: this.daysHolder,
       alldaysHolder: this.alldaysHolder,
@@ -191,6 +183,7 @@ MultiDay.prototype = {
         this._onDayChange(e.data[0]);
         break;
       case 'localized':
+      case 'timeformatchange':
         this._localize();
         break;
       case 'wheel':
@@ -225,8 +218,8 @@ MultiDay.prototype = {
 
   _updateBaseDateAfterScroll: function(diff) {
     var day = createDayDiff(this.baseDate, diff);
-    this.timeController.move(day);
-    this.timeController.selectedDay = day;
+    core.timeController.move(day);
+    core.timeController.selectedDay = day;
   },
 
   _render: function() {
@@ -245,8 +238,6 @@ MultiDay.prototype = {
     this._setVisibleForScreenReader();
     this._pan.refresh();
     this._refreshCurrentTime();
-
-    this.allDayIcon.id = 'md__all-day-icon-' + this.scale;
   },
 
   _refreshCurrentTime: function() {
@@ -327,7 +318,11 @@ MultiDay.prototype = {
   _scrollToHour: function(options) {
     var hour = this._getScrollDestinationHour(options);
     if (hour != null) {
-      this._animatedScroll(hour * this._hourHeight);
+      animatedScroll({
+        content: this.mainContent,
+        container: this.main,
+        scrollTop: hour * this._hourHeight
+      });
     }
   },
 
@@ -345,39 +340,9 @@ MultiDay.prototype = {
     return (options && options.onlyToday) ? null : 8;
   },
 
-  _animatedScroll: function(scrollTop) {
-    scrollTop = Math.max(scrollTop, 0);
-
-    var container = this.main;
-    var maxScroll = container.scrollHeight - container.clientHeight;
-
-    scrollTop = Math.min(scrollTop, maxScroll);
-
-    var content = this.mainContent;
-    var destination = container.scrollTop - scrollTop;
-    var seconds = Math.abs(destination) / 500;
-
-    container.style.overflowY = 'hidden';
-
-    window.requestAnimationFrame(() => {
-      content.style.transform = 'translateY(' + destination + 'px)';
-      // easeOutQuart borrowed from http://matthewlein.com/ceaser/
-      content.style.transition = 'transform ' + seconds + 's ' +
-        'cubic-bezier(0.165, 0.840, 0.440, 1.000)';
-    });
-
-    content.addEventListener('transitionend', function setScrollTop() {
-      content.removeEventListener('transitionend', setScrollTop);
-      content.style.transform = '';
-      content.style.transition = '';
-      container.scrollTop = scrollTop;
-      container.style.overflowY = 'scroll';
-    });
-  },
-
   oninactive: function() {
     this.element.classList.remove(View.ACTIVE);
-    this.timeController.removeEventListener('dayChange', this);
+    core.timeController.removeEventListener('dayChange', this);
     this.children.forEach(child => child.oninactive());
   }
 };

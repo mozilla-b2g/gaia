@@ -9,10 +9,6 @@
   var WINDOW_CALLEE_APP = 'activitycalleewindow.gaiamobile.org';
   marionette('activity chain test', function() {
     var client = marionette.client({
-      settings: {
-        'ftu.manifestURL': null,
-        'lockscreen.enabled': false
-      },
       apps: {
         'activitycaller.gaiamobile.org': __dirname + '/../apps/activitycaller',
         'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee',

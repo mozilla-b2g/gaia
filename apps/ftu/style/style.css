@@ -368,12 +368,14 @@ gaia-buttons.forward-only .icon-previous {
 #wifi [data-type="list"] li > p {
   pointer-events: none;
   -moz-padding-end: 6.2rem;
+  line-height: 1.33;
 }
 
 #wifi li {
-  padding: 0 1.5rem;
+  padding: 0 1.5rem 0.5rem 1.5rem;
   display: flex;
   flex-direction: column;
+  -moz-box-sizing: padding-box;
 }
 #wifi li.connected p {
   color: #00AACC;
@@ -734,6 +736,13 @@ aside.connecting {
   font-size: 1.4rem;
   font-weight: 500;
   margin: auto;
+  box-sizing: content-box;
+  display: inline-block;
+  width: auto;
+  min-width: 4.5rem;
+  max-width: 40%;
+  padding: 0 0.8rem;
+  -moz-padding-end: 1.8rem;
 }
 
 
@@ -812,10 +821,20 @@ aside.connecting {
   margin-top: 1.6rem;
 }
 
+#import_contacts [data-type="list"] li p {
+  text-overflow: unset;
+  overflow: unset;
+  white-space: unset;
+}
+
 
 #fb_after_import1 {
   background: url('images/import_fb.png') no-repeat center left / 3rem;
 }
+html[dir="rtl"] #fb_after_import1 {
+  background-position: right center;
+}
+
 
 #statusMsg.ftu {
   bottom: 6.5rem;
@@ -1055,6 +1074,10 @@ i.hack-first-child {
 
 [data-type="list"]:first-child {
   padding-top: 1.5rem;
+}
+
+[data-type="list"] li p:last-of-type {
+  padding-bottom: 1rem;
 }
 
 [data-type="list"] li > a {

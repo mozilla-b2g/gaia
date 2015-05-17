@@ -467,6 +467,8 @@ section ul.operate-certificate {
 
 #menuItem-callWaiting[data-state="unknown"] .alert-label {
   display: inherit;
+  position: absolute;
+  top: 0;
 }
 
 #menuItem-callWaiting .alert-label > span {
@@ -484,9 +486,14 @@ section ul.operate-certificate {
   width: 100%;
 }
 
-#call li[aria-disabled="true"] .icon-dialog {
+#call li[aria-disabled="true"] .icon-dialog,
+#call li[aria-disabled="true"] label {
   opacity: 0.6;
   pointer-events: none;
+}
+
+#call li[aria-disabled="true"] label > span {
+  color: #797e80;
 }
 
 /** Call Barring Settings *****************************************************/
@@ -512,7 +519,7 @@ section ul.operate-certificate {
 #cb-passcode-def {
   display: block;
   border: 0;
-  padding-left: 3.5rem;
+  -moz-padding-start: 3.5rem;
   line-height: 2rem;
   font-size: 1.4rem;
   font-weight: lighter;
@@ -527,7 +534,7 @@ section ul.operate-certificate {
   clear: both;
   display: none;
   height: 4.2rem;
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   color: red;
   font-size: 1.5rem;
   line-height: 4.2rem;
@@ -904,6 +911,7 @@ ul li > label.range-icons.volume input {
   height: 10rem;
   padding: 1rem 1rem 1.2rem;
   resize: none;
+  white-space: normal;
 }
 
 #sendFeedback .pack-checkbox span {
@@ -1152,11 +1160,9 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button) {
-  left: 0;
-}
-
-html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button) {
+html[dir="rtl"] #mediaStorage ul li > a span:nth-of-type(2):not(.button),
+html[dir="rtl"] #applicationStorage ul li > a span:nth-of-type(2):not(.button),
+html[dir="rtl"] #battery ul li > a span:nth-of-type(2):not(.button) {
   left: 0;
 }
 
@@ -1168,4 +1174,8 @@ html[dir="rtl"] ul li > label.range-icons.volume input {
 html[dir="rtl"] ul li > label.range-icons span {
   left: unset;
   right: 0;
+}
+
+html[dir="rtl"] #fxa-unverified .description {
+  background-position: 100% 1.5rem;
 }

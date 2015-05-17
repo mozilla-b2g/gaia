@@ -1,5 +1,7 @@
 /* global AppChrome */
+/* global AudioChannelController */
 /* global applications */
+/* global BaseModule */
 /* global BrowserFrame */
 /* global layoutManager */
 /* global ManifestHelper */
@@ -131,13 +133,10 @@
     // Store initial configuration in this.config
     this.config = configuration;
 
-    if (this.manifest) {
-      this.shortName = new ManifestHelper(this.manifest).short_name;
-    }
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
     } else {
-      this.name = new ManifestHelper(this.manifest).name;
+      this.name = new ManifestHelper(this.manifest).displayName;
     }
 
     // Get icon splash
@@ -448,7 +447,7 @@
     this.loading = false;
     this.loaded = false;
     this.suspended = true;
-    this.element.classList.add('suspended');
+    this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
     this.iframe = null;
@@ -800,16 +799,19 @@
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_blur',  '_hidewindow', '_sheetdisplayed',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
-     '_closed', '_shrinkingstart', '_shrinkingstop'];
+     '_cardviewshown', '_closed', '_shrinkingstart', '_shrinkingstop'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
     'statusbar': window.AppStatusbar
+  };
+
+  AppWindow.SUB_MODULES = {
+    'contextmenu': 'BrowserContextMenu'
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -840,6 +842,27 @@
           this[componentName].start && this[componentName].start();
         }
       }
+
+      if (this.constructor.SUB_MODULES) {
+        for (var propertyName in this.constructor.SUB_MODULES) {
+          var moduleName = this.constructor.SUB_MODULES[propertyName];
+          if (moduleName) {
+            this[propertyName] = BaseModule.instantiate(moduleName, this);
+            this[propertyName].start();
+          }
+        }
+      }
+
+      // Register audio channels.
+      this.audioChannels = new Map();
+      var audioChannels = this.browser.element.allowedAudioChannels;
+      audioChannels && audioChannels.forEach((audioChannel) => {
+        this.audioChannels.set(
+          audioChannel.name,
+          new AudioChannelController(this, audioChannel)
+        );
+        this.debug('Registered ' + audioChannel.name + ' audio channel');
+      });
 
       if (this.isInputMethod) {
         return;
@@ -875,6 +898,8 @@
         this[componentName] = null;
       }
 
+      this.audioChannels = null;
+
       if (this.appChrome) {
         this.appChrome.destroy();
         this.appChrome = null;
@@ -885,8 +910,7 @@
     if (!this.manifest) {
       return;
     }
-    this.name = new ManifestHelper(this.manifest).name;
-    this.shortName = new ManifestHelper(this.manifest).short_name;
+    this.name = new ManifestHelper(this.manifest).displayName;
 
     if (this.identificationTitle) {
       this.identificationTitle.textContent = this.name;
@@ -993,7 +1017,9 @@
       this.title = evt.detail;
       this.publish('titlechange');
 
-      if (this.identificationTitle && !this.manifest) {
+      // Do not set the identification title if we're browsing a URL privately
+      if (this.identificationTitle && !this.manifest &&
+        (!this.isPrivateBrowser() || this.config.url.startsWith('app:'))) {
         this.identificationTitle.textContent = this.title;
       }
     };
@@ -1068,7 +1094,7 @@
         this.favicons[href].sizes.push(sizes);
       }
 
-      if (this.identificationIcon) {
+      if (this.identificationIcon && !this.isPrivateBrowser()) {
         this.identificationIcon.style.backgroundImage =
           'url("' + evt.detail.href + '")';
       }
@@ -1261,6 +1287,7 @@
         return this.frontWindow.requestScreenshotURL();
       }
       if (!this._screenshotBlob) {
+        this.debug('requestScreenshotURL, no _screenshotBlob');
         return null;
       }
       var screenshotURL = URL.createObjectURL(this._screenshotBlob);
@@ -1280,23 +1307,33 @@
   AppWindow.prototype._showScreenshotOverlay =
     function aw__showScreenshotOverlay() {
       if (this.frontWindow && this.frontWindow.isActive()) {
-        this.frontWindow._showScreenshotOverlay();
-        return;
+        return this.frontWindow._showScreenshotOverlay();
       }
       if (!this.screenshotOverlay ||
           this.screenshotOverlay.classList.contains('visible')) {
-        return;
+        return Promise.resolve();
       }
-
       if (this.identificationOverlay) {
         this.element.classList.add('overlay');
       }
 
       this.screenshotOverlay.classList.add('visible');
 
+      // will be null if there is no blob
       var screenshotURL = this.requestScreenshotURL();
-      this.screenshotOverlay.style.backgroundImage =
-        'url(' + screenshotURL + ')';
+
+      //  return promise to make sure the image is ready
+      var promise = new Promise((resolve) => {
+         var image = document.createElement('img');
+          image.onload = function() {
+            resolve();
+          }.bind(this);
+          image.src = screenshotURL;
+      });
+      this.screenshotOverlay.style.backgroundImage = screenshotURL ?
+          'url(' + screenshotURL + ')' : 'none';
+      this.element.classList.toggle('no-screenshot', !screenshotURL);
+      return promise;
     };
 
   /**
@@ -1315,6 +1352,7 @@
 
       this.screenshotOverlay.classList.remove('visible');
       this.screenshotOverlay.style.backgroundImage = '';
+      this.element.classList.remove('no-screenshot');
 
       if (this.identificationOverlay) {
         var element = this.element;
@@ -1981,13 +2019,21 @@
     this._showScreenshotOverlay();
   };
 
+  AppWindow.prototype._handle__cardviewshown = function aw_cvshown() {
+    if (this.element && this.element.classList.contains('no-screenshot') &&
+        this._screenshotBlob) {
+      this.element.classList.remove('no-screenshot');
+    }
+  };
+
   AppWindow.prototype._handle__cardviewclosed = function aw_cvclosed() {
     this.debug('hiding screenshot after cardsview closed.');
     this._hideScreenshotOverlay();
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
-    if (Service.isBusyLoading() && this.getBottomMostWindow().isHomescreen) {
+    if (!this.loaded ||
+        (Service.isBusyLoading() && this.getBottomMostWindow().isHomescreen)) {
       // We will eventually get screenshot when being requested from
       // task manager.
       return;
@@ -2010,8 +2056,9 @@
   AppWindow.prototype._handle__shrinkingstart = function aw_shrinkingstart() {
     this.broadcast('blur');
     this.getScreenshot(() => {
-      this._showScreenshotOverlay();
-      this.setVisible(false);
+      this._showScreenshotOverlay().then(() => {
+        this.setVisible(false);
+      });
     });
   };
 

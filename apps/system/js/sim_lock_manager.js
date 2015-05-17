@@ -10,6 +10,7 @@
     'ftuopen',
     'appopened',
     'lockscreen-request-unlock',
+    'simslot-updated',
     'simslot-cardstatechange',
     'simslot-iccinfochange',
     'attentionopening',
@@ -17,7 +18,8 @@
     'simlockskip',
     'simlockback',
     'simlockrequestclose',
-    'airplanemode-enabled'
+    'airplanemode-enabled',
+    'rocketbar-activating'
   ];
   SimLockManager.SUB_MODULES = [
     'SimLockSystemDialog'
@@ -34,6 +36,10 @@
 
     _sim_lock_system_dialog_loaded: function() {
       this.showIfLocked();
+    },
+
+    '_handle_simslot-updated': function(evt) {
+      this.showIfLocked(evt.detail.index);
     },
 
     '_handle_simslot-iccinfochange': function(evt) {
@@ -158,6 +164,11 @@
     },
 
     '_handle_airplanemode-enabled': function(evt) {
+      this.simLockSystemDialog.close();
+      this._alreadyShown = false;
+    },
+
+    '_handle_rocketbar-activating': function(evt) {
       this.simLockSystemDialog.close();
       this._alreadyShown = false;
     },

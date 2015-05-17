@@ -31,12 +31,13 @@
   // Settings to observe value changes for while the ping has not been sent
   const OBSERVE_SETTINGS = ['deviceinfo.os',
                             'deviceinfo.software',
-                            'deviceinfo.platform_build_id',
-                            'deviceinfo.platform_version',
                             'deviceinfo.product_model',
                             'deviceinfo.firmware_revision',
-                            'deviceinfo.hardware',
-                            'app.update.channel'];
+                            'deviceinfo.hardware'];
+
+  const URL_SETTINGS = ['deviceinfo.platform_build_id',
+                        'deviceinfo.platform_version',
+                        'app.update.channel'];
 
   function FtuPing() {
   }
@@ -67,6 +68,9 @@
 
     // Data used in ping
     _pingData: {},
+
+    // Data used in info
+    _infoData: {},
 
     // Timeout for ping requests
     _pingTimeout: DEFAULT_PING_TIMEOUT,
@@ -103,7 +107,6 @@
         self._pingData.screenHeight = window.screen.height;
         self._pingData.screenWidth = window.screen.width;
         self._pingData.devicePixelRatio = window.devicePixelRatio;
-        self._pingData.locale = window.navigator.language;
 
         self.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
                                    FTU_PING_ENABLED,
@@ -136,6 +139,7 @@
           var allSettings = [FTU_PING_URL, FTU_PING_TRY_INTERVAL,
                              FTU_PING_TIMEOUT, FTU_PING_MAX_NETWORK_FAILS].
                             concat(OBSERVE_SETTINGS);
+          allSettings = allSettings.concat(URL_SETTINGS);
 
           self.getSettings(allSettings, function(settings) {
             self._pingURL = settings[FTU_PING_URL];
@@ -155,6 +159,10 @@
               mozSettings.addObserver(observeSetting, self._settingObserver);
             });
 
+            URL_SETTINGS.forEach(function(urlSetting) {
+              self._infoData[urlSetting] = settings[urlSetting];
+              mozSettings.addObserver(urlSetting, self._settingObserver);
+            });
             resolve();
           });
         });
@@ -334,17 +342,16 @@
     },
 
     ping: function fp_ping() {
-      this._pingData.pingTime = Date.now();
-
+      var pingData = this.assemblePingData();
       var request = new TelemetryRequest({
         reason: TELEMETRY_REASON,
-        deviceID: this._pingData.pingID,
+        deviceID: pingData.pingID,
         ver: TELEMETRY_VERSION,
         url: this._pingURL,
-        appUpdateChannel: this._pingData['app.update.channel'],
-        appVersion: this._pingData['deviceinfo.platform_version'],
-        appBuildID: this._pingData['deviceinfo.platform_build_id']
-      }, this._pingData);
+        appUpdateChannel: this._infoData['app.update.channel'],
+        appVersion: this._infoData['deviceinfo.platform_version'],
+        appBuildID: this._infoData['deviceinfo.platform_build_id']
+      }, pingData);
 
       var self = this;
       request.send({
@@ -375,6 +382,10 @@
         settings.removeObserver(setting, this._settingObserver);
       }, this);
 
+      URL_SETTINGS.forEach(function(setting) {
+        settings.removeObserver(setting, this._settingObserver);
+      }, this);
+
       clearInterval(this._pingTimer);
     },
 
@@ -390,8 +401,14 @@
       return this._pingURL;
     },
 
-    getPingData: function fp_getPingData() {
+    assemblePingData: function fp_assemblePingData() {
+      this._pingData.pingTime = Date.now();
+      this._pingData.locale = window.navigator.language;
       return this._pingData;
+    },
+
+    getInfoData: function fp_getInfoData() {
+      return this._infoData;
     },
 
     getNetworkFailCount: function fp_getNetworkFailCount() {

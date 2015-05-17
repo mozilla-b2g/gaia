@@ -40,7 +40,8 @@
  *
  */
 define(function(require, exports, module) {
-  var mozL10n = require('l10n!');
+  var mozL10n = require('l10n!'),
+      transitionEnd = require('transition_end');
 
   var proto = {
     domNode: null,
@@ -55,8 +56,7 @@ define(function(require, exports, module) {
 
     createdCallback: function() {
       this.domNode.addEventListener('click', this._onClick.bind(this));
-      this.domNode.addEventListener('transitionend',
-                                    this._onTransitionEnd.bind(this));
+      transitionEnd(this.domNode, this._onTransitionEnd.bind(this));
     },
 
     /**

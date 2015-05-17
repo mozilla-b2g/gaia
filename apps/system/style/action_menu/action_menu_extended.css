@@ -1,9 +1,18 @@
 #screen:not(.locked).fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"],
 #screen:not(.locked).fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="object"],
+#screen.locked.secure-app.software-button-enabled [role="dialog"][data-type="action"],
+#screen.locked.secure-app.software-button-enabled [role="dialog"][data-type="object"],
 #screen:not(.locked).software-button-enabled [role="dialog"][data-type="action"],
 #screen:not(.locked).software-button-enabled [role="dialog"][data-type="object"] {
   bottom: var(--software-home-button-height);
 }
+
+/* Dialogs inside an appWindow don't need to take the SHB into account */
+#screen.software-button-enabled .appWindow [role="dialog"][data-type="object"],
+#screen.software-button-enabled .appWindow [role="dialog"][data-type="action"] {
+  bottom: 0;
+}
+
 
 #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"] {
   height: calc(100% - 7rem - var(--software-home-button-height));
@@ -19,6 +28,12 @@
     height: calc(100% - 7rem);
     bottom: 0;
     right: var(--software-home-button-height);
+  }
+
+  /* Dialogs inside an appWindow don't need to take the SHB into account */
+  #screen.software-button-enabled .appWindow [role="dialog"][data-type="object"],
+  #screen.software-button-enabled .appWindow [role="dialog"][data-type="action"] {
+    right: 0;
   }
 }
 
@@ -47,7 +62,8 @@ form[role="dialog"][data-type="object"] {
 
   visibility: hidden;
   transform: translateY(100%);
-  transition: transform ease-in-out .3s, visibility .3s;
+  transition: transform ease-in-out .3s;
+  pointer-events: none;
 }
 
 form[role="dialog"][data-type="action"].visible,
@@ -55,6 +71,7 @@ form[role="dialog"][data-type="object"].visible {
   position: fixed;
   visibility: visible;
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 /* Extending action menu to display checkbox */

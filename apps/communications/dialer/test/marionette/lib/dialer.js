@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Abstraction around dialer app.
  * @constructor
@@ -14,13 +16,10 @@ Dialer.URL = 'app://communications.gaiamobile.org';
 
 Dialer.config = {
   settings: {
-    'ftu.manifestURL': null,
-    'lockscreen.enabled': false,
     'devtools.overlay': true,
     'hud.reflows': true
   },
   prefs: {
-    'dom.w3c_touch_events.enabled': 1,
     'devtools.debugger.forbid-certified-apps': false
   }
 };
@@ -48,15 +47,6 @@ Dialer.Selectors = {
 
   addToExistingContactMenuItem: 'button[data-l10n-id="addToExistingContact"]'
 };
-
-/**
- * @private
- * @param {Marionette.Client} client for selector.
- * @param {String} name of selector [its a key in Dialer.Selectors].
- */
-function findElement(client, name) {
-  return client.findElement(Dialer.Selectors[name]);
-}
 
 Dialer.prototype = {
   /**

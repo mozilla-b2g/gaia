@@ -8,6 +8,11 @@
 
   var _id = 0;
 
+  /* Corresponds to the icon size in the footer.
+   * Used to determine the proper icon size from the manifest.
+   */
+  const CARD_FOOTER_ICON_SIZE = 40;
+
   /**
    * A card in a card view, representing a single app
    *
@@ -85,16 +90,16 @@
    * @memberOf Card.prototype
    */
   Card.prototype.template = function() {
-    // fix a jshint issue with tagged template strings
-    // https://github.com/jshint/jshint/issues/2000
-    /* jshint -W033 */
     return Tagged.escapeHTML `<div class="titles">
-     <h1 id="${this.titleId}" class="title">${this.title}</h1>
-     <p class="subtitle">${this.subTitle}</p>
+     <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
+     <p class="subtitle">
+      <span class="subtitle-url">${this.subTitle}</span>
+     </p>
     </div>
 
     <div class="screenshotView bb-button" data-l10n-id="openCard"
       role="link"></div>
+    <div class="privateOverlay"></div>
     <div class="appIconView" style="background-image:${this.iconValue}"></div>
 
     <footer class="card-tray">
@@ -109,7 +114,6 @@
         style="visibility: ${this.favoriteButtonVisibility}"></button>
      </menu>
     </footer>`;
-    /* jshint +W033 */
   };
 
   /**
@@ -126,8 +130,7 @@
    */
   Card.prototype._populateViewData = function() {
     var app = this.app;
-    this.title = (app.isBrowser() && app.title) ?
-                  app.title : app.shortName || app.name;
+    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
     this.sslState = app.getSSLState();
     this.subTitle = '';
     this.iconValue = '';
@@ -141,9 +144,10 @@
 
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
-    var iconURI = CardsHelper.getIconURIForApp(this.app);
+    var size = CARD_FOOTER_ICON_SIZE * window.devicePixelRatio;
+    var iconURI = CardsHelper.getIconURIForApp(this.app, size);
     if (iconURI) {
-        this.iconValue = 'url(' + iconURI + ')';
+      this.iconValue = 'url(' + iconURI + ')';
     }
 
     var origin = app.origin;
@@ -164,12 +168,13 @@
     }
     if (displayUrl) {
       this.subTitle = this.getDisplayURLString(displayUrl);
+      this.viewClassList.push('show-subtitle');
     }
 
     var topMostWindow = app.getTopMostWindow();
     if (topMostWindow && topMostWindow.CLASS_NAME === 'TrustedWindow') {
       var name = topMostWindow.name;
-      this.title = CardsHelper.escapeHTML(name || '', true);
+      this.title = name || '';
       this.viewClassList.push('trustedui');
     } else if (!this.app.killable()) {
       // unclosable app
@@ -184,19 +189,13 @@
     var windowWidth = this.manager.windowWidth || window.innerWidth;
     var offset = this.position - this.manager.position;
     var positionX = deltaX + offset * (windowWidth * 0.55);
-    var appliedX = positionX;
-
-    var rightLimit =  windowWidth / 2 + windowWidth * 0.24 - 0.001;
-    appliedX = Math.min(appliedX, rightLimit);
-    appliedX = Math.max(appliedX, -1 * rightLimit);
 
     this.element.dataset.positionX = positionX;
-    this.element.dataset.keepLayerDelta = Math.abs(positionX - appliedX);
 
     var style = { transform: '' };
 
     if (deltaX || offset) {
-      style.transform = 'translateX(' + appliedX + 'px)';
+      style.transform = 'translateX(' + positionX + 'px)';
     }
 
     if (deltaY) {
@@ -331,23 +330,21 @@
       return;
     }
 
-    // If we have a cached screenshot, use that first
-    var cachedLayer = app.requestScreenshotURL();
-
-    if (cachedLayer && app.isActive()) {
+    // Use a cached screenshot if we have one for the active app
+    var cachedLayer;
+    if (app.isActive()) {
+      // will be null or blob url
+      cachedLayer = app.requestScreenshotURL();
       screenshotView.classList.toggle('fullscreen',
                                       app.isFullScreen());
-      screenshotView.classList.toggle('maximized',
+      if (app.appChrome) {
+        screenshotView.classList.toggle('maximized',
                                       app.appChrome.isMaximized());
-      screenshotView.style.backgroundImage =
-        'url(' + cachedLayer + '),' +
-        '-moz-element(#' + this.app.instanceID + ')';
-    } else {
-      screenshotView.style.backgroundImage =
-        'url(none),' +
-        '-moz-element(#' + this.app.instanceID + ')';
+      }
     }
-
+    screenshotView.style.backgroundImage =
+      (cachedLayer ? 'url(' + cachedLayer + ')' : 'none' ) + ',' +
+      '-moz-element(#' + this.app.instanceID + ')';
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {

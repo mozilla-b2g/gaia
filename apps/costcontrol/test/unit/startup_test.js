@@ -3,7 +3,6 @@
           MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings,
           AirplaneModeHelper
 */
-/* exported PerformanceTestingHelper */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -37,10 +36,6 @@ var realCommon,
     realMozSetMessageHandler,
     realMozNetworkStats,
     realMozIccManager;
-
-var PerformanceTestingHelper = {
-  dispatch: function() { }
-};
 
 if (!window.navigator.mozNetworkStats) {
   window.navigator.mozNetworkStats = null;

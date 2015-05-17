@@ -27,6 +27,8 @@ window.GaiaSimPicker = (function(win) {
     LazyLoader.load(['/shared/js/component_utils.js'], function() {
       ComponentUtils.style.call(this, baseurl);
     }.bind(this));
+
+    navigator.mozL10n.ready(this._localizeShadowDom.bind(this));
   };
 
   proto._domBuilt = false;
@@ -49,6 +51,21 @@ window.GaiaSimPicker = (function(win) {
       });
       proto._simSelectedCallbacks = [];
     }
+  };
+
+  /**
+   * Localize the component manually as l10n attributes are not supported
+   * within the shadow dom. See also: bug 1026236.
+   */
+  proto._localizeShadowDom = function() {
+    var elements = this.shadowRoot.querySelectorAll('[data-l10n-id]');
+    [].forEach.call(elements, el => {
+      var attributes = navigator.mozL10n.getAttributes(el);
+      navigator.mozL10n.formatValue(attributes.id, attributes.args)
+      .then(value => {
+        el.textContent = value;
+      });
+    });
   };
 
   proto.getOrPick = function(defaultCardIndex,

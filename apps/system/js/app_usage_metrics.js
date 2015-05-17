@@ -39,8 +39,9 @@
  *  normal app termination from abnormal and I can't figure out any way
  *  to tell when an app has crashed.
  */
+
 /* global asyncStorage, SettingsListener, performance, SIMSlotManager,
-          MobileOperator, uuid, TelemetryRequest */
+          MobileOperator, uuid, TelemetryRequest, applications */
 (function(exports) {
   'use strict';
 
@@ -342,11 +343,25 @@
         AUM.RETRY_INTERVAL = result['metrics.appusage.retryInterval'];
 
         // Move on to the next step in the startup process
+        waitForApplicationsReady();
+      });
+    }
+
+    // Step 4: Ensure the applications cache is ready
+    function waitForApplicationsReady() {
+      if (applications.ready) {
+        registerHandlers();
+        return;
+      }
+
+      debug('Waiting for applications to be ready');
+      window.addEventListener('applicationready', function onAppsReady(evt) {
+        window.removeEventListener(onAppsReady);
         registerHandlers();
       });
     }
 
-    // Step 4: register the various event handlers we need
+    // Step 5: register the various event handlers we need
     function registerHandlers() {
       // Basic event handlers
       EVENT_TYPES.forEach(function(type) {
@@ -632,23 +647,29 @@
     };
 
     var deviceInfoQuery = {
-      'app.update.channel': 'unknown',
       'developer.menu.enabled': false, // If true, data is probably an outlier
       'deviceinfo.hardware': 'unknown',
       'deviceinfo.os': 'unknown',
+      'deviceinfo.product_model': 'unknown',
+      'deviceinfo.software': 'unknown'
+    };
+
+    var urlInfoQuery = {
       'deviceinfo.platform_build_id': 'unknown',
       'deviceinfo.platform_version': 'unknown',
-      'deviceinfo.product_model': 'unknown',
-      'deviceinfo.software': 'unknown',
+      'app.update.channel': 'unknown'
     };
 
     // Query the settings db to get some more device-specific information
     AUM.getSettings(deviceInfoQuery, function(deviceInfo) {
       data.deviceinfo = deviceInfo;
       data.simInfo = getSIMInfo();
+    });
 
+    // Query the settings db for parameters for hte URL
+    AUM.getSettings(urlInfoQuery, function(urlInfoResponse) {
       // Now transmit the data
-      send(data);
+      send(data, urlInfoResponse);
     });
 
     function getSIMInfo() {
@@ -702,16 +723,16 @@
       return simInfo;
     }
 
-    function send(data) {
-      var info = data.deviceinfo;
+    function send(data, urlInfo) {
+
       var request = new TelemetryRequest({
         reason: AUM.TELEMETRY_REASON,
         deviceID: self.deviceID,
         ver: AUM.TELEMETRY_VERSION,
         url: AUM.REPORT_URL,
-        appUpdateChannel: info['app.update.channel'],
-        appVersion: info['deviceinfo.platform_version'],
-        appBuildID: info['deviceinfo.platform_build_id']
+        appUpdateChannel: urlInfo['app.update.channel'],
+        appVersion: urlInfo['deviceinfo.platform_version'],
+        appBuildID: urlInfo['deviceinfo.platform_build_id']
       }, data);
 
       // We don't actually have to do anything if the data is transmitted
@@ -826,12 +847,34 @@
       return false;
     }
 
+    // Bug 1134998: Don't track apps that are marked as private windows
+    // Some app-like objects may not have the isPrivateBrowser function,
+    // so we also check to make sure it exists here.
+    if (typeof app.isPrivateBrowser === 'function' && app.isPrivateBrowser()) {
+      return false;
+    }
+
+    // Gecko and the app window state machine do not send certain app properties
+    // along in webapp-launch or appopened events, causing marketplace app usage
+    // to not be properly recorded. We fall back on the system app's application
+    // cache in these situations. See Bug 1137063
+    var cachedApp = applications.getByManifestURL(app.manifestURL);
     var manifest = app.manifest || app.updateManifest;
-    if (manifest && manifest.type === 'certified') {
+    if (!manifest && cachedApp) {
+      manifest = cachedApp.manifest || cachedApp.updateManifest;
+    }
+
+    var installOrigin = app.installOrigin;
+    if (!installOrigin && cachedApp) {
+      installOrigin = cachedApp.installOrigin;
+    }
+
+    var type = manifest ? manifest.type : 'unknown';
+    if (type === 'certified') {
       return true;
     }
 
-    if (MARKETPLACE_ORIGINS.indexOf(app.installOrigin) >= 0) {
+    if (MARKETPLACE_ORIGINS.indexOf(installOrigin) >= 0) {
       return true;
     }
 

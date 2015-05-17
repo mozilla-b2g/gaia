@@ -227,6 +227,9 @@
     "tn": [
         {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
     ],
+    "tl": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "tr": [
         {"layoutId": "tr-Q", "app": ["apps", "keyboard"]},
         {"layoutId": "tr-F", "app": ["apps", "keyboard"]}

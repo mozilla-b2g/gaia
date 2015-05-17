@@ -230,118 +230,18 @@ suite('Radio > ', function() {
     });
   });
 
-  suite('internal _reEnableRadioIfNeeded', function() {
-    setup(function() {
-      this.sinon.stub(radio, '_setRadioEnabled');
-    });
-
-    test('conn.radioState is "disabled" and radio.enabled is true', function() {
-      var mockMobileConnection = { radioState: 'disabled' };
-      radio._enabled = true;
-      radio._reEnableRadioIfNeeded(mockMobileConnection);
-      // _setRadioEnabled is called with correct parameters
-      sinon.assert
-        .calledWith(radio._setRadioEnabled, mockMobileConnection, true);
-    });
-
-    ['enabled', 'enabling', 'disabling'].forEach((state) => {
-      test('conn.radioState is ' + state, function() {
-        var mockMobileConnection = { radioState: state };
-        radio._reEnableRadioIfNeeded(mockMobileConnection);
-        sinon.assert.notCalled(radio._setRadioEnabled);
-      });
-    });
-
-    test('radio.enabled is false', function() {
-      var mockMobileConnection = { radioState: 'enabled' };
-      radio._enabled = false;
-      radio._reEnableRadioIfNeeded(mockMobileConnection);
-      sinon.assert.notCalled(radio._setRadioEnabled);
-    });
-  });
-
   suite('internal _onRadioStateChange', function() {
     setup(function() {
-      this.sinon.stub(radio, '_reEnableRadioIfNeeded');
+      this.sinon.stub(radio, 'publish');
     });
 
-    test('without expected states', function() {
-      var mockMobileConnection = {};
+    test('publishes the current state', function() {
+      var mockMobileConnection = { radioState: 'fakeState' };
       radio._onRadioStateChange(mockMobileConnection, 0);
-      sinon.assert
-        .calledWith(radio._reEnableRadioIfNeeded, mockMobileConnection, 0);
-    });
-
-    suite('with an expected states that equals true', function() {
-      var expectedState = true;
-
-      setup(function() {
-        this.sinon.stub(radio, 'publish');
-      });
-
-      suiteSetup(function() {
-        expectedState = true;
-      });
-
-      test('radio state is enabled', function() {
-        var mockMobileConnection = { radioState: 'enabled' };
-        radio._expectedRadioStates[0] = expectedState;
-        radio._onRadioStateChange(mockMobileConnection, 0);
-        assert.equal(radio._expectedRadioStates[0], null);
-        assert.isTrue(radio.publish.calledWith('statechange', {
-          index: 0,
-          state: 'enabled'
-        }));
-      });
-
-      ['disabled', 'enabling', 'disabling'].forEach((state) => {
-        test('radio state is ' + state, function() {
-          var mockMobileConnection = { radioState: state };
-          radio._expectedRadioStates[0] = expectedState;
-          radio._onRadioStateChange(mockMobileConnection, 0);
-          assert.equal(radio._expectedRadioStates[0], expectedState);
-          assert.isTrue(radio.publish.calledWith('statechange', {
-            index: 0,
-            state: state
-          }));
-        });
-      });
-    });
-
-    suite('with an expected states that equals false', function() {
-      var expectedState = false;
-
-      setup(function() {
-        this.sinon.stub(radio, 'publish');
-      });
-
-      suiteSetup(function() {
-        expectedState = false;
-      });
-
-      test('radio state is disabled', function() {
-        var mockMobileConnection = { radioState: 'disabled' };
-        radio._expectedRadioStates[0] = expectedState;
-        radio._onRadioStateChange(mockMobileConnection, 0);
-        assert.equal(radio._expectedRadioStates[0], null);
-        assert.isTrue(radio.publish.calledWith('statechange', {
-          index: 0,
-          state: 'disabled'
-        }));
-      });
-
-      ['enabled', 'enabling', 'disabling'].forEach((state) => {
-        test('radio state is ' + state, function() {
-          var mockMobileConnection = { radioState: state };
-          radio._expectedRadioStates[0] = expectedState;
-          radio._onRadioStateChange(mockMobileConnection, 0);
-          assert.equal(radio._expectedRadioStates[0], expectedState);
-          assert.isTrue(radio.publish.calledWith('statechange', {
-            index: 0,
-            state: state
-          }));
-        });
-      });
+      assert.isTrue(radio.publish.calledWith('statechange', {
+        index: 0,
+        state: mockMobileConnection.radioState
+      }));
     });
   });
 

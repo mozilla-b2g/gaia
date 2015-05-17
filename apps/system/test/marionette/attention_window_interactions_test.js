@@ -8,13 +8,6 @@ marionette('AttentionWindow interactions', function() {
   apps[FakeLoopApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakeloopapp';
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
     apps: apps
   });
 

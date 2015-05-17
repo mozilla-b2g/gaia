@@ -61,20 +61,21 @@
      * window is changed to notify nfc module in gecko.
      */
     setNFCFocus: function(enable) {
-      if (!this.browser || !this.browser.element ||
-          this._nfcActive === enable ||
-          (this.CLASS_NAME !== 'AppWindow' &&
-           this.CLASS_NAME !== 'ActivityWindow' &&
-           this.CLASS_NAME !== 'PopupWindow') &&
-           this.CLASS_NAME !== 'HomescreenWindow') {
+      var topWindow = this.getTopMostWindow();
+      if (!topWindow.browser || !topWindow.browser.element ||
+          topWindow._nfcActive === enable ||
+          (topWindow.CLASS_NAME !== 'AppWindow' &&
+           topWindow.CLASS_NAME !== 'ActivityWindow' &&
+           topWindow.CLASS_NAME !== 'PopupWindow') &&
+           topWindow.CLASS_NAME !== 'HomescreenWindow') {
           // XXX: Implement this.belongToAppWindow()
         return;
       }
-      this.debug(this.name + ':' + this.instanceID +
+      this.debug(topWindow.name + ':' + topWindow.instanceID +
         ' is setting nfc active to: ' + enable);
       try {
-        this._nfcActive = enable;
-        this.browser.element.setNFCFocus(enable);
+        topWindow._nfcActive = enable;
+        topWindow.browser.element.setNFCFocus(enable);
       } catch (err) {
         this.debug('set nfc active is not implemented');
       }
@@ -86,7 +87,8 @@
      * @param  {Function} callback The callback function to be invoked
      *                             after we get the screenshot.
      */
-    getScreenshot: function bm_getScreenshot(callback, width, height, timeout) {
+    getScreenshot: function bm_getScreenshot(callback, width, height, timeout,
+                                             ignoreFront) {
       if (!this.browser || !this.browser.element) {
         if (callback) {
           callback();
@@ -97,9 +99,12 @@
       var invoked = false;
       var timer;
 
+
       // First, let's check if we have a frontWindow, if so this is the one
-      // we will want a screenshot of!
-      if (this.frontWindow) {
+      // we will want a screenshot of, passing ignoreFront lets us skip this
+      // if we want a screenshot of the browser element
+      ignoreFront = (typeof ignoreFront === 'undefined') ? false : ignoreFront;
+      if (!ignoreFront && this.frontWindow) {
         this.frontWindow.getScreenshot(callback, width, height, timeout);
         return;
       }
@@ -169,16 +174,34 @@
       }
     },
 
+    /**
+     * For test purpose, we create this method for changing active element. The
+     * activeElement is readonly property. We may use defineProperty to override
+     * it. But we get undefined with getOwnPropertyDescriptor. As to
+     * window.document, it is also a readonly and non-configurable property. We
+     * cannot override it directly.
+     *
+     * @return {HTMLDOMElement} the active element of current document.
+     */
+    getActiveElement: function bm_getActiveElement() {
+      return document.activeElement;
+    },
+
     focus: function bm_focus() {
-      if (this.browser && this.browser.element &&
-          !(this.contextmenu && this.contextmenu.isShown())) {
-        this.browser.element.focus();
+      var topWindow = this.getTopMostWindow();
+      if (topWindow.contextmenu && topWindow.contextmenu.isShown()) {
+        topWindow.contextmenu.focus();
+      } else if (topWindow.browser && topWindow.browser.element &&
+                 topWindow.getActiveElement() !== topWindow.browser.element) {
+        topWindow.browser.element.focus();
       }
     },
 
     blur: function bm_blur() {
-      if (this.browser.element) {
-        this.browser.element.blur();
+      var topWindow = this.getTopMostWindow();
+      if (topWindow.browser && topWindow.browser.element &&
+          topWindow.getActiveElement() === topWindow.browser.element) {
+        topWindow.browser.element.blur();
       }
     },
 

@@ -1,4 +1,6 @@
 'use strict';
+/* global DataMobile */
+/* exported MockUIManager */
 
 var MockUIManager = {
   domSelectors: [

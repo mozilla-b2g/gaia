@@ -2,6 +2,7 @@
 'use strict';
 var MockService = {
   mTeardown: function() {
+    this.locked = false;
     this.runningFTU = false;
     this.mUpgrading = false;
     this.mBtEnabled = false;
@@ -16,6 +17,7 @@ var MockService = {
     this.mHeadsetConnected = false;
     this.mIsFileTransferInProgress = false;
     this.mIsSendFileQueueEmpty = false;
+    this.mDeviceType = '';
   },
   lowerCapital: function() {
     return 'a';
@@ -40,8 +42,6 @@ var MockService = {
         return this.mTopMostUI;
       case 'Bluetooth.isEnabled':
         return this.mBtEnabled;
-      case 'getTopMostUI':
-        return this.mTopMostUI;
       case 'NfcHandoverManager.isHandoverInProgress':
         return this.mIsHandoverInProgress;
       case 'Radio.enabled':
@@ -60,6 +60,8 @@ var MockService = {
         return this.mIsFileTransferInProgress;
       case 'BluetoothTransfer.isSendFileQueueEmpty':
         return this.mIsSendFileQueueEmpty;
+      case 'getDeviceType':
+        return this.mDeviceType;
     }
     return undefined;
   },

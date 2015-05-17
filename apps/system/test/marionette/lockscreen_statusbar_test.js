@@ -15,9 +15,9 @@ marionette('LockScreen status bar', function() {
   apps[firstAppOrigin] = __dirname + '/../apps/fakeapp';
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
       'lockscreen.enabled': true
     },
+
     apps: apps
   });
 

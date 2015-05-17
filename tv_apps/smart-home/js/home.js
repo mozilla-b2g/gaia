@@ -1,7 +1,7 @@
 'use strict';
 /* global Application, CardFilter, CardManager, Clock, Deck, Edit, Folder, Home,
           KeyNavigationAdapter, MessageHandler, MozActivity, SearchBar,
-          SharedUtils, SpatialNavigator, URL, XScrollable, Animations */
+          SharedUtils, SpatialNavigator, URL, XScrollable, Animations, Utils */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -10,7 +10,7 @@
   const DEFAULT_ICON = 'url("/style/images/appic_developer.png")';
   const DEFAULT_BGCOLOR = 'rgba(0, 0, 0, 0.5)';
   const DEFAULT_BGCOLOR_ARRAY = [0, 0, 0, 0.5];
-  const CARDLIST_LEFT_MARGIN = 6.8;
+  const CARDLIST_LEFT_MARGIN = 8.4;
 
   function Home() {}
 
@@ -31,15 +31,18 @@
     folderScrollable: undefined,
     _focus: undefined,
     _focusScrollable: undefined,
+    _folderCard: undefined,
 
     cardFilter: undefined,
 
     cardListElem: document.getElementById('card-list'),
+    folderListElem: document.getElementById('folder-list'),
     cardManager: undefined,
     settingGroup: document.getElementById('settings-group'),
     editButton: document.getElementById('edit-button'),
     settingsButton: document.getElementById('settings-button'),
     searchButton: document.getElementById('search-button'),
+
 
     init: function() {
       var that = this;
@@ -63,8 +66,17 @@
                 frameElem: 'card-list-frame',
                 listElem: 'card-list',
                 itemClassName: 'app-button',
-                leftMargin: CARDLIST_LEFT_MARGIN}),
-        that.navigableScrollable = [that.cardScrollable];
+                leftMargin: CARDLIST_LEFT_MARGIN});
+
+        that.folderScrollable = new XScrollable({
+                frameElem: 'folder-list-frame',
+                listElem: 'folder-list',
+                itemClassName: 'app-button',
+                leftMargin: CARDLIST_LEFT_MARGIN,
+                scale: 0.68,
+                referenceElement: that.cardScrollable});
+
+        that.navigableScrollable = [that.cardScrollable, that.folderScrollable];
         var collection = that.getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
@@ -76,19 +88,27 @@
         // key should use keyup.
         that.keyNavigatorAdapter.on('enter-keyup', that.onEnter.bind(that));
 
-        that.cardManager.on('card-inserted', that.onCardInserted.bind(that));
-        that.cardManager.on('card-removed', that.onCardRemoved.bind(that));
+        that.cardListElem.addEventListener('transitionend',
+                                      that.determineFolderExpand.bind(that));
+
+        that.cardManager.on('card-inserted',
+                          that.onCardInserted.bind(that, that.cardScrollable));
+        that.cardManager.on('card-removed',
+                          that.onCardRemoved.bind(that, that.cardScrollable));
         that.cardManager.on('card-updated', that.onCardUpdated.bind(that));
 
         that.spatialNavigator.on('focus', that.handleFocus.bind(that));
         that.spatialNavigator.on('unfocus', that.handleUnfocus.bind(that));
-        var handleScrollableItemFocusBound =
-                                    that.handleScrollableItemFocus.bind(that);
-        var handleScrollableItemUnfocusBound =
-                                    that.handleScrollableItemUnfocus.bind(that);
+        var handleCardFocusBound = that.handleCardFocus.bind(that);
+        var handleCardUnfocusBound = that.handleCardUnfocus.bind(that);
+        var handleCardUnhoverBound = that.handleCardUnhover.bind(that);
         that.navigableScrollable.forEach(function(scrollable) {
-          scrollable.on('focus', handleScrollableItemFocusBound);
-          scrollable.on('unfocus', handleScrollableItemUnfocusBound);
+          scrollable.on('focus', handleCardFocusBound);
+          scrollable.on('unfocus', handleCardUnfocusBound);
+          scrollable.on('unhover', handleCardUnhoverBound);
+          if (scrollable.isEmpty()) {
+            that.spatialNavigator.remove(scrollable);
+          }
         });
 
         that.spatialNavigator.focus();
@@ -100,8 +120,9 @@
         that.cardFilter.on('filterchanged', that.onFilterChanged.bind(that));
 
         that.edit = new Edit();
-        that.edit.init(
-                  that.spatialNavigator, that.cardManager, that.cardScrollable);
+        that.edit.init(that.spatialNavigator, that.cardManager,
+                       that.cardScrollable, that.folderScrollable);
+        that.edit.on('arrange', that.onArrangeMode.bind(that));
 
         // In some case, we can do action at keydown which is translated as
         // onEnter in home.js. But in button click case, we need to listen
@@ -124,27 +145,49 @@
         if (document.visibilityState === 'visible') {
           that.onVisibilityChange();
         }
+
+        cardList.forEach(function(card) {
+          if (card instanceof Folder) {
+            card.on('card-inserted',
+                        that.onCardInserted.bind(that, that.folderScrollable));
+            card.on('card-removed',
+                        that.onCardRemoved.bind(that, that.folderScrollable));
+          }
+        });
       });
     },
 
     onVisibilityChange: function() {
       if (document.visibilityState === 'visible') {
-        this.cardScrollable.currentItem.blur();
-        this.endBubble = Animations.doBubbleAnimation(
-                          this.cardListElem, '.app-button', 100, function() {
-          // if there is a pin activity, we do not have to focus element,
-          // because focus will be triggered in pin callback
-          if (!this.messageHandler.resumeActivity()) {
-            var focusElem = this.spatialNavigator.getFocusedElement();
+        Utils.holdFocusForAnimation();
+        var that = this;
+        Promise.all([new Promise(function(resolve) {
+          that.skipBubble = Animations.doBubbleAnimation(
+                                that.cardListElem, '.app-button', 100, resolve);
+
+        }), new Promise(function(resolve) {
+          if (that._folderCard) {
+            that.skipFolderBubble = Animations.doBubbleAnimation(
+                              that.folderListElem, '.app-button', 100, resolve);
+          } else {
+            resolve();
+          }
+
+        })]).then(function() {
+          // Catch focus back unless there is a pin activity since callback of
+          // pinning would catch the focus for us.
+          if (!that.messageHandler.resumeActivity()) {
+            var focusElem = that.spatialNavigator.getFocusedElement();
             if (focusElem.CLASS_NAME === 'XScrollable') {
-              this.cardScrollable.catchFocus();
+              that._focusScrollable.catchFocus();
             } else {
-              this.spatialNavigator.focus();
+              that.spatialNavigator.focus();
             }
           }
-          this.isNavigable = true;
-          this.endBubble = null;
-        }.bind(this));
+          that.isNavigable = true;
+          that.skipBubble = null;
+          that.skipFolderBubble = null;
+        });
       } else {
         this.messageHandler.stopActivity();
         this.isNavigable = false;
@@ -153,8 +196,11 @@
         // the user will see the last unfinished animations. In order to solve
         // this, we have to force disable all the animations and trigger their
         // callbacks when home app is in hidden state.
-        if (this.endBubble) {
-          this.endBubble();
+        if (this.skipBubble) {
+          this.skipBubble();
+        }
+        if (this.skipFolderBubble) {
+          this.skipFolderBubble();
         }
         if (this.cardScrollable.isSliding) {
           this.cardScrollable.endSlide();
@@ -193,7 +239,14 @@
       }
     },
 
-    onCardInserted: function(card, idx) {
+    onCardInserted: function(scrollable, card, idx, overFolder) {
+      if (card instanceof Folder) {
+        card.on('card-inserted',
+                this.onCardInserted.bind(this, this.folderScrollable));
+        card.on('card-removed',
+                this.onCardRemoved.bind(this, this.folderScrollable));
+      }
+
       var newCardElem = this._createCardNode(card);
       var newCardButtonElem = newCardElem.firstElementChild;
       // Initial transition for new card
@@ -201,17 +254,26 @@
       newCardButtonElem.classList.add('new-card-transition');
       newCardButtonElem.addEventListener('transitionend', function onPinned() {
         newCardButtonElem.classList.remove('new-card-transition');
+        newCardButtonElem.classList.remove('last-card');
         newCardButtonElem.removeEventListener('transitionend', onPinned);
       });
       this.cardListElem.classList.add('card-list-slide');
 
       // insert new card into cardScrollable
       this.isNavigable = false;
-      this.cardScrollable.on('slideEnd', function() {
+      scrollable.on('slideEnd', function() {
         newCardButtonElem.classList.remove('new-card');
+        if (scrollable.nodes.indexOf(newCardElem) ===
+            scrollable.nodes.length - 1) {
+          newCardButtonElem.classList.add('last-card');
+        }
         this.isNavigable = true;
       }.bind(this));
-      this.cardScrollable.insertNodeBefore(newCardElem, idx);
+      if (!overFolder) {
+        scrollable.insertNodeBefore(newCardElem, idx);
+      } else {
+        scrollable.insertNodeOver(newCardElem, idx);
+      }
     },
 
     onCardUpdated: function(card, idx) {
@@ -227,14 +289,14 @@
       });
     },
 
-    onCardRemoved: function(indices) {
+    onCardRemoved: function(scrollable, indices) {
       indices.forEach(function(indices) {
-        var elm = this.cardScrollable.getNode(indices);
+        var elm = scrollable.getNode(indices);
         if (elm.dataset.revokableURL) {
           URL.revokeObjectURL(elm.dataset.revokableURL);
         }
       }, this);
-      this.cardScrollable.removeNodes(indices);
+      scrollable.removeNodes(indices);
     },
 
     _setCardIcon: function (cardButton, card, blob, bgColor) {
@@ -344,6 +406,12 @@
       console.log('filter changed to: ' + name);
     },
 
+    onArrangeMode: function() {
+      if (this._focusScrollable !== this.folderScrollable) {
+        this._cleanFolderScrollable();
+      }
+    },
+
     _createCardNode: function(card) {
       // card element would be created like this:
       // <div class="card">
@@ -382,8 +450,14 @@
       // XXX: will support Folder and other type of Card in the future
       // for now, we only create card element for Application and Deck
       if (card instanceof Application) {
-        cardButton.setAttribute('app-type', 'app');
-        this._fillCardIcon(cardButton, card);
+        if (card.group === 'tv') {
+          cardButton.classList.add('tv-channel');
+          cardButton.dataset.icon = 'tv';
+          cardButton.setAttribute('app-type', 'tv');
+        } else {
+          cardButton.setAttribute('app-type', 'app');
+          this._fillCardIcon(cardButton, card);
+        }
       } else if (card instanceof Deck) {
         cardButton.setAttribute('app-type', 'deck');
         this.createWave(cardButton, card);
@@ -433,11 +507,18 @@
       if (focusElem === this.settingsButton) {
         this.openSettings();
       } else if (focusElem === this.editButton) {
+        this._cleanFolderScrollable();
         this.edit.toggleEditMode();
       } else {
         // Current focus is on a card
         var cardId = focusElem.dataset.cardId;
-        var card = this.cardManager.findCardFromCardList({cardId: cardId});
+        var card;
+        if (this.focusScrollable === this.folderScrollable) {
+          card = this._folderCard.findCard({cardId: cardId});
+        } else {
+          card = this.cardManager.findCardFromCardList({cardId: cardId});
+        }
+
         if (card) {
           card.launch();
         }
@@ -510,7 +591,7 @@
 
     handleUnfocus: function(elem, nodeElem) {
       if(elem.CLASS_NAME == 'XScrollable') {
-        this.handleScrollableItemUnfocus(
+        this.handleCardUnfocus(
                 elem, elem.currentItem, elem.getNodeFromItem(elem.currentItem));
       }
     },
@@ -575,21 +656,106 @@
       menuGroup.open();
     },
 
-    handleScrollableItemFocus: function(scrollable, itemElem, nodeElem) {
+    handleCardFocus: function(scrollable, itemElem, nodeElem) {
       this._focus = itemElem;
 
       if (this.edit.mode === 'edit') {
-        return;
+        this.edit.handleCardFocus(scrollable, itemElem, nodeElem);
       }
       itemElem.focus();
       nodeElem.classList.add('focused');
+      if(scrollable === this.cardScrollable && this._folderCard &&
+                        itemElem.dataset.cardId !== this._folderCard.cardId &&
+                        !this.cardScrollable.isHovering) {
+        this._cleanFolderScrollable();
+      }
     },
 
-    handleScrollableItemUnfocus: function(scrollable, itemElem, nodeElem) {
-      if (this.edit.mode === 'edit') {
+    _cleanFolderScrollable: function() {
+      if (this._focusScrollable === this.folderScrollable) {
+        this.spatialNavigator.focus(this.cardScrollable);
+      }
+      this.spatialNavigator.remove(this.folderScrollable);
+      this.folderScrollable.clean();
+      this._folderCard = undefined;
+      this.edit.isFolderReady = false;
+      this.cardScrollable.setColspanOnFocus(0);
+    },
+
+    handleCardUnfocus: function(scrollable, itemElem, nodeElem) {
+      // Fix null error when the last card in a folder is removed.
+      if (nodeElem) {
+        nodeElem.classList.remove('focused');
+      }
+    },
+
+    handleCardUnhover: function(scrollable, itemElem, nodeElem) {
+      this._cleanFolderScrollable();
+    },
+
+    determineFolderExpand: function(evt) {
+      // Folder expansion is performed on only when user moves cursor onto a
+      // folder or hover a folder in edit mode and it finished its focus
+      // transition.
+      if (this.focusScrollable === this.cardScrollable &&
+        evt.originalTarget.classList.contains('app-button') &&
+        (!this._folderCard ||
+          this._folderCard.cardId !== evt.originalTarget.dataset.cardId) &&
+        (evt.originalTarget.classList.contains('focused') &&
+          // Listen to 'outline-width' rather than 'transform' here since it
+          // also applies to edit mode when user moves from panel button back
+          // to card.
+          evt.propertyName === 'outline-width' &&
+          document.getElementById('main-section').dataset.mode !== 'arrange' ||
+          // Folder needs to be expanded when hovered as well.
+          evt.originalTarget.classList.contains('hovered'))) {
+        this.buildFolderList(evt.originalTarget);
+      }
+    },
+
+    buildFolderList: function(target) {
+      var cardId = target.dataset.cardId;
+      var card = this.cardManager.findCardFromCardList({cardId: cardId});
+      if (!(card instanceof Folder)) {
         return;
       }
-      nodeElem.classList.remove('focused');
+
+      this._folderCard = card;
+      var folderList = this._folderCard.getCardList();
+
+      if (folderList.length === 0) {
+        this.edit.isFolderReady = true;
+        return;
+      }
+
+      // Build folder list
+      folderList.forEach(function(card) {
+        this.folderScrollable.addNode(this._createCardNode(card));
+      }, this);
+
+      var step = 0;
+      var initFolderAnimation = function() {
+        if (step === 0) {
+          ++step;
+          // At first frame, we call setReferenceElement to move folder list
+          // right under folder card. Transition should be replaced by 'none'
+          // since we don't need to show this process as animation to user.
+          this.folderListElem.style.transition = 'none';
+          this.folderScrollable.realignToReferenceElement();
+          this.skipFolderBubble = Animations.doBubbleAnimation(
+                        this.folderListElem, '.app-button', 100, function() {
+              this.spatialNavigator.add(this.folderScrollable);
+              this.edit.isFolderReady = true;
+              this.skipFolderBubble = undefined;
+            }.bind(this));
+
+          window.requestAnimationFrame(initFolderAnimation);
+        } else {
+          // 2nd frame, recover original transition.
+          this.folderListElem.style.transition = '';
+        }
+      }.bind(this);
+      window.requestAnimationFrame(initFolderAnimation);
     },
 
     openSettings: function() {

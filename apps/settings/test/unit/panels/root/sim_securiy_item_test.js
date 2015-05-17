@@ -4,26 +4,47 @@ suite('simSecurityItem', function() {
   var modules = [
     'shared_mocks/mock_simslot_manager',
     'unit/mock_airplane_mode_helper',
-    'panels/root/sim_security_item'
+    'modules/sim_security',
+    'panels/root/sim_security_item',
   ];
 
   var map = {
     '*': {
       'shared/simslot_manager': 'shared_mocks/mock_simslot_manager',
-      'shared/airplane_mode_helper': 'unit/mock_airplane_mode_helper'
+      'shared/airplane_mode_helper': 'unit/mock_airplane_mode_helper',
+      'modules/sim_security': 'MockSimSecurity'
     }
   };
 
   var simSecurityItem;
   var mockSIMSlotManager;
   var mockAirplaneModeHelper;
+  var mockSimSecurity;
 
   setup(function(done) {
+    var self = this;
+
+    define('MockSimSecurity', function() {
+      return {
+        addEventListener: function() {},
+        getCardLock: function() {}
+      };
+    });
+
     var requireCtx = testRequire([], map, function() {});
     requireCtx(modules, function(MockSIMSlotManager,
-      MockAirplaneModeHelper, SimSecurityItem) {
+      MockAirplaneModeHelper, MockSimSecurity ,SimSecurityItem) {
         mockSIMSlotManager = MockSIMSlotManager;
         mockAirplaneModeHelper = MockAirplaneModeHelper;
+        mockSimSecurity = MockSimSecurity;
+
+        self.sinon.stub(mockSIMSlotManager, 'get', function() {
+          return {
+            isAbsent: function() {
+              return false;
+            }
+          };
+        });
 
         var element = document.createElement('div');
         simSecurityItem = SimSecurityItem(element);
@@ -37,12 +58,14 @@ suite('simSecurityItem', function() {
         this.sinon.stub(mockAirplaneModeHelper, 'getStatus', function() {
           return 'enabled';
         });
-        simSecurityItem._updateUI();
       });
-      test('properties would be set correctly', function() {
-        assert.equal(simSecurityItem._element.style.fontStyle, 'italic');
-        assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
-          'simCardNotReady');
+
+      test('properties would be set correctly', function(done) {
+        simSecurityItem._updateUI().then(function() {
+          assert.equal(simSecurityItem._element.style.fontStyle, 'italic');
+          assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
+            'simCardNotReady');
+        }).then(done, done);
       });
     });
 
@@ -57,14 +80,14 @@ suite('simSecurityItem', function() {
             cardState: null
           }
         };
-
-        simSecurityItem._updateUI();
       });
 
-      test('properties would be set correctly', function() {
-        assert.equal(simSecurityItem._element.style.fontStyle, 'italic');
-        assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
-          'noSimCard');
+      test('properties would be set correctly', function(done) {
+        simSecurityItem._updateUI().then(function() {
+          assert.equal(simSecurityItem._element.style.fontStyle, 'italic');
+          assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
+            'noSimCard');
+        }).then(done, done);
       });
     });
 
@@ -79,92 +102,58 @@ suite('simSecurityItem', function() {
             cardState: 'unknown'
           }
         };
-
-        simSecurityItem._updateUI();
       });
 
-      test('properties would be set correctly', function() {
-        assert.equal(simSecurityItem._element.style.fontStyle, 'italic');
-        assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
-          'unknownSimCardState');
+      test('properties would be set correctly', function(done) {
+        simSecurityItem._updateUI().then(function() {
+          assert.equal(simSecurityItem._element.style.fontStyle, 'italic');
+          assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
+            'unknownSimCardState');
+        }).then(done, done);
       });
     });
 
     suite('if APM is off, simcard is ready', function() {
-      var pinEnabled = false;
-      var clock;
-
       setup(function() {
-        clock = this.sinon.useFakeTimers();
         this.sinon.stub(mockAirplaneModeHelper, 'getStatus', function() {
           return 'disabled';
         });
 
         simSecurityItem._activeSlot = {
           simCard: {
-            cardState: 'normal',
-            getCardLock: function() {
-              var obj = {};
-              obj.result = {};
-              obj.result.enabled = pinEnabled;
-              setTimeout(function() {
-                if (obj.onsuccess) {
-                  obj.onsuccess();
-                }
-              });
-              return obj;
-            }
+            cardState: 'normal'
           }
         };
+
       });
 
-      teardown(function() {
-        clock.restore();
+      test('and if pin is enabled', function(done) {
+        this.sinon.stub(mockSimSecurity, 'getCardLock', function() {
+          return Promise.resolve({
+            enabled: true
+          });
+        });
+
+        simSecurityItem._updateUI().then(function() {
+          assert.equal(simSecurityItem._element.style.fontStyle, 'normal');
+          assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
+            'enabled');
+        }).then(done, done);
       });
 
-      test('and if pin is enabled', function() {
-        pinEnabled = true;
-        simSecurityItem._updateUI();
-        clock.tick(0);
+      test('and if pin is disabled', function(done) {
+        this.sinon.stub(mockSimSecurity, 'getCardLock', function() {
+          return Promise.resolve({
+            enabled: false
+          });
+        });
 
-        assert.equal(simSecurityItem._element.style.fontStyle, 'normal');
-        assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
-          'enabled');
+        simSecurityItem._updateUI().then(function() {
+          assert.equal(simSecurityItem._element.style.fontStyle, 'normal');
+          assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
+            'disabled');
+        }).then(done, done);
       });
-
-      test('and if pin is disabled', function() {
-        pinEnabled = false;
-        simSecurityItem._updateUI();
-        clock.tick(0);
-
-        assert.equal(simSecurityItem._element.style.fontStyle, 'normal');
-        assert.equal(simSecurityItem._element.getAttribute('data-l10n-id'),
-          'disabled');
-      });
-    });
-  });
-
-  suite('_getActiveSlot', function() {
-    var realSlot = {
-      isAbsent: function() {
-        return false;
-      }
-    };
-
-    var fakeSlot = {
-      isAbsent: function() {
-        return true;
-      }
-    };
-
-    setup(function() {
-      this.sinon.stub(mockSIMSlotManager, 'getSlots', function() {
-        return [realSlot, fakeSlot];
-      });
-    });
-
-    test('would get choosed one', function() {
-      assert.equal(simSecurityItem._getActiveSlot(), realSlot);
     });
   });
 
@@ -176,9 +165,9 @@ suite('simSecurityItem', function() {
     });
 
     suite('wont do anything', function() {
-      test('if this is a single sim device', function() {
+      test('if this is a DSDS device', function() {
         this.sinon.stub(mockSIMSlotManager, 'isMultiSIM', function() {
-          return false;
+          return true;
         });
         simSecurityItem.enabled = true;
         assert.isFalse(simSecurityItem._boundUpdateUI.called);
@@ -209,12 +198,7 @@ suite('simSecurityItem', function() {
         this.sinon.stub(mockSIMSlotManager, 'isMultiSIM', function() {
           return false;
         });
-        simSecurityItem._activeSlot = {
-          conn: {
-            addEventListener: this.sinon.stub(),
-            removeEventListener: this.sinon.stub()
-          }
-        };
+        simSecurityItem._activeSlot = {};
         simSecurityItem._itemEnabled = null;
       });
 
@@ -222,15 +206,11 @@ suite('simSecurityItem', function() {
         simSecurityItem.enabled = true;
         assert.isTrue(simSecurityItem._boundUpdateUI.called);
         assert.isTrue(mockAirplaneModeHelper.addEventListener.called);
-        assert.isTrue(
-          simSecurityItem._activeSlot.conn.addEventListener.called);
       });
 
       test('if we are going to disable simSecurityItem', function() {
         simSecurityItem.enabled = false;
         assert.isTrue(mockAirplaneModeHelper.removeEventListener.called);
-        assert.isTrue(
-          simSecurityItem._activeSlot.conn.removeEventListener.called);
       });
     });
   });

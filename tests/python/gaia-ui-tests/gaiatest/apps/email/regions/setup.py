@@ -180,10 +180,12 @@ class ManualSetupEmail(Base):
         # rather than the default value of 100 seconds
         # The UI data layer of the UI is changed, because the minimum check mail time value is 5 min,
         # which is far too long to check for in a test. This allows us to check earlier
+        with self.marionette.using_context('chrome'):
+            self.marionette.execute_script(
+                "Services.prefs.setIntPref('dom.requestSync.minInterval', 1);")
         self.marionette.execute_script("""
-            SpecialPowers.setIntPref('dom.requestSync.minInterval', 1);
             document.querySelector("[data-l10n-id = settings-check-every-5min]").value = '%s';
-        """ % value, special_powers=True)
+        """ % value)
         self.marionette.find_element(*self._check_for_new_messages_locator).tap()
         self.select('Every 5 minutes')
 

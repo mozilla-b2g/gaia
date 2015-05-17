@@ -71,7 +71,13 @@
       var getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia;
       getUserMedia = getUserMedia.bind(navigator);
 
-      getUserMedia({ video: true, audio: false }, function(stream) {
+      getUserMedia({
+        video: {
+          width: { min: 480 },
+          height: { min: 480 }
+        },
+        audio: false
+      }, function(stream) {
         var video = this.dialog.video;
 
         video.addEventListener('loadedmetadata', function onMetadata() {
@@ -92,18 +98,12 @@
      * @memberof DevToolsAuth.prototype
      */
     capture: function() {
-      if (this._inflightURL) {
-        URL.revokeObjectURL(this._inflightURL);
-        this._inflightURL = null;
-      }
       var video = this.dialog.video;
       var canvas = this.canvas;
       var context = canvas.getContext('2d');
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(function(blob) {
-        this._inflightURL = URL.createObjectURL(blob);
-        this._checkImage(this._inflightURL);
-      }.bind(this), 'image/jpeg');
+      var url = canvas.toDataURL('image/jpeg');
+      this._checkImage(url);
     },
 
     /**
@@ -126,10 +126,6 @@
         video.mozSrcObject = null;
       }
       this._canvas = null;
-      if (this._inflightURL) {
-        URL.revokeObjectURL(this._inflightURL);
-        this._inflightURL = null;
-      }
       if (reason !== 'complete') {
         this.abort();
       }

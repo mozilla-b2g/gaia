@@ -8,12 +8,7 @@ marionette('App Authentication Dialog',
 
   var client = marionette.client({
     prefs: {
-      'dom.w3c_touch_events.enabled': 1,
       'focusmanager.testmode': true
-    },
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
     }
   });
 
@@ -80,4 +75,28 @@ marionette('App Authentication Dialog',
       return !authDialog.displayed();
     });
   });
+
+  test('user can login', function() {
+    var url = server.url('sample.html');
+    server.protect(url);
+
+    // Open the first URL in a sheet.
+    rocketbar.homescreenFocus();
+    rocketbar.enterText(url + '\uE006');
+
+    var authDialog;
+    client.waitFor(function() {
+      authDialog = system.appAuthDialog;
+      return authDialog.displayed();
+    });
+
+    system.appAuthDialogUsername.sendKeys('username');
+    system.appAuthDialogPassword.sendKeys('password');
+
+    system.appAuthDialogLogin.tap();
+    client.waitFor(function() {
+      return !authDialog.displayed();
+    });
+  });
+
 });

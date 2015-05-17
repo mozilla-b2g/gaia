@@ -2,6 +2,7 @@
 define(function(require) {
   var mozL10n = require('l10n!');
   var toasterNode = require('tmpl!./cards/toaster.html');
+  var transitionEnd = require('transition_end');
 
   /**
    * Manages the display of short status notifications, or 'toasts'.
@@ -37,7 +38,7 @@ define(function(require) {
       this.actionButton = this.el.querySelector('.toaster-action');
 
       this.el.addEventListener('click', this.hide.bind(this));
-      this.el.addEventListener('transitionend', this.hide.bind(this));
+      transitionEnd(this.el, this.hide.bind(this));
 
       // The target is used for the action to allow a larger tap target than
       // just the button.

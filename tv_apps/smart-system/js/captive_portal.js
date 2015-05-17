@@ -147,18 +147,18 @@ var CaptivePortal = {
     return promise;
   },
 
-  isVisible: function cp_isVisible() {
+  isFocusable: function cp_isFocusable() {
     return !!this.entrySheet;
   },
 
   getElement: function cp_getElement() {
-    if (this.isVisible()){
+    if (this.isFocusable()){
       return this.entrySheet.element;
     }
   },
 
   focus: function cp_focus() {
-    if (this.isVisible()){
+    if (this.isFocusable()){
       var element = this.entrySheet.element.querySelector('iframe') ||
                     this.entrySheet.header.els.actionButton;
       document.activeElement.blur();

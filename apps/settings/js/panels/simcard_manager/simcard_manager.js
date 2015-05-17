@@ -10,6 +10,7 @@ define(function(require) {
   'use strict';
 
   var _ = window.navigator.mozL10n.get;
+  var l10n = window.navigator.mozL10n;
   var Template = require('shared/template');
   var SimSettingsHelper = require('shared/sim_settings_helper');
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
@@ -231,9 +232,19 @@ define(function(require) {
 
         // will generate ".sim-card-0 .sim-card-name" for example
         var targetSelector = cardSelector + ' .sim-card-' + selector;
-
-        this._elements.simCardContainer.querySelector(targetSelector)
-          .textContent = simcardInfo[selector];
+        var element =
+          this._elements.simCardContainer.querySelector(targetSelector);
+        if (selector === 'number') {
+          element.textContent = simcardInfo[selector];
+        } else {
+          var l10nObj = simcardInfo[selector];
+          if (l10nObj.id) {
+            l10n.setAttributes(element, l10nObj.id, l10nObj.args);
+          } else {
+            element.removeAttribute('data-l10n-id');
+            element.textContent = l10nObj.text;
+          }
+        }
       }.bind(this));
     },
 
@@ -251,7 +262,7 @@ define(function(require) {
       // we only inject basic DOM from templates before
       // , so we have to map UI to its info
       this._updateSimCardsUI();
-      this._updateSimSecurityUI();
+      this._updateSimSettingsUI();
     },
 
     /**
@@ -276,26 +287,21 @@ define(function(require) {
     },
 
     /**
-     * Update SimSecurityUI
+     * Update the UI of the sim settings section
      *
      * @memberOf SimCardManager
      * @access private
      */
-    _updateSimSecurityUI: function scm__updateSimSecurityUI() {
+    _updateSimSettingsUI: function scm__updateSimSettingsUI() {
       var firstCardInfo = this._simcards[0].getInfo();
       var secondCardInfo = this._simcards[1].getInfo();
+      var hidden = firstCardInfo.absent && secondCardInfo.absent ||
+        this._isAirplaneMode;
 
       // if we don't have any card available right now
       // or if we are in airplane mode
-      if (firstCardInfo.absent && secondCardInfo.absent ||
-        this._isAirplaneMode) {
-          this._elements.securityEntry.setAttribute('aria-disabled', true);
-          this._elements.securityDesc.setAttribute('data-l10n-id', 'noSimCard');
-      } else {
-        this._elements.securityEntry.setAttribute('aria-disabled', false);
-        this._elements.securityDesc.removeAttribute('data-l10n-id');
-        this._elements.securityDesc.textContent = '';
-      }
+      this._elements.simSettingsHeader.hidden = hidden;
+      this._elements.simSettingsList.hidden = hidden;
     },
 
     /**
@@ -382,11 +388,17 @@ define(function(require) {
           var simcardInfo = simcard.getInfo();
           var option = document.createElement('option');
           option.value = index;
-          option.text = simcardInfo.name;
 
           if (simcardInfo.absent) {
             option.value = SimSettingsHelper.EMPTY_OPTION_VALUE;
             option.text = SimSettingsHelper.EMPTY_OPTION_TEXT;
+          } else {
+            if (simcardInfo.name.id) {
+              l10n.setAttributes(option,
+                simcardInfo.name.id, simcardInfo.name.args);
+            } else {
+              option.text = simcardInfo.name.text;
+            }
           }
 
           if (index == selectedCardIndex) {
@@ -410,7 +422,7 @@ define(function(require) {
             selectDOM.add(option);
         }
     },
-    
+
     /**
      * Check whether current cardState is locked or not.
      *
@@ -547,7 +559,7 @@ define(function(require) {
           self._isAirplaneMode = enabled;
           self._updateCardsState();
           self._updateSimCardsUI();
-          self._updateSimSecurityUI();
+          self._updateSimSettingsUI();
         }
       });
     },
@@ -599,7 +611,7 @@ define(function(require) {
           // simcard is enabled / disabled
           simcard.setState('normal', {
             number: iccInfo.msisdn || iccInfo.mdn || '',
-            operator: operatorInfo.operator || _('no-operator')
+            operator: operatorInfo.operator
           });
         }
       }
@@ -618,7 +630,7 @@ define(function(require) {
       function scm__updateCardStateWithUI(cardIndex, iccId) {
         this._updateCardState(cardIndex, iccId);
         this._updateSimCardUI(cardIndex);
-        this._updateSimSecurityUI();
+        this._updateSimSettingsUI();
     },
 
     /**

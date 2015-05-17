@@ -7,22 +7,21 @@
  * Bluetooth api v2 is the two level structure.
  * We use _btManagerHandler to handle BluetoothManager defaultAdapter
  * change event and _btAdapterHandler to handle status change event.
+ *
+ * Current supported Bluetooth profiles are:
+ * - hfp: Hands-Free Profile
+ * - opp: Object Push Profile
+ * - a2dp: Advenced Audio Distribution Profile
+ * - sco: Synchronous Connection-Oriented Profile
  */
 /* global Service, LazyLoader, BluetoothIcon, BluetoothTransferIcon,
-   BluetoothHeadphoneIcon */
+   BluetoothHeadphoneIcon, BluetoothTransfer */
 /* exported Bluetooth2 */
 (function(exports) {
-
 var Bluetooth = function() {};
 
 Bluetooth.prototype = {
   name: 'Bluetooth',
-  /**
-   * Keep a global connected property.
-   *
-   * @public
-   */
-  connected: false,
 
   /**
    * Debug message.
@@ -84,20 +83,6 @@ Bluetooth.prototype = {
   _isEnabled: false,
 
   /**
-   * Build-in Bluetooth profiles.
-   *
-   * @public
-   */
-  get Profiles() {
-    return {
-      HFP: 'hfp',   // Hands-Free Profile
-      OPP: 'opp',   // Object Push Profile
-      A2DP: 'a2dp', // A2DP status
-      SCO: 'sco'    // Synchronous Connection-Oriented
-    };
-  },
-
-  /**
    * Set profile connect state.
    *
    * @private
@@ -111,10 +96,13 @@ Bluetooth.prototype = {
 
       // Raise an event for the profile connection changes.
       window.dispatchEvent(new CustomEvent('bluetoothprofileconnectionchange',
-      {
-        name: profile,
-        connected: connected
-      }));
+        {
+          detail: {
+            name: profile,
+            connected: connected
+          }
+        }
+      ));
       if (profile === 'opp' && this.transferIcon) {
         this.transferIcon.update();
       }
@@ -127,11 +115,11 @@ Bluetooth.prototype = {
   /**
    * Check if bluetooth profile is connected.
    *
-   * @public
+   * @private
    * @param {String} profile profile name
    * @return {Boolean} connected state
    */
-  isProfileConnected: function bt_isProfileConnected(profile) {
+  _isProfileConnected: function bt__isProfileConnected(profile) {
     var isConnected = this['_' + profile + 'Connected'];
     if (isConnected === undefined) {
       return false;
@@ -157,13 +145,13 @@ Bluetooth.prototype = {
       this._btAdapterHandler.bind(this);
 
     this._bindHfpStatusChangedHandler = function(evt) {
-      this._setProfileConnected(this.Profiles.HFP, evt.status);
+      this._setProfileConnected('hfp', evt.status);
     }.bind(this);
     this._bindA2dpStatusChangedHandler = function(evt) {
-      this._setProfileConnected(this.Profiles.A2DP, evt.status);
+      this._setProfileConnected('a2dp', evt.status);
     }.bind(this);
     this._bindScoStatusChangedHandler = function(evt) {
-      this._setProfileConnected(this.Profiles.SCO, evt.status);
+      this._setProfileConnected('sco', evt.status);
     }.bind(this);
 
     this._initDefaultAdapter();
@@ -183,13 +171,23 @@ Bluetooth.prototype = {
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
       this._oppTransferCompleteHandler.bind(this));
 
-    // expose isEnabled function to Service.query
+    // expose functions to Service.request
+    Service.register('adapter', this);
+    Service.register('pair', this);
+    Service.register('getPairedDevices', this);
+    // expose functions to Service.query
     Service.registerState('isEnabled', this);
+    Service.registerState('getAdapter', this);
+    Service.registerState('isOPPProfileConnected', this);
+    Service.registerState('isA2DPProfileConnected', this);
+    Service.registerState('isSCOProfileConnected', this);
 
     // handle statusbar icons
-    LazyLoader.load(['js/bluetooth_icon.js',
+    LazyLoader.load(['js/bluetooth_transfer.js',
+                     'js/bluetooth_icon.js',
                      'js/bluetooth_transfer_icon.js',
                      'js/bluetooth_headphone_icon.js']).then(() => {
+      BluetoothTransfer.start();
       this.icon = new BluetoothIcon(this);
       this.icon.start();
       this.transferIcon = new BluetoothTransferIcon(this);
@@ -210,21 +208,16 @@ Bluetooth.prototype = {
    * @private
    */
   _initDefaultAdapter: function() {
-    this._debug('init bluetooth adapter');
+    this.debug('init bluetooth adapter');
     this._adapter = this._bluetooth.defaultAdapter;
     if (this._adapter) {
-      this._debug('adapter is available');
+      this.debug('adapter is available');
       // listen states when the adapter is available
       this._adapterAvailableHandler();
-      // dispatch event when default adapter is available
-      this._dispatchAdapterState(true);
 
       // dispatch default bluetooth enable state
       this._isEnabled = (this._adapter.state === 'enabled');
       this._dispatchEnableState();
-    } else {
-      // dispatch event when default adapter is not available
-      this._dispatchAdapterState(false);
     }
   },
 
@@ -258,7 +251,7 @@ Bluetooth.prototype = {
    * Remove all EventListeners when default adapter is changed.
    */
   _adapterUnavailableHandler: function bt__adapterUnavailableHandler() {
-    this._debug('default adapter is removed');
+    this.debug('default adapter is removed');
     // unbind headset connected cases
     this._adapter.removeEventListener('hfpstatuschanged',
       this._bindHfpStatusChangedHandler);
@@ -278,16 +271,16 @@ Bluetooth.prototype = {
    * @private
    */
   _requestEnableHandler: function bt__requestEnableHandler() {
-    this._debug('enabling bluetooth');
+    this.debug('enabling bluetooth');
     if (this._adapter) {
       // the state will be dispatched in _btAdapterHandler
       this._adapter.enable().then(() => { //resolve
-        this._debug('bluetooth enabled');
+        this.debug('bluetooth enabled');
       }, () => { //reject
-        this._debug('can not get bluetooth adapter');
+        this.debug('can not get bluetooth adapter');
       });
     } else { // return current state since we can't process the request
-      this._debug('adapter is not available');
+      this.debug('adapter is not available');
       this._dispatchEnableState();
     }
   },
@@ -298,16 +291,16 @@ Bluetooth.prototype = {
    * @private
    */
   _requestDisableHandler: function bt__requestDisableHandler() {
-    this._debug('disabling bluetooth');
+    this.debug('disabling bluetooth');
     if (this._adapter) {
       // the state will be dispatched in _btAdapterHandler
       this._adapter.disable().then(() => { //resolve
-        this._debug('bluetooth disabled');
+        this.debug('bluetooth disabled');
       }, () => { //reject
-        this._debug('can not get bluetooth adapter');
+        this.debug('can not get bluetooth adapter');
       });
     } else { // return current state since we can't process the request
-      this._debug('adapter is not available');
+      this.debug('adapter is not available');
       this._dispatchEnableState();
     }
   },
@@ -321,9 +314,12 @@ Bluetooth.prototype = {
    * @private
    */
   _oppTransferStartHandler: function(transferInfo) {
-    this._setProfileConnected(this.Profiles.OPP, true);
+    this._setProfileConnected('opp', true);
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-start',
-      {transferInfo: transferInfo}));
+      {
+        detail: { transferInfo: transferInfo }
+      }
+    ));
   },
 
   /*
@@ -335,9 +331,12 @@ Bluetooth.prototype = {
    * @private
    */
   _oppTransferCompleteHandler: function(transferInfo) {
-    this._setProfileConnected(this.Profiles.OPP, false);
+    this._setProfileConnected('opp', false);
     window.dispatchEvent(new CustomEvent('bluetooth-opp-transfer-complete',
-      {transferInfo: transferInfo}));
+      {
+        detail: { transferInfo: transferInfo }
+      }
+    ));
   },
 
   /**
@@ -353,14 +352,14 @@ Bluetooth.prototype = {
         switch (evt.attrs[i]) {
           case 'state':
             if (this._adapter.state === 'enabled') {
-              this._debug('state true');
+              this.debug('state true');
               this._isEnabled = true;
               navigator.mozSettings.createLock()
                 .set({'bluetooth.enabled': true});
               window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
               this.icon && this.icon.update();
             } else if (this._adapter.state === 'disabled') {
-              this._debug('state false');
+              this.debug('state false');
               this._isEnabled = false;
               navigator.mozSettings.createLock()
                 .set({'bluetooth.enabled': false});
@@ -399,26 +398,23 @@ Bluetooth.prototype = {
           // Default adapter attribute change.
           // Usually, it means that we reach new default adapter.
           case 'defaultAdapter':
-            this._debug('defaultAdapter changed.');
+            this.debug('defaultAdapter changed.');
             if (this._bluetooth.defaultAdapter) {
               if (this._adapter !== this._bluetooth.defaultAdapter) {
                 if (this._adapter !== null) { // adapter A -> adapter B
-                  this._debug('origin adapter is removed');
-                  this._dispatchAdapterState(false);
+                  this.debug('origin adapter is removed');
                   this._adapterUnavailableHandler();
                   this._adapter = null;
                 }
                 // set new adapter and dispatch adapter state
-                this._debug('new adapter is added');
+                this.debug('new adapter is added');
                 this._adapter = this._bluetooth.defaultAdapter;
                 this._isEnabled = (this._adapter.state === 'enabled');
                 // listen states when the adapter is available
                 this._adapterAvailableHandler();
-                this._dispatchAdapterState(true);
               }
             } else { // adapter -> null
-              this._debug('default adapter is removed');
-              this._dispatchAdapterState(false);
+              this.debug('default adapter is removed');
               this._adapterUnavailableHandler();
               this._adapter = null;
             }
@@ -427,20 +423,6 @@ Bluetooth.prototype = {
             break;
         }
       }
-  },
-
-  /**
-   * Dispatch bluetooth adapter available state to system.
-   *
-   * @private
-   */
-  _dispatchAdapterState: function bt__dispatchAdapterState(state) {
-    if (state) {
-      window.dispatchEvent(new CustomEvent('bluetooth-available',
-        { detail: { adapter: this._adapter }}));
-    } else {
-      window.dispatchEvent(new CustomEvent('bluetooth-unavailable'));
-    }
   },
 
   /**
@@ -457,6 +439,59 @@ Bluetooth.prototype = {
   },
 
   /**
+   * Get adapter from bluetooth through promise interface.
+   * XXX: the function abstract the Bluetooth API difference.
+   * We can remove it and use service query once BTv1 is deprecated.
+   *
+   * @public
+   * @return {Promise} A promise that resolve the Bluetooth Adapter
+   */
+  adapter: function bt__adapter() {
+    return new Promise((resolve, reject) => {
+      if (this._adapter !== null) {
+        resolve(this._adapter);
+      } else {
+        this.debug('No BT adapter retrieved');
+        reject();
+      }
+    });
+  },
+
+  /**
+   * Return device pairing result.
+   * XXX: the function abstract the Bluetooth API difference.
+   *
+   * @public
+   * @param {string} mac target device address
+   * @return {Promise} A promise that resolve when pair successfully,
+   *                   reject when pair failed
+   */
+  pair: function bt__pair(mac) {
+    return this._adapter.pair(mac);
+  },
+
+  /**
+   * Return paired devices list.
+   * XXX: the function abstract the Bluetooth API difference.
+   * We can use service query to return list once BTv1 is deprecated.
+   *
+   * @public
+   * @returns {Object[]} sequence of BluetoothDevice
+   */
+  getPairedDevices: function bt__getPairedDevices() {
+    return this._adapter.getPairedDevices();
+  },
+
+  /**
+   * Return bluetooth adapter.
+   *
+   * @public
+   */
+  get getAdapter() {
+    return this._adapter;
+  },
+
+  /**
    * Maintain bluetooth enable/disable state.
    *
    * @public
@@ -466,12 +501,55 @@ Bluetooth.prototype = {
   },
 
   /**
+   * Check if bluetooth OPP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isOPPProfileConnected() {
+    return this._isProfileConnected('opp');
+  },
+
+  /**
+   * Check if bluetooth A2DP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isA2DPProfileConnected() {
+    return this._isProfileConnected('a2dp');
+  },
+
+  /**
+   * Check if bluetooth SCO profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isSCOProfileConnected() {
+    return this._isProfileConnected('sco');
+  },
+
+  /**
+   * Check if any of bluetooth profiles is connected.
+   * Referenced by Bluetooth icon update
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get connected() {
+    return this._isProfileConnected('hfp') ||
+      this._isProfileConnected('a2dp') ||
+      this._isProfileConnected('opp');
+  },
+
+  /**
    * Console log.
    *
    * @private
    * @param  {[type]} msg debug message
    */
-  _debug: function bt__debug(msg) {
+  debug: function bt_debug(msg) {
     if (!this.onDebug) {
       return;
     }
@@ -480,5 +558,5 @@ Bluetooth.prototype = {
   }
 };
 
-  exports.Bluetooth2 = Bluetooth;
+exports.Bluetooth2 = Bluetooth;
 })(window);

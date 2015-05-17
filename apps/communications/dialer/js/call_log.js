@@ -1,4 +1,4 @@
-/* globals PerformanceTestingHelper, Contacts, CallLogDBManager, LazyLoader,
+/* globals Contacts, CallLogDBManager, LazyLoader,
            Utils, StickyHeader, KeypadManager, SimSettingsHelper,
            CallHandler, AccessibilityHelper,
            ConfirmDialog, Notification, fb, CallGroupMenu */
@@ -9,7 +9,6 @@ var CallLog = {
   _initialized: false,
   _headersInterval: null,
   _empty: true,
-  _dbupgrading: false,
   _contactCache: false,
 
   init: function cl_init() {
@@ -19,7 +18,6 @@ var CallLog = {
     }
 
     window.performance.mark('callLogStart');
-    PerformanceTestingHelper.dispatch('start-call-log');
 
     this._initialized = true;
 
@@ -50,10 +48,7 @@ var CallLog = {
         'edit-mode-header',
         'header-edit-mode-text',
         'missed-filter',
-        'select-all-threads',
-        'call-log-upgrading',
-        'call-log-upgrade-progress',
-        'call-log-upgrade-percent'
+        'select-all-threads'
       ];
 
       mainNodes.forEach(function(id) {
@@ -101,24 +96,6 @@ var CallLog = {
         self.becameVisible();
       });
     });
-
-    // Listen for database upgrade events.
-    CallLogDBManager.onupgradeneeded = function onupgradeneeded() {
-      // Show a progress bar letting the user know that the database is being
-      // upgraded.
-      self.showUpgrading();
-      self._dbupgrading = true;
-    };
-
-    CallLogDBManager.onupgradeprogress = function onupgradeprogress(progress) {
-      self.updateUpgradeProgress(progress);
-    };
-
-    CallLogDBManager.onupgradedone = function onupgradedone() {
-      self.hideUpgrading();
-      self._dbupgrading = false;
-      self.render();
-    };
   },
 
   /**
@@ -146,6 +123,7 @@ var CallLog = {
           if (!cacheRevision || cacheRevision > contactsRevision) {
             window.asyncStorage.setItem('contactCacheRevision',
                                         contactsRevision);
+            self._contactCache = true;
             resolve();
             return;
           }
@@ -221,25 +199,20 @@ var CallLog = {
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
       if (!cursor.value) {
-        if (self._dbupgrading) {
-          return;
-        }
         if (chunk.length === 0) {
           self.renderEmptyCallLog();
-          self.disableEditMode();
+          self.disableEditModeButton();
         } else {
           daysToRender.push(chunk);
           self.renderSeveralDays(daysToRender);
           if (!screenRendered) {
             window.performance.mark('firstChunkReady');
-            PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
-          self.enableEditMode();
+          self.enableEditModeButton();
           self.sticky.refresh();
           self.updateHeadersContinuously();
         }
         window.performance.measure('callLogReady', 'callLogStart');
-        PerformanceTestingHelper.dispatch('call-log-ready');
         return;
       }
 
@@ -258,7 +231,6 @@ var CallLog = {
           renderNow = true;
           screenRendered = true;
           window.performance.mark('firstChunkReady');
-          PerformanceTestingHelper.dispatch('first-chunk-ready');
         } else if (batchGroupCounter >= MAX_GROUPS_TO_BATCH_RENDER) {
           renderNow = true;
         }
@@ -302,7 +274,7 @@ var CallLog = {
   },
 
   renderEmptyCallLog: function cl_renderEmptyCallLog(isEmptyMissedCallsGroup) {
-    this.disableEditMode();
+    this.disableEditModeButton();
     // If rendering the empty call log for all calls (i.e. the
     // isEmptyMissedCallsGroup not set), set the _empty parameter to true
     if (!isEmptyMissedCallsGroup) {
@@ -339,7 +311,7 @@ var CallLog = {
     // Switch to all calls tab to avoid erroneous call filtering
     this.unfilter();
 
-    this.enableEditMode();
+    this.enableEditModeButton();
 
     // Create element of logGroup
     var logGroupDOM = this.createGroup(group);
@@ -520,20 +492,18 @@ var CallLog = {
       if (number) {
         bdi.textContent = number;
       } else {
-        primInfoMain.setAttribute('data-l10n-id', 'withheld-number');
+        bdi.setAttribute('data-l10n-id', 'withheld-number');
       }
     }
     primInfoMain.appendChild(bdi);
-
-    var retryCount = document.createElement('span');
-    retryCount.className = 'retry-count';
+    primInfo.appendChild(primInfoMain);
 
     if (group.retryCount && group.retryCount > 1) {
+      var retryCount = document.createElement('span');
+      retryCount.className = 'retry-count';
       retryCount.textContent = '(' + group.retryCount + ')';
+      primInfo.appendChild(retryCount);
     }
-
-    primInfo.appendChild(primInfoMain);
-    primInfo.appendChild(retryCount);
 
     var phoneNumberAdditionalInfo = '';
     var phoneNumberTypeL10nId = null;
@@ -614,16 +584,24 @@ var CallLog = {
     return groupContainer;
   },
 
-  enableEditMode: function cl_enableEditMode() {
+  enableEditModeButton: function cl_enableEditModeButton() {
     var icon = CallLog.callLogIconEdit;
     icon.removeAttribute('disabled');
     icon.setAttribute('aria-disabled', false);
   },
 
-  disableEditMode: function cl_disableEditMode() {
+  disableEditModeButton: function cl_disableEditModeButton() {
     var icon = CallLog.callLogIconEdit;
     icon.setAttribute('disabled', 'disabled');
     icon.setAttribute('aria-disabled', true);
+  },
+
+  showEditModeButton: function cl_showEditModeButton() {
+    CallLog.callLogIconEdit.hidden = false;
+  },
+
+  hideEditModeButton: function cl_hideEditModeButton() {
+    CallLog.callLogIconEdit.hidden = true;
   },
 
   showEditMode: function cl_showEditMode(event) {
@@ -653,19 +631,6 @@ var CallLog = {
     for (i = 0, l = logItems.length; i < l; i++) {
       logItems[i].setAttribute('aria-selected', false);
     }
-  },
-
-  showUpgrading: function cl_showUpgrading() {
-    this.callLogUpgrading.classList.remove('hide');
-  },
-
-  hideUpgrading: function cl_hideUpgrading() {
-    this.callLogUpgrading.classList.add('hide');
-  },
-
-  updateUpgradeProgress: function cl_updateUpgradeProgress(progress) {
-    this.callLogUpgradeProgress.setAttribute('value', progress);
-    this.callLogUpgradePercent.textContent = progress + '%';
   },
 
   // In case we are in edit mode, just update the counter of selected rows.
@@ -735,7 +700,7 @@ var CallLog = {
     } else {
       var noResultContainer = document.getElementById('no-result-container');
       noResultContainer.hidden = true;
-      this.enableEditMode();
+      this.enableEditModeButton();
     }
   },
 
@@ -747,7 +712,7 @@ var CallLog = {
     } else {
       var noResultContainer = document.getElementById('no-result-container');
       noResultContainer.hidden = true;
-      this.enableEditMode();
+      this.enableEditModeButton();
     }
 
     this.callLogContainer.classList.remove('filter');
@@ -944,16 +909,11 @@ var CallLog = {
    * param contactId
    *        Contact identifier if any. Only 'oncontactchange' events with
    *        'update' or 'remove' reasons will provide a contactId parameter.
-   * param phoneNumbers
-   *        Array of phoneNumbers associated with a contact. Only
-   *        'oncontactchange' events with 'update' or 'add' reasons will
-   *        provide this paramater.
    * param target
    *        DOM element to be updated. We default to the whole log if no
    *        'target' param is provided.
    */
-  updateListWithContactInfo: function cl_updateList(reason, contactId,
-                                                    phoneNumbers, target) {
+  updateListWithContactInfo: function cl_updateList(reason, contactId, target) {
     var container = target || this.callLogContainer;
 
     if (!container) {
@@ -1011,6 +971,7 @@ var CallLog = {
         bdi.textContent = element.dataset.phoneNumber;
         primInfoCont.appendChild(bdi);
         typeAndCarrier.textContent = '';
+        typeAndCarrier.setAttribute('data-l10n-id', 'unknown');
         delete element.dataset.contactId;
       }
       return;
@@ -1076,30 +1037,15 @@ var CallLog = {
 };
 
 navigator.mozContacts.oncontactchange = function oncontactchange(event) {
-  function contactChanged(contact, reason) {
-    var phoneNumbers = [];
-    if (contact.tel && contact.tel.length) {
-      phoneNumbers = contact.tel.map(function(tel) {
-        return tel.value;
-      });
-    }
-    switch (reason) {
-      case 'create':
-        CallLog.updateListWithContactInfo('create', null, phoneNumbers);
-        break;
-      case 'update':
-        CallLog.updateListWithContactInfo('update', event.contactID,
-                                          phoneNumbers);
-        break;
-    }
-  }
-
   var reason = event.reason;
   var options = {
     filterBy: ['id'],
     filterOp: 'equals',
     filterValue: event.contactID
   };
+
+  /* FIXME: We should use the contact information (id, phone number, etc...) to
+   * reduce the number of elements we try to update. */
 
   if (reason === 'remove') {
     CallLog.updateListWithContactInfo('remove', event.contactID);
@@ -1115,17 +1061,17 @@ navigator.mozContacts.oncontactchange = function oncontactchange(event) {
 
     var contact = e.target.result[0];
     if (!fb.isFbContact(contact)) {
-       contactChanged(contact, reason);
+       CallLog.updateListWithContactInfo(reason, event.contactID);
        return;
     }
 
     var fbReq = fb.getData(contact);
     fbReq.onsuccess = function fbContactSuccess() {
-      contactChanged(fbReq.result, reason);
+      CallLog.updateListWithContactInfo(reason, event.contactID);
     };
     fbReq.onerror = function fbContactError() {
       console.error('Error while querying FB: ', fbReq.error.name);
-      contactChanged(contact, reason);
+      CallLog.updateListWithContactInfo(reason, event.contactID);
     };
   };
 

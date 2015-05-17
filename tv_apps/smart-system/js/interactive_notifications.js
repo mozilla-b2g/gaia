@@ -198,19 +198,19 @@
   };
 
   proto.focus = function in_focus() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       document.activeElement.blur();
       this._activeMessage.buttons ?
                         this._keyNavigator.focus() : this._banner.focus();
     }
   };
 
-  proto.isVisible = function in_isVisible() {
+  proto.isFocusable = function in_isFocusable() {
     return !!this._activeMessage;
   };
 
   proto.getElement = function in_getElement() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       return this._banner;
     }
   };
@@ -225,7 +225,7 @@
                 this._activeType === TYPE.ALERT)) {
       // already have one, just pending it.
       this._pendingMessages[TYPE.NORMAL].push(msg);
-    } else  if (type === TYPE.ALERT && this._activeMessage) {
+    } else if (type === TYPE.ALERT && this._activeMessage) {
       // type === alert and _activeType is null or normal.
       // We show alert anyway and hide the normal one if one is shown.
       window.clearTimeout(this._activeTimeout);

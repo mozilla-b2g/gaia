@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsCache,
-          AttentionWindow, MozActivity */
+          AttentionWindow, MozActivity, focusManager */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -206,11 +206,7 @@
 
     this.app.setOrientation();
     this.app.requestForeground();
-    // An activity handled by ActivityWindow is always an inline activity.
-    // All window activities are handled by AppWindow. All inline
-    // activities have a rearWindow. Once this inline activity is killed,
-    // the focus should be transfered to its rear window.
-    evt.detail.rearWindow.focus();
+    focusManager.focus();
   };
 
   ChildWindowFactory.prototype.createActivityWindow = function(evt) {

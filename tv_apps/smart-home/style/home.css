@@ -56,7 +56,7 @@ section {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.2s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1);
   transform-origin: 0 50%;
 }
 
@@ -69,11 +69,20 @@ section {
 }
 
 .card {
-  margin: 0 1.6rem 0 1.6rem;
+  margin: 0;
   left: 0;
   top: 0;
   position: absolute;
   transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1), filter 0.3s ease;
+}
+
+.card smart-button[type="app-button"].tv-channel {
+  background-color: #272727;
+}
+
+.card smart-button[type="app-button"].tv-channel:before {
+  font-size: 30rem;
+  color: white;
 }
 
 .card smart-button[type="app-button"].new-card {
@@ -84,6 +93,30 @@ section {
 .card smart-button[type="app-button"].new-card-transition {
   transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1) 0.2s,
               opacity 0.4s cubic-bezier(0.25, 0, 0, 1) 0.2s;
+}
+
+.card smart-button[type="app-button"].new-card-transition.last-card {
+  transition-delay: 0s;
+}
+
+#folder-list .card smart-button[type="app-button"].new-card {
+  opacity: 1;
+  transform: translateY(-44rem);
+}
+
+/* XXX: This is an animation hack for dropping card to folder in reversed list.
+        When the list is shown revesed, the card would be initially inserted at
+        the end of folderList which is one unit exceed the right position
+        while the folderList scrolling back for one unit.
+        As a result we need to put its starting point one unit back to make it
+        looks like "moving straight down"　*/
+#folder-list.reversed .card:not([data-idx="0"]) smart-button[type="app-button"].new-card {
+  transform: translate(-34.6rem, -44rem);
+}
+
+#folder-list .card smart-button[type="app-button"].new-card-transition {
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1),
+              opacity 0.4s cubic-bezier(0.25, 0, 0, 1);
 }
 
 .card-panel {
@@ -126,6 +159,36 @@ section {
 
 .card.focused {
   z-index: 100;
+}
+
+/**
+ * folder list
+ */
+
+#folder-viewer {
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+#folder-list-frame {
+  position: absolute;
+  width: 100%;
+  height: 33.6rem;
+  top: calc(32.41% + 32.3rem);
+  overflow: visible;
+}
+
+#folder-list {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1);
+  transform-origin: 0 50%;
 }
 
 /**

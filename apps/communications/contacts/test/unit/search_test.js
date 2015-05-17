@@ -10,6 +10,7 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/utilities.js');
 require('/shared/js/contacts/search.js');
+require('/contacts/js/fb_resolver.js');
 
 suite('Search mode', function() {
   var searchBox, searchList, noResults;

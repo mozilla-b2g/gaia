@@ -76,6 +76,15 @@
     "284": "/style/icons/system_284.png"
   },
   "activities": {
+    "import-app": {
+      "filters": {
+        "blob": {
+          "required": true
+        }
+      },
+      "disposition": "inline",
+      "returnValue": true
+    },
     "view": {
       "filters": {
         "type": "url",
@@ -128,6 +137,12 @@
     },
     "fxa-mgmt": {
       "description": "Firefox Accounts management API",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
+    },
+    "about-service-workers": {
+      "description": "about:serviceworkers proxy",
       "rules": {
         "minimumAccessLevel": "certified"
       }

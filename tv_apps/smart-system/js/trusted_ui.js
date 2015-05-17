@@ -123,6 +123,10 @@ var TrustedUIManager = {
     return this.screen.classList.contains('trustedui');
   },
 
+  isFocusable: function trui_isFocusable() {
+    return this.isVisible();
+  },
+
   getElement: function trui_getElement() {
     return this.popupContainer;
   },

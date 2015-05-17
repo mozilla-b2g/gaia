@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockSettingsListener_Install, MockSettingsListener_Uninstall */
 
 // Some files may require SettingsListener to be defined at the
 // point of inclusion. Tests for those files can include this file
@@ -11,15 +12,15 @@
 // including this file.
 
 function MockSettingsListener_Install() {
-  if (!window['MockSettingsListener']) {
+  if (!window.MockSettingsListener) {
     throw new Error('MockSettingsListener has not been loaded');
   }
-  window['realSettingsListener'] = window['SettingsListener'];
-  window['SettingsListener'] = window['MockSettingsListener'];
+  window.realSettingsListener = window.SettingsListener;
+  window.SettingsListener = window.MockSettingsListener;
 }
 
 function MockSettingsListener_Uninstall() {
-  window['SettingsListener'] = window['realSettingsListener'];
+  window.SettingsListener = window.realSettingsListener;
 }
 
 MockSettingsListener_Install();

@@ -1,3 +1,4 @@
+/* global BaseModule, MockContextMenu */
 'use strict';
 
 /**
@@ -11,6 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_context_menu.js');
 
 var mocksForSecureWindowManager = new window.MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
@@ -45,8 +47,16 @@ suite('system/SecureWindow', function() {
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/browser_mixin.js');
+    requireApp('system/js/base_module.js');
     requireApp('system/js/app_window.js');
-    requireApp('system/js/secure_window.js', done);
+    requireApp('system/js/secure_window.js', function() {
+      this.sinon.stub(BaseModule, 'instantiate', function(name) {
+        if (name === 'BrowserContextMenu') {
+          return MockContextMenu;
+        }
+      });
+      done();
+    }.bind(this));
   });
 
   teardown(function() {

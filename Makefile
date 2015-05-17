@@ -15,11 +15,7 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
-# MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
-#                                                                             #
-# MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
-#                          Current values can be 'marionette-b2gdesktop-host' #
-#                          and 'marionette-device-host'                       #
+# MARIONETTE_RUNNER_HOST : ie marionette-device-host                          #
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
@@ -100,6 +96,7 @@ endif
 
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
+NODE_MODULES_CACHEDIR=modules_tar_cachedir
 
 # GAIA_DEVICE_TYPE customization
 # phone - default
@@ -180,12 +177,10 @@ export BUILDAPP
 export npm_config_loglevel=warn
 ifneq ($(BUILDAPP),desktop)
 REPORTER?=mocha-tbpl-reporter
-MARIONETTE_RUNNER_HOST?=marionette-socket-host
 endif
 REPORTER?=spec
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
-MOZPERFOUT?=""
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -370,6 +365,8 @@ SETTINGS_PATH ?= build/config/custom-settings.json
 KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 CONTACTS_IMPORT_SERVICES_PATH ?= build/config/communications_services.json
 EMAIL_SERVICES_PATH ?=
+DEFAULT_KEYBOAD_SYMBOLS_FONT ?= shared/style/keyboard_symbols/Keyboard-Symbols.ttf
+DEFAULT_GAIA_ICONS_FONT ?= shared/elements/gaia-icons/fonts/gaia-icons.ttf
 
 ifdef GAIA_DISTRIBUTION_DIR
   DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
@@ -440,14 +437,20 @@ GAIA_PRETRANSLATE?=1
 GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
+# Include the ID of the layout in this variable will make both the dictionary
+# and the layout included in the package.
 GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 # We optionally offers downloading the dictionary from the CDN, instead of
 # including it in the build.
-# Latin IMEngine-backed layouts specified under this variable will have
-# their dictionaries included in the package. The user has to optionally
-# download the dictionary in keyboard settings page in order to enable the
-# layout.
-GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS?=$(GAIA_KEYBOARD_LAYOUTS)
+# Include the ID of the layout in this variable will make it appear in the
+# keyboard settings page, allowing user to download the dictionary.
+# Any layout listed here that doesn't require a dictionary download and/or
+# comes with its own dictionary will become a pre-installed layout,
+# behaving the same way as if it is listed in the above variable.
+GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS?=noPreloadDictRequired
+# Enable user dictionary for built-in keyboard app by default
+GAIA_KEYBOARD_ENABLE_USER_DICT?=1
+
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -486,12 +489,16 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(GAIA_DIR)/tests
 
+PROFILE_DIR?=$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)
+COREWEBAPPS_DIR?=$(PROFILE_DIR)
+
 define BUILD_CONFIG
 { \
   "ADB" : "$(patsubst "%",%,$(ADB))", \
   "GAIA_DIR" : "$(GAIA_DIR)", \
-  "PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
+  "PROFILE_DIR" : "$(PROFILE_DIR)", \
   "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+  "COREWEBAPPS_DIR" : "$(COREWEBAPPS_DIR)", \
   "GAIA_SCHEME" : "$(SCHEME)", \
   "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
   "DEBUG" : "$(DEBUG)", \
@@ -506,7 +513,7 @@ define BUILD_CONFIG
   "GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
   "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
   "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
-  "GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS" : "$(GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS)", \
+  "GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS" : "$(GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS)", \
   "GAIA_KEYBOARD_ENABLE_USER_DICT" : "$(GAIA_KEYBOARD_ENABLE_USER_DICT)", \
   "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
   "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
@@ -540,14 +547,16 @@ define BUILD_CONFIG
   "P" : "$(P)", \
   "VERBOSE" : "$(VERBOSE)", \
   "RAPTOR" : "$(RAPTOR)", \
-  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)" \
+  "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
+  "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
+  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)" \
 }
 endef
 
 export BUILD_CONFIG
 
 # Generate profile/
-$(PROFILE_FOLDER): profile-dir app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
+$(PROFILE_FOLDER): profile-dir build-app test-agent-config contacts extensions b2g_sdk .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -556,6 +565,10 @@ $(STAGE_DIR):
 	mkdir -p $@
 
 LANG=POSIX # Avoiding sort order differences between OSes
+
+.PHONY: build-app
+build-app: app
+	@$(call $(BUILD_RUNNER),update-webapps-json)
 
 .PHONY: app
 app: b2g_sdk profile-dir
@@ -694,20 +707,36 @@ endif
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
-
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
-modules.tar: gaia_node_modules.revision
+modules.tar: gaia_node_modules.revision $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)
+	-cp -f "$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)" "$(NODE_MODULES_SRC)"
+
+$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV): gaia_node_modules.revision
 	@echo Downloading latest node_modules package. This may take several minutes...
-	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
-	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+	mkdir -p "$(NODE_MODULES_CACHEDIR)"
+	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+
+gaia.zip: $(DEFAULT_KEYBOAD_SYMBOLS_FONT) $(DEFAULT_GAIA_ICONS_FONT) $(PROFILE_FOLDER)
+	@mkdir -p tmp/gaia tmp/gonk/system/fonts/hidden && cp -r $(PROFILE_FOLDER) tmp/gaia && \
+	 cp $(DEFAULT_GAIA_ICONS_FONT) tmp/gonk/system/fonts/hidden && \
+	 cp $(DEFAULT_KEYBOAD_SYMBOLS_FONT) tmp/gonk/system/fonts/hidden
+	@cd tmp/ && zip -r -9 -u ../gaia.zip . && cd ../ && rm -r tmp/
 
 git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
 		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
+
+# npm-cache target is run when our node modules source is set to npm-cache
+# which is a pre-built set of node modules for the current platform +
+# node version present. The node modules selected for come from package.json.
+npm-cache:
+	@echo "Using pre-deployed cache."
+	npm rebuild marionette-js-runner
+	touch -c node_modules
 
 node_modules: gaia_node_modules.revision
 	# Running make without using a dependency ensures that we can run
@@ -716,18 +745,19 @@ node_modules: gaia_node_modules.revision
 	$(MAKE) $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
 	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
-else
+else ifeq "$(NODE_MODULES_SRC)" "git-gaia-node-modules"
 	rm -fr node_modules
 	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
 endif
+ifneq "$(NODE_MODULES_SRC)" "npm-cache"
 	node --version
 	npm --version
-	npm install && npm rebuild
+	VIRTUALENV_EXISTS=$(VIRTUALENV_EXISTS) npm install && npm rebuild
 	@echo "node_modules installed."
 	touch -c $@
+endif
 ifeq ($(BUILDAPP),device)
-	export LANG=en_US.UTF-8; \
-	npm install marionette-socket-host
+	export LANG=en_US.UTF-8;
 endif
 
 ###############################################################################
@@ -747,12 +777,12 @@ ifndef APPS
   endif
 endif
 
-b2g: node_modules/.bin/mozilla-download
+b2g: node_modules
 	DEBUG=* ./node_modules/.bin/mozilla-download \
-	--verbose \
-	--product b2g \
-	--channel tinderbox \
-	--branch mozilla-central $@
+	--product b2g-desktop \
+	--branch mozilla-central \
+	$(shell pwd)
+	touch -c $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
@@ -766,12 +796,22 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test:
+test-integration-test: b2g
+	TEST_MANIFEST=$(TEST_MANIFEST) \
 	./bin/gaia-marionette \
-		--host $(MARIONETTE_RUNNER_HOST) \
-		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
+
+.PHONY: jsmarionette-unit-tests
+jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
+	PROFILE_FOLDER=$(PROFILE_FOLDER) ./tests/jsmarionette/run_tests.js
+
+tests/jsmarionette/runner/marionette-js-runner/venv:
+	# Install virtualenv
+	cd tests/jsmarionette/runner/marionette-js-runner && npm install
+	# Still want to use $GAIA/node_modules
+	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
+
 
 .PHONY: caldav-server-install
 caldav-server-install:
@@ -780,16 +820,9 @@ caldav-server-install:
 				export LANG=en_US.UTF-8; \
 				pip install radicale;
 
-.PHONY: test-perf
-test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
-	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
-	REPORTER=$(REPORTER) \
-	./bin/gaia-perf-marionette
-
 .PHONY: raptor
 raptor: node_modules
-	RAPTOR=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+	RAPTOR=1 GAIA_OPTIMIZE=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
 
 .PHONY: tests
 tests: app offline
@@ -897,7 +930,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build tests
+  JSHINTED_PATH = apps shared build tests tv_apps
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
@@ -1036,7 +1069,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env "$(NODE_MODULES_CACHEDIR)"
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

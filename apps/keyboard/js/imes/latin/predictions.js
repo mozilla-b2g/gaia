@@ -1,5 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* exported Predictions */
 //
 // This is a JavaScript predictive text engine: given a dictionary, a data
 // structure that specifies which keys are near which other keys, and
@@ -62,13 +63,13 @@ var Predictions = function() {
   var CACHE_SIZE = 255;    // how many suggestions to remember
 
   // Weights of various permutations we do when matching input
-  var VARIANT_FORM_MULTIPLIER = .99;           // slightly prefer exact match
-  var PUNCTUATION_INSERTION_MULTIPLIER = .95;  // apostrophes are almost free
+  var VARIANT_FORM_MULTIPLIER = 0.99;           // slightly prefer exact match
+  var PUNCTUATION_INSERTION_MULTIPLIER = 0.95;  // apostrophes are almost free
   var NEARBY_KEY_REPLACEMENT_MULTIPLIER = 1;   // adjusted by actual distance
-  var TRANSPOSITION_MULTIPLIER = .3;
-  var INSERTION_MULTIPLIER = .3;
-  var SUBSTITUTION_MULTIPLIER = .2;            // for keys that are not nearby
-  var DELETION_MULTIPLIER = .1;
+  var TRANSPOSITION_MULTIPLIER = 0.3;
+  var INSERTION_MULTIPLIER = 0.3;
+  var SUBSTITUTION_MULTIPLIER = 0.2;            // for keys that are not nearby
+  var DELETION_MULTIPLIER = 0.1;
   var ZERO_CORRECTION_PREFIX_MULTIPLIER = 10;
   // profane words don't have a frequency themselves, so we bump their
   // frequency to a value which will make it pop up (only do if matches input)
@@ -98,6 +99,9 @@ var Predictions = function() {
   var rootform = [];       // Maps charcodes to the root form
   var nearbyKeys;          // Maps charcodes to a set of codes of nearby keys
   var cache;               // Cache inputs to completions.
+  var validChars = null;   // An ES6 Set containing valid chars for this dict
+                           // including possibly valid variant forms and nearby
+                           // keys.
 
   // This function is called to pass our dictionary to us as an ArrayBuffer.
   function setDictionary(buffer) {
@@ -117,11 +121,13 @@ var Predictions = function() {
     }
 
     if (uint32(0) !== 0x46784F53 ||   // "FxOS"
-        uint32(4) !== 0x44494354)     // "DICT"
+        uint32(4) !== 0x44494354) {   // "DICT"
       throw new Error('Invalid dictionary file');
+    }
 
-    if (uint32(8) !== 1)
+    if (uint32(8) !== 1) {
       throw new Error('Unknown dictionary version');
+    }
 
     // Read the maximum word length.
     // We add 1 because word predictions can delete characters, so the
@@ -132,9 +138,7 @@ var Predictions = function() {
     var numEntries = uint16(13);
     for (var i = 0; i < numEntries; i++) {
       var offset = 15 + i * 6;
-      var ch = uint16(offset);
-      var count = uint32(offset + 2);
-      characterTable[ch] = count;
+      characterTable[uint16(offset)] = uint32(offset + 2);
     }
 
     // The dictionary data begins right after the character table
@@ -174,6 +178,13 @@ var Predictions = function() {
       'x': 'ẌẍẊẋ',
       'y': 'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
       'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ',
+      'α': 'άΆ',
+      'ε': 'έΈ',
+      'η': 'ήΉ',
+      'ι': 'ίϊΐΊΪ',
+      'ο': 'όΌ',
+      'υ': 'ύϋΰΎΫ',
+      'ω': 'ώΏ',
       '$': '$'
     };
 
@@ -181,14 +192,14 @@ var Predictions = function() {
     var accentedFormToRoot = {};
     for (var letter in rootToAccentedForm) {
       var s = rootToAccentedForm[letter];
-      for (var i = 0, len = s.length; i < len; i++)
-        accentedFormToRoot[s[i]] = letter;
+      for (var j = 0, len = s.length; j < len; j++) {
+        accentedFormToRoot[s[j]] = letter;
+      }
     }
 
     // Now through all the characters that appear in the dictionary
     // and figure out their variant forms.
     for (var charcode in characterTable) {
-
       // Start off by with an empty set of variants for each character.
       variants[charcode] = '';
 
@@ -222,6 +233,8 @@ var Predictions = function() {
       // log("Root form of " + ch + " " +
       //     String.fromCharCode(rootform[charcode]))
     }
+
+    generateValidChars();
   }
 
   // latin.js passes us a data structure that holds the inverse square
@@ -236,6 +249,54 @@ var Predictions = function() {
     cache = new LRUCache(CACHE_SIZE); // Discard any cached results
     nearbyKeys = data;
     // log("Nearby Keys: " + JSON.stringify(data));
+  }
+
+  function generateValidChars() {
+    // We're called when both |nearbyKeys| and |variants| information is ready.
+    // Note this relies on the fact that setNearByKeys is always called before
+    // setDictionary, and the setNearByKeys call is optional. Thus, we want to
+    // be called at setDictionary.
+    //
+    // It's not very easy to lessen the constraint, as within this module, we
+    // don't have knowledge on whether we're to be reinitialized, with setNBK
+    // coming or not, and with setNBK coming before or after setDict.
+    //
+    // Note at this moment, keys of |variants| object is the character table of
+    // this dictionary.
+    // We need to consider each variants[ch]'s
+    // - the ch itself (the character in the dict)
+    // - all the characters of variants[ch] string (different cases and
+    //     root form (of different cases); the latter is espcially important
+    //     if ch is accented)
+    // furthermore, for that ch, we want to consider as valid all the nearby
+    // keys of rootform[ch], and the variant form of such nearby keys.
+
+    validChars = new Set();
+
+    variants.forEach(function(variantStr, charCode) {
+      validChars.add(String.fromCharCode(charCode));
+
+      Array.from(variantStr).forEach(function(varCh) {
+        validChars.add(varCh);
+      });
+
+      var rootCode = rootform[charCode];
+      if (rootCode && nearbyKeys && nearbyKeys[rootCode]) {
+        Object.keys(nearbyKeys[rootCode]).forEach(
+        function(rootNearByCode) {
+          validChars.add(String.fromCharCode(rootNearByCode));
+
+          // the nearby key isn't necessarily in character table,
+          // so test its existence in |variants| first.
+          if (variants[rootNearByCode]) {
+            Array.from(variants[rootNearByCode]).forEach(
+            function(rootNearByVarCode) {
+              validChars.add(rootNearByVarCode);
+            });
+          }
+        });
+      }
+    });
   }
 
   //
@@ -274,8 +335,9 @@ var Predictions = function() {
                    callback,        // call this on success
                    onerror)         // and call this on error
   {
-    if (!tree || !nearbyKeys)
+    if (!tree || !nearbyKeys) {
       throw Error('not initialized');
+    }
 
     // The search algorithm compares the user's input to the dictionary tree
     // data structure and generates a set of candidates incrementally,
@@ -299,8 +361,9 @@ var Predictions = function() {
     var status = {
       state: 'predicting',
       abort: function() {
-        if (this.state !== 'done' && this.state !== 'aborted')
+        if (this.state !== 'done' && this.state !== 'aborted') {
           this.state = 'aborting';
+        }
       }
     };
 
@@ -339,7 +402,8 @@ var Predictions = function() {
 
         // Check length and check for invalid characters. If the input is
         // bad, we can reject it right away.
-        if (input.length > maxWordLength || !validChars(input)) {
+        if (input.length > maxWordLength ||
+            !Array.from(input).every(function(c) {return validChars.has(c);})) {
           status.state = 'done';
           status.suggestions = [];
           callback(status.suggestions);
@@ -362,32 +426,6 @@ var Predictions = function() {
         status.error = e;
         onerror(e.toString() + '\n' + e.stack);
       }
-    }
-
-    // Check whether all the characters of s appear in the dictionary or are
-    // at least near characters that do. If we are passed a string that does
-    // not pass this test then there is no way we will be able to offer
-    // suggestions and it is not even worth searching.
-    function validChars(s) {
-      outer: for (var i = 0, n = s.length; i < n; i++) {
-        var c = s.charCodeAt(i);
-        if (characterTable.hasOwnProperty(c))  // character is valid
-          continue;
-        // If the character does not occur in this language, but there is
-        // a nearby key that does occur, then maybe it is okay
-        if (!nearbyKeys.hasOwnProperty(c))
-          return false;  // no nearby keys, so no suggestions possible
-        var nearby = nearbyKeys[c];
-        for (c in nearby) {
-          if (characterTable.hasOwnProperty(c))
-            continue outer;
-        }
-        // no nearby keys are in the dictionary, so no suggestions possible
-        return false;
-      }
-
-      // All the characters of s are valid
-      return true;
     }
 
     // Add a candidate to the list of promising candidates if frequency *
@@ -429,8 +467,9 @@ var Predictions = function() {
       }
 
       // If this candidate could never become a suggestion, don't add it
-      if (weight <= suggestions.threshold)
+      if (weight <= suggestions.threshold) {
         return;
+      }
 
       candidates.add({
         pointer: pointer,
@@ -445,17 +484,19 @@ var Predictions = function() {
     // Add a suggestion to the priority queue of suggestions
     function addSuggestion(suggestion, weight) {
       // If the input was capitalized, capitalize the suggestion
-      if (capitalize)
+      if (capitalize) {
         suggestion = suggestion[0].toUpperCase() + suggestion.substring(1);
+      }
 
       // Make sure we don't already have the suggestion in the queue
       for (var i = 0, n = suggestions.items.length; i < n; i++) {
         if (suggestions.items[i][0] === suggestion) {
           // If the version we already have has higher weight, skip this one
-          if (suggestions.priorities[i] >= weight)
+          if (suggestions.priorities[i] >= weight) {
             return;
-          else // otherwise, remove the existing lower-weight copy
+          } else { // otherwise, remove the existing lower-weight copy
             suggestions.removeItemAt(i);
+          }
           break;
         }
       }
@@ -472,8 +513,9 @@ var Predictions = function() {
     // possible candidates, and thus, we're doen for making suggestions.
     function processCandidates() {
       try {
-        if (aborted())
+        if (aborted()) {
           return;
+        }
 
         for (var count = 0; count < CANDIDATES_PER_BATCH; count++) {
           var candidate = candidates.remove();
@@ -577,8 +619,9 @@ var Predictions = function() {
         // Note however, that we only use this shortcut if we've already
         // made at least one correction because uncorrected matches are given
         // high weight by addCandidate.
-        if (corrections > 0 && weight <= candidates.threshold)
+        if (corrections > 0 && weight <= candidates.threshold) {
           break;
+        }
 
         // If we generate new candidates from this node, this is what
         // their output string will be
@@ -798,8 +841,9 @@ var Predictions = function() {
 
     if (haschar) {
       node.ch = tree[offset++];
-      if (bigchar)
+      if (bigchar) {
         node.ch = (node.ch << 8) + tree[offset++];
+      }
     }
     else {
       node.ch = 0;
@@ -815,10 +859,11 @@ var Predictions = function() {
       node.next = -1;
     }
 
-    if (haschar)
+    if (haschar) {
       node.center = offset;
-    else
+    } else {
       node.center = -1;
+    }
 
 /*
     log("readNode:" +
@@ -888,8 +933,9 @@ var Predictions = function() {
     else {
       // Linear search for small arrays
       for (var i = 0, n = this.priorities.length; i < n; i++) {
-        if (priority > this.priorities[i])
+        if (priority > this.priorities[i]) {
           break;
+        }
       }
       index = i;
     }
@@ -903,8 +949,9 @@ var Predictions = function() {
   };
 
   BoundedPriorityQueue.prototype.remove = function remove() {
-    if (this.items.length === 0)
+    if (this.items.length === 0) {
       return null;
+    }
     this.priorities.shift();
     this.threshold = this.priorities[this.maxSize - 1] || 0;
     return this.items.shift();
@@ -969,4 +1016,4 @@ var Predictions = function() {
     setNearbyKeys: setNearbyKeys,
     predict: predict
   };
-}();
+};

@@ -1,7 +1,4 @@
-/* global requireApp, suite, suiteSetup, test,
-          setup, assert, CustomEvent,
-          SIMSlotManager, SIMSlot, SimSettingsHelper,
-          MocksHelper */
+/* global SIMSlotManager, SIMSlot, SimSettingsHelper, MocksHelper */
 
 'use strict';
 

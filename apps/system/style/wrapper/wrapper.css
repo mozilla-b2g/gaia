@@ -1,7 +1,7 @@
 .appWindow > .chrome {
   pointer-events: none;
   background-color: black;
-  transition: background-color 0.5s ease;
+  transition: background-color var(--transition-duration) ease;
   height: 5rem;
 }
 

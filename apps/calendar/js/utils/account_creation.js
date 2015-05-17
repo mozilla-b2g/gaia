@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Responder = require('responder');
-var app = require('app');
-var denodeifyAll = require('promise').denodeifyAll;
+var Responder = require('common/responder');
+var core = require('core');
+var denodeifyAll = require('common/promise').denodeifyAll;
 
 /**
  * Helper class to create accounts.
@@ -18,11 +18,8 @@ var denodeifyAll = require('promise').denodeifyAll;
  *    - authorize
  *    - calendar sync
  *
- *
- * @param {Calendar.App} app instance of app.
  */
 function AccountCreation() {
-  this.app = app;
   Responder.call(this);
 
   denodeifyAll(this, [ 'send' ]);
@@ -40,8 +37,9 @@ AccountCreation.prototype = {
    */
   send: function(model, callback) {
     var self = this;
-    var accountStore = this.app.store('Account');
-    var calendarStore = this.app.store('Calendar');
+    var storeFactory = core.storeFactory;
+    var accountStore = storeFactory.get('Account');
+    var calendarStore = storeFactory.get('Calendar');
 
     // begin by persisting the account
     accountStore.verifyAndPersist(model, function(accErr, id, result) {
@@ -80,7 +78,7 @@ AccountCreation.prototype = {
           // we just begin the sync and let the event handlers
           // on the sync controller do the work.
           for (var key in calendars) {
-            self.app.syncController.calendar(
+            core.syncController.calendar(
               result,
               calendars[key]
             );

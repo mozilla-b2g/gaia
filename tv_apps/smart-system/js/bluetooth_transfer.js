@@ -559,18 +559,18 @@ var BluetoothTransfer = {
     focusManager.focus();
   },
 
-  isVisible: function bt_isVisible() {
+  isFocusable: function bt_isFocusable() {
     return !!this.customDialog;
   },
 
   getElement: function bt_getOrder() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       return this.customDialog;
     }
   },
 
   focus: function bt_focus() {
-    if (this.isVisible()) {
+    if (this.isFocusable()) {
       // confirm button may not be shown in custom dialog, so focusing cancel
       // button is better to handle all cases.
       document.activeElement.blur();

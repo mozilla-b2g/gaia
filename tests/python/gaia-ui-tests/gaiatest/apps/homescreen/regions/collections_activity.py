@@ -19,7 +19,9 @@ class CollectionsActivity(Base):
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.src == self._src)
         self.apps.switch_to_displayed_app()
         loading = self.marionette.find_element(*self._collection_loading_locator)
-        Wait(self.marionette).until(expected.element_not_displayed(loading))
+        Wait(self.marionette).until(expected.element_displayed(loading))
+        # See Bug 1162112, Marionette Wait() polling without interval might be interfering network load
+        Wait(self.marionette, timeout=30, interval=5).until(expected.element_not_displayed(loading))
 
     @property
     def collection_name_list(self):

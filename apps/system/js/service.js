@@ -35,6 +35,10 @@
     /**
      * Request a service and get a promise.
      * The service name may include the name of server or not if it is unique.
+     *
+     * The request and query format are different,
+     * request does not accept getter format.
+     *
      * @example
      * Service.request('locked').then(function() {});
      * Service.request('addObserver', 'test.enabled', this).then(function() {});
@@ -202,7 +206,7 @@
      * Service.query('isFtuRunning');
      * 
      * @param  {String} state The machine name and the state name.
-     * @return {String|Boolean|Number}       
+     * @return {String|Boolean|Number|Object}
      */
     query: function(stateString) {
       this.debug(stateString);

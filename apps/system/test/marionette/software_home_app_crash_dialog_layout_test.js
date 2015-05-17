@@ -6,8 +6,6 @@ marionette('Software Home Button - App Crash Report Layout', function() {
 
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false,
       'software-button.enabled': true
     }
   });

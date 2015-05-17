@@ -7,8 +7,9 @@ var Factory = require('test/support/factory');
 var FakePage = require('test/support/fake_page');
 var ModifyAccount = require('views/modify_account');
 var OAuthWindow = require('oauth_window');
-var Presets = require('presets');
-var nextTick = require('next_tick');
+var Presets = require('common/presets');
+var core = require('core');
+var nextTick = require('common/next_tick');
 var router = require('router');
 
 require('/shared/elements/gaia-header/dist/gaia-header.js');
@@ -19,7 +20,7 @@ suite('Views.ModifyAccount', function() {
   var subject;
   var account;
   var triggerEvent;
-  var app;
+  var storeFactory;
 
   var mozApp = {};
 
@@ -126,27 +127,25 @@ suite('Views.ModifyAccount', function() {
 
   // db
   setup(function(done) {
-    app = testSupport.calendar.app();
-
     account = Factory('account', { _id: 1 });
 
     // assumes account is in a "modify" state
     subject = new ModifyAccount({
-      app: app,
       model: account
     });
 
-    app.db.open(function() {
-      app.store('Account').persist(account, done);
+    storeFactory = core.storeFactory;
+    core.db.open(function() {
+      storeFactory.get('Account').persist(account, done);
     });
   });
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -254,7 +253,7 @@ suite('Views.ModifyAccount', function() {
     test('with existing model', function() {
       var calledShow;
       var calledRemove;
-      var store = app.store('Account');
+      var store = storeFactory.get('Account');
 
       // we don't really need to redirect
       // in the test just confirm that it does

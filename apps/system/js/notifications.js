@@ -7,7 +7,7 @@
 var NotificationScreen = {
   TOASTER_TIMEOUT: 3500,
   TRANSITION_FRACTION: 0.30,
-  TRANSITION_DURATION: 300,
+  TRANSITION_DURATION: 200,
   SWIPE_INERTIA: 100,
   TAP_THRESHOLD: 10,
   SCROLL_THRESHOLD: 10,
@@ -94,7 +94,6 @@ var NotificationScreen = {
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
     window.addEventListener('desktop-notification-resend', this);
-    window.addEventListener('localized', this);
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
 
@@ -191,9 +190,6 @@ var NotificationScreen = {
         setTimeout((function() {
           this.clearLockScreen();
         }).bind(this), 400);
-        break;
-      case 'localized':
-        this.updateNotificationsDir();
         break;
     }
   },
@@ -382,25 +378,6 @@ var NotificationScreen = {
     return date;
   },
 
-  /* updateNotificationsDir makes sure all the notifications'
-   * directions are updated accoring to the system direction
-   * if they have dir explicitely specified to "auto", which is
-   * how we want the auto to behave, otherwise every child element
-   * will be aligned according to its own direction which creates
-   * a UI mess we can't control by changing the system
-   * language/direction
-   */
-  updateNotificationsDir: function ns_updateNotificationsDir() {
-    var newDir = document.documentElement.dir;
-    var notificationGroup = document.getElementsByClassName('notification');
-    for (var i = 0, l = notificationGroup.length; i < l; i++) {
-      var predefinedDir = notificationGroup[i].dataset.predefinedDir;
-      if ((predefinedDir === 'auto') || !predefinedDir) {
-        notificationGroup[i].dir = newDir;
-      }
-    }
-  },
-
   updateToaster: function ns_updateToaster(detail, type, dir) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
@@ -440,8 +417,8 @@ var NotificationScreen = {
      * which creates a UI mess we can't control by changing
      * the system language.
      */
-    var dir = (detail.bidi === 'auto' || typeof detail.bidi === 'undefined') ?
-      document.documentElement.dir : detail.bidi;
+    var dir = (detail.dir === 'auto' || typeof detail.dir === 'undefined') ?
+      document.documentElement.dir : detail.dir;
 
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
@@ -453,10 +430,8 @@ var NotificationScreen = {
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
-
     notificationNode.lang = detail.lang;
-    notificationNode.dir = dir;
-    notificationNode.dataset.predefinedDir = detail.bidi;
+    notificationNode.dataset.predefinedDir = detail.dir;
 
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
@@ -476,11 +451,11 @@ var NotificationScreen = {
 
     var titleContainer = document.createElement('div');
     titleContainer.classList.add('title-container');
-    titleContainer.setAttribute('dir', 'auto');
 
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
+    title.setAttribute('dir', 'auto');
 
     titleContainer.appendChild(title);
 
@@ -495,7 +470,11 @@ var NotificationScreen = {
 
     var message = document.createElement('div');
     message.classList.add('detail');
-    message.textContent = detail.text;
+    var messageContent = document.createElement('div');
+    messageContent.classList.add('detail-content');
+    messageContent.textContent = detail.text;
+    messageContent.setAttribute('dir', 'auto');
+    message.appendChild(messageContent);
     notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
@@ -515,7 +494,7 @@ var NotificationScreen = {
       // but we still need to update type, lang and dir.
       oldNotif.dataset.type = type;
       oldNotif.lang = detail.lang;
-      oldNotif.dir = dir;
+      oldNotif.dataset.predefinedDir = detail.dir;
 
       notificationNode = oldNotif;
     } else {
@@ -583,7 +562,7 @@ var NotificationScreen = {
           ringtonePlayer.pause();
           ringtonePlayer.removeAttribute('src');
           ringtonePlayer.load();
-        }, 2000);
+        }, 4000);
       }
 
       if (this.vibrates) {

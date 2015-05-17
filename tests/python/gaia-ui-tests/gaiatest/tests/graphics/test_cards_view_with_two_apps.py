@@ -24,11 +24,13 @@ class TestCardsView(GaiaImageCompareTestCase):
         # Launch the test apps
         for app in self._test_apps:
             self.apps.launch(app)
-            time.sleep(4)
+            
+            # 10 seconds for the actual user using the app a bit, and going back to homescreen
+            time.sleep(10)
             self.device.touch_home_button()
 
         # Switch to top level frame before starting the test
-        self.marionette.switch_to_frame()
+        #self.marionette.switch_to_frame()
 
     def test_cards_view_with_two_apps(self):
         """https://moztrap.mozilla.org/manage/case/2462/"""
@@ -41,10 +43,12 @@ class TestCardsView(GaiaImageCompareTestCase):
         cards_view.wait_for_cards_view()
         card_frame = self.marionette.get_active_frame()
         self.take_screenshot()
-        self.change_orientation('landscape-primary')
-        self.take_screenshot()
-        self.change_orientation('portrait-primary')
-        self.take_screenshot()
+
+        # disabled per Bug 1118390
+        #self.change_orientation('landscape-primary')
+        #self.take_screenshot()
+        #self.change_orientation('portrait-primary')
+        #self.take_screenshot()
 
         # Wait for first app ready
         cards_view.wait_for_card_ready(self._test_apps[1])
@@ -57,14 +61,13 @@ class TestCardsView(GaiaImageCompareTestCase):
         # Wait for previous app ready
         cards_view.wait_for_card_ready(self._test_apps[0])
         # sleep inside above method is insufficient
-        time.sleep(5)
+        time.sleep(2)
         self.take_screenshot()
         self.marionette.switch_to_frame(frame=card_frame)
 
         cards_view.tap_app(self._test_apps[0])
-
         cards_view.wait_for_cards_view_not_displayed()
-        self.take_screenshot()
+        self.take_screenshot() #bug 1151571 will cause blank screen capture
 
         self.assertEqual(self.apps.displayed_app.name, self._test_apps[0])
 

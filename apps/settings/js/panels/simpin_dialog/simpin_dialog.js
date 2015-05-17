@@ -4,17 +4,18 @@
  *
  * @module @SimPinDialog
  */
-define(function() {
+define(function(require) {
   'use strict';
 
-  var SettingsUtils = require('modules/settings_utils');
+  var SimSecurity = require('modules/sim_security');
+  var DialogService = require('modules/dialog_service');
   var l10n = window.navigator.mozL10n;
 
   function SimPinDialog(elements) {
     this._localize = l10n.setAttributes;
     this._elements = elements;
     this._method = '';
-    this._icc = null;
+    this._mode = '';
     this._cardIndex = 0;
     this._pinOptions = {};
     this._allowedRetryCounts = {
@@ -40,13 +41,6 @@ define(function() {
       this._method = options.method;
       this._cardIndex = options.cardIndex;
       this._pinOptions = options.pinOptions;
-      this._icc = SettingsUtils.getIccByCardIndex(this._cardIndex);
-
-      if (!this._icc) {
-        console.error('We can\'t find needed icc object');
-        return;
-      }
-
       this._bindInputClickEvent();
       this._initUI();
     },
@@ -145,9 +139,11 @@ define(function() {
       }
 
       if (newPin !== confirmPin) {
-        this._elements.showMessage('newPinErrorMsg');
+        this._showMessage('newPinErrorMsg');
         this._elements.newPinInput.value = '';
         this._elements.confirmPinInput.value = '';
+        this._elements.pukInput.value = '';
+        this._elements.pukInput.focus();
         return Promise.reject();
       }
 
@@ -171,12 +167,12 @@ define(function() {
      * @return {Promise}
      */
     _unlockCardLock: function(options) {
-      return this._icc.unlockCardLock(options).then(() => {
+      return SimSecurity.unlockCardLock(this._cardIndex, options).then(() => {
         // do nothing
       }, (error) => {
         var needToCloseDialog = this._handleCardLockError({
           lockType: options.lockType,
-          retryCount: error.retryCount
+          error: error
         });
         if (!needToCloseDialog) {
           return Promise.reject();
@@ -247,6 +243,8 @@ define(function() {
         this._showMessage('newPinErrorMsg');
         this._elements.newPinInput.value = '';
         this._elements.confirmPinInput.value = '';
+        this._elements.pinInput.value = '';
+        this._elements.pinInput.focus();
         return Promise.reject();
       }
 
@@ -272,12 +270,12 @@ define(function() {
      * @return {Promise}
      */
     _setCardLock: function(options) {
-      return this._icc.setCardLock(options).then(() => {
+      return SimSecurity.setCardLock(this._cardIndex, options).then(() => {
         // do nothing
       }, (error) => {
         var needToCloseDialog = this._handleCardLockError({
           lockType: options.lockType,
-          retryCount: error.retryCount
+          error: error
         });
         if (!needToCloseDialog) {
           return Promise.reject();
@@ -306,7 +304,7 @@ define(function() {
       //  This should be solved when bug 1070941 is fixed.
 
       var fdnContact = this._pinOptions.fdnContact;
-      return this._icc.updateContact('fdn', fdnContact,
+      return SimSecurity.updateContact(this._cardIndex, 'fdn', fdnContact,
         this._elements.pinInput.value).then(() => {
           return fdnContact;
       }, (error) => {
@@ -327,7 +325,7 @@ define(function() {
             return Promise.reject();
 
           case 'NoFreeRecordFound':
-            alert(l10n.get('fdnNoFDNFreeRecord'));
+            DialogService.alert('fdnNoFDNFreeRecord');
             return fdnContact;
 
           default:
@@ -344,48 +342,86 @@ define(function() {
      * @memberOf SimPinDialog
      * @param {Object} options
      * @param {String} options.lockType
-     * @param {Number} options.retryCount
+     * @param {Object} options.error
+     * @param {Number} options.error.retryCount
+     * @param {String} options.error.name
      * @access private
      * @return {Boolean} - true means close dialog, others mean not
      */
     _handleCardLockError: function(options) {
+      var error = options.error;
       var lockType = options.lockType;
-      var retryCount = options.retryCount;
+      var retryCount = error.retryCount;
+      var errorName = error.name;
 
       // expected: 'pin', 'fdn', 'puk'
       if (!lockType) {
         // we don't know what's going on here, we have close the dialog.
+        console.error('`handleCardLockError` called without a lockType. ' +
+          'This should never even happen.', error);
         return true;
       }
 
+      switch (errorName) {
+        case 'SimPuk2':
+        case 'IncorrectPassword':
+          return this._handleRetryPassword(lockType, retryCount);
+
+        default:
+          DialogService.alert('genericLockError');
+          console.error('Error of type ' + errorName +
+            ' happened coming from an IccCardLockError event', error);
+          return true;
+      }
+    },
+
+    /**
+     * We will handle all retry cases here to make sure we can change to
+     * the right UI for users to continue.
+     *
+     * @memberOf SimPinDialog
+     * @param {String} lockType
+     * @param {Number} retryCount
+     * @access private
+     * @return {Boolean} - true means close dialog, others mean not
+     */
+    _handleRetryPassword: function(lockType, retryCount) {
       // after three strikes, ask for PUK/PUK2
       if (retryCount <= 0) {
         if (lockType === 'pin') {
-          // we leave this for system app
+          // we leave this for system app, so let's close the dialog
           return true;
         } else if (lockType === 'fdn' || lockType === 'pin2') {
           this._initUI('unlock_puk2');
           this._elements.pukInput.focus();
-        } else { // out of PUK/PUK2: we're doomed
-          // TODO: Shouldn't we show some kind of message here?
+          return false;
+        } else {
+          // out of PUK/PUK2: we're doomed
+          DialogService.alert('genericLockError');
           return true;
         }
+      } else {
+        // We still have retryCount, let users input values again
+        var msgId = (retryCount > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
+        this._showMessage(lockType + 'ErrorMsg', lockType + msgId, {
+          n: retryCount
+        });
+        this._showRetryCount(retryCount);
+
+        if (lockType === 'pin' || lockType === 'fdn') {
+          this._elements.pinInput.value = '';
+          this._elements.pinInput.focus();
+        } else if (lockType === 'puk') {
+          this._elements.pukInput.value = '';
+          this._elements.pukInput.focus();
+        } else if (lockType === 'puk2') {
+          this._elements.pinInput.value = '';
+          this._elements.pukInput.value = '';
+          this._elements.pukInput.focus();
+        }
+
         return false;
       }
-
-      var msgId = (retryCount > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
-      this._showMessage(lockType + 'ErrorMsg', lockType + msgId, {
-        n: retryCount
-      });
-      this._showRetryCount(retryCount);
-
-      if (lockType === 'pin' || lockType === 'fdn') {
-        this._elements.pinInput.focus();
-      } else if (lockType === 'puk') {
-        this._elements.pukInput.focus();
-      }
-
-      return false;
     },
 
     /**
@@ -396,6 +432,7 @@ define(function() {
      * @access private
      */
     _setMode: function(mode) {
+      this._mode = mode;
       this._elements.pinArea.hidden = (mode === 'puk');
       this._elements.pukArea.hidden = (mode !== 'puk');
       this._elements.newPinArea.hidden =
@@ -458,10 +495,46 @@ define(function() {
 
       inputs.forEach((inputName) => {
         var input = elements[inputName];
-        input.oninput = function() {
-          elements.dialogDone.disabled = (this.value.length < 4);
+        input.oninput = () => {
+          this._updateDoneButtonState();
         };
       });
+    },
+
+    /**
+     * We have to control `done` button in each condition to make sure
+     * its state is right based on user's input
+     *
+     * @memberOf SimPinDialog
+     * @access private
+     */
+    _updateDoneButtonState: function() {
+      var elements = this._elements;
+      switch (this._mode) {
+        case 'change_pin':
+          if (elements.pinInput.value.length < 4 ||
+            elements.newPinInput.value.length < 4 ||
+            elements.confirmPinInput.value.length < 4 ||
+            elements.newPinInput.value.length !==
+            elements.confirmPinInput.value.length) {
+              elements.dialogDone.disabled = true;
+          } else {
+            elements.dialogDone.disabled = false;
+          }
+          break;
+
+        case 'pin':
+          elements.dialogDone.disabled = (elements.pinInput.value.length < 4);
+          break;
+
+        case 'puk':
+          elements.dialogDone.disabled = (elements.pukInput.value.length < 4);
+          break;
+
+        default:
+          console.error('we should not jump to this condition');
+          break;
+      }
     },
 
     /**
@@ -514,6 +587,10 @@ define(function() {
           this._localize(this._elements.pukArea.querySelector('div'),
             'puk2Code');
           this._localize(this._elements.dialogTitle, 'puk2Title');
+          this._localize(this._elements.newPinArea.querySelector('div'),
+            'newSimPin2Msg');
+          this._localize(this._elements.confirmPinArea.querySelector('div'),
+            'confirmNewSimPin2Msg');
           break;
 
         // PIN lock
@@ -532,7 +609,7 @@ define(function() {
           break;
 
         case 'change_pin':
-          this._setMode('new');
+          this._setMode('change_pin');
           this._localize(this._elements.pinArea.querySelector('div'),
             'simPin');
           this._localize(this._elements.newPinArea.querySelector('div'),
@@ -561,7 +638,7 @@ define(function() {
 
         case 'change_pin2':
           lockType = 'pin2';
-          this._setMode('new');
+          this._setMode('change_pin');
           this._localize(this._elements.pinArea.querySelector('div'),
             'simPin2');
           this._localize(this._elements.newPinArea.querySelector('div'),
@@ -581,15 +658,15 @@ define(function() {
       // XXX this only works with the emulator
       // (and some commercial RIL stacks...)
       // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
-      var req = this._icc.getCardLockRetryCount(lockType);
-      req.onsuccess = () => {
-        var retryCount = req.result.retryCount;
-        if (retryCount === this._allowedRetryCounts[lockType]) {
-          // hide the retry count if users had not input incorrect codes
-          retryCount = null;
-        }
-        this._showRetryCount(retryCount);
-      };
+      SimSecurity.getCardLockRetryCount(this._cardIndex, lockType)
+        .then((result) => {
+          var retryCount = result.retryCount;
+          if (retryCount === this._allowedRetryCounts[lockType]) {
+            // hide the retry count if users had not input incorrect codes
+            retryCount = null;
+          }
+          this._showRetryCount(retryCount);
+      });
     }
   };
 

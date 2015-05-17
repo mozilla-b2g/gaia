@@ -14,7 +14,7 @@
   <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
   <link rel="stylesheet" type="text/css" href="style/settings.css"/>
   <meta name="defaultLanguage" content="en-US">
-  <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+  <meta name="availableLanguages" content="en-US">
   <link rel="localization" href="locales/keyboard.{locale}.properties">
 
   <!-- Web Components -->
@@ -22,6 +22,9 @@
 
   <script defer src="shared/js/component_utils.js"></script>
   <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+  <script defer src="shared/elements/gaia-component/gaia-component.js"></script>
+  <script defer src="shared/elements/gaia-toast/gaia-toast.js"></script>
+  <script defer src="shared/elements/gaia_subheader/script.js"></script>
   <script defer src="shared/elements/gaia_buttons/script.js"></script>
   <script defer src="shared/elements/gaia_confirm/script.js"></script>
 
@@ -47,6 +50,7 @@
   <script defer src="js/settings/layout_item_view.js"></script>
   <script defer src="js/settings/layout_item_list_view.js"></script>
 
+  <script defer src="js/settings/keyboard_preferences.js"></script>
   <script defer src="js/settings/keyboard_settings_app.js"></script>
   <script defer src="js/settings/bootstrap.js"></script>
 </head>
@@ -105,15 +109,16 @@
         </ul>
       </section>
       <div id="installable-keyboard" hidden>
-        <header>
-          <h2 data-l10n-id="installed-keyboards-title"></h2>
-        </header>
+        <gaia-subheader skin="organic">
+          <span data-l10n-id="installed-keyboards-title"></span>
+        </gaia-subheader>
         <section data-type="list">
           <ul id="installed-keyboards-list">
           </ul>
-        <header>
-          <h2 data-l10n-id="more-keyboards-title"></h2>
-        </header>
+        </section>
+        <gaia-subheader skin="organic">
+          <span data-l10n-id="more-keyboards-title"></span>
+        </gaia-subheader>
         <section data-type="list">
           <ul id="installable-keyboards-list">
           </ul>
@@ -129,6 +134,34 @@
               <progress class="progress" hidden>
             </li>
           </template>
+          <gaia-confirm id="installable-keyboards-removal-dialog" hidden>
+            <p id="installable-keyboards-removal-prompt" data-l10n-id="removePrompt"></p>
+            <gaia-buttons skin="dark">
+              <button data-l10n-id="removePromptCancel" class="cancel"></button>
+              <button data-l10n-id="removePromptRemove" class="confirm danger"></button>
+            </gaia-buttons>
+          </gaia-confirm>
+          <gaia-confirm id="installable-keyboards-mobile-download-dialog" hidden>
+            <p data-l10n-id="dataConnectionPrompt"></p>
+            <p>
+              <label>
+                <input type="checkbox" id="installable-keyboards-remember">
+                <span data-l10n-id="rememberMyChoice"></span>
+              </label>
+            </p>
+            <gaia-buttons skin="dark">
+              <button data-l10n-id="dataConnectionPromptCancel" class="cancel"></button>
+              <button data-l10n-id="dataConnectionPromptContinue" class="confirm"></button>
+            </gaia-buttons>
+          </gaia-confirm>
+          <gaia-confirm id="installable-keyboards-enable-dialog" hidden>
+            <p data-l10n-id="enablePrompt"></p>
+            <gaia-buttons skin="dark">
+              <button data-l10n-id="enablePromptNotNow" class="cancel"></button>
+              <button data-l10n-id="enablePromptEnable" class="confirm"></button>
+            </gaia-buttons>
+          </gaia-confirm>
+          <gaia-toast id="installable-keyboards-download-error-toast" data-l10n-id="downloadFailed"></gaia-toast>
         </section>
       </div>
       <!-- Handwriting settings section will be added here. -->
@@ -136,7 +169,7 @@
   </section>
   <section role="region" id="panel-ud-wordlist">
     <gaia-header id="ud-wordlist-header" action="back">
-      <h1 data-l10n-id="userDictionary"></h1>
+      <h1 data-l10n-id="userDictionaryPanelHeader"></h1>
       <button id="ud-addword-btn" data-icon="add" data-href="#ud-editword" data-l10n-id="userDictionaryAddButton"></button>
     </gaia-header>
     <div id="ud-wordlist-container">

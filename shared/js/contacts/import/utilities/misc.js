@@ -23,9 +23,11 @@ if (!utils.misc) {
     return outContact;
   };
 
+  // This year indicates that the year can be ignored
+  const FLAG_YEAR_IGNORED = 9996;
+  utils.misc.FLAG_YEAR_IGNORED = FLAG_YEAR_IGNORED;
+
   utils.misc.formatDate = function(date) {
-    // This year indicates that the year can be ignored
-    var FLAG_YEAR_IGNORED = 9996;
     var _ = navigator.mozL10n.get;
 
     var dateFormat = _('dateFormat') || '%B %e';

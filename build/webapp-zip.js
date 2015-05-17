@@ -185,7 +185,7 @@ WebappZip.prototype.execute = function(options) {
 function execute(options) {
   var profileDir = utils.getFile(options.PROFILE_DIR);
   utils.ensureFolderExists(profileDir);
-  var webappsDir = utils.getFile(options.PROFILE_DIR, 'webapps');
+  var webappsDir = utils.getFile(options.COREWEBAPPS_DIR, 'webapps');
   utils.ensureFolderExists(webappsDir);
 
   (new WebappZip()).execute(options);

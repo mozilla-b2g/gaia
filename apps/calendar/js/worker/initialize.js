@@ -6,7 +6,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Thread = require('./thread');
-var debug = require('debug')('worker/initialize');
+var debug = require('common/debug')('worker/initialize');
 
 self.window = self;
 

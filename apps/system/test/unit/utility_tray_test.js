@@ -1,4 +1,4 @@
-/* global MocksHelper, UtilityTray */
+/* global MocksHelper, UtilityTray, Service */
 
 'use strict';
 
@@ -19,8 +19,6 @@ mocksHelperForUtilityTray.init();
 suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
-  var fakeElement;
-  var originalLocked;
   var originalSoftwareButtonManager;
   mocksHelperForUtilityTray.attachTestHelpers();
 
@@ -53,9 +51,23 @@ suite('system/UtilityTray', function() {
     UtilityTray.onTouchEnd({target: target, pageX: 42, pageY: y});
   }
 
+  function fakeTransitionEnd() {
+    UtilityTray.overlay.dispatchEvent(createEvent('transitionend'));
+  }
+
   setup(function(done) {
     originalSoftwareButtonManager = window.softwareButtonManager;
     window.softwareButtonManager = window.MocksoftwareButtonManager;
+
+    Service.currentApp = {
+      isTransitioning: function() {},
+      getTopMostWindow: function() { return this; },
+      appChrome: {
+        titleClicked: function() {},
+        useCombinedChrome: function() {},
+        isMaximized: function() {}
+      }
+    };
 
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
@@ -84,6 +96,9 @@ suite('system/UtilityTray', function() {
     var ambientIndicator = document.createElement('div');
     ambientIndicator.style.cssText = 'height: 2px; display: block;';
 
+    var softwareButtons = document.createElement('div');
+    softwareButtons.style.cssText = 'height: 20px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -104,6 +119,8 @@ suite('system/UtilityTray', function() {
           return topPanel;
         case 'ambient-indicator':
           return ambientIndicator;
+        case 'software-buttons':
+          return softwareButtons;
         default:
           return null;
       }
@@ -124,14 +141,14 @@ suite('system/UtilityTray', function() {
 
   suite('show', function() {
     setup(function() {
-      UtilityTray.show();
+      UtilityTray.show(true);
     });
 
     test('shown should be true', function() {
       assert.equal(UtilityTray.shown, true);
     });
 
-    test("Test screen element's class list", function() {
+    test('Test screen element\'s class list', function() {
       assert.equal(UtilityTray.screen.classList.contains('utility-tray'), true);
     });
   });
@@ -139,7 +156,7 @@ suite('system/UtilityTray', function() {
 
   suite('hide', function() {
     setup(function() {
-      UtilityTray.hide();
+      UtilityTray.hide(true);
     });
 
     test('shown should be false', function() {
@@ -151,7 +168,7 @@ suite('system/UtilityTray', function() {
       assert.equal(UtilityTray.startY, undefined);
     });
 
-    test("Test screen element's class list", function() {
+    test('Test screen element\'s class list', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
     });
@@ -160,32 +177,92 @@ suite('system/UtilityTray', function() {
 
   suite('onTouch', function() {
     suite('taping the left corner', function() {
-      test('should send a global search request', function(done) {
-        window.addEventListener('global-search-request', function gotIt() {
-          window.removeEventListener('global-search-request', gotIt);
-          assert.isTrue(true, 'got the event');
-          done();
-        });
+      var appChrome, titleStub, app;
+
+      setup(function() {
+        app = Service.currentApp;
+        appChrome = app.appChrome;
+        titleStub = this.sinon.stub(appChrome, 'titleClicked');
+      });
+
+      teardown(function() {
+        fakeTransitionEnd();
+      });
+
+      test('should call to titleClicked', function() {
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
+        this.sinon.stub(appChrome, 'isMaximized').returns(false);
+        this.sinon.stub(app, 'isTransitioning').returns(false);
         fakeTouches(0, 2);
+        assert.isTrue(titleStub.called);
+      });
+
+      test('should not call to titleClicked if isTransitioning', function() {
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
+        this.sinon.stub(appChrome, 'isMaximized').returns(false);
+        this.sinon.stub(app, 'isTransitioning').returns(true);
+        fakeTouches(0, 2);
+        assert.isFalse(titleStub.called);
+      });
+
+      test('should not call to titleClicked if !combinedView', function() {
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(false);
+        this.sinon.stub(appChrome, 'isMaximized').returns(false);
+        this.sinon.stub(app, 'isTransitioning').returns(false);
+        fakeTouches(0, 2);
+        assert.isFalse(titleStub.called);
+      });
+
+      test('should not call to titleClicked if is maximized', function() {
+        this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
+        this.sinon.stub(appChrome, 'isMaximized').returns(true);
+        this.sinon.stub(app, 'isTransitioning').returns(false);
+        fakeTouches(0, 2);
+        assert.isFalse(titleStub.called);
       });
 
       test('should hide the Utility tray', function() {
-        UtilityTray.show();
+        UtilityTray.show(true);
         fakeTouches(0, 2);
-        assert.equal(UtilityTray.shown, false);
+        assert.equal(UtilityTray.showing, false);
       });
     });
 
     suite('showing', function() {
+      var publishStub;
+
+      setup(function() {
+        UtilityTray.isTap = true;
+        publishStub = this.sinon.stub(UtilityTray, 'publish');
+      });
+
       test('should not be shown by a tap', function() {
         fakeTouches(0, 5);
-        assert.equal(UtilityTray.shown, false);
+        assert.equal(UtilityTray.showing, false);
+      });
+
+      test('should not trigger overlayopening event by a tap', function() {
+        fakeTouches(0, 5);
+        assert.isFalse(publishStub.calledWith('-overlayopening'));
       });
 
       test('should be shown by a drag from the top', function() {
         fakeTouches(0, 100);
-        assert.equal(UtilityTray.shown, true);
+        assert.equal(UtilityTray.showing, true);
       });
+
+      test('should trigger overlayopening event', function() {
+        fakeTouches(0, 100);
+        assert.isTrue(publishStub.calledWith('-overlayopening'));
+      });
+
+      test('should add utility-tray-in-transition class with drag from top',
+        function() {
+          fakeTouches(0, 100);
+          assert.isTrue(UtilityTray.screen.classList.contains(
+            'utility-tray-in-transition'));
+        }
+      );
 
       test('should send a touchcancel to the oop active app' +
            'since the subsequent events will be swallowed', function() {
@@ -230,18 +307,35 @@ suite('system/UtilityTray', function() {
 
     suite('hiding', function() {
       setup(function() {
-        UtilityTray.show();
+        UtilityTray.show(true);
+      });
+
+      teardown(function() {
+        fakeTransitionEnd();
       });
 
       test('should not be hidden by a tap', function() {
         fakeTouches(480, 475, UtilityTray.grippy);
-        assert.equal(UtilityTray.shown, true);
+        assert.equal(UtilityTray.showing, true);
       });
 
       test('should be hidden by a drag from the bottom', function() {
         fakeTouches(480, 380, UtilityTray.grippy);
-        assert.equal(UtilityTray.shown, false);
+        assert.equal(UtilityTray.showing, false);
       });
+
+      test('should be hidden by a drag from the softwareButtons', function() {
+        fakeTouches(480, 380, UtilityTray.softwareButtons);
+        assert.equal(UtilityTray.showing, false);
+      });
+
+      test('should add utility-tray-in-transition class on drag from bottom',
+        function() {
+          fakeTouches(480, 380, UtilityTray.grippy);
+          assert.isTrue(UtilityTray.screen.classList.contains(
+            'utility-tray-in-transition'));
+        }
+      );
     });
   });
 
@@ -258,7 +352,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('should be hidden', function() {
-      assert.equal(UtilityTray.shown, false);
+      assert.equal(UtilityTray.showing, false);
     });
   });
 
@@ -281,6 +375,7 @@ suite('system/UtilityTray', function() {
       fakeEvt = createEvent('sheets-gesture-end');
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
+      fakeTransitionEnd();
     });
 
     test('should unhide the ambientIndicator', function() {
@@ -324,6 +419,7 @@ suite('system/UtilityTray', function() {
       UtilityTray.active = active;
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
+      fakeTransitionEnd();
     }
 
     test('should be hidden when inactive', function() {
@@ -345,7 +441,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('should be hidden', function() {
-      assert.equal(UtilityTray.shown, false);
+      assert.equal(UtilityTray.showing, false);
     });
   });
 
@@ -357,9 +453,10 @@ suite('system/UtilityTray', function() {
       }
     });
 
-    function assertIsShown(isShown) {
-      assert.equal(UtilityTray.overlay.classList.contains('visible'), isShown);
-      assert.equal(UtilityTray.shown, isShown);
+    function assertIsShowing(isShowing) {
+      assert.equal(UtilityTray.overlay.classList.contains('visible'),
+                   isShowing);
+      assert.equal(UtilityTray.showing, isShowing);
     }
 
     setup(function() {
@@ -368,25 +465,26 @@ suite('system/UtilityTray', function() {
     });
 
     teardown(function() {
+      fakeTransitionEnd();
       window.Service.locked = false;
       window.Service.runningFTU = false;
     });
 
     test('first swipe should show', function() {
       UtilityTray.handleEvent(swipeDown);
-      assertIsShown(true);
+      assertIsShowing(true);
     });
 
     test('first swipe should not show when locked', function() {
       window.Service.locked = true;
       UtilityTray.handleEvent(swipeDown);
-      assertIsShown(false);
+      assertIsShowing(false);
     });
 
     test('first swipe should not show when running FTU', function() {
       window.Service.runningFTU = true;
       UtilityTray.handleEvent(swipeDown);
-      assertIsShown(false);
+      assertIsShowing(false);
     });
 
     test('second swipe should hide', function() {
@@ -398,7 +496,7 @@ suite('system/UtilityTray', function() {
         }
       });
       UtilityTray.handleEvent(evt);
-      assertIsShown(false);
+      assertIsShowing(false);
     });
   });
 
@@ -424,7 +522,7 @@ suite('system/UtilityTray', function() {
         origin: 'app://otherApp'
       });
       UtilityTray.handleEvent(fakeEvt);
-      assert.equal(UtilityTray.shown, false);
+      assert.equal(UtilityTray.showing, false);
     });
 
     test('should not be hidden if the event is sent from background app',
@@ -435,7 +533,16 @@ suite('system/UtilityTray', function() {
           origin: findMyDeviceOrigin
         });
         UtilityTray.handleEvent(fakeEvt);
-        assert.equal(UtilityTray.shown, true);
+        assert.equal(UtilityTray.showing, true);
+    });
+
+    test('should not be hidden when event marked stayBackground', function() {
+      fakeEvt = createEvent('launchapp', false, true, {
+        origin: 'app://otherApp',
+        stayBackground: true
+      });
+      UtilityTray.handleEvent(fakeEvt);
+      assert.equal(UtilityTray.showing, true);
     });
   });
 
@@ -510,16 +617,6 @@ suite('system/UtilityTray', function() {
         UtilityTray.shown = false;
       });
 
-      test('should fire a utility-tray-overlayopening event', function(done) {
-        window.addEventListener('utility-tray-overlayopening',
-          function gotIt() {
-            window.removeEventListener('utility-tray-overlayopening', gotIt);
-            assert.isTrue(true, 'got the event');
-            done();
-          });
-        UtilityTray.overlay.dispatchEvent(fakeEvt);
-      });
-
       test('should fire a utilitytraywillhide event', function(done) {
         window.addEventListener('utilitytraywillhide', function gotIt() {
           window.removeEventListener('utilitytraywillhide', gotIt);
@@ -569,14 +666,19 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: transitionend', function() {
     setup(function() {
-      fakeEvt = createEvent('transitionend');
       UtilityTray.hide();
-      UtilityTray.overlay.dispatchEvent(fakeEvt);
+      UtilityTray.screen.classList.add('utility-tray-in-transition');
+      fakeTransitionEnd();
     });
 
     test('Test utilitytrayhide is correcly dispatched', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
+    });
+
+    test('Ensure utility-tray-in-transition class is removed', function() {
+      assert.isFalse(UtilityTray.screen.classList.contains(
+        'utility-tray-in-transition'));
     });
   });
 
@@ -596,7 +698,19 @@ suite('system/UtilityTray', function() {
     function doAction(shown) {
       UtilityTray.shown = shown;
       UtilityTray.hide();
+      fakeTransitionEnd();
     }
+
+    test('utilitytraywillhide is dispatched when inactive', function(done) {
+      window.addEventListener('utilitytraywillhide',
+        function gotIt() {
+          window.removeEventListener('utilitytraywillhide', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      UtilityTray.active = false;
+      doAction(true);
+    });
 
     test('utility-tray-overlayclosed is correctly dispatched', function(done) {
       window.addEventListener('utility-tray-overlayclosed',
@@ -643,7 +757,18 @@ suite('system/UtilityTray', function() {
     function doAction(shown) {
       UtilityTray.shown = shown;
       UtilityTray.show();
+      fakeTransitionEnd();
     }
+
+    test('utilitytraywillshow is dispatched when inactive', function(done) {
+      window.addEventListener('utilitytraywillshow', function gotIt() {
+          window.removeEventListener('utilitytraywillshow', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+      UtilityTray.active = false;
+      doAction(false);
+    });
 
     test('utility-tray-overlayopened is correctly dispatched', function(done) {
       window.addEventListener('utility-tray-overlayopened',
@@ -719,6 +844,42 @@ suite('system/UtilityTray', function() {
       var defaultStub = this.sinon.stub(evt, 'preventDefault');
       UtilityTray._pdIMESwitcherShow(evt);
       assert.isTrue(defaultStub.notCalled);
+    });
+  });
+
+  suite('mouse events', function() {
+    var evt;
+
+    setup(function() {
+      evt = {
+        type: 'mousedown',
+        target: UtilityTray.grippy,
+        preventDefault: this.sinon.spy()
+      };
+    });
+
+    test('it preventsDefault when target is this.grippy', function() {
+      evt.target = UtilityTray.grippy;
+      UtilityTray.handleEvent(evt);
+      assert.isTrue(evt.preventDefault.called);
+    });
+
+    test('it preventsDefault when target is this.statusbarIcons', function() {
+      evt.target = UtilityTray.statusbarIcons;
+      UtilityTray.handleEvent(evt);
+      assert.isTrue(evt.preventDefault.called);
+    });
+
+    test('it preventsDefault when target is this.topPanel', function() {
+      evt.target = UtilityTray.topPanel;
+      UtilityTray.handleEvent(evt);
+      assert.isTrue(evt.preventDefault.called);
+    });
+
+    test('it does not preventsDefault when target is not top', function() {
+      evt.target = UtilityTray.overlay;
+      UtilityTray.handleEvent(evt);
+      assert.isFalse(evt.preventDefault.called);
     });
   });
 

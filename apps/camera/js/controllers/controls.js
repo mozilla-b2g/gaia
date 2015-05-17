@@ -45,6 +45,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.once('loaded', this.onceAppLoaded);
   this.app.on('busy', this.onCameraBusy);
+  this.app.on('localized', this.view.localize);
 
   // View
   this.view.on('modechanged', this.onViewModeChanged);
@@ -60,6 +61,10 @@ ControlsController.prototype.bindEvents = function() {
   // Settings
   this.app.on('settings:opened', this.onSettingsOpened);
   this.app.on('settings:closed', this.onSettingsClosed);
+
+  // Preview gallery
+  this.app.on('previewgallery:opened', this.view.hide);
+  this.app.on('previewgallery:closed', this.view.show);
 
   debug('events bound');
 };
@@ -150,6 +155,8 @@ ControlsController.prototype.onCaptureClick = function() {
 ControlsController.prototype.onRecordingChange = function(recording) {
   this.view.set('recording', recording);
   if (!recording) { this.onRecordingEnd(); }
+  // Update capture button label when recording changes.
+  this.view.setCaptureLabel(recording);
 };
 
 /**

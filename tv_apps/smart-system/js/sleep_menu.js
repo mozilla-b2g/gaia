@@ -66,8 +66,15 @@
      * @memberof SleepMenu.prototype
      * @return {Boolean}
      */
-    isVisible: function sm_isVisible() {
+    get visible() {
       return this.elements.overlay.classList.contains('visible');
+    },
+
+    /**
+     * Whether or not the sleep menu is focusable.
+     */
+    isFocusable() {
+      return this.visible;
     },
 
     /**
@@ -250,7 +257,7 @@
           break;
 
         case 'click':
-          if (!this.isVisible()) {
+          if (!this.visible) {
             return;
           }
 
@@ -268,7 +275,7 @@
 
         case 'home':
         case 'attentionopened':
-          if (this.isVisible()) {
+          if (this.visible) {
             this.hide();
           }
           break;

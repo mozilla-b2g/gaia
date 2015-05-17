@@ -55,8 +55,6 @@ var FLACMetadata = (function() {
         } else if (block.block_type === 6) {
           LazyLoader.load('js/metadata/vorbis_picture.js', function() {
             metadata.picture = VorbisPictureComment.readPicFrame(block.view);
-            metadata.picture.start += block.view.viewOffset;
-            metadata.picture.end += block.view.viewOffset;
           });
           has_picture = true;
 

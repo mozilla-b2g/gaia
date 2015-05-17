@@ -6,13 +6,13 @@ require('/shared/elements/gaia-header/dist/gaia-header.js');
 var AccountTemplate = require('templates/account');
 var AdvancedSettings = require('views/advanced_settings');
 var Factory = require('test/support/factory');
+var core = require('core');
 
 require('dom!advanced_settings');
 
 suite('Views.AdvancedSettings', function() {
   var subject;
   var template;
-  var app;
   var accountStore;
   var fixtures;
   var settings;
@@ -54,16 +54,15 @@ suite('Views.AdvancedSettings', function() {
   });
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    db = core.db;
 
     template = AccountTemplate;
-    subject = new AdvancedSettings({ app: app });
+    subject = new AdvancedSettings();
 
-    accountStore = app.store('Account');
-    settings = app.store('Setting');
+    accountStore = core.storeFactory.get('Account');
+    settings = core.storeFactory.get('Setting');
 
-    app.db.open(done);
+    core.db.open(done);
   });
 
   setup(function(done) {
@@ -84,10 +83,10 @@ suite('Views.AdvancedSettings', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      app.db,
+      core.db,
       ['accounts'],
       function() {
-        app.db.close();
+        core.db.close();
         done();
       }
     );
@@ -186,14 +185,20 @@ suite('Views.AdvancedSettings', function() {
 
   suite('#handleSettingUiChange', function() {
     var calledWith;
+    var originalSet;
 
     setup(function() {
       calledWith = 'notcalled';
+      originalSet = settings.set;
       settings.set = function(name, value) {
         if (name === 'syncFrequency') {
           calledWith = value;
         }
       };
+    });
+
+    teardown(function() {
+      settings.set = originalSet;
     });
 
     function change(name, value) {

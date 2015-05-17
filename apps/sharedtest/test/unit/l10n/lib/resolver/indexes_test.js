@@ -31,7 +31,7 @@ describe('Index', function(){
     });
 
     it('works when the index is a regular entity', function() {
-      var value = Resolver.format({n: 1}, env.indexEntity);
+      var value = Resolver.format({n: 1}, env.indexEntity)[1];
       assert.strictEqual(value, 'One entity');
     });
     it('throws when the index is an uncalled macro', function() {
@@ -40,7 +40,7 @@ describe('Index', function(){
       }, 'Unresolvable value');
     });
     it('works when the index is a called macro', function() {
-      var value = Resolver.format({n: 1}, env.indexCalledMacro);
+      var value = Resolver.format({n: 1}, env.indexCalledMacro)[1];
       assert.strictEqual(value, 'One called macro');
     });
 
@@ -75,7 +75,7 @@ describe('Index', function(){
     });
 
     it('value of the attribute is undefined', function() {
-      assert.strictEqual(Resolver.format(null, env.foo), 'Foo');
+      assert.strictEqual(Resolver.format(null, env.foo)[1], 'Foo');
       assert.throws(function() {
         Resolver.format(null, env.foo.attrs.attr);
       }, 'Unresolvable value');

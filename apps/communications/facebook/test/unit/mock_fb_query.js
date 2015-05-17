@@ -1,4 +1,8 @@
-MockFbQuery = {
+/* global MockFbGraphData */
+/* exported MockFbQuery */
+'use strict';
+
+var MockFbQuery = {
   runQuery: function(query, callbacks) {
     callbacks.success(MockFbGraphData);
   },

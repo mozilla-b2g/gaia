@@ -19,12 +19,7 @@
   -moz-user-select: none;
 }
 
-input[type="email"],
-input[type="password"],
-input[type="search"],
-input[type="tel"],
-input[type="text"],
-input[type="url"],
+input,
 textarea,
 [contenteditable="true"] {
   -moz-user-select: text;
@@ -126,6 +121,18 @@ section[data-geolocation="true"][data-ala="true"][data-type="user-defined"] .typ
 #ala-custom[data-type="rc"] .dcl-rc-region,
 #ala-custom[data-type="rc"] .dcl-rc-city {
   opacity: 1;
+}
+
+/* Only links below should be shown */
+#tc-permList ul li > *,
+#tc-permList ul li > label > *,
+#tc-permList ul li > a > *,
+#tc-permDetails ul li > *,
+#tc-permDetails ul li > label > *,
+#tc-permDetails ul li > a > * {
+  text-overflow: clip;
+  overflow: visible;
+  white-space: normal;
 }
 
 .panel-link {
@@ -283,6 +290,10 @@ section[role="region"] > div.gt-box {
   width: 100%;
 }
 
+html[dir=rtl] .gt-pager {
+  transform: scaleX(-1);
+}
+
 .gt-pager.page-2 {
   background-position: 50% -10px;
 }
@@ -383,6 +394,14 @@ section[data-section="gt"] .btn {
 /**
  * Remote Protection
  */
+
+#rp-features ul li > *,
+#rp-features ul li > label > *,
+#rp-features ul li > a > *{
+  text-overflow: clip;
+  overflow: visible;
+  white-space: normal;
+}
 
 .rp-box {
   display: none;

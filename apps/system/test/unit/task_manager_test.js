@@ -814,7 +814,7 @@ suite('system/TaskManager >', function() {
         assert.isTrue(cardsView.classList.contains('active'));
         assert.isTrue(taskManager.isShown());
 
-        waitForEvent(window, 'cardviewclosed').then(function(){
+        waitForEvent(window, 'cardviewclosed', 501).then(function(){
           events.push('cardviewclosed');
         }, failOnReject).then(function() {
           assert.equal(events.length, 1, 'sanity check, only 1 event received');
@@ -828,7 +828,7 @@ suite('system/TaskManager >', function() {
 
         cardsView.dispatchEvent(
           createTouchEvent('touchstart', cardsView, 100, 100));
-        this.sinon.clock.tick(101);
+        this.sinon.clock.tick(501);
       });
     });
   });
@@ -978,11 +978,10 @@ suite('system/TaskManager >', function() {
 
     test('displays the new app before dismissing the task manager',
     function(done) {
-     waitForEvent(window, 'cardviewclosed').then(function(evt) {
+      waitForEvent(window, 'cardviewclosed').then(function(evt) {
         assert.ok(evt.detail && !isNaN(evt.detail.newStackPosition),
                   'cardviewclosed evt has new position detail');
-        done();
-      }, failOnReject);
+      }, failOnReject).then(function() { done(); }, done);
 
       var app = MockStackManager.mStack[0];
       this.sinon.stub(app, 'open', function() {
@@ -991,6 +990,7 @@ suite('system/TaskManager >', function() {
 
       var target = cardsList.firstElementChild;
       taskManager.handleTap({ target: target });
+      target.dispatchEvent(new CustomEvent('transitionend'));
       this.sinon.clock.tick(100);
     });
   });
@@ -1120,6 +1120,21 @@ suite('system/TaskManager >', function() {
         .then(function() { done(); }, done);
 
         taskManager.exitToApp(targetApp);
+        fakeFinish(this.sinon.clock, targetApp);
+      });
+
+      test('no touch input handled while opening selected app', function(done) {
+        var targetApp = apps['http://game.gaiamobile.org'];
+        this.sinon.spy(taskManager, 'handleEvent');
+
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isFalse(taskManager.handleEvent.called,
+                         'handleEvent not called');
+        }).then(function() { done(); }, done);
+
+        taskManager.exitToApp(targetApp);
+        var touchEvent = new CustomEvent('touchstart');
+        taskManager.element.dispatchEvent(touchEvent);
         fakeFinish(this.sinon.clock, targetApp);
       });
 
@@ -1328,6 +1343,17 @@ suite('system/TaskManager >', function() {
         assert.isFalse(taskManager.isShown());
         window.dispatchEvent(new CustomEvent('resize'));
         this.sinon.clock.tick();
+        assert.isTrue(taskManager.isShown());
+      });
+    });
+
+    suite('when the orientation flips', function() {
+      setup(function() {
+        MockOrientationManager.mCurrentOrientation = 'portrait-secondary';
+      });
+
+      test('should just show', function() {
+        showTaskManager(this.sinon.clock);
         assert.isTrue(taskManager.isShown());
       });
     });

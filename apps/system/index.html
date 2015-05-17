@@ -14,6 +14,7 @@
     <script src="shared/js/l10n_date.js"></script>
     <script src="shared/js/idletimer.js"></script>
     <script src="shared/js/dump.js"></script>
+    <script defer src="shared/js/async_semaphore.js"></script>
     <script defer src="shared/js/nfc_utils.js"></script>
     <script defer src="shared/js/event_safety.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
@@ -52,7 +53,6 @@
     <!--
     <script defer src="shared/js/input_mgmt/input_app_list.js"></script>
     <script defer src="shared/js/keyboard_helper.js"></script>
-    <script defer src="shared/js/template.js"></script>
     -->
 
     <!-- Battery Overlay -->
@@ -134,14 +134,14 @@
     <script defer src="js/screen_auto_brightness.js"></script>
     <script defer src="js/screen_brightness_transition.js"></script>
     <script defer src="js/screen_manager.js"></script>
-    <script defer src="js/activities.js"></script>
+    <script defer src="js/activity_handler.js"></script>
+    <script defer src="js/browser.js"></script>
+    <script defer src="js/import.js"></script>
     <script defer src="js/usb_storage.js"></script>
     <script defer src="js/external_storage_monitor.js"></script>
-    <script defer src="js/browser.js"></script>
     <script defer src="js/browser_settings.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
-    <script defer src="js/async_semaphore.js"></script>
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/browser_key_event_manager.js"></script>
@@ -180,7 +180,6 @@
     <!-- Action Menu -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
-    <script defer src="js/action_menu.js"></script>
 
     <!-- Date and Time Selector Extension -->
     <link rel="stylesheet" type="text/css" href="style/date_selector/date_selector_extended.css">
@@ -298,8 +297,6 @@
     <script defer src="js/task_manager.js"></script>
 
     <!-- Bluetooth -->
-    <script defer src="js/bluetooth.js"></script>
-    <script defer src="js/bluetooth_transfer.js"></script>
     <link rel="stylesheet" type="text/css" href="style/bluetooth_transfer/bluetooth_transfer.css">
 
     <!-- Wifi -->
@@ -321,7 +318,7 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
     <meta name="defaultLanguage" content="en-US">
-    <meta name="availableLanguages" content="ar, en-US, fr, zh-TW">
+    <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
     <link rel="localization" href="locales/system.{locale}.properties">
     <link rel="localization" href="locales/accessibility.{locale}.properties">
@@ -371,6 +368,8 @@
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
     <script defer src="js/base_ui.js"></script>
+    <script defer src="js/context_menu_view.js"></script>
+    <script defer src="js/audio_channel_controller.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
@@ -465,6 +464,9 @@
     <link rel="stylesheet" type="text/css" href="style/mobileid/mobileid.css">
     <script defer src="js/mobileid_manager.js"></script>
     <script defer src="js/mobileid_dialog.js"></script>
+
+    <!-- About Service Workers -->
+    <script defer src="js/about_service_workers_proxy.js"></script>
   </head>
 
   <body class="theme-settings" role="application">
@@ -478,7 +480,7 @@
         <div id="rocketbar">
           <form id="rocketbar-form" class="hidden">
             <input id="rocketbar-input" type="search" x-inputmode="verbatim"
-              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" dir="ltr" />
+              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" />
             <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
             <button type="button" id="rocketbar-cancel" data-l10n-id="close"></button>
           </form>
@@ -563,7 +565,7 @@
               <!-- Media playback notification -->
               <div id="media-playback-container" class="media-playback-container fake-notification" hidden>
                 <div class="media-playback-nowplaying">
-                  <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
+                  <bdi class="track" data-l10n-id="mediaPlaybackTrack"></bdi>
                 </div>
                 <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
                   <!-- XXX: These used to be button elements for prev/pause/next buttons but we are not able to receive contextmenu event from them. Change to div elements to make it work and able to fast seek from it (Bug 1017294) -->
@@ -725,90 +727,6 @@
         </div> <!-- end of #modal-dialog -->
       </div> <!-- end of #overlay-dialog -->
 
-      <div id="value-selector-template" hidden>
-      <!--
-          <div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
-            <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
-              <section class="value-selector-container">
-                <h1 class="value-selector-options-title" data-l10n-id="choose-option">Choose your option</h1>
-                <ol class="value-selector-options-container" role="listbox"></ol>
-              </section>
-              <menu class="value-selector-select-options-buttons value-selector-buttons">
-                <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok">OK</button>
-              </menu>
-            </form>
-            <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
-              <h1 data-l10n-id="select-time">Select time</h1>
-              <div class="value-selector-time-picker">
-                <div class="value-selector-time-picker-container picker-container">
-                  <div class="picker-bar-background"></div>
-                  <div class="value-picker-hours-wrapper">
-                    <div class="value-picker-hours animation-on"></div>
-                  </div>
-                  <div class="value-picker-minutes-wrapper">
-                    <div class="value-picker-minutes animation-on"></div>
-                  </div>
-                  <div class="value-picker-hour24-wrapper">
-                    <div class="value-picker-hour24-state animation-on"></div>
-                  </div>
-                  <div class="value-indicator">
-                    <div aria-hidden="true" class="value-indicator-colon hours-minutes-separator">:</div>
-                  </div>
-                </div>
-              </div>
-              <menu class="value-selector-time-picker-buttons value-selector-buttons" data-items="2">
-                <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-                <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
-              </menu>
-            </div>
-            <div role="dialog" data-type="date-selector" class="value-selector-spin-date-picker-popup" hidden>
-              <h1 data-l10n-id="select-day">Select day</h1>
-              <div class="value-selector-spin-date-picker">
-                <div class="picker-container">
-                  <div class="picker-bar-background"></div>
-                  <div class="value-picker-date-wrapper">
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                  </div>
-                  <div class="value-picker-month-wrapper">
-                    <div class="value-picker-month animation-on"></div>
-                  </div>
-                  <div class="value-picker-year-wrapper">
-                    <div class="value-picker-year animation-on"></div>
-                  </div>
-                  <div class="value-indicator"></div>
-                </div>
-              </div>
-              <menu class="value-selector-spin-date-picker-buttons value-selector-buttons" data-items="2">
-                <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-                <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
-              </menu>
-            </div>
-          </div>
-      -->
-      </div>
-
-      <div id="value-selector-groupoption-template" hidden>
-      <!--
-      <li role="subheader" dir="auto">
-        <label role="presentation">
-          <span>${text}</span>
-        </label>
-      </li>
-      -->
-      </div>
-      <div id="value-selector-option-template" hidden>
-      <!--
-      <li role="option" data-option-index="${index}" aria-selected="${checked}" dir="auto">
-        <label role="presentation" for="${for}">
-          <span>${text}</span>
-        </label>
-      </li>
-      -->
-      </div>
-
       <div id="permission-screen" data-z-index-level="permission-screen">
         <div id="permission-dialog" role="dialog" class="generic-dialog">
           <div class="inner">
@@ -837,16 +755,6 @@
         </div>
       </div>
 
-      <div id="device-list-item-tmpl" class="hide">
-      <!--
-        <label class="device-list deviceEnable">
-          <input class="input-enable" id="${id}" type="checkbox" ${checked}>
-          <span></span>
-        </label>
-        <span class="device-item">${label}</span>
-      -->
-      </div>
-
       <div id="app-uninstall-dialog" data-z-index-level="app-uninstall-dialog">
       </div>
 
@@ -860,8 +768,8 @@
               <dd id="app-install-size"></dd>
             <dt data-l10n-id="author">Author</dt>
               <dd>
-                <span id="app-install-author-name"></span><br />
-                <span id="app-install-author-url"></span>
+                <div id="app-install-author-name"></div>
+                <div id="app-install-author-url"></div>
               </dd>
           </dl>
         </section>
@@ -968,18 +876,6 @@
             data-z-index-level="ime-layout-dialog">
         <section>
           <h1 data-l10n-id="ime-addkeyboards">Add keyboards</h1>
-          <!-- template for selecting IME layout after 3rd-party keyboard installed -->
-          <div id="ime-list-template" hidden>
-            <!--
-            <li>
-              <a>${displayName}</a>
-              <label class="pack-checkbox ime">
-                <input type="checkbox" name="keyboards" value="${imeName}">
-                <span></span>
-              </label>
-            </li>
-            -->
-          </div>
           <ul id="ime-list">
           </ul>
         </section>
@@ -994,7 +890,7 @@
           <h1 data-l10n-id="data-roaming-enabled-title"></h1>
           <p data-l10n-id="data-roaming-enabled-warning2"></p>
         </section>
-        <menu>
+        <menu data-items="2">
           <button type="button" class="quick-setting-data-cancel-btn recommend" data-l10n-id="notNow"></button>
           <button type="button" class="quick-setting-data-ok-btn" data-l10n-id="turnOn"></button>
         </menu>
@@ -1021,7 +917,7 @@
         <img id="toaster-icon" role="presentation" class="toaster-icon"/>
         <div id="notification-container">
           <div id="toaster-title" class="toaster-title" dir="auto"></div>
-          <div id="toaster-detail" class="toaster-detail"></div>
+          <div id="toaster-detail" class="toaster-detail" dir="auto"></div>
         </div>
       </div>
 
@@ -1030,34 +926,6 @@
 
       <!-- Global overlays -->
       <div id="global-overlays" data-z-index-level="global-overlays"></div>
-
-      <!-- template for IME Menu. -->
-      <div id="ime-menu-template" hidden>
-        <!--
-        <form role="dialog" data-type="value-selector" class="ime-menu value-selector-container" data-z-index-level="action-menu">
-          <section>
-            <h1>${title}</h1>
-            <ol class="value-selector-options-container ime-menu-list" aria-multiselectable="false" role="listbox">
-            </ol>
-          </section>
-          <menu class="ime-menu-button-container">
-            <button class="ime-menu-button" data-type="cancel" data-action="cancel" data-l10n-id="cancel">${cancelLabel}</button>
-          </menu>
-        </div>
-        -->
-      </div> <!-- end of template for IME Menu. -->
-
-      <!-- template for each IME item. -->
-      <div id="ime-menu-item-template" hidden>
-        <!--
-        <li role="option" aria-selected="${selected}" data-id="${layoutId}">
-          <label role="presentation">
-            <span class="item-label">${layoutName}</span>
-            <span class="item-note">${appName}</span>
-          </label>
-        </li>
-        -->
-      </div> <!-- end of template for each IME item. -->
 
       <!-- cards view -->
       <div id="cards-view" data-z-index-level="cards-view">
@@ -1079,8 +947,7 @@
           </menu>
         </section>
         <section role="region" class="skin-organic" id="icc-confirm" data-icons="false">
-          <gaia-header>
-            <a href="#"><span data-icon="back" id="icc-confirm-btn_back"></span></a>
+          <gaia-header id="icc-confirm-header" action="back">
             <h1 id="icc-confirm-maintitle" data-l10n-id="icc-message-maintitle"></h1>
           </gaia-header>
           <gaia-subheader><span id="icc-confirm-subtitle"></span></gaia-subheader>

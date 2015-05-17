@@ -1,10 +1,10 @@
+/*global InputMethodDatabaseLoader, WordListConverter, InputMethods, dump */
 'use strict';
-
-/*global InputMethodDatabaseLoader */
 
 require('/test/unit/setup_engine.js');
 require('/js/imes/latin/latin.js');
 
+require('/js/settings/word_list_converter.js');
 require('/js/keyboard/input_method_database_loader.js');
 
 suite('Latin worker', function() {
@@ -469,24 +469,6 @@ suite('Latin worker', function() {
     }, 20);
   }
 
-  function assertOnMessageCalledWith(args) {
-    args = JSON.stringify(args);
-
-    var res = worker.onmessage.args.filter(function(call) {
-      return call[0].data &&
-        JSON.stringify(call[0].data) === args;
-    });
-
-    if (res.length === 0) {
-      worker.onmessage.args.map(function(call) {
-        if (!call[0].data) return;
-        console.log(call[0].data);
-      });
-    }
-
-    assert.notEqual(res.length, 0);
-  }
-
   function prediction(input, expected, next) {
     worker.postMessage({cmd: 'predict', args: [input]});
 
@@ -502,16 +484,18 @@ suite('Latin worker', function() {
       });
 
       assert.equal(suggestions[0], expected[0]);
-      if (expected[1] !== null)
-        assert.equal(suggestions[1], expected[1]);
-      if (expected[2] !== null)
-        assert.equal(suggestions[2], expected[2]);
+
+      for (var i = 1; i < 6; i++) {
+        if (expected[i] !== null) {
+          assert.equal(suggestions[i], expected[i], 'index: ' + i);
+        }
+      }
 
       next();
     });
   }
 
-  function setupLanguage(langCode, keymap, next) {
+  function setupLanguage(langCode, keymap, userDictBlob, next) {
     var loader = new InputMethodDatabaseLoader();
     loader.start();
     loader.SOURCE_DIR = '/js/imes/';
@@ -519,7 +503,7 @@ suite('Latin worker', function() {
     .then(function(dictData) {
       worker.postMessage({
         cmd: 'setLanguage',
-        args: [langCode, dictData]
+        args: [langCode, dictData, userDictBlob]
       }, [dictData]);
     })['catch'](function(e) { // workaround gjlsint error
       console.error(e.toString());
@@ -535,12 +519,14 @@ suite('Latin worker', function() {
       if (e.data.cmd !== 'success') {
         dump('worker.onmessage unexpected result ' + e.message + '\n');
       }
+
       assert.equal(e.data.cmd, 'success');
 
-      if (e.data.fn === 'setLanguage' || e.data.fn === 'setNearbyKeys') {
+      if (e.data.fn.startsWith('setLanguage') ||
+          e.data.fn.startsWith('setNearbyKeys')) {
         successCount++;
 
-        if (successCount === 2) {
+        if (successCount === 4) {
           next();
         }
       }
@@ -549,82 +535,90 @@ suite('Latin worker', function() {
 
   suite('en_us predictions', function() {
     suiteSetup(function(next) {
-      setupLanguage('en_us', keymaps.qwerty, next);
+      setupLanguage('en_us', keymaps.qwerty, undefined, next);
     });
 
     test('i should be predicted as I', function(next) {
-      prediction('i', ['I', 'in', 'is'], next);
+      prediction('i', ['I', 'in', 'is', null, null, null], next);
     });
 
     test('Capital input should give capital output', function(next) {
-      prediction('City', ['City', 'City\'s', 'Fit'], next);
+      prediction('City', ['City', 'City\'s', 'Fit', null, null, null], next);
     });
 
     test('Non-Capital input should give non-capital output', function(next) {
-      prediction('city', ['city', 'city\'s', 'fit'], next);
+      prediction('city', ['city', 'city\'s', 'fit', null, null, null], next);
     });
 
     test('Non existing word should not be matched', function(next) {
-      prediction('sadjasuufehwuefhwejfd', [], next);
+      prediction('sadjasuufehwuefhwejfd', [undefined, null, null, null], next);
     });
 
     test('$ should not yield autosuggest', function(next) {
-      prediction('$', [], next);
+      prediction('$', [undefined, null, null, null], next);
     });
 
     suite('Capitalization and suggestions', function() {
       test('virgule', function(next) {
-        prediction('virgule', ['virgule', 'virgules', 'Virgil'], next);
+        prediction('virgule',
+          ['virgule', 'virgules', 'Virgil', null, null, null], next);
       });
 
       test('Virgule', function(next) {
-        prediction('Virgule', ['Virgule', 'Virgules', 'Virgil'], next);
+        prediction('Virgule',
+          ['Virgule', 'Virgules', 'Virgil', null, null, null], next);
       });
 
       test('virgul', function(next) {
-        prediction('virgul', ['Virgil', 'Virgil\'s', 'virgule'], next);
+        prediction('virgul',
+          ['Virgil', 'Virgil\'s', 'virgule', null, null, null], next);
       });
 
       test('Virgul', function(next) {
-        prediction('Virgul', ['Virgil', 'Virgil\'s', 'Virgule'], next);
+        prediction('Virgul',
+          ['Virgil', 'Virgil\'s', 'Virgule', null, null, null], next);
       });
 
       test('balds', function(next) {
-        prediction('balds', ['balds', 'Baldwin', 'Baldwins'], next);
+        prediction('balds',
+          ['balds', 'Baldwin', 'Baldwins', null, null, null], next);
       });
 
       test('Balds', function(next) {
-        prediction('Balds', ['Balds', 'Baldwin', 'Baldwins'], next);
+        prediction('Balds',
+          ['Balds', 'Baldwin', 'Baldwins', null, null, null], next);
       });
 
       test('chaot', function(next) {
-        prediction('chaot', ['chaotic', 'chapter', 'chapters'], next);
+        prediction('chaot',
+          ['chaotic', 'chapter', 'chapters', null, null, null], next);
       });
 
       test('Chaot', function(next) {
-        prediction('Chaot', ['Chaotic', 'Chapter', 'Chapters'], next);
+        prediction('Chaot',
+          ['Chaotic', 'Chapter', 'Chapters', null, null, null], next);
       });
 
       test('as', function(next) {
-        prediction('as', ['as', 'ad', 'AD'], next);
+        prediction('as', ['as', 'ad', 'AD', null, null, null], next);
       });
 
       test('As', function(next) {
-        prediction('As', ['As', 'Ad', 'AD'], next);
+        prediction('As', ['As', 'Ad', 'AD', null, null, null], next);
       });
 
       test('keyboa', function(next) {
-        prediction('keyboa', ['keyboard', null, null], next);
+        prediction('keyboa', ['keyboard', null, null, null, null, null], next);
       });
     });
 
     suite('Low frequency dictionary words with better suggestion', function() {
       test('wont', function(next) {
-        prediction('wont', ['won\'t', 'wont', 'Wong'], next);
+        prediction('wont', ['won\'t', 'wont', 'Wong', null, null, null], next);
       });
 
       test('cant', function(next) {
-        prediction('cant', ['can\'t', 'cant', 'canto'], next);
+        prediction('cant', ['can\'t', 'cant', 'canto', null, null, null], next);
       });
     });
 
@@ -671,60 +665,181 @@ suite('Latin worker', function() {
       });
 
       test('Should suggest offensive word if matches input #1', function(next) {
-        prediction('fuck', ['fuck', null, null], next);
+        prediction('fuck', ['fuck', null, null, null, null, null], next);
       });
 
       test('Should suggest offensive word if matches input #2', function(next) {
-        prediction('penis', ['penis', null, null], next);
+        prediction('penis', ['penis', null, null, null, null, null], next);
       });
 
       test('Should suggest offensive word if matches input #3', function(next) {
-        prediction('Penis', ['Penis', null, null], next);
+        prediction('Penis', ['Penis', null, null, null, null, null], next);
       });
 
       test('Should suggest offensive word if matches input #4', function(next) {
-        prediction('Vagina', ['Vagina', null, null], next);
+        prediction('Vagina', ['Vagina', null, null, null, null, null], next);
       });
 
       test('Should suggest offensive word if matches input #5', function(next) {
-        prediction('Fuck', ['Fuck', null, null], next);
+        prediction('Fuck', ['Fuck', null, null, null, null, null], next);
       });
 
       test('Should suggest offensive word if matches input #6', function(next) {
-        prediction('shit', ['shit', null, null], next);
+        prediction('shit', ['shit', null, null, null, null, null], next);
       });
 
       test('Should suggest offensive word if matches input #7', function(next) {
-        prediction('prick', ['prick', null, null], next);
+        prediction('prick', ['prick', null, null, null, null, null], next);
       });
 
       test('Should suggest offensive word if matches input #7', function(next) {
-        prediction('ass', ['ass', null, null], next);
+        prediction('ass', ['ass', null, null, null, null, null], next);
       });
     });
 
     suite('Vertical nearby keys', function() {
       test('Asjan / Asian', function(next) {
-        prediction('Asjan', ['Asian', null, null], next);
+        prediction('Asjan', ['Asian', null, null, null, null, null], next);
       });
 
       test('flr / for', function(next) {
-        prediction('flr', ['for', null, null], next);
+        prediction('flr', ['for', null, null, null, null, null], next);
       });
 
       test('kn / km / in / on', function(next) {
-        prediction('kn', ['km', 'in', 'on'], next);
+        prediction('kn', ['km', 'in', 'on', null, null, null], next);
+      });
+    });
+  });
+
+  // a bit "cheating" here: if we use en_us in this suite then setLanguage will
+  // early-return at setting built-in dict and "success" count will only be 3.
+  // to avoid changing too many assertion logics we'll use en_gb and en_us
+  // alternately.
+  suite('predictions in conjuction with user dictionary', function() {
+    var blob;
+    suiteSetup(function() {
+      blob = new WordListConverter(
+        ['Mozilla', 'MozSpace', 'MozTrap', 'mozSettings', 'Mozillian'])
+        .toBlob();
+    });
+
+    suite('with user dictionary blob at setupLanguage', function() {
+      suiteSetup(function(next) {
+        setupLanguage('en_gb', keymaps.qwerty, blob, next);
+      });
+
+      test('Moz', function(next) {
+        prediction('Moz',
+          ['Mox', 'Mos', 'Most', 'Mod', 'MozTrap', 'Mozilla'], next);
+      });
+
+      test('mozs', function(next) {
+        prediction('mozs',
+          ['moss', 'mods', 'mossy', 'Mossi', 'MozSpace', 'MozTrap'], next);
+      });
+    });
+
+    suite('with user dictionary blob supplied later', function() {
+      suiteSetup(function(next) {
+        setupLanguage('en_us', keymaps.qwerty, undefined, function() {
+          worker.addEventListener('message', function onMessage(e) {
+            if ('success' === e.data.cmd && 'setUserDictionary' === e.data.fn) {
+              worker.removeEventListener('messgae', onMessage);
+              next();
+            }
+          });
+          worker.postMessage({
+            cmd: 'setUserDictionary',
+            args: [blob]
+          });
+        });
+      });
+
+      test('Moz', function(next) {
+        prediction('Moz',
+          ['MOX', 'Mos', 'Most', 'Mod', 'MozTrap', 'Mozilla'], next);
+      });
+
+      test('mozs', function(next) {
+        prediction('mozs',
+          ['moss', 'Moss', 'mods', 'mossy', 'MozSpace', 'MozTrap'], next);
+      });
+    });
+
+
+    suite('with user dictionary blob nullified later', function() {
+      suiteSetup(function(next) {
+        setupLanguage('en_gb', keymaps.qwerty, blob, function() {
+          worker.addEventListener('message', function onMessage(e) {
+            if ('success' === e.data.cmd && 'setUserDictionary' === e.data.fn) {
+              worker.removeEventListener('messgae', onMessage);
+              next();
+            }
+          });
+          worker.postMessage({
+            cmd: 'setUserDictionary',
+            args: [undefined]
+          });
+        });
+      });
+
+      // do not append "null" there: we want to make sure the suggestions cut at
+      // the fourth element.
+      test('Moz', function(next) {
+        prediction('Moz', ['Mox', 'Mos', 'Most', 'Mod'], next);
+      });
+
+      test('mozs', function(next) {
+        prediction('mozs', ['moss', 'mods', 'mossy', 'Mossi'], next);
       });
     });
   });
 
   suite('fr predictions', function() {
     suiteSetup(function(next) {
-      setupLanguage('fr', keymaps.azerty, next);
+      setupLanguage('fr', keymaps.azerty, undefined, next);
     });
 
     test('123 should not yield prediction', function(next) {
-      prediction('123', [null, null, null], next);
+      prediction('123', [null, null, null, null, null, null], next);
+    });
+  });
+
+  suite('validChars() is tolerant on small dicts', function() {
+    suiteSetup(function(next) {
+      var dictData = new WordListConverter(['Ápple']).toBlob();
+
+      worker.postMessage({
+        cmd: 'setNearbyKeys',
+        args: [keymaps.qwerty]
+      });
+
+      worker.postMessage({
+        cmd: 'setLanguage',
+        args: ['en_us', dictData]
+      });
+
+      var successCount = 0;
+      worker.onmessage = function(e) {
+        if (e.data.cmd !== 'success') {
+          dump('worker.onmessage unexpected result ' + e.message + '\n');
+        }
+        assert.equal(e.data.cmd, 'success');
+
+        if (e.data.fn.startsWith('setLanguage') ||
+            e.data.fn.startsWith('setNearbyKeys')) {
+          successCount++;
+
+          if (successCount === 2) {
+            next();
+          }
+        }
+      };
+    });
+
+    test('app should yield prediction', function(next) {
+      prediction('app', ['Ápple', null, null], next);
     });
   });
 });

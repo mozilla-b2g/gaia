@@ -2,9 +2,10 @@ define(function(require, exports, module) {
 'use strict';
 
 var View = require('view');
-var createDay = require('calc').createDay;
+var createDay = require('common/calc').createDay;
 var dateFormat = require('date_format');
-var getTimeL10nLabel = require('calc').getTimeL10nLabel;
+var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
+var timeObserver = require('time_observer');
 
 var activeClass = View.ACTIVE;
 
@@ -13,6 +14,8 @@ function CurrentTime(options) {
   // timespan can be injected later! this is just a convenience
   this.timespan = options.timespan;
   this._sticky = options.sticky;
+  this.activate = this.activate.bind(this);
+  this._tick = this._tick.bind(this);
 }
 module.exports = CurrentTime;
 
@@ -60,7 +63,7 @@ CurrentTime.prototype = {
       // inside timespan (eg. current time is 2014-05-22T23:59:50 and user is
       // viewing 2014-05-23 until past midnight)
       this._clearInterval();
-      this._interval = setTimeout(this.activate.bind(this), diff);
+      timeObserver.once('day', this.activate);
     }
   },
 
@@ -83,26 +86,19 @@ CurrentTime.prototype = {
   },
 
   _clearInterval: function() {
-    if (this._interval) {
-      clearTimeout(this._interval);
-      this._interval = null;
-    }
+    timeObserver.off('day', this.activate);
+    timeObserver.off('minute', this._tick);
   },
 
   _tick: function() {
     this._clearInterval();
-    var now = new Date();
-
-    if (!this.timespan.contains(now)) {
+    if (!this.timespan.contains(new Date())) {
       this.deactivate();
       this._unmarkCurrentDay();
       return;
     }
     this._render();
-
-    // will call tick once per minute
-    var nextTick = (60 - now.getSeconds()) * 1000;
-    this._interval = setTimeout(this._tick.bind(this), nextTick);
+    timeObserver.once('minute', this._tick);
   },
 
   _render: function() {

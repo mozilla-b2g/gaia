@@ -7,12 +7,15 @@ define(function(require) {
   'use strict';
 
   var BtContext = require('modules/bluetooth/bluetooth_context');
+  var BtConnectionManager =
+    require('modules/bluetooth/bluetooth_connection_manager');
   var BtTemplateFactory = require('panels/bluetooth/bt_template_factory');
   var DialogService = require('modules/dialog_service');
   var ListView = require('modules/mvvm/list_view');
   var SettingsPanel = require('modules/settings_panel');
 
   const MAX_DEVICE_NAME_LENGTH = 20;
+  const VISIBLE_TIMEOUT_TIME = 120000;  // Visibility will timeout after 2 mins.
 
   var _debug = false;
   var Debug = function() {};
@@ -35,6 +38,25 @@ define(function(require) {
 
         // Init state for checking left app or not.
         this._leftApp = false;
+        // Init an instance to maintain visibility timeout.
+        this._visibleTimeout = null;
+        // Init bounding instances for observe/un-observe property.
+        this._boundUpdateEnableCheckbox = this._updateEnableCheckbox.bind(this);
+        this._boundUpdateVisibleItem = this._updateVisibleItem.bind(this);
+        this._boundUpdateVisibleCheckbox =
+          this._updateVisibleCheckbox.bind(this);
+        this._boundUpdateVisibilityTimer =
+          this._updateVisibilityTimer.bind(this);
+        this._boundUpdateVisibleName = this._updateVisibleName.bind(this);
+        this._boundUpdateRenameItem = this._updateRenameItem.bind(this);
+        this._boundUpdatePairedDevicesHeader =
+         this._updatePairedDevicesHeader.bind(this);
+        this._boundUpdatePairedDevicesList =
+          this._updatePairedDevicesList.bind(this);
+        this._boundUpdateFoundDevicesList =
+          this._updateFoundDevicesList.bind(this);
+        this._boundUpdateSearchItem = this._updateSearchItem.bind(this);
+        this._boundUpdateSearchingItem = this._updateSearchingItem.bind(this);
 
         elements = {
           panel: panel,
@@ -61,6 +83,13 @@ define(function(require) {
             searchingItem: panel.querySelector('.bluetooth-searching'),
             searchItem: panel.querySelector('.bluetooth-search'),
             searchButton: panel.querySelector('.search-device')
+          },
+          actionMenu: {
+            actionMenuDialog: panel.querySelector('.paired-device-option'),
+            connectOption: panel.querySelector('.connect-option'),
+            disconnectOption: panel.querySelector('.disconnect-option'),
+            unpairOption: panel.querySelector('.unpair-option'),
+            cancelOption: panel.querySelector('.cancel-option')
           }
         };
 
@@ -83,8 +112,8 @@ define(function(require) {
 
         // create found devices list view
         _pairedDevicesListView = ListView(elements.paired.pairedDevicesList,
-                                         BtContext.getPairedDevices(),
-                                         pairedDeviceTemplate);
+                                          BtContext.getPairedDevices(),
+                                          pairedDeviceTemplate);
 
         // found devices list item click events
         foundDeviceTemplate =
@@ -100,43 +129,47 @@ define(function(require) {
         Debug('onBeforeShow():');
 
         // enable/disable
-        BtContext.observe('state', this._updateEnableCheckbox);
+        BtContext.observe('state', this._boundUpdateEnableCheckbox);
         this._updateEnableCheckbox(BtContext.state);
 
         // visible
-        BtContext.observe('state', this._updateVisibleItem);
+        BtContext.observe('state', this._boundUpdateVisibleItem);
         this._updateVisibleItem(BtContext.state);
 
-        BtContext.observe('discoverable', this._updateVisibleCheckbox);
+        BtContext.observe('discoverable', this._boundUpdateVisibleCheckbox);
         this._updateVisibleCheckbox(BtContext.discoverable);
 
-        BtContext.observe('name', this._updateVisibleName);
+        BtContext.observe('discoverable', this._boundUpdateVisibilityTimer);
+        this._updateVisibilityTimer(BtContext.discoverable);
+
+        BtContext.observe('name', this._boundUpdateVisibleName);
         this._updateVisibleName(BtContext.name);
 
         // rename
-        BtContext.observe('state', this._updateRenameItem);
+        BtContext.observe('state', this._boundUpdateRenameItem);
         this._updateRenameItem(BtContext.state);
 
         // paired devices header
-        BtContext.observe('hasPairedDevice', this._updatePairedDevicesHeader);
+        BtContext.observe('hasPairedDevice',
+          this._boundUpdatePairedDevicesHeader);
         this._updatePairedDevicesHeader(BtContext.hasPairedDevice);
 
         // paired devices list
-        BtContext.observe('state', this._updatePairedDevicesList);
+        BtContext.observe('state', this._boundUpdatePairedDevicesList);
         this._updatePairedDevicesList(BtContext.state);
 
         // found devices list
-        BtContext.observe('state', this._updateFoundDevicesList);
+        BtContext.observe('state', this._boundUpdateFoundDevicesList);
         this._updateFoundDevicesList(BtContext.state);
 
         _pairedDevicesListView.enabled = true;
         _foundDevicesListView.enabled = true;
 
         // search
-        BtContext.observe('state', this._updateSearchItem);
+        BtContext.observe('state', this._boundUpdateSearchItem);
         this._updateSearchItem(BtContext.state);
 
-        BtContext.observe('discovering', this._updateSearchingItem);
+        BtContext.observe('discovering', this._boundUpdateSearchingItem);
         this._updateSearchingItem(BtContext.discovering);
       },
 
@@ -144,22 +177,33 @@ define(function(require) {
         Debug('onShow():');
 
         if (!this._leftApp) {
-          // If settings app is still in the forground, 
-          // we start discovering device automatically 
+          // If settings app is still in the forground,
+          // we start discovering device automatically
           // while Bluetooth panel is onShow.
-          BtContext.startDiscovery();
+          BtContext.startDiscovery().then(() => {
+            Debug('onShow(): startDiscovery successfully');
+          }, (reason) => {
+            Debug('onShow(): startDiscovery failed, ' +
+                  'reason = ' + reason);
+          });
         }
         this._leftApp = false;
       },
 
       onBeforeHide: function() {
         Debug('onBeforeHide():');
-
-        BtContext.unobserve('state');
-        BtContext.unobserve('hasPairedDevice');
-        BtContext.unobserve('name');
-        BtContext.unobserve('discoverable');
-        BtContext.unobserve('discovering');
+        BtContext.unobserve('state', this._boundUpdateEnableCheckbox);
+        BtContext.unobserve('state', this._boundUpdateVisibleItem);
+        BtContext.unobserve('discoverable', this._boundUpdateVisibleCheckbox);
+        BtContext.unobserve('discoverable', this._boundUpdateVisibilityTimer);
+        BtContext.unobserve('name', this._boundUpdateVisibleName);
+        BtContext.unobserve('state', this._boundUpdateRenameItem);
+        BtContext.unobserve('hasPairedDevice',
+          this._boundUpdatePairedDevicesHeader);
+        BtContext.unobserve('state', this._boundUpdatePairedDevicesList);
+        BtContext.unobserve('state', this._boundUpdateFoundDevicesList);
+        BtContext.unobserve('state', this._boundUpdateSearchItem);
+        BtContext.unobserve('discovering', this._boundUpdateSearchingItem);
       },
 
       onHide: function() {
@@ -167,7 +211,7 @@ define(function(require) {
         this._leftApp = document.hidden;
 
         if (!this._leftApp) {
-          // If settings app is still in the forground, 
+          // If settings app is still in the forground,
           // we stop discovering device automatically
           // while Bluetooth panel is onHide.
           BtContext.stopDiscovery();
@@ -198,10 +242,10 @@ define(function(require) {
         var checkbox = elements.visible.visibleCheckBox;
         Debug('_onVisibleCheckBoxClick(): checked = ' + checkbox.checked);
         BtContext.setDiscoverable(checkbox.checked).then(() => {
-          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' + 
+          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' +
                 checkbox.checked + ' successfully');
         }, (reason) => {
-          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' + 
+          Debug('_onVisibleCheckBoxClick(): setDiscoverable ' +
                 checkbox.checked + ' failed, reason = ' + reason);
         });
       },
@@ -227,7 +271,7 @@ define(function(require) {
 
       _onRenameSubmit: function(nameEntered) {
         Debug('_onRenameSubmit(): nameEntered = ' + nameEntered);
-        // Before set the entered name to platform, we check length of name is 
+        // Before set the entered name to platform, we check length of name is
         // over threshold or not.
         nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
         if (nameEntered.length > MAX_DEVICE_NAME_LENGTH) {
@@ -236,15 +280,15 @@ define(function(require) {
           return;
         }
 
-        // Only set non-empty string to be new name. 
+        // Only set non-empty string to be new name.
         // Otherwise, set name by product model.
         if (nameEntered !== '') {
           Debug('_onRenameSubmit(): set new name = ' + nameEntered);
           BtContext.setName(nameEntered).then(() => {
-            Debug('_onRenameSubmit(): setName = ' + 
+            Debug('_onRenameSubmit(): setName = ' +
                   nameEntered + ' successfully');
           }, (reason) => {
-            Debug('_onRenameSubmit(): setName = ' + 
+            Debug('_onRenameSubmit(): setName = ' +
                   nameEntered + ' failed, reason = ' + reason);
           });
         } else {
@@ -279,13 +323,13 @@ define(function(require) {
         Debug('_updateEnableCheckbox(): ' +
               'callback from observe "state" = ' + state);
         // Update Bluetooth enable checkbox
-        elements.enableCheckbox.checked = 
+        elements.enableCheckbox.checked =
           (state === 'enabled') || (state === 'enabling');
-        elements.enableCheckbox.disabled = 
+        elements.enableCheckbox.disabled =
           (state === 'enabling') || (state === 'disabling');
 
         // Update Bluetooth enable checkbox message
-        elements.enableCheckboxMsg.hidden = 
+        elements.enableCheckboxMsg.hidden =
           (state === 'enabled') || (state === 'enabling');
       },
 
@@ -301,6 +345,27 @@ define(function(require) {
         Debug('_updateVisibleCheckbox(): ' +
               'callback from observe "discoverable" = ' + discoverable);
         elements.visible.visibleCheckBox.checked = discoverable;
+      },
+
+      _updateVisibilityTimer: function(discoverable) {
+        Debug('_updateVisibilityTimer(): ' +
+              'callback from observe "discoverable" = ' + discoverable);
+        // Visibility will time out after 2 mins.
+        if (discoverable && !this._visibleTimeout) {
+          Debug('_updateVisibilityTimer(): setTimeout to disable visibility ' +
+                'after 2 minutes');
+          this._visibleTimeout = setTimeout(() => {
+            BtContext.setDiscoverable(false);
+          }, VISIBLE_TIMEOUT_TIME);
+          // Early return here since already set timeout.
+          return;
+        }
+
+        if (!discoverable && this._visibleTimeout) {
+          Debug('_updateVisibilityTimer(): clearTimeout');
+          clearTimeout(this._visibleTimeout);
+          this._visibleTimeout = null;
+        }
       },
 
       _updateVisibleName: function(name) {
@@ -362,7 +427,7 @@ define(function(require) {
         BtContext.startDiscovery().then(() => {
           Debug('_onSearchButtonClick(): startDiscovery successfully');
         }, (reason) => {
-          Debug('_onSearchButtonClick(): startDiscovery failed, ' + 
+          Debug('_onSearchButtonClick(): startDiscovery failed, ' +
                 'reason = ' + reason);
         });
       },
@@ -372,17 +437,110 @@ define(function(require) {
               deviceItem.address);
         Debug('_onPairedDeviceItemClick(): deviceItem.paired = ' +
               deviceItem.paired);
-        // TODO: unpair, connect, disconnect
-        // Pop out dialog ans show operation correspond to device paired device
-        // cod.
+        // Pop out dialog and show operation correspond to device paired device
+        // type.
+        switch (deviceItem.type) {
+          case 'audio-card':
+          case 'audio-input-microphone':
+            // We only support 'audio-card', 'audio-input-microphone' device
+            // to connect. Before pop out a dialog for operation, we should
+            // check the paired device is connected or not.
+            this._showActionMenu(deviceItem);
+            break;
+          default:
+            // These devices are supported to pair/unpair only.
+            // Pop confirmation dialog to make sure user's decision.
+            this._confirmUserWantToUnpairDevice(deviceItem);
+            break;
+        }
+      },
 
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1121904
-        // Since cannot pair with headset, we do unpair here directly.
-        // unpair with the remote device
+      _showActionMenu: function(deviceItem) {
+        if (deviceItem.connectionStatus === 'connected') {
+          elements.actionMenu.connectOption.style.display = 'none';
+          elements.actionMenu.disconnectOption.style.display = 'block';
+          elements.actionMenu.disconnectOption.onclick = () => {
+            BtConnectionManager.disconnect(deviceItem.data);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+          elements.actionMenu.unpairOption.onclick = () => {
+            // Show a confirmation dialog while a user wants to unpair
+            // the connected device. Because the device is connected to use now.
+            this._confirmUserWantToUnpairDeviceWhileItisConnected(deviceItem);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+        } else if (deviceItem.connectionStatus === 'disconnected') {
+          elements.actionMenu.connectOption.style.display = 'block';
+          elements.actionMenu.disconnectOption.style.display = 'none';
+          elements.actionMenu.unpairOption.onclick = () => {
+            this._confirmToUnpair(deviceItem);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+          elements.actionMenu.connectOption.onclick = () => {
+            this._connectHeadsetDevice(deviceItem);
+            elements.actionMenu.actionMenuDialog.hidden = true;
+          };
+        }
+
+        elements.actionMenu.cancelOption.onclick = () => {
+          elements.actionMenu.actionMenuDialog.hidden = true;
+        };
+        // Show the action menu.
+        elements.actionMenu.actionMenuDialog.hidden = false;
+      },
+
+      _confirmUserWantToUnpairDeviceWhileItisConnected: function(deviceItem) {
+        var messageL10nId = {
+          id: 'unpair-msg'
+        };
+        var titleL10nId = 'unpair-title';
+
+        DialogService.confirm(messageL10nId, {
+          title: titleL10nId,
+          submitButton: 'ok',
+          cancelButton: 'cancel'
+        }).then((result) => {
+          var type = result.type;
+          if (type === 'submit') {
+            this._confirmToUnpair(deviceItem);
+          } else {
+            // Just return here since user give up to unpair.
+            return;
+          }
+        });
+      },
+
+      _confirmUserWantToUnpairDevice: function(deviceItem) {
+        var messageL10nId = {
+          id: 'device-option-unpair-device'
+        };
+        var titleL10nId = 'device-option-unpair-confirmation';
+
+        DialogService.confirm(messageL10nId, {
+          title: titleL10nId,
+          submitButton: {
+            id: 'device-option-confirm',
+            style: 'danger'
+          },
+          cancelButton: 'cancel'
+        }).then((result) => {
+          var type = result.type;
+          if (type === 'submit') {
+            this._confirmToUnpair(deviceItem);
+          } else {
+            // Just return here since user give up to unpair.
+            return;
+          }
+        });
+      },
+
+      _confirmToUnpair: function(deviceItem) {
+        Debug('_confirmToUnpair(): deviceItem.address = ' +
+              deviceItem.address);
         BtContext.unpair(deviceItem.address).then(() => {
           Debug('_onPairedDeviceItemClick(): unpair successfully');
         }, (reason) => {
-          Debug('_onPairedDeviceItemClick(): unpair failed, ' + 
+          Debug('_onPairedDeviceItemClick(): unpair failed, ' +
                 'reason = ' + reason);
         });
       },
@@ -395,15 +553,37 @@ define(function(require) {
         // Pair with the remote device.
         BtContext.pair(deviceItem.address).then(() => {
           Debug('_onFoundDeviceItemClick(): pair successfully');
+          // Connect the device which is just paired.
+          this._connectHeadsetDevice(deviceItem);
         }, (reason) => {
-          Debug('_onFoundDeviceItemClick(): pair failed, ' + 
+          Debug('_onFoundDeviceItemClick(): pair failed, ' +
                 'reason = ' + reason);
-          // Reset the paired status back to false, 
+          // Reset the paired status back to false,
           // since the 'pairing' status is given in Gaia side.
           deviceItem.paired = false;
           // Show alert message while pair device failed.
           this._alertPairFailedErrorMessage(reason);
         });
+      },
+
+      _connectHeadsetDevice: function(deviceItem) {
+        if (!((deviceItem.type === 'audio-card') ||
+              (deviceItem.type === 'audio-input-microphone'))) {
+          return;
+        }
+
+        BtConnectionManager.connect(deviceItem.data).then(() => {
+          Debug('_connectHeadsetDevice(): connect device successfully');
+        }, (reason) => {
+          Debug('_connectHeadsetDevice(): connect device failed, ' +
+                'reason = ' + reason);
+          // Show alert message while connect device failed.
+          this._alertConnectErrorMessage();
+        });
+      },
+
+      _alertConnectErrorMessage: function() {
+        DialogService.alert('error-connect-msg', {title: 'settings'});
       },
 
       _alertPairFailedErrorMessage: function(errorReason) {

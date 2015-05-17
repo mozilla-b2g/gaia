@@ -5,7 +5,6 @@ marionette('LockScreen notification tests', function() {
   var LockScreenNotificationChecks, checks;
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null,
       'lockscreen.enabled': true
     }
   });
@@ -19,7 +18,7 @@ marionette('LockScreen notification tests', function() {
     checks = (new LockScreenNotificationChecks()).start(client);
   });
 
-  test('fire notification', function() {
+  test.skip('fire notification', function() {
     var details = {
      tag: 'test tag',
      title: 'test title',
@@ -33,7 +32,7 @@ marionette('LockScreen notification tests', function() {
       .contains(details);
   });
 
-  test('system replace notification', function() {
+  test.skip('system replace notification', function() {
     var oldDetails = {
       tag: 'test tag, replace',
       title: 'test title, replace',

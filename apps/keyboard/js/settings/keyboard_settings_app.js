@@ -1,18 +1,23 @@
 'use strict';
 
 /* global SettingsPromiseManager, CloseLockManager, DialogController,
-          MozActivity, PanelController */
+          MozActivity, PanelController, PromiseStorage */
 
 (function(exports) {
 
 var KeyboardSettingsApp = function KeyboardSettingsApp() {
   this.closeLockManager = null;
 
+  this.settingsPromiseManager = null;
+  this.preferencesStore = null;
+
   this.panelController = null;
   this.dialogController = null;
 
   this._closeLock = null;
 };
+
+KeyboardSettingsApp.prototype.PREFERENCES_STORE_NAME = 'preferences';
 
 KeyboardSettingsApp.prototype.start = function() {
   this.closeLockManager = new CloseLockManager();
@@ -22,6 +27,10 @@ KeyboardSettingsApp.prototype.start = function() {
   // SettingsPromiseManager wraps Settings DB methods into promises.
   // This must be available to *GroupView.
   this.settingsPromiseManager = new SettingsPromiseManager();
+
+  // This is where we store keyboard specific preferences
+  this.preferencesStore = new PromiseStorage(this.PREFERENCES_STORE_NAME);
+  this.preferencesStore.start();
 
   this.panelController = new PanelController(this);
   this.panelController.start();
@@ -37,6 +46,9 @@ KeyboardSettingsApp.prototype.stop = function() {
   this.closeLockManager = null;
 
   this.settingsPromiseManager = null;
+
+  this.preferencesStore.stop();
+  this.preferencesStore = null;
 
   this.panelController.stop();
   this.panelController = null;

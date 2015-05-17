@@ -1,4 +1,11 @@
 {
+  "":{
+   "": {
+     "lat" : null ,
+     "lon" : null ,
+     "city": ""
+   }
+  },
   "africa": {
     "abidjan": {
       "lat": 5.316667,

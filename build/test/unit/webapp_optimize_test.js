@@ -132,6 +132,10 @@ suite('webapp-optimize.js', function() {
       return true;
     };
 
+    mockUtils.getOsType = function() {
+      return 'Unix';
+    };
+
     mockConfig = {
       GAIA_DEFAULT_LOCALE: 'default-locale',
       GAIA_CONCAT_LOCALES: '1',
@@ -273,43 +277,6 @@ suite('webapp-optimize.js', function() {
       webappOptimize = new app.WebappOptimize();
     });
 
-    test('HTMLProcessed, when all HTMLs have been proceeded ', function() {
-      var numOfFiles = webappOptimize.numOfFiles = 10;
-      var writeASTsCalled = 0;
-
-      webappOptimize.writeASTs = function() {
-        writeASTsCalled++;
-      };
-
-      isFileExist = true;
-      for (var i = 0; i < numOfFiles; i++) {
-        webappOptimize.HTMLProcessed([mockFile]);
-      }
-
-      assert.equal(writeASTsCalled, 1,
-        'HTMLProcessed should only be called once');
-      // assert.equal(isFileRemoved, true, 'file should be removed');
-    });
-
-    test('writeASTs', function() {
-      isFileExist = true;
-      webappOptimize.config = mockConfig;
-
-      var buildDirectoryFile = mockUtils.getFile('build_stage');
-      webappOptimize.webapp = {
-        buildDirectoryFilePath: buildDirectoryFile.path,
-        asts: {'en-test': [{ $i: 'testId', $v: 'testIdContent'}]}
-      };
-      fileChildren[buildDirectoryFile.leafName + '/locales-obj'] = [
-        mockUtils.getFile('en-test.json')
-      ];
-      webappOptimize.writeASTs();
-      assert.equal(writeFileContent, '[{"$i":"testId","$v":"testIdContent"}]',
-        'should write locale content');
-      assert.equal(writeFile.leafName, 'en-test.json',
-        'should write locale content to this path');
-    });
-
     test('execute, main function of webappOptimize', function() {
       var processFiles = [];
       webappOptimize.processFile = function(file) {
@@ -331,8 +298,6 @@ suite('webapp-optimize.js', function() {
         },
         locales: ['en-test']
       });
-      assert.deepEqual(webappOptimize.webapp.asts, {},
-        'should create an empty asts for webapp');
       assert.equal(webappOptimize.numOfFiles, 2,
         'should have two file left');
       assert.equal(processFiles[0].leafName, 'test.html',
@@ -342,23 +307,19 @@ suite('webapp-optimize.js', function() {
 
   suite('HTMLOptimizer', function() {
     var htmlOptimizer;
-    var doneFiles;
     var writeAggregatedConfig;
     setup(function() {
-      var htmlFile = mockUtils.getFile('test-index.html');
+      var htmlFile = mockUtils.getFile('index.html');
       htmlOptimizer = new app.HTMLOptimizer({
         htmlFile: htmlFile,
+        asts: {'en-test': []},
         webapp: {
-          asts: {'en-test': []},
           buildDirectoryFilePath: 'build_stage'
         },
         config: mockConfig,
         win: mockWin,
         locales: ['en-test'],
-        optimizeConfig: mockoptimizeConfig,
-        callback: function(files) {
-          doneFiles = files;
-        }
+        optimizeConfig: mockoptimizeConfig
       });
     });
 
@@ -372,10 +333,7 @@ suite('webapp-optimize.js', function() {
       htmlOptimizer._optimize = function() {
         _optimizeCalled = true;
       };
-      htmlOptimizer.files = ['test'];
       htmlOptimizer.process();
-      assert.deepEqual(doneFiles, htmlOptimizer.files,
-        'should return file list when all files are processed');
       mockoptimizeConfig
         .L10N_OPTIMIZATION_BLACKLIST.ignoreL10nOptimizeApp = false;
       htmlOptimizer.process();
@@ -391,7 +349,7 @@ suite('webapp-optimize.js', function() {
       htmlOptimizer._proceedLocales();
       assert.deepEqual(htmlOptimizer.asts,
         {'en-test': [{$i: 'test-id', $v: 'testIdContent'}]});
-      assert.equal(htmlOptimizer.webapp.asts['en-test'][0].$v,
+      assert.equal(htmlOptimizer.asts['en-test'][0].$v,
         'testIdContent');
     });
 
@@ -460,7 +418,7 @@ suite('webapp-optimize.js', function() {
         '"*/\n\ncontent-document/head/script[src]-src',
         'should write minified js content');
       assert.equal(writeAggregatedConfig.name,
-        'gaia-test-prefix-test-index.js',
+        'gaia-test-prefix-index.js',
         'should name js with prefix');
     });
 
@@ -534,7 +492,7 @@ suite('webapp-optimize.js', function() {
           '</html>\n';
       };
       htmlOptimizer.serializeNewHTMLDocumentOutput();
-      assert.equal(writeFile.path, 'test-index.html');
+      assert.equal(writeFile.path, 'index.html');
       assert.equal(writeFileContent,
         '<!DOCTYPE docName PUBLIC publicId systemId>\n' +
         '<html testnodename="testnodevalue">\n' +
@@ -548,6 +506,21 @@ suite('webapp-optimize.js', function() {
       var result = htmlOptimizer.getFileByRelativePath(path);
       assert.equal(result.file.getCurrentPath(),
                    'build_stage/test/official/foo.html');
+    });
+
+    test('writeASTs', function() {
+      isFileExist = true;
+      var buildDirectoryFile = mockUtils.getFile('build_stage');
+      htmlOptimizer.webapp.buildDirectoryFilePath = buildDirectoryFile.path;
+      htmlOptimizer.asts = {'en-test': [{ $i: 'testId', $v: 'testIdContent'}]};
+      fileChildren[buildDirectoryFile.leafName + '/locales-obj'] = [
+        mockUtils.getFile('index.en-test.json')
+      ];
+      htmlOptimizer.writeAST();
+      assert.equal(writeFileContent, '[{"$i":"testId","$v":"testIdContent"}]',
+        'should write locale content');
+      assert.equal(writeFile.leafName, 'index.en-test.json',
+        'should write locale content to this path');
     });
   });
 });

@@ -45,7 +45,9 @@ var EntrySheet = (function invocation() {
     return `<div class="${EntrySheet.className}">
       <section role="region" class="skin-organic header">
         <gaia-header action="close">
-          <h1 class="title"></h1>
+          <h1 class="title">
+            <bdi class="${EntrySheet.className}-title"></bdi>
+          </h1>
         </gaia-header>
         <div class="throbber"></div>
       </section>
@@ -62,7 +64,7 @@ var EntrySheet = (function invocation() {
     this.header =
       this.container.querySelector('.' + EntrySheet.className + ' gaia-header');
     this.titleElement =
-      this.container.querySelector('.' + EntrySheet.className + ' .title');
+      this.container.querySelector('.' + EntrySheet.className + '-title');
     this.throbberElement =
       this.container.querySelector('.' + EntrySheet.className + ' .throbber');
     this.content =

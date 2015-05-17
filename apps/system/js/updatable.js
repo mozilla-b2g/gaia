@@ -1,5 +1,15 @@
 'use strict';
 
+/* global
+   appWindowManager,
+   asyncStorage,
+   CustomDialog,
+   ManifestHelper,
+   Service,
+   UpdateManager,
+   UtilityTray
+ */
+
 /*
  * An Updatable object represents an application *or* system update.
  * It takes care of the interaction with the UpdateManager and observes
@@ -135,6 +145,7 @@ function SystemUpdatable() {
   this.size = 0;
   this.downloading = false;
   this.paused = false;
+  this.showingApplyPrompt = false;
 
   // XXX: this state should be kept on the platform side
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
@@ -168,12 +179,14 @@ SystemUpdatable.prototype.uninit = function() {
 };
 
 SystemUpdatable.prototype.handleEvent = function(evt) {
-  if (evt.type !== 'mozChromeEvent')
+  if (evt.type !== 'mozChromeEvent') {
     return;
+  }
 
   var detail = evt.detail;
-  if (!detail.type)
+  if (!detail.type) {
     return;
+  }
 
   switch (detail.type) {
     case 'update-error':
@@ -199,10 +212,10 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
     case 'update-downloaded':
       this.downloading = false;
       UpdateManager.downloaded(this);
-      this.showApplyPrompt();
+      this.showApplyPrompt(detail.isOSUpdate);
       break;
     case 'update-prompt-apply':
-      this.showApplyPrompt();
+      this.showApplyPrompt(detail.isOSUpdate);
       break;
   }
 };
@@ -213,10 +226,15 @@ SystemUpdatable.prototype.errorCallBack = function() {
   this.downloading = false;
 };
 
-SystemUpdatable.prototype.showApplyPrompt = function() {
+// isOsUpdate comes from Gecko's update object passed in the mozChromeEvent
+// and is expected to be true in case of an update package that gets applied
+// in recovery mode (FOTA). We want to show the battery warning only in this
+// case as described in bug 959195
+SystemUpdatable.prototype.showApplyPrompt = function(isOsUpdate) {
   var batteryLevel = window.navigator.battery.level * 100;
   this.getBatteryPercentageThreshold().then(function(threshold) {
-    if (batteryLevel < threshold) {
+    this.showingApplyPrompt = true;
+    if (isOsUpdate && batteryLevel < threshold) {
       this.showApplyPromptBatteryNok(threshold);
     } else {
       this.showApplyPromptBatteryOk();
@@ -309,6 +327,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
  * @param {String} reason
  */
 SystemUpdatable.prototype.declineInstall = function(reason) {
+  this.showingApplyPrompt = false;
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', reason);
 

@@ -10,8 +10,9 @@ define(function(require) {
         var simcardManager = new SimCardManager({
           simCardContainer: panel.querySelector('.sim-card-container'),
           simCardTmpl: panel.querySelector('.sim-card-tmpl'),
-          securityEntry: panel.querySelector('.sim-manager-security-entry'),
-          securityDesc: panel.querySelector('.sim-manager-security-desc'),
+          simSettingsHeader:
+            panel.querySelector('.sim-manager-settings-header'),
+          simSettingsList: panel.querySelector('.sim-manager-select-list'),
           outgoingCallSelect:
             panel.querySelector('.sim-manager-outgoing-call-select'),
           outgoingMessagesSelect:

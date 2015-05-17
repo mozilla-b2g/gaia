@@ -61,6 +61,11 @@
       );
     }
 
+    var resolved;
+    var promise = new Promise((resolve, reject) => {
+      resolved = resolve;
+    });
+
     var req = {
       listeners: {},
       addEventListener: function(name, cb) {
@@ -72,17 +77,13 @@
       },
       then: function(cb, eb) {
         // error-handler `eb` is never used, since the mock never fails.
-        var promise = new Promise(function (resolve, reject) {
-          req.addEventListener('success', function () {
-            resolve(0);
-          });
-        });
         return promise.then(cb);
       }
     };
 
     if (!_mSyncRepliesOnly) {
       timeouts.push(setTimeout(function() {
+        resolved(0);
         if (req.onsuccess) {
           req.onsuccess();
         }
@@ -93,6 +94,9 @@
         }
       }));
     } else {
+      req.addEventListener('success', function () {
+        resolved(0);
+      });
       requests.push(req);
     }
 
@@ -134,6 +138,10 @@
     } else {
       resultObj[key] = settings[key];
     }
+    var resolved;
+    var promise = new Promise((resolve, reject) => {
+      resolved = resolve;
+    });
     var settingsRequest = {
       listeners: {},
       result: resultObj,
@@ -146,16 +154,12 @@
       },
       then: function(cb, eb) {
         // error-handler `eb` is never used, since the mock never fails.
-        var promise = new Promise(function (resolve, reject) {
-          settingsRequest.addEventListener('success', function () {
-            resolve(resultObj);
-          });
-        });
         return promise.then(cb);
       }
     };
     if (!_mSyncRepliesOnly) {
       timeouts.push(setTimeout(function() {
+        resolved(settingsRequest.result);
         if (settingsRequest.onsuccess) {
           settingsRequest.onsuccess();
         }
@@ -166,6 +170,9 @@
         }
       }));
     } else {
+      settingsRequest.addEventListener('success', function () {
+        resolved(settingsRequest.result);
+      });
       requests.push(settingsRequest);
     }
 

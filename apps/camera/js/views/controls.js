@@ -32,6 +32,13 @@ module.exports = View.extend({
     video: 'right'
   },
 
+  // {node}: {data-l10n-id} pairs used for localization.
+  elsL10n: {
+    cancel: 'controls-button-close',
+    thumbnail: 'preview-button',
+    capture: 'capture-button'
+  },
+
   render: function() {
     this.el.innerHTML = this.template();
 
@@ -109,6 +116,11 @@ module.exports = View.extend({
     window.removeEventListener('load', this.setupSwitch);
   },
 
+  setCaptureLabel: function(recording) {
+    this.els.capture.setAttribute('data-l10n-id',
+      recording ? 'stop-capture-button' : 'capture-button');
+  },
+
   onSwitchSnapped: function(edges) {
     var mode = this.switchPositions[edges.x];
     var changed = mode !== this.get('mode');
@@ -163,6 +175,8 @@ module.exports = View.extend({
     var ratio = { left: 0, right: 1 }[this.switchPosition];
     this.updateSwitchPosition();
     this.setSwitchIcon(ratio);
+    // Set appropriate mode switch label for screen reader.
+    this.els.switch.setAttribute('data-l10n-id', mode + '-mode-button');
     debug('mode set pos: %s', this.switchPosition);
   },
 
@@ -245,14 +259,32 @@ module.exports = View.extend({
     this.unset(key ? key + '-enabled' : 'enabled');
   },
 
+  /**
+   * Localize the template based on a list of localizable elements - elsL10n. In
+   * case the template is loaded before l10n is ready, localize will peform the
+   * initial localization.
+   */
+  localize: function() {
+    for (var el in this.elsL10n) {
+      // Resetting data-l10n-id will trigger localization for the el.
+      this.els[el].setAttribute('data-l10n-id', this.elsL10n[el]);
+    }
+    // Switch mode label depends on the mode that is currently set.
+    var mode = this.get('mode') || 'picture';
+    this.els.switch.setAttribute('data-l10n-id', mode + '-mode-button');
+  },
+
   template: function() {
     /*jshint maxlen:false*/
     return '<div class="controls-left">' +
-      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" name="thumbnail"></div>' +
-      '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" name="cancel" data-icon="close"></div>' +
+      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" ' +
+        'name="thumbnail" role="button" data-l10n-id="preview-button"></div>' +
+      '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" ' +
+        'name="cancel" data-icon="close" role="button" data-l10n-id="controls-button-close"></div>' +
     '</div>' +
     '<div class="controls-middle">' +
-      '<div class="capture-button test-capture rotates js-capture" name="capture">' +
+      '<div class="capture-button test-capture rotates js-capture" name="capture" ' +
+        'data-l10n-id="capture-button" role="button">' +
         '<div class="circle outer-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
         '<div class="center" data-icon="camera"></div>' +
@@ -260,10 +292,10 @@ module.exports = View.extend({
     '</div>' +
     '<div class="controls-right">' +
       '<div class="mode-switch test-switch" name="switch">' +
-        '<div class="inner js-switch">' +
-          '<div class="mode-switch_bg-icon rotates" data-icon="camera"></div>' +
-          '<div class="mode-switch_bg-icon rotates" data-icon="video"></div>' +
-          '<div class="mode-switch_handle js-switch-handle">' +
+        '<div class="inner js-switch" role="button">' +
+          '<div class="mode-switch_bg-icon rotates" data-icon="camera" aria-hidden="true"></div>' +
+          '<div class="mode-switch_bg-icon rotates" data-icon="video" aria-hidden="true"></div>' +
+          '<div class="mode-switch_handle js-switch-handle" aria-hidden="true">' +
             '<div class="mode-switch_current-icon camera rotates js-icon-camera" data-icon="camera"></div>' +
             '<div class="mode-switch_current-icon video rotates js-icon-video" data-icon="video"></div>' +
           '</div>' +

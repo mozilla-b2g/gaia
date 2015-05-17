@@ -62,6 +62,7 @@
      * Height in pixels of the background of the group.
      */
     backgroundHeight: 0,
+    lastBackgroundHeight: null,
 
     /**
      * Height in pixels of the separator at the bottom of the group.
@@ -146,6 +147,7 @@
 
       this.grid.element.appendChild(group);
       this.separatorHeight = this.dividerSpanElement.clientHeight;
+      this.lastBackgroundHeight = null;
     },
 
     /**
@@ -167,16 +169,16 @@
       var index = this.detail.index;
 
       var width = Math.round(
-        (this.grid.layout.gridWidth -
+        (this.grid.layout.constraintSize -
          COLLAPSED_GROUP_MARGIN_LEFT - COLLAPSED_GROUP_MARGIN_RIGHT) /
         COLLAPSED_GROUP_SIZE);
       var x = isRTL ?
-              (this.grid.layout.gridWidth - COLLAPSED_GROUP_MARGIN_RIGHT) :
-              COLLAPSED_GROUP_MARGIN_LEFT;
+        (this.grid.layout.constraintSize - COLLAPSED_GROUP_MARGIN_RIGHT) :
+        COLLAPSED_GROUP_MARGIN_LEFT;
       y += this.headerHeight;
 
       var maxGridItemWidth =
-        this.grid.layout.gridWidth / this.grid.layout.minIconsPerRow;
+        this.grid.layout.constraintSize / this.grid.layout.minIconsPerRow;
       this.collapseRatio =
         (maxGridItemWidth / this.grid.layout.gridItemWidth) * COLLAPSE_RATIO;
 
@@ -235,9 +237,11 @@
       // icons, but we want it to display above.
       var y = this.getRealYPosition(nApps);
 
-      // Place the header span
-      this.headerSpanElement.style.transform =
-        'translate(0px, ' + y + 'px)';
+      if (y !== this.lastY) {
+        // Place the header span
+        this.headerSpanElement.style.transform =
+          'translate(0px, ' + y + 'px)';
+      }
 
       if (this.toggleElement) {
         var toggleLabel = this.detail.collapsed ? 'collapsed' : 'expanded';
@@ -254,18 +258,25 @@
       }
       this.backgroundHeight += this.headerHeight;
 
-      // Place and size the background span element
-      this.backgroundSpanElement.style.transform =
-        'translate(0px, ' + y + 'px) scale(1, ' + this.backgroundHeight + ')';
+      if (y != this.lastY ||
+          this.backgroundHeight !== this.lastBackgroundHeight) {
+        // Place and size the background span element
+        this.backgroundSpanElement.style.transform =
+          'translate(0px, ' + y + 'px) scale(1, ' + this.backgroundHeight + ')';
 
-      // Place and size the shadow span element
-      this.shadowSpanElement.style.transform =
-        'translateY(' + y + 'px)';
-      this.shadowSpanElement.style.height = this.backgroundHeight + 'px';
+        // Place and size the shadow span element
+        this.shadowSpanElement.style.transform =
+          'translateY(' + y + 'px)';
+        this.shadowSpanElement.style.height = this.backgroundHeight + 'px';
 
-      // Place the divider after this point
-      this.dividerSpanElement.style.transform =
-        'translate(0px, ' + (y + this.backgroundHeight) + 'px)';
+        // Place the divider after this point
+        this.dividerSpanElement.style.transform =
+          'translate(0px, ' + (y + this.backgroundHeight) + 'px)';
+      }
+
+      // Update the cached size values
+      this.lastBackgroundHeight = this.backgroundHeight;
+      this.lastY = y;
 
       // Now include the separator in the background height
       this.backgroundHeight += this.separatorHeight;
@@ -349,7 +360,7 @@
         if (dragging) {
           // If we're dragging, make sure to reposition the icon in the correct
           // place, as the render call won't redraw us
-          this.grid.dragdrop.positionIcon();
+          this.grid.dragdrop.updateIconPosition();
         } else {
           // If we're not dragging, save the collapsed state
           window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));

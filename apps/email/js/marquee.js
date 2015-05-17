@@ -44,6 +44,7 @@ var Marquee = {
     if (!headerText) {
       headerText = document.createElement('div');
       headerText.id = 'marquee-h-text';
+      this._headerWrapper.dir = 'auto';
       this._headerWrapper.appendChild(headerText);
     }
 
@@ -77,6 +78,15 @@ var Marquee = {
     var titleText = document.getElementById('marquee-h-text');
     var cssClass, width;
 
+    // Regardless of text character alignment, still want shorter text that does
+    // not span the whole element area to be aligned to match the UI. The
+    // dir="auto" on titleText will still preserve the correct order of the
+    // characters in the text.
+    titleText.classList.remove('ltr-align');
+    titleText.classList.remove('rtl-align');
+    titleText.classList.add((document.dir === 'rtl' ? 'rtl' : 'ltr') +
+                           '-align');
+
     // Check if the title text overflows, and if so, add the marquee class
     // NOTE: this can only be checked it the DOM structure is updated
     //       through Marquee.setup()
@@ -106,6 +116,13 @@ var Marquee = {
           });
           break;
         case 'alternate':
+          // If rtl text, then need to switch the direction of the animation.
+          var dirSuffix = '';
+          if (window.getComputedStyle(titleText).direction === 'rtl') {
+            dirSuffix = '-rtl';
+          }
+          timing += dirSuffix;
+
           cssClass = marqueeCssClass + '-alt-';
           // Set the width of the marquee to match the text contents length
           width =

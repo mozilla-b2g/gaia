@@ -42,11 +42,11 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         # open browser to get some data downloaded
         search = Search(self.marionette)
         search.launch(launch_timeout=30000)
-        browser = search.go_to_url('http://www.mozilla.org/')
+        browser = search.go_to_url('http://mozqa.com/qa-testcase-data/Images/sample_png_02.png')
         browser.wait_for_page_to_load(180)
 
         browser.switch_to_content()
-        Wait(self.marionette, timeout=60).until(lambda m: "Home of the Mozilla Project" in m.title)
+        Wait(self.marionette, timeout=60).until(lambda m: "sample_png_02.png" in m.title)
         browser.switch_to_chrome()
 
         # get the notification bar

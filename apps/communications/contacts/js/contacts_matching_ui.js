@@ -2,7 +2,7 @@
 /* global ContactPhotoHelper */
 /* global ImageLoader */
 /* global LazyLoader */
-/* global utils */
+/* global Tagged */
 /* jshint nonew: false */
 
 var contacts = window.contacts || {};
@@ -58,18 +58,19 @@ if (!contacts.MatchingUI) {
       matchingResults = results;
 
       document.body.dataset.mode = type;
-      var params = { name: getDisplayName(contact) };
+      var contactName = getDisplayName(contact);
+      var params = { name: Tagged.escapeHTML `${contactName}` };
 
       if (type === 'matching') {
         // "Suggested duplicate contacts for xxx"
         navigator.mozL10n.setAttributes(duplicateMessage,
-                                        'suggestedDuplicateContacts',
+                                        'suggestedDuplicatesMessage',
                                         params);
       } else {
         title.setAttribute('data-l10n-id', 'duplicatesFoundTitle');
         // "xxx duplicates information in the following contacts"
         navigator.mozL10n.setAttributes(duplicateMessage,
-                                        'duplicatesFoundMessage',
+                                        'foundDuplicatesMessage',
                                         params);
       }
 
@@ -78,9 +79,27 @@ if (!contacts.MatchingUI) {
     }
 
     var listDependencies = [
-      '/shared/js/contacts/utilities/image_loader.js',
-      '/shared/js/contacts/utilities/templates.js'
+      '/shared/js/contacts/utilities/image_loader.js'
     ];
+
+    function templateDuplicateContact(contact) {
+      return Tagged.escapeHTML `<li data-uuid="${contact.id}"
+        class="block-item">
+        <label class="pack-checkbox">
+          <input type="checkbox" checked>
+          <span></span>
+        </label>
+        <aside class="pack-end">
+          <img data-src="${contact.thumb}">
+        </aside>
+        <p>
+          <bdi class="ellipsis-dir-fix">${contact.displayName}</bdi>
+        </p>
+        <p class="match-main-reason">
+          <bdi class="ellipsis-dir-fix">${contact.mainReason}</bdi>
+        </p>
+      </li>`;
+    }
 
     function renderList(contacts, success) {
       LazyLoader.load(listDependencies, function loaded() {
@@ -90,9 +109,15 @@ if (!contacts.MatchingUI) {
           // New contact appended
           checkedContacts[id] = id;
           var contact = cookContact(contacts[id]);
-          var item = utils.templates.append(contactsList, contact);
+
+          // Use a template node so we can append it and also access the node
+          var item = document.createElement('template');
+          item.innerHTML = templateDuplicateContact(contact);
+
+          contactsList.appendChild(item.content);
+
           if (contact.email1 === '') {
-            var emailField = item.querySelector('p:last-child');
+            var emailField = item.content.querySelector('p:last-child');
             emailField && emailField.parentNode.removeChild(emailField);
           }
         });
@@ -100,8 +125,6 @@ if (!contacts.MatchingUI) {
         checked = contactsKeys.length;
         checkMergeButton();
 
-        // The template is deleted from the list
-        contactsList.removeChild(contactsList.firstElementChild);
         new ImageLoader('#main', 'li');
         setTimeout(success);
       });

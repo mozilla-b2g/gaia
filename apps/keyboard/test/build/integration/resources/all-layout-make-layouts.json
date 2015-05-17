@@ -22,7 +22,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1697,
+    "dictFileSize": 1711,
     "preloaded": true
   },
   {
@@ -88,7 +88,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 3488,
+    "dictFileSize": 3502,
     "preloaded": true
   },
   {
@@ -188,7 +188,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 3698,
+    "dictFileSize": 3712,
     "preloaded": true
   },
   {
@@ -205,17 +205,6 @@
     "preloaded": true,
     "dictFilename": "el.dict",
     "dictFilePath": "dictionaries/el.dict"
-  },
-  {
-    "id": "emoji",
-    "name": "Emoji",
-    "types": [
-      "email",
-      "text",
-      "url"
-    ],
-    "dictFileSize": 28035,
-    "preloaded": true
   },
   {
     "id": "en",
@@ -317,7 +306,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1446,
+    "dictFileSize": 1460,
     "preloaded": true
   },
   {
@@ -375,8 +364,10 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1307,
-    "preloaded": true
+    "dictFileSize": 336161,
+    "preloaded": true,
+    "dictFilename": "ff.dict",
+    "dictFilePath": "dictionaries/ff.dict"
   },
   {
     "id": "fr",
@@ -506,7 +497,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 970,
+    "dictFileSize": 984,
     "preloaded": true
   },
   {
@@ -575,7 +566,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 24924864,
+    "dictFileSize": 24924648,
     "preloaded": true
   },
   {
@@ -587,7 +578,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 9642,
+    "dictFileSize": 9562,
     "preloaded": true
   },
   {
@@ -630,7 +621,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1139,
+    "dictFileSize": 1153,
     "preloaded": true
   },
   {
@@ -642,7 +633,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 4876,
+    "dictFileSize": 4890,
     "preloaded": true
   },
   {
@@ -857,7 +848,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 2426,
+    "dictFileSize": 2440,
     "preloaded": true
   },
   {
@@ -936,7 +927,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 1314,
+    "dictFileSize": 1328,
     "preloaded": true
   },
   {
@@ -958,7 +949,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 2139384,
+    "dictFileSize": 2139624,
     "preloaded": true
   },
   {
@@ -970,7 +961,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 4591555,
+    "dictFileSize": 4591642,
     "preloaded": true
   }
 ]

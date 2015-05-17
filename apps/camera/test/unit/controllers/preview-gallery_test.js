@@ -221,6 +221,29 @@ suite('controllers/preview-gallery', function() {
       assert.ok(this.previewGalleryController.updateThumbnail.called);
     });
 
+    test('Should Check Storage Changed', function() {
+      var item = {
+        blob: {},
+        filepath: 'root/fileName',
+        isVideo: true
+      };
+
+      var data = {
+        path: 'root/fileName'
+      };
+
+      this.app.activity = {
+        active: false
+      };
+
+      this.previewGalleryController.configure = sinon.spy();
+      this.previewGalleryController.updateThumbnail = sinon.spy();
+      this.previewGalleryController.onNewMedia(item);
+      this.previewGalleryController.onStorageChanged('unavailable');
+      assert.ok(this.previewGalleryController.configure.called);
+      assert.ok(this.previewGalleryController.updateThumbnail.called);
+    });
+
     test('Should Check the Item Deleted', function() {
       var item = {
         blob: {},

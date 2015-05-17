@@ -47,14 +47,6 @@ suite('dialer/utils', function() {
       });
     });
 
-    test('phone number and type', function() {
-      MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAndType(matchingTel);
-        sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
-        assert.equal(MockContacts.mType + ', ' + number, additionalInfo);
-      });
-    });
-
     test('should not translate custom types', function() {
       var customType = 'totally custom';
 

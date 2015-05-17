@@ -3,14 +3,6 @@
 /* global MockDOMRequest */
 
 var MockBluetooth = {
-  get Profiles() {
-    return {
-      HFP: 'hfp',   // Hands-Free Profile
-      OPP: 'opp',   // Object Push Profile
-      A2DP: 'a2dp', // A2DP status
-      SCO: 'sco'    // Synchronous Connection-Oriented
-    };
-  },
   defaultAdapter: null,
   connected: false,
   enabled: true,
@@ -49,25 +41,36 @@ var MockBluetooth = {
       },
       pair: function() {
         return new MockDOMRequest();
+      },
+      connect: function() {
+        return new MockDOMRequest();
       }
     };
     this.defaultAdapter = mockAdapater;
-  },
-
-  getAdapter: function mbt_getAdapter() {
-    return this.defaultAdapter;
   },
 
   getDefaultAdapter: function mbt_getDefaultAdapter() {
     return new MockDOMRequest();
   },
 
-  isProfileConnected: function mbt_isProfileConnected(profile) {
-    return this.mExpectedProfile === profile;
+  get isOPPProfileConnected() {
+    return this.mExpectedProfile === 'opp';
+  },
+
+  get isA2DPProfileConnected() {
+    return this.mExpectedProfile === 'a2dp';
+  },
+
+  get isSCOProfileConnected() {
+    return this.mExpectedProfile === 'sco';
   },
 
   get isEnabled() {
     return this._settingsEnabled;
+  },
+
+  get getAdapter() {
+    return this.defaultAdapter;
   }
 };
 
