@@ -41,7 +41,7 @@ suite('DesktopClientDeviceStorage', function() {
     });
 
     test('should get videos file path', function() {
-      const PICTURES_TYPE = 'pictures';
+      var PICTURES_TYPE = 'pictures';
       path = subject.getMediaFilePath(PICTURES_TYPE);
       assert.ok(path.indexOf(PICTURES_TYPE) !== -1);
       assert.ok(fs.existsSync(path));
