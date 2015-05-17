@@ -473,6 +473,7 @@
       });
       return parsed;
     },
+<<<<<<< HEAD:apps/sms/views/shared/js/utils.js
     /**
       Using a contact resolver, a function that can looks for contacts,
       get the format for the dissambiguation.
@@ -497,6 +498,9 @@
     },
 
     basicContact: function(number, records) {
+=======
+    basicContact: function(number, records, callback) {
+>>>>>>> refs/remotes/origin/master:apps/sms/js/utils.js
       var record;
       if (Array.isArray(records)) {
         if (records.length > 0) {
