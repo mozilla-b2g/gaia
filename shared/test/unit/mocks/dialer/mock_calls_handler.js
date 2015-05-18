@@ -33,6 +33,7 @@ var MockCallsHandler = {
   mergeCalls: function() {},
   holdOrResumeCallByUser: function() {},
   updateMergeAndOnHoldStatus: function() {},
+  updateMuteAndSpeakerStatus: function() {},
   setup: function () {},
 
   mTeardown: function() {

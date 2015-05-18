@@ -98,6 +98,8 @@ HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   CallsHandler.updatePlaceNewCall();
   CallsHandler.updateMergeAndOnHoldStatus();
+  CallsHandler.updateMuteAndSpeakerStatus();
+
   switch (evt.call.state) {
     case 'connected':
       // The dialer agent in the system app plays and stops the ringtone once
