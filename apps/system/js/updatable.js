@@ -145,6 +145,7 @@ function SystemUpdatable() {
   this.paused = false;
   this.showingApplyPrompt = false;
   this._updateProviderPromise = null;
+  this._idleObserver = null;
 
   window.addEventListener('request-update-check', this);
 
@@ -159,6 +160,7 @@ function SystemUpdatable() {
 }
 
 SystemUpdatable.KNOWN_UPDATE_FLAG = 'known-sysupdate';
+SystemUpdatable.APPLY_IDLE_TIMEOUT = 600;
 
 SystemUpdatable.prototype._initUpdateProvider = function() {
   this._getUpdateProvider().then((provider) => {
@@ -356,8 +358,16 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
 SystemUpdatable.prototype.declineInstall = function(reason) {
   this.showingApplyPrompt = false;
   Service.request('hideCustomDialog');
-  this._dispatchEvent('update-prompt-apply-result', reason);
-
+  switch(reason) {
+    case 'low-battery':
+      // do nothing
+      break;
+    case 'wait':
+      // register an idle observer and apply the update directly if users are
+      // idle for more than ten minutes.
+      this._registerIdleObserver();
+      break;
+  }
   UpdateManager.removeFromDownloadsQueue(this);
 };
 
@@ -368,7 +378,6 @@ SystemUpdatable.prototype.declineInstallBattery = function() {
 SystemUpdatable.prototype.declineInstallWait = function() {
   this.declineInstall('wait');
 };
-
 
 SystemUpdatable.prototype.acceptInstall = function() {
   Service.request('hideCustomDialog');
@@ -407,13 +416,14 @@ SystemUpdatable.prototype.forgetKnownUpdate = function() {
   asyncStorage.removeItem(SystemUpdatable.KNOWN_UPDATE_FLAG);
 };
 
-SystemUpdatable.prototype._dispatchEvent = function(type, result) {
-  var event = document.createEvent('CustomEvent');
-  var data = { type: type };
-  if (result) {
-    data.result = result;
-  }
-
-  event.initCustomEvent('mozContentEvent', true, true, data);
-  window.dispatchEvent(event);
+SystemUpdatable.prototype._registerIdleObserver = function() {
+  this._idleObserver = {
+    time: SystemUpdatable.APPLY_IDLE_TIMEOUT,
+    onidle: () => {
+      this._getUpdateProvider().then((provider) => {
+        provider.applyUpdate();
+      });
+    }
+  };
+  navigator.addIdleObserver(this._idleObserver);
 };
