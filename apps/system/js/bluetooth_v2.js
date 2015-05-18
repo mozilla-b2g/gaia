@@ -103,6 +103,8 @@ Bluetooth.prototype = {
           }
         }
       ));
+      // Update Bluetooth and profile icons
+      this.icon && this.icon.update();
       if (profile === 'opp' && this.transferIcon) {
         this.transferIcon.update();
       }

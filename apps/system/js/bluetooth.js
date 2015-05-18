@@ -21,6 +21,8 @@ var Bluetooth = {
           connected: connected
         });
       window.dispatchEvent(evt);
+      // Update Bluetooth and profile icons
+      this.icon && this.icon.update();
       if (profile === 'opp' && this.transferIcon) {
         this.transferIcon.update();
       }
@@ -60,7 +62,6 @@ var Bluetooth = {
     this._started = true;
 
     var bluetooth = window.navigator.mozBluetooth;
-    var self = this;
 
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
       if (!bluetooth) {
@@ -91,21 +92,21 @@ var Bluetooth = {
 
     // when bluetooth adapter is ready, a.k.a enabled,
     // try to get defaultAdapter at this moment
-    bluetooth.onadapteradded = function bt_onAdapterAdded() {
-      self.initDefaultAdapter();
+    bluetooth.onadapteradded = () => {
+      this.initDefaultAdapter();
     };
 
     // when bluetooth is really enabled
     // emit event to notify QuickSettings
-    bluetooth.addEventListener('enabled', function bt_onEnabled() {
-      self.icon && self.icon.update();
+    bluetooth.addEventListener('enabled', () => {
+      this.icon && this.icon.update();
       window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
     });
 
     // when bluetooth is really disabled, emit event to notify QuickSettings
-    bluetooth.addEventListener('disabled', function bt_onDisabled() {
-      self.icon && self.icon.update();
-      self._getAdapterPromise = null;
+    bluetooth.addEventListener('disabled', () => {
+      this.icon && this.icon.update();
+      this._getAdapterPromise = null;
       window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
     });
 
@@ -118,8 +119,8 @@ var Bluetooth = {
      * when getting bluetooth file transfer start/complete system messages
      */
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
-      function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected('opp', true);
+      (transferInfo) => {
+        this._setProfileConnected('opp', true);
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-start',
           /* canBubble */ true, /* cancelable */ false,
@@ -129,8 +130,8 @@ var Bluetooth = {
     );
 
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
-      function bt_fileTransferUpdate(transferInfo) {
-        self._setProfileConnected('opp', false);
+      (transferInfo) => {
+        this._setProfileConnected('opp', false);
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-complete',
           /* canBubble */ true, /* cancelable */ false,
@@ -215,17 +216,16 @@ var Bluetooth = {
      */
 
     // In headset connected case:
-    var self = this;
-    adapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
-      self._setProfileConnected('hfp', evt.status);
+    adapter.onhfpstatuschanged = (evt) => {
+      this._setProfileConnected('hfp', evt.status);
     };
 
-    adapter.ona2dpstatuschanged = function bt_a2dpStatusChanged(evt) {
-      self._setProfileConnected('a2dp', evt.status);
+    adapter.ona2dpstatuschanged = (evt) => {
+      this._setProfileConnected('a2dp', evt.status);
     };
 
-    adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
-      self._setProfileConnected('sco', evt.status);
+    adapter.onscostatuschanged = (evt) => {
+      this._setProfileConnected('sco', evt.status);
     };
   },
 
