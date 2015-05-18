@@ -1,4 +1,5 @@
 /* global SystemDialog */
+/* global eventSafety */
 
 'use strict';
 
@@ -67,11 +68,10 @@
   };
 
   ActionMenu.prototype.hide = function() {
-    var self = this;
-    this.form.addEventListener('transitionend', function doHide(e) {
-      self.form.removeEventListener('transitionend', doHide);
-      SystemDialog.prototype.hide.apply(self);
-    });
+    eventSafety(this.form, 'transitionend', function doHide(e) {
+      SystemDialog.prototype.hide.apply(this);
+    }.bind(this), 250);
+
     this.form.classList.remove('visible');
     this.active = false;
   };
