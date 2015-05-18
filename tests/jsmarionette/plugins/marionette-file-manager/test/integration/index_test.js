@@ -4,14 +4,13 @@ var assert = require('assert'),
     path = require('path'),
     testHelper = require('../lib/test_helper');
 
-const TEST_FILES_PATH = '../test_files',
-      TEXT_FILE_NAME = 'hello_world.json',
-      IMAGE_FILE_NAME = 'fxos.png',
-      PICTURES_TYPE = 'pictures',
-      TEXT_TYPE = 'text',
-      DS_FILE_PATH = path.join(TEXT_TYPE, TEXT_FILE_NAME),
-      TEST_FILE_PATH =
-        path.join(__dirname, TEST_FILES_PATH, TEXT_FILE_NAME);
+var TEST_FILES_PATH = '../test_files',
+    TEXT_FILE_NAME = 'hello_world.json',
+    IMAGE_FILE_NAME = 'fxos.png',
+    PICTURES_TYPE = 'pictures',
+    TEXT_TYPE = 'text',
+    DS_FILE_PATH = path.join(TEXT_TYPE, TEXT_FILE_NAME),
+    TEST_FILE_PATH = path.join(__dirname, TEST_FILES_PATH, TEXT_FILE_NAME);
 
 marionette('MarionetteFileManager', function() {
   var deviceStoragePath = '';
