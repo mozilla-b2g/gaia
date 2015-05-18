@@ -6,6 +6,7 @@ dev_apps/marketplace.allizom.org
 dev_apps/mochitest
 dev_apps/ds-test
 dev_apps/geoloc
+dev_apps/l20n-app
 dev_apps/membuster
 dev_apps/music2
 dev_apps/test-ime
