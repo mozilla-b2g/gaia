@@ -898,7 +898,12 @@
         this[componentName] = null;
       }
 
-      this.audioChannels = null;
+      if (this.audioChannels) {
+        this.audioChannels.forEach(function(audioChannel) {
+          audioChannel.destroy();
+        });
+        this.audioChannels = null;
+      }
 
       if (this.appChrome) {
         this.appChrome.destroy();
