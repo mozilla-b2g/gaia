@@ -20,11 +20,10 @@ suite('system/HardwareButtons', function() {
   var stubClearTimeout;
   var i = 0;
 
-  //var realDispatchEvent = window.dispatchEvent;
   var CustomEvent = window.CustomEvent;
 
-  var fireHardwareKeyEvent = function (type, key, embeddedCancelled) {
-    var evt = {
+  var createHardwareKeyEvent = function(type, key, embeddedCancelled) {
+    return {
       type: type,
       key: key,
       location: 0,
@@ -37,7 +36,11 @@ suite('system/HardwareButtons', function() {
       preventDefault: function() {},
       getModifierState: function() {}
     };
-    hardwareButtons.handleEvent(evt);
+  };
+
+  var fireHardwareKeyEvent = function (type, key, embeddedCancelled) {
+    hardwareButtons.handleEvent(
+      createHardwareKeyEvent(type, key, embeddedCancelled));
   };
 
   suiteSetup(function(done) {
@@ -147,10 +150,22 @@ suite('system/HardwareButtons', function() {
   test('press and release home (soft home enabled)', function() {
     MockSettingsListener.mCallbacks['software-button.enabled'](true);
 
-    fireHardwareKeyEvent('mozbrowserbeforekeydown', 'Home', false);
-    fireHardwareKeyEvent('mozbrowserbeforekeyup', 'Home', false);
+    var beforeKeydownEvent =
+      createHardwareKeyEvent('mozbrowserbeforekeydown', 'Home', false);
+    var afterKeydownEvent =
+      createHardwareKeyEvent('mozbrowserbeforekeyup', 'Home', false);
+    this.sinon.spy(beforeKeydownEvent, 'preventDefault');
+    this.sinon.spy(afterKeydownEvent, 'preventDefault');
+
+    hardwareButtons.handleEvent(beforeKeydownEvent);
+    hardwareButtons.handleEvent(afterKeydownEvent);
 
     assert.isTrue(stubDispatchEvent.notCalled);
+    assert.isTrue(beforeKeydownEvent.preventDefault.calledOnce);
+    assert.isTrue(afterKeydownEvent.preventDefault.calledOnce);
+
+    beforeKeydownEvent.preventDefault.restore();
+    afterKeydownEvent.preventDefault.restore();
   });
 
   test('press and release sleep (screen enabled)', function() {
