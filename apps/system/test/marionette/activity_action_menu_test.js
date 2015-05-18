@@ -37,5 +37,26 @@
       client.switchToFrame();
       system.waitForActivityMenu();
     });
+
+    test('works after home button', function(done) {
+      messagesApp.launch();
+      messagesApp.Inbox.navigateToComposer();
+      var composer = messagesApp.Composer;
+
+      client.waitFor(function() {
+        return composer.attachButton.enabled();
+      });
+      composer.attachButton.tap();
+      client.switchToFrame();
+      system.waitForActivityMenu();
+      system.tapHome();
+      messagesApp.launch();
+      composer.attachButton.tap();
+      client.switchToFrame();
+      setTimeout(function() {
+        system.waitForActivityMenu();
+        done();
+      }, 1000);
+    });
   });
 }());
