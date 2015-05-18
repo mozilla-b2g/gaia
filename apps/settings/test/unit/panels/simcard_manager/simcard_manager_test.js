@@ -14,7 +14,6 @@ suite('SimCardManager > ', function() {
   var realL10n;
   var realMozMobileConnections;
   var realMozIccManager;
-  var mockTemplate;
   var mockSimSettingsHelper;
   var mockAirplaneModeHelper;
   var mockMobileOperator;
@@ -22,7 +21,6 @@ suite('SimCardManager > ', function() {
   var simcardManager;
   var map = {
     '*': {
-      'shared/template': 'unit/mock_template',
       'shared/sim_settings_helper': 'shared_mocks/mock_sim_settings_helper',
       'shared/airplane_mode_helper': 'unit/mock_airplane_mode_helper',
       'shared/mobile_operator': 'shared_mocks/mock_mobile_operator',
@@ -52,17 +50,15 @@ suite('SimCardManager > ', function() {
     MockNavigatorMozMobileConnections.mAddMobileConnection();
 
     testRequire([
-      'unit/mock_template',
       'shared_mocks/mock_sim_settings_helper',
       'unit/mock_airplane_mode_helper',
       'shared_mocks/mock_mobile_operator',
       'unit/mock_sim_ui_model',
       'panels/simcard_manager/simcard_manager'
-    ], map, function(MockTemplate, MockSimSettingsHelper,
+    ], map, function(MockSimSettingsHelper,
       MockAirplaneModeHelper, MockMobileOperator, MockSimUIModel,
       SimcardManager) {
 
-      mockTemplate = MockTemplate;
       mockSimSettingsHelper = MockSimSettingsHelper;
       mockAirplaneModeHelper = MockAirplaneModeHelper;
       mockMobileOperator = MockMobileOperator;
@@ -161,7 +157,7 @@ suite('SimCardManager > ', function() {
       });
     });
   });
-  
+
   suite('init > ', function() {
     setup(function() {
       // we need them for later testing
@@ -454,26 +450,6 @@ suite('SimCardManager > ', function() {
         simcardManager._updateSelectOptionUI('outgoingData',
           selectedIndex, fakeSelect);
         assert.equal(fakeSelect.length, 2);
-    });
-  });
-
-  suite('_initSimCardsUI > ', function() {
-    var testString = 'ThisIsATestString';
-
-    setup(function() {
-      initCards(1);
-
-      this.sinon.stub(simcardManager._simItemTemplate, 'interpolate',
-        function() {
-          return testString;
-      });
-
-      simcardManager._initSimCardsUI();
-    });
-
-    test('simCardContainer has inner nodes', function() {
-      assert.equal(simcardManager._elements.simCardContainer.innerHTML,
-        testString);
     });
   });
 

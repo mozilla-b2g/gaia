@@ -8,7 +8,6 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         var elements = {};
-        elements.simPinTmpl = panel.querySelector('.simpin-tmpl');
         elements.simPinContainer = panel.querySelector('.simpin-container');
         elements.simPinHeader = panel.querySelector('.simpin-header');
 

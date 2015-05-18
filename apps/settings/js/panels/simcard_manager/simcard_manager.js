@@ -11,7 +11,7 @@ define(function(require) {
 
   var _ = window.navigator.mozL10n.get;
   var l10n = window.navigator.mozL10n;
-  var Template = require('shared/template');
+  var Tagged = require('shared/tagged');
   var SimSettingsHelper = require('shared/sim_settings_helper');
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
   var MobileOperator = require('shared/mobile_operator');
@@ -22,7 +22,6 @@ define(function(require) {
     this._elements = elements;
     this._simcards = [];
     this._isAirplaneMode = false;
-    this._simItemTemplate = new Template(this._elements.simCardTmpl);
   };
 
   SimCardManager.prototype = {
@@ -63,6 +62,17 @@ define(function(require) {
       // init UI
       this._initSimCardsInfo();
       this._initSimCardManagerUI();
+    },
+
+    simItemView: function({simIndex}) {
+      return Tagged.escapeHTML `<li class="sim-card sim-card-${simIndex}">
+        <div class="sim-card-icon"></div>
+        <div class="information-container">
+          <p class="sim-card-name"></p>
+          <p class="sim-card-operator"></p>
+          <bdi class="sim-card-number"></bdi>
+        </div>
+      </li>`;
     },
 
     /**
@@ -165,7 +175,7 @@ define(function(require) {
     _getSimCardsCount: function scm__getSimCardsCount() {
       return this._simcards.length;
     },
-    
+
     /**
      * Get information of simcard
      *
@@ -277,8 +287,8 @@ define(function(require) {
       // inject new childs
       this._simcards.forEach(function(simcard, index) {
         simItemHTMLs.push(
-          this._simItemTemplate.interpolate({
-          'sim-index': index.toString()
+          this.simItemView({
+            simIndex: index.toString()
           })
         );
       }.bind(this));
@@ -374,7 +384,7 @@ define(function(require) {
      * @access private
      * @param {String} storageKey
      * @param {Number} selectedCardIndex
-     * @param {HTMLElement} selectedDOM 
+     * @param {HTMLElement} selectedDOM
      */
     _updateSelectOptionUI: function scm__updateSelectOptionUI(
       storageKey, selectedCardIndex, selectDOM) {
