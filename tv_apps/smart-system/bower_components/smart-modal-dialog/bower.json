@@ -1,0 +1,22 @@
+{
+  "name": "smart-modal-dialog",
+  "version": "0.0.0",
+  "homepage": "https://github.com/smart-components/smart-modal-dialog",
+  "main": "script.js",
+  "license": "MPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "smart-dialog": "smart-components/smart-dialog",
+    "smart-bubbles": "smart-components/smart-bubbles",
+    "smart-button": "smart-components/smart-button"
+  }
+}
