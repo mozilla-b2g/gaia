@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <script defer src="shared/js/l10n.js"></script>
+    <link rel="localization" href="locales/example.{locale}.l20n">
+
+    <title>L20n</title>
+
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        background-color: #dff;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1 data-l10n-id="hello"></h1>
+    <p data-l10n-id="name">
+      <input type="text">
+      <input type="submit">
+    </p>
+    <div data-l10n-id="unreadEmails" data-l10n-args='{"emailCount": 5}'/>
+  </body>
+
+</html>
