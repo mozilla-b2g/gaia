@@ -22,19 +22,20 @@ require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
 require('/views/shared/js/contacts.js');
 require('/views/conversation/js/recipients.js');
-require('/services/js/threads.js');
 require('/views/inbox/js/inbox.js');
 require('/views/conversation/js/conversation.js');
 require('/views/conversation/js/attachment.js');
 require('/views/shared/js/contact_renderer.js');
 require('/views/shared/js/navigation.js');
+require('/services/test/unit/mock_threads.js');
 
 var mHelperIntegration = new MocksHelper([
   'MessageManager',
   'MozActivity',
   'Information',
   'ActivityHandler',
-  'Navigation'
+  'Navigation',
+  'Threads'
 ]).init();
 
 suite('ConversationView Integration', function() {

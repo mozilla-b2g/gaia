@@ -7,6 +7,7 @@
 
 'use strict';
 
+require('/shared/js/event_dispatcher.js');
 require('/services/js/drafts.js');
 require('/views/shared/js/utils.js');
 
@@ -107,8 +108,15 @@ suite('Drafts', function() {
   });
 
   suite('add() >', function() {
-    suiteTeardown(function() {
-      Drafts.clear();
+    var onSavedStub;
+
+    setup(function() {
+      onSavedStub = sinon.stub();
+      Drafts.on('saved', onSavedStub);
+    });
+
+    teardown(function() {
+      Drafts.clear().offAll('saved');
     });
 
     test('correctly adds thread bound drafts', function() {
@@ -117,10 +125,16 @@ suite('Drafts', function() {
       assert.deepEqual(Drafts.byThreadId(threadDraft1.threadId), threadDraft1);
       assert.isNull(Drafts.byThreadId(threadDraft2.threadId));
 
+      sinon.assert.calledOnce(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, threadDraft1);
+
       Drafts.add(threadDraft2);
 
       assert.deepEqual(Drafts.byThreadId(threadDraft1.threadId), threadDraft1);
       assert.deepEqual(Drafts.byThreadId(threadDraft2.threadId), threadDraft2);
+
+      sinon.assert.calledTwice(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, threadDraft2);
     });
 
     test('correctly adds thread less drafts', function() {
@@ -129,10 +143,16 @@ suite('Drafts', function() {
       assert.deepEqual(Drafts.byDraftId(draft1.id), draft1);
       assert.isNull(Drafts.byDraftId(draft2.id));
 
+      sinon.assert.calledOnce(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, draft1);
+
       Drafts.add(draft2);
 
       assert.deepEqual(Drafts.byDraftId(draft1.id), draft1);
       assert.deepEqual(Drafts.byDraftId(draft2.id), draft2);
+
+      sinon.assert.calledTwice(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, draft2);
     });
 
     test('add draft of same threadId replaces previous', function() {
@@ -141,16 +161,24 @@ suite('Drafts', function() {
         threadDraft2.id
       );
 
-      Drafts.add(new Draft({
+      sinon.assert.calledOnce(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, threadDraft2);
+
+      var updatedDraft = new Draft({
         recipients: ['555'],
         content: ['This is a new draft for thread 44'],
         subject: 'This is a subject',
         timestamp: 2,
         threadId: 44,
         type: 'sms'
-      }));
+      });
+
+      Drafts.add(updatedDraft);
 
       assert.notEqual(Drafts.byThreadId(44).id, threadDraft2.id);
+
+      sinon.assert.calledTwice(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, updatedDraft);
     });
 
     test('add threadless draft of same draft.id replaces previous', function() {
@@ -159,7 +187,10 @@ suite('Drafts', function() {
         'This is a draft message'
       );
 
-      Drafts.add(new Draft({
+      sinon.assert.calledOnce(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, draft1);
+
+      var updatedDraft = new Draft({
         recipients: ['555', '444'],
         content: ['This is a new draft message'],
         timestamp: 5,
@@ -167,25 +198,34 @@ suite('Drafts', function() {
         subject: 'This is a subject',
         type: 'sms',
         id: 5
-      }));
+      });
+
+      Drafts.add(updatedDraft);
 
       assert.equal(
         Drafts.byDraftId(draft1.id).content,
         'This is a new draft message'
       );
+
+      sinon.assert.calledTwice(onSavedStub);
+      sinon.assert.calledWith(onSavedStub, updatedDraft);
     });
   });
 
   suite('delete() >', function() {
+    var onDeletedStub;
 
-    suiteSetup(function() {
+    setup(function() {
+      onDeletedStub = sinon.stub();
+      Drafts.on('deleted', onDeletedStub);
+
       [threadDraft1, threadDraft2, threadDraft5, draft2].forEach(
         Drafts.add, Drafts
       );
     });
 
-    suiteTeardown(function() {
-      Drafts.clear();
+    teardown(function() {
+      Drafts.clear().offAll('deleted');
     });
 
     test('Delete draft with reference', function() {
@@ -193,6 +233,9 @@ suite('Drafts', function() {
       assert.isNull(
         Drafts.delete(threadDraft1).byThreadId(threadDraft1.threadId)
       );
+
+      sinon.assert.calledOnce(onDeletedStub);
+      sinon.assert.calledWith(onDeletedStub, threadDraft1);
     });
 
     test('Deleting new message drafts', function() {
@@ -205,8 +248,14 @@ suite('Drafts', function() {
       );
       assert.isNotNull(Drafts.byDraftId(draft2.id));
 
+      sinon.assert.calledOnce(onDeletedStub);
+      sinon.assert.calledWith(onDeletedStub, threadDraft5);
+
       // The last draft in the thread removes the thread from the index
       assert.isNull(Drafts.delete(draft2).byDraftId(draft2.id));
+
+      sinon.assert.calledTwice(onDeletedStub);
+      sinon.assert.calledWith(onDeletedStub, draft2);
     });
 
     test('delete by non-draft object', function() {
@@ -223,12 +272,24 @@ suite('Drafts', function() {
 
       assert.deepEqual(Drafts.byThreadId(999), draft);
 
-      Drafts.delete(new Draft({
+      var draftToDelete = new Draft({
         threadId: 999,
         id: draft.id
-      }));
+      });
+
+      Drafts.delete(draftToDelete);
 
       assert.isNull(Drafts.byThreadId(999));
+
+      sinon.assert.calledOnce(onDeletedStub);
+      sinon.assert.calledWith(onDeletedStub, draftToDelete);
+    });
+
+    test('does not fire "deleted" event if nothing was deleted', function() {
+      // Try to delete draft that doesn't exist.
+      Drafts.delete(draft1);
+
+      sinon.assert.notCalled(onDeletedStub);
     });
   });
 
@@ -498,11 +559,7 @@ suite('Drafts', function() {
     });
 
     suite('drafts index cache >', function() {
-      var requestCallbackStub;
-
       setup(function() {
-        requestCallbackStub = sinon.stub();
-
         this.sinon.stub(asyncStorage, 'getItem').
           withArgs('draft index').
           yields(null);

@@ -109,6 +109,9 @@ var InboxView = {
     MessageManager.on('message-received', this.onMessageReceived.bind(this));
     MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
 
+    Drafts.on('deleted', this.onDraftDeleted.bind(this));
+    Drafts.on('saved', this.onDraftSaved.bind(this));
+
     InterInstanceEventDispatcher.on(
       'drafts-changed',
       this.renderDrafts.bind(this, true /* force update */)
@@ -131,6 +134,14 @@ var InboxView = {
     }
   },
 
+  beforeEnter: function inbox_beforeEnter(args) {
+    // If user left Conversation or New Message views saving a draft, let's
+    // unobtrusively notify him that draft is successfully saved.
+    if (args.notifyAboutSavedDraft) {
+      this.showDraftSavedBanner();
+    }
+  },
+
   beforeLeave: function inbox_beforeLeave() {
     // This should be in afterLeave, but the edit mode interface does not seem
     // to slide correctly. Bug 1009541
@@ -146,7 +157,7 @@ var InboxView = {
     var draftId = node.dataset.draftId;
 
     var threadOrDraft = draftId ?
-      Drafts.byDraftId(+draftId) : Threads.get(threadId);
+      Drafts.byDraftId(+draftId) : Threads.get(+threadId);
 
     if (!threadOrDraft) {
       throw new Error('Thread node is invalid!');
@@ -376,7 +387,7 @@ var InboxView = {
 
   markReadUnread: function inbox_markReadUnread(selected, isRead) {
     selected.forEach((id) => {
-      var thread = Threads.get(id);
+      var thread = Threads.get(+id);
 
       var markable = thread && !thread.isDraft &&
         (isRead || !thread.getDraft());
@@ -538,7 +549,7 @@ var InboxView = {
     }
 
     if (!this.selectionHandler) {
-      LazyLoader.load('views/shared/js/selection_handler.js', () => {
+      LazyLoader.load('/views/shared/js/selection_handler.js', () => {
         this.selectionHandler = new SelectionHandler({
           // Elements
           container: this.container,
@@ -973,7 +984,26 @@ var InboxView = {
     }
   },
 
-  onDraftSaved: function inbox_onDraftSaved() {
+  onDraftDeleted: function inbox_onDraftDeleted(draft) {
+    var thread = Threads.get(draft.threadId || draft.id);
+
+    if (!thread) {
+      return;
+    }
+
+    if (thread.isDraft) {
+      this.removeThread(thread.id);
+    } else {
+      this.updateThread(thread);
+    }
+  },
+
+  onDraftSaved: function inbox_onDraftSaved(draft) {
+    var threadToUpdate = draft.threadId ? Threads.get(draft.threadId) : draft;
+    this.updateThread(threadToUpdate);
+  },
+
+  showDraftSavedBanner: function() {
     this.draftSavedBanner.classList.remove('hide');
 
     clearTimeout(this.timeouts.onDraftSaved);

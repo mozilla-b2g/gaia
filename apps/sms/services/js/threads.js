@@ -129,12 +129,16 @@
 
       var thread = this.get(id);
 
-      var draft = thread && thread.getDraft();
+      if (!thread) {
+        return;
+      }
+
+      threads.delete(id);
+
+      var draft = thread.getDraft();
       if (draft) {
         Drafts.delete(draft).store();
       }
-
-      return threads.delete(id);
     },
     clear: function() {
       threads = new Map();

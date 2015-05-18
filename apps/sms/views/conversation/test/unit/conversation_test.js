@@ -13,7 +13,8 @@
          MockCompose,
          AssetsHelper,
          SMIL,
-         TaskRunner
+         TaskRunner,
+         Thread
 */
 
 'use strict';
@@ -22,7 +23,6 @@ require('/shared/js/event_dispatcher.js');
 
 require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
-require('/services/js/threads.js');
 require('/views/conversation/js/conversation.js');
 require('/views/shared/js/shared_components.js');
 require('/views/shared/js/utils.js');
@@ -55,6 +55,7 @@ require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_inbox.js');
 require('/views/shared/test/unit/mock_selection_handler.js');
 require('/services/test/unit/mock_drafts.js');
+require('/services/test/unit/mock_threads.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -95,7 +96,9 @@ var mocksHelperForConversationView = new MocksHelper([
   'InboxView',
   'SelectionHandler',
   'Drafts',
-  'Draft'
+  'Draft',
+  'Threads',
+  'Thread'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -131,11 +134,13 @@ suite('conversation.js >', function() {
     elt.dispatchEvent(event);
   }
 
-  function setActiveThread(id = 1) {
-    Threads.set(id, {
-      participants: ['999']
-    });
+  function setActiveThread(id = 1, participants = ['999']) {
     Threads.currentId = id;
+
+    Threads.active = new Thread({
+      id: id,
+      participants: participants
+    });
   }
 
   mocksHelperForConversationView.attachTestHelpers();
@@ -206,8 +211,6 @@ suite('conversation.js >', function() {
     );
 
     document.body.innerHTML = '';
-    Threads.currentId = null;
-    Threads.clear();
 
     sticky = null;
     MockOptionMenu.mTeardown();
@@ -928,14 +931,6 @@ suite('conversation.js >', function() {
       this.sinon.spy(Utils, 'basicContact');
 
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-
-      Threads.set(1, {
-        participants: ['999']
-      });
-    });
-
-    teardown(function() {
-      Threads.delete(1);
     });
 
     test('Recipient assimilation is called when Compose is interacted',
@@ -2499,9 +2494,7 @@ suite('conversation.js >', function() {
     var transitionArgs;
 
     setup(function() {
-      Threads.set(1, {
-        participants: ['999']
-      });
+      setActiveThread();
 
       transitionArgs = {
         id: '1',
@@ -2585,12 +2578,9 @@ suite('conversation.js >', function() {
       setActiveThread(8);
       container =
         ConversationView.getMessageContainer(testMessages[0].timestamp, false);
-      var promises = testMessages.map(
-        (testMessage) => {
-          Threads.registerMessage(testMessage);
-          ConversationView.appendMessage(testMessage);
-        }
-      );
+      var promises = testMessages.map((testMessage) => {
+        return ConversationView.appendMessage(testMessage);
+      });
       Promise.all(promises).then(() => {
         this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
       }).then(done, done);
@@ -2635,7 +2625,6 @@ suite('conversation.js >', function() {
 
     test('deleting marked messages takes user back to view mode',
       function(done) {
-      this.sinon.stub(InboxView, 'updateThread').returns(true);
       ConversationView.startEdit();
       doMarkedMessagesDeletion(1).then(() => {
         MessageManager.mTriggerOnSuccess();
@@ -2644,11 +2633,12 @@ suite('conversation.js >', function() {
     });
 
     test('thread gets updated when a message is deleted', function(done) {
-      var updateThreadSpy =
-        this.sinon.stub(InboxView, 'updateThread').returns(true);
+      this.sinon.stub(InboxView, 'updateThread');
       doMarkedMessagesDeletion(1).then(() => {
         MessageManager.mTriggerOnSuccess();
-        sinon.assert.calledWith(updateThreadSpy, undefined, { deleted: true });
+        sinon.assert.calledWith(
+          InboxView.updateThread, undefined, { deleted: true }
+        );
       }).then(done, done);
     });
 
@@ -2661,7 +2651,6 @@ suite('conversation.js >', function() {
 
     test('waiting screen hidden when messages are done deletion',
       function(done) {
-      this.sinon.stub(InboxView, 'updateThread').returns(true);
       this.sinon.spy(WaitingScreen, 'hide');
       doMarkedMessagesDeletion(1).then(() => {
         MessageManager.mTriggerOnSuccess();
@@ -2671,7 +2660,6 @@ suite('conversation.js >', function() {
 
     suite('deleting all messages', function() {
       setup(function() {
-        this.sinon.stub(InboxView, 'removeThread');
         this.sinon.stub(ConversationView, 'back');
         this.sinon.stub(ConversationView, 'close');
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
@@ -2682,7 +2670,6 @@ suite('conversation.js >', function() {
       test('when not in an activity, deletes the thread and navigates back',
       function() {
         ConversationView.deleteUIMessages(testMessages.map((m) => m.id));
-        sinon.assert.calledOnce(InboxView.removeThread);
         sinon.assert.called(ConversationView.back);
         sinon.assert.notCalled(ConversationView.close);
       });
@@ -2691,7 +2678,6 @@ suite('conversation.js >', function() {
       function() {
         ActivityHandler.isInActivity.returns(true);
         ConversationView.deleteUIMessages(testMessages.map((m) => m.id));
-        sinon.assert.calledOnce(InboxView.removeThread);
         sinon.assert.notCalled(ConversationView.back);
         sinon.assert.called(ConversationView.close);
       });
@@ -3385,8 +3371,6 @@ suite('conversation.js >', function() {
         timestamp: Date.now()
       };
       ConversationView.initializeRendering();
-      Threads.registerMessage(this.targetMsg);
-      Threads.registerMessage(this.targetMsg);
       promises.push(
         ConversationView.appendMessage(this.targetMsg),
         ConversationView.appendMessage(this.otherMsg)
@@ -3502,7 +3486,6 @@ suite('conversation.js >', function() {
       this.sinon.stub(MessageManager, 'resendMessage');
 
       ConversationView.initializeRendering();
-      Threads.registerMessage(message);
       ConversationView.appendMessage(message).then(() => {
         this.errorMsg = ConversationView.container.querySelector('.error');
       }).then(done, done);
@@ -4141,29 +4124,24 @@ suite('conversation.js >', function() {
 
   suite('Header Actions/Display', function() {
     setup(function() {
-      Threads.delete(1);
       MockActivityPicker.dial.mSetup();
     });
 
     teardown(function() {
-      Threads.delete(1);
       MockActivityPicker.dial.mTeardown();
     });
 
     suite('OptionMenu >', function() {
       setup(function() {
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-        Threads.currentId = 1;
+
+        setActiveThread();
       });
 
       suite('one recipient >', function() {
         setup(function() {
           Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
           Navigation.isCurrentPanel.withArgs('thread').returns(true);
-
-          Threads.set(1, {
-            participants: ['999']
-          });
         });
 
         suite('prompt()', function() {
@@ -4390,9 +4368,7 @@ suite('conversation.js >', function() {
           test('Known recipient', function(done) {
             this.sinon.spy(ContactRenderer.prototype, 'render');
 
-            Threads.set(1, {
-              participants: ['+12125559999']
-            });
+            setActiveThread(1, ['+12125559999']);
 
             headerText.dataset.isContact = true;
             headerText.dataset.number = '+12125559999';
@@ -4418,9 +4394,7 @@ suite('conversation.js >', function() {
           });
 
           test('Unknown recipient', function() {
-            Threads.set(1, {
-              participants: ['777']
-            });
+            setActiveThread(1, ['777']);
 
             headerText.dataset.isContact = false;
             headerText.dataset.number = '777';
@@ -4443,9 +4417,7 @@ suite('conversation.js >', function() {
             MockSettings.supportEmailRecipient = true;
             this.sinon.spy(ContactRenderer.prototype, 'render');
 
-            Threads.set(1, {
-              participants: ['a@b.com']
-            });
+            setActiveThread(1, ['a@b.com']);
 
             headerText.dataset.isContact = true;
             headerText.dataset.number = 'a@b.com';
@@ -4473,9 +4445,7 @@ suite('conversation.js >', function() {
           test('Unknown recipient email', function() {
             MockSettings.supportEmailRecipient = true;
 
-            Threads.set(1, {
-              participants: ['a@b']
-            });
+            setActiveThread(1, ['a@b']);
 
             headerText.dataset.isContact = false;
             headerText.dataset.number = 'a@b';
@@ -4502,9 +4472,7 @@ suite('conversation.js >', function() {
 
           Navigation.isCurrentPanel.withArgs('group-view').returns(true);
 
-          Threads.set(1, {
-            participants: ['999', '888']
-          });
+          setActiveThread(1, ['999', '888']);
         });
 
         test('known recipient', function() {
@@ -4612,19 +4580,11 @@ suite('conversation.js >', function() {
         );
 
         this.sinon.spy(ConversationView, 'updateCarrier');
-
-        Threads.set(1, {
-          participants: ['+1111']
-        });
-
-        Threads.set(2, {
-          participants: ['+2222', '+1111', '+3333']
-        });
       });
 
       test('does not update anything if there is no active thread',
       function(done) {
-        Threads.currentId = 0;
+        Threads.currentId = Threads.active = null;
 
         ConversationView.updateHeaderData().then(() => {
           sinon.assert.notCalled(Contacts.findByAddress);
@@ -4633,7 +4593,7 @@ suite('conversation.js >', function() {
       });
 
       test('updates header for single-participant thread', function(done) {
-        Threads.currentId = 1;
+        setActiveThread(1, ['+1111']);
 
         ConversationView.updateHeaderData().then(() => {
           assert.equal(headerText.dataset.number, '+1111');
@@ -4646,13 +4606,13 @@ suite('conversation.js >', function() {
           assert.isFalse(headerText.hasAttribute('data-l10n-id'));
 
           sinon.assert.calledWith(
-            ConversationView.updateCarrier, Threads.get(1), fakeContactOne
+            ConversationView.updateCarrier, Threads.active, fakeContactOne
           );
         }).then(done, done);
       });
 
       test('updates header for multi-participant thread', function(done) {
-        Threads.currentId = 2;
+        setActiveThread(1, ['+2222', '+1111', '+3333']);
 
         ConversationView.updateHeaderData().then(() => {
           assert.equal(headerText.dataset.number, '+2222');
@@ -4667,7 +4627,7 @@ suite('conversation.js >', function() {
           assert.isFalse(headerText.hasAttribute('data-l10n-id'));
 
           sinon.assert.calledWith(
-            ConversationView.updateCarrier, Threads.get(2), fakeContactTwo
+            ConversationView.updateCarrier, Threads.active, fakeContactTwo
           );
         }).then(done, done);
       });
@@ -4739,10 +4699,6 @@ suite('conversation.js >', function() {
 
       suite('Carrier Tag', function() {
         setup(function() {
-          Threads.set(1, {
-            participants: ['+12125559999']
-          });
-
           this.sinon.stub(MockContacts, 'findByAddress').returns(
             Promise.resolve(MockContact.list())
           );
@@ -4751,7 +4707,8 @@ suite('conversation.js >', function() {
 
           this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
           Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
-          Threads.currentId = 1;
+
+          setActiveThread(1, ['+12125559999']);
         });
 
         test('Carrier Tag (non empty string)', function(done) {
@@ -4776,18 +4733,14 @@ suite('conversation.js >', function() {
       setup(function() {
         MockActivityPicker.dial.mSetup();
 
-        Threads.set(1, {
-          participants: ['999', '888']
-        });
-
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
-        Threads.currentId = 1;
+
+        setActiveThread(1, ['999', '888']);
       });
 
       teardown(function() {
-        Threads.delete(1);
         MockActivityPicker.dial.mTeardown();
       });
 
@@ -5222,20 +5175,6 @@ suite('conversation.js >', function() {
       assert.isNull(ConversationView.draft);
     });
 
-    test('Removes draft thread if there was a draft thread', function() {
-      this.sinon.spy(InboxView, 'removeThread');
-
-      ConversationView.draft = {id: 3};
-      ConversationView.recipients.add({
-        number: '888'
-      });
-      Compose.append('foo');
-
-      clickButton();
-
-      sinon.assert.calledOnce(InboxView.removeThread);
-    });
-
     suite('sendMMS errors', function() {
       setup(function() {
         this.sinon.spy(MockErrorDialog.prototype, 'show');
@@ -5463,14 +5402,12 @@ suite('conversation.js >', function() {
   });
 
   suite('saveDraft() > ', function() {
-    var addSpy, updateSpy, bannerSpy, arg;
+    var addSpy, arg;
 
     setup(function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
       addSpy = this.sinon.spy(Drafts, 'add');
-      updateSpy = this.sinon.spy(InboxView, 'updateThread');
-      bannerSpy = this.sinon.spy(InboxView, 'onDraftSaved');
 
       ConversationView.initRecipients();
       ConversationView.recipients.add({
@@ -5494,7 +5431,7 @@ suite('conversation.js >', function() {
       test('preserve pre-existing draft for replacement', function() {
         var draft = {id: 55};
         ConversationView.draft = draft;
-        ConversationView.saveDraft({preserve: true});
+        ConversationView.saveDraft(true /* preserveDraft */);
 
         assert.isNotNull(ConversationView.draft);
         assert.equal(ConversationView.draft, draft);
@@ -5502,7 +5439,7 @@ suite('conversation.js >', function() {
 
       test('preserve new draft for replacement', function() {
         ConversationView.draft = null;
-        ConversationView.saveDraft({preserve: true});
+        ConversationView.saveDraft(true /* preserveDraft */);
 
         assert.isNotNull(ConversationView.draft);
         assert.deepEqual(ConversationView.draft.recipients, ['999']);
@@ -5536,12 +5473,6 @@ suite('conversation.js >', function() {
         assert.deepEqual(arg.content, ['foo']);
       });
 
-      test('thread is updated in thread list, threadless', function() {
-        ConversationView.saveDraft();
-
-        sinon.assert.calledOnce(updateSpy);
-      });
-
       test('correctly saves threadless draft', function() {
         ConversationView.draft = { id: 1 };
         ConversationView.saveDraft();
@@ -5552,19 +5483,10 @@ suite('conversation.js >', function() {
 
     suite('within an existing thread >', function() {
        setup(function() {
-        Threads.set(1, {
-          participants: ['999']
-        });
-
         Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
-        Threads.currentId = 1;
+
+        setActiveThread();
        });
-
-      test('thread is updated in thread list', function() {
-        ConversationView.saveDraft();
-
-        sinon.assert.calledOnce(updateSpy);
-      });
 
       test('saves draft to existing thread', function() {
         ConversationView.saveDraft();
@@ -5583,7 +5505,7 @@ suite('conversation.js >', function() {
         Compose.append('foo');
         ConversationView.saveDraft();
 
-         sinon.assert.calledWith(
+        sinon.assert.calledWith(
           Drafts.add, sinon.match({ threadId: 1, content: ['foobazfoo'] })
         );
       });
@@ -5595,22 +5517,9 @@ suite('conversation.js >', function() {
 
         ConversationView.saveDraft();
 
-        assert.equal(Threads.get(1).timestamp, 2);
-      });
-
-      test('shows draft saved banner if not autosaved', function() {
-        ConversationView.saveDraft();
-
-        sinon.assert.calledOnce(bannerSpy);
-      });
-
-      test('does not show draft saved banner if autosaved', function() {
-        ConversationView.saveDraft({autoSave: true});
-
-        sinon.assert.notCalled(bannerSpy);
+        assert.equal(Threads.active.timestamp, 2);
       });
     });
-
   });
 
   suite('onVisibilityChange() >', function() {
@@ -5653,10 +5562,7 @@ suite('conversation.js >', function() {
         ConversationView.onVisibilityChange();
 
         sinon.assert.calledOnce(ConversationView.saveDraft);
-        sinon.assert.calledWithMatch(
-          ConversationView.saveDraft,
-          {preserve: true, autoSave: true}
-        );
+        sinon.assert.calledWith(ConversationView.saveDraft, true);
       });
 
       test('new: has message, has recipients', function() {
@@ -5669,10 +5575,7 @@ suite('conversation.js >', function() {
         ConversationView.onVisibilityChange();
 
         sinon.assert.calledOnce(ConversationView.saveDraft);
-        sinon.assert.calledWithMatch(
-          ConversationView.saveDraft,
-          {preserve: true, autoSave: true}
-        );
+        sinon.assert.calledWith(ConversationView.saveDraft, true);
       });
 
       test('thread: has message', function() {
@@ -5683,10 +5586,7 @@ suite('conversation.js >', function() {
         ConversationView.onVisibilityChange();
 
         sinon.assert.calledOnce(ConversationView.saveDraft);
-        sinon.assert.calledWithMatch(
-          ConversationView.saveDraft,
-          {preserve: true, autoSave: true}
-        );
+        sinon.assert.calledWith(ConversationView.saveDraft, true);
       });
     });
 
@@ -5702,10 +5602,7 @@ suite('conversation.js >', function() {
         ConversationView.onVisibilityChange();
 
         sinon.assert.calledOnce(ConversationView.saveDraft);
-        sinon.assert.calledWithMatch(
-          ConversationView.saveDraft,
-          {preserve: true, autoSave: true}
-        );
+        sinon.assert.calledWith(ConversationView.saveDraft, true);
       });
 
       test('new: no message, has recipients', function() {
@@ -5719,10 +5616,7 @@ suite('conversation.js >', function() {
         ConversationView.onVisibilityChange();
 
         sinon.assert.calledOnce(ConversationView.saveDraft);
-        sinon.assert.calledWithMatch(
-          ConversationView.saveDraft,
-          {preserve: true, autoSave: true}
-        );
+        sinon.assert.calledWith(ConversationView.saveDraft, true);
       });
     });
 
@@ -5850,7 +5744,6 @@ suite('conversation.js >', function() {
         setup(function() {
           this.sinon.spy(Navigation, 'toPanel');
           this.sinon.spy(ConversationView, 'saveDraft');
-          this.sinon.spy(InboxView, 'removeThread');
           this.sinon.spy(Drafts, 'delete');
           this.sinon.spy(Drafts, 'store');
         });
@@ -5860,7 +5753,9 @@ suite('conversation.js >', function() {
 
           ConversationView.back().then(function() {
             sinon.assert.calledOnce(ConversationView.saveDraft);
-            sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
+            sinon.assert.calledWith(Navigation.toPanel, 'thread-list', {
+              notifyAboutSavedDraft: true
+            });
           }).then(done, done);
         });
 
@@ -5871,9 +5766,11 @@ suite('conversation.js >', function() {
 
           ConversationView.back().then(function() {
             sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
-            sinon.assert.calledOnce(InboxView.removeThread);
             sinon.assert.callOrder(Drafts.delete, Drafts.store);
             assert.isNull(ConversationView.draft);
+            sinon.assert.calledWith(Navigation.toPanel, 'thread-list', {
+              notifyAboutSavedDraft: undefined
+            });
           }).then(done, done);
         });
 
@@ -5884,7 +5781,6 @@ suite('conversation.js >', function() {
             throw new Error('Success callback should not have been called.');
           }, function() {
             sinon.assert.notCalled(ConversationView.saveDraft);
-            sinon.assert.notCalled(InboxView.removeThread);
             sinon.assert.notCalled(Navigation.toPanel);
           }).then(done, done);
         });
@@ -6241,11 +6137,6 @@ suite('conversation.js >', function() {
 
       this.sinon.spy(Navigation, 'toPanel');
     });
-
-    teardown(function() {
-      Threads.clear();
-    });
-
 
     test('should append message if the user is in correct thread', function() {
       // not implemented yet: https://github.com/cjohansen/Sinon.JS/issues/461
@@ -6796,8 +6687,10 @@ suite('conversation.js >', function() {
       });
 
       test('coming from a thread, should reset currentId', function() {
-        Threads.currentId = 1;
+        setActiveThread();
+
         ConversationView.beforeEnter(transitionArgs);
+
         assert.isNull(Threads.currentId);
       });
     });
@@ -6863,10 +6756,6 @@ suite('conversation.js >', function() {
         }
       };
 
-      Threads.set(threadId, {
-        participants: ['999']
-      });
-
       multiParticipantTransitionArgs = {
         id: multiParticipantThreadId,
         meta: {
@@ -6874,10 +6763,6 @@ suite('conversation.js >', function() {
           prev: { panel: 'thread-list', args: {} }
         }
       };
-
-      Threads.set(multiParticipantThreadId, {
-        participants: ['999', '888']
-      });
 
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.stub(InboxView, 'markReadUnread');
@@ -6893,6 +6778,8 @@ suite('conversation.js >', function() {
 
     suite('beforeEnter()', function() {
       setup(function() {
+        setActiveThread(threadId, ['999']);
+
         Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
       });
 
@@ -6918,6 +6805,7 @@ suite('conversation.js >', function() {
           );
 
           ConversationView.callNumberButton.classList.add('hide');
+          setActiveThread(multiParticipantThreadId, ['999', '888']);
           ConversationView.beforeEnter(multiParticipantTransitionArgs);
 
           // Hidden for multi participant thread
@@ -6927,9 +6815,8 @@ suite('conversation.js >', function() {
 
           ConversationView.callNumberButton.classList.add('hide');
           Settings.supportEmailRecipient = true;
-          Threads.set(threadId, {
-            participants: ['nobody@mozilla.com']
-          });
+
+          setActiveThread(threadId, ['nobody@mozilla.com']);
 
           ConversationView.beforeEnter(transitionArgs);
 
@@ -7065,9 +6952,7 @@ suite('conversation.js >', function() {
           args: { id: 1 }
         };
 
-        Threads.get.withArgs(threadId).returns({
-          getDraft: () => { return {}; }
-        });
+        setActiveThread(threadId);
 
         Navigation.isCurrentPanel.withArgs('report-view').returns(true);
         ConversationView.beforeEnter(transitionArgs);
@@ -7106,9 +6991,7 @@ suite('conversation.js >', function() {
           args: { id: threadId }
         };
 
-        Threads.get.withArgs(threadId).returns({
-          getDraft: () => { return {}; }
-        });
+        setActiveThread(threadId);
 
         Navigation.isCurrentPanel.withArgs('group-view').returns(true);
         ConversationView.beforeEnter(transitionArgs);
@@ -7145,6 +7028,8 @@ suite('conversation.js >', function() {
         transitionArgs.meta.prev = {
           panel: 'composer'
         };
+
+        setActiveThread(threadId);
 
         Compose.append('some existing text');
 

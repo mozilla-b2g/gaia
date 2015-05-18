@@ -281,7 +281,7 @@ var ConversationView = {
       }
 
       if (isAutoSaveRequired) {
-        ConversationView.saveDraft({preserve: true, autoSave: true});
+        ConversationView.saveDraft(true /* preserveDraft */);
       }
     }
   },
@@ -1095,8 +1095,10 @@ var ConversationView = {
   },
 
   back: function conv_back() {
-    return this._onNavigatingBack().then(function() {
-      Navigation.toPanel('thread-list');
+    return this._onNavigatingBack().then(function(isDraftSaved) {
+      Navigation.toPanel('thread-list', {
+        notifyAboutSavedDraft: isDraftSaved
+      });
     }.bind(this)).catch(function(e) {
       e && console.error('Unexpected error while navigating back: ', e);
 
@@ -1157,7 +1159,7 @@ var ConversationView = {
         // so they need to be resaved for persistence
         // Otherwise, clear the draft directly before leaving
         if (!Threads.currentId) {
-          this.saveDraft({autoSave: true});
+          this.saveDraft();
         } else {
           this.draft = null;
         }
@@ -1191,33 +1193,34 @@ var ConversationView = {
   },
 
   _showMessageSaveOrDiscardPrompt: function() {
-    return new Promise(function(resolve, reject) {
-      var options = {
-        items: [
-          {
-            l10nId: this.draft ? 'replace-draft' : 'save-as-draft',
-            method: function onSave() {
-              this.saveDraft();
-              resolve();
-            }.bind(this)
-          },
-          {
-            l10nId: 'delete-draft',
-            method: function onDiscard() {
-              this.discardDraft();
-              resolve();
-            }.bind(this)
-          },
-          {
-            l10nId: 'cancel',
-            method: function onCancel() {
-              reject();
-            }
+    var deferred = Utils.Promise.defer();
+
+    var options = {
+      items: [
+        {
+          l10nId: this.draft ? 'replace-draft' : 'save-as-draft',
+          method: () => {
+            this.saveDraft();
+            deferred.resolve(true /* isDraftSaved */);
           }
-        ]
-      };
-      new OptionMenu(options).show();
-    }.bind(this));
+        },
+        {
+          l10nId: 'delete-draft',
+          method: () => {
+            this.discardDraft();
+            deferred.resolve();
+          }
+        },
+        {
+          l10nId: 'cancel',
+          method: deferred.reject
+        }
+      ]
+    };
+
+    new OptionMenu(options).show();
+
+    return deferred.promise;
   },
 
   onSegmentInfoChange: function conv_onSegmentInfoChange() {
@@ -1872,8 +1875,6 @@ var ConversationView = {
 
     // Do we remove all messages of the Thread?
     if (!ConversationView.container.firstElementChild) {
-      // Remove the thread from DOM and go back to the inbox
-      InboxView.removeThread(Threads.currentId);
       callback();
       this.backOrClose();
     } else {
@@ -2204,10 +2205,8 @@ var ConversationView = {
     this.cleanFields();
     this.enableConvertNoticeBanners();
 
-    // If there was a draft, it just got sent
-    // so delete it
+    // If there was a draft, it just got sent so delete it.
     if (this.draft) {
-      InboxView.removeThread(this.draft.id);
       Drafts.delete(this.draft).store();
       this.draft = null;
     }
@@ -2772,14 +2771,14 @@ var ConversationView = {
       }
     }).bind(this);
 
-    var thread = Threads.get(Threads.currentId);
+    var thread = Threads.active;
     var number = opt.number || '';
     var email = opt.email || '';
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
     var header = opt.header;
     var items = [];
-    var params, props;
+    var params;
 
     // Create a params object.
     //  - complete: callback to be invoked when a
@@ -2852,10 +2851,7 @@ var ConversationView = {
     params.items = items;
 
     if (!isContact) {
-
-      props = [
-        number ? {tel: number} : {email: email}
-      ];
+      var newContactInfo = number ? { tel: number } : { email: email };
 
       // Unknown participants will have options to
       //  - Create A New Contact
@@ -2863,37 +2859,19 @@ var ConversationView = {
       //
       params.items.push({
           l10nId: 'createNewContact',
-          method: function oCreate(param) {
-            ActivityPicker.createNewContact(
-              param, ConversationView.onCreateContact
-            );
-          },
-          params: props
+          method: () => ActivityPicker.createNewContact(newContactInfo)
         },
         {
           l10nId: 'addToExistingContact',
-          method: function oAdd(param) {
-            ActivityPicker.addToExistingContact(
-              param, ConversationView.onCreateContact
-            );
-          },
-          params: props
+          method: () => ActivityPicker.addToExistingContact(newContactInfo)
         }
       );
     }
 
     if (opt.contactId && !ActivityHandler.isInActivity()) {
-
-        props = [{ id: opt.contactId }];
-
         params.items.push({
           l10nId: 'viewContact',
-          method: function oView(param) {
-            ActivityPicker.viewContact(
-              param
-            );
-          },
-          params: props
+          method: () => ActivityPicker.viewContact({ id: opt.contactId })
         }
       );
     }
@@ -2912,103 +2890,62 @@ var ConversationView = {
     new OptionMenu(params).show();
   },
 
-  onCreateContact: function conv_onCreateContact() {
-    InboxView.updateContactsInfo();
-    // Update Header if needed
-    if (Navigation.isCurrentPanel('thread')) {
-      ConversationView.updateHeaderData();
-    }
-  },
-
   discardDraft: function conv_discardDraft() {
-    // If we were tracking a draft
-    // properly update the Drafts object
-    // and InboxView entries
-    if (this.draft) {
-      Drafts.delete(this.draft).store();
-      if (Threads.active) {
-        Threads.active.timestamp = Date.now();
-        InboxView.updateThread(Threads.active);
-      } else {
-        InboxView.removeThread(this.draft.id);
-      }
-      this.draft = null;
+    // If we were tracking a draft properly, update the Drafts object entry.
+    if (!this.draft) {
+      return;
     }
+
+    // Update thread timestamp. Will be removed in bug 958105.
+    var thread = Threads.active;
+    if (thread) {
+      thread.timestamp = Date.now();
+    }
+
+    Drafts.delete(this.draft).store();
+
+    this.draft = null;
   },
 
-   /**
-   * saveDraft
+  /**
+   * Saves currently unsent message content and/or recipients into a Draft
+   * object. Preserves currently active draft if specified. Draft preservation
+   * is intended to keep this.draft populated with the currently active draft
+   * when app is hidden, so that when app becomes visible again, it knows there
+   * is a draft to continue to keep track of.
    *
-   * Saves the currently unsent message content or recipients
-   * into a Draft object.  Preserves the currently marked
-   * draft if specified.  Draft preservation is intended to
-   * keep this.draft populated with the currently
-   * showing draft when the app is hidden, so when the app
-   * comes out of hiding, it knows there is a draft to continue
-   * to keep track of.
-   *
-   * @param {Object} opts Optional parameters for saving a draft.
-   *                  - preserve, boolean whether or not to preserve draft.
-   *                  - autoSave, boolean whether this is an auto save.
+   * @param {boolean?} preserveDraft Optional boolean parameter that indicates
+   * whether or not we should preserve draft.
    */
-  saveDraft: function conv_saveDraft(opts) {
-    var content, draft, recipients, subject, thread, threadId, type;
+  saveDraft: function conv_saveDraft(preserveDraft) {
+    var thread = Threads.active;
 
-    content = Compose.getContent();
-    subject = Compose.getSubject();
-    type = Compose.type;
+    // Do we need to save participants for thread draft?
+    var recipients = thread ? thread.participants : this.recipients.numbers;
 
-    if (Threads.active) {
-      recipients = Threads.active.participants;
-      threadId = Threads.currentId;
-    } else {
-      recipients = this.recipients.numbers;
-    }
-
-    var draftId = this.draft ? this.draft.id : null;
-
-    draft = new Draft({
+    var draft = new Draft({
+      id: this.draft && this.draft.id,
+      threadId: thread && thread.id,
       recipients: recipients,
-      content: content,
-      subject: subject,
-      threadId: threadId,
-      type: type,
-      id: draftId
+      content: Compose.getContent(),
+      subject: Compose.getSubject(),
+      type: Compose.type
     });
+
+    // Update thread timestamp with draft's one. Will be removed in bug 958105.
+    if (thread) {
+      thread.timestamp = draft.timestamp;
+    }
 
     Drafts.add(draft);
 
-    // If an existing thread list item is associated with
-    // the presently saved draft, update the displayed Thread
-    if (threadId) {
-      thread = Threads.active || Threads.get(threadId);
-
-      // Overwrite the thread's own timestamp with
-      // the drafts timestamp.
-      thread.timestamp = draft.timestamp;
-
-      InboxView.updateThread(thread);
-    } else {
-      InboxView.updateThread(draft);
-    }
-
-    // Clear the MessageManager draft if
-    // not explicitly preserved for the
-    // draft replacement case
-    if (!opts || (opts && !opts.preserve)) {
-      this.draft = null;
-    }
-
-    // Set the MessageManager draft if it is
-    // not already set and meant to be preserved
-    if (!this.draft && (opts && opts.preserve)) {
+    // Set draft property if it is not already set and meant to be preserved.
+    if (preserveDraft && !this.draft) {
       this.draft = draft;
-    }
-
-    // Show draft saved banner if not an
-    // auto save operation
-    if (!opts || (opts && !opts.autoSave)) {
-      InboxView.onDraftSaved();
+    } else if (!preserveDraft) {
+      // Clear draft property if not explicitly asked to be preserved by draft
+      // replacement case.
+      this.draft = null;
     }
   },
 

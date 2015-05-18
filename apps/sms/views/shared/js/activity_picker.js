@@ -46,35 +46,32 @@ var ActivityPicker = {
       }
     }), onsuccess, onerror);
   },
-  createNewContact:
-   function ap_createNewContact(contactProps, onsuccess, onerror) {
+  createNewContact: function ap_createNewContact(contactProps) {
     handleActivity(new MozActivity({
       name: 'new',
       data: {
         type: 'webcontacts/contact',
         params: contactProps
       }
-    }), onsuccess, onerror);
+    }));
   },
-  addToExistingContact:
-   function ap_addToExistingContact(contactProps, onsuccess, onerror) {
+  addToExistingContact: function ap_addToExistingContact(contactProps) {
     handleActivity(new MozActivity({
       name: 'update',
       data: {
         type: 'webcontacts/contact',
         params: contactProps
       }
-    }), onsuccess, onerror);
+    }));
   },
-  viewContact:
-   function ap_viewContact(contactProps, onsuccess, onerror) {
+  viewContact: function ap_viewContact(contactProps) {
     handleActivity(new MozActivity({
       name: 'open',
       data: {
         type: 'webcontacts/contact',
         params: contactProps
       }
-    }), onsuccess, onerror);
+    }));
   },
   openSettings: function ap_openSettings(onsuccess, onerror) {
     handleActivity(new MozActivity({
