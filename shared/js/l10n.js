@@ -847,7 +847,7 @@
     getHash: function() {
       ++this._index;
       this.getWS();
-      var hi, comma, hash = Object.create(null);
+      var hi, comma, hash = {};
       while (true) {
         hi = this.getKVP();
         hash[hi[0]] = hi[1];
@@ -940,7 +940,7 @@
       if (ch === '\'' || ch === '"') {
         var valAndOverlay = this.getString(ch);
         if (valAndOverlay[1]) {
-          val = {'v': valAndOverlay[0], 'o': true};
+          val = {'$o': valAndOverlay[0]};
         } else {
           val = valAndOverlay[0];
         }
