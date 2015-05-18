@@ -1,27 +1,19 @@
 'use strict';
 /*jshint browser: true */
-/* global ChannelManager, MocksHelper, MockTVManager, MockTVTuner,
-          MockTVSource */
+/* global ChannelManager, MockTVManager, MockTVTuner, MockTVSource,
+          MockTVChannel */
 
 require('/bower_components/evt/index.js');
-require('/shared/js/async_storage.js');
-require('/shared/test/unit/mocks/mock_promise.js');
 require('/shared/test/unit/mocks/mock_tv_channel.js');
 require('/shared/test/unit/mocks/mock_tv_source.js');
 require('/shared/test/unit/mocks/mock_tv_tuner.js');
 require('/shared/test/unit/mocks/mock_tv_manager.js');
 require('/js/channel_manager.js');
 
-var mocksHelper = new MocksHelper([
-  'Promise'
-]).init();
-
 suite('tv-deck/channel_manager', function() {
 
   var realTVManager;
   var channelManager;
-
-  mocksHelper.attachTestHelpers();
 
   setup(function() {
     realTVManager = window.navigator.tv;
@@ -29,8 +21,18 @@ suite('tv-deck/channel_manager', function() {
     channelManager = new ChannelManager();
   });
 
-  teardown(function() {
-    window.asyncStorage.removeItem('TV_Hash');
+  suite('currentHash', function() {
+    setup(function() {
+      channelManager.playingState = {
+        tunerId: '1',
+        sourceType: 'dvb-1',
+        channelNumber: '10'
+      };
+    });
+
+    test('currentHash should equals to #1,dvb-1,10', function () {
+      assert.equal(channelManager.currentHash, '#1,dvb-1,10');
+    });
   });
 
   suite('getTuner()', function() {
@@ -125,33 +127,13 @@ suite('tv-deck/channel_manager', function() {
   });
 
   suite('fetchSettingFromHash()', function() {
-    setup(function(done) {
-      window.asyncStorage.setItem('TV_Hash', '#t1,s1,c1', function() {
-        done();
-      });
-    });
-
-    test('playingState should be set to the same setting as input arguement',
-      function(done) {
+    test('playingState should be set to the same setting as input hash',
+      function() {
         var hash = '#t0,s0,c0';
-        var promise = channelManager.fetchSettingFromHash(hash);
-        promise.mExecuteCallback(function() {
-          assert.equal(channelManager.playingState.tunerId, 't0');
-          assert.equal(channelManager.playingState.sourceType, 's0');
-          assert.equal(channelManager.playingState.channelNumber, 'c0');
-          done();
-        });
-    });
-
-    test('playingState should be set to the same setting in asyncStorage',
-      function(done) {
-        var promise = channelManager.fetchSettingFromHash();
-        promise.mExecuteCallback(function() {
-          assert.equal(channelManager.playingState.tunerId, 't1');
-          assert.equal(channelManager.playingState.sourceType, 's1');
-          assert.equal(channelManager.playingState.channelNumber, 'c1');
-          done();
-        });
+        channelManager.fetchSettingFromHash(hash);
+        assert.equal(channelManager.playingState.tunerId, 't0');
+        assert.equal(channelManager.playingState.sourceType, 's0');
+        assert.equal(channelManager.playingState.channelNumber, 'c0');
     });
   });
 
@@ -179,8 +161,8 @@ suite('tv-deck/channel_manager', function() {
       scanSources = this.sinon.stub(channelManager, 'scanSources');
     });
 
-    test('playingState.tunerId should be set to first tuner by default if it' +
-      'is null value', function() {
+    test('playingState.tunerId should be set to the first tuner by default if' +
+      'it is null value', function() {
       channelManager.scanTuners();
       assert.equal(channelManager.playingState.tunerId, 'tuner-0');
     });
@@ -190,7 +172,7 @@ suite('tv-deck/channel_manager', function() {
         assert.isTrue(scanSources.called);
     });
 
-    test('error should be fired if tuner cannot be found', function() {
+    test('error should be fired if the tuner cannot be found', function() {
         channelManager.playingState.tunerId = 'null';
         channelManager.scanTuners();
         assert.isTrue(fire.called);
@@ -200,14 +182,14 @@ suite('tv-deck/channel_manager', function() {
   suite('scanSources()', function() {
     var scanChannels;
     var fire;
-    var tunerObject;
+    var tunerItem;
 
     setup(function() {
-      tunerObject = {
+      tunerItem = {
         tuner: new MockTVTuner()
       };
 
-      this.sinon.stub(channelManager, 'getTuner').returns(tunerObject);
+      this.sinon.stub(channelManager, 'getTuner').returns(tunerItem);
       fire = this.sinon.stub(channelManager, 'fire');
       scanChannels = this.sinon.stub(channelManager, 'scanChannels');
     });
@@ -218,12 +200,20 @@ suite('tv-deck/channel_manager', function() {
       assert.equal(channelManager.playingState.sourceType, 'dvb-0');
     });
 
+    test('playingState.sourceType should be set to currentSource of the tuner',
+      function() {
+        tunerItem.tuner.currentSource = new MockTVSource();
+        tunerItem.tuner.currentSource.type = 'dvb-1';
+        channelManager.scanSources();
+        assert.equal(channelManager.playingState.sourceType, 'dvb-1');
+    });
+
     test('scanChannels should be called if tuner can be found', function() {
         channelManager.scanSources();
         assert.isTrue(scanChannels.called);
     });
 
-    test('error should be fired if tuner cannot be found', function() {
+    test('error should be fired if the source cannot be found', function() {
         channelManager.playingState.sourceType = 'null';
         channelManager.scanSources();
         assert.isTrue(fire.called);
@@ -232,21 +222,29 @@ suite('tv-deck/channel_manager', function() {
 
   suite('scanChannels()', function() {
     var fire;
-    var sourceObject;
+    var sourceItem;
 
     setup(function() {
-      sourceObject = {
+      sourceItem = {
         source: new MockTVSource()
       };
 
-      this.sinon.stub(channelManager, 'getSource').returns(sourceObject);
+      this.sinon.stub(channelManager, 'getSource').returns(sourceItem);
       fire = this.sinon.stub(channelManager, 'fire');
     });
 
-    test('playingState.sourceType should be set to first source by default if' +
-      'it is null value', function() {
+    test('playingState.currentChannel should be set to the first channel by ' +
+      'default if it is null value', function() {
       channelManager.scanChannels();
       assert.equal(channelManager.playingState.channelNumber, '0');
+    });
+
+    test('playingState.channelNumber should be set to currentChannel of the ' +
+      'current source', function() {
+        sourceItem.source.currentChannel = new MockTVChannel();
+        sourceItem.source.currentChannel.number = '1';
+        channelManager.scanChannels();
+        assert.equal(channelManager.playingState.channelNumber, '1');
     });
 
     test('isReady is set to be true', function() {
@@ -254,7 +252,7 @@ suite('tv-deck/channel_manager', function() {
       assert.isTrue(channelManager.isReady);
     });
 
-    test('error should be fired if tuner cannot be found', function() {
+    test('error should be fired if the channel cannot be found', function() {
       channelManager.playingState.channelNumber = 'null';
       channelManager.scanChannels();
       assert.isTrue(fire.called);
@@ -262,22 +260,22 @@ suite('tv-deck/channel_manager', function() {
   });
 
   suite('setPlayingSource()', function() {
-    var tunerObject;
-    var sourceObject;
+    var tunerItem;
+    var sourceItem;
     var setPlayingChannel;
     var setCurrentSource;
 
     setup(function() {
-      tunerObject = {
+      tunerItem = {
         tuner: new MockTVTuner()
       };
-      sourceObject = {
+      sourceItem = {
         source: new MockTVSource()
       };
-      this.sinon.stub(channelManager, 'getTuner').returns(tunerObject);
-      this.sinon.stub(channelManager, 'getSource').returns(sourceObject);
+      this.sinon.stub(channelManager, 'getTuner').returns(tunerItem);
+      this.sinon.stub(channelManager, 'getSource').returns(sourceItem);
       setPlayingChannel = this.sinon.stub(channelManager, 'setPlayingChannel');
-      setCurrentSource = this.sinon.stub(tunerObject.tuner, 'setCurrentSource');
+      setCurrentSource = this.sinon.stub(tunerItem.tuner, 'setCurrentSource');
       setCurrentSource.returns({
         then: function(callback) {
           callback();
@@ -288,7 +286,7 @@ suite('tv-deck/channel_manager', function() {
     test('If currentSource in playing tuner is the same as playing source, ' +
       'setPlayingChannel should be called while setCurrentSource should not',
       function() {
-        tunerObject.tuner.currentSource = sourceObject.source;
+        tunerItem.tuner.currentSource = sourceItem.source;
         channelManager.setPlayingSource();
         assert.isTrue(setPlayingChannel.called);
         assert.isFalse(setCurrentSource.called);
@@ -297,7 +295,7 @@ suite('tv-deck/channel_manager', function() {
     test('If currentSource in playing tuner is not the same as playing source' +
       ', setPlayingChannel and setCurrentSource should both be called',
       function() {
-        tunerObject.tuner.currentSource = new MockTVSource();
+        tunerItem.tuner.currentSource = new MockTVSource();
         channelManager.setPlayingSource();
         assert.isTrue(setPlayingChannel.called);
         assert.isTrue(setCurrentSource.called);
@@ -305,15 +303,15 @@ suite('tv-deck/channel_manager', function() {
   });
 
   suite('setPlayingChannel()', function() {
-    var sourceObject;
+    var sourceItem;
     var setCurrentChannel;
     setup(function() {
-      sourceObject = {
+      sourceItem = {
         source: new MockTVSource()
       };
-      this.sinon.stub(channelManager, 'getSource').returns(sourceObject);
+      this.sinon.stub(channelManager, 'getSource').returns(sourceItem);
       setCurrentChannel =
-                    this.sinon.stub(sourceObject.source, 'setCurrentChannel');
+                    this.sinon.stub(sourceItem.source, 'setCurrentChannel');
       setCurrentChannel.returns({
         then: function(callback) {
           callback();
@@ -321,16 +319,16 @@ suite('tv-deck/channel_manager', function() {
       });
     });
 
-    test('setCurrentChannel should be not called if source is scanning',
+    test('setCurrentChannel should not be called if source is scanning',
       function() {
-        sourceObject.source.isScanning = true;
+        sourceItem.source.isScanning = true;
         channelManager.setPlayingChannel();
         assert.isFalse(setCurrentChannel.called);
     });
 
-    test('callback should be not called if source is scanning', function() {
+    test('callback should be called if source is scanning', function() {
       var callback = this.sinon.stub();
-      sourceObject.source.isScanning = true;
+      sourceItem.source.isScanning = true;
       channelManager.setPlayingChannel(callback);
       assert.isTrue(callback.called);
     });
@@ -338,7 +336,7 @@ suite('tv-deck/channel_manager', function() {
     test('Both setCurrentChannel and callback should be called if source is' +
       'not scanning', function() {
       var callback = this.sinon.stub();
-      sourceObject.source.isScanning = false;
+      sourceItem.source.isScanning = false;
       channelManager.setPlayingChannel(callback);
       assert.isTrue(setCurrentChannel.called);
       assert.isTrue(callback.called);

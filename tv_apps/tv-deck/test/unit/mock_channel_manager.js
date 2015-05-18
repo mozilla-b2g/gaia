@@ -3,7 +3,6 @@
 
   function MockChannelManager() {
     var handler = {};
-    var fetchCallback;
 
     this.isReady = true;
     this.playingState = {};
@@ -31,17 +30,6 @@
     };
 
     this.fetchSettingFromHash = function() {
-      return {
-        then: function(callback) {
-          fetchCallback = callback;
-        }
-      };
-    };
-
-    this.mTriggerFetch = function() {
-      if (fetchCallback) {
-        fetchCallback();
-      }
     };
 
     this.on = function(evt, fn) {
