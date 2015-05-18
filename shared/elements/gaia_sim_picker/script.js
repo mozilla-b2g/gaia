@@ -58,14 +58,7 @@ window.GaiaSimPicker = (function(win) {
    * within the shadow dom. See also: bug 1026236.
    */
   proto._localizeShadowDom = function() {
-    var elements = this.shadowRoot.querySelectorAll('[data-l10n-id]');
-    [].forEach.call(elements, el => {
-      var attributes = navigator.mozL10n.getAttributes(el);
-      navigator.mozL10n.formatValue(attributes.id, attributes.args)
-      .then(value => {
-        el.textContent = value;
-      });
-    });
+    navigator.mozL10n.translateFragment(this.shadowRoot);
   };
 
   proto.getOrPick = function(defaultCardIndex,
