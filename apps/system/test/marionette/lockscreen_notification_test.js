@@ -18,7 +18,7 @@ marionette('LockScreen notification tests', function() {
     checks = (new LockScreenNotificationChecks()).start(client);
   });
 
-  test.skip('fire notification', function() {
+  test('fire notification', function() {
     var details = {
      tag: 'test tag',
      title: 'test title',
@@ -32,7 +32,7 @@ marionette('LockScreen notification tests', function() {
       .contains(details);
   });
 
-  test.skip('system replace notification', function() {
+  test('system replace notification', function() {
     var oldDetails = {
       tag: 'test tag, replace',
       title: 'test title, replace',
