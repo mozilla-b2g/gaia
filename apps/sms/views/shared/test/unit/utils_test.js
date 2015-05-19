@@ -1489,6 +1489,7 @@ suite('getDisplayObject', function() {
   });
 });
 
+<<<<<<< HEAD:apps/sms/views/shared/test/unit/utils_test.js
 suite('getContactDisplayInfo', function() {
   MocksHelperForUtilsUnitTest.attachTestHelpers();
 
@@ -1561,6 +1562,8 @@ suite('getContactDisplayInfo', function() {
   });
 });
 
+=======
+>>>>>>> refs/remotes/origin/master:apps/sms/test/unit/utils_test.js
 suite('isEmailAddress', function() {
   test('check +348888888888', function() {
     assert.isFalse(Utils.isEmailAddress('+348888888888'));
