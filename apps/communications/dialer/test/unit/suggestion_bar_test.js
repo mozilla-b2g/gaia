@@ -1,5 +1,5 @@
 /* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
-           MockL10n, MockNavigatorMozIccManager, MocksHelper,
+           MockL10n, MockNavigatorMozIccManager, MockUtils, MocksHelper,
            SuggestionBar, SimSettingsHelper */
 
 'use strict';
@@ -12,6 +12,7 @@ require('/shared/js/simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/js/sanitizer.js');
@@ -23,7 +24,8 @@ var mocksHelperForSuggestionBar = new MocksHelper([
   'LazyLoader',
   'KeypadManager',
   'CallHandler',
-  'SimSettingsHelper'
+  'SimSettingsHelper',
+  'Utils'
 ]).init();
 
 suite('suggestion Bar', function() {
@@ -228,6 +230,7 @@ suite('suggestion Bar', function() {
       var mockNumber = '111111111';
       var enteredNumber = '1111';
 
+      this.sinon.stub(MockUtils, 'isPhoneType').returns(true);
       MockContacts.mResult = mockResult2;
       subject.update(enteredNumber);
 
@@ -244,6 +247,7 @@ suite('suggestion Bar', function() {
         var mockNumber = '12349999';
         var enteredNumber = '1234';
 
+        this.sinon.stub(MockUtils, 'isPhoneType').returns(true);
         MockContacts.mResult = [];
         MockFbContacts.mResult = mockResultFb.slice(0, 1);
         subject.update(enteredNumber);
@@ -287,6 +291,7 @@ suite('suggestion Bar', function() {
         var mockNumber = '12349999';
         var enteredNumber = '1234';
 
+        this.sinon.stub(MockUtils, 'isPhoneType').returns(true);
         MockContacts.mResult = [];
         MockFbContacts.mResult = mockResultFb;
         subject.update(enteredNumber);
@@ -393,6 +398,7 @@ suite('suggestion Bar', function() {
         subject.update('1111');
 
         this.sinon.spy(LazyLoader, 'load');
+        this.sinon.stub(MockUtils, 'isPhoneType').returns(true);
         MockL10n.setAttributes.reset();
 
         subject.showOverlay();
