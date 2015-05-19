@@ -215,8 +215,9 @@
   z-index: 2046;
 }
 
-/* Keep system dialogs under lockscreen when locked */
-#screen.locked > [data-z-index-level="system-dialog"] {
+/* Keep system dialogs and toaster under lockscreen when locked */
+#screen.locked > [data-z-index-level="system-dialog"],
+#screen.locked > [data-z-index-level="notification-toaster"] {
   z-index: 2045;
 }
 
