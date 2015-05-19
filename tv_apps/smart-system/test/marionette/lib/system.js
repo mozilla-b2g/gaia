@@ -11,7 +11,7 @@ module.exports = System;
 System.URL = 'app://smart-system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
-  appChromeContextMenu: '.appWindow.active .contextmenu'
+  appChromeContextMenu: '.appWindow.active .contextmenu .modal-dialog'
 });
 
 System.prototype = {
