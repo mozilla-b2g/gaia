@@ -108,6 +108,17 @@
 
 }
 
+.appWindow > .smart-modal-dialog-container .modal-dialog .modal-dialog-message {
+  font-weight: normal;
+  font-style: italic;
+  font-size: 3.8rem;
+  line-height: 3.8rem;
+  color: #f9f9f9;
+  padding: 0 0 3.4rem 0;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt,
