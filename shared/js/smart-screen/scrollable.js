@@ -118,7 +118,7 @@
       this.listElem.classList.add('no-transition');
       // if an user close home app when card-list is sliding, we have to force
       // close the sliding transition (transition-delay = 0 is not working)
-      getComputedStyle(this.listElem).width;
+      this.forceReflow(this.listElem);
       this.listElem.classList.remove('no-transition');
       this.listElem.style.transitionDuration = null;
 
@@ -149,6 +149,7 @@
       this.scrollTo(newItem);
       if (!prevTransform ||
           prevTransform === this.listElem.style.transform ||
+          this.refElem ||
           document.visibilityState !== 'visible') {
         this.endSlide();
       }
@@ -462,6 +463,10 @@
       this._setNodePosition(newIdx);
 
       this.spatialNavigator.add(itemElem);
+      if (this.refElem) {
+        this.realignToReferenceElement();
+        this._shiftNodesPosition(1, newIdx);
+      }
       this._slide(this.getItemFromNode(newNode), newIdx);
 
       return true;
@@ -535,6 +540,30 @@
       var tabstop = this._getTabstop(idx);
       this.getNodeFromItem(this.nodes[idx]).style.transform =
         'translateX(calc((100% + ' + this.spacing + 'rem) * ' + tabstop + '))';
+    },
+
+    /**
+     * Shift node positions without animations.
+     * @param  {[type]} offset  The unit offset. Use positive integer to shift
+     *                          right and negative integer to shift left.
+     * @param  {[type]} skipIdx The index of the node that needs not be shifted.
+     */
+    _shiftNodesPosition: function(offset, skipIdx) {
+      this.nodes.forEach(function(node, idx) {
+        if (idx !== skipIdx) {
+          node.style.transitionProperty = 'none';
+          var tabstop = this._getTabstop(idx) + offset;
+          this.getNodeFromItem(node).style.transform =
+            'translateX(calc((100% + ' +
+            this.spacing + 'rem) * ' + tabstop + '))';
+        }
+      }.bind(this));
+
+      this.forceReflow(this.nodes[0]);
+
+      this.nodes.forEach(function(node) {
+        node.style.transitionProperty = '';
+      });
     },
 
     swap: function(node1, node2) {
@@ -671,6 +700,10 @@
       if (this.refElem) {
         this.setReferenceElement(this.refElem);
       }
+    },
+
+    forceReflow: function(element) {
+      getComputedStyle(element).width;
     }
 
   });
