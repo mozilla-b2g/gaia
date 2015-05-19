@@ -47,5 +47,14 @@
         break;
     }
   };
+
+  WifiIcon.prototype.view = function view() {
+    return `<div id="statusbar-wifi"
+              class="sb-icon sb-icon-wifi"
+              data-level="4" hidden
+              role="listitem">
+            </div>`;
+  };
+
   exports.WifiIcon = WifiIcon;
 }(window));

@@ -26,9 +26,10 @@
         return LazyLoader.load(['js/clock.js', 'js/time_icon.js']);
       }.bind(this)).then(function() {
         this.icon = new TimeIcon(this);
+        this.icon.start();
         this._handle_hierarchychanged();
       }.bind(this)).catch(function(err) {
-        console.error(err); 
+        console.error(err);
       });
       this._handle_visibilitychange();
     },
