@@ -1,7 +1,7 @@
 /* exported App */
-/* global initDB, musicdb, LazyLoader, TitleBar, TabBar, asyncStorage,
-          TilesView, ListView, SubListView, SearchView, ModeManager,
-          MODE_PICKER, MODE_TILES, MODE_LIST, reparsingMetadata */
+/* global initDB, MusicComms, TitleBar, TabBar, asyncStorage, TilesView,
+          ListView, SubListView, SearchView, ModeManager, MODE_PICKER,
+          MODE_TILES, MODE_LIST, reparsingMetadata */
 'use strict';
 
 /*
@@ -148,86 +148,114 @@ var App = (function() {
     }
   }
 
-  function showCurrentView(callback) {
-    // We need AlbumArtCache.getCoverURL() to display thumbnails; it might not
-    // have been loaded yet, so make sure we load it first. This should prevent
-    // us from having to worry about loading it anywhere else in the code, since
-    // showCurrentView is called pretty early in the startup process.
-    LazyLoader.load('js/metadata/album_art_cache.js', function() {
-      function showListView() {
-        var option = TabBar.option;
-        var info = {
-          key: 'metadata.' + option,
-          range: null,
-          direction: (option === 'title') ? 'next' : 'nextunique',
-          option: option
-        };
+  function dbEnumerable(callback) {
+    // If we've been upgrading, hide that now
+    if (app.currentOverlay === 'upgrade') {
+      app.showOverlay(null);
+    }
 
-        ListView.activate(info);
-      }
-      // If it's in picking mode, we will just enumerate all the songs. We don't
-      // need to enumerate data for TilesView because the mix page is not needed
-      // in picker mode.
-      if (app.pendingPick) {
-        showListView();
-        if (callback) {
-          callback();
-        }
-        return;
-      }
-
-      // If music is not in tiles mode and showCurrentView is called, that might
-      // be because the user has (un)mounted his SD card and modified the
-      // songs. musicdb will be updated, and then we should update the list view
-      // if music app is in list mode.
-      if (ModeManager.currentMode === MODE_LIST &&
-          TabBar.option !== 'playlist') {
-        showListView();
-      }
-
-      // Enumerate existing song entries in the database. List them all, and
-      // sort them in ascending order by album. Use enumerateAll() here so that
-      // we get all the results we want and then pass them synchronously to the
-      // update() functions. If we do it asynchronously, then we'll get one
-      // redraw for every song.
+    // Display music that we already know about
+    refreshViews(function() {
+      // Tell performance monitors that the content is displayed and is
+      // ready to interact with. We won't send the final fullyLoaded
+      // mark until we're completely stable and have finished scanning.
       //
-      // Note: we need to update tiles view every time this happens because it's
-      // the top level page and an independent view
-      TilesView.handle = musicdb.enumerateAll(
-        'metadata.album', null, 'nextunique',
-        function(songs) {
-          // Add null to the array of songs. This is a flag that tells update()
-          // to show or hide the 'empty' overlay.
-          songs.push(null);
-          TilesView.clean();
+      // XXX: Maybe we could emit these marks earlier, when we've just
+      // finished the "above the fold" content. That's hard to do on
+      // arbitrary screen resolutions, though.
+      window.performance.mark('visuallyLoaded');
+      window.performance.mark('contentInteractive');
 
-          app.knownSongs.length = 0;
-          songs.forEach(function(song) {
-            TilesView.update(song);
-            // Push the song to knownSongs. Then we can display a correct
-            // overlay.
-            app.knownSongs.push(song);
-          });
+      // For performance optimization, we disable the font-fit logic in
+      // gaia-header to speed up the startup times, and here we have to
+      // remove the no-font-fit attribute to trigger the font-fit logic.
+      TitleBar.view.removeAttribute('no-font-fit');
 
-          // Tell performance monitors that the content is displayed and is
-          // ready to interact with. We won't send the final fullyLoaded
-          // mark until we're completely stable and have finished scanning.
-          //
-          // XXX: Maybe we could emit these marks earlier, when we've just
-          // finished the "above the fold" content. That's hard to do on
-          // arbitrary screen resolutions, though.
-          window.performance.mark('visuallyLoaded');
-          window.performance.mark('contentInteractive');
-          // For performance optimization, we disable the font-fit logic in
-          // gaia-header to speed up the startup times, and here we have to
-          // remove the no-font-fit attribute to trigger the font-fit logic.
-          TitleBar.view.removeAttribute('no-font-fit');
+      // Hide the spinner once we've displayed the initial screen
+      document.getElementById('spinner-overlay').classList.add('hidden');
 
-          if (callback) {
-            callback();
-          }
-        }
-      );
+      // Only init the communication when music is not in picker mode.
+      if (document.URL.indexOf('#pick') === -1) {
+        // We need to wait to init the music comms until the UI is fully loaded
+        // because the init of music comms could slow down the startup time.
+        MusicComms.init();
+      }
+
+      if (callback) {
+        callback();
+      }
+    });
+  }
+
+  function dbReady(refresh, callback) {
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (app.currentOverlay === 'nocard' || app.currentOverlay === 'pluggedin') {
+      app.showOverlay(null);
+    }
+
+    if (refresh) {
+      refreshViews(callback);
+    } else if (callback) {
+      callback();
+    }
+  }
+
+  // This tracks if we've automatically hidden the search box on startup yet (it
+  // should only be done once!)
+  var hidSearchBox = false;
+
+  function refreshViews(callback) {
+    function showListView() {
+      var option = TabBar.option;
+      var info = {
+        key: 'metadata.' + option,
+        range: null,
+        direction: (option === 'title') ? 'next' : 'nextunique',
+        option: option
+      };
+
+      ListView.activate(info);
+    }
+
+    // If it's in picking mode, we will just enumerate all the songs. We don't
+    // need to enumerate data for TilesView because the mix page is not needed
+    // in picker mode.
+    if (app.pendingPick) {
+      showListView();
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
+    // If music is not in tiles mode and refreshViews is called, that might be
+    // because the user has (un)mounted his SD card and modified the songs.
+    // musicdb will be updated, and then we should update the list view if
+    // music app is in list mode.
+    if (ModeManager.currentMode === MODE_LIST &&
+        TabBar.option !== 'playlist') {
+      showListView();
+    }
+
+    TilesView.activate(function(songs) {
+      // If there are no songs, disable the TabBar to prevent users switching to
+      // other pages.
+      TabBar.setDisabled(!songs.length);
+      app.knownSongs = songs;
+
+      app.showCorrectOverlay();
+      if (app.currentOverlay === null && !hidSearchBox) {
+        hidSearchBox = true;
+
+        // After updating the tiles view, hide the search bar. However, we want
+        // to let it stay visible for a short duration so that the user knows it
+        // exists.
+        window.setTimeout(function() { TilesView.hideSearch(); }, 1000);
+      }
+
+      if (callback) {
+        callback();
+      }
     });
   }
 
@@ -243,7 +271,9 @@ var App = (function() {
     // Exported functions
     showOverlay: showOverlay,
     showCorrectOverlay: showCorrectOverlay,
-    showCurrentView: showCurrentView
+    dbEnumerable: dbEnumerable,
+    dbReady: dbReady,
+    refreshViews: refreshViews
   };
 
   return app;
