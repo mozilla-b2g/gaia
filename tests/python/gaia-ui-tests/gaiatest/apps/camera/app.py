@@ -38,18 +38,12 @@ class Camera(Base):
     # ConfirmDialog
     _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
 
+    _screen_locator = (By.ID, 'screen')
+
     def launch(self):
         Base.launch(self)
         self.wait_for_capture_ready()
         self.wait_for_element_not_displayed(*self._loading_screen_locator)
-
-    def wait_for_loading_spinner_hidden(self):
-        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
-        Wait(self.marionette).until(expected.element_not_displayed(loading_spinner))
-
-    def wait_for_loading_spinner_displayed(self):
-        loading_spinner = self.marionette.find_element(*self._loading_screen_locator)
-        Wait(self.marionette).until(expected.element_displayed(loading_spinner))
 
     @property
     def camera_mode(self):
@@ -94,11 +88,12 @@ class Camera(Base):
         select = self.marionette.find_element(*self._select_button_locator)
         Wait(self.marionette).until(expected.element_enabled(select))
 
-        try:
-            select.tap()
-        except (FrameSendFailureError, NoSuchWindowException):
-            # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
-            pass
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        x = select.rect['x'] + select.rect['width']//2
+        y = select.rect['y'] + select.rect['height']//2
+        self.marionette.switch_to_frame()
+        self.marionette.find_element(*self._screen_locator).tap(x, y)
 
         # Fall back to app beneath the picker
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name != self.name)

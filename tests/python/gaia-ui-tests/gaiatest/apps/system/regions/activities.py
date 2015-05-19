@@ -66,8 +66,6 @@ class Activities(Base):
         camera = Camera(self.marionette)
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == camera.name)
         self.apps.switch_to_displayed_app()
-        camera.wait_for_loading_spinner_displayed()
-        camera.wait_for_loading_spinner_hidden()
         camera.wait_for_capture_ready()
         return camera
 
