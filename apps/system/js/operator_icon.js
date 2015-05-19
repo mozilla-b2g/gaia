@@ -62,7 +62,7 @@
       l10nArgs.operator += ' ' + operatorInfos.region;
     }
 
-    navigator.mozL10n.setAttributes(label, 'statusbarLabel', l10nArgs);
+    navigator.mozL10n.setAttributes(label, 'statusbarOperator', l10nArgs);
   };
   exports.OperatorIcon = OperatorIcon;
 }(window));
