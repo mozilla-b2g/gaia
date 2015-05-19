@@ -472,6 +472,8 @@
       }, this);
     },
 
+    // XXX: Note that if you put card index as parameters for item1 and item2
+    // Please make sure they are "index of _cardList"
     swapCard: function cm_switchCard(item1, item2) {
       this._asyncSemaphore.wait(function() {
         var that = this;
@@ -675,6 +677,22 @@
         }, that);
       }).then(function() {
         return Promise.resolve(that._cardList);
+      });
+    },
+
+    getFilteredCardList: function cm_getFilteredCardList(filterName) {
+      return this.getCardList().then(function(allCards) {
+        var filteredCards = [];
+        if (filterName === 'all') {
+          filteredCards = allCards;
+        } else if (filterName) {
+          allCards.forEach(function(card) {
+            if (card.group === filterName) {
+              filteredCards.push(card);
+            }
+          });
+        }
+        return Promise.resolve(filteredCards);
       });
     },
 

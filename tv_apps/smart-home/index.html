@@ -65,6 +65,7 @@
     <!-- Specific code -->
     <script defer src="js/utils.js"></script>
     <script defer src="js/card_filter.js"></script>
+    <script defer src="js/filter_manager.js"></script>
     <script defer src="js/connection_manager.js"></script>
     <script defer src="js/message_handler.js"></script>
     <script defer src="js/edit.js"></script>
@@ -128,9 +129,10 @@
         </section>
       </nav>
 
+      <smart-bubbles id="bubbles" interval="100"></smart-bubbles>
       <section id="card-viewer">
         <div id="card-list-frame">
-          <div id="card-list" data-default-item="0">
+          <div id="card-list" data-default-item="0" smart-bubbles="true">
           </div>
         </div>
       </section>

@@ -196,7 +196,6 @@ section {
 **/
 .filter-tab-container {
   position: absolute;
-  display: none;
   left: 6rem;
   bottom: 5.4rem;
 }

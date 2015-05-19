@@ -1,6 +1,5 @@
-'use strict';
-
 window.SmartBubbles = (function(win) {
+  'use strict';
 
   var DEFAULT_INTERVAL = 100;
 
@@ -18,15 +17,25 @@ window.SmartBubbles = (function(win) {
   proto.handleEvent = function(evt) {
     switch(evt.type) {
       case 'animationend':
-        evt.currentTarget.classList.remove('smart-bubble-playing');
-        evt.currentTarget.classList.add('smart-bubble-stopped');
-        window.getComputedStyle(evt.currentTarget).animationName;
-        evt.currentTarget.classList.remove('smart-bubble-stopped');
-        window.getComputedStyle(evt.currentTarget).animationName;
-
         this.fireEvent('item-bubbled', ++this._finishedAnimationCount);
         if (this._targetAnimationCount === this._finishedAnimationCount) {
           this.playing = false;
+          [].forEach.call(this._elements, function(elem) {
+            elem.classList.remove('smart-bubble-playing');
+            // XXX:Usually we use <smart-button> within container of
+            // smart-bubbles. If we remove style of smart-bubble-playing,
+            // Gecko would apply original style of smart-button instead and it
+            // has transition property too. This results in another transition
+            // happens on <smart-button> while we thought we'd just stop
+            // animation. That is why we need to add 'smart-bubble-stopped' here
+            // to prevent unexpected animation from happening.
+            elem.classList.add('smart-bubble-stopped');
+            // use getComputedStyle to force flushing re-style
+            window.getComputedStyle(elem).animationName;
+            elem.classList.remove('smart-bubble-stopped');
+            window.getComputedStyle(elem).animationName;
+            elem.style.animationDelay = '';
+          }.bind(this));
           this._elements = null;
           this.fireEvent('all-items-bubbled');
         }

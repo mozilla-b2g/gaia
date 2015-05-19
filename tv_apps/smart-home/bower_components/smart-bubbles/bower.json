@@ -12,6 +12,11 @@
     "tests",
     "examples",
     "LICENSE",
-    "README.md"
-  ]
+    "README.md",
+    "gulpfile.js",
+    "package.json"
+  ],
+  "devDependencies": {
+    "smart-button": "smart-components/smart-button"
+  }
 }

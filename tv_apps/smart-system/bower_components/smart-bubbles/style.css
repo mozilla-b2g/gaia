@@ -1,8 +1,11 @@
 *[smart-bubbles="true"] .smart-bubble-playing {
   transition-property: none;
   transform: none;
-  animation: bubble-animation .5s cubic-bezier(0.25, 0, 0, 1);
-  animation-fill-mode: backwards;
+  animation: bubble-animation 0.5s cubic-bezier(0.25, 0, 0, 1) both;
+}
+
+*[smart-bubbles="true"][smart-bubbles-direction="down"] .smart-bubble-playing {
+  animation: sinking-animation 0.5s cubic-bezier(0.25, 0, 0, 1) both;
 }
 
 *[smart-bubbles="true"] .smart-bubble-stopped {
@@ -15,4 +18,9 @@
   0%   {opacity: 0; transform: translateY(8rem);}
   50%  {opacity: 1;}
   100% {transform: translateY(0);}
+}
+
+@keyframes sinking-animation {
+  0%   {opacity: 1; transform: translateY(0);}
+  100% {opacity: 0; transform: translateY(8rem);}
 }

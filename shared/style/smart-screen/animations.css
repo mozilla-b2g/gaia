@@ -34,7 +34,7 @@
   transition-property: none;
   transform: none;
   animation: bubble-animation 0.5s cubic-bezier(0.25, 0, 0, 1);
-  animation-fill-mode: backwards;
+  animation-fill-mode: both;
   outline: 0;
   box-shadow: none;
 }

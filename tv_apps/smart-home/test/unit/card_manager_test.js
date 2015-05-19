@@ -33,6 +33,7 @@ suite('smart-home/CardManager', function() {
         name: {
           raw: 'Dashboard'
         },
+        group: 'dashboard',
         nativeApp: {
           name: 'Dashboard',
           removable: false,
@@ -44,6 +45,7 @@ suite('smart-home/CardManager', function() {
         name: {
           raw: 'TV'
         },
+        group: 'tv',
         nativeApp: {
           name: 'TV',
           removable: false,
@@ -58,6 +60,7 @@ suite('smart-home/CardManager', function() {
         name: {
           raw: 'Music'
         },
+        group: 'application',
         nativeApp: {
           name: 'Music',
           removable: false,
@@ -69,6 +72,7 @@ suite('smart-home/CardManager', function() {
         name: {
           raw: 'Video'
         },
+        group: 'application',
         nativeApp: {
           name: 'Video',
           removable: false,
@@ -80,6 +84,7 @@ suite('smart-home/CardManager', function() {
         name: {
           raw: 'Gallery'
         },
+        group: 'application',
         nativeApp: {
           name: 'Gallery',
           removable: false,
@@ -355,12 +360,45 @@ suite('smart-home/CardManager', function() {
       });
       assert.equal(card, folders.nonEmpty);
     });
+  });
 
+  suite('getFilteredCardList()', function() {
+    var cardManager;
+
+    setup(function() {
+      cardManager = prepareCardManagerForTesting();
+    });
+
+    teardown(function() {
+      MockCardStore.mClearData();
+      cardManager = undefined;
+    });
+
+    test('should get only apps if filter="application"', function(done) {
+      var filter = 'application';
+      cardManager.getFilteredCardList(filter).then(function(cards) {
+        assert.isTrue(cards.length === 1);
+      }).then(done, done);
+    });
+
+    test('should get all cards if filter="all"', function(done) {
+      var filter = 'all';
+      cardManager.getFilteredCardList(filter).then(function(cards) {
+        assert.isTrue(cards.length === cardManager._cardList.length);
+      }).then(done, done);
+    });
+
+    test('should get empty array if filter is undefined', function(done) {
+      cardManager.getFilteredCardList().then(function(cards) {
+        assert.isTrue(cards.length === 0);
+      }).then(done, done);
+    });
   });
 
   suite('insertNewFolder()', function() {
     var cardManager;
     var dashboardCardId;
+
     setup(function() {
       cardManager = new CardManager();
       // We bypass init() because it involves navigator.mozApps.mgmt
@@ -399,7 +437,8 @@ suite('smart-home/CardManager', function() {
       var newFolder = cardManager.insertNewFolder('a test folder');
       assert.isFalse(cardManager.writeCardlistInCardStore.calledOnce);
       newFolder.addCard(new Application({
-        name: 'Music'
+        name: 'Music',
+        group: 'application'
       }));
 
       assert.isTrue(cardManager.writeCardlistInCardStore.calledOnce);
@@ -420,6 +459,7 @@ suite('smart-home/CardManager', function() {
 
   suite('insertCard()', function() {
     var cardManager;
+
     setup(function() {
       cardManager = prepareCardManagerForTesting();
     });
@@ -578,7 +618,6 @@ suite('smart-home/CardManager', function() {
       assert.equal(cardManager._cardList[0], card2);
       assert.equal(cardManager._cardList[2], card1);
     });
-
   });
 
 });
