@@ -23,6 +23,9 @@ suite('SimCardDialog > ', function() {
   var dialogDom;
   var dialogDoneButton;
   var dialogPinInput;
+  var dialogPukInput;
+  var dialogNewPinInput;
+  var dialogConfirmPinInput;
   var errorMsgHeader;
   var fakeIccId = '1111';
   var realAlert;
@@ -61,7 +64,12 @@ suite('SimCardDialog > ', function() {
     dialogDom = document.getElementById('simpin-dialog-mock');
     errorMsgHeader = dialogDom.querySelector('.sim-messageHeader');
     dialogDoneButton = dialogDom.querySelector('button[type="submit"]');
-    dialogPinInput = dialogDom.querySelector('input');
+    dialogPinInput = dialogDom.querySelector('.sim-pinArea input');
+    dialogPukInput = dialogDom.querySelector('.sim-pukArea input');
+    dialogNewPinInput = dialogDom.querySelector('.sim-newPinArea input');
+    dialogConfirmPinInput =
+      dialogDom.querySelector('.sim-confirmPinArea input');
+
     dialog = new SimPinDialog(dialogDom);
   });
 
@@ -177,6 +185,138 @@ suite('SimCardDialog > ', function() {
 
       assert.isFalse(onsuccess.called);
       assert.isTrue(oncancel.called);
+    });
+  });
+
+  suite('_updateDoneButtonState > ', function() {
+    var onsuccess;
+    var oncancel;
+
+    setup(function() {
+      onsuccess = this.sinon.stub();
+      oncancel = this.sinon.stub();
+    });
+
+    test('in change_pin mode, but length of pinInput is less than 4',
+      function() {
+        dialog.show('change_pin', {
+          cardIndex: 1,
+          onsuccess: onsuccess,
+          oncancel: oncancel
+        });
+        dialogPinInput.value = '1';
+        dialogPinInput.oninput();
+        assert.isTrue(dialogDoneButton.disabled);
+    });
+
+    test('in change_pin mode, but length of newPinInput is less than 4',
+      function() {
+        dialog.show('change_pin', {
+          cardIndex: 1,
+          onsuccess: onsuccess,
+          oncancel: oncancel
+        });
+        dialogPinInput.value = '1234';
+        dialogNewPinInput.value = '1';
+        dialogPinInput.oninput();
+        assert.isTrue(dialogDoneButton.disabled);
+    });
+
+    test('in change_pin mode, but length of confirmPinInput is less than 4',
+      function() {
+        dialog.show('change_pin', {
+          cardIndex: 1,
+          onsuccess: onsuccess,
+          oncancel: oncancel
+        });
+        dialogPinInput.value = '1234';
+        dialogNewPinInput.value = '5678';
+        dialogConfirmPinInput.value = '1';
+        dialogPinInput.oninput();
+        assert.isTrue(dialogDoneButton.disabled);
+    });
+
+    test('in change_pin mode, ' +
+      'but length of confirmPinInput & newPinInput is different', function() {
+        dialog.show('change_pin', {
+          cardIndex: 1,
+          onsuccess: onsuccess,
+          oncancel: oncancel
+        });
+        dialogPinInput.value = '1234';
+        dialogNewPinInput.value = '5678';
+        dialogConfirmPinInput.value = '567';
+        dialogPinInput.oninput();
+        assert.isTrue(dialogDoneButton.disabled);
+    });
+
+    test('in change_pin mode, ' +
+      'and length of confirmPinInput & newPinInput is the same', function() {
+        dialog.show('change_pin', {
+          cardIndex: 1,
+          onsuccess: onsuccess,
+          oncancel: oncancel
+        });
+        dialogPinInput.value = '1234';
+        dialogNewPinInput.value = '5678';
+        dialogConfirmPinInput.value = '5679';
+        dialogPinInput.oninput();
+        assert.isFalse(dialogDoneButton.disabled);
+    });
+
+    test('in pin mode, and length of pinInput is less than 4', function() {
+      dialog.show('unlock_pin', {
+        cardIndex: 1,
+        onsuccess: onsuccess,
+        oncancel: oncancel
+      });
+      dialogPinInput.value = '1';
+      dialogPinInput.oninput();
+      assert.isTrue(dialogDoneButton.disabled);
+    });
+
+    test('in pin mode, but length of pinInput is >= 4', function() {
+      dialog.show('unlock_pin', {
+        cardIndex: 1,
+        onsuccess: onsuccess,
+        oncancel: oncancel
+      });
+      dialogPinInput.value = '1234';
+      dialogPinInput.oninput();
+      assert.isFalse(dialogDoneButton.disabled);
+    });
+
+    test('in puk mode, and length of pukInput is less than 4', function() {
+      dialog.show('unlock_puk', {
+        cardIndex: 1,
+        onsuccess: onsuccess,
+        oncancel: oncancel
+      });
+      dialogPukInput.value = '1';
+      dialogPukInput.oninput();
+      assert.isTrue(dialogDoneButton.disabled);
+    });
+
+    test('in puk mode, and length of pukInput is >= 4', function() {
+      dialog.show('unlock_puk', {
+        cardIndex: 1,
+        onsuccess: onsuccess,
+        oncancel: oncancel
+      });
+      dialogPukInput.value = '1234';
+      dialogPukInput.oninput();
+      assert.isFalse(dialogDoneButton.disabled);
+    });
+
+    test('in unkown mode, will print out console', function() {
+      sinon.stub(window.console, 'error');
+      dialog.show('unknown_action', {
+        cardIndex: 1,
+        onsuccess: onsuccess,
+        oncancel: oncancel
+      });
+      dialogPinInput.oninput();
+      assert.isTrue(window.console.error.called);
     });
   });
 });
