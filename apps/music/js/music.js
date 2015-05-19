@@ -171,8 +171,12 @@ var App = (function() {
       // remove the no-font-fit attribute to trigger the font-fit logic.
       TitleBar.view.removeAttribute('no-font-fit');
 
-      // Hide the spinner once we've displayed the initial screen
-      document.getElementById('spinner-overlay').classList.add('hidden');
+      // Hide the spinner once we've displayed the initial screen.
+      // The setTimeout is a workaround for Bug 1166500.
+      document.getElementById('spinner').classList.add('hidden');
+      setTimeout(function() {
+        document.getElementById('spinner-overlay').classList.add('hidden');
+      }, 100);
 
       // Only init the communication when music is not in picker mode.
       if (document.URL.indexOf('#pick') === -1) {

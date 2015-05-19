@@ -146,8 +146,9 @@ navigator.mozL10n.once(function startup() {
       }
 
       // Hide the scanning indicator
-      $('progress').classList.add('hidden');
+      // setTimeout() is to workaround Bug 1166500
       $('throbber').classList.remove('throb');
+      setTimeout(function() { $('progress').classList.add('hidden'); }, 100);
 
       // If this was the first scan after startup, then tell
       // performance monitors that the app is finally fully loaded and stable.
