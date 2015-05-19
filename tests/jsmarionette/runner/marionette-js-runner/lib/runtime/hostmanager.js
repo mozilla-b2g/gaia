@@ -33,16 +33,18 @@ HostManager.prototype = {
 
   /**
    * Setup a host inside of the current execution context.
-   *
-   * @param {Object} profile settings for host.
-   * @param {Object} driver for marionette.
-   * @param {Object} desired capabilities for mariontte server.
+   * @param {Object} options an options object that contains:
+   *                         {Object} profile settings for host.
+   *                         {Object} driver for marionette.
+   *                         {Object} desired capabilities for mariontte
    * @return {Marionette.Client} instance of a client.
    */
-  createHost: function(profile, driver, desiredCapabilities) {
-    profile = profile || {};
-    driver = driver || Marionette.Drivers.TcpSync;
-    desiredCapabilities = desiredCapabilities || this.desiredCapabilities;
+  createHost: function(options) {
+    options = options || {};
+    var profile = options.profile || {};
+    var driver = options.driver || Marionette.Drivers.TcpSync;
+    var desiredCapabilities = options.desiredCapabilities ||
+      this.desiredCapabilities;
 
     debug('create host', profile);
 

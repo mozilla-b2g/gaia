@@ -8,7 +8,9 @@ marionette('LockScreen media playback tests', function() {
   var apps = {};
   apps[fakeMusicInfo.origin] = fakeMusicInfo.path;
   var client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   setup(function() {

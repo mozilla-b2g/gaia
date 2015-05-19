@@ -14,13 +14,15 @@ marionette('Music player playlist', function() {
   apps[FakeControls.DEFAULT_ORIGIN] = __dirname + '/fakecontrols';
 
   var client = marionette.client({
-    prefs: {
-      'device.storage.enabled': true,
-      'device.storage.testing': true,
-      'device.storage.prompt.testing': true
-    },
+    profile: {
+      prefs: {
+        'device.storage.enabled': true,
+        'device.storage.testing': true,
+        'device.storage.prompt.testing': true
+      },
 
-    apps: apps
+      apps: apps
+    }
   });
 
   var music;

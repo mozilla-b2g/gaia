@@ -17,11 +17,13 @@ marionette('Messages Drafts', function() {
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
 
-    apps: apps
+      apps: apps
+    }
   });
 
   var messagesApp, activityCallerApp;

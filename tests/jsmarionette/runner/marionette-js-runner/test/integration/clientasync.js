@@ -3,7 +3,7 @@ var assert = require('assert');
 
 marionette('client async', function() {
   var Tcp = require('marionette-client').Drivers.Tcp;
-  var client = marionette.client({}, Tcp);
+  var client = marionette.client({ driver: Tcp });
 
   function onePlusOne() {
     return 1 + 1;

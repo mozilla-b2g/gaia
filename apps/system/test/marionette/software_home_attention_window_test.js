@@ -9,14 +9,16 @@ marionette('Software Home Button - Attention window', function() {
   apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'lockscreen.enabled': true,
-      'software-button.enabled': true
-    },
-    apps: apps
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'lockscreen.enabled': true,
+        'software-button.enabled': true
+      },
+      apps: apps
+    }
   });
   var system;
   var lockScreen;

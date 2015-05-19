@@ -3,7 +3,7 @@
 var Contacts = require('./lib/contacts');
 
 marionette('Contacts > Delete', function() {
-  var client = marionette.client(Contacts.config);
+  var client = marionette.client({ profile: Contacts.config });
   var subject;
   var selectors;
 

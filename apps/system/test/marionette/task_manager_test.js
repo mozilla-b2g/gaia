@@ -17,7 +17,9 @@ marionette('Task Manager', function() {
 
 
   var client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var actions;

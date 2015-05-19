@@ -14,10 +14,12 @@ marionette('Text selection >', function() {
     var fakeTextselectionApp;
     var system;
     var client = marionette.client({
-      apps: apps,
-      prefs: {
-        'docshell.device_size_is_page_size': true,
-        'dom.mozInputMethod.enabled': false
+      profile: {
+        apps: apps,
+        prefs: {
+          'docshell.device_size_is_page_size': true,
+          'dom.mozInputMethod.enabled': false
+        }
       }
     });
 
@@ -361,13 +363,15 @@ marionette('Text selection >', function() {
   suite('with lockscreen enabled', function() {
     var fakeTextselectionAppWithLockscreen;
     var clientWithLockscreen = marionette.client({
-      apps: apps,
-      prefs: {
-        'docshell.device_size_is_page_size': true,
-        'dom.mozInputMethod.enabled': false
-      },
-      settings: {
-        'lockscreen.enabled': true
+      profile: {
+        apps: apps,
+        prefs: {
+          'docshell.device_size_is_page_size': true,
+          'dom.mozInputMethod.enabled': false
+        },
+        settings: {
+          'lockscreen.enabled': true
+        }
       }
     });
 

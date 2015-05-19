@@ -9,8 +9,10 @@ var SMS_APP = 'app://sms.gaiamobile.org';
 
 marionette('Keyboard and edge gestures >', function() {
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 

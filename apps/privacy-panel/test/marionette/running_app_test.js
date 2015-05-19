@@ -4,8 +4,10 @@ var SettingsApp = require('./lib/panels/settings_app');
 
 marionette('settings app', function() {
   var client = marionette.client({
-    settings: {
-      'privacy-panel-gt-complete': true
+    profile: {
+      settings: {
+        'privacy-panel-gt-complete': true
+      }
     }
   });
   var subject;

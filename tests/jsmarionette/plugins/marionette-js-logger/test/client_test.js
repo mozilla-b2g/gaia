@@ -14,11 +14,13 @@ suite('client', function() {
   marionette.plugin('helper', require('marionette-helper'));
 
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': '',
-      'screen.timeout': 0,
-      'lockscreen.enabled': false,
-      'lockscreen.locked': false
+    profile: {
+      settings: {
+        'ftu.manifestURL': '',
+        'screen.timeout': 0,
+        'lockscreen.enabled': false,
+        'lockscreen.locked': false
+      }
     }
   });
 

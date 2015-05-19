@@ -3,11 +3,13 @@
 marionette('Software Home Button - Power Menu', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
   var system;

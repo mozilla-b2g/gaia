@@ -3,9 +3,11 @@
 marionette('Software Home Button - Secure Fullscreen App', function() {
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': true,
-      'software-button.enabled': true
+    profile: {
+      settings: {
+        'lockscreen.enabled': true,
+        'software-button.enabled': true
+      }
     }
   });
   var system;

@@ -49,8 +49,10 @@ marionette('mozApps', function() {
 marionette('mozApps - lockscreen enabled', function() {
 
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': true
+    profile: {
+      settings: {
+        'lockscreen.enabled': true
+      }
     }
   });
 

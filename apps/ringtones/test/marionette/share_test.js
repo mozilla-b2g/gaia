@@ -10,10 +10,12 @@ var Music = require('../../../music/test/marionette/lib/music');
 marionette('Share as ringtone', function() {
 
   var client = marionette.client({
-    prefs: {
-      'device.storage.enabled': true,
-      'device.storage.testing': true,
-      'device.storage.prompt.testing': true
+    profile: {
+      prefs: {
+        'device.storage.enabled': true,
+        'device.storage.testing': true,
+        'device.storage.prompt.testing': true
+      }
     }
   });
   var app;

@@ -3,7 +3,9 @@
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
 marionette('Search - App search', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, search, rocketbar, system;
 
   setup(function() {

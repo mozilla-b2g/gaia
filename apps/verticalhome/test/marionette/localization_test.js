@@ -3,7 +3,9 @@ var assert = require('assert');
 
 marionette('Vertical - Localization', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var actions, home, system;
 
   setup(function() {

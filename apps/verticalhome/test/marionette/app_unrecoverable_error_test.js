@@ -11,7 +11,9 @@ var launchIcon = require('./lib/launch_icon');
 var getIconId = require('./lib/icon_id');
 
 marionette('Vertical Home - App unrecoverable error', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var server;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';

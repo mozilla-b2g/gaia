@@ -7,7 +7,9 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Vertical - Bookmark Favicon Failure', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var bookmark, home, server, system;
 
   suiteSetup(function(done) {

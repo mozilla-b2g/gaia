@@ -7,11 +7,13 @@ var createAppServer = require(
 marionette('Software Home Button - Notification Banner Test', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
   var appInstall, home, server, system;

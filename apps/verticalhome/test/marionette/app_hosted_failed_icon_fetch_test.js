@@ -9,7 +9,9 @@ var createAppServer = require('./server/parent');
 var iconSrc = require('./lib/icon_src');
 
 marionette('Vertical Home - Hosted app failed icon fetch', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var server;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';

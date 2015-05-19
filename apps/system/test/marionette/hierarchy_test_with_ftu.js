@@ -6,8 +6,10 @@
 
   marionette('hierarchyManager', function() {
     var client = marionette.client({
-      settings: {
-        'lockscreen.enabled': true
+      profile: {
+        settings: {
+          'lockscreen.enabled': true
+        }
       }
     });
 

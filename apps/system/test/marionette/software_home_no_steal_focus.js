@@ -6,8 +6,10 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Software Home Button - Stealing input focus', function() {
 
   var client = marionette.client({
-    settings: {
-      'software-button.enabled': true
+    profile: {
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
 

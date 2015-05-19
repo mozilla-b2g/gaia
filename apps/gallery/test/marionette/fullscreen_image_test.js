@@ -9,11 +9,13 @@ marionette('the gallery', function() {
   var app, client, actions;
 
   client = marionette.client({
-    prefs: {
-      'device.storage.enabled': true,
-      'device.storage.testing': true,
-      'device.storage.prompt.testing': true,
-      'webgl.force-enabled': true
+    profile: {
+      prefs: {
+        'device.storage.enabled': true,
+        'device.storage.testing': true,
+        'device.storage.prompt.testing': true,
+        'webgl.force-enabled': true
+      }
     }
   });
 

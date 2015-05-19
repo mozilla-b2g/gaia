@@ -9,16 +9,18 @@ var ReflowHelper =
 marionette('Software Home Button - Fullscreen Layout', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': true,
-      'hud.reflows': true
-    },
-    apps: {
-      'fullscreen_layout.gaiamobile.org':
-        __dirname + '/../apps/fullscreen_layout'
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true,
+        'hud.reflows': true
+      },
+      apps: {
+        'fullscreen_layout.gaiamobile.org':
+          __dirname + '/../apps/fullscreen_layout'
+      }
     }
   });
   var home, system, actions, screenSize, shbSize;

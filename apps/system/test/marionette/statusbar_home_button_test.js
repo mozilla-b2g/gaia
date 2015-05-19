@@ -5,8 +5,10 @@ marionette('Closing statusbar via home button >', function() {
   var assert = require('assert');
 
   var client = marionette.client({
-    prefs: {
-      'devtools.debugger.forbid-certified-apps': false
+    profile: {
+      prefs: {
+        'devtools.debugger.forbid-certified-apps': false
+      }
     }
   });
 

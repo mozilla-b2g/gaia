@@ -5,11 +5,13 @@ var AlaMainPanel = require('./lib/panels/ala_main');
 
 marionette('adjustable location accuracy panel', function() {
   var client = marionette.client({
-    settings: {
-      'privacy-panel-gt-complete': true,
-      'geolocation.enabled': false,
-      'ala.settings.enabled': false,
-      'geolocation.type': 'no-location'
+    profile: {
+      settings: {
+        'privacy-panel-gt-complete': true,
+        'geolocation.enabled': false,
+        'ala.settings.enabled': false,
+        'geolocation.type': 'no-location'
+      }
     }
   });
   var subject;

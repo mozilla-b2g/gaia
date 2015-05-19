@@ -9,7 +9,9 @@ marionette('modal dialog under mozFullScreen', function() {
   apps[FULLSCREEN_APP_ORIGIN] = __dirname + '/../apps/fullscreen-app';
 
   var app, client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   setup(function() {

@@ -4,8 +4,10 @@ var assert = require('assert');
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   var client = marionette.client({
-    apps: {
-      'hosted_nav_app.gaiamobile.org': __dirname + '/../apps/hosted_nav_app',
+    profile: {
+      apps: {
+        'hosted_nav_app.gaiamobile.org': __dirname + '/../apps/hosted_nav_app',
+      }
     }
   });
 

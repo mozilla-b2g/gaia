@@ -9,7 +9,7 @@ marionette('client with options', function() {
       height: 577
     }
   };
-  var client = marionette.client({hostOptions: options});
+  var client = marionette.client({ profile: { hostOptions: options } });
 
   test('screen size', function() {
     var result = client.executeScript(function() {

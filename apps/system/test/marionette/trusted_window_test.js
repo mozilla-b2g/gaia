@@ -8,8 +8,10 @@ var FAKE_APP_URL = 'app://fakeapp.gaiamobile.org';
 marionette('trusted window tests', function() {
   var system, frame, server;
   var client = marionette.client({
-    apps: {
-      'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
+    profile: {
+      apps: {
+        'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
+      }
     }
   });
 

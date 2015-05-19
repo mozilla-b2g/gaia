@@ -10,7 +10,9 @@ var iconAppState = require('./lib/icon_app_state');
 var launchIcon = require('./lib/launch_icon');
 
 marionette('Vertical Home - Packaged App Resuming Downloads', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
 
   var server;
   var subject;

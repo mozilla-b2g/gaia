@@ -5,15 +5,17 @@ var assert = require('assert');
 marionette('Software Home Button - Fullscreen Request', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': true
-    },
-    apps: {
-      'fullscreen_request.gaiamobile.org':
-        __dirname + '/../apps/fullscreen_request'
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      },
+      apps: {
+        'fullscreen_request.gaiamobile.org':
+          __dirname + '/../apps/fullscreen_request'
+      }
     }
   });
   var home, system;

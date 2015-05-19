@@ -13,7 +13,9 @@ marionette('GlobalOverlayWindow', function() {
     __dirname + '/../apps/fakeglobaloverlayapp_nopermissions';
 
   var client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var system;
