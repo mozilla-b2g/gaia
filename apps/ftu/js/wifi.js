@@ -349,6 +349,7 @@ var WifiUI = {
           var li = document.createElement('li');
           var icon = document.createElement('aside');
           var ssidp = document.createElement('p');
+          ssidp.setAttribute('dir', 'auto');
           var small = document.createElement('p');
 
           small.dataset.securityLevel = true;

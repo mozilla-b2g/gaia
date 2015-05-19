@@ -367,9 +367,17 @@ gaia-buttons.forward-only .icon-previous {
 
 #wifi [data-type="list"] li > p {
   pointer-events: none;
-  -moz-padding-end: 6.2rem;
   line-height: 1.33;
 }
+#wifi:-moz-dir(ltr) [data-type="list"] li > p {
+  /* using padding-right/left on purpose as strings may be bidi,
+     which can change the meaning of -moz-padding-end */
+  padding-right: 6.2rem;
+}
+#wifi:-moz-dir(rtl) [data-type="list"] li > p {
+  padding-left: 6.2rem;
+}
+
 
 #wifi li {
   padding: 0 1.5rem 0.5rem 1.5rem;
