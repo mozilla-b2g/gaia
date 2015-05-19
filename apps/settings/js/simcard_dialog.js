@@ -6,6 +6,7 @@
 
 function SimPinDialog(dialog) {
   var icc;
+  var currentMode = '';
   var _localize = navigator.mozL10n.setAttributes;
   var translate = navigator.mozL10n.get;
 
@@ -48,25 +49,53 @@ function SimPinDialog(dialog) {
   var pukArea = dialog.querySelector('.sim-pukArea');
   var newPinArea = dialog.querySelector('.sim-newPinArea');
   var confirmPinArea = dialog.querySelector('.sim-confirmPinArea');
-  function setInputMode(mode) {
-    pinArea.hidden = (mode === 'puk');
-    pukArea.hidden = (mode !== 'puk');
-    newPinArea.hidden = confirmPinArea.hidden = (mode === 'pin');
-  }
-  function numberPasswordInput(area) {
-    var input = area.querySelector('input');
-    input.addEventListener('input', function(evt) {
-      if (evt.target === input) {
-        dialogDone.disabled = (input.value.length < 4);
-      }
-    });
-    return input;
-  }
 
   var pinInput = numberPasswordInput(pinArea);
   var pukInput = numberPasswordInput(pukArea);
   var newPinInput = numberPasswordInput(newPinArea);
   var confirmPinInput = numberPasswordInput(confirmPinArea);
+
+  function setInputMode(mode) {
+    currentMode = mode;
+    pinArea.hidden = (mode === 'puk');
+    pukArea.hidden = (mode !== 'puk');
+    newPinArea.hidden = confirmPinArea.hidden = (mode === 'pin');
+  }
+
+  function updateDoneButtonState() {
+    switch (currentMode) {
+      case 'change_pin':
+        if (pinInput.value.length < 4 ||
+          newPinInput.value.length < 4 ||
+          confirmPinInput.value.length < 4 ||
+          newPinInput.value.length !== confirmPinInput.value.length) {
+            dialogDone.disabled = true;
+        } else {
+          dialogDone.disabled = false;
+        }
+        break;
+
+      case 'pin':
+        dialogDone.disabled = (pinInput.value.length < 4);
+        break;
+
+      case 'puk':
+        dialogDone.disabled = (pukInput.value.length < 4);
+        break;
+
+      default:
+        console.error('we should not jump to this condition');
+        break;
+    }
+  }
+
+  function numberPasswordInput(area) {
+    var input = area.querySelector('input');
+    input.oninput = function() {
+      updateDoneButtonState();
+    };
+    return input;
+  }
 
   // error messages
   var errorMsg = dialog.querySelector('.sim-errorMsg');
@@ -435,7 +464,7 @@ function SimPinDialog(dialog) {
         _localize(dialogTitle, 'pinTitle');
         break;
       case 'change_pin':
-        setInputMode('new');
+        setInputMode('change_pin');
         _localize(dialogTitle, 'newpinTitle');
         break;
 
@@ -452,7 +481,7 @@ function SimPinDialog(dialog) {
         break;
       case 'change_pin2':
         lockType = 'pin2';
-        setInputMode('new');
+        setInputMode('change_pin');
         _localize(dialogTitle, 'fdnReset');
         break;
 
