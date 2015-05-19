@@ -44,7 +44,7 @@ function MediaFrame(container, includeVideo, maxImageSize) {
   this.image = new Image();
   this.image.className = 'image-view';
   this.image.style.opacity = 0;                        // Start off hidden.
-  this.image.onload = function () {                    // When image loads...
+  this.image.onload = function() {                     // When image loads...
     this.style.opacity = 1;                            // make it visible
   };
   this.image.style.transformOrigin = 'center center';  // for zooming
