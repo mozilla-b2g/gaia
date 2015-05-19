@@ -20,6 +20,17 @@ marionette('Statusbar Visibility', function() {
   });
 
   test('Visibility of date in utility tray', function() {
+    // As we don't pre-render the icons, and the simulator doens't
+    // initialize the mozMobileConnections module, we need to instantiate
+    // the icon manually
+    client.executeScript(function() {
+      var LazyLoader = window.wrappedJSObject.LazyLoader;
+      LazyLoader.load(['js/operator_icon.js']).then(function() {
+        var OperatorIcon = window.wrappedJSObject.OperatorIcon;
+        var operatorIcon = new OperatorIcon(this);
+        operatorIcon.start();
+      });
+    });
     actions
       .press(system.topPanel)
       .moveByOffset(0, halfScreenHeight)

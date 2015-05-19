@@ -17,5 +17,13 @@
     this.manager.currentVolume.notification === 0 ?
       this.show() : this.hide();
   };
+
+  MuteIcon.prototype.view = function view() {
+    return `<div id="statusbar-mute"
+              class="sb-icon sb-icon-mute"
+              hidden role="listitem">
+            </div>`;
+  };
+
   exports.MuteIcon = MuteIcon;
 }(window));
