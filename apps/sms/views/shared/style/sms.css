@@ -48,6 +48,30 @@ gaia-header {
   top: 5rem;
 }
 
+/* Container for conversation/new message view  */
+#composer-container {
+  position: relative;
+
+  background: #e1f0ec;
+}
+
+/*
+ * Flex layout is wrapped by 'flex-composer'. Our flex layout has
+ * 2 well differentiated:
+ * - 'messages-container'
+ * - 'messages-compose-form'
+ */
+
+.flex-composer {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  top: 0;
+
+  overflow: hidden;
+}
+
 /* Override Building Block [Lists] styles */
 [data-type="list"] {
   padding: 0;

@@ -1,0 +1,198 @@
+#messages-to-field {
+  position: relative;
+  /* To be above .article-list's with z-index = 5 */
+  z-index: 6;
+
+  display: none;
+  min-height: 5.5rem;
+
+  text-align: start;
+  color: black;
+  font-size: 1.465rem;
+  background-color: #f2f2f2;
+  transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 4rem));
+}
+
+.multiline-recipients-mode #messages-to-field {
+  transform: translateY(calc(-100% + 5.5rem));
+}
+
+section[role="region"].new #messages-to-field {
+  display: flex;
+  align-items: flex-end;
+}
+
+section[role="region"].new #messages-to-field.multiline {
+  transform: translateY(0);
+}
+
+#to-label {
+  flex-shrink: 0;
+
+  height: 4rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 0.7rem;
+
+  line-height: 4rem;
+  font-weight: 200;
+  font-size: 1.465rem;
+  color: #000;
+}
+
+#messages-recipients-list-container {
+  min-height: 4rem;
+  min-width: 0;
+  box-sizing: border-box;
+
+  flex-grow: 1;
+}
+
+#messages-recipients-list {
+  box-sizing: border-box;
+  min-height: 4rem;
+  padding-top: 0;
+  -moz-padding-end: 0.6rem;
+  padding-bottom: 0.6rem;
+  -moz-padding-start: 0;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+/*
+Used by Recipients.View to display multi or single line.
+Do not remove.
+*/
+#messages-recipients-list.singleline {
+  overflow-y: hidden;
+}
+
+#messages-recipients-list.multiline {
+  /* max-height = viewport - header - minimum composer - list margin */
+  max-height: calc(100vh - 5rem - 4rem - 0.6rem);
+  margin-bottom: 0.6rem;
+  padding-bottom: 0;
+
+  overflow-y: scroll;
+}
+
+.recipient[contenteditable] {
+  overflow: hidden;
+  /**
+   * We don't use -moz-margin-end\-start here because margin location shouldn't
+   * depend on text direction of recipient element content itself. For LTR mode
+   * both LTR and RTL recipient elements should have right margin, for RTL mode
+   * it should have left margin, so to align it correctly we should override
+   * margin depending on text direction of parent element.
+   */
+  margin: 0.6rem 0.6rem 0 0;
+
+  display: block;
+
+  /* override BB selector */
+  height: auto;
+  width: auto;
+}
+
+.recipient[contenteditable].email {
+  /**
+   * We don't use -moz-padding-start here because padding location shouldn't
+   * depend on text direction of recipient element content itself. For LTR mode
+   * both LTR and RTL email recipient elements should have left padding to
+   * accommodate email icon, for RTL mode it should be on the right side, so to
+   * align it correctly we should override padding depending on text direction
+   * of parent element.
+   */
+  padding-left: 3.8rem;
+  background: #fff url(images/icons/icon_sms_compose_email.png) left 1.5rem
+              center / 1.7rem no-repeat;
+}
+
+#messages-recipients-list > .recipient[contenteditable=true] {
+  flex-grow: 1;
+  height: 2.8rem;
+  line-height: 2.8rem;
+  border-radius: 0;
+
+  word-wrap: unset;
+
+  /* Building blocks override (bug xxx) */
+  background: none;
+  color: #000;
+}
+
+#messages-recipients-list > .recipient[contenteditable=true]:focus {
+  /**
+   * To workaround bug 1103011, we just collapse editable recipient on focus so
+   * that caret position looks correct for the user, while in fact it is not
+   * true - caret is still in wrong position, but zero-width editable element is
+   * aligned correctly inside parent.
+   */
+  flex-grow: unset;
+}
+
+.recipient[contenteditable=true]:empty:not(:last-of-type) {
+  display: none;
+}
+
+/* Disable padding and give negative margin-end on empty contenteditable
+ * recipients when they do not have focus. This allows the Recipients List
+ * to intelligently collapse when the final row contains no "assimilated"
+ * (i.e. non-contenteditable) recipients. */
+.recipient[contenteditable=true]:empty {
+  /**
+   * We don't use -moz-margin-end here because of the bug 1103011, as currently
+   * directionality of empty contenteditable isn't inherited from parent, but
+   * always LTR, so -moz-margin-end equals to margin-right in both LTR and RTL
+   * modes. So to align it correctly we should override margin depending on text
+   * direction of parent element manually.
+   */
+  margin-right: -0.5rem;
+  padding: 0;
+}
+
+.recipient[contenteditable=true]:focus,
+.recipient[contenteditable=true]:hover,
+.recipient[contenteditable=true]:empty:focus {
+  -moz-margin-end: 0.5rem;
+  -moz-padding-end: 0.3rem;
+}
+
+/* RTL for recipient panel */
+:-moz-dir(rtl) > .recipient[contenteditable] {
+  margin-left: 0.6rem;
+  margin-right: 0;
+
+  /**
+   * We need "text-align: right" only for the cases when currently editable
+   * recipient looses focus but not yet assimilated: case №1 - when we tap on
+   * thread-container - maybe fixed soon, case №2 - when we use screen reader,
+   * eg. single touch on message input steals focus from currently editable
+   * recipient, but doesn't yet give it to the message input. As the result
+   * flex-grow (see workaround for bug 1103011) returns and because of dir=auto
+   * LTR\RTL name would be always left\right aligned in both LTR and RTL modes.
+   */
+  text-align: right;
+}
+
+:-moz-dir(rtl) > .recipient[contenteditable].email {
+  /**
+   * See LTR ".recipient[contenteditable].email" rule above for the explanation
+   * why we don't use -moz-padding-start/-end here.
+   */
+  padding: 0 3.8rem 0 1.5rem;
+
+  background-position: right 1.5rem center;
+}
+
+:-moz-dir(rtl) > .recipient[contenteditable=true]:empty {
+  /**
+   * See LTR ".recipient[contenteditable=true]:empty" rule above for the
+   * explanation why we don't use -moz-margin-start/-end here.
+   */
+  margin-left: -0.5rem;
+  margin-right: 0;
+}
