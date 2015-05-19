@@ -33,10 +33,12 @@ var TilesView = {
     this.handle = null;
     this.dataSource = [];
     this.index = 0;
+    this.hideSearchTimeout = null;
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
     this.view.addEventListener('touchend', this);
+    this.view.addEventListener('scroll', this.cancelHideSearch.bind(this));
     this.searchInput.addEventListener('focus', this);
     this.searchInput.addEventListener('keypress', this);
   },
@@ -50,16 +52,28 @@ var TilesView = {
     this.dataSource = [];
     this.index = 0;
     this.anchor.innerHTML = '';
-    this.view.scrollTop = 0;
     this.hideSearch();
   },
 
-  hideSearch: function tv_hideSearch() {
-    this.searchInput.value = '';
-    // XXX: we probably want to animate this...
-    if (this.view.scrollTop < this.searchBox.offsetHeight) {
-      this.view.scrollTop = this.searchBox.offsetHeight;
+  cancelHideSearch: function tv_cancelHideSearch() {
+    if (this.hideSearchTimeout !== null) {
+      window.clearTimeout(this.hideSearchTimeout);
+      this.hideSearchTimeout = null;
     }
+  },
+
+  hideSearch: function tv_hideSearch() {
+    // UX wants the search bar to retain its position for about
+    // a half second, but half second seems to short for notifying users
+    // so we use one second instead of a half second
+    this.cancelHideSearch();
+    this.hideSearchTimeout = window.setTimeout(() => {
+      this.searchInput.value = '';
+      // XXX: we probably want to animate this...
+      if (this.view.scrollTop < this.searchBox.offsetHeight) {
+        this.view.scrollTop = this.searchBox.offsetHeight;
+      }
+    }, 1000);
   },
 
   update: function tv_update(result) {
@@ -73,10 +87,7 @@ var TilesView = {
       document.getElementById('views-tiles').classList.remove('hidden');
       // After the hidden class is removed, hideSearch can be effected
       // because the computed styles are applied to the search elements
-      // And ux wants the search bar to retain its position for about
-      // a half second, but half second seems to short for notifying users
-      // so we use one second instead of a half second
-      window.setTimeout(this.hideSearch.bind(this), 1000);
+      this.hideSearch();
       return;
     }
 
