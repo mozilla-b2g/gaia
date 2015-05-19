@@ -18,11 +18,9 @@ marionette('manipulate date time settings', function() {
   });
 
   test('manipulate region', function() {
-    // Simply check the value in the timezone region to
+    // Simply change the value in the timezone region to
     // ensure the menu is is populated.
-    client.waitFor(function() {
-      return dateTimePanel.timezoneInfoText !== '';
-    });
+    dateTimePanel.selectRegion('Europe');
   });
 
 });
