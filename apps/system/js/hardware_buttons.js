@@ -221,6 +221,15 @@
       (this.browserKeyEventManager.isHardwareKeyEvent(evt.type)) &&
       this.browserKeyEventManager.isHomeKey(evt);
     if (this._softwareHome && hardwareHomeEvent) {
+      // Given that software home button is enabled, when we receive
+      // mozbrowserbeforekeydown/mozbrowserbeforekeyup event of home button in
+      // system app, Gecko will dispatch keydown/keyup events to embedded frame
+      // (i.e. Homescreen app or web pages in browser). Even though these apps
+      // or web pages do not listen to 'Home' key events, there are still
+      // default action. The default action usually is to scroll to top of the
+      // page. That's why we need to call preventDefault() here.
+      // See https://bugzil.la/1105285#c12 for detail.
+      evt.preventDefault();
       return;
     }
 
