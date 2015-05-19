@@ -29,29 +29,32 @@ suite('system/SystemWindow', function() {
     test('Has no audio channel yet', function() {
       assert.equal(subject.audioChannels.size, 0);
     });
-
-    test('Send MozContentEvent to get audio channels', function(done) {
-      var handler = function(evt) {
-        window.removeEventListener('mozContentEvent', handler);
-        assert.deepEqual(evt.detail, { type: 'system-audiochannel-list' });
-        done();
-      };
-      window.addEventListener('mozContentEvent', handler);
-      subject = BaseModule.instantiate('SystemWindow');
-      subject.start();
-    });
   });
 
-  test('Receive MozChromeEvent to get audio channels', function() {
-    window.dispatchEvent(new CustomEvent('mozChromeEvent', {
-      detail: {
-        type: 'system-audiochannel-list',
-        audioChannels: ['normal', 'notification', 'telephony']
-      }
-    }));
-    assert.ok(subject.audioChannels.has('normal'));
-    assert.ok(subject.audioChannels.has('notification'));
-    assert.ok(subject.audioChannels.has('telephony'));
+  suite('MozChromeEvent handler', function(){
+    test('Send MozContentEvent to get audio channels', function() {
+      this.sinon.spy(subject, '_sendContentEvent');
+      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+        detail: { type: 'system-first-paint' }
+      }));
+      assert.ok(subject._sendContentEvent.calledOnce);
+      assert.deepEqual(
+        subject._sendContentEvent.args[0][0],
+        { type: 'system-audiochannel-list' }
+      );
+    });
+
+    test('Receive MozChromeEvent to get audio channels', function() {
+      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'system-audiochannel-list',
+          audioChannels: ['normal', 'notification', 'telephony']
+        }
+      }));
+      assert.ok(subject.audioChannels.has('normal'));
+      assert.ok(subject.audioChannels.has('notification'));
+      assert.ok(subject.audioChannels.has('telephony'));
+    });
   });
 
   suite('Audio channels', function() {
