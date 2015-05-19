@@ -164,36 +164,6 @@ suite('InputWindowManager', function() {
       });
     });
 
-    suite('input-appclosing', function() {
-      var evt;
-      var stubKBPublish;
-
-      setup(function() {
-        stubKBPublish = this.sinon.stub(manager, '_kbPublish');
-
-        evt = {
-          type: 'input-appclosing',
-          detail: new InputWindow()
-        };
-      });
-
-      test('Send keyboardhide if there is no currentWindow', function() {
-        manager._currentWindow = undefined;
-
-        manager.handleEvent(evt);
-
-        assert.isTrue(stubKBPublish.calledWith('keyboardhide', undefined));
-      });
-
-      test('Do not send keyboardhide if there is currentWindow', function() {
-        manager._currentWindow = new InputWindow();
-
-        manager.handleEvent(evt);
-
-        assert.isFalse(stubKBPublish.called);
-      });
-    });
-
     suite('input-appclosed', function() {
       var evt;
       var stubKBPublish;
@@ -786,6 +756,14 @@ suite('InputWindowManager', function() {
                       '_makeInputWindow should be called with correct configs');
       });
 
+      test('Fill _currentWindow', function() {
+        this.sinon.stub(manager, '_extractLayoutConfigs').returns(configs);
+        this.sinon.stub(manager, '_makeInputWindow').returns(inputWindow);
+
+        manager.showInputWindow(layout);
+        assert.equal(manager._currentWindow, inputWindow);
+      });
+
       suite('Determine reusability of InputWindows', function() {
         setup(function() {
           manager._inputWindows = {
@@ -883,15 +861,40 @@ suite('InputWindowManager', function() {
       });
     });
 
-    test('hideInputWindow', function() {
+    test('hideInputWindow', function(done) {
+      var stubKBPublish = this.sinon.stub(manager, '_kbPublish')
+        .returns(Promise.resolve());
       var inputWindow = new InputWindow();
       manager._currentWindow = inputWindow;
 
       manager.hideInputWindow();
 
-      assert.strictEqual(manager._currentWindow, null);
-      assert.isTrue(inputWindow.close.called);
-      assert.isFalse(inputWindow.close.calledWith('immediate'));
+      assert.isTrue(stubKBPublish.calledWith('keyboardhide', undefined));
+
+      Promise.resolve().then(function() {
+        assert.strictEqual(manager._currentWindow, null);
+        assert.isTrue(inputWindow.close.called);
+        assert.isFalse(inputWindow.close.calledWith('immediate'));
+      }).then(done, done);
+    });
+
+    test('hideInputWindow (cancelled w/ another showInputWindow() call)',
+    function(done) {
+      var stubKBPublish = this.sinon.stub(manager, '_kbPublish')
+        .returns(Promise.resolve());
+      var inputWindow = new InputWindow();
+      manager._currentWindow = inputWindow;
+
+      manager.hideInputWindow();
+
+      assert.isTrue(stubKBPublish.calledWith('keyboardhide', undefined));
+      assert.equal(manager._currentWindow, null);
+
+      manager._currentWindow = inputWindow;
+
+      Promise.resolve().then(function() {
+        assert.isFalse(inputWindow.close.called);
+      }).then(done, done);
     });
 
     test('hideInputWindowImmediately', function() {
@@ -920,7 +923,65 @@ suite('InputWindowManager', function() {
       ]);
     });
 
-    test('_kbPublish', function() {
+    test('_kbPublish', function(done) {
+      var stubDispatchEvent = this.sinon.stub(document.body, 'dispatchEvent');
+
+      var p = manager._kbPublish('keyboardevent', 400);
+
+      sinon.assert.calledWithMatch(stubDispatchEvent, {
+        type: 'keyboardevent',
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          height: 400
+        }
+      });
+
+      p.then(done, done);
+    });
+
+    test('_kbPublish (delayed with waitUntil())', function(done) {
+      var p2resolver;
+      var p2resolved = false;
+      var p2 = new Promise(function(resolve) {
+        p2resolver = resolve;
+      });
+
+      var stubDispatchEvent =
+        this.sinon.stub(document.body, 'dispatchEvent', function(evt) {
+          evt.detail.waitUntil(p2);
+        });
+
+      var p = manager._kbPublish('keyboardevent', 400);
+
+      sinon.assert.calledWithMatch(stubDispatchEvent, {
+        type: 'keyboardevent',
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          height: 400
+        }
+      });
+
+      p = p.then(function() {
+        assert.isTrue(p2resolved,
+          'Should not resolve before waitUntil(promise).');
+      });
+
+      Promise.resolve()
+        .then(function() {
+          p2resolver();
+          p2resolved = true;
+
+          return p2;
+        })
+        .then(function() {
+          return p;
+        })
+        .then(done, done);
+    });
+
+    test('_kbPublish (call waitUntil() out of event loop)', function() {
       var stubDispatchEvent = this.sinon.stub(document.body, 'dispatchEvent');
 
       manager._kbPublish('keyboardevent', 400);
@@ -933,6 +994,11 @@ suite('InputWindowManager', function() {
           height: 400
         }
       });
+
+      var evt = stubDispatchEvent.firstCall.args[0];
+      assert.throws(evt.detail.waitUntil,
+        /You must call waitUntil\(\) within the event handling loop/,
+        'Should throw if called out of event loop.');
     });
   });
 });

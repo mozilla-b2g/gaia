@@ -453,11 +453,30 @@ suite('system/AppWindowManager', function() {
       assert.isFalse(stubDisplay.calledWith());
     });
 
-    test('System resize', function() {
+    test('System resize (with waitUntil)', function() {
+      appWindowManager._activeApp = app1;
+      var stubResize = this.sinon.stub(app1, 'resize')
+        .returns({ stub: 'promise '});
+      var stubWaitUntil = this.sinon.stub();
+
+      appWindowManager.respondToHierarchyEvent({
+        type: 'system-resize',
+        detail: {
+          waitUntil: stubWaitUntil
+        }
+      });
+      assert.isTrue(stubResize.called);
+      assert.isTrue(stubWaitUntil.calledWith({ stub: 'promise '}));
+    });
+
+    test('System resize (without waitUntil)', function() {
       appWindowManager._activeApp = app1;
       var stubResize = this.sinon.stub(app1, 'resize');
 
-      appWindowManager.respondToHierarchyEvent({ type: 'system-resize' });
+      appWindowManager.respondToHierarchyEvent({
+        type: 'system-resize',
+        detail: { }
+      });
       assert.isTrue(stubResize.called);
     });
 
@@ -1117,7 +1136,7 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(app1.setVisibleForScreenReader.calledWith(false));
     });
 
-    test('setHierarchy(true) while launching a new window', function() { 
+    test('setHierarchy(true) while launching a new window', function() {
       this.sinon.stub(MockWrapperFactory, 'isLaunchingWindow').returns(true);
       this.sinon.stub(MockAppWindowFactory, 'isLaunchingWindow').returns(false);
       appWindowManager._activeApp = app1;
@@ -1126,7 +1145,7 @@ suite('system/AppWindowManager', function() {
       appWindowManager.setHierarchy(true);
       assert.isFalse(app1.focus.called);
     });
-      
+
     test('setHierarchy', function() {
       appWindowManager._activeApp = app1;
       this.sinon.stub(app1, 'focus');

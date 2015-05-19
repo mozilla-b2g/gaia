@@ -146,6 +146,18 @@
 
     handleEvent: function lm_handleEvent(evt) {
       this.debug('resize event got: ', evt.type);
+
+      // The instance should be available on the evt.detail of
+      // the system-resize event. Additionally, if the original event caused
+      // the resize has a waitUntil() function, we would need the user of the
+      // system-resize event to have access to that too.
+      var systemResizeEventDetail = Object.create(this);
+      if (evt.detail && typeof evt.detail.waitUntil === 'function') {
+        systemResizeEventDetail.waitUntil = function(p) {
+          return evt.detail.waitUntil(p);
+        };
+      }
+
       switch (evt.type) {
         case 'keyboardchange':
           if (document.mozFullScreen) {
@@ -156,7 +168,7 @@
            * Fired when layout needs to be adjusted.
            * @event LayoutManager#system-resize
            */
-          this.publish('system-resize');
+          this.publish('system-resize', systemResizeEventDetail);
           break;
         case 'resize':
           // bug 1073806: do not publish |system-resize| if keyboard is showing
@@ -164,7 +176,7 @@
           // later and we'll resize then.
           if (!(screen.mozOrientation !== this._lastOrientation &&
                 this.keyboardEnabled)) {
-            this.publish('system-resize');
+            this.publish('system-resize', systemResizeEventDetail);
           }
           this.publish('orientationchange');
           this._lastOrientation = screen.mozOrientation;
@@ -173,14 +185,14 @@
           // If the software button is enabled it will be un-hidden when
           // the lockscreen is closed and trigger a system level resize.
           if (softwareButtonManager.enabled) {
-            this.publish('system-resize');
+            this.publish('system-resize', systemResizeEventDetail);
           }
           break;
         default:
           if (evt.type === 'keyboardhide') {
             this.keyboardEnabled = false;
           }
-          this.publish('system-resize');
+          this.publish('system-resize', systemResizeEventDetail);
           break;
       }
     },

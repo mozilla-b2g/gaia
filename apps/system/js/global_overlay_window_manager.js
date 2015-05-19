@@ -126,7 +126,10 @@
           if (this._instance != overlay) {
             return;
           }
-          this._instance.resize();
+          var p = this._instance.resize();
+          if (typeof evt.detail.waitUntil === 'function') {
+            evt.detail.waitUntil(p);
+          }
           break;
       }
     },
