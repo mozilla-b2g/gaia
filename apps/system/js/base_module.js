@@ -31,8 +31,10 @@
 
   /**
    * The sub modules belong to this module.
-   * BaseModule will load and then start these sub modules
-   * automatically.
+   * BaseModule will load and then start these sub modules automatically.
+   * The expressions can include path (e.g. 'path/to/ModuleName'). BaseModule
+   * will load them from specified subdirectory. However, the module names
+   * (without path) should be unique even they're under different folders.
    * @type {Array}
    */
   BaseModule.SUB_MODULES = [];
@@ -71,7 +73,7 @@
   /**
    * This tells System the sandbox what methods you are going to
    * register and let the other to request.
-   * 
+   *
    * @example
    * var MyModule = function() {};
    * MyModule.SERVICES = ['unlock'];
@@ -93,7 +95,7 @@
    * The function or property exported here will be
    * synchronously queried by other module in system app.
    * If we are not started yet, they will get undefined.
-   * 
+   *
    * @example
    * var MyModule = function() {};
    * MyModule.STATES = ['isActive'];
@@ -126,13 +128,15 @@
       BaseModule.lazyLoad(this.constructor.SUB_MODULES).then(function() {
         this.debug('lazy loaded submodules: ' +
           this.constructor.SUB_MODULES.concat());
-        this.constructor.SUB_MODULES.forEach(function(module) {
-          var moduleName = BaseModule.lowerCapital(module);
-          var parent = this.constructor.SUB_MODULE_PARENT || this;
-          if (!parent[moduleName]) {
-            this._initialSubModule(moduleName, module);
-          }
-        }, this);
+        this.constructor.SUB_MODULES
+          .map(BaseModule.parsePath)
+          .forEach(function(module) {
+            var moduleName = BaseModule.lowerCapital(module.name);
+            var parent = this.constructor.SUB_MODULE_PARENT || this;
+            if (!parent[moduleName]) {
+              this._initialSubModule(moduleName, module.name);
+            }
+          }, this);
       }.bind(this));
     },
 
@@ -156,14 +160,16 @@
       if (!this.constructor.SUB_MODULES) {
         return;
       }
-      this.constructor.SUB_MODULES.forEach(function(module) {
-        var moduleName = BaseModule.lowerCapital(module);
-        var parent = this.constructor.SUB_MODULE_PARENT || this;
-        if (parent[moduleName]) {
-          this.debug('Stopping submodule: ' + moduleName);
-          parent[moduleName].stop && parent[moduleName].stop();
-        }
-      }, this);
+      this.constructor.SUB_MODULES
+        .map(BaseModule.parsePath)
+        .forEach(function(module) {
+          var moduleName = BaseModule.lowerCapital(module.name);
+          var parent = this.constructor.SUB_MODULE_PARENT || this;
+          if (parent[moduleName]) {
+            this.debug('Stopping submodule: ' + moduleName);
+            parent[moduleName].stop && parent[moduleName].stop();
+          }
+        }, this);
     }
   };
 
@@ -326,7 +332,7 @@
    *   name: 'MyModule'
    * });
    * var myModule = BaseModule.instantiate('MyModule');
-   * 
+   *
    * @param  {Function} constructor The constructor function.
    * @param  {Object} prototype
    *                  The prototype which will be injected into the class.
@@ -415,20 +421,41 @@
   };
 
   /**
+   * A helper function to split module expressions into "path" and "name".
+   * @example
+   * Service.parsePath('path/to/ModuleName');
+   * // {path: 'path/to/', name: 'ModuleName'}
+   * @param  {String} str String to be splitted
+   * @return {Object}     The result object with members: "path" and "name".
+   */
+  BaseModule.parsePath = function(str) {
+    var [, path, name] = /^(.*\/|)(.+)$/.exec(str);
+    return {
+      path: path,
+      name: name
+    };
+  };
+
+  /**
    * A helper function to transform object name to file name
    * @example
-   * var modules = ['AppWindowManager', 'HomescreenLauncher'];
-   * Service.object2fileName(modules);
-   * // ['js/app_window_manager.js', 'js/homescreen_launcher.js']
+   * Service.object2fileName('AppWindowManager');
+   * // 'js/app_window_manager.js'
+   * Service.object2fileName('path/to/ModuleName');
+   * // 'js/path/to/module_name.js'
    *
-   * @param  {Array} strings Array of module names
-   * @return {Array}         Array of file names
+   * @param  {String} string Module name
+   * @return {String}        File name
    */
-  BaseModule.object2fileName = function(strings) {
+  BaseModule.object2fileName = function(string) {
     var i = 0;
     var ch = '';
-    while (i <= strings.length) {
-      var character = strings.charAt(i);
+
+    var module = BaseModule.parsePath(string);
+    var moduleName = module.name;
+
+    while (i <= moduleName.length) {
+      var character = moduleName.charAt(i);
       if (character !== character.toLowerCase()) {
         if (ch === '') {
           ch += character.toLowerCase();
@@ -440,7 +467,7 @@
       }
       i++;
     }
-    return '/js/' + ch + '.js';
+    return '/js/' + module.path + ch + '.js';
   };
 
   BaseModule.prototype = {
