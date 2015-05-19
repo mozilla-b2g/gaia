@@ -18,7 +18,8 @@ marionette('Software Home Button - Attention window', function() {
         'software-button.enabled': true
       },
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
   var lockScreen;
