@@ -142,6 +142,9 @@ require.config({
         'modules/bluetooth/version_detector',
         'modules/app_storage',
         'modules/battery',
+        'modules/mvvm/list_view',
+        'modules/mvvm/observable',
+        'modules/mvvm/observable_array',
         'modules/wifi_context',
         'modules/sim_security'
       ]
