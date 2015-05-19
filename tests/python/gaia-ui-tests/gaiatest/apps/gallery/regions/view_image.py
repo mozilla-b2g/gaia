@@ -12,7 +12,7 @@ class ViewImage(Base):
     _header_locator = (By.ID, 'header')
     _banner_message_locator = (By.ID, 'message')
     _save_image_button_locator = (By.ID, 'save')
-    _image_locator = (By.CSS_SELECTOR, 'div.image-view')
+    _image_locator = (By.CSS_SELECTOR, 'img.image-view')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
