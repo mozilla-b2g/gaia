@@ -19,8 +19,6 @@ var MmiUI = {
   loadingOverlay: null,
 
   init: function mui_init() {
-    this._ = navigator.mozL10n.get;
-
     this.headerTitleNode = document.getElementById('header-title');
     this.headerNode = document.getElementById('mmi-header');
     this.cancelNode = document.getElementById('cancel');
@@ -55,16 +53,13 @@ var MmiUI = {
     this.closeWindow();
   },
 
-  showMessage: function mui_showMessage(message, header) {
+  showMessage: function mui_showMessage(message, title) {
     this.showWindow();
     this.hideLoading();
     this.responseTextNode.removeAttribute('disabled');
-    this.messageNode.textContent = message;
-    if (header && header.length) {
-      this.headerTitleNode.textContent = header;
-    } else {
-      this.headerTitleNode.textContent = '';
-    }
+
+    navigator.mozL10n.setAttributes(this.messageNode, message.id, message.args);
+    navigator.mozL10n.setAttributes(this.headerTitleNode, title.id, title.args);
 
     // Make sure the app is displayed
     navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
@@ -122,15 +117,11 @@ var MmiUI = {
   },
 
   success: function mui_success(message, title) {
-    message = message || this._('mmi-successfully-sent');
-
     this.hideResponseForm();
     this.showMessage(message, title);
   },
 
   error: function mui_error(error, title) {
-    error = error || this._('mmi-error');
-
     this.hideResponseForm();
     this.showMessage(error, title);
   },
@@ -139,11 +130,12 @@ var MmiUI = {
     if (!session) {
       this.hideResponseForm();
       if (message === null) {
-        message = this._('mmi-session-expired');
+        message.id = 'mmi_session_expired';
       }
     } else {
       this.showResponseForm();
     }
+
     this.showMessage(message, title);
   },
 
