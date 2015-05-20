@@ -494,7 +494,7 @@ suite('message_manager.js >', function() {
       MockNavigatormozMobileMessage.mTriggerMarkReadError('UnknownError');
       assert.isTrue(
         console.error.firstCall.args.some(
-          (arg) => typeof arg === 'string' && arg.contains('UnknownError')
+          (arg) => typeof arg === 'string' && arg.includes('UnknownError')
         )
       );
     });

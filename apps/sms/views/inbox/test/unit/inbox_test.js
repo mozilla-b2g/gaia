@@ -1629,7 +1629,7 @@ suite('thread_list_ui', function() {
         );
 
         assert.isFalse(
-          groupThread.picture.style.backgroundImage.contains('blob:')
+          groupThread.picture.style.backgroundImage.includes('blob:')
         );
         assert.isTrue(
           groupThread.pictureContainer.classList.contains('group-picture')
@@ -1672,7 +1672,7 @@ suite('thread_list_ui', function() {
         sinon.assert.calledOnce(Contacts.findByAddress);
         sinon.assert.calledWith(Contacts.findByAddress, '555');
         assert.isFalse(
-          groupThread.picture.style.backgroundImage.contains('blob:')
+          groupThread.picture.style.backgroundImage.includes('blob:')
         );
         assert.isTrue(
           groupThread.pictureContainer.classList.contains('group-picture')
