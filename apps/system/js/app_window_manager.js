@@ -17,7 +17,7 @@
    */
   var AppWindowManager = function() {};
   AppWindowManager.prototype = {
-    DEBUG: false,
+    DEBUG: true,
     name: 'AppWindowManager',
     EVENT_PREFIX: 'appwindowmanager',
     continuousTransition: false,
