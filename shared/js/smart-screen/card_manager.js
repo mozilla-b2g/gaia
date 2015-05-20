@@ -68,7 +68,7 @@
     writeFolderInCardStore: function cm_writeFolderInCardStore(folder) {
       var that = this;
       return new Promise(function(resolve, reject) {
-        if (folder instanceof Folder && folder.isNotEmpty()) {
+        if (folder instanceof Folder) {
           that._asyncSemaphore.v();
           var cardEntriesInFolder =
             folder.getCardList().map(that._serializeCard.bind(that));
@@ -184,10 +184,13 @@
     },
 
     _onFolderChange: function cm_onFolderChange(folder) {
-      if (folder.isDetached() || folder.isEmpty()) {
+      if (folder.isDetached()) {
         this.writeCardlistInCardStore();
       } else {
         this.writeFolderInCardStore(folder);
+        if (folder.isEmpty()) {
+          this.writeCardlistInCardStore();
+        }
       }
     },
 
