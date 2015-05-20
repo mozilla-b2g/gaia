@@ -427,7 +427,9 @@ suite('Views.ModifyAccount', function() {
   suite('#dispatch', function() {
 
     test('new', function(done) {
-      subject.ondispatch = function() {
+      subject.dispatch({
+        params: { preset: 'local' }
+      }).then(() => {
         done(function() {
           assert.instanceOf(
             subject.model,
@@ -444,10 +446,6 @@ suite('Views.ModifyAccount', function() {
           assert.equal(subject.preset, Presets.local);
           assert.equal(subject.completeUrl, '/settings/');
         });
-      };
-
-      subject.dispatch({
-        params: { preset: 'local' }
       });
     });
 
@@ -459,7 +457,10 @@ suite('Views.ModifyAccount', function() {
         destroyed = true;
       };
 
-      subject.ondispatch = function() {
+      subject.dispatch({
+        // send as string to emulate real conditions
+        params: { id: String(account._id) }
+      }).then(() => {
         done(function() {
           assert.ok(destroyed, 'should destroy previous state');
           assert.equal(subject.completeUrl, '/settings/');
@@ -470,11 +471,6 @@ suite('Views.ModifyAccount', function() {
             'loads account'
           );
         });
-      };
-
-      subject.dispatch({
-        // send as string to emulate real conditions
-        params: { id: String(account._id) }
       });
     });
   });

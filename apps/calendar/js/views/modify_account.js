@@ -7,6 +7,7 @@ var OAuthWindow = require('oauth_window');
 var Presets = require('common/presets');
 var URI = require('utils/uri');
 var View = require('view');
+var co = require('ext/co');
 var core = require('core');
 var isOffline = require('common/is_offline');
 var router = require('router');
@@ -165,12 +166,9 @@ ModifyAccount.prototype = {
       e.preventDefault();
     }
 
-    var id = this.model._id;
-    var store = core.storeFactory.get('Account');
-
     // begin the removal (which will emit the preRemove event) but don't wait
     // for it to complete...
-    store.remove(id);
+    core.bridge.deleteAccount(this.model._id);
 
     // semi-hack clear the :target - harmless in tests
     // but important in the current UI because css :target
@@ -382,7 +380,7 @@ ModifyAccount.prototype = {
     this.form.removeEventListener('submit', this._boundSaveUpdateModel);
   },
 
-  dispatch: function(data) {
+  dispatch: co.wrap(function *(data) {
     if (this.model) {
       this.destroy();
     }
@@ -392,34 +390,28 @@ ModifyAccount.prototype = {
 
     this.completeUrl = '/settings/';
 
-    var self = this;
-    function displayModel(err, model) {
-      self.preset = Presets[model.preset];
+    try {
+      var model;
+      if (params.id) {
+        model = yield core.bridge.getAccount(params.id);
+      } else if (params.preset) {
+        model = this._createModel(params.preset);
+      }
+
+      this.preset = Presets[model.preset];
 
       // race condition another dispatch has queued
       // while we where waiting for an async event.
-      if (self._changeToken !== changeToken) {
+      if (this._changeToken !== changeToken) {
         return;
       }
 
-      if (err) {
-        return console.error('Error displaying model in ModifyAccount', data);
-      }
-
-      self.model = model;
-      self.render();
-
-      if (self.ondispatch) {
-        self.ondispatch();
-      }
+      this.model = model;
+      this.render();
+    } catch (err) {
+      console.error('Error displaying model in ModifyAccount', data, err);
     }
-
-    if (params.id) {
-      core.storeFactory.get('Account').get(params.id, displayModel);
-    } else if (params.preset) {
-      displayModel(null, this._createModel(params.preset));
-    }
-  },
+  }),
 
   oninactive: function() {
     View.prototype.oninactive.apply(this, arguments);
