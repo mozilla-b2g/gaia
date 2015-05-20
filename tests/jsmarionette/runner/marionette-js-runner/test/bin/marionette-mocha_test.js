@@ -173,6 +173,28 @@ suite('mocha integration', function() {
     });
   });
 
+  suite('--device-type', function() {
+    var result,
+    devicesPath = __dirname + '/fixtures/devices.json',
+    tests = require(devicesPath),
+    argv = [
+      '--device-type', 'phone',
+      '--host-log', 'stdout',
+      __dirname + '/fixtures/marionettedevicetest'
+    ];
+
+    setup(function(done) {
+      var proc = spawnMarionette(argv);
+      result = waitForProcess(proc, done);
+    });
+
+    test('desired devices is being tested', function() {
+      assert.ok(result.stdoutRaw.indexOf(tests.phone) !== -1);
+      assert.ok(result.stdoutRaw.indexOf(tests.common) !== -1);
+      assert.ok(result.stdoutRaw.indexOf(tests.tv) === -1);
+    });
+  });
+
   suite('--host-log=stdout', function() {
     var result,
     argv = [

@@ -129,6 +129,7 @@ module.exports = function(suite) {
     // Setup global state manager for the marionette runtime.
     manager.desiredCapabilities = decode('DESIRED_CAPABILITIES');
     manager.verbose = decode('VERBOSE') === '1';
+    manager.deviceType = decode('DEVICE_TYPE');
     context.marionette._manager = manager;
     context.marionette.client = manager.createHost.bind(manager);
     context.marionette.plugin = manager.addPlugin.bind(manager);
@@ -154,10 +155,22 @@ module.exports = function(suite) {
 
     /**
      * Describe a specification or test-case
-     * with the given `title` and callback `fn`
-     * acting as a thunk.
+     * with the given `title`, `options` list device to run on,
+     * and callback `fn` acting as a thunk.
      */
-    context.test = function(title, fn) {
+    context.test = function(title, options, fn) {
+      // Second argument is optional, put default device if it doesn't exist.
+      if (typeof(options) === 'function') {
+        fn = options;
+        options = { devices: ['phone'] };
+      }
+
+      // Filter out test suites if device type is not in devices list
+      if (manager.deviceType && options && options.devices &&
+          options.devices.indexOf(manager.deviceType) < 0) {
+            return;
+      }
+
       var suite = suites[0];
       if (suite.pending) fn = null;
       var test = new MarionetteTest(title, manager, fn);

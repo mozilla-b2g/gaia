@@ -222,6 +222,11 @@ Runner.prototype = {
 
     options.env.VERBOSE = this._encode(this.verbose ? '1' : '0');
 
+    if (this.host.options.device_type) {
+      // Encode and pass device type to mocha process.
+      options.env.DEVICE_TYPE = this._encode(this.host.options.device_type);
+    }
+
     this.process = fork(MOCHA_BINARY, argv, options);
     this.mochaRunnerProxy = new Consumer(this.process);
     this.rpc = new RPC(this.process.send.bind(this.process));
