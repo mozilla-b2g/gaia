@@ -7,7 +7,7 @@ requireApp('/gallery/js/spinner.js');
 suite('spinner', function() {
 
   var real$;
-  
+
   var selectors;
 
   setup(function() {
@@ -22,7 +22,8 @@ suite('spinner', function() {
         classList: {
           add: sinon.spy(),
           remove: sinon.spy()
-        }
+        },
+        removeAttribute: sinon.spy()
       });
     };
   });

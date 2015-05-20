@@ -180,7 +180,8 @@
     </div>
     <!-- display scanning progress over the titlebar -->
     <div id="scan-progress" class="hidden">
-      <progress id="scan-spinner"></progress>
+      <!-- value=0 is a workaround for bug 962594 -->
+      <progress id="scan-spinner" class="hidden" value="0"></progress>
       <div id="scan-count"></div>
       <div id="scan-artist"></div>
       <div id="scan-title"></div>

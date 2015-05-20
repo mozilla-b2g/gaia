@@ -122,7 +122,13 @@ function initDB() {
     App.showCurrentView(function() {
       reparsingMetadata = false;
       // Hide the  spinner once we've displayed the initial screen
-      document.getElementById('spinner-overlay').classList.add('hidden');
+      // Setting the value stops the animation and works around bug 962594.
+      // The setTimeout is a workaround for Bug 1166500.
+      document.getElementById('spinner').value = 0;
+      document.getElementById('spinner').classList.add('hidden');
+      setTimeout(function() {
+        document.getElementById('spinner-overlay').classList.add('hidden');
+      }, 100);
 
       // Only init the communication when music is not in picker mode.
       if (document.URL.indexOf('#pick') === -1) {
@@ -180,6 +186,7 @@ function initDB() {
   var deleteTimer = null;
 
   var scanProgress = document.getElementById('scan-progress');
+  var scanSpinner = document.getElementById('scan-spinner');
   var scanCount = document.getElementById('scan-count');
   var scanArtist = document.getElementById('scan-artist');
   var scanTitle = document.getElementById('scan-title');
@@ -197,7 +204,11 @@ function initDB() {
   musicdb.onscanend = function() {
     scanning = false;
     if (displayingScanProgress) {
-      scanProgress.classList.add('hidden');
+      // Setting the value stops animation and works around bug 962594
+      scanSpinner.value = 0;
+      scanSpinner.classList.add('hidden');
+      // setTimeout is a workaround for bug 1166500
+      setTimeout(function() { scanProgress.classList.add('hidden'); }, 100);
       displayingScanProgress = false;
     }
     if (filesFoundBatch > 0 || filesDeletedWhileScanning > 0) {
@@ -231,6 +242,9 @@ function initDB() {
            currentMode === MODE_PICKER))
       {
         displayingScanProgress = true;
+        // Removing the attribute starts the animation, works around bug 962594
+        scanSpinner.removeAttribute('value');
+        scanSpinner.classList.remove('hidden');
         scanProgress.classList.remove('hidden');
       }
       var n = event.detail.length;
