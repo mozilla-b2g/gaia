@@ -615,13 +615,13 @@
   {
     "id": "my",
     "name": "မြန်မာ",
-    "imEngineId": "latin",
+    "imEngineId": "myanmar",
     "types": [
       "email",
       "text",
       "url"
     ],
-    "dictFileSize": 4890,
+    "dictFileSize": 8301,
     "preloaded": true
   },
   {
