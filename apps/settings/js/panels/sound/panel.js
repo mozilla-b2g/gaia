@@ -1,10 +1,10 @@
-/* global getSupportedNetworkInfo*/
 /**
  * Used to show Personalization/Sound panel
  */
 define(function(require) {
   'use strict';
 
+  var SettingsUtils = require('modules/settings_utils');
   var SettingsPanel = require('modules/settings_panel');
   var VolumeManager = require('panels/sound/volume_manager');
   var ToneManager = require('panels/sound/tone_manager');
@@ -60,8 +60,9 @@ define(function(require) {
           var toneSelector = elements.toneSelector;
           Array.prototype.forEach.call(mobileConnections,
             function(mobileConnection) {
-              getSupportedNetworkInfo(mobileConnection, function(result) {
-                toneSelector.hidden = toneSelector.hidden && !result.cdma;
+              SettingsUtils.getSupportedNetworkInfo(mobileConnection,
+                function(result) {
+                  toneSelector.hidden = toneSelector.hidden && !result.cdma;
               });
           });
         }

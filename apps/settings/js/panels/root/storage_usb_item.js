@@ -1,4 +1,3 @@
-/* global DeviceStorageHelper, openIncompatibleSettingsDialog */
 /**
  * Links the root panel list item with USB Storage.
  *
@@ -9,6 +8,7 @@ define(function(require) {
 
   var SettingsListener = require('shared/settings_listener');
   var AsyncStorage = require('shared/async_storage');
+  var SettingsUtils = require('modules/settings_utils');
   var SettingsCache = require('modules/settings_cache');
   var SettingsService = require('modules/settings_service');
 
@@ -171,8 +171,10 @@ define(function(require) {
           Settings.mozSettings.createLock().set(cset);
         } else {
           var oldSetting = 'tethering.usb.enabled';
-          openIncompatibleSettingsDialog('incompatible-settings-warning',
-            umsSettingKey, oldSetting, null);
+          SettingsUtils.openIncompatibleSettingsDialog(
+            'incompatible-settings-warning',
+            umsSettingKey, oldSetting, null
+          );
         }
     },
 
@@ -239,8 +241,8 @@ define(function(require) {
     _updateMediaFreeSpace: function storage_updateMediaFreeSpace(volume) {
       var self = this;
       volume.freeSpace().onsuccess = function(e) {
-        DeviceStorageHelper.showFormatedSize(self._elements.mediaStorageDesc,
-          'availableSize', e.target.result);
+        SettingsUtils.DeviceStorageHelper.showFormatedSize(
+          self._elements.mediaStorageDesc, 'availableSize', e.target.result);
       };
     },
 

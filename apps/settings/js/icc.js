@@ -1,7 +1,7 @@
-/* global reopenSettings */
 require([
-  'shared/stk_helper'
-], function(STKHelper) {
+  'shared/stk_helper',
+  'modules/settings_utils'
+], function(STKHelper, SettingsUtils) {
   'use strict';
   (function() {
     var iccManager = window.navigator.mozIccManager;
@@ -213,7 +213,7 @@ require([
       window.DUMP('STK Proactive Message:', message);
 
       stkCancelGoBack();
-      reopenSettings();
+      SettingsUtils.reopenSettings();
 
       switch (message.command.typeOfCommand) {
         case iccManager.STK_CMD_SELECT_ITEM:

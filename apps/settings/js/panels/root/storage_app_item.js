@@ -1,10 +1,10 @@
-/* global DeviceStorageHelper */
 /**
  * Links the root panel list item with AppStorage.
  */
 define(function(require) {
   'use strict';
 
+  var SettingsUtils = require('modules/settings_utils');
   var AppStorage = require('modules/app_storage');
 
   /**
@@ -52,7 +52,7 @@ define(function(require) {
 
     // Application Storage
     _updateAppFreeSpace: function storage_updateAppFreeSpace() {
-      DeviceStorageHelper.showFormatedSize(this._element,
+      SettingsUtils.DeviceStorageHelper.showFormatedSize(this._element,
         'availableSize', AppStorage.storage.freeSize);
     },
 
