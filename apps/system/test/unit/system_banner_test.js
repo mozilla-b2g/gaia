@@ -37,13 +37,14 @@ suite('system/SystemBanner', function() {
   suite('show', function() {
     test('with no button', function() {
       subject.show('free_the_web');
-      assert.equal(subject.banner.getAttribute('data-l10n-id', 'free_the_web'));
+      assert.equal(subject.banner.firstElementChild.firstElementChild
+        .getAttribute('data-l10n-id'), 'free_the_web');
       assert.equal(subject.banner.dataset.button, 'false');
     });
 
     test('with a button', function() {
       subject.show('see_the_web', { label: 'mozillaL10nId' });
-      assert.equal(subject.banner.firstElementChild
+      assert.equal(subject.banner.firstElementChild.firstElementChild
         .getAttribute('data-l10n-id'), 'see_the_web');
       assert.equal(subject.banner.lastElementChild
         .getAttribute('data-l10n-id'), 'mozillaL10nId');

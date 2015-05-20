@@ -46,6 +46,7 @@
         this._banner.setAttribute('role', 'dialog');
         this._banner.dataset.zIndexLevel = 'system-notification-banner';
         this._banner.dataset.button = 'false';
+        this._banner.innerHTML = '<p></p><button></button>';
         document.getElementById('screen').appendChild(this._banner);
       }
 
@@ -64,21 +65,23 @@
      */
     show: function(message, buttonParams) {
       var banner = this.banner;
-      
+
+      var p = banner.querySelector('p');
+      p.innerHTML = '';
       if (Array.isArray(message)) {
         message.forEach(function(chunk) {
           var span = document.createElement('span');
           setElementL10n(span, chunk);
-          banner.appendChild(span);
+          p.appendChild(span);
         });
       } else {
         var span = document.createElement('span');
         setElementL10n(span, message);
-        banner.appendChild(span);
+        p.appendChild(span);
       }
 
+      var button = banner.querySelector('button');
       if (buttonParams) {
-        var button = document.createElement('button');
         banner.dataset.button = true;
         setElementL10n(button, buttonParams.label);
         this._clickCallback = function() {
@@ -86,7 +89,6 @@
           buttonParams.callback();
         }.bind(this);
         button.addEventListener('click', this._clickCallback);
-        banner.appendChild(button);
       }
 
       banner.addEventListener('animationend', function animationend() {
@@ -101,6 +103,7 @@
           button.removeEventListener('click', this._clickCallback);
           button.classList.remove('visible');
           this.banner.parentNode.removeChild(this.banner);
+          this._banner = undefined;
         }
       }.bind(this));
 
