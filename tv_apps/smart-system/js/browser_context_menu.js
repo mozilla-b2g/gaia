@@ -1,10 +1,9 @@
-/* global MozActivity, IconsHelper, LazyLoader, applications */
-/* global BookmarksDatabase, focusManager, SmartModalDialog */
+/* global MozActivity, IconsHelper, LazyLoader, applications, Animations */
+/* global BookmarksDatabase, XScrollable, KeyNavigationAdapter, SharedUtils */
+/* global focusManager */
 
 (function(window) {
   'use strict';
-
-  var BUTTON_TYPE = 'contextmenu';
 
   var _id = 0;
   /**
@@ -22,6 +21,19 @@
     this.instanceID = _id++;
     this._injected = false;
     this.app.element.addEventListener('mozbrowsercontextmenu', this);
+
+    this.keyNavigationAdapter = new KeyNavigationAdapter();
+    this.keyNavigationAdapter.on('move', function(key) {
+      this.scrollable && this.scrollable.move(key);
+    }.bind(this));
+
+    // All behaviors which no need to have multple events while holding the
+    // key should use keyup
+    this.keyNavigationAdapter.on('esc-keyup', this.hide.bind(this));
+
+    this.circleAnimation = Animations
+                           .createCircleAnimation(this.containerElement);
+
     return this;
   };
 
@@ -49,37 +61,47 @@
       case 'mozbrowsercontextmenu':
         this.show(evt);
         break;
-      case 'modal-dialog-opened':
-        focusManager.focus();
-        this.app.publish('contextmenu-shown');
-        break;
-      case 'modal-dialog-closed':
-        this.app.publish('contextmenu-hidden');
-        focusManager.focus();
-        break;
     }
   };
 
   BrowserContextMenu.prototype._fetchElements = function bcm__fetchElements() {
+
     var id = this.CLASS_NAME + this.instanceID;
     this.element = document.getElementById(id);
-    this.modalDialog = new SmartModalDialog(this.element);
-  };
+    this.contextFrame = document.getElementById(id + '-frame');
+    this.elements = {};
 
-  BrowserContextMenu.prototype._registerEvents = function bcm__regEvents() {
-    // listen the event bubbled from modal dialog to determine the state
-    this.element.addEventListener('modal-dialog-opened', this);
-    this.element.addEventListener('modal-dialog-closed', this);
+    var toCamelCase = function toCamelCase(str) {
+      return str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
+    };
+
+    this.elementClasses = ['header', 'list', 'list-frame'];
+
+    // Loop and add element with camel style name to Modal Dialog attribute.
+    this.elementClasses.forEach(function createElementRef(name) {
+      this.elements[toCamelCase(name)] =
+        this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
+    }, this);
   };
 
   BrowserContextMenu.prototype.view = function() {
-    return '<div id="' + this.CLASS_NAME + this.instanceID + '" ' +
-                 'class="contextmenu"></div>';
+    return '<form class="contextmenu" role="dialog" tabindex="-1"' +
+              ' data-type="action" ' +
+              'id="' + this.CLASS_NAME + this.instanceID + '">' +
+              '<header class="contextmenu-header"></header>' +
+              '<div id="' + this.CLASS_NAME + this.instanceID + '-frame"' +
+                'class="contextmenu-list-frame">' +
+                '<menu class="contextmenu-list"></menu>' +
+              '</div>' +
+            '</form>';
   };
 
   BrowserContextMenu.prototype.kill = function() {
     focusManager.removeUI(this);
-    this.element.removeChild(this.modalDialog.element);
+    this.keyNavigationAdapter.uninit();
+    this.containerElement.removeChild(this.element);
   };
 
   BrowserContextMenu.prototype.show = function(evt) {
@@ -112,39 +134,117 @@
     evt.preventDefault();
     evt.stopPropagation();
     this.showMenu(items);
+
+    // We need to init this after showMenu for fetching this.element
+    this.keyNavigationAdapter.init(this.element);
   };
 
   BrowserContextMenu.prototype.isFocusable = function() {
-    return this.modalDialog &&
-           this.modalDialog.element.classList.contains('visible');
+    return this.element && this.element.classList.contains('visible');
   };
 
   BrowserContextMenu.prototype.focus = function() {
-    document.activeElement.blur();
-    this.modalDialog.focus();
+    // XXX: We need to wait a short interval before we can focus on the
+    // button element. (This is NOT related to bubble animation above)
+    // so we temporarily use setTimeout here.
+    // This may need to be fixed from Gecko.
+    setTimeout(function() {
+      document.activeElement.blur();
+      this.scrollable.catchFocus();
+    }.bind(this), 100);
   };
 
   BrowserContextMenu.prototype.getElement = function() {
     return this.element;
   };
 
-  BrowserContextMenu.prototype.showMenu = function(menus) {
+  BrowserContextMenu.prototype.showMenu = function(menu) {
     if (!this._injected) {
       focusManager.addUI(this);
       this.render();
     }
     this._injected = true;
-    this.modalDialog.open({ 'buttonSettings': menus,
-      'onButtonRendered': function buttonRendered(button, item) {
-        if (item.menuIcon) {
-          var icon = document.createElement('div');
-          icon.classList.add('icon');
-          icon.style.backgroundImage = 'url(' + item.menuIcon + ')';
-          button.appendChild(icon);
-        }
+    this.buildMenu(menu);
+
+    this._createCloseMenuHandler();
+    this.circleAnimation.play('grow', function() {
+      this.element.classList.add('visible');
+      Animations.doBubbleAnimation(
+                  this.contextFrame, '.' + this.ELEMENT_PREFIX + 'button', 100,
+                  function() {
+                    this.app.publish('contextmenu-shown');
+                  }.bind(this));
+      focusManager.focus();
+    }.bind(this));
+  },
+
+  BrowserContextMenu.prototype._createElement = function(item) {
+    var self = this;
+
+    var container = document.createElement('div');
+    var action = document.createElement('smart-button');
+    var icon = document.createElement('div');
+
+    action.dataset.id = item.id;
+    action.dataset.value = item.value;
+    var l10nPayload = item.labelL10nId ? item.labelL10nId : {raw: item.label};
+    SharedUtils.localizeElement(action, l10nPayload);
+
+    action.className = self.ELEMENT_PREFIX + 'button';
+    action.setAttribute('type', 'contextmenu');
+
+    icon.classList.add('icon');
+    if (item.icon) {
+      icon.style.backgroundImage = 'url(' + item.icon + ')';
+    }
+
+    action.addEventListener('click', function(evt) {
+      if (self.hide(evt)) {
+        self.clickedItemCallback = item.callback.bind(item);
       }
     });
+
+    action.appendChild(icon);
+    container.appendChild(action);
+    this.elements.list.appendChild(container);
   },
+
+  BrowserContextMenu.prototype._createCloseMenuHandler = function() {
+    var self = this;
+    var onFrameDisappear = function onFrameDisappear(evt) {
+      if (evt.propertyName === 'opacity' &&
+          evt.target === self.contextFrame) {
+        self.element.classList.remove('visible');
+        self.contextFrame.classList.remove('disappear');
+        self.contextFrame.removeEventListener(
+                             'transitionend', onFrameDisappear);
+        self.circleAnimation.play('shrink', function() {
+          focusManager.focus();
+          if (self.clickedItemCallback) {
+            self.clickedItemCallback();
+          }
+          self.app.publish('contextmenu-hidden');
+        });
+      }
+    };
+
+    this.contextFrame.addEventListener('transitionend', onFrameDisappear);
+  },
+
+  BrowserContextMenu.prototype.buildMenu = function(items) {
+    var self = this;
+
+    this.elements.list.innerHTML = '';
+    items.forEach(this._createElement, this);
+
+    this.scrollable = new XScrollable({
+      frameElem: this.elements.listFrame,
+      listElem: this.elements.list,
+      itemClassName: self.ELEMENT_PREFIX + 'button',
+      spacing: 8.2
+    });
+    this.scrollable.on('focus', this.handleFocus.bind(this));
+  };
 
   BrowserContextMenu.prototype._listItems = function(detail) {
     var items = [];
@@ -155,10 +255,9 @@
       var that = this;
       detail.contextmenu.items.forEach(function(choice, index) {
         items.push({
-          type: BUTTON_TYPE,
-          textRaw: choice.label,
-          menuIcon: that.app.origin + '/' + choice.icon,
-          onClick: function() {
+          label: choice.label,
+          icon: that.app.origin + '/' + choice.icon,
+          callback: function() {
             detail.contextMenuItemSelected(choice.id);
           }
         });
@@ -173,23 +272,29 @@
       }, this);
     }
 
-    if (items.length > 0) {
-      items[0].defaultFocus = true;
-    }
-
     return items;
   };
 
-  BrowserContextMenu.prototype.hide = function() {
+  BrowserContextMenu.prototype.hide = function(evt) {
     if (!this.element) {
       return false;
+    }
+
+    if (evt) {
+      evt.preventDefault();
     }
 
     if (this.circleAnimation.isPlaying()) {
       return false;
     }
 
-    this.modalDialog.element.close();
+    this.keyNavigationAdapter.uninit();
+
+    if (this.scrollable.currentItem) {
+      this.scrollable.currentItem.blur();
+    }
+
+    this.contextFrame.classList.add('disappear');
     return true;
   };
 
@@ -254,24 +359,20 @@
       case 'A':
         return [{
           id: 'open-in-new-window',
-          type: BUTTON_TYPE,
-          textL10nId: 'open-in-new-window',
-          onClick: this.openUrl.bind(this, uri)
+          labelL10nId: 'open-in-new-window',
+          callback: this.openUrl.bind(this, uri)
         }, {
           id: 'bookmark-link',
-          type: BUTTON_TYPE,
-          textL10nId: 'add-link-to-home-screen',
-          onClick: this.bookmarkUrl.bind(this, uri, text)
+          labelL10nId: 'add-link-to-home-screen',
+          callback: this.bookmarkUrl.bind(this, uri, text)
         }, {
           id: 'save-link',
-          type: BUTTON_TYPE,
-          textL10nId: 'save-link',
-          onClick: this.app.browser.element.download.bind(this, uri)
+          labelL10nId: 'save-link',
+          callback: this.app.browser.element.download.bind(this, uri)
         }, {
           id: 'share-link',
-          type: BUTTON_TYPE,
-          textL10nId: 'share-link',
-          onClick: this.shareUrl.bind(this, uri)
+          labelL10nId: 'share-link',
+          callback: this.shareUrl.bind(this, uri)
         }];
 
       case 'IMG':
@@ -289,14 +390,12 @@
 
         return [{
           id: 'save-' + type,
-          type: BUTTON_TYPE,
-          textL10nId: 'save-' + type,
-          onClick: this.app.browser.element.download.bind(this, uri)
+          labelL10nId: 'save-' + type,
+          callback: this.app.browser.element.download.bind(this, uri)
         }, {
           id: 'share-' + type,
-          type: BUTTON_TYPE,
-          textL10nId: 'share-' + type,
-          onClick: this.shareUrl.bind(this, uri)
+          labelL10nId: 'share-' + type,
+          callback: this.shareUrl.bind(this, uri)
         }];
 
       default:
@@ -316,17 +415,15 @@
         if (!result) {
           menuData.push({
             id: 'add-to-homescreen',
-            type: BUTTON_TYPE,
-            textL10nId: 'add-to-home-screen',
-            onClick: this.bookmarkUrl.bind(this, config.url, name)
+            labelL10nId: 'add-to-home-screen',
+            callback: this.bookmarkUrl.bind(this, config.url, name)
           });
         }
 
         menuData.push({
           id: 'share',
-          type: BUTTON_TYPE,
-          textL10nId: 'share',
-          onClick: this.shareUrl.bind(this, config.url)
+          labelL10nId: 'share',
+          callback: this.shareUrl.bind(this, config.url)
         });
 
         this.showMenu(menuData);

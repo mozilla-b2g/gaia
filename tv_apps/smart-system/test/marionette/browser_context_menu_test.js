@@ -30,8 +30,8 @@ marionette('Test Context Menu Events', function() {
   var actions;
   var system;
   var menuSelectors = [
-    '.appWindow.active .modal-dialog-button-group smart-button:nth-child(1)',
-    '.appWindow.active .modal-dialog-button-group smart-button:nth-child(2)'
+    '.appWindow.active .contextmenu-list > div:nth-child(1) > smart-button',
+    '.appWindow.active .contextmenu-list > div:nth-child(2) > smart-button'
   ];
 
   setup(function() {

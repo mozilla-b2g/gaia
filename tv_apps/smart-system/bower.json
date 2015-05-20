@@ -18,7 +18,6 @@
     "smart-button": "gaia-components/smart-button",
     "smart-banner": "gaia-components/smart-banner",
     "smart-bubbles": "smart-components/smart-bubbles",
-    "smart-dialog": "smart-components/smart-dialog",
-    "smart-modal-dialog": "smart-components/smart-modal-dialog"
+    "smart-dialog": "smart-components/smart-dialog"
   }
 }
