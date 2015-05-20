@@ -16,8 +16,7 @@
       var target = e.target;
 
       Search.close();
-      /* prevent jshint new error */
-      /* jshint -W031 */
+      /* jshint nonew: false */
       new MozActivity({
         name: 'open',
         data: {

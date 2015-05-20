@@ -41,7 +41,7 @@ define(function(require) {
     showMoreLanguages: function() {
       SettingsCache.getSettings(function(result) {
         var version = result['deviceinfo.os'];
-        /* jshint -W031 */
+        /* jshint nonew: false */
         new window.MozActivity({
           name: 'marketplace-category',
           data: {
