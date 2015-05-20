@@ -229,12 +229,22 @@
     return true;
   };
 
+  ChildWindowFactory.prototype._handle_child__opened = function(evt) {
+    // Do nothing if we are not active or we are being killing.
+    if (!this.app.isVisible() || this.app._killed) {
+      return;
+    }
+
+    this.app._hideFrame();
+  };
+
   ChildWindowFactory.prototype._handle_child__closing = function(evt) {
     // Do nothing if we are not active or we are being killing.
     if (!this.app.isVisible() || this.app._killed) {
       return;
     }
 
+    this.app._showFrame();
     this.app.setOrientation();
     this.app.requestForeground();
 
@@ -258,6 +268,7 @@
     }
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
+    activity.element.addEventListener('_opened', this);
     activity.open();
     // Make topmost window browser element invisibile to screen reader.
     top._setVisibleForScreenReader(false);

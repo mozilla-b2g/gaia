@@ -262,6 +262,7 @@
       this.setVisibleForScreenReader(visible);
       if (this.frontWindow) {
         this.frontWindow.setVisible(visible);
+        return;
       }
 
       if (this._visible === visible) {
