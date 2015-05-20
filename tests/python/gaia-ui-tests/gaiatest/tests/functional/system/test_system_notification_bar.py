@@ -19,7 +19,7 @@ class TestNotificationBar(GaiaTestCase):
         self.marionette.execute_script('new Notification("%s", {body: "%s"});'
                                        % (self._notification_title, self._notification_body))
 
-        system.wait_for_notification_toaster_displayed()
+        system.wait_for_notification_toaster_displayed(for_app='system')
 
         system.wait_for_notification_toaster_not_displayed()
 
@@ -29,12 +29,9 @@ class TestNotificationBar(GaiaTestCase):
 
         utility_tray.wait_for_notification_container_displayed()
 
-        # Assert there is one notification is listed in notifications-container
-        notifications = utility_tray.notifications
-        self.assertEqual(1, len(notifications), 'Expected one notification.')
-
-        # Assert notification is listed in notifications-container
-        self.assertEqual(self._notification_body, notifications[0].content)
+        notifications = utility_tray.get_notifications(for_app='system')
+        self.assertEqual(1, len(notifications), 'Expected one system notification.')
+        email = notifications[0].tap_notification()
 
         # We cannot disable app update yet so let's wait for it to pass
         if system.is_app_update_notification_displayed:

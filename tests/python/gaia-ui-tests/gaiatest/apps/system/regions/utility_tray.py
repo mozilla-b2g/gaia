@@ -30,6 +30,11 @@ class UtilityTray(Base):
         return [Notification(self.marionette, notification)
                 for notification in self.marionette.find_elements(*self._desktop_notifications_locator)]
 
+    def get_notifications(self, for_app=None):
+        return [Notification(self.marionette, notification)
+                for notification in self.marionette.find_elements(*self._desktop_notifications_locator)
+                    if for_app is None or for_app in notification.get_attribute('data-manifest-u-r-l')]
+
     def clear_all_notifications(self):
         self.marionette.find_element(*self._notification_clear_locator).tap()
 
