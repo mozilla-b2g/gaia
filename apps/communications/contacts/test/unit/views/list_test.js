@@ -364,7 +364,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        var toCheck = container.innerHTML.includes('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -375,7 +375,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        var toCheck = container.innerHTML.includes('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -386,7 +386,7 @@ suite('Render contacts list', function() {
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
-        var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
+        var toCheck = container.innerHTML.includes('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
       }
     });
@@ -808,9 +808,9 @@ suite('Render contacts list', function() {
         doRefreshContact(subject, c);
       }
       var list = assertGroup(groupA, containerA, 3);
-      assert.isTrue(list[0].innerHTML.contains('Aa'), 'order of Aa');
-      assert.isTrue(list[1].innerHTML.contains('AB'), 'order of AB');
-      assert.isTrue(list[2].innerHTML.contains('Ac'), 'order of Ac');
+      assert.isTrue(list[0].innerHTML.includes('Aa'), 'order of Aa');
+      assert.isTrue(list[1].innerHTML.includes('AB'), 'order of AB');
+      assert.isTrue(list[2].innerHTML.includes('Ac'), 'order of Ac');
       done();
     });
 
