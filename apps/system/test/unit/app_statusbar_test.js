@@ -27,6 +27,22 @@ suite('system/AppStatusbar', function() {
     subject.titleBar = document.createElement('div');
   });
 
+  suite('Reset destination if browser is destroyed', function() {
+    test('Suspend', function() {
+      app.element.dispatchEvent(new CustomEvent('_suspended'));
+      assert.isNull(subject._touchForwarder.destination);
+    });
+
+    test('Resume', function() {
+      var newBrowserElement = document.createElement('iframe');
+      app.browser = {
+        element: newBrowserElement
+      };
+      app.element.dispatchEvent(new CustomEvent('_resumed'));
+      assert.deepEqual(subject._touchForwarder.destination, newBrowserElement);
+    });
+  });
+
   suite('fullscreen mode >', function() {
     function forgeTouchEvent(type, x, y) {
       var touch = document.createTouch(window, null, 42, x, y,
