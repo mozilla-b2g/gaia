@@ -123,7 +123,7 @@
           break;
 
         case 'system-resize':
-          if (!this._instance) {
+          if (this._instance != overlay) {
             return;
           }
           var p = this._instance.resize();
