@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('./../utils');
+var utils = require('../utils');
 
 var DependencyGraph = require('./dependency-graph');
 var BuildConfig = require('./build-config');

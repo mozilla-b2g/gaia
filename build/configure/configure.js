@@ -1,30 +1,12 @@
 'use strict';
 
-var utils = require('./../utils');
+var utils = require('../utils');
 var DependencyGraph = require('./dependency-graph');
 var AppConfigureStep = require('./app-configure-step');
 var BuildConfig = require('./build-config');
 
-// Default building steps before app's own building steps.
-// TODO: We should have a module to map these steps with different ENV variable,
-//       so that we could easily to add/remove/reorder steps for different
-//       situations. For example, we dont need settings step while building
-//       single app.
-const PRE_APP_BUILD_STEPS = [
-  'svoperapps',
-  'webapp-manifests',
-  'contacts-import-services',
-  'search-provider',
-  'keyboard-layouts',
-  'preferences',
-  'settings',
-  'webapp-shared',
-  'copy-common-files'
-];
-
 /**
- * ConfigureStep would generate all the data for build back-end. Currently would
- * contain PRE_APP_BUILD_STEPS and each app's steps.
+ * ConfigureStep would generate all the data for build back-end.
  * @param {object} options - BUILD_CONFIG from build-config.in.
  * @constructor
  */
@@ -67,29 +49,103 @@ ConfigureStep.prototype = {
   },
 
   /**
-   * Generate config data from PRE_APP_BUILD_STEPS.
+   * Generate pre-app config data
    */
   preAppConfig: function() {
-    this._stepIndex = this.options.STAGE_DIR;
-    PRE_APP_BUILD_STEPS.forEach(function(step) {
-      // We don't generate setting.js if only build one app.
-      // TODO: We should have a module to map these steps with different ENV
-      //       variable.
-      if (this.options.BUILD_APP_NAME !== '*' && step === 'settings') {
-        return;
-      }
-      this.mainMake.insertTask(
-        'phony',
-        'build-' + step,
-        [this._stepIndex],
-        [
-          '@$(XULRUNNERSDK) $(XPCSHELLSDK) -f ' +
-          '$(GAIA_DIR)/build/xpcshell-commonjs.js -e "run(\'' + step + '\',' +
-          '$(BUILD_CONFIG));"'
-        ]
-      );
-      this._stepIndex = 'build-' + step;
-    }, this);
+    var targetName;
+    var depStep = this.options.STAGE_DIR;
+
+    function templateCommand(step) {
+      return '@$(XULRUNNERSDK) $(XPCSHELLSDK) -f $(GAIA_DIR)/build/xpcshell-commonjs.js -e ' +
+        '"run(\'' + step + '\',$(BUILD_CONFIG));"';
+    }
+
+    // Include sub-configures
+    require('../webapp-shared').execute(this.options);
+
+    // Add sub-makefile task
+    targetName = 'svoperapps';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+
+    targetName = 'webapp-manifests';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+
+    targetName = 'contacts-import-services';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+
+    targetName = 'search-provider';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+
+    targetName = 'keyboard-layouts';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+
+    targetName = 'preferences';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+
+    targetName = 'settings';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+
+    targetName = 'webapp-shared';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      ['@make -f ' + utils.joinPath(this.options.STAGE_DIR, 'Makefiles/',
+        targetName + '.mk')]
+    );
+    depStep = targetName;
+
+    targetName = 'copy-common-files';
+    this.mainMake.insertTask(
+      'phony',
+      targetName,
+      [depStep],
+      [templateCommand(targetName)]
+    );
+    depStep = targetName;
+    this._stepIndex = depStep;
   },
 
   /**
