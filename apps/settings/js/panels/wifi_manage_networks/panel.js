@@ -9,6 +9,7 @@ define(function(require) {
   var WifiHelper = require('shared/wifi_helper');
   var WifiKnownNetworks =
     require('panels/wifi_manage_networks/wifi_known_networks');
+  var WifiErrors = require('panels/wifi_manage_networks/wifi_errors');
   var wifiManager = WifiHelper.getWifiManager();
 
   return function ctor_wifi_manage_networks_panel() {
@@ -43,10 +44,9 @@ define(function(require) {
                 value.identity,
                 value.eap
               );
-              WifiContext.associateNetwork(network, function(error) {
+              WifiContext.associateNetwork(network, (error) =>{
                 if (error) {
-                  // TODO
-                  // Show some error later
+                  this._handleAssociateNetworkError(error.name);
                 }
                 self._cleanup();
                 self._scan();
@@ -144,6 +144,10 @@ define(function(require) {
           forgetNetworkDialog.hidden = true;
           return false;
         };
+      },
+      _handleAssociateNetworkError: function(errorName) {
+        var l10nId = WifiErrors.getL10nId(errorName);
+        DialogService.alert(l10nId);
       }
     });
   };
