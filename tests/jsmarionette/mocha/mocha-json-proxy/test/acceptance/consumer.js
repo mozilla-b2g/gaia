@@ -10,9 +10,9 @@ suite('reporter', function() {
         test(test, function(done) {
           var child = forkFixture(testType);
           var runner = new Consumer(child);
-          /* jshint -W031 */
+          /* jshint nonew: false */
           new Mocha.reporters[reporterType](runner);
-          /* jshint +W031 */
+          /* jshint nonew: true */
           runner.once('end', done);
         });
       });

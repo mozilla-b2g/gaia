@@ -299,7 +299,7 @@
   };
 
   BrowserContextMenu.prototype.openUrl = function(url) {
-    /*jshint -W031 */
+    /* jshint nonew: false */
     new MozActivity({
       name: 'view',
       data: {
@@ -310,7 +310,7 @@
   };
 
   BrowserContextMenu.prototype.shareUrl = function(url) {
-    /*jshint -W031 */
+    /* jshint nonew: false */
     new MozActivity({
       name: 'share',
       data: {
@@ -323,7 +323,7 @@
   BrowserContextMenu.prototype.bookmarkUrl = function(url, name) {
     var favicons = this.app.favicons;
 
-    /*jshint -W031 */
+    /* jshint nonew: false */
     var data = {
       type: 'url',
       url: url,
