@@ -12,12 +12,10 @@ marionette('manipulate date time settings', function() {
     dateTimePanel = settingsApp.dateTimePanel;
   });
 
-  test('manipulate region', function() {
-    // Simply check the value in the timezone region to
+  test('manipulate time format', function() {
+    // Simply select the value in the time format to
     // ensure the menu is is populated.
-    client.waitFor(function() {
-      return dateTimePanel.timezoneInfoText !== '';
-    });
+    dateTimePanel.selectTimeFormat('12-hour');
   });
 
 });

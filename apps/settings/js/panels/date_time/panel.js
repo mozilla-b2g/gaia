@@ -152,18 +152,29 @@ define(function(require) {
       _updateUI: function dt_updateUI() {
         this._elements.timeAutoSwitch.dataset.state =
             DateTime.clockAutoEnabled ? 'auto' : 'manual';
-        this._elements.timeAutoSwitch.hidden =
-          this._elements.timezoneInfo.hidden =
-            !(DateTime.clockAutoAvailable || DateTime.timezoneAutoAvailable);
+        // There are three possible combinations:
+        // - clockAutoAvailable is true, timezoneAutoAvailable is true
+        // - clockAutoAvailable is false, timezoneAutoAvailable is false
+        // - clockAutoAvailable is true, timezoneAutoAvailable is false
+        // We show the auto time switch only when clockAutoAvailable is true.
+        this._elements.timeAutoSwitch.hidden = !DateTime.clockAutoAvailable;
 
-        this._elements.datePicker.disabled = DateTime.clockAutoEnabled &&
-          !this._elements.timeAutoSwitch.hidden;
-        this._elements.timePicker.disabled = DateTime.clockAutoEnabled &&
-          !this._elements.timeAutoSwitch.hidden;
+        // DataTime.clockAutoEnabled is a user preference and in some cases it
+        // can be true while DateTime.clockAutoAvailable is false. The reason is
+        // the device may not connect to the network to retrieve the correct
+        // time automatically after startup. That being said, we should always
+        // check both `DateTime.clockAutoEnabled` and
+        // `DateTime.clockAutoAvailable` to determine whether the device is in
+        // the auto time mode.
+        var autoTimeMode =
+          DateTime.clockAutoEnabled && DateTime.clockAutoAvailable;
+
+        this._elements.datePicker.disabled = autoTimeMode;
+        this._elements.timePicker.disabled = autoTimeMode;
         this._elements.timezoneRegion.disabled =
-          (DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
+          DateTime.timezoneAutoAvailable && autoTimeMode;
         this._elements.timezoneCity.disabled =
-          (DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
+          DateTime.timezoneAutoAvailable && autoTimeMode;
 
         // XXX: Force to trigger the selector change so that tz_select is able
         //      to write the previous user-selected value back to time.timezone.
@@ -172,15 +183,12 @@ define(function(require) {
           this._elements.timezoneCity.dispatchEvent(new Event('change'));
         }
 
-        if (DateTime.clockAutoEnabled &&
-          !this._elements.timeAutoSwitch.hidden) {
+        if (autoTimeMode) {
           this._elements.timeManual.classList.add('disabled');
-          if (DateTime.timezoneAutoAvailable) {
-            this._elements.timezonePickers.forEach((picker) => {
-              picker.hidden = true;
-            });
-            this._elements.timezoneInfo.hidden = false;
-          }
+          this._elements.timezonePickers.forEach((picker) => {
+            picker.hidden = DateTime.timezoneAutoAvailable;
+          });
+          this._elements.timezoneInfo.hidden = !DateTime.timezoneAutoAvailable;
         } else {
           this._elements.timeManual.classList.remove('disabled');
           this._elements.timezonePickers.forEach((picker) => {
