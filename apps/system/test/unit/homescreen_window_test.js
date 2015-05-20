@@ -68,12 +68,14 @@ suite('system/HomescreenWindow', function() {
     });
 
     test('should always resize', function() {
-      var stubResize = this.sinon.stub(homescreenWindow, '_resize');
+      var stubResize = this.sinon.stub(homescreenWindow, '_resize')
+        .returns({ stub: 'promise' });
       var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
       stubIsActive.returns(false);
 
-      homescreenWindow.resize();
+      var p = homescreenWindow.resize();
       assert.isTrue(stubResize.calledOnce);
+      assert.deepEqual(p, { stub: 'promise' });
     });
 
     test('Homescreen browser frame', function() {
