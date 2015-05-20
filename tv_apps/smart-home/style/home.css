@@ -197,6 +197,10 @@ section {
   bottom: 5.4rem;
 }
 
+.filter-tab-group.hidden {
+  display: none;
+}
+
 /**
  * background section
 **/

@@ -137,4 +137,41 @@ suite('smart-home/CardFilter', function() {
     });
   });
 
+  suite('> show and hide', function() {
+    setup(function() {
+      mockSmartButtons = generateSmartButtons();
+
+      mockMenuGroup = new MockMenuGroup();
+      sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
+        return mockSmartButtons;
+      });
+      sinon.spy(mockMenuGroup.classList, 'add');
+      sinon.spy(mockMenuGroup.classList, 'remove');
+      cardFilter = new CardFilter();
+      cardFilter.filter = 'filter';
+      cardFilter.start(mockMenuGroup);
+    });
+
+    teardown(function() {
+      mockMenuGroup.classList.add.restore();
+      mockMenuGroup.classList.remove.restore();
+      mockMenuGroup = undefined;
+      cardFilter = undefined;
+      mockSmartButtons = undefined;
+    });
+
+    test('should add "hidden" class to menu group when calling hide()',
+      function() {
+        cardFilter.hide();
+        assert.isTrue(mockMenuGroup.classList.add.calledWithExactly('hidden'));
+      });
+
+    test('should remove "hidden" class from menu group when calling show()',
+      function() {
+        cardFilter.show();
+        assert.isTrue(
+          mockMenuGroup.classList.remove.calledWithExactly('hidden'));
+      });
+  });
+
 });

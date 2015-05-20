@@ -49,6 +49,14 @@
     this.filter = evt.target.dataset.iconType;
   };
 
+  proto.hide = function cf_hide() {
+    this.menuGroup.classList.add('hidden');
+  };
+
+  proto.show = function cf_show() {
+    this.menuGroup.classList.remove('hidden');
+  };
+
   exports.CardFilter = CardFilter;
 
 })(window);
