@@ -240,7 +240,8 @@
     <!-- See spinner.js -->
     <!-- a spinner that we display in the center of the screen when -->
     <!-- doing time-consuming operations like rotating images -->
-    <progress id="spinner" class="hidden"></progress>
+    <!-- The value=0 attribute is a workaround for bug 962594 -->
+    <progress id="spinner" class="hidden" value="0"></progress>
 
     <!-- See overlay.js -->
     <!-- display messages like "No Photos" and "No SD Card" here -->

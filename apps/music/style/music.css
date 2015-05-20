@@ -115,6 +115,12 @@ body {
   left: calc(50% - 1.5rem);
 }
 
+/*
+ * We have to make this explicit for progress elements because
+ * shared/style/progress_activity.css has a display property that
+ * takes priority over the generic .hidden style in this file
+ */
+progress.hidden { display: none; }
 
 /* Display the names of the songs we scan here */
 #scan-progress {

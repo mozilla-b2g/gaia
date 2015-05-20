@@ -173,7 +173,13 @@ var ModeManager = {
     // mode and we get more scan results we'll resume the progress display.
     if (displayingScanProgress &&
         (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
-      document.getElementById('scan-progress').classList.add('hidden');
+      // Setting value to 0 stops the animation and works around bug 962594.
+      // setTimeout() works around bug 1166500.
+      document.getElementById('scan-spinner').classList.add('hidden');
+      document.getElementById('scan-spinner').value = 0;
+      setTimeout(function() {
+        document.getElementById('scan-progress').classList.add('hidden');
+      }, 100);
       displayingScanProgress = false;
     }
   },
