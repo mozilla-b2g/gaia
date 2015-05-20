@@ -103,6 +103,7 @@ module.exports = {
         return /^\./.test(path.basename(src));
       },
       path: src,
+      parent: path.dirname(src),
       leafName: path.basename(src)
     };
   },
@@ -451,7 +452,8 @@ module.exports = {
 
   },
 
-  writeContent :function(file, content) {
+  writeContent: function(file, content) {
+    this.ensureFolderExists(this.getFile(file.parent));
     fs.writeFileSync(file.path, content);
   },
 

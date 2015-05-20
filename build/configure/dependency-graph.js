@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('./../utils');
+var utils = require('../utils');
 
 /**
  * DependencyGraph module can help you to generate new build backend, you can
