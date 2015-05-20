@@ -1,0 +1,64 @@
+
+smart-weather {
+  width: 17rem;
+  height: 44.2rem;
+  overflow: visible;
+  position: relative;
+  margin: 0 5rem;
+  padding-top: 2rem;
+  content: ' ';
+  display: inline-block;
+}
+
+smart-weather > .clock {
+  margin: 0 4.7rem 2rem 4.7rem;
+  width: 7.4rem;
+  height: 7.4rem;
+  border-radius: 3.7rem;
+  background: white;
+  position: relative;
+}
+
+smart-weather .hour-hand, smart-weather .minute-hand {
+  width: 0.2rem;
+  position: absolute;
+  background-color: #323232;
+  left: calc(50% - 0.1rem);
+  top: 0;
+  transform-origin: 0.1rem calc(100% - 0.3rem);
+  outline: 1px solid transparent;
+}
+
+smart-weather .hour-hand {
+  height: 2.8rem;
+  top: 1.2rem;
+  transform-origin: 0.1rem calc(100% - 0.3rem);
+}
+
+smart-weather .minute-hand {
+  height: 3.4rem;
+  top: 0.8rem;
+  transform-origin: 0.1rem calc(100% - 0.5rem);
+}
+
+smart-weather > .city {
+  font-size: 2.8rem;
+  color: #ffffff;
+  text-align: center;
+  height: 4.6rem;
+  border-bottom: 0.1rem solid #ffffff;
+}
+
+smart-weather > .weather-detail {
+  text-align: center;
+  color: #ffffff;
+  font-size: 2.2rem;
+  font-weight: 300;
+}
+
+smart-weather > .weather-detail > div {
+  height: 2.4rem;
+  margin-top: 3.4rem;
+  margin-bottom: 4.2rem;
+}
+
