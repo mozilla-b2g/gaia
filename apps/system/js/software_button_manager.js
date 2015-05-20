@@ -101,7 +101,7 @@
      */
     _cacheHeight: null,
     get height() {
-      if (!this.enabled || !this._currentOrientation.contains('portrait')) {
+      if (!this.enabled || !this._currentOrientation.includes('portrait')) {
         return 0;
       }
 
@@ -117,7 +117,7 @@
      */
     _cacheWidth: null,
     get width() {
-      if (!this.enabled || !this._currentOrientation.contains('landscape')) {
+      if (!this.enabled || !this._currentOrientation.includes('landscape')) {
         return 0;
       }
 
@@ -324,12 +324,12 @@
         case 'mozorientationchange':
           // mozorientationchange is fired before 'system-resize'
           // so we can adjust width/height before that happens.
-          var isPortrait = this._currentOrientation.contains('portrait');
+          var isPortrait = this._currentOrientation.includes('portrait');
           var newOrientation = OrientationManager.fetchCurrentOrientation();
-          if (isPortrait && newOrientation.contains('landscape')) {
+          if (isPortrait && newOrientation.includes('landscape')) {
             this.element.style.right = this.element.style.bottom;
             this.element.style.bottom = null;
-          } else if (!isPortrait && newOrientation.contains('portrait')) {
+          } else if (!isPortrait && newOrientation.includes('portrait')) {
             this.element.style.bottom = this.element.style.right;
             this.element.style.right = null;
           }
