@@ -781,8 +781,10 @@ suite('system/Rocketbar', function() {
         done();
       }
     };
+    var stubBlur = this.sinon.stub(subject.input, 'blur');
     subject.handleSubmit(event);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    assert.ok(stubBlur.calledOnce);
   });
 
   test('handleCancel()', function() {

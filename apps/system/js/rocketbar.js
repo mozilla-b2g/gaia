@@ -586,6 +586,8 @@
     handleSubmit: function(e) {
       e.preventDefault();
 
+      this.input.blur();
+
       if (this.results.classList.contains('hidden')) {
         this.showResults();
       }
