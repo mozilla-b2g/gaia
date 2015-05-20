@@ -1,0 +1,26 @@
+{
+  "name": "API Demos",
+  "description": "Demo app to show all APIs in TV",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "desktop-notification":{}
+  },
+  "locales": {
+    "en-US": {
+      "name": "API Demos",
+      "description": "Demo app to show all APIs in TV"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "354": "/style/icons/developer.png"
+  },
+  "messages": [
+    { "notification": "/index.html" }
+  ]
+}

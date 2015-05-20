@@ -10,6 +10,7 @@ tv_apps/dashboard
 tv_apps/dlna-player
 tv_apps/fling-player
 tv_apps/notification-receiver
+tv_apps/api-demos-tv
 apps/bluetooth
 apps/calendar
 apps/camera
