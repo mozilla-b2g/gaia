@@ -30,6 +30,8 @@ suite('init_logo_handler_test.js >', function() {
 
   setup(function() {
     window.SettingsHelper.mSetup();
+    this.sinon.stub(document, 'getElementById')
+          .returns(document.createElement('div'));
   });
 
   function assertCustomLogoPathValues(expectedValues) {
@@ -116,11 +118,6 @@ suite('init_logo_handler_test.js >', function() {
   });
 
   suite('Hierarchy functions', function() {
-    setup(function() {
-      this.sinon.stub(document, 'getElementById')
-          .returns(document.createElement('div'));
-    });
-
     teardown(function() {
       InitLogoHandler.animated = false;
       InitLogoHandler.ready = false;
@@ -155,6 +152,40 @@ suite('init_logo_handler_test.js >', function() {
       this.sinon.stub(InitLogoHandler, 'publish');
       InitLogoHandler.animate();
       assert.isTrue(InitLogoHandler.publish.calledWith('-deactivated'));
+    });
+  });
+
+  suite('Events handling', function() {
+    setup(function() {
+      InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
+    });
+
+    test('should block home event when active', function() {
+      var evt = new CustomEvent('home');
+      this.sinon.stub(InitLogoHandler, 'isActive').returns(true);
+      var result = InitLogoHandler.respondToHierarchyEvent(evt);
+      assert.isFalse(result);
+    });
+
+    test('should not block home event when not active', function() {
+      var evt = new CustomEvent('home');
+      this.sinon.stub(InitLogoHandler, 'isActive').returns(false);
+      var result = InitLogoHandler.respondToHierarchyEvent(evt);
+      assert.isTrue(result);
+    });
+
+    test('should block holdhome event when active', function() {
+      var evt = new CustomEvent('holdhome');
+      this.sinon.stub(InitLogoHandler, 'isActive').returns(true);
+      var result = InitLogoHandler.respondToHierarchyEvent(evt);
+      assert.isFalse(result);
+    });
+
+    test('should not block holdhome event when not active', function() {
+      var evt = new CustomEvent('holdhome');
+      this.sinon.stub(InitLogoHandler, 'isActive').returns(false);
+      var result = InitLogoHandler.respondToHierarchyEvent(evt);
+      assert.isTrue(result);
     });
   });
 });
