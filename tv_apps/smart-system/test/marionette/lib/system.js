@@ -11,7 +11,8 @@ module.exports = System;
 System.URL = 'app://smart-system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
-  appChromeContextMenu: '.appWindow.active .contextmenu'
+  appChromeContextMenuContainer: '.appWindow.active .modal-dialog',
+  appChromeContextMenuDialog: '.appWindow.active .contextmenu .modal-dialog'
 });
 
 System.prototype = {
@@ -21,9 +22,14 @@ System.prototype = {
 
   Selector: System.Selector,
 
+  get appChromeContextMenuContainer() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuContainer);
+  },
+
   get appChromeContextMenu() {
     return this.client.helper.waitForElement(
-      System.Selector.appChromeContextMenu);
+      System.Selector.appChromeContextMenuDialog);
   },
 
   getAppIframe: function(url) {

@@ -249,7 +249,7 @@
 }
 
 .appWindow > .contextmenu {
-  visibility: visible;
+  visibility: hidden;
 }
 
 .appWindow > .contextmenu.visible,

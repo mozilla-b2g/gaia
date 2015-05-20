@@ -30,8 +30,8 @@ marionette('Test Context Menu Events', function() {
   var actions;
   var system;
   var menuSelectors = [
-    '.appWindow.active .contextmenu-list > div:nth-child(1) > smart-button',
-    '.appWindow.active .contextmenu-list > div:nth-child(2) > smart-button'
+    '.appWindow.active .modal-dialog-button-group smart-button:nth-child(1)',
+    '.appWindow.active .modal-dialog-button-group smart-button:nth-child(2)'
   ];
 
   setup(function() {
@@ -50,11 +50,13 @@ marionette('Test Context Menu Events', function() {
 
   }
 
-  test('press enter on first menu', function() {
+  test('press enter on first menu', { 'devices': ['tv'] }, function() {
     launchContextMenu();
     client.switchToFrame();
 
     system.waitForEvent('appcontextmenu-shown');
+
+    var container = system.appChromeContextMenuContainer;
     // find the first context menu
     var firstMenu = client.helper.waitForElement(menuSelectors[0]);
     // check focus
@@ -66,13 +68,17 @@ marionette('Test Context Menu Events', function() {
 
     system.waitForEvent('appcontextmenu-hidden');
     assert.isFalse(firstMenu.displayed());
+    assert.isFalse(container.displayed());
   });
 
-  test('press enter on second menu', function() {
+  test('press enter on second menu', { 'devices': ['tv'] }, function() {
     launchContextMenu();
     client.switchToFrame();
 
     system.waitForEvent('appcontextmenu-shown');
+
+    var container = system.appChromeContextMenuContainer;
+
     // wait for second menu
     var secondMenu = client.helper.waitForElement(menuSelectors[1]);
     // move focus to second one
@@ -87,19 +93,24 @@ marionette('Test Context Menu Events', function() {
 
     system.waitForEvent('appcontextmenu-hidden');
     assert.isFalse(menu.displayed());
+    assert.isFalse(container.displayed());
   });
 
-  test('press esc after menu shown', function() {
+  test('press esc after menu shown', { 'devices': ['tv'] }, function() {
     launchContextMenu();
     client.switchToFrame();
 
     system.waitForEvent('appcontextmenu-shown');
+
+    var container = system.appChromeContextMenuContainer;
+
     // move focus to second one
     var menu = system.appChromeContextMenu;
     menu.sendKeys(Keys.esc);
 
     system.waitForEvent('appcontextmenu-hidden');
     assert.isFalse(menu.displayed());
+    assert.isFalse(container.displayed());
   });
 
 });
