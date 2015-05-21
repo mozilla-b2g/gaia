@@ -37,11 +37,6 @@ step_checkout() {
   fi
 }
 
-# Set-up our npm-cache.
-step_npm_cache() {
-  taskcluster-npm-cache-get --namespace gaia.npm_cache ./package.json
-}
-
 buildbot_step 'git clone cache' step_clone
 buildbot_step 'git checkout' step_checkout
 
@@ -51,9 +46,6 @@ cd $checkout_path
 
 # Current revision...
 buildbot_step 'git revision...' git --no-pager log -n 1
-
-# node modules
-buildbot_step 'npm-cache-get' step_npm_cache
 
 # virtualenv setup so any python packages can be abused without root access
 buildbot_step 'virtualenv' virtualenv $HOME/.venv --system-site-packages
