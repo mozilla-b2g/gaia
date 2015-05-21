@@ -4,7 +4,7 @@ var TaskManager = require('./lib/task_manager');
 var FakeApp = require('./lib/fakeapp');
 var assert = require('assert');
 var ReflowHelper =
-    require('../../../../tests/jsmarionette/reflow_helper.js');
+    require('../../../../tests/js-marionette/reflow_helper.js');
 
 marionette('Task Manager', function() {
   var firstAppOrigin  = 'fakeapp.gaiamobile.org';

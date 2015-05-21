@@ -793,10 +793,6 @@ test-integration-test: b2g
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
 
-.PHONY: test-marionette-logger
-test-marionette-logger: b2g node_modules
-	./node_modules/.bin/marionette-mocha $(wildcard tests/jsmarionette/marionette-js-logger/test/*.js)
-
 .PHONY: caldav-server-install
 caldav-server-install:
 	source tests/ci/venv.sh; \

@@ -2,7 +2,7 @@
 
 marionette('FontSizeUtils >', function() {
   var ReflowHelper =
-      require('../../../../tests/jsmarionette/reflow_helper.js');
+      require('../../../../tests/js-marionette/reflow_helper.js');
 
   var assert = require('assert');
 
