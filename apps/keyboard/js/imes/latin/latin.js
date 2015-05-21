@@ -723,6 +723,52 @@
       return;
     }
 
+    //
+    // If there was an exact match for the user input in the suggestions
+    // it has already been removed. Now we need to loop through again
+    // looking for approximate matches and bump those to the start of the
+    // list. A word is an approximate match if all the letters match
+    // when we ignore case, apostrophes and hyphens. The assumption here
+    // is that the user is not expected to have to use the shift key or
+    // the alternate forms menu or the punctuation menus. If they type all
+    // the right letters, a matching word should have higher priority than
+    // a non-matching word. In particular this code ensures that "im" gets
+    // autocorrected to "I'm" instead of "in" and "id" gets autocorrected to
+    // "I'd" instead of "is". (Bug 1164421)
+    //
+    // XXX In English, apostrophes and hyphens are the only punctuation that
+    // commonly occurs within words. If other wordlists include other
+    // punctuation, we may need to add them to the regular expression below.
+    //
+    // XXX In the future, we might want to generalize this to consider
+    // accented forms when looking for approximate matches. If "jose"
+    // was autocorrecting to "hose" instead of "José", for example, then
+    // we might need to extend the definition of an approximate match here.
+    // For now, I don't have any examples of corrections that are coming
+    // out incorrectly for accented letters, though, so am keeping this
+    // simple.
+    //
+    // We loop backward through the suggestions, bumping any approximate
+    // match to the start of the list. This ensures that the highest ranked
+    // approximate match comes before lower ranked approximate matches,
+    // and all approximate matches come before non-matching suggestions.
+    //
+    var i = suggestions.length - 1;
+    var approximateMatches = 0;  // how many approximate matches we've bumped
+    var lcInput = input.toLowerCase();
+    while (i > approximateMatches) {
+      if (suggestions[i][0].toLowerCase().replace(/[-']/g, '') === lcInput) {
+        // If this suggestion was an approximate match for the users input..
+        var match = suggestions[i];  // get the match,
+        suggestions.splice(i, 1);    // remove it,
+        suggestions.unshift(match);  // and put it back at the start.
+        approximateMatches++;        // Increment this instead of i-- here.
+      }
+      else {
+        i--;       // if not an approximate match move to next suggestion
+      }
+    }
+
     // Make sure we have no more than three words
     if (suggestions.length > 3)
       suggestions.length = 3;
