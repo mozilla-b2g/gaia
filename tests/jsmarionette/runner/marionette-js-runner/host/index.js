@@ -41,11 +41,6 @@ exports.help = {
       help: 'Path to b2g-bin when using buildapp=desktop'
     },
 
-    '--device-type': {
-      dest: 'device_type',
-      defaultValue: 'phone'
-    },
-
     '--dump-path': {
       dest: 'dump_path',
       defaultValue: process.cwd() + '/crash',
