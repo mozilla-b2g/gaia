@@ -15,7 +15,6 @@ params:
 # All task definitions
 definitions:
   build_unit:
-
   build_integration:
     chunks: 10
 
@@ -37,5 +36,3 @@ definitions:
     chunks: 30
 
   raptor_decision:
-
-  jsmarionette_unit_tests:

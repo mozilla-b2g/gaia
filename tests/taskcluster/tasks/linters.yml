@@ -5,17 +5,11 @@ task:
 
   workerType: '{{workerType}}'
   provisionerId: '{{provisionerId}}'
-  scopes:
-    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
-    image: quay.io/mozilla/gaia-taskenv:0.8.9
     command:
       - entrypoint
       - ./bin/ci run linters
-    env:
-      NODE_MODULES_SRC: npm-cache
-
   extra:
     treeherder:
       symbol: Li

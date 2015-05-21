@@ -1,8 +1,0 @@
-*/plugins/marionette-apps/test/*_test.js
-*/plugins/marionette-content-script/test/*_test.js
-*/plugins/marionette-file-manager/test/integration/*
-*/plugins/marionette-helper/test/*_test.js
-*/plugins/marionette-js-logger/test/*_test.js
-*/plugins/marionette-plugin-forms/test/integration/tests/*
-*/plugins/marionette-settings-api/test/*_test.js
-*/runner/marionette-js-runner/test/integration/*

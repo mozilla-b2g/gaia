@@ -2,7 +2,6 @@
 *.rej
 *.log
 *.orig
-*.pyc
 *.swp
 *.swn
 *.swo

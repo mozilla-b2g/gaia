@@ -1,2 +1,0 @@
-mozrunner >= 6.6
-mozprofile >= 0.21

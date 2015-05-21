@@ -13,23 +13,24 @@ marionette('Vertical Home - Packaged App Resuming Downloads', function() {
   var client = marionette.client(require(__dirname + '/client_options.js'));
 
   var server;
-  var subject;
-  var system;
-  var appInstall;
   setup(function(done) {
     var app = __dirname + '/fixtures/template_app';
     createAppServer(app, client, function(err, _server) {
       server = _server;
-
-      subject = client.loader.getAppClass('verticalhome');
-      system = client.loader.getAppClass('system');
-      appInstall = new AppInstall(client);
-
-      system.waitForStartup();
-      subject.waitForLaunch();
-
       done(err);
     });
+  });
+
+  var subject;
+  var system;
+  var appInstall;
+  setup(function() {
+    subject = client.loader.getAppClass('verticalhome');
+    system = client.loader.getAppClass('system');
+    appInstall = new AppInstall(client);
+
+    system.waitForStartup();
+    subject.waitForLaunch();
   });
 
   teardown(function(done) {

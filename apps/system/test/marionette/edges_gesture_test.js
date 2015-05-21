@@ -1,7 +1,7 @@
 'use strict';
 
 var ReflowHelper =
-    require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
+    require('../../../../tests/js-marionette/reflow_helper.js');
 
 var assert = require('assert');
 

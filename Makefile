@@ -707,6 +707,7 @@ endif
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
+
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 # modules.tar and git-gaia-node-modules are the possible values for
 # $(NODE_MODULES_SRC). See the node_modules target.
@@ -716,7 +717,7 @@ modules.tar: gaia_node_modules.revision $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_
 $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV): gaia_node_modules.revision
 	@echo Downloading latest node_modules package. This may take several minutes...
 	mkdir -p "$(NODE_MODULES_CACHEDIR)"
-	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/KevinGrandon/gaia-node-modules/tarball/$(NODE_MODULES_REV)
 
 gaia.zip: $(DEFAULT_KEYBOAD_SYMBOLS_FONT) $(DEFAULT_GAIA_ICONS_FONT) $(PROFILE_FOLDER)
 	@mkdir -p tmp/gaia tmp/gonk/system/fonts/hidden && cp -r $(PROFILE_FOLDER) tmp/gaia && \
@@ -730,32 +731,22 @@ git-gaia-node-modules: gaia_node_modules.revision
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 
-# npm-cache target is run when our node modules source is set to npm-cache
-# which is a pre-built set of node modules for the current platform +
-# node version present. The node modules selected for come from package.json.
-npm-cache:
-	@echo "Using pre-deployed cache."
-	npm rebuild marionette-js-runner
-	touch -c node_modules
-
 node_modules: gaia_node_modules.revision
 	# Running make without using a dependency ensures that we can run
 	# "make node_modules" with a custom NODE_MODULES_GIT_URL variable, and then
 	# run another target without specifying the variable
 	$(MAKE) $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
-else ifeq "$(NODE_MODULES_SRC)" "git-gaia-node-modules"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "KevinGrandon-gaia-node-modules-*/node_modules"
+else
 	rm -fr node_modules
 	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
 endif
-ifneq "$(NODE_MODULES_SRC)" "npm-cache"
 	node --version
 	npm --version
 	VIRTUALENV_EXISTS=$(VIRTUALENV_EXISTS) npm install && npm rebuild
 	@echo "node_modules installed."
 	touch -c $@
-endif
 ifeq ($(BUILDAPP),device)
 	export LANG=en_US.UTF-8;
 endif
@@ -801,17 +792,6 @@ test-integration-test: b2g
 	./bin/gaia-marionette \
 		--reporter $(REPORTER) \
 		--buildapp $(BUILDAPP)
-
-.PHONY: jsmarionette-unit-tests
-jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
-	PROFILE_FOLDER=$(PROFILE_FOLDER) ./tests/jsmarionette/run_tests.js
-
-tests/jsmarionette/runner/marionette-js-runner/venv:
-	# Install virtualenv
-	cd tests/jsmarionette/runner/marionette-js-runner && npm install
-	# Still want to use $GAIA/node_modules
-	rm -rf tests/jsmarionette/runner/marionette-js-runner/node_modules
-
 
 .PHONY: caldav-server-install
 caldav-server-install:

@@ -107,7 +107,7 @@
     },
 
     openUrl: function(url, isPrivate) {
-      /* jshint nonew: false */
+      /*jshint -W031 */
       new MozActivity({
         name: 'view',
         data: {
@@ -119,7 +119,7 @@
     },
 
     shareUrl: function(url) {
-      /* jshint nonew: false */
+      /*jshint -W031 */
       new MozActivity({
         name: 'share',
         data: {
@@ -132,7 +132,7 @@
     bookmarkUrl: function(url, name) {
       var favicons = this.app.favicons;
 
-      /* jshint nonew: false */
+      /*jshint -W031 */
       var data = {
         type: 'url',
         url: url,
