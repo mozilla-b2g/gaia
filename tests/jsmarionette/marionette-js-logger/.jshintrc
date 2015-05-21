@@ -1,0 +1,12 @@
+{
+  "extends": "../../.jshintrc",
+  "node": true,
+
+  "predef": [
+    "suite",
+    "suiteSetup",
+    "suiteTeardown",
+    "teardown",
+    "test"
+  ]
+}

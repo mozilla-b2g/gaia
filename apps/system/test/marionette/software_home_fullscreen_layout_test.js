@@ -4,7 +4,7 @@ var assert = require('assert');
 var appUrl = 'app://fullscreen_layout.gaiamobile.org';
 
 var ReflowHelper =
-    require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
+    require('../../../../tests/jsmarionette/reflow_helper.js');
 
 marionette('Software Home Button - Fullscreen Layout', function() {
 

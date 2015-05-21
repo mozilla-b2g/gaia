@@ -1,5 +1,0 @@
-{
-    "blacklist": {
-        "test/bin/fixtures/manifest-test-skip.js": "Bug 12345 - whatever bug I want."
-    }
-}

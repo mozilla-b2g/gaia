@@ -2,7 +2,7 @@
 
 var Dialer = require('./lib/dialer');
 var ReflowHelper =
-  require('../../../../../tests/jsmarionette/plugins/reflow_helper.js');
+  require('../../../../../tests/jsmarionette/reflow_helper.js');
 
 marionette('Dialer > Keypad', function() {
   var assert = require('assert');
