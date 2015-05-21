@@ -356,7 +356,7 @@
 
       debug('Waiting for applications to be ready');
       window.addEventListener('applicationready', function onAppsReady(evt) {
-        window.removeEventListener(onAppsReady);
+        window.removeEventListener('applicationready', onAppsReady);
         registerHandlers();
       });
     }
