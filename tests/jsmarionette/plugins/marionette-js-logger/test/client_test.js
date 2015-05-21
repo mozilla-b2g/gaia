@@ -178,7 +178,7 @@ suite('client', function() {
 
     client.logger.on('message', function onmessage(msg) {
       var index = remaining.indexOf(msg.message);
-      if (index !== -1) {
+      if (index === -1) {
         return;
       }
 
