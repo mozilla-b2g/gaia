@@ -254,6 +254,8 @@
         top.url == configuration.url) {
       return;
     }
+    // We need to blur the opener before opening the new one.
+    top.setNFCFocus(false);
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
     activity.open();

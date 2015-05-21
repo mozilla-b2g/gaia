@@ -298,6 +298,7 @@ suite('system/ChildWindowFactory', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var spy = this.sinon.spy(window, 'ActivityWindow');
     this.sinon.spy(app1, '_setVisibleForScreenReader');
+    this.sinon.spy(app1, 'setNFCFocus');
     new ChildWindowFactory(app1);
     app1.element.dispatchEvent(new CustomEvent('_launchactivity', {
       detail: fakeActivityDetail
@@ -306,6 +307,7 @@ suite('system/ChildWindowFactory', function() {
     assert.deepEqual(spy.getCall(0).args[0], fakeActivityDetail);
     assert.deepEqual(spy.getCall(0).args[1], app1);
     sinon.assert.calledWith(app1._setVisibleForScreenReader, false);
+    sinon.assert.calledWith(app1.setNFCFocus, false);
   });
 
   test('isApp support', function() {
