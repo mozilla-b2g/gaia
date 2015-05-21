@@ -38,7 +38,7 @@
 
     loading(false);
 
-    /* jshint nonew: false */
+    /* jshint -W031 */
     new Contextmenu(collection);
     new ViewApps(collection);
     new ViewBgImage(collection);
