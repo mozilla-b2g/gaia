@@ -4,11 +4,11 @@
           MockTVChannel */
 
 require('/bower_components/evt/index.js');
-require('/shared/test/unit/mocks/mock_tv_channel.js');
-require('/shared/test/unit/mocks/mock_tv_source.js');
-require('/shared/test/unit/mocks/mock_tv_tuner.js');
-require('/shared/test/unit/mocks/mock_tv_manager.js');
-require('/js/channel_manager.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_channel.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_source.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_tuner.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_manager.js');
+require('/shared/js/smart-screen/channel_manager.js');
 
 suite('tv-deck/channel_manager', function() {
 

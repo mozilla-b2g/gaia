@@ -6,6 +6,8 @@
     <title>Apps</title>
 
     <!-- stylesheets of building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/navigation.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/icons.css">
     <link rel="stylesheet" type="text/css" href="style/tv_epg.css">
 
     <!-- For test purpose on phone only -->
@@ -14,11 +16,21 @@
 
     <!-- Shared libraries -->
     <script src="shared/js/l10n.js"></script>
+    <script defer src="/shared/js/l10n_date.js"></script>
     <script src="shared/js/manifest_helper.js"></script>
+    <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
+    <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
+    <script defer src="shared/js/smart-screen/channel_manager.js"></script>
+    <script defer src="shared/js/smart-screen/fake_tv_service.js"></script>
+    <script defer src="shared/js/smart-screen/clock.js"></script>
 
     <!-- building blocks -->
 
     <!-- Specific code -->
+    <script defer src="js/epg_controller.js"></script>
+    <script defer src="js/epg.js"></script>
+    <script defer src="js/index.js"></script>
 
     <!-- L10n properties -->
     <meta name="defaultLanguage" content="en-US">
@@ -33,68 +45,24 @@
         <div id="top-container">
           <div id="header">
             <div id="label">TV Guide</div>
-            <div id="time"><span id="time-prefix">AM</span>9:45</div>
+            <div id="time"></div>
+            <div id="time-prefix"></div>
           </div>
           <div id="epg-container">
             <div id="epg-left">
               <div id="date">SAT, May 15</div>
               <div id="channel-list-container">
                 <ul id="channel-list">
-                  <li>102<span class="title">HLN</span></li>
-                  <li>103<span class="title">CNNHD</span></li>
-                  <li>104<span class="title">CNN</span></li>
-                  <li>105<span class="title">ESPNHD</span></li>
-                  <li>106<span class="title">ESPN</span></li>
-                  <li>107<span class="title">ABCHD</span></li>
-                  <li>108<span class="title">ABC</span></li>
                 </ul>
               </div>
             </div>
             <div id="epg-right">
               <div id="timeline-container">
                 <ul id="timeline">
-                  <li>9:30 PM</li>
-                  <li>10:00 PM</li>
-                  <li>10:30 PM</li>
-                  <li>11:00 PM</li>
-                  <li>11:30 PM</li>
-                  <li>00:00 AM</li>
                 </ul>
               </div>
               <div id="program-list-container">
                 <div id="program-list">
-                  <ul>
-                   <li data-duration="1">Forensic Files</li>
-                   <li data-duration="1">Forensic Files</li>
-                   <li data-duration="1">Nancy Grace</li>
-                   <li data-duration="1">Nancy Grace</li>
-                   <li data-duration="1">Nancy Grace</li>
-                   <li data-duration="1">Nancy Grace</li>
-                  </ul>
-                  <ul>
-                   <li data-duration="2">Anthony Bourdain: parts Unknown</li>
-                   <li data-duration="1">CNN International</li>
-                   <li data-duration="1">CNN International</li>
-                   <li data-duration="1">CNN International</li>
-                   <li data-duration="1">CNN International</li>
-                  </ul>
-                  <ul>
-                   <li data-duration="2">Anthony Bourdain: parts Unknown</li>
-                   <li data-duration="1">CNN International</li>
-                   <li data-duration="1">CNN International</li>
-                   <li data-duration="1">CNN International</li>
-                   <li data-duration="1">CNN International</li>
-                  </ul>
-                  <ul>
-                   <li data-duration="2">SportsCenter</li>
-                   <li data-duration="2">SportsCenter</li>
-                   <li data-duration="2">SportsCenter</li>
-                  </ul>
-                  <ul>
-                   <li data-duration="2" class="focus">SportsCenter</li>
-                   <li data-duration="2">SportsCenter</li>
-                   <li data-duration="2">SportsCenter</li>
-                  </ul>
                 </div>
               </div>
             </div>
@@ -115,10 +83,6 @@
           </div>
         </div>
       </section>
-      <menu type="context" id="context-menu">
-        <menuitem icon="" data-l10n-id="" id=""></menuitem>
-      </menu>
     </article>
   </body>
-
 </html>

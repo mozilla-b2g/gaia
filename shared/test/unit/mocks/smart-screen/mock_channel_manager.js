@@ -7,9 +7,19 @@
     this.isReady = true;
     this.playingState = {};
 
-    this.getTuner = function() {};
+    this.getTuner = function() {
+      return {
+        tuner: {
+          stream: 'stream'
+        }
+      };
+    };
 
-    this.getSource = function() {};
+    this.getSource = function() {
+      return {
+        channels: []
+      };
+    };
 
     this.getChannel = function() {};
 
@@ -48,3 +58,4 @@
 
   exports.MockChannelManager = MockChannelManager;
 }(window));
+
