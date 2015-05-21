@@ -33,6 +33,9 @@ definitions:
   marionette_js_tests:
     chunks: 30
 
+  marionette_js_tv_tests:
+    chunks: 5
+
   unit_tests_b2g:
     chunks: 30
 
