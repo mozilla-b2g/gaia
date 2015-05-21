@@ -1,6 +1,6 @@
 # Chunking task for gaia-ui-tests...
 ---
-reruns: 2
+reruns: 4
 task:
   metadata:
     name: 'Gaia ui tests {{chunk}}'
@@ -12,10 +12,8 @@ task:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
     - docker-worker:cache:gaia-misc-caches
-    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
-    image: quay.io/mozilla/gaia-taskenv:0.8.9
     cache:
       gaia-misc-caches: /home/tester/caches/
     # See: ci/gaia_ui_tests/script for how this ties into the built in
@@ -24,7 +22,6 @@ task:
       SUITE: functional
       THIS_CHUNK: '{{chunk}}'
       TOTAL_CHUNKS: '{{totalChunks}}'
-      NODE_MODULES_SRC: npm-cache
 
     command:
       - entrypoint
