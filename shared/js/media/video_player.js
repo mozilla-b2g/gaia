@@ -122,12 +122,14 @@ function VideoPlayer(container) {
     };
   }
 
-  function hidePoster() {
+  function hidePoster(playing) {
     poster.style.display = 'none';
-    poster.removeAttribute('src');
-    if (capturedFrame) {
-      URL.revokeObjectURL(capturedFrame);
-      capturedFrame = null;
+    if (!playing) {
+      poster.removeAttribute('src');
+      if (capturedFrame) {
+        URL.revokeObjectURL(capturedFrame);
+        capturedFrame = null;
+      }
     }
   }
 
@@ -169,7 +171,7 @@ function VideoPlayer(container) {
       // If we're displaying the poster image, we have to switch
       // to the player first. When the player is ready it wil call this
       // function again.
-      hidePoster();
+      hidePoster(true);
       showPlayer();
       return;
     }
