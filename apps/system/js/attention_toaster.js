@@ -76,7 +76,9 @@
           break;
 
         case '_closed':
-          this.processStateChange('init', evt.type);
+          window.requestAnimationFrame(() => {
+            this.processStateChange('init', evt.type);
+          });
           break;
 
         case '_lockscreen-appopened':
