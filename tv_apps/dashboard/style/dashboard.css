@@ -134,3 +134,9 @@ body[data-active-direction="left"] .background {
   left: -39rem;
   background-color: rgba(0, 0, 255, 0.3);
 }
+
+iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
+}

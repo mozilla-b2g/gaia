@@ -1,13 +1,21 @@
 'use strict';
 
-/* global Dashboard */
+/* global Dashboard, MocksHelper */
 
 require('/bower_components/evt/index.js');
 require('/shared/js/smart-screen/key_navigation_adapter.js');
+require('mock_app_widget.js');
 require('/js/dashboard.js');
+
+
+var MocksHelperForUnitTest = new MocksHelper([
+  'AppWidget'
+]).init();
 
 suite('Dashboard', function() {
   var dashboard;
+
+  MocksHelperForUnitTest.attachTestHelpers();
 
   setup(function() {
     dashboard = new Dashboard();
@@ -68,5 +76,15 @@ suite('Dashboard', function() {
     assert.equal(document.body.dataset.activeDirection, 'up');
     dashboard.onMove('left');
     assert.equal(document.body.dataset.activeDirection, 'up');
+  });
+
+  test('should expand bottom widget when moving down,' +
+       ' then shrink when moving back', function() {
+    dashboard.onMove('down');
+    assert.isTrue(
+                dashboard.widgets.down.toggleExpand.withArgs(true).calledOnce);
+    dashboard.onMove('up');
+    assert.isTrue(
+                dashboard.widgets.down.toggleExpand.withArgs(false).calledOnce);
   });
 });
