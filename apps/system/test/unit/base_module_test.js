@@ -21,9 +21,17 @@ suite('system/BaseModule', function() {
       BaseModule.lowerCapital('AppWindowManager'));
   });
 
+  test('parse module path', function() {
+    var module = BaseModule.parsePath('path/to/ModuleName');
+    assert.equal(module.path, 'path/to/');
+    assert.equal(module.name, 'ModuleName');
+  });
+
   test('object name to file name', function() {
     assert.deepEqual('/js/app_window_manager.js',
       BaseModule.object2fileName('AppWindowManager'));
+    assert.deepEqual('/js/path/to/module_name.js',
+      BaseModule.object2fileName('path/to/ModuleName'));
   });
 
   test('lazy load from an array of submodule strings', function(done) {
@@ -194,7 +202,7 @@ suite('system/BaseModule', function() {
         '_pre_handleEvent').returns(false);
       var spyFtuskip = fakeAppWindowManager._handle_ftuskip = this.sinon.spy();
       var ftuskipEvent = new CustomEvent('ftuskip');
-      
+
       window.dispatchEvent(ftuskipEvent);
       assert.isFalse(spy.called);
       assert.isFalse(spyFtuskip.called);
@@ -230,14 +238,17 @@ suite('system/BaseModule', function() {
   });
 
   suite('Submodule management', function() {
-    var fakeAppWindowManager, fakePromise;
+    var fakeAppWindowManager, fakeSubModule, fakePromise;
     setup(function() {
       fakePromise = new MockPromise();
       this.sinon.stub(BaseModule, 'lazyLoad', function() {
         return fakePromise;
       });
       window.FakeAppWindowManager = function() {};
-      window.FakeAppWindowManager.SUB_MODULES = ['FakeTaskManager'];
+      window.FakeAppWindowManager.SUB_MODULES = [
+        'FakeTaskManager',
+        'path/to/FakeSubModule'
+      ];
       BaseModule.create(window.FakeAppWindowManager, {
         name: 'FakeAppWindowManager'
       });
@@ -247,6 +258,12 @@ suite('system/BaseModule', function() {
       });
       fakeAppWindowManager = new window.FakeAppWindowManager();
       fakeAppWindowManager.start();
+      window.FakeSubModule = function() {};
+      BaseModule.create(window.FakeSubModule, {
+        name: 'FakeSubModule'
+      });
+      fakeSubModule = new window.FakeSubModule();
+      fakeSubModule.start();
     });
 
     teardown(function() {
@@ -257,9 +274,12 @@ suite('system/BaseModule', function() {
 
     test('submodule should be loaded', function() {
       var spy = fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
+      var spy2 = fakeAppWindowManager._fakeSubModule_loaded = this.sinon.spy();
       fakePromise.mFulfillToValue();
       assert.isDefined(fakeAppWindowManager.fakeTaskManager);
       assert.isTrue(spy.called);
+      assert.isDefined(fakeAppWindowManager.fakeSubModule);
+      assert.isTrue(spy2.called);
     });
 
     test('submodule loaded handler should be called if it exists', function() {
@@ -279,9 +299,12 @@ suite('system/BaseModule', function() {
       fakePromise.mFulfillToValue();
       var spyStop =
         this.sinon.stub(fakeAppWindowManager.fakeTaskManager, 'stop');
+      var spyStop2 =
+        this.sinon.stub(fakeAppWindowManager.fakeSubModule, 'stop');
 
       fakeAppWindowManager.stop();
       assert.isTrue(spyStop.called);
+      assert.isTrue(spyStop2.called);
     });
 
     test('submodule should not be started if the parent is already stopped',
