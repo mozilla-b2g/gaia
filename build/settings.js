@@ -282,6 +282,11 @@ function execute(config) {
     settings['devtools.qps.enabled'] = true;
   }
 
+  if (config.DOGFOOD === '1') {
+    settings['debug.performance_data.dogfooding'] = true;
+    settings['metrics.appusage.reportInterval'] = 24 * 60 * 60 * 1000;
+  }
+
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG === '1') {
