@@ -137,9 +137,11 @@ MediaRemoteControls.prototype._setupBluetooth = function(callback) {
   var self = this;
 
   // AVRCP commands use system message.
-  navigator.mozSetMessageHandler(
-    'media-button', this._commandHandler.bind(this)
-  );
+  if (navigator.mozSetMessageHandler) {
+    navigator.mozSetMessageHandler(
+      'media-button', this._commandHandler.bind(this)
+    );
+  }
 
   // bluetooth will be handled with BluetoothHelper
   // to send metadata and play status when those information are changed.
