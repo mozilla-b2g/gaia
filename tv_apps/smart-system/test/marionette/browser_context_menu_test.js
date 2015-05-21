@@ -27,6 +27,7 @@ marionette('Test Context Menu Events', function() {
   opts.apps[APP_HOST] = __dirname + '/../apps/' + APP_NAME;
 
   var client = marionette.client(opts);
+  var testOptions = { devices: ['tv'] };
   var actions;
   var system;
   var menuSelectors = [
@@ -50,7 +51,7 @@ marionette('Test Context Menu Events', function() {
 
   }
 
-  test('press enter on first menu', function() {
+  test('press enter on first menu', testOptions, function() {
     launchContextMenu();
     client.switchToFrame();
 
@@ -68,7 +69,7 @@ marionette('Test Context Menu Events', function() {
     assert.isFalse(firstMenu.displayed());
   });
 
-  test('press enter on second menu', function() {
+  test('press enter on second menu', testOptions, function() {
     launchContextMenu();
     client.switchToFrame();
 
@@ -89,7 +90,7 @@ marionette('Test Context Menu Events', function() {
     assert.isFalse(menu.displayed());
   });
 
-  test('press esc after menu shown', function() {
+  test('press esc after menu shown', testOptions, function() {
     launchContextMenu();
     client.switchToFrame();
 

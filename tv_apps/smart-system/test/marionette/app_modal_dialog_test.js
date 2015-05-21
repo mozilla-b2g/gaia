@@ -28,6 +28,7 @@ marionette('Test Modal Dialog Events', function() {
   opts.apps[APP_HOST] = __dirname + '/../apps/' + APP_NAME;
 
   var client = marionette.client(opts);
+  var testOptions = { devices: ['tv'] };
   var actions;
   var system;
   var appModalDialog;
@@ -61,109 +62,114 @@ marionette('Test Modal Dialog Events', function() {
     client.apps.switchToApp(APP_URL);
   }
 
-  test('[tv] alert modal dialog should disappear', function() {
-    launchModalDialogApp();
-    client.executeAsyncScript(function(options) {
-      window.wrappedJSObject.showDialog('alert', options.alert.message);
-      marionetteScriptFinished();
-    }, [options]);
-    client.switchToFrame();
+  test('alert modal dialog should disappear', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('alert', options.alert.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
 
-    appModalDialog.waitForDialogOpened(appModalDialog.alertDialog);
+      appModalDialog.waitForDialogOpened(appModalDialog.alertDialog);
 
-    assert.equal(appModalDialog.alertTitle.scriptWith(function(el) {
-      return el.textContent;
-    }), options.appName);
-    assert.equal(appModalDialog.alertMessage.scriptWith(function(el) {
-      return el.textContent;
-    }), options.alert.message);
+      assert.equal(appModalDialog.alertTitle.scriptWith(function(el) {
+        return el.textContent;
+      }), options.appName);
+      assert.equal(appModalDialog.alertMessage.scriptWith(function(el) {
+        return el.textContent;
+      }), options.alert.message);
 
-    appModalDialog.sendKeyToElement(appModalDialog.alertOk, Keys.enter);
-    appModalDialog.waitForDialogClosed(appModalDialog.alertDialog);
-  });
+      appModalDialog.sendKeyToElement(appModalDialog.alertOk, Keys.enter);
+      appModalDialog.waitForDialogClosed(appModalDialog.alertDialog);
+    });
 
-  test('[tv] prompt modal dialog should disappear - ok', function() {
-    launchModalDialogApp();
-    client.executeAsyncScript(function(options) {
-      window.wrappedJSObject.showDialog('prompt', options.prompt.message);
-      marionetteScriptFinished();
-    }, [options]);
-    client.switchToFrame();
+  test('prompt modal dialog should disappear - ok', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('prompt', options.prompt.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
 
-    appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
+      appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
 
-    assert.equal(appModalDialog.promptTitle.scriptWith(function(el) {
-      return el.textContent;
-    }), options.appName);
-    assert.equal(appModalDialog.promptMessage.scriptWith(function(el) {
-      return el.textContent;
-    }), options.prompt.message);
+      assert.equal(appModalDialog.promptTitle.scriptWith(function(el) {
+        return el.textContent;
+      }), options.appName);
+      assert.equal(appModalDialog.promptMessage.scriptWith(function(el) {
+        return el.textContent;
+      }), options.prompt.message);
 
-    appModalDialog.sendKeyToElement(appModalDialog.promptOk, Keys.enter);
-    appModalDialog.waitForDialogClosed(appModalDialog.promptDialog);
-  });
+      appModalDialog.sendKeyToElement(appModalDialog.promptOk, Keys.enter);
+      appModalDialog.waitForDialogClosed(appModalDialog.promptDialog);
+    });
 
-  test('[tv] prompt modal dialog should disappear - cancel', function() {
-    launchModalDialogApp();
-    client.executeAsyncScript(function(options) {
-      window.wrappedJSObject.showDialog('prompt', options.prompt.message);
-      marionetteScriptFinished();
-    }, [options]);
-    client.switchToFrame();
+  test('prompt modal dialog should disappear - cancel', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('prompt', options.prompt.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
 
-    appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
+      appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
 
-    assert.equal(appModalDialog.promptTitle.scriptWith(function(el) {
-      return el.textContent;
-    }), options.appName);
-    assert.equal(appModalDialog.promptMessage.scriptWith(function(el) {
-      return el.textContent;
-    }), options.prompt.message);
+      assert.equal(appModalDialog.promptTitle.scriptWith(function(el) {
+        return el.textContent;
+      }), options.appName);
+      assert.equal(appModalDialog.promptMessage.scriptWith(function(el) {
+        return el.textContent;
+      }), options.prompt.message);
 
-    appModalDialog.sendKeyToElement(appModalDialog.promptCancel, Keys.enter);
-    appModalDialog.waitForDialogClosed(appModalDialog.promptDialog);
-  });
+      appModalDialog.sendKeyToElement(appModalDialog.promptCancel, Keys.enter);
+      appModalDialog.waitForDialogClosed(appModalDialog.promptDialog);
+    });
 
-  test('[tv] confirm modal dialog should disappear - ok', function() {
-    launchModalDialogApp();
-    client.executeAsyncScript(function(options) {
-      window.wrappedJSObject.showDialog('confirm', options.confirm.message);
-      marionetteScriptFinished();
-    }, [options]);
-    client.switchToFrame();
+  test('confirm modal dialog should disappear - ok', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('confirm', options.confirm.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
 
-    appModalDialog.waitForDialogOpened(appModalDialog.confirmDialog);
+      appModalDialog.waitForDialogOpened(appModalDialog.confirmDialog);
 
-    assert.equal(appModalDialog.confirmTitle.scriptWith(function(el) {
-      return el.textContent;
-    }), options.appName);
-    assert.equal(appModalDialog.confirmMessage.scriptWith(function(el) {
-      return el.textContent;
-    }), options.confirm.message);
+      assert.equal(appModalDialog.confirmTitle.scriptWith(function(el) {
+        return el.textContent;
+      }), options.appName);
+      assert.equal(appModalDialog.confirmMessage.scriptWith(function(el) {
+        return el.textContent;
+      }), options.confirm.message);
 
-    appModalDialog.sendKeyToElement(appModalDialog.confirmOk, Keys.enter);
-    appModalDialog.waitForDialogClosed(appModalDialog.confirmDialog);
-  });
+      appModalDialog.sendKeyToElement(appModalDialog.confirmOk, Keys.enter);
+      appModalDialog.waitForDialogClosed(appModalDialog.confirmDialog);
+    });
 
-  test('[tv] confirm modal dialog should disappear - cancel', function() {
-    launchModalDialogApp();
-    client.executeAsyncScript(function(options) {
-      window.wrappedJSObject.showDialog('confirm', options.confirm.message);
-      marionetteScriptFinished();
-    }, [options]);
-    client.switchToFrame();
+  test('confirm modal dialog should disappear - cancel', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('confirm', options.confirm.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
 
-    appModalDialog.waitForDialogOpened(appModalDialog.confirmDialog);
+      appModalDialog.waitForDialogOpened(appModalDialog.confirmDialog);
 
-    assert.equal(appModalDialog.confirmTitle.scriptWith(function(el) {
-      return el.textContent;
-    }), options.appName);
-    assert.equal(appModalDialog.confirmMessage.scriptWith(function(el) {
-      return el.textContent;
-    }), options.confirm.message);
+      assert.equal(appModalDialog.confirmTitle.scriptWith(function(el) {
+        return el.textContent;
+      }), options.appName);
+      assert.equal(appModalDialog.confirmMessage.scriptWith(function(el) {
+        return el.textContent;
+      }), options.confirm.message);
 
-    appModalDialog.sendKeyToElement(appModalDialog.confirmCancel, Keys.enter);
-    appModalDialog.waitForDialogClosed(appModalDialog.confirmDialog);
-  });
+      appModalDialog.sendKeyToElement(appModalDialog.confirmCancel, Keys.enter);
+      appModalDialog.waitForDialogClosed(appModalDialog.confirmDialog);
+    });
 
 });
