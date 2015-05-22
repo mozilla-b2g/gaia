@@ -2686,7 +2686,13 @@ suite('system/AppWindow', function() {
     });
 
     test('uninstallSubComponents', function() {
+      var normalChannel = app.audioChannels.get('normal');
+      var contentChannel = app.audioChannels.get('content');
+      this.sinon.spy(normalChannel, 'destroy');
+      this.sinon.spy(contentChannel, 'destroy');
       app.uninstallSubComponents();
+      assert.ok(normalChannel.destroy.calledOnce);
+      assert.ok(contentChannel.destroy.calledOnce);
       assert.deepEqual(app.audioChannels, null);
     });
   });

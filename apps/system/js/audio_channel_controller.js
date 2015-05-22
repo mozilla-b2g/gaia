@@ -34,7 +34,6 @@
     if (app.isSystem) {
       window.addEventListener('mozChromeEvent', this);
     } else {
-      app.element.addEventListener('_destroyed', this);
       channel.addEventListener('activestatechanged', this);
     }
     this._states = {
@@ -66,10 +65,6 @@
           this._states.active = evt.target.result;
           this.publish('statechanged');
         };
-        break;
-
-      case '_destroyed':
-        this.publish('destroyed');
         break;
 
       case 'mozChromeEvent':
@@ -188,6 +183,10 @@
    */
   AudioChannelController.prototype.isVibrating = function() {
     return this._states.vibrating;
+  };
+
+  AudioChannelController.prototype.destroy = function() {
+    this.publish('destroyed');
   };
 
   /**

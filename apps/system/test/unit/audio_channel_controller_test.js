@@ -250,11 +250,6 @@ suite('system/AudioChannelController', function() {
         mockChannel._triggerDomRequestOnsuccess();
         assert.ok(subject.publish.withArgs('statechanged').calledOnce);
       });
-
-      test('Handle _destroyed event', function() {
-        mockApp.element.dispatchEvent(new CustomEvent('_destroyed'));
-        assert.ok(subject.publish.withArgs('destroyed').calledOnce);
-      });
     });
 
     suite('Deal with policies', function() {
@@ -395,6 +390,12 @@ suite('system/AudioChannelController', function() {
         subject._setVolume(1);
         assert.ok(mockChannel.setVolume.withArgs(1).calledOnce);
       });
+    });
+
+    test('Destroy', function() {
+      this.sinon.spy(subject, 'publish');
+      subject.destroy();
+      assert.ok(subject.publish.withArgs('destroyed').calledOnce);
     });
 
     test('Generate instance ID', function() {

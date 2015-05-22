@@ -21,7 +21,8 @@
     },
     proceedPolicy: function() {
       return this;
-    }
+    },
+    destroy: function() {}
   };
 
   exports.MockAudioChannelController = MockAudioChannelController;
