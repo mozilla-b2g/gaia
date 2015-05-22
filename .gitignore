@@ -65,7 +65,6 @@ manifest.appcache
 /distros/spark/outoftree_apps/
 
 /distribution/
-/node_modules/
 /.modules.tar
 /modules_tar_cachedir
 ENV/
@@ -78,5 +77,5 @@ mozilla-b2g-gaia-node-modules-*
 /.project
 /.settings
 
+node_modules/
 venv/
-
