@@ -7,8 +7,10 @@ var Server = require('../../../../shared/test/integration/server');
 marionette('Import App', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.apps.developer_mode': true
+    profile: {
+      prefs: {
+        'dom.apps.developer_mode': true
+      }
     }
   });
 

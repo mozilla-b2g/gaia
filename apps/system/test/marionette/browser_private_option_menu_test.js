@@ -7,8 +7,10 @@ var assert = require('chai').assert;
 marionette('Private Browser - option menu', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 

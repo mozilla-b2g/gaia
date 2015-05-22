@@ -3,12 +3,14 @@
 marionette('Software Home Button - Lockscreen Power Menu', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': true,
-      'lockscreen.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true,
+        'lockscreen.enabled': true
+      }
     }
   });
   var system;

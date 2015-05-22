@@ -51,8 +51,8 @@ passed into `marionette-mocha` (see --help) can be placed in this file.
 ## `marionette` (suite/describe like a api)
 
 The marionette function is a wrapper around mocha's suite/describe blocks.
-They expose an additional field (a filter) which is an object which describes under which 
-conditions a test may execute. 
+They expose an additional field (a filter) which is an object which describes under which
+conditions a test may execute.
 
 The filter is matched vs metadata from the particular host (like firefox / b2g-desktop ) the test is running on.
 [Example host metadata](https://github.com/mozilla-b2g/marionette-b2gdesktop-host/blob/105552c46f0e384627bce19b242f2de94e06c633/index.js#L33)
@@ -69,7 +69,7 @@ marionette('firefox only', { host: 'firefox' }, function() {
 
 // executed when firefox is the host OR b2g-desktop
 marionette('b2g desktop or firefox', { host: ['firefox', 'b2g-desktop'] }, function() {
-  
+
 });
 ```
 
@@ -81,14 +81,14 @@ The default client has no profile options and is sync.
 ```js
 marionette('github.com', function() {
   var github = 'http://github.com';
-  
+
   // no options are required by default.
   var client = marionette.client();
-  
+
   setup(function() {
     client.goUrl(github);
   });
-  
+
   test('logging into github', function() {
     // do stuff with the client
   });
@@ -100,22 +100,24 @@ Clients can be configured to have custom profiles. For instance, let's say you w
 ```js
 marionette('my custom app', function() {
   var client = marionette.client({
-    // see for options https://github.com/mozilla-b2g/mozilla-profile-builder
-    prefs: { 
-      // see about:config too
-      'devtools.inspector.markupPreview': true
-    },
-    settings: { 
-      // turn off lockscreen
-      "lockscreen.locked": false 
-    },
-    
-    // install a packaged app
-    apps: {
-      'domain-name-of-my-amazing-app.com': '/path/to/app'      
+    profile: {
+      // see for options https://github.com/mozilla-b2g/mozilla-profile-builder
+      prefs: {
+        // see about:config too
+        'devtools.inspector.markupPreview': true
+      },
+      settings: {
+        // turn off lockscreen
+        "lockscreen.locked": false
+      },
+
+      // install a packaged app
+      apps: {
+        'domain-name-of-my-amazing-app.com': '/path/to/app'
+      }
     }
   });
-  
+
   // ... do stuff with your client
 })
 ```
@@ -126,16 +128,18 @@ which means each marionette operation blocks (you can't really run servers in th
 
 ```js
 marionette('be async man', function() {
-  var client = marionette.client({}, require('marionette-client').Drivers.Tcp);
-  
+  var client = marionette.client({
+    driver: require('marionette-client').Drivers.Tcp
+  });
+
   // imagine this is used to create an http server in this process
   var http = require('http');
 
-  
+
   test('talk to the server in this process', function(done) {
     client.goUrl('http://localhost:port', function(err) {
       if (err) return done(err);
-      
+
       // perform some other actions..
       done();
     });
@@ -149,7 +153,7 @@ Multiple clients can also be created.
 marionette('I like sending emails to myself', function() {
   var clientA = marionette.client();
   var clientB = marionette.client();
-  
+
   // do something fancy like send an email from one client to another
 });
 ```
@@ -170,23 +174,23 @@ marionette.plugin('apps', require('marionette-apps'));
 marionette('my local test', function() {
   var client = marionette.client();
   var origin = 'app://calendar.gaiamobile.org';
-  
+
   // this plugin only exists inside the current "marionette(function() { ... })" block
   marionette.plugin('myplugin', function(client) {
     return {
       doStuff: function() {}
     };
   });
-  
+
   setup(function() {
     client.apps.launch(origin);
     client.apps.switchToApp(origin);
   });
-  
+
   test('that calendar works', function() {
     // do some calendar testing inside of its frame
   });
-  
+
   test('myplugin', function() {
     // leverage your custom plugin
     client.myplugin.doStuff();

@@ -4,7 +4,7 @@ var assert = require('assert');
 var GtPanels = require('./lib/panels/ftu_guided_tour');
 
 marionette('first time use', function() {
-  var client = marionette.client({});
+  var client = marionette.client();
   var subject;
 
   setup(function() {

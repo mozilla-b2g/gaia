@@ -9,12 +9,14 @@ marionette('Homescreen navigation >', function() {
   var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
   var client = marionette.client({
-    prefs: {
-      'devtools.debugger.forbid-certified-apps': false
-    },
-    settings: {
-      'devtools.overlay': true,
-      'hud.reflows': true
+    profile: {
+      prefs: {
+        'devtools.debugger.forbid-certified-apps': false
+      },
+      settings: {
+        'devtools.overlay': true,
+        'hud.reflows': true
+      }
     }
   });
 

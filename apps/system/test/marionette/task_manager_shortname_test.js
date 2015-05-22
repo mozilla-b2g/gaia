@@ -10,7 +10,9 @@ marionette('Task Manager w/Short Name', function() {
   apps[shortAppOrigin] = __dirname + '/../apps/shortnameapp';
 
   var client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var actions;

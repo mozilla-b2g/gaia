@@ -11,7 +11,9 @@ var createAppServer = require('./server/parent');
 var iconAppState = require('./lib/icon_app_state');
 
 marionette('Vertical Home - Packaged App Update', function() {
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
 
   var server;
   setup(function(done) {

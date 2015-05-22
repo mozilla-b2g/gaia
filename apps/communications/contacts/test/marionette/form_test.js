@@ -11,7 +11,7 @@ var Contacts = require('./lib/contacts'),
     // Gallery = require('../../../../gallery/test/marionette/lib/gallery');
 
 marionette('Contacts > Form', function() {
-  var client = marionette.client(Contacts.config),
+  var client = marionette.client({ profile: Contacts.config }),
     subject,
     contactsData,
     dialerSubject,

@@ -17,11 +17,13 @@ suite('MarionetteHelper.fillInputFieldAndtapSelectOption', function() {
 
   var testTime;
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: apps
+    profile: {
+      settings: {
+        'ftu.manifestURL': null,
+        'lockscreen.enabled': false
+      },
+      apps: apps
+    }
   });
 
   // We add lead zero on single digit. ex: 1 -> 01, 9 -> 09.

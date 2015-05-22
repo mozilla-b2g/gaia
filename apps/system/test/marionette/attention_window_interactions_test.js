@@ -8,7 +8,9 @@ marionette('AttentionWindow interactions', function() {
   apps[FakeLoopApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakeloopapp';
 
   var client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var system, fakeLoop, utilityTray;

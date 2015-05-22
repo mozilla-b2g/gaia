@@ -17,11 +17,13 @@ suite('MarionetteHelper.closest', function() {
 
   var testTime;
   var client = marionette.client({
-    settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
-    },
-    apps: apps
+    profile: {
+      settings: {
+        'ftu.manifestURL': null,
+        'lockscreen.enabled': false
+      },
+      apps: apps
+    }
   });
 
   setup(function(done) {

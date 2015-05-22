@@ -14,7 +14,9 @@ marionette('Sound manager tests', function() {
     __dirname + '/../apps/fakenotificationapp';
 
   var client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var soundToast;

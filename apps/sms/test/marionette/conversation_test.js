@@ -9,7 +9,9 @@ marionette('Conversation Panel Tests', function() {
   var apps = {};
 
   var client = marionette.client({
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var messagesApp;

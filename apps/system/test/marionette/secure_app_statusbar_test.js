@@ -5,15 +5,17 @@ var StatusBar = require('./lib/statusbar.js');
 marionette('Secure app (camera from lockscreen) statusbar icons', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': true
-    },
-    apps: {
-      'fullscreen_request.gaiamobile.org':
-        __dirname + '/../apps/fullscreen_request'
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      },
+      apps: {
+        'fullscreen_request.gaiamobile.org':
+          __dirname + '/../apps/fullscreen_request'
+      }
     }
   });
 

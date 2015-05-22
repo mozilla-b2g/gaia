@@ -21,16 +21,18 @@ var TcMainPanel = require('./lib/panels/tc_main');
 marionette('transparency control panels', function() {
 
   var client = marionette.client({
-    settings: {
-      'privacy-panel-gt-complete': true
-    },
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    apps: {
-      'mighty.duck.com':     __dirname + '/apps/mighty-duck',
-      'chubby.unicorn.com':  __dirname + '/apps/chubby-unicorn',
-      'flying.platypus.com': __dirname + '/apps/flying-platypus'
+    profile: {
+      settings: {
+        'privacy-panel-gt-complete': true
+      },
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      apps: {
+        'mighty.duck.com':     __dirname + '/apps/mighty-duck',
+        'chubby.unicorn.com':  __dirname + '/apps/chubby-unicorn',
+        'flying.platypus.com': __dirname + '/apps/flying-platypus'
+      }
     }
   });
 

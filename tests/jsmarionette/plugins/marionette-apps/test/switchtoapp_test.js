@@ -16,7 +16,7 @@ marionette('launch', function() {
     }
   };
 
-  var client = marionette.client(profile);
+  var client = marionette.client({ profile: profile });
   marionette.plugin('mozApps', require('../lib/apps'));
 
   suite('switch to running app', function() {

@@ -5,11 +5,13 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Software Home Button - Permission Prompt', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
   var home, rocketbar, system;

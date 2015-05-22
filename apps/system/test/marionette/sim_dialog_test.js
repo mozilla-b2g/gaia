@@ -8,8 +8,10 @@ marionette('Sim Dialog:', function() {
   var submitBtn = '#simpin-dialog button[type=submit]';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 

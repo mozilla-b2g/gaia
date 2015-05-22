@@ -16,10 +16,12 @@ marionette('MarionetteFileManager', function() {
   var deviceStoragePath = '';
 
   var client = marionette.client({
-    prefs: {
-      'device.storage.enabled': true,
-      'device.storage.testing': true,
-      'device.storage.prompt.testing': true
+    profile: {
+      prefs: {
+        'device.storage.enabled': true,
+        'device.storage.testing': true,
+        'device.storage.prompt.testing': true
+      }
     }
   });
   marionette.plugin('fileManager', require('../../index'));

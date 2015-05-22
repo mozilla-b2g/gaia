@@ -5,8 +5,10 @@ var StatusBar = require('./lib/statusbar');
 marionette('Status Bar icons - Alarm', function() {
 
   var client = marionette.client({
-    settings: {
-      'alarm.enabled': true
+    profile: {
+      settings: {
+        'alarm.enabled': true
+      }
     }
   });
 

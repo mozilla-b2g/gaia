@@ -7,11 +7,13 @@ var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 marionette('Software Home Button - Update Dialog Confirm', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-      'software-button.enabled': false
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': false
+      }
     }
   });
 

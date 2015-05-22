@@ -9,9 +9,11 @@ var UtilityTray = require('./lib/utility_tray');
 
 marionette('Statusbar colors', function() {
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': true,
-      'software-button.enabled': true
+    profile: {
+      settings: {
+        'lockscreen.enabled': true,
+        'software-button.enabled': true
+      }
     }
   });
 

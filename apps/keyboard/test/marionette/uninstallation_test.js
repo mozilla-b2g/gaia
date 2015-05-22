@@ -39,12 +39,14 @@ marionette('Show Keyboard App after uninstallation', function() {
   };
 
   client = marionette.client({
-    apps: apps,
-    prefs: {
-      'focusmanager.testmode': true
-    },
-    settings: {
-     'keyboard.enabled-layouts': keyboardSettings
+    profile: {
+      apps: apps,
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+       'keyboard.enabled-layouts': keyboardSettings
+      }
     }
   });
 

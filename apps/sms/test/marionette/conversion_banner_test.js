@@ -10,11 +10,13 @@ marionette('Message Type Conversion Banner', function() {
   var apps = {};
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true
-    },
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
 
-    apps: apps
+      apps: apps
+    }
   });
 
   var messagesApp, composer, inbox;

@@ -8,8 +8,10 @@ var FULLSCREENNAVAPP = __dirname + '/../apps/fullscreennavapp';
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   var client = marionette.client({
-    apps: {
-      'fullscreennavapp.gaiamobile.org': FULLSCREENNAVAPP,
+    profile: {
+      apps: {
+        'fullscreennavapp.gaiamobile.org': FULLSCREENNAVAPP,
+      }
     }
   });
 

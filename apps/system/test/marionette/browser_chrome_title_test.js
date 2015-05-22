@@ -6,9 +6,11 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Browser Chrome - Title content', function() {
 
   var client = marionette.client({
-    apps: {
-      'fakechromenavapp.gaiamobile.org':
-        __dirname + '/../apps/fakechromenavapp',
+    profile: {
+      apps: {
+        'fakechromenavapp.gaiamobile.org':
+          __dirname + '/../apps/fakechromenavapp',
+      }
     }
   });
 

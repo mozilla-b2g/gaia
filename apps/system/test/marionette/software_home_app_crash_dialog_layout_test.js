@@ -5,8 +5,10 @@ var assert = require('chai').assert;
 marionette('Software Home Button - App Crash Report Layout', function() {
 
   var client = marionette.client({
-    settings: {
-      'software-button.enabled': true
+    profile: {
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
   var home, system;
