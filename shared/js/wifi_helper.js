@@ -10,44 +10,45 @@ var WifiHelper = {
     return navigator.mozWifiManager;
   },
 
-  setPassword: function(network, password, identity, eap, phase2, certificate) {
-    var encType = this.getKeyManagement(network);
-    switch (encType) {
-      case 'WPA-PSK':
-        network.psk = password;
-        break;
-      case 'WPA-EAP':
-        network.eap = eap;
-        switch (eap) {
-          case 'SIM':
-            break;
-          case 'PEAP':
-          case 'TLS':
-          case 'TTLS':
-            if (password && password.length) {
-              network.password = password;
-            }
-            if (identity && identity.length) {
-              network.identity = identity;
-            }
-            if (phase2 != 'No') {
-              network.phase2 = phase2;
-            }
-            if (certificate != 'none') {
-              network.serverCertificate = certificate;
-            }
-            break;
-          default:
-            break;
-        }
-        break;
-      case 'WEP':
-        network.wep = password;
-        break;
-      default:
-        return;
-    }
-    network.keyManagement = encType;
+  setPassword: function(network, password, identity, eap, phase2,
+    serverCertificate) {
+      var encType = this.getKeyManagement(network);
+      switch (encType) {
+        case 'WPA-PSK':
+          network.psk = password;
+          break;
+        case 'WPA-EAP':
+          network.eap = eap;
+          switch (eap) {
+            case 'SIM':
+              break;
+            case 'PEAP':
+            case 'TLS':
+            case 'TTLS':
+              if (password && password.length) {
+                network.password = password;
+              }
+              if (identity && identity.length) {
+                network.identity = identity;
+              }
+              if (phase2 !== 'No') {
+                network.phase2 = phase2;
+              }
+              if (serverCertificate !== 'none') {
+                network.serverCertificate = serverCertificate;
+              }
+              break;
+            default:
+              break;
+          }
+          break;
+        case 'WEP':
+          network.wep = password;
+          break;
+        default:
+          return;
+      }
+      network.keyManagement = encType;
   },
 
   setSecurity: function(network, encryptions) {

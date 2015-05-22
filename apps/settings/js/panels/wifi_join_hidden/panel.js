@@ -67,7 +67,6 @@ define(function(require) {
           !WifiHelper.isValidInput(key, password, identity, eap);
 
         WifiHelper.setSecurity(network, [key]);
-        WifiUtils.changeDisplay(elements.panel, key);
       },
       _onSSIDchange: function(event) {
         // Bug 1082394, during composition, we should not change the input

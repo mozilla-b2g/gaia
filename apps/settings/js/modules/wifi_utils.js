@@ -105,57 +105,6 @@ define(function(require) {
     },
 
     /**
-     * Change dialog layout based on dialogId and security
-     *
-     * @memberOf WifiUtils
-     * @param {HTMLElement} panel
-     * @param {String} security
-     */
-    changeDisplay: function(panel, security) {
-      var eap = panel.querySelector('li.eap select');
-      var identity = panel.querySelector('input[name=identity]');
-      var password = panel.querySelector('input[name=password]');
-      var authPhase2 = panel.querySelector('li.auth-phase2 select');
-      var certificate = panel.querySelector('li.server-certificate select');
-      var description =
-        panel.querySelector('li.server-certificate-description');
-
-      if (security === 'WEP' || security === 'WPA-PSK') {
-        identity.parentNode.style.display = 'none';
-        password.parentNode.style.display = 'block';
-        authPhase2.parentNode.parentNode.style.display = 'none';
-        certificate.parentNode.parentNode.style.display = 'none';
-        description.style.display = 'none';
-      } else if (security === 'WPA-EAP') {
-        if (eap) {
-          switch (eap.value) {
-            case 'SIM':
-              identity.parentNode.style.display = 'none';
-              password.parentNode.style.display = 'none';
-              authPhase2.parentNode.parentNode.style.display = 'none';
-              certificate.parentNode.parentNode.style.display = 'none';
-              description.style.display = 'none';
-              break;
-            case 'PEAP':
-            case 'TLS':
-            case 'TTLS':
-              identity.parentNode.style.display = 'block';
-              password.parentNode.style.display = 'block';
-              authPhase2.parentNode.parentNode.style.display = 'block';
-              certificate.parentNode.parentNode.style.display = 'block';
-              description.style.display = 'block';
-              break;
-            default:
-              break;
-          }
-        }
-      } else {
-        identity.parentNode.style.display = 'none';
-        password.parentNode.style.display = 'none';
-      }
-    },
-
-    /**
      * This is used to help us do some initialization works if the panel
      * is auth related.
      *
@@ -170,11 +119,18 @@ define(function(require) {
       var password = panel.querySelector('input[name=password]');
       var showPassword = panel.querySelector('input[name=show-pwd]');
       var eap = panel.querySelector('li.eap select');
-      var certificate = panel.querySelector('li.server-certificate select');
+      var security = panel.querySelector('li.security select');
+      var userCertificate = panel.querySelector('li.user-certificate select');
+      var serverCertificate =
+        panel.querySelector('li.server-certificate select');
       var submitButton = panel.querySelector('button[type=submit]');
 
       // load needed certificates first
-      this.loadImportedCertificateOptions(certificate);
+      this.loadImportedCertificateOptions(serverCertificate);
+
+      // TODO
+      // change this to real user certificate API
+      this.loadImportedCertificateOptions(userCertificate);
 
       identity.value = network.identity || '';
 
@@ -200,9 +156,16 @@ define(function(require) {
             eap.value) || isSSIDInvalid();
       };
 
+      if (security) {
+        security.onchange = function() {
+          panel.dataset.security = security.value;
+          eap.onchange();
+        };
+      }
+
       eap.onchange = function() {
+        panel.dataset.eap = eap.value;
         checkPassword();
-        WifiUtils.changeDisplay(panel, key);
       };
 
       if (ssid) {

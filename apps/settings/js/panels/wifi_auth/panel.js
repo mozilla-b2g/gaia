@@ -17,19 +17,22 @@ define(function(require) {
         elements.showPassword = panel.querySelector('input[name=show-pwd]');
         elements.eap = panel.querySelector('li.eap select');
         elements.authPhase2 = panel.querySelector('li.auth-phase2 select');
-        elements.certificate =
+        elements.userCertificate =
+          panel.querySelector('li.user-certificate select');
+        elements.serverCertificate =
           panel.querySelector('li.server-certificate select');
       },
       onBeforeShow: function(panel, options) {
         var network = options.network;
+        var security = options.security;
+
+        panel.dataset.security = security;
         WifiUtils.initializeAuthFields(panel, network);
-        WifiUtils.changeDisplay(panel, options.security);
 
-        panel.dataset.security = options.security;
         elements.ssid.textContent = network.ssid;
-
         elements.signal.setAttribute('data-l10n-id',
-                                     'signalLevel' + options.sl);
+          'signalLevel' + options.sl);
+
         if (options.security) {
           elements.security.removeAttribute('data-l10n-id');
           elements.security.textContent = options.security;
@@ -43,12 +46,14 @@ define(function(require) {
         elements.showPassword.checked = false;
       },
       onSubmit: function() {
+        // TODO
+        // add user certificate back to caller
         return Promise.resolve({
           password: elements.password.value,
           identity: elements.identity.value,
           eap: elements.eap.value,
           authPhase2: elements.authPhase2.value,
-          certificate: elements.certificate.value
+          serverCertificate: elements.serverCertificate.value
         });
       }
     });
