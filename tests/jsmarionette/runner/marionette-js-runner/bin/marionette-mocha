@@ -42,13 +42,13 @@ parser.addArgument(['--help'], {
 parser.addArgument(['--ui'], {
   type: 'string',
   help: 'Marionette specific mocha ui to use',
-  defaultValue: __dirname + '/../lib/ui'
+  defaultValue: fsPath.normalize(__dirname + '/../lib/ui'),
 });
 
 parser.addArgument(['--host'], {
   type: require,
   help: 'host module to use defaults to marionette-b2gdesktop-host',
-  defaultValue: __dirname + '/../host'
+  defaultValue: fsPath.normalize(__dirname + '/../host'),
 });
 
 parser.addArgument(['--reporter'], {
