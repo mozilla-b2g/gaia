@@ -5,6 +5,7 @@ var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
+var Storage = require('./lib/storage.js');
 
 marionette('Messages Drafts', function() {
   var MOCKS = [
@@ -26,7 +27,7 @@ marionette('Messages Drafts', function() {
     }
   });
 
-  var messagesApp, activityCallerApp;
+  var messagesApp, activityCallerApp, storage;
 
   function createAndSaveDraft(draft) {
     // Add text content.
@@ -104,6 +105,7 @@ marionette('Messages Drafts', function() {
   setup(function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
+    storage = Storage.create(client);
 
     MOCKS.forEach(function(mock) {
       client.contentScript.inject(__dirname + mock);
@@ -111,7 +113,7 @@ marionette('Messages Drafts', function() {
   });
 
   suite('Messages Drafts Test Suite', function() {
-    var smsMessage, draft, storage;
+    var smsMessage, draft, messagesStorage;
     setup(function() {
       smsMessage = {
         id: 1,
@@ -132,7 +134,7 @@ marionette('Messages Drafts', function() {
         shouldHaveAttachment: true
       };
 
-      storage = [{
+      messagesStorage = [{
         id: smsMessage.threadId,
         body: smsMessage.body,
         lastMessageType: smsMessage.type,
@@ -142,7 +144,7 @@ marionette('Messages Drafts', function() {
       }];
 
       messagesApp.launch();
-      messagesApp.setStorage(storage);
+      storage.setMessagesStorage(messagesStorage);
     });
 
     test('Draft is correctly saved', function() {
@@ -155,7 +157,7 @@ marionette('Messages Drafts', function() {
       // Relaunch application and verify draft is persisted.
       messagesApp.close();
       messagesApp.launch();
-      messagesApp.setStorage(storage);
+      storage.setMessagesStorage(messagesStorage);
 
       assertDraft(draft);
     });
@@ -174,7 +176,7 @@ marionette('Messages Drafts', function() {
       // Relaunch application and verify draft is persisted.
       messagesApp.close();
       messagesApp.launch();
-      messagesApp.setStorage(storage);
+      storage.setMessagesStorage(messagesStorage);
 
       assertDraft(draft);
     });

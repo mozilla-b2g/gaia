@@ -5,6 +5,7 @@
 var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
+var Storage = require('./lib/storage.js');
 
 marionette('Message Type Conversion Banner', function() {
   var apps = {};
@@ -19,7 +20,7 @@ marionette('Message Type Conversion Banner', function() {
     }
   });
 
-  var messagesApp, composer, inbox;
+  var messagesApp, storage, composer, inbox;
 
   function assertIsDisplayed(element) {
     assert.isTrue(element.displayed(), 'Element should be displayed');
@@ -49,6 +50,8 @@ marionette('Message Type Conversion Banner', function() {
 
   setup(function() {
     messagesApp = Messages.create(client);
+    storage = Storage.create(client);
+
     composer = messagesApp.Composer;
     inbox = messagesApp.Inbox;
 
@@ -66,7 +69,7 @@ marionette('Message Type Conversion Banner', function() {
   suite('Message Type Conversion Banner for new threads', function() {
     setup(function() {
       messagesApp.launch();
-      messagesApp.setStorage();
+      storage.setMessagesStorage();
 
       inbox.navigateToComposer();
     });
@@ -165,7 +168,7 @@ marionette('Message Type Conversion Banner', function() {
       };
 
       messagesApp.launch();
-      messagesApp.setStorage([smsThread, mmsThread], uniqueIdCounter);
+      storage.setMessagesStorage([smsThread, mmsThread], uniqueIdCounter);
     });
 
     test('The banner is not shown after sending another message',

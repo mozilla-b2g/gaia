@@ -5,8 +5,16 @@ var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
+var Storage = require('./lib/storage.js');
 
 marionette('Messages as "new" activity target', function() {
+  var MOCKS = [
+    '/mocks/mock_test_storages.js',
+    '/mocks/mock_navigator_moz_icc_manager.js',
+    '/mocks/mock_navigator_moz_mobile_message.js',
+    '/mocks/mock_navigator_moz_contacts.js'
+  ];
+
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
@@ -17,8 +25,7 @@ marionette('Messages as "new" activity target', function() {
     }
   });
 
-  var messagesApp,
-      activityCallerApp;
+  var messagesApp, activityCallerApp, storage;
 
   function launchAsActivity(activityData) {
     var smsMessage = {
@@ -35,13 +42,22 @@ marionette('Messages as "new" activity target', function() {
 
     activityCallerApp.sendMessage(activityData);
     messagesApp.switchTo();
-    messagesApp.setStorage([{
+
+    storage.setMessagesStorage([{
       id: smsMessage.threadId,
       body: smsMessage.body,
       lastMessageType: smsMessage.type,
       timestamp: smsMessage.timestamp,
       messages: [smsMessage],
       participants: [smsMessage.receiver]
+    }]);
+
+    storage.setContactsStorage([{
+      name: ['Alan Turing'],
+      tel: [{
+        value: '+100',
+        type: 'Mobile'
+      }]
     }]);
   }
 
@@ -54,16 +70,11 @@ marionette('Messages as "new" activity target', function() {
   setup(function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
+    storage = Storage.create(client);
 
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_test_storages.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(__dirname + mock);
+    });
   });
 
   suite('Send new message', function() {
@@ -140,6 +151,27 @@ marionette('Messages as "new" activity target', function() {
       assert.equal(recipients.length, 1);
       assert.equal(recipients[0].text(), number);
       assert.equal(recipients[0].getAttribute('data-source'), 'manual');
+
+      assert.isTrue(messagesApp.Composer.sendButton.enabled());
+
+      assertIsFocused(
+        messagesApp.Composer.messageInput, 'Message input should be focused'
+      );
+    });
+
+    test('Activity with "body" and contact "number"', function() {
+      // Send message to number that has contact associated with it
+      launchAsActivity({ number: '+100', body: content });
+
+      // Wait until message input is filled with the content
+      client.scope({ searchTimeout: 100 }).waitFor(function() {
+        return messagesApp.Composer.messageInput.text() === content;
+      });
+
+      var recipients = messagesApp.Composer.recipients;
+      assert.equal(recipients.length, 1);
+      assert.equal(recipients[0].text(), 'Alan Turing');
+      assert.equal(recipients[0].getAttribute('data-source'), 'contacts');
 
       assert.isTrue(messagesApp.Composer.sendButton.enabled());
 
