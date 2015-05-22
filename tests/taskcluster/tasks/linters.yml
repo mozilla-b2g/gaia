@@ -9,6 +9,7 @@ task:
     - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
+    maxRunTime: 600
     image: quay.io/mozilla/gaia-taskenv:0.8.9
     command:
       - entrypoint
