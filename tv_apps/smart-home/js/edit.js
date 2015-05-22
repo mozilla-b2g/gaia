@@ -159,6 +159,7 @@
         case 'left':
         case 'right':
           if (!focus.isHovering && targetItem &&
+              focus.currentItem.getAttribute('app-type') !== 'deck' &&
               focus.currentItem.getAttribute('app-type') !== 'folder' &&
               targetItem.getAttribute('app-type') === 'folder') {
             // hover on folder
@@ -291,13 +292,14 @@
       this.cardManager.removeCard(this._hoveringCard);
     },
 
+    /**
+     * Runs after moveToFolder call, when the hovering card is successfully
+     * removed by cardManager and the node is removed from cardScrollable.
+     */
     onHoveringNodeRemoved: function(cardItem, folderItem) {
       var card = this._hoveringCard;
       var folder = this.cardManager.findCardFromCardList(
                     {cardId: folderItem.dataset.cardId});
-      // TODO: Align the folderScrollable with the folder,
-      // leave this in bug 1158665
-      // this.folderScrollable.setReferenceElement(folderItem);
       // Add the card into the folder
       folder.addCard(card, this.folderScrollable.isReversed ? null : 0);
       this._hoveringCard = null;

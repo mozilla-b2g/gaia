@@ -731,6 +731,9 @@
 
       if (folderList.length === 0) {
         this.edit.isFolderReady = true;
+        // Needs to disable the folder-list animation right away to
+        // prevent it from affecting the new-card into folder animation.
+        this.folderListElem.style.transition = 'none';
         return;
       }
 

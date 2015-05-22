@@ -64,7 +64,8 @@ section {
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1);
 }
 
-#card-list.no-transition {
+#card-list.no-transition,
+#folder-list.no-transition {
   transition-property: none;
 }
 
@@ -102,16 +103,6 @@ section {
 #folder-list .card smart-button[type="app-button"].new-card {
   opacity: 1;
   transform: translateY(-44rem);
-}
-
-/* XXX: This is an animation hack for dropping card to folder in reversed list.
-        When the list is shown revesed, the card would be initially inserted at
-        the end of folderList which is one unit exceed the right position
-        while the folderList scrolling back for one unit.
-        As a result we need to put its starting point one unit back to make it
-        looks like "moving straight down"　*/
-#folder-list.reversed .card:not([data-idx="0"]) smart-button[type="app-button"].new-card {
-  transform: translate(-34.6rem, -44rem);
 }
 
 #folder-list .card smart-button[type="app-button"].new-card-transition {
