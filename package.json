@@ -21,7 +21,7 @@
     "escape-string-regexp": "1.0.3",
     "fe.js": "~0.1.4",
     "ffi-prebuilt": "~1.2.6",
-    "gaia-raptor": "1.6.0",
+    "gaia-raptor": "1.6.1",
     "grunt": "0.4.2",
     "grunt-contrib-clean": "0.5.0",
     "grunt-jsdoc": "0.5.1",
