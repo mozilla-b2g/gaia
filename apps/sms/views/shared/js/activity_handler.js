@@ -310,7 +310,7 @@ var ActivityHandler = {
   /* === Incoming SMS support === */
 
   onSmsReceived: function ah_onSmsReceived(message) {
-    var _ = navigator.mozL10n.get;
+    var formatValue = navigator.mozL10n.formatValue;
 
     // Acquire the cpu wake lock when we receive an SMS.  This raises the
     // priority of this process above vanilla background apps, making it less
@@ -380,13 +380,16 @@ var ActivityHandler = {
         }
 
         function continueWithNotification(sender, body) {
-          var title = sender;
+          var titlePromise;
+
           if (Settings.hasSeveralSim() && message.iccId) {
             var simName = Settings.getSimNameByIccId(message.iccId);
-            title = _(
+            titlePromise = formatValue(
               'dsds-notification-title-with-sim',
               { sim: simName, sender: sender }
             );
+          } else {
+            titlePromise = Promise.resolve(sender);
           }
 
           var options = {
@@ -396,55 +399,59 @@ var ActivityHandler = {
             data: { id, threadId }
           };
 
-          var notification = new Notification(title, options);
-          notification.addEventListener('click', goToMessage);
-          releaseWakeLock();
+          return titlePromise.then((title) => {
+            var notification = new Notification(title, options);
+            notification.addEventListener('click', goToMessage);
+            releaseWakeLock();
 
-          // Close notification if we are already in thread view and view become
-          // visible.
-          if (document.hidden && threadId === Threads.currentId) {
-            document.addEventListener('visibilitychange',
-              function onVisible() {
-                document.removeEventListener('visibilitychange', onVisible);
-                notification.close();
-            });
-          }
+            // Close notification if we are already in thread view and view
+            // become visible.
+            if (document.hidden && threadId === Threads.currentId) {
+              document.addEventListener('visibilitychange',
+                function onVisible() {
+                  document.removeEventListener('visibilitychange', onVisible);
+                  notification.close();
+              });
+            }
+          });
         }
 
-        function getTitleFromMms(callback) {
+        function getTitleFromMms() {
           // If message is not downloaded notification, we need to apply
           // specific text in notification title;
           // If subject exist, we display subject first;
           // If the message only has text content, display text context;
           // If there is no subject nor text content, display
           // 'mms message' in the field.
-          if (needManualRetrieve) {
-            setTimeout(function notDownloadedCb() {
-              callback(_('notDownloaded-title'));
-            });
-          }
-          else if (message.subject) {
-            setTimeout(function subjectCb() {
-              callback(message.subject);
-            });
-          } else {
-            SMIL.parse(message, function slideCb(slideArray) {
-              var text, slidesLength = slideArray.length;
-              for (var i = 0; i < slidesLength; i++) {
-                if (!slideArray[i].text) {
-                  continue;
-                }
 
-                text = slideArray[i].text;
-                break;
-              }
-              text = text ? text : _('mms-message');
-              callback(text);
-            });
+          if (needManualRetrieve) {
+            return formatValue('notDownloaded-title');
           }
+
+          if (message.subject) {
+            return Promise.resolve(message.subject);
+          }
+          
+          var defer = Utils.Promise.defer();
+
+          SMIL.parse(message, function slideCb(slideArray) {
+            var text, slidesLength = slideArray.length;
+            for (var i = 0; i < slidesLength; i++) {
+              if (!slideArray[i].text) {
+                continue;
+              }
+
+              text = slideArray[i].text;
+              break;
+            }
+
+            defer.resolve(text || formatValue('mms-message'));
+          });
+
+          return defer.promise;
         }
 
-        Contacts.findByAddress(message.sender).then(function(contacts) {
+        return Contacts.findByAddress(message.sender).then(function(contacts) {
           var sender = message.sender;
           if (!contacts) {
             console.error('We got a null contacts for sender:', sender);
@@ -452,13 +459,13 @@ var ActivityHandler = {
             contacts[0].name.length && contacts[0].name[0]) {
             sender = contacts[0].name[0];
           }
-          if (message.type === 'sms') {
-            continueWithNotification(sender, message.body || '');
-          } else { // mms
-            getTitleFromMms(function textCallback(text) {
-              continueWithNotification(sender, text);
-            });
-          }
+
+          var titlePromise = message.type === 'sms' ?
+            Promise.resolve(message.body || '') : getTitleFromMms();
+
+          return titlePromise.then((title) => {
+            return continueWithNotification(sender, title);
+          });
         });
       };
     }
