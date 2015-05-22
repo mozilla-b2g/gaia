@@ -8,42 +8,39 @@
   Dashboard.prototype = {
 
     init: function () {
-      // #main-section DOM reference
-      this.mainSection = document.getElementById('main-section');
-      this.mainSection.dataset.activeDirection = '';
-      this.mainSection.focus();
+      document.body.dataset.activeDirection = '';
 
       this.keyNavigationAdapter = new KeyNavigationAdapter();
       this.keyNavigationAdapter.on('move', this.onMove.bind(this));
-      this.keyNavigationAdapter.init(this.mainSection);
+      this.keyNavigationAdapter.init(document.body);
     },
 
     onMove: function (key) {
-      var activeDirection = this.mainSection.dataset.activeDirection;
+      var activeDirection = document.body.dataset.activeDirection;
 
       switch (activeDirection) {
         case 'up':
           if (key === 'down') {
-            this.mainSection.dataset.activeDirection = '';
+            document.body.dataset.activeDirection = '';
           }
           break;
         case 'right':
           if (key === 'left') {
-            this.mainSection.dataset.activeDirection = '';
+            document.body.dataset.activeDirection = '';
           }
           break;
         case 'down':
           if (key === 'up') {
-            this.mainSection.dataset.activeDirection = '';
+            document.body.dataset.activeDirection = '';
           }
           break;
         case 'left':
           if (key === 'right') {
-            this.mainSection.dataset.activeDirection = '';
+            document.body.dataset.activeDirection = '';
           }
           break;
         default:
-          this.mainSection.dataset.activeDirection = key;
+          document.body.dataset.activeDirection = key;
           break;
       }
     }
