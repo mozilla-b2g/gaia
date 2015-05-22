@@ -145,7 +145,7 @@ navigator.mozL10n.once(function deviceList() {
       header.addEventListener('action', cancelActivity);
       defaultAdapter = adapter;
       defaultAdapter.onpairedstatuschanged = function bt_getPairedMessage(evt) {
-        showDevicePaired(evt.status, 'Authentication Failed');
+        showDevicePaired(evt.status, 'Authentication Failed', evt.address);
       };
 
       defaultAdapter.ondiscoverystatechanged =
@@ -273,12 +273,29 @@ navigator.mozL10n.once(function deviceList() {
       openList.index[device.address] = [device, aItem];
     }
 
-    function showDevicePaired(paired, errorMessage) {
+    function showDevicePaired(paired, errorMessage,
+                              addressFromOnpairedstatuschangedEvent) {
       // If we don't know the pairing device address,
       // it means the pair request is handled by interface level.
-      // So we just need to update paired list.
+      // So we need to do:
+      // 1. update paired list
+      // 2. remove the paired device from found device list
       if (!pairingAddress) {
         getPairedDevice();
+        // remove the paired device from found device list.
+        if (addressFromOnpairedstatuschangedEvent && paired) {
+          // If the device is on the list, remove it.
+          // The situation is coming while Settings app pairing with the device.
+          // And Bluetooth app is running in-line pairing in the background.
+          if (openList.index[addressFromOnpairedstatuschangedEvent]) {
+            var wantoRemovedItem =
+              openList.index[addressFromOnpairedstatuschangedEvent][1];
+            openList.list.removeChild(wantoRemovedItem);
+            delete openList.index[addressFromOnpairedstatuschangedEvent];
+          }
+        }
+        // Early return here since the event is not caused via Bluetooth app.
+        // Skip over following UI updating flow.
         return;
       }
       // clear pairingAddress first to prevent execute
