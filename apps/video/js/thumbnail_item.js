@@ -144,7 +144,7 @@ ThumbnailItem.view = function({title, durationText, typeText}) {
   return Tagged.escapeHTML `<li class="thumbnail" role="option">
       <div class="inner">
         <div class="unwatched"></div>
-        <div class="img" role="presentation"></div>
+        <img class="img" role="presentation"></img>
         <div class="details">
           <span class="title">${title}</span>
           <span class="duration-text after line-break">${durationText}</span>
@@ -195,12 +195,11 @@ ThumbnailItem.prototype.updatePoster = function(imageblob) {
     this.posterNode.classList.remove('default');
     var imageUri = URL.createObjectURL(imageblob);
     this.posterNode.dataset.uri = imageUri;
-    this.posterNode.style.backgroundImage = 'url(' + imageUri + ')';
+    this.posterNode.src = imageUri;
   } else {
     this.posterNode.classList.add('default');
     this.posterNode.dataset.uri = '';
-    this.posterNode.style.backgroundImage =
-      'url(style/images/default_thumbnail.png)';
+    this.posterNode.src = 'style/images/default_thumbnail.png';
   }
 };
 
