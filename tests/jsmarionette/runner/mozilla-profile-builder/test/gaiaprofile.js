@@ -8,7 +8,7 @@ suite('#gaiaProfile', function() {
   test('mac', function(done) {
     subject(mac, function(err, path) {
       if (err) return done(err);
-      assert.equal(path, mac + '/Contents/MacOS/gaia/profile');
+      assert.equal(path, mac + '/Contents/Resources/gaia/profile');
       done();
     });
   });
