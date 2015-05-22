@@ -1,3 +1,4 @@
+
 /*global ContactRenderer, loadBodyHTML, MockContact, MockL10n, MocksHelper,
          Utils, Template, MockContactPhotoHelper, SharedComponents,
          MockSettings,
@@ -118,7 +119,7 @@ suite('ContactRenderer', function() {
 
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('+346578888888'));
+      assert.ok(html.includes('+346578888888'));
     });
 
     test('Rendered Contact highlighted "number"', function() {
@@ -149,7 +150,7 @@ suite('ContactRenderer', function() {
       html = ul.firstElementChild.innerHTML;
 
       assert.ok(
-        html.contains('+<span class="highlight">346578888888</span>')
+        html.includes('+<span class="highlight">346578888888</span>')
       );
     });
 
@@ -267,7 +268,7 @@ suite('ContactRenderer', function() {
 
       html = ul.lastElementChild.innerHTML;
 
-      assert.ok(html.contains('a@b.com'));
+      assert.ok(html.includes('a@b.com'));
     });
 
     test('Rendered Contact highlighted "email"', function() {
@@ -295,7 +296,7 @@ suite('ContactRenderer', function() {
       html = ul.lastElementChild.innerHTML;
 
       assert.ok(
-        html.contains('<span class="highlight">a@b.com</span>')
+        html.includes('<span class="highlight">a@b.com</span>')
       );
     });
 
@@ -326,7 +327,7 @@ suite('ContactRenderer', function() {
 
       html = ul.lastElementChild.innerHTML;
 
-      assert.isFalse(html.contains(
+      assert.isFalse(html.includes(
       '<span data-l10n-id="Personal">Personal</span> | ' + 'a@b.com'));
     });
 
@@ -341,7 +342,7 @@ suite('ContactRenderer', function() {
 
       html = ul.lastElementChild.innerHTML;
 
-      assert.isFalse(html.contains(
+      assert.isFalse(html.includes(
         '<span data-l10n-id="Personal">Personal</span> | ' +
         '<span class="highlight">a@b.com</span>'
       ));
@@ -391,7 +392,7 @@ suite('ContactRenderer', function() {
 
       html = ul.innerHTML;
 
-      assert.ok(!html.contains('346578888888'));
+      assert.ok(!html.includes('346578888888'));
       assert.equal(ul.children.length, 1);
     });
 
@@ -413,7 +414,7 @@ suite('ContactRenderer', function() {
 
       html = ul.innerHTML;
 
-      assert.ok(!html.contains('346578888888'));
+      assert.ok(!html.includes('346578888888'));
       assert.equal(ul.children.length, 2);
     });
 
@@ -435,7 +436,7 @@ suite('ContactRenderer', function() {
 
       html = ul.innerHTML;
 
-      assert.ok(!html.contains('a@b.com'));
+      assert.ok(!html.includes('a@b.com'));
       assert.equal(ul.children.length, 2);
     });
 
@@ -449,7 +450,7 @@ suite('ContactRenderer', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.isFalse(html.contains('span[data-type=img]'));
+      assert.isFalse(html.includes('span[data-type=img]'));
     });
 
     test('append information block in the li', function() {
@@ -555,7 +556,7 @@ suite('ContactRenderer', function() {
 
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('+346578888888'));
+      assert.ok(html.includes('+346578888888'));
     });
 
     test('Rendered unknownContact highlighted "number"', function() {
@@ -585,7 +586,7 @@ suite('ContactRenderer', function() {
       html = ul.firstElementChild.innerHTML;
 
       assert.ok(
-        html.contains('+<span class="highlight">346578888888</span>')
+        html.includes('+<span class="highlight">346578888888</span>')
       );
     });
 
@@ -604,7 +605,7 @@ suite('ContactRenderer', function() {
 
       html = ul.innerHTML;
 
-      assert.ok(!html.contains('346578888888'));
+      assert.ok(!html.includes('346578888888'));
       assert.equal(ul.children.length, 0);
     });
 
@@ -617,7 +618,7 @@ suite('ContactRenderer', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.isFalse(html.contains('span[data-type=img]'));
+      assert.isFalse(html.includes('span[data-type=img]'));
      });
 
    });
@@ -657,7 +658,7 @@ suite('ContactRenderer', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.isFalse(html.contains('span[data-type=img]'));
+      assert.isFalse(html.includes('span[data-type=img]'));
     });
 
     test('Render contact with photo renders the image', function() {
@@ -699,7 +700,7 @@ suite('ContactRenderer', function() {
         '.contact-photo'
       );
 
-      assert.ok(html.contains('span'));
+      assert.ok(html.includes('span'));
       assert.ok(contactPhotoElement.style.backgroundImage.indexOf('blob:') > 0);
       sinon.assert.calledWith(
         encodeURI,

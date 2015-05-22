@@ -9,7 +9,7 @@
     contains: function(a, b) {
       a = a.toLowerCase();
       b = b.toLowerCase();
-      return a.contains(b);
+      return a.includes(b);
     },
     equality: function(a, b) {
       a = a.toLowerCase();
@@ -234,7 +234,7 @@
           break;
         }
         var num = unknownNumbers[i];
-        if (num.contains(filterValue)) {
+        if (num.includes(filterValue)) {
           var obj = {
             name: [num],
             tel: [{value: num}],
