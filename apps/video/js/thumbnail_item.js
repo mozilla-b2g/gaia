@@ -178,12 +178,11 @@ ThumbnailItem.prototype.updatePoster = function(imageblob) {
     this.posterNode.classList.remove('default');
     var imageUri = URL.createObjectURL(imageblob);
     this.posterNode.dataset.uri = imageUri;
-    this.posterNode.style.backgroundImage = 'url(' + imageUri + ')';
+    this.posterNode.src = imageUri;
   } else {
     this.posterNode.classList.add('default');
     this.posterNode.dataset.uri = '';
-    this.posterNode.style.backgroundImage =
-      'url(style/images/default_thumbnail.png)';
+    this.posterNode.src = 'style/images/default_thumbnail.png';
   }
 };
 

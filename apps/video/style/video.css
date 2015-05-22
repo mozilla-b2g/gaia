@@ -56,20 +56,12 @@ li .inner {
 }
 
 li .inner .img {
-  /* background image will be configure in video.js, and it is croped with
-   * 210 * devicePixelRatio, 120 * devicePixelRatio. So, we just need to make
-   * it be fullsize in this container.
-   */
-  background-size: 100%;
   width: 21rem;
   overflow: hidden;
 }
 
 li .img.default {
-  background-size: 6rem;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #333333;
+  width: 6rem;
 }
 
 /* 1. Leave room for two rem when computing width of details
@@ -108,9 +100,6 @@ span.line-break {
 }
 
 /*
- * Thumbnails are implemented as <li> elements in a <ul> with background-image
- * set to display the image. We use background-size: cover to automatically
- * resize the image as needed.
  * The thumbnail list appears in regular browsing mode, in selection mode,
  * and in pick mode.
  */

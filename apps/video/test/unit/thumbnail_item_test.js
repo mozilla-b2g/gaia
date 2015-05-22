@@ -273,10 +273,9 @@ suite('Thumbnail Item Unit Tests', function() {
       var blob = new Blob(['empty-image'], {'type': 'image/jpeg'});
       thumbnail.updatePoster(blob);
       var node = domNode.querySelector('.img');
-      assert.notEqual(node.style.backgroundImage, '');
+      assert.notEqual(node.src, '');
       thumbnail.updatePoster(null);
-      assert.equal(node.style.backgroundImage,
-        'url("style/images/default_thumbnail.png")');
+      assert.ok(node.src.endsWith('style/images/default_thumbnail.png'));
     });
   });
 });
