@@ -747,7 +747,7 @@ suite('navigation bar', function() {
 
         test('should go to home of contacts', function() {
           assert.isTrue(
-            domContactsIframe.src.contains('/contacts/index.html#home')
+            domContactsIframe.src.includes('/contacts/index.html#home')
           );
         });
       });
@@ -786,7 +786,7 @@ suite('navigation bar', function() {
         test('only works when it is a second tap', function() {
           NavbarManager.contactsTabTap();
           assert.isFalse(
-            domContactsIframe.src.contains('/contacts/index.html#home')
+            domContactsIframe.src.includes('/contacts/index.html#home')
           );
         });
 
@@ -794,7 +794,7 @@ suite('navigation bar', function() {
           window.location.hash = '#contacts-view';
           NavbarManager.contactsTabTap();
           assert.isTrue(
-            domContactsIframe.src.contains('/contacts/index.html#home')
+            domContactsIframe.src.includes('/contacts/index.html#home')
           );
         });
       });
