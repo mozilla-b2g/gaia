@@ -164,6 +164,7 @@
     onVisibilityChange: function() {
       if (document.visibilityState === 'visible') {
         Utils.holdFocusForAnimation();
+        this.cardListElem.classList.remove('hidden');
         var that = this;
         Promise.all([new Promise(function(resolve) {
           that.skipBubble = Animations.doBubbleAnimation(
@@ -193,6 +194,7 @@
           that.skipFolderBubble = null;
         });
       } else {
+        this.cardListElem.classList.add('hidden');
         this.messageHandler.stopActivity();
         this.isNavigable = false;
         // An user may close home app when bubbling or sliding animations are

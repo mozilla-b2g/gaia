@@ -60,6 +60,12 @@ section {
   transform-origin: 0 50%;
 }
 
+#card-list.hidden {
+  /* Using display none here would prevent animation, and using visibility
+     hidden causes some bugs in rendering */
+  opacity: 0;
+}
+
 #card-list.card-list-slide {
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1);
 }
