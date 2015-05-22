@@ -322,13 +322,15 @@ section[id*="wifi-"] li.identity {
   display: none;
 }
 
-/* WEP | WPA */
+/* WEP */
 section[id*="wifi-"][data-security="WEP"] li.password,
+/* WPA */
 section[id*="wifi-"][data-security="WPA"] li.password,
+/* WPA-PSK */
+section[id*="wifi-"][data-security="WPA-PSK"] li.password,
 /* WPA-EAP */
 section[id*="wifi-"][data-security="WPA-EAP"] li.eap,
-/* WPA-EAP > SIM */
-/* Nothing is needed here */
+/* WPA-EAP > SIM - Nothing is needed here */
 /* WPA-EAP > PEAP */
 section[id*="wifi-"][data-security="WPA-EAP"][data-eap="PEAP"] li.password,
 section[id*="wifi-"][data-security="WPA-EAP"][data-eap="PEAP"] li.auth-phase2,
