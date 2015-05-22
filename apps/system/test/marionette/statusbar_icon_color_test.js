@@ -14,8 +14,7 @@ marionette('Statusbar colors', function() {
         'lockscreen.enabled': true,
         'software-button.enabled': true
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var system;

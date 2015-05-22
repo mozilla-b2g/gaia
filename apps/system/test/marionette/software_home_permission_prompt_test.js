@@ -12,8 +12,7 @@ marionette('Software Home Button - Permission Prompt', function() {
       settings: {
         'software-button.enabled': true
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
   var home, rocketbar, system;
 

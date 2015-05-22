@@ -9,8 +9,7 @@ marionette('Software Home Button - App Crash Report Layout', function() {
       settings: {
         'software-button.enabled': true
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
   var home, system;
 
