@@ -25,8 +25,8 @@ function gaiaProfile (basePath, callback) {
 
   var linux = fsPath.join(basePath, 'gaia', 'profile');
   fs.exists(linux, next.bind(null, linux));
-  var osx = fsPath.join(basePath, 'Contents', 'MacOS', 'gaia', 'profile');
-  fs.exists(osx, next.bind(null, osx));
+  var macos = fsPath.join(basePath, 'Contents', 'Resources', 'gaia', 'profile');
+  fs.exists(macos, next.bind(null, macos));
 }
 
 module.exports = gaiaProfile;
