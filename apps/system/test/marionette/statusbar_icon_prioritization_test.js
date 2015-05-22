@@ -6,7 +6,9 @@ var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
 marionette('Status Bar icons - Prioritization', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   var system;
   var statusBar;
