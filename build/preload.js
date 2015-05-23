@@ -7,6 +7,7 @@ python.initPath(utils.getEnvPath());
 
 exports.execute = function(opts) {
 
+  dump('EXECUTING\n');
   var remoteList;
   try {
     remoteList = utils.getFile(opts.GAIA_DISTRIBUTION_DIR, 'remote.list');
@@ -16,12 +17,14 @@ exports.execute = function(opts) {
     return;
   }
 
-  var appFolder = utils.getFile(opts.GAIA_DISTRIBUTION_DIR, 'outoftree_apps/');
-  utils.deleteFile(appFolder.path, true);
-  utils.ensureFolderExists(appFolder);
+  dump('PROBABLY SHOULDNT BE HERE?' + remoteList.path + '\n');
 
-  utils.copyFileTo(remoteList, appFolder.path, 'list');
+  // var appFolder = utils.getFile(opts.GAIA_DISTRIBUTION_DIR, 'outoftree_apps/');
+  // utils.deleteFile(appFolder.path, true);
+  // utils.ensureFolderExists(appFolder);
 
-  var preload = utils.getFile(opts.GAIA_DIR, 'tools/preload.py').path;
-  return python.run([preload, '--root=' + appFolder.path]);
+  // utils.copyFileTo(remoteList, appFolder.path, 'list');
+
+  // var preload = utils.getFile(opts.GAIA_DIR, 'tools/preload.py').path;
+  // return python.run([preload, '--root=' + appFolder.path]);
 };
