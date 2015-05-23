@@ -7,6 +7,8 @@ require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
 requireApp('ftu/js/ui.js');
 requireApp('ftu/js/navigation.js');
 
@@ -182,12 +184,12 @@ suite('UI Manager > ', function() {
     test('initial value', function() {
       assert.isTrue(MockNavigatorSettings.mSettings['geolocation.enabled']);
       // we set initial value at suite startup
-      assert.isTrue(UIManager.geolocationCheckbox.checked);
+      assert.isTrue(UIManager.geolocationSwitch.checked);
     });
 
     test('setting observer updates checked value', function() {
       MockSettingsListener.mTriggerCallback('geolocation.enabled', false);
-      assert.isFalse(UIManager.geolocationCheckbox.checked);
+      assert.isFalse(UIManager.geolocationSwitch.checked);
     });
 
   });
