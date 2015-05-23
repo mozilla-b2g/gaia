@@ -6,7 +6,7 @@ import re
 import time
 
 from marionette_driver import expected, By, Wait
-from marionette_driver.errors import FrameSendFailureError, NoSuchWindowException
+from marionette_driver.errors import NoSuchWindowException
 
 from gaiatest.apps.base import Base
 
@@ -369,7 +369,7 @@ class Ftu(Base):
     def tap_skip_tour(self):
         try:
             self.marionette.find_element(*self._skip_tour_button_locator).tap()
-        except (FrameSendFailureError, NoSuchWindowException):
+        except NoSuchWindowException:
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass
 
@@ -456,6 +456,6 @@ class Ftu(Base):
     def tap_lets_go_button(self):
         try:
             self.marionette.find_element(*self._lets_go_button_locator).tap()
-        except (FrameSendFailureError, NoSuchWindowException):
+        except NoSuchWindowException:
             # The frame may close for Marionette but that's expected so we can continue - Bug 1065933
             pass
