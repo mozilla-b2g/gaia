@@ -60,6 +60,7 @@ class TestLockScreen(GaiaTestCase):
         Wait(self.marionette, timeout=20).until(
             lambda m: not self.device.is_screen_enabled)
         self.device.turn_screen_on()
+        self.marionette.switch_to_frame()
 
         # Check it reverted to the correct time, and compare it with the previously shown time
         # Allow 4 minutes difference max
