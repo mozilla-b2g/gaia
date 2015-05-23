@@ -102,6 +102,7 @@
 
   <!-- Components -->
   <script defer src="/shared/js/component_utils.js"></script>
+  <script defer src="/shared/elements/gaia_switch/script.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_subheader/script.js"></script>
   <script defer src="/shared/elements/config.js"></script>
@@ -257,10 +258,9 @@
         <article data-type="list">
           <ul>
             <li>
-              <label class="pack-switch" id="data-connection-switch">
-                <input class="uninit" id="data-connection-checkbox" type="checkbox">
-                <span data-l10n-id="dataConnection"></span>
-              </label>
+              <gaia-switch id="data-connection-switch">
+                <label data-l10n-id="dataConnection"></label>
+              </gaia-switch>
             </li>
           </ul>
         </article>
@@ -399,10 +399,9 @@
         <article data-type="list">
           <ul>
             <li>
-              <label class="pack-switch" id="geolocation-switch">
-                <input class="uninit" id="geolocation-checkbox" name="geolocation.enabled" type="checkbox" checked>
-                <span data-l10n-id="geolocationCheckbox">Geolocation</span>
-              </label>
+              <gaia-switch id="geolocation-switch" name="geolocation.enabled" checked>
+                <label data-l10n-id="geolocationCheckbox"></label>
+              </gaia-switch>
             </li>
           </ul>
         </article>
