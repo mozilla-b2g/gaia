@@ -62,6 +62,7 @@ class System(Base):
     def open_utility_tray(self):
         body = self.marionette.find_element(By.TAG_NAME, 'body')
         statusbar = self.marionette.find_element(*self._status_bar_locator)
+        self.wait_for_app_update_to_clear()
         statusbar_x = int(statusbar.size['width']/2)
         statusbar_y_end = int(body.size['height'])
         Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()
