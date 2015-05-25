@@ -229,6 +229,10 @@
 
     element.classList.add('focus');
     rowElement.classList.remove('hidden');
+    this._setTitlePadding({
+      setToNull: true
+    });
+
     if (rowIndex < this.visibleChannelOffset) {
       // Move up
       this.translate.y = (rowOffset - rowIndex) * EPG.ROW_HEIGHT;
@@ -247,6 +251,7 @@
       this.translate.x = (this.initialTime - startTime) * EPG.COLUMN_WIDTH;
       this.visibleTimeOffset = startTime;
     }
+    this._setTitlePadding();
 
     // Prefetch more older programs
     if (this.visibleTimeOffset - 2 * this.visibleTimeSize < timelineOffset) {
@@ -270,6 +275,36 @@
     this.programListElement.style.transform =
       'translate(' + this.translate.x + 'rem,' + this.translate.y +
       'rem) translateZ(0.01rem)';
+  };
+
+  /**
+   * For every visible programs in the first column, it has to be aligned to
+   * the left edge of visible window. If opts.setToNull is true, then the
+   * left-padding of each program will be cleared.
+   */
+  proto._setTitlePadding = function epg__setTitlePadding(opts) {
+    var rowOffset = this.visibleChannelOffset;
+    var size = this.visibleChannelSize;
+    var row;
+    var timeOffset = this.visibleTimeOffset - this.epgController.timelineOffset;
+    var programElement;
+    var programTitleElement;
+    var programStartTime;
+    for(row = rowOffset; row < rowOffset + size; row++) {
+      if (this.epgController.programTable[timeOffset][row]) {
+        programElement =
+          this.epgController.programTable[timeOffset][row].element;
+        programTitleElement = programElement.firstElementChild;
+        if (opts && opts.setToNull) {
+          programTitleElement.style.paddingLeft = null;
+        } else {
+          programStartTime = parseInt(programElement.dataset.startTime, 10);
+          programTitleElement.style.paddingLeft =
+            EPG.COLUMN_WIDTH * (this.visibleTimeOffset - programStartTime) +
+            'rem';
+        }
+      }
+    }
   };
 
   proto._onUnfocus = function epg__onUnfocus(element) {
