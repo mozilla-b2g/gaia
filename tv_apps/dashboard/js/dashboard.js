@@ -1,5 +1,5 @@
 'use strict';
-/* global KeyNavigationAdapter, Dashboard */
+/* global KeyNavigationAdapter, Dashboard, AppWidget */
 
 (function(exports) {
 
@@ -9,10 +9,18 @@
 
     init: function () {
       document.body.dataset.activeDirection = '';
-
       this.keyNavigationAdapter = new KeyNavigationAdapter();
       this.keyNavigationAdapter.on('move', this.onMove.bind(this));
       this.keyNavigationAdapter.init(document.body);
+
+      this.widgets = {};
+      this.widgets.down = new AppWidget({
+        manifestURL: 'app://weather-widget.gaiamobile.org/manifest.webapp',
+        widget: 'weather',
+        url: 'app://weather-widget.gaiamobile.org/widget.html',
+        position: 'bottom'
+      });
+
     },
 
     onMove: function (key) {
@@ -21,28 +29,35 @@
       switch (activeDirection) {
         case 'up':
           if (key === 'down') {
-            document.body.dataset.activeDirection = '';
+            this._clearActiveDirection();
           }
           break;
         case 'right':
           if (key === 'left') {
-            document.body.dataset.activeDirection = '';
+            this._clearActiveDirection();
           }
           break;
         case 'down':
           if (key === 'up') {
-            document.body.dataset.activeDirection = '';
+            this._clearActiveDirection();
           }
           break;
         case 'left':
           if (key === 'right') {
-            document.body.dataset.activeDirection = '';
+            this._clearActiveDirection();
           }
           break;
         default:
+          this.widgets[key] && this.widgets[key].toggleExpand(true);
           document.body.dataset.activeDirection = key;
           break;
       }
+    },
+
+    _clearActiveDirection: function() {
+      var direction = document.body.dataset.activeDirection;
+      this.widgets[direction] && this.widgets[direction].toggleExpand(false);
+      document.body.dataset.activeDirection = '';
     }
 
   };

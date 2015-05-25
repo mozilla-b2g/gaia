@@ -13,7 +13,6 @@ html, body {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  background-color: black; /* XXX: For testing before smart-home is landed. */;
 }
 
 #panel {

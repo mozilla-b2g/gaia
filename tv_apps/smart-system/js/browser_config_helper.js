@@ -90,8 +90,12 @@
       var protocol = document.location.protocol + '//';
       var browserManifestUrl =
         protocol + 'browser.' + domain + '/manifest.webapp';
+      var dashboardManifestUrl =
+        protocol + 'dashboard.' + domain + '/manifest.webapp';
+
       var outOfProcessBlackList = [
-        browserManifestUrl
+        browserManifestUrl,
+        dashboardManifestUrl
         // Requires nested content processes (bug 761935).  This is not
         // on the schedule for v1.
       ];
