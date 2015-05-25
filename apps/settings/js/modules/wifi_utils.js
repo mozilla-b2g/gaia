@@ -165,6 +165,7 @@ define(function(require) {
      */
     initializeAuthFields: function(panel, network) {
       var key = WifiHelper.getKeyManagement(network);
+      var ssid = panel.querySelector('input[name=ssid]');
       var identity = panel.querySelector('input[name=identity]');
       var password = panel.querySelector('input[name=password]');
       var showPassword = panel.querySelector('input[name=show-pwd]');
@@ -186,15 +187,27 @@ define(function(require) {
       };
 
       var checkPassword = function() {
+        var isSSIDInvalid = function() {
+          if (ssid) {
+            return (ssid.value.length === 0);
+          } else {
+            return false;
+          }
+        };
+
         submitButton.disabled =
           !WifiHelper.isValidInput(key, password.value, identity.value,
-            eap.value);
+            eap.value) || isSSIDInvalid();
       };
 
       eap.onchange = function() {
         checkPassword();
         WifiUtils.changeDisplay(panel, key);
       };
+
+      if (ssid) {
+        ssid.oninput = checkPassword;
+      }
 
       password.oninput = checkPassword;
       identity.oninput = checkPassword;

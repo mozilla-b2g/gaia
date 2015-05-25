@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 var Abstract = require('./abstract');
 var Calc = require('common/calc');
+var core = require('core');
 var denodeifyAll = require('common/promise').denodeifyAll;
 
 function IcalComponent() {
@@ -40,7 +41,7 @@ IcalComponent.prototype = {
    * @param {Function} callback results of search [err, [icalComp, ...]].
    */
   findRecurrencesBefore: function(maxDate, callback) {
-    var trans = this.db.transaction(this._store, 'readwrite');
+    var trans = core.db.transaction(this._store, 'readwrite');
 
     trans.onerror = function(event) {
       callback(event.target.error.name);

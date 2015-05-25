@@ -14,11 +14,13 @@ marionette('LockScreen status bar', function() {
   var apps = {};
   apps[firstAppOrigin] = __dirname + '/../apps/fakeapp';
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': true
-    },
+    profile: {
+      settings: {
+        'lockscreen.enabled': true
+      },
 
-    apps: apps
+      apps: apps
+    }
   });
 
   setup(function() {

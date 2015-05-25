@@ -266,17 +266,6 @@ body.thumbnailListView #thumbnails > li:last-child .thumbnail:last-child {
   padding-bottom: calc((100% - 0.2rem) / 3 );
 }
 
-/* Favor scrolling performance for the thumbnails list while
- * scrolling.
- */
-#thumbnails.scrolling .thumbnail {
-  image-rendering: -moz-crisp-edges;
-}
-
-#thumbnails.scrolling .thumbnail-group-header {
-  text-rendering: optimizeSpeed;
-}
-
 .thumbnail:nth-child(3n) {
   -moz-margin-end: 0;
 }
@@ -372,6 +361,7 @@ html[dir=rtl] #thumbnails-number-selected {
   margin: 0;
   pointer-events: none;
   -moz-user-select: none;
+  transition: opacity 100ms ease-in;
 }
 
 .frame > video {

@@ -192,6 +192,7 @@ var StatusBar = {
     // Listen to orientation change and SHB activation/deactivation.
     window.addEventListener('system-resize', this);
 
+    window.addEventListener('attentionopened', this);
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
     window.addEventListener('hierarchytopmostwindowchanged', this);
@@ -220,7 +221,6 @@ var StatusBar = {
 
   handleEvent: function sb_handleEvent(evt) {
     var icon;
-    var app;
     switch (evt.type) {
       case 'ftudone':
       case 'ftuskip':
@@ -311,15 +311,6 @@ var StatusBar = {
         break;
 
       case 'stackchanged':
-        app = Service.currentApp;
-
-        if (app) {
-          this.element.classList.toggle('fullscreen',
-            app.isFullScreen());
-          this.element.classList.toggle('fullscreen-layout',
-            app.isFullScreenLayout());
-        }
-      /* falls through */
       case 'rocketbar-deactivated':
         this.setAppearance();
         this.element.classList.remove('hidden');
@@ -333,14 +324,6 @@ var StatusBar = {
       case 'appopened':
       case 'hierarchytopmostwindowchanged':
       case 'appchromeexpanded':
-        app = evt.detail.getTopMostWindow();
-
-        if (app) {
-          this.element.classList.toggle('fullscreen',
-            app.isFullScreen());
-          this.element.classList.toggle('fullscreen-layout',
-            app.isFullScreenLayout());
-        }
         this.setAppearance();
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
@@ -383,11 +366,16 @@ var StatusBar = {
   },
 
   setAppearance: function() {
-    var app = Service.currentApp;
-
     // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
       this.element.classList.add('maximized');
+      return;
+    }
+
+    var app = Service.query('getTopMostWindow');
+    // In some cases, like when opening an app from the task manager, there
+    // temporarily is no top most window, so we cannot set an appearance.
+    if (!app) {
       return;
     }
 
@@ -397,10 +385,19 @@ var StatusBar = {
       this.element.classList.toggle('light',
         !!(topWindow.appChrome && topWindow.appChrome.useLightTheming())
       );
+
+      this.element.classList.toggle('fullscreen',
+        topWindow.isFullScreen()
+      );
+
+      this.element.classList.toggle('fullscreen-layout',
+        topWindow.isFullScreenLayout()
+      );
     }
 
     this.element.classList.toggle('maximized',
-      app.isHomescreen || !!(app.appChrome && app.appChrome.isMaximized()));
+      app.isHomescreen || app.isAttentionWindow ||
+      !!(app.appChrome && app.appChrome.isMaximized()));
   },
 
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {

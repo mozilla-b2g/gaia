@@ -4,7 +4,7 @@ var Dialer = require('./lib/dialer');
 marionette('Dialer > Navigation', function() {
   var assert = require('assert');
 
-  var client = marionette.client(Dialer.config);
+  var client = marionette.client({ profile: Dialer.config });
   var subject;
   var selectors;
   var actions;

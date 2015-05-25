@@ -4,9 +4,9 @@ define(function(require, exports, module) {
 var Abstract = require('./abstract');
 var CalendarModel = require('models/calendar');
 var Local = require('provider/local');
+var core = require('core');
 var denodeifyAll = require('common/promise').denodeifyAll;
 var probablyParseInt = require('common/probably_parse_int');
-var providerFactory = require('provider/provider_factory');
 
 function Store() {
   Abstract.apply(this, arguments);
@@ -74,7 +74,7 @@ Store.prototype = {
   },
 
   _removeDependents: function(id, trans) {
-    var store = this.db.getStore('Event');
+    var store = core.storeFactory.get('Event');
     store.removeByIndex('calendarId', id, trans);
   },
 
@@ -132,6 +132,11 @@ Store.prototype = {
   remove: function(id, trans, callback) {
     this._removeCalendarColorFromCache(id);
     Abstract.prototype.remove.apply(this, arguments);
+  },
+
+  _clearCache: function() {
+    Abstract.prototype._clearCache.call(this);
+    this._usedColors = [];
   },
 
   _updateCalendarColor: function(calendar) {
@@ -222,7 +227,7 @@ Store.prototype = {
     }
 
     if (!trans) {
-      trans = this.db.transaction(this._store);
+      trans = core.db.transaction(this._store);
     }
 
     var store = trans.objectStore(this._store);
@@ -255,7 +260,7 @@ Store.prototype = {
    *       inside of providers.
    */
   sync: function(account, calendar, callback) {
-    var provider = providerFactory.get(account.providerType);
+    var provider = core.providerFactory.get(account.providerType);
     provider.syncEvents(account, calendar, callback);
   },
 
@@ -271,7 +276,7 @@ Store.prototype = {
         return callback(err);
       }
 
-      callback(null, providerFactory.get(owners.account.providerType));
+      callback(null, core.providerFactory.get(owners.account.providerType));
     });
   },
 
@@ -287,7 +292,7 @@ Store.prototype = {
   ownersOf: function(objectOrId, callback) {
     var result = {};
 
-    var accountStore = this.db.getStore('Account');
+    var accountStore = core.storeFactory.get('Account');
 
     // case 1. given a calendar
     if (objectOrId instanceof CalendarModel) {
@@ -303,7 +308,7 @@ Store.prototype = {
     }
 
     // why??? because we use this method in event store too..
-    var calendarStore = this.db.getStore('Calendar');
+    var calendarStore = core.storeFactory.get('Calendar');
     calendarStore.get(objectOrId, fetchCalendar);
 
     function fetchCalendar(err, calendar) {

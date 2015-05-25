@@ -2,16 +2,15 @@ define(function(require) {
 'use strict';
 
 var Abstract = require('store/abstract');
+var core = require('core');
 
 suite('store/setting', function() {
   var subject;
   var db;
-  var app;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
-    subject = db.getStore('Setting');
+    db = core.db;
+    subject = core.storeFactory.get('Setting');
 
     db.open(function(err) {
       assert.ok(!err);
@@ -21,7 +20,7 @@ suite('store/setting', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      subject.db,
+      core.db,
       ['settings'],
       done
     );
@@ -33,7 +32,6 @@ suite('store/setting', function() {
 
   test('initialization', function() {
     assert.instanceOf(subject, Abstract);
-    assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
 

@@ -58,6 +58,9 @@
         element: this._iframe
       };
     },
+    set browser(browser) {
+      this._iframe = browser.element;
+    },
     get frame() {
       return this.element;
     },
@@ -151,6 +154,9 @@
     getCachedScreenshotBlob: function() {},
     requestScreenshotURL: function() {}
   };
+
+  MockAppWindow.addMixin = function() {};
+
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
     MockAppWindowHelper.mLatest = null;

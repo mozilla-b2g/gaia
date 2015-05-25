@@ -1,12 +1,12 @@
 /* global VideoLoadingChecker,stopParsingMetadata,startParsingMetadata,
   ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
   ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
-  MozActivity,MediaDB,metadataQueue,processingQueue,PerformanceTestingHelper,
-  LazyLoader,Dialogs,captureFrame,VideoStats,Template,noMoreWorkCallback:true */
+  MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
+  captureFrame,VideoStats,noMoreWorkCallback:true */
 /* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
   showThrobber,hideThrobber,$ */
 'use strict';
- 
+
 // Layout Mode Transition:
 // list <-> selection
 // list <-> fullscreen player
@@ -49,9 +49,6 @@ var playing = false;
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
-
-// keep the screen on when playing
-var endedTimer;
 
 // same thing for the controls
 var controlShowing = false;
@@ -143,13 +140,11 @@ navigator.mozL10n.once(function() {
 
   // Tell performance monitors that our chrome is visible
   window.performance.mark('navigationLoaded');
-  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
   init();
 
   // Tell performance monitors that our chrome is ready to interact with.
   window.performance.mark('navigationInteractive');
-  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 });
 
 // we don't need to wait for l10n ready to have correct css layout.
@@ -169,9 +164,6 @@ if (!isPhone) {
 
 function init() {
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
-  // configure the template id for template group and view.
-  ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
-  ThumbnailItem.Template = new Template('thumbnail-template');
   ThumbnailItem.titleMaxLines = isPhone ? 2 : (isPortrait ? 4 : 2);
 
   initDB();
@@ -727,7 +719,6 @@ function updateLoadingSpinner() {
     noMoreWorkCallback = updateLoadingSpinner;
   } else {
     window.performance.mark('scanEnd');
-    PerformanceTestingHelper.dispatch('scan-finished');
     dom.spinnerOverlay.classList.add('hidden');
     setDisabled(dom.playerView, false);
     if (thumbnailList.count) {
@@ -1188,11 +1179,6 @@ function playerEnded() {
     return;
   }
 
-  if (endedTimer) {
-    clearTimeout(endedTimer);
-    endedTimer = null;
-  }
-
   // If we are still playing when this 'ended' event arrives, then the
   // user played the video all the way to the end, and we skip to the
   // beginning and pause so it is easy for the user to restart. If we
@@ -1264,22 +1250,6 @@ function timeUpdated() {
   dom.timeSlider.setAttribute('aria-valuenow', dom.player.currentTime);
   dom.timeSlider.setAttribute('aria-valuetext',
     MediaUtils.formatDuration(dom.player.currentTime));
-
-  // Since we don't always get reliable 'ended' events, see if
-  // we've reached the end this way.
-  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
-  // If we're within 1 second of the end of the video, register
-  // a timeout a half a second after we'd expect an ended event.
-  if (!endedTimer) {
-    if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
-      var timeUntilEnd = (dom.player.duration - dom.player.currentTime + 0.5);
-      endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
-    }
-  } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
-    // If there is a timer set and we drag away from the end, cancel the timer
-    clearTimeout(endedTimer);
-    endedTimer = null;
-  }
 }
 
 function handleSliderTouchEnd(event) {

@@ -24,10 +24,13 @@
      * The use case is for the moment just before we turn on
      * the iframe visibility, so the TIMEOUT isn't too long.
      *
-     * Note: for some reason we intend to use ensureFullRepaint now.
+     * Note: for some reason we intend to use waitForNextPaint now.
      *
      * @param  {Function} callback The callback function to be invoked
      *                             after we get next paint event.
+     *
+     * @return {Object} Promise that resolves when the next paint triggers.
+     *                  The promise never rejects.
      */
     waitForNextPaint: function bm_waitForNextPaint(callback) {
       if (!this.browser || !this.browser.element) {
@@ -39,21 +42,35 @@
       var iframe = this.browser.element;
       var nextPaintTimer;
       var self = this;
+      var resolver;
+      var p = new Promise(function(resolve) {
+        resolver = resolve;
+      });
+
       var onNextPaint = function aw_onNextPaint() {
         self.debug(' nextpainted.');
         iframe.removeNextPaintListener(onNextPaint);
         clearTimeout(nextPaintTimer);
 
-        callback();
+        resolver();
+
+        if (callback) {
+          callback();
+        }
       };
 
       nextPaintTimer = setTimeout(function ifNextPaintIsTooLate() {
         self.debug(' nextpaint is timeouted.');
         iframe.removeNextPaintListener(onNextPaint);
-        callback();
+        resolver();
+        if (callback) {
+          callback();
+        }
       }, this.NEXTPAINT_TIMEOUT);
 
       iframe.addNextPaintListener(onNextPaint);
+
+      return p;
     },
 
     /**
@@ -61,20 +78,21 @@
      * window is changed to notify nfc module in gecko.
      */
     setNFCFocus: function(enable) {
-      if (!this.browser || !this.browser.element ||
-          this._nfcActive === enable ||
-          (this.CLASS_NAME !== 'AppWindow' &&
-           this.CLASS_NAME !== 'ActivityWindow' &&
-           this.CLASS_NAME !== 'PopupWindow') &&
-           this.CLASS_NAME !== 'HomescreenWindow') {
+      var topWindow = this.getTopMostWindow();
+      if (!topWindow.browser || !topWindow.browser.element ||
+          topWindow._nfcActive === enable ||
+          (topWindow.CLASS_NAME !== 'AppWindow' &&
+           topWindow.CLASS_NAME !== 'ActivityWindow' &&
+           topWindow.CLASS_NAME !== 'PopupWindow') &&
+           topWindow.CLASS_NAME !== 'HomescreenWindow') {
           // XXX: Implement this.belongToAppWindow()
         return;
       }
-      this.debug(this.name + ':' + this.instanceID +
+      this.debug(topWindow.name + ':' + topWindow.instanceID +
         ' is setting nfc active to: ' + enable);
       try {
-        this._nfcActive = enable;
-        this.browser.element.setNFCFocus(enable);
+        topWindow._nfcActive = enable;
+        topWindow.browser.element.setNFCFocus(enable);
       } catch (err) {
         this.debug('set nfc active is not implemented');
       }
@@ -173,17 +191,34 @@
       }
     },
 
+    /**
+     * For test purpose, we create this method for changing active element. The
+     * activeElement is readonly property. We may use defineProperty to override
+     * it. But we get undefined with getOwnPropertyDescriptor. As to
+     * window.document, it is also a readonly and non-configurable property. We
+     * cannot override it directly.
+     *
+     * @return {HTMLDOMElement} the active element of current document.
+     */
+    getActiveElement: function bm_getActiveElement() {
+      return document.activeElement;
+    },
+
     focus: function bm_focus() {
-      if (this.contextmenu && this.contextmenu.isShown()) {
-        this.contextmenu.focus();
-      } else if (this.browser && this.browser.element) {
-        this.browser.element.focus();
+      var topWindow = this.getTopMostWindow();
+      if (topWindow.contextmenu && topWindow.contextmenu.isShown()) {
+        topWindow.contextmenu.focus();
+      } else if (topWindow.browser && topWindow.browser.element &&
+                 topWindow.getActiveElement() !== topWindow.browser.element) {
+        topWindow.browser.element.focus();
       }
     },
 
     blur: function bm_blur() {
-      if (this.browser.element) {
-        this.browser.element.blur();
+      var topWindow = this.getTopMostWindow();
+      if (topWindow.browser && topWindow.browser.element &&
+          topWindow.getActiveElement() === topWindow.browser.element) {
+        topWindow.browser.element.blur();
       }
     },
 

@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Calc = require('common/calc');
+var core = require('core');
 var debug = require('common/debug')('pull events');
 var uuid = require('ext/uuid');
 
@@ -9,7 +10,6 @@ var uuid = require('ext/uuid');
  * Event synchronization class for caldav provider.
  *
  * Options:
- *  - app: current calendar app
  *  - account: (Calendar.Models.Account) required
  *  - calendar: (Calendar.Models.Calendar) required
  *
@@ -21,7 +21,6 @@ var uuid = require('ext/uuid');
  *    var pull = new Calendar.Provider.CaldavPullEvents(stream, {
  *      calendar: calendarModel,
  *      account: accountModel,
- *      app: Calendar.App
  *    });
  *
  *    stream.request(function() {
@@ -53,8 +52,6 @@ function PullEvents(stream, options) {
     throw new Error('.account option must be given');
   }
 
-  this.app = options.app;
-
   stream.on('event', this);
   stream.on('component', this);
   stream.on('occurrence', this);
@@ -65,10 +62,11 @@ function PullEvents(stream, options) {
   this.busytimeQueue = [];
   this.alarmQueue = [];
 
-  this._busytimeStore = this.app.store('Busytime');
+  var storeFactory = core.storeFactory;
+  this._busytimeStore = storeFactory.get('Busytime');
 
   // Catch account events to watch for mid-sync removal
-  this._accountStore = this.app.store('Account');
+  this._accountStore = storeFactory.get('Account');
   this._accountStore.on('remove', this._onRemoveAccount.bind(this));
 
   this._aborted = false;
@@ -313,15 +311,15 @@ PullEvents.prototype = {
    * @param {Function} callback fired when transaction completes.
    */
   commit: function(trans, callback) {
-    var eventStore = this.app.store('Event');
-    var icalComponentStore = this.app.store('IcalComponent');
-    var calendarStore = this.app.store('Calendar');
-    var busytimeStore = this.app.store('Busytime');
-    var alarmStore = this.app.store('Alarm');
+    var storeFactory = core.storeFactory;
+    var eventStore = storeFactory.get('Event');
+    var icalComponentStore = storeFactory.get('IcalComponent');
+    var busytimeStore = storeFactory.get('Busytime');
+    var alarmStore = storeFactory.get('Alarm');
 
     if (typeof(trans) === 'function') {
       callback = trans;
-      trans = calendarStore.db.transaction(
+      trans = core.db.transaction(
         ['calendars', 'events', 'busytimes', 'alarms', 'icalComponents'],
         'readwrite'
       );

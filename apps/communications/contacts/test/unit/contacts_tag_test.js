@@ -52,7 +52,7 @@ suite('Fill tag options', function() {
     test('choose a tag', function() {
       var tag = container.querySelector('button[data-index="0"]');
       triggerEvent(tag, 'click');
-      assert.isTrue(tag.className.contains('icon-selected'));
+      assert.isTrue(tag.className.includes('icon-selected'));
     });
 
     test('choose custom tag', function() {

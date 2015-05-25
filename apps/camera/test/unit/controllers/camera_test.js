@@ -82,7 +82,7 @@ suite('controllers/camera', function() {
     });
 
     test('Should load camera on app `visible`', function() {
-      assert.isTrue(this.app.on.calledWith('visible', this.camera.load));
+      assert.isTrue(this.app.on.calledWith('visible', this.controller.onVisible));
     });
 
     test('Should teardown camera on app `hidden`', function() {
@@ -585,7 +585,6 @@ suite('controllers/camera', function() {
       this.controller.onGalleryClosed();
       assert.isFalse(this.controller.galleryOpen);
       sinon.assert.notCalled(this.camera.load);
-    });
     });
   });
 });

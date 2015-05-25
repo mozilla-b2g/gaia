@@ -9,13 +9,12 @@ var SingleDay = require('./single_day');
 var Timespan = require('common/timespan');
 var View = require('view');
 var animatedScroll = require('utils/animated_scroll');
+var core = require('core');
 var createDay = require('common/calc').createDay;
 var template = require('templates/multi_day');
 var throttle = require('utils/mout').throttle;
 
 function MultiDay(opts) {
-  this.app = opts.app;
-  this.timeController = opts.app.timeController;
   this.children = [];
   this._render = throttle(this._render, 200);
 }
@@ -81,7 +80,7 @@ MultiDay.prototype = {
       this.seen = true;
     }
 
-    var controller = this.timeController;
+    var controller = core.timeController;
     controller.scale = this.scale;
     controller.moveToMostRecentDay();
 
@@ -170,7 +169,6 @@ MultiDay.prototype = {
 
   _setupDoubleTap: function() {
     this._hourDoubleTap = new HourDoubleTap({
-      app: this.app,
       main: this.main,
       daysHolder: this.daysHolder,
       alldaysHolder: this.alldaysHolder,
@@ -220,8 +218,8 @@ MultiDay.prototype = {
 
   _updateBaseDateAfterScroll: function(diff) {
     var day = createDayDiff(this.baseDate, diff);
-    this.timeController.move(day);
-    this.timeController.selectedDay = day;
+    core.timeController.move(day);
+    core.timeController.selectedDay = day;
   },
 
   _render: function() {
@@ -344,7 +342,7 @@ MultiDay.prototype = {
 
   oninactive: function() {
     this.element.classList.remove(View.ACTIVE);
-    this.timeController.removeEventListener('dayChange', this);
+    core.timeController.removeEventListener('dayChange', this);
     this.children.forEach(child => child.oninactive());
   }
 };

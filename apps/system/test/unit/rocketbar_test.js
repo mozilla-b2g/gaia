@@ -673,11 +673,20 @@ suite('system/Rocketbar', function() {
       subject.searchWindow.frontWindow = {
         resize: function() {}
       };
-      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize');
-      var stopsPropagation =
-        subject.respondToHierarchyEvent(new CustomEvent('system-resize'));
+      var stub = this.sinon.stub(subject.searchWindow.frontWindow, 'resize')
+        .returns({ stub: 'promise'});
+      var stubWaitUntil = this.sinon.stub();
+      var evt = new CustomEvent('system-resize', {
+        detail: {
+          waitUntil: stubWaitUntil
+        }
+      });
+
+
+      var stopsPropagation = subject.respondToHierarchyEvent(evt);
 
       assert.ok(stub.calledOnce);
+      assert.ok(stubWaitUntil.calledWith({ stub: 'promise' }));
       assert.isFalse(stopsPropagation);
 
       stub.restore();
@@ -772,8 +781,10 @@ suite('system/Rocketbar', function() {
         done();
       }
     };
+    var stubBlur = this.sinon.stub(subject.input, 'blur');
     subject.handleSubmit(event);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    assert.ok(stubBlur.calledOnce);
   });
 
   test('handleCancel()', function() {

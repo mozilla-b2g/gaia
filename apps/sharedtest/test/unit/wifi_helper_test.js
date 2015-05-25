@@ -5,6 +5,157 @@ require('/shared/js/wifi_helper.js');
 
 suite('WifiHelper', function() {
 
+  suite('> isValidInput()', function(){
+
+    test('Test WEP network >', function(){
+      var network_security = 'WEP';
+      var password = '';
+
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid if not using password');
+
+      password = 'I234'; // 4 ASCII char
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid if password is too short');
+
+      password = 'ABC12'; // 5 ASCII char
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 5 ASCII char');
+
+      password = 'ABCDEFG123456'; // 13 ASCII char
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 13 ASCII char');
+
+      password = 'QWERTYUIOP123456'; // 16 ASCII char
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 16 ASCII char');
+
+      password = 'QWERTYUIOPASDFGHJKLZXCVBNM123'; // 29 ASCII char
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 29 ASCII char');
+
+      password = '123456AB'; // 8 ASCII char
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid with 8 ASCII char');
+
+      password = 'ABCD'; // 4 HEX char
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid with 4 HEX char');
+
+      password = 'ABCDE12345'; // 10 HEX char
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 10 HEX char');
+
+      password = 'ABCGH12345'; // 10 HEX invalid char
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid with 10 not HEX char');
+
+      password = 'ABCDEF123456ABCDEF123456AB'; // 26 HEX char
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 26 HEX char');
+
+      password = 'ABCGH12345ABCGH12345123456'; // 26 HEX invalid char
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid with 26 not HEX char');
+
+      password = 'ABCDEF123456ABCDEF123456ABCDEF12'; // 32 HEX char
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 32 HEX char');
+
+      password = 'ABCGH12345ABCGH12345123456GGGG12'; // 32 HEX invalid char
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid with 32 not HEX char');
+
+      // 26 HEX char
+      password = 'ABCDEF123456ABCDEF123456ABABCDEF123456ABCDEF123456AB123456';
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid with 58 HEX char');
+
+      // 58 HEX invalid char
+      password = 'ABCGH12345ABCGH12345123456ABCGH12345ABCGH12345123456ABCGH1';
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid with 58 not HEX char');
+    });
+
+    test('Test WPA-PSK network >', function() {
+      var network_security = 'WPA-PSK';
+      var password = '';
+
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid if not using password');
+
+      password = '12345';
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid if password is too short');
+
+      password = '1234567';
+      assert.isFalse(WifiHelper.isValidInput(network_security, password),
+        'Input should be invalid if password is too short');
+
+      password = '12345678';
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid if password is long enough');
+
+      password = 'QWERTY123456';
+      assert.isTrue(WifiHelper.isValidInput(network_security, password),
+        'Input should be valid if password is long enough');
+    });
+
+    suite('> WPA-EAP network', function() {
+      var password;
+      var identity;
+      var network_security;
+      var eap;
+
+      setup(function() {
+        password = '';
+        identity = '';
+        network_security = '';
+        eap = '';
+      });
+
+      test('Any input is valid with SIM >', function() {
+        network_security = 'WPA-EAP';
+        password = '';
+        identity = '';
+        eap = 'SIM';
+
+        assert.isTrue(WifiHelper.isValidInput(network_security, password,
+          identity, eap), 'Any input should be valid with a SIM network');
+      });
+
+      test('if password and identify are empty', function() {
+        network_security = 'WPA-EAP';
+        password = '';
+        identity = '';
+
+        assert.isFalse(WifiHelper.isValidInput(network_security, password, 
+          identity), 
+          'Input should be invalid when password and identity not filled');
+      });
+
+      test('if we have password, but no identify', function() {
+        network_security = 'WPA-EAP';
+        password = '123'; // valid password
+        identity = '';
+
+        assert.isFalse(WifiHelper.isValidInput(network_security, password,
+          identity), 
+          'Input should be invalid when password and identity not filled');
+      });
+
+      test('if we have password and identify', function() {
+        network_security = 'WPA-EAP';
+        password = '123'; // valid password
+        identity = 'identification'; // valid identity 
+
+        assert.isTrue(WifiHelper.isValidInput(network_security, password,
+          identity), 
+          'Input should be valid when password and identity filled');
+      });
+    });
+  });
+
   suite('> getAvailableAndKnownNetworks()', function() {
     var originalMozWifiManager;
     var triggerCallback = function triggerCallback(which, successOrError) {

@@ -5,6 +5,7 @@ var Calc = require('common/calc');
 var GestureDetector = require('shared/gesture_detector');
 var SingleMonth = require('./single_month');
 var View = require('view');
+var core = require('core');
 var dateFromId = Calc.dateFromId;
 var monthStart = Calc.monthStart;
 var performance = require('performance');
@@ -48,7 +49,7 @@ Month.prototype = {
 
   onactive: function() {
     View.prototype.onactive.apply(this, arguments);
-    this.app.timeController.scale = this.SCALE;
+    core.timeController.scale = this.SCALE;
     if (this.currentFrame) {
       this.currentFrame.activate();
     }
@@ -72,7 +73,7 @@ Month.prototype = {
   },
 
   _move: function(isNext) {
-    var controller = this.app.timeController;
+    var controller = core.timeController;
     var date = isNext ? this._nextTime() : this._previousTime();
     // If we changed months, set the selected day to the 1st
     controller.selectedDay = date;
@@ -88,7 +89,7 @@ Month.prototype = {
   },
 
   _initEvents: function() {
-    this.controller = this.app.timeController;
+    this.controller = core.timeController;
 
     this.element.addEventListener('swipe', this);
     this.element.addEventListener('wheel', this);
@@ -159,7 +160,6 @@ Month.prototype = {
     var frame = this.frames.get(id);
     if (!frame) {
       frame = new SingleMonth({
-        app: this.app,
         date: date,
         container: this.element
       });

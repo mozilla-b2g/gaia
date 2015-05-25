@@ -15,9 +15,11 @@ marionette('Dimiss the keyboard', function() {
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
 
   var client = marionette.client({
-    apps: apps,
-    prefs: {
-      'focusmanager.testmode': true
+    profile: {
+      apps: apps,
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 

@@ -114,6 +114,11 @@
   display: block;
 }
 
+#oauth2 gaia-header h1 {
+  /* should always display the beginning of the URL */
+  direction: ltr;
+}
+
 #oauth2 .browser-container {
   width: 100%;
   /* -5rem for the header */

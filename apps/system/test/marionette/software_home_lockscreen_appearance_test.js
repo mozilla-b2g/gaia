@@ -5,13 +5,14 @@ var assert = require('assert');
 marionette('Software Home Button - Lockscreen Appearance', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'software-button.enabled': true,
-      'lockscreen.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true,
+        'lockscreen.enabled': true
+      }
     }
   });
   var system;

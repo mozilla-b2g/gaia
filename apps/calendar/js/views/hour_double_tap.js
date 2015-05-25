@@ -11,7 +11,6 @@ var closest = require('utils/dom').closest;
 var createDay = require('common/calc').createDay;
 
 function HourDoubleTap(options) {
-  this.app = options.app;
   this.main = options.main;
   this.daysHolder = options.daysHolder;
   this.alldaysHolder = options.alldaysHolder;

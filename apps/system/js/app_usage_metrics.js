@@ -356,7 +356,7 @@
 
       debug('Waiting for applications to be ready');
       window.addEventListener('applicationready', function onAppsReady(evt) {
-        window.removeEventListener(onAppsReady);
+        window.removeEventListener('applicationready', onAppsReady);
         registerHandlers();
       });
     }
@@ -844,6 +844,13 @@
   // - Apps installed from the marketplace
   UsageData.prototype.shouldTrackApp = function(app) {
     if (!app) {
+      return false;
+    }
+
+    // Bug 1134998: Don't track apps that are marked as private windows
+    // Some app-like objects may not have the isPrivateBrowser function,
+    // so we also check to make sure it exists here.
+    if (typeof app.isPrivateBrowser === 'function' && app.isPrivateBrowser()) {
       return false;
     }
 

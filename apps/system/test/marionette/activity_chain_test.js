@@ -9,11 +9,15 @@
   var WINDOW_CALLEE_APP = 'activitycalleewindow.gaiamobile.org';
   marionette('activity chain test', function() {
     var client = marionette.client({
-      apps: {
-        'activitycaller.gaiamobile.org': __dirname + '/../apps/activitycaller',
-        'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee',
-        'activitycalleewindow.gaiamobile.org':
-          __dirname + '/../apps/activitycalleewindow'
+      profile: {
+        apps: {
+          'activitycaller.gaiamobile.org': __dirname +
+                                           '/../apps/activitycaller',
+          'activitycallee.gaiamobile.org': __dirname +
+                                           '/../apps/activitycallee',
+          'activitycalleewindow.gaiamobile.org':
+            __dirname + '/../apps/activitycalleewindow'
+        }
       }
     });
 

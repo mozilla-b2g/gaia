@@ -16,11 +16,12 @@ define(function(require) {
           body: panel.querySelector('.addon-details-body'),
           header: panel.querySelector('.addon-details-header'),
           gaiaHeader: panel.querySelector('gaia-header'),
+          enabledState: panel.querySelector('.addon-enabled-state'),
+          name: panel.querySelector('.addon-details-name'),
           icon: panel.querySelector('.addon-details-icon'),
           description: panel.querySelector('.addon-description-text'),
           developer: panel.querySelector('.addon-developer'),
           targetsList: panel.querySelector('.addon-targets'),
-          noTargetsMsg: panel.querySelector('.addon-no-targets'),
           toggle: panel.querySelector('.addon-enabled'),
           deleteButton: panel.querySelector('.addon-delete'),
           renameButton: panel.querySelector('.addon-rename')

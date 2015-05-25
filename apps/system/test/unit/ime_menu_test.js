@@ -5,7 +5,7 @@
 requireApp('system/js/ime_menu.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/shared/js/template.js');
+requireApp('system/shared/js/tagged.js');
 
 var mocksForAppInstallManager = new MocksHelper([
   'LazyLoader'
@@ -111,8 +111,9 @@ suite('ImeMenu', function() {
     test(' > check title', function() {
       var menu = new ImeMenu(imeListMockup, title);
       menu.start();
-      assert.equal(getMenu().querySelector('section > h1').textContent,
-                   title);
+      assert.equal(
+        getMenu().querySelector('section > h1').getAttribute('data-l10n-id'),
+        title);
       menu.stop();
     });
 

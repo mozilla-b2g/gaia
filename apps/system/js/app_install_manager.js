@@ -9,7 +9,7 @@
 /* global NotificationScreen */
 /* global Service */
 /* global SystemBanner */
-/* global Template */
+/* global Tagged */
 /* global UtilityTray */
 /* global applications */
 
@@ -37,7 +37,6 @@ var AppInstallManager = {
     this.installButton = document.getElementById('app-install-install-button');
     this.cancelButton = document.getElementById('app-install-cancel-button');
     this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
-    this.imeListTemplate = document.getElementById('ime-list-template');
     this.imeList = document.getElementById('ime-list');
     this.imeCancelButton = document.getElementById('ime-cancel-button');
     this.imeConfirmButton = document.getElementById('ime-confirm-button');
@@ -96,8 +95,7 @@ var AppInstallManager = {
                              this.handleSetupConfirmAction.bind(this);
     this.imeCancelButton.onclick = this.hideIMEList.bind(this);
     this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
-    LazyLoader.load(['shared/js/template.js',
-                     'shared/js/homescreens/confirm_dialog_helper.js']);
+    LazyLoader.load(['shared/js/homescreens/confirm_dialog_helper.js']);
 
     // bind these handlers so that we can have only one instance and check
     // them later on
@@ -114,6 +112,16 @@ var AppInstallManager = {
 
     window.addEventListener('home', this.cancelInstallation.bind(this));
     window.addEventListener('holdhome', this.cancelInstallation.bind(this));
+  },
+
+  imeListView: function({displayName, imeName}) {
+    return Tagged.escapeHTML `<li>
+        <a>${displayName}</a>
+        <label class="pack-checkbox ime">
+          <input type="checkbox" name="keyboards" value="${imeName}">
+          <span></span>
+        </label>
+      </li>`;
   },
 
   cancelInstallation: function ai_cancelInstallation() {
@@ -232,6 +240,11 @@ var AppInstallManager = {
     // Wrap manifest to get localized properties
     manifest = new ManifestHelper(manifest);
 
+    if (manifest.role === 'theme') {
+      this.dispatchResponse(id, 'webapps-uninstall-granted');
+      return;
+    }
+
     var unrecoverable = app.installState === 'pending' &&
                         !app.downloadAvailable &&
                         !app.readyToApplyDownload;
@@ -319,8 +332,7 @@ var AppInstallManager = {
     var name = appManifest.displayName;
     var l10nId = appManifest.role === 'langpack' ?
       'langpack-install-success2' : 'app-install-success';
-    this.systemBanner.show(
-      navigator.mozL10n.get(l10nId, { appName: name }));
+    this.systemBanner.show({id: l10nId, args: { appName: name }});
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {
@@ -393,10 +405,9 @@ var AppInstallManager = {
 
     // build the list of keyboard layouts
     var listHtml = '';
-    var imeListWrap = Template(this.imeListTemplate);
     for (var name in inputs) {
       var displayIMEName = new ManifestHelper(inputs[name]).displayName;
-      listHtml += imeListWrap.interpolate({
+      listHtml += this.imeListView({
         imeName: name,
         displayName: displayIMEName
       });
@@ -436,7 +447,6 @@ var AppInstallManager = {
 
   handleDownloadError: function ai_handleDownloadError(evt) {
     var app = evt.application;
-    var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
     var name = new ManifestHelper(manifest).displayName;
 
@@ -455,8 +465,10 @@ var AppInstallManager = {
         console.info('downloadError event, error code is', errorName);
 
         var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
-        var msg = _('app-install-' + key, { appName: name });
-        this.systemBanner.show(msg);
+        this.systemBanner.show({
+          id: 'app-install-' + key,
+          args: { appName: name }
+        });
     }
 
     this.onDownloadStop(app);

@@ -4,14 +4,6 @@
 
   function CardFilter() {}
 
-  CardFilter.FILTERS = Object.freeze({
-    'ALL': 'filter',
-    'TV': 'tv',
-    'DASHBOARD': 'dashboard',
-    'DEVICE': 'device',
-    'APPLICATION': 'application'
-  });
-
   var proto = CardFilter.prototype = new evt();
 
   Object.defineProperty(proto, 'filter', {
@@ -43,7 +35,11 @@
   };
 
   proto.stop = function cf_stop() {
-    this.menuGroup.removeEventListener('click', this);
+    var that = this;
+    var buttonKeys = Object.keys(this._buttons);
+    buttonKeys.forEach(function(key) {
+      that._buttons[key].removeEventListener('click', that);
+    });
   };
 
   proto.handleEvent = function cf_handleEvent(evt) {
@@ -51,6 +47,14 @@
       return;
     }
     this.filter = evt.target.dataset.iconType;
+  };
+
+  proto.hide = function cf_hide() {
+    this.menuGroup.classList.add('hidden');
+  };
+
+  proto.show = function cf_show() {
+    this.menuGroup.classList.remove('hidden');
   };
 
   exports.CardFilter = CardFilter;

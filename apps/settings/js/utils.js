@@ -20,7 +20,7 @@ function reopenSettings() {
  */
 
 function openLink(url) {
-  /* jshint -W031 */
+  /* jshint nonew: false */
   if (url.startsWith('tel:')) { // dial a phone number
     new MozActivity({
       name: 'dial',

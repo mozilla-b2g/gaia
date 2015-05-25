@@ -5,7 +5,7 @@ var Ftu = require('./lib/ftu');
 
 marionette('First Time Use >', function() {
 
-  var client = marionette.client(Ftu.clientOptions);
+  var client = marionette.client({ profile: Ftu.clientOptions });
   var ftu, system;
 
   setup(function() {

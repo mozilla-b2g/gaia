@@ -4,14 +4,16 @@ define(function(require) {
 var Factory = require('test/support/factory');
 var mockRequestWakeLock = require('test/support/mock_request_wake_lock');
 var controller = require('controllers/notifications');
+var core = require('core');
+var mochaPromise = require('test/support/mocha_promise');
 var notification = require('notification');
 var waitFor = require('test/support/wait_for');
 
 suite('controllers/notifications', function() {
   var alarm;
-  var app;
   var db;
   var sendNotification;
+  var storeFactory;
 
   setup(function() {
     mockRequestWakeLock.setup();
@@ -19,8 +21,8 @@ suite('controllers/notifications', function() {
   });
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
+    storeFactory = core.storeFactory;
+    db = core.db;
     db.open(done);
   });
 
@@ -55,11 +57,9 @@ suite('controllers/notifications', function() {
       _id: 'alarm-one'
     });
 
-    var eventStore = db.getStore('Event');
-    eventStore.app = app;
-    var busytimeStore = db.getStore('Busytime');
-    busytimeStore.app = app;
-    var alarmStore = db.getStore('Alarm');
+    var eventStore = storeFactory.get('Event');
+    var busytimeStore = storeFactory.get('Busytime');
+    var alarmStore = storeFactory.get('Alarm');
 
     Promise.all([
       eventStore.persist(event),
@@ -87,27 +87,24 @@ suite('controllers/notifications', function() {
   });
 
   suite('#onAlarm', function() {
-    test('cpu lock', function(done) {
+    mochaPromise(test, 'cpu lock', function() {
       controller.onAlarm(alarm);
 
-      waitFor(function() {
+      return waitFor(function() {
         var locks = mockRequestWakeLock.locks;
         var lock = locks[0];
         return lock && lock.type === 'cpu' && lock.unlocked;
-      }, done);
+      });
     });
 
-    test('should send alarm notification', function(done) {
+    mochaPromise(test, 'should send alarm notification', function() {
       controller.onAlarm(alarm);
 
-      waitFor(function() {
+      return waitFor(function() {
         // Notably, even though our event description was null, we don't pass on
         // 'null' to the notification body.
-        return sendNotification.calledWith(
-          'Birthday started just now',
-          ''
-        );
-      }, done);
+        return sendNotification.calledWith('Birthday started just now', '');
+      });
     });
   });
 });

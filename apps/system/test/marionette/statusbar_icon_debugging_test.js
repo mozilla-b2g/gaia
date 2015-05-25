@@ -5,11 +5,10 @@ var StatusBar = require('./lib/statusbar');
 marionette('Status Bar icons - Debugging', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'debugger.remote-mode': 'disabled'
+    profile: {
+      settings: {
+        'debugger.remote-mode': 'disabled'
+      }
     }
   });
 

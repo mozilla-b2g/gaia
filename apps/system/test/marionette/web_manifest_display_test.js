@@ -5,16 +5,15 @@ var assert = require('assert');
 marionette('Web Manifest Display Modes >', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    apps: {
-      'web_app_minimal_ui.gaiamobile.org':
-        __dirname + '/../apps/web_app_minimal_ui',
-      'web_app_standalone.gaiamobile.org':
-        __dirname + '/../apps/web_app_standalone',
-      'web_app_fullscreen.gaiamobile.org':
-        __dirname + '/../apps/web_app_fullscreen'
+    profile: {
+      apps: {
+        'web_app_minimal_ui.gaiamobile.org':
+          __dirname + '/../apps/web_app_minimal_ui',
+        'web_app_standalone.gaiamobile.org':
+          __dirname + '/../apps/web_app_standalone',
+        'web_app_fullscreen.gaiamobile.org':
+          __dirname + '/../apps/web_app_fullscreen'
+      }
     }
   });
 

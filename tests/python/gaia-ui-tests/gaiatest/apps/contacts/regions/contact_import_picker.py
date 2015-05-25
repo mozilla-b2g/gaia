@@ -21,7 +21,7 @@ class ContactImportPicker(Base):
         self.marionette.switch_to_frame(select_contacts)
 
     def tap_import_button(self, wait_for_import = True):
-        self.marionette.execute_script('window.wrappedJSObject.importer.ui.importAll();', special_powers=True)
+        self.marionette.execute_script('window.wrappedJSObject.importer.ui.importAll();')
         # TODO uncomment this when Bug 932804 is resolved
         # self.marionette.find_element(*self._import_button_locator).tap()
         self.apps.switch_to_displayed_app()
@@ -35,12 +35,12 @@ class ContactImportPicker(Base):
         self.marionette.execute_script("""
             window.wrappedJSObject.document.getElementById("friends-list")
                   .getElementsByTagName("a")[1].click()
-        """, special_powers=True)
+        """)
         self.wait_for_element_not_displayed(*self._friends_list_locator)
         self.apps.switch_to_displayed_app()
 
     def tap_select_all(self):
         # TODO replace this with proper tap when Bug 932804 is resolved
-        self.marionette.execute_script('window.wrappedJSObject.importer.ui.selectAll();', special_powers=True)
+        self.marionette.execute_script('window.wrappedJSObject.importer.ui.selectAll();')
         el = self.marionette.find_element(*self._import_button_locator)
         Wait(self.marionette).until(expected.element_enabled(el))

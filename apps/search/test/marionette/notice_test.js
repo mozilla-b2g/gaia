@@ -7,7 +7,9 @@ var Server = require('../../../../shared/test/integration/server');
 
 marionette('Search - Notice Test', function() {
 
-  var client = marionette.client(require(__dirname + '/client_options.js'));
+  var client = marionette.client({
+    profile: require(__dirname + '/client_options.js')
+  });
   var home, search, rocketbar, system, server;
 
   var providers;

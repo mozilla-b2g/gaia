@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var View = require('view');
+var core = require('core');
 var nextTick = require('common/next_tick');
 var timeObserver = require('time_observer');
 
@@ -34,8 +35,8 @@ ViewSelector.prototype = {
 
   _moveToTodayOnClick: function(event) {
     var date = new Date();
-    this.app.timeController.move(date);
-    this.app.timeController.selectedDay = date;
+    core.timeController.move(date);
+    core.timeController.selectedDay = date;
 
     event.preventDefault();
   },

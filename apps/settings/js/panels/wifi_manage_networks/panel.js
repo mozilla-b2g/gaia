@@ -43,7 +43,11 @@ define(function(require) {
                 value.identity,
                 value.eap
               );
-              WifiContext.associateNetwork(network, function() {
+              WifiContext.associateNetwork(network, function(error) {
+                if (error) {
+                  // TODO
+                  // Show some error later
+                }
                 self._cleanup();
                 self._scan();
               });

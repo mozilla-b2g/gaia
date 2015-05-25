@@ -5,7 +5,7 @@
 var utils = require('utils');
 
 function removeDesktopOnlyFolder(appStageDir) {
-  var desktopOnlyDir = utils.getFile(appStageDir, 'js', 'desktop-only');
+  var desktopOnlyDir = utils.getFile(appStageDir, 'desktop-mock');
 
   if (desktopOnlyDir.exists()) {
     desktopOnlyDir.remove(true);
@@ -14,7 +14,7 @@ function removeDesktopOnlyFolder(appStageDir) {
 
 function removeDesktopOnlyScripts(appStageDir) {
   var indexFile = utils.getFile(appStageDir, 'index.html');
-  var desktopOnlyScriptsRegex = /<script.+desktop\-only.+<\/script>/g;
+  var desktopOnlyScriptsRegex = /<script.+desktop\-mock.+<\/script>/g;
 
   utils.writeContent(
     indexFile,

@@ -63,7 +63,9 @@
     <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
     <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
     <!-- Specific code -->
+    <script defer src="js/utils.js"></script>
     <script defer src="js/card_filter.js"></script>
+    <script defer src="js/filter_manager.js"></script>
     <script defer src="js/connection_manager.js"></script>
     <script defer src="js/message_handler.js"></script>
     <script defer src="js/edit.js"></script>
@@ -84,7 +86,7 @@
   </head>
 
   <body>
-    <article role="region" class="skin-dark" id="main-section">
+    <article tabIndex="-1" role="region" class="skin-dark" id="main-section">
       <section id="background" class="background"></section>
       <nav id="nav-regular">
         <section id="header-buttons" class="left-top-panel">
@@ -127,9 +129,10 @@
         </section>
       </nav>
 
+      <smart-bubbles id="bubbles" interval="100"></smart-bubbles>
       <section id="card-viewer">
         <div id="card-list-frame">
-          <div id="card-list" data-default-item="0">
+          <div id="card-list" class="hidden" data-default-item="0" smart-bubbles="true">
           </div>
         </div>
       </section>

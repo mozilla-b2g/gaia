@@ -13,6 +13,7 @@ var BluetoothHelper = function() {
   var _callbacks = [];
 
   var _adapter = null;
+  var _oldAdapter = null; // The varaible is accessed for v1 only.
   var _v2 = true;
 
   var _ready = function(callback) {
@@ -87,7 +88,6 @@ var BluetoothHelper = function() {
     var req = _bluetooth.getDefaultAdapter();
     if (req) {
       req.onsuccess = function() {
-        var _oldAdapter;
         if (_adapter) {
           _oldAdapter = _adapter;
         }
@@ -126,6 +126,10 @@ var BluetoothHelper = function() {
   };
 
   var _resetAdapter = function() {
+    if (_adapter) {
+      _oldAdapter = _adapter;
+    }
+    // clean up state and adapter
     _isReady = false;
     _adapter = null;
   };

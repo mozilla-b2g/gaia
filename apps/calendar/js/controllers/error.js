@@ -9,13 +9,9 @@ var notification = require('notification');
 
 /**
  * Global error handler / default handling for errors.
- *
- * @param {Calendar.App} app current application.
  */
-function ErrorController(app) {
+function ErrorController() {
   Responder.call(this);
-
-  this.app = app;
   this._handlers = Object.create(null);
 }
 module.exports = ErrorController;

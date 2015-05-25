@@ -1,12 +1,11 @@
 define(function(require, exports, module) {
 'use strict';
 
+var asyncRequire = require('common/async_require');
 var debug = require('common/debug')('viewFactory');
 var nextTick = require('common/next_tick');
 var snakeCase = require('snake_case');
 
-// FIXME: app is injected later, we can only remove this after Bug 1154988
-exports.app = null;
 exports._instances = Object.create(null);
 
 /**
@@ -48,9 +47,7 @@ exports.get = function(name, cb) {
     this._initView(name, Ctor, cb);
   } catch(e) {
     debug(`Will try to load view ${name} at ${path}`);
-    // we need to grab the global `require` because the async require is not
-    // part of the AMD spec and is not implemented by all loaders
-    window.require([path], Ctor => {
+    asyncRequire(path).then(Ctor => {
       debug(`Loaded view ${name}`);
       this._initView(name, Ctor, cb);
     });
@@ -73,7 +70,7 @@ exports._initView = function(name, Ctor, cb) {
     // trigger the window.require callback multiple times)
     return;
   }
-  var view = new Ctor({ app: exports.app });
+  var view = new Ctor();
   this._instances[name] = view;
   this._get(name, cb);
 };

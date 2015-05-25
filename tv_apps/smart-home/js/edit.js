@@ -1,4 +1,4 @@
-/* global evt, Folder, SmartModalDialog */
+/* global evt, Folder, SmartModalDialog, Utils */
 
 'use strict';
 
@@ -49,6 +49,8 @@
         this.onCardMoveAnimationEnd.bind(this));
       this.cardScrollable.on('hovering-node-removed',
         this.onHoveringNodeRemoved.bind(this));
+      this.cardScrollable.on('node-inserted-over-folder',
+        this.onNodeInsertedOverFolder.bind(this));
 
       this.spatialNavigator.on('focus', this.handleFocus.bind(this));
       this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
@@ -80,13 +82,13 @@
             this.currentNode.classList.remove('focused');
           }.bind(this));
         this._concealPanel(this.currentScrollable, this.currentNode);
+        this.fire('exit-edit-mode');
       } else {
         this.mainSection.dataset.mode = 'edit';
         this.spatialNavigator.multiRemove(this.regularNavElements);
         this.spatialNavigator.multiAdd(this.editNavElements);
 
-        // Keep track of scrollable and node for showing/hiding panel
-        this.currentScrollable = this.cardScrollable;
+        this._setCurrentScrollable(this.cardScrollable);
         this.currentNode =
           this.cardScrollable.getNodeFromItem(this.cardScrollable.currentItem);
         this._revealPanel(this.currentScrollable, this.currentNode);
@@ -94,6 +96,7 @@
         this.spatialNavigator.focus(this.cardScrollable);
         this.cardScrollable.setScale(EDIT_MODE_SCALE);
         this.folderScrollable.setScale(EDIT_MODE_SCALE);
+        this.fire('enter-edit-mode');
       }
     },
 
@@ -103,6 +106,9 @@
         this._concealPanel(this.currentScrollable, this.currentNode);
         this.currentScrollable.focus(this.currentScrollable.currentItem);
         this._setHintArrow();
+        if (this.currentScrollable === this.folderScrollable) {
+          this.cardScrollable.setColspanOnFocus(1);
+        }
         this.fire('arrange');
       } else if (this.mainSection.dataset.mode == 'arrange') {
         this.mainSection.dataset.mode = 'edit';
@@ -111,12 +117,8 @@
                                             this.currentScrollable.currentItem);
         this._revealPanel(this.currentScrollable, this.currentNode);
         this._clearHintArrow();
-        if (this.currentScrollable === this.folderScrollable) {
-          // Update scrollable positions
-          this.cardScrollable.setNodesPosition();
-          // TODO: folderScrollable should trace the position of cardScrollable,
-          // leave this in bug 1158665
-        }
+        this.cardScrollable.setColspanOnFocus(0);
+        this.folderScrollable.realignToReferenceElement();
       }
     },
 
@@ -159,6 +161,7 @@
         case 'left':
         case 'right':
           if (!focus.isHovering && targetItem &&
+              focus.currentItem.getAttribute('app-type') !== 'deck' &&
               focus.currentItem.getAttribute('app-type') !== 'folder' &&
               targetItem.getAttribute('app-type') === 'folder') {
             // hover on folder
@@ -208,7 +211,12 @@
           this._moveQueue.clearQueue();
           break;
         case 'up':
-          // TODO: Implement remove from folder in bug 1156143
+          if (this.currentScrollable === this.folderScrollable) {
+            this.moveToCardList(focus);
+            this._moveTimer =
+              window.setTimeout(this.onCardMoveAnimationEnd.bind(this),
+              CARD_TRANSFORM_LATENCY);
+          }
           break;
         }
       }
@@ -249,17 +257,24 @@
       if (scrollable && scrollable.isHovering) {
         this.currentNode.classList.toggle('left_arrow', true);
         this.currentNode.classList.toggle('right_arrow', true);
-        // If the current node can be moved into a folder
         this.currentNode.classList.toggle('down_arrow', true);
-        // If the current node can be removed from a folder
-        this.currentNode.classList.toggle('up_arrow', false);
+        this.currentNode.classList.remove('up_arrow');
       } else {
         this.currentNode.classList.toggle('left_arrow', index > 0);
         this.currentNode.classList.toggle('right_arrow',
                                     index < this.currentScrollable.length - 1);
         this.currentNode.classList.remove('down_arrow');
-        this.currentNode.classList.remove('up_arrow');
+        this.currentNode.classList.toggle('up_arrow',
+                              this.currentScrollable === this.folderScrollable);
       }
+    },
+
+    _setCurrentScrollable: function(scrollable) {
+      this.currentScrollable = scrollable;
+      document.getElementById('card-viewer').classList.toggle(
+        'current-scrollable', scrollable === this.cardScrollable);
+      document.getElementById('folder-viewer').classList.toggle(
+        'current-scrollable', scrollable === this.folderScrollable);
     },
 
     _clearHintArrow: function() {
@@ -279,18 +294,19 @@
       this.cardManager.removeCard(this._hoveringCard);
     },
 
+    /**
+     * Runs after moveToFolder call, when the hovering card is successfully
+     * removed by cardManager and the node is removed from cardScrollable.
+     */
     onHoveringNodeRemoved: function(cardItem, folderItem) {
       var card = this._hoveringCard;
       var folder = this.cardManager.findCardFromCardList(
                     {cardId: folderItem.dataset.cardId});
-      // TODO: Align the folderScrollable with the folder,
-      // leave this in bug 1158665
-      // this.folderScrollable.setReferenceElement(folderItem);
-
       // Add the card into the folder
-      folder.addCard(card, 0);
+      folder.addCard(card, this.folderScrollable.isReversed ? null : 0);
       this._hoveringCard = null;
-      this.currentScrollable = this.folderScrollable;
+      this._setCurrentScrollable(this.folderScrollable);
+      this.folderScrollable.realignToReferenceElement();
       this.currentNode = this.folderScrollable.getNodeFromItem(
                                             this.folderScrollable.currentItem);
       if (!this.spatialNavigator.focus(this.folderScrollable)) {
@@ -300,6 +316,35 @@
         this.spatialNavigator.focus(this.folderScrollable);
       }
       this._setHintArrow();
+    },
+
+    moveToCardList: function(focus) {
+      var folder = this.cardManager.findContainingFolder(
+                                    {cardId: focus.currentItem.dataset.cardId});
+      var card = this.cardManager.findCardFromCardList(
+                                    {cardId: focus.currentItem.dataset.cardId});
+      var folderItem = this.cardScrollable.currentItem;
+      var idx = this.cardScrollable.getNodeFromItem(folderItem).dataset.idx;
+
+      this._hoveringCard = card;
+
+      folder.removeCard(card);
+
+      // insert card
+      this.cardManager.insertCard({
+        card: card,
+        index: parseInt(idx, 10),
+        overFolder: true
+      });
+    },
+
+    onNodeInsertedOverFolder: function() {
+      this.spatialNavigator.focus(this.cardScrollable);
+      this._setCurrentScrollable(this.cardScrollable);
+      this.currentNode = this.cardScrollable.getNodeFromItem(
+                                            this.cardScrollable.currentItem);
+      this._setHintArrow(this.currentScrollable);
+      this.folderScrollable.realignToReferenceElement();
     },
 
     onEnter: function() {
@@ -322,7 +367,7 @@
         if (currentItem.classList.contains('rename-btn')) {
           this.renameCard(focus, focus.getNodeFromItem(currentItem));
         } else if (currentItem.classList.contains('delete-btn')) {
-          this.deleteCard(focus, focus.getNodeFromItem(currentItem));
+          this.openDeleteCardDialog(focus, focus.getNodeFromItem(currentItem));
         } else if (currentItem.classList.contains('hover')) {
           // When a card is hovering over a folder, do nothing here.
         } else {
@@ -351,8 +396,8 @@
       this.cardManager.updateCard(card);
     },
 
-    deleteCard: function(scrollable, nodeElem) {
-      document.activeElement.blur();
+    openDeleteCardDialog: function(scrollable, nodeElem) {
+      Utils.holdFocusForAnimation();
       this.modalDialog.open({
         message: {
           textL10nId: 'delete-card-alert'
@@ -366,23 +411,39 @@
           {
             textL10nId: 'delete',
             class: 'danger',
-            onClick: this._onCardDeleted.bind(this, scrollable, nodeElem)
+            onClick: this.deleteCard.bind(this, scrollable, nodeElem)
           }
         ],
         onCancel: this.spatialNavigator.focus.bind(this.spatialNavigator)
       });
     },
 
-    _onCardDeleted: function(scrollable, nodeElem) {
+    deleteCard: function(scrollable, nodeElem) {
+      var itemElem = scrollable.getItemFromNode(nodeElem);
       this._concealPanel(scrollable, nodeElem);
       nodeElem.classList.add('delete');
+
+      if (scrollable === this.folderScrollable) {
+        var folder = this.cardManager.findContainingFolder(
+                          {cardId: itemElem.dataset.cardId});
+        var card = this.cardManager.findCardFromCardList(
+                          {cardId: itemElem.dataset.cardId});
+      }
 
       var deletedItem = scrollable.getItemFromNode(nodeElem);
       deletedItem.addEventListener('transitionend', function(evt) {
         if (evt.propertyName === 'transform') {
           scrollable.spatialNavigator
                     .focus(scrollable.getItemFromNode(nodeElem));
-          this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+          if (scrollable === this.cardScrollable) {
+            this.cardManager.removeCard(parseInt(nodeElem.dataset.idx, 10));
+          } else {
+            folder.removeCard(card);
+
+            if (folder.isEmpty()) {
+              this.spatialNavigator.focus(this.cardScrollable);
+            }
+          }
         }
       }.bind(this));
     },
@@ -462,7 +523,7 @@
         this._concealPanel(this.currentScrollable, this.currentNode);
 
         this.currentNode = nodeElem;
-        this.currentScrollable = scrollable;
+        this._setCurrentScrollable(scrollable);
       }
       this._revealPanel(scrollable, nodeElem);
       itemElem.focus();

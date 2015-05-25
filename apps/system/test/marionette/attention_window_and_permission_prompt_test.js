@@ -8,10 +8,9 @@ marionette('AttentionWindow - Permission Prompt', function() {
   apps[FakeLoopApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakeloopapp';
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var system;

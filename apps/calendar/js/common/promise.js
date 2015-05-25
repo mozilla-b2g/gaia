@@ -11,9 +11,10 @@ function denodeify(fn) {
   return function() {
     // Original arguments to fn.
     var args = Array.slice(arguments);
-    var callback = args[args.length - 1];
-    if (typeof callback === 'function') {
+    if (args.length === fn.length) {
       // If consumer is trying to interact with node-style callback, let them.
+      // If they were going for the promise, then the function would expect
+      // one more arg than was provided (the callback arg).
       return fn.apply(this, args);
     }
 

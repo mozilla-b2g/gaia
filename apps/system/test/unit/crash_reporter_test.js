@@ -121,8 +121,8 @@ suite('system/CrashReporter', function() {
     clock.tick(TICK);
 
     assert.equal(MockSystemBanner.mShowCount, 1);
-    assert.isTrue(
-      MockSystemBanner.mMessage.contains('crash-dialog-app-noname')
+    assert.equal(
+      MockSystemBanner.mMessage.args.name, 'crash-dialog-app-noname'
     );
   });
 });

@@ -4,11 +4,10 @@ var assert = require('assert');
 marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    apps: {
-      'hosted_nav_app.gaiamobile.org': __dirname + '/../apps/hosted_nav_app',
+    profile: {
+      apps: {
+        'hosted_nav_app.gaiamobile.org': __dirname + '/../apps/hosted_nav_app',
+      }
     }
   });
 

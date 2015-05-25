@@ -45,6 +45,7 @@ define(function(require, exports) {
 'use strict';
 
 var Calc = require('common/calc');
+var core = require('core');
 var uuid = require('ext/uuid');
 
 /**
@@ -74,13 +75,13 @@ function Create(options) {
 
 Create.prototype = {
   commit: function(callback) {
-    var app = exports.app;
-    var alarmStore = app.store('Alarm');
-    var eventStore = app.store('Event');
-    var busytimeStore = app.store('Busytime');
-    var componentStore = app.store('IcalComponent');
+    var storeFactory = core.storeFactory;
+    var alarmStore = storeFactory.get('Alarm');
+    var eventStore = storeFactory.get('Event');
+    var busytimeStore = storeFactory.get('Busytime');
+    var componentStore = storeFactory.get('IcalComponent');
 
-    var trans = eventStore.db.transaction(
+    var trans = core.db.transaction(
       eventStore._dependentStores,
       'readwrite'
     );
@@ -111,7 +112,7 @@ Create.prototype = {
       var len = alarms.length;
       var now = Date.now();
 
-      var alarmTrans = alarmStore.db.transaction(
+      var alarmTrans = core.db.transaction(
         ['alarms'],
         'readwrite'
       );
@@ -145,8 +146,8 @@ function Update() {
 
 Update.prototype = {
   commit: function(callback) {
-    var app = exports.app;
-    var busytimeStore = app.store('Busytime');
+    var storeFactory = core.storeFactory;
+    var busytimeStore = storeFactory.get('Busytime');
 
     var self = this;
 
@@ -162,11 +163,6 @@ Update.prototype = {
     });
   }
 };
-
-/**
- * Will be injected...
- */
-exports.app = null;
 
 exports.create = function createMutation(option) {
   return new Create(option);

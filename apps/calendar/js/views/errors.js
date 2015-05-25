@@ -2,12 +2,13 @@ define(function(require, exports, module) {
 'use strict';
 
 var View = require('view');
+var core = require('core');
 
 require('dom!errors');
 
 function Errors() {
   View.apply(this, arguments);
-  this.app.syncController.on('offline', this);
+  core.syncController.on('offline', this);
 }
 module.exports = Errors;
 

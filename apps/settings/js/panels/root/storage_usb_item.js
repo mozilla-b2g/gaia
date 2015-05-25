@@ -183,13 +183,16 @@ define(function(require) {
         this._defaultMediaVolume.removeEventListener('change', this);
       }
       this._defaultMediaVolume = this._getDefaultVolume(defaultName);
-      this._defaultMediaVolume.addEventListener('change', this);
+      if (this._defaultMediaVolume) {
+        this._defaultMediaVolume.addEventListener('change', this);
+      }
       this._updateMediaStorageInfo();
     },
 
     // Media Storage
     _updateMediaStorageInfo: function storage_updateMediaStorageInfo() {
       if (!this._defaultMediaVolume) {
+        this._updateVolumeState(null, 'unavailable');
         return;
       }
 

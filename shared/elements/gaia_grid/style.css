@@ -53,6 +53,7 @@
 /* XXX: Override the .remove element  */
 .edit-mode .collection.hovered .remove {
   background: url(images/add.png) no-repeat;
+  background-size: 2rem;
 }
 
 .icon p {

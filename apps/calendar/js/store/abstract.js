@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Responder = require('common/responder');
+var core = require('core');
 var denodeifyAll = require('common/promise').denodeifyAll;
 var nextTick = require('common/next_tick');
 
@@ -10,9 +11,7 @@ var nextTick = require('common/next_tick');
  * Every store must contain a reference
  * to the database.
  */
-function Abstract(db, app) {
-  this.db = db;
-  this.app = app;
+function Abstract() {
   this._cached = Object.create(null);
   Responder.call(this);
 
@@ -53,6 +52,10 @@ Abstract.prototype = {
     this._cached[object._id] = object;
   },
 
+  _clearCache: function() {
+    this._cached = Object.create(null);
+  },
+
   _removeFromCache: function(id) {
     if (id in this._cached) {
       delete this._cached[id];
@@ -85,7 +88,7 @@ Abstract.prototype = {
     }
 
     if (!trans) {
-      trans = this.db.transaction(
+      trans = core.db.transaction(
         this._dependentStores || this._store,
         'readwrite'
       );
@@ -165,7 +168,7 @@ Abstract.prototype = {
     this._allCallbacks = [callback];
 
     var self = this;
-    var trans = this.db.transaction(this._store);
+    var trans = core.db.transaction(this._store);
     var store = trans.objectStore(this._store);
 
     function process(data) {
@@ -231,7 +234,7 @@ Abstract.prototype = {
     }
 
     if (!trans) {
-      trans = this.db.transaction(
+      trans = core.db.transaction(
         this._dependentStores || this._store,
         'readwrite'
       );
@@ -285,7 +288,7 @@ Abstract.prototype = {
     }
 
     if (!trans) {
-      trans = this.db.transaction(this._store);
+      trans = core.db.transaction(this._store);
     }
 
     var store = trans.objectStore(this._store);
@@ -320,7 +323,7 @@ Abstract.prototype = {
     }
 
     if (!trans) {
-      trans = this.db.transaction(
+      trans = core.db.transaction(
         this._dependentStores || this._store,
         'readwrite'
       );
@@ -359,7 +362,7 @@ Abstract.prototype = {
    * @param {Function} callback node style err/count.
    */
   count: function(callback) {
-    var trans = this.db.transaction(this._store);
+    var trans = core.db.transaction(this._store);
     var store = trans.objectStore(this._store);
 
     var req = store.count();

@@ -4,8 +4,10 @@ marionette('LockScreen notification tests', function() {
   var LockScreenNotificationActions, actions;
   var LockScreenNotificationChecks, checks;
   var client = marionette.client({
-    settings: {
-      'lockscreen.enabled': true
+    profile: {
+      settings: {
+        'lockscreen.enabled': true
+      }
     }
   });
 

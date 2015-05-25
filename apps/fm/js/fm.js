@@ -1,7 +1,6 @@
 'use strict';
 /* global
-  AirplaneModeHelper,
-  PerformanceTestingHelper */
+  AirplaneModeHelper */
 
 function $(id) {
   return document.getElementById(id);
@@ -165,7 +164,6 @@ function updatePowerUI() {
   var powerSwitch = $('power-switch');
   if (enabled) {
     window.performance.mark('fmRadioEnabled');
-    PerformanceTestingHelper.dispatch('fm-radio-enabled');
     // ACCESSIBILITY - Must set data-l10n-id to reflect Off switch
     powerSwitch.setAttribute('data-l10n-id', 'power-switch-off');
   } else {
@@ -869,13 +867,12 @@ function init() {
     }
     updatePowerUI();
 
-    // PERFORMANCE EVENT (5): moz-app-loaded
+    // PERFORMANCE MARKER (5): fullyLoaded
     // Designates that the app is *completely* loaded and all relevant
     // "below-the-fold" content exists in the DOM, is marked visible,
     // has its events bound and is ready for user interaction. All
     // required startup background processing should be complete.
     window.performance.mark('fullyLoaded');
-    window.dispatchEvent(new CustomEvent('moz-app-loaded'));
   });
 
   //
@@ -926,25 +923,22 @@ window.addEventListener('load', function(e) {
     airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';
     init();
 
-    // PERFORMANCE EVENT (2): moz-chrome-interactive
+    // PERFORMANCE MARKER (2): navigationInteractive
     // Designates that the app's *core* chrome or navigation interface
     // has its events bound and is ready for user interaction.
     window.performance.mark('navigationInteractive');
-    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
-    // PERFORMANCE EVENT (3): moz-app-visually-complete
+    // PERFORMANCE MARKER (3): visuallyLoaded
     // Designates that the app is visually loaded (e.g.: all of the
     // "above-the-fold" content exists in the DOM and is marked as
     // ready to be displayed).
     window.performance.mark('visuallyLoaded');
-    window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
 
-    // PERFORMANCE EVENT (4): moz-content-interactive
+    // PERFORMANCE MARKER (4): contentInteractive
     // Designates that the app has its events bound for the minimum
     // set of functionality to allow the user to interact with the
     // "above-the-fold" content.
     window.performance.mark('contentInteractive');
-    window.dispatchEvent(new CustomEvent('moz-content-interactive'));
   });
 }, false);
 
@@ -953,8 +947,7 @@ window.addEventListener('unload', function(e) {
   mozFMRadio.disable();
 }, false);
 
-// PERFORMANCE EVENT (1): moz-chrome-dom-loaded
+// PERFORMANCE MARKER (1): navigationLoaded
 // Designates that the app's *core* chrome or navigation interface
 // exists in the DOM and is marked as ready to be displayed.
 window.performance.mark('navigationLoaded');
-window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));

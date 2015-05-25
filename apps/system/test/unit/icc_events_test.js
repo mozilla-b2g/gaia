@@ -172,11 +172,11 @@ suite('STK (icc_events) >', function() {
     fakeBrowserApp = {
       'isActivity': false,
       'url': 'app://fakeapp1.gaiamobile.org/pick.html',
-      'name': 'Fake App 1',
+      'name': 'Browser',
       'manifestURL': 'app://fakeapp1.gaiamobile.org/manifest.webapp',
       'origin': 'app://fakeapp1.gaiamobile.org',
       'manifest': {
-        'name': 'Fake App 1',
+        'name': 'Browser',
         'permissions': {
           'browser': 1
         }

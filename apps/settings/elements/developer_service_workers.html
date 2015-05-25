@@ -1,0 +1,23 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<element name="developer-service-workers" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#developer">
+      <h1>Service Workers</h1>
+    </gaia-header>
+
+    <div id="service-workers-list-section">
+      <ul id="service-workers-list"></ul>
+    </div>
+
+    <div id="service-workers-empty-section" class="hidden">
+      <span id="empty-text" data-l10n-id="service-worker-no-registrations"></span>
+    </div>
+
+    <panel data-path="panels/developer_service_workers/panel"></panel>
+
+  </template>
+</element>

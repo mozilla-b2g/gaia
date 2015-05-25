@@ -137,6 +137,9 @@ var CallsHandler = (function callsHandler() {
     // Update the state of the hold/merge button depending on the calls' state
     updateMergeAndOnHoldStatus();
 
+    // Update mute and speaker buttons.
+    updateMuteAndSpeakerStatus();
+
     CallScreen.setCallerContactImage();
     exitCallScreenIfNoCalls(CallScreen.callEndPromptTime);
   }
@@ -369,7 +372,7 @@ var CallsHandler = (function callsHandler() {
    *
    * @returns {Integer} The number of calls currently present.
    */
-  function openLines() {
+  function numOpenLines() {
     return telephony.calls.length +
       (telephony.conferenceGroup.calls.length ? 1 : 0);
   }
@@ -571,7 +574,7 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    if (openLines() < 2 && !cdmaCallWaiting()) {
+    if (numOpenLines() < 2 && !cdmaCallWaiting()) {
       // Putting a call on Hold when there are no other
       // calls in progress has been disabled until a less
       // accidental user-interface is implemented.
@@ -596,7 +599,7 @@ var CallsHandler = (function callsHandler() {
   }
 
   function holdOrResumeSingleCall() {
-    if (openLines() !== 1 ||
+    if (numOpenLines() !== 1 ||
         (telephony.calls.length &&
          (telephony.calls[0].state === 'incoming' ||
           !telephony.calls[0].switchable))) {
@@ -606,8 +609,6 @@ var CallsHandler = (function callsHandler() {
     if (telephony.active) {
       telephony.active.hold();
       CallScreen.render('connected-hold');
-      CallScreen.disableMuteButton();
-      CallScreen.disableSpeakerButton();
     } else {
       var line = telephony.calls.length ?
         telephony.calls[0] : telephony.conferenceGroup;
@@ -615,8 +616,6 @@ var CallsHandler = (function callsHandler() {
       line.resume();
       callHeldByUser = null;
       CallScreen.render('connected');
-      CallScreen.enableMuteButton();
-      CallScreen.enableSpeakerButton();
     }
   }
 
@@ -659,7 +658,7 @@ var CallsHandler = (function callsHandler() {
     // If there is an active call we end this one
     if (telephony.active) {
       callToEnd = telephony.active;
-    } else if (openLines() === 1) {
+    } else if (numOpenLines() === 1) {
       // If there's a single call we end it
       if (telephony.conferenceGroup.calls.length) {
         callToEnd = telephony.conferenceGroup;
@@ -846,7 +845,7 @@ var CallsHandler = (function callsHandler() {
     // If there are multiple calls handled by the callscreen app and it is
     // interrupted by another app which uses the telephony audio channel the
     // callscreen wins.
-    if (openLines() !== 1) {
+    if (numOpenLines() !== 1) {
      forceAnAudioCompetitionWin();
       return;
     }
@@ -918,36 +917,51 @@ var CallsHandler = (function callsHandler() {
    */
   function updateMergeAndOnHoldStatus() {
     var isEstablishing = isEstablishingCall();
-      if (openLines() > 1 && !isEstablishing) {
-        /* If more than one call has been established show only the merge
-         * button or no button at all if the calls are not mergeable. */
-        CallScreen.hideOnHoldButton();
 
-        if (isEveryCallMergeable()) {
-          CallScreen.showOnHoldAndMergeContainer();
-          CallScreen.showMergeButton();
-        } else {
-          CallScreen.hideOnHoldAndMergeContainer();
-        }
+    if (numOpenLines() > 1 && !isEstablishing) {
+      /* If more than one call has been established show only the merge
+       * button or no button at all if the calls are not mergeable. */
+      CallScreen.hideOnHoldButton();
+
+      if (isEveryCallMergeable()) {
+        CallScreen.showOnHoldAndMergeContainer();
+        CallScreen.showMergeButton();
       } else {
-        /* If only one call has been established show only the hold button or
-         * no button at all if the calls are not switchable. */
-        CallScreen.hideMergeButton();
-        CallScreen.setShowIsHeld(!telephony.active && isAnyCallOnHold());
-
-        if (isEstablishing) {
-          CallScreen.disableOnHoldButton();
-        } else {
-          CallScreen.enableOnHoldButton();
-        }
-
-        if (isAnyCallSwitchable()) {
-          CallScreen.showOnHoldAndMergeContainer();
-          CallScreen.showOnHoldButton();
-        } else {
-          CallScreen.hideOnHoldAndMergeContainer();
-        }
+        CallScreen.hideOnHoldAndMergeContainer();
       }
+    } else {
+      /* If only one call has been established show only the hold button or
+       * no button at all if the calls are not switchable. */
+      CallScreen.hideMergeButton();
+      CallScreen.setShowIsHeld(!telephony.active && isAnyCallOnHold());
+
+      if (isEstablishing) {
+        CallScreen.disableOnHoldButton();
+      } else {
+        CallScreen.enableOnHoldButton();
+      }
+
+      if (isAnyCallSwitchable()) {
+        CallScreen.showOnHoldAndMergeContainer();
+        CallScreen.showOnHoldButton();
+      } else {
+        CallScreen.hideOnHoldAndMergeContainer();
+      }
+    }
+  }
+
+  /**
+   * Adjusts the state of the speaker and mute buttons. Both buttons are active
+   * only if there's an active call.
+   */
+  function updateMuteAndSpeakerStatus() {
+    if (telephony.active) {
+      CallScreen.enableMuteButton();
+      CallScreen.enableSpeakerButton();
+    } else {
+      CallScreen.disableMuteButton();
+      CallScreen.disableSpeakerButton();
+    }
   }
 
   return {
@@ -973,6 +987,7 @@ var CallsHandler = (function callsHandler() {
     updatePlaceNewCall: updatePlaceNewCall,
     exitCallScreenIfNoCalls: exitCallScreenIfNoCalls,
     updateMergeAndOnHoldStatus: updateMergeAndOnHoldStatus,
+    updateMuteAndSpeakerStatus: updateMuteAndSpeakerStatus,
 
     get activeCall() {
       return activeCall();

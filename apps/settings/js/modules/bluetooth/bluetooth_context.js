@@ -554,10 +554,10 @@ define(function(require) {
       }
 
       return this._defaultAdapter.setDiscoverable(enabled).then(() => {
-        Debug('setDiscoverable(): set discoverable ' + 
+        Debug('setDiscoverable(): set discoverable ' +
               enabled + ' successfully :)');
       }, (reason) => {
-        Debug('setDiscoverable(): set discoverable failed: ' + 
+        Debug('setDiscoverable(): set discoverable failed: ' +
               'reason = ' + reason);
         return Promise.reject(reason);
       });
@@ -666,7 +666,7 @@ define(function(require) {
         // ondevicefound event handler
         this._setDiscoveryHandler(handle);
       }, (reason) => {
-        Debug('startDiscovery(): startDiscovery failed: ' + 
+        Debug('startDiscovery(): startDiscovery failed: ' +
               'reason = ' + reason);
         return Promise.reject(reason);
       });
@@ -746,10 +746,10 @@ define(function(require) {
      * @param {Object Observable} device
      */
     _saveDevice: function btc__saveDevice(device) {
-      // Find the device is existed in devices list or not. 
-      var existedDevice = 
+      // Find the device is existed in devices list or not.
+      var existedDevice =
         this._findDeviceByAddress({
-          paired: device.paired, 
+          paired: device.paired,
           address: device.address
         });
       // If the device is not existed yet, create observable object
@@ -779,7 +779,7 @@ define(function(require) {
      */
     _removeItemFromList: function btc__removeItemFromList(list, address) {
       // check the device is existed or not in remote/paired devices array
-      var index = 
+      var index =
         list.array.findIndex(this._matchDeviceByAddress.bind(this, address));
       if (index > -1) {
         // The device is existed, remove it from observable list.
@@ -791,7 +791,7 @@ define(function(require) {
     },
 
     /**
-     * Given paired, address properties to find out device element 
+     * Given paired, address properties to find out device element
      * from remote/paired devices list.
      *
      * @access private
@@ -804,7 +804,7 @@ define(function(require) {
     _findDeviceByAddress:
     function btc__findDeviceByAddress(options) {
       // Distinguish to find the specific device in remote/paired devices list.
-      var operatingDevices = 
+      var operatingDevices =
         (options.paired) ? this.getPairedDevices() : this.getRemoteDevices();
       // Check the device is existed or not in remote/paired devices array.
       var index = operatingDevices.array.findIndex(
@@ -866,8 +866,8 @@ define(function(require) {
         return Promise.reject('default adapter is not existed!!');
       }
 
-      // Note on Bluedroid stack, discovery has to be stopped before pairing 
-      // (i.e., call stopDiscovery() before pair()) otherwise stack callbacks 
+      // Note on Bluedroid stack, discovery has to be stopped before pairing
+      // (i.e., call stopDiscovery() before pair()) otherwise stack callbacks
       // with pairing failure.
       return this.stopDiscovery().then(() => {
         return this._defaultAdapter.pair(address).then(() => {
@@ -875,7 +875,7 @@ define(function(require) {
         }, (reason) => {
           Debug('pair(): Reject with this reason: ' + reason);
           return Promise.reject(reason);
-        });  
+        });
       }, (reason) => {
         return Promise.reject(reason);
       });
@@ -903,7 +903,7 @@ define(function(require) {
     },
 
     /**
-     * The method starts sending file to a remote device with the device's 
+     * The method starts sending file to a remote device with the device's
      * adapter.
      *
      * @access public
@@ -926,7 +926,7 @@ define(function(require) {
     },
 
     /**
-     * Init the connecting device which is browsed in paired devices list. 
+     * Init the connecting device which is browsed in paired devices list.
      * Get connection info from ConnectionManager.
      *
      * @access private
@@ -938,9 +938,9 @@ define(function(require) {
         return;
       }
 
-      var existedDevice = 
+      var existedDevice =
         this._findDeviceByAddress({
-          paired: true, 
+          paired: true,
           address: ConnectionManager.connectingAddress
         });
       if (existedDevice) {
@@ -964,29 +964,29 @@ define(function(require) {
       // Init the connection status of paired device for connected device.
       ConnectionManager.getConnectedDevices().then((connectedDevices) => {
         for (var address in connectedDevices) {
-          var existedDevice = 
+          var existedDevice =
             this._findDeviceByAddress({paired: true, address: address});
-          
+
           if (existedDevice) {
-            // The connected device is existed. 
+            // The connected device is existed.
             // Init connection status/profiles for it.
             var options = {
               connectionStatus: 'connected',
               profiles: connectedDevices[address].connectedProfiles
             };
-            Debug('_initConnectedDevices(): address = ' + address + 
+            Debug('_initConnectedDevices(): address = ' + address +
                   ', options = ' + JSON.stringify(options));
             existedDevice.updateConnectionInfo(options);
           }
         }
       }, (reason) => {
-        Debug('_initConnectedDevices(): getConnectedDevices(): failed, ' + 
+        Debug('_initConnectedDevices(): getConnectedDevices(): failed, ' +
               'reason = ' + reason);
       });
     },
 
     /**
-     * Device 'connecting', 'connected', 'disconnected', and 'profiles' 
+     * Device 'connecting', 'connected', 'disconnected', and 'profiles'
      * properties are changed from ConnectionManager operation.
      * Update device properties of connection info via event 'type', 'detail'.
      *
@@ -998,10 +998,10 @@ define(function(require) {
      * @param {Object} event.detail.address - address of device
      * @param {Object} event.detail.profiles - connection profiles of device
      */
-    _updateDeviceConnectionInfo: 
+    _updateDeviceConnectionInfo:
     function btc__updateDeviceConnectionInfo(event) {
       Debug('_updateDeviceConnectionInfo(): event = ' + JSON.stringify(event));
-      var existedDevice = 
+      var existedDevice =
         this._findDeviceByAddress(
           {paired: true, address: event.detail.address});
       if (existedDevice) {
@@ -1023,7 +1023,7 @@ define(function(require) {
           default:
             break;
         }
-        Debug('_updateDeviceConnectionInfo(): options = ' + 
+        Debug('_updateDeviceConnectionInfo(): options = ' +
               JSON.stringify(options));
         existedDevice.updateConnectionInfo(options);
       } else {

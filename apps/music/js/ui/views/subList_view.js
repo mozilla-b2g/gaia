@@ -1,6 +1,6 @@
 /* exported SubListView */
-/* global musicdb, TabBar, AlbumArtCache, createListElement, ModeManager,
-          MODE_PLAYER, PlayerView, TYPE_LIST */
+/* global LazyLoader, musicdb, TabBar, AlbumArtCache, createListElement,
+          ModeManager, MODE_PLAYER, PlayerView, TYPE_LIST */
 'use strict';
 
 var SubListView = {
@@ -63,19 +63,21 @@ var SubListView = {
     this.offscreenImage.src = '';
     this.albumImage.classList.remove('fadeIn');
 
-    AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
-      this.offscreenImage.addEventListener('load', slv_showImage.bind(this));
-      this.offscreenImage.src = url;
-    }.bind(this));
+    LazyLoader.load('js/metadata/album_art_cache.js', function() {
+      AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
+        this.offscreenImage.addEventListener('load', slv_showImage.bind(this));
+        this.offscreenImage.src = url;
+      }.bind(this));
 
-    function slv_showImage(evt) {
-      /* jshint validthis:true */
-      // Don't register multiple copies
-      evt.target.removeEventListener('load', slv_showImage);
-      var url = 'url(' + this.offscreenImage.src + ')';
-      this.albumImage.style.backgroundImage = url;
-      this.albumImage.classList.add('fadeIn');
-    }
+      function slv_showImage(evt) {
+        /* jshint validthis:true */
+        // Don't register multiple copies
+        evt.target.removeEventListener('load', slv_showImage);
+        var url = 'url(' + this.offscreenImage.src + ')';
+        this.albumImage.style.backgroundImage = url;
+        this.albumImage.classList.add('fadeIn');
+      }
+    }.bind(this));
   },
 
   setAlbumName: function slv_setAlbumName(name, l10nId) {

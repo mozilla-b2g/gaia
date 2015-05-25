@@ -21,7 +21,8 @@ class Collection(Base):
         Base.__init__(self, marionette)
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == self.name)
         self.apps.switch_to_displayed_app()
-        Wait(self.marionette).until(expected.elements_present(*self._apps_locator))
+        # See Bug 1162112, Marionette Wait() polling without interval might be interfering network load
+        Wait(self.marionette, timeout=30, interval=5).until(expected.elements_present(*self._apps_locator))
 
     @property
     def applications(self):

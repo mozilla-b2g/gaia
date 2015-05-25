@@ -4,6 +4,7 @@
 require('/js/views/base_view.js');
 require('/js/views/key_view.js');
 require('/js/views/emoji_key_view.js');
+require('/js/views/swiping_detector.js');
 require('/js/views/swipeable_panel_view.js');
 
 suite('Views > SwipeablePanelView', function() {
@@ -20,20 +21,6 @@ suite('Views > SwipeablePanelView', function() {
 
   for (var i = 0; i < 18 * sectionCount; i++) {
     layout.panelKeys.push({ value: i, type: 'emoji' });
-  }
-
-  function sendTouchEvent(type, node, coords) {
-    if (typeof document.createTouch === 'function') {
-      var touch = document.createTouch(window, node, 1,
-        coords.x, coords.y, coords.x, coords.y);
-      var touchList = document.createTouchList(touch);
-
-      var evt = document.createEvent('TouchEvent');
-      evt.initTouchEvent(type, true, true, window,
-        0, false, false, false, false,
-        touchList, touchList, touchList);
-      node.dispatchEvent(evt);
-    }
   }
 
   setup(function() {
@@ -161,6 +148,8 @@ suite('Views > SwipeablePanelView', function() {
 
       panelView = new SwipeablePanelView(layout, options,
         viewManager);
+
+      panelView.render();
     });
 
     teardown(function() {
@@ -168,71 +157,95 @@ suite('Views > SwipeablePanelView', function() {
     });
 
     test('> panning the first section - forward', function() {
-      panelView.render();
-
       assert.equal(panelView.sections[0].style.transform, '');
 
-      sendTouchEvent('touchstart', panelView.element, {x: 20, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 0, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: -20,
+        position: {clientX: 0, clientY: 0}
+      });
 
       assert.equal(panelView.sections[0].style.transform, 'translateX(-20px)');
       assert.equal(panelView.sections[1].style.transform, 'translateX(300px)');
     });
 
     test('> panning the first section - backward', function() {
-      panelView.render();
-
       assert.equal(panelView.sections[0].style.transform, '');
 
-      sendTouchEvent('touchstart', panelView.element, {x: 0, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 20, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 0, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: 20,
+        position: {clientX: 20, clientY: 0}
+      });
 
       assert.equal(panelView.sections[0].style.transform, '');
     });
 
     test('> panning the second section - forward', function() {
-      panelView.render();
-
       panelView.gotoSection(1);
 
-      sendTouchEvent('touchstart', panelView.element, {x: 20, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 0, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: -20,
+        position: {clientX: 0, clientY: 0}
+      });
 
       assert.equal(panelView.sections[1].style.transform, 'translateX(-20px)');
       assert.equal(panelView.sections[2].style.transform, 'translateX(300px)');
     });
 
     test('> panning the second section - backward', function() {
-      panelView.render();
-
       panelView.gotoSection(1);
 
-      sendTouchEvent('touchstart', panelView.element, {x: 20, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 40, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: 20,
+        position: {clientX: 40, clientY: 0}
+      });
 
       assert.equal(panelView.sections[0].style.transform, 'translateX(-300px)');
       assert.equal(panelView.sections[1].style.transform, 'translateX(20px)');
     });
 
     test('> panning the last section - forward', function() {
-      panelView.render();
-
       panelView.gotoSection(sectionCount - 1);
 
-      sendTouchEvent('touchstart', panelView.element, {x: 20, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 0, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: -20,
+        position: {clientX: 0, clientY: 0}
+      });
 
       assert.equal(panelView.sections[sectionCount - 1].style.transform,
                    'translateX(0px)');
     });
 
     test('> panning the last section - backward', function() {
-      panelView.render();
-
       panelView.gotoSection(sectionCount - 1);
 
-      sendTouchEvent('touchstart', panelView.element, {x: 20, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 40, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: 20,
+        position: {clientX: 40, clientY: 0}
+      });
 
       assert.equal(panelView.sections[sectionCount - 1].style.transform,
                    'translateX(20px)');
@@ -240,49 +253,94 @@ suite('Views > SwipeablePanelView', function() {
                    'translateX(-300px)');
     });
 
-    test('> swiping through the first section < threshold', function() {
-      panelView.render();
-
+    test('> swiping through the first section - short distance', function() {
       rootElement.appendChild(panelView.element);
 
-      sendTouchEvent('touchstart', panelView.element, {x: 20, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 0, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: -20,
+        position: {clientX: 0, clientY: 0}
+      });
 
       assert.equal(panelView.sections[0].style.transform, 'translateX(-20px)');
 
-      sendTouchEvent('touchend', panelView.element, {x: 0, y: 0});
+      panelView._handleSwipe({
+        direction: 'left',
+        vx: 0.3
+      });
 
       assert.equal(panelView.sections[0].style.transform, 'translateX(0px)');
     });
 
-    test('> swiping through the first section > threshold', function() {
-      panelView.render();
-
+    test('> swiping through the first section - far enough', function() {
       rootElement.appendChild(panelView.element);
 
-      sendTouchEvent('touchstart', panelView.element, {x: 30, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 0, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 100, clientY: 0}
+      });
 
-      assert.equal(panelView.sections[0].style.transform, 'translateX(-30px)');
+      panelView._handlePan({
+        dx: -100,
+        position: {clientX: 0, clientY: 0}
+      });
 
-      sendTouchEvent('touchend', panelView.element, {x: 0, y: 0});
+      assert.equal(panelView.sections[0].style.transform, 'translateX(-100px)');
+
+      panelView._handleSwipe({
+        direction: 'left',
+        vx: -0.3
+      });
+
+      assert.equal(panelView.sections[0].style.transform, 'translateX(-320px)');
+      assert.equal(panelView.sections[1].style.transform, 'translateX(0px)');
+    });
+
+    test('> swiping through the first section - fast enough', function() {
+      rootElement.appendChild(panelView.element);
+
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
+
+      panelView._handlePan({
+        dx: -20,
+        position: {clientX: 0, clientY: 0}
+      });
+
+      assert.equal(panelView.sections[0].style.transform, 'translateX(-20px)');
+
+      panelView._handleSwipe({
+        direction: 'left',
+        vx: -1
+      });
 
       assert.equal(panelView.sections[0].style.transform, 'translateX(-320px)');
       assert.equal(panelView.sections[1].style.transform, 'translateX(0px)');
     });
 
     test('> swiping back to the first section, > threshold', function() {
-      panelView.render();
       rootElement.appendChild(panelView.element);
 
       panelView.gotoSection(1);
 
-      sendTouchEvent('touchstart', panelView.element, {x: 20, y: 0});
-      sendTouchEvent('touchmove', panelView.element, {x: 50, y: 0});
+      panelView._handleTouchStart({
+        position: {clientX: 20, clientY: 0}
+      });
 
-      assert.equal(panelView.sections[1].style.transform, 'translateX(30px)');
+      panelView._handlePan({
+        dx: 100,
+        position: {clientX: 120, clientY: 0}
+      });
 
-      sendTouchEvent('touchend', panelView.element, {x: 50, y: 0});
+      assert.equal(panelView.sections[1].style.transform, 'translateX(100px)');
+
+      panelView._handleSwipe({
+        direction: 'right',
+        vx: 0.3
+      });
 
       assert.equal(panelView.sections[0].style.transform, 'translateX(0px)');
       assert.equal(panelView.sections[1].style.transform, 'translateX(320px)');

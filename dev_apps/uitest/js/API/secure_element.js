@@ -83,7 +83,7 @@ var SIMAccessManager = {
 
   toggleApplet: function toggleApplet(on, aid) {
     if(this._simState !== this.SIM_ACCESS_STATES.IDLE) {
-      return Promise.reject(this.ERROR_MSG.NOT_IDLE);
+      return Promise.resolve(false);
     }
 
     this._simState = this.SIM_ACCESS_STATES.BUSY;
@@ -157,7 +157,6 @@ var WalletDemo = {
         this._updateStatus(aid + ' ' + ((activate) ? 'active' : 'not active'));
         return this._readDataRefreshUI();
       }
-      this._updateStatus('Failed to change state of' +  aid);
     })
     .catch((error) => {
       this._updateStatus('Failed to toggle applets', error);

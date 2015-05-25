@@ -6,6 +6,7 @@ requireApp('system/js/base_ui.js');
 requireApp('system/js/system_dialog.js');
 requireApp('system/js/action_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/js/event_safety.js');
 
 suite('ActionMenu', function() {
   var rafStub, realL10n, stubById, actionMenu, systemHideStub,

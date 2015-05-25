@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 var Abstract = require('./abstract');
 var Calc = require('common/calc');
 var binsearch = require('common/binsearch');
+var core = require('core');
 var compare = require('common/compare');
 var denodeifyAll = require('common/promise').denodeifyAll;
 
@@ -54,7 +55,7 @@ Busytime.prototype = {
   },
 
   _removeDependents: function(id, trans) {
-    this.db.getStore('Alarm').removeByIndex('busytimeId', id, trans);
+    core.storeFactory.get('Alarm').removeByIndex('busytimeId', id, trans);
   },
 
   removeEvent: function(id, trans, callback) {
@@ -64,7 +65,7 @@ Busytime.prototype = {
     }
 
     if (typeof(trans) === 'undefined') {
-      trans = this.db.transaction(
+      trans = core.db.transaction(
         this._dependentStores,
         'readwrite'
       );
@@ -111,7 +112,7 @@ Busytime.prototype = {
    *                            busytimes in the timespan.
    */
   loadSpan: function(span, callback) {
-    var trans = this.db.transaction(this._store);
+    var trans = core.db.transaction(this._store);
     var store = trans.objectStore(this._store);
 
     var startPoint = Calc.dateToTransport(new Date(span.start));

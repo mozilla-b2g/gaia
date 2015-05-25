@@ -4,17 +4,18 @@ define(function(require) {
 var Abstract = require('provider/abstract');
 var Factory = require('test/support/factory');
 var Local = require('provider/local');
+var core = require('core');
 
 suite('provider/local', function() {
   var subject;
-  var app;
   var db;
+  var storeFactory;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    subject = new Local({ app: app });
+    subject = new Local();
+    storeFactory = core.storeFactory;
 
-    db = app.db;
+    db = core.db;
     db.open(function(err) {
       assert.ok(!err);
       done();
@@ -34,7 +35,6 @@ suite('provider/local', function() {
   });
 
   test('initialization', function() {
-    assert.equal(subject.app, app);
     assert.instanceOf(subject, Abstract);
   });
 
@@ -72,8 +72,8 @@ suite('provider/local', function() {
     var busytimes;
 
     setup(function() {
-      events = app.store('Event');
-      busytimes = app.store('Busytime');
+      events = storeFactory.get('Event');
+      busytimes = storeFactory.get('Busytime');
     });
 
     function find(eventId, done) {

@@ -6,6 +6,7 @@ dev_apps/marketplace.allizom.org
 dev_apps/mochitest
 dev_apps/ds-test
 dev_apps/geoloc
+dev_apps/l20n-app
 dev_apps/membuster
 dev_apps/music2
 dev_apps/test-ime
@@ -19,6 +20,7 @@ dev_apps/test-otasp
 dev_apps/test-receiver-1
 dev_apps/test-receiver-2
 dev_apps/test-receiver-inline
+dev_apps/test-startup-limit
 dev_apps/test-wappush
 dev_apps/uitest
 dev_apps/uitest-privileged

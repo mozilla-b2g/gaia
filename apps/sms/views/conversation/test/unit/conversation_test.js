@@ -22,39 +22,39 @@ require('/shared/js/event_dispatcher.js');
 
 require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
-require('/js/drafts.js');
-require('/js/threads.js');
+require('/services/js/threads.js');
 require('/views/conversation/js/conversation.js');
-require('/js/shared_components.js');
-require('/js/utils.js');
-require('/js/errors.js');
-require('/js/task_runner.js');
+require('/views/shared/js/shared_components.js');
+require('/views/shared/js/utils.js');
+require('/views/shared/js/errors.js');
+require('/views/shared/js/task_runner.js');
 
-require('/test/unit/mock_time_headers.js');
-require('/test/unit/mock_link_action_handler.js');
-require('/test/unit/mock_attachment.js');
+require('/views/shared/test/unit/mock_time_headers.js');
+require('/views/shared/test/unit/mock_link_action_handler.js');
+require('/views/shared/test/unit/mock_attachment.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/test/unit/mock_utils.js');
-require('/test/unit/mock_link_helper.js');
-require('/test/unit/mock_moz_activity.js');
+require('/views/shared/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_link_helper.js');
+require('/views/shared/test/unit/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/test/unit/mock_messages.js');
-require('/test/unit/mock_contact.js');
-require('/test/unit/mock_contacts.js');
-require('/test/unit/mock_recipients.js');
-require('/test/unit/mock_settings.js');
-require('/test/unit/mock_activity_picker.js');
-require('/test/unit/mock_dialog.js');
-require('/test/unit/mock_smil.js');
-require('/test/unit/mock_compose.js');
-require('/test/unit/mock_activity_handler.js');
-require('/test/unit/mock_information.js');
-require('/test/unit/mock_contact_renderer.js');
-require('/test/unit/mock_message_manager.js');
-require('/test/unit/mock_waiting_screen.js');
-require('/test/unit/mock_navigation.js');
-require('/test/unit/mock_inbox.js');
-require('/test/unit/mock_selection_handler.js');
+require('/views/shared/test/unit/mock_messages.js');
+require('/views/shared/test/unit/mock_contact.js');
+require('/views/shared/test/unit/mock_contacts.js');
+require('/views/shared/test/unit/mock_recipients.js');
+require('/views/shared/test/unit/mock_settings.js');
+require('/views/shared/test/unit/mock_activity_picker.js');
+require('/views/shared/test/unit/mock_dialog.js');
+require('/views/shared/test/unit/mock_smil.js');
+require('/views/shared/test/unit/mock_compose.js');
+require('/views/shared/test/unit/mock_activity_handler.js');
+require('/views/shared/test/unit/mock_information.js');
+require('/views/shared/test/unit/mock_contact_renderer.js');
+require('/services/test/unit/mock_message_manager.js');
+require('/views/shared/test/unit/mock_waiting_screen.js');
+require('/views/shared/test/unit/mock_navigation.js');
+require('/views/shared/test/unit/mock_inbox.js');
+require('/views/shared/test/unit/mock_selection_handler.js');
+require('/services/test/unit/mock_drafts.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -93,7 +93,9 @@ var mocksHelperForConversationView = new MocksHelper([
   'Navigation',
   'Notification',
   'InboxView',
-  'SelectionHandler'
+  'SelectionHandler',
+  'Drafts',
+  'Draft'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -112,7 +114,6 @@ suite('conversation.js >', function() {
 
   var testImageBlob;
   var oversizedImageBlob;
-  var testAudioBlob;
   var testVideoBlob;
 
   function mockAttachment(size) {
@@ -143,6 +144,7 @@ suite('conversation.js >', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    var mediafolder = '/views/shared/test/unit/media';
     var blobPromises = [
       AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
         (blob) => oversizedImageBlob = blob
@@ -150,10 +152,7 @@ suite('conversation.js >', function() {
       AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.5).then(
         (blob) => testImageBlob = blob
       ),
-      AssetsHelper.loadFileBlob('/test/unit/media/audio.oga').then(
-        (blob) => testAudioBlob = blob
-      ),
-      AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
+      AssetsHelper.loadFileBlob(`${mediafolder}/video.ogv`).then(
         (blob) => testVideoBlob = blob
       )
     ];
@@ -5543,20 +5542,11 @@ suite('conversation.js >', function() {
         sinon.assert.calledOnce(updateSpy);
       });
 
-      test('saves brand new threadless draft if not within thread', function() {
-        Drafts.clear();
-
-        ConversationView.draft = {id: 1};
+      test('correctly saves threadless draft', function() {
+        ConversationView.draft = { id: 1 };
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(null).length, 1);
 
-        ConversationView.draft = {id: 2};
-        ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(null).length, 2);
-
-        ConversationView.draft = {id: 3};
-        ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(null).length, 3);
+        sinon.assert.calledWith(Drafts.add, sinon.match({ id: 1 }));
       });
     });
 
@@ -5578,15 +5568,24 @@ suite('conversation.js >', function() {
 
       test('saves draft to existing thread', function() {
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(1).length, 1);
+
+        sinon.assert.calledWith(
+          Drafts.add, sinon.match({ threadId: 1, content: ['foo'] })
+        );
 
         Compose.append('baz');
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(1).length, 1);
+
+        sinon.assert.calledWith(
+          Drafts.add, sinon.match({ threadId: 1, content: ['foobaz'] })
+        );
 
         Compose.append('foo');
         ConversationView.saveDraft();
-        assert.equal(Drafts.byThreadId(1).length, 1);
+
+         sinon.assert.calledWith(
+          Drafts.add, sinon.match({ threadId: 1, content: ['foobazfoo'] })
+        );
       });
 
       test('Update thread timestamp', function() {
@@ -6314,11 +6313,15 @@ suite('conversation.js >', function() {
   });
 
   suite('handleDraft()', function() {
+    var draft;
+
     setup(function() {
-      ConversationView.draft = new Draft({
-        threadId: 1234,
-        recipients: []
+      draft = new Draft({
+        id: 1234,
+        recipients: [],
+        content: []
       });
+
       ConversationView.initRecipients();
       this.sinon.spy(Compose, 'fromDraft');
       this.sinon.stub(Compose, 'focus');
@@ -6327,6 +6330,8 @@ suite('conversation.js >', function() {
       this.sinon.spy(ConversationView.recipients, 'add');
       this.sinon.spy(ConversationView, 'updateHeaderData');
       this.sinon.stub(Contacts, 'findByAddress');
+
+      this.sinon.stub(Drafts, 'byDraftId').withArgs(draft.id).returns(draft);
     });
 
     teardown(function() {
@@ -6334,7 +6339,7 @@ suite('conversation.js >', function() {
     });
 
     test('Calls Compose.fromDraft(), no recipients loaded', function() {
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
 
       sinon.assert.calledOnce(Compose.fromDraft);
       sinon.assert.notCalled(ConversationView.recipients.add);
@@ -6343,7 +6348,7 @@ suite('conversation.js >', function() {
     });
 
     test('with recipients', function(done) {
-      ConversationView.draft.recipients = ['800 732 0872', '+346578888888'];
+      draft.recipients = ['800 732 0872', '+346578888888'];
 
       Contacts.findByAddress.withArgs('800 732 0872').returns(
         Promise.resolve([])
@@ -6353,7 +6358,8 @@ suite('conversation.js >', function() {
         Promise.resolve([new MockContact()])
       );
 
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
+
       Contacts.findByAddress.lastCall.returnValue.then(() => {
         sinon.assert.calledWith(ConversationView.recipients.add, {
           number: '800 732 0872',
@@ -6373,17 +6379,13 @@ suite('conversation.js >', function() {
     });
 
     test('discards draft record', function() {
-      ConversationView.draft = new Draft({
-        recipients: []
-      });
-
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
 
       sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
 
     test('focus composer', function() {
-      ConversationView.handleDraft();
+      ConversationView.handleDraft(draft.id);
       sinon.assert.called(Compose.focus);
     });
   });
@@ -7038,10 +7040,7 @@ suite('conversation.js >', function() {
 
           draft = {};
           Threads.get.withArgs(threadId).returns({
-            hasDrafts: true,
-            drafts: {
-              latest: draft
-            }
+            getDraft: () => draft
           });
 
           ConversationView.afterEnter(transitionArgs);
@@ -7067,10 +7066,7 @@ suite('conversation.js >', function() {
         };
 
         Threads.get.withArgs(threadId).returns({
-          hasDrafts: true,
-          drafts: {
-            latest: {}
-          }
+          getDraft: () => { return {}; }
         });
 
         Navigation.isCurrentPanel.withArgs('report-view').returns(true);
@@ -7111,10 +7107,7 @@ suite('conversation.js >', function() {
         };
 
         Threads.get.withArgs(threadId).returns({
-          hasDrafts: true,
-          drafts: {
-            latest: {}
-          }
+          getDraft: () => { return {}; }
         });
 
         Navigation.isCurrentPanel.withArgs('group-view').returns(true);

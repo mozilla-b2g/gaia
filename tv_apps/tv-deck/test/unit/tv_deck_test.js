@@ -1,19 +1,18 @@
 'use strict';
-/*jshint browser: true */
+/* jshint browser: true */
 /* global TVDeck, MocksHelper, MockTVManager, MockNavigatormozApps */
-/* global MockasyncStorage */
 
-require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
-require('/shared/test/unit/mocks/mock_key_navigation_adapter.js');
-require('/shared/test/unit/mocks/mock_simple_key_navigation.js');
-require('/shared/test/unit/mocks/mock_tv_channel.js');
-require('/shared/test/unit/mocks/mock_tv_source.js');
-require('/shared/test/unit/mocks/mock_tv_tuner.js');
-require('/shared/test/unit/mocks/mock_tv_manager.js');
+require('/shared/test/unit/mocks/smart-screen/mock_key_navigation_adapter.js');
+require('/shared/test/unit/mocks/smart-screen/mock_simple_key_navigation.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_channel.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_source.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_tuner.js');
+require('/shared/test/unit/mocks/smart-screen/mock_tv_manager.js');
+require('/shared/test/unit/mocks/smart-screen/mock_channel_manager.js');
 require('/bower_components/smart-bubbles/script.js');
 require('/test/unit/mock_pin_card.js');
-require('/test/unit/mock_channel_manager.js');
+require('/js/tv_deck.js');
 
 var mocksHelper = new MocksHelper([
   'PinCard',
@@ -24,9 +23,10 @@ var mocksHelper = new MocksHelper([
 
 suite('tv-deck/tv_deck', function() {
 
+  var MockasyncStorage;
   var realMozApps;
-  var realasyncStorage;
   var realTVManager;
+  var realasyncStorage;
   var tvDeck;
 
   mocksHelper.attachTestHelpers();
@@ -53,19 +53,24 @@ suite('tv-deck/tv_deck', function() {
     createMockElement('bubble-animation', 'smart-bubbles');
   }
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     createMockUI();
     sinon.stub(window, 'addEventListener');
-    require('/js/tv_deck.js', done);
+    MockasyncStorage = {
+      _value: {},
+      getItem: function(name, callback) {
+        callback(this._value[name]);
+      }
+    };
   });
 
   setup(function() {
     realTVManager = window.navigator.tv;
     realMozApps = window.navigator.mozApps;
     realasyncStorage = window.asyncStorage;
-    window.asyncStorage = MockasyncStorage;
     window.navigator.tv = new MockTVManager();
     window.navigator.mozApps = MockNavigatormozApps;
+    window.asyncStorage = MockasyncStorage;
 
     window.location.hash = '';
     window.localStorage.removeItem('TV_Hash');
@@ -107,25 +112,18 @@ suite('tv-deck/tv_deck', function() {
       assert.notEqual(id, tvDeck.lastChannelId);
     });
 
-    test('Set item in asyncStorage', function() {
-      var setItem = this.sinon.stub(window.asyncStorage, 'setItem');
-      tvDeck._onHashChange();
-      tvDeck.channelManager.mTriggerFetch();
-      assert.isTrue(setItem.called);
-    });
-
     test('Rescan tuners if playing tuner is not found', function() {
       var scanTuners = this.sinon.stub(tvDeck.channelManager, 'scanTuners');
+      this.sinon.stub(tvDeck.channelManager, 'getTuner').returns(null);
       tvDeck._onHashChange();
-      tvDeck.channelManager.mTriggerFetch();
       assert.isTrue(scanTuners.called);
     });
 
     test('Rescan sources if playing source is not found', function() {
       var scanSources = this.sinon.stub(tvDeck.channelManager, 'scanSources');
       this.sinon.stub(tvDeck.channelManager, 'getTuner').returns({});
+      this.sinon.stub(tvDeck.channelManager, 'getSource').returns(null);
       tvDeck._onHashChange();
-      tvDeck.channelManager.mTriggerFetch();
       assert.isTrue(scanSources.called);
     });
 
@@ -134,7 +132,6 @@ suite('tv-deck/tv_deck', function() {
       this.sinon.stub(tvDeck.channelManager, 'getTuner').returns({});
       this.sinon.stub(tvDeck.channelManager, 'getSource').returns({});
       tvDeck._onHashChange();
-      tvDeck.channelManager.mTriggerFetch();
       assert.isTrue(scanChannels.called);
     });
 
@@ -159,30 +156,9 @@ suite('tv-deck/tv_deck', function() {
         channel: {}
       });
       tvDeck._onHashChange();
-      tvDeck.channelManager.mTriggerFetch();
 
       var newStream = 'app://tv-deck.gaiamobile.org/test/unit/newStream';
       assert.equal(tvDeck.tvStreamElement.src, newStream);
-    });
-
-    test('Video stream should be the same if id does not equal to ' +
-         'lastChannelId', function() {
-      this.sinon.stub(tvDeck.channelManager, 'getTuner').returns({
-        tuner: {
-          stream: 'newStream'
-        }
-      });
-      this.sinon.stub(tvDeck.channelManager, 'getSource').returns({});
-      this.sinon.stub(tvDeck.channelManager, 'getChannel').returns({
-        channel: {}
-      });
-      tvDeck.tvStreamElement.src = 'oldStream';
-      tvDeck._onHashChange();
-      tvDeck.lastChannelId = 100;
-      tvDeck.channelManager.mTriggerFetch();
-
-      var newStream = 'app://tv-deck.gaiamobile.org/test/unit/newStream';
-      assert.notEqual(tvDeck.tvStreamElement.src, newStream);
     });
   });
 

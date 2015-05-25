@@ -508,6 +508,32 @@ suite('latin.js', function() {
         }).then(done, done);
       });
 
+      test('Input "im" should autocorrect to "I\'m", not "in"',
+      function(done) {
+        activateAndTestPrediction('im', 'im', [
+          ['in', 21],
+          ['I\'m', 16],
+          ['km', 9],
+          ['um', 9]
+        ]).then(function() {
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['*I\'m', 'in', 'km']);
+        }).then(done, done);
+      });
+
+      test('Input "id" should autocorrect to "I\'d", not "is"',
+      function(done) {
+        activateAndTestPrediction('id', 'id', [
+          ['is', 20],
+          ['I\'d', 19],
+          ['if', 17],
+          ['ID', 16]
+        ]).then(function() {
+          sinon.assert.calledWith(
+            glue.sendCandidates, ['*I\'d', 'ID', 'is']);
+        }).then(done, done);
+      });
+
       test('Space to accept suggestion', function(done) {
         activateAndTestPrediction('jan', 'jan', [
           ['Jan'],

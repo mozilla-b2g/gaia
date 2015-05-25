@@ -1,21 +1,39 @@
 /**
  * Application Permissions
  */
-#addons ul li img,
-#addon-details ul li img,
 #appPermissions ul li img,
 #homescreens ul li img {
   position: absolute;
   width: 3rem;
   height: 3rem;
   left: 1.6rem;
+  top: 1.5rem;
 }
 
-#addons ul li > a,
 #addon-detail-toggle,
 #appPermissions ul li > a,
 #homescreens ul li > a  {
   -moz-padding-start: 7.4rem;
+}
+
+#addons ul li img {
+  position: absolute;
+  width: 5rem;
+  height: 5rem;
+  left: 0.6rem;
+  top: 0.5rem;
+}
+
+#addons ul li > a {
+  -moz-padding-start: 8.4rem;
+}
+
+/**
+ * !important required to override scoped the gaia-header styling for addons-add
+ * header button.
+ */
+#addons .addons-add {
+  color: #858585 !important;
 }
 
 .uninstall-app {
@@ -47,23 +65,41 @@
  */
 .addon-paragraph {
   font-size: 1.7rem;
-  line-height: 1.7rem;
+  line-height: 2.3rem;
   font-weight: 400;
-  font-style: italic;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  -moz-padding-start: 1.5rem;
+  -moz-padding-end: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 1.5rem;
+  white-space: unset;
 }
 
-.addon-paragraph img {
-  float: left;
-  margin: 0 1rem 1rem 1rem;
-  width: 6.4rem;
-  height: 6.4rem;
+.addon-targets {
+  padding-bottom: 0.5rem;
+}
+
+/* For overriding the style from building block */
+ul li > label:not([for]).addon-details-info {
+  -moz-padding-start: 8.1rem;
+  -moz-padding-end: 5.9rem;
+  padding-top: 1rem;
+  width: calc(100% - 12.5rem);
+  display: block;
+}
+
+.addon-details-icon {
+  position: absolute;
+  width: 5rem;
+  height: 5rem;
+  left: 1.4rem;
 }
 
 .addon-rename {
   background: none;
-  flex-shrink: 0;
+  border: none;
+  position: absolute;
+  top: 0.7rem;
+  right: 0;
   width: auto;
   color: #00aac5;
   font-style: italic;
@@ -71,6 +107,11 @@
   line-height: 1.4rem;
   padding: 0;
   margin: 0;
+}
+
+.addon-details-name {
+  white-space: normal;
+  padding-top: 0.4rem;
 }
 
 .addon-rename:active {
@@ -87,13 +128,9 @@
  * Right-To-Left layout
  */
 html:-moz-dir(rtl) #addons ul li img,
-html:-moz-dir(rtl) #addon-details ul li img,
 html:-moz-dir(rtl) #appPermissions ul li img,
-html:-moz-dir(rtl) #homescreens ul li img {
+html:-moz-dir(rtl) #homescreens ul li img,
+html:-moz-dir(rtl) .addon-details-icon {
   left: unset;
   right: 1.6rem;
-}
-
-html:-moz-dir(rtl) .addon-paragraph img {
-  float: right;
 }

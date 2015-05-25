@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var View = require('view');
+var core = require('core');
 var dateFormat = require('date_format');
 var router = require('router');
 
@@ -9,7 +10,7 @@ var SETTINGS = /settings/;
 
 function TimeHeader() {
   View.apply(this, arguments);
-  this.controller = this.app.timeController;
+  this.controller = core.timeController;
   this.controller.on('scaleChange', this);
 
   this.element.addEventListener('action', (e) => {
@@ -127,7 +128,7 @@ TimeHeader.prototype = {
   },
 
   _updateTitle: function() {
-    var con = this.app.timeController;
+    var con = core.timeController;
     var title = this.title;
 
     title.dataset.l10nDateFormat =

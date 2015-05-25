@@ -1346,6 +1346,17 @@ suite('system/TaskManager >', function() {
         assert.isTrue(taskManager.isShown());
       });
     });
+
+    suite('when the orientation flips', function() {
+      setup(function() {
+        MockOrientationManager.mCurrentOrientation = 'portrait-secondary';
+      });
+
+      test('should just show', function() {
+        showTaskManager(this.sinon.clock);
+        assert.isTrue(taskManager.isShown());
+      });
+    });
   });
 
 });

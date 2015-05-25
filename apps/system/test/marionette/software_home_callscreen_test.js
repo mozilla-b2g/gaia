@@ -6,14 +6,15 @@ marionette('Software Home Button - Call screen Appearance', function() {
   apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'software-button.enabled': true
-    },
-    apps: apps
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      },
+      apps: apps
+    }
   });
   var system;
   var fakedialer;

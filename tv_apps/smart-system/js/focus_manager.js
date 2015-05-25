@@ -37,7 +37,7 @@
   proto.start = function ff_start() {
     window.addEventListener('screenchange', this);
     SettingsCache.get(SETTINGS_AUTO_FIXING, function(enabled) {
-      if (enabled !== false) {
+      if (enabled === true) {
         this._autoFixingEnabled = true;
         this.startFallbackCatcher();
       }

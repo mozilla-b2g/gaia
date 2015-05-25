@@ -84,6 +84,27 @@ suite('BluetoothClassOfDeviceMapper > ', function() {
     });
   });
 
+  suite('getDeviceType > major device class: wearable, toy, health > ',
+        function() {
+    var mockCodInput, expectedType;
+    suite('not mapping in major device class, but mapping in ' +
+          'major service class: audio ', function() {
+      setup(function() {
+        mockCodInput = {
+          majorDeviceClass: 8,
+          majorServiceClass: 256,
+          minorDeviceClass: 3
+        };
+        expectedType = 'audio-card';
+      });
+
+      test('should return device type = "audio-card" ', function() {
+        assert.equal(this.BtClassOfDeviceMapper.getDeviceType(mockCodInput),
+                     expectedType);
+      });
+    });
+  });
+
   suite('getDeviceType > not mapping in any class ', function() {
     var mockCodInput, expectedType;
     suite('not mapping in any class ', function() {

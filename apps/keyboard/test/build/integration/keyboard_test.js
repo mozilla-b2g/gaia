@@ -21,7 +21,12 @@ suite('Keyboard layouts building tests', function() {
       helper.checkError(error, stdout, stderr);
 
       var config = JSON.parse(process.env.BUILD_CONFIG);
-      var layoutIds = config.GAIA_KEYBOARD_LAYOUTS.split(',').sort();
+      var layoutIds = ['ar', 'bn-Avro', 'bn-Probhat', 'de', 'dz-BT',
+         'en', 'en-Colemak', 'en-Dvorak', 'en-Neo', 'eo', 'es',
+         'es-Americas', 'fr', 'fr-CA', 'fr-CH', 'fr-Dvorak-bepo',
+         'he', 'hi', 'ko', 'mk', 'my', 'pl', 'pt-BR', 'ta', 'te',
+         'th', 'vi-Qwerty', 'vi-Telex', 'vi-Typewriter', 'wo',
+         'zh-Hans-Pinyin'];
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
       var appDirPath = config.GAIA_DIR + '/apps/keyboard';
@@ -81,10 +86,8 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build with all layouts and dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make', function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=* ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=* make';
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=* make', function(done) {
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=* make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -97,6 +100,9 @@ suite('Keyboard layouts building tests', function() {
           return (path.extname(filename) === '.js');
         }).map(function(filename) {
           return path.basename(filename, '.js');
+        }).filter(function(layoutId) {
+          // Exclude noIncludeInExpandLayoutIdSet layouts
+          return (['emoji'].indexOf(layoutId) === -1);
         });
 
       var layouts = layoutIds.map(function(layout) {
@@ -114,7 +120,8 @@ suite('Keyboard layouts building tests', function() {
         'js/imes/jskanji/jskanji.js',
         'js/imes/jspinyin/jspinyin.js',
         'js/imes/latin/latin.js',
-        'js/imes/vietnamese/vietnamese.js'
+        'js/imes/vietnamese/vietnamese.js',
+        'js/imes/myanmar/myanmar.js'
       ];
 
       var dicts = [
@@ -183,11 +190,12 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build with all layouts with no dictionaries
-  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS="" make',
+  // (preload ko layout here to avoid empty check.)
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=ko ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=noPreloadDictRequired make',
   function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=noPreloadDictRequired ' +
-    'GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS="" make';
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=ko ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=noPreloadDictRequired make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -227,9 +235,13 @@ suite('Keyboard layouts building tests', function() {
   });
 
   // Build default layouts with only en dictionary, and extra IMEs
-  test('APP=keyboard GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=en make',
+  test('APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
+    'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
+    'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make',
   function(done) {
-    var cmd = 'APP=keyboard GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS=en make';
+    var cmd = 'APP=keyboard GAIA_KEYBOARD_LAYOUTS=en ' +
+      'GAIA_KEYBOARD_DOWNLOADABLE_LAYOUTS=' +
+      'en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak make';
     helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 

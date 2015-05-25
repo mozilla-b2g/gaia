@@ -8,9 +8,10 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('Global search >', function() {
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1,
-      'devtools.debugger.forbid-certified-apps': false
+    profile: {
+      prefs: {
+        'devtools.debugger.forbid-certified-apps': false
+      }
     }
   });
 

@@ -454,7 +454,7 @@
       // or an empty string.
       //
       if (!title ||
-          title.contains('app://')) {
+          title.includes('app://')) {
         return this.app.name || '';
       }
 

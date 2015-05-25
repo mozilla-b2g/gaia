@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global KeyboardEvent, KeyEvent, InputMethods */
 'use strict';
 
 /*
@@ -29,23 +29,26 @@ JSZhuyinGaiaKeyboardGlue.prototype.kDEBUG = false;
 JSZhuyinGaiaKeyboardGlue.prototype.DEACTIVATE_TIME = 60000; // 1 minute
 
 JSZhuyinGaiaKeyboardGlue.prototype.init = function jszg_init(callbacks) {
-  if (this.kDEBUG)
+  if (this.kDEBUG) {
     console.log('zhuyin:init:' + Date.now());
+  }
 
   this.callbacks = callbacks;
 };
 
 JSZhuyinGaiaKeyboardGlue.prototype.uninit = function jszg_uninit() {
-  if (this.kDEBUG)
+  if (this.kDEBUG) {
     console.log('zhuyin:uninit:' + Date.now());
+  }
 
   this._unloadWorker();
   this.callbacks = null;
 };
 
 JSZhuyinGaiaKeyboardGlue.prototype._loadWorker = function jszg_loadWorker() {
-  if (this.kDEBUG)
+  if (this.kDEBUG) {
     console.log('zhuyin:loadWorker:' + Date.now());
+  }
 
   if (this.worker) {
     return;
@@ -59,8 +62,9 @@ JSZhuyinGaiaKeyboardGlue.prototype._loadWorker = function jszg_loadWorker() {
 
 JSZhuyinGaiaKeyboardGlue.prototype._unloadWorker =
   function jszg_unloadWorker() {
-    if (this.kDEBUG)
+    if (this.kDEBUG) {
       console.log('zhuyin:unloadWorker:' + Date.now());
+    }
 
     if (!this.worker) {
       return;
@@ -137,8 +141,9 @@ JSZhuyinGaiaKeyboardGlue.prototype.selectionChange = function(detail) {
 };
 
 JSZhuyinGaiaKeyboardGlue.prototype.activate = function jszg_activate() {
-  if (this.kDEBUG)
+  if (this.kDEBUG) {
     console.log('zhuyin:activate:' + Date.now());
+  }
 
   if (!this.worker) {
     this._loadWorker();
@@ -149,8 +154,9 @@ JSZhuyinGaiaKeyboardGlue.prototype.activate = function jszg_activate() {
 };
 
 JSZhuyinGaiaKeyboardGlue.prototype.deactivate = function jszg_deactivate() {
-  if (this.kDEBUG)
+  if (this.kDEBUG) {
     console.log('zhuyin:deactivate:' + Date.now());
+  }
 
   this.empty();
 
@@ -172,7 +178,6 @@ JSZhuyinGaiaKeyboardGlue.prototype.handleEvent =
     switch (evt.type) {
       case 'error':
         throw 'JSZhuyinGaiaKeyboardGlue: Worker error.';
-        break;
 
       case 'message':
         this.handleMessage(evt.data);
@@ -200,9 +205,9 @@ JSZhuyinGaiaKeyboardGlue.prototype.handleMessage =
 
       case 'loadend':
         this.workerReady = true;
-        var msg;
-        while (msg = this.messageQueue.shift()) {
-          this.sendMessage.apply(this, msg);
+        var message;
+        while ((message = this.messageQueue.shift())) {
+          this.sendMessage.apply(this, message);
         }
         this.messageQueue = undefined;
         break;

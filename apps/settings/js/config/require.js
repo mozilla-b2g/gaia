@@ -64,8 +64,8 @@ require.config({
     'shared/toaster': {
       exports: 'Toaster'
     },
-    'shared/template': {
-      exports: 'Template'
+    'shared/tagged': {
+      exports: 'Tagged'
     },
     'shared/sim_settings_helper': {
       exports: 'SimSettingsHelper'
@@ -73,6 +73,9 @@ require.config({
     'shared/tz_select': {
       exports: 'tzSelect',
       deps: ['shared/icc_helper']
+    },
+    'shared/uuid': {
+      exports: 'uuid'
     },
     'shared/wifi_helper': {
       exports: 'WifiHelper'

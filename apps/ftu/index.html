@@ -89,7 +89,6 @@
   <script defer src="js/utils.js"></script>
   <script defer src="js/finish_screen.js"></script>
   <script defer src="js/tutorial.js"></script>
-  <script defer src="js/external_links.js"></script>
   <script defer src="js/navigation.js"></script>
   <script defer src="js/data_mobile.js"></script>
   <script defer src="js/time.js"></script>
@@ -555,11 +554,13 @@
           faster and more responsive.
         </p>
         <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
-        <p id='external-link-telemetry'>
-          Learn more at www.mozilla.org/telemetry
+        <p data-l10n-id='learn-more-telemetry2'
+           data-l10n-args='{"url": "www.mozilla.org/telemetry"}'>
+          <a href="http://www.mozilla.org/telemetry" class="external"></a>
         </p>
-        <p id='external-link-information'>Learn how Mozilla handles your
-          information at www.mozilla.org/privacy
+        <p data-l10n-id='learn-more-information2'
+           data-l10n-args='{"url": "www.mozilla.org/privacy"}'>
+          <a href="http://www.mozilla.org/privacy" class="external"></a>
         </p>
       </section>
       <section role="region" id="SIM_mandatory">
@@ -585,26 +586,19 @@
             Email successfully added!
           </p>
         </section>
-        <p id="external-link-privacy">
-          Learn how Mozilla handles your information in our privacy policy.
+        <p data-l10n-id="learn-more-privacy2">
+          <a href="http://www.mozilla.org/privacy/firefox-os" class="external"></a>
         </p>
       </section>
       <section role="region" id="welcome_browser">
         <section id="browser_logo_horizontal">
           <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
-        <p id="browser_os_welcome">
-          Welcome to Browser OS, the free and
-          open source operating system from
-          Mozilla. Our mission is to promote
-          openness, innovation and opportunity
-          by keeping the power of the Web in
-          your hands.
+        <p data-l10n-id="htmlWelcome2">
+          <a href="#about-your-rights"></a>
         </p>
-        <p id="browser_os_improve">
-          You can help us improve our products and services by automatically
-          sending analytics data. See our Privacy Notice to learn how we
-          handle data from your device.
+        <p data-l10n-id="helpImprove2">
+          <a href="https://www.mozilla.org/privacy/firefox-os" class="external"></a>
         </p>
         <section id="form_share_statistics">
           <label class="pack-checkbox">

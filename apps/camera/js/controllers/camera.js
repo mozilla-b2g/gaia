@@ -508,8 +508,8 @@ CameraController.prototype.onGalleryOpened = function() {
  * @private
  */
 CameraController.prototype.onGalleryClosed = function(reason) {
-  if (this.app.hidden) { return; }
   this.galleryOpen = false;
+  if (this.app.hidden) { return; }
   this.app.showSpinner();
   this.camera.load();
 };

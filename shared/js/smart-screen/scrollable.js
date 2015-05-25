@@ -48,6 +48,7 @@
   var REVERSE_LIST_BOUNDARY = 0.5;
   function XScrollable(param) {
     this.translateX = 0;
+    this._colspanOnFocus = 0;
 
     this.frameElem = (typeof param.frameElem === 'string') ?
                     document.getElementById(param.frameElem) : param.frameElem;
@@ -64,9 +65,6 @@
 
     this.listElem.addEventListener('transitionend', this);
 
-    this.scale = param.scale || 1;
-    this._setNodesPosition();
-
     var defaultItem = this.listElem.dataset.defaultItem;
     this.spatialNavigator = new SpatialNavigator(items);
     this.spatialNavigator.focus(
@@ -74,12 +72,19 @@
     this.spatialNavigator.on('focus', this.handleSelection.bind(this));
     this.spatialNavigator.on('unfocus', this.handleUnfocus.bind(this));
 
-    this.setScale();
+    this._setNodesPosition();
+
+    this.setScale(param.scale || 1);
 
     this.isSliding = false;
     this.isHovering = false;
     this.hoveringItem = null;
     this.hoveredItem = null;
+    this._isRevesed = false;
+
+    if (param.referenceElement) {
+      this.setReferenceElement(param.referenceElement);
+    }
   }
 
   XScrollable.prototype = evt({
@@ -92,10 +97,11 @@
     getItemRect: function(elem) {
       var frameRect = this.frameElem.getBoundingClientRect();
       var node = this.getNodeFromItem(elem);
-      var result = { left: (frameRect.left + this.spacing * 10 +
-          (node.offsetWidth + this.spacing * 10) *
-          parseInt(node.dataset.idx, 10)) *
-          this.scale + this.translateX,
+      var idx = parseInt(node.dataset.idx, 10);
+      var tabstop = this._getTabstop(idx);
+      var result = { left: (frameRect.left +
+          (node.offsetWidth + this.spacing * 10) * tabstop) * this.scale +
+          this.translateX,
         top: (frameRect.top + elem.offsetTop) * this.scale,
         width: (elem.offsetWidth) * this.scale,
         height: (elem.offsetHeight) * this.scale
@@ -112,13 +118,17 @@
       this.listElem.classList.add('no-transition');
       // if an user close home app when card-list is sliding, we have to force
       // close the sliding transition (transition-delay = 0 is not working)
-      getComputedStyle(this.listElem).width;
+      this.forceReflow(this.listElem);
       this.listElem.classList.remove('no-transition');
       this.listElem.style.transitionDuration = null;
 
       // set positions of other nodes to create moving effect
-      this._setOtherNodesPosition(this.newCardIndex);
-      this.focus(this.newCardIndex);
+      if (!this.isHovering) {
+        // If a card is hovering over a folder, the positions and focus will not
+        // be set here.
+        this._setOtherNodesPosition(this.newCardIndex);
+        this.focus(this.newCardIndex);
+      }
       this.fire('slideEnd');
       this.isSliding = false;
     },
@@ -139,6 +149,7 @@
       this.scrollTo(newItem);
       if (!prevTransform ||
           prevTransform === this.listElem.style.transform ||
+          this.refElem ||
           document.visibilityState !== 'visible') {
         this.endSlide();
       }
@@ -150,6 +161,11 @@
       }
       this.translateX = this._getScrollOffset(itemElem);
       this._setScrollStyle();
+    },
+
+    resetScroll: function() {
+      this.translateX = 0;
+      this.scrollTo(this.getItem(0));
     },
 
     _setScrollStyle: function() {
@@ -172,14 +188,21 @@
         return false;
       }
 
+      var refRect;
+      if (this.refElem.CLASS_NAME === 'XScrollable') {
+        refRect = this.refElem.getItemRect(this.refElem.currentItem);
+      } else {
+        refRect = this.refElem.getBoundingClientRect();
+      }
+
       // If the reference element locates at right of the screen without enough
       // space, we need to show the list reversedly toward left of the screen.
-      var isReversed = this.refElem.getBoundingClientRect().left >
+      this._isReversed = refRect.left >
                        this.frameElem.offsetWidth * REVERSE_LIST_BOUNDARY;
-
+      this.listElem.classList.toggle('reversed', this._isReversed);
       // Determine initial focus (depends on reversed or not)
       var initNode = this.getItemFromNode(
-                     this.getNode(isReversed ? this.length - 1 : 0));
+                     this.getNode(this._isReversed ? this.length - 1 : 0));
       this.spatialNavigator.focusSilently(initNode);
 
       // Calculate initial position with respect to reference element. The
@@ -187,16 +210,36 @@
       // on x-axis.
       // this.refPoint saves the x-coordinate that makes initNode aligned.
       var unitLength = (initNode.offsetWidth + this.spacing * 10) * this.scale;
-      var refRect = this.refElem.getBoundingClientRect();
+
       this.refPoint =
         refRect.left + (refRect.width - initNode.offsetWidth * this.scale) / 2;
-      if (isReversed) {
+      if (this._isReversed) {
         this.translateX = this.refPoint - unitLength * (this.length - 1);
       } else {
         this.translateX = this.refPoint;
       }
       this._setScrollStyle();
       return true;
+    },
+
+    // Tabstop: real position of an index in multiple of item width.
+    _getTabstop: function(idx) {
+      if (this.isHovering) {
+        var item = this.getItemFromNode(this.nodes[idx]);
+        if (item === this.hoveringItem || item === this.hoveredItem) {
+          var node1 = this.getNodeFromItem(this.hoveringItem);
+          var node2 = this.getNodeFromItem(this.hoveredItem);
+          return  (parseInt(node1.dataset.idx, 10) +
+                   parseInt(node2.dataset.idx, 10)) / 2;
+        }
+      }
+      if (idx < this.currentIndex) {
+        return idx;
+      } else if (idx === this.currentIndex) {
+        return idx + (this._colspanOnFocus / 2);
+      } else {
+        return idx + this._colspanOnFocus;
+      }
     },
 
     _getScrollOffset: function(itemElem) {
@@ -206,22 +249,24 @@
 
       var node = this.getNodeFromItem(itemElem);
       var idx = parseInt(node.dataset.idx, 10);
+      var tabstop = this._getTabstop(idx);
+      var tabcount = this.length + this._colspanOnFocus;
       var unitLength = (node.offsetWidth + this.spacing * 10) * this.scale;
       var frameWidth = this.frameElem.offsetWidth;
 
       // If elements don't overflow, align them in center.
-      if (unitLength * this.length + this.leftMargin * 10 < frameWidth) {
-        return -(unitLength * this.length - this.spacing * 10 - frameWidth) / 2;
+      if (unitLength * tabcount + this.leftMargin * 10 < frameWidth) {
+        return -(unitLength * tabcount - this.spacing * 10 - frameWidth) / 2;
       }
 
-      if (unitLength * idx < this.leftMargin * 10 - this.translateX) {
-        if (idx !== 0) {
-          return -unitLength * (idx - 0.5);
+      if (unitLength * tabstop < this.leftMargin * 10 - this.translateX) {
+        if (tabstop !== 0) {
+          return -unitLength * (tabstop - 0.5);
         } else {
           return this.leftMargin * 10;
         }
-      } else if (unitLength * (idx + 1) > frameWidth - this.translateX) {
-        return frameWidth - unitLength * (idx + 1.5);
+      } else if (unitLength * (tabstop + 1) > frameWidth - this.translateX) {
+        return frameWidth - unitLength * (tabstop + 1.5);
       } else {
         return this.translateX;
       }
@@ -233,6 +278,7 @@
     _getScrollOffsetByReferenceElement: function(itemElem) {
       var node = this.getNodeFromItem(itemElem);
       var idx = parseInt(node.dataset.idx, 10);
+      var tabstop = this._getTabstop(idx);
       var unitLength = (node.offsetWidth + this.spacing * 10) * this.scale;
       var frameWidth = this.frameElem.offsetWidth;
 
@@ -242,10 +288,10 @@
       var maxRightNodes = Math.floor((frameWidth - this.refPoint) / unitLength);
 
       // Calculate translate amount with respect to reference point.
-      if (unitLength * idx < this.leftMargin * 10 - this.translateX) {
-        return this.refPoint - (maxLeftNodes + idx) * unitLength;
-      } else if (unitLength * (idx + 1) > (frameWidth - this.translateX)) {
-        return this.refPoint - (idx - maxRightNodes + 1) * unitLength;
+      if (unitLength * tabstop < this.leftMargin * 10 - this.translateX) {
+        return this.refPoint - (maxLeftNodes + tabstop) * unitLength;
+      } else if (unitLength * (tabstop + 1) > (frameWidth - this.translateX)) {
+        return this.refPoint - (tabstop - maxRightNodes + 1) * unitLength;
       } else {
         return this.translateX;
       }
@@ -260,6 +306,14 @@
         nodeElem = nodeElem.parentElement;
       }
       return nodeElem;
+    },
+
+    getItem: function(index) {
+      var node;
+      if (index < this.nodes.length) {
+        node = this.nodes[index];
+      }
+      return node;
     },
 
     getItemFromNode: function(nodeElem) {
@@ -377,14 +431,31 @@
       }, this);
 
       var newFocus = this.getItemFromNode(this.nodes[newFocusIdx]);
+      var isRemovingHoveringItem = this.isHovering &&
+          indices.length === 1 &&
+          this.hoveringItem === this.getItemFromNode(this.nodes[indices[0]]);
       this.nodes = newNodes;
-      if (!this.isHovering) {
+      // XXX newFocus check is a workaround to check if there's no node
+      //     in the scrollable, after discussion we leave it here temporarily.
+      if (!this.isHovering && newFocus) {
+        // When currently no node is hovering over a folder and the scrollable
+        // is not empty after removing nodes,
+        // reset node positions and the next focus item.
         this._setNodesPosition();
         this.spatialNavigator.focus(newFocus);
-      } else {
+      } else if (isRemovingHoveringItem) {
+        // In case of hovering, we only remove the hovering item.
+        // When the removed node was hovering over a folder, after it's removed,
+        // reset the idx of the remaining nodes, set the focus to the hovered
+        // folder, fire the event to notify the remaining move to folder actions
+        // and unhover silently without firing an event.
+        var hoveringItem = this.hoveringItem;
+        var hoveredItem = this.hoveredItem;
+        this._colspanOnFocus = 1;
         this.spatialNavigator.focusSilently(this.hoveredItem);
-        this.fire('hovering-node-removed', this.hoveringItem, this.hoveredItem);
         this.unhoverSilently();
+        this._setNodesPosition();
+        this.fire('hovering-node-removed', hoveringItem, hoveredItem);
       }
     },
 
@@ -405,7 +476,37 @@
       this._setNodePosition(newIdx);
 
       this.spatialNavigator.add(itemElem);
+      if (this.refElem) {
+        this.realignToReferenceElement();
+        this._shiftNodesPosition(1, newIdx);
+      }
       this._slide(this.getItemFromNode(newNode), newIdx);
+
+      return true;
+    },
+
+    insertNodeOver: function(newNode, startNode) {
+      if (typeof startNode === 'number') {
+        startNode = this.nodes[startNode];
+      }
+
+      var itemElem = this.getItemFromNode(newNode);
+      if (!itemElem) {
+        return false;
+      }
+
+      this._colspanOnFocus = 0;
+      var newIdx =  parseInt(startNode.dataset.idx, 10);
+
+      this.nodes.splice(newIdx, 0, newNode);
+      this.listElem.appendChild(newNode);
+      this._setNodesPosition();
+
+      this.spatialNavigator.add(itemElem);
+      this.hover(itemElem, this.getItemFromNode(startNode));
+      this.focus(newIdx);
+      this._slide(this.getItemFromNode(startNode), newIdx + 1);
+      this.fire('node-inserted-over-folder');
 
       return true;
     },
@@ -423,28 +524,59 @@
       return this.nodes.length;
     },
 
+    get isReversed() {
+      return this._isReversed;
+    },
+
     _setOtherNodesPosition: function(skipIdx) {
-      for(var idx in this.nodes) {
+      this.nodes.forEach(function(node, idx) {
         if (idx != skipIdx) {
           this._setNodePosition(idx);
         }
-      }
+      }, this);
+    },
+
+    _setNodesIdx: function() {
+      this.nodes.forEach(function(node, idx) {
+        this.nodes[idx].dataset.idx = idx;
+      }, this);
     },
 
     _setNodesPosition: function() {
-      for(var idx in this.nodes) {
+      this.nodes.forEach(function(node, idx) {
         this._setNodePosition(idx);
-      }
-    },
-
-    setNodesPosition: function() {
-      this._setNodesPosition();
+      }, this);
     },
 
     _setNodePosition: function(idx) {
       this.nodes[idx].dataset.idx = idx;
+      var tabstop = this._getTabstop(idx);
       this.getNodeFromItem(this.nodes[idx]).style.transform =
-          'translateX(calc((100% + ' + this.spacing + 'rem) * ' + idx + '))';
+        'translateX(calc((100% + ' + this.spacing + 'rem) * ' + tabstop + '))';
+    },
+
+    /**
+     * Shift node positions without animations.
+     * @param  {[type]} offset  The unit offset. Use positive integer to shift
+     *                          right and negative integer to shift left.
+     * @param  {[type]} skipIdx The index of the node that needs not be shifted.
+     */
+    _shiftNodesPosition: function(offset, skipIdx) {
+      this.nodes.forEach(function(node, idx) {
+        if (idx !== skipIdx) {
+          node.style.transitionProperty = 'none';
+          var tabstop = this._getTabstop(idx) + offset;
+          this.getNodeFromItem(node).style.transform =
+            'translateX(calc((100% + ' +
+            this.spacing + 'rem) * ' + tabstop + '))';
+        }
+      }.bind(this));
+
+      this.forceReflow(this.nodes[0]);
+
+      this.nodes.forEach(function(node) {
+        node.style.transitionProperty = '';
+      });
     },
 
     swap: function(node1, node2) {
@@ -481,22 +613,16 @@
 
       var idx1 = parseInt(node1.dataset.idx, 10);
       var idx2 = parseInt(node2.dataset.idx, 10);
-
-      node1.style.transform = 'translateX(calc((100% + ' +
-                            this.spacing + 'rem) * ' + (idx1 + idx2) / 2 + '))';
-
-      node2.style.transform = 'translateX(calc((100% + ' +
-                            this.spacing + 'rem) * ' + (idx1 + idx2) / 2 + '))';
-
-      this.fire('hover', this);
       this.isHovering = true;
+      this.hoveringItem = item1;
+      this.hoveredItem = item2;
       item1.classList.add('hover');
       item2.classList.add('hovered');
       node1.classList.add('hover');
       node2.classList.add('hovered');
-      this.hoveringItem = item1;
-      this.hoveredItem = item2;
-
+      this._setNodePosition(idx1);
+      this._setNodePosition(idx2);
+      this.fire('hover', this);
       return true;
     },
 
@@ -504,12 +630,13 @@
       var node1 = this.getNodeFromItem(this.hoveringItem);
       var node2 = this.getNodeFromItem(this.hoveredItem);
 
+      this.fire('unhover', this);
+      this.isHovering = false;
+
       if (shouldResetCardPositions) {
         this._setNodesPosition();
       }
 
-      this.fire('unhover', this);
-      this.isHovering = false;
       this.hoveringItem.classList.remove('hover');
       this.hoveredItem.classList.remove('hovered');
       node1.classList.remove('hover');
@@ -574,6 +701,22 @@
           this.fire('nodeTransformEnd', evt.target);
         }
       }
+    },
+
+    setColspanOnFocus: function(colspanOnFocus) {
+      this._colspanOnFocus = colspanOnFocus;
+      this._setNodesPosition();
+      this.scrollTo(this.currentItem);
+    },
+
+    realignToReferenceElement: function() {
+      if (this.refElem) {
+        this.setReferenceElement(this.refElem);
+      }
+    },
+
+    forceReflow: function(element) {
+      getComputedStyle(element).width;
     }
 
   });

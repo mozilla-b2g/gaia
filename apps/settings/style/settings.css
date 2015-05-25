@@ -861,16 +861,6 @@ ul li > label.range-icons.volume input {
   color: #797e80;
 }
 
-#dateTime .timezone.disabled select {
-  color: #797e80;
-  opacity: 0.6;
-  top: 0.1rem;
-  left: 1rem;
-  padding: 0;
-  text-shadow: 0 0 0;
-  pointer-events: none;
-}
-
 #dateTime .time-manual span {
   pointer-events: none;
 }
@@ -911,6 +901,7 @@ ul li > label.range-icons.volume input {
   height: 10rem;
   padding: 1rem 1rem 1.2rem;
   resize: none;
+  white-space: normal;
 }
 
 #sendFeedback .pack-checkbox span {

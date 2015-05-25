@@ -2,19 +2,18 @@
 
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
 var Bookmark = require('../../../system/test/marionette/lib/bookmark');
-var helper = require('../../../../tests/js-marionette/helper.js');
+var helper = require('../../../../tests/jsmarionette/helper.js');
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 var Server = require('../../../../shared/test/integration/server');
 var UtilityTray = require('./lib/utility_tray');
 
 marionette('Statusbar colors', function() {
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'lockscreen.enabled': true,
-      'software-button.enabled': true
+    profile: {
+      settings: {
+        'lockscreen.enabled': true,
+        'software-button.enabled': true
+      }
     }
   });
 

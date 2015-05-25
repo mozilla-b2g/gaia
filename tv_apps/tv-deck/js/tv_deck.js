@@ -16,11 +16,10 @@
       if (evt.target && evt.target.result) {
         this.selfApp = evt.target.result;
         this._fetchElements();
-        this._init();
-        // Initialize TVDeck. Fetch initial (tuner, source, channel) values from
-        // either URL hash or asyncStorage, and then scan all available tuners,
-        // sources and channels.
-        this.channelManager.fetchSettingFromHash().then(function() {
+        // XXX: Currently, we do not support tuner switching
+        asyncStorage.getItem('Last-Tuner-ID', function(tunerId) {
+          this._init(tunerId);
+          this.channelManager.fetchSettingFromHash(window.location.hash);
           this.channelManager.scanTuners();
         }.bind(this));
       }
@@ -29,12 +28,12 @@
 
   var proto = {};
 
-  proto._init = function td__init() {
+  proto._init = function td__init(tunerId) {
 
     // lastChannelId maintains number of channel-switching user did.
     this.lastChannelId = 0;
-    this.channelManager = new ChannelManager(this);
-    this.channelManager.on('tuned', this.setHash.bind(this));
+    this.channelManager = new ChannelManager(tunerId);
+    this.channelManager.on('scanned', this.setHash.bind(this));
     this.channelManager.on('error', this._showErrorState.bind(this));
 
     // enterNumberTimeoutDelay determines the waiting time for switching TV
@@ -117,47 +116,45 @@
       this.channelPanel.focus();
     }
 
-    this.channelManager.fetchSettingFromHash(hash).then(function() {
+    this.channelManager.fetchSettingFromHash(hash);
 
-      // Cancel onPanelTimeout function, otherwise, panels will be hidden
-      // after 3 seconds.
-      clearTimeout(this.panelTimeoutId);
-      if (!this.channelManager.getTuner()) {
-        this.channelManager.scanTuners();
-      } else if (!this.channelManager.getSource()) {
-        this.channelManager.scanSources();
-      } else if (!this.channelManager.getChannel()) {
-        this.channelManager.scanChannels();
-      } else {
-        this._rotateLoadingIcon();
-        this._updateChannelInfo();
-        this.channelManager.setPlayingSource(function() {
-          // When an user swiches back and forth very fast, we only have to
-          // handle the last hash. Since setPlayingSource is an async function,
-          // id is used to record the last change.
-          if (id === this.lastChannelId) {
-            this.buttonGroupPanel.classList.remove('hidden');
-            this.overlay.classList.remove('visible');
-            this.updatePinButton();
-            this.bubbleElement.play([this.pinButton, this.menuButton]);
-            this.simpleKeyNavigation.start(
-              [this.pinButton, this.menuButton],
-              SimpleKeyNavigation.DIRECTION.HORIZONTAL
-            );
+    // Cancel onPanelTimeout function, otherwise, panels will be hidden
+    // after 3 seconds.
+    clearTimeout(this.panelTimeoutId);
+    if (!this.channelManager.getTuner()) {
+      this.channelManager.scanTuners();
+    } else if (!this.channelManager.getSource()) {
+      this.channelManager.scanSources();
+    } else if (!this.channelManager.getChannel()) {
+      this.channelManager.scanChannels();
+    } else {
+      this._rotateLoadingIcon();
+      this._updateChannelInfo();
+      this.channelManager.setPlayingSource(function() {
+        // When an user swiches back and forth very fast, we only have to
+        // handle the last hash. Since setPlayingSource is an async function,
+        // id is used to record the last change.
+        if (id === this.lastChannelId) {
+          this.buttonGroupPanel.classList.remove('hidden');
+          this.overlay.classList.remove('visible');
+          this.updatePinButton();
+          this.bubbleElement.play([this.pinButton, this.menuButton]);
+          this.simpleKeyNavigation.start(
+            [this.pinButton, this.menuButton],
+            SimpleKeyNavigation.DIRECTION.HORIZONTAL
+          );
 
-            this.panelTimeoutId = setTimeout(this._onPanelTimeout.bind(this),
-                                             this.panelTimeoutDelay);
+          this.panelTimeoutId = setTimeout(this._onPanelTimeout.bind(this),
+                                           this.panelTimeoutDelay);
 
-            var newStream = this.channelManager.getTuner().tuner.stream;
-            if (this.tvStreamElement.src !== newStream) {
-              this.tvStreamElement.src = newStream;
-              this.tvStreamElement.play();
-            }
+          var newStream = this.channelManager.getTuner().tuner.stream;
+          if (this.tvStreamElement.src !== newStream) {
+            this.tvStreamElement.src = newStream;
+            this.tvStreamElement.play();
           }
-        }.bind(this));
-      }
-      asyncStorage.setItem('TV_Hash', window.location.hash);
-    }.bind(this));
+        }
+      }.bind(this));
+    }
   };
 
   proto._updateChannelInfo = function td__updateChannelInfo(title, number) {
@@ -173,10 +170,6 @@
     }
 
     if (this.channelManager.currentHash === window.location.hash) {
-      // When initizlizing TVDeck, if either URL hash or asyncStorage is not
-      // null, the URL will be set to the same value in _onScanningCompleted
-      // function. However, we still have to call onHashChange function in order
-      // to switch to the correct channel.
       this._onHashChange();
     }
     window.location.hash = this.channelManager.currentHash;
@@ -240,7 +233,6 @@
    * triggerred either by pressing enter key or enterNumebrTimeout.
    */
   proto._onEnter = function td__onEnter() {
-    var channelNumberContent = this.channelNumber.textContent;
     if (this.enterNumberTimeoutId) {
       clearTimeout(this.enterNumberTimeoutId);
       this.enterNumberTimeoutId = null;
@@ -256,7 +248,8 @@
       // reset back to current channel number if the number entered
       // is not valid.
       if (newIndex !== 0 && !newIndex) {
-        this.channelNumber.textContent = channelNumberContent;
+        this.channelNumber.textContent =
+                              this.channelManager.playingState.channelNumber;
         this.channelPanel.classList.add('flash');
         this.simpleKeyNavigation.focus();
         return;

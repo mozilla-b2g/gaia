@@ -145,6 +145,7 @@ function SystemUpdatable() {
   this.size = 0;
   this.downloading = false;
   this.paused = false;
+  this.showingApplyPrompt = false;
 
   // XXX: this state should be kept on the platform side
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
@@ -232,6 +233,7 @@ SystemUpdatable.prototype.errorCallBack = function() {
 SystemUpdatable.prototype.showApplyPrompt = function(isOsUpdate) {
   var batteryLevel = window.navigator.battery.level * 100;
   this.getBatteryPercentageThreshold().then(function(threshold) {
+    this.showingApplyPrompt = true;
     if (isOsUpdate && batteryLevel < threshold) {
       this.showApplyPromptBatteryNok(threshold);
     } else {
@@ -325,6 +327,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
  * @param {String} reason
  */
 SystemUpdatable.prototype.declineInstall = function(reason) {
+  this.showingApplyPrompt = false;
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', reason);
 

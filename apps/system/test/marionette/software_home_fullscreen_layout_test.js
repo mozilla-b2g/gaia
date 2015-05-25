@@ -4,22 +4,23 @@ var assert = require('assert');
 var appUrl = 'app://fullscreen_layout.gaiamobile.org';
 
 var ReflowHelper =
-    require('../../../../tests/js-marionette/reflow_helper.js');
+    require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
 marionette('Software Home Button - Fullscreen Layout', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'software-button.enabled': true,
-      'hud.reflows': true
-    },
-    apps: {
-      'fullscreen_layout.gaiamobile.org':
-        __dirname + '/../apps/fullscreen_layout'
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true,
+        'hud.reflows': true
+      },
+      apps: {
+        'fullscreen_layout.gaiamobile.org':
+          __dirname + '/../apps/fullscreen_layout'
+      }
     }
   });
   var home, system, actions, screenSize, shbSize;

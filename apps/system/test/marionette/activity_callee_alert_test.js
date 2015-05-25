@@ -8,9 +8,12 @@
 
   marionette('Camera app on call', function() {
     var client = marionette.client({
-      apps: {
-        'activitycaller.gaiamobile.org': __dirname + '/../apps/activitycaller',
-        'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'
+      profile: {
+        apps: {
+          'activitycaller.gaiamobile.org': __dirname +
+                                           '/../apps/activitycaller',
+          'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'
+        }
       }
     });
 

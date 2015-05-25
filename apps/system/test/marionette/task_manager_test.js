@@ -4,7 +4,7 @@ var TaskManager = require('./lib/task_manager');
 var FakeApp = require('./lib/fakeapp');
 var assert = require('assert');
 var ReflowHelper =
-    require('../../../../tests/js-marionette/reflow_helper.js');
+    require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
 marionette('Task Manager', function() {
   var firstAppOrigin  = 'fakeapp.gaiamobile.org';
@@ -17,10 +17,9 @@ marionette('Task Manager', function() {
 
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1
-    },
-    apps: apps
+    profile: {
+      apps: apps
+    }
   });
 
   var actions;

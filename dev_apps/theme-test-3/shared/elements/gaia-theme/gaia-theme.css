@@ -70,6 +70,11 @@ Gaia theme variables
     inset 0 -1px 0 #d8d8d8,
     inset 0 1px 0 #eeeeee;
   --button-box-shadow-active: var(--button-box-shadow);
+
+  /** Transitions
+   ---------------------------------------------------------*/
+
+  --transition-duration: 0.2s;
 }
 
 

@@ -7,12 +7,13 @@ var assert = require('chai').assert;
 marionette('Software Home Button - File Open Error', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'software-button.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
   var home, rocketbar, search, server, system, actions;

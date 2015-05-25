@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <html>
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
@@ -33,6 +36,7 @@
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
+    <link rel="stylesheet" type="text/css" href="style/developer_service_workers.css"/>
     <script defer="" src="shared/js/component_utils.js"></script>
     <script defer="" src="shared/elements/gaia_buttons/script.js"></script>
     <script defer="" src="shared/elements/gaia_confirm/script.js"></script>
@@ -109,11 +113,12 @@
     <!--<script defer src="shared/js/device_storage/enumerate_all.js"></script> -->
     <!--<script defer src="shared/js/tz_select.js"></script> -->
     <!--<script defer src="shared/js/sim_settings_helper.js"></script> -->
-    <!--<script defer src="shared/js/template.js"></script> -->
+    <!--<script defer src="shared/js/tagged.js"></script> -->
     <!--<script defer src="shared/js/format.js"></script> -->
     <!--<script defer src="shared/js/search_provider.js"></script> -->
     <!--<script defer src="shared/js/homescreens/vertical_preferences.js"></script> -->
     <!--<script defer src="shared/js/stk_helper.js"></script>-->
+    <!--<script defer src="shared/js/uuid.js"></script>-->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -196,6 +201,7 @@
     <link rel="import" href="/elements/accessibility_colors.html">
     <link rel="import" href="/elements/developer_hud.html">
     <link rel="import" href="/elements/developer.html">
+    <link rel="import" href="/elements/developer_service_workers.html">
     <link rel="import" href="/elements/crash_reports.html">
     <link rel="import" href="/elements/improve_browser_os_send_feedback.html">
     <link rel="import" href="/elements/improve_browser_os_choose_feedback.html">
@@ -393,6 +399,8 @@
     <section is="accessibility" role="region" id="accessibility"></section>
     <!-- Device :: Developer :: HUD -->
     <section is="developer-hud" role="region" id="developer-hud"></section>
+    <!-- Device :: Developer :: Service Workers -->
+    <section is="developer-service-workers" role="region" id="developer-service-workers"></section>
     <!-- Device :: Developer -->
     <section is="developer" role="region" id="developer"></section>
     <!-- Device :: Improve Browser OS :: Crash Reports-->

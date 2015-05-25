@@ -1,3 +1,97 @@
+/**
+ * Observable provides ways of defining properties that the value changes of
+ * them can be observed. In addition to normal properties, it allows to
+ * create read-only properties and dependency properties.
+ *
+ * Observable creation:
+ * There are two ways of defining an Observable: object literal or extending
+ * from Observable. Object literal is useful when defining a singleton or you
+ * want to create an observable easily.
+ *
+ * @example
+ *   var observable = Observable({
+ *     prop: 10,
+ *     func: function() {}
+ *   });
+ *
+ * Extending from Observable allow you to define a class of Observable. The
+ * advantage of this compared to object literal is that the accessers are
+ * shared across all instances of the class. The syntax compatible with the
+ * javascript prototype definition.
+ *
+ * @example
+ *   var ExtendedObservable = Module.create(function ExtendedObservable() {
+ *     this.super(Observable).call(this);
+ *   }).extend(Observable);
+ *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
+ *   {
+ *     value: 10
+ *   });
+ *   ExtendedObservable.prototype.func = function() {};
+ *
+ *   // Extend from NewObservable
+ *   var ExtendedObservable2 = Module.create(function() {
+ *     // constructor
+ *   }).extend(ExtendedObservable);
+ *   Observable.defineObservableProperty(
+ *     ExtendedObservable2.prototype, 'prop2',
+ *   {
+ *     value: 20
+ *   });
+ *
+ *   var observable = ExtendedObservable2();
+ *   console.log(observable.prop);  // 10
+ *   console.log(observable.prop2); // 20
+ *
+ * Defining a read-only property:
+ * This is only supported when extending from Observable. When you define a
+ * read-only property, an internal property with a '_' prefix is defined at
+ * the same time so you can still change the value inside the observable.
+ *
+ * @example
+ *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
+ *   {
+ *     readonly: true,
+ *     value: 10
+ *   });
+ *   ExtendedObservable.prototype.inc = function() {
+ *     this._prop = 100;
+ *   };
+ *   var observable = new ExtendedObservable();
+ *   observable.prop = 100; // throws an exception
+ *   observable.inc();      // observers on "prop" are called
+ *
+ * Defining a dependency property:
+ * This is only supported when extending from Observable. You provide a list
+ * of the dependent properties and when each of them changes, the observsers
+ * on the defined property are called. Dependency properties are read-only and
+ * their values are determined by the specified getter.
+ *
+ * @example
+ *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
+ *   {
+ *     value: 10
+ *   });
+ *   Observable.defineObservableProperty(
+ *     ExtendedObservable.prototype, 'prop2',
+ *   {
+ *     value: 20
+ *   });
+ *   Observable.defineObservableProperty(
+ *     ExtendedObservable.prototype, 'dependencyProp',
+ *   {
+ *     dependency: ['prop', 'prop2'],
+ *     get: function() {
+ *       return this.prop + this.prop2;
+ *     }
+ *   });
+ *   var observable = new ExtendedObservable();
+ *   observable.prop = 100;  // observers on "dependencyProp" are called
+ *   observable.prop2 = 200; // observers on "dependencyProp" are called
+ *   // observable.dependencyProp is 300.
+ *
+ * @module modules/mvvm/observable
+ */
 define(function(require) {
   'use strict';
 
@@ -7,92 +101,6 @@ define(function(require) {
   var OP_PREFIX = (name) => { return '$OP_' + name; };
 
   /**
-   * Observable provides ways of defining properties that the value changes of
-   * them can be observed. In addition to normal properties, it allows to
-   * create read-only properties and dependency properties. 
-   *
-   * Observable creation:
-   * There are two ways of defining an Observable: object literal or extending
-   * from Observable. Object literal is useful when defining a singleton or you
-   * want to create an observable easily.
-   *
-   * @example
-   *   var observable = Observable({
-   *     prop: 10,
-   *     func: function() {}
-   *   });
-   *
-   * Extending from Observable allow you to define a class of Observable. The
-   * advantage of this compared to object literal is that the accessers are
-   * shared across all instances of the class. The syntax compatible with the
-   * javascript prototype definition.
-   *
-   * @example
-   *   var ExtendedObservable = Module.create(function ExtendedObservable() {
-   *     this.super(Observable).call(this);
-   *   }).extend(Observable);
-   *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
-   *   {
-   *     value: 10
-   *   });
-   *   ExtendedObservable.prototype.func = function() {};
-   *
-   *   // Extend from NewObservable
-   *   var ExtendedObservable2 = Module.create(function() {
-   *     // constructor
-   *   }).extend(ExtendedObservable);
-   *   Observable.defineObservableProperty(
-   *     ExtendedObservable2.prototype, 'prop2',
-   *   {
-   *     value: 20
-   *   });
-   *
-   *   var observable = ExtendedObservable2();
-   *   console.log(observable.prop);  // 10
-   *   console.log(observable.prop2); // 20
-   *
-   * Defining a read-only property:
-   * This is only supported when extending from Observable. When you define a
-   * read-only property, an internal property with a '_' prefix is defined at
-   * the same time so you can still change the value inside the observable.
-   *
-   * @example
-   *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
-   *   {
-   *     readonly: true,
-   *     value: 10
-   *   });
-   *   ExtendedObservable.prototype.inc = function() {
-   *     this._prop = 100;
-   *   };
-   *   var observable = new ExtendedObservable();
-   *   observable.prop = 100; // throws an exception
-   *   observable.inc();      // observers on "prop" are called
-   *
-   * Defining a dependency property:
-   * This is only supported when extending from Observable. You provide a list
-   * of the dependent properties and when each of them changes, the observsers
-   * on the defined property are called. Dependency properties are read-only.
-   *
-   * @example
-   *   Observable.defineObservableProperty(ExtendedObservable.prototype, 'prop',
-   *   {
-   *     value: 10
-   *   });
-   *   Observable.defineObservableProperty(
-   *     ExtendedObservable.prototype, 'prop2',
-   *   {
-   *     value: 20
-   *   });
-   *   Observable.defineObservableProperty(
-   *     ExtendedObservable.prototype, 'dependencyProp',
-   *   {
-   *     dependncy: ['prop', 'prop2']
-   *   });
-   *   var observable = new ExtendedObservable();
-   *   observable.prop = 100;  // observers on "dependencyProp" are called
-   *   observable.prop2 = 200; // observers on "dependencyProp" are called
-   *
    * @class Observable
    * @requires module:modules/base/module
    * @requires module:modules/base/dependency_graph

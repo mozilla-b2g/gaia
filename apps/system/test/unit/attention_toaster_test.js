@@ -13,6 +13,7 @@ suite('system/AttentionToaster', function() {
   var stubById;
   mocksForAttentionToaster.attachTestHelpers();
   setup(function(done) {
+    this.sinon.stub(window, 'requestAnimationFrame');
     this.sinon.useFakeTimers();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
@@ -52,6 +53,8 @@ suite('system/AttentionToaster', function() {
       at1.start();
       assert.isTrue(at1._currentToasterState === 'uninit');
       app1.element.dispatchEvent(new CustomEvent('_closed'));
+      assert.notEqual(at1._currentToasterState, 'closed');
+      window.requestAnimationFrame.yield();
       assert.equal(at1._currentToasterState, 'closed');
     });
 

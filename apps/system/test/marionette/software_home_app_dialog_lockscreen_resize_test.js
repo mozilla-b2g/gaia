@@ -6,15 +6,16 @@ var ALERT_APP_URL = 'app://fakeapp.gaiamobile.org';
 marionette('Software Home Button - Dialog Lockscreen Resize', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'software-button.enabled': true
-    },
-    apps: {
-      'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      },
+      apps: {
+        'fakeapp.gaiamobile.org': __dirname + '/../apps/fakeapp'
+      }
     }
   });
   var system, lockscreen;

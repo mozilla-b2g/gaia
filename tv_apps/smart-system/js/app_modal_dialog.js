@@ -288,19 +288,7 @@
     var title = this._getTitle(evt.detail.title);
     var elements = this.elements;
 
-    function escapeHTML(str) {
-      var stringHTML = str;
-      stringHTML = stringHTML.replace(/</g, '&#60;');
-      stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-      stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
-
-      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    }
-
     var type = evt.detail.promptType || evt.detail.type;
-    if (type !== 'selectone') {
-      message = escapeHTML(message);
-    }
 
     this._dialogType = type;
     // TODO: Currently we only implmented key navigation for prompt dialog.
@@ -434,6 +422,7 @@
     // not want to have any button or input focused before bubbling animation.
     this.simpleKeyNavigation.blur();
 
+    this.app.publish('modaldialog-' + type + '-shown');
     this.app.browser.element.setAttribute('aria-hidden', true);
     this.element.open();
   };
@@ -451,6 +440,7 @@
 
     var evt = this.events[0];
     var type = evt.detail.promptType;
+    this.app.publish('modaldialog-' + type + '-hidden');
     this.elements[type].classList.remove('visible');
   };
 

@@ -207,17 +207,6 @@
     "dictFilePath": "dictionaries/el.dict"
   },
   {
-    "id": "emoji",
-    "name": "Emoji",
-    "types": [
-      "email",
-      "text",
-      "url"
-    ],
-    "dictFileSize": 28035,
-    "preloaded": true
-  },
-  {
     "id": "en",
     "name": "English",
     "imEngineId": "latin",
@@ -577,7 +566,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 24924864,
+    "dictFileSize": 24924648,
     "preloaded": true
   },
   {
@@ -589,7 +578,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 9642,
+    "dictFileSize": 9562,
     "preloaded": true
   },
   {
@@ -638,13 +627,13 @@
   {
     "id": "my",
     "name": "မြန်မာ",
-    "imEngineId": "latin",
+    "imEngineId": "myanmar",
     "types": [
       "email",
       "text",
       "url"
     ],
-    "dictFileSize": 4890,
+    "dictFileSize": 8301,
     "preloaded": true
   },
   {
@@ -960,7 +949,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 2139384,
+    "dictFileSize": 2139624,
     "preloaded": true
   },
   {
@@ -972,7 +961,7 @@
       "text",
       "url"
     ],
-    "dictFileSize": 4591555,
+    "dictFileSize": 4591642,
     "preloaded": true
   }
 ]

@@ -204,20 +204,19 @@
 /* Action in the element. */
 
 #downloadList aside.pack-end {
-  width: 3rem;
-  height: 3rem;
-  padding: 1.4rem;
-  margin: 0;
+  width: 2.6rem;
+  height: 2.3rem;
+  padding: 0;
+  margin: 1.2rem;
   pointer-events: all;
   right: 0;
 }
 
 #downloadList ul > li[data-state="downloading"] .pack-end {
-  width: 3rem;
-  height: 3rem;
-  background: url('images/download_close.png');
+  background-image: url('images/download_close.png');
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: left center;
+  background-size: 2.2rem;
 }
 
 #downloadList ul > li[data-state="succeeded"] .pack-end {
@@ -226,11 +225,10 @@
 
 #downloadList ul > li[data-state="stopped"] .pack-end,
 #downloadList ul > li[data-state="failed"] .pack-end {
-  width: 3rem;
-  height: 3rem;
-  background: url('images/download_refresh.png');
+  background-image: url('images/download_refresh.png');
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: left center;
+  background-size: 2.5rem 2.2rem;
 }
 
 /* RTL rules */

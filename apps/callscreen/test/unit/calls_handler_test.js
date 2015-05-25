@@ -1438,18 +1438,6 @@ suite('calls handler', function() {
           CallsHandler.holdOrResumeCallByUser();
           sinon.assert.calledWith(MockCallScreen.render, 'connected-hold');
         });
-
-        test('should disable the mute button', function() {
-          this.sinon.spy(MockCallScreen, 'disableMuteButton');
-          CallsHandler.holdOrResumeCallByUser();
-          sinon.assert.calledOnce(MockCallScreen.disableMuteButton);
-        });
-
-        test('should disable the speaker button', function() {
-          this.sinon.spy(MockCallScreen, 'disableSpeakerButton');
-          CallsHandler.holdOrResumeCallByUser();
-          sinon.assert.calledOnce(MockCallScreen.disableSpeakerButton);
-        });
       });
 
       suite('resume held 1 to 1 ongoing call', function() {
@@ -1469,18 +1457,6 @@ suite('calls handler', function() {
           this.sinon.spy(MockCallScreen, 'render');
           CallsHandler.holdOrResumeCallByUser();
           sinon.assert.calledWith(MockCallScreen.render, 'connected');
-        });
-
-        test('should enable the mute button', function() {
-          this.sinon.spy(MockCallScreen, 'enableMuteButton');
-          CallsHandler.holdOrResumeCallByUser();
-          sinon.assert.calledOnce(MockCallScreen.enableMuteButton);
-        });
-
-        test('should enable the speaker button', function() {
-          this.sinon.spy(MockCallScreen, 'enableSpeakerButton');
-          CallsHandler.holdOrResumeCallByUser();
-          sinon.assert.calledOnce(MockCallScreen.enableSpeakerButton);
         });
       });
     });

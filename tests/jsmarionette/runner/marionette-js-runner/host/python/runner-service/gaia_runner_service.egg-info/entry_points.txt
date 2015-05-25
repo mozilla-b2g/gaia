@@ -1,0 +1,4 @@
+
+        [console_scripts]
+        gaia-integration=runner_service:runintegration.cli
+      

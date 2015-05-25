@@ -64,8 +64,6 @@ class TestSmsWithPictureAttached(GaiaTestCase):
         self.assertTrue(view_image.is_image_visible)
         view_image.tap_back_button()
 
-        attachment_options.tap_cancel()
-
         # click send
         self.message_thread = new_message.tap_send(timeout=300)
         self.message_thread.wait_for_received_messages(timeout=300)

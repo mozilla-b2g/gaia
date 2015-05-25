@@ -17,12 +17,14 @@
       __dirname + '/../apps/activitycallee';
     apps[FakeDialerApp.DEFAULT_ORIGIN] = __dirname + '/../apps/fakedialerapp';
     var client = marionette.client({
-      settings: {
-        'lockscreen.enabled': true
-      },
-      apps: apps,
-      prefs: {
-        'focusmanager.testmode': true
+      profile: {
+        settings: {
+          'lockscreen.enabled': true
+        },
+        apps: apps,
+        prefs: {
+          'focusmanager.testmode': true
+        }
       }
     });
 

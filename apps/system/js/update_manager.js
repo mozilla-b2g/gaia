@@ -95,6 +95,7 @@ var UpdateManager = {
       this.downloadViaDataConnectionDialog.querySelector('h1');
 
     this.container.onclick = this.containerClicked.bind(this);
+    this.toaster.onclick = this.toasterClicked.bind(this);
     this.laterButton.onclick = this.cancelPrompt.bind(this);
     this.downloadButton.onclick = this.requestDownloads.bind(this);
     this.downloadDialogList.onchange = this.updateDownloadButton.bind(this);
@@ -171,11 +172,10 @@ var UpdateManager = {
     if (this._errorTimeout)
       return;
 
-    var _ = navigator.mozL10n.get;
     var self = this;
     this._errorTimeout = setTimeout(function waitForMore() {
       var systemBanner = new SystemBanner();
-      systemBanner.show(_('downloadError'));
+      systemBanner.show('downloadError');
       self._errorTimeout = null;
     }, this.NOTIFICATION_BUFFERING_TIMEOUT);
   },
@@ -293,6 +293,15 @@ var UpdateManager = {
       this.showDownloadPrompt();
     }
 
+    UtilityTray.hide();
+  },
+
+  toasterClicked: function um_toasterClicked() {
+    if (this._downloading) {
+      return;
+    }
+
+    this.showDownloadPrompt();
     UtilityTray.hide();
   },
 
@@ -745,7 +754,10 @@ var UpdateManager = {
       case 'wifi-statuschange':
         this.updateWifiStatus();
         break;
-       case 'lockscreen-appopened':
+      case 'lockscreen-appopened':
+        if (this.systemUpdatable.showingApplyPrompt) {
+          this.systemUpdatable.declineInstallWait();
+        }
         this.downloadViaDataConnectionDialog.classList.remove('visible');
         this._closeDownloadDialog();
         CustomDialog.hide();

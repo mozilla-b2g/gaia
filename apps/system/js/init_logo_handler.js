@@ -98,7 +98,31 @@ var InitLogoHandler = {
     Service.request('registerHierarchy', this);
   },
 
-  handleEvent: function ilh_handleEvent() {
+  respondToHierarchyEvent: function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    } else {
+      return true;
+    }
+  },
+
+  _handle_home: function ilh_handle_home() {
+    if (this.isActive()) {
+      return false;
+    }
+
+    return true;
+  },
+
+  _handle_holdhome: function ilh_handle_holdhome() {
+    if (this.isActive()) {
+      return false;
+    }
+
+    return true;
+  },
+
+  handleEvent: function ilh_handleEvent(evt) {
     this.animate();
   },
 

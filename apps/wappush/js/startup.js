@@ -5,4 +5,4 @@
 
 'use strict';
 
-navigator.mozL10n.once(WapPushManager.init.bind(WapPushManager));
+WapPushManager.init();

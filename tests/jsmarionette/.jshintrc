@@ -1,0 +1,19 @@
+{
+  "extends": "../.jshintrc",
+  "curly": false,
+  "evil": true,
+  "node": true,
+  "validthis": true,
+
+  "globals": {
+    "Promise": true
+  },
+
+  "predef": [
+    "suite",
+    "suiteSetup",
+    "suiteTeardown",
+    "teardown",
+    "test"
+  ]
+}

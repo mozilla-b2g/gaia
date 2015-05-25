@@ -52,3 +52,8 @@ class TestDeleteApp(GaiaTestCase):
         # Check that the app is no longer available
         with self.assertRaises(AssertionError):
             self.apps.launch(self.test_data['name'])
+
+    def tearDown(self):
+        self.apps.uninstall(self.test_data['name'])
+
+        GaiaTestCase.tearDown(self)

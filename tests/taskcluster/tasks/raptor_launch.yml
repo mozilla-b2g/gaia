@@ -1,7 +1,7 @@
-reruns: 4
+reruns: 1
 task:
   metadata:
-    name: 'Raptor Launch Test'
+    name: '{{raptorSuiteName}}'
     description: Raptor performance launch test on emulator
 
   workerType: '{{workerType}}'
@@ -18,18 +18,21 @@ task:
     cache:
       tc-vcs: /home/worker/.tc-vcs
     env:
+      RAPTOR_GAIA: '{{gaiaRev}}'
+      RAPTOR_EMULATOR_URL: '{{emulatorURL}}'
       RAPTOR_TEST: tests/raptor/emulator_launch_test.js
       RAPTOR_RUNS: '{{raptorRuns}}'
       RAPTOR_APPS: '{{raptorApps}}'
       RAPTOR_TIMEOUT: '{{raptorTimeout}}'
-      RAPTOR_LAUNCH_DELAY: 6000
+      RAPTOR_LAUNCH_DELAY: '{{raptorLaunchDelay}}'
+
     command:
       - /home/tester/bin/go-raptor.sh
 
     artifacts:
       'public/logs':
         type: directory
-        path: '/home/worker/logs'
+        path: '/home/tester/logs'
         expires: '{{nextYear}}'
 
   extra:

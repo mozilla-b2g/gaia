@@ -69,6 +69,8 @@ describe('pseudo strategy', function() {
         'parens3=Foo (and) bar',
         'unicode=Foo \u0066\u006f\u006f\u0020',
         'nonascii=Naïve coöperation résumé dæmon phœnix',
+        'html1=visit <a>url</a>',
+        'html2=type <input placeholder="your name"/>',
       ].join('\n');
     });
 
@@ -99,6 +101,9 @@ describe('pseudo strategy', function() {
       assert.strictEqual(
         walked.nonascii.$v,
         'Ƞȧȧïṽḗḗ ƈǿǿöƥḗḗřȧȧŧīīǿǿƞ řéşŭŭḿé ḓæḿǿǿƞ ƥħœƞīīẋ');
+      assert.strictEqual(walked.html1.$v.$o, 'ṽīīşīīŧ <a>ŭŭřŀ</a>');
+      assert.strictEqual(
+        walked.html2.$v.$o, 'ŧẏƥḗḗ <input placeholder="your name"/>');
     });
 
   });
@@ -130,6 +135,8 @@ describe('pseudo strategy', function() {
         'parens3=Foo (and) bar',
         'unicode=Foo \u0066\u006f\u006f\u0020',
         'nonascii=Naïve coöperation résumé dæmon phœnix',
+        'html1=visit <a>url</a>',
+        'html2=type <input placeholder="your name"/>',
       ].join('\n');
     });
 
@@ -168,6 +175,11 @@ describe('pseudo strategy', function() {
       assert.strictEqual(
         walked.unicode.$v,
         '‮ɟoo‬ ‮ɟoo‬ ');
+      assert.strictEqual(
+        walked.html1.$v.$o, '‮ʌısıʇ‬ <a>‮nɹʅ‬</a>');
+      assert.strictEqual(
+        walked.html2.$v.$o,
+        '‮ʇʎdǝ‬ <input placeholder="your name"/>');
     });
 
     // XXX this requires Unicode support for JavaSript RegExp objects

@@ -4,11 +4,7 @@ var Contacts = require('./lib/contacts');
 var assert = require('assert');
 
 marionette('Contacts shortcuts > touch', function() {
-  var config = Contacts.config;
-  config.prefs = {
-    'dom.w3c_touch_events.enabled': 1
-  };
-  var client = marionette.client(config);
+  var client = marionette.client({ profile: Contacts.config });
   var subject;
   var selectors;
   var actions;

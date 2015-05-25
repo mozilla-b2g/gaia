@@ -8,19 +8,19 @@
 
 'use strict';
 
-require('/js/utils.js');
-require('/test/unit/mock_utils.js');
-require('/test/unit/mock_conversation.js');
-require('/test/unit/mock_threads.js');
-require('/test/unit/mock_contact.js');
+require('/views/shared/js/utils.js');
+require('/views/shared/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_conversation.js');
+require('/services/test/unit/mock_threads.js');
+require('/views/shared/test/unit/mock_contact.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/test/unit/mock_contact.js');
-require('/test/unit/mock_contacts.js');
-require('/test/unit/mock_messages.js');
-require('/test/unit/mock_navigation.js');
-require('/test/unit/mock_settings.js');
-require('/test/unit/mock_message_manager.js');
-require('/test/unit/mock_contact_renderer.js');
+require('/views/shared/test/unit/mock_contact.js');
+require('/views/shared/test/unit/mock_contacts.js');
+require('/views/shared/test/unit/mock_messages.js');
+require('/views/shared/test/unit/mock_navigation.js');
+require('/views/shared/test/unit/mock_settings.js');
+require('/services/test/unit/mock_message_manager.js');
+require('/views/shared/test/unit/mock_contact_renderer.js');
 require('/views/conversation/js/information.js');
 
 

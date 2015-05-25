@@ -3,12 +3,12 @@ define(function(require, exports, module) {
 
 var AccountModel = require('models/account');
 var Abstract = require('./abstract');
+var core = require('core');
 var debug = require('common/debug')('store/account');
 var denodeifyAll = require('common/promise').denodeifyAll;
 var extend = require('common/extend');
 var nextTick = require('common/next_tick');
 var probablyParseInt = require('common/probably_parse_int');
-var providerFactory = require('provider/provider_factory');
 
 function Account() {
   Abstract.apply(this, arguments);
@@ -67,7 +67,7 @@ Account.prototype = {
 
   verifyAndPersist: function(model, callback) {
     var self = this;
-    var provider = providerFactory.get(
+    var provider = core.providerFactory.get(
       model.providerType
     );
 
@@ -107,7 +107,7 @@ Account.prototype = {
   ],
 
   _removeDependents: function(id, trans) {
-    var store = this.db.getStore('Calendar');
+    var store = core.storeFactory.get('Calendar');
     store.remotesByAccount(id, trans, function(err, related) {
       if (err) {
         return console.error('Error removing deps for account: ', id);
@@ -134,8 +134,8 @@ Account.prototype = {
     //is purged.
 
     var self = this;
-    var provider = providerFactory.get(account.providerType);
-    var calendarStore = this.db.getStore('Calendar');
+    var provider = core.providerFactory.get(account.providerType);
+    var calendarStore = core.storeFactory.get('Calendar');
 
     var persist = [];
 
@@ -194,7 +194,7 @@ Account.prototype = {
 
       // update / remove
       if (persist.length || originalIds.length) {
-        var trans = self.db.transaction(
+        var trans = core.db.transaction(
           self._dependentStores,
           'readwrite'
         );
@@ -276,11 +276,11 @@ Account.prototype = {
     // increment the error count
     account.error.count++;
 
-    var calendarStore = this.db.getStore('Calendar');
+    var calendarStore = core.storeFactory.get('Calendar');
     var self = this;
     function fetchedCalendars(err, calendars) {
       if (!trans) {
-        trans = self.db.transaction(
+        trans = core.db.transaction(
           self._dependentStores,
           'readwrite'
         );
@@ -327,7 +327,7 @@ Account.prototype = {
       var results = [];
       for (var key in list) {
         var account = list[key];
-        var provider = providerFactory.get(account.providerType);
+        var provider = core.providerFactory.get(account.providerType);
         if (provider.canSync) {
           results.push(account);
         }

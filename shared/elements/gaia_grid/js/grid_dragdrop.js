@@ -806,7 +806,7 @@
               return;
             }
 
-            if (this.inEditMode) {
+            if (this.inEditMode && !this.icon) {
               this.touchStart.x = e.touches[0].pageX;
               this.touchStart.y = e.touches[0].pageY;
               this.touchStart.screenX = e.touches[0].screenX;

@@ -2,20 +2,21 @@
 
 marionette('Homescreen navigation >', function() {
   var ReflowHelper =
-      require('../../../../tests/js-marionette/reflow_helper.js');
+      require('../../../../tests/jsmarionette/plugins/reflow_helper.js');
 
   var assert = require('assert');
 
   var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
   var client = marionette.client({
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1,
-      'devtools.debugger.forbid-certified-apps': false
-    },
-    settings: {
-      'devtools.overlay': true,
-      'hud.reflows': true
+    profile: {
+      prefs: {
+        'devtools.debugger.forbid-certified-apps': false
+      },
+      settings: {
+        'devtools.overlay': true,
+        'hud.reflows': true
+      }
     }
   });
 

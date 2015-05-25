@@ -1,21 +1,31 @@
 /* global MediaRemoteControls, REMOTE_CONTROLS, AVRCP, IAC,
-          MockBluetoothHelper, MockBluetoothHelperInstance */
+          MockBluetoothHelper, MockBluetoothHelperInstance,
+          MockNavigatormozSetMessageHandler */
 'use strict';
 
 require('/shared/js/media/remote_controls.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
 
 suite('Media Remote Controls', function() {
   var mrc;
+  var realSetMessageHandler;
   var realBluetoothHelper;
 
   setup(function() {
+    realSetMessageHandler = navigator.mozSetMessageHandler;
+    navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
+    MockNavigatormozSetMessageHandler.mSetup();
+
     realBluetoothHelper = window.BluetoothHelper;
     window.BluetoothHelper = MockBluetoothHelper;
     mrc = new MediaRemoteControls();
   });
 
   teardown(function() {
+    MockNavigatormozSetMessageHandler.mTeardown();
+    navigator.mozSetMessageHandler = realSetMessageHandler;
+
     window.BluetoothHelper = realBluetoothHelper;
   });
 

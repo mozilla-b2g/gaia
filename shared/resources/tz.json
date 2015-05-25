@@ -91,7 +91,7 @@
   {"cc":"BR", "offset":"-03:00,-02:00", "city":"Brasilia", "id":"America/Sao_Paulo", "name":"Brasília"},
   {"cc":"CA", "offset":"-07:00,-06:00", "city":"Cambridge_Bay"},
   {"cc":"BR", "offset":"-04:00,-03:00", "city":"Campo_Grande"},
-  {"cc":"MX", "offset":"-06:00,-05:00", "city":"Cancun"},
+  {"cc":"MX", "offset":"-05:00,-05:00", "city":"Cancun"},
   {"cc":"VE", "offset":"-04:30,-04:30", "city":"Caracas"},
   {"cc":"GF", "offset":"-03:00,-03:00", "city":"Cayenne"},
   {"cc":"KY", "offset":"-05:00,-05:00", "city":"Cayman"},

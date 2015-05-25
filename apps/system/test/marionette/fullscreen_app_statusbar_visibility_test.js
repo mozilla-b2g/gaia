@@ -6,8 +6,10 @@ marionette('Fullscreen status bar visibility >', function() {
   var FULLSCREEN_APP = 'app://fullscreen-app.gaiamobile.org';
 
   var client = marionette.client({
-    apps: {
-      'fullscreen-app.gaiamobile.org': __dirname + '/../apps/fullscreen-app'
+    profile: {
+      apps: {
+        'fullscreen-app.gaiamobile.org': __dirname + '/../apps/fullscreen-app'
+      }
     }
   });
 

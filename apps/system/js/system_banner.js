@@ -59,17 +59,31 @@
      * 'dismiss' is called when the banner is dismissed and button
      * has not been clicked. It is optional.
      * @memberof SystemBanner.prototype
-     * @param {String} message The message to display
-     * @param {Object} buttonParams { label: ..., callback: ..., dismiss: ... }
+     * @param {String|Array} message The message to display
+     * @param {Object} buttonParams
+     *   { label: l10nAttrs, callback: ..., dismiss: ... }
      */
     show: function(message, buttonParams) {
       var banner = this.banner;
-      banner.firstElementChild.textContent = message;
+
+      var p = banner.querySelector('p');
+      p.innerHTML = '';
+      if (Array.isArray(message)) {
+        message.forEach(function(chunk) {
+          var span = document.createElement('span');
+          setElementL10n(span, chunk);
+          p.appendChild(span);
+        });
+      } else {
+        var span = document.createElement('span');
+        setElementL10n(span, message);
+        p.appendChild(span);
+      }
 
       var button = banner.querySelector('button');
       if (buttonParams) {
         banner.dataset.button = true;
-        button.textContent = buttonParams.label;
+        setElementL10n(button, buttonParams.label);
         this._clickCallback = function() {
           this._clicked = true;
           buttonParams.callback();
@@ -89,12 +103,22 @@
           button.removeEventListener('click', this._clickCallback);
           button.classList.remove('visible');
           this.banner.parentNode.removeChild(this.banner);
+          this._banner = undefined;
         }
       }.bind(this));
 
       banner.classList.add('visible');
     }
   };
+
+  function setElementL10n(element, l10nAttrs) {
+    if (typeof(l10nAttrs) === 'string') {
+      element.setAttribute('data-l10n-id', l10nAttrs);
+    } else {
+      navigator.mozL10n.setAttributes(
+        element, l10nAttrs.id, l10nAttrs.args);
+    }
+  }
 
   exports.SystemBanner = SystemBanner;
 

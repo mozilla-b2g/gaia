@@ -71,6 +71,8 @@ suite('system/bluetooth_v2', function() {
     var profiles = ['hfp', 'opp', 'a2dp', 'sco'];
     setup(function() {
       this.sinon.spy(window, 'dispatchEvent');
+      Bluetooth.icon = { update: function() {} };
+      this.sinon.stub(Bluetooth.icon, 'update');
     });
 
     test('nothing is called when wasConnected', function() {
@@ -78,22 +80,27 @@ suite('system/bluetooth_v2', function() {
         Bluetooth['_' + profile + 'Connected'] = true;
         Bluetooth._setProfileConnected(profile, true);
         assert.isFalse(window.dispatchEvent.called);
+        assert.isFalse(Bluetooth.icon.update.called);
       });
     });
 
-    test('event is dispatched when disconnected', function() {
+    test('event is dispatched, Bluetooth icon is updated when disconnected',
+         function() {
       profiles.forEach(function(profile){
         Bluetooth['_' + profile + 'Connected'] = true;
         Bluetooth._setProfileConnected(profile, false);
         assert.ok(window.dispatchEvent.called);
+        assert.isTrue(Bluetooth.icon.update.called);
       });
     });
 
-    test('event is dispatched when first connect', function() {
+    test('event is dispatched, Bluetooth icon is updated when first connect',
+         function() {
       profiles.forEach(function(profile){
         Bluetooth['_' + profile + 'Connected'] = false;
         Bluetooth._setProfileConnected(profile, true);
         assert.ok(window.dispatchEvent.called);
+        assert.isTrue(Bluetooth.icon.update.called);
       });
     });
 

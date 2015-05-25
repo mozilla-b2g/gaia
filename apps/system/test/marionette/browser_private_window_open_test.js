@@ -6,9 +6,10 @@ var Rocketbar = require('./lib/rocketbar');
 marionette('Private Browser - Window.open', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      }
     }
   });
 

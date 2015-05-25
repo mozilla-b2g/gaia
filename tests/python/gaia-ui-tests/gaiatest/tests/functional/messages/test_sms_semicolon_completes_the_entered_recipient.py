@@ -26,7 +26,6 @@ class TestSMSContactInput(GaiaTestCase):
         self.assertNotIn('invalid', new_message.recipient_css_class)
         self.assertTrue(new_message.is_recipient_name_editable == 'false')
 
-        keyboard = new_message.tap_recipient_section()
         keyboard.send('777')
         keyboard.send(';')
 

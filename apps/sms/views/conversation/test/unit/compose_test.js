@@ -24,20 +24,20 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
 require('/views/conversation/js/compose.js');
-require('/js/utils.js');
-require('/js/drafts.js');
+require('/views/shared/js/utils.js');
+require('/services/js/drafts.js');
 
-require('/test/unit/mock_attachment.js');
-require('/test/unit/mock_message_manager.js');
-require('/test/unit/mock_threads.js');
-require('/test/unit/mock_navigation.js');
-require('/test/unit/mock_recipients.js');
-require('/test/unit/mock_settings.js');
-require('/test/unit/mock_utils.js');
-require('/test/unit/mock_moz_activity.js');
-require('/test/unit/mock_conversation.js');
-require('/test/unit/mock_smil.js');
-require('/test/unit/mock_subject_composer.js');
+require('/views/shared/test/unit/mock_attachment.js');
+require('/services/test/unit/mock_message_manager.js');
+require('/services/test/unit/mock_threads.js');
+require('/views/shared/test/unit/mock_navigation.js');
+require('/views/shared/test/unit/mock_recipients.js');
+require('/views/shared/test/unit/mock_settings.js');
+require('/views/shared/test/unit/mock_utils.js');
+require('/views/shared/test/unit/mock_moz_activity.js');
+require('/views/shared/test/unit/mock_conversation.js');
+require('/views/shared/test/unit/mock_smil.js');
+require('/views/shared/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'asyncStorage',

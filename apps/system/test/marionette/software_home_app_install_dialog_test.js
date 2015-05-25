@@ -7,12 +7,13 @@ var Server = require('../../../../shared/test/integration/server');
 marionette('Software Home Button - App Install Dialog', function() {
 
   var client = marionette.client({
-    prefs: {
-      'focusmanager.testmode': true,
-      'dom.w3c_touch_events.enabled': 1
-    },
-    settings: {
-      'software-button.enabled': true
+    profile: {
+      prefs: {
+        'focusmanager.testmode': true
+      },
+      settings: {
+        'software-button.enabled': true
+      }
     }
   });
   var appInstall, home, server, serverManifestURL, serverRootURL, system;

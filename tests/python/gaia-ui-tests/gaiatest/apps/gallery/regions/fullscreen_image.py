@@ -31,6 +31,7 @@ class FullscreenImage(Base):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
                 *self._current_image_locator))))
+        Wait(self.marionette).until(lambda m: self.marionette.find_element(*self._current_image_locator).get_attribute('src') != '')
 
     @property
     def is_photo_toolbar_displayed(self):
@@ -38,7 +39,7 @@ class FullscreenImage(Base):
 
     @property
     def current_image_source(self):
-        return self.marionette.find_element(*self._current_image_locator).value_of_css_property('background-image')
+        return self.marionette.find_element(*self._current_image_locator).get_attribute('src')
 
     @property
     def current_image_size_width(self):
@@ -68,6 +69,11 @@ class FullscreenImage(Base):
         action.flick(image, x_start, y_start, x_end, y_end, 200).perform()
         Wait(self.marionette).until(
             lambda m: abs(image.location['x']) >= image.size['width'])
+        # Workaround for bug 1161441, the transitionend event is not firing in this
+        # case with a Marionette flick action, as opposed to a manual flick action
+        self.marionette.execute_script("""
+              arguments[0].dispatchEvent(new CustomEvent("transitionend"));
+            """, [self.current_image_frame])
 
     def tap_delete_button(self):
         self.marionette.find_element(*self._delete_image_locator).tap()

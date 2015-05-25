@@ -72,6 +72,11 @@ suite('system/CallscreenWindow', function() {
     stubById.restore();
   });
 
+  test('Should be an attention window', function() {
+    var callscreen = new CallscreenWindow();
+    assert.isTrue(callscreen.isAttentionWindow);
+  });
+
   test('Hide right away if we are not active while window.close()', function() {
     var callscreen = new CallscreenWindow();
     this.sinon.stub(callscreen, 'isActive').returns(false);
@@ -116,9 +121,12 @@ suite('system/CallscreenWindow', function() {
       test('it should open the call screen and force a hashchange',
       function() {
         var callscreen = new CallscreenWindow();
+        this.sinon.stub(callscreen, 'show');
         callscreen.ensure();
         assert.equal(CSORIGIN + 'index.html#&timestamp=0',
                      callscreen.browser.element.src);
+        assert.isTrue(callscreen.show.calledOnce,
+          'AttentionWindow#show called.');
       });
     });
 
@@ -133,9 +141,12 @@ suite('system/CallscreenWindow', function() {
 
       test('it should open the call screen on #locked', function() {
         var callscreen = new CallscreenWindow();
+        this.sinon.stub(callscreen, 'show');
         callscreen.ensure();
         assert.equal(CSORIGIN + 'index.html#locked&timestamp=0',
                      callscreen.browser.element.src);
+        assert.isTrue(callscreen.show.calledOnce,
+          'AttentionWindow#show called.');
       });
     });
   });

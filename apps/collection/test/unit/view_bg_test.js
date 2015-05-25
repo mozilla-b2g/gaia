@@ -62,7 +62,7 @@ suite('bg image > ', function() {
       }
     });
 
-    /* jshint -W031 */
+    /* jshint nonew: false */
     new subject(mockCollection);
   });
 });

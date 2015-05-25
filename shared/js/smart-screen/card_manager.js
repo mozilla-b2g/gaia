@@ -68,7 +68,7 @@
     writeFolderInCardStore: function cm_writeFolderInCardStore(folder) {
       var that = this;
       return new Promise(function(resolve, reject) {
-        if (folder instanceof Folder && folder.isNotEmpty()) {
+        if (folder instanceof Folder) {
           that._asyncSemaphore.v();
           var cardEntriesInFolder =
             folder.getCardList().map(that._serializeCard.bind(that));
@@ -186,10 +186,11 @@
     _onFolderChange: function cm_onFolderChange(folder) {
       if (folder.isDetached()) {
         this.writeCardlistInCardStore();
-      } else if (folder.isEmpty()) {
-        this.writeCardlistInCardStore({cleanEmptyFolder: true});
       } else {
         this.writeFolderInCardStore(folder);
+        if (folder.isEmpty()) {
+          this.writeCardlistInCardStore();
+        }
       }
     },
 
@@ -372,8 +373,14 @@
     insertCard: function cm_insertCard(options) {
       var that = this;
       this._asyncSemaphore.wait(function() {
-        var newCard = this._deserializeCardEntry(options.cardEntry);
+        var newCard;
         var position;
+
+        if (options.cardEntry) {
+          newCard = this._deserializeCardEntry(options.cardEntry);
+        } else {
+          newCard = options.card;
+        }
 
         // prevent same card from being inserted twice
         if (newCard && newCard.nativeApp) {
@@ -386,7 +393,7 @@
           }
         }
 
-        if (options.index === 'number') {
+        if (typeof options.index === 'number') {
           position = options.index;
         } else if (!newCard.group) {
           position = this._cardList.length;
@@ -417,7 +424,7 @@
 
         this._cardList.splice(position, 0, newCard);
         this.writeCardlistInCardStore().then(function() {
-          that.fire('card-inserted', newCard, position);
+          that.fire('card-inserted', newCard, position, options.overFolder);
         });
       }, this);
     },
@@ -468,6 +475,8 @@
       }, this);
     },
 
+    // XXX: Note that if you put card index as parameters for item1 and item2
+    // Please make sure they are "index of _cardList"
     swapCard: function cm_switchCard(item1, item2) {
       this._asyncSemaphore.wait(function() {
         var that = this;
@@ -671,6 +680,22 @@
         }, that);
       }).then(function() {
         return Promise.resolve(that._cardList);
+      });
+    },
+
+    getFilteredCardList: function cm_getFilteredCardList(filterName) {
+      return this.getCardList().then(function(allCards) {
+        var filteredCards = [];
+        if (filterName === 'all') {
+          filteredCards = allCards;
+        } else if (filterName) {
+          allCards.forEach(function(card) {
+            if (card.group === filterName) {
+              filteredCards.push(card);
+            }
+          });
+        }
+        return Promise.resolve(filteredCards);
       });
     },
 

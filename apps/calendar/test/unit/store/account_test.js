@@ -7,17 +7,19 @@ var CalendarError = require('common/error');
 var CalendarModel = require('models/calendar');
 var CalendarStore = require('store/calendar');
 var Factory = require('test/support/factory');
-var providerFactory = require('provider/provider_factory');
 
 suite('store/account', function() {
   var subject;
   var db;
-  var app;
+  var providerFactory;
+  var calendarStore;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    db = app.db;
-    subject = db.getStore('Account');
+    var core = testSupport.calendar.core();
+    db = core.db;
+    providerFactory = core.providerFactory;
+    subject = core.storeFactory.get('Account');
+    calendarStore = core.storeFactory.get('Calendar');
 
     db.open(function(err) {
       assert.ok(!err);
@@ -26,8 +28,10 @@ suite('store/account', function() {
   });
 
   teardown(function(done) {
+    subject._clearCache();
+    calendarStore._clearCache();
     testSupport.calendar.clearStore(
-      subject.db,
+      db,
       ['accounts', 'calendars'],
       done
     );
@@ -39,7 +43,6 @@ suite('store/account', function() {
 
   test('initialization', function() {
     assert.instanceOf(subject, Abstract);
-    assert.equal(subject.db, db);
     assert.deepEqual(subject._cached, {});
   });
 
@@ -114,7 +117,7 @@ suite('store/account', function() {
 
       function verifyCalendar(key) {
         test('ensure calendar is marked: ' + key, function(done) {
-          app.store('Calendar').get(key, function(getErr, result) {
+          calendarStore.get(key, function(getErr, result) {
             done(function() {
               assert.ok(result, 'has calendar');
               assert.ok(result.error, 'sets error');
@@ -193,6 +196,7 @@ suite('store/account', function() {
     var model;
     var calledWith;
     var modelParams;
+    var originalCaldav;
 
     setup(function() {
       error = null;
@@ -204,6 +208,7 @@ suite('store/account', function() {
 
       model = new AccountModel(modelParams);
 
+      originalCaldav = providerFactory.providers.Caldav;
       providerFactory.providers.Caldav = {
         getAccount: function(details, callback) {
           calledWith = details;
@@ -215,7 +220,7 @@ suite('store/account', function() {
     });
 
     teardown(function() {
-      delete providerFactory.providers.Caldav;
+      providerFactory.providers.Caldav = originalCaldav;
     });
 
     suite('duplicate account failure', function() {
@@ -342,14 +347,11 @@ suite('store/account', function() {
 
 
   suite('#remove', function() {
-    var calStore;
     var model;
     var calendars;
 
     setup(function(done) {
       calendars = {};
-      calStore = subject.db.getStore('Calendar');
-
       model = subject._createModel({ providerType: 'Local' });
       subject.persist(model, done);
     });
@@ -362,7 +364,7 @@ suite('store/account', function() {
         remote: { id: 777 }
       });
 
-      calStore.persist(calendars[1], done);
+      calendarStore.persist(calendars[1], done);
     });
 
     setup(function(done) {
@@ -373,7 +375,7 @@ suite('store/account', function() {
 
       // this is our control to ensure
       // we are not removing extra stuff
-      calStore.persist(calendars[2], done);
+      calendarStore.persist(calendars[2], done);
     });
 
     suite('removal', function() {
@@ -392,7 +394,7 @@ suite('store/account', function() {
       });
 
       test('removes associated calendars', function(done) {
-        calStore.all(function(err, calendars) {
+        calendarStore.all(function(err, calendars) {
           done(function() {
             assert.ok(calendars.accountId != id, 'removes calendars');
           });
@@ -465,7 +467,6 @@ suite('store/account', function() {
     var remote;
     var events;
     var account;
-    var calendarStore;
     var cals;
     var remoteCalledWith;
 
@@ -479,7 +480,6 @@ suite('store/account', function() {
     }
 
     setup(function() {
-      calendarStore = subject.db.getStore('Calendar');
       account = Factory.create('account', {
         _id: 1,
         providerType: 'Mock'
@@ -524,6 +524,7 @@ suite('store/account', function() {
       // clear cache
       calendarStore._remoteByAccount = Object.create(null);
       calendarStore._cached = Object.create(null);
+      calendarStore._usedColors = [];
 
       // reload from db
       calendarStore.all(done);

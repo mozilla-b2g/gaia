@@ -395,8 +395,18 @@ var GaiaApps = {
    */
   uninstallWithName: function(name) {
     GaiaApps.locateWithName(name, function uninstall(app) {
-      navigator.mozApps.mgmt.uninstall(app);
-      marionetteScriptFinished(false);
+      if (typeof(app) === 'object') {
+        let req = navigator.mozApps.mgmt.uninstall(app);
+          req.onsuccess = function() {
+          marionetteScriptFinished(true);
+        };
+        req.onerror = function() {
+          marionetteScriptFinished(req.error);
+        };
+      } else {
+        // App was never installed, so nothing to do here
+        marionetteScriptFinished(true);
+      }
     });
   }
 };

@@ -1,11 +1,8 @@
 /* exported ToneList */
-/* global Template */
+/* global Templates */
 'use strict';
 
 var ToneList = (function() {
-
-  var listTemplate = new Template('sound-list-template');
-  var itemTemplate = new Template('sound-item-template');
 
   // Make sure to keep this in sync with the value in null_ringtone.js!
   // (We copy the value here so that you don't need to load null_ringtone.js
@@ -66,7 +63,7 @@ var ToneList = (function() {
    * @param {Node} parent (optional) The parent node to append this list to.
    */
   function ToneList(titleID, parent) {
-    this.element = domify(listTemplate.interpolate({l10nID: titleID}));
+    this.element = domify(Templates.soundList({l10nID: titleID}));
     if (parent) {
       parent.appendChild(this.element);
     }
@@ -93,7 +90,7 @@ var ToneList = (function() {
         templateArgs.name = tone.name;
       }
 
-      var item = domify(itemTemplate.interpolate(templateArgs));
+      var item = domify(Templates.soundItem(templateArgs));
       item.dataset.id = tone.id;
 
       if (tone.subtitle) {

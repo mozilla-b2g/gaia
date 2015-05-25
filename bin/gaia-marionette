@@ -56,16 +56,36 @@ if [ ! -d $DIR/../profile-test ]; then
   PROFILE_FOLDER=profile-test make -C $DIR/../
 fi
 
+HARNESS_PATHS=$(cat ./tests/jsmarionette/marionette_tests.txt)
+
 if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
     if [ -z "$SKIP_TEST_FILES" ]; then
-      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
-                            -or -path "*/dev_apps/*/test/marionette/*_test.js" \
-                            -or -path "*/tests/integration/*/*_test.js")
+      if [ -z "$HARNESS_ONLY" ]; then
+        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js" \
+                              -or -path "*/tests/integration/*/*_test.js")
+      else
+        TEST_FILES=""
+      fi
+
+      for wildcard in $HARNESS_PATHS; do
+        HARNESS_FILES=$(find tests/jsmarionette -path $wildcard)
+        TEST_FILES="$TEST_FILES $HARNESS_FILES"
+      done
     else
-      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
-                            -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
+      if [ -z "$HARNESS_ONLY" ]; then
+        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                              -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
+      else
+        TEST_FILES=""
+      fi
+
+      for wildcard in $HARNESS_PATHS; do
+        HARNESS_FILES=$(find tests/jsmarionette -path $wildcard $SKIP_TEST_FILES)
+        TEST_FILES="$TEST_FILES $HARNESS_FILES"
+      done
     fi
   else
     if [ -z "$SKIP_TEST_FILES" ]; then
@@ -151,6 +171,13 @@ if [ "$DUMP_PATH" ]; then
   DEVICE_OPTS="$ADDITIONAL_OPTS --dump-path $DUMP_PATH"
 fi
 
+DEVICE_TYPE_OPT=""
+if [ -z "$GAIA_DEVICE_TYPE" ] || [ "$GAIA_DEVICE_TYPE" = "phone" ]; then
+  DEVICE_TYPE_OPT="--device-type phone"
+else
+  DEVICE_TYPE_OPT="--device-type $GAIA_DEVICE_TYPE"
+fi
+
 TARGET=""
 if [[ $@ == *"mocha-tbpl-reporter"* ]]; then
   TARGET=$DIR/gaia_marionette_retry.js
@@ -174,4 +201,5 @@ $TARGET \
   $DEVICE_OPTS \
   $BUILDAPP_OPTS \
   $TEST_FILES \
+  $DEVICE_TYPE_OPT \
   $@

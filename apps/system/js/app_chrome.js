@@ -141,7 +141,9 @@
               <gaia-header action="close" class='js-chrome-ssl-information'>
                 <div class="chrome-ssl-indicator chrome-ssl-indicator-ltr">
                 </div>
-                <h1 class="title"></h1>
+                <h1 class="chrome-title-container">
+                  <bdi dir="auto" class="title"></bdi>
+                </h1>
                 <div class="chrome-ssl-indicator chrome-ssl-indicator-rtl">
                 </div>
               </gaia-header>
@@ -187,7 +189,7 @@
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
-    this.title = this.element.querySelector('.title');
+    this.title = this.element.querySelector('.chrome-title-container > .title');
     this.sslIndicator =
       this.element.querySelector('.js-chrome-ssl-information');
 

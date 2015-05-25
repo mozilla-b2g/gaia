@@ -2,13 +2,11 @@ define(function(require, exports) {
 'use strict';
 
 var calc = require('common/calc');
+var core = require('core');
 var dateFormat = require('date_format');
 var debug = require('common/debug')('controllers/notifications');
 var messageHandler = require('message_handler');
 var notification = require('notification');
-
-// Will be injected...
-exports.app = null;
 
 exports.observe = function() {
   debug('Will start notifications controller...');
@@ -33,11 +31,11 @@ exports.onAlarm = function(alarm) {
 };
 
 function issueNotification(alarm) {
-  var app = exports.app;
-  var eventStore = app.store('Event');
-  var busytimeStore = app.store('Busytime');
+  var storeFactory = core.storeFactory;
+  var eventStore = storeFactory.get('Event');
+  var busytimeStore = storeFactory.get('Busytime');
 
-  var trans = app.db.transaction(['busytimes', 'events']);
+  var trans = core.db.transaction(['busytimes', 'events']);
 
   // Find the event and busytime associated with this alarm.
   return Promise.all([

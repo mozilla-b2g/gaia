@@ -10,11 +10,11 @@ var Factory = require('test/support/factory');
 var ICAL = require('ext/ical');
 var Responder = require('common/responder');
 var ServiceSupport = require('test/service/helper');
+var core = require('core');
 var nextTick = require('common/next_tick');
 
 suite('provider/caldav', function() {
   var subject;
-  var app;
   var controller;
   var db;
 
@@ -24,17 +24,17 @@ suite('provider/caldav', function() {
   var eventStore;
 
   setup(function(done) {
-    app = testSupport.calendar.app();
-    controller = app.serviceController;
-    db = app.db;
+    controller = core.serviceController;
+    db = core.db;
 
-    subject = new CaldavProvider({ app: app });
+    subject = new CaldavProvider();
 
-    calendarStore = app.store('Calendar');
-    accountStore = app.store('Account');
-    componentStore = app.store('IcalComponent');
+    var storeFactory = core.storeFactory;
+    calendarStore = storeFactory.get('Calendar');
+    accountStore = storeFactory.get('Account');
+    componentStore = storeFactory.get('IcalComponent');
 
-    eventStore = app.store('Event');
+    eventStore = storeFactory.get('Event');
 
     db.open(done);
   });
@@ -79,11 +79,6 @@ suite('provider/caldav', function() {
     assert.instanceOf(
       subject,
       AbstractProvider
-    );
-
-    assert.equal(
-      subject.service,
-      app.serviceController
     );
   });
 
@@ -175,10 +170,6 @@ suite('provider/caldav', function() {
     permErrors.forEach(validatePermError);
 
     test('generic error', function() {
-      accountStore.once('update', function() {
-        throw new Error('should not update account store');
-      });
-
       var result = subject._handleServiceError(
         { name: 'caldav-server-failure' },
         { account: account }
@@ -272,9 +263,17 @@ suite('provider/caldav', function() {
     var error;
     var result;
     var input;
+    var realMark;
 
     setup(function() {
       input = Factory('account');
+      // mock out real markWith Error
+      realMark = accountStore.markWithError;
+      accountStore.markWithError = function() {};
+    });
+
+    teardown(function() {
+      accountStore.markWithError = realMark;
     });
 
     /**
@@ -295,8 +294,6 @@ suite('provider/caldav', function() {
         }
       }
 
-      // mock out real markWith Error
-      accountStore.markWithError = function() {};
       var realHandleServiceError = subject._handleServiceError;
 
       subject._handleServiceError = function(givenErr, detail) {
@@ -346,11 +343,10 @@ suite('provider/caldav', function() {
       });
 
       test('offline handling', function(done) {
-        var realOffline = app.offline;
-        app.offline = function() { return true; };
+        subject.isOffline = function() { return true; };
         subject.getAccount(input, function cb(cbError, cbResult) {
           done(function() {
-            app.offline = realOffline;
+            delete subject.isOffline;
             assert.equal(cbError.name, 'offline');
           });
         });
@@ -397,11 +393,10 @@ suite('provider/caldav', function() {
       });
 
       test('offline handling', function(done) {
-        var realOffline = app.offline;
-        app.offline = function() { return true; };
+        subject.isOffline = function() { return true; };
         subject.findCalendars(input, function cb(cbError, cbResult) {
           done(function() {
-            app.offline = realOffline;
+            delete subject.isOffline;
             assert.equal(cbError.name, 'offline');
           });
         });
@@ -461,11 +456,10 @@ suite('provider/caldav', function() {
       });
 
       test('offline handling', function(done) {
-        var realOffline = app.offline;
-        app.offline = function() { return true; };
+        subject.isOffline = function() { return true; };
         subject.createEvent(event, function cb(cbError, cbResult) {
           done(function() {
-            app.offline = realOffline;
+            delete subject.isOffline;
             assert.equal(cbError.name, 'offline');
           });
         });
@@ -478,7 +472,7 @@ suite('provider/caldav', function() {
       var component;
 
       setup(function(done) {
-        var trans = eventStore.db.transaction(
+        var trans = db.transaction(
           ['events', 'icalComponents'],
           'readwrite'
         );
@@ -549,11 +543,10 @@ suite('provider/caldav', function() {
       });
 
       test('offline handling', function(done) {
-        var realOffline = app.offline;
-        app.offline = function() { return true; };
+        subject.isOffline = function() { return true; };
         subject.updateEvent(event, function cb(cbError, cbResult) {
           done(function() {
-            app.offline = realOffline;
+            delete subject.isOffline;
             assert.equal(cbError.name, 'offline');
           });
         });
@@ -607,14 +600,13 @@ suite('provider/caldav', function() {
       });
 
       test('offline handling', function(done) {
-        var realOffline = app.offline;
         var event = Factory('event', {
           calendarId: calendar._id
         });
-        app.offline = function() { return true; };
+        subject.isOffline = function() { return true; };
         subject.deleteEvent(event, function cb(cbError, cbResult) {
           done(function() {
-            app.offline = realOffline;
+            delete subject.isOffline;
             assert.equal(cbError.name, 'offline');
           });
         });
@@ -727,11 +719,10 @@ suite('provider/caldav', function() {
       });
 
       test('offline handling', function(done) {
-        var realOffline = app.offline;
-        app.offline = function() { return true; };
+        subject.isOffline = function() { return true; };
         subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
           done(function() {
-            app.offline = realOffline;
+            delete subject.isOffline;
             assert.equal(cbError.name, 'offline');
           });
         });
@@ -756,11 +747,10 @@ suite('provider/caldav', function() {
       });
 
       test('offline handling', function(done) {
-        var realOffline = app.offline;
-        app.offline = function() { return true; };
+        subject.isOffline = function() { return true; };
         subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
           done(function() {
-            app.offline = realOffline;
+            delete subject.isOffline;
             assert.equal(cbError.name, 'offline');
           });
         });
@@ -1006,7 +996,7 @@ suite('provider/caldav', function() {
 
         componentStore.persist(comp, done);
 
-        app.serviceController.start();
+        core.serviceController.start();
       });
 
       setup(function(done) {

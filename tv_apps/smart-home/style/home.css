@@ -56,15 +56,22 @@ section {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.2s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1);
   transform-origin: 0 50%;
+}
+
+#card-list.hidden {
+  /* Using display none here would prevent animation, and using visibility
+     hidden causes some bugs in rendering */
+  opacity: 0;
 }
 
 #card-list.card-list-slide {
   transition-timing-function: cubic-bezier(0.25, 0, 0, 1);
 }
 
-#card-list.no-transition {
+#card-list.no-transition,
+#folder-list.no-transition {
   transition-property: none;
 }
 
@@ -97,6 +104,16 @@ section {
 
 .card smart-button[type="app-button"].new-card-transition.last-card {
   transition-delay: 0s;
+}
+
+#folder-list .card smart-button[type="app-button"].new-card {
+  opacity: 1;
+  transform: translateY(-44rem);
+}
+
+#folder-list .card smart-button[type="app-button"].new-card-transition {
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1),
+              opacity 0.4s cubic-bezier(0.25, 0, 0, 1);
 }
 
 .card-panel {
@@ -167,7 +184,7 @@ section {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.2s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1);
   transform-origin: 0 50%;
 }
 
@@ -176,9 +193,12 @@ section {
 **/
 .filter-tab-container {
   position: absolute;
-  display: none;
   left: 6rem;
   bottom: 5.4rem;
+}
+
+.filter-tab-group.hidden {
+  display: none;
 }
 
 /**
