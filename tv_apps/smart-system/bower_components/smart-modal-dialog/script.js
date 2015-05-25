@@ -20,11 +20,16 @@
 (function(exports) {
   'use strict';
 
-  function SmartModalDialog(container) {
+  var DEFAULT_MARGIN = 44;
+
+  function SmartModalDialog(container, options) {
 
     // Determine whether this dialog is opened or not
     this.isOpened = false;
     this._clickedIndex = null;
+
+    this._margin = options && options.margin ? options.margin : DEFAULT_MARGIN;
+    this._translateX = 0;
 
     this.smartBubble = document.createElement('smart-bubbles');
 
@@ -39,8 +44,8 @@
     this.outerContainer = document.createElement('div');
     this.outerContainer.classList.add('outer-container');
 
-    this.container = document.createElement('div');
-    this.container.classList.add('container');
+    this.innerContainer = document.createElement('div');
+    this.innerContainer.classList.add('container');
 
     this.messageElement = document.createElement('div');
     this.messageElement.classList.add('modal-dialog-message');
@@ -49,10 +54,10 @@
     this.buttonGroup.classList.add('modal-dialog-button-group');
     this.buttonGroup.setAttribute('smart-bubbles', 'true');
 
-    this.container.appendChild(this.messageElement);
-    this.container.appendChild(this.buttonGroup);
+    this.innerContainer.appendChild(this.messageElement);
+    this.innerContainer.appendChild(this.buttonGroup);
 
-    this.outerContainer.appendChild(this.container);
+    this.outerContainer.appendChild(this.innerContainer);
     this.element.appendChild(this.outerContainer);
 
     this.container = container || document.body;
@@ -153,12 +158,64 @@
     }
   };
 
+
+  /**
+   * Scroll the list to the input element
+   */
+  proto._scrollTo = function(element) {
+    var newTransition = this._getScrollOffset(element);
+    this._translateX = newTransition;
+    this.buttonGroup.style.transform = 'translateX(' + this._translateX +
+                                       'px)';
+  };
+
+  /**
+   * Get the offset of the node element
+   */
+  proto._getScrollOffset = function(nodeElem) {
+    if (!this._viewWidth) {
+      this._viewWidth = this.innerContainer.clientWidth - 2 * this._margin;
+    }
+    var nodeLeft = nodeElem.offsetLeft;
+    var nodeWidth = nodeElem.offsetWidth;
+    var listWidth = this.buttonGroup.offsetWidth;
+    var newTranslate = this._translateX;
+    var lastElement = this.buttonElements[this.buttonElements.length - 1];
+    var firstElement = this.buttonElements[0];
+
+    if (listWidth < this._viewWidth) {
+      // align to horizontal center if list width is smaller than the container
+      return (this._viewWidth - listWidth) / 2 + this._margin;
+    } else if (nodeLeft + nodeWidth >
+                          -this._translateX + this._viewWidth + this._margin) {
+      // scroll left if the node falls beyond the right edge of container
+      newTranslate = this._viewWidth - nodeLeft - nodeWidth + this._margin;
+    } else if (nodeLeft < -this._translateX + this._margin) {
+      // scroll right if the node falls beyond the left edge of container
+      newTranslate = -nodeLeft + this._margin;
+    }
+
+
+    // If the new scroll offset contains first/last node, we have to align the
+    // list to begin/end.
+    if (lastElement.offsetLeft + lastElement.offsetWidth <=
+                              -newTranslate + this._viewWidth + this._margin) {
+      return this._viewWidth + this._margin - lastElement.offsetLeft -
+                                              lastElement.offsetWidth;
+    } else if (firstElement.offsetLeft >= -newTranslate + this._margin) {
+      return -firstElement.offsetLeft + this._margin;
+    }
+    return newTranslate;
+  };
+
   proto.focus = function() {
     if (this.element.classList.contains('opening') ||
         this.element.classList.contains('closing')) {
       this.element.focus();
     } else {
       var elem = this.buttonElements[this._focusedIndex];
+      this._scrollTo(elem);
+      // move focus to smart dialog while transition running
       if (elem.focus && (typeof elem.focus) === 'function') {
         elem.focus();
       }
@@ -203,6 +260,7 @@
     switch(e.target) {
       case this.element:
         if (e.type === 'opened') {
+          this._scrollTo(this.buttonElements[0]);
           // Play bubble animation when the smart-dialog is opened
           this.smartBubble.play(this.buttonElements);
         } else if (e.type === 'closed') {
@@ -219,10 +277,12 @@
           }
           this.isOpened = false;
           this.stopKeyNavigation();
+          this.element.classList.remove('modal-dialog-opened');
           this.fireEvent('modal-dialog-closed');
         }
         break;
       case this.smartBubble:
+        this.element.classList.add('modal-dialog-opened');
         this.startKeyNavigation();
         this.focus();
         this.fireEvent('modal-dialog-opened');
