@@ -70,7 +70,12 @@ define(function(require) {
         });
       },
       _onCertificateItemClick: function(name) {
-        DialogService.confirm('certificate-confirm-to-delete').then(
+        DialogService.confirm({
+          id: 'certificate-confirm-to-delete',
+          args: {
+            certificateName: name
+          }
+        }).then(
           (result) => {
             var type = result.type;
             if (type === 'submit') {
