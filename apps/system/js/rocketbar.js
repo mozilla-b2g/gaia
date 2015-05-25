@@ -199,6 +199,7 @@
       window.addEventListener('global-search-request', this);
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
+      window.addEventListener('activityrequesting', this);
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
       window.addEventListener('utilitytray-overlayopening', this);
@@ -272,10 +273,16 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
+        // Hide rocketbar if the user opens the utility tray.
+        // The utility tray and rocketbar share the same space in the mental
+        // model - only one can be active at any given time. For consistency,
+        // any activities are also closed along with rocketbar when the
+        // utility tray is opened.
         case 'utilitytray-overlayopening':
         case 'utility-tray-overlayopened':
         case 'simlockrequestfocus':
         case 'cardviewbeforeshow':
+        case 'activityrequesting':
           this._closeSearch();
           break;
         case 'lockscreen-appopened':
