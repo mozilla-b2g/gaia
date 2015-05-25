@@ -120,6 +120,7 @@ define(function(require) {
       var showPassword = panel.querySelector('input[name=show-pwd]');
       var eap = panel.querySelector('li.eap select');
       var security = panel.querySelector('li.security select');
+      var authPhase2 = panel.querySelector('li.auth-phase2 select');
       var userCertificate = panel.querySelector('li.user-certificate select');
       var serverCertificate =
         panel.querySelector('li.server-certificate select');
@@ -142,8 +143,8 @@ define(function(require) {
         password.type = this.checked ? 'text' : 'password';
       };
 
-      var checkPassword = function() {
-        var isSSIDInvalid = function() {
+      var checkPassword = () => {
+        var isSSIDInvalid = () => {
           if (ssid) {
             return (ssid.value.length === 0);
           } else {
@@ -156,6 +157,37 @@ define(function(require) {
             eap.value) || isSSIDInvalid();
       };
 
+      var updateAuthphase2Options = (function() {
+        var mapping = {
+          'PEAP': [
+            { text: 'No', value: 'No' },
+            { text: 'MSCHAPV2', value: 'MSCHAP V2' },
+            { text: 'GTC', value: 'GTC' }
+          ],
+          'TTLS': [
+            { text: 'No', value: 'No' },
+            { text: 'PAP', value: 'PAP' },
+            { text: 'MSCHAP', value: 'MSCHAP' },
+            { text: 'MSCHAP V2', value: 'MSCHAPV2' },
+            { text: 'GTC', value: 'GTC' }
+          ]
+        };
+
+        return (eap) =>  {
+          var itsMapping = mapping[eap];
+          if (authPhase2 && itsMapping) {
+            // cleanup all options before
+            authPhase2.innerHTML = '';
+            itsMapping.forEach((rawData) => {
+              var option = document.createElement('option');
+              option.value = rawData.value;
+              option.text = rawData.text;
+              authPhase2.add(option);
+            });
+          }
+        };
+      }());
+
       if (security) {
         security.onchange = function() {
           panel.dataset.security = security.value;
@@ -164,8 +196,10 @@ define(function(require) {
       }
 
       eap.onchange = function() {
-        panel.dataset.eap = eap.value;
+        var eapMethod = eap.value;
+        panel.dataset.eap = eapMethod;
         checkPassword();
+        updateAuthphase2Options(eapMethod);
       };
 
       if (ssid) {
