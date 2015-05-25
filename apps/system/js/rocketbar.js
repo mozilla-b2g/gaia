@@ -201,6 +201,7 @@
       window.addEventListener('global-search-request', this);
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
+      window.addEventListener('activityrequesting', this);
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
       window.addEventListener('utilitytray-overlayopening', this);
@@ -278,6 +279,7 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
+        case 'activityrequesting':
         case 'simlockrequestfocus':
         case 'cardviewbeforeshow':
 
