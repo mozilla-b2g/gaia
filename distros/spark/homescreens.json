@@ -1,0 +1,42 @@
+{
+  "homescreens": [
+    [
+      ["apps", "communications", "dialer"],
+      ["apps", "sms"],
+      ["apps", "communications", "contacts"],
+      ["apps", "email"],
+      ["apps", "search"],
+      ["apps", "gallery"],
+      ["apps", "camera"],
+      ["apps", "marketplace.firefox.com"],
+      ["apps", "clock"],
+      ["apps", "settings"]
+    ], [
+      ["outoftree_apps", "foxfooding"],
+      ["outoftree_apps", "bugzillalite"],
+      ["outoftree_apps", "buddyup"],
+      ["outoftree_apps", "webmaker"]
+    ], [
+      ["apps", "calendar"],
+      ["apps", "music"],
+      ["apps", "video"],
+      ["outoftree_apps", "facebook"],
+      ["outoftree_apps", "twitter"],
+      ["outoftree_apps", "runwhatsapppreview"],
+      ["outoftree_apps", "loop"],
+      ["outoftree_apps", "buddyup"],
+      ["outoftree_apps", "yammer"]
+    ], [
+      ["apps", "costcontrol"],
+      ["apps", "fm"],
+      ["outoftree_apps", "notes"],
+      ["outoftree_apps", "calculator"],
+      ["outoftree_apps", "hexgl"],
+      ["outoftree_apps", "tanx"],
+      ["outoftree_apps", "sechelt"]
+    ]
+  ],
+  "preferences": {
+    "grid.cols": 3
+  }
+}
