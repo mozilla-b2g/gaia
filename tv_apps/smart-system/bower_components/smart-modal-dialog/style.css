@@ -35,7 +35,13 @@
 }
 
 .modal-dialog .modal-dialog-button-group {
-  text-align: center;
+  white-space: nowrap;
+  /* use inline-block to wrap content */
+  display: inline-block;
+}
+
+.modal-dialog.modal-dialog-opened .modal-dialog-button-group {
+  transition: transform 0.2s ease;
 }
 
 .modal-dialog .modal-dialog-button-group > * {
