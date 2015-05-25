@@ -34,11 +34,17 @@
     this.channels.push(channel);
 
     this.getChannels = function() {
-      return {
+      var self = this;
+      var promise = {
         then: function(callback) {
-          callback(this.channels);
-        }.bind(this)
+          callback(self.channels);
+          return promise;
+        },
+        catch: function() {
+          return promise;
+        }
       };
+      return promise;
     };
 
     this.setCurrentChannel = function(number) {

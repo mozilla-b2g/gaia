@@ -4,11 +4,16 @@
   function MockEPGController() {
     this.on = function() {};
     this.fetchPrograms = function() {
-      return {
+      var promise = {
         then: function(callback) {
           callback();
+          return promise;
+        },
+        catch: function() {
+          return promise;
         }
       };
+      return promise;
     };
   }
 
