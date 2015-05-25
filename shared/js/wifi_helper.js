@@ -126,8 +126,12 @@ var WifiHelper = {
         switch (eap) {
           case 'SIM':
             break;
-          case 'PEAP':
           case 'TLS':
+            if (!identity || identity.length < 1) {
+              return false;
+            }
+            break;
+          case 'PEAP':
           case 'TTLS':
             /* falls through */
           default:

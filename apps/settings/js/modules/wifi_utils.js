@@ -190,7 +190,8 @@ define(function(require) {
 
       if (security) {
         security.onchange = function() {
-          panel.dataset.security = security.value;
+          key = security.value;
+          panel.dataset.security = key;
           eap.onchange();
         };
       }
