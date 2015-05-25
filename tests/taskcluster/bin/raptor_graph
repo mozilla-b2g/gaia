@@ -17,8 +17,15 @@ var taskcluster = require('taskcluster-client');
 var emulatorBuildURL;
 var raptorTimeout = 600000;
 var appLaunchDelay = 6000;
+var gaiaBaseMinusOne = '0';
+var originalBaseRev = process.env.GITHUB_BASE_REV;
+var originalHeadRev = process.env.GITHUB_HEAD_REV;
 
 const TC_CLIENT_OPTS = { timeout: 30 * 1000 };
+
+const TEST_ITERATIONS = 6;
+const LAUNCH_TEST_APPS = ["settings"];
+const LAUNCH_TEST_RUNS = 30;
 
 // Cache for task definitions...
 var TASK_DEFINITIONS = {};
@@ -39,6 +46,10 @@ function params() {
 
 // Map of task ids to task names
 var taskIdMap = {};
+var config = {};
+var suiteName, symbol, taskName;
+var requiredBaseTasks = [];
+var requiredPatchTasks = [];
 
 /**
 baseTask: run test on 'base' build
@@ -52,36 +63,71 @@ if testing a PULL_REQUEST 'patch build' will be the pr/
 provided HEAD_REV; else it will be BASE_REV -1 commit
 */
 
-var config = {
-  baseTask1: {
-    definition: 'raptor_launch',
-    params: {
-      raptorSuiteName: 'Settings Launch Test (on base)',
-      gaiaRev: process.env.GITHUB_BASE_REV,
-      raptorRuns: 30,
-      raptorApps: 'settings',
-      treeherderSym: 'se1'
-    }
-  },
-  patchTask1: {
-    definition: 'raptor_launch',
-    params: {
-      raptorSuiteName: 'Settings Launch Test (on base + pr)',
-      gaiaRev: process.env.GITHUB_HEAD_REV,
-      raptorRuns: 30,
-      raptorApps: 'settings',
-      treeherderSym: 'se2'
-    }
-  },
-  resultTask: {
+// build the task config object for each app
+// each app will have 1 base task and 1 patch task x TEST_ITERATIONS,
+// and there is always just one result task (per app) that is
+// dependent upon all the base and patch tasks completed
+var config = {};
+
+LAUNCH_TEST_APPS.map(function(nextApp) {
+  // results task requires all base and patch tasks
+  requiredBaseTasks = [];
+  requiredPatchTasks = [];
+
+  // base tasks
+  for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
+    suiteName = nextApp[0].toUpperCase() + nextApp.slice(1) + " app launch test (on base)";
+    symbol = nextApp.substr(0, 2) + iteration;
+    taskName = nextApp + "BaseTask" + iteration;
+    requiredBaseTasks.push(taskName);
+    config[taskName] = {
+      definition: 'raptor_launch',
+      build: 'base',
+      params: {
+        raptorSuiteName: suiteName,
+        gaiaRev: process.env.GITHUB_BASE_REV,
+        raptorRuns: LAUNCH_TEST_RUNS,
+        raptorApps: nextApp,
+        treeherderSym: symbol
+      }
+    };
+  };
+
+  // patch tasks
+  for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
+    suiteName = nextApp[0].toUpperCase() + nextApp.slice(1) + " app launch test (on base + pr)";
+    // want the symbol number to continue to increment from the base tasks
+    symbol = nextApp.substr(0, 2) + (iteration + TEST_ITERATIONS);
+    taskName = nextApp + "PatchTask" + iteration;
+    requiredPatchTasks.push(taskName);
+    config[taskName] = {
+      definition: 'raptor_launch',
+      build: 'patch',
+      params: {
+        raptorSuiteName: suiteName,
+        gaiaRev: process.env.GITHUB_HEAD_REV,
+        raptorRuns: LAUNCH_TEST_RUNS,
+        raptorApps: nextApp,
+        treeherderSym: symbol
+      }
+    };
+  };
+
+  // single result task for all of the base and patch tasks
+  suiteName = nextApp[0].toUpperCase() + nextApp.slice(1) + " app launch test results";
+  taskName = nextApp + 'ResultsTask';
+  symbol = nextApp.substr(0, 2);
+  config[taskName] = {
     definition: 'raptor_result',
-    requires: ['baseTask1', 'patchTask1'],
+    requiredBaseTasks: requiredBaseTasks,
+    requiredPatchTasks: requiredPatchTasks,
     params: {
-      raptorSuiteName: 'Settings Results',
-      treeherderSym: 'se'
+      raptorApp: nextApp,
+      raptorSuiteName: suiteName,
+      treeherderSym: symbol
     }
-  }
-};
+  };
+});
 
 /**
  * Execute the built command in a child process
@@ -134,10 +180,8 @@ var setpatchTaskRev = function() {
   return new Promise(function(resolve, reject) {
     if (process.env.GITHUB_PULL_REQUEST === '0') {
       var cmd = "cd /home/tester/git_checkout && git rev-parse HEAD~1";
-      do_command(cmd).then(function(baseMinusOne) {
-        config.patchTask1.params.GITHUB_BASE_REV = baseMinusOne;
-        config.patchTask1.params.raptorSuiteName = "Settings Launch Test (on base -1 commit)";
-        config.patchTask1.params.gaiaRev = baseMinusOne;
+      do_command(cmd).then(function(value) {
+        gaiaBaseMinusOne = value;
         resolve();
       });
     } else {
@@ -154,7 +198,7 @@ var raptorGraph = {
 // XXX: When extending the task graph the scopes and metadata fields are invalid
 // according to the schema so for local testing we need the --full option so the
 // task graph can be submitted.
-if (process.argv[2] == '--full') {
+if (process.argv[2] === '--full') {
   raptorGraph.scopes = [
     'docker-worker:cache:resources',
 
@@ -180,7 +224,7 @@ if (process.argv[2] == '--full') {
 var nextYear = new Date(Date.now());
 nextYear.setFullYear(nextYear.getFullYear() + 1);
 nextYear = nextYear.toJSON();
-var reqTask1, reqTask2, branchElement, patchElement;
+var branchElement, patchElement;
 
 getEmulator()
   .then(setpatchTaskRev)
@@ -198,19 +242,37 @@ getEmulator()
 
       taskIdMap[raptorTask] = slugid.v4();
 
-      // for result tasks, specify the two tasks that they are dependent upon
-      if (definition == 'raptor_result') {
-        reqTask1 = config[raptorTask].requires[0];
-        reqTask2 = config[raptorTask].requires[1];
+      // not testing a PR so the 'patch' build becomes master/base -1 instead of base + pr
+      if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "patch") {
+        var app = config[raptorTask].params.raptorApps;
+        suiteName = app[0].toUpperCase() + app.slice(1) + " app launch test (on base -1 commit)";
+        config[raptorTask].params.raptorSuiteName = suiteName;
+        config[raptorTask].params.gaiaRev = gaiaBaseMinusOne;
+      }
 
-        // dependent taskIDs
-        config[raptorTask].params.completedBranchTask = taskIdMap[reqTask1];
-        config[raptorTask].params.completedPatchTask = taskIdMap[reqTask2];
+      // for result tasks, specify the tasks that they are dependent upon
+      if (definition === 'raptor_result') {
+        var requiredBaseTaskIds = [];
+
+        config[raptorTask].requiredBaseTasks.map(function(nextTaskName) {
+        //requiredBaseTasks.map(function(nextTaskName) {
+          requiredBaseTaskIds.push(taskIdMap[nextTaskName]);
+        });
+        var requiredPatchTaskIds = [];
+        config[raptorTask].requiredPatchTasks.map(function(nextTaskName) {
+        //requiredPatchTasks.map(function(nextTaskName) {
+            requiredPatchTaskIds.push(taskIdMap[nextTaskName]);
+        });
+
+        config[raptorTask].params.completedBranchTask = requiredBaseTaskIds.join(', ');
+        config[raptorTask].params.completedPatchTask = requiredPatchTaskIds.join(', ');
 
         // dependent gaia revs
-        config[raptorTask].params.branchGaiaRev = config[reqTask1].params.gaiaRev;
-        config[raptorTask].params.patchGaiaRev = config[reqTask2].params.gaiaRev;
-      }
+        base = config[raptorTask].requiredBaseTasks[0];
+        patch = config[raptorTask].requiredPatchTasks[0];
+        config[raptorTask].params.branchGaiaRev = config[base].params.gaiaRev; 
+        config[raptorTask].params.patchGaiaRev = config[patch].params.gaiaRev;
+      };
 
       var task = loadTask(definition, params(config[raptorTask].params, {
         // Useful for environment variables
@@ -219,8 +281,8 @@ getEmulator()
         nextYear: nextYear
       }));
       task.taskId = taskIdMap[raptorTask];
-      if (definition == 'raptor_result') {
-        task.requires = [raptorGraph.tasks[0].taskId, raptorGraph.tasks[1].taskId];
+      if (definition === 'raptor_result') {
+        task.requires = requiredBaseTaskIds.concat(requiredPatchTaskIds);
       }
       raptorGraph.tasks.push(task);
 
@@ -233,4 +295,5 @@ getEmulator()
 
     // Output the entire task graph for extension....
     process.stdout.write(JSON.stringify(raptorGraph, null, 2));
+
   });

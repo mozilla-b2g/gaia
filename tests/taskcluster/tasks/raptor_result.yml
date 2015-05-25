@@ -13,6 +13,7 @@ task:
     maxRunTime: 1800
     image: quay.io/mozilla/raptor-results:latest
     env:
+      RAPTOR_APP: '{{raptorApp}}'
       RAPTOR_COMPLETED_BRANCH: '{{completedBranchTask}}'
       RAPTOR_COMPLETED_PATCH: '{{completedPatchTask}}'
       RAPTOR_BRANCH_GAIA: '{{branchGaiaRev}}'
