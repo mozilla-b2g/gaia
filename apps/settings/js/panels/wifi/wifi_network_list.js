@@ -195,7 +195,8 @@ define(function(require) {
                     authOptions.identity,
                     authOptions.eap,
                     authOptions.authPhase2,
-                    authOptions.serverCertificate
+                    authOptions.serverCertificate,
+                    authOptions.userCertificate
                   );
                   WifiContext.associateNetwork(network);
                 }

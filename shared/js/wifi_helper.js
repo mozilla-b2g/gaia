@@ -11,7 +11,7 @@ var WifiHelper = {
   },
 
   setPassword: function(network, password, identity, eap, phase2,
-    serverCertificate) {
+    serverCertificate, userCertificate) {
       var encType = this.getKeyManagement(network);
       switch (encType) {
         case 'WPA-PSK':
@@ -36,6 +36,9 @@ var WifiHelper = {
               }
               if (serverCertificate !== 'none') {
                 network.serverCertificate = serverCertificate;
+              }
+              if (userCertificate !== 'none') {
+                network.userCertificate = userCertificate;
               }
               break;
             default:

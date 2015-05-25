@@ -53,6 +53,7 @@ define(function(require) {
           identity: elements.identity.value,
           eap: elements.eap.value,
           authPhase2: elements.authPhase2.value,
+          userCertificate: elements.userCertificate.value,
           serverCertificate: elements.serverCertificate.value
         });
       }
