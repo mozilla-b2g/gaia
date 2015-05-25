@@ -34,6 +34,7 @@
     this.instanceID = _id++;
     this.containerElement = app.element;
     this._recentTitle = false;
+    this._themeChanged = false;
     this._titleTimeout = null;
     this.scrollable = app.browserContainer;
     this.render();
@@ -523,6 +524,7 @@
         color = detail.content;
       }
 
+      this._themeChanged = true;
       this.setThemeColor(color);
     };
 
@@ -715,10 +717,14 @@
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
     this.containerElement.classList.add('loading');
     this._titleChanged = false;
+    this._themeChanged = false;
   };
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
     this.containerElement.classList.remove('loading');
+    if (!this._themeChanged) {
+      this.setThemeColor('');
+    }
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
