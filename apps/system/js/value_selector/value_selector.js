@@ -402,7 +402,6 @@
       case 'datetime-local':
         var currentDatetimeValue = this._currentDatetimeValue;
         if (this._currentPickerType === 'date') {
-          this.hide();
           this.showTimePicker(this._format(currentDatetimeValue, '%H:%M'));
           return;
         } else if (this._currentPickerType === 'time') {
