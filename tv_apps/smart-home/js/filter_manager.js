@@ -33,6 +33,7 @@
       this._cardListElem = options.cardListElem;
       this._cardScrollable = options.cardScrollable;
       this._home = options.home;
+      this._edit = this._home.edit;
       this._cardManager = options.cardManager;
 
       this._cardFilter = new CardFilter();
@@ -40,6 +41,11 @@
       this._cardFilter.filter = FilterManager.FILTERS.ALL.iconName;
       this._filterChangedHandler = this.onFilterChanged.bind(this);
       this._cardFilter.on('filterchanged', this._filterChangedHandler);
+
+      this._hideFilter = this.hide.bind(this);
+      this._showFilter = this.show.bind(this);
+      this._edit.on('enter-edit-mode', this._hideFilter);
+      this._edit.on('exit-edit-mode', this._showFilter);
 
       this._smartBubblesElem = document.getElementById('bubbles');
 
@@ -50,6 +56,8 @@
 
     uninit: function() {
       this._cardFilter.off('filterchanged', this._filterChangedHandler);
+      this._edit.off('enter-edit-mode', this._hideFilter);
+      this._edit.off('exit-edit-mode', this._showFilter);
       this._smartBubblesElem.removeEventListener('all-items-bubbled',
         this._animationEndHandler);
     },
@@ -129,6 +137,14 @@
       this._cardListElem.setAttribute('smart-bubbles-direction', 'down');
       this._smartBubblesElem.play(
         document.querySelectorAll('#card-list > .card > .app-button'));
+    },
+
+    hide: function fm_hide() {
+      this._cardFilter.hide();
+    },
+
+    show: function fm_show() {
+      this._cardFilter.show();
     },
 
     resetFilter: function fm_resetFilter() {

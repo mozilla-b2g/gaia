@@ -82,6 +82,7 @@
             this.currentNode.classList.remove('focused');
           }.bind(this));
         this._concealPanel(this.currentScrollable, this.currentNode);
+        this.fire('exit-edit-mode');
       } else {
         this.mainSection.dataset.mode = 'edit';
         this.spatialNavigator.multiRemove(this.regularNavElements);
@@ -95,6 +96,7 @@
         this.spatialNavigator.focus(this.cardScrollable);
         this.cardScrollable.setScale(EDIT_MODE_SCALE);
         this.folderScrollable.setScale(EDIT_MODE_SCALE);
+        this.fire('enter-edit-mode');
       }
     },
 

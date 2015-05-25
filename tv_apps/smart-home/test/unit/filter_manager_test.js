@@ -1,10 +1,12 @@
-/* global MockCardFilter, FilterManager, MockScrollable, MockCardManager */
+/* global MockCardFilter, FilterManager, MockScrollable, MockCardManager,
+          MockHome */
 
 'use strict';
 
 requireApp('smart-home/test/unit/mock_card_filter.js');
 requireApp('smart-home/test/unit/mock_scrollable.js');
 requireApp('smart-home/test/unit/mock_card_manager.js');
+requireApp('smart-home/test/unit/mock_home.js');
 requireApp('smart-home/js/filter_manager.js');
 
 suite('smart-gome/FilterManager', function() {
@@ -47,7 +49,7 @@ suite('smart-gome/FilterManager', function() {
       filterManager.init({
         cardListElem: document.getElementById('card-list'),
         cardScrollable: new MockScrollable(),
-        createCardNode: function() {},
+        home: new MockHome(),
         cardManager: new MockCardManager()
       });
 
@@ -90,6 +92,7 @@ suite('smart-gome/FilterManager', function() {
     var filterManager;
     var mockScrollable;
     var mockCardManager;
+    var mockHome;
     var cardListElem;
 
     setup(function() {
@@ -101,10 +104,11 @@ suite('smart-gome/FilterManager', function() {
       mockScrollable = new MockScrollable();
       mockCardManager = new MockCardManager();
       filterManager = new FilterManager();
+      mockHome = new MockHome();
       filterManager.init({
         cardListElem: cardListElem,
         cardScrollable: mockScrollable,
-        createCardNode: function() {},
+        home: mockHome,
         cardManager: mockCardManager
       });
 
@@ -123,6 +127,7 @@ suite('smart-gome/FilterManager', function() {
       mockScrollable = undefined;
       mockCardManager.getFilteredCardList.restore();
       mockCardManager = undefined;
+      mockHome = undefined;
       teardownDOM();
     });
 

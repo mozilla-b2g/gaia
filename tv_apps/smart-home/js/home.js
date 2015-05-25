@@ -115,18 +115,18 @@
 
         that.spatialNavigator.focus();
 
+        that.edit = new Edit();
+        that.edit.init(that.spatialNavigator, that.cardManager,
+                       that.cardScrollable, that.folderScrollable);
+        that.edit.on('arrange', that.onArrangeMode.bind(that));
+
         that.filterManager = new FilterManager();
         that.filterManager.init({
           cardListElem: that.cardListElem,
           cardScrollable: that.cardScrollable,
           home: that,
-          cardManager: that.cardManager
+          cardManager: that.cardManager,
         });
-
-        that.edit = new Edit();
-        that.edit.init(that.spatialNavigator, that.cardManager,
-                       that.cardScrollable, that.folderScrollable);
-        that.edit.on('arrange', that.onArrangeMode.bind(that));
 
         // In some case, we can do action at keydown which is translated as
         // onEnter in home.js. But in button click case, we need to listen
