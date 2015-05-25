@@ -245,6 +245,7 @@
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
 
     var nodeName = item.nodeName.toUpperCase();
+    var documentURI = item.data.documentURI;
     var uri = item.data.uri;
     var text = item.data.text;
 
@@ -264,7 +265,8 @@
           id: 'save-link',
           type: BUTTON_TYPE,
           textL10nId: 'save-link',
-          onClick: this.app.browser.element.download.bind(this, uri)
+          onClick: this.app.browser.element.download.bind(
+            this.app.browser.element, uri, { referrer: documentURI })
         }, {
           id: 'share-link',
           type: BUTTON_TYPE,
@@ -289,7 +291,8 @@
           id: 'save-' + type,
           type: BUTTON_TYPE,
           textL10nId: 'save-' + type,
-          onClick: this.app.browser.element.download.bind(this, uri)
+          onClick: this.app.browser.element.download.bind(
+            this.app.browser.element, uri, { referrer: documentURI })
         }, {
           id: 'share-' + type,
           type: BUTTON_TYPE,
