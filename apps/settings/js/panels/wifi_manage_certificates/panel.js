@@ -75,6 +75,11 @@ define(function(require) {
           args: {
             certificateName: name
           }
+        }, {
+          submitButton: {
+            id: 'delete-certificate',
+            style: 'danger'
+          }
         }).then(
           (result) => {
             var type = result.type;
