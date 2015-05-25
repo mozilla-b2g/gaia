@@ -2,11 +2,12 @@
 /* global WrapperFactory, MockAppWindow, MockAppWindowManager,
           MocksHelper */
 
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForWrapperFactory = new MocksHelper([
-  'AppWindow', 'AppWindowManager'
+  'AppWindow', 'AppWindowManager', 'Service'
 ]).init();
 
 suite('system/WrapperFactory', function() {

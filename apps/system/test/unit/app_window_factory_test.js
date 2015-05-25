@@ -5,11 +5,13 @@
    HomescreenLauncher,
    appWindowFactory,
    MockAppWindowManager,
-   MockAppWindow
+   MockAppWindow,
+   Service
  */
 
 'use strict';
 
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -20,7 +22,7 @@ requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
 var mocksForAppWindowFactory = new MocksHelper([
   'AppWindow', 'AppWindowManager', 'HomescreenLauncher',
-  'HomescreenWindow', 'Applications', 'ManifestHelper'
+  'HomescreenWindow', 'Applications', 'ManifestHelper', 'Service'
 ]).init();
 
 suite('system/AppWindowFactory', function() {
@@ -151,7 +153,6 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher.start();
 
     window.appWindowManager = new MockAppWindowManager();
-    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
       window.appWindowFactory = new AppWindowFactory();
@@ -359,6 +360,22 @@ suite('system/AppWindowFactory', function() {
       assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'launchapp');
       assert.equal(stubDispatchEvent.getCall(0).args[0].detail.url,
         fakeLaunchConfig3.url);
+    });
+
+    test('app launch with multiscreen.enabled', function() {
+      this.sinon.stub(Service, 'query', function(key) {
+        return key == 'MultiScreenController.enabled';
+      });
+      this.sinon.stub(Service, 'request', function() {
+        return Promise.resolve(1);
+      });
+      appWindowFactory.handleEvent({
+        type: 'webapps-launch',
+        detail: fakeLaunchConfig1
+      });
+      assert.isTrue(Service.request.calledWith('chooseDisplay'));
+      assert.equal(Service.request.getCall(0).args[1].url,
+        fakeLaunchConfig1.url);
     });
 
     test('opening a first activity', function() {

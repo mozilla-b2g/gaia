@@ -25,7 +25,8 @@
     'FeatureDetector',
     'AudioChannelService',
     'Activities',
-    'SystemWindow'
+    'SystemWindow',
+    'MultiScreenController'
   ];
 
   Core.SERVICES = [

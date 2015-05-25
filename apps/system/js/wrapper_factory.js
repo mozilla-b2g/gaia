@@ -108,6 +108,7 @@
         // already running with this url.
         if (app && app.windowName == '_blank') {
           this.publish('launchapp', { origin: origin });
+          return;
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
@@ -135,7 +136,12 @@
         browser_config.title = url;
       }
 
-      this.launchWrapper(browser_config);
+      if (Service.query('MultiScreenController.enabled')) {
+        Service.request('chooseDisplay', browser_config)
+          .catch(this.launchWrapper.bind(this, browser_config));
+      } else {
+        this.launchWrapper(browser_config);
+      }
     },
 
     launchWrapper: function wf_launchWrapper(config) {
