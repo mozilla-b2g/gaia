@@ -1,0 +1,1 @@
+define(['./dns-sd.js/dist/dns-sd'], function(m) { return m; });

@@ -1,0 +1,14 @@
+{
+  "name": "Customizer Launcher",
+  "description": "Launcher App for Customizer",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "icons": {
+    "128": "/img/icons/customizer_launcher_icon_x1.5.png",
+    "200": "/img/icons/customizer_launcher_icon_x2.25.png"
+  },
+  "permissions": {
+    "webapps-manage": {},
+    "tcp-socket": {}
+   }
+}

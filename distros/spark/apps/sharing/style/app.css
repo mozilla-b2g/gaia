@@ -1,0 +1,17 @@
+#app-view gaia-button {
+  --button-background: #00CAF2;
+  --text-color: white;
+
+  margin: 0 0 0 1rem !important;
+  min-width: 6.5rem !important;
+}
+
+#app-view gaia-button * {
+  font-size: 12px !important;
+}
+
+#app-view p {
+  margin: 16px;
+
+  font-weight: 200;
+}

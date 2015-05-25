@@ -1,0 +1,1 @@
+define(['./drag/drag'], function(m) { return m; });

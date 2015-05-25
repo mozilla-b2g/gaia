@@ -1,0 +1,1 @@
+define(['./gaia-component/gaia-component'], function(m) { return m; });

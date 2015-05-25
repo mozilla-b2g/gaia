@@ -1,0 +1,1 @@
+define(['./gaia-checkbox/gaia-checkbox'], function(m) { return m; });

@@ -1,0 +1,23 @@
+{
+  "name": "gaia-checkbox",
+  "version": "0.0.3",
+  "homepage": "https://github.com/gaia-components/gaia-checkbox",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "gaia-checkbox.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "examples",
+    "test",
+    "tests",
+    "README.md"
+  ],
+  "dependencies": {
+    "gaia-icons": "gaia-components/gaia-icons#~0.7.0",
+    "gaia-component": "gaia-components/gaia-component#~0.3.0"
+  }
+}

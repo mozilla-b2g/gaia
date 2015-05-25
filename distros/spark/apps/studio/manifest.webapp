@@ -1,0 +1,44 @@
+{
+  "version": "0.1.0",
+  "name": "Studio",
+  "description": "Make it your own, share it with everyone.",
+  "launch_path": "/index.html",
+  "icons": {
+    "16": "/img/icons/icon16x16.png",
+    "48": "/img/icons/icon48x48.png",
+    "60": "/img/icons/icon60x60.png",
+    "128": "/img/icons/icon128x128.png",
+    "256": "/img/icons/icon256x256.png",
+    "512": "/img/icons/icon512x512.png"
+  },
+  "orientation": "default",
+  "developer": {
+    "name": "Your name",
+    "url": "http://example.com"
+  },
+  "type": "certified",
+  "permissions": {
+    "themeable":{},
+    "storage": {},
+    "webapps-manage": {},
+    "device-storage:sdcard": { "access": "readwrite" },
+    "settings": { "access": "readwrite" }
+  },
+  "activities": {
+    "share": {
+      "href": "/index.html",
+      "filters": {
+        "type": ["image/*"],
+        "number": {
+          "max": 1 
+        }
+       },
+      "disposition": "window",
+      "returnValue": false
+    }
+  },
+  "installs_allowed_from": [
+    "*"
+  ],
+  "default_locale": "en"
+}

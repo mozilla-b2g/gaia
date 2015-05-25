@@ -1,0 +1,29 @@
+{
+  "name": "Hackerplace",
+  "description": "Directory Listing for Hackable Apps",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "permissions": {
+    "webapps-manage": {
+      "description": "For installing apps"
+    },
+    "device-storage:apps": {
+      "description": "For installing apps",
+      "access": "readwrite"
+    }
+  },
+  "icons": {
+    "128": "/img/icons/hackerplace_icon_x1.5.png",
+    "200": "/img/icons/hackerplace_icon_x2.25.png"
+  },
+  "activities": {
+    "install": {
+      "filters": {
+        "type": ["apps", "addons"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "gaia-theme",
+  "version": "0.4.6",
+  "homepage": "https://github.com/gaia-components/gaia-theme",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "!.jshintrc",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "index.html",
+    "README.md"
+  ],
+  "devDependencies": {
+    "gaia-icons": "gaia-components/gaia-icons",
+    "gaia-header": "gaia-components/gaia-header",
+    "gaia-button": "gaia-components/gaia-button",
+    "gaia-switch": "gaia-components/gaia-switch",
+    "gaia-checkbox": "gaia-components/gaia-checkbox"
+  }
+}

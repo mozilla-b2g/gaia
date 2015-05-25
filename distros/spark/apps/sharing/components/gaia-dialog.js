@@ -1,0 +1,1 @@
+define(['./gaia-dialog/gaia-dialog'], function(m) { return m; });
