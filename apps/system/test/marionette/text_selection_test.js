@@ -35,7 +35,8 @@ marionette('Text selection >', function() {
         fakeTextselectionApp.setTestFrame('functionality');
       });
 
-      test('short cut test', function(done) {
+      // XXX: bug 1168326 .
+      test.skip('short cut test', function(done) {
         fakeTextselectionApp.longPress('FunctionalitySourceInput');
         // store caret position
         var caretPositionOfSourceInput =
@@ -289,7 +290,8 @@ marionette('Text selection >', function() {
         });
     });
 
-    suite('selection carets bug', function() {
+    // XXX: bug 1168326 .
+    suite.skip('selection carets bug', function() {
       setup(function() {
         fakeTextselectionApp.setTestFrame('bug1120358');
       });
