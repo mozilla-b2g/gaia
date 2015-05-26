@@ -202,6 +202,7 @@ suite('tv-epg/epg', function() {
     var rowElement;
 
     setup(function() {
+      this.sinon.stub(epg, '_setTitlePadding');
       fetchPrograms = this.sinon.stub(epg.epgController, 'fetchPrograms');
       columnElement = document.createElement('DIV');
       rowElement = document.createElement('DIV');
@@ -275,6 +276,38 @@ suite('tv-epg/epg', function() {
       assert.equal(
         epg.programListElement.style.transform, programAnswer);
       assert.isTrue(fetchPrograms.called);
+    });
+  });
+
+  suite('_setTitlePadding', function() {
+    var programElement;
+    var titleElement;
+    setup(function() {
+      programElement = document.createElement('DIV');
+      programElement.dataset.startTime = 0;
+      titleElement = document.createElement('DIV');
+      programElement.appendChild(titleElement);
+      epg.visibleTimeOffset = 1;
+      epg.epgController.timelineOffset = 0;
+      epg.epgController.programTable = {
+        1: {
+          0: {
+            element: programElement
+          }
+        }
+      };
+    });
+
+    test('Clear padding-left of title element', function() {
+      epg._setTitlePadding({
+        setToNull: true
+      });
+      assert.equal(titleElement.style.paddingLeft, '');
+    });
+
+    test('Set padding-left of title element', function() {
+      epg._setTitlePadding();
+      assert.equal(titleElement.style.paddingLeft, '33.8rem');
     });
   });
 });
