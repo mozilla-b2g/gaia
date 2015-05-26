@@ -13,7 +13,7 @@ class ScreenLock(Base):
     _lockscreen_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="lockScreen"]]')
     _passcode_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="passcode-lock"]]')
     _screen_lock_passcode_section_locator = (By.ID, 'screenLock-passcode')
-    _passcode_create_locator = (By.CLASS_NAME, 'passcode-create')
+    _passcode_create_locator = (By.CSS_SELECTOR, '#screenLock-passcode gaia-header button[type="submit"]')
 
     def enable_lockscreen(self):
         label = Wait(self.marionette).until(

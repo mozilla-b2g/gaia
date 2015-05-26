@@ -25,9 +25,9 @@ ScreenLockPanel.Selectors = {
   'passcodeCheckbox': '.passcode-enable',
   'passcodeIsNotMatchedLabel': 'div[data-l10n-id="passcode-doesnt-match"]',
   'passcodeIncorrectLabel': 'div[data-l10n-id="incorrect-passcode"]',
-  'passcodeCreateButton': '.passcode-create',
+  'passcodeCreateButton': 'button[type="submit"]',
   'passcodeEditButton': '.passcode-edit',
-  'passcodeChangeButton': '.passcode-change',
+  'passcodeChangeButton': 'button[type="submit"]',
   'passcodePanel': '#screenLock-passcode',
   'screenLockHeaderLabel': 'h1[data-l10n-id="screenLock-header"]'
 };

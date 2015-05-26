@@ -1,8 +1,8 @@
-/* global SettingsListener */
 define(function(require) {
   'use strict';
 
-  var SettingsService = require('modules/settings_service');
+  var DialogService = require('modules/dialog_service');
+  var SettingsListener = require('shared/settings_listener');
 
   var ScreenLock = function ctor_screenlock() {
     return {
@@ -58,14 +58,9 @@ define(function(require) {
       },
 
       _showDialog: function sl_showDialog(mode) {
-        SettingsService.navigate('screenLock-passcode', mode);
-
-        // We're appending new elements to DOM so to make sure headers are
-        // properly resized and centered, we emmit a lazyload event.
-        // This will be removed when the gaia-header web component lands.
-        window.dispatchEvent(new CustomEvent('lazyload', {
-          detail: document.getElementById('screenLock-passcode')
-        }));
+        DialogService.show('screenLock-passcode', {
+          mode: mode
+        });
       },
 
       handleEvent: function sl_handleEvent(evt) {

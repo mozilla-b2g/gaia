@@ -1,46 +1,40 @@
 suite('ScreenLock > ', function() {
   'use strict';
 
-  var realScreenLock;
   var screenLock;
   var fakePanel;
-  var realSettingsListener;
+  var modules = [
+    'shared_mocks/mock_settings_listener',
+    'panels/screen_lock/screen_lock',
+    'MockDialogService'
+  ];
 
-  suiteSetup(function(done) {
-    var modules = [
-      'shared_mocks/mock_settings_listener',
-      'panels/screen_lock/screen_lock'
-    ];
+  var maps = {
+    '*': {
+      'shared/settings_listener': 'shared_mocks/mock_settings_listener',
+      'modules/dialog_service': 'MockDialogService'
+    }
+  };
 
-    var maps = {
-      'panels/screen_lock/screen_lock': {
-        'modules/settings_service': 'unit/mock_settings_service'
-      }
-    };
-
-    testRequire(modules, maps, function(MockSettingsListener, ScreenLock) {
-      realSettingsListener = window.SettingsListener;
-      window.SettingsListener = MockSettingsListener;
-
-      realScreenLock = ScreenLock;
-      done();
-    });
-  });
-
-  suiteTeardown(function() {
-    window.SettingsListener = realSettingsListener;
-  });
-
-  setup(function() {
-    // make sure our screenLock instnace is new when running each test !
-    screenLock = realScreenLock();
-
-    fakePanel = document.createElement('div');
-    sinon.stub(fakePanel, 'querySelector', function() {
-      return document.createElement('div');
+  setup(function(done) {
+    define('MockDialogService', function() {
+      return {
+        show: function() {}
+      };
     });
 
-    screenLock.onInit(fakePanel);
+    testRequire(modules, maps, function(MockSettingsListener, ScreenLock,
+      MockDialogService) {
+        screenLock = ScreenLock();
+
+        fakePanel = document.createElement('div');
+        sinon.stub(fakePanel, 'querySelector', function() {
+          return document.createElement('div');
+        });
+
+        screenLock.onInit(fakePanel);
+        done();
+    });
   });
 
   suite('navigation > ', function() {
