@@ -1,19 +1,3 @@
-/**
-  Copyright 2012, Mozilla Foundation
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
-
 /*global FtuLauncher, Service, UtilityTray, layoutManager */
 
 'use strict';
@@ -231,13 +215,16 @@ var StatusBar = {
         this._icons.set(icon.name, icon);
         break;
       case 'iconchanged':
+        this.log('handleEvent()', evt.type);
         this.cloneStatusbar();
         break;
       case 'iconshown':
       case 'iconhidden':
+        this.log('handleEvent()', evt.type);
         this._updateIconVisibility();
         break;
       case 'iconwidthchanged':
+        this.log('handleEvent()', evt.type);
         this._updateMinimizedStatusBarWidth();
         icon = evt.detail;
         if (icon.name === 'OperatorIcon') {
@@ -246,32 +233,39 @@ var StatusBar = {
         break;
 
       case 'lockscreen-appopened':
+        this.log('handleEvent()', evt.type);
         // XXX: Use Service.query('getTopMostWindow')
         this._inLockScreenMode = true;
         this.setAppearance();
         break;
 
       case 'lockscreen-appclosing':
+        this.log('handleEvent()', evt.type);
         this._inLockScreenMode = false;
         this.setAppearance();
         break;
 
       case 'attentionopened':
+        this.log('handleEvent()', evt.type);
         this.element.classList.add('maximized');
         this.element.classList.remove('light');
         break;
 
       case 'sheets-gesture-begin':
+        this.log('handleEvent()', evt.type);
         this.element.classList.add('hidden');
         if (!this._pausedForGesture) {
           this.pauseUpdate();
           this._pausedForGesture = true;
         }
+        this.log('handleEvent()', evt.type,
+          `_pausedForGesture = ${this._pausedForGesture}`);
         break;
 
       case 'utilitytraywillshow':
       case 'utilitytraywillhide':
       case 'cardviewshown':
+        this.log('handleEvent()', evt.type);
         this.pauseUpdate();
         break;
 
@@ -280,6 +274,7 @@ var StatusBar = {
       case 'utility-tray-abortopen':
       case 'utility-tray-abortclose':
       case 'cardviewclosed':
+        this.log('handleEvent()', evt.type);
         this.resumeUpdate();
         break;
 
@@ -291,6 +286,7 @@ var StatusBar = {
         break;
 
       case 'system-resize':
+        this.log('handleEvent()', evt.type);
         // Reprioritize icons when:
         // * Screen orientation changes
         // * Software home button is enabled/disabled
@@ -303,20 +299,25 @@ var StatusBar = {
         break;
 
       case 'sheets-gesture-end':
+        this.log('handleEvent()', evt.type);
         this.element.classList.remove('hidden');
         if (this._pausedForGesture) {
           this.resumeUpdate();
           this._pausedForGesture = false;
         }
+        this.log('handleEvent()', evt.type,
+          `_pausedForGesture = ${this._pausedForGesture}`);
         break;
 
       case 'stackchanged':
       case 'rocketbar-deactivated':
+        this.log('handleEvent()', evt.type);
         this.setAppearance();
         this.element.classList.remove('hidden');
         break;
 
       case 'appchromecollapsed':
+        this.log('handleEvent()', evt.type);
         this.setAppearance();
         this._updateMinimizedStatusBarWidth();
         break;
@@ -324,22 +325,32 @@ var StatusBar = {
       case 'appopened':
       case 'hierarchytopmostwindowchanged':
       case 'appchromeexpanded':
+        this.log('handleEvent()', evt.type);
         this.setAppearance();
         this.element.classList.remove('hidden');
         this._updateMinimizedStatusBarWidth();
         break;
 
       case 'activityopened':
+        this.log('handleEvent()', evt.type);
         this._updateMinimizedStatusBarWidth();
-        /* falls through */
-      case 'apptitlestatechanged':
-      case 'activitytitlestatechanged':
         this.setAppearance();
         if (!this.isPaused()) {
           this.element.classList.remove('hidden');
         }
         break;
+
+      case 'apptitlestatechanged':
+      case 'activitytitlestatechanged':
+        this.log('handleEvent()', evt.type);
+        this.setAppearance();
+        if (!this.isPaused()) {
+          this.element.classList.remove('hidden');
+        }
+        break;
+
       case 'homescreenopened':
+        this.log('handleEvent()', evt.type);
         // In some cases, if the user has been switching apps so fast and
         // quickly he press the home button, we might miss the
         // |sheets-gesture-end| event so we must resume the statusbar
@@ -349,17 +360,22 @@ var StatusBar = {
           this.resumeUpdate();
           this._pausedForGesture = false;
         }
+        this.log('handleEvent()', evt.type,
+          `_pausedForGesture = ${this._pausedForGesture}`);
         this.element.classList.remove('hidden');
         this.element.classList.remove('fullscreen');
         this.element.classList.remove('fullscreen-layout');
         break;
       case 'activitydestroyed':
+        this.log('handleEvent()', evt.type);
         this._updateMinimizedStatusBarWidth();
         break;
       case 'updatepromptshown':
+        this.log('handleEvent()', evt.type);
         this.element.classList.remove('light');
         break;
       case 'updateprompthidden':
+        this.log('handleEvent()', evt.type);
         this.setAppearance();
         break;
     }
@@ -368,6 +384,7 @@ var StatusBar = {
   setAppearance: function() {
     // The statusbar is always maximised when the phone is locked.
     if (this._inLockScreenMode) {
+      this.log('setAppearance()', 'this._inLockScreenMode = true');
       this.element.classList.add('maximized');
       return;
     }
@@ -451,23 +468,32 @@ var StatusBar = {
   },
 
   _paused: 0,
+
   pauseUpdate: function sb_pauseUpdate() {
     this._paused++;
+    this.log('pauseUpdate()', `_paused = ${this._paused}`);
   },
 
   resumeUpdate: function sb_resumeUpdate() {
     this._paused--;
+    this.log('resumeUpdate()', `_paused = ${this._paused}`);
     this._updateIconVisibility();
   },
 
   isPaused: function sb_isPaused() {
+    this.log('isPaused()', `isPaused() = ${(this._paused > 0)}`);
+
+    // @todo Change status bar style here to emphasize the state of !== 0.
+
     return this._paused > 0;
   },
 
   _updateIconVisibility: function sb_updateIconVisibility() {
     if (this.isPaused()) {
+      this.log('_updateIconVisibility()', 'early return');
       return;
     }
+    this.log('_updateIconVisibility()');
 
     // Let's refresh the minimized clone.
     this.cloneStatusbar();
@@ -543,7 +569,7 @@ var StatusBar = {
       return;
     }
 
-    // Do not forward events is utility-tray is active
+    // Do not forward events if utility-tray is active
     if (UtilityTray.active) {
       return;
     }
@@ -597,6 +623,37 @@ var StatusBar = {
       return p1.toUpperCase();
     });
     return str.charAt(0).toUpperCase() + str.slice(1);
+  },
+
+  logEnabled: 0, // 0 = unknown ; 1 = pending check ; 2 = disabled ; 3 = enabled
+
+  log: function(...logs) {
+    if (this.logEnabled === 0) {
+      this.logEnabled = 1;
+
+      Service
+        .request('SettingsCore:get', 'statusbar.log-events.enabled')
+        .then(val => {
+          if (val === true) {
+            this.logEnabled = 3;
+            return;
+          }
+
+          this.logEnabled = 2;
+        })
+        .catch(() => {
+          this.logEnabled = 2;
+        });
+    }
+
+    if (this.logEnabled !== 3) {
+      return;
+    }
+
+    logs = logs.map(log => typeof log === 'string' ? log : JSON.stringify(log));
+    logs.unshift('[StatusBar]', Date.now());
+
+    console.log.apply(console, logs);
   }
 };
 
