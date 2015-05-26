@@ -20,6 +20,10 @@ var TitleBar = {
     return document.getElementById('scan-progress');
   },
 
+  get scanSpinner() {
+    return document.getElementById('scan-spinner');
+  },
+
   get scanCount() {
     return document.getElementById('scan-count');
   },
@@ -61,13 +65,18 @@ var TitleBar = {
 
   showScanProgress: function(info) {
     this.scanProgress.classList.remove('hidden');
+    this.scanSpinner.classList.remove('hidden');
     this.scanCount.textContent = info.count;
     this.scanArtist.textContent = info.artist || '';
     this.scanTitle.textContent = info.title || '';
   },
 
   hideScanProgress: function() {
-    this.scanProgress.classList.add('hidden');
+    this.scanSpinner.classList.add('hidden');
+    // The setTimeout is a workaround for bug 1166500
+    setTimeout(function() {
+      this.scanProgress.classList.add('hidden');
+    }.bind(this), 100);
   },
 
   handleEvent: function tb_handleEvent(evt) {

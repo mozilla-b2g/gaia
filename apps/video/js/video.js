@@ -1364,8 +1364,9 @@ function showThrobber() {
 }
 
 function hideThrobber() {
-  dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
+  // setTimeout is a workaround for Bug 1166500
+  setTimeout(function() { dom.throbber.classList.add('hidden'); }, 100);
 }
 
 // This function unloads the current video to release the decoder
