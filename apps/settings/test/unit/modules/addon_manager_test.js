@@ -498,4 +498,22 @@ suite('addons manager test > ', function() {
         .findAddonByManifestURL('fakeManifestURL'), undefined).notify(done);
     });
   });
+
+  suite('addonAffectsApp', function() {
+    test('resolves to true when an addon affects an app', function(done) {
+      addon2.manifest.customizations[0].filter = 'app://testorigin1';
+      var wrappedAddon = MockApp(addon2);
+      assert.becomes(AddonManager
+        .addonAffectsApp(wrappedAddon, 'testManifestURL_app1'), true)
+        .notify(done);
+    });
+
+    test('resolves to false when an addon does not affect an app',
+      function(done) {
+        var wrappedAddon = MockApp(addon1);
+        assert.becomes(AddonManager
+          .addonAffectsApp(wrappedAddon, 'testManifestURL_app1'), false)
+          .notify(done);
+      });
+  });
 });
