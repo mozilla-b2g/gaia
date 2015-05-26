@@ -12,7 +12,13 @@ System.URL = 'app://smart-system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
   appChromeContextMenuContainer: '.appWindow.active .modal-dialog',
-  appChromeContextMenuDialog: '.appWindow.active .contextmenu .modal-dialog'
+  appChromeContextMenuDialog: '.appWindow.active .contextmenu .modal-dialog',
+  appInstallCancelButton: '#app-install-cancel-button',
+  appInstallInstallButton: '#app-install-install-button',
+  appCancelInstallConfirmButton: '#app-install-confirm-cancel-button',
+  appCanelInstallResumeButton: '#app-install-resume-button',
+  appUninstallCancelButton: '#app-uninstall-cancel-button',
+  appUninstallConfirmButton: '#app-uninstall-confirm-button'
 });
 
 System.prototype = {
@@ -59,6 +65,30 @@ System.prototype = {
         marionetteScriptFinished();
       });
     }, [evt]);
+  },
+
+  _waitForAppState: function(manifestURL, installed) {
+    this.client.waitFor(function() {
+      return this.client.executeScript(function(manifestURL, installed) {
+        var apps = window.wrappedJSObject.applications;
+        var hasApp = !!apps.installedApps[manifestURL];
+        return hasApp === installed;
+      }, [manifestURL, installed]);
+    }.bind(this));
+  },
+
+  waitForAppInstalled: function(manifestURL) {
+    return this._waitForAppState(manifestURL, true);
+  },
+
+  waitForAppUninstalled: function(manifestURL) {
+    return this._waitForAppState(manifestURL, false);
+  },
+
+  isAppInstalled: function(manifestURL) {
+    return this.client.executeScript(function(manifestURL) {
+      return !!window.wrappedJSObject.applications.installedApps[manifestURL];
+    }, [manifestURL]);
   },
 
   goHome: function() {
