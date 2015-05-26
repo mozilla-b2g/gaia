@@ -161,8 +161,6 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('apploading'));
     assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    var trayOpenedEvent = 'utilitytray-overlayopening';
-    assert.ok(windowAddEventListenerStub.calledWith(trayOpenedEvent));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
     assert.ok(formAddEventListenerStub.calledWith('submit'));
@@ -297,15 +295,6 @@ suite('system/Rocketbar', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var event = {type: 'appopened'};
-    subject.handleEvent(event);
-    assert.ok(hideResultsStub.calledOnce);
-    assert.ok(deactivateStub.calledOnce);
-  });
-
-  test('handleEvent() - utilitytray-overlayopening', function() {
-    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
-    var deactivateStub = this.sinon.stub(subject, 'deactivate');
-    var event = {type: 'utilitytray-overlayopening'};
     subject.handleEvent(event);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(deactivateStub.calledOnce);

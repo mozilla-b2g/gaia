@@ -202,8 +202,6 @@
       window.addEventListener('attentionopened', this);
       window.addEventListener('searchopened', this);
       window.addEventListener('searchclosed', this);
-      window.addEventListener('utilitytray-overlayopening', this);
-      window.addEventListener('utility-tray-overlayopened', this);
       window.addEventListener('simlockrequestfocus', this);
       window.addEventListener('cardviewbeforeshow', this);
 
@@ -277,8 +275,6 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'utilitytray-overlayopening':
-        case 'utility-tray-overlayopened':
         case 'simlockrequestfocus':
         case 'cardviewbeforeshow':
           this._closeSearch();
