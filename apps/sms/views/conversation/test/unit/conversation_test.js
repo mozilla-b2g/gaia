@@ -6117,7 +6117,7 @@ suite('conversation.js >', function() {
     });
   });
 
-  suite('isCurrentThread(current threadId is 1)', function() {
+  suite('isCurrentConversation(current threadId is 1)', function() {
     setup(function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
     });
@@ -6126,25 +6126,58 @@ suite('conversation.js >', function() {
       test('check thread panel with threadId is' + id, function() {
         Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
 
-        assert.equal(ConversationView.isCurrentThread(id), id === 1);
+        assert.equal(ConversationView.isCurrentConversation(id), id === 1);
       });
 
       test('check report panel with threadId is' + id, function() {
         Navigation.isCurrentPanel.withArgs(
-          'report-view',
-          { threadId: 1 }
+          'report-view', { threadId: 1 }
         ).returns(true);
 
-        assert.equal(ConversationView.isCurrentThread(id), id === 1);
+        assert.equal(ConversationView.isCurrentConversation(id), id === 1);
       });
 
       test('check group panel with threadId is' + id, function() {
         Navigation.isCurrentPanel.withArgs(
-          'group-view',
-          { id: 1 }
+          'group-view', { id: 1 }
         ).returns(true);
 
-        assert.equal(ConversationView.isCurrentThread(id), id === 1);
+        assert.equal(ConversationView.isCurrentConversation(id), id === 1);
+      });
+    });
+  });
+
+  suite('isConversationPanel(threadId is 1)', function() {
+    test('panel description is not available', function() {
+      assert.isFalse(ConversationView.isConversationPanel(1, null));
+    });
+
+    [1, 2].forEach((id) => {
+      test('check thread panel with threadId is' + id, function() {
+        var panel = {
+          panel: 'thread',
+          args: { id: 1 }
+        };
+
+        assert.equal(ConversationView.isConversationPanel(id, panel), id === 1);
+      });
+
+      test('check report panel with threadId is' + id, function() {
+        var panel = {
+          panel: 'report-view',
+          args: { threadId: 1 }
+        };
+
+        assert.equal(ConversationView.isConversationPanel(id, panel), id === 1);
+      });
+
+      test('check group panel with threadId is' + id, function() {
+        var panel = {
+          panel: 'group-view',
+          args: { id: 1 }
+        };
+
+        assert.equal(ConversationView.isConversationPanel(id, panel), id === 1);
       });
     });
   });
@@ -6154,7 +6187,7 @@ suite('conversation.js >', function() {
 
     setup(function() {
       this.sinon.stub(ConversationView, 'appendMessage');
-      this.sinon.stub(ConversationView, 'isCurrentThread').returns(false);
+      this.sinon.stub(ConversationView, 'isCurrentConversation').returns(false);
 
       this.sinon.spy(Navigation, 'toPanel');
     });
@@ -6162,7 +6195,7 @@ suite('conversation.js >', function() {
     test('should append message if the user is in correct thread', function() {
       // not implemented yet: https://github.com/cjohansen/Sinon.JS/issues/461
       // Navigation.isCurrentPanel.withExactArgs('thread').returns(true);
-      ConversationView.isCurrentThread.withArgs(1).returns(true);
+      ConversationView.isCurrentConversation.withArgs(1).returns(true);
 
       var message = MockMessages.sms({
         threadId: 1
@@ -6193,7 +6226,7 @@ suite('conversation.js >', function() {
 
   suite('onMessageReceived >', function() {
     setup(function() {
-      this.sinon.stub(ConversationView, 'isCurrentThread').returns(false);
+      this.sinon.stub(ConversationView, 'isCurrentConversation').returns(false);
       this.sinon.spy(MessageManager, 'markMessagesRead');
     });
 
@@ -6214,7 +6247,7 @@ suite('conversation.js >', function() {
         threadId: 1
       });
 
-      ConversationView.isCurrentThread.withArgs(1).returns(true);
+      ConversationView.isCurrentConversation.withArgs(1).returns(true);
 
       MessageManager.on.withArgs('message-received').yield({
         message: message
@@ -6923,7 +6956,7 @@ suite('conversation.js >', function() {
       setup(function() {
         transitionArgs.meta.prev = {
           panel: 'report-view',
-          args: { id: 1 }
+          args: { id: 1, threadId: threadId }
         };
 
         setActiveThread(threadId);
