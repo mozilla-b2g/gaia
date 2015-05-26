@@ -9,7 +9,6 @@ var ServiceController = require('controllers/service');
 var SyncController = require('controllers/sync');
 var TimeController = require('controllers/time');
 var asyncRequire = require('common/async_require');
-var bridge = require('bridge');
 var co = require('ext/co');
 var core = require('core');
 var dateL10n = require('date_l10n');
@@ -35,7 +34,6 @@ function setupCore(dbName) {
   if (core.db) {
     return;
   }
-  core.bridge = bridge;
   core.db = new Db(dbName || 'b2g-calendar');
   core.errorController = new ErrorController();
   core.notificationsController = notificationsController;
