@@ -17,4 +17,12 @@ InboxView.prototype.goToFirstThread = function() {
   return conversation;
 };
 
+InboxView.prototype.createNewMessage = function() {
+  this.accessors.createNewMessageButton.tap();
+  var NewMessageView = require('../new-message/view');
+  var newMessage = new NewMessageView(this.client);
+  newMessage.accessors.waitToAppear();
+  return newMessage;
+};
+
 module.exports = InboxView;

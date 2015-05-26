@@ -4,6 +4,7 @@
 var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
+var InboxView = require('./lib/views/inbox/view');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 
 marionette('Messages Composer', function() {
@@ -256,6 +257,43 @@ marionette('Messages Composer', function() {
 
       composer.subjectInput.sendKeys(Messages.Chars.BACKSPACE);
       assertIsFocused(composer.messageInput, 'Message input should be focused');
+    });
+  });
+
+
+  suite('Invalid recipients', function() {
+    var newMessage;
+
+    setup(function() {
+      messagesApp.launch();
+
+      var inbox = new InboxView(client);
+      newMessage = inbox.createNewMessage();
+    });
+
+    suite('the recipients list', function() {
+      test('should display that a non existing contact is invalid', function() {
+        newMessage.addNewRecipient('non_exisiting_contact');
+        assert.isTrue(newMessage.containsInvalidRecipients());
+      });
+
+      test('should allow to correct an invalid contact', function() {
+        newMessage.addNewRecipient('non_exisiting_contact');
+        newMessage.clearRecipients();
+        newMessage.addNewRecipient(123);
+        assert.lengthOf(newMessage.recipients, 1);
+        assert.equal(newMessage.recipients[0], '123');
+        assert.isFalse(newMessage.containsInvalidRecipients());
+      });
+    });
+
+    suite('Content composer', function() {
+      test('should not enable send button if the contact is invalid',
+      function() {
+        newMessage.addNewRecipient('invalidContact');
+        newMessage.typeMessage('Test message');
+        assert.isFalse(newMessage.isSendButtonEnabled());
+      });
     });
   });
 });
