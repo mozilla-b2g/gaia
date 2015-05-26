@@ -58,6 +58,9 @@
         element: this._iframe
       };
     },
+    set browser(browser) {
+      this._iframe = browser.element;
+    },
     get frame() {
       return this.element;
     },

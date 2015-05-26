@@ -10,6 +10,8 @@
     this._fetchAllElements();
     this._touchForwarder = new TouchForwarder();
     this._touchForwarder.destination = this.app.browser.element;
+    this.app.element.addEventListener('_suspended', this);
+    this.app.element.addEventListener('_resumed', this);
   };
 
   AppStatusbar.prototype = Object.create(BaseUI.prototype);
@@ -29,6 +31,17 @@
 
   AppStatusbar.prototype._fetchAllElements = function(first_argument) {
     this.titleBar = this.containerElement.querySelector('.titlebar');
+  };
+
+  AppStatusbar.prototype.handleEvent = function(evt) {
+    switch (evt.type) {
+      case '_resumed':
+        this._touchForwarder.destination = this.app.browser.element;
+        break;
+      case '_suspended':
+        this._touchForwarder.destination = null;
+        break;
+    }
   };
 
   AppStatusbar.prototype.handleStatusbarTouch = function(evt, barHeight) {
