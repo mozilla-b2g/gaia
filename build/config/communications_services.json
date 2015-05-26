@@ -23,14 +23,14 @@
     "redirectURI":
       "https://www.mozilla.org/index.html",
     "loginPage":
-      "https://login.live.com/oauth20_authorize.srf?",
+      "https://m.mail.live.com/oauth20_authorize.srf?",
     "applicationId":
       "123456",
     "scope":
       ["wl.basic", "wl.contacts_emails", "wl.contacts_phone_numbers",
        "wl.contacts_birthday", "wl.contacts_postal_addresses"],
     "logoutUrl":
-      "https://login.live.com/logout.srf"
+      "https://m.mail.live.com/logout.srf"
   },
 
   "gmail": {
