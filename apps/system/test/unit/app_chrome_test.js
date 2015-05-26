@@ -606,6 +606,13 @@ suite('system/AppChrome', function() {
       assert.equal(chrome.element.style.backgroundColor, 'red');
     });
 
+    test('theme resets on navigation', function() {
+      chrome.setThemeColor('orange');
+      chrome.handleEvent({type: 'mozbrowserloadstart'});
+      chrome.handleEvent({type: 'mozbrowserloadend'});
+      assert.equal(chrome.element.style.backgroundColor, '');
+    });
+
     test('dark color have light icons', function(done) {
       var initiallyLight = app.element.classList.contains('light');
       chrome.setThemeColor('black');
