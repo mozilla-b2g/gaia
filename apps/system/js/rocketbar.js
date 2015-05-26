@@ -277,10 +277,16 @@
         case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'utilitytray-overlayopening':
-        case 'utility-tray-overlayopened':
         case 'simlockrequestfocus':
         case 'cardviewbeforeshow':
+
+        // Hide rocketbar if the user opens the utility tray.
+        // The utility tray and rocketbar share the same space in the mental
+        // model - only one can be active at any given time. For consistency,
+        // any activities are also closed along with rocketbar when the
+        // utility tray is opened.
+        case 'utilitytray-overlayopening':
+        case 'utility-tray-overlayopened':
           this._closeSearch();
           break;
         case 'lockscreen-appopened':
