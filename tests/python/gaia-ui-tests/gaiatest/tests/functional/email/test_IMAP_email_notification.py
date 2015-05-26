@@ -50,7 +50,7 @@ class TestEmailNotification(GaiaTestCase):
         system = System(self.marionette)
 
         # Wait for email notification
-        system.wait_for_notification_toaster_displayed(timeout=60)
+        system.wait_for_notification_toaster_displayed(timeout=60, for_app='email')
         system.wait_for_notification_toaster_not_displayed()
 
         # Expand the notification bar
@@ -58,9 +58,8 @@ class TestEmailNotification(GaiaTestCase):
         utility_tray = system.open_utility_tray()
         utility_tray.wait_for_notification_container_displayed()
 
-        # Assert there is one notification and is listed in notifications-container
-        notifications = utility_tray.notifications
-        self.assertEqual(1, len(notifications), 'Expected one notification.')
+        notifications = utility_tray.get_notifications(for_app='email')
+        self.assertEqual(1, len(notifications), 'Expected one email notification.')
         email = notifications[0].tap_notification()
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.email.name)
