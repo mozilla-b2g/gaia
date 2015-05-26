@@ -272,6 +272,9 @@ suite('system/UpdateManager', function() {
       assert.equal(UpdateManager.containerClicked.name,
                    UpdateManager.container.onclick.name);
 
+      assert.equal(UpdateManager.toasterClicked.name,
+                   UpdateManager.toaster.onclick.name);
+
       assert.equal(UpdateManager.requestDownloads.name,
                    UpdateManager.downloadButton.onclick.name);
 
@@ -734,6 +737,22 @@ suite('system/UpdateManager', function() {
           this.sinon.clock.tick(TINY_TIMEOUT);
           var method1 = 'addUnreadNotification';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
+        });
+      });
+
+      suite('should show download prompt when tap on toaster', function() {
+        setup(function() {
+          UpdateManager._downloading = false;
+          UpdateManager.toasterClicked();
+        });
+
+        test('should hide the utility tray', function() {
+          assert.isFalse(MockUtilityTray.mShown);
+        });
+
+        test('should show the download dialog', function() {
+          var css = UpdateManager.downloadDialog.classList;
+          assert.isTrue(css.contains('visible'));
         });
       });
 
