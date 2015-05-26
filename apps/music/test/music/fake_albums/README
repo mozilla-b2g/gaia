@@ -1,0 +1,9 @@
+createFakeAlbums.sh is a script that takes a single number as its
+argument, and pushes that many .mp3 files to the FakeMusic/ directory
+on the attached device's sdcard.
+
+Each song has a different album name, so each song counts as its own
+album. Each song has an 800x600 jpeg file as its album art.
+
+This is intended for stress-testing the music app with many album art
+images.
