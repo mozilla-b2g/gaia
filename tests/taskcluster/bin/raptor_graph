@@ -51,16 +51,21 @@ var suiteName, symbol, taskName;
 var requiredBaseTasks = [];
 var requiredPatchTasks = [];
 
-/**
+/*
 baseTask: run test on 'base' build
 patchTask: run test on 'patch' build
 resultTask: compare results, check for regression
 
-'base build' will always be the provided BASE_REV
+When testing a pull request:
+'base build' will be the provided BASE_REV
+'patch build' will be the provided PR / HEAD_REV
 
-'patch build' will change accordingly:
-if testing a PULL_REQUEST 'patch build' will be the pr/
-provided HEAD_REV; else it will be BASE_REV -1 commit
+When not testing a pull request (gaia-master):
+'base build' will be BASE_REV -1 commit (before merge)
+'patch build' will be BASE_REV (has the PR merged)
+
+Results task looks for increase from 'base build'
+to 'patch build' and flags if is above threshold.
 */
 
 // build the task config object for each app
@@ -242,12 +247,19 @@ getEmulator()
 
       taskIdMap[raptorTask] = slugid.v4();
 
-      // not testing a PR so the 'patch' build becomes master/base -1 instead of base + pr
-      if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "patch") {
+      // when not a PR 'base' should be BASE -1 commit (before the
+      // merge) and 'patch' should be BASE_REV (has the merged code)
+      if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "base") {
         var app = config[raptorTask].params.raptorApps;
         suiteName = app[0].toUpperCase() + app.slice(1) + " app launch test (on base -1 commit)";
         config[raptorTask].params.raptorSuiteName = suiteName;
         config[raptorTask].params.gaiaRev = gaiaBaseMinusOne;
+      }
+      if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "patch") {
+        var app = config[raptorTask].params.raptorApps;
+        suiteName = app[0].toUpperCase() + app.slice(1) + " app launch test (on base)";
+        config[raptorTask].params.raptorSuiteName = suiteName;
+        config[raptorTask].params.gaiaRev = process.env.GITHUB_BASE_REV;
       }
 
       // for result tasks, specify the tasks that they are dependent upon
