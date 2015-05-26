@@ -35,7 +35,7 @@
   ActionMenu.prototype.EVENT_PREFIX = 'actionmenu';
 
   ActionMenu.prototype.view = function spd_view() {
-    return `<div id="action-menu" hidden>
+    return `<div id="action-menu" class="action-menu" hidden>
               <form id="action-menu-form" data-z-index-level="action-menu"
                 role="dialog" data-type="action">
                 <header id="action-menu-header" data-l10n-id=""></header>
