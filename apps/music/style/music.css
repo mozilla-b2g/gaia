@@ -515,10 +515,6 @@ html[dir="rtl"] #views-sublist-controls-shuffle {
 
 .tile {
   position: relative;
-  background-position: center;
-  background-size: cover;
-
-  /* We set a background URL here when the thumbnail loads */
 }
 
 /* Tiles are grouped in 6. Left and right groups. */
@@ -583,6 +579,18 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   font-weight: 300;
   background-color: #303030;
   overflow: hidden;
+}
+
+.tile-album-art {
+  /*
+   * we generate thumbnails at 300x300 so they'll always have the right
+   * aspect ratio for these square tiles
+   */
+  position:absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .tile-container {

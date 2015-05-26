@@ -93,6 +93,9 @@ var TilesView = {
     container.className = 'tile-container';
     container.setAttribute('role', 'button');
 
+    var albumArt = document.createElement('img');
+    albumArt.className = 'tile-album-art';
+
     var titleBar = document.createElement('div');
     titleBar.className = 'tile-title-bar';
     var artistName = document.createElement('div');
@@ -130,7 +133,7 @@ var TilesView = {
       var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
       var setTileBackgroundClosure = function(url) {
-        tile.style.backgroundImage = 'url(' + url + ')';
+        albumArt.src = url;
       };
 
       if (index <= NUM_INITIALLY_VISIBLE_TILES) {
@@ -154,6 +157,7 @@ var TilesView = {
                                            albumName.textContent);
     }
 
+    tile.appendChild(albumArt);
     tile.appendChild(container);
     this.anchor.appendChild(tile);
 
