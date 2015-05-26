@@ -82,7 +82,7 @@
         var collection = that.getNavigateElements();
 
         that.spatialNavigator = new SpatialNavigator(collection);
-        that.spatialNavigator.crossOnly = true;
+        that.spatialNavigator.straightOnly = true;
         that.keyNavigatorAdapter = new KeyNavigationAdapter();
         that.keyNavigatorAdapter.init();
         that.keyNavigatorAdapter.on('move', that.onMove.bind(that));
