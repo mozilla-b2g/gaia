@@ -1,6 +1,7 @@
 /*global asyncStorage,
          InterInstanceEventDispatcher,
-         Utils
+         Utils,
+         EventDispatcher
 */
 (function(exports) {
   'use strict';
@@ -12,7 +13,7 @@
    *
    * A collection of active Draft objects, indexed by thread id.
    */
-  exports.Drafts = {
+  var Drafts = {
     /**
      * size
      *
@@ -47,6 +48,8 @@
 
       this.store();
 
+      this.emit('saved', draft);
+
       return this;
     },
 
@@ -65,19 +68,26 @@
         return this;
       }
 
+      // Flag to track that draft was really removed.
+      var isDeleted = false;
+
       // For drafts bound to thread we should remove all drafts we have, but for
       // thread-less drafts we should remove draft with the same id only.
       if (draft.threadId) {
         drafts.length = 0;
+        isDeleted = true;
       } else {
         var indexToRemove = drafts.findIndex(
           (storedDraft) => storedDraft.id === draft.id
         );
 
         if (indexToRemove > -1) {
+          isDeleted = true;
           drafts.splice(indexToRemove, 1);
         }
       }
+
+      isDeleted && this.emit('deleted', draft);
 
       return this;
     },
@@ -180,6 +190,8 @@
       return deferredDraftRequest.promise;
     }
   };
+
+  exports.Drafts = EventDispatcher.mixin(Drafts, ['saved', 'deleted']);
 
   /**
    * Draft
