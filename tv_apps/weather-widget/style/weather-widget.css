@@ -62,3 +62,12 @@ html, body {
 .weather-icon-panel > div:before {
   font-size: 5.4rem;
 }
+
+/* XXX: we leave a focusable element here for determining focus issues.
+   This wiget has no focusable element by design, but we need to test
+   dashboard ability on setting focus. These lines should be removed after
+   other widgets are landed. */
+smart-weather:focus {
+  background-color: rgba(255,255,255, 0.1);
+  outline: none;
+}

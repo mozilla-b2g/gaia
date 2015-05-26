@@ -14,12 +14,24 @@ var MocksHelperForUnitTest = new MocksHelper([
 
 suite('Dashboard', function() {
   var dashboard;
+  var mainSection;
+  var clock;
 
   MocksHelperForUnitTest.attachTestHelpers();
 
   setup(function() {
+    clock = this.sinon.useFakeTimers();
+
+    mainSection = document.createElement('div');
+    mainSection.id = 'main-section';
+    document.body.appendChild(mainSection);
+
     dashboard = new Dashboard();
     dashboard.init();
+  });
+
+  teardown(function() {
+    document.body.removeChild(mainSection);
   });
 
   test('should initialize keyNavigationAdapter', function() {
@@ -86,5 +98,38 @@ suite('Dashboard', function() {
     dashboard.onMove('up');
     assert.isTrue(
                 dashboard.widgets.down.toggleExpand.withArgs(false).calledOnce);
+  });
+
+  test('should focus on bottom widget when moving down', function () {
+    var mainSectionFocusSpy = this.sinon.spy(mainSection, 'focus');
+    dashboard.onMove('down');
+    assert.isTrue(mainSectionFocusSpy.calledOnce);
+    clock.tick();
+    assert.isTrue(dashboard.widgets.down.focus.calledOnce);
+  });
+
+  suite('visibilityChange >', function() {
+    function setFakeVisibility(value) {
+      Object.defineProperty(document, 'visibilityState', {
+        get: function(){
+          return value;
+        },
+        configurable: true
+      });
+    }
+
+    teardown(function() {
+      delete document.visibilityState;
+    });
+
+    test('should move to center if visibility becomes hidden', function() {
+      dashboard.onMove('down');
+      setFakeVisibility('hidden');
+      var mainSectionFocusSpy = this.sinon.spy(mainSection, 'focus');
+      dashboard.onVisibilityChange();
+
+      assert.equal(document.body.dataset.activeDirection, '');
+      assert.isTrue(mainSectionFocusSpy.calledOnce);
+    });
   });
 });
