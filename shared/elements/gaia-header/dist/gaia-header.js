@@ -531,14 +531,19 @@ var base = window.GAIA_ICONS_BASE_URL
   || window.COMPONENTS_BASE_URL
   || 'bower_components/';
 
-// Load it if it's not already loaded
-if (!isLoaded()) { load(base + 'gaia-icons/gaia-icons.css'); }
+if (!document.documentElement) {
+  window.addEventListener('load', load);
+} else {
+  load();
+}
 
-function load(href) {
+function load() {
+  if (isLoaded()) { return; }
+
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
-  link.href = href;
+  link.href = base + 'gaia-icons/gaia-icons.css';
   document.head.appendChild(link);
   exports.loaded = true;
 }
@@ -613,11 +618,11 @@ const MINIMUM_FONT_SIZE_CENTERED = 20;
  * This is the minimum font size that we can take
  * when the header title is not centered in the window.
  */
-const MINIMUM_FONT_SIZE_UNCENTERED = 18;
+const MINIMUM_FONT_SIZE_UNCENTERED = 16;
 
 /**
- * This is the maximum font size that we can use for
- * the heade title.
+ * This is the maximum font-size
+ * for the header title.
  */
 const MAXIMUM_FONT_SIZE = 23;
 
