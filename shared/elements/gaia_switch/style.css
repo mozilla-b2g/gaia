@@ -79,16 +79,16 @@ label.pack-switch input.uninit ~ span:after {
  * Right-To-Left tweaks
  */
 
-html[dir="rtl"] label.pack-switch span {
+label[dir="rtl"].pack-switch span {
   float: right;
 }
 
-html[dir="rtl"] label.pack-switch input {
+label[dir="rtl"].pack-switch input {
   left: unset;
   right: 0;
 }
 
-html[dir="rtl"] label.pack-switch input ~ span:after {
+label[dir="rtl"].pack-switch input ~ span:after {
   left: 0;
   right: unset;
 }
