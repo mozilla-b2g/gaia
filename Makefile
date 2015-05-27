@@ -337,7 +337,7 @@ endif # Firefox build workaround
 # XULRUNNERSDK used to be run-mozilla.sh, but some builds don't include it
 # Without that, Linux needs to reference the directory containing libxul.so
 ifeq (,$(XULRUNNERSDK)$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
-XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
+XULRUNNERSDK := LD_LIBRARY_PATH='$(dir $(XPCSHELLSDK))'
 endif
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
