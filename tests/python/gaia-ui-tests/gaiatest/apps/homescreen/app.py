@@ -161,7 +161,9 @@ class Homescreen(Base):
 
     @property
     def number_of_columns(self):
-        return int(self.marionette.find_element(*self._landing_page_locator).get_attribute('cols'))
+        element = self.marionette.find_element(*self._landing_page_locator)
+        Wait(self.marionette).until(lambda m: element.get_attribute('cols') is not None)
+        return int(element.get_attribute('cols'))
 
     class InstalledApp(PageRegion):
 
