@@ -410,7 +410,7 @@ System.prototype = {
 
   stopStatusbar: function() {
     this.client.executeScript(function() {
-      window.wrappedJSObject.StatusBar.pauseUpdate();
+      window.wrappedJSObject.StatusBar.pauseUpdate('marionette');
     });
   },
 

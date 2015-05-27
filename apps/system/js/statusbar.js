@@ -143,8 +143,6 @@ var StatusBar = {
 
   _minimizedStatusBarWidth: window.innerWidth,
 
-  _pausedForGesture: false,
-
   /**
    * Object used for handling the clock UI element, wraps all related timers
    */
@@ -380,16 +378,13 @@ var StatusBar = {
 
       case 'sheets-gesture-begin':
         this.element.classList.add('hidden');
-        if (!this._pausedForGesture) {
-          this.pauseUpdate();
-          this._pausedForGesture = true;
-        }
+        this.pauseUpdate(evt.type);
         break;
 
       case 'utilitytraywillshow':
       case 'utilitytraywillhide':
       case 'cardviewshown':
-        this.pauseUpdate();
+        this.pauseUpdate(evt.type);
         break;
 
       case 'utility-tray-overlayopened':
@@ -397,7 +392,7 @@ var StatusBar = {
       case 'utility-tray-abortopen':
       case 'utility-tray-abortclose':
       case 'cardviewclosed':
-        this.resumeUpdate();
+        this.resumeUpdate(evt.type);
         break;
 
       case 'lockpanelchange':
@@ -566,10 +561,7 @@ var StatusBar = {
 
       case 'sheets-gesture-end':
         this.element.classList.remove('hidden');
-        if (this._pausedForGesture) {
-          this.resumeUpdate();
-          this._pausedForGesture = false;
-        }
+        this.resumeUpdate(evt.type);
         break;
 
       case 'stackchanged':
@@ -607,10 +599,7 @@ var StatusBar = {
         // |sheets-gesture-end| event so we must resume the statusbar
         // if needed
         this.setAppearance();
-        if (this._pausedForGesture) {
-          this.resumeUpdate();
-          this._pausedForGesture = false;
-        }
+        this.resumeUpdate(evt.type);
         this.element.classList.remove('hidden');
         this.element.classList.remove('fullscreen');
         this.element.classList.remove('fullscreen-layout');
@@ -743,13 +732,64 @@ var StatusBar = {
   },
 
   _paused: 0,
-  pauseUpdate: function sb_pauseUpdate() {
+
+  _eventGroupStates: {
+    utilitytrayopening: false,
+    utilitytrayclosing: false,
+    cardview: false,
+    sheetsgesture: false,
+    marionette: false
+  },
+
+  pauseUpdate: function sb_pauseUpdate(evtType) {
+    var eventGroup = this._eventTypeToEventGroup(evtType);
+    if (this._eventGroupStates[eventGroup]) {
+      return;
+    }
+    this._eventGroupStates[eventGroup] = true;
+
     this._paused++;
   },
 
-  resumeUpdate: function sb_resumeUpdate() {
+  resumeUpdate: function sb_resumeUpdate(evtType) {
+    var eventGroup = this._eventTypeToEventGroup(evtType);
+    if (!this._eventGroupStates[eventGroup]) {
+      return;
+    }
+    this._eventGroupStates[eventGroup] = false;
+
     this._paused--;
-    this._updateIconVisibility();
+    if (!this.isPaused()) {
+      this._updateIconVisibility();
+    }
+  },
+
+  /**
+   * Map event types to event groups.
+   *
+   * @param {string} evtType
+   * @returns {string}
+   */
+  _eventTypeToEventGroup: function sb_eventTypeToEventGroup(evtType) {
+    switch (evtType) {
+      case 'utilitytraywillshow':
+      case 'utility-tray-overlayopened':
+      case 'utility-tray-abortclose':
+        return 'utilitytrayopening';
+      case 'utilitytraywillhide':
+      case 'utility-tray-overlayclosed':
+      case 'utility-tray-abortopen':
+        return 'utilitytrayclosing';
+      case 'cardviewshown':
+      case 'cardviewclosed':
+        return 'cardview';
+      case 'sheets-gesture-begin':
+      case 'sheets-gesture-end':
+      case 'homescreenopened':
+        return 'sheetsgesture';
+    }
+
+    return evtType;
   },
 
   isPaused: function sb_isPaused() {
