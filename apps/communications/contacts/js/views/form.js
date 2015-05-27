@@ -437,15 +437,10 @@ contacts.Form = (function() {
   var onNewFieldClicked = function onNewFieldClicked(evt) {
     var type = evt.target.dataset.fieldType;
     evt.preventDefault();
-    // Workaround until 809452 is fixed.
-    // What we are avoiding with this condition is removing / restoring
-    // a field when the event is simulated by a ENTER Keyboard click
-    if (evt.clientX !== 0 && evt.clientY !== 0) {
-        contacts.Form.insertField(type, null, [
-          'inserted',
-          'displayed'
-        ]);
-    }
+    contacts.Form.insertField(type, null, [
+      'inserted',
+      'displayed'
+    ]);
     textFieldsCache.clear();
     // For dates only two instances
     if (type === 'date') {
