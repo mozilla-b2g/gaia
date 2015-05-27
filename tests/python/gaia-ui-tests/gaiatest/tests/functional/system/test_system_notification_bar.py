@@ -31,7 +31,8 @@ class TestNotificationBar(GaiaTestCase):
 
         notifications = utility_tray.get_notifications(for_app='system')
         self.assertEqual(1, len(notifications), 'Expected one system notification.')
-        email = notifications[0].tap_notification()
+
+        self.assertEqual(self._notification_body, notifications[0].content)
 
         # We cannot disable app update yet so let's wait for it to pass
         if system.is_app_update_notification_displayed:
