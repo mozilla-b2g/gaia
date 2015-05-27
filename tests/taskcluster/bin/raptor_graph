@@ -23,8 +23,14 @@ var originalHeadRev = process.env.GITHUB_HEAD_REV;
 
 const TC_CLIENT_OPTS = { timeout: 30 * 1000 };
 
+// number of times to repeat entire suite on 'base' and on 'patch' builds
 const TEST_ITERATIONS = 6;
-const LAUNCH_TEST_APPS = ["settings"];
+
+// FirefoxOS apps to include in the launch test
+const LAUNCH_TEST_APPS = [{ gaia_name: "settings", th_name: "Settings", th_prefix: "se" },
+                          { gaia_name: "test-startup-limit", th_name: "Test-startup", th_prefix: "te" }];
+
+// number of times each app is launched during the launch test
 const LAUNCH_TEST_RUNS = 30;
 
 // Cache for task definitions...
@@ -80,10 +86,12 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
   requiredPatchTasks = [];
 
   // base tasks
+
+  suiteName = nextApp.th_name + " app launch test (on base)";
+
   for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
-    suiteName = nextApp[0].toUpperCase() + nextApp.slice(1) + " app launch test (on base)";
-    symbol = nextApp.substr(0, 2) + iteration;
-    taskName = nextApp + "BaseTask" + iteration;
+    symbol = nextApp.th_prefix + iteration;
+    taskName = nextApp.gaia_name + "BaseTask" + iteration;
     requiredBaseTasks.push(taskName);
     config[taskName] = {
       definition: 'raptor_launch',
@@ -92,18 +100,19 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
         raptorSuiteName: suiteName,
         gaiaRev: process.env.GITHUB_BASE_REV,
         raptorRuns: LAUNCH_TEST_RUNS,
-        raptorApps: nextApp,
+        raptorApps: nextApp.gaia_name,
         treeherderSym: symbol
       }
     };
   };
 
   // patch tasks
+  suiteName = nextApp.th_name + " app launch test (on base + pr)";
+
   for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
-    suiteName = nextApp[0].toUpperCase() + nextApp.slice(1) + " app launch test (on base + pr)";
     // want the symbol number to continue to increment from the base tasks
-    symbol = nextApp.substr(0, 2) + (iteration + TEST_ITERATIONS);
-    taskName = nextApp + "PatchTask" + iteration;
+    symbol = nextApp.th_prefix + (iteration + TEST_ITERATIONS);
+    taskName = nextApp.gaia_name + "PatchTask" + iteration;
     requiredPatchTasks.push(taskName);
     config[taskName] = {
       definition: 'raptor_launch',
@@ -112,22 +121,22 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
         raptorSuiteName: suiteName,
         gaiaRev: process.env.GITHUB_HEAD_REV,
         raptorRuns: LAUNCH_TEST_RUNS,
-        raptorApps: nextApp,
+        raptorApps: nextApp.gaia_name,
         treeherderSym: symbol
       }
     };
   };
 
   // single result task for all of the base and patch tasks
-  suiteName = nextApp[0].toUpperCase() + nextApp.slice(1) + " app launch test results";
-  taskName = nextApp + 'ResultsTask';
-  symbol = nextApp.substr(0, 2);
+  suiteName = nextApp.th_name + " app launch test results";
+  taskName = nextApp.gaia_name + 'ResultsTask';
+  symbol = nextApp.th_prefix;
   config[taskName] = {
     definition: 'raptor_result',
     requiredBaseTasks: requiredBaseTasks,
     requiredPatchTasks: requiredPatchTasks,
     params: {
-      raptorApp: nextApp,
+      raptorApp: nextApp.gaia_name,
       raptorSuiteName: suiteName,
       treeherderSym: symbol
     }
@@ -250,15 +259,15 @@ getEmulator()
       // when not a PR 'base' should be BASE -1 commit (before the
       // merge) and 'patch' should be BASE_REV (has the merged code)
       if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "base") {
-        var app = config[raptorTask].params.raptorApps;
-        suiteName = app[0].toUpperCase() + app.slice(1) + " app launch test (on base -1 commit)";
-        config[raptorTask].params.raptorSuiteName = suiteName;
+        var oldSuiteName = config[raptorTask].params.raptorSuiteName;
+        var newSuiteName = oldSuiteName.substring(0, oldSuiteName.indexOf('test (on ')) + "test (on base -1 commit)";
+        config[raptorTask].params.raptorSuiteName = newSuiteName;
         config[raptorTask].params.gaiaRev = gaiaBaseMinusOne;
       }
       if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "patch") {
-        var app = config[raptorTask].params.raptorApps;
-        suiteName = app[0].toUpperCase() + app.slice(1) + " app launch test (on base)";
-        config[raptorTask].params.raptorSuiteName = suiteName;
+        var oldSuiteName = config[raptorTask].params.raptorSuiteName;
+        var newSuiteName = oldSuiteName.substring(0, oldSuiteName.indexOf('test (on ')) + "test (on base)";
+        config[raptorTask].params.raptorSuiteName = newSuiteName;
         config[raptorTask].params.gaiaRev = process.env.GITHUB_BASE_REV;
       }
 
