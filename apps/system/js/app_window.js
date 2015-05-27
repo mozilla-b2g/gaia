@@ -1,6 +1,5 @@
 /* global AppChrome */
 /* global AudioChannelController */
-/* global applications */
 /* global BaseModule */
 /* global BrowserFrame */
 /* global layoutManager */
@@ -8,7 +7,6 @@
 /* global OrientationManager */
 /* global ScreenLayout */
 /* global SettingsListener */
-/* global StatusBar */
 /* global Service */
 /* global DUMP */
 'use strict';
@@ -1565,14 +1563,6 @@
     if (this.element.style.width === width + 'px' &&
         this.element.style.height === height + 'px') {
       return;
-    }
-
-    // Adjust height for activity windows which open while rocketbar is open.
-    if (this.parentApp) {
-      var parent = applications.getByManifestURL(this.parentApp);
-      if (parent.manifest.role === 'search') {
-        height += StatusBar.height * window.devicePixelRatio;
-      }
     }
 
     this.width = width;
