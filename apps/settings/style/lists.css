@@ -147,6 +147,9 @@ ul li > *,
 ul li > label > *,
 ul li > a > * {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* sublines */
