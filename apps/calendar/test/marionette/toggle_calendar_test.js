@@ -102,7 +102,7 @@ marionette('toggle calendar', function() {
         return app.day.events.length === 0;
       });
       assert.ok(
-        app.day.allDay.displayed(),
+        app.day.allDaysHolder.displayed(),
         'all day should be displayed'
       );
     });

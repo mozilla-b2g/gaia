@@ -5,8 +5,6 @@
     "apps/calendar/test/marionette/day_view_test.js": "Bug 1076716 - TEST-UNEXPECTED-FAIL | day view before each hook",
     "apps/calendar/test/marionette/server_test.js": "",
     "apps/calendar/test/marionette/week_view_test.js": "Bug 1060447 - Re-enable week_view_test.js",
-    "apps/calendar/test/marionette/toggle_calendar_test.js": "Bug 1007519 - Perma failing test, toggle calendar > regular event disable calendar day view",
-    "apps/calendar/test/marionette/create_event_test.js": "Bug 1059159 - Intermittent failing test, TEST-UNEXPECTED-FAIL | /builds/slave/test/gaia/apps/calendar/test/marionette/create_event_test.js",
     "apps/camera/test/marionette/capture_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/hud_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/settings_test.js": "device only - missing desktop shims",
