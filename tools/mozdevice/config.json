@@ -1,0 +1,115 @@
+{
+  "events": {
+    "drag": "drag %d %d %d %d %d %d",
+    "sleep": "sleep %d",
+    "tap": "tap %d %d %d 1",
+    "doubleTap": "tap %d %d 2 1",
+    "keydown": "keydown %d",
+    "keyup": "keyup %d"
+  },
+  "devices": {
+    "android": {
+      "galaxy nexus": {
+        "hdmiResolution": "720p",
+        "inputEvent": "/dev/input/event1",
+        "defaultOrientation": "landscape",
+        "dimensions": [1180, 720],
+        "swipePadding": [240, 40, 100, 40]
+      },
+      "panda": {
+        "hdmiResolution": "720p",
+        "inputEvent": "/dev/input/event0",
+        "dimensions": [1280, 672],
+        "swipePadding": [240, 40, 100, 40]
+      },
+      "lg-p999": {
+        "hdmiResolution": "1080p",
+        "inputEvent": "/dev/input/event1",
+        "dimensions": [480, 800],
+        "swipePadding": [240, 40, 100, 40]
+      },
+      "mid": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event2",
+        "dimensions": [480, 800],
+        "swipePadding": [240, 40, 100, 40]
+      },
+      "turkcell maxi plus 5": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event0",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40]
+      }
+    },
+    "b2g": {
+      "panda": {
+        "hdmiResolution": "720p",
+        "inputEvent": "/dev/input/event2",
+        "defaultOrientation": "landscape",
+        "dimensions": [1280, 720],
+        "swipePadding": [40, 40, 40, 40]
+      },
+      "unagi1": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event0",
+        "defaultOrientation": "portrait",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40]
+      },
+      "inari1": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event0",
+        "defaultOrientation": "portrait",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40]
+      },
+      "msm7627a": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event4",
+        "defaultOrientation": "portrait",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40]
+      },
+      "alcatel one touch fire": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event4",
+        "defaultOrientation": "portrait",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40]
+      },
+      "sp6821a": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event1",
+        "defaultOrientation": "portrait",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40]
+      },
+      "flame": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event0",
+        "defaultOrientation": "portrait",
+        "dimensions": [480, 854],
+        "swipePadding": [40, 40, 40, 40],
+        "touchFrequency": 13
+      },
+      "Full Android on Emulator": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event0",
+        "defaultOrientation": "portrait",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40],
+        "densityProperty": "qemu.sf.lcd_density",
+        "scriptWriteTimeout": 250
+      },
+      "AOSP on ARM Emulator": {
+        "hdmiResolution": null,
+        "inputEvent": "/dev/input/event0",
+        "defaultOrientation": "portrait",
+        "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40],
+        "densityProperty": "qemu.sf.lcd_density",
+        "scriptWriteTimeout": 250
+      }
+    }
+  }
+}
