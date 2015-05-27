@@ -98,7 +98,15 @@ var DownloadManager = {
                    .createInstance(Ci.nsIDownloader);
     downloader.init(listener, tmpFile);
 
-    let channel = Services.io.newChannel(url, null, null);
+    let channel = Services.io.newChannel2(url,
+                                          null,
+                                          null,
+                                          null,      // aLoadingNode
+                                          Services.scriptSecurityManager.getSystemPrincipal(),
+                                          null,      // aTriggeringPrincipal
+                                          Ci.nsILoadInfo.SEC_NORMAL,
+                                          Ci.nsIContentPolicy.TYPE_OTHER);
+
     channel.asyncOpen(downloader, null);
   },
   // private functions and variables
