@@ -91,9 +91,9 @@ var UIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-checkbox',
+    'data-connection-switch',
     // Geolocation
-    'geolocation-checkbox',
+    'geolocation-switch',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',
@@ -128,11 +128,11 @@ var UIManager = {
       'geolocation.enabled': {
         // the "checked" attribute in the DOM is currently the source of truth
         // for default value, when the setting is not initially defined
-        defaultValue: this.geolocationCheckbox.checked,
+        defaultValue: this.geolocationSwitch.checked,
         callback: function(value) {
           var isEnabled = !!value;
-          if (this.geolocationCheckbox.checked !== isEnabled) {
-            this.geolocationCheckbox.checked = isEnabled;
+          if (this.geolocationSwitch.checked !== isEnabled) {
+            this.geolocationSwitch.checked = isEnabled;
           }
         }.bind(this)
       }
@@ -163,7 +163,7 @@ var UIManager = {
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
-    this.dataConnectionCheckbox.addEventListener('change', this);
+    this.dataConnectionSwitch.addEventListener('click', this);
 
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
@@ -193,7 +193,7 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
 
-    this.geolocationCheckbox.addEventListener('change', this);
+    this.geolocationSwitch.addEventListener('click', this);
 
     this.fxaCreateAccount.addEventListener('click', this);
 
@@ -380,9 +380,10 @@ var UIManager = {
         window.setTimeout(SdManager.importContacts, 0);
         break;
       // 3G
-      case 'data-connection-checkbox':
+      case 'data-connection-switch':
         this.dataConnectionChangedByUsr = true;
-        DataMobile.toggle(event.target.checked);
+        var status = event.target.checked;
+        DataMobile.toggle(status);
         break;
       // WIFI
       case 'wifi-refresh-button':
@@ -411,7 +412,7 @@ var UIManager = {
         this.setDate();
         break;
       // Geolocation
-      case 'geolocation-checkbox':
+      case 'geolocation-switch':
         this.updateSetting(event.target.name, event.target.checked);
         break;
       // Privacy
@@ -596,7 +597,7 @@ var UIManager = {
   },
 
   updateDataConnectionStatus: function ui_udcs(status) {
-    this.dataConnectionCheckbox.checked = status;
+    this.dataConnectionSwitch.checked = status;
   },
 
   changeStatusBarColor: function ui_csbc(color) {

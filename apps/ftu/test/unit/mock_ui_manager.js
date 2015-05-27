@@ -81,9 +81,9 @@ var MockUIManager = {
     'time-configuration-label',
     'time-form',
     // 3G
-    'data-connection-checkbox',
+    'data-connection-switch',
     // Geolocation
-    'geolocation-checkbox',
+    'geolocation-switch',
     // Tutorial
     'lets-go-button',
     'update-lets-go-button',

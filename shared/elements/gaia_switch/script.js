@@ -25,6 +25,20 @@ window.GaiaSwitch = (function(win) {
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
+
+    // Proxy RTL changes to the shadow root so we can style for RTL.
+    var dirObserver = new MutationObserver(() => {
+      var internal = this.shadowRoot.firstElementChild;
+      if (document.documentElement.dir === 'rtl') {
+        internal.setAttribute('dir', 'rtl');
+      } else {
+        internal.removeAttribute('dir');
+      }
+    });
+    dirObserver.observe(document.documentElement, {
+      attributeFilter: ['dir'],
+      attributes: true
+    });
   };
 
   proto.handleClick = function(e) {
