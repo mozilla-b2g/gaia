@@ -1,0 +1,70 @@
+ul.swipeable {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 0px;
+}
+
+ul.swipeable > li {
+  display: inline-block;
+  width: 260px;
+  height: 206px;
+  overflow: hidden;
+}
+
+ul.swipeable > li > img, .listview-element-img {
+  width: 240px;
+  padding: 20px 10px 25px;
+  margin-top: -35px;
+  position: relative;
+}
+
+ul.swipeable > li:first-child {
+  margin-left: 3rem;
+}
+
+.swipeable-container {
+  z-index: 2;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #FBFBFB;
+  box-shadow: 0px 2px 2px 0px rgba(33, 33, 33, 0.1);
+}
+
+.swipeable-progress {
+  text-align: center;
+  height: 1.6rem;
+  position: relative;
+  z-index: 1;
+}
+
+.swipeable-progress div{
+  border-radius: 50%;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border: 2px solid #aeaeae;
+  vertical-align: baseline;
+  margin: 0px 2px;
+}
+
+.swipeable-progress div.swipeable-progress-selected {
+  background: #aeaeae;
+}
+
+.swipeable-progress div.swipeable-progress-active {
+  /* background-color: #e20074; */
+  border: 2px solid #F97C17;
+}
+
+.swipeable-progress div.swipeable-progress-active.swipeable-progress-selected {
+  background: #F97C17;
+}
+
+@media (min-width: 360px) {
+  ul.swipeable > li:first-child {
+    margin-left: 5rem;
+  }
+
+  .swipeable-container {
+    padding-top: 0.5rem;
+  }
+}

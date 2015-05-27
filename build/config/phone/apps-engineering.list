@@ -27,7 +27,7 @@ dev_apps/uitest-privileged
 dev_apps/contacts-manager
 dev_apps/contacts-ds-provider1
 dev_apps/contacts-ds-provider2
-dev_apps/demo-hci-event
+dev_apps/mobile-wallet
 dev_apps/theme-test-1
 dev_apps/theme-test-2
 dev_apps/theme-test-3
