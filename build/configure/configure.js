@@ -54,27 +54,7 @@ ConfigureStep.prototype = {
     this.buildConfig.addConfig('XULRUNNERSDK',
       this.options.XULRUNNERSDK);
 
-    this.mainMake.insertTask(null, 'all',
-      [this.options.PROFILE_DIR]);
-    this.mainMake.insertTask(null,
-      this.options.PROFILE_DIR,
-      [
-        utils.joinPath(this.options.STAGE_DIR, '*', 'Makefile'),
-        utils.joinPath(this.options.GAIA_DIR, 'build', 'configure'),
-        commonMkPath
-      ], [
-        // We use EXECUTE_BY_SCRIPT flag to identify the makefile is executed
-        // by script or user.
-        '@if [[ "$(EXECUTE_BY_SCRIPT)" == "" ]] ; then \\',
-        '  echo "STOP! $($?) has been changed!";\\',
-        '  echo "Please rerun Makefile under gaia folder.";\\',
-        '  echo "To ignore this message, touch ' +
-          this.options.PROFILE_DIR + ',";\\',
-        '  echo "but your build might not succeed.";\\',
-        '  exit 1;\\',
-        'fi'
-      ] 
-    );
+    this.mainMake.insertTask(null, 'all');
     // TODO: we should be able to detect whether to regenerate makefile.
     this.preAppConfig();
     this.postAppConfig();
