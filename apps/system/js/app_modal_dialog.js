@@ -203,12 +203,24 @@
     var title = this._getTitle(evt.detail.title);
     var elements = this.elements;
 
+    function escapeHTML(str) {
+      var stringHTML = str;
+      stringHTML = stringHTML.replace(/</g, '&#60;');
+      stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
+      stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
+
+      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    }
+
     var type = evt.detail.promptType || evt.detail.type;
+    if (type !== 'selectone') {
+      message = escapeHTML(message);
+    }
 
     switch (type) {
       case 'alert':
-        elements.alertTitle.textContent = title;
-        elements.alertMessage.textContent = message;
+        elements.alertTitle.innerHTML = title;
+        elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
         elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.alert.focus();
@@ -219,8 +231,8 @@
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptTitle.textContent = title;
-        elements.promptMessage.textContent = message;
+        elements.promptTitle.innerHTML = title;
+        elements.promptMessage.innerHTML = message;
         elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.promptCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
@@ -229,8 +241,8 @@
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmTitle.textContent = title;
-        elements.confirmMessage.textContent = message;
+        elements.confirmTitle.innerHTML = title;
+        elements.confirmMessage.innerHTML = message;
         elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.confirmCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
@@ -246,7 +258,7 @@
       case 'custom-prompt':
         var customPrompt = evt.detail;
         elements.customPrompt.classList.add('visible');
-        elements.customPromptMessage.textContent = customPrompt.message;
+        elements.customPromptMessage.innerHTML = customPrompt.message;
         // Display custom list of buttons
         elements.customPromptButtons.innerHTML = '';
         elements.customPromptButtons.setAttribute('data-items',
