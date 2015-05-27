@@ -23,8 +23,10 @@ function Host(socketPath, process, log) {
 
   this.onerror = this.onerror.bind(this);
   this.onexit = this.onexit.bind(this);
+  this.restartOnException = this.restartOnException.bind(this);
   this.process.on('error', this.onerror);
   this.process.on('exit', this.onexit);
+  this.process.stdout.on('data', this.restartOnException);
 
   EventEmitter.call(this);
 }
@@ -70,6 +72,40 @@ Host.prototype = {
     }.bind(this));
   },
 
+  restartOnException: function(chunk) {
+    if (chunk.toString().indexOf('Exception') !== -1) {
+      // Python died so let's restart! Yay! Long live python.
+      console.log('Python crashed! Will restart...');
+      this.restart();
+    }
+  },
+
+  restart: function() {
+    return new Promise(function(resolve) {
+      // Kill ourselves.
+      this.process.removeListener('error', this.onerror);
+      this.process.removeListener('exit', this.onexit);
+
+      if (!this.process || !this.process.connected) {
+        resolve();
+      }
+
+      this.process.on('exit', resolve);
+      this.process.kill();
+    }.bind(this))
+    .then(function() {
+      // Start a new python child.
+      return spawnPythonChild();
+    })
+    .then(function(details) {
+      this.socketPath = details.socketPath;
+      this.process = details.process;
+      this.log = details.log;
+      this.process.on('error', this.onerror);
+      this.process.on('exit', this.onexit);
+    }.bind(this));
+  },
+
   /**
   Issue a request to the hosts underlying python http server.
   */
@@ -93,11 +129,17 @@ Host.prototype = {
 };
 
 Host.create = function() {
+  return spawnPythonChild().then(function(details) {
+    return new Host(details.socketPath, details.process, details.log);
+  });
+};
+
+function spawnPythonChild() {
   var socketPath = '/tmp/marionette-socket-host-' + uuid.v1() + '.sock';
   var pythonChild = spawnVirtualEnv(
     'gaia-integration',
     ['--path=' + socketPath],
-    { stdio: [0, 1, 'pipe', 'pipe'] }  // Swallow python stderr
+    { stdio: ['pipe', 'pipe', 'pipe', 'pipe'] }  // Swallow python stderr
   );
 
   var failOnChildError = new Promise(function(accept, reject) {
@@ -121,11 +163,15 @@ Host.create = function() {
   var connect = request(socketPath, '/connect').then(function() {
     pythonChild.removeAllListeners('error');
     pythonChild.removeAllListeners('exit');
-    return new Host(socketPath, pythonChild, pythonChild.stdio[3]);
+    return {
+      socketPath: socketPath,
+      process: pythonChild,
+      log: pythonChild.stdio[3]
+    };
   });
 
   return Promise.race([connect, failOnChildError]);
-};
+}
 
 /**
 Wrapper for spawning a python process which expects a venv with particular
