@@ -495,7 +495,6 @@
         (contacts) => Utils.basicContact(phoneNumber, contacts)
       );
     },
-
     basicContact: function(number, records) {
       var record;
       if (Array.isArray(records)) {
