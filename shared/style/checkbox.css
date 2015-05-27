@@ -1,0 +1,58 @@
+/* ----------------------------------
+ * CHECKBOXES
+ * ---------------------------------- */
+
+label.pack-checkbox {
+  display: inline-block;
+  vertical-align: middle;
+  width: 5rem;
+  height: 5rem;
+  position: relative;
+  background: none;
+}
+
+label.pack-checkbox input {
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  /* the conflict between left/right/width is resolved differently in LTR and
+   * RTL. The goal here is to keep "input" invisible */
+  left: 0;
+  right: 0;
+  width: 0;
+}
+
+label.pack-checkbox input ~ span:after {
+  content: '';
+  position: absolute;
+  /* CSS will resolve the conflict among left, right, and width "intelligently"
+     and pick left+width for LTR and right+width for RTL. */
+  left: 50%;
+  right: 50%;
+  top: 50%;
+  margin: 0;
+  margin-top: -1.1rem;
+  -moz-margin-start: -1.1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  pointer-events: none;
+}
+
+label.pack-checkbox input ~ span:after {
+  background: url(checkbox/images/default.png) no-repeat center top / 2.2rem auto;
+}
+
+/* checkbox: disabled state */
+label.pack-checkbox input:disabled ~ span:after {
+  opacity: 0.4;
+}
+
+label.pack-checkbox input:checked ~ span:after {
+  background-position: center bottom;
+}
+
+/* 'Dangerous' switches */
+label.pack-checkbox.danger input ~ span:after {
+  background-image: url(checkbox/images/danger.png);
+}

@@ -4,7 +4,8 @@
 
 @import url('../shared/style/input_areas.css');
 @import url('../shared/style/headers.css');
-@import url('../shared/style/switches.css');
+@import url('../shared/style/switch.css');
+@import url('../shared/style/checkbox.css');
 @import url('../shared/style/buttons.css');
 @import url('../shared/style/status.css');
 @import url('../shared/style/confirm.css');

@@ -11,7 +11,7 @@
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/switch.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
@@ -30,7 +30,7 @@
 
   <body role="application" class="skin-organic uninit">
     <section role="region">
-      
+
       <header>
         <a href="#" id="settings-back"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="bluetooth-header"> Bluetooth </h1>
@@ -58,21 +58,21 @@
             <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
           </li>
         </ul>
-        
+
         <!-- Devices List View :: Paired Devices List -->
         <header id="bluetooth-paired-title">
           <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
         </header>
         <ul id="bluetooth-paired-devices" class="devices">
         </ul>
-        
+
         <!-- Devices List View :: Found Devices List -->
         <header id="bluetooth-found-title">
           <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
         </header>
         <ul id="bluetooth-devices" class="devices">
         </ul>
-        
+
         <!-- Devices List View :: Search Button -->
         <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
           Searching for devices…
@@ -83,7 +83,7 @@
           </li>
         </ul>
       </div>
-      
+
     </section>
 
     <form role="dialog" data-type="confirm" id="update-device-name" hidden>
@@ -119,6 +119,6 @@
         <button data-l10n-id="device-option-confirm" id="confirm-option" class="danger">Confirm</button>
       </menu>
     </form>
-    
+
   </body>
 </html>
