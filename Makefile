@@ -51,10 +51,6 @@
 #                                                                             #
 ###############################################################################
 
-
-# Enable new build system, see https://wiki.mozilla.org/Gaia/Build/NewBuildSystem
-ENABLE_CONFIGURE_STEP?=0
-
 # Eliminate use of the built-in implicit rules to get faster.
 MAKEFLAGS=-r
 
@@ -563,8 +559,7 @@ define BUILD_CONFIG
   "APP" : "$(APP)", \
   "XPCSHELLSDK" : "$(XPCSHELLSDK)", \
   "XULRUNNERSDK" : "$(XULRUNNERSDK)", \
-  "CPU_NUM" : "$(CPU_NUM)", \
-  "ENABLE_CONFIGURE_STEP": "$(ENABLE_CONFIGURE_STEP)" \
+  "CPU_NUM" : "$(CPU_NUM)" \
 }
 endef
 
@@ -586,12 +581,8 @@ build-app: app
 	@$(call $(BUILD_RUNNER),update-webapps-json)
 
 .PHONY: app
-app: b2g_sdk profile-dir
-ifeq ($(ENABLE_CONFIGURE_STEP),1)
+app: b2g_sdk profile-dir node_modules
 	@node --harmony $(CONFIGURE_JS) BUILD_CONFIG=$(BUILD_CONFIG)
-else
-	@$(call $(BUILD_RUNNER),app)
-endif
 
 .PHONY: pre-app
 pre-app: b2g_sdk profile-dir

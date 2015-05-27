@@ -397,13 +397,7 @@ WebappShared.prototype.execute = function(options) {
 function execute(config) {
   var gaia = utils.gaia.getInstance(config);
   var dirs;
-  if (config.ENABLE_CONFIGURE_STEP === '1') {
-    dirs = config.GAIA_APPDIRS.split(' ');
-  } else {
-    dirs = config.rebuildAppDirs;
-  }
-
-  dirs.forEach(function(appDir) {
+  config.GAIA_APPDIRS.split(' ').forEach(function(appDir) {
     var webapp = utils.getWebapp(appDir, config);
     if (webapp) {
       (new WebappShared()).execute({
