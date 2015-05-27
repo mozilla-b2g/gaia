@@ -1,0 +1,45 @@
+# Chunking task for marionette js tests...
+---
+reruns: 4
+task:
+  metadata:
+    name: 'Marionette JS tests for tv'
+    description: Run entire suite of marionette js tests for tv
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+  scopes:
+    # Source caches contains various sources (including a tarball of gaia source
+    # tree)
+    - docker-worker:cache:gaia-misc-caches
+    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
+
+  payload:
+    image: quay.io/mozilla/gaia-taskenv:0.8.9
+    maxRunTime: 7200
+    cache:
+      gaia-misc-caches: /home/tester/caches/
+    # Chunking logic is actually in the Makefile here which may make it
+    # confusing to figure out who calls what this should be improved.
+    env:
+      REPORTER: 'mocha-tbpl-reporter'
+      TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
+      GAIA_DEVICE_TYPE: 'tv'
+      NODE_MODULES_SRC: npm-cache
+
+    command:
+      - entrypoint
+      - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
+
+
+    artifacts:
+      'public/marionette_js_tests':
+        type: directory
+        path: '{{gaia}}/artifacts/'
+        expires: '{{nextYear}}'
+
+  extra:
+    treeherder:
+      groupName: "Gaia javascript integration tests"
+      groupSymbol: Gij
+      symbol: GijTV
