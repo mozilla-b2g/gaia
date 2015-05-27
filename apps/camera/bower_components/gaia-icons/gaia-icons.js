@@ -9,14 +9,19 @@ var base = window.GAIA_ICONS_BASE_URL
   || window.COMPONENTS_BASE_URL
   || 'bower_components/';
 
-// Load it if it's not already loaded
-if (!isLoaded()) { load(base + 'gaia-icons/gaia-icons.css'); }
+if (!document.documentElement) {
+  window.addEventListener('load', load);
+} else {
+  load();
+}
 
-function load(href) {
+function load() {
+  if (isLoaded()) { return; }
+
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
-  link.href = href;
+  link.href = base + 'gaia-icons/gaia-icons.css';
   document.head.appendChild(link);
   exports.loaded = true;
 }
