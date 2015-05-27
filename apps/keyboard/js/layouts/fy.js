@@ -3,6 +3,7 @@ Keyboards.fy = {
   shortLabel: 'Fy',
   menuLabel: 'Frysk',
   imEngine: 'latin',
+  autoCorrectLanguage: 'fy',
   types: ['text', 'url', 'email', 'password'],
   lang: 'fy',
   pages: [ {   // default page
