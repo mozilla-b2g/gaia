@@ -206,3 +206,10 @@ html[dir="rtl"] .block-item {
   left: unset;
   right: 1rem;
 }
+
+[data-type="list"] li.block-item bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
