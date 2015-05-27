@@ -21,9 +21,10 @@ AboutGaia.prototype = {
     return Ci.nsIAboutModule.ALLOW_SCRIPT;
   },
 
-  newChannel: function(aURI) {
-    let uri = 'chrome://gaia-build/content/aboutGaia.html';
-    let channel = Services.io.newChannel(uri, null, null);
+  newChannel: function(aURI, aLoadInfo) {
+    let spec = 'chrome://gaia-build/content/aboutGaia.html';
+    let uri = Services.io.newURI(spec, null, null);
+    let channel = Services.io.newChannelFromURIWithLoadInfo(uri, aLoadInfo);
     channel.originalURI = aURI;
     return channel;
   }
