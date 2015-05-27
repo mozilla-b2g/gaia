@@ -27,18 +27,21 @@ window.GaiaSwitch = (function(win) {
     ComponentUtils.style.call(this, baseurl);
 
     // Proxy RTL changes to the shadow root so we can style for RTL.
-    var dirObserver = new MutationObserver(() => {
-      var internal = this.shadowRoot.firstElementChild;
-      if (document.documentElement.dir === 'rtl') {
-        internal.setAttribute('dir', 'rtl');
-      } else {
-        internal.removeAttribute('dir');
-      }
-    });
+    var dirObserver = new MutationObserver(this.updateInternalDir.bind(this));
     dirObserver.observe(document.documentElement, {
       attributeFilter: ['dir'],
       attributes: true
     });
+    this.updateInternalDir();
+  };
+
+  proto.updateInternalDir = function() {
+    var internal = this.shadowRoot.firstElementChild;
+    if (document.documentElement.dir === 'rtl') {
+      internal.setAttribute('dir', 'rtl');
+    } else {
+      internal.removeAttribute('dir');
+    }
   };
 
   proto.handleClick = function(e) {
