@@ -70,11 +70,6 @@ apps/ftu/js/external_links.js
 apps/ftu/js/import_services.js
 apps/ftu/js/language.js
 apps/ftu/js/ui.js
-apps/gallery/js/ImageEditor.js
-apps/gallery/js/gallery.js
-apps/gallery/js/open.js
-apps/gallery/js/thumbnail_date_group.js
-apps/gallery/js/thumbnail_item.js
 apps/keyboard/js/settings/layout_item_view.js
 apps/music/js/open.js
 apps/music/js/ui/views/mode_manager.js

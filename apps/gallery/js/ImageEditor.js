@@ -1,4 +1,5 @@
 // This file contains Gallery code for editing images
+//
 'use strict';
 /* global
   $,
@@ -94,7 +95,7 @@ function editPhotoIfCardNotFull(n) {
       editPhoto(n);
     }
     else {
-      alert(navigator.mozL10n.get('memorycardfull'));
+      navigator.mozL10n.formatValue('memorycardfull').then(alert);
     }
   });
 }
