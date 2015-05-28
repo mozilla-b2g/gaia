@@ -14,6 +14,11 @@
     this._observer.observe(this.element,
       { characterData: true, childList: true });
   };
+
+  OperatorIcon.prototype.containerElement =
+    document.getElementById('statusbar-tray') ||
+    document.createElement('div');
+
   OperatorIcon.prototype._handleTextChanged = function() {
     if (this.previousTextContent === this.element.textContent) {
       return;
@@ -24,6 +29,14 @@
   OperatorIcon.prototype._stop = function() {
     this._observer && this._observer.disconnect();
   };
+
+  OperatorIcon.prototype.view = function view() {
+    return `<div id="statusbar-operator"
+              class="sb-start-upper sb-icon-operator statusbar-operator"
+              role="listitem">
+            </div>`;
+  };
+
   OperatorIcon.prototype.update = function(now) {
     if (!this.element || !this.enabled()) {
       return;

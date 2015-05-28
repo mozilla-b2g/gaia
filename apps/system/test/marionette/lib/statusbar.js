@@ -10,59 +10,31 @@
     this.init();
   };
 
-  // Icons sorted by priority.
-  StatusBar.Icons = [
-    'emergencyCallback',
-    'battery',
-    'recording',
-    'airplaneMode',
-    'wifi',
-    'mobileConnection',
-    'time',
-    'debugging',
-    'download',
-    'geolocation',
-    'networkActivity',
-    'tethering',
-    'bluetoothTransfer',
-    'bluetooth',
-    'nfc',
-    'usb',
-    'alarm',
-    'bluetoothHeadphone',
-    'mute',
-    'callForwardings',
-    'playing',
-    'headphone',
-    //'sms', // Not currently implemented.
-    'operator'
-  ];
-
   StatusBar.Selector = Object.freeze({
-    operator: '.sb-icon-operator',
-    sms: '.sb-icon-sms',
-    alarm: '.sb-icon-alarm',
-    playing: '.sb-icon-playing',
-    headphone: '.sb-icon-headphone',
-    bluetoothHeadphone: '.sb-icon-bluetooth-headphone',
-    callForwardings: '.sb-icon-call-forwarding',
-    geolocation: '.sb-icon-geolocation',
-    recording: '.sb-icon-recording',
-    mute: '.sb-icon-mute',
-    usb: '.sb-icon-usb',
-    download: '.sb-icon-download',
-    emergencyCallback: '.sb-icon-emergency-callback',
-    nfc: '.sb-icon-nfc',
-    bluetoothTransfer: '.sb-icon-bluetooth-transfer',
-    bluetooth: '.sb-icon-bluetooth',
-    tethering: '.sb-icon-tethering',
-    networkActivity: '.sb-icon-network-activity',
-    mobileConnection: '.sb-icon-mobile-connection',
-    wifi: '.sb-icon-wifi',
-    airplaneMode: '.sb-icon-airplane-mode',
-    battery: '.sb-icon-battery',
-    time: '.sb-icon-time',
-    debugging: '.sb-icon-debugging',
+    'operator': '.sb-icon-operator',
+    'sms': '.sb-icon-sms',
+    'alarm': '.sb-icon-alarm',
+    'playing': '.sb-icon-playing',
+    'headphone': '.sb-icon-headphone',
+    'bluetooth-headphone': '.sb-icon-bluetooth-headphone',
+    'call-forwardings': '.sb-icon-call-forwarding',
+    'geolocation': '.sb-icon-geolocation',
+    'recording': '.sb-icon-recording',
+    'mute': '.sb-icon-mute',
+    'usb': '.sb-icon-usb',
+    'download': '.sb-icon-download',
+    'emergency-callback': '.sb-icon-emergency-callback',
+    'nfc': '.sb-icon-nfc',
+    'bluetooth-transfer': '.sb-icon-bluetooth-transfer',
+    'bluetooth': '.sb-icon-bluetooth',
+    'tethering': '.sb-icon-tethering',
+    'network-activity': '.sb-icon-network-activity',
+    'mobile-connection': '.sb-icon-mobile-connection',
+    'wifi': '.sb-icon-wifi',
+    'airplane-mode': '.sb-icon-airplane-mode',
+    'battery': '.sb-icon-battery',
+    'time': '.sb-icon-time',
+    'debugging': '.sb-icon-debugging',
 
     statusbar: '#statusbar',
     statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',
@@ -72,6 +44,20 @@
   StatusBar.prototype = {
     kActiveIndicatorTimeout: null,
     client: null,
+
+    get Icons() {
+      return this.client.executeScript(function() {
+        var priorities = window.wrappedJSObject.StatusBar.PRIORITIES;
+        var icons = [];
+        Object.keys(priorities).forEach(function(iconId) {
+          var icon = priorities[iconId].icon;
+          if (icon) {
+            icons.push(iconId);
+          }
+        });
+        return icons;
+      });
+    },
 
     get maximizedStatusbar() {
       var statusbar = StatusBar.Selector.statusbarMaximizedWrapper;
@@ -85,8 +71,12 @@
 
     showAllRunningIcons: function() {
       this.client.executeScript(function() {
-        window.wrappedJSObject.StatusBar._icons.forEach(function(icon) {
-          icon.element.hidden = false;
+        var priorities = window.wrappedJSObject.StatusBar.PRIORITIES;
+        Object.keys(priorities).forEach(function(iconId) {
+          var icon = priorities[iconId].icon;
+          if (icon) {
+            icon.element.hidden = false;
+          }
         });
       });
     },
@@ -191,7 +181,7 @@
 
       // Maximised status bar
       this.minimised = {};
-      StatusBar.Icons.forEach(function(iconName) {
+      this.Icons.forEach(function(iconName) {
         this[iconName] = {
           get icon() {
             return self.client.findElement('#statusbar-maximized ' +

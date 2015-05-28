@@ -10,5 +10,14 @@
   HeadphoneIcon.prototype.shouldDisplay = function() {
     return this.manager.isHeadsetConnected;
   };
+
+  HeadphoneIcon.prototype.view = function view() {
+    return `<div id="statusbar-headphone"
+              class="sb-icon sb-icon-headphone"
+              hidden role="listitem"
+              data-l10n-id="statusbarHeadphone">
+            </div>`;
+  };
+
   exports.HeadphoneIcon = HeadphoneIcon;
 }(window));
