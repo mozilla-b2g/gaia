@@ -86,6 +86,7 @@ window.GaiaSimPicker = (function(win) {
     }
 
     this._buildDom();
+    this._localizeShadowDom();
 
     var simButtons = this.shadowRoot.querySelectorAll(
       'button[data-card-index]');
