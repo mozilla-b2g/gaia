@@ -23,7 +23,7 @@ suite('Keyboard layouts building tests', function() {
       var config = JSON.parse(process.env.BUILD_CONFIG);
       var layoutIds = ['ar', 'bn-Avro', 'bn-Probhat', 'de', 'dz-BT',
          'en', 'en-Colemak', 'en-Dvorak', 'en-Neo', 'eo', 'es',
-         'es-Americas', 'fr', 'fr-CA', 'fr-CH', 'fr-Dvorak-bepo',
+         'es-Americas', 'fr', 'fr-CA', 'fr-CH', 'fr-Dvorak-bepo', 'ha',
          'he', 'hi', 'ko', 'mk', 'my', 'pl', 'pt-BR', 'ta', 'te',
          'th', 'vi-Qwerty', 'vi-Telex', 'vi-Typewriter', 'wo',
          'zh-Hans-Pinyin'];
