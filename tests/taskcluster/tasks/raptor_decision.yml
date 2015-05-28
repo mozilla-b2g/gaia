@@ -14,7 +14,7 @@ task:
 
   payload:
     maxRunTime:
-    image: quay.io/mozilla/gaia-taskenv:0.8.9
+    image: quay.io/mozilla/gaia-taskenv:0.8.11
     cache:
       tc-vcs: /home/worker/.tc-vcs
     command:

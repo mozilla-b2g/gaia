@@ -15,7 +15,7 @@ task:
     - queue:create-artifact:public/node_modules.tar.gz
 
   payload:
-    image: quay.io/mozilla/npm-cache:0.1.7
+    image: quay.io/mozilla/npm-cache:0.1.10
 
     cache:
       gaia-misc-caches: /home/tester/caches/
