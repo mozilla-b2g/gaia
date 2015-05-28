@@ -1,5 +1,4 @@
 /* global Navigation,
-    Startup,
     MocksHelper,
     Promise,
     TransitionEvent
@@ -11,13 +10,11 @@ require('/shared/js/event_dispatcher.js');
 
 require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
-require('/views/shared/test/unit/mock_startup.js');
 
 require('/views/shared/js/navigation.js');
 
 var mocksHelperForNavigation = new MocksHelper([
-  'Utils',
-  'Startup'
+  'Utils'
 ]).init();
 
 suite('navigation >', function() {
@@ -139,11 +136,13 @@ suite('navigation >', function() {
       this.sinon.stub(Navigation, 'toPanel');
     });
 
-    test('ready is false while init and true when Startup ready', function() {
-      this.sinon.stub(Startup, 'on');
+    test('ready is false while init and true when setReady called', function() {
       Navigation.init();
+
       assert.isFalse(Navigation.isReady);
-      Startup.on.withArgs('post-initialize').yield();
+
+      Navigation.setReady();
+
       assert.isTrue(Navigation.isReady);
     });
   });
@@ -151,7 +150,6 @@ suite('navigation >', function() {
   suite('toPanel >', function() {
     setup(function() {
       this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
-      this.sinon.stub(Startup, 'on');
       Navigation.isReady = true;
       Navigation.init();
     });
@@ -190,7 +188,8 @@ suite('navigation >', function() {
           Panel2.afterEnter
         );
       }).then(done, done);
-      Startup.on.withArgs('post-initialize').yield();
+
+      Navigation.setReady();
     });
 
     test('Queue panel transition requests', function(done) {

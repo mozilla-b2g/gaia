@@ -4,6 +4,8 @@
 function MockInformation(type) {
 }
 
+MockInformation.initDefaultViews = () => {};
+
 MockInformation.prototype = {
   onDeliverySuccess: function() {},
   onReadSuccess: function() {},

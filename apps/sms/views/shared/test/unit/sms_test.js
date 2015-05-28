@@ -215,7 +215,9 @@ suite('SMS App Unit-Test', function() {
     setup(function(done) {
       this.sinon.spy(InboxView, 'setContact');
 
-      InboxView.renderThreads(done);
+      InboxView.once('visually-loaded', () => done());
+      InboxView.renderThreads();
+
       _tci = InboxView.updateSelectionStatus;
     });
     // We are gonna review the HTML structure with this suite

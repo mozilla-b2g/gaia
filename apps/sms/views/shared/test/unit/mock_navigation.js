@@ -13,6 +13,8 @@ var MockNavigation = {
   toPanel: function() { return Promise.resolve(); },
   toDefaultPanel: () => Promise.resolve(),
   getPanelName: () => '',
+  setReady: () => {},
   on: () => {},
-  off: () => {}
+  off: () => {},
+  once: () => {}
 };

@@ -8,7 +8,8 @@
          InterInstanceEventDispatcher,
          SelectionHandler,
          Settings,
-         LazyLoader
+         LazyLoader,
+         EventDispatcher
 */
 /*exported InboxView */
 (function(exports) {
@@ -23,8 +24,6 @@ function createBdiNode(content) {
 }
 
 var InboxView = {
-  readyDeferred: Utils.Promise.defer(),
-
   DRAFT_SAVED_DURATION: 5000,
   FIRST_PANEL_THREAD_COUNT: 9, // counted on a Peak
 
@@ -122,6 +121,14 @@ var InboxView = {
       // group thread, "100" is for all paddings, image width and so on,
       // 10 is approximate English char width for current 18px font size
       groupThreadTitleMaxLength: (window.innerWidth - 100) / 10
+    });
+
+    this.once('fully-loaded', () => {
+      this.ensureReadAheadSetting();
+    });
+
+    this.once('visually-loaded', () => {
+      this.initStickyHeader();
     });
 
     this.sticky = null;
@@ -629,21 +636,13 @@ var InboxView = {
     Settings.setReadAheadThreadRetrieval(this.FIRST_PANEL_THREAD_COUNT);
   },
 
-  renderThreads: function inbox_renderThreads(firstViewDoneCb) {
+  renderThreads: function inbox_renderThreads() {
     window.performance.mark('willRenderThreads');
 
     var hasThreads = false;
     var firstPanelCount = this.FIRST_PANEL_THREAD_COUNT;
 
     this.prepareRendering();
-
-    var firstViewDone = function firstViewDone() {
-      this.initStickyHeader();
-
-      if (typeof firstViewDoneCb === 'function') {
-        firstViewDoneCb();
-      }
-    }.bind(this);
 
     function onRenderThread(thread) {
       /* jshint validthis: true */
@@ -656,11 +655,11 @@ var InboxView = {
       }
 
       this.appendThread(thread);
+
+      // Dispatch visually-loaded when rendered threads could fill up the top of
+      // the visible area.
       if (--firstPanelCount === 0) {
-        // dispatch visuallyLoaded and contentInteractive when rendered
-        // threads could fill up the top of the visible area
-        window.performance.mark('visuallyLoaded');
-        firstViewDone();
+        this.emit('visually-loaded');
       }
     }
 
@@ -671,29 +670,18 @@ var InboxView = {
        * this is done to prevent races between renering threads and drafts. */
       this.finalizeRendering(!(hasThreads || Drafts.size));
 
+      // Dispatch visually-loaded when rendered threads could fill up the top of
+      // the visible area.
       if (firstPanelCount > 0) {
-        // dispatch visuallyLoaded and contentInteractive when rendering
-        // ended but threads could not fill up the top of the visible area
-        window.performance.mark('visuallyLoaded');
-        firstViewDone();
+        this.emit('visually-loaded');
       }
-    }
-
-    function onDone() {
-      /* jshint validthis: true */
-
-      this.readyDeferred.resolve();
-
-      this.ensureReadAheadSetting();
     }
 
     MessageManager.getThreads({
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
-      done: onDone.bind(this)
+      done: () => this.emit('fully-loaded')
     });
-
-    return this.readyDeferred.promise;
   },
 
   createThread: function inbox_createThread(record) {
@@ -1012,13 +1000,10 @@ var InboxView = {
     this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
       this.draftSavedBanner.classList.add('hide');
     }.bind(this), this.DRAFT_SAVED_DURATION);
-  },
-
-  whenReady: function() {
-    return this.readyDeferred.promise;
   }
 };
 
-exports.InboxView = InboxView;
-
+exports.InboxView = EventDispatcher.mixin(
+  InboxView, ['visually-loaded', 'fully-loaded']
+);
 }(this));

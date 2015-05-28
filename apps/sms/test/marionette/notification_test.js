@@ -5,6 +5,7 @@ var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
 var Storage = require('./lib/storage.js');
+var InboxView = require('./lib/views/inbox/view');
 var UtilityTray = require('../../../system/test/marionette/lib/utility_tray');
 var NotificationList = require(
   '../../../system/test/marionette/lib/notification.js'
@@ -57,6 +58,41 @@ marionette('Message notification tests', function() {
       );
 
       // Switch to messages so that it's able to remove notification.
+      messagesApp.switchTo();
+      storage.setMessagesStorage(messagesStorage);
+
+      // Verify that notification has been removed.
+      client.switchToFrame();
+      notificationList.waitForNotificationCount(0);
+
+      messagesApp.switchTo();
+    }
+
+    function removeNotification() {
+      client.switchToFrame();
+      notificationList.waitForNotificationCount(1);
+
+      utilityTray.open();
+      utilityTray.waitForOpened();
+
+      // Make sure we have our notification to remove.
+      notificationList.refresh();
+
+      var notificationNode = client.helper.waitForElement(
+        notificationList.getForApp(messagesApp.manifestURL)[0].query
+      );
+
+      // flick() sends a sequence of touch events that allows us to simulate
+      // swipe from left (x1=5) to right (x2=125) within 100ms period of time.
+      client.loader.getActions().flick(
+        notificationNode, 5, 15, 125, 15, 100
+      ).perform();
+
+      utilityTray.close();
+      utilityTray.waitForClosed();
+
+      // Switch to messages so that it's able to remove notification.
+      messagesApp.launch();
       messagesApp.switchTo();
       storage.setMessagesStorage(messagesStorage);
 
@@ -149,6 +185,40 @@ marionette('Message notification tests', function() {
       messagesApp.performHeaderAction();
       messagesApp.Inbox.waitToAppear();
 
+      messagesApp.sendSystemMessage('sms-received', smsMessage);
+
+      openNotification();
+
+      assertMessagesIsInCorrectState();
+    });
+
+    test('when user removes notification from Utility tray', function() {
+      // Receive 'sms-received' system message and generate notification.
+      messagesApp.sendSystemMessage('sms-received', smsMessage);
+
+      // We should make Messages app visible, otherwise switchToApp won't work.
+      messagesApp.launch();
+      storage.setMessagesStorage(messagesStorage);
+
+      // Switch to system app to be sure that notification is generated.
+      client.switchToFrame();
+      notificationList.waitForNotificationCount(1);
+
+      // Close Message app since we want to run fresh instance.
+      messagesApp.close();
+
+      removeNotification();
+
+      // When notication is removed Messages is run to handle corresponding
+      // system message, in this case app should be in valid state i.e. it
+      // should have correctly initialized inbox view.
+      var inboxView = new InboxView(client);
+      var conversations = inboxView.conversations;
+
+      assert.equal(conversations.length, 1);
+      assert.equal(conversations[0].title, smsMessage.sender);
+
+      // Let's make sure that we still can receive new messages.
       messagesApp.sendSystemMessage('sms-received', smsMessage);
 
       openNotification();

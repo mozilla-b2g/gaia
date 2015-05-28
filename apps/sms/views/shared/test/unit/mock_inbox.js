@@ -20,7 +20,7 @@ var MockInboxView = {
   showOptions: function() {},
   startEdit: function() {},
   cancelEdit: function() {},
-  renderThreads: () => Promise.resolve(),
+  renderThreads: () => {},
   createThread: function() {},
   insertThreadContainer: function() {},
   onMessageSending: function() {},
@@ -34,5 +34,5 @@ var MockInboxView = {
   updateContactsInfo: function() {},
   mark: function() {},
   markReadUnread: () => {},
-  whenReady: () => Promise.resolve()
+  once: () => {}
 };
