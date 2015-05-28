@@ -1,8 +1,9 @@
 {
-  "L10N_OPTIMIZATION_BLACKLIST": {
+  "CONCAT_LOCALES_BLACKLIST": {
     "pdfjs": "*"
   },
   "JS_AGGREGATION_BLACKLIST": {
+    "pdfjs": "*"
   },
   "INLINE_GLOBAL_VAR_WHITELIST": {
     "system": [ "net_error.html" ]
@@ -12,6 +13,7 @@
     "smart-system": [ "net_error.html" ]
   },
   "PRETRANSLATION_BLACKLIST": {
+    "pdfjs": "*",
     "keyboard": ["index.html"]
   }
 }
