@@ -56,7 +56,13 @@
   };
 
   DialerAgent.prototype.freeCallscreenWindow = function() {
-    if (this._callscreenWindow) {
+    var numOpenLines = this._telephony.calls.length +
+      (this._telephony.conferenceGroup.calls.length ? 1 : 0);
+
+    /* Free the callscreen window unless there are active calls or the
+     * callscreen is visible. */
+    if (this._callscreenWindow && (numOpenLines === 0) &&
+        !this._callscreenWindow.isVisible()) {
       this._callscreenWindow.free();
     }
   };
