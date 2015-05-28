@@ -13,7 +13,7 @@ task:
     - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
-    image: quay.io/mozilla/gaia-taskenv:0.8.9
+    image: quay.io/mozilla/gaia-taskenv:0.8.10-aus
     cache:
       gaia-misc-caches: /home/tester/caches/
     env:

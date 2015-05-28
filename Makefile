@@ -736,6 +736,7 @@ git-gaia-node-modules: gaia_node_modules.revision
 npm-cache:
 	@echo "Using pre-deployed cache."
 	npm rebuild marionette-js-runner
+	npm install
 	touch -c node_modules
 
 node_modules: gaia_node_modules.revision

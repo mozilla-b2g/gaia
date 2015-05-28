@@ -25,6 +25,7 @@ workdir /home/tester
 
 run git config --global user.email "gaia@mozilla.com"
 run git config --global user.name "gaia-taskenv"
+run npm install npm@latest -g
 run npm install taskcluster-vcs@2.3.4 -g
 run npm install taskcluster-npm-cache@1.1.12 -g
 

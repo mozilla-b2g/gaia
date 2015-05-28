@@ -10,7 +10,7 @@ task:
 
   payload:
     maxRunTime: 600
-    image: quay.io/mozilla/gaia-taskenv:0.8.9
+    image: quay.io/mozilla/gaia-taskenv:0.8.10-aus
     command:
       - entrypoint
       - ./bin/ci run linters
