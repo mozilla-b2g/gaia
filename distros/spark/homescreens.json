@@ -12,10 +12,12 @@
       ["apps", "clock"],
       ["apps", "settings"]
     ], [
-      ["outoftree_apps", "foxfooding"],
-      ["outoftree_apps", "bugzillalite"],
-      ["outoftree_apps", "buddyup"],
-      ["outoftree_apps", "webmaker"]
+      ["apps", "customizer-launcher"],
+      ["apps", "directory"],
+      ["apps", "studio"],
+      ["apps", "sharing"],
+      ["outoftree_apps", "webmaker"],
+      ["outoftree_apps", "bugzillalite"]
     ], [
       ["apps", "calendar"],
       ["apps", "music"],
@@ -28,7 +30,6 @@
       ["outoftree_apps", "yammer"]
     ], [
       ["apps", "costcontrol"],
-      ["apps", "fm"],
       ["outoftree_apps", "notes"],
       ["outoftree_apps", "calculator"],
       ["outoftree_apps", "hexgl"],

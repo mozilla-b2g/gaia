@@ -13,7 +13,6 @@ apps/email
 apps/emergency-call
 apps/findmydevice
 apps/fl
-apps/fm
 apps/ftu
 apps/gallery
 apps/keyboard
@@ -32,4 +31,5 @@ apps/verticalhome
 apps/video
 apps/wallpaper
 apps/wappush
+distros/spark/apps/*
 distros/spark/outoftree_apps/*
