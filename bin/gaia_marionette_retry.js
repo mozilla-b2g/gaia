@@ -157,50 +157,37 @@ function runTests(filenames, args, retry) {
  * If we do have remaining retries, then we recur with one fewer retry.
  */
 function runTest(filename, args, retry) {
-  var command = path.resolve(__dirname, '../node_modules/.bin/marionette-mocha');
-  args = args.concat(filename);
+  return new Promise(function(resolve, reject) {
+    var command = path.resolve(__dirname, '../node_modules/.bin/marionette-mocha');
+    args = args.concat(filename);
 
-  var jsmarionette = spawn(command, args);
-  var stdout = '', stderr = '';
+    var jsmarionette = spawn(command, args);
+    var stdout = '',
+        stderr = '';
 
-  jsmarionette.stdout.on('data', function(data) {
-    // Write a dot when jsmarionette says something to avoid timing out.
-    stdout += data.toString();
-    process.stdout.write('.');
-  });
-
-  jsmarionette.stderr.on('data', function(data) {
-    console.error('[marionette-mocha] ' + data);
-    stderr += data.toString();
-  });
-
-  var fail = failAfterNoOutput(jsmarionette, 30000 /* ms */);
-  var result = new Promise(function(resolve, reject) {
-    function onclose(code) {
-      process.stdout.write('\n');
-      return !testDidFailOnTbpl(stdout, stderr) ?
-        resolve({ code: code, stdout: stdout, stderr: stderr }) :
-        reject(new Error('Test failed with exit code ' +
-                         code + '. Output:\n' + stdout));
-    }
-
-    jsmarionette.on('close', onclose);
-    fail.catch(function() {
-      // Make sure we stop listening to 'close' if we timeout.
-      jsmarionette.removeListener('close', onclose);
+    jsmarionette.stdout.on('data', function(data) {
+      // Write a dot when jsmarionette says something to avoid timing out.
+      stdout += data.toString();
+      process.stdout.write('.');
     });
-  });
 
-  return Promise.race([fail, result]).catch(function(error) {
-    if (retry === 0) {
-      console.error('Test failed with ' + error + ', no retries remaining.');
-      process.exit(1);
-    }
+    jsmarionette.stderr.on('data', function(data) {
+      console.error('[marionette-mocha] ' + data);
+      stderr += data.toString();
+    });
 
-    // Retry and then resolve with the retry result.
-    console.log(filename + ' failed. Will retry.');
-    return sleep(5000 /* ms */).then(function() {
-      return runTest(filename, args, retry - 1);
+    jsmarionette.on('close', function(code) {
+      process.stdout.write('\n');
+      if (retry === 0 || !testDidFailOnTbpl(stdout, stderr)) {
+        // No more retries or the test actually passed.
+        return resolve({ code: code, stdout: stdout, stderr: stderr });
+      }
+
+      // Retry and then resolve with the retry result.
+      console.log(filename + ' failed. Will retry.');
+      setTimeout(function() {
+        runTest(filename, args, retry - 1).then(resolve);
+      }, 5 * 1000);
     });
   });
 }
@@ -210,29 +197,6 @@ function runTest(filename, args, retry) {
  */
 function testDidFailOnTbpl(stdout, stderr) {
   return stdout.indexOf('TEST-UNEXPECTED-FAIL') !== -1;
-}
-
-function failAfterNoOutput(proc, timeout) {
-  return new Promise(function(resolve, reject) {
-    var timeoutId = null;
-
-    // Call reject when we haven't heard from the process within timeout.
-    function resetTimeout() {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(function() {
-        return reject(new Error('Child silent for >= ' + timeout + 'ms'));
-      }, timeout);
-    }
-
-    proc.stdout.on('data', resetTimeout);
-    proc.stderr.on('data', resetTimeout);
-    proc.on('close', function() {
-      proc.stdout.removeListener('data', resetTimeout);
-      proc.stderr.removeListener('data', resetTimeout);
-    });
-
-    resetTimeout();
-  });
 }
 
 function forEach(obj, fn) {
@@ -253,12 +217,6 @@ function indexOf(arr, fn) {
   });
 
   return result;
-}
-
-function sleep(millis) {
-  return new Promise(function(resolve) {
-    setTimeout(resolve, millis);
-  });
 }
 
 if (require.main === module) {
