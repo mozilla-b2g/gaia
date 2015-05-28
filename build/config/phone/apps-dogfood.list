@@ -1,6 +1,3 @@
 apps/*
 external-dogfood-apps/*
 outoftree_apps/*
-dev_apps/crystalskull
-dev_apps/cubevid
-dev_apps/feedback
