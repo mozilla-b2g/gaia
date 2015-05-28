@@ -917,5 +917,18 @@
     ],
     "dictFileSize": 1328,
     "preloaded": true
+  },
+  {
+    "id": "yo",
+    "name": "Yorùbá",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 1402,
+    "preloaded": true
   }
 ]

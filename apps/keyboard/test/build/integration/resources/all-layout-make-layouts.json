@@ -931,6 +931,19 @@
     "preloaded": true
   },
   {
+    "id": "yo",
+    "name": "Yorùbá",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 1402,
+    "preloaded": true
+  },
+  {
     "id": "zh-Hans-Handwriting",
     "name": "手写简体",
     "imEngineId": "handwriting",

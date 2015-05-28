@@ -25,7 +25,7 @@ suite('Keyboard layouts building tests', function() {
          'en', 'en-Colemak', 'en-Dvorak', 'en-Neo', 'eo', 'es',
          'es-Americas', 'fr', 'fr-CA', 'fr-CH', 'fr-Dvorak-bepo',
          'he', 'hi', 'ko', 'mk', 'my', 'pl', 'pt-BR', 'ta', 'te',
-         'th', 'vi-Qwerty', 'vi-Telex', 'vi-Typewriter', 'wo',
+         'th', 'vi-Qwerty', 'vi-Telex', 'vi-Typewriter', 'wo', 'yo',
          'zh-Hans-Pinyin'];
       var zipPath = path.join(process.cwd(), 'profile',
         'webapps', 'keyboard.gaiamobile.org', 'application.zip');
