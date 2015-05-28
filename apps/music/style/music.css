@@ -192,126 +192,12 @@ progress.hidden { display: none; }
   text-overflow: ellipsis;
 }
 
-body.search-from-tiles-mode #title,
-body.search-from-list-mode #title {
-  transform: translateY(-5rem);
-}
-
-body.player-mode #tabs {
-  z-index: 1;
-}
-
-body.tiles-mode #views {
-  transform: translateX(0%);
-}
-
-body.tiles-mode #views-tiles,
-body.search-from-tiles-mode #views-tiles {
-  visibility: visible;
-}
-
-body.search-from-tiles-mode #views-tiles-anchor {
-  visibility: hidden;
-}
-
-body.search-from-tiles-mode #views {
-  transform: translateX(0%) translateY(-5rem);
-}
-
-body.list-mode #views,
-body.picker-mode #views {
-  transform: translateX(-100%);
-}
-
-body.search-from-list-mode #views {
-  transform: translateX(-100%) translateY(-5rem);
-}
-
-body.list-mode #views-list,
-body.picker-mode #views-list,
-body.search-from-list-mode #views-list {
-  visibility: visible;
-}
-
-body.search-from-list-mode #views-list-anchor {
-  visibility: hidden;
-}
-
-body.search-from-tiles-mode #search,
-body.search-from-list-mode #search {
-  transform: translateY( calc(-100%) );
-  visibility: visible;
-}
-
-body.search-from-tiles-mode #views-tiles,
-body.search-from-list-mode #views-list {
-  overflow-y: hidden;
-}
-
-body.tiles-mode #tabs,
-body.list-mode #tabs,
-body.sublist-mode #tabs {
-  display: inherit;
-}
-
-body.sublist-mode #views {
-  transform: translateX(-200%);
-  z-index: 20;
-}
-
-body.sublist-mode #views-sublist {
-  visibility: visible;
-}
-
-body.player-mode #views {
-  transform: translateX(-300%);
-  z-index: 30;
-}
-
-body.player-mode #views-player {
-  visibility: visible;
-}
-
-body.picker-mode #views {
-  transition: transform 0ms ease;
-}
-
-body.picker-mode .view {
-  transition: visibility 0ms;
-}
-
-body.player-mode #title-player,
-body.picker-mode #title-player {
-  display: none !important;
-}
-
-#title-player[hidden],
-#title-done[hidden] {
-  display: none;
-}
-
-#title {
-  transition: transform 300ms ease;
-}
-
 #views {
   position: relative;
   width: 100%;
   height: calc(100% - 5rem);
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #0E1214;
   transition: transform 300ms ease;
-}
-
-#search {
-  position: relative;
-  width: 100%;
-  height: calc(100% - 3.7rem);
-  overflow-x: hidden;
-  overflow-y: auto;
-  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
-  z-index: 10;
-  transition: transform 300ms ease, visibility 300ms;
-  visibility: hidden;
 }
 
 #views-search-no-result {
@@ -334,20 +220,48 @@ body.picker-mode #title-player {
 .view {
   width: 100%;
   height: auto;
+  /*
+   * The visibility property makes the transition blinks
+   * Need to think some way to fix this
+   */
   visibility: hidden;
-  transition: visibility 300ms;
+  z-index: 1;
+}
+
+.animated {
+  transition: visibility 300ms, transform 300ms ease, opacity 300ms ease;
+}
+
+.next {
+  transform: translateX(100%);
+  visibility: hidden;
+  opacity: 0;
+}
+
+.current {
+  transform: translateX(0%);
+  visibility: visible;
+  opacity: 1;
+}
+
+.previous {
+  transform: translateX(-100%);
+  visibility: hidden;
+  opacity: 0;
 }
 
 #views-tiles,
 #views-list,
 #views-sublist,
-#views-player {
+#views-player,
+#views-search {
   position: absolute;
 }
 
 #views-tiles,
 #views-list,
-#views-sublist {
+#views-sublist,
+#views-search {
   height: calc(100% - 4.5rem);
   overflow-x: hidden;
   overflow-y: auto;
@@ -355,21 +269,11 @@ body.picker-mode #title-player {
   will-change: scroll-position;
 }
 
-#views-tiles {
-  transform: translateX(0);
-}
-
-#views-list {
-  transform: translateX(100%);
-}
-
-#views-sublist {
-  transform: translateX(200%);
-  overflow-y: hidden;
+body.picker-mode #views-list {
+  height: 100%;
 }
 
 #views-player {
-  transform: translateX(300%);
   height: 100%;
   overflow: hidden;
 }
@@ -379,12 +283,23 @@ body.picker-mode #title-player {
   visibility: visible;
 }
 
+#views-search {
+  height: calc(100% + 5rem);
+}
+
 /* Make sure the tiles and list views are tall enough that we can scroll the
  * search box off-screen. */
 #views-tiles-anchor,
 #views-list-anchor {
   min-height: 100%;
   transition: visibility 300ms;
+}
+
+#views-search-anchor {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  height: calc(100% - 3.7rem);
 }
 
 /*
@@ -425,7 +340,8 @@ body.picker-mode #title-player {
 
 #views-sublist-anchor {
   width: 100%;
-  height: calc(100% - 8rem);
+  height: 100%;
+  min-height: 100%;
   will-change: scroll-position;
 }
 
@@ -451,7 +367,6 @@ html[dir="rtl"] #views-sublist-header-controls {
   background-clip: content-box;
   background-size: cover;
   background-position: center center;
-  opacity: 0;
 }
 
 #views-sublist-header-name {
@@ -1000,6 +915,15 @@ html[dir="rtl"] .rating-star {
   bottom: 0;
   width: 100%;
   z-index: 20;
+  transition: transform 300ms ease, opacity 300ms ease;
+}
+
+#tabs.away {
+  opacity: 0;
+  transform: translateY(4.5rem);
+}
+
+body.picker-mode #tabs {
   display: none;
 }
 

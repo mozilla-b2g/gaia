@@ -1,15 +1,12 @@
 /* exported App */
-/* global initDB, MusicComms, TitleBar, TabBar, asyncStorage, TilesView,
-          ListView, SubListView, SearchView, ModeManager, MODE_PICKER,
-          MODE_TILES, MODE_LIST, reparsingMetadata */
+/* global initDB, MusicComms, TitleBar, TabBar, TilesView,
+          ListView, ModeManager, MODE_PICKER, MODE_TILES, MODE_LIST,
+          reparsingMetadata, LazyLoader */
 'use strict';
 
 /*
  * This is Music Application of Gaia
  */
-
-// Key for store the player options of repeat and shuffle
-var SETTINGS_OPTION_KEY = 'settings_option_key';
 
 var App = (function() {
   var app;
@@ -25,10 +22,6 @@ var App = (function() {
       initDB();
 
       TitleBar.init();
-      TilesView.init();
-      ListView.init();
-      SubListView.init();
-      SearchView.init();
       TabBar.init();
 
       setStartMode();
@@ -54,26 +47,21 @@ var App = (function() {
         var activityName = a.source.name;
 
         if (activityName === 'pick') {
+          // Display the correct ui for the pick activity.
+          document.body.classList.add('picker-mode');
           app.pendingPick = a;
         }
-      });
 
-      TabBar.option = 'title';
-      ModeManager.start(MODE_PICKER);
+        TabBar.option = 'title';
+        ModeManager.start(MODE_PICKER);
+      });
     } else {
-      TabBar.option = 'mix';
-      ModeManager.start(MODE_TILES);
-
-      // The player options will be used later,
-      // so let's get them first before the player is loaded.
-      asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
-        app.playerSettings = settings;
-      });
-
       // The done button must be removed when we are not in picker mode
       // because the rules of the header building blocks
-      var doneButton = document.getElementById('title-done');
-      doneButton.parentNode.removeChild(doneButton);
+      TitleBar.doneButton.parentNode.removeChild(TitleBar.doneButton);
+
+      TabBar.option = 'mix';
+      ModeManager.start(MODE_TILES);
     }
   }
 
@@ -182,12 +170,24 @@ var App = (function() {
       if (document.URL.indexOf('#pick') === -1) {
         // We need to wait to init the music comms until the UI is fully loaded
         // because the init of music comms could slow down the startup time.
-        MusicComms.init();
+        setupCommunications();
       }
 
       if (callback) {
         callback();
       }
+    });
+  }
+
+  function setupCommunications() {
+    var files = [
+      'shared/js/bluetooth_helper.js',
+      'shared/js/media/remote_controls.js',
+      'js/communications.js',
+    ];
+
+    LazyLoader.load(files, function() {
+      MusicComms.init();
     });
   }
 

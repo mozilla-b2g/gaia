@@ -35,10 +35,7 @@ var TilesView = {
     this.index = 0;
 
     this.view.addEventListener('click', this);
-    this.view.addEventListener('input', this);
-    this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
-    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function tv_clean() {
@@ -161,36 +158,12 @@ var TilesView = {
   },
 
   handleEvent: function tv_handleEvent(evt) {
-    function tv_resetSearch(self) {
-      evt.preventDefault();
-      self.searchInput.value = '';
-      SearchView.clearSearch();
-    }
     var target = evt.target;
     if (!target) {
       return;
     }
 
     switch (evt.type) {
-      case 'touchend':
-        // Check for tap on parent form element with event origin as clear buton
-        // This is workaround for a bug in input_areas BB. See Bug 920770
-        if (target.id === 'views-tiles-search') {
-          var id = evt.originalTarget.id;
-          if (id && id !== 'views-tiles-search-input' &&
-            id !== 'views-tiles-search-close') {
-            tv_resetSearch(this);
-            return;
-          }
-        }
-
-        if (target.id === 'views-tiles-search-clear') {
-          tv_resetSearch(this);
-          return;
-        }
-
-        break;
-
       case 'click':
         if (target.id === 'views-tiles-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
@@ -208,26 +181,13 @@ var TilesView = {
       case 'focus':
         if (target.id === 'views-tiles-search-input') {
           if (ModeManager.currentMode !== MODE_SEARCH_FROM_TILES) {
-            ModeManager.push(MODE_SEARCH_FROM_TILES);
-            SearchView.search(target.value);
+            ModeManager.start(MODE_SEARCH_FROM_TILES, function() {
+              // Let the search view gets the focus.
+              SearchView.searchInput.focus();
+            });
           }
         }
 
-        break;
-
-      case 'input':
-        if (target.id === 'views-tiles-search-input') {
-          SearchView.search(target.value);
-        }
-
-        break;
-
-      case 'keypress':
-        if (target.id === 'views-tiles-search-input') {
-          if (evt.keyCode === evt.DOM_VK_RETURN) {
-            evt.preventDefault();
-          }
-        }
         break;
 
       default:

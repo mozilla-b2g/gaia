@@ -16,6 +16,10 @@ var TitleBar = {
     return document.getElementById('title-player');
   },
 
+  get doneButton() {
+    return document.getElementById('title-done');
+  },
+
   get scanProgress() {
     return document.getElementById('scan-progress');
   },
