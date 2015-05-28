@@ -41,7 +41,7 @@
     "marionette-plugin-forms": "0.0.4",
     "marionette-profile-builder": "0.0.4",
     "marionette-js-logger": "0.2.1",
-    "marionette-js-runner": "1.1.0",
+    "marionette-js-runner": "1.1.1",
     "marionette-settings-api": "~0.1.0",
     "mime": "^1.2.11",
     "mocha": "1.20.0",
