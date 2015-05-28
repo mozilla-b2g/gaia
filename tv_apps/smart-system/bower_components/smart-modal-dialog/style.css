@@ -20,6 +20,23 @@
   display: inline-block;
 }
 
+.modal-dialog .modal-dialog-message-container {
+  width: 96rem;
+  position: relative;
+  margin: 0 auto 13rem auto;
+  word-wrap: break-word;
+}
+
+.modal-dialog .modal-dialog-custom-group {
+  color: #ffffff;
+  text-align: center;
+  font-family: Fira Sans;
+}
+
+.modal-dialog .modal-dialog-custom-group.hidden {
+  display: none;
+}
+
 .modal-dialog .modal-dialog-message {
   font-size: 3.8rem;
   font-style: italic;
@@ -27,7 +44,7 @@
   text-align: center;
   font-family: Fira Sans;
   font-weight: 100;
-  margin-bottom: 13rem;
+  margin-bottom: 3.4rem;
 }
 
 .modal-dialog .modal-dialog-message.hidden {

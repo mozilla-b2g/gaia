@@ -23,19 +23,20 @@ ModalDialog.Selector = Object.freeze({
     message: '.appWindow.active .modal-dialog-message'
   },
   prompt: {
-    dialog: '.appWindow.active .modal-dialog-prompt',
-    ok: '.appWindow.active .modal-dialog-prompt-ok',
-    cancel: '.appWindow.active .modal-dialog-prompt-cancel',
-    title: '.appWindow.active .modal-dialog-prompt-title',
-    message: '.appWindow.active .modal-dialog-prompt-message',
+    dialog: '.appWindow.active .smart-modal-dialog-container .modal-dialog',
+    ok: '.appWindow.active .modal-dialog-button-group' +
+        ' smart-button:nth-child(2)',
+    cancel: '.appWindow.active .modal-dialog-button-group' +
+            ' smart-button:nth-child(1)',
+    message: '.appWindow.active .modal-dialog-message'
   },
   confirm: {
     dialog: '.appWindow.active .smart-modal-dialog-container .modal-dialog',
     ok: '.appWindow.active .modal-dialog-button-group' +
-        ' smart-button:nth-child(1)',
+        ' smart-button:nth-child(2)',
     cancel: '.appWindow.active .modal-dialog-button-group' +
-            ' smart-button:nth-child(2)',
-    message: '.appWindow.active .modal-dialog-message',
+            ' smart-button:nth-child(1)',
+    message: '.appWindow.active .modal-dialog-message'
   }
 });
 

@@ -89,11 +89,11 @@
       });
     };
 
-    this.elementClasses = [ 'prompt', 'prompt-ok', 'prompt-cancel',
-      'prompt-input', 'prompt-message', 'prompt-title',
+    this.elementClasses = [
       'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
       'custom-prompt', 'custom-prompt-message', 'custom-prompt-buttons',
-      'custom-prompt-checkbox'];
+      'custom-prompt-checkbox'
+    ];
 
 
     // Loop and add element with camel style name to Modal Dialog attribute.
@@ -117,12 +117,6 @@
       }
     }
 
-    // For prompt dialog
-    this.elements.promptInput.addEventListener('keyup', function(evt) {
-      if (evt.keyCode === KeyEvent.DOM_VK_RETURN) {
-        this.confirmHandler(evt);
-      }
-    }.bind(this));
     // XXX: Since we are trying to keep enter key actioning on keyup; submit
     // event should be prevented since it works on keydown. We can remove this
     // workaround after changing containers from <form> to other DOM elements.
@@ -156,30 +150,6 @@
     return '<smart-dialog class="modal-dialog" esc-close="false"' +
             ' id="' + this.CLASS_NAME + this.instanceID + '"' +
             ' smart-bubbles="true">' +
-            '<form class="modal-dialog-prompt generic-dialog" ' +
-              'role="dialog" tabindex="-1">' +
-              '<div class="modal-dialog-message-container inner">' +
-                '<h3 class="modal-dialog-prompt-title"></h3>' +
-              '</div>' +
-              '<div class="modal-dialog-section-container">' +
-                '<section>' +
-                  '<div class="inner">' +
-                    '<p>' +
-                      '<span class="modal-dialog-prompt-message"></span>' +
-                      '<input class="modal-dialog-prompt-input" />' +
-                    '</p>' +
-                  '</div>' +
-                  '<menu data-items="2">' +
-                    '<smart-button type="circle-text" ' +
-                      'class="modal-dialog-prompt-cancel cancel"' +
-                      'data-l10n-id="cancel">Cancel</smart-button>' +
-                    '<smart-button type="circle-text" ' +
-                      'class="modal-dialog-prompt-ok confirm affirmative" ' +
-                      'data-l10n-id="ok">OK</smart-button>' +
-                  '</menu>' +
-                '</section>' +
-              '</div>' +
-            '</form>' +
             '<form class="modal-dialog-select-one generic-dialog" ' +
               'role="dialog" ' +
               'tabindex="-1">' +
@@ -242,7 +212,8 @@
     focusManager.removeUI(this);
   };
 
-  // Handle alert/confirm modal dialog that uses smart-modal-dialog component
+  // Handle alert/confirm/prompt modal dialog that
+  // uses smart-modal-dialog component
   AppModalDialog.prototype._show = function amd_show(evt) {
     var self = this;
     var message = evt.detail.message || '';
@@ -279,15 +250,52 @@
         };
 
         if (evt.yesText) {
-          option.buttonSettings[0].textRaw = evt.yesText;
+          option.buttonSettings[1].textRaw = evt.yesText;
         } else {
-          option.buttonSettings[0].textL10nId = 'ok';
+          option.buttonSettings[1].textL10nId = 'ok';
         }
 
         if (evt.noText) {
-          option.buttonSettings[1].textRaw = evt.noText;
+          option.buttonSettings[0].textRaw = evt.noText;
         } else {
-          option.buttonSettings[1].textL10nId = 'cancel';
+          option.buttonSettings[0].textL10nId = 'cancel';
+        }
+        break;
+
+      case 'prompt':
+        var promptInput = document.createElement('gaia-text-input');
+        promptInput.value = evt.detail.initialValue;
+        promptInput.setAttribute('clearable', true);
+        promptInput.addEventListener('keyup', function(evt) {
+          if (evt.keyCode === KeyEvent.DOM_VK_RETURN) {
+            self.smartModalDialog.buttonElements[1].click();
+          }
+        });
+
+        option = {
+          message: { textRaw: message },
+          customElementSettings: {
+            element: promptInput,
+            defaultFocus: true
+          },
+          buttonSettings: [{
+            onClick: self.confirmHandler.bind(self)
+          },{
+            onClick: self.cancelHandler.bind(self)
+          }],
+          onCancel: self.cancelHandler.bind(self)
+        };
+
+        if (evt.yesText) {
+          option.buttonSettings[1].textRaw = evt.yesText;
+        } else {
+          option.buttonSettings[1].textL10nId = 'ok';
+        }
+
+        if (evt.noText) {
+          option.buttonSettings[0].textRaw = evt.noText;
+        } else {
+          option.buttonSettings[0].textL10nId = 'cancel';
         }
         break;
     }
@@ -309,7 +317,6 @@
     var evt = this.events[0];
 
     var message = evt.detail.message || '';
-    var title = this._getTitle(evt.detail.title);
     var elements = this.elements;
 
     var type = evt.detail.promptType || evt.detail.type;
@@ -320,44 +327,12 @@
     switch (type) {
       case 'alert':
       case 'confirm':
+      case 'prompt':
         this._show(evt);
         this.isSmartModalDialog = true;
         // Early return because we don't need to handle key navigation and
         // smart-dialog open in smart-modal-dialog.
         return;
-
-      case 'prompt':
-        this.isSmartModalDialog = false;
-        elements.prompt.classList.add('visible');
-        elements.promptInput.value = evt.detail.initialValue;
-        elements.promptTitle.textContent = title;
-        elements.promptMessage.textContent = message;
-
-        if (evt.yesText) {
-          elements.promptOk.removeAttribute('data-l10n-id');
-          elements.promptOk.textContent = evt.yesText;
-        } else {
-          elements.promptOk.setAttribute('data-l10n-id', 'ok');
-        }
-
-        if (evt.noText) {
-          elements.promptCancel.removeAttribute('data-l10n-id');
-          elements.promptCancel.textContent = evt.noText;
-        } else {
-          elements.promptCancel.setAttribute('data-l10n-id', 'cancel');
-        }
-
-        var horizontalButtonNavigation = new SimpleKeyNavigation();
-        horizontalButtonNavigation.start(
-          [elements.promptCancel, elements.promptOk],
-          SimpleKeyNavigation.DIRECTION.HORIZONTAL,
-          {isChild: true});
-        this.simpleKeyNavigation.start(
-          [elements.promptInput, horizontalButtonNavigation],
-          SimpleKeyNavigation.DIRECTION.VERTICAL,
-          {target: elements.prompt});
-        elements.promptInput.select();
-        break;
 
       case 'selectone':
         this.isSmartModalDialog = false;
@@ -490,8 +465,8 @@
       var type = evt.detail.promptType || evt.detail.type;
       switch (type) {
         case 'prompt':
-          evt.detail.returnValue = elements.promptInput.value;
-          elements.prompt.classList.remove('visible');
+          evt.detail.returnValue =
+            this.smartModalDialog.customElementGroup.firstChild.value;
           break;
 
         case 'confirm':
@@ -537,7 +512,6 @@
         case 'prompt':
           /* return null when click cancel */
           evt.detail.returnValue = null;
-          elements.prompt.classList.remove('visible');
           break;
 
         case 'confirm':
