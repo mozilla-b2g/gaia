@@ -147,6 +147,12 @@ gaia-header [data-icon] > span {
   font-size: 0; /* 1 */
 }
 
+ul li > a.menu-item > * {
+  overflow: unset;
+  text-overflow: unset;
+  white-space: initial;
+}
+
 /******************************************************************************
  * Frame section
  */
