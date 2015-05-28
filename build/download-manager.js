@@ -97,13 +97,14 @@ var DownloadManager = {
     var downloader = Cc['@mozilla.org/network/downloader;1']
                    .createInstance(Ci.nsIDownloader);
     downloader.init(listener, tmpFile);
+    var principal = Services.scriptSecurityManager.getSystemPrincipal();
 
     let channel = Services.io.newChannel2(url,
                                           null,
                                           null,
-                                          null,      // aLoadingNode
-                                          Services.scriptSecurityManager.getSystemPrincipal(),
-                                          null,      // aTriggeringPrincipal
+                                          null,  // aLoadingNode
+                                          principal,
+                                          null,  // aTriggeringPrincipal
                                           Ci.nsILoadInfo.SEC_NORMAL,
                                           Ci.nsIContentPolicy.TYPE_OTHER);
 
