@@ -34,15 +34,6 @@
     // refresh the minimised status bar so that it looks like the maximised.
     this.publish('changed');
   };
-
-  GeolocationIcon.prototype.view = function view() {
-    return `<div id="statusbar-geolocation"
-              class="sb-icon sb-icon-geolocation"
-              hidden role="listitem"
-              data-l10n-id="statusbarGeolocation">
-            </div>`;
-  };
-
   exports.GeolocationIcon = GeolocationIcon;
 }(window));
 

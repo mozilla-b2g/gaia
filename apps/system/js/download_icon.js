@@ -61,14 +61,5 @@
   DownloadIcon.prototype.shouldDisplay = function() {
     return this.downloadsCount !== 0;
   };
-
-  DownloadIcon.prototype.view = function view() {
-    return `<!-- See note on <img> above. -->
-              <img id="statusbar-download"
-              src="style/statusbar/images/system-downloads.png"
-              class="sb-icon-download" hidden role="listitem"
-              data-l10n-id="statusbarDownload">`;
-  };
-
   exports.DownloadIcon = DownloadIcon;
 }(window));

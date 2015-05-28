@@ -25,32 +25,32 @@ var StatusBar = {
   // In each subarray:
   // * Index 0 is the icon id
   // * Index 1 is the icon element width or null if size is variable
-
-  PRIORITIES: {
-    'emergency-callback': { width: 16 + 4, order: 12},
-    'battery': {width: 25 + 4, order: 2},
-    'recording': {width: 16 + 4, order: 16},
-    'airplane-mode': {width: 16 + 4, order: 3},
-    'wifi': {width: 16 + 4, order: 4},
-    'mobile-connection': {width: null, order: 5}, // Width can change
-    'time': {width: null, order: 1}, // Width can change
-    'debugging': {width: 16 + 4, order: 11},
-    'download': {width: 16 + 4, order: 13},
-    'geolocation': {width: 16 + 4, order: 17},
-    'network-activity': {width: 16 + 4, order: 6},
-    'tethering': {width: 16 + 4, order: 7},
-    'bluetooth-transfer': {width: 16 + 4, order: 9},
-    'bluetooth': {width: 16 + 4, order: 8},
-    'nfc': {width: 16 + 4, order: 10},
-    'usb': {width: 16 + 4, order: 14},
-    'alarm': {width: 16 + 4, order: 22},
-    'bluetooth-headphone': {width: 16 + 4, order: 19},
-    'mute': {width: 16 + 4, order: 15},
-    'call-forwardings': {width: null, order: 18}, // Width can change
-    'playing': {width: 16 + 4, order: 21},
-    'headphone': {width: 16 + 4, order: 20},
-    'operator': {width: null, order: 23} // Only visible in the maximized.
-  },
+  PRIORITIES: [
+    ['emergency-callback', 16 + 4],
+    ['battery', 25 + 4],
+    ['recording', 16 + 4],
+    ['airplane-mode', 16 + 4],
+    ['wifi', 16 + 4],
+    ['mobile-connection', null], // Width can change
+    ['time', null], // Width can change
+    ['debugging', 16 + 4],
+    ['download', 16 + 4],
+    ['geolocation', 16 + 4],
+    ['network-activity', 16 + 4],
+    ['tethering', 16 + 4],
+    ['bluetooth-transfer', 16 + 4],
+    ['bluetooth', 16 + 4],
+    ['nfc', 16 + 4],
+    ['usb', 16 + 4],
+    ['alarm', 16 + 4],
+    ['bluetooth-headphone', 16 + 4],
+    ['mute', 16 + 4],
+    ['call-forwardings', null], // Width can change
+    ['playing', 16 + 4],
+    ['headphone', 16 + 4],
+    //['sms', 16 + 4], // Not currently implemented.
+    ['operator', null] // Only visible in the maximized status bar.
+  ],
 
   /* Whether or not status bar is actively updating or not */
   active: true,
@@ -75,6 +75,76 @@ var StatusBar = {
     }
   },
 
+  /* jshint ignore: start */
+  iconView: function() {
+    return `<!-- System -->
+    <div id="statusbar-alarm" class="sb-icon sb-icon-alarm"
+      hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
+    <div id="statusbar-playing" class="sb-icon sb-icon-playing"
+      hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
+    <div id="statusbar-headphone" class="sb-icon sb-icon-headphone"
+      hidden role="listitem" data-l10n-id="statusbarHeadphone"></div>
+    <div id="statusbar-bluetooth-headphone"
+      class="sb-icon sb-icon-bluetooth-headphone"
+      role="listitem" hidden data-l10n-id="statusbarBluetoothHeadphone"></div>
+    <div id="statusbar-call-forwardings" class="sb-icon-call-forwarding"
+      hidden role="presentation"></div>
+    <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation"
+      hidden role="listitem" data-l10n-id="statusbarGeolocation"></div>
+    <div id="statusbar-recording" class="sb-icon sb-icon-recording"
+      hidden role="listitem" data-l10n-id="statusbarRecording"></div>
+    <div id="statusbar-mute" class="sb-icon sb-icon-mute"
+      hidden role="listitem"></div>
+    <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden role="listitem"
+      data-l10n-id="statusbarUsb"></div>
+    <!-- See note on <img> above. -->
+    <img id="statusbar-download"
+      src="style/statusbar/images/system-downloads.png"
+      class="sb-icon-download" hidden role="listitem"
+      data-l10n-id="statusbarDownload">
+    <div id="statusbar-emergency-callback"
+      class="sb-icon sb-icon-emergency-callback"
+      hidden role="listitem"
+      data-l10n-id="statusbarEmergencyCallback"></div>
+    <div id="statusbar-debugging" data-icon="bug"
+      class="sb-icon sb-icon-debugging" hidden role="listitem"></div>
+    <!-- Connectivity -->
+    <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem"
+      data-l10n-id="statusbarNfc"></div>
+    <div id="statusbar-bluetooth-transfer"
+      class="sb-icon sb-icon-bluetooth-transfer"
+      role="listitem" hidden
+      data-l10n-id="statusbarBluetoothTransfer"></div>
+    <div id="statusbar-bluetooth"
+      class="sb-icon sb-icon-bluetooth" hidden role="listitem"></div>
+    <div id="statusbar-tethering"
+      class="sb-icon sb-icon-tethering" hidden role="listitem"></div>
+    <!-- HACK: We use images instead of divs to enforce allocation of a
+         dedicated layer just for this animated icons, remove after
+         https://bugzil.la/717872 gets fixed -->
+    <img id="statusbar-network-activity"
+      src="style/statusbar/images/network-activity.png"
+      class="sb-icon-network-activity" hidden role="listitem"
+      data-l10n-id="statusbarNetworkActivity">
+    <div id="statusbar-mobile-connection"
+      class="sb-icon-mobile-connection" hidden role="presentation"></div>
+    <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
+      data-level="4" hidden role="listitem"></div>
+    <div id="statusbar-airplane-mode"
+      class="sb-icon sb-icon-airplane-mode" hidden role="listitem"
+      data-l10n-id="statusbarAirplaneMode"></div>
+    <!-- General -->
+    <div id="statusbar-battery" class="sb-icon sb-icon-battery"
+      role="listitem"></div>
+    <div id="statusbar-time" class="sb-icon-time" role="listitem"></div>`;
+  },
+  /* jshint ignore: end */
+
+  renderIcons: function() {
+    this.statusbarIconsMax.insertAdjacentHTML('afterbegin', this.iconView());
+    window.dispatchEvent(new CustomEvent('statusbariconrendered'));
+  },
+
   init: function sb_init() {
     this.getAllElements();
 
@@ -89,7 +159,6 @@ var StatusBar = {
     window.addEventListener('iconshown', this);
     window.addEventListener('iconhidden', this);
     window.addEventListener('iconchanged', this);
-    window.addEventListener('iconrendered', this);
     window.addEventListener('iconwidthchanged', this);
     window.addEventListener('ftuskip', this);
     window.addEventListener('ftudone', this);
@@ -155,15 +224,9 @@ var StatusBar = {
       case 'ftuskip':
         this.finishInit();
         break;
-      case 'iconrendered':
-        icon = evt.detail;
-        var iconObj = this.PRIORITIES[icon.dashPureName];
-        var order = iconObj && iconObj.order ? iconObj.order : 1000;
-        icon.setOrder(order * -1);
-        break;
       case 'iconcreated':
         icon = evt.detail;
-        this.PRIORITIES[icon.dashPureName].icon = icon;
+        this._icons.set(icon.name, icon);
         break;
       case 'iconchanged':
         this.cloneStatusbar();
@@ -366,13 +429,14 @@ var StatusBar = {
 
   // Update the width of the date element. Called when the content changed.
   updateOperatorWidth: function(icon) {
-    var iconObj = this.PRIORITIES.operator;
-    if (!iconObj) {
-      return false;
-    }
+    this.PRIORITIES.some(function(iconObj) {
+      if (iconObj[0] === 'operator') {
+        iconObj[1] = this._getWidthFromDomElementWidth(icon);
+        return true;
+      }
 
-    iconObj.width = this._getWidthFromDomElementWidth(icon);
-    return true;
+      return false;
+    }, this);
   },
 
   _paused: 0,
@@ -451,9 +515,9 @@ var StatusBar = {
     var maximizedStatusBarWidth = this._getMaximizedStatusBarWidth();
     var minimizedStatusBarWidth = this._minimizedStatusBarWidth;
 
-    Object.keys(this.PRIORITIES).forEach(function(iconId) {
-      var iconObj = this.PRIORITIES[iconId];
-      var icon = iconObj.icon;
+    this.PRIORITIES.forEach(function sb_updateIconVisibilityForEach(iconObj) {
+      var iconId = iconObj[0];
+      var icon = this._icons.get(this.toClassName(iconId) + 'Icon');
 
       if (!icon) {
         return;
@@ -490,11 +554,11 @@ var StatusBar = {
   },
 
   _getIconWidth: function sb_getIconWidth(iconObj) {
-    var iconWidth = iconObj.width;
+    var iconWidth = iconObj[1];
 
     if (!iconWidth) {
       // The width of this icon is not static.
-      var icon = iconObj.icon;
+      var icon = this._icons.get(this.toClassName(iconObj[0]) + 'Icon');
       if (!icon || !icon.element) {
         return 0;
       }
@@ -529,11 +593,13 @@ var StatusBar = {
   },
 
   getAllElements: function sb_getAllElements() {
+    this._icons = new Map();
 
     this.element = document.getElementById('statusbar');
     this.background = document.getElementById('statusbar-background');
     this.statusbarIcons = document.getElementById('statusbar-icons');
     this.statusbarIconsMax = document.getElementById('statusbar-maximized');
+    this.renderIcons();
     this.screen = document.getElementById('screen');
     this.topPanel = document.getElementById('top-panel');
 

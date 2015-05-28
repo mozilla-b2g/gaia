@@ -416,20 +416,24 @@ suite('system/Statusbar', function() {
       var iconWithPriority2;
       var iconWithPriority3;
       var getMaximizedStatusBarWidthStub;
-      var priorities;
 
       setup(function() {
-        priorities = [];
         // Reset all the icons to be hidden.
-        Object.keys(StatusBar.PRIORITIES).forEach(function(iconId) {
-          priorities.push(iconId);
-          StatusBar.PRIORITIES[iconId].icon =
-            new MockBaseIcon(StatusBar.toClassName(iconId) + 'Icon');
+        StatusBar.PRIORITIES.forEach(function(iconObj) {
+          var iconId = iconObj[0];
+          StatusBar._icons.set(StatusBar.toClassName(iconId) + 'Icon',
+            new MockBaseIcon(StatusBar.toClassName(iconId) + 'Icon'));
         });
 
-        iconWithPriority1 = StatusBar.PRIORITIES[priorities[0]].icon;
-        iconWithPriority2 = StatusBar.PRIORITIES[priorities[1]].icon;
-        iconWithPriority3 = StatusBar.PRIORITIES[priorities[2]].icon;
+        iconWithPriority1 =
+          StatusBar._icons.get(
+            StatusBar.toClassName(StatusBar.PRIORITIES[0][0]) + 'Icon');
+        iconWithPriority2 =
+          StatusBar._icons.get(StatusBar.toClassName(
+            StatusBar.PRIORITIES[1][0]) + 'Icon');
+        iconWithPriority3 =
+          StatusBar._icons.get(StatusBar.toClassName(
+            StatusBar.PRIORITIES[2][0]) + 'Icon');
 
         this.sinon.stub(iconWithPriority1, 'isVisible').returns(true);
         this.sinon.stub(iconWithPriority2, 'isVisible').returns(true);
@@ -438,14 +442,12 @@ suite('system/Statusbar', function() {
         // The maximized status bar can fit icons with priority 1 and 2.
         getMaximizedStatusBarWidthStub = sinon.stub(StatusBar,
           '_getMaximizedStatusBarWidth', function() {
-            var first = priorities[0];
-            var second = priorities[1];
-            return StatusBar._getIconWidth(StatusBar.PRIORITIES[first]) +
-              StatusBar._getIconWidth(StatusBar.PRIORITIES[second]);
+            return StatusBar._getIconWidth(StatusBar.PRIORITIES[0]) +
+              StatusBar._getIconWidth(StatusBar.PRIORITIES[1]);
           });
         // The minimized status bar can only fit the highest priority icon.
         StatusBar._minimizedStatusBarWidth = StatusBar._getIconWidth(
-          StatusBar.PRIORITIES[priorities[0]]);
+          StatusBar.PRIORITIES[0]);
 
         StatusBar._updateIconVisibility();
       });
@@ -459,13 +461,13 @@ suite('system/Statusbar', function() {
 
         // Icon #1 is always visible.
         assert.isFalse(StatusBar.statusbarIcons.classList
-          .contains('sb-hide-' + priorities[0]));
+          .contains('sb-hide-' + StatusBar.PRIORITIES[0][0]));
         // Icon #2 is visible in the maximized status bar.
         assert.isFalse(StatusBar.statusbarIcons.classList
-          .contains('sb-hide-' + priorities[1]));
+          .contains('sb-hide-' + StatusBar.PRIORITIES[1][0]));
         // Icon #3 is hidden in the maximized status bar.
         assert.isTrue(StatusBar.statusbarIcons.classList
-          .contains('sb-hide-' + priorities[2]));
+          .contains('sb-hide-' + StatusBar.PRIORITIES[2][0]));
       });
 
       test('the minimized status bar should hide icon #2', function() {
@@ -473,56 +475,59 @@ suite('system/Statusbar', function() {
 
         // Icon #1 is always visible.
         assert.isFalse(StatusBar.statusbarIconsMin.classList
-          .contains('sb-hide-' + priorities[0]));
+          .contains('sb-hide-' + StatusBar.PRIORITIES[0][0]));
         // Icon #2 is hidden in the minimized status bar.
         assert.isTrue(StatusBar.statusbarIconsMin.classList
-          .contains('sb-hide-' + priorities[1]));
+          .contains('sb-hide-' + StatusBar.PRIORITIES[1][0]));
         // Icon #2 is not hidden in the minimized status bar.
         assert.isFalse(StatusBar.statusbarIconsMin.classList
-          .contains('sb-hide-' + priorities[2]));
+          .contains('sb-hide-' + StatusBar.PRIORITIES[2][0]));
       });
     });
   });
 
   suite('_getIconWidth', function() {
     setup(function() {
-      Object.keys(StatusBar.PRIORITIES).forEach(function(iconId) {
-        StatusBar.PRIORITIES[iconId].icon =
-          new MockBaseIcon(StatusBar.toClassName(iconId) + 'Icon');
+      StatusBar.PRIORITIES.forEach(function(iconObj, i) {
+        StatusBar._icons.set(StatusBar.toClassName(iconObj[0]) + 'Icon',
+          new MockBaseIcon(StatusBar.toClassName(iconObj[0]) + 'Icon'));
       });
     });
     test('should return the stored value for fixed size icons', function() {
       // Get the index of emergency cb icon in StatusBar.PRIORITIES.
       var iconIndex;
-      Object.keys(StatusBar.PRIORITIES).some(function(iconId) {
-        if (iconId === 'emergency-callback') {
-          iconIndex = iconId;
+      StatusBar.PRIORITIES.some(function(iconObj, i) {
+        if (iconObj[0] === 'emergency-callback') {
+          iconIndex = i;
           return true;
         }
         return false;
       });
 
-      var emergencyIcon = StatusBar.PRIORITIES['emergency-callback'].icon;
-      this.sinon.stub(emergencyIcon, 'isVisible').returns(true);
+      var emergencyCbNotificationIcon =
+        StatusBar._icons.get('EmergencyCallbackIcon');
+      this.sinon.stub(emergencyCbNotificationIcon, 'isVisible').returns(true);
 
-      assert.ok(StatusBar.PRIORITIES[iconIndex].width);
-      assert.equal(StatusBar.PRIORITIES[iconIndex].width, 16 + 4);
+      assert.ok(StatusBar.PRIORITIES[iconIndex][1]);
+      assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
+          16 + 4);
     });
 
     test('should compute the width of variable size icons', function() {
       // Get the index of time icon in StatusBar.PRIORITIES.
       var iconIndex;
-      Object.keys(StatusBar.PRIORITIES).some(function(iconId) {
-        if (iconId === 'time') {
-          iconIndex = iconId;
+      StatusBar.PRIORITIES.some(function(iconObj, i) {
+        if (iconObj[0] === 'time') {
+          iconIndex = i;
           return true;
         }
         return false;
       });
 
-      var timeIcon = StatusBar.PRIORITIES.time.icon;
+      var timeIcon = StatusBar._icons.get('TimeIcon');
       this.sinon.stub(timeIcon, 'isVisible').returns(true);
 
+      assert.isNull(StatusBar.PRIORITIES[iconIndex][1]);
       assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
         timeIcon.element.clientWidth);
     });
@@ -680,6 +685,7 @@ suite('system/Statusbar', function() {
 
   suite('Icon events', function() {
     setup(function() {
+      StatusBar._icons = new Map();
       this.sinon.stub(StatusBar, '_updateIconVisibility');
       this.sinon.stub(StatusBar, 'cloneStatusbar');
     });
@@ -689,7 +695,7 @@ suite('system/Statusbar', function() {
       window.dispatchEvent(new CustomEvent('iconcreated', {
         detail: icon
       }));
-      assert.ok(StatusBar.PRIORITIES['mobile-connection'].icon);
+      assert.isTrue(StatusBar._icons.has('MobileConnectionIcon'));
     });
 
     test('icon is shown', function() {
@@ -1071,49 +1077,49 @@ suite('system/Statusbar', function() {
     var realClientWidth;
 
     setup(function() {
-      Object.keys(StatusBar.PRIORITIES).forEach(function(iconId) {
-        StatusBar.PRIORITIES[iconId].icon =
-          new MockBaseIcon(StatusBar.toClassName(iconId) + 'Icon');
-        if (iconId === 'operator') {
-          labelIndex = iconId;
+      StatusBar.PRIORITIES.forEach(function(iconObj, index) {
+        StatusBar._icons.set(StatusBar.toClassName(iconObj[0]) + 'Icon',
+          new MockBaseIcon(StatusBar.toClassName(iconObj[0]) + 'Icon'));
+        if (iconObj[0] === 'operator') {
+          labelIndex = index;
         }
       });
       realClientWidth = Object.getOwnPropertyDescriptor(
-        StatusBar.PRIORITIES.operator.icon.element,
+        StatusBar._icons.get('OperatorIcon').element,
         'clientWidth');
     });
 
     teardown(function() {
       if (realClientWidth) {
-        Object.defineProperty(StatusBar.PRIORITIES.operator.icon.element,
+        Object.defineProperty(StatusBar._icons.get('OperatorIcon').element,
           'clientWidth', realClientWidth);
       } else {
-        delete StatusBar.PRIORITIES.operator.icon.element.clientWidth;
+        delete StatusBar._icons.get('OperatorIcon').element.clientWidth;
       }
     });
 
     test('should have the cache invalidated when width changes', function() {
-      var label = StatusBar.PRIORITIES.operator.icon.element;
+      var label = StatusBar._icons.get('OperatorIcon').element;
 
       Object.defineProperty(label, 'clientWidth', {
         configurable: true,
         get: function() { return 10; }
       });
       StatusBar.handleEvent(new CustomEvent('iconwidthchanged', {
-        detail: StatusBar.PRIORITIES.operator.icon
+        detail: StatusBar._icons.get('OperatorIcon')
       }));
 
-      var originalWidth = StatusBar.PRIORITIES[labelIndex].width;
+      var originalWidth = StatusBar.PRIORITIES[labelIndex][1];
 
       Object.defineProperty(label, 'clientWidth', {
         configurable: true,
         get: function() { return 20; }
       });
       StatusBar.handleEvent(new CustomEvent('iconwidthchanged', {
-        detail: StatusBar.PRIORITIES.operator.icon
+        detail: StatusBar._icons.get('OperatorIcon')
       }));
 
-      assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex].width);
+      assert.notEqual(originalWidth, StatusBar.PRIORITIES[labelIndex][1]);
     });
   });
 

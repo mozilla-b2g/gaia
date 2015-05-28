@@ -37,13 +37,5 @@
     this.previousCharging = battery.charging;
     this.publish('changed');
   };
-
-  BatteryIcon.prototype.view = function view() {
-    return `<div id="statusbar-battery"
-              class="sb-icon sb-icon-battery"
-              role="listitem">
-            </div>`;
-  };
-
   exports.BatteryIcon = BatteryIcon;
 }(window));

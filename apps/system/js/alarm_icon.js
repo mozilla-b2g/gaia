@@ -10,14 +10,5 @@
   AlarmIcon.prototype.shouldDisplay = function() {
     return this.manager.enabled;
   };
-
-  AlarmIcon.prototype.view = function view() {
-    return `<div id="statusbar-alarm"
-                class="sb-icon sb-icon-alarm"
-                hidden role="listitem"
-                data-l10n-id="statusbarAlarm">
-            </div>`;
-  };
-
   exports.AlarmIcon = AlarmIcon;
 }(window));

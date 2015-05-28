@@ -10,14 +10,5 @@
   BluetoothTransferIcon.prototype.shouldDisplay = function() {
     return this.manager.isOPPProfileConnected;
   };
-
-  BluetoothTransferIcon.prototype.view = function view() {
-    return `<div id="statusbar-bluetooth-transfer"
-              class="sb-icon sb-icon-bluetooth-transfer"
-              role="listitem" hidden
-              data-l10n-id="statusbarBluetoothTransfer">
-            </div>`;
-  };
-
   exports.BluetoothTransferIcon = BluetoothTransferIcon;
 }(window));

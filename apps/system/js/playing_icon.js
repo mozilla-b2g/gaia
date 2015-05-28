@@ -14,14 +14,5 @@
     return this.manager.currentChannel === 'content' &&
            !Service.query('RecordingIcon.isVisible');
   };
-
-  PlayingIcon.prototype.view = function view() {
-    return `<div id="statusbar-playing"
-              class="sb-icon sb-icon-playing"
-              hidden role="listitem"
-              data-l10n-id="statusbarPlaying">
-            </div>`;
-  };
-
   exports.PlayingIcon = PlayingIcon;
 }(window));

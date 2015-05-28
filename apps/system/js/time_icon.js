@@ -16,14 +16,6 @@
   TimeIcon.prototype._stop = function() {
     this.clock.stop();
   };
-
-  TimeIcon.prototype.render = function() {
-    if (!this.rendered) {
-      BaseIcon.prototype.render.apply(this);
-      this.rendered = true;
-    }
-  };
-
   TimeIcon.prototype._getTimeFormat = function(timeFormat) {
     if (this.manager._ampm) {
       timeFormat = timeFormat.replace('%p', '<span>%p</span>');
@@ -33,13 +25,6 @@
 
     return timeFormat;
   };
-
-  TimeIcon.prototype.view = function view() {
-    return `<div id="statusbar-time"
-              class="sb-icon-time" role="listitem">
-            </div>`;
-  };
-
   TimeIcon.prototype.update = function(now) {
     if (!this.element) {
       return;

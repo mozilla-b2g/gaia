@@ -30,14 +30,5 @@
     }.bind(this), this.kActiveIndicatorTimeout);
     this.publish('changed');
   };
-
-  RecordingIcon.prototype.view = function view() {
-    return `<div id="statusbar-recording"
-              class="sb-icon sb-icon-recording"
-              hidden role="listitem"
-              data-l10n-id="statusbarRecording">
-            </div>`;
-  };
-
   exports.RecordingIcon = RecordingIcon;
 }(window));

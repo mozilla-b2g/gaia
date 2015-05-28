@@ -1,4 +1,4 @@
-/* global OperatorIcon, MocksHelper, MockMobileOperator,
+/* global OperatorIcon, MocksHelper, MockMobileOperator, 
           MockL10n, MockNavigatorMozMobileConnections,
           MockMutationObserver */
 'use strict';
@@ -50,9 +50,7 @@ suite('system/OperatorIcon', function() {
   });
 
   test('Mutation observer callbacks should publish widthchanged', function() {
-    subject.publish.restore();
     subject.onrender();
-    this.sinon.stub(subject, 'publish');
     MockMutationObserver.mLastObserver.mTriggerCallback();
     assert.isTrue(subject.publish.calledWith('widthchanged'));
     MockMutationObserver.mLastObserver.mTriggerCallback();

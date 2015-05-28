@@ -19,7 +19,6 @@ marionette('Status Bar icons - Prioritization', function() {
 
   test('should display important icons first', function() {
     system.waitForLaunch(SETTINGS_APP);
-    statusBar.init();
 
     var hasHiddenIcon = false;
 
@@ -29,12 +28,13 @@ marionette('Status Bar icons - Prioritization', function() {
     // Force the reprioritization all the icons.
     system.request('NetworkActivityIcon:hide');
     system.request('NetworkActivityIcon:show');
-    statusBar.Icons.forEach(function(iconName) {
-      console.log(iconName);
+
+    StatusBar.Icons.forEach(function(iconName) {
       if (iconName === 'operator') {
         // Label is a special case, so ignoring for now.
         return;
       }
+
       var iconElement = statusBar.minimised[iconName].icon;
       // The icon is not running.
       if (iconElement.getAttribute('class').indexOf('active') < 0) {
