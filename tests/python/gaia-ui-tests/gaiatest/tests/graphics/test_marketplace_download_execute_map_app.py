@@ -71,10 +71,10 @@ class TestSearchMarketplaceAndInstallApp(GaiaImageCompareTestCase):
         self.take_screenshot()
 
         # move around
-        self.scroll(self._map_locator, 'left', 100)
+        self.scroll(self._map_locator, 'right', 100)
         time.sleep(self.draw_wait_time)
         self.take_screenshot()
-        self.scroll(self._map_locator, 'up', 100)
+        self.scroll(self._map_locator, 'down', 100)
         time.sleep(self.draw_wait_time)
         self.take_screenshot()
 

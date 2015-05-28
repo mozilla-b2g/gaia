@@ -1,0 +1,16 @@
+@charset "utf-8";
+/*
+Template Name: Darkness
+Author: <a href="http://www.os-templates.com/">OS Templates</a>
+Author URI: http://www.os-templates.com/
+Licence: Free to use under our free template licence terms
+Licence URI: http://www.os-templates.com/template-terms
+File: Tables CSS
+*/
+
+table{width:100%; border-collapse:collapse; table-layout:auto; vertical-align:top; margin-bottom:15px; border:1px solid #999999;}
+table thead th{color:#FFFFFF; background-color:#000000; border:1px solid #999999; border-collapse:collapse; text-align:center; table-layout:auto; vertical-align:middle;}
+table tbody td{vertical-align:top; border-collapse:collapse; border-left:1px solid #999999; border-right:1px solid #999999;}
+table thead th, table tbody td{padding:5px; border-collapse:collapse;}
+table tbody tr.light{color:#CCCCCC; background-color:#333333;}
+table tbody tr.dark{color:#CCCCCC; background-color:#1E1E1E;}

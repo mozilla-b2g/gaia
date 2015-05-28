@@ -205,13 +205,13 @@ class GaiaImageCompareTestCase(GaiaTestCase):
         perform release afterwards """
 
         screen = self.marionette.find_element(*locator)
-        vector = 0
+        vector = -1
         axis = 'x'
         if direction == 'up' or direction == 'down':
             axis = 'y'
         #
         # define direction.
         if direction == 'up' or direction == 'left':
-            vector = -1
+            vector = 0
 
         smooth_scroll(self.marionette, screen, axis, vector, distance, increments)

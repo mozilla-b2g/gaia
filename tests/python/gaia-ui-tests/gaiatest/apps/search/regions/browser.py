@@ -19,6 +19,7 @@ class Browser(Base):
 
     _back_button_locator = (By.CSS_SELECTOR, '.back-button')
     _forward_button_locator = (By.CSS_SELECTOR, '.forward-button')
+    _reload_button_locator = (By.CSS_SELECTOR, '.reload-button')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -37,7 +38,9 @@ class Browser(Base):
         return "loading" in self._root_element.value_of_css_property('class')
 
     def wait_for_page_to_load(self, timeout=30):
+        reload_button = self._root_element.find_element(*self._reload_button_locator)
         Wait(self.marionette, timeout).until(lambda m: not self.is_page_loading)
+        Wait(self.marionette, timeout).until(lambda m: reload_button.is_displayed())
 
     def tap_menu_button(self):
         self._root_element.find_element(*self._menu_button_locator).tap()
@@ -77,3 +80,10 @@ class Browser(Base):
         current_url = self.url
         self._root_element.find_element(*self._forward_button_locator).tap()
         Wait(self.marionette).until(lambda m: self.url != current_url)
+
+    def tap_reload_button(self):
+        button = self._root_element.find_element(*self._reload_button_locator)
+        # when the page is loading, this button will not be visible
+        Wait(self.marionette).until(expected.element_displayed(button))
+        button.tap()
+

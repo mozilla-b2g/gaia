@@ -42,10 +42,10 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
         # scroll back and forth in different display mode
         self.change_orientation('landscape-primary')
         self.take_screenshot()
-        self.scroll(image._current_image_locator, 'left', 400)
+        self.scroll(image._current_image_locator, 'right', 400)
         self.change_orientation('portrait-primary')
         self.take_screenshot()
-        self.scroll(image._current_image_locator, 'right', 400)
+        self.scroll(image._current_image_locator, 'left', 400)
 
         # flip A LOT
         for x in range(0, 4):
@@ -56,7 +56,7 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
         # do pinch zoom while filpping the phone
         self.pinch(image._current_frame_locator, 'in', 20)
         self.take_screenshot()
-        self.scroll(image._current_frame_locator, 'left', 300)
+        self.scroll(image._current_frame_locator, 'right', 300)
         self.take_screenshot()
         self.change_orientation('landscape-primary')
         self.pinch(image._current_frame_locator, 'out', 50)
@@ -67,9 +67,9 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
         self.take_screenshot()
 
         # go back and forth with flicking then exit gallery app
-        self.scroll(image._current_frame_locator, 'left', 150)
-        self.take_screenshot()
         self.scroll(image._current_frame_locator, 'right', 150)
+        self.take_screenshot()
+        self.scroll(image._current_frame_locator, 'left', 150)
         self.take_screenshot()
         self.apps.kill(gallery.app)
         time.sleep(2)

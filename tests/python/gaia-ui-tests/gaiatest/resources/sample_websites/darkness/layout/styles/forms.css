@@ -1,0 +1,26 @@
+@charset "utf-8";
+/*
+Template Name: Darkness
+Author: <a href="http://www.os-templates.com/">OS Templates</a>
+Author URI: http://www.os-templates.com/
+Licence: Free to use under our free template licence terms
+Licence URI: http://www.os-templates.com/template-terms
+File: Forms CSS
+*/
+
+form, fieldset, legend{margin:0; padding:0; border:none;}
+legend{display:none;}
+
+/* ----------------------------------------------Forms in Content Area------------------------------------- */
+
+#container #respond{display:block; width:100%;}
+#container #respond input{width:170px; margin:5px 5px 0 0; padding:2px; border:1px solid #CCCCCC;}
+#container #respond textarea{width:98%; padding:2px; border:1px solid #CCCCCC; overflow:auto;}
+#container #respond p{margin:5px 0;}
+#container #respond #submit, #container #respond #reset{margin:0; padding:5px; color:#666666; background-color:#F7F7F7; border:1px solid #CCCCCC; cursor:pointer;}
+
+/* ----------------------------------------------Newsletter------------------------------------- */
+
+#footer form{display:block; width:300px; margin:0; padding:10px 0; border:none;}
+#footer input{display:block; float:left; width:245px; margin:0 5px 0 0; padding:5px; color:#666666; background-color:#FFFFFF; border:1px solid #DBDBDB; font-family:Verdana, Arial, Helvetica, sans-serif; font-size:12px;}
+#footer input#news_go{width:auto; height:auto; margin:0; padding:4px;}
