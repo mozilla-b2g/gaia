@@ -42,6 +42,8 @@ suite('tv-epg/epg', function() {
     createMockElement('program-list');
     createMockElement('program-title');
     createMockElement('program-detail');
+    createMockElement('time-marker-container');
+    createMockElement('time-marker');
   }
 
   suiteSetup(function() {
@@ -122,12 +124,17 @@ suite('tv-epg/epg', function() {
   suite('_updateProgramSlot', function() {
     var columnElement;
     var textElement;
+    var progressElement;
 
     setup(function() {
       var rowElement = document.createElement('UL');
       columnElement = document.createElement('LI');
       textElement = document.createElement('DIV');
+      textElement.classList.add('title');
+      progressElement = document.createElement('DIV');
+      progressElement.classList.add('background-progress');
       columnElement.appendChild(textElement);
+      columnElement.appendChild(progressElement);
       rowElement.appendChild(columnElement);
       epg.programListElement.appendChild(rowElement);
     });
@@ -203,7 +210,14 @@ suite('tv-epg/epg', function() {
 
     setup(function() {
       this.sinon.stub(epg, '_setTitlePadding');
-      fetchPrograms = this.sinon.stub(epg.epgController, 'fetchPrograms');
+      fetchPrograms = this.sinon.stub(epg.epgController, 'fetchPrograms')
+                          .returns({
+                            then: function() {
+                              return {
+                                catch: function() {}
+                              };
+                            }
+                          });
       columnElement = document.createElement('DIV');
       rowElement = document.createElement('DIV');
       rowElement.appendChild(columnElement);
@@ -286,6 +300,7 @@ suite('tv-epg/epg', function() {
       programElement = document.createElement('DIV');
       programElement.dataset.startTime = 0;
       titleElement = document.createElement('DIV');
+      titleElement.classList.add('title');
       programElement.appendChild(titleElement);
       epg.visibleTimeOffset = 1;
       epg.epgController.timelineOffset = 0;

@@ -92,6 +92,7 @@ a:hover, a:active, a:focus {
   float: left;
   overflow: hidden;
   position: relative;
+  height: calc(100% - 4rem);
 }
 
 #channel-list {
@@ -128,6 +129,25 @@ a:hover, a:active, a:focus {
   float: left;
   width: calc(100% - 46.8rem);
   height: 100%;
+  overflow: hidden;
+}
+
+#time-marker-container {
+  position: absolute;
+  transition: left 0.3s;
+  z-index: 1;
+}
+
+#time-marker {
+  width: 0;
+  height: 0;
+  position: relative;
+  border-left: 1rem solid transparent;
+  border-right: 1rem solid transparent;
+  border-top: 1.5rem solid white;
+  top: 3.1rem;
+  left: -1rem;
+  transition: transform 0.3s;
 }
 
 #timeline-container {
@@ -195,24 +215,18 @@ a:hover, a:active, a:focus {
 #program-list > ul > li {
   display: inline-block;
   position: relative;
-  width: 33.8rem;
+  width: 33.5rem;
   font-size: 2.5rem;
   line-height: 10.8rem;
   overflow: hidden;
   padding-bottom: 0.3rem;
+  padding-right: 0.3rem;
   border-bottom: 0.1rem #5e5e5e solid;
   margin-top: 0.3rem;
   background-color: #404040;
-  height: 10.8rem;
-}
-
-#program-list > ul > li > div {
-  margin-left: 2rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: calc(100% - 2rem);
+  height: 11.2rem;
+  background-clip: content-box;
   box-sizing: border-box;
-  position: relative;
 }
 
 #program-list > ul > li:after {
@@ -258,7 +272,29 @@ a:hover, a:active, a:focus {
 }
 
 #program-list > ul > li[data-duration="7"] {
-  width: 236.6rem;
+  width: 236.9rem;
+}
+
+#program-list > ul > li > .title {
+  margin-left: 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: calc(100% - 2rem);
+  box-sizing: border-box;
+  position: absolute;
+}
+
+#program-list > ul > li > .background-progress {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.2);
+  height: calc(100% - 0.3rem);
+  transform: scaleX(0);
+  transform-origin: 0;
+  width: calc(100% - 0.3rem);
+}
+
+#program-list > ul > li > .background-progress.smooth {
+  transition: transform 0.3s;
 }
 
 #bottom-container {
