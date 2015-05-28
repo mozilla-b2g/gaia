@@ -15,6 +15,13 @@ WeatherWidget.prototype = {
       this.elements.panel.appendChild(clock);
     }.bind(this));
     this.elements.panel.dataset.count = this.clocks.length;
+
+    // XXX: we leave a focusable element here for determining focus issues.
+    // This wiget has no focusable element by design, but we need to test
+    // dashboard ability on setting focus. These lines should be removed after
+    // other widgets are landed.
+    this.clocks[0].tabIndex = 1;
+    this.clocks[0].focus();
   }
 };
 

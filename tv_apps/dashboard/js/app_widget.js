@@ -23,8 +23,8 @@
 
   AppWidget.prototype = {
     _setHash: function aw_setHash(hash) {
-      this.iframe.src =
-                    this.iframe.src.split('#')[0] + (hash ? ('#' + hash) : '');
+      // Note: The '#' should always present to prevent reload
+      this.iframe.src = this.iframe.src.split('#')[0] + '#' + hash;
     },
 
     toggleExpand: function aw_setExpand(value) {
@@ -34,6 +34,10 @@
         this.isExpanded = value;
       }
       this._setHash(this.isExpanded ? 'expand' : '');
+    },
+
+    focus: function aw_focus() {
+      this.iframe.focus();
     }
   };
   exports.AppWidget = AppWidget;
