@@ -18,7 +18,9 @@ class TestSMSContactInput(GaiaTestCase):
 
         new_message = self.messages.tap_create_new_message()
 
-        keyboard = new_message.tap_recipient_section()
+        from gaiatest.apps.keyboard.app import Keyboard
+        keyboard = Keyboard(self.marionette)
+
         keyboard.send('074')
         keyboard.send(';')
 
