@@ -29,7 +29,7 @@ function Host(socketPath, process, log) {
   process.on('error', this.onerror);
   process.on('exit', this.onexit);
 
-  var restart = this.restart;
+  var restart = this.restart.bind(this);
   process.stdout.on('data', function(chunk) {
     if (chunk.toString().indexOf('Exception') !== -1) {
       restart();
