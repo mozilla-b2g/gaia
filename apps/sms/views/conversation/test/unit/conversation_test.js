@@ -3888,20 +3888,17 @@ suite('conversation.js >', function() {
 
     suite('message context menu actions >', function() {
       setup(function() {
-        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        this.sinon.spy(ConversationView, 'navigateToComposer');
+
         link.dispatchEvent(contextMenuEvent);
       });
 
-      test('forward message', function() {
-        this.sinon.stub(ConversationView, 'navigateToComposer');
+      test('correctly forwards message', function() {
+        // Call forward menu item method.
+        MockOptionMenu.calls[0].items[0].method(messageId);
 
-        var forwardOption = MockOptionMenu.calls[0].items[0];
-        forwardOption.method(messageId);
-
-        assert.equal(forwardOption.l10nId, 'forward');
         sinon.assert.calledWith(
-          ConversationView.navigateToComposer,
-          { forward: { messageId: messageId } }
+          ConversationView.navigateToComposer, { messageId: messageId }
         );
       });
     });
@@ -4297,8 +4294,7 @@ suite('conversation.js >', function() {
             items[1].method();
 
             sinon.assert.calledWith(
-              ConversationView.navigateToComposer,
-              { activity: { number: 'a@b.com' } }
+              ConversationView.navigateToComposer, { number: 'a@b.com' }
             );
 
             // The third item is a "createNewContact" option
@@ -4509,7 +4505,7 @@ suite('conversation.js >', function() {
           items[1].method();
 
           sinon.assert.calledWith(
-            ConversationView.navigateToComposer, { activity: { number: '999' } }
+            ConversationView.navigateToComposer, { number: '999' }
           );
 
           // The third and last item is a "cancel" option
@@ -4638,16 +4634,15 @@ suite('conversation.js >', function() {
         this.sinon.spy(Navigation, 'toPanel');
         this.sinon.spy(ConversationView, 'discardDraft');
         this.sinon.stub(Utils, 'confirm');
-        this.sinon.stub(Compose, 'isEmpty');
+        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        this.sinon.stub(MessageManager, 'findThreadFromNumber');
       });
 
       test('immediately navigates to Composer if no unsent message',
       function(done) {
-        Compose.isEmpty.returns(true);
-
         ConversationView.navigateToComposer({ test: 'test' }).then(() => {
           sinon.assert.calledWith(
-            Navigation.toPanel, 'composer', { test: 'test' }
+            Navigation.toPanel, 'composer', { activity: { test: 'test' } }
           );
           sinon.assert.notCalled(Utils.confirm);
         }).then(done, done);
@@ -4667,10 +4662,36 @@ suite('conversation.js >', function() {
           );
           sinon.assert.called(ConversationView.discardDraft);
           sinon.assert.calledWith(
-            Navigation.toPanel, 'composer', { test: 'test' }
+            Navigation.toPanel, 'composer', { activity: { test: 'test' } }
           );
         }).then(done, done);
       });
+
+      test('navigates to Composer if can not find conversation for number',
+      function(done) {
+        MessageManager.findThreadFromNumber.withArgs('+123').returns(
+          Promise.reject()
+        );
+
+        ConversationView.navigateToComposer({ number: '+123' }).then(() => {
+          sinon.assert.calledWith(
+            Navigation.toPanel, 'composer', { activity: { number: '+123' } }
+          );
+        }).then(done, done);
+      });
+
+      test('navigates to Conversation if can find conversation for number',
+      function(done) {
+          MessageManager.findThreadFromNumber.withArgs('+123').returns(
+            Promise.resolve(100)
+          );
+
+          ConversationView.navigateToComposer({ number: '+123' }).then(() => {
+            sinon.assert.calledWith(
+              Navigation.toPanel, 'thread', { id: 100, focusComposer: true }
+            );
+          }).then(done, done);
+        });
 
       test('stays in the current panel if user wants to keep unsent message',
       function(done) {
@@ -6288,27 +6309,39 @@ suite('conversation.js >', function() {
       this.sinon.stub(Compose, 'fromMessage');
       this.sinon.stub(Compose, 'focus');
       this.sinon.stub(ConversationView.recipients, 'focus');
+      this.sinon.stub(Contacts, 'findByAddress');
+      this.sinon.stub(MessageManager, 'getMessage');
     });
 
-    test('from activity with unknown contact', function(done) {
-      var activity = {
-        number: '998',
-        contact: null
-      };
+    test('with unknown contact', function(done) {
+      var activity = { number: '998' };
+
+      Contacts.findByAddress.withArgs(activity.number).returns(
+        Promise.resolve([])
+      );
+
       ConversationView.handleActivity(activity).then(() => {
-        assert.equal(ConversationView.recipients.numbers.length, 1);
-        assert.equal(ConversationView.recipients.numbers[0], '998');
+        var recipients = ConversationView.recipients.list;
+        assert.equal(recipients.length, 1);
+        assert.equal(recipients[0].number, '998');
+        assert.equal(recipients[0].source, 'manual');
         sinon.assert.calledWith(Compose.fromMessage, activity);
       }).then(done, done);
     });
 
-    test('from activity with known contact', function(done) {
-      var activity = {
-        contact: new MockContact()
-      };
+    test('with known contact', function(done) {
+      var activity = { number: '+346578888888' };
+      var contacts = MockContact.list();
+
+      Contacts.findByAddress.withArgs(activity.number).returns(
+        Promise.resolve(contacts)
+      );
+
       ConversationView.handleActivity(activity).then(() => {
-        assert.equal(ConversationView.recipients.numbers.length, 1);
-        assert.equal(ConversationView.recipients.numbers[0], '+346578888888');
+        var recipients = ConversationView.recipients.list;
+        assert.equal(recipients.length, 1);
+        assert.equal(recipients[0].number, '+346578888888');
+        assert.equal(recipients[0].source, 'contacts');
         sinon.assert.calledWith(Compose.fromMessage, activity);
       }).then(done, done);
     });
@@ -6316,20 +6349,39 @@ suite('conversation.js >', function() {
     test('with message body', function(done) {
       var activity = {
         number: '998',
-        contact: null,
         body: 'test'
       };
+
+      Contacts.findByAddress.withArgs(activity.number).returns(
+        Promise.resolve([])
+      );
+
       ConversationView.handleActivity(activity).then(() => {
         sinon.assert.calledWith(Compose.fromMessage, activity);
+      }).then(done, done);
+    });
+
+    test('with message id', function(done) {
+      // This the case when user would like to forward existing message.
+      var message = MockMessages.mms();
+
+      MessageManager.getMessage.withArgs(message.id).returns(
+        Promise.resolve(message)
+      );
+
+      ConversationView.handleActivity({ messageId: message.id }).then(() => {
+        sinon.assert.calledWith(Compose.fromMessage, message);
+        sinon.assert.notCalled(Compose.focus);
+        sinon.assert.called(ConversationView.recipients.focus);
       }).then(done, done);
     });
 
     test('No contact and no number', function(done) {
       var activity = {
         number: null,
-        contact: null,
         body: 'Youtube url'
       };
+
       ConversationView.handleActivity(activity).then(() => {
         assert.equal(ConversationView.recipients.numbers.length, 0);
         sinon.assert.calledWith(Compose.fromMessage, activity);
@@ -6339,9 +6391,13 @@ suite('conversation.js >', function() {
     test('focus composer if there is at least one recipient', function(done) {
       var activity = {
         number: '998',
-        contact: null,
         body: 'test'
       };
+
+      Contacts.findByAddress.withArgs(activity.number).returns(
+        Promise.resolve([])
+      );
+
       ConversationView.handleActivity(activity).then(() => {
         sinon.assert.called(Compose.focus);
         sinon.assert.notCalled(ConversationView.recipients.focus);
@@ -6352,83 +6408,12 @@ suite('conversation.js >', function() {
     function(done) {
       var activity = {
         number: null,
-        contact: null,
         body: 'Youtube url'
       };
       ConversationView.handleActivity(activity).then(() => {
         sinon.assert.notCalled(Compose.focus);
         sinon.assert.called(ConversationView.recipients.focus);
       }).then(done, done);
-    });
-  });
-
-  suite('handleForward() >', function() {
-    var message;
-    setup(function() {
-      ConversationView.initRecipients();
-      this.sinon.spy(Compose, 'fromMessage');
-      this.sinon.stub(ConversationView.recipients, 'focus');
-      this.sinon.stub(MessageManager, 'getMessage', function(id) {
-        switch (id) {
-          case 1:
-            message = MockMessages.sms();
-            break;
-          case 2:
-            message = MockMessages.mms();
-            break;
-          case 3:
-            message = MockMessages.mms({subject: 'Title'});
-        }
-        var request = {
-          result: message,
-          set onsuccess(cb) {
-            cb();
-          },
-          get onsuccess() {
-            return {};
-          }
-        };
-        return request;
-      });
-    });
-
-    test(' forward SMS', function() {
-      var forward = {
-        messageId: 1
-      };
-      ConversationView.handleForward(forward);
-      sinon.assert.calledOnce(MessageManager.getMessage);
-      sinon.assert.calledWith(MessageManager.getMessage, 1);
-      sinon.assert.calledWith(Compose.fromMessage, message);
-    });
-
-    test(' forward MMS with attachment', function() {
-      var forward = {
-        messageId: 2
-      };
-      ConversationView.handleForward(forward);
-      sinon.assert.calledOnce(MessageManager.getMessage);
-      sinon.assert.calledWith(MessageManager.getMessage, 2);
-      sinon.assert.calledWith(Compose.fromMessage, message);
-    });
-
-    test(' forward MMS with subject', function() {
-      var forward = {
-        messageId: 3
-      };
-      ConversationView.handleForward(forward);
-      sinon.assert.calledOnce(MessageManager.getMessage);
-      sinon.assert.calledWith(MessageManager.getMessage, 3);
-      sinon.assert.calledWith(Compose.fromMessage, message);
-    });
-
-    test(' focus recipients', function() {
-      var forward = {
-        messageId: 1
-      };
-      ConversationView.handleForward(forward);
-      assert.isTrue(Recipients.View.isFocusable);
-      sinon.assert.called(ConversationView.recipients.focus);
     });
   });
 
@@ -6703,7 +6688,6 @@ suite('conversation.js >', function() {
 
         // we test these functions separately so it's fine to merely test
         // they're called
-        this.sinon.stub(ConversationView, 'handleForward');
         this.sinon.stub(ConversationView, 'handleActivity');
         this.sinon.stub(ConversationView, 'handleDraft');
       });
@@ -6721,16 +6705,6 @@ suite('conversation.js >', function() {
         ConversationView.afterEnter(transitionArgs);
         sinon.assert.calledWith(
           ConversationView.handleDraft, +transitionArgs.draftId
-        );
-      });
-
-      test('handles the forward', function() {
-        transitionArgs.forward = {
-          messageId: 1
-        };
-        ConversationView.afterEnter(transitionArgs);
-        sinon.assert.calledWith(
-          ConversationView.handleForward, transitionArgs.forward
         );
       });
 

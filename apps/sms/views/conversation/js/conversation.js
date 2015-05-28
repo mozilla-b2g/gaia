@@ -556,8 +556,6 @@ var ConversationView = {
     // TODO Bug 1010223: should move to beforeEnter
     if (args.activity) {
       this.handleActivity(args.activity);
-    } else if (args.forward) {
-      this.handleForward(args.forward);
     } else if (args.draftId) {
       this.handleDraft(+args.draftId);
     } else {
@@ -659,64 +657,41 @@ var ConversationView = {
     }
   },
 
-  handleForward: function conv_handleForward(forward) {
-    var request = MessageManager.getMessage(+forward.messageId);
+  handleActivity: function conv_handleActivity(params) {
+    var parametersPromise;
 
-    request.onsuccess = (function() {
-      Compose.fromMessage(request.result);
+    if (params.number) {
+      parametersPromise = Contacts.findByAddress(params.number).then(
+      (contacts) => {
+        if (!contacts || !contacts.length) {
+          throw new Error('No contacts found for %s', params.number);
+        }
 
-      Recipients.View.isFocusable = true;
-      ConversationView.recipients.focus();
-    }).bind(this);
-
-    request.onerror = function() {
-      console.error('Error while forwarding:', this.error.name);
-    };
-  },
-
-  handleActivity: function conv_handleActivity(activity) {
-    /**
-     * Choose the appropriate contact resolver:
-     *  - if we have a phone number and no contact, rely on findByAddress
-     *    to get a contact matching the number;
-     *  - if we have a contact object and no phone number, just use a dummy
-     *    source that returns the contact.
-     */
-    var findByAddress = Contacts.findByAddress.bind(Contacts);
-    var number = activity.number;
-    if (activity.contact && !number) {
-      findByAddress = () => Promise.resolve(activity.contact);
-      number = activity.contact.number || activity.contact.tel[0].value;
-    }
-
-    // Add recipients and fill+focus the Compose area.
-    var recipientPromise;
-    if (activity.contact && number) {
-      recipientPromise = findByAddress(number).then((contacts) => {
         return Object.assign(
-          Utils.basicContact(number, contacts),
-          { source: 'contacts' }
+          Utils.basicContact(params.number, contacts), { source: 'contacts'}
         );
+      }).catch(() => {
+        return { source: 'manual', number: params.number };
+      }).then((recipient) => {
+        this.recipients.add(recipient);
+
+        return params;
       });
-    } else if (number) {
-      // If the activity delivered the number of an unknown recipient,
-      // create a recipient directly.
-      recipientPromise = Promise.resolve({
-        number: number,
-        source: 'manual'
-      });
+    } else if (params.messageId) {
+      parametersPromise = MessageManager.getMessage(params.messageId);
     } else {
-      recipientPromise = Promise.resolve();
+      parametersPromise = Promise.resolve(params);
     }
 
-    return recipientPromise.then((data) => {
-      data && this.recipients.add(data);
+    return parametersPromise.then((parameters) => {
+      Compose.fromMessage(parameters);
 
-      Compose.fromMessage(activity);
-
-      if (number) {
+      if (this.recipients.length) {
         Compose.focus();
       } else {
+        // If message had subject then it's focused as well causing "interact"
+        // Compose event that sets Recipients.View.isFocusable to false.
+        Recipients.View.isFocusable = true;
         this.recipients.focus();
       }
     });
@@ -1108,22 +1083,39 @@ var ConversationView = {
   },
 
   /**
-   * Navigates user to Composer panel with custom parameters.
+   * Navigates user to Composer or Thread panel with custom parameters.
    * @param {*} parameters Optional navigation parameters.
    * @returns {Promise} Promise that is resolved once navigation is completed.
    */
   navigateToComposer: function(parameters) {
+    var draftDiscardPromise;
+
+    // We should check if draft is not saved instead, to be fixed in bug 1153940
     if (Compose.isEmpty()) {
-      return Navigation.toPanel('composer', parameters);
+      draftDiscardPromise = Promise.resolve();
+    } else {
+      draftDiscardPromise = Utils.confirm(
+        'unsent-message-text',
+        'unsent-message-title',
+        { text: 'unsent-message-option-discard', className: 'danger' }
+      ).then(() => this.discardDraft());
     }
 
-    return Utils.confirm(
-      'unsent-message-text',
-      'unsent-message-title',
-      { text: 'unsent-message-option-discard', className: 'danger' }
-    ).then(() => {
-      this.discardDraft();
-      return Navigation.toPanel('composer', parameters);
+    return draftDiscardPromise.then(() => {
+      // Now we'll try to find existing thread for the new message, otherwise
+      // let's fallback to new message composer.
+      var threadPromise = Promise.reject();
+      if (parameters && parameters.number) {
+        threadPromise = MessageManager.findThreadFromNumber(parameters.number);
+      }
+
+      // The rejected promise will be returned in case we can't find thread
+      // for the specified number.
+      return threadPromise.then((id) => {
+        return Navigation.toPanel('thread', { id: id, focusComposer: true });
+      }, () => {
+        return Navigation.toPanel('composer', { activity: parameters });
+      });
     });
   },
 
@@ -2071,9 +2063,7 @@ var ConversationView = {
           params.items.push({
             l10nId: 'forward',
             method: () => {
-              this.navigateToComposer({
-                forward: { messageId: messageId }
-              });
+              this.navigateToComposer({ messageId: messageId });
             }
           });
         }
@@ -2815,9 +2805,7 @@ var ConversationView = {
         items.push({
           l10nId: 'sendMMSToEmail',
           method: () => {
-            this.navigateToComposer({
-              activity: { number: email }
-            });
+            this.navigateToComposer({ number: email });
           },
           // As we change panel here, we don't want to call 'complete' that
           // changes the panel as well
@@ -2838,9 +2826,7 @@ var ConversationView = {
         items.push({
           l10nId: 'sendMessage',
           method: () => {
-            this.navigateToComposer({
-              activity: { number: number }
-            });
+            this.navigateToComposer({ number: number });
           },
           // As we change panel here, we don't want to call 'complete' that
           // changes the panel as well

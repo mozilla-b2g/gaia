@@ -74,44 +74,10 @@ var ActivityHandler = {
     }
   },
 
-  /**
-  * Finds a contact from a number or email address.
-  * Returns a promise that resolve with a contact
-  * or is rejected if not found
-  * @returns Promise that resolve to a
-  * {number: String, name: String, source: 'contacts'}
-  */
-  _findContactByTarget: function findContactByTarget(target) {
-    var deferred = Utils.Promise.defer();
-    Contacts.findByAddress(target).then((contacts) => {
-      var record, name, contact;
-
-      // Bug 867948: results null is a legitimate case
-      if (contacts && contacts.length) {
-        record = contacts[0];
-        name = record.name.length && record.name[0];
-        contact = {
-          number: target,
-          name: name,
-          source: 'contacts'
-        };
-
-        deferred.resolve(contact);
-        return;
-      }
-      deferred.reject(new Error('No contact found with target: ' + target));
-      return;
-
-    });
-
-    return deferred.promise;
-  },
-
   _onNewActivity: function newHandler(activity) {
     var viewInfo = {
       body: activity.source.data.body,
       number: activity.source.data.target || activity.source.data.number,
-      contact: null,
       threadId: null
     };
 
@@ -123,17 +89,10 @@ var ActivityHandler = {
       focusComposer = true;
       // try to get a thread from number
       // if no thread, promise is rejected and we try to find a contact
-      threadPromise = MessageManager.findThreadFromNumber(viewInfo.number).then(
-        function onResolve(threadId) {
-          viewInfo.threadId = threadId;
-        },
-        function onReject() {
-          return ActivityHandler._findContactByTarget(viewInfo.number)
-            .then((contact) => viewInfo.contact = contact);
-        }
-      )
-      // case no contact and no thread id: gobble the error
-      .catch(() => {});
+      threadPromise = MessageManager.findThreadFromNumber(viewInfo.number)
+        .then((threadId) => viewInfo.threadId = threadId)
+        // case no contact and no thread id: gobble the error
+        .catch(() => {});
     }
 
     return (threadPromise || Promise.resolve()).then(
@@ -262,12 +221,11 @@ var ActivityHandler = {
   /**
    * Delivers the user to the correct view based on the params provided in the
    * "message" parameter.
-   * @param {{number: string, body: string, contact: MozContact,
-   * threadId: number}} message It's either a message object that belongs to a
-   * thread, or a message object from the system. "number" is a string phone
-   * number to pre-populate the recipients list with, "body" is an optional body
-   * to preset the compose input with, "contact" is an optional MozContact
-   * instance, "threadId" is an optional threadId corresponding to a new or
+   * @param {{number: string, body: string, threadId: number}} message It's
+   * either a message object that belongs to a thread, or a message object from
+   * the system. "number" is a string phone number to pre-populate the
+   * recipients list with, "body" is an optional body to preset the compose
+   * input with, "threadId" is an optional threadId corresponding to a new or
    * existing thread.
    * @param {Boolean} focusComposer Indicates whether we need to focus composer
    * when we navigate to Thread panel.
@@ -287,8 +245,7 @@ var ActivityHandler = {
       Navigation.toPanel('composer', {
         activity: {
           body: message.body || null,
-          number: message.number || null,
-          contact: message.contact || null
+          number: message.number || null
         }
       });
     };

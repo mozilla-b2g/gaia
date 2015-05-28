@@ -4,6 +4,7 @@
 var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
+var Storage = require('./lib/storage.js');
 var UtilityTray = require('../../../system/test/marionette/lib/utility_tray');
 var NotificationList = require(
   '../../../system/test/marionette/lib/notification.js'
@@ -18,7 +19,7 @@ marionette('Message notification tests', function() {
 
   var client = marionette.client();
 
-  var messagesApp, notificationList, utilityTray;
+  var messagesApp, storage, notificationList, utilityTray;
 
   function assertIsNotFocused(element, message) {
     assert.isTrue(element.scriptWith(function(el) {
@@ -28,6 +29,7 @@ marionette('Message notification tests', function() {
 
   setup(function() {
     messagesApp = Messages.create(client);
+    storage = Storage.create(client);
     notificationList = new NotificationList(client);
     utilityTray = new UtilityTray(client);
 
@@ -37,7 +39,7 @@ marionette('Message notification tests', function() {
   });
 
   suite('Run application via notification', function() {
-    var smsMessage, storage;
+    var smsMessage, messagesStorage;
 
     function openNotification() {
       client.switchToFrame();
@@ -54,7 +56,7 @@ marionette('Message notification tests', function() {
 
       // Switch to messages so that it's able to remove notification.
       messagesApp.switchTo();
-      messagesApp.setStorage(storage);
+      storage.setMessagesStorage(messagesStorage);
 
       // Verify that notification has been removed.
       client.switchToFrame();
@@ -99,7 +101,7 @@ marionette('Message notification tests', function() {
         timestamp: Date.now()
       };
 
-      storage = [{
+      messagesStorage = [{
         id: smsMessage.threadId,
         body: smsMessage.body,
         lastMessageType: smsMessage.type,
@@ -116,7 +118,7 @@ marionette('Message notification tests', function() {
         data: { threadId: smsMessage.threadId, id: smsMessage.id }
       });
       messagesApp.switchTo();
-      messagesApp.setStorage(storage);
+      storage.setMessagesStorage(messagesStorage);
 
       assertMessagesIsInCorrectState();
     });
@@ -127,7 +129,7 @@ marionette('Message notification tests', function() {
 
       // We should make Messages app visible, otherwise switchToApp won't work.
       messagesApp.launch();
-      messagesApp.setStorage(storage);
+      storage.setMessagesStorage(messagesStorage);
 
       // Switch to system app to be sure that notification is generated.
       client.switchToFrame();
