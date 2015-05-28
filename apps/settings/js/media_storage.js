@@ -100,7 +100,7 @@ require([
 
   Volume.prototype.createView = function volume_createView(listRoot) {
     // declair re-useable variables
-    var l10nId, li, label, text, size, anchor, button, buttonType;
+    var l10nId, li, label, text, size, itemLabel, button, buttonType;
 
     // create header
     var h2 = document.createElement('h2');
@@ -126,34 +126,38 @@ require([
     ITEM_TYPE.forEach(function(type) {
       label = document.createElement('span');
       label.classList.add('stackedbar-color-label');
-      anchor = document.createElement('a');
+      itemLabel = document.createElement('label');
+      itemLabel.classList.add('info-item', 'has-color-label');
       size = document.createElement('span');
-      size.classList.add('size');
+      size.classList.add('size', 'info-item-content');
       size.hidden = true;
       text = document.createElement('span');
+      text.classList.add('info-item-title');
       l10nId = type + '-space';
       text.setAttribute('data-l10n-id', l10nId);
-      anchor.appendChild(text);
-      anchor.appendChild(size);
+      itemLabel.appendChild(text);
+      itemLabel.appendChild(size);
       li = document.createElement('li');
       li.classList.add('color-' + type);
       li.appendChild(label);
-      li.appendChild(anchor);
+      li.appendChild(itemLabel);
       self.rootElement.appendChild(li);
     });
 
-    anchor = document.createElement('a');
+    itemLabel = document.createElement('label');
+    itemLabel.classList.add('info-item');
     size = document.createElement('span');
-    size.classList.add('size');
+    size.classList.add('size', 'info-item-content');
     size.hidden = true;
     text = document.createElement('span');
+    text.classList.add('info-item-title');
     l10nId = 'total-space';
     text.setAttribute('data-l10n-id', l10nId);
-    anchor.appendChild(text);
-    anchor.appendChild(size);
+    itemLabel.appendChild(text);
+    itemLabel.appendChild(size);
     li = document.createElement('li');
     li.classList.add('total-space');
-    li.appendChild(anchor);
+    li.appendChild(itemLabel);
     this.rootElement.appendChild(li);
 
     if (this.storages.sdcard.canBeFormatted) {

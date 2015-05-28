@@ -16,8 +16,8 @@ function BatteryPanel(client) {
 module.exports = BatteryPanel;
 
 BatteryPanel.Selectors = {
-  'powerSaveModeEnabledCheckbox': '#battery input',
-  'powerSaveModeEnabledLabel': '#battery label',
+  'powerSaveModeEnabledCheckbox': '#battery input[name="powersave.enabled"]',
+  'powerSaveModeEnabledLabel': '#battery label.pack-switch',
   'threshold': 'select[name="powersave.threshold"]',
   'option': 'option'
 };
