@@ -3,17 +3,6 @@
 
 (function(exports) {
   /**
-   * SpatialNavigator Element
-   *
-   * A SpatialNavigator Element is a navigation target of the following:
-   *
-   *  1. a standard DOM Element.
-   *  2. an Object contains at least 4 properties: left, top, width, and height.
-   *  3. an Object implementing getBoundingRect() which returns an object of 2.
-   *
-   * @typedef {Object} SpatialNavigatorElement
-   */
-  /**
    * SpatialNavigator simulates four-direction navigation in Javascript level.
    *
    * Navigation is the ability to navigate between focusable elements
@@ -29,6 +18,18 @@
    * @class SpatialNavigator
    * @param {Array.<SpatialNavigatorElement>} [collection=[]]
    *        An initial set of traversable elements.
+   * @param {Object} [config]
+   *        An initial set of configurations.
+   */
+  /**
+   * SpatialNavigatorElement is a navigable element which can be traversed
+   * by {@link SpatialNavigator}. Valid types are as follows:
+   *
+   *  1. a standard HTMLElement.
+   *  2. an Object contains at least 4 properties: left, top, width, and height.
+   *  3. an Object implementing getBoundingRect() which returns an object of 2.
+   *
+   * @typedef {Object} SpatialNavigatorElement
    */
   /**
    * Fired when an element is focused.
@@ -40,20 +41,58 @@
    * @event SpatialNavigator#unfocus
    * @property {SpatialNavigatorElement} elem    The element which lost focus.
    */
-  function SpatialNavigator(collection) {
+  function SpatialNavigator(collection, config) {
     this._focus = null;
+    this._previous = null;
+
     this.setCollection(collection);
+
+    if (config) {
+      for (var key in config) {
+        this[key] = config[key];
+      }
+    }
   }
 
   SpatialNavigator.prototype = evt({
     /**
      * Limit the navigating direction to vertical and horizontal only. Targets
-     * on oblique (left-top, right-top, left-bottom, and right-bottom)
+     * in oblique (left-top, right-top, left-bottom, and right-bottom)
      * directions are always ignored.
      * @type {Boolean}
+     * @default false
      * @memberof SpatialNavigator.prototype
      */
-    crossOnly: false,
+    straightOnly: false,
+
+    /**
+     * This threshold is used to determine whether an element is considered in
+     * straight (vertical or horizontal) directions. Valid number is between 0
+     * to 1.0. Setting it to 0.3 means an element is counted in the straight
+     * directions if it overlaps the straight area at least 0.3x of width of the
+     * area.
+     * @type {Number}
+     * @default 0.5
+     * @memberof SpatialNavigator.prototype
+     */
+    straightOverlapThreshold: 0.5,
+
+    /**
+     * Ignore elements with style "display: none" or "visibility: hidden".
+     * @type {Boolean}
+     * @default false
+     * @memberof SpatialNavigator.prototype
+     */
+    ignoreHiddenElement: false,
+
+    /**
+     * The previous focused element has high priority to be chosen as the next
+     * candidate.
+     * @type {Boolean}
+     * @default false
+     * @memberof SpatialNavigator.prototype
+     */
+    rememberSource: false,
 
     /**
      * Rect represents position and dimension of a 2D object.
@@ -67,6 +106,8 @@
      * @property {Rect}    [center] Center position
      * @property {Integer} [x]      same as left
      * @property {Integer} [y]      same as top
+     * @access private
+     * @memberof SpatialNavigator.prototype
      */
     /**
      * Get {@link Rect} of a {@link SpatialNavigatorElement}.
@@ -81,6 +122,14 @@
     _getRect: function snGetRect(elem) {
       var rect = null;
 
+      if (this.ignoreHiddenElement && elem instanceof HTMLElement) {
+        var computedStyle = window.getComputedStyle(elem);
+        if (computedStyle.getPropertyValue('visibility') == 'hidden' ||
+            computedStyle.getPropertyValue('display') == 'none') {
+          return null;
+        }
+      }
+
       if (elem.getBoundingClientRect) {
         var cr = elem.getBoundingClientRect();
         rect = {
@@ -89,7 +138,7 @@
           width: cr.width,
           height: cr.height
         };
-      } else if (elem.left || elem.top) {
+      } else if (elem.left !== undefined) {
         rect = {
           left: parseInt(elem.left || 0, 10),
           top: parseInt(elem.top || 0, 10),
@@ -126,14 +175,16 @@
      * @memberof SpatialNavigator.prototype
      */
     _getAllRects: function snGetAllRects(excludedElem) {
-      var self = this;
       var rects = [];
 
       this._collection.forEach(function(elem) {
         if (!excludedElem || excludedElem !== elem) {
-          rects.push(self._getRect(elem));
+          var rect = this._getRect(elem);
+          if (rect) {
+            rects.push(rect);
+          }
         }
-      });
+      }, this);
 
       return rects;
     },
@@ -170,6 +221,12 @@
     _partition: function snDemarcate(rects, targetRect) {
       var groups = [[], [], [], [], [], [], [], [], []];
 
+      var threshold = this.straightOverlapThreshold;
+      if (threshold > 1 || threshold < 0) {
+        // Fallback to default value
+        threshold = 0.5;
+      }
+
       rects.forEach(function(rect) {
         var center = rect.center;
         var x, y, groupId;
@@ -193,11 +250,11 @@
         groupId = y * 3 + x;
         groups[groupId].push(rect);
 
-        // Although a rect is on the oblique directions, we categorize it in
-        // the cross areas as well if it overlays the cross directions more than
-        // half the width or height of the targetRect.
-        if (targetRect.center) {
-          if (rect.left < targetRect.center.x) {
+        // Although a rect is in the oblique directions, we categorize it in
+        // the straight area as well if it overlaps the straight directions more
+        // than a specified threshold (0.5 by default).
+        if ([0, 2, 6, 8].indexOf(groupId) !== -1) {
+          if (rect.left <= targetRect.right - targetRect.width * threshold) {
             if (groupId === 2) {
               groups[1].push(rect);
             } else if (groupId === 8) {
@@ -205,7 +262,7 @@
             }
           }
 
-          if (rect.right > targetRect.center.x) {
+          if (rect.right >= targetRect.left + targetRect.width * threshold) {
             if (groupId === 0) {
               groups[1].push(rect);
             } else if (groupId === 6) {
@@ -213,7 +270,7 @@
             }
           }
 
-          if (rect.top < targetRect.center.y) {
+          if (rect.top <= targetRect.bottom - targetRect.height * threshold) {
             if (groupId === 6) {
               groups[3].push(rect);
             } else if (groupId === 8) {
@@ -221,7 +278,7 @@
             }
           }
 
-          if (rect.bottom > targetRect.center.y) {
+          if (rect.bottom >= targetRect.top + targetRect.height * threshold) {
             if (groupId === 0) {
               groups[3].push(rect);
             } else if (groupId === 2) {
@@ -327,7 +384,8 @@
      *           Distance functions. Primary ranking rule should be put in index
      *           0; secondary in index 1 (fallback rule when primary rule draws
      *           ); and so on.
-     *
+     * @access private
+     * @memberof SpatialNavigator.prototype
      */
     /**
      * Pick a {@link Rect} with highest priority.
@@ -336,40 +394,46 @@
      *        An array of {@link PrioritySet} that need to be prioritized. The
      *        set with lowest index containing non-empty {PrioritySet.group}
      *        would be prioritized.
+     * @param {SpatialNavigatorElement} target
+     *        The origin of coordinates for traversal.
+     * @param {String} direction
+     *        It should be "left", "right", "up" or "down".
      *
      * @return {Rect} the {@link Rect} of highest priority.
      *
      * @access private
      * @memberof SpatialNavigator.prototype
      */
-    _prioritize: function snPrioritize(priorities) {
-      var destGroup = null;
-      var distance = [];
+    _prioritize: function snPrioritize(priorities, target, direction) {
+      var destPriority = priorities.find(function(p) {
+        return !!p.group.length;
+      });
 
-      for (var i = 0; i < priorities.length; i++) {
-        var p = priorities[i];
-        if (p.group.length) {
-          destGroup = p.group;
-          distance = p.distance;
-          break;
-        }
-      }
-
-      if (!destGroup) {
+      if (!destPriority) {
         return null;
       }
 
-      destGroup.sort(function(a, b) {
-        for (var i = 0; i < distance.length; i++) {
-          var d = distance[i](a) - distance[i](b);
-          if (d) {
-            return d;
-          }
+      if (this.rememberSource &&
+          this._previous &&
+          target == this._previous.destination &&
+          direction == this._previous.reverse) {
+
+        var source = this._previous.source;
+        var found = destPriority.group.find(function(dest) {
+          return dest.element == source;
+        });
+        if (found) {
+          return found;
         }
-        return 0;
+      }
+
+      destPriority.group.sort(function(a, b) {
+        return destPriority.distance.reduce(function(answer, distance) {
+          return answer || (distance(a) - distance(b));
+        }, 0);
       });
 
-      return destGroup[0];
+      return destPriority.group[0];
     },
 
     /**
@@ -409,12 +473,14 @@
 
     /**
      * Add a bunch of elements to traversable set.
+     *
      * @param  {Array.<SpatialNavigatorElement>} elements
+     * @return {Boolean} true if all elements are added successfully.
+     *
+     * @memberof SpatialNavigator.prototype
      */
     multiAdd: function snMultiAdd(elements) {
-      for (var i = 0; i < elements.length; i++) {
-        this.add(elements[i]);
-      }
+      return Array.from(elements).every(this.add, this);
     },
 
     /**
@@ -442,12 +508,14 @@
 
     /**
      * Remove a bunch of elements to traversable set.
+     *
      * @param  {Array.<SpatialNavigatorElement>} elements
+     * @return {Boolean} true if all elements are removed successfully.
+     *
+     * @memberof SpatialNavigator.prototype
      */
     multiRemove: function snMultiRemove(elements) {
-      for (var i = 0; i < elements.length; i++) {
-        this.remove(elements[i]);
-      }
+      return Array.from(elements).every(this.remove, this);
     },
 
     /**
@@ -541,12 +609,27 @@
      * @memberof SpatialNavigator.prototype
      */
     move: function snMove(direction) {
+      var reverse = {
+          'left': 'right',
+          'up': 'down',
+          'right': 'left',
+          'down': 'up'
+      };
+
       if (!this._focus) {
+        this._previous = null;
         this.focus();
       } else {
         var elem = this.navigate(this._focus, direction);
         if (!elem) {
           return false;
+        }
+        if (this.rememberSource) {
+          this._previous = {
+            source: this._focus,
+            destination: elem,
+            reverse: reverse[direction.toLowerCase()]
+          };
         }
         this.unfocus();
         this.focus(elem);
@@ -577,6 +660,9 @@
 
       var rects = this._getAllRects(target);
       var targetRect = this._getRect(target);
+      if (!targetRect || !rects.length) {
+        return null;
+      }
 
       /* Get distance functions for ranking priorities relative to targetRect */
       var distanceFunction = this._getDistanceFunction(targetRect);
@@ -590,27 +676,27 @@
          center point of targetRect. */
       var internalGroups = this._partition(groups[4], targetRect.center);
 
-      /*  priorities: This big array carrys candidate elements with related
-       *  distance functions by appropriate priority we want. Depenging on the
-       *  direction, 3 kinds of elements are added separately in the following
-       *  order:
+      /* priorities: This big array carrys candidate elements with related
+       * distance functions by appropriate priority we want. Depenging on the
+       * direction, 3 kinds of elements are added separately in the following
+       * order:
        *
        *   - 1st: candidates centered inside targetRect (group 4)
        *          (so we pick up corresponding internalGroups).
        *   - 2nd: in groups of straight direction (group 1, 3, 5, 7).
        *   - 3rd: in groups of oblique direction (group 0, 2, 6, 8).
        *
-       *  For each kind of element above, ranking is performed by the following
-       *  rules (distance functions) in order:
+       * For each kind of element above, ranking is performed by the following
+       * rules (distance functions) in order:
        *
        *   - 1st: distance between candidate and target.
        *   - 2nd: absolute coordinate of candidates.
        *   - 3rd: distance of left or top coordinate between candidate and
        *          target (for oblique direction only)
        *
-       *  The switch...case block below is just to construct this array.
-       *  We just pick the required order into array here, then call
-       *  {SpatialNavigator#_prioritize} to do the trick.
+       * The switch...case block below is just to construct this array.
+       * We just pick the required order into array here, then call
+       * {SpatialNavigator#_prioritize} to do the trick.
        */
       var priorities;
 
@@ -727,12 +813,12 @@
           return null;
       }
 
-      if (this.crossOnly) {
+      if (this.straightOnly) {
         // Ignore candidates in oblique direction.
         priorities.pop();
       }
 
-      var dest = this._prioritize(priorities);
+      var dest = this._prioritize(priorities, target, direction);
       if (!dest) {
         return null;
       }
