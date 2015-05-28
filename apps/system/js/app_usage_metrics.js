@@ -132,6 +132,9 @@
   // This default value is the same setting that turns telemetry on and off.
   AUM.TELEMETRY_ENABLED_KEY = 'debug.performance_data.shared';
 
+  // For Dogfooders
+  AUM.ISDOGFOODER = false;
+
   // Base URL for sending data reports
   // Can be overridden with metrics.appusage.reportURL setting.
   AUM.REPORT_URL = 'https://fxos.telemetry.mozilla.org/submit/telemetry';
@@ -297,32 +300,11 @@
         self.metrics = loadedMetrics;
 
         // Now move on to step two in the startup process
-        getDeviceID();
-      });
-    }
-
-    // Step 2: Look up, or generate a unique identifier for this device
-    // so that the periodic metrics reports we send can be linked together
-    // to allow analysis over a longer period of time. If the user ever turns
-    // off telemetry we will delete this id, so that if it is turned back
-    // on, they start off with a clean history
-    function getDeviceID() {
-      asyncStorage.getItem(DEVICE_ID_KEY, function(value) {
-        if (value) {
-          self.deviceID = value;
-        }
-        else {
-          // Our device id does not need to be unique, just probably unique.
-          self.deviceID = uuid();
-          asyncStorage.setItem(DEVICE_ID_KEY, self.deviceID);
-        }
-
-        // Move on to the next step in the startup process
         getConfigurationSettings();
       });
     }
 
-    // Step 3: Configure the server url and other variables by
+    // Step 2: Configure the server url and other variables by
     // allowing values in the settings database to override the defaults.
     function getConfigurationSettings() {
       // Settings to query, mapped to default values
@@ -341,8 +323,27 @@
         AUM.REPORT_INTERVAL = result['metrics.appusage.reportInterval'];
         AUM.REPORT_TIMEOUT = result['metrics.appusage.reportTimeout'];
         AUM.RETRY_INTERVAL = result['metrics.appusage.retryInterval'];
+        AUM.ISDOGFOODER = result['debug.performance_data.dogfooding'];
 
         // Move on to the next step in the startup process
+        getUniqueIdentifier();
+      });
+    }
+
+    // Step 3: Look up, or generate a unique identifier for this device
+    // so that the periodic metrics reports we send can be linked together
+    // to allow analysis over a longer period of time. If the user ever turns
+    // off telemetry we will delete this id, so that if it is turned back
+    // on, they start off with a clean history
+    function getUniqueIdentifier() {
+      var promise = TelemetryRequest.getDeviceID(DEVICE_ID_KEY);
+      promise.then(function(deviceID) {
+        self.deviceID = deviceID;
+        waitForApplicationsReady();
+      }).catch(function(error) {
+        self.deviceID = uuid();
+        debug('uuid: ' + self.deviceID);
+        asyncStorage.setItem(DEVICE_ID_KEY, self.deviceID);
         waitForApplicationsReady();
       });
     }
