@@ -1,9 +1,10 @@
 'use strict';
 
-var Calendar = require('./lib/calendar');
-var assert = require('chai').assert;
+var Calendar = require('./lib/calendar'),
+    assert = require('chai').assert;
 
 marionette('creating events', function() {
+  var app;
   var client = marionette.client({
     profile: {
       prefs: {
@@ -17,15 +18,15 @@ marionette('creating events', function() {
     }
   });
 
-  var app;
+  var startDate = new Date('Sep 08 1991 12:34:56'),
+      startDateNextHour = new Date(startDate),
+      startDateNextDay = new Date(startDate),
+      scenarios;
 
-  var startDate = new Date('Sep 08 1991 12:34:56');
-  var startDateNextHour = new Date(startDate);
   startDateNextHour.setHours(startDate.getHours() + 1);
-  var startDateNextDay = new Date(startDate);
   startDateNextDay.setDate(startDate.getDate() + 1);
 
-  var scenarios = [
+  scenarios = [
     {
       name: 'one day',
       allDay: false,
