@@ -20,13 +20,27 @@ function Host(socketPath, process, log) {
   this.sessions = {};
   this.pendingSessions = [];
   this.error = null;
-
+  this.restarting = Promise.resolve();
+  this.isRequestInProgress = false;
+  this.didCrashDuringRequest = false;
   this.onerror = this.onerror.bind(this);
   this.onexit = this.onexit.bind(this);
-  this.restartOnException = this.restartOnException.bind(this);
-  this.process.on('error', this.onerror);
-  this.process.on('exit', this.onexit);
-  this.process.stdout.on('data', this.restartOnException);
+
+  process.on('error', this.onerror);
+  process.on('exit', this.onexit);
+
+  var restart = this.restart;
+  process.stdout.on('data', function(chunk) {
+    if (chunk.toString().indexOf('Exception') !== -1) {
+      restart();
+    }
+  });
+
+  process.stderr.on('data', function(chunk) {
+    if (chunk.toString().indexOf('error') !== -1) {
+      restart();
+    }
+  });
 
   EventEmitter.call(this);
 }
@@ -72,22 +86,21 @@ Host.prototype = {
     }.bind(this));
   },
 
-  restartOnException: function(chunk) {
-    if (chunk.toString().indexOf('Exception') !== -1) {
-      // Python died so let's restart! Yay! Long live python.
-      console.log('Python crashed! Will restart...');
-      this.restart();
-    }
-  },
-
   restart: function() {
-    return new Promise(function(resolve) {
+    // Python died so let's restart! Yay! Long live python.
+    console.log('Python crashed! Will restart service...');
+    if (this.isRequestInProgress) {
+      console.log('There was a request in progress!');
+      this.didCrashDuringRequest = true;
+    }
+
+    this.restarting = new Promise(function(resolve) {
       // Kill ourselves.
       this.process.removeListener('error', this.onerror);
       this.process.removeListener('exit', this.onexit);
 
-      if (!this.process || !this.process.connected) {
-        resolve();
+      if (!this.process.connected) {
+        return resolve();
       }
 
       this.process.on('exit', resolve);
@@ -111,7 +124,21 @@ Host.prototype = {
   */
   request: function(path, options) {
     if (this.error) return Promise.reject(this.error);
-    return request(this.socketPath, path, options);
+    return this.restarting.then(function() {
+      this.isRequestInProgress = true;
+      return request(this.socketPath, path, options);
+    }.bind(this))
+    .catch(function() {})  // TODO(gaye): Replace with finally
+    .then(function(result) {
+      this.isRequestInProgress = false;
+      if (this.didCrashDuringRequest) {
+        console.log('Will retry ' + path + ' request...');
+        this.didCrashDuringRequest = false;
+        return this.request(path, options);
+      }
+
+      return result;
+    }.bind(this));
   },
 
   onerror: function(error) {
