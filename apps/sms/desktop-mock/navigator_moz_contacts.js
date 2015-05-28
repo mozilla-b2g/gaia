@@ -156,8 +156,8 @@
   var cid = 0;
   var methods = {
     contains: 'startsWith',
-    match: 'contains',
-    equals: 'contains'
+    match: 'includes',
+    equals: 'includes'
   };
 
   function isMatch(contact, filter) {

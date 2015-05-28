@@ -16,14 +16,14 @@
 
 'use strict';
 
-const TYPES = ['image', 'audio', 'video'];
-
 /**
  * Handle UI specifics of message composition. Namely,
  * resetting (auto manages placeholder text), getting
  * message content, and message size
  */
 var Compose = (function() {
+  const TYPES = ['image', 'audio', 'video'];
+
   // delay between 2 counter updates while composing a message
   const UPDATE_DELAY = 500;
 
