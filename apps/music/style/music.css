@@ -574,31 +574,19 @@ html[dir="rtl"] .tile-title-album {
   overflow: hidden;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.fadeIn {
-  animation-name: fadeIn;
-  animation-duration: 500ms;
-  animation-timing-function: ease-in-out;
-  animation-fill-mode: forwards;
-  animation-delay: 50ms;
-}
-
-#player-cover-image {
+.cover-image {
   position: absolute;
   width: 100%;
   height: 100%;
   opacity: 0;
   background-position: center;
   background-size: cover;
+  /* Wait 50ms to start the transition to give the image some time to load. */
+  transition: opacity 500ms ease-in-out 50ms;
+}
+
+.cover-image.visible {
+  opacity: 1;
 }
 
 #player-cover.slideOut #player-cover-caption {

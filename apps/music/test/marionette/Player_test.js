@@ -184,7 +184,7 @@ marionette('Music player tests', function() {
       var stars;
 
       // check there is no rating.
-      client.helper.waitForElement(Music.Selector.coverImage).click();
+      music.showSongInfo();
       stars = client.findElement(Music.Selector.ratingBar).
         findElements('button');
       assert.equal(stars.length, 5, 'Less than 5 stars found');
@@ -200,7 +200,7 @@ marionette('Music player tests', function() {
       });
 
       // tap to make the rating bar reappear.
-      client.helper.waitForElement(Music.Selector.coverImage).click();
+      music.showSongInfo();
 
       // find all the stars that are on.
       stars = client.findElements(Music.Selector.ratingStarsOn);

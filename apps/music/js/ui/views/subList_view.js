@@ -59,7 +59,7 @@ var SubListView = {
     }
 
     LazyLoader.load('js/metadata/album_art_cache.js', function() {
-      AlbumArtCache.getCoverURL(fileinfo).then(function(url) {
+      AlbumArtCache.getThumbnailURL(fileinfo).then(function(url) {
         this.albumImage.style.backgroundImage = 'url(' + url + ')';
       }.bind(this));
     }.bind(this));
@@ -154,6 +154,7 @@ var SubListView = {
       case 'click':
         if (target === this.shuffleButton) {
           ModeManager.push(MODE_PLAYER, function() {
+            PlayerView.clean();
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = this.dataSource;
             PlayerView.setShuffle(true);
@@ -164,6 +165,7 @@ var SubListView = {
 
         if (target.dataset.index || target === this.playAllButton) {
           ModeManager.push(MODE_PLAYER, function() {
+            PlayerView.clean();
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = this.dataSource;
 

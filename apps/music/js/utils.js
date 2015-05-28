@@ -96,7 +96,7 @@ function createListElement(option, data, index, highlight) {
       // the amount of total elements in the DOM tree, it can save memory
       // and gecko can render the elements faster as well.
       LazyLoader.load('js/metadata/album_art_cache.js', function() {
-        AlbumArtCache.getCoverURL(data).then(function(url) {
+        AlbumArtCache.getThumbnailURL(data).then(function(url) {
           li.style.backgroundImage = 'url(' + url + ')';
         });
       });

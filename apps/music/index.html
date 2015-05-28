@@ -99,7 +99,10 @@
       </div>
       <div id="views-player" class="view hidden">
         <div id="player-cover">
-          <div id="player-cover-image"></div>
+          <!-- We have two cover image elements so we can crossfade between
+               album art. -->
+          <div id="player-cover-image-1" class="cover-image visible"></div>
+          <div id="player-cover-image-2" class="cover-image"></div>
           <div id="player-cover-caption">
             <div id="player-cover-artist"><bdi data-l10n-id="songArtist">Song Artist</bdi></div>
             <div id="player-cover-album"><bdi data-l10n-id="songAlbum">Song Album</bdi></div>

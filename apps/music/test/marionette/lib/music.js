@@ -20,7 +20,7 @@ Music.Selector = Object.freeze({
   artistsTab: '#tabs-artists',
   songsTab: '#tabs-songs',
   albumsTab: '#tabs-albums',
-  coverImage: '#player-cover-image',
+  playerCover: '#player-cover',
 
   // search fields
   searchField: '#views-search-input',
@@ -343,8 +343,12 @@ Music.prototype = {
     this.header.tap(25, 25);
   },
 
+  showSongInfo: function() {
+    this.client.helper.waitForElement(Music.Selector.playerCover).click();
+  },
+
   tapRating: function(rating) {
-    this.client.helper.waitForElement(Music.Selector.coverImage).click();
+    this.showSongInfo();
     this.client.helper.waitForElement('button.rating-star[data-rating="' +
                                       rating + '"]').tap();
   },
@@ -361,7 +365,7 @@ Music.prototype = {
     // Try to click the cover image followed by the share button in the case
     // that it hides before we get a chance to click it.
     this.client.waitFor(function() {
-      this.client.helper.waitForElement(Music.Selector.coverImage).click();
+      this.showSongInfo();
       this.shareButton.tap();
 
       this.client.switchToFrame();

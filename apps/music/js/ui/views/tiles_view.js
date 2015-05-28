@@ -132,11 +132,11 @@ var TilesView = {
 
       if (index <= NUM_INITIALLY_VISIBLE_TILES) {
         // Load this tile's background now, because it's visible.
-        AlbumArtCache.getCoverURL(result).then(setTileBackgroundClosure);
+        AlbumArtCache.getThumbnailURL(result).then(setTileBackgroundClosure);
       } else {
         // Defer loading hidden tiles until the visible ones are done.
         setTimeout(function() {
-          AlbumArtCache.getCoverURL(result).then(setTileBackgroundClosure);
+          AlbumArtCache.getThumbnailURL(result).then(setTileBackgroundClosure);
         }, INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
       }
     });
