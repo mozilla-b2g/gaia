@@ -10,6 +10,14 @@
     "dictFilePath": "dictionaries/af.dict"
   },
   {
+    "label": "Asụsụ Igbo",
+    "id": "ig",
+    "inputIds": [
+      "ig"
+      ],
+    "preload": true
+  },
+  {
     "label": "Bosanski",
     "id": "latin::bs",
     "inputIds": [
