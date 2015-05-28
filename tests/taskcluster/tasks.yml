@@ -40,4 +40,6 @@ definitions:
 
   raptor_decision:
 
+  raptor_decision_trial:
+
   jsmarionette_unit_tests:
