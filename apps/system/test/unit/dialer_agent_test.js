@@ -1,6 +1,6 @@
 'use strict';
 
-/* global DialerAgent, MocksHelper, MockNavigatorMozTelephony,
+/* global DialerAgent, MockAppWindow, MocksHelper, MockNavigatorMozTelephony,
           MockSettingsListener, MockSettingsURL, MockAudio, MockApplications,
           MockVersionHelper */
 
@@ -52,6 +52,7 @@ suite('system/DialerAgent', function() {
     navigator.vibrate = realVibrate;
     window.Service = realSystem;
     window.applications = realApplications;
+    MockNavigatorMozTelephony.mSuiteTeardown();
   });
 
   setup(function() {
@@ -355,13 +356,41 @@ suite('system/DialerAgent', function() {
     navigator.mozTelephony = MockNavigatorMozTelephony;
   });
 
-  test('callscreen should be freed once memory is under pressure', function() {
-    subject = new DialerAgent();
-    subject.start();
-    var stubFree = this.sinon.stub(subject._callscreenWindow, 'free');
-    window.dispatchEvent(new CustomEvent('mozmemorypressure'));
-    assert.isTrue(stubFree.called);
+  suite('handling memory pressure events',
+  function() {
+    setup(function() {
+      subject = new DialerAgent();
+      subject.start();
+      this.sinon.stub(subject._callscreenWindow, 'free');
+    });
+
+    test('callscreen should be freed once memory is under pressure',
+    function() {
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.calledOnce(subject._callscreenWindow.free);
+    });
+
+    test('callscreen should not be freed if a call is present', function() {
+      MockNavigatorMozTelephony.calls = [{}];
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.notCalled(subject._callscreenWindow.free);
+    });
+
+    test('callscreen should not be freed if a conference call is present',
+    function() {
+      MockNavigatorMozTelephony.conferenceGroup.calls = [{}];
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.notCalled(subject._callscreenWindow.free);
+    });
+
+    test('callscreen should not be freed if it is visible',
+    function() {
+      this.sinon.stub(MockAppWindow.prototype, 'isVisible').returns(true);
+      window.dispatchEvent(new CustomEvent('mozmemorypressure'));
+      sinon.assert.notCalled(subject._callscreenWindow.free);
+    });
   });
+
 
   test('Make fake notification if application is ready', function() {
     subject = new DialerAgent();
