@@ -15,6 +15,7 @@ marionette('Status Bar icons - Prioritization', function() {
     system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
+    statusBar.init();
   });
 
   test('should display important icons first', function() {

@@ -1,18 +1,20 @@
-/* global TimeIcon, MockL10n, Service */
+/* global TimeIcon, MockL10n, MockService */
 'use strict';
 
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/js/service.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/clock.js');
 requireApp('system/js/time_icon.js');
 
 suite('system/TimeIcon', function() {
-  var subject, manager, realMozL10n;
+  var subject, manager, realMozL10n, realService;
 
   setup(function() {
+    realService = window.Service;
+    window.Service = MockService;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     manager = {
@@ -20,7 +22,6 @@ suite('system/TimeIcon', function() {
       active: true
     };
     subject = new TimeIcon(manager);
-    this.sinon.stub(Service, 'request');
     this.sinon.stub(subject, 'show');
     this.sinon.stub(subject, 'hide');
     subject.start();
@@ -28,7 +29,6 @@ suite('system/TimeIcon', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realMozL10n;
     subject.stop();
   });
 
@@ -54,8 +54,9 @@ suite('system/TimeIcon', function() {
 
     test('Should ask operator icon to update and publish changed', function() {
       this.sinon.stub(subject, 'publish');
+      this.sinon.stub(MockService, 'request');
       subject.update();
-      assert.isTrue(Service.request.calledWith('OperatorIcon:update'));
+      assert.isTrue(MockService.request.calledWith('OperatorIcon:update'));
       assert.isTrue(subject.publish.calledWith('changed'));
     });
   });

@@ -1,20 +1,20 @@
-/* global CallForwardingsIcon, MocksHelper, MockCallForwarding,
+/* global CallForwardingsIcon, MocksHelper, MockCallForwarding, Service,
           MockSIMSlot, MockNavigatorMozMobileConnection, MockSIMSlotManager */
 'use strict';
 
-
-requireApp('system/js/service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/call_forwarding_icon.js');
 requireApp('system/test/unit/mock_call_forwarding.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 
 var mocksForCallForwardingsIcon = new MocksHelper([
-  'SIMSlotManager'
+  'SIMSlotManager',
+  'Service'
 ]).init();
 
 suite('system/CallForwardingsIcon', function() {
@@ -25,6 +25,14 @@ suite('system/CallForwardingsIcon', function() {
   setup(function() {
     this.sinon.stub(document, 'getElementById').returns(
       document.createElement('div'));
+    this.sinon.stub(Service, 'request', function() {
+      var container = document.createElement('div');
+      return {
+        then: function(callback) {
+          callback(container);
+        }
+      };
+    });
     MockSIMSlotManager.mInstances = [
       new MockSIMSlot(MockNavigatorMozMobileConnection, 0),
       new MockSIMSlot(MockNavigatorMozMobileConnection, 1)
