@@ -17,8 +17,6 @@
         "scopes": [
           "docker-worker:cache:tc-vcs",
           "docker-worker:cache:gaia-misc-caches",
-          "docker-worker:image:quay.io/mozilla/gaia-taskenv:*",
-          "docker-worker:image:quay.io/mozilla/npm-cache:*",
           "docker-worker:image:quay.io/mozilla/raptor-tester:latest",
           "queue:define-task:aws-provisioner/gaia",
           "queue:create-task:aws-provisioner/gaia"
@@ -27,7 +25,7 @@
           "cache": {
             "gaia-misc-caches": "/home/tester/caches/"
           },
-          "image": "quay.io/mozilla/gaia-taskenv:0.8.11",
+          "image": "taskcluster/gaia-taskenv:0.8.11",
           "command": [
             "entrypoint",
             "echo 'what' && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"

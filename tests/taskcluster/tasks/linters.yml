@@ -5,12 +5,9 @@ task:
 
   workerType: '{{workerType}}'
   provisionerId: '{{provisionerId}}'
-  scopes:
-    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
     maxRunTime: 600
-    image: quay.io/mozilla/gaia-taskenv:0.8.11
     command:
       - entrypoint
       - ./bin/ci run linters
