@@ -1,7 +1,8 @@
 'use strict';
 
 /* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings,
-          MockSIMSlotManager, MockAppsMgmt, MockApp, MockApplications */
+          MockSIMSlotManager, MockAppsMgmt, MockApp, MockApplications,
+          MockNavigatorMozTelephony, TelemetryRequest */
 
 
 require('/shared/js/settings_listener.js');
@@ -17,6 +18,7 @@ require('/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_applications.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 /*
  * This test suite has several sub-suites that verify that:
@@ -30,7 +32,7 @@ requireApp('system/test/unit/mock_applications.js');
  */
 suite('AppUsageMetrics:', function() {
   var realMozSettings, realOnLine, realSIMSlotManager, realPerformanceNow,
-      realMozApps, realApplications;
+      realMozApps, realApplications, realMozTelephony;
   var isOnLine = true;
 
   function navigatorOnLine() {
@@ -41,13 +43,27 @@ suite('AppUsageMetrics:', function() {
     isOnLine = value;
   }
 
+  function stubDial(self) {
+    self.sinon.stub(navigator.mozTelephony, 'dial', function() {
+      return Promise.resolve({
+        result: Promise.resolve({
+          success: true,
+          serviceCode: 'scImei',
+          statusMessage: 'fakeImei'
+        })
+      });
+    });
+  }
+
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     realSIMSlotManager = window.SIMSlotManager;
     realMozApps = navigator.mozApps;
+    realMozTelephony = navigator.mozTelephony;
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
     window.SIMSlotManager = MockSIMSlotManager;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
 
     navigator.mozApps = { mgmt: MockAppsMgmt };
     navigator.addIdleObserver = function(o) {
@@ -77,6 +93,7 @@ suite('AppUsageMetrics:', function() {
     navigator.mozSettings = realMozSettings;
     window.SIMSlotManager = realSIMSlotManager;
     navigator.mozApps = realMozApps;
+    navigator.mozTelephony = realMozTelephony;
     delete window.asyncStorage;
 
     delete navigator.addIdleObserver;
@@ -413,6 +430,10 @@ suite('AppUsageMetrics:', function() {
       attention1 = new MockApp({ manifest: { type: 'certified' } });
 
       clock = this.sinon.useFakeTimers();
+      this.sinon.stub(TelemetryRequest, 'getDeviceID').returns(
+        Promise.resolve(function(resolve) {
+          resolve();
+        }));
     });
 
     teardown(function() {
@@ -718,6 +739,10 @@ suite('AppUsageMetrics:', function() {
       mockSettings.y = '2';
     });
 
+    setup(function() {
+      stubDial(this);
+    });
+
     test('getSettings()', function(done) {
       getSettings({x: '3', y: '4', z: '5'}, function(result) {
         done(assert.deepEqual(result, {x: '1', y: '2', z: '5'}));
@@ -730,6 +755,7 @@ suite('AppUsageMetrics:', function() {
     setup(function() {
       aum = new AppUsageMetrics();
       mockSettings = MockNavigatorSettings.mSettings;
+      stubDial(this);
     });
 
     test('ftu.pingURL is used as a base URL by default', function(done) {
@@ -864,6 +890,7 @@ suite('AppUsageMetrics:', function() {
     var app1, homescreen;
 
     setup(function(done) {
+      stubDial(this);
       // Use fakes
       clock = this.sinon.useFakeTimers();
       XHR = sinon.useFakeXMLHttpRequest();
@@ -1111,6 +1138,63 @@ suite('AppUsageMetrics:', function() {
 
       // Now we've retried
       assert.equal(transmit.callCount, 2);
+    });
+  });
+  suite('Metrics transmission for Dogfooders', function() {
+    var aum, clock, XHR, xhr, transmit, mockSettings;
+    var app1, homescreen;
+
+    setup(function(done) {
+      stubDial(this);
+      // Use fakes
+      clock = this.sinon.useFakeTimers();
+      XHR = sinon.useFakeXMLHttpRequest();
+      XHR.onCreate = function(instance) { xhr = instance; };
+
+      mockSettings = MockNavigatorSettings.mSettings;
+      mockSettings['debug.performance_data.dogfooding'] = '1';
+
+      // Create an AUM instance
+      aum = new AppUsageMetrics();
+      aum.start();
+      aum.startCollecting(done);
+
+      transmit = this.sinon.spy(AppUsageMetrics.prototype, 'transmit');
+
+      app1 = new MockApp({ manifest: { type: 'certified' } });
+      homescreen = new MockApp({ manifest: { type: 'certified' } });
+      aum.idle = true;
+      isOnLine = true;
+      clock.tick(); // to make the start call complete
+    });
+
+    teardown(function() {
+      XHR.restore();
+      aum.stop();
+    });
+
+    test('transmit sends IMEI for dogfooder', function() {
+      // Record some data
+      mockSettings['deviceinfo.hardware'] = 'hardware';
+      mockSettings['developer.menu.enabled'] = 'true';
+      mockSettings['deviceinfo.product_model'] = 'model';
+
+      var metrics = aum.metrics;
+      metrics.recordInstall(app1);
+
+      // Transmit the data
+      aum.transmit();
+      clock.tick();
+
+      // Make sure that the payload has imei for dogfooders
+      var payload = JSON.parse(xhr.requestBody);
+      var info = payload.info;
+      assert.equal(info.deviceID, 'fakeImei');
+      // Make sure that the URL has the imei for dogfooders
+      var baseURL = AppUsageMetrics.REPORT_URL;
+      assert.ok(xhr.url.indexOf(baseURL) === 0);
+      var path = xhr.url.substring(baseURL.length + 1).split('/');
+      assert.equal(path[0], 'fakeImei');
     });
   });
 });
