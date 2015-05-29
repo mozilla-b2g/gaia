@@ -74,7 +74,7 @@ define(function(require) {
       // activity if the panel id to be navigated equals the parent panel id.
 
       // This is for the root panel
-      if (panelId === 'home') {
+      if (panelId === 'close') {
         return true;
       }
 
@@ -361,7 +361,9 @@ define(function(require) {
        * @alias module:SettingsService#back
        */
       back: function ss_back() {
-        if (_cachedNavigation) {
+        if (_activityHandler) {
+          _activityHandler.postResult();
+        } else if (_cachedNavigation) {
           this.navigate(_cachedNavigation.panelId, _cachedNavigationOptions);
           _cachedNavigation = null;
           _cachedNavigationOptions = {};
