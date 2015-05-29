@@ -354,6 +354,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app-uninstall-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="software-buttons"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="utility-tray"],
