@@ -25,6 +25,11 @@ body {
   background-color: black;
 }
 
+/* Hide the default placeholder */
+img:-moz-loading {
+  visibility: hidden;
+}
+
 /*
  * The overlay is where we display messages like Scanning, No Songs,
  * No SD card and SD Card in Use along with instructions for resolving
@@ -442,10 +447,7 @@ html[dir="rtl"] #views-sublist-header-controls {
   width: 8rem;
   height: 8rem;
   overflow: hidden;
-  background-clip: content-box;
-  background-size: cover;
-  background-position: center center;
-  opacity: 0;
+  object-fit: cover;
 }
 
 #views-sublist-header-name {
@@ -515,10 +517,6 @@ html[dir="rtl"] #views-sublist-controls-shuffle {
 
 .tile {
   position: relative;
-  background-position: center;
-  background-size: cover;
-
-  /* We set a background URL here when the thumbnail loads */
 }
 
 /* Tiles are grouped in 6. Left and right groups. */
@@ -585,6 +583,13 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   overflow: hidden;
 }
 
+.tile-album-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
 .tile-container {
   position: absolute;
   top: 0;
@@ -593,14 +598,17 @@ html[dir="rtl"] .tile:nth-child(12n+6) {
   height: 100%;
   opacity: 1;
   background-color: rgba(0 ,0, 0, 0);
-  transition: background-color 166ms ease-in-out;
+  transition: opacity 166ms ease-in-out;
 }
 
 .tile-container:active {
-  background-color: rgba(0 ,0, 0, 0.5);
+  opacity: 0.5;
 }
 
 .tile-title-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: auto;
   pointer-events: none;
@@ -665,10 +673,10 @@ html[dir="rtl"] .tile-title-album {
 
 .fadeIn {
   animation-name: fadeIn;
-  animation-duration: 500ms;
+  animation-duration: 166ms;
   animation-timing-function: ease-in-out;
   animation-fill-mode: forwards;
-  animation-delay: 50ms;
+  animation-delay: 0ms;
 }
 
 #player-cover-image {
@@ -1053,13 +1061,6 @@ li.list-item {
   list-style-type: none;
   position: relative;
   width: 100%;
-  background-size: contain;
-  background-position: calc(100% - 2.5rem) -0.1rem;
-  background-repeat: no-repeat;
-}
-
-html[dir="rtl"] li.list-item {
-  background-position: calc(0% + 2.5rem) -0.1rem;
 }
 
 li.list-item a {
@@ -1074,6 +1075,21 @@ li.list-item a {
 
 li.list-item a:active {
   background-color: rgba(52,140,158, .6);
+}
+
+.list-album-art {
+  position: absolute;
+  right: 2.5rem;
+  top: 0;
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+html[dir="rtl"] .list-album-art {
+  left: 2.5rem;
+  right: auto;
 }
 
 /* title width is 100% - 1rem(padding) - 6rem(albumArt) */

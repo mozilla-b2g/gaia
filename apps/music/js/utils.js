@@ -92,11 +92,14 @@ function createListElement(option, data, index, highlight) {
     case 'album':
     case 'title':
       var artistBdi;
-      // Use background image instead of creating img elements can reduce
-      // the amount of total elements in the DOM tree, it can save memory
-      // and gecko can render the elements faster as well.
+      var albumImg;
+
+      albumImg = document.createElement('img');
+      albumImg.className = 'list-album-art';
+      li.appendChild(albumImg);
+
       AlbumArt.getCoverURL(data).then(function(url) {
-        li.style.backgroundImage = 'url(' + url + ')';
+        showImage(albumImg, url, 'fadeIn');
       });
 
       if (option === 'artist') {
@@ -185,4 +188,25 @@ function createListElement(option, data, index, highlight) {
   }
 
   return li;
+}
+
+function showImage(image, url, option) {
+  // Reset the image element.
+  image.classList.remove(option);
+  image.src = '';
+  // We could probably have several animation options.
+  // Add them here in the future.
+  if (option === 'fadeIn') {
+    image.style.opacity = 0;
+  }
+
+  image.addEventListener('load', handler);
+
+  function handler(evt) {
+    /* jshint validthis:true */
+    evt.target.removeEventListener('load', handler);
+    image.classList.add(option);
+  }
+
+  image.src = url;
 }
