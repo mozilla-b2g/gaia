@@ -1,7 +1,6 @@
 var util = require('util');
 var Promise = require('promise');
 var spawn = require('child_process').spawn;
-var logcat = require('adbkit-logcat');
 var Command = require('./command');
 var debug = require('debug')('mozdevice:logging');
 
@@ -18,6 +17,7 @@ var currentStream;
  * @constructor
  */
 var Logging = function(device) {
+  this.device = device;
   this.serial = device.serial;
 };
 
@@ -155,6 +155,7 @@ Logging.prototype.start = function() {
   }
 
   var args = [];
+  var device = this.device;
   var serial = this.serial;
   var env = process.env;
 
@@ -171,13 +172,20 @@ Logging.prototype.start = function() {
   }
 
   args.push('logcat');
-  args.push('-B');
 
   currentProcess = spawn('adb', args, {
     env: env
   });
 
-  this.stream = currentStream = logcat.readStream(currentProcess.stdout);
+  this.stream = currentStream = currentProcess.stdout;
+
+  currentStream.on('data', function(data) {
+    var parsed = device.util.parseLog(data.toString());
+
+    parsed.messages.forEach(function(entry) {
+      currentStream.emit('entry', entry);
+    });
+  });
 };
 
 /**
