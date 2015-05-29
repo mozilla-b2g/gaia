@@ -51,33 +51,33 @@ define(function(require) {
       }
 
       // watch BluetoothManager event
-      this._watchMozBluetoothOnattributechanged();
+      this._watchMozBluetoothAttributechanged();
 
       // init default adapter
       this._initDefaultAdapter();
     },
 
     /**
-     * Watch 'onattributechanged' event from mozBluetooth for updating default
+     * Watch 'attributechanged' event from mozBluetooth for updating default
      * adapter information.
      *
-     * 'onattributechanged' event description:
+     * 'attributechanged' event description:
      * A handler to trigger when bluetooth manager's only property
      * defaultAdapter has changed.
      *
      * @access private
      * @memberOf BluetoothAdapterManager
      */
-    _watchMozBluetoothOnattributechanged:
-    function btam__watchMozBluetoothOnattributechanged() {
-      NavigatorBluetooth.addEventListener('onattributechanged', (evt) => {
+    _watchMozBluetoothAttributechanged:
+    function btam__watchMozBluetoothAttributechanged() {
+      NavigatorBluetooth.addEventListener('attributechanged', (evt) => {
         for (var i in evt.attrs) {
           switch (evt.attrs[i]) {
             case 'defaultAdapter':
               // Default adapter attribute change.
               // Usually, it means that we reach new default adapter.
               this.defaultAdapter = NavigatorBluetooth.defaultAdapter;
-              Debug('_watchMozBluetoothOnattributechanged(): ' +
+              Debug('_watchMozBluetoothAttributechanged(): ' +
                     'this.defaultAdapter = ' + this.defaultAdapter);
               break;
             default:
@@ -92,7 +92,7 @@ define(function(require) {
      * If the property is accessed on platform in the first time, it will
      * trigger Gecko::Bluetooth to get default adapter from the chipset.
      * So the value would be null.
-     * Then we will receive 'onattributechanged' event later.
+     * Then we will receive 'attributechanged' event later.
      *
      * @access private
      * @memberOf BluetoothAdapterManager

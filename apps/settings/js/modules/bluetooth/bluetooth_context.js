@@ -189,10 +189,10 @@ define(function(require) {
     },
 
     /**
-     * Watch 'onattributechanged' event from default adapter for updating
+     * Watch 'attributechanged' event from default adapter for updating
      * enabled/disabled status immediately.
      *
-     * Description of 'onattributechanged' event:
+     * Description of 'attributechanged' event:
      * A handler to trigger when one of the local bluetooth adapter's properties
      * has changed. Note access to the changed property in this event handler
      * would get the updated value.
@@ -201,22 +201,22 @@ define(function(require) {
      * @memberOf BluetoothContext
      * @param {Object BluetoothAdapter} adapter
      */
-    _watchDefaultAdapterOnattributechanged:
-    function btc__watchDefaultAdapterOnattributechanged(adapter) {
+    _watchDefaultAdapterAttributechanged:
+    function btc__watchDefaultAdapterAttributechanged(adapter) {
       adapter.addEventListener('attributechanged',
         this._onAdapterAttributeChanged.bind(this, adapter));
     },
 
     /**
-     * Unwatch 'onattributechanged' event from default adapter since adapter is
+     * Unwatch 'attributechanged' event from default adapter since adapter is
      * removed.
      *
      * @access private
      * @memberOf BluetoothContext
      * @param {Object BluetoothAdapter} adapter
      */
-    _unwatchDefaultAdapterOnattributechanged:
-    function btc__unwatchDefaultAdapterOnattributechanged(adapter) {
+    _unwatchDefaultAdapterAttributechanged:
+    function btc__unwatchDefaultAdapterAttributechanged(adapter) {
       adapter.removeEventListener('attributechanged',
         this._onAdapterAttributeChanged);
     },
@@ -284,7 +284,7 @@ define(function(require) {
     },
 
     /**
-     * 'onattributechanged' event handler from default adapter for updating
+     * 'attributechanged' event handler from default adapter for updating
      * latest BluetoothContext information.
      *
      * @access private
@@ -386,7 +386,7 @@ define(function(require) {
 
       if (oldAdapter) {
         // unwatch event since the old adapter is no longer usefull
-        this._unwatchDefaultAdapterOnattributechanged(oldAdapter);
+        this._unwatchDefaultAdapterAttributechanged(oldAdapter);
         this._unwatchDefaultAdapterOndeviceunpaired(oldAdapter);
         this._unwatchDefaultAdapterOndevicepaired(oldAdapter);
       }
@@ -394,7 +394,7 @@ define(function(require) {
       if (newAdapter) {
         // watch event since the new adapter is ready to access
         this._initProperties(newAdapter);
-        this._watchDefaultAdapterOnattributechanged(newAdapter);
+        this._watchDefaultAdapterAttributechanged(newAdapter);
         this._watchDefaultAdapterOndevicepaired(newAdapter);
         this._watchDefaultAdapterOndeviceunpaired(newAdapter);
         // init paired device information while Bluetooth is enabled

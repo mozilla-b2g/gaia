@@ -154,7 +154,7 @@ suite('BluetoothContext', function() {
     });
   });
 
-  suite('_watchDefaultAdapterOnattributechanged > ', function() {
+  suite('_watchDefaultAdapterAttributechanged > ', function() {
     var mockAdapter;
     setup(function() {
       mockAdapter = {
@@ -165,7 +165,7 @@ suite('BluetoothContext', function() {
     });
 
     test('attributechanged should be registered callback function', function() {
-      btContext._watchDefaultAdapterOnattributechanged(mockAdapter);
+      btContext._watchDefaultAdapterAttributechanged(mockAdapter);
       assert.equal(mockAdapter.addEventListener.args[0][0], 'attributechanged');
       mockAdapter.addEventListener.args[0][1]();
       assert.isTrue(btContext._onAdapterAttributeChanged.calledWith(
@@ -173,7 +173,7 @@ suite('BluetoothContext', function() {
     });
   });
 
-  suite('_unwatchDefaultAdapterOnattributechanged > ', function() {
+  suite('_unwatchDefaultAdapterAttributechanged > ', function() {
     var mockAdapter;
     setup(function() {
       mockAdapter = {
@@ -183,8 +183,8 @@ suite('BluetoothContext', function() {
       this.sinon.stub(btContext, '_onAdapterAttributeChanged');
     });
 
-    test('onattributechanged should be unregedit ', function() {
-      btContext._unwatchDefaultAdapterOnattributechanged(mockAdapter);
+    test('attributechanged should be unregedit ', function() {
+      btContext._unwatchDefaultAdapterAttributechanged(mockAdapter);
       assert.equal(mockAdapter.removeEventListener.args[0][0],
         'attributechanged');
       assert.equal(mockAdapter.removeEventListener.args[0][1],
@@ -246,7 +246,7 @@ suite('BluetoothContext', function() {
       this.sinon.stub(btContext, '_onAdapterDeviceunpaired');
     });
 
-    test('onattributechanged should be unregedit ', function() {
+    test('attributechanged should be unregedit ', function() {
       btContext._unwatchDefaultAdapterOndeviceunpaired(mockAdapter);
       assert.isNull(mockAdapter.ondeviceunpaired);
     });
@@ -397,11 +397,11 @@ suite('BluetoothContext', function() {
     setup(function() {
       oldAdapter = {};
       btContext._defaultAdapter = null;
-      this.sinon.stub(btContext, '_unwatchDefaultAdapterOnattributechanged');
+      this.sinon.stub(btContext, '_unwatchDefaultAdapterAttributechanged');
       this.sinon.stub(btContext, '_unwatchDefaultAdapterOndeviceunpaired');
       this.sinon.stub(btContext, '_unwatchDefaultAdapterOndevicepaired');
       this.sinon.stub(btContext, '_initProperties');
-      this.sinon.stub(btContext, '_watchDefaultAdapterOnattributechanged');
+      this.sinon.stub(btContext, '_watchDefaultAdapterAttributechanged');
       this.sinon.stub(btContext, '_watchDefaultAdapterOndevicepaired');
       this.sinon.stub(btContext, '_watchDefaultAdapterOndeviceunpaired');
       this.sinon.stub(btContext, '_resetProperties');
@@ -423,7 +423,7 @@ suite('BluetoothContext', function() {
         assert.equal(btContext._defaultAdapter, newAdapter);
         // test unwatch events
         assert.isTrue(
-          btContext._unwatchDefaultAdapterOnattributechanged.calledWith(
+          btContext._unwatchDefaultAdapterAttributechanged.calledWith(
             oldAdapter));
         assert.isTrue(
           btContext._unwatchDefaultAdapterOndeviceunpaired.calledWith(
@@ -435,7 +435,7 @@ suite('BluetoothContext', function() {
         assert.isTrue(btContext._initProperties.calledWith(newAdapter));
         // test watch events
         assert.isTrue(
-          btContext._watchDefaultAdapterOnattributechanged.calledWith(
+          btContext._watchDefaultAdapterAttributechanged.calledWith(
             newAdapter));
         assert.isTrue(
           btContext._watchDefaultAdapterOndevicepaired.calledWith(newAdapter));
@@ -463,7 +463,7 @@ suite('BluetoothContext', function() {
         assert.equal(btContext._defaultAdapter, newAdapter);
         // test unwatch events
         assert.isTrue(
-          btContext._unwatchDefaultAdapterOnattributechanged.calledWith(
+          btContext._unwatchDefaultAdapterAttributechanged.calledWith(
             oldAdapter));
         assert.isTrue(
           btContext._unwatchDefaultAdapterOndeviceunpaired.calledWith(
@@ -474,7 +474,7 @@ suite('BluetoothContext', function() {
         // test init porperties
         assert.isFalse(btContext._initProperties.called);
         // test watch events
-        assert.isFalse(btContext._watchDefaultAdapterOnattributechanged.called);
+        assert.isFalse(btContext._watchDefaultAdapterAttributechanged.called);
         assert.isFalse(btContext._watchDefaultAdapterOndevicepaired.called);
         assert.isFalse(btContext._watchDefaultAdapterOndeviceunpaired.called);
         // test init paired devices information
