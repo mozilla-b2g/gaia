@@ -317,6 +317,55 @@ suite('navigation >', function() {
     });
   });
 
+  suite('Dogfood Settings>', function() {
+    const DOGFOODSETTING = 'debug.performance_data.dogfooding';
+    var observerConfig = {
+      attributes: true
+    };
+
+    setup(function() {
+      // Needed to make sure that there is a DOM change to trigger
+      // the MutationObserver.
+      MockNavigatorSettings.mSyncRepliesOnly = true;
+
+      setStepState(1);
+    });
+
+    teardown(function() {
+      MockNavigatorSettings.mSyncRepliesOnly = false;
+    });
+
+    test('metrics checkbox should disabled for dogfooders > ', function(done) {
+      navigator.mozSettings.mSettings[DOGFOODSETTING] = true;
+      setStepState(8);
+
+      var observer = new MutationObserver(function(records) {
+        done(function () {
+          MockNavigatorSettings.mReplyToRequests();
+          observer.disconnect();
+          var sharePerformance = document.getElementById('share-performance');
+          assert.equal(sharePerformance.getAttribute('disabled'), 'true');
+        });
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('metrics checkbox should be enabled for non dogfooders > ',
+    function(done) {
+      navigator.mozSettings.mSettings[DOGFOODSETTING] = false;
+      setStepState(8);
+
+      var observer = new MutationObserver(function(records) {
+        done(function () {
+          MockNavigatorSettings.mReplyToRequests();
+          observer.disconnect();
+          var sharePerformance = document.getElementById('share-performance');
+          assert.equal(sharePerformance.getAttribute('disabled'), null);
+        });
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+  });
 
   suite('SIM pin > ', function() {
     var cardStateChangeCallback = null;

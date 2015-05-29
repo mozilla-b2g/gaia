@@ -4,6 +4,9 @@
           OperatorVariant */
 /* exported Navigation */
 'use strict';
+
+const DOGFOODSETTING = 'debug.performance_data.dogfooding';
+
 /*
   Steps of the First Time Usage App
 */
@@ -244,6 +247,18 @@ var Navigation = {
         if (req) {
           req.onsuccess = function() {
             sharePerformance.checked = req.result[settingName] || false;
+          };
+        }
+
+        // If it's a dogfooder, we don't want them to disable the metrics.
+        var dogfood = settings && settings.createLock().get(DOGFOODSETTING);
+        if (dogfood) {
+          dogfood.onsuccess = function() {
+            if (dogfood.result[DOGFOODSETTING]) {
+              sharePerformance.setAttribute('disabled', 'true');
+            } else {
+              sharePerformance.removeAttribute('disabled');
+            }
           };
         }
         break;
