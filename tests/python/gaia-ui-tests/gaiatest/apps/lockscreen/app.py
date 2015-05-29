@@ -25,6 +25,7 @@ class LockScreen(Base):
     _unlock_button_locator = (By.ID, 'lockscreen-area-unlock')
     _camera_button_locator = (By.ID, 'lockscreen-area-camera')
 
+    _lockscreen_container_locator = (By.ID, 'notifications-lockscreen-container')
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
     _time_locator = (By.ID, 'lockscreen-clock-time')
@@ -110,6 +111,10 @@ class LockScreen(Base):
 
     @property
     def notifications(self):
+        container = self.marionette.find_element(*self._lockscreen_container_locator)
+        # Avoid the search timeout when there are no notifications
+        if not container.is_displayed() or container.text == '':
+            return []
         return [Notification(self.marionette, element)
                 for element in self.marionette.find_elements(*self._notification_locator)]
 
