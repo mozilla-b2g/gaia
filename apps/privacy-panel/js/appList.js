@@ -8,8 +8,8 @@ function appPermGen(){
     for(i=0;i<appClass.length;i++){
       appPermGetter[i] = this.result[i].manifest;
       
-      if(appPermGetter[i].name == "Send To Bluetooth Device"){ // this permission name from manifest is different 
-    	  appPermGetter[i].name = "Bluetooth Transfer"           // changing to match with the slider key name
+      if(appPermGetter[i].name == "Bluetooth Manager"){ // this permission name from manifest is different 
+    	  appPermGetter[i].name = "Bluetooth"           // changing to match with the slider key name
       }
       if (typeof appPermGetter[i].permissions === "undefined"){
     	  appPermGetter[i].permissions = {};
@@ -25,8 +25,7 @@ function appPermGen(){
       //console.log(sumTotal / permNames.length);
       
       // pushing the mean value as an attribute
-      document.querySelector("[data-key='" + appPermGetter[i].name + "']").setAttribute("data-perm", 
-    		  (sumTotal / permNames.length) || 0);
+      document.querySelector("[data-key='" + appPermGetter[i].name + "']").setAttribute("data-perm", (sumTotal / permNames.length) || 0);
       if(Values.length < appClass.length - 2){ 
     	  // appClass returns 2 additional entries
         Values.push(document.querySelector("[data-key='" + appPermGetter[i].name + "']").getAttribute("data-perm"));

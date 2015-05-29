@@ -71,8 +71,7 @@
     <!-- <script src="shared/js/html_imports.js"></script> -->
     <!-- <script src="shared/js/lazy_loader.js"></script> -->
     <!-- <script src="shared/js/async_storage.js"></script> -->
-    <!-- <script src="shared/js/jquery-2.1.1.min.js"></script>  -->
-	<!-- <script src="shared/js/jquery.mobile-1.4.5.min.js"></script>  -->
+    
     <script src="shared/js/tinysort.min.js"></script>
 
 
@@ -665,11 +664,13 @@
     <div>
 	<ul>
         <li>
+          <p>Select notification threshold</p>
           <span class="button icon icon-dialog">
-            <select id="tc-sortingKey">
-              <option value="name" data-l10n-id="tc-sort-alphabetical" selected="">alphabetical</option>
-              <option value="trust" data-l10n-id="tc-sort-trustLevel">Trust Level</option>
-              <option value="vendor" data-l10n-id="tc-sort-vendor">Vendor</option>
+            <select id="tc-sortingKey" class="priorityselect">
+              <option id="ninety" value="18" data-l10n-id="tc-sort-ninty">90%</option>
+              <option id="eighty" value="16" data-l10n-id="tc-sort-eighty">80%</option>
+              <option id="seventy" value="14" data-l10n-id="tc-sort-seventy">70%</option>
+              <option id="none" value="22" data-l10n-id="tc-sort-zero">No Notification</option>
             </select>
           </span>
         </li>
@@ -1029,6 +1030,7 @@
     <!-- Require /js/app.js and all its dependencies -->
     <script data-main="js/app" src="js/vendor/alameda.js"></script>
     <script type="text/javascript" src="js/appList.js"></script>
+    <script type="text/javascript" src="js/active-app-info-getter.js"></script>
    </body>
 
 </html>

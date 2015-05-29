@@ -2846,7 +2846,13 @@ define('tc/app_details',[], function() {
           desc.textContent = perm.desc;
           item.appendChild(desc);
         }
-
+        //////////// Showing user-defined priority //////////////////
+        if (localStorage.getItem(perm.key) != null) {
+        var priorityValue = document.createElement('p');
+        priorityValue.classList.add('description');
+        priorityValue.textContent = "Priority: " + localStorage.getItem(perm.key) * 5;
+        item.appendChild(priorityValue);
+        }
         list.appendChild(item);
       });
 
@@ -3167,9 +3173,23 @@ function(panels, appList, permDetails) {
     init: function init(permissionTable) {
       _permListContainer = document.getElementById('tc-permList');
       var sortingKeySelect = document.getElementById('tc-sortingKey');
+//////////// Priotiy Threshold select /////////////////////////////////
+      PrioritySelect = document.querySelector('.priorityselect');
+      PrioritySelect.onchange = function(){ 
+        PriorityValue = PrioritySelect.selectedOptions[0].value;
+        PrioritySelectedDOM = PrioritySelect.selectedIndex;
+        localStorage.setItem("PriorityThreshold", PriorityValue);
+        localStorage.setItem("PrioritySelectedDOM", PrioritySelectedDOM);
+      };
+
+      if(localStorage.getItem("PrioritySelectedDOM") == null){
+        PrioritySelect.selectedIndex = 0;
+      } else {
+        PrioritySelect.selectedIndex = localStorage.getItem("PrioritySelectedDOM");
+      }//////////////////////////////////////////////////////////////////////
 
       var refreshPermList = function refreshPermList() {
-          this.renderPermissionList(sortingKeySelect.value);
+          this.renderPermissionList("name");
         }.bind(this);
       sortingKeySelect.addEventListener('change', refreshPermList);
       window.addEventListener('applicationinstall', refreshPermList);

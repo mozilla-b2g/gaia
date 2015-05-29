@@ -1,1 +1,191 @@
-{"name":"Privacy Panel","description":"Web app Privacy Panel","type":"certified","launch_path":"/index.html","developer":{"name":"The Gaia Team","url":"https://github.com/mozilla-b2g/gaia"},"permissions":{"geolocation-noprompt":{},"audio-channel-ringer":{},"mobileconnection":{},"permissions":{},"settings":{"access":"readwrite"},"webapps-manage":{},"sms":{},"telephony":{}},"messages":[{"sms-received":"/index.html"}],"locales":{"ar":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"bg":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"bn-BD":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"ca":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"cs":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"da":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"de":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"el":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"en-US":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"es":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"eu":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"fr":{"name":"Vie privée","description":"Application Vie privée"},"gl":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"hr":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"hu":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"it":{"name":"Privacy","description":"Pannello privacy web app"},"ja":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"km":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"ko":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"lt":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"mk":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"ms":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"ne-NP":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"nl":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"pa":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"pl":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"pt-BR":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"ro":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"ru":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"sk":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"sq":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"sr-Cyrl":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"sr-Latn":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"sv-SE":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"tr":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"zh-CN":{"name":"Privacy Panel","description":"Web app Privacy Panel"},"zh-TW":{"name":"Privacy Panel","description":"Web app Privacy Panel"}},"default_locale":"en-US","icons":{"60":"/style/icons/privacy-panel.png"},"orientation":"portrait-primary"}
+{
+    "name": "Privacy Panel",
+    "description": "Web app Privacy Panel",
+    "type": "certified",
+    "launch_path": "/index.html",
+    "developer": {
+        "name": "The Gaia Team",
+        "url": "https://github.com/mozilla-b2g/gaia"
+    },
+    "permissions": {
+        "desktop-notification": {
+            "description": "for showing notification"
+        },
+        "geolocation-noprompt": {},
+        "audio-channel-ringer": {},
+        "mobileconnection": {},
+        "permissions": {},
+        "settings": {
+            "access": "readwrite"
+        },
+        "webapps-manage": {},
+        "sms": {},
+        "telephony": {}
+    },
+    "datastores-access":{
+        "activeappwindow":{
+            "readonly":false,
+            "description":"Email address for sending newsletter"
+        }
+    },
+    "messages": [
+        {
+            "sms-received": "/index.html"
+        }
+    ],
+    "locales": {
+        "ar": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "bg": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "bn-BD": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "ca": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "cs": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "da": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "de": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "el": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "en-US": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "es": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "eu": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "fr": {
+            "name": "Vie privée",
+            "description": "Application Vie privée"
+        },
+        "gl": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "hr": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "hu": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "it": {
+            "name": "Privacy",
+            "description": "Pannello privacy web app"
+        },
+        "ja": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "km": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "ko": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "lt": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "mk": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "ms": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "ne-NP": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "nl": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "pa": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "pl": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "pt-BR": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "ro": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "ru": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "sk": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "sq": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "sr-Cyrl": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "sr-Latn": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "sv-SE": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "tr": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "zh-CN": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        },
+        "zh-TW": {
+            "name": "Privacy Panel",
+            "description": "Web app Privacy Panel"
+        }
+    },
+    "default_locale": "en-US",
+    "icons": {
+        "60": "/style/icons/privacy-panel.png"
+    },
+    "orientation": "portrait-primary"
+}
