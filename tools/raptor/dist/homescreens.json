@@ -1,0 +1,23 @@
+{
+  "homescreens": [
+    [
+      [ "apps", "calendar" ],
+      [ "apps", "camera" ],
+      [ "apps", "clock" ],
+      [ "apps", "costcontrol" ],
+      [ "apps", "communications", "contacts" ],
+      [ "apps", "communications", "dialer" ],
+      [ "apps", "email" ],
+      [ "apps", "fm" ],
+      [ "apps", "gallery" ],
+      [ "apps", "music" ],
+      [ "apps", "settings" ],
+      [ "apps", "sms" ],
+      [ "apps", "video" ],
+      [ "dev_apps", "test-startup-limit" ]
+    ]
+  ],
+  "preferences": {
+    "grid.cols": 4
+  }
+}

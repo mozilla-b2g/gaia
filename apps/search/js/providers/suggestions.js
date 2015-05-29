@@ -101,6 +101,9 @@
             // We add an item to search the entered term as well
             results.unshift(input);
             resolve(results);
+          }).catch(function() {
+            suggestionsWrapper.dataset.loading = false;
+            reject();
           });
         });
       });

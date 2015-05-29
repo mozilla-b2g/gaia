@@ -1,0 +1,114 @@
+gaia-list h1 {
+  margin: 2rem 0.6rem 0.6rem 0.6rem;
+  color: #666;
+}
+
+gaia-list li {
+  margin: 0 0.6rem;
+  padding: 0.6rem 0.4rem;
+
+  width: calc(100% - 2.0rem);
+
+  display: flex;
+  align-items: center;
+
+  font-style: italic;
+  font-weight: 100;
+}
+
+gaia-list li > * {
+  flex: 1;
+}
+
+gaia-list li > .description {
+  overflow: hidden;
+}
+
+.app-list li {
+  border-bottom: 1px solid #ddd;
+}
+
+.app-list li:last-child {
+  border-bottom: none;
+}
+
+.app-list.download li .description > *,
+.app-list.toggle li * {
+  pointer-events: none;
+}
+
+.app-list li .control {
+  width: 100%;
+  margin-left: 1rem;
+
+  position: relative;
+
+  text-align: right;
+  align-items: center;
+}
+
+gaia-list li.subheading {
+  height: 2rem;
+
+  background: #eee;
+}
+
+gaia-list li.subheading > p {
+  height: auto;
+  width: 15rem;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+gaia-list li.subheading > * {
+  flex: initial !important;
+}
+
+gaia-list li h3 {
+  font-size: 1.2rem;
+}
+
+gaia-list li h4 {
+  font-size: 0.9rem;
+}
+
+gaia-list li h3, gaia-list li h4 {
+  margin: 0;
+
+  text-overflow: ellipsis;
+
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+gaia-list li h4 {
+  font-weight: 100;
+
+  color: #777;
+}
+
+gaia-list gaia-loading {
+  min-height: 0 !important;
+}
+
+gaia-list li > img {
+  margin-right: 10px;
+  width: 4rem;
+  height: 4rem;
+}
+
+gaia-list li > img:first-child ~ :nth-child(2),
+gaia-list li > :first-child:not(img) {
+  flex: 6;
+}
+
+gaia-list li a {
+  font-style: italic;
+  color: #3366bb;
+}
+
+gaia-list li i {
+  text-align: right;
+}

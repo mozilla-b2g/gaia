@@ -794,8 +794,6 @@ suite('ActivityHandler', function() {
     var threadDeferred;
 
     setup(function() {
-      // find no contact in here
-      this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
       // configure findThreadFromNumber
       threadDeferred = Utils.Promise.defer();
       this.sinon.stub(MessageManager, 'findThreadFromNumber')
@@ -839,7 +837,6 @@ suite('ActivityHandler', function() {
 
       onceNewActivityCompleted().then(() => {
         sinon.assert.notCalled(MessageManager.findThreadFromNumber);
-        sinon.assert.notCalled(Contacts.findByPhoneNumber);
 
         sinon.assert.calledWithMatch(
           Navigation.toPanel, 'composer', { activity: { body: 'foo' } }
@@ -862,27 +859,6 @@ suite('ActivityHandler', function() {
       }).then(done,done);
     });
 
-    test('when no existing thread, but a contact: new message with contact',
-    function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      threadDeferred.reject(new Error('No thread for this test'));
-
-      Contacts.findByPhoneNumber.restore();
-      this.sinon.stub(Contacts, 'findByAddress').returns(
-        Promise.resolve([{ name: ['foo'] }])
-      );
-
-      onceNewActivityCompleted().then(function() {
-        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-          activity: {
-            contact: {number: '123', name: 'foo', source: 'contacts'},
-            number: '123',
-            body: 'foo'
-          }
-        });
-      }).then(done,done);
-    });
-
     test('when there is an existing thread, should navigate to the thread',
     function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
@@ -890,7 +866,6 @@ suite('ActivityHandler', function() {
       threadDeferred.resolve(42);
 
       onceNewActivityCompleted().then(function() {
-        sinon.assert.notCalled(Contacts.findByPhoneNumber);
         sinon.assert.calledWithMatch(
           Navigation.toPanel, 'thread', { id: 42, focusComposer: true }
         );

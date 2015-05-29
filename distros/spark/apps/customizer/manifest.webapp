@@ -1,0 +1,20 @@
+{
+  "name": "Customizer",
+  "description": "Tool for editing apps on-device",
+  "customizations": [{
+    "filter": ".*",
+    "scripts": [
+      "js/components-concat.js",
+      "js/addon-concat.js"
+    ]
+  }],
+  "type": "certified",
+  "role": "addon",
+  "permissions": {
+    "device-storage:sdcard": { "access": "readwrite" },
+    "webapps-manage": {},
+    "themeable":{},
+    "settings":{ "access": "readonly" }
+  },
+  "package_path": "customizer.zip"
+}

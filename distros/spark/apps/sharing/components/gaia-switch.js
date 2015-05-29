@@ -1,0 +1,1 @@
+define(['./gaia-switch/gaia-switch'], function(m) { return m; });

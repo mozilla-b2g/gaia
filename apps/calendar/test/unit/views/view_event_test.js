@@ -154,8 +154,7 @@ suite('Views.ViewEvent', function() {
       list = subject.element.classList;
     });
 
-    function updatesValues(overrides, isAllDay, capabilities) {
-      capabilities = capabilities || { canUpdate: true };
+    function updatesValues(overrides, isAllDay, done) {
 
       var expected = {
         title: remote.title,
@@ -176,7 +175,7 @@ suite('Views.ViewEvent', function() {
       }
 
       function verify() {
-        if (capabilities.canCreateEvent) {
+        if (subject.provider.canCreateEvent) {
           expected.calendarId = event.calendarId;
         }
 
@@ -196,6 +195,7 @@ suite('Views.ViewEvent', function() {
           }
 
           if (expected.hasOwnProperty(key)) {
+
             assert.equal(
               contentValue(fieldKey),
               expected[key],
@@ -204,37 +204,37 @@ suite('Views.ViewEvent', function() {
           }
         }
       }
+
       subject.onfirstseen();
-      subject._useModel({
-        busytime: busytime,
-        event: event,
-        calendar: calendar,
-        capabilities: capabilities
+      subject.useModel(busytime, event, function() {
+        done(verify);
       });
-      verify();
     }
 
-    test('event view fields', function() {
-      updatesValues(null, null);
+    test('event view fields', function(done) {
+      updatesValues(null, null, done);
     });
 
-    test('readonly', function() {
-      updatesValues(null, null, {
+    test('readonly', function(done) {
+      provider.stageCalendarCapabilities(calendar._id, {
         canUpdateEvent: false,
         canCreateEvent: false
       });
+
+      updatesValues(null, null, done);
     });
 
-    test('event description with html', function() {
+    test('event description with html', function(done) {
       event.remote.description = '<strong>hamburger</strong>';
 
       updatesValues(
         { description: '<strong>hamburger</strong>' },
-        null
+        null,
+        done
       );
     });
 
-    test('alarms are displayed', function() {
+    test('alarms are displayed', function(done) {
 
       event.remote.alarms = [
         {trigger: 0},
@@ -242,28 +242,26 @@ suite('Views.ViewEvent', function() {
       ];
 
       subject.onfirstseen();
-      subject._useModel({
-        busytime: busytime,
-        event: event,
-        capabilities: { canUpdate: true }
+      subject.useModel(busytime, event, function() {
+
+        var alarmChildren = getEl('alarms').querySelector('.content').children;
+
+        assert.equal(
+          alarmChildren.length,
+          2
+        );
+
+        assert.equal(
+          alarmChildren[0].textContent.trim(),
+          navigator.mozL10n.get('alarm-at-event-standard')
+        );
+        assert.equal(
+          alarmChildren[1].textContent.trim(),
+          navigator.mozL10n.get('minutes-before', {value: 1})
+        );
+
+        done();
       });
-
-      var alarmChildren = getEl('alarms').querySelector('.content').children;
-
-      assert.equal(
-        alarmChildren.length,
-        2
-      );
-
-      assert.equal(
-        alarmChildren[0].textContent.trim(),
-        navigator.mozL10n.get('alarm-at-event-standard')
-      );
-      assert.equal(
-        alarmChildren[1].textContent.trim(),
-        navigator.mozL10n.get('minutes-before', {value: 1})
-      );
-
     });
   });
 

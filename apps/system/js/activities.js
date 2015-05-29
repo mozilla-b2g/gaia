@@ -55,7 +55,6 @@
         case 'appopened':
           if (this.actionMenu) {
             this.actionMenu.hide();
-            this.actionMenu = null;
           }
           break;
         case 'applicationinstall':
@@ -197,7 +196,7 @@
           var askForDefault = config !== undefined;
           var items = this._listItems(choices);
 
-          if (!this.actionMenu || !this.actionMenu.active) {
+          if (!this.actionMenu) {
             var controller = {
               successCb: this.choose.bind(this),
               cancelCb: this.cancel.bind(this)
@@ -207,6 +206,8 @@
               this.actionMenu = new ActionMenu(controller);
               this.actionMenu.show(items, titleId, askForDefault);
             }.bind(this));
+          } else if (!this.actionMenu.active) {
+            this.actionMenu.show(items, titleId, askForDefault);
           }
         }).bind(this));
       }
@@ -219,8 +220,9 @@
     * @param {Boolean} setAsDefault Should this be set as the default activity.
     */
     choose: function(choice, setAsDefault) {
-      this.actionMenu = null;
-
+      if (this.actionMenu) {
+        this.actionMenu.hide();
+      }
       var returnedChoice = {
         id: this._detail.id,
         type: 'activity-choice',
@@ -244,7 +246,9 @@
     * @memberof Activities.prototype
     */
     cancel: function() {
-      this.actionMenu = null;
+      if (this.actionMenu) {
+        this.actionMenu.hide();
+      }
 
       var returnedChoice = {
         id: this._detail.id,

@@ -1,0 +1,34 @@
+{
+  "name": "mozdevice",
+  "version": "2.2.2",
+  "private": true,
+  "description": "Interactions for Mozilla devices and environments",
+  "main": "index.js",
+  "author": {
+    "name": "eliperelman",
+    "email": "eli@eliperelman.com"
+  },
+  "dependencies": {
+    "adbkit-logcat": "^1.0.3",
+    "async": "^0.9.0",
+    "debug": "^2.1.1",
+    "deepmerge": "^0.2.7",
+    "promise": "^6.0.1",
+    "sax": "^0.6.1",
+    "temp": "^0.8.1",
+    "unzip": "^0.1.11"
+  },
+  "devDependencies": {},
+  "scripts": {},
+  "maintainers": [
+    {
+      "name": "eliperelman",
+      "email": "eli@eliperelman.com"
+    },
+    {
+      "name": "rwood-moz",
+      "email": "rwood@mozilla.com"
+    }
+  ],
+  "directories": {}
+}

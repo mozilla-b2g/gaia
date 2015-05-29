@@ -26,6 +26,7 @@
     'shared/tagged': 'empty:',
     'shared/toaster': 'empty:',
     'shared/sim_settings_helper': 'empty:',
+    'shared/settings_helper': 'empty:',
     'utils': 'empty:',
     'shared/settings_url': 'empty:',
     'shared/omadrm/fl': 'empty:',

@@ -3,6 +3,7 @@
 (function() {
   var Messages = require('../../../sms/test/marionette/lib/messages');
   var UtilityTray = require('./lib/utility_tray');
+  var assert = require('assert');
 
   marionette('activity action menu test', function() {
     var messagesApp, system, utilityTray;
@@ -59,6 +60,26 @@
         system.waitForActivityMenu();
         done();
       }, 1000);
+    });
+
+    test('it only creates 1 action menu div', function() {
+      messagesApp.launch();
+      messagesApp.Inbox.navigateToComposer();
+      var composer = messagesApp.Composer;
+
+      client.waitFor(function() {
+        return composer.attachButton.enabled();
+      });
+      composer.attachButton.tap();
+      client.switchToFrame();
+      system.waitForActivityMenu();
+      system.cancelActivity.tap();
+      messagesApp.switchTo();
+      composer.attachButton.tap();
+      client.switchToFrame();
+      system.waitForActivityMenu();
+      var actionMenus = client.findElements('.action-menu');
+      assert.ok(actionMenus.length === 1);
     });
   });
 }());

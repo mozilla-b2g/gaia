@@ -1,0 +1,21 @@
+{
+  "name": "gaia-pages",
+  "main": "gaia-pages.js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/wilsonpage/gaia-pages",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "examples",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component#~0.3.0"
+  }
+}

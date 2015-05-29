@@ -94,7 +94,7 @@ suite('Views.EventBase', function() {
     assert.ok(subject.uiSelector);
   });
 
-  suite('#_useModel', function() {
+  suite('#useModel', function() {
     var callsUpdateUI;
     setup(function() {
       callsUpdateUI = false;
@@ -103,33 +103,56 @@ suite('Views.EventBase', function() {
       };
     });
 
-    test('readonly', function() {
-      var record = {
-        busytime: this.busytime,
-        event: this.event,
-        capabilities: { canUpdate: false }
-      };
+    test('multiple pending operations', function(done) {
+      function throwsError() {
+        done(new Error('incorrect callback fired...'));
+      }
 
-      subject._useModel(record);
-      assert.isTrue(hasClass(subject.READONLY), 'is readonly');
-      assert.isTrue(callsUpdateUI, 'updates ui');
+      subject.useModel(this.busytime, this.event, throwsError);
+      subject.useModel(this.busytime, this.event, throwsError);
+      subject.useModel(this.busytime, this.event, done);
     });
 
-    test('normal', function() {
-      var record = {
-        busytime: this.busytime,
-        event: this.event,
-        calendar: { _id: this.event.calendarId },
-        capabilities: { canUpdate: true }
-      };
+    test('readonly', function(done) {
+      var provider = core.providerFactory.get('Mock');
 
-      subject._useModel(record);
-      assert.equal(
-        subject.originalCalendar._id,
-        record.event.calendarId
+      provider.stageEventCapabilities(this.event._id, null, {
+        canUpdate: false
+      });
+
+      subject.useModel(this.busytime, this.event, function() {
+        done(function() {
+          assert.isTrue(hasClass(subject.READONLY), 'is readonly');
+          assert.isTrue(callsUpdateUI, 'updates ui');
+        });
+      });
+    });
+
+    test('normal', function(done) {
+      var isDone = false;
+      subject.useModel(this.busytime, this.event, function() {
+        done(function() {
+          assert.ok(isDone, 'not async');
+          assert.ok(
+            !subject.element.classList.contains(subject.LOADING),
+            'is not loading'
+          );
+
+          assert.equal(
+            subject.originalCalendar._id,
+            this.event.calendarId
+          );
+
+          assert.isTrue(callsUpdateUI, 'updates ui');
+          assert.isFalse(hasClass(subject.READONLY), 'is readonly');
+        }.bind(this));
+      }.bind(this));
+
+      assert.ok(
+        subject.element.classList.contains(subject.LOADING),
+        'is loading'
       );
-      assert.isTrue(callsUpdateUI, 'updates ui');
-      assert.isFalse(hasClass(subject.READONLY), 'is readonly');
+      isDone = true;
     });
   });
 

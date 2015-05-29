@@ -15,7 +15,6 @@ var MockUtils = {
   typeFromMimeType: Utils.typeFromMimeType,
   escapeRegex: Utils.escapeRegex,
   params: Utils.params,
-  getContactDisplayInfo: Utils.getContactDisplayInfo,
   getContactDetails: Utils.getContactDetails,
   getResizedImgBlob: Utils.getResizedImgBlob,
   getSizeForL10n: Utils.getSizeForL10n,

@@ -20,11 +20,27 @@ function Host(socketPath, process, log) {
   this.sessions = {};
   this.pendingSessions = [];
   this.error = null;
-
+  this.restarting = Promise.resolve();
+  this.isRequestInProgress = false;
+  this.didCrashDuringRequest = false;
   this.onerror = this.onerror.bind(this);
   this.onexit = this.onexit.bind(this);
-  this.process.on('error', this.onerror);
-  this.process.on('exit', this.onexit);
+
+  process.on('error', this.onerror);
+  process.on('exit', this.onexit);
+
+  var restart = this.restart.bind(this);
+  process.stdout.on('data', function(chunk) {
+    if (chunk.toString().indexOf('Exception') !== -1) {
+      restart();
+    }
+  });
+
+  process.stderr.on('data', function(chunk) {
+    if (chunk.toString().indexOf('error') !== -1) {
+      restart();
+    }
+  });
 
   EventEmitter.call(this);
 }
@@ -70,12 +86,59 @@ Host.prototype = {
     }.bind(this));
   },
 
+  restart: function() {
+    // Python died so let's restart! Yay! Long live python.
+    console.log('Python crashed! Will restart service...');
+    if (this.isRequestInProgress) {
+      console.log('There was a request in progress!');
+      this.didCrashDuringRequest = true;
+    }
+
+    this.restarting = new Promise(function(resolve) {
+      // Kill ourselves.
+      this.process.removeListener('error', this.onerror);
+      this.process.removeListener('exit', this.onexit);
+
+      if (!this.process.connected) {
+        return resolve();
+      }
+
+      this.process.on('exit', resolve);
+      this.process.kill();
+    }.bind(this))
+    .then(function() {
+      // Start a new python child.
+      return spawnPythonChild();
+    })
+    .then(function(details) {
+      this.socketPath = details.socketPath;
+      this.process = details.process;
+      this.log = details.log;
+      this.process.on('error', this.onerror);
+      this.process.on('exit', this.onexit);
+    }.bind(this));
+  },
+
   /**
   Issue a request to the hosts underlying python http server.
   */
   request: function(path, options) {
     if (this.error) return Promise.reject(this.error);
-    return request(this.socketPath, path, options);
+    return this.restarting.then(function() {
+      this.isRequestInProgress = true;
+      return request(this.socketPath, path, options);
+    }.bind(this))
+    .catch(function() {})  // TODO(gaye): Replace with finally
+    .then(function(result) {
+      this.isRequestInProgress = false;
+      if (this.didCrashDuringRequest) {
+        console.log('Will retry ' + path + ' request...');
+        this.didCrashDuringRequest = false;
+        return this.request(path, options);
+      }
+
+      return result;
+    }.bind(this));
   },
 
   onerror: function(error) {
@@ -93,11 +156,17 @@ Host.prototype = {
 };
 
 Host.create = function() {
+  return spawnPythonChild().then(function(details) {
+    return new Host(details.socketPath, details.process, details.log);
+  });
+};
+
+function spawnPythonChild() {
   var socketPath = '/tmp/marionette-socket-host-' + uuid.v1() + '.sock';
   var pythonChild = spawnVirtualEnv(
     'gaia-integration',
     ['--path=' + socketPath],
-    { stdio: [0, 1, 'pipe', 'pipe'] }  // Swallow python stderr
+    { stdio: ['pipe', 'pipe', 'pipe', 'pipe'] }  // Swallow python stderr
   );
 
   var failOnChildError = new Promise(function(accept, reject) {
@@ -121,11 +190,15 @@ Host.create = function() {
   var connect = request(socketPath, '/connect').then(function() {
     pythonChild.removeAllListeners('error');
     pythonChild.removeAllListeners('exit');
-    return new Host(socketPath, pythonChild, pythonChild.stdio[3]);
+    return {
+      socketPath: socketPath,
+      process: pythonChild,
+      log: pythonChild.stdio[3]
+    };
   });
 
   return Promise.race([connect, failOnChildError]);
-};
+}
 
 /**
 Wrapper for spawning a python process which expects a venv with particular

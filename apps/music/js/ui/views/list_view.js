@@ -39,12 +39,9 @@ var ListView = {
     this.clean();
 
     this.view.addEventListener('click', this);
-    this.view.addEventListener('input', this);
     this.view.addEventListener('touchmove', this);
-    this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
-    this.searchInput.addEventListener('keypress', this);
   },
 
   clean: function lv_clean() {
@@ -294,6 +291,8 @@ var ListView = {
 
   playWithShuffleAll: function lv_playWithShuffleAll() {
     ModeManager.push(MODE_PLAYER, function() {
+      PlayerView.clean();
+
       musicdb.count('metadata.title', null, function(count) {
         var info = {
           key: 'metadata.title',
@@ -317,6 +316,8 @@ var ListView = {
 
   playWithIndex: function lv_playWithIndex(index) {
     ModeManager.push(MODE_PLAYER, function() {
+      PlayerView.clean();
+
       if (App.pendingPick) {
         PlayerView.setSourceType(TYPE_SINGLE);
       } else {
@@ -357,44 +358,23 @@ var ListView = {
        l10nId === 'playlists-highest-rated') ?
        'prev' : 'next';
 
-    SubListView.activate(
-      option, data, index, keyRange, direction, function() {
-        ModeManager.push(MODE_SUBLIST);
-      }
-    );
+    // SubListView needs to prepare the songs data before entering it,
+    // So here we initialize the SubListView before push the view.
+    ModeManager.initView(ModeManager.views[MODE_SUBLIST], function() {
+      SubListView.activate(option, data, index, keyRange, direction,
+        function() {
+          ModeManager.push(MODE_SUBLIST);
+        });
+    });
   },
 
   handleEvent: function lv_handleEvent(evt) {
-    function lv_resetSearch(self) {
-      evt.preventDefault();
-      self.searchInput.value = '';
-      SearchView.clearSearch();
-    }
     var target = evt.target;
     if (!target) {
       return;
     }
 
     switch (evt.type) {
-      case 'touchend':
-        // Check for tap on parent form element with event origin as clear buton
-        // This is workaround for a bug in input_areas BB. See Bug 920770
-        if (target.id === 'views-list-search') {
-          var id = evt.originalTarget.id;
-          if (id && id !== 'views-list-search-input' &&
-            id !== 'views-list-search-close') {
-            lv_resetSearch(this);
-            return;
-          }
-        }
-
-        if (target.id === 'views-list-search-clear') {
-          lv_resetSearch(this);
-          return;
-        }
-
-        break;
-
       case 'click':
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
@@ -421,26 +401,13 @@ var ListView = {
       case 'focus':
         if (target.id === 'views-list-search-input') {
           if (ModeManager.currentMode !== MODE_SEARCH_FROM_LIST) {
-            ModeManager.push(MODE_SEARCH_FROM_LIST);
-            SearchView.search(target.value);
+            ModeManager.start(MODE_SEARCH_FROM_LIST, function() {
+              // Let the search view gets the focus.
+              SearchView.searchInput.focus();
+            });
           }
         }
 
-        break;
-
-      case 'input':
-        if (target.id === 'views-list-search-input') {
-          SearchView.search(target.value);
-        }
-
-        break;
-
-      case 'keypress':
-        if (target.id === 'views-list-search-input') {
-          if (evt.keyCode === evt.DOM_VK_RETURN) {
-            evt.preventDefault();
-          }
-        }
         break;
 
       case 'touchmove':

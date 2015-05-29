@@ -155,6 +155,23 @@ suite('L10n', function() {
       _translateFragment(elem);
       assert.equal(elem.getAttribute('aria-moz-hint'), 'moz-hint via ARIA');
     });
+
+    test('for a document fragment', function() {
+      var fragment = document.createDocumentFragment();
+      elem.dataset.l10nId = 'textcontent-test';
+      fragment.appendChild(elem);
+      _translateFragment(fragment);
+      assert.equal(elem.textContent, 'this is text content');
+    });
+
+    test('for a shadowRoot', function() {
+      var container = document.createElement('div');
+      container.createShadowRoot();
+      elem.dataset.l10nId = 'textcontent-test';
+      container.shadowRoot.appendChild(elem);
+      _translateFragment(container.shadowRoot);
+      assert.equal(elem.textContent, 'this is text content');
+    });
   });
 
   suite('localize + translate', function() {

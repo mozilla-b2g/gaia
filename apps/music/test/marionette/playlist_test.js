@@ -29,7 +29,6 @@ marionette('Music player playlist', function() {
 
   setup(function() {
     music = new Music(client);
-
   });
 
 
@@ -78,7 +77,6 @@ marionette('Music player playlist', function() {
     });
 
     test('Check the sort order', function() {
-
       music.launch();
       music.waitForFirstTile();
       music.switchToAlbumsView();
@@ -113,6 +111,7 @@ marionette('Music player playlist', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToPlaylistsView();
+      music.waitForListView();
 
       music.selectPlaylist('Recently added');
 
@@ -131,7 +130,6 @@ marionette('Music player playlist', function() {
   });
 
   suite('Multi disc tests', function() {
-
     setup(function() {
       client.fileManager.removeAllFiles();
       client.fileManager.add([
@@ -163,7 +161,6 @@ marionette('Music player playlist', function() {
     });
 
     test('Check the sort order', function() {
-
       music.launch();
       music.waitForFirstTile();
       music.switchToAlbumsView();
@@ -253,6 +250,7 @@ marionette('Music player playlist', function() {
       });
 
       music.switchToPlaylistsView();
+      music.waitForListView();
 
       music.selectPlaylist('Highest rated');
 
@@ -292,6 +290,7 @@ marionette('Music player playlist', function() {
       music.waitForFirstTile();
       music.waitFinishedScanning();
       music.switchToPlaylistsView();
+      music.waitForListView();
 
       music.selectPlaylist('Recently added');
 
@@ -352,6 +351,7 @@ marionette('Music player playlist', function() {
       });
 
       music.switchToPlaylistsView();
+      music.waitForListView();
 
       music.selectPlaylist('Most played');
 
@@ -370,6 +370,7 @@ marionette('Music player playlist', function() {
       // Alternative is to tap the back button.
       music.switchToAlbumsView();
       music.switchToPlaylistsView();
+      music.waitForListView();
 
       // Least played
       music.selectPlaylist('Least played');
@@ -391,6 +392,7 @@ marionette('Music player playlist', function() {
       music.waitForFirstTile();
 
       music.switchToPlaylistsView();
+      music.waitForListView();
 
       var notrandom = 0;
       var lastTitle = '';
@@ -401,7 +403,7 @@ marionette('Music player playlist', function() {
         music.selectPlaylist('Shuffle all');
 
         // wait for the player.
-        client.helper.waitForElement(Music.Selector.coverImage);
+        music.waitForPlayerView();
 
         var title = music.title.text();
         if (title === lastTitle) {
@@ -420,6 +422,7 @@ marionette('Music player playlist', function() {
       music.waitForFirstTile();
 
       music.switchToPlaylistsView();
+      music.waitForListView();
 
       music.selectPlaylist('Least played');
 
@@ -432,7 +435,7 @@ marionette('Music player playlist', function() {
         music.sublistShuffleButton.tap();
 
         // wait for the player.
-        client.helper.waitForElement(Music.Selector.coverImage);
+        music.waitForPlayerView();
 
         var title = music.title.text();
         if (title === lastTitle) {

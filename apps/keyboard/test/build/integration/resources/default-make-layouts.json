@@ -543,6 +543,19 @@
     "dictFilePath": "dictionaries/hu.dict"
   },
   {
+    "id": "ig",
+    "name": "Asụsụ Igbo",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+    "password",
+    "text",
+    "url"
+      ],
+    "dictFileSize": 1147,
+    "preloaded": true
+  },
+  {
     "id": "it",
     "name": "Italiano",
     "imEngineId": "latin",

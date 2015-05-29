@@ -35,6 +35,9 @@ module.exports = function request(socketPath, path, json, retry) {
       }
     });
 
+    req.setTimeout(2000, function() {
+      reject(new Error('Timeout exceeded'));
+    });
 
     // The unix socket server may or may not be ready at this point so we retry
     // up to 5 times to ensure we are connected...

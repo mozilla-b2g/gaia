@@ -390,6 +390,7 @@
         );
       }
       Service.request('registerHierarchy', this);
+      Service.register('kill', this);
     },
 
     /**

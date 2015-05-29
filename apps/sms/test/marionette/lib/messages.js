@@ -35,6 +35,7 @@
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
+    contactPromptMenu: '.contact-prompt menu',
 
     Composer: {
       toField: '#messages-to-field',
@@ -251,6 +252,10 @@
           return client.helper.waitForElement(SELECTORS.optionMenu);
         },
 
+        get contactPromptMenu() {
+          return client.helper.waitForElement(SELECTORS.contactPromptMenu);
+        },
+
         launch: function() {
           client.switchToFrame();
           client.apps.launch(ORIGIN_URL);
@@ -310,6 +315,10 @@
 
         selectSystemMenuOption: function(text) {
           this.selectMenuOption(this.systemMenu, text);
+        },
+
+        selectContactPromptMenuOption: function(text) {
+          this.selectMenuOption(this.contactPromptMenu, text);
         },
 
         selectMenuOption: function(menuElement, text) {
@@ -402,35 +411,6 @@
             event.initEvent('action', true, true);
             header.dispatchEvent(event);
           });
-        },
-
-        /**
-         * Sets pre-populated thread/message storage.
-         * @param {Array.<Thread>} threads List of the thread to pre-populate
-         * storage with.
-         * @param {Number} uniqueMessageIdCounter Start value for the unique
-         * message id counter, it's used to avoid message "id" collision between
-         * message ids from predefined store and message ids that can be
-         * generated during test (e.g. send or receive new message).
-         */
-        setStorage: function(threads, uniqueMessageIdCounter) {
-          client.executeScript(function(threads, uniqueMessageIdCounter) {
-            var recipientToThreadId = new Map();
-
-            var threadMap = new Map(threads.map(function(thread) {
-              recipientToThreadId.set(thread.participants[0], thread.id);
-
-              return [thread.id, thread];
-            }));
-
-            window.wrappedJSObject.TestStorages.setStorage('messagesDB', {
-              threads: threadMap,
-              recipientToThreadId: recipientToThreadId,
-              uniqueMessageIdCounter: uniqueMessageIdCounter
-            });
-
-            window.wrappedJSObject.TestStorages.setStorageReady('messagesDB');
-          }, [threads || [], uniqueMessageIdCounter || 0]);
         }
       };
     },

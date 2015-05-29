@@ -733,9 +733,17 @@ git-gaia-node-modules: gaia_node_modules.revision
 # npm-cache target is run when our node modules source is set to npm-cache
 # which is a pre-built set of node modules for the current platform +
 # node version present. The node modules selected for come from package.json.
+#
+# we run npm rebuild on marionette-js-runner to ensure that our python bits are
+# setup properly (it's a postinstall script that runs only when we rebuild).
+#
+# calling npm install ensures that local in tree modules get installed. these
+# are not part of the pre-built node modules at this time.
+#
 npm-cache:
 	@echo "Using pre-deployed cache."
 	npm rebuild marionette-js-runner
+	npm install
 	touch -c node_modules
 
 node_modules: gaia_node_modules.revision
@@ -822,7 +830,7 @@ caldav-server-install:
 
 .PHONY: raptor
 raptor: node_modules
-	RAPTOR=1 GAIA_OPTIMIZE=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/gaia-raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
+	RAPTOR=1 GAIA_OPTIMIZE=1 NO_LOCK_SCREEN=1 NOFTU=1 SCREEN_TIMEOUT=0 GAIA_DISTRIBUTION_DIR=node_modules/raptor/dist PROFILE_FOLDER=profile-raptor make reset-gaia
 
 .PHONY: tests
 tests: app offline

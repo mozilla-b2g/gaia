@@ -1,0 +1,15 @@
+{
+  "name": "fxos-mvc",
+  "version": "0.0.5",
+  "homepage": "https://github.com/fxos/mvc",
+  "license": "MPL",
+  "main": "mvc.js",
+  "ignore": [
+    "**/.*",
+    "example",
+    "node_modules",
+    "package.json",
+    "README.md",
+    "test"
+  ]
+}

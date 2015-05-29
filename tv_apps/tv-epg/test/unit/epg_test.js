@@ -42,6 +42,8 @@ suite('tv-epg/epg', function() {
     createMockElement('program-list');
     createMockElement('program-title');
     createMockElement('program-detail');
+    createMockElement('time-marker-container');
+    createMockElement('time-marker');
   }
 
   suiteSetup(function() {
@@ -122,12 +124,17 @@ suite('tv-epg/epg', function() {
   suite('_updateProgramSlot', function() {
     var columnElement;
     var textElement;
+    var progressElement;
 
     setup(function() {
       var rowElement = document.createElement('UL');
       columnElement = document.createElement('LI');
       textElement = document.createElement('DIV');
+      textElement.classList.add('title');
+      progressElement = document.createElement('DIV');
+      progressElement.classList.add('background-progress');
       columnElement.appendChild(textElement);
+      columnElement.appendChild(progressElement);
       rowElement.appendChild(columnElement);
       epg.programListElement.appendChild(rowElement);
     });
@@ -202,7 +209,15 @@ suite('tv-epg/epg', function() {
     var rowElement;
 
     setup(function() {
-      fetchPrograms = this.sinon.stub(epg.epgController, 'fetchPrograms');
+      this.sinon.stub(epg, '_setTitlePadding');
+      fetchPrograms = this.sinon.stub(epg.epgController, 'fetchPrograms')
+                          .returns({
+                            then: function() {
+                              return {
+                                catch: function() {}
+                              };
+                            }
+                          });
       columnElement = document.createElement('DIV');
       rowElement = document.createElement('DIV');
       rowElement.appendChild(columnElement);
@@ -275,6 +290,39 @@ suite('tv-epg/epg', function() {
       assert.equal(
         epg.programListElement.style.transform, programAnswer);
       assert.isTrue(fetchPrograms.called);
+    });
+  });
+
+  suite('_setTitlePadding', function() {
+    var programElement;
+    var titleElement;
+    setup(function() {
+      programElement = document.createElement('DIV');
+      programElement.dataset.startTime = 0;
+      titleElement = document.createElement('DIV');
+      titleElement.classList.add('title');
+      programElement.appendChild(titleElement);
+      epg.visibleTimeOffset = 1;
+      epg.epgController.timelineOffset = 0;
+      epg.epgController.programTable = {
+        1: {
+          0: {
+            element: programElement
+          }
+        }
+      };
+    });
+
+    test('Clear padding-left of title element', function() {
+      epg._setTitlePadding({
+        setToNull: true
+      });
+      assert.equal(titleElement.style.paddingLeft, '');
+    });
+
+    test('Set padding-left of title element', function() {
+      epg._setTitlePadding();
+      assert.equal(titleElement.style.paddingLeft, '33.8rem');
     });
   });
 });

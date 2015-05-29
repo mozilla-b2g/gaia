@@ -2284,7 +2284,8 @@
   }
 
   function translateFragment(element) {
-    if (element.hasAttribute('data-l10n-id')) {
+    if (typeof element.hasAttribute === 'function' &&
+        element.hasAttribute('data-l10n-id')) {
       translateElement.call(this, element);
     }
 

@@ -11,14 +11,13 @@ marionette('mozApps', function() {
       var error = client.executeAsyncScript(function() {
 
         // helper object to ensure we get expected number of callbacks
-        function CallbackHelper(callback) {
-          this.waitingFor = 0;
+        function CallbackHelper(callback, waitingFor) {
+          this.waitingFor = waitingFor;
           this.calledCount = 0;
           this.callback = callback;
         }
         CallbackHelper.prototype = {
           expectCallback: function() {
-            ++this.waitingFor;
             return function() {
               if (++this.calledCount === this.waitingFor) {
                 this.callback();
@@ -27,17 +26,19 @@ marionette('mozApps', function() {
           }
         };
 
-        var helper = new CallbackHelper(marionetteScriptFinished);
+        var helper = new CallbackHelper(marionetteScriptFinished, 2);
 
         var req1 = navigator.mozApps.getSelf();
         req1.onsuccess = helper.expectCallback();
-        req1.onerror = marionetteScriptFinished.bind(null,
-          'first getSelf() request failed');
+        req1.onerror = function() {
+          marionetteScriptFinished('first getSelf() request failed');
+        };
 
         var req2 = navigator.mozApps.getSelf();
         req2.onsuccess = helper.expectCallback();
-        req2.onerror = marionetteScriptFinished.bind(null,
-          'second getSelf() request failed');
+        req2.onerror = function() {
+          marionetteScriptFinished('second getSelf() request failed');
+        };
       });
 
       assert.isNull(error, 'Error: ' + error);

@@ -1,0 +1,28 @@
+@import '../components/base/base.css';
+
+* {
+  -moz-user-select: none;
+}
+
+body {
+  margin: 0;
+  font-family: "FiraSans";
+  background: white;
+}
+
+html.loading {
+  height: 100%;
+}
+
+html.loading body {
+  background: black url(/icons/Icon_P2P_Sharing.png) no-repeat center;
+}
+
+[disabled] {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+gaia-header {
+  margin-bottom: 0.5rem;
+}

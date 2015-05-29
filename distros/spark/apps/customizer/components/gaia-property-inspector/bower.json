@@ -1,0 +1,34 @@
+{
+  "name": "gaia-property-inspector",
+  "version": "0.2.14",
+  "homepage": "https://github.com/gaia-components/gaia-property-inspector",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "gaia-property-inspector.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "!.jshintrc",
+    "node_modules",
+    "bower_components",
+    "test",
+    "index.html",
+    "package.json",
+    "README.md"
+  ],
+  "dependencies": {
+    "gaia-component": "gaia-components/gaia-component#~0.3.0",
+    "gaia-pages": "gaia-components/gaia-pages#~0.1.0",
+    "gaia-header": "gaia-components/gaia-header#~0.8.1",
+    "gaia-text-input": "gaia-components/gaia-text-input#~0.1.1"
+  },
+  "devDependencies": {
+    "gaia-theme": "gaia-components/gaia-theme",
+    "gaia-fonts": "gaia-components/gaia-fonts",
+    "base": "gaia-components/base"
+  },
+  "resolutions": {
+    "gaia-component": "~0.3.0"
+  }
+}

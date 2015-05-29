@@ -1,0 +1,29 @@
+{
+  "name": "gaia-pages",
+  "homepage": "https://github.com/gaia-components/gaia-pages",
+  "license": "ISC",
+  "main": "gaia-pages.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "bower": "^1.3.5",
+    "karma": "^0.12.16",
+    "karma-firefox-launcher": "^0.1.3",
+    "karma-mocha": "^0.1.3",
+    "karma-sinon-chai": "^0.1.6",
+    "mozilla-download": "0.4.4"
+  },
+  "scripts": {
+    "install": "bower install",
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "test-dev": "./node_modules/karma/bin/karma start test/karma.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gaia-components/gaia-pages.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gaia-components/gaia-pages/issues"
+  }
+}

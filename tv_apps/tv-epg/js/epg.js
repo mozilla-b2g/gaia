@@ -32,9 +32,6 @@
 
     this.dateFormatter = new window.navigator.mozL10n.DateTimeFormat();
 
-    this.clock = new Clock();
-    this.clock.start(this._updateClock.bind(this));
-
     this.keyNavigatorAdapter = new KeyNavigationAdapter();
     this.keyNavigatorAdapter.init();
     this.keyNavigatorAdapter.on('move', this._onMove.bind(this));
@@ -49,6 +46,10 @@
       this.visibleTimeOffset - this.visibleTimeSize,
       this.timelineUnit
     );
+
+    this.clock = new Clock();
+    this.clock.start(this._updateClock.bind(this));
+
     this.epgController.on('scanned', this._onScanned.bind(this));
     this.epgController.on('appendChannel', this._appendChannel.bind(this));
     this.epgController.on('updateProgram', this._updateProgramSlot.bind(this));
@@ -66,11 +67,14 @@
     this.dateElement = document.getElementById('date');
     this.videoElement = document.getElementById('video-thumbnail');
     this.timelineElement = document.getElementById('timeline');
+    this.timeMarkerElement = document.getElementById('time-marker');
     this.timePrefixElement = document.getElementById('time-prefix');
     this.channelListElement = document.getElementById('channel-list');
     this.programListElement = document.getElementById('program-list');
     this.programTitleElement = document.getElementById('program-title');
     this.programDetailElement = document.getElementById('program-detail');
+    this.timeMarkerContainerElement =
+      document.getElementById('time-marker-container');
   };
 
   /**
@@ -98,17 +102,19 @@
   proto._onScanned = function epg__onScanned(stream) {
     this.videoElement.src = stream;
     this.epgController.fetchPrograms(
-      this.visibleTimeOffset - this.visibleTimeSize, 3 * this.visibleTimeSize)
-      .then(function() {
-        var timeIndex =
-          this.visibleTimeOffset - this.epgController.timelineOffset;
-        var programElement =
-          this.epgController.programTable[timeIndex][this.visibleChannelOffset]
-              .element;
-        this.spatialNavigator.focus(programElement);
-      }.bind(this)).catch(function(err) {
-        console.error(err);
-      });
+      this.visibleTimeOffset - this.visibleTimeSize,
+      3 * this.visibleTimeSize
+    ).then(function() {
+      var timeIndex =
+        this.visibleTimeOffset - this.epgController.timelineOffset;
+      var programElement =
+        this.epgController.programTable[timeIndex][this.visibleChannelOffset]
+            .element;
+      this.spatialNavigator.focus(programElement);
+      this._updateProgramProgress(this._currentTime);
+    }.bind(this)).catch(function(err) {
+      console.error(err);
+    });
   };
 
   /**
@@ -133,13 +139,18 @@
     var rowElement;
     var columnElement;
     var textElement;
+    var progressElement;
     var i;
     for (i = 0; i < this.programListElement.children.length; i++) {
       rowElement = this.programListElement.children[i];
       columnElement = document.createElement('LI');
       columnElement.dataset.duration = '1';
       columnElement.dataset.startTime = time;
+      progressElement = document.createElement('DIV');
+      progressElement.classList.add('background-progress');
       textElement = document.createElement('DIV');
+      textElement.classList.add('title');
+      columnElement.appendChild(progressElement);
       columnElement.appendChild(textElement);
       if (index < this.timelineElement.children.length) {
         rowElement.insertBefore(columnElement, rowElement.children[index]);
@@ -171,12 +182,29 @@
   proto._updateProgramSlot = function epg__updateProgramSlot(configs) {
     var rowElement = this.programListElement.children[configs.row];
     var columnElement = rowElement.children[configs.column];
+    var duration = parseInt(columnElement.dataset.duration, 10);
+    var progressElement;
+    var currentColumn;
+
     if (configs.title) {
-      columnElement.firstElementChild.textContent = configs.title;
+      columnElement.querySelector('.title').textContent = configs.title;
     }
+
+    if (configs.duration) {
+      duration = configs.duration;
+      columnElement.dataset.duration = duration;
+    }
+
     if (configs.isVisible) {
       columnElement.classList.remove('hidden');
       this.spatialNavigator.add(columnElement);
+      currentColumn = this.initialTime - this.epgController.timelineOffset;
+      progressElement = columnElement.querySelector('.background-progress');
+      if (configs.column + duration <= currentColumn) {
+        progressElement.style.transform = 'scaleX(1)';
+      } else {
+        progressElement.classList.add('smooth');
+      }
     } else {
       columnElement.classList.add('hidden');
       // If the old focus element only contains partial program segment, we have
@@ -187,9 +215,7 @@
       }
       this.spatialNavigator.remove(columnElement);
     }
-    if (configs.duration) {
-      columnElement.dataset.duration = configs.duration;
-    }
+
     if (configs.item) {
       configs.item.element = columnElement;
     }
@@ -199,6 +225,48 @@
     var timeString = this._timeToString(date);
     this.timePrefixElement.textContent = timeString.prefix;
     this.timeElement.textContent = timeString.time;
+    this._currentTime = new Date(date).getTime();
+    this._updateProgramProgress(this._currentTime);
+  };
+
+  proto._updateProgramProgress = function epg__updateProgramProgress(time) {
+    var timeIndex =
+      Math.floor(time / this.timelineUnit) - this.epgController.timelineOffset;
+    var playingPrograms = this.epgController.programTable[timeIndex];
+    var prevPrograms = this.epgController.programTable[timeIndex - 1];
+    var row;
+    var programElement;
+    var startTime;
+    var duration;
+    var scaleX;
+
+    // Update progress bar in every currently playing program
+    for (row in playingPrograms) {
+      programElement = playingPrograms[row].element;
+      startTime = parseInt(programElement.dataset.startTime, 10);
+      duration = parseInt(programElement.dataset.duration, 10);
+
+      // There is a margin between two programs, so scale has to be normalized
+      scaleX = (time / this.timelineUnit - startTime) * EPG.COLUMN_WIDTH;
+      scaleX = scaleX / (duration * EPG.COLUMN_WIDTH - EPG.COLUMN_MARGIN);
+      scaleX = Math.min(scaleX, 1);
+      programElement.querySelector('.background-progress').style.transform =
+        'scaleX(' + scaleX + ')';
+
+      this.timeMarkerElement.style.transform =
+        'translateX(' +
+        ((time / this.timelineUnit - this.initialTime) * EPG.COLUMN_WIDTH) +
+        'rem)';
+
+      // Privous program may not be 100% filled because because of little
+      // variance of timestamp
+      if (prevPrograms && prevPrograms[row] &&
+          programElement !== prevPrograms[row].element) {
+        programElement = prevPrograms[row].element;
+        programElement.querySelector('.background-progress').style.transform =
+          'scaleX(1)';
+      }
+    }
   };
 
   proto._timeToString = function epg__timeToString(time) {
@@ -229,6 +297,10 @@
 
     element.classList.add('focus');
     rowElement.classList.remove('hidden');
+    this._setTitlePadding({
+      setToNull: true
+    });
+
     if (rowIndex < this.visibleChannelOffset) {
       // Move up
       this.translate.y = (rowOffset - rowIndex) * EPG.ROW_HEIGHT;
@@ -247,11 +319,18 @@
       this.translate.x = (this.initialTime - startTime) * EPG.COLUMN_WIDTH;
       this.visibleTimeOffset = startTime;
     }
+    this._setTitlePadding();
 
     // Prefetch more older programs
     if (this.visibleTimeOffset - 2 * this.visibleTimeSize < timelineOffset) {
       this.epgController.fetchPrograms(
-        timelineOffset - 2 * this.visibleTimeSize, 2 * this.visibleTimeSize);
+        timelineOffset - 2 * this.visibleTimeSize,
+        2 * this.visibleTimeSize
+      ).then(function() {
+        this._updateProgramProgress.bind(this._currentTime);
+      }.bind(this)).catch(function(err) {
+        console.error(err);
+      });
     }
 
     // Prefetch more future programs
@@ -260,7 +339,11 @@
       this.epgController.fetchPrograms(
         timelineOffset + this.epgController.totalTimeslotCount,
         2 * this.visibleTimeSize
-      );
+      ).then(function() {
+        this._updateProgramProgress.bind(this._currentTime);
+      }.bind(this)).catch(function(err) {
+        console.error(err);
+      });
     }
 
     this.channelListElement.style.transform =
@@ -270,6 +353,39 @@
     this.programListElement.style.transform =
       'translate(' + this.translate.x + 'rem,' + this.translate.y +
       'rem) translateZ(0.01rem)';
+    // Move left instead of translateX in order to disable OMTA and sync with
+    // timelineElement and programListElement
+    this.timeMarkerContainerElement.style.left = this.translate.x + 'rem';
+  };
+
+  /**
+   * For every visible programs in the first column, it has to be aligned to
+   * the left edge of visible window. If opts.setToNull is true, then the
+   * left-padding of each program will be cleared.
+   */
+  proto._setTitlePadding = function epg__setTitlePadding(opts) {
+    var rowOffset = this.visibleChannelOffset;
+    var size = this.visibleChannelSize;
+    var row;
+    var timeOffset = this.visibleTimeOffset - this.epgController.timelineOffset;
+    var programElement;
+    var programTitleElement;
+    var programStartTime;
+    for(row = rowOffset; row < rowOffset + size; row++) {
+      if (this.epgController.programTable[timeOffset][row]) {
+        programElement =
+          this.epgController.programTable[timeOffset][row].element;
+        programTitleElement = programElement.querySelector('.title');
+        if (opts && opts.setToNull) {
+          programTitleElement.style.paddingLeft = null;
+        } else {
+          programStartTime = parseInt(programElement.dataset.startTime, 10);
+          programTitleElement.style.paddingLeft =
+            EPG.COLUMN_WIDTH * (this.visibleTimeOffset - programStartTime) +
+            'rem';
+        }
+      }
+    }
   };
 
   proto._onUnfocus = function epg__onUnfocus(element) {
@@ -282,6 +398,7 @@
 
   EPG.ROW_HEIGHT = 11.5;
   EPG.COLUMN_WIDTH = 33.8;
+  EPG.COLUMN_MARGIN = 0.3;
 
   exports.EPG = EPG;
   EPG.prototype = proto;

@@ -367,6 +367,15 @@ suite('system/Activities', function() {
         subject.cancel();
         assert.ok(stub.calledWith(formatted));
       });
+
+      test('does not destroy the action menu', function() {
+        subject._detail = {
+          id: 'foo'
+        };
+        var stub = this.sinon.stub(subject.actionMenu, 'hide');
+        subject.cancel();
+        assert.ok(stub.called);
+      });
     });
   });
 

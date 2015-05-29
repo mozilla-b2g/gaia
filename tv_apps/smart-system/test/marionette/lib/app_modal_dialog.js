@@ -17,10 +17,10 @@ module.exports = ModalDialog;
 
 ModalDialog.Selector = Object.freeze({
   alert: {
-    dialog: '.appWindow.active .modal-dialog-alert',
-    ok: '.appWindow.active .modal-dialog-alert-ok',
-    title: '.appWindow.active .modal-dialog-alert-title',
-    message: '.appWindow.active .modal-dialog-alert-message'
+    dialog: '.appWindow.active .smart-modal-dialog-container .modal-dialog',
+    ok: '.appWindow.active .modal-dialog-button-group' +
+        ' smart-button:nth-child(1)',
+    message: '.appWindow.active .modal-dialog-message'
   },
   prompt: {
     dialog: '.appWindow.active .modal-dialog-prompt',
@@ -30,11 +30,12 @@ ModalDialog.Selector = Object.freeze({
     message: '.appWindow.active .modal-dialog-prompt-message',
   },
   confirm: {
-    dialog: '.appWindow.active .modal-dialog-confirm',
-    ok: '.appWindow.active .modal-dialog-confirm-ok',
-    cancel: '.appWindow.active .modal-dialog-confirm-cancel',
-    title: '.appWindow.active .modal-dialog-confirm-title',
-    message: '.appWindow.active .modal-dialog-confirm-message',
+    dialog: '.appWindow.active .smart-modal-dialog-container .modal-dialog',
+    ok: '.appWindow.active .modal-dialog-button-group' +
+        ' smart-button:nth-child(1)',
+    cancel: '.appWindow.active .modal-dialog-button-group' +
+            ' smart-button:nth-child(2)',
+    message: '.appWindow.active .modal-dialog-message',
   }
 });
 
@@ -46,10 +47,6 @@ ModalDialog.prototype = {
 
   get alertOk() {
     return this.client.findElement(ModalDialog.Selector.alert.ok);
-  },
-
-  get alertTitle() {
-    return this.client.findElement(ModalDialog.Selector.alert.title);
   },
 
   get alertMessage() {
@@ -88,10 +85,6 @@ ModalDialog.prototype = {
     return this.client.findElement(ModalDialog.Selector.confirm.cancel);
   },
 
-  get confirmTitle() {
-    return this.client.findElement(ModalDialog.Selector.confirm.title);
-  },
-
   get confirmMessage() {
     return this.client.findElement(ModalDialog.Selector.confirm.message);
   },
@@ -113,7 +106,7 @@ ModalDialog.prototype = {
    * Wait for the specified dialog to open.
    * @param {Marionette.Element} element The dialog element to wait for.
    */
-  waitForDialogOpened: function (element) {
+  waitForDialogOpened: function(element) {
     this.client.waitFor(function() {
       var dialogClass = element.getAttribute('class');
       return dialogClass.indexOf('visible') != -1;
@@ -124,7 +117,7 @@ ModalDialog.prototype = {
    * Wait for the specified dialog to close.
    * @param {Marionette.Element} element The dialog element to wait for.
    */
-  waitForDialogClosed: function (element) {
+  waitForDialogClosed: function(element) {
     this.client.waitFor(function() {
       var dialogClass = element.getAttribute('class');
       return dialogClass.indexOf('visible') == -1;

@@ -93,6 +93,8 @@ suite('system/Statusbar', function() {
       // executing init again
       StatusBar.init();
       StatusBar.finishInit();
+      StatusBar._paused = 0;
+
       done();
     }
   });
@@ -785,8 +787,8 @@ suite('system/Statusbar', function() {
   suite('handle events', function() {
     var app;
     var setAppearanceStub;
-    var resumeUpdateStub;
     var pauseUpdateStub;
+    var resumeUpdateStub;
 
     function testEventThatHides(event) {
       var evt = new CustomEvent(event);
@@ -839,6 +841,7 @@ suite('system/Statusbar', function() {
       var evt = new CustomEvent(event);
       StatusBar.handleEvent(evt);
       assert.isTrue(pauseUpdateStub.called);
+      assert.equal(pauseUpdateStub.args[0], event);
 
       StatusBar.resumeUpdate();
     }
@@ -849,6 +852,7 @@ suite('system/Statusbar', function() {
       var evt = new CustomEvent(event);
       StatusBar.handleEvent(evt);
       assert.isTrue(resumeUpdateStub.called);
+      assert.equal(resumeUpdateStub.args[0], event);
       assert.isFalse(StatusBar.isPaused());
     }
 
@@ -856,6 +860,7 @@ suite('system/Statusbar', function() {
       var evt = new CustomEvent(event);
       StatusBar.handleEvent(evt);
       assert.isTrue(resumeUpdateStub.called);
+      assert.equal(resumeUpdateStub.args[0], event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
     }
 
@@ -1024,27 +1029,46 @@ suite('system/Statusbar', function() {
         testEventThatResumeIfNeeded.bind(this)('homescreenopened');
       });
     });
+  });
 
-    suite('edge swipe should resume symmetrically', function() {
-      test('with many begin events', function() {
-        dispatchEdgeSwipeEvent('sheets-gesture-begin');
-        dispatchEdgeSwipeEvent('sheets-gesture-begin');
-        dispatchEdgeSwipeEvent('sheets-gesture-begin');
-        dispatchEdgeSwipeEvent('sheets-gesture-end');
+  suite('resumeUpdate', function() {
+    var dispatchEvent = function(event) {
+      window.dispatchEvent(new CustomEvent(event));
+    };
 
-        assert.isTrue(pauseUpdateStub.calledOnce);
-        assert.isTrue(resumeUpdateStub.calledOnce);
-      });
+    test('should update icons only when not paused', function() {
+      this.sinon.stub(StatusBar, '_updateIconVisibility');
+      dispatchEvent('utilitytraywillhide');
+      dispatchEvent('utility-tray-overlayclosed');
+      assert.isFalse(StatusBar.isPaused());
+      assert.isTrue(StatusBar._updateIconVisibility.calledOnce);
+    });
 
-      test('with many end events', function() {
-        dispatchEdgeSwipeEvent('sheets-gesture-begin');
-        dispatchEdgeSwipeEvent('sheets-gesture-end');
-        dispatchEdgeSwipeEvent('sheets-gesture-end');
-        dispatchEdgeSwipeEvent('sheets-gesture-end');
+    test('should not update icons only when paused', function() {
+      this.sinon.stub(StatusBar, '_updateIconVisibility');
+      dispatchEvent('utilitytraywillshow');
+      dispatchEvent('utility-tray-overlayclosed');
+      assert.isTrue(StatusBar.isPaused());
+      assert.isFalse(StatusBar._updateIconVisibility.called);
+    });
+  });
 
-        assert.isTrue(pauseUpdateStub.calledOnce);
-        assert.isTrue(resumeUpdateStub.calledOnce);
-      });
+  suite('Non symmetrical events shouldn\'t call cloneStatusBar()', function() {
+    var dispatchEvent = function(event) {
+      window.dispatchEvent(new CustomEvent(event));
+    };
+
+    test('Sheet gestures', function() {
+      var cloneStatusbarStub = this.sinon.spy(StatusBar, 'cloneStatusbar');
+      dispatchEvent('sheets-gesture-begin');
+      dispatchEvent('iconshown');
+      assert.isFalse(cloneStatusbarStub.called);
+
+      dispatchEvent('sheets-gesture-begin');
+      dispatchEvent('sheets-gesture-end');
+      dispatchEvent('iconshown');
+      assert.isTrue(cloneStatusbarStub.called);
+      cloneStatusbarStub.restore();
     });
   });
 

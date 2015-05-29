@@ -16,8 +16,16 @@ var TitleBar = {
     return document.getElementById('title-player');
   },
 
+  get doneButton() {
+    return document.getElementById('title-done');
+  },
+
   get scanProgress() {
     return document.getElementById('scan-progress');
+  },
+
+  get scanSpinner() {
+    return document.getElementById('scan-spinner');
   },
 
   get scanCount() {
@@ -61,13 +69,18 @@ var TitleBar = {
 
   showScanProgress: function(info) {
     this.scanProgress.classList.remove('hidden');
+    this.scanSpinner.classList.remove('hidden');
     this.scanCount.textContent = info.count;
     this.scanArtist.textContent = info.artist || '';
     this.scanTitle.textContent = info.title || '';
   },
 
   hideScanProgress: function() {
-    this.scanProgress.classList.add('hidden');
+    this.scanSpinner.classList.add('hidden');
+    // The setTimeout is a workaround for bug 1166500
+    setTimeout(function() {
+      this.scanProgress.classList.add('hidden');
+    }.bind(this), 100);
   },
 
   handleEvent: function tb_handleEvent(evt) {
@@ -99,25 +112,25 @@ var TitleBar = {
             var playingBlob = PlayerView.playingBlob;
 
             LazyLoader.load('js/metadata/album_art_cache.js', function() {
-              AlbumArtCache.getCoverBlob(currentFileinfo)
-                           .then(function(picture) {
-                var currentMetadata = currentFileinfo.metadata;
-                App.pendingPick.postResult({
-                  type: playingBlob.type,
-                  blob: playingBlob,
-                  name: currentMetadata.title || '',
-                  // We only pass some metadata attributes so we don't share
-                  // personal details like # of times played and ratings.
-                  metadata: {
-                    title: currentMetadata.title,
-                    artist: currentMetadata.artist,
-                    album: currentMetadata.album,
-                    picture: picture
-                  }
-                });
+              AlbumArtCache.getThumbnailBlob(currentFileinfo).then(
+                function(picture) {
+                  var currentMetadata = currentFileinfo.metadata;
+                  App.pendingPick.postResult({
+                    type: playingBlob.type,
+                    blob: playingBlob,
+                    name: currentMetadata.title || '',
+                    // We only pass some metadata attributes so we don't share
+                    // personal details like # of times played and ratings.
+                    metadata: {
+                      title: currentMetadata.title,
+                      artist: currentMetadata.artist,
+                      album: currentMetadata.album,
+                      picture: picture
+                    }
+                  });
 
-                cleanupPick();
-              });
+                  cleanupPick();
+                });
             });
             break;
         }

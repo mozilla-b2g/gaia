@@ -1,5 +1,5 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
-         MockContacts, MockMozPhoneNumberService, MocksHelper, Notification,
+         MockMozPhoneNumberService, MocksHelper, Notification,
          MockNotification, Threads, Promise, MockSettings,
          AssetsHelper,
          Dialog
@@ -114,7 +114,6 @@ suite('Utils', function() {
     test('(UTSMS)', function() {
       var date = new Date(1362166084256);
       var offset = (+date - date.getTimezoneOffset() * 60000) % 86400000;
-
       assert.equal(
         Utils.getDayDate(1362166084256),
         date.getTime() - offset // midnight
@@ -1486,78 +1485,6 @@ suite('getDisplayObject', function() {
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
     assert.equal(data.email, value);
-  });
-});
-
-suite('getContactDisplayInfo', function() {
-  MocksHelperForUtilsUnitTest.attachTestHelpers();
-
-  var nativeMozL10n = navigator.mozL10n;
-
-  setup(function() {
-    navigator.mozL10n = MockL10n;
-    this.sinon.spy(Utils, 'getContactDetails');
-    this.sinon.spy(Utils, 'getDisplayObject');
-  });
-
-  teardown(function() {
-    navigator.mozL10n = nativeMozL10n;
-  });
-
-  test('Valid contact with phonenumber', function(done) {
-    Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
-      '+346578888888'
-    ).then(() => {
-      var tel = MockContact.list()[0].tel[0];
-      sinon.assert.calledWith(Utils.getContactDetails, tel);
-      sinon.assert.calledWith(Utils.getDisplayObject, sinon.match.any, tel);
-    }).then(done, done);
-  });
-
-  test('Empty contact with phonenumber', function(done) {
-    Utils.getContactDisplayInfo(
-      () => Promise.resolve([]),
-      '+348888888888'
-    ).then(() => {
-      var tel = {
-        'value': '+348888888888',
-        'type': [''],
-        'carrier': ''
-      };
-
-      sinon.assert.calledWith(Utils.getContactDetails, tel);
-      sinon.assert.calledWith(Utils.getDisplayObject, sinon.match.any, tel);
-    }).then(done, done);
-  });
-
-  test('Null contact with phonenumber', function(done) {
-    Utils.getContactDisplayInfo(
-      () => Promise.resolve(null),
-      '+348888888888'
-    ).then(() => {
-      var tel = {
-        'value': '+348888888888',
-        'type': [''],
-        'carrier': ''
-      };
-      sinon.assert.calledWith(Utils.getContactDetails, tel);
-      sinon.assert.calledWith(Utils.getDisplayObject, sinon.match.any, tel);
-    }).then(done, done);
-  });
-
-  test('No contact and no phonenumber', function(done) {
-    this.sinon.stub(MockContact, 'list', function() {
-      return [];
-    });
-    Utils.getContactDisplayInfo(
-      () => Promise.resolve([]),
-      ''
-    ).then((data) => {
-      sinon.assert.notCalled(Utils.getContactDetails);
-      sinon.assert.notCalled(Utils.getDisplayObject);
-      assert.equal(data, null);
-    }).then(done, done);
   });
 });
 

@@ -2,7 +2,6 @@
 
 'use strict';
 
-require('/services/js/drafts.js');
 require('/services/js/threads.js');
 
 require('/services/test/unit/mock_drafts.js');

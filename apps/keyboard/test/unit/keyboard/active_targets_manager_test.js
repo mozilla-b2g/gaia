@@ -104,7 +104,7 @@ suite('ActiveTargetsManager', function() {
       assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
       assert.isTrue(
         manager.ontargetcommitted.calledWith(press0.target));
-      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.clearTimeout.calledThrice);
     });
 
     test('press end', function() {
@@ -118,7 +118,7 @@ suite('ActiveTargetsManager', function() {
       assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
       assert.isTrue(
         manager.ontargetcommitted.calledWith(press0.target));
-      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.clearTimeout.calledThrice);
     });
 
     test('press end (moved press)', function() {
@@ -133,7 +133,7 @@ suite('ActiveTargetsManager', function() {
       assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
       assert.isTrue(
         manager.ontargetcommitted.calledWith(press0.target));
-      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.clearTimeout.calledThrice);
     });
 
     test('press move to handwriting pad', function() {
@@ -235,6 +235,38 @@ suite('ActiveTargetsManager', function() {
         'ontargetdoubletapped should not be called.');
       assert.isTrue(
         manager.ontargetcommitted.getCall(2).calledWith(press0.target));
+    });
+
+    test('tapping on a different target will clear ' + 
+	 'the double tap timer', function() {
+      var pressEnd = {
+        target: press0.target
+      };
+      userPressManagerStub.onpressend(pressEnd, id0);
+
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(manager.ontargetcommitted.calledOnce);
+      assert.isFalse(manager.ontargetdoubletapped.calledOnce);
+      assert.isTrue(
+        manager.ontargetcommitted.calledWith(press0.target));
+      assert.equal(window.setTimeout.getCall(1).args[1],
+        manager.DOUBLE_TAP_TIMEOUT);
+
+      // Touch another target
+      var press1 = {
+        target: {
+          text: '2'
+        }
+      };
+
+      userPressManagerStub.onpressstart(press1, id0);
+      userPressManagerStub.onpressend(press1, id0);
+
+      assert.equal(window.clearTimeout.callCount, 6);
+
+      assert.isTrue(manager.ontargetcommitted.calledTwice);
+      assert.isTrue(
+        manager.ontargetcommitted.getCall(1).calledWith(press1.target));
     });
 
     test('triple tap (within DOUBLE_TAP_TIMEOUT)', function() {
@@ -341,7 +373,7 @@ suite('ActiveTargetsManager', function() {
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
           manager.ontargetcommitted.calledWith(press0.target));
-        assert.isTrue(window.clearTimeout.calledTwice);
+        assert.isTrue(window.clearTimeout.calledThrice);
       });
     });
 
@@ -381,7 +413,7 @@ suite('ActiveTargetsManager', function() {
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
           manager.ontargetcommitted.calledWith(altTarget));
-        assert.equal(window.clearTimeout.callCount, 3);
+        assert.equal(window.clearTimeout.callCount, 4);
       });
 
       suite('ignore second press', function() {
@@ -430,7 +462,7 @@ suite('ActiveTargetsManager', function() {
           assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
           assert.isTrue(
             manager.ontargetcommitted.calledWith(altTarget));
-          assert.equal(window.clearTimeout.callCount, 3);
+          assert.equal(window.clearTimeout.callCount, 4);
         });
       });
     });
@@ -473,7 +505,7 @@ suite('ActiveTargetsManager', function() {
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
         assert.isTrue(
           manager.ontargetcommitted.calledWith(movedTarget));
-        assert.equal(window.clearTimeout.callCount, 3);
+        assert.equal(window.clearTimeout.callCount, 4);
       });
 
       suite('trigger long press, without alt char menu', function() {
@@ -497,7 +529,7 @@ suite('ActiveTargetsManager', function() {
           assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
           assert.isTrue(
             manager.ontargetcommitted.calledWith(movedTarget));
-          assert.equal(window.clearTimeout.callCount, 3);
+          assert.equal(window.clearTimeout.callCount, 4);
         });
       });
     });
@@ -533,7 +565,7 @@ suite('ActiveTargetsManager', function() {
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
           manager.ontargetcommitted.calledWith(press1.target));
-        assert.equal(window.clearTimeout.callCount, 3);
+        assert.equal(window.clearTimeout.callCount, 4);
 
         var pressEnd2 = {
           target: {
@@ -559,7 +591,7 @@ suite('ActiveTargetsManager', function() {
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
           manager.ontargetcommitted.calledWith(press0.target));
-        assert.equal(window.clearTimeout.callCount, 3);
+        assert.equal(window.clearTimeout.callCount, 4);
 
         var pressEnd2 = {
           target: {
@@ -607,7 +639,7 @@ suite('ActiveTargetsManager', function() {
       assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
       assert.isTrue(
         manager.ontargetcommitted.calledWith(press0.target));
-      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.clearTimeout.calledThrice);
     });
 
     test('press move and press end (moved press)', function() {
@@ -683,7 +715,7 @@ suite('ActiveTargetsManager', function() {
       userPressManagerStub.onpressend(press0, id0);
 
       assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
-      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.clearTimeout.calledThrice);
       assert.isTrue(window.setTimeout.calledTwice);
       assert.isTrue(manager.ontargetcommitted.called);
     });
@@ -706,7 +738,7 @@ suite('ActiveTargetsManager', function() {
       userPressManagerStub.onpressend(press0, id0);
 
       assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
-      assert.isTrue(window.clearTimeout.calledTwice);
+      assert.isTrue(window.clearTimeout.calledThrice);
       assert.isTrue(window.setTimeout.calledTwice);
       assert.isTrue(manager.ontargetcommitted.called);
     });

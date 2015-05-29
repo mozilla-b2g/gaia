@@ -84,55 +84,6 @@ gaia-buttons.forward-only .icon-previous {
   display: none !important;
 }
 
-/******************************************************************************
- * Boolean inputs
- */
-
-/* custom styles for boolean inputs (see /shared/style/switches.css)
- * (incremental parity with Settings)
- */
-
-[data-type="list"] li > label.pack-switch {
-  text-transform: none;
-  -moz-margin-start: -1.5rem;
-  -moz-margin-end: -1.5rem;
-  width: 100%;
-  min-height: 5rem;
-  overflow: visible;
-  display: flex;
-  /* override switches.css treatment */
-  pointer-events: auto;
-  position: relative;
-  top: auto;
-  right: auto;
-  bottom: auto;
-  left: auto;
-}
-
-[data-type="list"] li > label.pack-switch > span {
-  text-decoration: none;
-  outline: 0;
-  color: #000;
-  -moz-box-sizing: border-box;
-  font-size: 1.9rem;
-  padding: 1rem 1.5rem;
-  -moz-padding-end: 9rem;
-  margin: 0 -1.5rem;
-  line-height: normal;
-  height: auto;
-  overflow: hidden;
-  display: block;
-}
-
-[data-type="list"] li > .pack-switch input ~ span::after {
-  left: auto;
-  right: 0;
-}
-[dir="rtl"][data-type="list"] li > .pack-switch input ~ span::after {
-  left: 0;
-  right: auto;
-}
-
 /*
   Header conditional button
 */
@@ -367,9 +318,17 @@ gaia-buttons.forward-only .icon-previous {
 
 #wifi [data-type="list"] li > p {
   pointer-events: none;
-  -moz-padding-end: 6.2rem;
   line-height: 1.33;
 }
+#wifi:-moz-dir(ltr) [data-type="list"] li > p {
+  /* using padding-right/left on purpose as strings may be bidi,
+     which can change the meaning of -moz-padding-end */
+  padding-right: 6.2rem;
+}
+#wifi:-moz-dir(rtl) [data-type="list"] li > p {
+  padding-left: 6.2rem;
+}
+
 
 #wifi li {
   padding: 0 1.5rem 0.5rem 1.5rem;
@@ -1171,7 +1130,7 @@ i.hack-first-child {
 
 #data_3g [data-type="list"] li,
 #geolocation [data-type="list"] li {
-  -moz-padding-start: 3rem;
+  -moz-padding-start: 1.5rem;
 }
 
 #data_3g .content,

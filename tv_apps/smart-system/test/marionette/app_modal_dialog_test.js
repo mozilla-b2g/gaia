@@ -72,9 +72,6 @@ marionette('Test Modal Dialog Events', function() {
 
     appModalDialog.waitForDialogOpened(appModalDialog.alertDialog);
 
-    assert.equal(appModalDialog.alertTitle.scriptWith(function(el) {
-      return el.textContent;
-    }), options.appName);
     assert.equal(appModalDialog.alertMessage.scriptWith(function(el) {
       return el.textContent;
     }), options.alert.message);
@@ -138,9 +135,6 @@ marionette('Test Modal Dialog Events', function() {
 
       appModalDialog.waitForDialogOpened(appModalDialog.confirmDialog);
 
-      assert.equal(appModalDialog.confirmTitle.scriptWith(function(el) {
-        return el.textContent;
-      }), options.appName);
       assert.equal(appModalDialog.confirmMessage.scriptWith(function(el) {
         return el.textContent;
       }), options.confirm.message);
@@ -160,9 +154,6 @@ marionette('Test Modal Dialog Events', function() {
 
       appModalDialog.waitForDialogOpened(appModalDialog.confirmDialog);
 
-      assert.equal(appModalDialog.confirmTitle.scriptWith(function(el) {
-        return el.textContent;
-      }), options.appName);
       assert.equal(appModalDialog.confirmMessage.scriptWith(function(el) {
         return el.textContent;
       }), options.confirm.message);

@@ -12,7 +12,8 @@ var MockDrafts = {
   clear: function() {},
   store: function() {},
   request: () => Promise.resolve(),
-  getAll: () => []
+  getAll: () => [],
+  on: () => {}
 };
 
 function MockDraft(draft) {

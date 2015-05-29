@@ -187,128 +187,39 @@ suite('ActivityPicker', function() {
     });
   });
 
-  suite('createNewContact', function() {
+  test('createNewContact', function() {
+    ActivityPicker.createNewContact({foo: ['bar']});
 
-    test('createNewContact(props) ', function() {
-      ActivityPicker.createNewContact({foo: ['bar']});
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'webcontacts/contact',
-          params: {foo: ['bar']}
-        }
-      });
-    });
-
-    test('createNewContact(props, success) ', function() {
-      ActivityPicker.createNewContact({foo: ['bar']}, onsuccess);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'webcontacts/contact',
-          params: {foo: ['bar']}
-        }
-      });
-    });
-
-    test('createNewContact(props, success, error) ', function() {
-      ActivityPicker.createNewContact({foo: ['bar']}, onsuccess, onerror);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.equal(
-        MozActivity.instances[0].onerror, onerror
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'new',
-        data: {
-          type: 'webcontacts/contact',
-          params: {foo: ['bar']}
-        }
-      });
+    assert.deepEqual(MozActivity.calls[0], {
+      name: 'new',
+      data: {
+        type: 'webcontacts/contact',
+        params: { foo: ['bar'] }
+      }
     });
   });
 
-  suite('addToExistingContact', function() {
+  test('addToExistingContact', function() {
+    ActivityPicker.addToExistingContact({foo: ['bar']});
 
-    test('addToExistingContact(props) ', function() {
-      ActivityPicker.addToExistingContact({foo: ['bar']});
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'update',
-        data: {
-          type: 'webcontacts/contact',
-          params: {foo: ['bar']}
-        }
-      });
-    });
-
-    test('addToExistingContact(props, success) ', function() {
-      ActivityPicker.addToExistingContact({foo: ['bar']}, onsuccess);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'update',
-        data: {
-          type: 'webcontacts/contact',
-          params: {foo: ['bar']}
-        }
-      });
-    });
-
-    test('addToExistingContact(props, success, error) ', function() {
-      ActivityPicker.addToExistingContact({foo: ['bar']}, onsuccess, onerror);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.equal(
-        MozActivity.instances[0].onerror, onerror
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'update',
-        data: {
-          type: 'webcontacts/contact',
-          params: {foo: ['bar']}
-        }
-      });
+    assert.deepEqual(MozActivity.calls[0], {
+      name: 'update',
+      data: {
+        type: 'webcontacts/contact',
+        params: { foo: ['bar'] }
+      }
     });
   });
 
-  suite('viewContact', function() {
+  test('viewContact', function() {
+    ActivityPicker.viewContact({foo: ['bar']});
 
-    test('viewContact(props, success, error) ', function() {
-      ActivityPicker.viewContact({foo: ['bar']}, onsuccess, onerror);
-
-      assert.equal(
-        MozActivity.instances[0].onsuccess, onsuccess
-      );
-
-      assert.equal(
-        MozActivity.instances[0].onerror, onerror
-      );
-
-      assert.deepEqual(MozActivity.calls[0], {
-        name: 'open',
-        data: {
-          type: 'webcontacts/contact',
-          params: {foo: ['bar']}
-        }
-      });
+    assert.deepEqual(MozActivity.calls[0], {
+      name: 'open',
+      data: {
+        type: 'webcontacts/contact',
+        params: { foo: ['bar'] }
+      }
     });
   });
 
