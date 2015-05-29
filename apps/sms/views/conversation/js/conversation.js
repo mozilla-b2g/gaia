@@ -5,9 +5,10 @@
          SMIL, ErrorDialog, MessageManager, LinkHelper,
          ActivityPicker, InboxView, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
-         ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
+         TimeHeaders, ContactRenderer, Draft, Drafts,
          MultiSimActionButton, Navigation, Promise, LazyLoader,
          SharedComponents,
+         ActivityClient,
          Errors,
          EventDispatcher,
          SelectionHandler,
@@ -302,7 +303,7 @@ var ConversationView = {
    * @private
    */
   backOrClose: function conv_backOrClose() {
-    var inActivity = ActivityHandler.isInActivity();
+    var inActivity = ActivityClient.hasPendingRequest();
     var isComposer = Navigation.isCurrentPanel('composer');
     var isThread = Navigation.isCurrentPanel('thread');
     var action = inActivity && (isComposer || isThread) ? 'close' : 'back';
@@ -477,7 +478,7 @@ var ConversationView = {
    */
   beforeEnter: function conv_beforeEnter(args) {
     this.clearConvertNoticeBanners();
-    this.setHeaderAction(ActivityHandler.isInActivity() ? 'close' : 'back');
+    this.setHeaderAction(ActivityClient.hasPendingRequest() ? 'close' : 'back');
 
     Recipients.View.isFocusable = true;
     if (!this.multiSimActionButton) {
@@ -1084,7 +1085,7 @@ var ConversationView = {
   close: function conv_close() {
     return this._onNavigatingBack().then(() => {
       this.cleanFields();
-      ActivityHandler.leaveActivity();
+      return ActivityClient.postResult();
     }).catch(function(e) {
       // If we don't have any error that means that action was rejected
       // intentionally and there is nothing critical to report about.
@@ -2264,7 +2265,7 @@ var ConversationView = {
       if (recipients.length > 1) {
         this.shouldChangePanelNextEvent = false;
         Navigation.toPanel('thread-list');
-        if (ActivityHandler.isInActivity()) {
+        if (ActivityClient.hasPendingRequest()) {
           setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
         }
 
@@ -2879,7 +2880,7 @@ var ConversationView = {
       );
     }
 
-    if (opt.contactId && !ActivityHandler.isInActivity()) {
+    if (opt.contactId && !ActivityClient.hasPendingRequest()) {
         params.items.push({
           l10nId: 'viewContact',
           method: () => ActivityPicker.viewContact({ id: opt.contactId })

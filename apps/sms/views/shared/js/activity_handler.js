@@ -3,7 +3,10 @@
 
 /*global Utils, MessageManager, Compose, NotificationHelper,
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
-         ConversationView, Notification, Settings, Navigation */
+         ConversationView, Notification, Settings, Navigation,
+         ActivityClient,
+         ActivityShim
+*/
 /*exported ActivityHandler */
 
 'use strict';
@@ -21,63 +24,46 @@ const ActivityDataType = {
 };
 
 var ActivityHandler = {
-  // Will hold current activity object
-  _activity: null,
-
   init: function() {
     if (!window.navigator.mozSetMessageHandler) {
       return;
     }
 
-    // A mapping of MozActivity names to their associated event handler
-    window.navigator.mozSetMessageHandler('activity',
-      this._onActivity.bind(this, {
-        'new': this._onNewActivity,
-        'share': this._onShareActivity
-      })
-    );
+    if (ActivityShim.hasPendingRequest()) {
+      // Unique identifier used to have only 1-to-1 connection between client
+      // and corresponding service.
+      var appInstanceId = Date.now();
 
-    // We don't want to register these system handlers when app is run as
-    // inline activity
-    if (!Navigation.getPanelName().startsWith('activity')) {
-      window.navigator.mozSetMessageHandler('sms-received',
-        this.onSmsReceived.bind(this));
+      ActivityClient.init(appInstanceId);
 
-      window.navigator.mozSetMessageHandler('notification',
-        this.onNotification.bind(this));
-    }
-  },
+      ActivityClient.on(
+        'new-activity-request', this._onNewActivity.bind(this)
+      );
 
-  isInActivity: function isInActivity() {
-    return !!this._activity;
-  },
+      ActivityClient.on(
+        'share-activity-request', this._onShareActivity.bind(this)
+      );
 
-  setActivity: function setActivity(value) {
-    if (!value) {
-      throw new Error('Activity should be defined!');
-    }
-    this._activity = value;
-  },
-
-  // The Messaging application's global Activity handler. Delegates to specific
-  // handler based on the Activity name.
-  _onActivity: function activityHandler(handlers, activity) {
-    var name = activity.source.name;
-    var handler = handlers[name];
-
-    if (typeof handler === 'function') {
-      this.setActivity(activity);
-
-      handler.call(this, activity);
+      // Currently both client and service for activity reside in the same
+      // context, so we spin up both in the same context/window.
+      ActivityShim.init(appInstanceId);
     } else {
-      console.error('Unrecognized activity: "' + name + '"');
+      // We don't want to register these system handlers when app is run as
+      // inline activity
+      window.navigator.mozSetMessageHandler(
+        'sms-received', this.onSmsReceived.bind(this)
+      );
+
+      window.navigator.mozSetMessageHandler(
+        'notification', this.onNotification.bind(this)
+      );
     }
   },
 
-  _onNewActivity: function newHandler(activity) {
+  _onNewActivity: function newHandler(activityData) {
     var viewInfo = {
-      body: activity.source.data.body,
-      number: activity.source.data.target || activity.source.data.number,
+      body: activityData.body,
+      number: activityData.target || activityData.number,
       threadId: null
     };
 
@@ -100,9 +86,8 @@ var ActivityHandler = {
     );
   },
 
-  _onShareActivity: function shareHandler(activity) {
-    var activityData = activity.source.data,
-        dataToShare = null;
+  _onShareActivity: function shareHandler(activityData) {
+    var dataToShare = null;
 
     switch(activityData.type) {
       case ActivityDataType.AUDIO:
@@ -132,7 +117,7 @@ var ActivityHandler = {
               n: activityData.blobs.length,
               mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
             }
-          }).then(() => this.leaveActivity());
+          }).then(() => ActivityClient.postResult());
           return;
         }
 
@@ -150,37 +135,18 @@ var ActivityHandler = {
         });
         break;
       default:
-        this.leaveActivity(
+        ActivityClient.postError(
           'Unsupported activity data type: ' + activityData.type
         );
         return;
     }
 
     if (!dataToShare) {
-      this.leaveActivity('No data to share found!');
+      ActivityClient.postError('No data to share found!');
       return;
     }
 
-    Navigation.toPanel('composer').then(
-      Compose.append.bind(Compose, dataToShare)
-    );
-  },
-
-  /**
-   * Leaves current activity and toggles request activity mode.
-   * @param {string?} errorReason String message that indicates that something
-   * went wrong and we'd like to call postError with the specified reason
-   * instead of successful postResult.
-   */
-  leaveActivity: function ah_leaveActivity(errorReason) {
-    if (this.isInActivity()) {
-      if (errorReason) {
-        this._activity.postError(errorReason);
-      } else {
-        this._activity.postResult({ success: true });
-      }
-      this._activity = null;
-    }
+    this.toView({ body: dataToShare });
   },
 
   handleMessageNotification: function ah_handleMessageNotification(message) {
@@ -227,7 +193,7 @@ var ActivityHandler = {
    * recipients list with, "body" is an optional body to preset the compose
    * input with, "threadId" is an optional threadId corresponding to a new or
    * existing thread.
-   * @param {Boolean} focusComposer Indicates whether we need to focus composer
+   * @param {boolean?} focusComposer Indicates whether we need to focus composer
    * when we navigate to Thread panel.
    */
   toView: function ah_toView(message, focusComposer) {
@@ -388,7 +354,7 @@ var ActivityHandler = {
           if (message.subject) {
             return Promise.resolve(message.subject);
           }
-          
+
           var defer = Utils.Promise.defer();
 
           SMIL.parse(message, function slideCb(slideArray) {

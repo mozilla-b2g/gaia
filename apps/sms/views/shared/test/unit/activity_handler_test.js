@@ -5,7 +5,9 @@
          MockNavigatorWakeLock,
          MockMessages, MockL10n, MockSilentSms,
          Settings,
-         Utils
+         Utils,
+         ActivityShim,
+         ActivityClient
 */
 
 'use strict';
@@ -27,6 +29,8 @@ require('/views/shared/test/unit/mock_contacts.js');
 require('/views/shared/test/unit/mock_messages.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/services/test/unit/mock_threads.js');
+require('/services/test/unit/activity/mock_activity_shim.js');
+require('/services/test/unit/activity/mock_activity_client.js');
 require('/views/shared/test/unit/mock_conversation.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_notify.js');
@@ -52,7 +56,9 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Threads',
   'ConversationView',
   'Utils',
-  'Navigation'
+  'Navigation',
+  'ActivityShim',
+  'ActivityClient'
 ]).init();
 
 suite('ActivityHandler', function() {
@@ -103,6 +109,9 @@ suite('ActivityHandler', function() {
     // simulate localization is ready
     this.sinon.stub(navigator.mozL10n, 'once').yields();
 
+    this.sinon.stub(ActivityShim);
+    this.sinon.stub(ActivityClient);
+
     ActivityHandler.init();
   });
 
@@ -113,211 +122,196 @@ suite('ActivityHandler', function() {
   });
 
   suite('init', function() {
-    test('the message handlers are bound', function() {
-      /*jshint sub: true */
-      var handlers = MockNavigatormozSetMessageHandler.mMessageHandlers;
-      assert.ok(handlers['activity']);
-      assert.ok(handlers['sms-received']);
-      assert.ok(handlers['notification']);
+    setup(function() {
+      this.sinon.stub(window.navigator, 'mozSetMessageHandler');
     });
 
     test('if app is run as inline activity', function() {
-      this.sinon.stub(window.navigator, 'mozSetMessageHandler');
-      this.sinon.stub(Navigation, 'getPanelName').returns('activity-xxx');
+      this.sinon.stub(Date, 'now').returns(12345);
+
+      ActivityShim.hasPendingRequest.returns(true);
 
       ActivityHandler.init();
 
-      // When app is run as activity we should listen for 'sms-received' and
-      // 'notification' system messages - only for 'activity' message.
-      sinon.assert.calledOnce(window.navigator.mozSetMessageHandler);
+      sinon.assert.calledOnce(ActivityShim.init);
+      sinon.assert.calledWith(ActivityShim.init, 12345);
+
+      sinon.assert.calledOnce(ActivityClient.init);
+      sinon.assert.calledWith(ActivityClient.init, 12345);
+
+      sinon.assert.calledWith(ActivityClient.on, 'new-activity-request');
+      sinon.assert.calledWith(ActivityClient.on, 'share-activity-request');
+
+      // When app is run as activity we should not listen for 'sms-received' and
+      // 'notification' system messages.
+      sinon.assert.notCalled(window.navigator.mozSetMessageHandler);
+    });
+
+    test('if app is run in non-activity mode', function() {
+      ActivityShim.hasPendingRequest.returns(false);
+
+      ActivityHandler.init();
+
+      sinon.assert.notCalled(ActivityShim.init);
+      sinon.assert.notCalled(ActivityClient.init);
+
+      sinon.assert.calledTwice(window.navigator.mozSetMessageHandler);
       sinon.assert.calledWith(
-        window.navigator.mozSetMessageHandler, 'activity'
+        window.navigator.mozSetMessageHandler, 'sms-received'
+      );
+      sinon.assert.calledWith(
+        window.navigator.mozSetMessageHandler, 'notification'
       );
     });
   });
 
   suite('"share" activity', function() {
-    var shareActivity;
-    var panelPromise;
+    var activityData;
 
     setup(function() {
-      shareActivity = {
-        source: {
-          name: 'share',
-          data: {
-            type: 'video/*',
-            blobs: [
-              new Blob(['test'], { type: 'video/x-video' }),
-              new Blob(['test2'], { type: 'video/x-video' }),
-              new Blob(),
-              new Blob(),
-              new Blob()
-            ],
-            filenames: ['testBlob1', 'testBlob2', 'testBlob3', 'testBlob4',
-                        'testBlob5']
-          }
-        },
-        postResult: sinon.stub(),
-        postError: sinon.stub()
+      this.sinon.spy(Navigation, 'toPanel');
+
+      activityData = {
+        type: 'video/*',
+        blobs: [
+          new Blob(['test'], { type: 'video/x-video' }),
+          new Blob(['test2'], { type: 'video/x-video' }),
+          new Blob(),
+          new Blob(),
+          new Blob()
+        ],
+        filenames: [
+          'testBlob1', 'testBlob2', 'testBlob3', 'testBlob4', 'testBlob5'
+        ]
       };
 
-      panelPromise = Promise.resolve();
-      this.sinon.stub(Navigation, 'toPanel').returns(panelPromise);
+      ActivityShim.hasPendingRequest.returns(true);
+      ActivityHandler.init();
     });
 
-    teardown(function() {
-      ActivityHandler.leaveActivity();
-    });
+    test('moves to the composer panel with the right arguments', function() {
+      ActivityClient.on.withArgs('share-activity-request').yield(
+        activityData
+      );
 
-    test('moves to the composer panel', function() {
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-
-      sinon.assert.calledWith(Navigation.toPanel, 'composer');
-    });
-
-    test('Appends an attachment to the Compose field for each media file',
-      function(done) {
-      this.sinon.stub(Compose, 'append');
-
-      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-
-      panelPromise.then(function() {
-        sinon.assert.calledWith(Compose.append, [
-          sinon.match.instanceOf(Attachment),
-          sinon.match.instanceOf(Attachment),
-          sinon.match.instanceOf(Attachment),
-          sinon.match.instanceOf(Attachment),
-          sinon.match.instanceOf(Attachment)
-        ]);
-      }).then(done, done);
+      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
+        activity: {
+          body: [
+            sinon.match.instanceOf(Attachment),
+            sinon.match.instanceOf(Attachment),
+            sinon.match.instanceOf(Attachment),
+            sinon.match.instanceOf(Attachment),
+            sinon.match.instanceOf(Attachment)
+          ],
+          number: null
+        }
+      });
     });
 
     test('Attachment size over max mms should not be appended', function(done) {
       // Adjust mmsSizeLimitation for verifying alert popup when size over
-      // limitation
+      // limitation.
       Settings.mmsSizeLimitation = 1;
-      this.sinon.spy(Compose, 'append');
 
-      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      ActivityClient.on.withArgs('share-activity-request').yield(
+        activityData
+      );
 
-      panelPromise.then(function() {
-        sinon.assert.notCalled(Compose.append);
-        sinon.assert.calledWith(Utils.alert, {
-          id: 'attached-files-too-large',
-          args: { n: 5, mmsSize: '0' }
-        });
+      sinon.assert.calledWith(Utils.alert, {
+        id: 'attached-files-too-large',
+        args: { n: 5, mmsSize: '0' }
+      });
+
+      Utils.alert.lastCall.returnValue.then(() => {
+        sinon.assert.calledWithExactly(ActivityClient.postResult);
+        sinon.assert.notCalled(Navigation.toPanel);
       }).then(done, done);
     });
 
-    test('Should append images even when they are big', function(done) {
-      shareActivity.source.data.blobs = [
-        new Blob(['test'], { type: 'image/jpeg' }),
-      ];
+    test('Should append images even when they are big', function() {
+      activityData.blobs = [new Blob(['test'], { type: 'image/jpeg' })];
 
       Settings.mmsSizeLimitation = 1;
-      this.sinon.spy(Compose, 'append');
 
-      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      ActivityClient.on.withArgs('share-activity-request').yield(
+        activityData
+      );
 
-      panelPromise.then(function() {
-        sinon.assert.called(Compose.append);
-        sinon.assert.notCalled(Utils.alert);
-      }).then(done, done);
+      sinon.assert.notCalled(Utils.alert);
+
+      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
+        activity: {
+          body: [sinon.match.instanceOf(Attachment)],
+          number: null
+        }
+      });
     });
 
-    test('Should append vcard attachment', function(done) {
-      shareActivity.source.data.blobs = [
-        new Blob(['test'], { type: 'text/x-vcard' }),
-      ];
+    test('Should append vcard attachment', function() {
+      activityData.blobs = [new Blob(['test'], { type: 'text/x-vcard' })];
 
       this.sinon.spy(Compose, 'append');
 
-      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      ActivityClient.on.withArgs('share-activity-request').yield(
+        activityData
+      );
 
-      panelPromise.then(function() {
-        sinon.assert.called(Compose.append);
-      }).then(done, done);
-    });
+      sinon.assert.notCalled(Utils.alert);
 
-    test('share message should set the current activity', function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-      panelPromise.then(function() {
-        assert.isTrue(ActivityHandler.isInActivity());
-      }).then(done, done);
+      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
+        activity: {
+          body: [sinon.match.instanceOf(Attachment)],
+          number: null
+        }
+      });
     });
 
     test('Appends URL to the Compose field for activity with URL data type',
-      function(done) {
-      this.sinon.stub(Compose, 'append');
-      var shareURLActivity = {
-        source: {
-          name: 'share',
-          data: {
-            type: 'url',
-            url: 'test_url'
-          }
-        },
-        postResult: sinon.stub()
+    function() {
+      var urlActivityData = {
+        type: 'url',
+        url: 'test_url'
       };
 
-      MockNavigatormozSetMessageHandler.mTrigger('activity', shareURLActivity);
+      ActivityClient.on.withArgs('share-activity-request').yield(
+        urlActivityData
+      );
 
-      panelPromise.then(function() {
-        sinon.assert.calledWith(
-          Compose.append, shareURLActivity.source.data.url
-        );
-      }).then(done, done);
+      sinon.assert.notCalled(Utils.alert);
+
+      sinon.assert.calledWith(Navigation.toPanel, 'composer', {
+        activity: {
+          body: urlActivityData.url,
+          number: null
+        }
+      });
     });
 
     test('Call activity postError if no data to share', function() {
-      this.sinon.spy(Compose, 'append');
-      this.sinon.spy(ActivityHandler, 'leaveActivity');
+      ActivityClient.on.withArgs('share-activity-request').yield({
+        type: 'url'
+      });
 
-      var activityWithoutData = {
-        source: {
-          name: 'share',
-          data: {
-            type: 'url'
-          }
-        },
-        postResult: sinon.stub(),
-        postError: sinon.stub()
-      };
-
-      MockNavigatormozSetMessageHandler.mTrigger(
-        'activity',
-        activityWithoutData
+      sinon.assert.notCalled(Navigation.toPanel);
+      sinon.assert.notCalled(ActivityClient.postResult);
+      sinon.assert.calledOnce(ActivityClient.postError);
+      sinon.assert.calledWith(
+        ActivityClient.postError, 'No data to share found!'
       );
-      sinon.assert.called(ActivityHandler.leaveActivity);
-      sinon.assert.called(activityWithoutData.postError);
-      sinon.assert.notCalled(activityWithoutData.postResult);
-      sinon.assert.notCalled(Compose.append);
     });
 
     test('Call activity postError on unknown activity data type', function() {
-      this.sinon.spy(Compose, 'append');
-      this.sinon.spy(ActivityHandler, 'leaveActivity');
+      ActivityClient.on.withArgs('share-activity-request').yield({
+        type: 'multipart/mixed'
+      });
 
-      var unsupportedActivity = {
-        source: {
-          name: 'share',
-          data: {
-            type: 'multipart/mixed'
-          }
-        },
-        postResult: sinon.stub(),
-        postError: sinon.stub()
-      };
-
-      MockNavigatormozSetMessageHandler.mTrigger(
-        'activity',
-        unsupportedActivity
+      sinon.assert.notCalled(Navigation.toPanel);
+      sinon.assert.notCalled(ActivityClient.postResult);
+      sinon.assert.calledOnce(ActivityClient.postError);
+      sinon.assert.calledWith(
+        ActivityClient.postError,
+        'Unsupported activity data type: multipart/mixed'
       );
-      sinon.assert.called(ActivityHandler.leaveActivity);
-      sinon.assert.called(unsupportedActivity.postError);
-      sinon.assert.notCalled(unsupportedActivity.postResult);
-      sinon.assert.notCalled(Compose.append);
     });
   });
 
@@ -744,59 +738,46 @@ suite('ActivityHandler', function() {
   });
 
   suite('"new" activity', function() {
+    var numberActivityData, emailActivityData;
+
     function onceNewActivityCompleted() {
       sinon.assert.called(ActivityHandler._onNewActivity);
       return ActivityHandler._onNewActivity.lastCall.returnValue;
     }
 
-    // Mockup activity
-    var newActivity = {
-      source: {
-        name: 'new',
-        data: {
-          number: '123',
-          body: 'foo'
-        }
-      },
-      postResult: sinon.stub()
-    };
-
-    var newActivity_email = {
-      source: {
-        name: 'new',
-        data: {
-          target: 'abc@exmple.com',
-          body: 'foo'
-        }
-      },
-      postResult: sinon.stub()
-    };
-
     var threadDeferred;
 
     setup(function() {
+      numberActivityData = {
+        number: '123',
+        body: 'foo'
+      };
+
+      emailActivityData = {
+        target: 'abc@exmple.com',
+        body: 'foo'
+      };
+
       // configure findThreadFromNumber
       threadDeferred = Utils.Promise.defer();
-      this.sinon.stub(MessageManager, 'findThreadFromNumber')
-                .returns(threadDeferred.promise);
-      this.sinon.spy(Navigation, 'toPanel');
+      this.sinon.stub(MessageManager, 'findThreadFromNumber').returns(
+        threadDeferred.promise
+      );
       this.sinon.spy(Threads, 'registerMessage');
+      this.sinon.spy(Navigation, 'toPanel');
       this.sinon.spy(ActivityHandler, '_onNewActivity');
-      // we have to call init again, otherwise the map of handlers would
-      // still contain the non-mocked _onNewActivity
+
+      ActivityShim.hasPendingRequest.returns(true);
       ActivityHandler.init();
     });
 
-    teardown(function() {
-      ActivityHandler.leaveActivity();
-    });
-
     test('Should move to the composer and set activity', function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+      ActivityClient.on.withArgs('new-activity-request').yield(
+        numberActivityData
+      );
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
-        assert.isTrue(ActivityHandler.isInActivity());
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
             number: '123',
@@ -807,34 +788,35 @@ suite('ActivityHandler', function() {
     });
 
     test('new message with body only', function(done) {
-      var activity = {
-        source: {
-          name: 'new',
-          data: { body: 'foo' }
-        },
-        postResult: () => {}
-      };
-      MockNavigatormozSetMessageHandler.mTrigger('activity', activity);
+      ActivityClient.on.withArgs('new-activity-request').yield(
+        { body: 'foo' }
+      );
 
       onceNewActivityCompleted().then(() => {
         sinon.assert.notCalled(MessageManager.findThreadFromNumber);
 
         sinon.assert.calledWithMatch(
-          Navigation.toPanel, 'composer', { activity: { body: 'foo' } }
+          Navigation.toPanel, 'composer', {
+            activity: {
+              body: 'foo'
+            }
+          }
         );
       }).then(done,done);
     });
 
     test('new message with email', function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_email);
+      ActivityClient.on.withArgs('new-activity-request').yield(
+        emailActivityData
+      );
+
       threadDeferred.reject(new Error('No thread for this test'));
 
       onceNewActivityCompleted().then(function() {
-        assert.isTrue(ActivityHandler.isInActivity());
         sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
           activity: {
-            number: newActivity_email.source.data.target,
-            body: newActivity_email.source.data.body
+            number: emailActivityData.target,
+            body: emailActivityData.body
           }
         });
       }).then(done,done);
@@ -842,7 +824,10 @@ suite('ActivityHandler', function() {
 
     test('when there is an existing thread, should navigate to the thread',
     function(done) {
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+      ActivityClient.on.withArgs('new-activity-request').yield(
+        numberActivityData
+      );
+
       // this time we found a thread
       threadDeferred.resolve(42);
 
@@ -958,56 +943,6 @@ suite('ActivityHandler', function() {
       getMessagePromise.then(() => {
         sinon.assert.notCalled(Threads.registerMessage);
       }).then(done, done);
-    });
-  });
-
-  suite('setActivity', function() {
-    teardown(function() {
-      ActivityHandler.leaveActivity();
-    });
-
-    test('setting current activity as null or undefined should throw exception',
-      function() {
-        assert.throws(function() {
-          ActivityHandler.setActivity(null);
-        });
-        assert.throws(function() {
-          ActivityHandler.setActivity();
-        });
-      }
-    );
-  });
-
-  suite('leaveActivity', function() {
-    test('should call postResult on current activity', function() {
-      var mockActivity = {
-        postResult: sinon.stub(),
-        postError: sinon.stub()
-      };
-      ActivityHandler.setActivity(mockActivity);
-      assert.isTrue(ActivityHandler.isInActivity());
-
-      ActivityHandler.leaveActivity();
-      sinon.assert.called(mockActivity.postResult);
-      sinon.assert.notCalled(mockActivity.postError);
-      assert.isFalse(ActivityHandler.isInActivity());
-    });
-
-    test('should call postError on current activity if reason specified',
-      function() {
-      var mockActivity = {
-        postResult: sinon.stub(),
-        postError: sinon.stub()
-      };
-      var testReason = 'Aaaa something went wrong!';
-
-      ActivityHandler.setActivity(mockActivity);
-      assert.isTrue(ActivityHandler.isInActivity());
-
-      ActivityHandler.leaveActivity(testReason);
-      sinon.assert.notCalled(mockActivity.postResult);
-      sinon.assert.calledWith(mockActivity.postError, testReason);
-      assert.isFalse(ActivityHandler.isInActivity());
     });
   });
 });

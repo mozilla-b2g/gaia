@@ -7,6 +7,11 @@ var Messages = require('./lib/messages.js');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
 
 marionette('Messages as share target', function() {
+  var MOCKS = [
+    '/mocks/mock_navigator_moz_icc_manager.js',
+    '/mocks/mock_navigator_moz_mobile_message.js'
+  ];
+
   var apps = {};
 
   apps[MessagesActivityCaller.ORIGIN] = __dirname + '/apps/activitycaller';
@@ -24,12 +29,9 @@ marionette('Messages as share target', function() {
     messagesApp = Messages.create(client);
     activityCallerApp = MessagesActivityCaller.create(client);
 
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_icc_manager.js'
-    );
-    client.contentScript.inject(
-      __dirname + '/mocks/mock_navigator_moz_mobile_message.js'
-    );
+    MOCKS.forEach(function(mock) {
+      client.contentScript.inject(__dirname + mock);
+    });
   });
 
   suite('Share via Messages', function() {
@@ -42,8 +44,8 @@ marionette('Messages as share target', function() {
       });
 
       test('Should close activity if in Composer panel', function() {
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -58,8 +60,8 @@ marionette('Messages as share target', function() {
         messagesApp.addRecipient('+1');
         messagesApp.send();
 
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -78,8 +80,8 @@ marionette('Messages as share target', function() {
         messagesApp.selectAppMenuOption('View message report');
         client.helper.waitForElement(messagesApp.Report.main);
 
-        assert.ok(
-          messagesApp.Report.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -87,8 +89,8 @@ marionette('Messages as share target', function() {
         messagesApp.performReportHeaderAction();
         client.helper.waitForElement(messagesApp.Conversation.message);
 
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
@@ -115,17 +117,17 @@ marionette('Messages as share target', function() {
         messagesApp.Conversation.headerTitle.tap();
         client.helper.waitForElement(messagesApp.Participants.main);
 
-        assert.ok(
-          messagesApp.Participants.header.getAttribute('action') === 'back',
-          'Back activity button should be visible'
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
+          'Close activity button should be visible'
         );
 
         // Go back to Conversation panel
         messagesApp.performGroupHeaderAction();
         client.helper.waitForElement(messagesApp.Conversation.message);
 
-        assert.ok(
-          messagesApp.Composer.header.getAttribute('action') === 'close',
+        assert.equal(
+          messagesApp.Composer.header.getAttribute('action'), 'close',
           'Close activity button should be visible'
         );
 
