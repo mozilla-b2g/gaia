@@ -46,6 +46,10 @@ DEFAULT_SETTINGS = {
     'vibration.enabled': False,  # disable vibration
 }
 
+DEFAULT_PREFS = {
+    'webapps.update.enabled': False  # disable web apps update
+}
+
 
 class GaiaApp(object):
 
@@ -870,7 +874,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             try:
                 if self.device.is_android_build:
                     self.cleanup_data()
-                self.set_defaults()
+                self.set_default_settings()
             finally:
                 # make sure we restart to avoid leaving us in a bad state
                 self.device.start_b2g()
@@ -961,19 +965,30 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         self.device.turn_screen_off()
         self.device.turn_screen_on()
-        
+
         # kill the FTU and any open, user-killable apps
         self.apps.kill_all()
+
+        default_prefs = DEFAULT_PREFS.copy()
+        default_prefs.update(self.testvars.get('prefs', {}))
+        default_prefs = self.modify_prefs(default_prefs)
+        for name, value in default_prefs.items():
+            if type(value) is int:
+                self.data_layer.set_int_pref(name, value)
+            elif type(value) is bool:
+                self.data_layer.set_bool_pref(name, value)
+            else:
+                self.data_layer.set_char_pref(name, value)
 
         # unlock
         if self.data_layer.get_setting('lockscreen.enabled'):
             self.device.unlock()
 
         if full_reset:
-            defaults = DEFAULT_SETTINGS.copy()
-            defaults.update(self.testvars.get('settings', {}))
-            defaults = self.modify_settings(defaults)
-            for name, value in defaults.items():
+            default_settings = DEFAULT_SETTINGS.copy()
+            default_settings.update(self.testvars.get('settings', {}))
+            default_settings = self.modify_settings(default_settings)
+            for name, value in default_settings.items():
                 self.data_layer.set_setting(name, value)
 
             # disable carrier data connection
@@ -992,15 +1007,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
             # reset to home screen
             self.device.touch_home_button()
-
-        # restore prefs from testvars
-        for name, value in self.testvars.get('prefs', {}).items():
-            if type(value) is int:
-                self.data_layer.set_int_pref(name, value)
-            elif type(value) is bool:
-                self.data_layer.set_bool_pref(name, value)
-            else:
-                self.data_layer.set_char_pref(name, value)
 
     def connect_to_local_area_network(self):
         if not self.device.is_online:
@@ -1033,7 +1039,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         :param settings: dictionary of the settings that would be applied.
         :returns: modified dictionary of the settings to be applied.
 
-        This method provides tha ability for test cases to override the default
+        This method provides the ability for test cases to override the default
         settings before they're applied. To use it, define the method in your
         test class and return a modified dictionary of settings:
 
@@ -1051,7 +1057,31 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         """
         return settings
 
-    def set_defaults(self):
+    def modify_prefs(self, prefs):
+        """Hook to modify the default preferences before they're applied.
+
+        :param prefs: dictionary of the preferences that would be applied.
+        :returns: modified dictionary of the preferences to be applied.
+
+        This method provides the ability for test cases to override the default
+        preferences before they're applied. To use it, define the method in your
+        test class and return a modified dictionary of preferences:
+
+        .. code-block:: python
+
+            class TestModifyPrefs(GaiaTestCase):
+
+                def modify_prefs(self, prefs):
+                    prefs['foo'] = 'bar'
+                    return prefs
+
+                def test_modify_prefs(self):
+                    self.assertEqual('bar', self.data_layer.get_char_pref('foo'))
+
+        """
+        return prefs
+
+    def set_default_settings(self):
         filename = 'settings.json'
         defaults = DEFAULT_SETTINGS.copy()
         defaults.update(self.testvars.get('settings', {}))
