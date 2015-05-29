@@ -352,7 +352,6 @@ shared/js/media/media_utils.js
 shared/js/media/remote_controls.js
 shared/js/media/video_player.js
 shared/js/media/video_stats.js
-shared/js/mediadb.js
 shared/js/operator_variant_helper.js
 shared/js/simple_phone_matcher.js
 shared/js/tag_visibility_monitor.js
