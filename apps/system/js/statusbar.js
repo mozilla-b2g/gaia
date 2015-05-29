@@ -85,7 +85,6 @@ var StatusBar = {
     window.addEventListener('activitytitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
     window.addEventListener('appchromeexpanded', this);
-    window.addEventListener('iconcreated', this);
     window.addEventListener('iconshown', this);
     window.addEventListener('iconhidden', this);
     window.addEventListener('iconchanged', this);
@@ -146,6 +145,19 @@ var StatusBar = {
     this.statusbarIcons.addEventListener('wheel', this);
 
     UtilityTray.init();
+    Service.register('onIconCreated', this);
+    Service.register('iconContainer', this);
+  },
+
+  iconContainer: function sb_iconContainer(icon) {
+    if (icon.dashPureName === 'operator') {
+      return this.statusbarTray;
+    }
+    return this.statusbarIconsMax;
+  },
+
+  onIconCreated: function sb_onIconCreated(icon) {
+    this.PRIORITIES[icon.dashPureName].icon = icon;
   },
 
   handleEvent: function sb_handleEvent(evt) {
@@ -159,11 +171,7 @@ var StatusBar = {
         icon = evt.detail;
         var iconObj = this.PRIORITIES[icon.dashPureName];
         var order = iconObj && iconObj.order ? iconObj.order : 1000;
-        icon.setOrder(order * -1);
-        break;
-      case 'iconcreated':
-        icon = evt.detail;
-        this.PRIORITIES[icon.dashPureName].icon = icon;
+        icon.setOrder(order);
         break;
       case 'iconchanged':
         this.cloneStatusbar();
@@ -536,6 +544,7 @@ var StatusBar = {
     this.statusbarIconsMax = document.getElementById('statusbar-maximized');
     this.screen = document.getElementById('screen');
     this.topPanel = document.getElementById('top-panel');
+    this.statusbarTray = document.getElementById('statusbar-tray');
 
     // Dummy element used at initialization.
     this.statusbarIconsMin = document.createElement('div');

@@ -18,6 +18,7 @@
     this.amendProperty();
     this.manager = manager;
     this.publish('created');
+    Service.request('Statusbar:onIconCreated', this);
   };
   BaseIcon.prototype = Object.create(BaseUI.prototype);
   BaseIcon.prototype.constructor = BaseIcon;
@@ -30,7 +31,7 @@
   };
 
   BaseIcon.prototype.setOrder = function(priority) {
-    this.element.style.order = priority;
+    this.element.style.order = priority * -1;
   };
 
   BaseIcon.prototype.camelToDash = function(strings) {
@@ -67,9 +68,6 @@
   };
   BaseIcon.prototype.EVENT_PREFIX = 'icon';
   BaseIcon.prototype.name = 'BaseIcon';
-  BaseIcon.prototype.containerElement =
-    document.getElementById('statusbar-maximized') ||
-    document.createElement('div');
 
   // Overload me
   BaseIcon.prototype.instanceID = 'statusbar-base';
@@ -109,15 +107,21 @@
   };
   BaseIcon.prototype.render = function() {
     this.publish('willrender');
-    this.containerElement.insertAdjacentHTML('afterbegin', this.view());
-    this._fetchElements();
-    this._registerEvents();
-    this.element = this.containerElement.querySelector('#' + this.instanceID);
-    this.hide();
-    this.element.classList.add('active');
-    this.UPDATE_ON_START && this.update();
-    this.onrender && this.onrender();
-    this.publish('rendered');
+    Service.request('Statusbar:iconContainer', this)
+      .then(function(container) {
+        this.containerElement = container;
+        this.containerElement.insertAdjacentHTML('afterbegin', this.view());
+        this._fetchElements();
+        this._registerEvents();
+        var selector = '#' + this.instanceID;
+        this.element = this.containerElement.querySelector(selector);
+        this.hide();
+        this.element.classList.add('active');
+        this.UPDATE_ON_START && this.update();
+        this.onrender && this.onrender();
+        this.publish('rendered');
+      }.bind(this)
+    );
     return true;
   };
   /**

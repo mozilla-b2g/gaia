@@ -12,6 +12,7 @@ marionette('Status Bar icons - Network Activity', function() {
     system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
+    statusBar.init();
     networkActivity = statusBar['network-activity'];
     networkActivity.hide();
   });
