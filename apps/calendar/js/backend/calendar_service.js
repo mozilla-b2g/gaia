@@ -4,22 +4,22 @@ define(function(require, exports) {
 var Db = require('db');
 var co = require('ext/co');
 var core = require('core');
-//var object = require('common/object');
+var object = require('common/object');
 var threads = require('ext/threads');
 
 var service = threads.service('calendar');
 var loadDb;
 
-core.db = new Db('b2g-calendar');
-core.providerFactory = require('provider/factory');
-core.storeFactory = require('store/factory');
+var db = core.db = new Db('b2g-calendar');
+var providerFactory = core.providerFactory = require('provider/factory');
+var storeFactory = core.storeFactory = require('store/factory');
 
 function start() {
   if (loadDb != null) {
     return loadDb;
   }
 
-  loadDb = core.db.load();
+  loadDb = db.load();
   return loadDb;
 }
 
@@ -34,10 +34,12 @@ function method(endpoint, handler) {
 }
 
 function stream(endpoint, handler) {
-  service.stream(endpoint, function *() {
+  service.stream(endpoint, () => {
     var args = Array.slice(arguments);
-    yield start();
-    handler.apply(null, args);
+    return co(function *() {
+      yield start();
+      handler.apply(null, args);
+    });
   });
 }
 
@@ -50,26 +52,22 @@ function echo() {
  * (1) is not a class anymore
  * (2) doesn't need the app ns/object
  */
-function saveAccount(details) {
-  return co(function *() {
-    var store = core.storeFactory.get('Account');
-    var account;
-    try {
-      account = yield store.verifyAndPersist(details);
-    } catch (error) {
-      return Promise.reject(error);
-    }
+var saveAccount = co.wrap(function *saveAccount(details) {
+  var store = storeFactory.get('Account');
+  var account;
+  try {
+    account = yield store.verifyAndPersist(details);
+  } catch (error) {
+    return Promise.reject(error);
+  }
 
-    yield syncAccount(account);
-    return account;
-  });
-}
+  yield syncAccount(account);
+  return account;
+});
 
 function removeAccount(id) {
-  return co(function *() {
-    var store = core.storeFactory.get('Account');
-    yield store.remove(id);
-  });
+  var store = core.storeFactory.get('Account');
+  return store.remove(id);
 }
 
 /**
@@ -81,7 +79,7 @@ function syncAccount(account) {
   console.log('syncAccount', account);
   /*
   return co(function *() {
-    var store = core.storeFactory.get('Calendar');
+    var store = storeFactory.get('Calendar');
     var calendars;
     try {
       calendars = yield store.remotesByAccount(account._id);
@@ -95,58 +93,81 @@ function syncAccount(account) {
   */
 }
 
-function saveEvent(exists, event) {
-  return co(function *() {
-    var store = core.storeFactory.get('Event');
-    var provider = yield store.providerFor(event);
-    var capabilities;
-    try {
-      capabilities = yield provider.eventCapabilities(event.data);
-    } catch (error) {
-      return Promise.reject(error);
-    }
+var saveEvent = co.wrap(function *saveEvent(exists, event) {
+  var store = storeFactory.get('Event');
+  var provider = yield store.providerFor(event);
+  var capabilities;
+  try {
+    capabilities = yield provider.eventCapabilities(event.data);
+  } catch (error) {
+    return Promise.reject(error);
+  }
 
-    var capability = exists ? 'canUpdate' : 'canCreate';
-    if (!capabilities[capability]) {
-      return Promise.reject(new Error('User not allowed to perform operation'));
-    }
+  var capability = exists ? 'canUpdate' : 'canCreate';
+  if (!capabilities[capability]) {
+    return Promise.reject(new Error('User not allowed to perform operation'));
+  }
 
-    var method = exists ? 'updateEvent' : 'createEvent';
-    try {
-      yield provider[method](event.data);
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  });
-}
+  var method = exists ? 'updateEvent' : 'createEvent';
+  try {
+    yield provider[method](event.data);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+});
 
-function removeEvent(event) {
-  return co(function *() {
-    var store = core.storeFactory.get('Event');
-    var provider = yield store.providerFor(event);
-    var capabilities;
-    try {
-      yield provider.eventCapabilities(event.data);
-    } catch (error) {
-      return Promise.reject(error);
-    }
+var removeEvent = co.wrap(function *removeEvent(event) {
+  var store = storeFactory.get('Event');
+  var provider = yield store.providerFor(event);
+  var capabilities;
+  try {
+    yield provider.eventCapabilities(event.data);
+  } catch (error) {
+    return Promise.reject(error);
+  }
 
-    if (!capabilities.canDelete) {
-      return Promise.reject(new Error('User not allowed to perform operation'));
-    }
+  if (!capabilities.canDelete) {
+    return Promise.reject(new Error('User not allowed to perform operation'));
+  }
 
-    yield provider.deleteEvent(event.data);
-  });
-}
+  yield provider.deleteEvent(event.data);
+});
 
 function setSetting(key, value) {
-  var store = core.storeFactory.get('Setting');
+  var store = storeFactory.get('Setting');
   return store.set(key, value);
 }
 
 function listAccounts(stream) {
-  // TODO
-  console.log('accounts/list', stream);
+  var accounts = storeFactory.get('Account');
+  var write = createAccountsWriter(stream);
+  write();
+
+  accounts.on('add', write);
+  accounts.on('remove', write);
+  accounts.on('update', write);
+
+  stream.cancel = () => {
+    accounts.off('add', write);
+    accounts.off('remove', write);
+    accounts.off('update', write);
+  };
+}
+
+function createAccountsWriter(stream) {
+  return co.wrap(function *() {
+    try {
+      var accounts = yield storeFactory.get('Account').all();
+      var data = object.map(accounts, (id, account) => {
+        var provider = providerFactory.get(account.providerType);
+        return { account: account, provider: provider };
+      });
+      stream.write(data);
+    } catch (error) {
+      console.error(`Error fetching accounts: ${error.message}`);
+      return Promise.reject(error);
+    }
+  });
 }
 
 function getAccount(stream, id) {
@@ -155,8 +176,7 @@ function getAccount(stream, id) {
 }
 
 function listCalendars(stream) {
-  // TODO
-  console.log('calendars/list', stream);
+
 }
 
 function getEvent(stream, id) {
@@ -169,10 +189,14 @@ function listBusytimes(stream, day) {
   console.log('busytimes/list', stream, day);
 }
 
-function getSetting(stream, key) {
-  // TODO
-  console.log('settings/set', stream, key);
-}
+var getSetting = co.wrap(function *(stream, key) {
+  var settings = storeFactory.get('Setting');
+  var value = yield settings.getValue(key);
+  var write = stream.write.bind(stream);
+  write(value);
+  settings.on(`${key}Change`, write);
+  stream.cancel = () => settings.off(`${key}Change`, write);
+});
 
 method('echo', echo);
 method('accounts/create', saveAccount);
