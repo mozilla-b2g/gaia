@@ -30,7 +30,7 @@ var MockNavigatormozApps = {
       var evt = {
         target: request
       };
-      request.onsuccess(evt);
+      return request.onsuccess(evt);
     }
   },
 
