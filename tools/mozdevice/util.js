@@ -5,7 +5,18 @@ var unzip = require('unzip');
 var path = require('path');
 var fs = require('fs');
 var sax = require('sax');
+var XRegExp = require("xregexp").XRegExp;
 var debug = require('debug')('mozdevice:util');
+
+var PATTERNS = {
+  brief: XRegExp("^(?<level>[VDIWEAF])\\/(?<tag>[^)]{0,23}?)\\(\\s*(?<pid>\\d+)\\):\\s(?<message>.*)$"),
+  threadtime: XRegExp("^(?<timestamp>\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d\\.\\d+)\\s*(?<pid>\\d+)\\s*(?<tid>\\d+)\\s(?<level>[VDIWEAF])\\s(?<tag>.*?):\\s(?<message>.*)$"),
+  time: XRegExp("^(?<timestamp>\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d\\.\\d+):*\\s(?<level>[VDIWEAF])\\/(?<tag>.*?)\\((?<pid>\\s*\\d+)\\):\\s(?<message>.*)$"),
+  process: XRegExp("^(?<level>[VDIWEAF])\\(\\s*(?<pid>\\d+)\\)\\s(?<message>.*)$"),
+  tag: XRegExp("^(?<level>[VDIWEAF])\\/(?<tag>[^)]{0,23}?):\\s(?<message>.*)$"),
+  thread: XRegExp("^(?<level>[VDIWEAF])\\(\\s*(?<pid>\\d+):(?<tid>0x.*?)\\)\\s(?<message>.*)$"),
+  ddms_save: XRegExp("^(?<timestamp>\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d\\.\\d+):*\\s(?<level>VERBOSE|DEBUG|ERROR|WARN|INFO|ASSERT)\\/(?<tag>.*?)\\((?<pid>\\s*\\d+)\\):\\s(?<message>.*)$")
+};
 
 var PATHS = {};
 PATHS.SYSTEM = '/system';
@@ -381,6 +392,88 @@ Util.prototype.getGaiaRevision = function() {
   });
 
   return promise;
+};
+
+/**
+ * For a given line in a logcat message, determine the type of the line
+ * This method adapted from the logcat-parse npm library, and is copyrighted by
+ * its respective author, license located at
+ * https://raw.githubusercontent.com/mcginty/logcat-parse/master/LICENSE
+ * @param {string} line
+ * @returns {string|null}
+ */
+Util.prototype.getLogMessageType = function(line) {
+  var messageType = null;
+
+  Object
+    .keys(PATTERNS)
+    .some(function(type) {
+      var pattern = PATTERNS[type];
+
+      if (pattern.test(line)) {
+        messageType = type;
+        return true;
+      }
+
+      return false;
+    });
+
+  return messageType;
+};
+
+/**
+ * Parse the contents of a logcat entry into a usable object
+ * This method adapted from the logcat-parse npm library, and is copyrighted by
+ * its respective author, license located at
+ * https://raw.githubusercontent.com/mcginty/logcat-parse/master/LICENSE
+ * @param {string} contents
+ * @returns {{type: {string}, messages: Array, badLines: number}}
+ */
+Util.prototype.parseLog = function(contents) {
+  var util = this;
+  var type = null;
+  var badLines = 0;
+  var messages = [];
+
+  contents
+    .split('\n')
+    .forEach(function(line) {
+      // Strip any whitespace at the end
+      line = line.replace(/\s+$/g);
+
+      if (!type) {
+        type = util.getLogMessageType(line);
+      }
+
+      if (!type || !line.length) {
+        return;
+      }
+
+      var message = {};
+      var regex = PATTERNS[type];
+
+      try {
+        var match = XRegExp.exec(line, regex);
+        var captureNames = regex.xregexp.captureNames;
+        var fields = ['level', 'timestamp', 'pid', 'tid', 'tag', 'message'];
+
+        fields.forEach(function(field) {
+          if (captureNames.indexOf(field) >= 0) {
+            message[field] = match[field];
+          }
+        });
+
+        messages.push(message);
+      } catch (e) {
+        badLines++;
+      }
+    });
+
+  return {
+    type: type,
+    messages: messages,
+    badLines: badLines
+  };
 };
 
 module.exports = Util;
