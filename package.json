@@ -12,6 +12,7 @@
     "array-difference": "0.0.1",
     "async": "0.2.9",
     "adm-zip": "0.4.3",
+    "app-root-path": "^1.0.0",
     "archiver": "^0.10.0",
     "chai": "1.9.1",
     "dateformat": "1.0.6-1.2.3",
