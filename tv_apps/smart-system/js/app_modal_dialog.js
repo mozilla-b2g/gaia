@@ -51,15 +51,25 @@
 
   AppModalDialog.prototype.handleEvent = function amd_handleEvent(evt) {
     this.app.debug('handling ' + evt.type);
-    evt.preventDefault();
-    evt.stopPropagation();
-    this.events.push(evt);
-    if (!this._injected) {
-      focusManager.addUI(this);
-      this.render();
+    switch (evt.type) {
+      case 'mozbrowsershowmodalprompt':
+        evt.preventDefault();
+        evt.stopPropagation();
+        this.events.push(evt);
+        if (!this._injected) {
+          focusManager.addUI(this);
+          this.render();
+        }
+        this.show();
+        this._injected = true;
+        break;
+      case 'modal-dialog-will-open':
+      case 'modal-dialog-closed':
+        if (this.isSmartModalDialog) {
+          focusManager.focus();
+        }
+        break;
     }
-    this.show();
-    this._injected = true;
   };
 
   AppModalDialog.prototype._fetchElements = function amd__fetchElements() {
@@ -70,6 +80,8 @@
     this.container = document.getElementById(
       this.CLASS_NAME + 'Container' + this.instanceID);
     this.smartModalDialog = new SmartModalDialog(this.container);
+    this.container.addEventListener('modal-dialog-will-open', this);
+    this.container.addEventListener('modal-dialog-closed', this);
     this.isSmartModalDialog = false;
 
     this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
@@ -410,15 +422,19 @@
 
     var evt = this.events[0];
     var type = evt.detail.promptType;
-    this.app.browser.element.removeAttribute('aria-hidden');
-    focusManager.focus();
 
     this.app.publish('modaldialog-' + type + '-hidden');
     this.elements[type].classList.remove('visible');
   };
 
   AppModalDialog.prototype.isFocusable = function amd_isFocusable() {
-    return !!this.element && !this.element.classList.contains('closed');
+    if (this.isSmartModalDialog) {
+      return !!this.smartModalDialog.element &&
+        !this.smartModalDialog.element.classList.contains('closed');
+    } else {
+      return !!this.element &&
+        !this.element.classList.contains('closed');
+    }
   };
 
   AppModalDialog.prototype.focus = function amd_show() {
