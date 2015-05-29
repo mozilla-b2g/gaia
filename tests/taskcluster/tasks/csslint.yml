@@ -9,10 +9,8 @@ task:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
     - docker-worker:cache:gaia-misc-caches
-    - docker-worker:image:quay.io/mozilla/gaia-taskenv:*
 
   payload:
-    image: quay.io/mozilla/gaia-taskenv:0.8.11
     env:
       NODE_MODULES_SRC: npm-cache
 
