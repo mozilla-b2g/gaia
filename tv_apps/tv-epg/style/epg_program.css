@@ -1,0 +1,85 @@
+epg-program {
+  display: inline-block;
+  position: relative;
+  width: 33.5rem;
+  font-size: 2.5rem;
+  line-height: 10.8rem;
+  overflow: hidden;
+  padding-bottom: 0.3rem;
+  padding-right: 0.3rem;
+  border-bottom: 0.1rem #5e5e5e solid;
+  margin-top: 0.3rem;
+  background-color: #404040;
+  height: 11.2rem;
+  background-clip: content-box;
+  box-sizing: border-box;
+  outline: none;
+}
+
+epg-program:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0.1rem;
+  background-color: #5e5e5e;
+  height: 10.8rem;
+}
+
+epg-program.focus {
+  background-color: #00caf2;
+}
+
+epg-program.hidden {
+  display: none;
+}
+
+epg-program[data-duration="1"] {
+  width: 33.8rem;
+}
+
+epg-program[data-duration="2"] {
+  width: 67.6rem;
+}
+
+epg-program[data-duration="3"] {
+  width: 101.4rem;
+}
+
+epg-program[data-duration="4"] {
+  width: 135.2rem;
+}
+
+epg-program[data-duration="5"] {
+  width: 169rem;
+}
+
+epg-program[data-duration="6"] {
+  width: 202.8rem;
+}
+
+epg-program[data-duration="7"] {
+  width: 236.9rem;
+}
+
+epg-program > .title {
+  margin-left: 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: calc(100% - 2rem);
+  box-sizing: border-box;
+  position: absolute;
+}
+
+epg-program > .background-progress {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.2);
+  height: calc(100% - 0.3rem);
+  transform: scaleX(0);
+  transform-origin: 0;
+  width: calc(100% - 0.3rem);
+}
+
+epg-program > .background-progress.smooth {
+  transition: transform 0.3s;
+}
