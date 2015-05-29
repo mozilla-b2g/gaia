@@ -8,7 +8,25 @@ define(["exports"], function (exports) {
 
   var SYSTEM_APP = "app://system.gaiamobile.org/manifest.webapp";
 
-  window.addEventListener("DOMContentLoaded", function () {
+  // If injecting into an app that was already running at the time
+  // the Customizer was enabled, simply initialize it.
+  if (document.documentElement) {
+    initialize();
+  }
+
+  // Otherwise, we need to wait for the DOM to be ready before
+  // starting initialization since add-ons are usually (always?)
+  // injected *before* `document.documentElement` is defined.
+  else {
+    window.addEventListener("DOMContentLoaded", initialize);
+  }
+
+  function initialize() {
+    if (document.documentElement.dataset.customizerInit) {
+      console.log("[Customizer] Customizer already initialized; Aborting");
+      return;
+    }
+
     var request = navigator.mozApps.getSelf();
     request.onsuccess = function () {
       var manifestURL = request.result && request.result.manifestURL;
@@ -37,6 +55,8 @@ define(["exports"], function (exports) {
     }
 
     function boot(manifestURL) {
+      document.documentElement.dataset.customizerInit = true;
+
       if (manifestURL === SYSTEM_APP) {
         return new TouchForwarderController();
       }
@@ -47,5 +67,5 @@ define(["exports"], function (exports) {
         manifestURL: manifestURL
       });
     }
-  });
+  }
 });

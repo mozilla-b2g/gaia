@@ -1,6 +1,6 @@
 {
   "name": "gaia-text-input",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
@@ -15,7 +15,7 @@
     "README.md"
   ],
   "dependencies": {
-    "gaia-icons": "gaia-components/gaia-icons#~0.7.0",
+    "gaia-icons": "gaia-components/gaia-icons#~0.8.0",
     "gaia-component": "gaia-components/gaia-component#~0.3.3"
   },
   "devDependencies": {

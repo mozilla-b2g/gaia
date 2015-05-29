@@ -1,5 +1,5 @@
 /* globals define */
-(function(define){'use strict';define(function(require,exports,module){
+(function(define){'use strict';define(['require','exports','module','gaia-component','drag'],function(require,exports,module){
 
 /**
  * Dependencies
@@ -44,11 +44,31 @@ module.exports = component.register('gaia-switch', {
     this.disabled = this.getAttribute('disabled');
     this.checked = this.getAttribute('checked');
 
+    // process everything that doesn't affect user interaction
+    // after the component is created
+    setTimeout(() => {
+      // enable transitions after creation
+      this.activateTransitions();
+      this.makeAccessible();
+    });
+  },
+
+  /**
+   * Accessibility enhancements.
+   * Read gaia-switch as switch.
+   * make it tabable
+   * read its checked and disabled state
+   */
+  makeAccessible: function() {
+    this.setAttribute('role', 'switch');
+
     // Make tabable
     this.tabIndex = 0;
 
-    // Stop transitions on creation
-    setTimeout(() => this.activateTransitions());
+    this.setAttr('aria-checked', this.checked);
+    if (this.disabled) {
+      this.setAttr('aria-disabled', true);
+    }
   },
 
   attached: function() {
@@ -133,8 +153,13 @@ module.exports = component.register('gaia-switch', {
         this.els.handle.style.transform = '';
         this.els.handle.style.transition = '';
 
-        if (value) { this.setAttr('checked', ''); }
-        else { this.removeAttr('checked'); }
+        if (value) {
+          this.setAttr('checked', '');
+          this.setAttr('aria-checked', true);
+        } else {
+          this.removeAttr('checked');
+          this.setAttr('aria-checked', false);
+        }
 
         this.updatePosition();
 
@@ -149,8 +174,13 @@ module.exports = component.register('gaia-switch', {
         if (this._disabled === value) { return; }
         debug('set disabled', value);
         this._disabled = value;
-        if (value) { this.setAttribute('disabled', ''); }
-        else { this.removeAttribute('disabled'); }
+        if (value) {
+          this.setAttr('disabled', '');
+          this.setAttr('aria-disabled', true);
+        } else {
+          this.removeAttr('disabled');
+          this.removeAttr('aria-disabled');
+        }
       }
     }
   },

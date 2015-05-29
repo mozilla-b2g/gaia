@@ -1,5 +1,5 @@
 /* globals define */
-;(function(define){'use strict';define(function(require,exports,module){
+;(function(define){'use strict';define(['require','exports','module'],function(require,exports,module){
 /**
  * Locals
  */

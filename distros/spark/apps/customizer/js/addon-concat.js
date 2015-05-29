@@ -2087,6 +2087,7 @@ var Service = (function () {
 
     opt.indent_size = options.indent_size ? parseInt(options.indent_size, 10) : 4;
     opt.indent_char = options.indent_char ? options.indent_char : " ";
+    opt.eol = options.eol ? options.eol : "\n";
     opt.preserve_newlines = (options.preserve_newlines === undefined) ? true : options.preserve_newlines;
     opt.break_chained_methods = (options.break_chained_methods === undefined) ? false : options.break_chained_methods;
     opt.max_preserve_newlines = (options.max_preserve_newlines === undefined) ? 0 : parseInt(options.max_preserve_newlines, 10);
@@ -2112,6 +2113,8 @@ var Service = (function () {
       opt.indent_char = "\t";
       opt.indent_size = 1;
     }
+
+    opt.eol = opt.eol.replace(/\\r/, "\r").replace(/\\n/, "\n");
 
     //----------------------------------
     indent_string = "";
@@ -2173,6 +2176,10 @@ var Service = (function () {
       sweet_code = output.get_code();
       if (opt.end_with_newline) {
         sweet_code += "\n";
+      }
+
+      if (opt.eol != "\n") {
+        sweet_code = sweet_code.replace(/[\r]?[\n]/mg, opt.eol);
       }
 
       return sweet_code;
@@ -2323,7 +2330,7 @@ var Service = (function () {
     }
 
     function start_of_statement() {
-      if ((last_type === "TK_RESERVED" && in_array(flags.last_text, ["var", "let", "const"]) && current_token.type === "TK_WORD") || (last_type === "TK_RESERVED" && flags.last_text === "do") || (last_type === "TK_RESERVED" && flags.last_text === "return" && !current_token.wanted_newline) || (last_type === "TK_RESERVED" && flags.last_text === "else" && !(current_token.type === "TK_RESERVED" && current_token.text === "if")) || (last_type === "TK_END_EXPR" && (previous_flags.mode === MODE.ForInitializer || previous_flags.mode === MODE.Conditional)) || (last_type === "TK_WORD" && flags.mode === MODE.BlockStatement && !flags.in_case && !(current_token.text === "--" || current_token.text === "++") && current_token.type !== "TK_WORD" && current_token.type !== "TK_RESERVED") || (flags.mode === MODE.ObjectLiteral && ((flags.last_text === ":" && flags.ternary_depth === 0) || (last_type === "TK_RESERVED" && in_array(flags.last_text, ["get", "set"]))))) {
+      if ((last_type === "TK_RESERVED" && in_array(flags.last_text, ["var", "let", "const"]) && current_token.type === "TK_WORD") || (last_type === "TK_RESERVED" && flags.last_text === "do") || (last_type === "TK_RESERVED" && flags.last_text === "return" && !current_token.wanted_newline) || (last_type === "TK_RESERVED" && flags.last_text === "else" && !(current_token.type === "TK_RESERVED" && current_token.text === "if")) || (last_type === "TK_END_EXPR" && (previous_flags.mode === MODE.ForInitializer || previous_flags.mode === MODE.Conditional)) || (last_type === "TK_WORD" && flags.mode === MODE.BlockStatement && !flags.in_case && !(current_token.text === "--" || current_token.text === "++") && last_last_text !== "function" && current_token.type !== "TK_WORD" && current_token.type !== "TK_RESERVED") || (flags.mode === MODE.ObjectLiteral && ((flags.last_text === ":" && flags.ternary_depth === 0) || (last_type === "TK_RESERVED" && in_array(flags.last_text, ["get", "set"]))))) {
         set_mode(MODE.Statement);
         indent();
 
@@ -2429,6 +2436,11 @@ var Service = (function () {
         if (opt.space_before_conditional) {
           output.space_before_token = true;
         }
+      }
+
+      // Should be a space between await and an IIFE
+      if (current_token.text === "(" && last_type === "TK_RESERVED" && flags.last_word === "await") {
+        output.space_before_token = true;
       }
 
       // Support of this kind of newline preservation.
@@ -2636,7 +2648,7 @@ var Service = (function () {
           }
         }
         if (last_type === "TK_RESERVED" || last_type === "TK_WORD") {
-          if (last_type === "TK_RESERVED" && in_array(flags.last_text, ["get", "set", "new", "return", "export"])) {
+          if (last_type === "TK_RESERVED" && in_array(flags.last_text, ["get", "set", "new", "return", "export", "async"])) {
             output.space_before_token = true;
           } else if (last_type === "TK_RESERVED" && flags.last_text === "default" && last_last_text === "export") {
             output.space_before_token = true;
@@ -3222,7 +3234,7 @@ var Service = (function () {
 
     // words which should always start on new line.
     this.line_starters = "continue,try,throw,return,var,let,const,if,switch,case,default,for,while,break,function,import,export".split(",");
-    var reserved_words = this.line_starters.concat(["do", "in", "else", "get", "set", "new", "catch", "finally", "typeof", "yield"]);
+    var reserved_words = this.line_starters.concat(["do", "in", "else", "get", "set", "new", "catch", "finally", "typeof", "yield", "async", "await"]);
 
     var n_newlines, whitespace_before_token, in_html_comment, tokens, parser_pos;
     var input_length;
@@ -3256,9 +3268,9 @@ var Service = (function () {
 
         if (next.type === "TK_START_BLOCK" || next.type === "TK_START_EXPR") {
           next.parent = last;
+          open_stack.push(open);
           open = next;
-          open_stack.push(next);
-        } else if ((next.type === "TK_END_BLOCK" || next.type === "TK_END_EXPR") && (open && ((next.text === "]" && open.text === "[") || (next.text === ")" && open.text === "(") || (next.text === "}" && open.text === "}")))) {
+        } else if ((next.type === "TK_END_BLOCK" || next.type === "TK_END_EXPR") && (open && ((next.text === "]" && open.text === "[") || (next.text === ")" && open.text === "(") || (next.text === "}" && open.text === "{")))) {
           next.parent = open.parent;
           open = open_stack.pop();
         }
@@ -3447,7 +3459,7 @@ var Service = (function () {
 
       if (c === "`" || c === "'" || c === "\"" || // string
       ((c === "/") || // regexp
-      (opts.e4x && c === "<" && input.slice(parser_pos - 1).match(/^<([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])\s*([-a-zA-Z:0-9_.]+=('[^']*'|"[^"]*"|{[^{}]*})\s*)*\/?\s*>/)) // xml
+      (opts.e4x && c === "<" && input.slice(parser_pos - 1).match(/^<([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])(\s+[-a-zA-Z:0-9_.]+\s*=\s*('[^']*'|"[^"]*"|{.*?}))*\s*(\/?)\s*>/)) // xml
       ) && ( // regex and xml can only appear in specific locations during parsing
       (last_token.type === "TK_RESERVED" && in_array(last_token.text, ["return", "case", "throw", "else", "do", "typeof", "yield"])) || (last_token.type === "TK_END_EXPR" && last_token.text === ")" && last_token.parent && last_token.parent.type === "TK_RESERVED" && in_array(last_token.parent.text, ["if", "while", "for"])) || (in_array(last_token.type, ["TK_COMMENT", "TK_START_EXPR", "TK_START_BLOCK", "TK_END_BLOCK", "TK_OPERATOR", "TK_EQUALS", "TK_EOF", "TK_SEMICOLON", "TK_COMMA"])))) {
         var sep = c, esc = false, has_char_escapes = false;
@@ -3477,7 +3489,7 @@ var Service = (function () {
           //
           // handle e4x xml literals
           //
-          var xmlRegExp = /<(\/?)([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])\s*([-a-zA-Z:0-9_.]+=('[^']*'|"[^"]*"|{[^{}]*})\s*)*(\/?)\s*>/g;
+          var xmlRegExp = /<(\/?)([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])(\s+[-a-zA-Z:0-9_.]+\s*=\s*('[^']*'|"[^"]*"|{.*?}))*\s*(\/?)\s*>/g;
           var xmlStr = input.slice(parser_pos - 1);
           var match = xmlRegExp.exec(xmlStr);
           if (match && match.index === 0) {
@@ -3500,8 +3512,9 @@ var Service = (function () {
               match = xmlRegExp.exec(xmlStr);
             }
             var xmlLength = match ? match.index + match[0].length : xmlStr.length;
+            xmlStr = xmlStr.slice(0, xmlLength);
             parser_pos += xmlLength - 1;
-            return [xmlStr.slice(0, xmlLength), "TK_STRING"];
+            return [xmlStr, "TK_STRING"];
           }
         } else {
           //
@@ -3511,6 +3524,11 @@ var Service = (function () {
           // Other strings cannot
           while (parser_pos < input_length && (esc || (input.charAt(parser_pos) !== sep && (sep === "`" || !acorn.newline.test(input.charAt(parser_pos)))))) {
             resulting_string += input.charAt(parser_pos);
+            // Handle \r\n linebreaks after escapes or in template strings
+            if (input.charAt(parser_pos) === "\r" && input.charAt(parser_pos + 1) === "\n") {
+              parser_pos += 1;
+              resulting_string += "\n";
+            }
             if (esc) {
               if (input.charAt(parser_pos) === "x" || input.charAt(parser_pos) === "u") {
                 has_char_escapes = true;
@@ -3775,6 +3793,10 @@ var Service = (function () {
       indentSize = parseInt(indentSize, 10);
     }
 
+    if (options.indent_with_tabs) {
+      indentCharacter = "\t";
+      indentSize = 1;
+    }
 
     // tokenizer
     var whiteRe = /^\s+$/;
@@ -3789,6 +3811,7 @@ var Service = (function () {
     }
 
     function peek(skipWhitespace) {
+      var result = "";
       var prev_pos = pos;
       if (skipWhitespace) {
         eatWhitespace();
@@ -3910,15 +3933,16 @@ var Service = (function () {
     };
 
     print.newLine = function (keepWhitespace) {
-      if (!keepWhitespace) {
-        print.trim();
-      }
-
       if (output.length) {
+        if (!keepWhitespace && output[output.length - 1] !== "\n") {
+          print.trim();
+        }
+
         output.push("\n");
-      }
-      if (basebaseIndentString) {
-        output.push(basebaseIndentString);
+
+        if (basebaseIndentString) {
+          output.push(basebaseIndentString);
+        }
       }
     };
     print.singleSpace = function () {
@@ -3935,9 +3959,6 @@ var Service = (function () {
 
 
     var output = [];
-    if (basebaseIndentString) {
-      output.push(basebaseIndentString);
-    }
     /*_____________________--------------------_____________________*/
 
     var insideRule = false;
@@ -3956,8 +3977,12 @@ var Service = (function () {
         break;
       } else if (ch === "/" && peek() === "*") {
         /* css comment */
-        var header = lookBack("");
-        print.newLine();
+        var header = indentLevel === 0;
+
+        if (isAfterNewline || header) {
+          print.newLine();
+        }
+
         output.push(eatComment());
         print.newLine();
         if (header) {
@@ -3979,7 +4004,17 @@ var Service = (function () {
         output.push(ch);
 
         // strip trailing space, if present, for hash property checks
-        var variableOrRule = peekString(": ,;{}()[]/='\"").replace(/\s$/, "");
+        var variableOrRule = peekString(": ,;{}()[]/='\"");
+
+        if (variableOrRule.match(/[ :]$/)) {
+          // we have a variable or pseudo-class, add it and insert one space before continuing
+          next();
+          variableOrRule = eatString(": ").replace(/\s$/, "");
+          output.push(variableOrRule);
+          print.singleSpace();
+        }
+
+        variableOrRule = variableOrRule.replace(/\s$/, "");
 
         // might be a nesting at-rule
         if (variableOrRule in css_beautify.NESTED_AT_RULE) {
@@ -3987,12 +4022,6 @@ var Service = (function () {
           if (variableOrRule in css_beautify.CONDITIONAL_GROUP_RULE) {
             enteringConditionalGroup = true;
           }
-        } else if (": ".indexOf(variableOrRule[variableOrRule.length - 1]) >= 0) {
-          //we have a variable, add it and insert one space before continuing
-          next();
-          variableOrRule = eatString(": ").replace(/\s$/, "");
-          output.push(variableOrRule);
-          print.singleSpace();
         }
       } else if (ch === "{") {
         if (peek(true) === "}") {
@@ -4106,7 +4135,12 @@ var Service = (function () {
     }
 
 
-    var sweetCode = output.join("").replace(/[\r\n\t ]+$/, "");
+    var sweetCode = "";
+    if (basebaseIndentString) {
+      sweetCode += basebaseIndentString;
+    }
+
+    sweetCode += output.join("").replace(/[\r\n\t ]+$/, "");
 
     // establish end_with_newline
     if (end_with_newline) {
@@ -4208,7 +4242,7 @@ var Service = (function () {
     max_preserve_newlines (default unlimited) - maximum number of line breaks to be preserved in one chunk
     indent_handlebars (default false) - format and indent {{#foo}} and {{/foo}}
     end_with_newline (false)          - end with a newline
-
+    extra_liners (default [head,body,/html]) -List of tags that should have an extra newline before them.
 
     e.g.
 
@@ -4221,7 +4255,8 @@ var Service = (function () {
       'unformatted': ['a', 'sub', 'sup', 'b', 'i', 'u'],
       'preserve_newlines': true,
       'max_preserve_newlines': 5,
-      'indent_handlebars': false
+      'indent_handlebars': false,
+      'extra_liners': ['/html']
     });
 */
 
@@ -4241,7 +4276,7 @@ var Service = (function () {
   function style_html(html_source, options, js_beautify, css_beautify) {
     //Wrapper function to invoke all the necessary constructors and deal with the output.
 
-    var multi_parser, indent_inner_html, indent_size, indent_character, wrap_line_length, brace_style, unformatted, preserve_newlines, max_preserve_newlines, indent_handlebars, wrap_attributes, wrap_attributes_indent_size, end_with_newline;
+    var multi_parser, indent_inner_html, indent_size, indent_character, wrap_line_length, brace_style, unformatted, preserve_newlines, max_preserve_newlines, indent_handlebars, wrap_attributes, wrap_attributes_indent_size, end_with_newline, extra_liners;
 
     options = options || {};
 
@@ -4262,6 +4297,12 @@ var Service = (function () {
     wrap_attributes = (options.wrap_attributes === undefined) ? "auto" : options.wrap_attributes;
     wrap_attributes_indent_size = (options.wrap_attributes_indent_size === undefined) ? indent_size : parseInt(options.wrap_attributes_indent_size, 10) || indent_size;
     end_with_newline = (options.end_with_newline === undefined) ? false : options.end_with_newline;
+    extra_liners = Array.isArray(options.extra_liners) ? options.extra_liners.concat() : (typeof options.extra_liners === "string") ? options.extra_liners.split(",") : "head,body,/html".split(",");
+
+    if (options.indent_with_tabs) {
+      indent_character = "\t";
+      indent_size = 1;
+    }
 
     function Parser() {
       this.pos = 0; //Parser position
@@ -4279,8 +4320,8 @@ var Service = (function () {
 
       this.Utils = { //Uilities made available to the various functions
         whitespace: "\n\r\t ".split(""),
-        single_token: "br,input,link,meta,!doctype,basefont,base,area,hr,wbr,param,img,isindex,?xml,embed,?php,?,?=".split(","), //all the single tags for HTML
-        extra_liners: "head,body,/html".split(","), //for tags that need a line of whitespace before them
+        single_token: "br,input,link,meta,source,!doctype,basefont,base,area,hr,wbr,param,img,isindex,?xml,embed,?php,?,?=".split(","), //all the single tags for HTML
+        extra_liners: extra_liners, //for tags that need a line of whitespace before them
         in_array: function (what, arr) {
           for (var i = 0; i < arr.length; i++) {
             if (what === arr[i]) {
@@ -4291,8 +4332,7 @@ var Service = (function () {
         }
       };
 
-      // Return true iff the given text is composed entirely of
-      // whitespace.
+      // Return true if the given text is composed entirely of whitespace.
       this.is_whitespace = function (text) {
         for (var n = 0; n < text.length; text++) {
           if (!this.Utils.in_array(text.charAt(n), this.Utils.whitespace)) {
@@ -4357,6 +4397,8 @@ var Service = (function () {
             if (peek3 === "{{#" || peek3 === "{{/") {
               // These are tags and not content.
               break;
+            } else if (peek3 === "{{!") {
+              return [this.get_tag(), "TK_TAG_HANDLEBARS_COMMENT"];
             } else if (this.input.substr(this.pos, 2) === "{{") {
               if (this.get_tag(true) === "{{else}}") {
                 break;
@@ -4523,7 +4565,7 @@ var Service = (function () {
 
           if (indent_handlebars && !tag_start_char) {
             if (content.length >= 2 && content[content.length - 1] === "{" && content[content.length - 2] === "{") {
-              if (input_char === "#" || input_char === "/") {
+              if (input_char === "#" || input_char === "/" || input_char === "!") {
                 tag_start = this.pos - 3;
               } else {
                 tag_start = this.pos - 2;
@@ -4536,6 +4578,14 @@ var Service = (function () {
           content.push(input_char); //inserts character at-a-time (or string)
 
           if (content[1] && content[1] === "!") {
+            //if we're in a comment, do something special
+            // We treat all comments as literals, even more than preformatted tags
+            // we just look for the appropriate close tag
+            content = [this.get_comment(tag_start)];
+            break;
+          }
+
+          if (indent_handlebars && content[1] && content[1] === "{" && content[2] && content[2] === "!") {
             //if we're in a comment, do something special
             // We treat all comments as literals, even more than preformatted tags
             // we just look for the appropriate close tag
@@ -4672,6 +4722,10 @@ var Service = (function () {
             } else if (comment.indexOf("<!--") === 0) {
               // <!-- comment ...
               delimiter = "-->";
+              matched = true;
+            } else if (comment.indexOf("{{!") === 0) {
+              // {{! handlebars comment
+              delimiter = "}}";
               matched = true;
             }
           }
@@ -4950,6 +5004,10 @@ var Service = (function () {
             multi_parser.indent_content = false;
           }
           multi_parser.current_mode = "CONTENT";
+          break;
+        case "TK_TAG_HANDLEBARS_COMMENT":
+          multi_parser.print_token(multi_parser.token_text);
+          multi_parser.current_mode = "TAG";
           break;
         case "TK_CONTENT":
           multi_parser.print_token(multi_parser.token_text);
@@ -5536,97 +5594,6 @@ var EditController = (function (Controller) {
   return EditController;
 })(Controller);
 
-/*global Controller*/
-
-// When injected in the System app, this selector can identify
-// the currently-focused <iframe> (app window).
-var ACTIVE_WINDOW_SELECTOR = "#windows > .active iframe";
-
-var TouchForwarderController = (function (Controller) {
-  var TouchForwarderController = function TouchForwarderController(options) {
-    Controller.call(this, options);
-
-    var firstTouchStartEvt = null;
-    var isForwarding = false;
-
-    window.addEventListener("touchstart", function (evt) {
-      if (evt.touches.length === 1) {
-        firstTouchStartEvt = evt;
-        return;
-      }
-
-      if (evt.touches.length !== 2) {
-        return;
-      }
-
-      var iframe = document.querySelector(ACTIVE_WINDOW_SELECTOR);
-      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(firstTouchStartEvt));
-      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(evt));
-
-      isForwarding = true;
-    });
-
-    window.addEventListener("touchmove", function (evt) {
-      if (!isForwarding) {
-        return;
-      }
-
-      var iframe = document.querySelector(ACTIVE_WINDOW_SELECTOR);
-      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(evt));
-    });
-
-    window.addEventListener("touchend", function (evt) {
-      if (!isForwarding) {
-        return;
-      }
-
-      if (evt.touches.length === 0) {
-        isForwarding = false;
-      }
-
-      var iframe = document.querySelector(ACTIVE_WINDOW_SELECTOR);
-      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(evt));
-    });
-
-    console.log("[Customizer] Initialized TouchForwarderController", this);
-  };
-
-  _extends(TouchForwarderController, Controller);
-
-  return TouchForwarderController;
-})(Controller);
-
-/**
- * Taken from System app:
- * https://github.com/mozilla-b2g/gaia/blob/600fd8249960b8256af9de67d9171025bb9a3ff3/apps/system/js/touch_forwarder.js#L93
- */
-function unsynthesizeEvent(e) {
-  var type = e.type;
-  var relevantTouches = (e.type === "touchend") ? e.changedTouches : e.touches;
-  var identifiers = [];
-  var xs = [];
-  var ys = [];
-  var rxs = [];
-  var rys = [];
-  var rs = [];
-  var fs = [];
-  var modifiers = 0;
-
-  for (var i = 0; i < relevantTouches.length; i++) {
-    var t = relevantTouches[i];
-
-    identifiers.push(t.identifier);
-    xs.push(t.pageX);
-    ys.push(t.pageY);
-    rxs.push(t.radiusX);
-    rys.push(t.radiusY);
-    rs.push(t.rotationAngle);
-    fs.push(t.force);
-  }
-
-  return [type, identifiers, xs, ys, rxs, rys, rs, fs, xs.length, modifiers];
-}
-
 /*global MozActivity*/
 
 /*global EditView*/
@@ -5846,6 +5813,97 @@ var MainController = (function (Controller) {
 
   return MainController;
 })(Controller);
+
+/*global Controller*/
+
+// When injected in the System app, this selector can identify
+// the currently-focused <iframe> (app window).
+var ACTIVE_WINDOW_SELECTOR = "#windows > .active iframe";
+
+var TouchForwarderController = (function (Controller) {
+  var TouchForwarderController = function TouchForwarderController(options) {
+    Controller.call(this, options);
+
+    var firstTouchStartEvt = null;
+    var isForwarding = false;
+
+    window.addEventListener("touchstart", function (evt) {
+      if (evt.touches.length === 1) {
+        firstTouchStartEvt = evt;
+        return;
+      }
+
+      if (evt.touches.length !== 2) {
+        return;
+      }
+
+      var iframe = document.querySelector(ACTIVE_WINDOW_SELECTOR);
+      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(firstTouchStartEvt));
+      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(evt));
+
+      isForwarding = true;
+    });
+
+    window.addEventListener("touchmove", function (evt) {
+      if (!isForwarding) {
+        return;
+      }
+
+      var iframe = document.querySelector(ACTIVE_WINDOW_SELECTOR);
+      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(evt));
+    });
+
+    window.addEventListener("touchend", function (evt) {
+      if (!isForwarding) {
+        return;
+      }
+
+      if (evt.touches.length === 0) {
+        isForwarding = false;
+      }
+
+      var iframe = document.querySelector(ACTIVE_WINDOW_SELECTOR);
+      iframe.sendTouchEvent.apply(iframe, unsynthesizeEvent(evt));
+    });
+
+    console.log("[Customizer] Initialized TouchForwarderController", this);
+  };
+
+  _extends(TouchForwarderController, Controller);
+
+  return TouchForwarderController;
+})(Controller);
+
+/**
+ * Taken from System app:
+ * https://github.com/mozilla-b2g/gaia/blob/600fd8249960b8256af9de67d9171025bb9a3ff3/apps/system/js/touch_forwarder.js#L93
+ */
+function unsynthesizeEvent(e) {
+  var type = e.type;
+  var relevantTouches = (e.type === "touchend") ? e.changedTouches : e.touches;
+  var identifiers = [];
+  var xs = [];
+  var ys = [];
+  var rxs = [];
+  var rys = [];
+  var rs = [];
+  var fs = [];
+  var modifiers = 0;
+
+  for (var i = 0; i < relevantTouches.length; i++) {
+    var t = relevantTouches[i];
+
+    identifiers.push(t.identifier);
+    xs.push(t.pageX);
+    ys.push(t.pageY);
+    rxs.push(t.radiusX);
+    rys.push(t.radiusY);
+    rs.push(t.rotationAngle);
+    fs.push(t.force);
+  }
+
+  return [type, identifiers, xs, ys, rxs, rys, rs, fs, xs.length, modifiers];
+}
 
 /* global Controller */
 
@@ -6735,7 +6793,25 @@ var BLOCKED_APPS = ["app://keyboard.gaiamobile.org/manifest.webapp"];
 
 var SYSTEM_APP = "app://system.gaiamobile.org/manifest.webapp";
 
-window.addEventListener("DOMContentLoaded", function () {
+// If injecting into an app that was already running at the time
+// the Customizer was enabled, simply initialize it.
+if (document.documentElement) {
+  initialize();
+}
+
+// Otherwise, we need to wait for the DOM to be ready before
+// starting initialization since add-ons are usually (always?)
+// injected *before* `document.documentElement` is defined.
+else {
+  window.addEventListener("DOMContentLoaded", initialize);
+}
+
+function initialize() {
+  if (document.documentElement.dataset.customizerInit) {
+    console.log("[Customizer] Customizer already initialized; Aborting");
+    return;
+  }
+
   var request = navigator.mozApps.getSelf();
   request.onsuccess = function () {
     var manifestURL = request.result && request.result.manifestURL;
@@ -6764,6 +6840,8 @@ window.addEventListener("DOMContentLoaded", function () {
   }
 
   function boot(manifestURL) {
+    document.documentElement.dataset.customizerInit = true;
+
     if (manifestURL === SYSTEM_APP) {
       return new TouchForwarderController();
     }
@@ -6774,5 +6852,5 @@ window.addEventListener("DOMContentLoaded", function () {
       manifestURL: manifestURL
     });
   }
-});}).call(window);
+}}).call(window);
 console.log('Injected addon-concat.js');

@@ -1,4 +1,4 @@
-define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/gaia-header"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaHeaderDistGaiaHeader) {
+define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/gaia-header", "js/element/fxos-dev-mode-dialog"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaHeaderDistGaiaHeader, _jsElementFxosDevModeDialog) {
   "use strict";
 
   var _extends = function (child, parent) {
@@ -26,7 +26,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
     };
 
     MainView.prototype.template = function () {
-      var string = "\n      <gaia-header>\n        <h1>Customizer Launcher</h1>\n      </gaia-header>";
+      var string = "\n      <gaia-header>\n        <h1>Customizer Launcher</h1>\n      </gaia-header>\n      <fxos-dev-mode-dialog></fxos-dev-mode-dialog>";
       return string;
     };
 

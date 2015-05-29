@@ -2097,8 +2097,8 @@ module.exports = component.register('customizer-gaia-tabs', {
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-tabs',this));
 
-;(function(define){'use strict';define(function(require,exports,module){
 
+;(function(define){'use strict';define(function(require,exports,module){
 
 
 var component = require('customizer-gaia-component');
@@ -2127,7 +2127,7 @@ const TITLE_PADDING = 10;
 const MINIMUM_FONT_SIZE_CENTERED = 20;
 
 
-const MINIMUM_FONT_SIZE_UNCENTERED = 18;
+const MINIMUM_FONT_SIZE_UNCENTERED = 16;
 
 
 const MAXIMUM_FONT_SIZE = 23;
@@ -2144,7 +2144,8 @@ module.exports = component.register('customizer-gaia-header', {
       buttons: this.querySelectorAll('button, a'),
       titles: this.querySelectorAll('h1')
     }
-    this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
+    this.els.actionButton.addEventListener('click',
+      e => this.onActionButtonClick(e));
     this.observer = new MutationObserver(this.onMutation.bind(this))
     this.titleEnd = this.getAttribute('title-end');
     this.titleStart = this.getAttribute('title-start');
@@ -2245,7 +2246,8 @@ module.exports = component.register('customizer-gaia-header', {
     debug('set title styles soon', styles);
     var key = 'setStyleTitlesSoon'
     this._titleStyles = styles
-    return this.unresolved[key] = this.unresolved[key] || new Promise((resolve) => {
+    if (this.unresolved[key]) { return this.unresolved[key]; }
+    this.unresolved[key] = new Promise((resolve) => {
       this.pending[key] = this.nextTick(() => {
         var styles = this._titleStyles;
         var els = this.els.titles;
@@ -2351,9 +2353,8 @@ module.exports = component.register('customizer-gaia-header', {
 
   
   getWidth: function() {
-    var value = this.notFlush
-      ? this.clientWidth
-      : window.innerWidth;
+    var value = this.notFlush ?
+      this.clientWidth : window.innerWidth;
 
     debug('get width', value);
     return value;
@@ -4363,8 +4364,21 @@ module.exports = component.register('customizer-gaia-switch', {
     this.setupDrag();
     this.disabled = this.getAttribute('disabled');
     this.checked = this.getAttribute('checked')
-    this.tabIndex = 0
-    setTimeout(() => this.activateTransitions());
+    setTimeout(() => {
+      this.activateTransitions();
+      this.makeAccessible();
+    });
+  },
+
+  
+  makeAccessible: function() {
+    this.setAttribute('role', 'switch')
+    this.tabIndex = 0;
+
+    this.setAttr('aria-checked', this.checked);
+    if (this.disabled) {
+      this.setAttr('aria-disabled', true);
+    }
   },
 
   attached: function() {
@@ -4449,8 +4463,13 @@ module.exports = component.register('customizer-gaia-switch', {
         this.els.handle.style.transform = '';
         this.els.handle.style.transition = '';
 
-        if (value) { this.setAttr('checked', ''); }
-        else { this.removeAttr('checked'); }
+        if (value) {
+          this.setAttr('checked', '');
+          this.setAttr('aria-checked', true);
+        } else {
+          this.removeAttr('checked');
+          this.setAttr('aria-checked', false);
+        }
 
         this.updatePosition();
 
@@ -4465,8 +4484,13 @@ module.exports = component.register('customizer-gaia-switch', {
         if (this._disabled === value) { return; }
         debug('set disabled', value);
         this._disabled = value;
-        if (value) { this.setAttribute('disabled', ''); }
-        else { this.removeAttribute('disabled'); }
+        if (value) {
+          this.setAttr('disabled', '');
+          this.setAttr('aria-disabled', true);
+        } else {
+          this.removeAttr('disabled');
+          this.removeAttr('aria-disabled');
+        }
       }
     }
   },

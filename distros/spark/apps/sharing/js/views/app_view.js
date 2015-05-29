@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-button/gaia-button"], function (exports, _fxosMvcDistMvc, _gaiaButtonGaiaButton) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-button"], function (exports, _fxosMvcDistMvc, _gaiaButton) {
   "use strict";
 
   var _extends = function (child, parent) {

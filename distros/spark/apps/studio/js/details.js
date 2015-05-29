@@ -100,7 +100,8 @@
 
     removeTheme: function() {
       return Main.promptDeleteTheme().then(function() {
-        return Storage.removeTheme(currentTheme.id);
+        return Generation.uninstallIfNeeded(currentTheme)
+                 .then(Storage.removeTheme.bind(Storage, currentTheme.id));
       });
     }
   };

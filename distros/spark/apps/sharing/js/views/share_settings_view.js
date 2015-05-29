@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-button/gaia-button", "gaia-switch/gaia-switch"], function (exports, _fxosMvcDistMvc, _gaiaButtonGaiaButton, _gaiaSwitchGaiaSwitch) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-button", "gaia-switch"], function (exports, _fxosMvcDistMvc, _gaiaButton, _gaiaSwitch) {
   "use strict";
 
   var _classProps = function (child, staticProps, instanceProps) {

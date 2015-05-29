@@ -64,6 +64,7 @@ class BeautifierOptions:
         self.indent_size = 4
         self.indent_char = ' '
         self.indent_with_tabs = False
+        self.eol = '\n'
         self.preserve_newlines = True
         self.max_preserve_newlines = 10
         self.space_in_paren = False
@@ -260,6 +261,7 @@ Output options:
 
  -s,  --indent-size=NUMBER         indentation size. (default 4).
  -c,  --indent-char=CHAR           character to indent with. (default space).
+ -e,  --eol=STRING                 character(s) to use as line terminators. (default newline - "\\n")
  -t,  --indent-with-tabs           Indent with tabs, overrides -s and -c
  -d,  --disable-preserve-newlines  do not preserve existing line breaks.
  -P,  --space-in-paren             add padding spaces within paren, ie. f( a, b )
@@ -324,6 +326,8 @@ class Beautifier:
         if self.opts.indent_with_tabs:
             self.opts.indent_char = "\t"
             self.opts.indent_size = 1
+
+        self.opts.eol = self.opts.eol.replace('\\r', '\r').replace('\\n', '\n')
 
         self.indent_string = self.opts.indent_char * self.opts.indent_size
 
@@ -398,7 +402,11 @@ class Beautifier:
 
         sweet_code = self.output.get_code()
         if self.opts.end_with_newline:
-            sweet_code += "\n"
+            sweet_code += self.opts.eol
+
+        if not self.opts.eol == '\n':
+            sweet_code = sweet_code.replace('\r\n', '\n')
+            sweet_code = sweet_code.replace('\n', self.opts.eol)
 
         return sweet_code
 
@@ -532,6 +540,7 @@ class Beautifier:
                 or (self.last_type == 'TK_WORD' and self.flags.mode == MODE.BlockStatement \
                     and not self.flags.in_case
                     and not (current_token.text == '--' or current_token.text == '++')
+                    and self.last_last_text != 'function'
                     and current_token.type != 'TK_WORD' and current_token.type != 'TK_RESERVED') \
                 or (self.flags.mode == MODE.ObjectLiteral and \
                     ((self.flags.last_text == ':' and self.flags.ternary_depth == 0) or (self.last_type == 'TK_RESERVED' and self.flags.last_text in ['get', 'set'])))
@@ -615,6 +624,10 @@ class Beautifier:
         elif self.last_type == 'TK_RESERVED' and (self.flags.last_text in Tokenizer.line_starters or self.flags.last_text == 'catch'):
             # TODO: option space_before_conditional
             self.output.space_before_token = True
+
+        elif current_token.text == '(' and self.last_type == 'TK_RESERVED' and self.flags.last_word == 'await':
+            self.output.space_before_token = True
+
 
         # Support of this kind of newline preservation:
         # a = (b &&
@@ -801,7 +814,7 @@ class Beautifier:
                     self.print_newline(True)
 
             if self.last_type == 'TK_RESERVED' or self.last_type == 'TK_WORD':
-                if self.last_type == 'TK_RESERVED' and self.flags.last_text in ['get', 'set', 'new', 'return', 'export']:
+                if self.last_type == 'TK_RESERVED' and self.flags.last_text in ['get', 'set', 'new', 'return', 'export', 'async']:
                     self.output.space_before_token = True
                 elif self.last_type == 'TK_RESERVED' and self.flags.last_text == 'default' and self.last_last_text == 'export':
                     self.output.space_before_token = True
@@ -1156,7 +1169,8 @@ class Beautifier:
 
 def mkdir_p(path):
     try:
-        os.makedirs(path)
+        if path:
+            os.makedirs(path)
     except OSError as exc: # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
@@ -1326,7 +1340,7 @@ class Tokenizer:
 
     # Words which always should start on a new line
     line_starters = 'continue,try,throw,return,var,let,const,if,switch,case,default,for,while,break,function,import,export'.split(',')
-    reserved_words = line_starters + ['do', 'in', 'else', 'get', 'set', 'new', 'catch', 'finally', 'typeof', 'yield']
+    reserved_words = line_starters + ['do', 'in', 'else', 'get', 'set', 'new', 'catch', 'finally', 'typeof', 'yield', 'async', 'await']
 
     def __init__ (self, input, opts, indent_string):
         self.input = input
@@ -1362,13 +1376,13 @@ class Tokenizer:
 
             if next.type == 'TK_START_BLOCK' or next.type == 'TK_START_EXPR':
                 next.parent = last
+                open_stack.append(open)
                 open = next
-                open_stack.append(next)
             elif (next.type == 'TK_END_BLOCK' or next.type == 'TK_END_EXPR') and \
                 (not open == None and ( \
                     (next.text == ']' and open.text == '[') or \
                     (next.text == ')' and open.text == '(') or \
-                    (next.text == '}' and open.text == '}'))):
+                    (next.text == '}' and open.text == '{'))):
                 next.parent = open.parent
                 open = open_stack.pop()
 
@@ -1522,7 +1536,7 @@ class Tokenizer:
         if c == '`' or c == "'" or c == '"' or \
             ( \
                 (c == '/') or \
-                (self.opts.e4x and c == "<" and re.match('^<(!\[CDATA\[[\s\S]*?\]\]|[-a-zA-Z:0-9_.]+|\{[^{}]*\})\s*([-a-zA-Z:0-9_.]+=(\{[^{}]*\}|"[^"]*"|\'[^\']*\')\s*)*\/?\s*>', self.input[self.parser_pos - 1:])) \
+                (self.opts.e4x and c == "<" and re.match('^<([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])(\s+[-a-zA-Z:0-9_.]+\s*=\s*(\'[^\']*\'|"[^"]*"|{.*?}))*\s*(/?)\s*>', self.input[self.parser_pos - 1:])) \
             ) and ( \
                 (last_token.type == 'TK_RESERVED' and last_token.text in ['return', 'case', 'throw', 'else', 'do', 'typeof', 'yield']) or \
                 (last_token.type == 'TK_END_EXPR' and last_token.text == ')' and \
@@ -1555,7 +1569,7 @@ class Tokenizer:
 
             elif self.opts.e4x and sep == '<':
                 # handle e4x xml literals
-                xmlRegExp = re.compile('<(\/?)(!\[CDATA\[[\s\S]*?\]\]|[-a-zA-Z:0-9_.]+|\{[^{}]*\})\s*([-a-zA-Z:0-9_.]+=(\{[^{}]*\}|"[^"]*"|\'[^\']*\')\s*)*(\/?)\s*>')
+                xmlRegExp = re.compile('<(\/?)([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])(\s+[-a-zA-Z:0-9_.]+\s*=\s*(\'[^\']*\'|"[^"]*"|{.*?}))*\s*(/?)\s*>')
                 xmlStr = self.input[self.parser_pos - 1:]
                 match = xmlRegExp.match(xmlStr)
                 if match:
@@ -1590,6 +1604,11 @@ class Tokenizer:
                         (esc or (self.input[self.parser_pos] != sep and
                             (sep == '`' or not self.acorn.newline.match(self.input[self.parser_pos])))):
                     resulting_string += self.input[self.parser_pos]
+                    # Handle \r\n linebreaks after escapes or in template strings
+                    if self.input[self.parser_pos] == '\r' and self.parser_pos + 1 < len(self.input) and self.input[self.parser_pos + 1] == '\n':
+                        self.parser_pos += 1
+                        resulting_string += '\n'
+
                     if esc1 and esc1 >= esc2:
                         try:
                             esc1 = int(resulting_string[-esc2:], 16)
@@ -1709,8 +1728,8 @@ def main():
     argv = sys.argv[1:]
 
     try:
-        opts, args = getopt.getopt(argv, "s:c:o:rdEPjabkil:xhtfvXnCw:",
-            ['indent-size=','indent-char=','outfile=', 'replace', 'disable-preserve-newlines',
+        opts, args = getopt.getopt(argv, "s:c:e:o:rdEPjabkil:xhtfvXnCw:",
+            ['indent-size=','indent-char=','eol=''outfile=', 'replace', 'disable-preserve-newlines',
             'space-in-paren', 'space-in-empty-paren', 'jslint-happy', 'space-after-anon-function',
             'brace-style=', 'keep-array-indentation', 'indent-level=', 'unescape-strings', 'help',
             'usage', 'stdin', 'eval-code', 'indent-with-tabs', 'keep-function-indentation', 'version',
@@ -1740,6 +1759,8 @@ def main():
             js_options.indent_size = int(arg)
         elif opt in ('--indent-char', '-c'):
             js_options.indent_char = arg
+        elif opt in ('--eol', '-e'):
+            js_options.eol = arg
         elif opt in ('--indent-with-tabs', '-t'):
             js_options.indent_with_tabs = True
         elif opt in ('--disable-preserve-newlines', '-d'):

@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-list/gaia-list"], function (exports, _fxosMvcDistMvc, _gaiaListGaiaList) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-list"], function (exports, _fxosMvcDistMvc, _gaiaList) {
   "use strict";
 
   var _extends = function (child, parent) {

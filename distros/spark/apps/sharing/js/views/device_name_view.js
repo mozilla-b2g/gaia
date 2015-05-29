@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-icons/gaia-icons", "gaia-text-input/gaia-text-input", "gaia-dialog/gaia-dialog-prompt", "app/js/services/device_name_service"], function (exports, _fxosMvcDistMvc, _gaiaIconsGaiaIcons, _gaiaTextInputGaiaTextInput, _gaiaDialogGaiaDialogPrompt, _appJsServicesDeviceNameService) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-icons", "gaia-dialog/gaia-dialog-prompt", "app/js/services/device_name_service"], function (exports, _fxosMvcDistMvc, _gaiaIcons, _gaiaDialogGaiaDialogPrompt, _appJsServicesDeviceNameService) {
   "use strict";
 
   var _classProps = function (child, staticProps, instanceProps) {
