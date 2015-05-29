@@ -15,6 +15,7 @@
     "device-storage:videos":{ "access": "readwrite" },
     "audio-channel-content":{},
     "nfc-share": {},
+    "nfc": {},
     "feature-detection": {}
   },
   "activities": {

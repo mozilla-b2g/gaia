@@ -59,7 +59,10 @@ navigator.mozL10n.once(function() {
 
     blob = activityData.blob;
     open(blob);
-    NFC.share(blob);
+    NFC.share(blob, {
+      foregroundElement: $('open'),
+      backgroundElement: document.body
+    });
   }
 
   // Display the specified blob, unless it is too big to display
