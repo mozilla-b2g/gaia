@@ -30,8 +30,8 @@ FtuAppBuilder.prototype.generateAll = function() {
   importBuild.generateConfig('ftu', '/', this.gaia);
 };
 
-FtuAppBuilder.prototype.execute = function(options, webapp) {
-  this.webapp = webapp;
+FtuAppBuilder.prototype.execute = function(options) {
+  this.webapp = utils.getWebapp(options.APP_DIR, options);
   this.setOptions(options);
   this.generateAll();
 };

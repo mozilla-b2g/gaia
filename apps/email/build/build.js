@@ -186,7 +186,8 @@ exports.execute = function(options) {
   var shared = {
     js: [],
     style: [],
-    style_unstable: []
+    style_unstable: [],
+    elements: []
   };
   var backendRegExp = /[\\\/]js[\\\/]ext[\\\/]/;
   var sharedJsonFile = utils.getFile(options.STAGE_APP_DIR, 'gaia_shared.json');
@@ -204,7 +205,7 @@ exports.execute = function(options) {
 
       shared.js = sharedUtils.getSharedJs(parse, options.APP_DIR,
         backendRegExp, onFileRead);
-      [shared.style, shared.style_unstable] =
+      [shared.style, shared.style_unstable, shared.elements] =
         sharedUtils.getSharedStyles(options.APP_DIR, onFileRead);
       utils.writeContent(sharedJsonFile, JSON.stringify(shared, null, 2));
 
