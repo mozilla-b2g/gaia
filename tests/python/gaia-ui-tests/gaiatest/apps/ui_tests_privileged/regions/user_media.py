@@ -8,8 +8,8 @@ from gaiatest.apps.base import Base
 
 
 class UserMediaPage(Base):
-    _audio_button_locator = (By.CSS_SELECTOR, 'button[data-type="startAudioButton"]')
-    _video_button_locator = (By.CSS_SELECTOR, 'button[data-type="startVideoButton"]')
+    _audio_button_locator = (By.XPATH, '//button[text()="Audio1"]')
+    _video_button_locator = (By.XPATH, '//button[text()="Video1"]')
 
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='getusermedia']")
 
