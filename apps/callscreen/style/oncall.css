@@ -334,7 +334,6 @@
   #callbar-hang-up > .callbar-inner-button {
     background: url('images/handled_call/actionicon_activecall_hangup.png') center / 4rem no-repeat,
                 #e00000;
-    -moz-margin-end: 1rem;
   }
 
   #callbar-hang-up:active > .callbar-inner-button {
