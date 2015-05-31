@@ -549,6 +549,7 @@ html[dir=ltr] #view-settings [data-type="list"] .fb-item aside label {
   display: block;
   line-height: 2rem;
   margin-top: -1.5rem;
+  margin-right: 1.5rem;
   color: #5B5B5B;
   font-size: 1.5rem;
   height: auto;
