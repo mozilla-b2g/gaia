@@ -1,9 +1,12 @@
 {
   "name": "marionette-js-runner",
   "version": "1.1.2",
-  "author": "James Lal [:lightsofapollo]",
   "description": "Javascript ui testing framework built on top of mocha for testing webapps on gecko",
-  "license": "MIT",
+
+  "contributors": [
+    "James Lal [:lightsofapollo] <jlal@mozilla.com>",
+    "Gareth Aye [:gaye] <gaye@mozilla.com>"
+  ],
 
   "bin": {
     "marionette-mocha": "./bin/marionette-mocha",
@@ -13,18 +16,18 @@
   "dependencies": {
     "argparse": "^0.1.15",
     "array-difference": "0.0.1",
-    "commander": "~1.3",
     "debug": "*",
     "empty-port": "~0.0.1",
     "escape-string-regexp": "^1.0.2",
     "indent-string": "^1.2.0",
     "intersect": "~0.0.3",
     "lodash": "3.1.0",
-    "marionette-js-logger": "0.2.1",
-    "marionette-profile-builder": "0.0.3",
+    "marionette-client": "file:../../client/marionette-client",
+    "marionette-js-logger": "file:../../plugins/marionette-js-logger",
+    "marionette-profile-builder": "file:../marionette-profile-builder",
     "mkdirp": "^0.5.0",
-    "mocha-json-proxy": "~0.0.2",
-    "mozilla-runner": "^0.5.0",
+    "mocha-json-proxy": "file:../../mocha/mocha-json-proxy",
+    "mozilla-runner": "file:../mozilla-runner",
     "mz": "^1.1.0",
     "object-assign": "^1.0.0",
     "promise": "^6.0.1",
@@ -34,8 +37,8 @@
     "yargs": "^1.3.2"
   },
 
-  "peerDependencies": {
-    "marionette-client": "1.7.x"
+  "devDependencies": {
+    "sinon": "1.7.x"
   },
 
   "scripts": {

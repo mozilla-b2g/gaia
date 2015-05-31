@@ -1,18 +1,13 @@
 {
   "name": "marionette-helper",
   "version": "0.3.1",
-  "license": "MIT",
 
   "author": {
     "name": "The Gaia Team",
     "email": "dev-gaia@lists.mozilla.org"
   },
 
-  "peerDependencies": {
-    "marionette-client": ">=1.0.0"
-  },
-
   "dependencies": {
-    "marionette-apps": "~0.3.3"
+    "marionette-apps": "file:../marionette-apps"
   }
 }

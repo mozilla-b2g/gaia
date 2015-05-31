@@ -4,5 +4,9 @@
   "author": "Evan Tseng <evanxd@mozilla.com>",
   "description": "A marionette plugin to manage(add, remove) files in device storage.",
   "license": "MPL-2.0",
-  "main": "index.js"
+  "main": "index.js",
+
+  "devDependencies": {
+    "sinon": "1.7.x"
+  }
 }

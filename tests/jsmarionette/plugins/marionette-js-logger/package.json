@@ -2,7 +2,6 @@
   "name": "marionette-js-logger",
   "version": "0.2.1",
   "description": "Realtime host -> desktop logging",
-  "license": "MIT",
   "main": "index.js",
 
   "contributors": [
@@ -15,5 +14,11 @@
   "dependencies": {
     "debug": "2.2.0",
     "empty-port": "0.0.x"
+  },
+
+  "devDependencies": {
+    "marionette-apps": "file:../marionette-apps",
+    "marionette-helper": "file:../marionette-helper",
+    "node-static": "~0.6.9"
   }
 }

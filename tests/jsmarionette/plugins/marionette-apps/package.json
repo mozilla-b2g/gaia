@@ -2,5 +2,9 @@
   "name": "marionette-apps",
   "version": "0.3.13",
   "author": "Gareth Aye <gaye@mozilla.com>",
-  "license": "MIT"
+
+  "devDependencies": {
+    "marionette-js-logger": "file:../marionette-js-logger",
+    "sinon": "1.7.x"
+  }
 }

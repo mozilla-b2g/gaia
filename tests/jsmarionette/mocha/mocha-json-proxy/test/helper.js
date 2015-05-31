@@ -58,6 +58,6 @@ function runFixture(test, callback) {
   });
 }
 
-global.assert = require('assert');
+global.assert = require('chai').assert;
 global.runFixture = runFixture;
 global.forkFixture = forkFixture;
