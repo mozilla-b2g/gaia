@@ -939,7 +939,8 @@
   }
 
   #call-screen[data-layout="dialing"] #callbar-hang-up > .callbar-inner-button,
-  #call-screen[data-layout="connected"] #callbar-hang-up > .callbar-inner-button {
+  #call-screen[data-layout="connected"] #callbar-hang-up > .callbar-inner-button,
+  #call-screen[data-layout="connected-hold"] #callbar-hang-up > .callbar-inner-button {
     margin: 1rem 1.5rem 1rem 1.5rem;
   }
 
