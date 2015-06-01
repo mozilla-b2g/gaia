@@ -9,6 +9,7 @@
   };
   MobileConnectionIcon.prototype = Object.create(BaseIcon.prototype);
   MobileConnectionIcon.prototype.name = 'MobileConnectionIcon';
+  MobileConnectionIcon.prototype.DEBUG = 1;
   MobileConnectionIcon.prototype._start = function() {
     window.addEventListener('callschanged', this);
   };
@@ -64,6 +65,7 @@
     }
   };
   MobileConnectionIcon.prototype.updateData = function(index) {
+    this.debug('updateData', index);
     if (!this.signals.length) {
       return;
     }

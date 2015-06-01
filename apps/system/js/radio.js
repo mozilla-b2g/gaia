@@ -61,6 +61,7 @@
     name: 'Radio',
     EVENT_PREFIX: 'radio',
     dataIcon: null,
+    DEBUG: 1,
 
     isCDMA: function(index) {
       return !!this.dataExclusiveCDMATypes[
@@ -84,6 +85,7 @@
     },
 
     '_observe_operatorResources.data.icon': function(value) {
+      this.debug('data.icon', value);
       var dataIcon = value;
       if (!dataIcon) {
         return;
@@ -100,6 +102,7 @@
     },
 
     _onDataChange: function(conn, index) {
+      this.debug('_onDataChange', index, conn.data.type);
       this.types[index] = this.mobileDataIconTypes[conn.data.type];
       if (this.mobileConnections.length === 1) {
         this.operatorIcon.update();
@@ -148,7 +151,7 @@
       };
       this.service.request('stepReady', '#languages').then(function() {
         this.debug('step is resolved.');
-        LazyLoader.load(['js/roaming_icon.js', 
+        LazyLoader.load(['js/roaming_icon.js',
                          'js/signal_icon.js',
                          'js/mobile_connection_icon.js']).then(function() {
                             this._stepReady = true;
