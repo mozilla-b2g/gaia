@@ -494,6 +494,7 @@ suite('dialer/handled_call', function() {
 
     suite('from a group', function() {
       setup(function() {
+        this.sinon.spy(MockCallScreen, 'showStatusMessage');
         mockCall._connect();
         MockCallScreen.mute();
         MockCallScreen.switchToSpeaker();
@@ -504,9 +505,12 @@ suite('dialer/handled_call', function() {
       });
 
       test('show the banner', function() {
-        assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
-        var caller = MockLazyL10n.keys['caller-left-call'].caller;
-        assert.isTrue(typeof(caller) === 'string');
+        sinon.assert.calledWithMatch(
+          MockCallScreen.showStatusMessage, {
+            id: 'caller-left-call',
+            args: { caller: 'test name' }
+          }
+        );
       });
     });
 

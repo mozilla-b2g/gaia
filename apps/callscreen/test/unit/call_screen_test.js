@@ -812,6 +812,9 @@ suite('call screen', function() {
       addEventListenerSpy = this.sinon.spy(statusMessage, 'addEventListener');
       removeEventListenerSpy =
         this.sinon.spy(statusMessage, 'removeEventListener');
+      this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
+        element.setAttribute('data-l10n-id', id);
+      });
 
       CallScreen.showStatusMessage('message');
     });
@@ -821,8 +824,10 @@ suite('call screen', function() {
     });
 
     test('should show the text', function() {
-      assert.equal(statusMessage.querySelector('p').textContent,
-                   'message');
+      assert.equal(
+        statusMessage.querySelector('p').getAttribute('data-l10n-id'),
+        'message'
+      );
     });
 
     suite('once the transition ends', function() {

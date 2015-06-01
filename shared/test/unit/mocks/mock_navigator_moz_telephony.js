@@ -97,7 +97,7 @@
     dialEmergency: function() {},
     conferenceGroup: {
       hangUp: function() { return {}; },
-      add: function() {},
+      add: function() { return Promise.resolve(); },
       hold: function() {},
       resume: function() {},
       addEventListener: function() {},

@@ -372,20 +372,6 @@ suite('conference group handler', function() {
     });
   });
 
-  suite('telephony.conferenceGroup.onerror handling', function() {
-    test('error when merging calls', function() {
-      var showStatusSpy = this.sinon.spy(MockCallScreen, 'showStatusMessage');
-      MockNavigatorMozTelephony.conferenceGroup.onerror({name: 'addError'});
-      assert.isTrue(showStatusSpy.calledWith('conferenceAddError'));
-    });
-
-    test('error when unmerging calls', function() {
-      var showStatusSpy = this.sinon.spy(MockCallScreen, 'showStatusMessage');
-      MockNavigatorMozTelephony.conferenceGroup.onerror({name: 'removeError'});
-      assert.isTrue(showStatusSpy.calledWith('conferenceRemoveError'));
-    });
-  });
-
   suite('public API', function() {
     test('currentDuration', function() {
       fakeDurationChildNode.textContent = '12:34';

@@ -59,12 +59,19 @@ var CallScreen = {
   configs: {
     lockMode: 'incoming-call'
   },
-  showStatusMessage: function cs_showStatusMesssage(text) {
+  showStatusMessage: function cs_showStatusMessage(message) {
     var STATUS_TIME = 2000;
+    var paragraph = this.statusMessage.querySelector('p');
     var self = this;
-    self.statusMessage.querySelector('p').textContent = text;
-    self.statusMessage.classList.add('visible');
-    self.statusMessage.addEventListener('transitionend', function tend(evt) {
+
+    if (typeof(message) === 'string') {
+      navigator.mozL10n.setAttributes(paragraph, message);
+    } else if (message.id) {
+      navigator.mozL10n.setAttributes(paragraph, message.id, message.args);
+    }
+
+    this.statusMessage.classList.add('visible');
+    this.statusMessage.addEventListener('transitionend', function tend(evt) {
       evt.stopPropagation();
       self.statusMessage.removeEventListener('transitionend', tend);
       setTimeout(function hide() {
