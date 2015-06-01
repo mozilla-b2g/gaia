@@ -462,6 +462,7 @@
 
   function loadScripts() {
     var dependencies = [
+     '/contacts/services/contacts.js',
      '/contacts/js/activities.js',
      '/shared/js/contacts/utilities/event_listeners.js',
      '/contacts/js/navigation.js',

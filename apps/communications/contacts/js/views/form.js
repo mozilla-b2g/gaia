@@ -13,6 +13,7 @@
 /* global ActionMenu */
 /* global ICEData */
 /* global MergeHelper */
+/* global ContactsService */
 
 var contacts = window.contacts || {};
 
@@ -630,18 +631,17 @@ contacts.Form = (function() {
     };
     var request;
 
-    if (fb.isFbContact(contact)) {
-      var fbContact = new fb.Contact(contact);
-      request = fbContact.remove(true);
-      request.onsuccess = deleteSuccess;
-    } else {
-      request = navigator.mozContacts.remove(utils.misc.toMozContact(contact));
-      request.onsuccess = deleteSuccess;
-    }
 
-    request.onerror = function errorDelete() {
-      console.error('Error removing the contact');
-    };
+    ContactsService.remove(
+      contact,
+      function(e) {
+        if (e) {
+          console.error('Error removing the contact');
+          return;
+        }
+        deleteSuccess();
+      }
+    );
   };
 
   var getCurrentPhoto = function cf_getCurrentPhoto() {
@@ -992,31 +992,33 @@ contacts.Form = (function() {
     // When we add new contact, it has no id at the beginning. We have one, if
     // we edit current contact. We will use this information below.
     var isNew = contact.id !== 'undefined';
-    var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
 
-    request.onsuccess = function onsuccess() {
-      hideThrobber();
-      // Reloading contact, as it only allows to be updated once
-      if (ActivityHandler.currentlyHandling) {
-        ActivityHandler.postNewSuccess(contact);
-      }
-      if (!noTransition) {
-        Contacts.cancel();
-      }
+    ContactsService.save(
+      utils.misc.toMozContact(contact),
+      function(e) {
+        if (e) {
+          hideThrobber();
+          console.error('Error saving contact', e);
+          return;
+        }
+        hideThrobber();
+        // Reloading contact, as it only allows to be updated once
+        if (ActivityHandler.currentlyHandling) {
+          ActivityHandler.postNewSuccess(contact);
+        }
+        if (!noTransition) {
+          Contacts.cancel();
+        }
 
-      // Since editing current contact returns to the details view, and adding
-      // the new one to the contacts list, we call setCurrent() only in the
-      // first case, so NFC listeners are not set on the Contact List
-      // (Bug 1041455).
-      if (isNew) {
-        Contacts.setCurrent(contact);
+        // Since editing current contact returns to the details view, and adding
+        // the new one to the contacts list, we call setCurrent() only in the
+        // first case, so NFC listeners are not set on the Contact List
+        // (Bug 1041455).
+        if (isNew) {
+          Contacts.setCurrent(contact);
+        }
       }
-    };
-
-    request.onerror = function onerror() {
-      hideThrobber();
-      console.error('Error saving contact', request.error.name);
-    };
+    );
   };
 
   var showThrobber = function showThrobber() {

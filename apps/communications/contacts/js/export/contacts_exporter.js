@@ -36,10 +36,13 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       return;
     }
 
-    var request = navigator.mozContacts.find({});
-    request.onsuccess = function onSuccess() {
+    ContactsService.getAll(function(e, contactsFromAPI) {
+      if (e) {
+        cb();
+        return;
+      }
       contacts = [];
-      request.result.forEach(function onContact(ct) {
+      contactsFromAPI.forEach(function onContact(ct) {
         if (theContacts.indexOf(ct.id) !== -1 && !fb.isFbContact(ct)) {
           contacts.push(ct);
         }
@@ -47,12 +50,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       if (cb) {
         cb(contacts);
       }
-    };
-    request.onerror = function onError() {
-      if (cb) {
-        cb();
-      }
-    };
+    })
   };
 
   //
