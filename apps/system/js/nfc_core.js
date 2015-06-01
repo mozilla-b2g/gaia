@@ -7,9 +7,14 @@
     this.nfc = nfc;
   };
 
+  NfcCore.IMPORTS = [
+    'shared/js/nfc_utils.js'
+  ];
+
   NfcCore.SUB_MODULES = [
     'NfcManager',
-    'NfcHandler'
+    'NfcHandler',
+    'NdefUtils'
   ];
   /**
    * @class NfcCore

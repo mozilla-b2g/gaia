@@ -1,5 +1,5 @@
 /* global BaseUI, InputParser, ValueSelector, SpinDatePicker,
-          ValuePicker, Tagged */
+          ValuePicker, Tagged, LazyLoader */
 
 'use strict';
 
@@ -29,6 +29,7 @@
     app.element.addEventListener('_closed', this);
     app.element.addEventListener('_inputmethod-contextchange', this);
     app.element.addEventListener('_localized', this);
+    LazyLoader.load(['shared/js/input_parser.js']);
     window.addEventListener('timeformatchange', this);
   };
 

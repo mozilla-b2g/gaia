@@ -119,8 +119,3 @@
   exports.AboutServiceWorkersProxy = AboutServiceWorkersProxy;
 
 }(window));
-
-window.addEventListener('DOMContentLoaded', function onloaded() {
-  window.removeEventListener('DOMContentLoaded', onloaded);
-  window.AboutServiceWorkersProxy.start();
-});

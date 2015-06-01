@@ -1,13 +1,10 @@
 'use strict';
 
 /* global
-   appWindowManager,
    asyncStorage,
-   CustomDialog,
    ManifestHelper,
    Service,
-   UpdateManager,
-   UtilityTray
+   UpdateManager
  */
 
 /*
@@ -85,8 +82,9 @@ AppUpdatable.prototype.availableCallBack = function() {
 
 AppUpdatable.prototype.successCallBack = function() {
   var app = this.app;
-  if (Service.currentApp &&
-      Service.currentApp.origin !== app.origin) {
+  if (Service.query('AppWindowManager.getActiveWindow') &&
+      Service.query('AppWindowManager.getActiveWindow').origin !==
+      app.origin) {
     this.applyUpdate();
   } else {
     var self = this;
@@ -102,7 +100,7 @@ AppUpdatable.prototype.successCallBack = function() {
 };
 
 AppUpdatable.prototype.applyUpdate = function() {
-  appWindowManager.kill(this.app.origin);
+  Service.request('kill', this.app.origin);
   this._mgmt.applyDownload(this.app);
 };
 
@@ -277,17 +275,13 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
     callback: this.declineInstallBattery.bind(this)
   };
 
-  var screen = document.getElementById('screen');
-
-  UtilityTray.hide();
-  CustomDialog.show(
+  Service.request('UtilityTray:hide');
+  Service.request('showCustomDialog',
     'systemUpdateReady',
     { id: 'systemUpdateLowBatteryThreshold', args: { threshold: minBattery } },
     ok,
-    null,
-    screen
-  )
-  .setAttribute('data-z-index-level', 'system-dialog');
+    null
+  );
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
@@ -305,17 +299,13 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
     recommend: true
   };
 
-  var screen = document.getElementById('screen');
-
-  UtilityTray.hide();
-  CustomDialog.show(
+  Service.request('UtilityTray:hide');
+  Service.request('showCustomDialog',
     'systemUpdateReady',
     'wantToInstallNow',
     cancel,
-    confirm,
-    screen
-  )
-  .setAttribute('data-z-index-level', 'system-dialog');
+    confirm
+  );
 };
 
 /**
@@ -328,7 +318,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
  */
 SystemUpdatable.prototype.declineInstall = function(reason) {
   this.showingApplyPrompt = false;
-  CustomDialog.hide();
+  Service.request('hideCustomDialog');
   this._dispatchEvent('update-prompt-apply-result', reason);
 
   UpdateManager.removeFromDownloadsQueue(this);
@@ -344,7 +334,7 @@ SystemUpdatable.prototype.declineInstallWait = function() {
 
 
 SystemUpdatable.prototype.acceptInstall = function() {
-  CustomDialog.hide();
+  Service.request('hideCustomDialog');
 
   // Display a splash-screen so the user knows an update is being applied
   var splash = document.createElement('form');

@@ -6,6 +6,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/base_ui.js');
+requireApp('system/js/bluetooth_v2.js');
 
 var mocksForBluetoothCore = new MocksHelper([
   'LazyLoader'
@@ -24,7 +25,7 @@ suite('system/BluetoothCore', function() {
 
   setup(function(done) {
     MockLazyLoader.mLoadRightAway = true;
-    sinon.stub(MockLazyLoader, 'load');
+    this.sinon.spy(MockLazyLoader, 'load');
 
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);

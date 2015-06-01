@@ -25,7 +25,7 @@ marionette('Ambient indicator', function() {
         dir: 'rtl',
         lang: 'en'
       };
-      system.waitForStartup();
+      system.waitForFullyLoaded();
     });
 
     test('is shown when a notification arrives', function() {

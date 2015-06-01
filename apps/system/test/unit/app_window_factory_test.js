@@ -4,9 +4,8 @@
    AppWindow,
    HomescreenLauncher,
    appWindowFactory,
-   MockAppWindowManager,
    MockAppWindow,
-   Service
+   MockService
  */
 
 'use strict';
@@ -14,14 +13,14 @@
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 var mocksForAppWindowFactory = new MocksHelper([
-  'AppWindow', 'AppWindowManager', 'HomescreenLauncher',
+  'AppWindow', 'HomescreenLauncher',
   'HomescreenWindow', 'Applications', 'ManifestHelper', 'Service'
 ]).init();
 
@@ -152,7 +151,6 @@ suite('system/AppWindowFactory', function() {
     window.homescreenLauncher = new HomescreenLauncher();
     window.homescreenLauncher.start();
 
-    window.appWindowManager = new MockAppWindowManager();
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window_factory.js', function() {
       window.appWindowFactory = new AppWindowFactory();
@@ -363,18 +361,18 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('app launch with multiscreen.enabled', function() {
-      this.sinon.stub(Service, 'query', function(key) {
+      this.sinon.stub(MockService, 'query', function(key) {
         return key == 'MultiScreenController.enabled';
       });
-      this.sinon.stub(Service, 'request', function() {
+      this.sinon.stub(MockService, 'request', function() {
         return Promise.resolve(1);
       });
       appWindowFactory.handleEvent({
         type: 'webapps-launch',
         detail: fakeLaunchConfig1
       });
-      assert.isTrue(Service.request.calledWith('chooseDisplay'));
-      assert.equal(Service.request.getCall(0).args[1].url,
+      assert.isTrue(MockService.request.calledWith('chooseDisplay'));
+      assert.equal(MockService.request.getCall(0).args[1].url,
         fakeLaunchConfig1.url);
     });
 
@@ -423,10 +421,9 @@ suite('system/AppWindowFactory', function() {
     });
 
     test('launch an already-running app', function() {
-      var spy = this.sinon.stub(window.appWindowManager, 'getApp');
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
-      spy.returns(app);
+      MockService.mockQueryWith('getApp', app);
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig5

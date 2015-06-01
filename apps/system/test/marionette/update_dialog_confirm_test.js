@@ -21,7 +21,7 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     home.waitForLaunch();
     client.switchToFrame();
   });

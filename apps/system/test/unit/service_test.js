@@ -17,13 +17,6 @@ suite('system/Service', function() {
     window.appWindowManager = new MockAppWindowManager();
   });
 
-  test('Busy loading if the active app is not loaded.', function() {
-    window.appWindowManager.mActiveApp = {
-      loaded: false
-    };
-    assert.isTrue(Service.isBusyLoading());
-  });
-
   suite('States', function() {
     var fakeFtuLauncher;
     setup(function() {

@@ -581,10 +581,12 @@
         this.debug('Connect aborted');
       };
       if (!this.nfcConnectSystemDialog) {
-        LazyLoader.load('js/system_nfc_connect_dialog.js', function() {
+        LazyLoader.load('js/system_nfc_connect_dialog.js').then(() => {
           this.nfcConnectSystemDialog = new NfcConnectSystemDialog();
           this.nfcConnectSystemDialog.show(btssp.localName, onconfirm, onabort);
-        }.bind(this));
+        }).catch((err) => {
+          console.error(err);
+        });
       } else {
         this.nfcConnectSystemDialog.show(btssp.localName, onconfirm, onabort);
       }
