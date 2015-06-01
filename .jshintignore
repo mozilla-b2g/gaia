@@ -47,6 +47,7 @@ apps/keyboard/js/imes/jszhuyin/tools/cook.js
 apps/keyboard/build/keyboard-config.js
 apps/settings/js/vendor/alameda.js
 apps/settings/js/vendor/jszip.js
+apps/sms/lib/*
 apps/findmydevice/js/lib/*
 apps/findmydevice/js/config.js
 apps/system/js/uuid.js
