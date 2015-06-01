@@ -12,8 +12,10 @@
 /* global MockThumbnailImage */
 /* global MockMozNfc */
 /* global utils */
+/* global ContactsService */
 /* exported _ */
 
+requireApp('communications/contacts/services/contacts.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/lazy_loader.js');
@@ -241,14 +243,14 @@ suite('Render contact form', function() {
     });
 
     test('with date params', function() {
+      var date = new Date(0);
       var params = {
-        date: new Date(0)
+        date: date
       };
       subject.render(params);
 
       var valueDate = document.querySelector('#date_0').valueAsDate;
-
-      assert.equal(valueDate.toDateString(), params.date.toDateString());
+      assert.equal(valueDate, date);
 
       assertSaveState(null);
     });
@@ -863,18 +865,18 @@ suite('Render contact form', function() {
       var exitSearchModeStub = sinon.stub(contacts.Search,
         'exitSearchMode', function() {
         assert.isTrue(true);
-        contactsStub.restore();
+        ContactsService.remove.restore();
         exitSearchModeStub.restore();
         done();
       });
-      var contactsStub = sinon.stub(window.navigator.mozContacts,
-        'remove', function() {
-        return {
-          set onsuccess(cb) {
-            cb();
-          }
-        };
-      });
+
+      this.sinon.stub(
+        ContactsService,
+        'remove',
+        function(contact, cb) {
+          cb();
+        }
+      );
 
       ConfirmDialog.executeYes();
     });
@@ -900,15 +902,13 @@ suite('Render contact form', function() {
 
       deleteButton.click();
 
-      this.sinon.stub(window.navigator.mozContacts,
-        'remove', function() {
-        return {
-          set onsuccess(cb) {
-            cb();
-          }
-        };
-      });
-
+      this.sinon.stub(
+        ContactsService,
+        'remove',
+        function(contact, cb) {
+          cb();
+        }
+      );
     });
 
     test('> delete contact with NFC disabled does nothing', function() {
