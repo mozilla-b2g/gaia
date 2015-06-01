@@ -17,14 +17,14 @@ function env() {
 }
 
 function spawnMocha(argv) {
-  var mocha = __dirname + '/../../.bin/mocha';
+  var mocha = __dirname + '/../../../../../node_modules/.bin/mocha';
   return spawn(mocha, argv, { env: env() });
 }
 
 function spawnMarionette(argv) {
   var bin = __dirname + '/../bin/marionette-mocha';
   argv.push('--runtime');
-  argv.push(__dirname + '/../../../b2g/b2g-bin');
+  argv.push(__dirname + '/../../../../../b2g/b2g-bin');
   return spawn(bin, argv, { env: env() });
 }
 

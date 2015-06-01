@@ -5,7 +5,6 @@
   "license": "MIT",
   "description": "Default profile builder for marionette-js-runner",
   "main": "index.js",
-
   "dependencies" : {
     "debug": "*",
     "mozilla-profile-builder": "0.4.0"
