@@ -6,6 +6,7 @@ var assert = require('chai').assert;
 var Messages = require('./lib/messages.js');
 var InboxView = require('./lib/views/inbox/view');
 var MessagesActivityCaller = require('./lib/messages_activity_caller.js');
+var Storage = require('./lib/storage.js');
 
 marionette('Messages Composer', function() {
   var apps = {};
@@ -257,39 +258,69 @@ marionette('Messages Composer', function() {
   });
 
 
-  suite('Invalid recipients', function() {
-    var newMessage;
+  suite('Recipients', function() {
+    var newMessage, storage;
+    var contact = {
+      name: ['Existing Contact'],
+      givenName: ['Existing'],
+      familyName: ['Contact'],
+      tel: [{
+        value: '5551234567',
+        type: 'Mobile'
+      }]
+    };
+    var MOCKS = [
+      '/mocks/mock_test_storages.js',
+      '/mocks/mock_navigator_moz_contacts.js'
+    ];
 
     setup(function() {
+      storage = Storage.create(client);
+
+      MOCKS.forEach(function(mock) {
+        client.contentScript.inject(__dirname + mock);
+      });
+
       messagesApp.launch();
+      storage.setMessagesStorage();
+      storage.setContactsStorage([contact]);
 
       var inbox = new InboxView(client);
       newMessage = inbox.createNewMessage();
     });
 
-    suite('the recipients list', function() {
-      test('should display that a non existing contact is invalid', function() {
-        newMessage.addNewRecipient('non_exisiting_contact');
-        assert.isTrue(newMessage.containsInvalidRecipients());
+    suite('Invalid recipients', function() {
+      suite('Recipients list', function() {
+        test('should display that a non existing contact is invalid',
+        function() {
+          newMessage.addNewRecipient('non_exisiting_contact');
+          assert.isTrue(newMessage.containsInvalidRecipients());
+        });
+
+        test('should allow to correct an invalid contact', function() {
+          newMessage.addNewRecipient('non_exisiting_contact');
+          newMessage.clearRecipients();
+          newMessage.addNewRecipient(123);
+          assert.lengthOf(newMessage.recipients, 1);
+          assert.equal(newMessage.recipients[0], '123');
+          assert.isFalse(newMessage.containsInvalidRecipients());
+        });
       });
 
-      test('should allow to correct an invalid contact', function() {
-        newMessage.addNewRecipient('non_exisiting_contact');
-        newMessage.clearRecipients();
-        newMessage.addNewRecipient(123);
-        assert.lengthOf(newMessage.recipients, 1);
-        assert.equal(newMessage.recipients[0], '123');
-        assert.isFalse(newMessage.containsInvalidRecipients());
+      suite('Content composer', function() {
+        test('should not enable send button if the contact is invalid',
+        function() {
+          newMessage.addNewRecipient('invalidContact');
+          newMessage.typeMessage('Test message');
+          assert.isFalse(newMessage.isSendButtonEnabled());
+        });
       });
     });
 
-    suite('Content composer', function() {
-      test('should not enable send button if the contact is invalid',
-      function() {
-        newMessage.addNewRecipient('invalidContact');
-        newMessage.typeMessage('Test message');
-        assert.isFalse(newMessage.isSendButtonEnabled());
-      });
+    test('should match an existing contact', function() {
+      newMessage.addNewRecipient('Existing Contact');
+      assert.deepEqual(contact.name, newMessage.recipients);
+      assert.equal(contact.tel[0].value, newMessage.recipientsPhoneNumbers);
     });
   });
 });
