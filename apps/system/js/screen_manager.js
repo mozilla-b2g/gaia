@@ -421,8 +421,6 @@
         power.screenEnabled = true;
       }
       this.screenEnabled = true;
-
-      // Set the brightness before the screen is on.
       this.setScreenBrightness(this._savedBrightness, instant);
 
       // If we are in a call  or a conference call and there
