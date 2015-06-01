@@ -138,31 +138,38 @@
       // turn on the screen, since no frame is considered visible by Gecko when
       // the screen is off. See discussion in bug 818840.
       this._wakeLockManager = new ScreenWakeLockManager();
-      this._wakeLockManager.onwakelockchange =
-        this._reconfigScreenTimeout.bind(this);
       this._wakeLockManager.start();
 
       this._firstOn = false;
+
+
       SettingsListener.observe('screen.timeout', 60,
-      function screenTimeoutChanged(value) {
-        if (typeof value !== 'number') {
-          value = parseInt(value);
-        }
-        self._idleTimeout = value;
-        self._setIdleTimeout(self._idleTimeout);
+        function screenTimeoutChanged(value) {
+          if (typeof value !== 'number') {
+            value = parseInt(value);
+          }
+          self._idleTimeout = value;
 
-        if (!self._firstOn) {
-          self._firstOn = true;
+          if (!self._firstOn) {
+            self._firstOn = true;
 
-          // During boot up, the brightness was set by bootloader as 0.5,
-          // Let's set the API value to that so setScreenBrightness() can
-          // dim nicely to value set by user.
-          power.screenBrightness = 0.5;
+            // During boot up, the brightness was set by bootloader as 0.5,
+            // Let's set the API value to that so setScreenBrightness() can
+            // dim nicely to value set by user.
+            power.screenBrightness = 0.5;
 
-          // Turn screen on with dim.
-          self.turnScreenOn(false);
-        }
-      });
+            // Turn screen on with dim.
+            self.turnScreenOn(false);
+
+            Service.request('schedule', () => {
+              this._wakeLockManager.onwakelockchange =
+                this._reconfigScreenTimeout.bind(this);
+              });
+          }
+          Service.request('schedule', () => {
+            this._setIdleTimeout(this._idleTimeout);
+          });
+        });
 
       SettingsListener.observe('screen.automatic-brightness', true,
       function deviceLightSettingChanged(value) {
