@@ -30,10 +30,6 @@
     "uuid": "^2.0.1"
   },
 
-  "peerDependencies": {
-    "marionette-client": "1.7.x"
-  },
-
   "scripts": {
     "postinstall": "./scripts/setup_python.sh"
   }

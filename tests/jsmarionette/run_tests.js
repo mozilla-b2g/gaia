@@ -8,6 +8,35 @@ var Mocha = require('mocha');
 var path = require('path');
 
 var configs = Object.freeze({
+  /* client */
+  'json-wire-protocol': {
+    tests: ['test/index-test']
+  },
+
+  'marionette-client': {
+    entrypoint: 'test/helper',
+    tests: [
+      'test/node/connection-manager-test',
+      'test/marionette/drivers/abstract-test',
+      'test/marionette/drivers/tcp-test',
+      'test/marionette/drivers/tcp-sync-test',
+      'test/marionette/actions-test',
+      'test/marionette/client-test',
+      'test/marionette/command-stream-test',
+      'test/marionette/error-test',
+      'test/marionette/index-test',
+      'test/marionette/multi-actions-test'
+    ]
+  },
+
+  'socket-retry-connect': {
+    tests: ['test']
+  },
+
+  'sockit-to-me': {
+    tests: ['test/sockit_test']
+  },
+
   /* mocha */
   'mocha-json-proxy': {
     entrypoint: 'test/helper',
