@@ -1,4 +1,5 @@
 /* exported ContactsSIMExport */
+/* global ContactsService */
 'use strict';
 
 var ContactsSIMExport = function ContactsSIMExport(icc) {
@@ -98,11 +99,17 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
 
     theContact.url = theContact.url || [];
     theContact.url.push(_generateIccContactUrl(iccContact.id, _getIccId()));
-    var req = navigator.mozContacts.save(theContact);
-    req.onsuccess = cb;
-    req.onerror = function() {
-      errorCb(req.error);
-    };
+
+    ContactsService.save(
+      theContact,
+      function(e) {
+        if (e) {
+          errorCb(e);
+          return;
+        }
+        cb();
+      }
+    );
   };
 
   var cancelExport = function cancelExport() {
