@@ -1560,8 +1560,8 @@
     // If we have sidebar in the future, change layoutManager then.
     width = layoutManager.width;
 
-    if (this.element.style.width === width + 'px' &&
-        this.element.style.height === height + 'px') {
+    if (parseInt(this.element.style.width, 10) === (width | 0) &&
+        parseInt(this.element.style.height, 10) === (height | 0)) {
       return;
     }
 
