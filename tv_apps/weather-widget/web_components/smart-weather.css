@@ -46,7 +46,6 @@ smart-weather > .city {
   color: #ffffff;
   text-align: center;
   height: 4.6rem;
-  border-bottom: 0.1rem solid #ffffff;
 }
 
 smart-weather > .weather-detail {
@@ -54,6 +53,7 @@ smart-weather > .weather-detail {
   color: #ffffff;
   font-size: 2.2rem;
   font-weight: 300;
+  border-top: 0.1rem solid #ffffff;
 }
 
 smart-weather > .weather-detail > div {
@@ -61,4 +61,3 @@ smart-weather > .weather-detail > div {
   margin-top: 3.4rem;
   margin-bottom: 4.2rem;
 }
-
