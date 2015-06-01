@@ -210,6 +210,7 @@ suite('tv-epg/epg', function() {
 
     setup(function() {
       this.sinon.stub(epg, '_setTitlePadding');
+      this.sinon.stub(epg, '_displayProgramInfo');
       fetchPrograms = this.sinon.stub(epg.epgController, 'fetchPrograms')
                           .returns({
                             then: function() {

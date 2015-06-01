@@ -30,8 +30,6 @@
       y: 0
     };
 
-    this.dateFormatter = new window.navigator.mozL10n.DateTimeFormat();
-
     this.keyNavigatorAdapter = new KeyNavigationAdapter();
     this.keyNavigatorAdapter.init();
     this.keyNavigatorAdapter.on('move', this._onMove.bind(this));
@@ -71,6 +69,7 @@
     this.timePrefixElement = document.getElementById('time-prefix');
     this.channelListElement = document.getElementById('channel-list');
     this.programListElement = document.getElementById('program-list');
+    this.programMetaElement = document.getElementById('program-meta');
     this.programTitleElement = document.getElementById('program-title');
     this.programDetailElement = document.getElementById('program-detail');
     this.timeMarkerContainerElement =
@@ -112,6 +111,7 @@
             .element;
       this.spatialNavigator.focus(programElement);
       this._updateProgramProgress(this._currentTime);
+      this._updateDate(this.visibleTimeOffset * this.timelineUnit);
     }.bind(this)).catch(function(err) {
       console.error(err);
     });
@@ -301,6 +301,9 @@
       setToNull: true
     });
 
+    this._displayProgramInfo(
+      startTime - this.epgController.timelineOffset, rowIndex);
+
     if (rowIndex < this.visibleChannelOffset) {
       // Move up
       this.translate.y = (rowOffset - rowIndex) * EPG.ROW_HEIGHT;
@@ -318,6 +321,7 @@
       // Move left and right
       this.translate.x = (this.initialTime - startTime) * EPG.COLUMN_WIDTH;
       this.visibleTimeOffset = startTime;
+      this._updateDate(startTime * this.timelineUnit);
     }
     this._setTitlePadding();
 
@@ -386,6 +390,29 @@
         }
       }
     }
+  };
+
+  proto._displayProgramInfo = function epg__displayProgramInfo(column, row) {
+    var program = this.epgController.programTable[column][row].program;
+    this.programTitleElement.textContent = program.title;
+    this.programDetailElement.textContent = program.description;
+
+    this.programMetaElement.innerHTML = '';
+
+    var timeIntervalElement = document.createElement('LI');
+    var timeText = this._timeToString(program.startTime).timeWithPrefix;
+    timeText += ' - ';
+    timeText +=
+      this._timeToString(program.startTime + program.duration).timeWithPrefix;
+    timeIntervalElement.textContent = timeText;
+    this.programMetaElement.appendChild(timeIntervalElement);
+  };
+
+  proto._updateDate = function epg__updateDate(time) {
+    var now = new Date(time);
+    var timeFormat = navigator.mozL10n.get('EPGDate');
+    var dtf = new navigator.mozL10n.DateTimeFormat();
+    this.dateElement.textContent = dtf.localeFormat(now, timeFormat);
   };
 
   proto._onUnfocus = function epg__onUnfocus(element) {

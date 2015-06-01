@@ -85,6 +85,11 @@ marionette('Test Program Navigation', function() {
   test('Key left', {devices: ['tv']},function() {
     client.helper.waitForElement('#program-list .focus');
     var body = client.helper.waitForElement('body');
+    var initialTitle =
+      client.helper.waitForElement('#program-title').scriptWith(
+        function(element) {
+          return element.textContent;
+      });
     body.sendKeys(Keys.left);
 
     var transform = client.helper.waitForElement('#program-list').scriptWith(
@@ -93,6 +98,12 @@ marionette('Test Program Navigation', function() {
     });
     var reg = /^translate\(([\d\.\-]+)/i;
     assert.notEqual(reg.exec(transform)[1], '0');
+
+    var newTitle = client.helper.waitForElement('#program-title').scriptWith(
+      function(element) {
+        return element.textContent;
+    });
+    assert.notEqual(initialTitle, newTitle);
   });
 
   test('Key right four times', {devices: ['tv']},function() {
