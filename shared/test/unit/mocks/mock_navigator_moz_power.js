@@ -8,6 +8,7 @@ var MockMozPower = {
   screenEnabled: false,
   powerOff: function() {},
   reboot: function() {},
+  factoryReset: function() {},
   mTeardown: function teardown() {
     this.cpuSleepAllowed = false;
     this.screenBrightness = 0;

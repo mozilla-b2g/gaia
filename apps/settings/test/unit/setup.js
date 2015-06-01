@@ -129,6 +129,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_navigator_moz_icc_manager' : {
         exports: 'MockNavigatorMozIccManager'
+      },
+      'shared_mocks/mock_navigator_moz_power': {
+        exports: 'MockMozPower'
       }
     },
     modules: [
