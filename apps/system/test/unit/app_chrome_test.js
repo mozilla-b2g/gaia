@@ -362,7 +362,7 @@ suite('system/AppChrome', function() {
 
   suite('URLBar', function() {
     test('click', function() {
-      MockService.mockQueryWith('locked', false);
+      MockService.locked = false;
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isTrue(stubDispatchEvent.called);
@@ -720,20 +720,20 @@ suite('system/AppChrome', function() {
     });
 
     test('When screen is unlocked, dispatch the request.', function() {
-      MockService.mockQueryWith('locked', false);
+      MockService.locked = false;
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isTrue(stubDispatch.called);
     });
 
     test('When a contextmenu is shown, do not dispatch.', function() {
-      MockService.mockQueryWith('locked', false);
+      MockService.locked = false;
       this.sinon.stub(chrome.app.contextmenu, 'isShown').returns(true);
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isFalse(stubDispatch.called);
     });
 
     test('When screen is locked, do not dispatch the event.', function() {
-      MockService.mockQueryWith('locked', true);
+      MockService.locked = true;
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isFalse(stubDispatch.called);
     });

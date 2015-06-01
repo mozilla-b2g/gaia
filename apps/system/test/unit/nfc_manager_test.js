@@ -2,17 +2,20 @@
 
 /* globals MockPromise, MockNfc, MockBluetooth, MocksHelper, NDEF,
            MockService, NfcUtils, MozActivity, NfcHandoverManager,
-           MockNfcHandoverManager, BaseModule, MockLazyLoader */
+           MockNfcHandoverManager, BaseModule, MockLazyLoader,
+           MockScreenManager */
 
 requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_promise.js');
+require('/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_nfc_handover_manager.js');
+requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_module.js');
@@ -24,6 +27,7 @@ requireApp('system/js/nfc_manager.js');
 var mocksForNfcManager = new MocksHelper([
   'AppWindow',
   'MozActivity',
+  'ScreenManager',
   'SettingsListener',
   'NfcHandoverManager',
   'Service',
@@ -79,7 +83,7 @@ suite('Nfc Manager Functions', function() {
     window.navigator.mozNfc = MockNfc;
 
     nfcUtils = new NfcUtils();
-    MockService.mockQueryWith('getTopMostWindow', fakeApp);
+    MockService.currentApp = fakeApp;
     nfcManager = BaseModule.instantiate('NfcManager');
     nfcManager.service = MockService;
     nfcManager.start();
@@ -218,16 +222,16 @@ suite('Nfc Manager Functions', function() {
     });
 
     test('screenchange -> enable-polling/disable-polling', function() {
-      MockService.mockQueryWith('screenEnabled', false);
+      MockScreenManager.screenEnabled = false;
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubDoTransition.withArgs('disable-polling').calledOnce);
 
-      MockService.mockQueryWith('screenEnabled', true);
-      MockService.mockQueryWith('locked', true);
+      MockScreenManager.screenEnabled = true;
+      MockService.locked = true;
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubDoTransition.withArgs('disable-polling').calledTwice);
 
-      MockService.mockQueryWith('locked', false);
+      MockService.locked = false;
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubDoTransition.withArgs('enable-polling').calledOnce);
     });
@@ -1038,19 +1042,17 @@ suite('Nfc Manager Functions', function() {
       var stubCheckP2P = this.sinon.stub(MockNfc, 'checkP2PRegistration',
                                          () => fakePromise);
 
-      MockService.mockQueryWith('getTopMostWindow',
-        new window.AppWindow(fakePrivateLandingPage));
+      MockService.currentApp = new window.AppWindow(fakePrivateLandingPage);
 
-      this.sinon.stub(MockService.mockQueryWith('getTopMostWindow'),
-        'isPrivateBrowser').returns(true);
+      this.sinon.stub(MockService.currentApp, 'isPrivateBrowser')
+        .returns(true);
 
       // Should not shrink on the landing page.
       nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.notCalled);
 
       // Able to share pages after navigating.
-      MockService.mockQueryWith('getTopMostWindow').config.url =
-        'http://mozilla.org';
+      MockService.currentApp.config.url = 'http://mozilla.org';
       nfcManager._checkP2PRegistration();
       assert.isTrue(stubCheckP2P.calledOnce);
     });

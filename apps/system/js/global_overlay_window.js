@@ -72,8 +72,8 @@
   };
 
   GlobalOverlayWindow.SUB_COMPONENTS = {
-    'transitionController': 'AppTransitionController',
-    'modalDialog': 'AppModalDialog'
+    'transitionController': window.AppTransitionController,
+    'modalDialog': window.AppModalDialog
   };
 
   GlobalOverlayWindow.REGISTERED_EVENTS =

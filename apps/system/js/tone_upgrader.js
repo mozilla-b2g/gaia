@@ -1,7 +1,7 @@
 'use strict';
 /*
  * This module is for tone upgrading after the OTA, we will load it only when
- * the system found it's a version upgraded.
+ * the system found it's a version upgraded by using the VersionHelper.
  *
  * Please use the LazyLoader to load this, then simply call the perform() to
  * execute the necessary migrations for the tones. There are two tone types

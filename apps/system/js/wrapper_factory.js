@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, Service, AppWindow */
+/*global applications, Service, appWindowManager, AppWindow */
 
 (function(window) {
   /**
@@ -8,12 +8,10 @@
    * @module WrapperFactory
    */
   var WrapperFactory = {
-    name: 'WrapperFactory',
-    start: function() {
+    init: function wf_init() {
       window.addEventListener('mozbrowseropenwindow', this, true);
-      Service.registerState('isLaunchingWindow', this);
     },
-    stop: function() {
+    uninit: function() {
       window.removeEventListener('mozbrowseropenwindow', this, true);
     },
 
@@ -96,14 +94,16 @@
 
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
-        var activeApp = Service.query('AppWindowManager.getActiveWindow');
-        if (activeApp && (activeApp.isBrowser() || activeApp.isSearch())) {
+        var activeApp = Service.currentApp;
+        var isSearchApp = (activeApp.manifest &&
+          activeApp.manifest.role === 'search');
+        if (activeApp && (activeApp.isBrowser() || isSearchApp)) {
           activeApp.navigate(url);
           return;
         }
 
         origin = url;
-        app = Service.query('AppWindowManager.getApp', origin);
+        app = appWindowManager.getApp(origin);
         // Just bring on top if a wrapper window is
         // already running with this url.
         if (app && app.windowName == '_blank') {
@@ -112,7 +112,7 @@
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
-        app = Service.query('AppWindowManager.getApp', origin);
+        app = appWindowManager.getApp(origin);
         if (app && app.windowName === name) {
           if (app.iframe.src === url) {
             // If the url is already loaded, just display the app
@@ -145,7 +145,7 @@
     },
 
     launchWrapper: function wf_launchWrapper(config) {
-      var app = Service.query('AppWindowManager.getApp', config.origin);
+      var app = appWindowManager.getApp(config.origin);
       if (!app) {
         config.chrome = {
           scrollable: true
@@ -204,4 +204,5 @@
     }
   };
   window.WrapperFactory = WrapperFactory;
+  WrapperFactory.init();
 }(window));

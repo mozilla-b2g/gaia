@@ -1,22 +1,21 @@
-/* global SettingsListener, Service */
+/* global SettingsListener */
 
 (function(exports) {
   'use strict';
 
   /**
    * The Developer HUD displays app metrics as an overlay on top of MozApps.
-   * @class DeveloperHud
+   * @class DeveloperHUD
    */
-  function DeveloperHud() {
+  function DeveloperHUD() {
     SettingsListener.observe('devtools.overlay.system',
                              false, this.toggleSystemHUD.bind(this));
   }
 
-  DeveloperHud.prototype = {
-    name: 'DeveloperHud',
+  DeveloperHUD.prototype = {
+
     start: function() {
       window.addEventListener('developer-hud-update', this);
-      Service.register('stop', this);
     },
 
     stop: function() {
@@ -192,6 +191,6 @@
     }
   };
 
-  exports.DeveloperHud = DeveloperHud;
+  exports.DeveloperHUD = DeveloperHUD;
 
 }(window));

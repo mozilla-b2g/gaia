@@ -1,4 +1,4 @@
-/* global LazyLoader, Basket, Promise */
+/* global LazyLoader, FtuLauncher, Basket, Promise */
 
 'use strict';
 
@@ -81,4 +81,25 @@ function sendWhenOnline(email) {
     }
   });
 
+}
+
+var idleObserver = {
+  time: 10,
+  onidle: function() {
+    // if FTU is running we don't want to do anything
+    if (FtuLauncher.isFtuRunning()) {
+      return;
+    }
+
+    navigator.removeIdleObserver(idleObserver);
+    NewsletterManager.start();
+  }
+};
+
+// unit tests call start() manually
+if (navigator.mozL10n) {
+  // starting when we get a chance
+  navigator.mozL10n.once(function loadWhenIdle() {
+    navigator.addIdleObserver(idleObserver);
+  });
 }

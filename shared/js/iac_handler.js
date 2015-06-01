@@ -36,6 +36,7 @@ var IACHandler = {
            */
           iacEvt.initCustomEvent(evtName,
             /* canBubble: */ true, /* cancelable */ false, message);
+
           window.dispatchEvent(iacEvt);
         };
     });

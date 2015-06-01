@@ -26,7 +26,7 @@ marionette('Browser - Site loading background', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     // Need to wait for the homescreen to be ready as this test takes a
     // screenshot. Without the homescreen, we may take a screenshot of the

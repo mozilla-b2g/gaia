@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener, Service,
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
           AttentionWindow, MozActivity, GlobalOverlayWindow, TrustedWindow */
 
 (function(exports) {
@@ -42,7 +42,6 @@
 
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
-      this.app.debug('[cwf] handling ' + evt.type);
       // Handle event from child window.
       if (evt.detail && evt.detail.instanceID &&
           evt.detail.instanceID !== this.app.instanceID) {
@@ -60,7 +59,7 @@
       // <a href="" target="_blank"> should never be part of the app
       // except while FTU is running: windows must be closable & parented by FTU
       if (evt.detail.name == '_blank' &&
-          !Service.query('isFtuRunning') &&
+          !window.Service.runningFTU &&
           evt.detail.features !== 'attention' &&
           evt.detail.features !== 'global-clickthrough-overlay') {
         this.createNewWindow(evt);

@@ -84,10 +84,10 @@ suite('system/AttentionToaster', function() {
       at1.start();
       at1._currentToasterState = 'opened';
       at1._enter_opened();
-      MockService.mockQueryWith('locked', false);
-      MockService.mockQueryWith('getTopMostWindow', {
+      MockService.locked = false;
+      MockService.mTopMostWindow = {
         CLASS_NAME: 'AppWindow'
-      });
+      };
       this.sinon.clock.tick(at1.TOASTER_TIMEOUT);
       assert.equal(at1._currentToasterState, 'closing');
     });
@@ -156,12 +156,12 @@ suite('system/AttentionToaster', function() {
   test('Should not enter closing state if system is locked', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var at1 = new AttentionToaster(app1);
-    MockService.mockQueryWith('locked', true);
-    MockService.mockQueryWith('getTopMostWindow', {
+    MockService.locked = true;
+    MockService.mTopMostWindow = {
       isFullScreen: function() {
         return false;
       }
-    });
+    };
     at1._currentToasterState = 'opened';
     at1._enter_opened();
     this.sinon.clock.tick(at1.TOASTER_TIMEOUT);
@@ -172,12 +172,12 @@ suite('system/AttentionToaster', function() {
     function() {
       var app1 = new MockAppWindow(fakeAppConfig1);
       var at1 = new AttentionToaster(app1);
-      MockService.mockQueryWith('locked', true);
-      MockService.mockQueryWith('getTopMostWindow', {
+      MockService.locked = true;
+      MockService.mTopMostWindow = {
         isFullScreen: function() {
           return true;
         }
-      });
+      };
       at1._currentToasterState = 'opened';
       at1._enter_opened();
       this.sinon.clock.tick(at1.TOASTER_TIMEOUT);

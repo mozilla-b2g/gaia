@@ -11,7 +11,7 @@ marionette('Vertical - App Blacklist', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     client.apps.launch(home.URL);
     home.waitForLaunch();

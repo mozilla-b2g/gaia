@@ -21,7 +21,7 @@ FxASystemDialog.prototype = {
                       .removeEventListener('animationend', wait);
           marionetteScriptFinished();
         });
-      window.wrappedJSObject.Service.request('FxAccountsUI:login');
+      window.wrappedJSObject.FxAccountsUI.login();
     });
   },
 

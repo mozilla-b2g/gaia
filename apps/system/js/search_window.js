@@ -20,14 +20,13 @@
 
   SearchWindow.REGISTERED_EVENTS = [
     // Let our parent AppWindow handle error events.
-    'mozbrowsererror',
-    'mozbrowserlocationchange'
+    'mozbrowsererror'
   ];
 
   SearchWindow.SUB_COMPONENTS = {
-    'childWindowFactory': 'ChildWindowFactory',
-    'transitionController': 'AppTransitionController',
-    'valueSelector': 'ValueSelector'
+    'childWindowFactory': window.ChildWindowFactory,
+    'transitionController': window.AppTransitionController,
+    'valueSelector': window.ValueSelector
   };
 
   SearchWindow.SUB_MODULES = {
@@ -67,9 +66,8 @@
   // The search window orientation depends on the orientation of
   // current root app.
   SearchWindow.prototype.lockOrientation = function() {
-    // XXX: Tell AppWindowManager to do this.
-    var currentApp = Service.query('AppWindowManager.getActiveWindow');
-    currentApp && currentApp.setOrientation();
+    var currentApp = Service.currentApp;
+    currentApp.setOrientation();
   };
 
   // We don't need to wait.

@@ -1,8 +1,7 @@
 'use strict';
 
 /* global IMESwitcher, ImeMenu, KeyboardHelper, inputWindowManager,
-          InputLayouts, LazyLoader, DynamicInputRegistry,
-          InputWindowManager */
+          InputLayouts, LazyLoader, DynamicInputRegistry */
 
 /**
  * For some flow diagrams related to input management, please refer to
@@ -63,25 +62,25 @@ window.KeyboardManager = {
     }
   },
 
-  start: function() {
+  init: function km_init() {
+    this.imeSwitcher = new IMESwitcher();
+    this.imeSwitcher.ontap = this._showImeMenu.bind(this);
+    this.imeSwitcher.start();
+
     window.addEventListener('keyboardhide', this);
+
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', this);
-    return LazyLoader.load([
-      'js/ime_switcher.js',
-      'js/input_window_manager.js',
-      'js/input_layouts.js',
+
+    this.inputLayouts = new InputLayouts(this, TYPE_GROUP_MAPPING);
+    this.inputLayouts.start();
+
+    // get enabled keyboard from mozSettings, parse their manifest
+    LazyLoader.load([
       'js/dynamic_input_registry.js',
       'shared/js/input_mgmt/input_app_list.js',
       'shared/js/keyboard_helper.js'
-    ]).then(() => {
-      window.inputWindowManager = new InputWindowManager();
-      window.inputWindowManager.start();
-      this.inputLayouts = new InputLayouts(this, TYPE_GROUP_MAPPING);
-      this.inputLayouts.start();
-      this.imeSwitcher = new IMESwitcher();
-      this.imeSwitcher.ontap = this._showImeMenu.bind(this);
-      this.imeSwitcher.start();
+    ], function() {
       // Defer the loading of DynamicInputRegistry only after
       // KeyboardHelper is present. Not that is possible we could miss some
       // mozChromeEvent because of this but let's not deal with that kind of
@@ -92,7 +91,7 @@ window.KeyboardManager = {
       KeyboardHelper.watchLayouts(
         { enabled: true }, this._updateLayouts.bind(this)
       );
-    });
+    }.bind(this));
   },
 
   _tryLaunchOnBoot: function km_launchOnBoot() {
@@ -341,14 +340,11 @@ window.KeyboardManager = {
 
       inputWindowManager.hideInputWindow();
 
-      LazyLoader.load(['js/ime_menu.js']).then(() => {
-        var menu = new ImeMenu(items, 'choose-option',
-          this._imeMenuCallback.bind(this, showedGroup),
-          this._imeMenuCallback.bind(this, showedGroup));
-        menu.start();
-      }).catch((err) => {
-        console.error(err);
-      });
+      var menu = new ImeMenu(items, 'choose-option',
+        this._imeMenuCallback.bind(this, showedGroup),
+        this._imeMenuCallback.bind(this, showedGroup));
+
+      menu.start();
 
     }.bind(this));
   }

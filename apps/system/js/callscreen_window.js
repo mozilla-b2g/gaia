@@ -77,8 +77,8 @@
   CallscreenWindow.prototype.closeAnimation = 'slide-to-top';
 
   CallscreenWindow.SUB_COMPONENTS = {
-    'transitionController': 'AppTransitionController',
-    'attentionToaster': 'AttentionToaster'
+    'transitionController': window.AppTransitionController,
+    'attentionToaster': window.AttentionToaster
   };
 
   CallscreenWindow.REGISTERED_EVENTS =
@@ -117,7 +117,7 @@
     }
     var timestamp = new Date().getTime();
     var src = this.config.url + '#' +
-              (Service.query('locked') ? 'locked' : '');
+              (Service.locked ? 'locked' : '');
     src = src + '&timestamp=' + timestamp;
     this.browser.element.src = src;
     this._terminated = false;

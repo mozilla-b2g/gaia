@@ -2,9 +2,11 @@
 
 /* global
    AppUpdatable,
+   appWindowManager,
    asyncStorage,
    MocksHelper,
    MockApp,
+   MockAppWindowManager,
    MockAppsMgmt,
    MockChromeEvent,
    MockCustomDialog,
@@ -84,24 +86,10 @@ suite('system/Updatable', function() {
   });
 
   setup(function() {
-    this.sinon.stub(MockService, 'request', function(action) {
-      if (action === 'showCustomDialog') {
-        MockCustomDialog.show(
-          arguments[1],
-          arguments[2],
-          arguments[3],
-          arguments[4]);
-      } else {
-        MockCustomDialog.hide(
-          arguments[1],
-          arguments[2],
-          arguments[3],
-          arguments[4]);
-      }
-    });
     mockApp = new MockApp();
     subject = new AppUpdatable(mockApp);
 
+    window.appWindowManager = new MockAppWindowManager();
     MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED] = 25;
     MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED] = 10;
 
@@ -125,6 +113,7 @@ suite('system/Updatable', function() {
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;
+    MockService.currentApp = null;
   });
 
   function downloadAvailableSuite(name, setupFunc) {
@@ -193,7 +182,7 @@ suite('system/Updatable', function() {
       });
 
       test('should kill the app if downloaded', function() {
-        assert.isTrue(MockService.request.calledWith('kill', mockApp.origin));
+        assert.equal(window.appWindowManager.mLastKilledOrigin, mockApp.origin);
       });
     });
 
@@ -393,8 +382,7 @@ suite('system/Updatable', function() {
         suite('application of the download', function() {
           test('should apply if the app is not in foreground', function() {
             mockApp.mTriggerDownloadAvailable();
-            MockService.mockQueryWith('AppWindowManager.getActiveWindow',
-              { origin: 'homescreen' });
+            MockService.currentApp = { origin: 'homescreen' };
             mockApp.mTriggerDownloadSuccess();
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
             assert.equal(MockAppsMgmt.mLastAppApplied.mId, mockApp.mId);
@@ -403,8 +391,7 @@ suite('system/Updatable', function() {
           test('should wait for appwillclose if it is', function() {
             var origin = 'http://testapp.gaiamobile.org';
             mockApp.origin = origin;
-            MockService.mockQueryWith('AppWindowManager.getActiveWindow',
-              mockApp);
+            MockService.currentApp = mockApp;
 
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
@@ -420,12 +407,11 @@ suite('system/Updatable', function() {
           });
 
           test('should kill the app before applying the update', function() {
-            MockService.mockQueryWith('AppWindowManager.getActiveWindow',
-              { origin: 'test' });
+            MockService.currentApp = { origin: 'test' };
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
-            assert.isTrue(MockService.request.calledWith('kill',
-              'https://testapp.gaiamobile.org'));
+            assert.equal('https://testapp.gaiamobile.org',
+                         appWindowManager.mLastKilledOrigin);
           });
         });
       });
@@ -752,7 +738,7 @@ suite('system/Updatable', function() {
     testSystemApplyPromptBatteryOk();
 
     test('utility tray hidden', function() {
-      assert.isTrue(MockService.request.calledWith('UtilityTray:hide'));
+      assert.isFalse(MockUtilityTray.mShown);
     });
 
     test('apply prompt cancel callback', function() {

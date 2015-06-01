@@ -7,7 +7,6 @@
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_system_banner.js');
 
 var _HTML = `
@@ -52,8 +51,7 @@ var _HTML = `
 
 var TICK = 1000;
 var mocksForCrashReporter = new MocksHelper(['SettingsListener',
-                                             'SystemBanner',
-                                             'LazyLoader']);
+                                             'SystemBanner']);
 
 suite('system/CrashReporter', function() {
   var app, clock, screen, dialog, realL10n, realMozSettings, spyL10n;

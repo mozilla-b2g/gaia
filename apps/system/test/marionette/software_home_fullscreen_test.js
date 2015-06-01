@@ -23,7 +23,7 @@ marionette('Software Home Button - Fullscreen Request', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     home.waitForLaunch();
     client.switchToFrame();
   });

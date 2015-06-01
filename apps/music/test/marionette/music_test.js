@@ -20,12 +20,10 @@ marionette('Music ui tests', function() {
     }
   });
 
-  var music, system;
+  var music;
 
   setup(function() {
     music = new Music(client);
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
   });
 
   suite('Launch regular music with no audio files', function() {

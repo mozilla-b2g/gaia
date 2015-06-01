@@ -1,21 +1,13 @@
-/* global BaseModule, MockPromise, MocksHelper, MockWifiManager */
+/* global BaseModule, MockPromise */
 'use strict';
 
 
 requireApp('system/shared/test/unit/mocks/mock_promise.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
-requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/core.js');
 
-
-var mocksForCore = new MocksHelper([
-  'LazyLoader'
-]).init();
-
 suite('system/Core', function() {
-  mocksForCore.attachTestHelpers();
   var core;
   setup(function() {
     core = new BaseModule.instantiate('Core');
@@ -40,10 +32,7 @@ suite('system/Core', function() {
       navigator.newapi = {};
       this.sinon.stub(BaseModule, 'lazyLoad').returns(fakePromise);
       core.startAPIHandler('newapi', 'NewApiHandler');
-      window.NewApiHandler = function() {};
-      this.sinon.stub(window, 'NewApiHandler').returns({
-        start: this.sinon.spy()
-      });
+      window.NewApiHandler = this.sinon.spy();
       fakePromise.mFulfillToValue();
       assert.isTrue(window.NewApiHandler.calledWithNew());
       assert.isTrue(window.NewApiHandler.calledWith(navigator.newapi, core));
@@ -51,10 +40,10 @@ suite('system/Core', function() {
   });
 
   suite('API handler bootstrap', function() {
-    var realWifiManager;
+    var realSettings, fakeSettings = {};
     setup(function() {
-      realWifiManager = navigator.mozWifiManager;
-      navigator.mozWifiManager = MockWifiManager;
+      realSettings = navigator.mozSettings;
+      navigator.mozSettings = fakeSettings;
       this.sinon.stub(BaseModule, 'lazyLoad', function(args) {
         return Promise.resolve();
       });
@@ -66,14 +55,21 @@ suite('system/Core', function() {
       });
     });
     teardown(function() {
-      navigator.mozWifiManager = realWifiManager;
+      navigator.mozSettings = realSettings;
     });
 
-    test('simple launch with Wifi API', function() {
+    test('simple launch with Settings API', function() {
       this.sinon.stub(core, 'startAPIHandler');
-      core.startAPIHandlers();
+      core.start();
       assert.isTrue(
-        core.startAPIHandler.called);
+        core.startAPIHandler.calledWith('mozSettings', 'SettingsCore'));
+    });
+
+    test('Start the API handler for settings', function(done) {
+      core.startAPIHandler('mozSettings', 'SettingsCore').then(function() {
+        assert.isDefined(core.settingsCore);
+        done();
+      });
     });
   });
 

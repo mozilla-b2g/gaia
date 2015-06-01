@@ -1,4 +1,4 @@
-/* global applications, ManifestHelper, RecordingIcon, LazyLoader, Service */
+/* global applications, ManifestHelper, RecordingIcon, LazyLoader */
 (function(exports) {
   'use strict';
 
@@ -12,8 +12,6 @@
   }
 
   MediaRecording.prototype = {
-    name: 'MediaRecording',
-
     /**
      * To tell if the current state is using any recording device, like mic or
      * camera. Used to control the present of statusbar status.
@@ -41,7 +39,6 @@
       }.bind(this)).catch(function(err) {
         console.error(err);
       });
-      Service.registerState('isRecording', this);
     },
 
     /**
@@ -57,7 +54,6 @@
       this.container = null;
 
       window.removeEventListener('mozChromeEvent', this);
-      Service.unregisterState('isRecording', this);
     },
 
     /**

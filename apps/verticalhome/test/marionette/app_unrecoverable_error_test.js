@@ -31,7 +31,7 @@ marionette('Vertical Home - App unrecoverable error', function() {
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     subject.waitForLaunch();
   });
 

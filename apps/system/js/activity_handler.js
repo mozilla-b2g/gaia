@@ -1,4 +1,3 @@
-/* global LazyLoader, Import */
 'use strict';
 
 (function(exports) {
@@ -15,10 +14,6 @@
     start: function() {
       window.navigator.mozSetMessageHandler('activity',
         this.handleActivity.bind(this));
-      return LazyLoader.load(['js/import.js']).then(() => {
-        this.import = new Import();
-        return Promise.resolve(this.import.start());
-      });
     },
 
     /**

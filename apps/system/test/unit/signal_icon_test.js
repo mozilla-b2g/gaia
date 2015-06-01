@@ -23,11 +23,11 @@ suite('system/SignalIcon', function() {
   mocksForSignalIcon.attachTestHelpers();
 
   setup(function() {
-    MockService.mockQueryWith('hasActiveCall', false);
-    MockService.mockQueryWith('getDataConnectionType', '');
-    MockService.mockQueryWith('isCDMA', false);
-    MockService.mockQueryWith('inCall', false);
-    MockService.mockQueryWith('Radio.enabled', true);
+    MockService.mActiveCall = false;
+    MockService.mConnectionType = '';
+    MockService.mCDMA = false;
+    MockService.mInCall = false;
+    MockService.mRadioEnabled = true;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     this.sinon.stub(document, 'getElementById', function() {
@@ -173,7 +173,7 @@ suite('system/SignalIcon', function() {
 
   suite('update', function() {
     test('SIM card is absent', function() {
-      MockService.mockQueryWith('Radio.enabled', true);
+      MockService.mRadioEnabled = true;
       this.sinon.stub(subject, 'hide');
       this.sinon.stub(subject.manager, 'isAbsent').returns(true);
       subject.update();
@@ -184,7 +184,7 @@ suite('system/SignalIcon', function() {
     });
 
     test('SIM card is locked', function() {
-      MockService.mockQueryWith('Radio.enabled', true);
+      MockService.mRadioEnabled = true;
       this.sinon.stub(subject, 'hide');
       this.sinon.stub(subject.manager, 'isLocked').returns(true);
       subject.update();
@@ -192,7 +192,7 @@ suite('system/SignalIcon', function() {
     });
 
     test('Radio is disabled', function() {
-      MockService.mockQueryWith('Radio.enabled', false);
+      MockService.mRadioEnabled = false;
       this.sinon.stub(subject, 'hide');
       subject.update();
       assert.isTrue(subject.hide.called);
@@ -215,7 +215,7 @@ suite('system/SignalIcon', function() {
       subject.manager.conn.voice = {
         relSignalStrength: 20
       };
-      MockService.mockQueryWith('hasActiveCall', true);
+      MockService.mActiveCall = true;
       this.sinon.stub(subject, 'show');
       subject.update();
       assert.isTrue(subject.show.called);
@@ -250,9 +250,9 @@ suite('system/SignalIcon', function() {
 
   suite('Update data text', function() {
     setup(function() {
-      MockService.mockQueryWith('Radio.enabled', true);
-      MockService.mockQueryWith('inCall', false);
-      MockService.mockQueryWith('isCDMA', false);
+      MockService.mRadioEnabled = true;
+      MockService.mInCall = false;
+      MockService.mCDMA = false;
       subject.manager.conn.data = {
         connected: true,
         roaming: false,
@@ -262,7 +262,7 @@ suite('system/SignalIcon', function() {
     });
 
     test('Should hide data text if radio is disabled', function() {
-      MockService.mockQueryWith('Radio.enabled', false);
+      MockService.mRadioEnabled = false;
       subject.updateDataText();
       assert.equal(subject.dataText.hidden, true);
     });
@@ -279,7 +279,7 @@ suite('system/SignalIcon', function() {
     });
 
     test('update data text', function() {
-      MockService.mockQueryWith('getDataConnectionType', 'LTE');
+      MockService.mConnectionType = 'LTE';
       this.sinon.stub(subject, 'publish');
       subject.updateDataText();
       assert.isTrue(subject.publish.calledOnce);
@@ -292,9 +292,9 @@ suite('system/SignalIcon', function() {
     });
 
     test('is CDMA and in a call', function() {
-      MockService.mockQueryWith('getDataConnectionType', 'LTE');
-      MockService.mockQueryWith('inCall', true);
-      MockService.mockQueryWith('isCDMA', true);
+      MockService.mConnectionType = 'LTE';
+      MockService.mInCall = true;
+      MockService.mCDMA = true;
       this.sinon.stub(subject, 'publish');
       subject.updateDataText();
       assert.isFalse(subject.publish.calledOnce);
@@ -302,15 +302,15 @@ suite('system/SignalIcon', function() {
       assert.isFalse(subject.element.classList.contains('sb-icon-data-circle'));
       assert.equal(subject.dataText.hidden, false);
 
-      MockService.mockQueryWith('inCall', false);
+      MockService.mInCall = false;
       subject.updateDataText();
       assert.isTrue(subject.publish.calledOnce);
     });
 
     test('No type', function() {
-      MockService.mockQueryWith('getDataConnectionType', '');
-      MockService.mockQueryWith('inCall', true);
-      MockService.mockQueryWith('isCDMA', true);
+      MockService.mConnectionType = '';
+      MockService.mInCall = true;
+      MockService.mCDMA = true;
       subject.updateDataText();
       assert.equal(subject.dataText.textContent, '');
       assert.isTrue(subject.element.classList.contains('sb-icon-data-circle'));

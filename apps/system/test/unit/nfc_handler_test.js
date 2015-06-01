@@ -27,12 +27,12 @@ suite('System Browser Nfc Handler tests', function() {
   });
 
   test('on peer ready', function() {
-    MockService.mockQueryWith('getTopMostWindow', {
+    MockService.mTopMostWindow = {
       config: { url: 'www.test.com' },
       isBrowser: function() {
         return true;
       }
-    });
+    };
     var stubSendNDEFMessageToNFCPeer =
       this.sinon.stub(nfcHandler, 'sendNDEFMessageToNFCPeer');
     var nfcEvent = {

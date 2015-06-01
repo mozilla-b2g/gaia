@@ -1,15 +1,17 @@
-/* global MocksHelper, UtilityTray, MockService */
+/* global MocksHelper, UtilityTray, Service */
 
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'LazyLoader',
   'Service',
+  'StatusBar',
   'SoftwareButtonManager'
 ]);
 mocksHelperForUtilityTray.init();
@@ -57,7 +59,7 @@ suite('system/UtilityTray', function() {
     originalSoftwareButtonManager = window.softwareButtonManager;
     window.softwareButtonManager = window.MocksoftwareButtonManager;
 
-    MockService.mockQueryWith('getTopMostWindow', {
+    Service.currentApp = {
       isTransitioning: function() {},
       getTopMostWindow: function() { return this; },
       appChrome: {
@@ -65,7 +67,7 @@ suite('system/UtilityTray', function() {
         useCombinedChrome: function() {},
         isMaximized: function() {}
       }
-    });
+    };
 
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
@@ -131,8 +133,8 @@ suite('system/UtilityTray', function() {
 
   teardown(function() {
     stubById.restore();
-    MockService.mockQueryWith('locked', false);
-    MockService.mockQueryWith('getTopMostWindow', null);
+    window.Service.locked = false;
+    window.Service.currentApp = null;
 
     window.softwareButtonManager = originalSoftwareButtonManager;
   });
@@ -178,7 +180,7 @@ suite('system/UtilityTray', function() {
       var appChrome, titleStub, app;
 
       setup(function() {
-        app = MockService.mockQueryWith('getTopMostWindow');
+        app = Service.currentApp;
         appChrome = app.appChrome;
         titleStub = this.sinon.stub(appChrome, 'titleClicked');
       });
@@ -274,7 +276,7 @@ suite('system/UtilityTray', function() {
             oop: true
           }
         };
-        MockService.mockQueryWith('getTopMostWindow', app);
+        window.Service.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -294,7 +296,7 @@ suite('system/UtilityTray', function() {
             oop: false
           }
         };
-        MockService.mockQueryWith('getTopMostWindow', app);
+        window.Service.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -464,6 +466,8 @@ suite('system/UtilityTray', function() {
 
     teardown(function() {
       fakeTransitionEnd();
+      window.Service.locked = false;
+      window.Service.runningFTU = false;
     });
 
     test('first swipe should show', function() {
@@ -472,13 +476,13 @@ suite('system/UtilityTray', function() {
     });
 
     test('first swipe should not show when locked', function() {
-      MockService.mockQueryWith('locked', true);
+      window.Service.locked = true;
       UtilityTray.handleEvent(swipeDown);
       assertIsShowing(false);
     });
 
     test('first swipe should not show when running FTU', function() {
-      MockService.mockQueryWith('isFtuRunning', true);
+      window.Service.runningFTU = true;
       UtilityTray.handleEvent(swipeDown);
       assertIsShowing(false);
     });
@@ -550,29 +554,33 @@ suite('system/UtilityTray', function() {
       fakeEvt.touches = [0];
     });
 
+    teardown(function() {
+      window.Service.runningFTU = false;
+    });
+
     test('onTouchStart is not called if LockScreen is locked', function() {
-      MockService.mockQueryWith('locked', true);
+      window.Service.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
 
     test('onTouchStart is called if LockScreen is not locked', function() {
-      MockService.mockQueryWith('locked', false);
+      window.Service.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
     test('events on the topPanel are handled', function() {
-      MockService.mockQueryWith('locked', false);
+      window.Service.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
     test('onTouchStart is called when ftu is running', function() {
-      MockService.mockQueryWith('isFtuRunning', true);
+      window.Service.runningFTU = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);

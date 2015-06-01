@@ -4,10 +4,9 @@
 
 requireApp('system/lockscreen/js/lockscreen_notifications.js');
 requireApp('system/test/unit/mock_lock_screen.js');
-requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksForLockScreenNotifications = new MocksHelper([
-  'LockScreen', 'LazyLoader'
+  'LockScreen'
 ]).init();
 
 suite('system/LockScreenNotifications', function() {

@@ -6,20 +6,19 @@
 /* global SettingsListener */
 /* global SearchWindow */
 /* global MockAppWindow */
-/* global MockService */
 
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocks = new MocksHelper([
   'Applications',
   'ManifestHelper',
-  'SettingsListener',
-  'Service'
+  'OrientationManager',
+  'SettingsListener'
 ]).init();
 
 suite('system/SearchWindow', function() {
@@ -38,6 +37,7 @@ suite('system/SearchWindow', function() {
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
 
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/search_window.js', done);
@@ -100,11 +100,15 @@ suite('system/SearchWindow', function() {
 
   test('call lockOrientation', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
-    MockService.mockQueryWith('AppWindowManager.getActiveWindow', app1);
+    window.appWindowManager = {
+      getActiveApp: function() {
+        return app1;
+      }
+    };
     var searchWindow = new SearchWindow();
     this.sinon.stub(app1, 'setOrientation');
     searchWindow.lockOrientation();
-    assert.isTrue(app1.setOrientation.called,
+    assert.isTrue(app1.setOrientation.calledOnce,
       'should lock orientation to root app');
   });
 });

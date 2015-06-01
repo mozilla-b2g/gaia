@@ -24,7 +24,7 @@ marionette('IME installation', function() {
   setup(function() {
     appInstall = new AppInstall(client);
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('Test app installation screen', function() {

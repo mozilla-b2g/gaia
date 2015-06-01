@@ -1,7 +1,4 @@
-/* global ScreenManager, Service, SettingsListener,
-          Wifi, WifiIcon, WifiWakeLockManager,
-          MockFtuLauncher, MocksHelper, MockLazyLoader, MockLock, MockMozPower,
-          MockNavigatorSettings, MockSettingsListener, MockWifiManager */
+/* global WifiWakeLockManager, MocksHelper, MockLazyLoader */
 
 'use strict';
 
@@ -69,6 +66,8 @@ var mocksForWifi = new MocksHelper([
 ]).init();
 
 suite('WiFi > ', function() {
+  var stubMozSettings;
+  var stubWifiManager;
   var stubRequestWakeLock;
   var stubAddEventListener;
   var stubWifiWakeLockManager;
@@ -134,7 +133,7 @@ suite('WiFi > ', function() {
       // Wifi.init() at the end of the wifi.js only executed once when
       // require() includes the script for real.
       if (firstRequire) {
-        Wifi.start();
+        Wifi.init();
       } else {
         firstRequire = false;
       }
@@ -354,7 +353,7 @@ suite('WiFi > ', function() {
       navigator.battery = { charging: false };
 
       Wifi.maybeToggleWifi();
-      if (Wifi.wifiSleepMode === true) {
+      if (Wifi.wifiSleepMode == true) {
         assert.equal(isSetSystemMessageHandlerCalled, true);
         assert.equal(MockMozAlarms._timezone, 'ignoreTimezone');
         assert.equal(MockMozAlarms._func, 'wifi-off');
@@ -387,7 +386,7 @@ suite('WiFi > ', function() {
       navigator.battery = { charging: false };
 
       Wifi.maybeToggleWifi();
-      if (Wifi.wifiSleepMode === true) {
+      if (Wifi.wifiSleepMode == true) {
         assert.equal(isSetSystemMessageHandlerCalled, true);
         assert.equal(MockMozAlarms._timezone, 'ignoreTimezone');
         assert.equal(MockMozAlarms._func, 'wifi-off');

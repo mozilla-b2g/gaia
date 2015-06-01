@@ -162,7 +162,7 @@ suite('NfcConnectSystemDialog', function() {
 
     var assertTextContent = function(btEnabled, btName, el, expected) {
       // mock bt stat
-      MockService.mockQueryWith('Bluetooth.isEnabled', btEnabled);
+      MockService.mBtEnabled = btEnabled;
       nfcDialog.show(btName);
       if (typeof expected === 'string') {
         assert.equal(nfcDialog[el].getAttribute('data-l10n-id'), expected);

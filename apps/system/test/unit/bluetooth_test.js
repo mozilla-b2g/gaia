@@ -56,7 +56,7 @@ suite('system/Bluetooth_v1', function() {
     // instanciate bluetooth module
     window.Bluetooth = window.Bluetooth1;
     window.BluetoothTransfer = { start: function() {} };
-    Bluetooth.start();
+    Bluetooth.init();
   });
 
   test('Should lazy load icons', function() {

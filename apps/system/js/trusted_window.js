@@ -44,12 +44,12 @@
       '_focus', 'mozbrowserloadstart', 'mozbrowserlocationchange'];
 
   TrustedWindow.SUB_COMPONENTS = {
-    'transitionController': 'AppTransitionController',
-    'modalDialog': 'AppModalDialog',
-    'valueSelector': 'ValueSelector',
-    'authDialog': 'AppAuthenticationDialog',
-    'childWindowFactory': 'ChildWindowFactory',
-    'statusbar': 'AppStatusbar'
+    'transitionController': window.AppTransitionController,
+    'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
+    'authDialog': window.AppAuthenticationDialog,
+    'childWindowFactory': window.ChildWindowFactory,
+    'statusbar': window.AppStatusbar
   };
 
   TrustedWindow.prototype.openAnimation = 'slide-from-bottom';

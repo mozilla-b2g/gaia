@@ -4,12 +4,14 @@
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_service.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppTransitionController = new MocksHelper([
-  'AppWindow', 'AppWindowManager', 'LayoutManager',
+  'AppWindow', 'AppWindowManager', 'LayoutManager', 'SettingsListener',
   'Service'
 ]).init();
 
@@ -97,7 +99,7 @@ suite('system/AppTransitionController', function() {
   });
 
   test('Animation end event', function() {
-    MockService.mockQueryWith('isBusyLoading', false);
+    this.sinon.stub(MockService, 'isBusyLoading').returns(false);
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var spy = this.sinon.spy();
@@ -118,7 +120,7 @@ suite('system/AppTransitionController', function() {
     acn1._transitionState = 'opening';
 
     app1.element.classList.add('transition-opening');
-    MockService.mockQueryWith('isBusyLoading', true);
+    this.sinon.stub(MockService, 'isBusyLoading').returns(true);
     acn1.handleEvent({
       type: 'animationend',
       stopPropagation: stopStub
@@ -126,7 +128,7 @@ suite('system/AppTransitionController', function() {
     assert.isFalse(app1.element.classList.contains('transition-opening'));
     assert.equal(acn1._transitionState, 'opening');
 
-    MockService.mockQueryWith('isBusyLoading', false);
+    MockService.isBusyLoading.returns(false);
     acn1.handleEvent({
       type: '_loaded',
       stopPropagation: stopStub
@@ -135,7 +137,7 @@ suite('system/AppTransitionController', function() {
   });
 
   test('Discard animationend event if system is busy', function() {
-    MockService.mockQueryWith('isBusyLoading', true);
+    this.sinon.stub(MockService, 'isBusyLoading').returns(true);
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var spy = this.sinon.spy();
@@ -150,7 +152,7 @@ suite('system/AppTransitionController', function() {
   });
 
   test('Discard animationend event if system is busy', function() {
-    MockService.mockQueryWith('isBusyLoading', true);
+    this.sinon.stub(MockService, 'isBusyLoading').returns(true);
     var app1 = new MockAppWindow(fakeAppConfig1);
     app1.isHomescreen = true;
     var acn1 = new AppTransitionController(app1);
@@ -208,22 +210,23 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
+    this.sinon.stub(MockService, 'isBusyLoading');
 
     app1.loaded = false;
     acn1._transitionState = 'opening';
-    MockService.mockQueryWith('getTopMostUI', {
+    MockService.mTopMostUI = {
       name: 'AppWindowManager'
-    });
-    MockService.mockQueryWith('getTopMostWindow', app1);
+    };
+    MockService.mTopMostWindow = app1;
 
-    MockService.mockQueryWith('isBusyLoading', true);
+    MockService.isBusyLoading.returns(true);
     acn1.handleEvent({
       type: 'animationend',
       stopPropagation: function() {}
     });
     assert.isFalse(stubFocus.called);
 
-    MockService.mockQueryWith('isBusyLoading', false);
+    MockService.isBusyLoading.returns(false);
     acn1.handleEvent({
       type: '_loaded',
       stopPropagation: function() {}
@@ -238,11 +241,10 @@ suite('system/AppTransitionController', function() {
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
     app1.loaded = true;
-    MockService.mockQueryWith('getTopMostUI', {
+    MockService.mTopMostUI = {
       name: 'AppWindowManager'
-    });
-    MockService.mockQueryWith('getTopMostWindow', app1);
-
+    };
+    MockService.mTopMostWindow = app1;
     acn1._transitionState = 'opened';
 
     acn1.handle_opened();
@@ -256,11 +258,10 @@ suite('system/AppTransitionController', function() {
     var stubFocus = this.sinon.stub(app1, 'focus');
     this.sinon.stub(app1, 'setNFCFocus');
     app1.loaded = true;
-    MockService.mockQueryWith('getTopMostUI', {
+    MockService.mTopMostUI = {
       name: 'AppWindowManager'
-    });
-    MockService.mockQueryWith('getTopMostWindow', app1);
-
+    };
+    MockService.mTopMostWindow = app1;
     acn1._transitionState = 'opened';
 
     acn1.handle_opened();
@@ -274,11 +275,9 @@ suite('system/AppTransitionController', function() {
     var stubFocus = this.sinon.stub(app1, 'focus');
     this.sinon.stub(app1, 'setNFCFocus');
     app1.loaded = true;
-    MockService.mockQueryWith('getTopMostUI', {
-      name: 'AppWindowManager'
-    });
-    MockService.mockQueryWith('getTopMostWindow', null);
-
+    MockService.mTopMostUI = {
+      name: 'SystemDialogManager'
+    };
     acn1._transitionState = 'opened';
 
     acn1.handle_opened();
@@ -292,11 +291,9 @@ suite('system/AppTransitionController', function() {
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
     app1.loaded = true;
-    MockService.mockQueryWith('getTopMostUI', {
+    MockService.mTopMostUI = {
       name: 'AppWindowManager'
-    });
-    MockService.mockQueryWith('getTopMostWindow', app1);
-
+    };
     acn1._transitionState = 'opened';
 
     acn1.handle_opened();

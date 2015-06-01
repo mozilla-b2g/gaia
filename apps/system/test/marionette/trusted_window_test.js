@@ -28,7 +28,7 @@ marionette('trusted window tests', function() {
 
   setup(function() {
     system = new Service(client);
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     client.apps.launch(FAKE_APP_URL);
     frame = system.waitForLaunch(FAKE_APP_URL);
@@ -36,8 +36,8 @@ marionette('trusted window tests', function() {
 
   function getCurrentAppId() {
     client.executeScript(function() {
-      return window.wrappedJSObject
-                  .Service.query('getTopMostWindow').instanceID;
+      var currentApp = window.wrappedJSObject.Service.currentApp;
+      return currentApp.getTopMostWindow().instanceID;
     });
   }
 

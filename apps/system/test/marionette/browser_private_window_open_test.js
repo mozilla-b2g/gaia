@@ -31,7 +31,7 @@ marionette('Private Browser - Window.open', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('Open windows from private browsers are also private', function() {

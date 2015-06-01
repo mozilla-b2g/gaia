@@ -18,7 +18,7 @@ marionette('Search - Installed Apps Test', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     var app = __dirname + '/fixtures/installed_app';
     createAppServer(app, client, function(err, _server) {

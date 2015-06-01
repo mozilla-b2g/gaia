@@ -38,7 +38,7 @@ marionette('Vertical - App uninstall while pending', function() {
     server.cork(server.applicationZipUri);
 
     // wait for the system app to be running
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     client.apps.launch(home.URL);
     home.waitForLaunch();
 

@@ -27,7 +27,7 @@ marionette('Vertical Home - Hosted App Install', function() {
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     subject.waitForLaunch();
   });
 

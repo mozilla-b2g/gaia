@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-/* globals CustomEvent, MozActivity,
-           NfcUtils, NDEF, BaseModule, NfcIcon,
-           LazyLoader, Service */
+/* globals CustomEvent, MozActivity, Service,
+           NfcUtils, NDEF, ScreenManager, BaseModule, NfcIcon,
+           LazyLoader */
 
 'use strict';
 
@@ -44,7 +44,7 @@
    * detects NFC Handover requests and passes them to NfcHandoverManager for
    * handling.
    * @class NfcManager
-   * @requires BaseModule
+   * @requires Service
    * @requires ScreenManager
    * @requires MozActivity
    * @requires NDEF
@@ -74,7 +74,6 @@
 
   BaseModule.create(NfcManager, {
     name: 'NfcManager',
-    DEBUG: false,
 
     /**
      * Current NFC Hardware state
@@ -128,9 +127,8 @@
     },
 
     _handle_screenchange: function(evt) {
-      var nfcEvt = Service.query('screenEnabled') &&
-                  !Service.query('locked') ?
-                  'enable-polling' : 'disable-polling';
+      var nfcEvt = ScreenManager.screenEnabled && !Service.locked ?
+                    'enable-polling' : 'disable-polling';
       this._doNfcStateTransition(nfcEvt);
     },
 
@@ -271,9 +269,9 @@
      */
     _checkP2PRegistration: function nm_checkP2PRegistration() {
       var nfc = window.navigator.mozNfc;
-      var activeApp = this.service.query('getTopMostWindow');
-      var manifestURL = activeApp.manifestURL ||
-        this.service.manifestURL;
+      var activeApp = window.Service.currentApp;
+      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
+        window.Service.manifestURL;
 
       // Do not allow shrinking if we are on the private browser landing page.
       if (activeApp.isPrivateBrowser() &&
@@ -328,9 +326,9 @@
      */
     _dispatchP2PUserResponse: function nm_dispatchP2PUserResponse() {
       var nfc = window.navigator.mozNfc;
-      var activeApp = this.service.query('getTopMostWindow');
-      var manifestURL = activeApp.manifestURL ||
-        this.service.manifestURL;
+      var activeApp = window.Service.currentApp;
+      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
+        window.Service.manifestURL;
 
       nfc.notifyUserAcceptedP2P(manifestURL);
     },

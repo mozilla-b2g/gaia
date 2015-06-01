@@ -1,23 +1,20 @@
-/* global MocksHelper, MockNavigatorDatastore, MockDatastore, BaseModule */
-/* global asyncStorage, MockService */
+/* global MocksHelper, MockNavigatorDatastore, MockDatastore, Places */
+/* global asyncStorage, MockAppWindowManager */
 
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
-require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
-requireApp('system/js/service.js');
-requireApp('system/js/base_module.js');
 requireApp('system/js/places.js');
 
 var mocksHelperForPlaces = new MocksHelper([
+  'AppWindowManager',
   'asyncStorage',
   'SettingsListener',
-  'Datastore',
-  'LazyLoader'
+  'Datastore'
 ]).init();
 
 suite('system/Places', function() {
@@ -28,9 +25,7 @@ suite('system/Places', function() {
   mocksHelperForPlaces.attachTestHelpers();
 
   suiteSetup(function(done) {
-    window.BrowserSettings = {
-      start: function() {}
-    };
+
     asyncStorage.getItem = function(key, callback) {
       callback(null);
     };
@@ -38,13 +33,13 @@ suite('system/Places', function() {
     realDatastores = navigator.getDataStores;
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
 
-    subject = BaseModule.instantiate('Places');
-    subject.service = MockService;
+    subject = new Places();
     subject.start().then(done);
+    window.appWindowManager = new MockAppWindowManager();
   });
 
   suiteTeardown(function() {
-    delete window.BrowserSettings;
+    window.appWindowManager = null;
     navigator.getDataStores = realDatastores;
   });
 

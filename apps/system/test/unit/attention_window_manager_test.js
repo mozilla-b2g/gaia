@@ -1,24 +1,28 @@
 /* globals attentionWindowManager, AttentionWindowManager, MockService,
             MockAttentionWindow, MocksHelper, MockHomescreenWindow,
-            MockAppWindow, MockService */
+            MockHomescreenLauncher, MockAppWindow, homescreenLauncher */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_attention_window.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_attention_indicator.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 
 var mocksForAttentionWindowManager = new MocksHelper([
-  'AttentionWindow', 'Service',
+  'AttentionWindow', 'Service', 'HomescreenLauncher',
   'HomescreenWindow'
 ]).init();
 
 suite('system/AttentionWindowManager', function() {
   mocksForAttentionWindowManager.attachTestHelpers();
+  var realHomescreenLauncher;
   var stubById;
   var att1, att2, att3;
   setup(function(done) {
+    realHomescreenLauncher = window.homescreenLauncher;
+    window.homescreenLauncher = new MockHomescreenLauncher();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
 
@@ -30,7 +34,8 @@ suite('system/AttentionWindowManager', function() {
   });
 
   teardown(function() {
-    MockService.mockQueryWith('AppWindowManager.getActiveWindow', null);
+    window.homescreenLauncher = realHomescreenLauncher;
+    MockService.currentApp = null;
     stubById.restore();
   });
 
@@ -275,25 +280,26 @@ suite('system/AttentionWindowManager', function() {
     });
 
     test('Home button', function() {
-      MockService.mockQueryWith('locked', false);
-      MockService.mockQueryWith('getHomescreen', new MockHomescreenWindow());
-      this.sinon.stub(MockService.mQueries.getHomescreen, 'ready');
+      this.sinon.stub(homescreenLauncher, 'getHomescreen')
+        .returns(new MockHomescreenWindow());
+      var spyReady =
+        this.sinon.stub(homescreenLauncher.getHomescreen(), 'ready');
       attentionWindowManager._openedInstances =
         new Map([[att3, att3], [att2, att2]]);
       var stubCloseForAtt3 = this.sinon.stub(att3, 'close');
       var stubCloseForAtt2 = this.sinon.stub(att2, 'close');
       attentionWindowManager.respondToHierarchyEvent(new CustomEvent('home'));
-      MockService.mQueries.getHomescreen.ready.yield();
+      spyReady.getCall(0).args[0]();
       assert.isTrue(stubCloseForAtt2.called);
       assert.isTrue(stubCloseForAtt3.called);
     });
 
     test('Home button, but no active window', function() {
       var stubGetHomescreen =
-        this.sinon.stub(MockService, 'query');
+        this.sinon.stub(homescreenLauncher, 'getHomescreen');
       attentionWindowManager._openedInstances = new Map();
       attentionWindowManager.respondToHierarchyEvent(new CustomEvent('home'));
-      assert.isFalse(stubGetHomescreen.calledWith('getHomescreen'));
+      assert.isFalse(stubGetHomescreen.called);
     });
 
     test('HoldHome event', function() {
@@ -412,7 +418,6 @@ suite('system/AttentionWindowManager', function() {
 
     suite('AttentionWindow is requesting to close', function() {
       test('No other opened instances and no active app window', function() {
-        MockService.mockQueryWith('AppWindowManager.getActiveWindow', null);
         attentionWindowManager._openedInstances = new Map([[att1, att1]]);
         var stubClose = this.sinon.stub(att1, 'close');
         window.dispatchEvent(new CustomEvent('attentionrequestclose', {
@@ -427,7 +432,7 @@ suite('system/AttentionWindowManager', function() {
         attentionWindowManager._topMostWindow = att1;
         var stubClose = this.sinon.stub(att1, 'close');
         var spyReadyForApp = this.sinon.stub(app, 'ready');
-        MockService.mockQueryWith('AppWindowManager.getActiveWindow', app);
+        MockService.currentApp = app;
         window.dispatchEvent(new CustomEvent('attentionrequestclose', {
           detail: att1
         }));

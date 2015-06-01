@@ -24,7 +24,7 @@ marionette('GlobalOverlayWindow', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     fakeGlobalOverlay = new FakeGlobalOverlayApp(client);
     fakeGlobalOverlayNoPerms = new FakeGlobalOverlayAppNoPerms(client);

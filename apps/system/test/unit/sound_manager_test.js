@@ -1,10 +1,9 @@
 'use strict';
 
 /* global MocksHelper, MockL10n, SoundManager, MockSettingsListener, MockLock,
-          MockNavigatorSettings, MockasyncStorage,
-          MockCustomDialog, MockLazyLoader, MockService */
+          MockScreenManager, MockNavigatorSettings, MockasyncStorage,
+          MockCustomDialog, MockLazyLoader */
 
-requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -13,6 +12,7 @@ require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/js/async_semaphore.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/js/service.js');
@@ -27,9 +27,10 @@ requireApp('system/js/sound_manager.js');
 var mocksForSoundManager = new MocksHelper([
   'asyncStorage',
   'CustomDialog',
+  'FtuLauncher',
+  'ScreenManager',
   'SettingsListener',
-  'LazyLoader',
-  'Service'
+  'LazyLoader'
 ]).init();
 
 suite('system/sound manager', function() {
@@ -51,16 +52,6 @@ suite('system/sound manager', function() {
   }
 
   setup(function() {
-    MockService.mockQueryWith('screenEnabled', true);
-    this.sinon.stub(MockService, 'request', function(action) {
-      if (action === 'showCustomDialog') {
-        MockCustomDialog.show(arguments[1], arguments[2],
-          arguments[3], arguments[4]);
-      } else {
-        MockCustomDialog.hide(arguments[1], arguments[2],
-          arguments[3], arguments[4]);
-      }
-    });
     MockLazyLoader.mLoadRightAway = true;
     this.sinon.spy(MockLazyLoader, 'load');
     soundManager = new SoundManager();
@@ -69,15 +60,6 @@ suite('system/sound manager', function() {
 
   teardown(function() {
     soundManager.stop();
-  });
-
-  test('Default channel', function() {
-    MockService.mockQueryWith('locked', false);
-    soundManager.homescreenVisible = false;
-    MockService.mockQueryWith('isFtuRunning', true);
-    assert.equal(soundManager.getChannel(), 'notification');
-    MockService.mockQueryWith('isFtuRunning', false);
-    assert.equal(soundManager.getChannel(), 'content');
   });
 
   test('Should lazy load icons', function() {
@@ -300,7 +282,7 @@ suite('system/sound manager', function() {
       });
 
       test('handleVolumeKey: screen-off and channel none', function() {
-        MockService.mockQueryWith('screenEnabled', false);
+        MockScreenManager.screenEnabled = false;
         soundManager.currentChannel = 'none';
         window.dispatchEvent(new CustomEvent('volumeup'));
         checkVolume({
@@ -310,6 +292,7 @@ suite('system/sound manager', function() {
           'notification': 5,
           'telephony': 5
         });
+        MockScreenManager.screenEnabled = true;
       });
 
       test('handleVolumeKey: headset connected and channel-normal', function() {

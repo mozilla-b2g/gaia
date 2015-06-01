@@ -1,18 +1,18 @@
 'use strict';
-/* global MocksHelper, SystemDialog, MockService */
+/* global MocksHelper, SystemDialog, LayoutManager, MockStatusBar */
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_system_dialog_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForSystemDialog = new MocksHelper([
   'AppWindowManager',
   'LayoutManager',
   'SystemDialogManager',
   'KeyboardManager',
-  'Service'
+  'StatusBar'
 ]).init();
 
 suite('system/SystemDialog', function() {
@@ -28,11 +28,11 @@ suite('system/SystemDialog', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/system_dialog.js', done);
-
-    MockService.mockQueryWith('LayoutManager.height', 320);
-    MockService.mockQueryWith('StatusBar.height', 30);
+    window.layoutManager = new LayoutManager();
+    MockStatusBar.height = 30;
   });
 
   teardown(function() {

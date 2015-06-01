@@ -1,17 +1,10 @@
 'use strict';
 
-/* global FxAccountsUI, MockService, MocksHelper */
+/* global FxAccountsUI */
 
-require('/js/fx_accounts_u_i.js');
-require('/test/unit/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_service.js');
-
-var mocksForFxAccountsUI = new MocksHelper([
-  'Service', 'LazyLoader'
-]).init();
+require('/js/fxa_ui.js');
 
 suite('system/FxAccountsUI', function() {
-  mocksForFxAccountsUI.attachTestHelpers();
   setup(function() {
     window.FxAccountsDialog = function() {};
     window.FxAccountsDialog.prototype = {
@@ -43,24 +36,7 @@ suite('system/FxAccountsUI', function() {
 
   suite('After init', function() {
     setup(function() {
-      FxAccountsUI.start();
-    });
-
-    test('loadFlow', function() {
-      FxAccountsUI.panel = document.createElement('div');
-      FxAccountsUI.dialog = {
-        show: function() {}
-      };
-      MockService.mockQueryWith('isFtuRunning', true);
-      FxAccountsUI.loadFlow('login');
-      assert.isTrue(FxAccountsUI.iframe.src.indexOf('isftu=true') >= 0);
-
-      MockService.mockQueryWith('isFtuRunning', false);
-      FxAccountsUI.loadFlow('login');
-      assert.isFalse(FxAccountsUI.iframe.src.indexOf('isftu=true') >= 0);
-
-      FxAccountsUI.panel = null;
-      FxAccountsUI.dialog = null;
+      FxAccountsUI.init();
     });
 
     test('Should not have a dialog', function() {

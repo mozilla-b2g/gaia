@@ -3,10 +3,9 @@
 
 /* global BrowserFrame,
    EntrySheet,
+   FtuLauncher,
    Notification,
-   MozActivity,
-   Service,
-   LazyLoader
+   MozActivity
 */
 
 'use strict';
@@ -32,22 +31,17 @@ var CaptivePortal = {
         currentNetwork.ssid : '';
     var message = _('captive-wifi-available', { networkName: networkName });
 
-    if (Service.query('isFtuRunning')) {
+    if (FtuLauncher.isFtuRunning()) {
       settings.createLock().set({'wifi.connect_via_settings': false});
-
-      LazyLoader.load(['js/entry_sheet.js']).then(function() {
-        this.entrySheet = new EntrySheet(
-          document.getElementById('screen'),
-          // Prefix url with LRM character
-          // This ensures truncation occurs correctly in an RTL document
-          // We can remove this when bug 1154438 is fixed.
-          '\u200E' + url,
-          new BrowserFrame({url: url})
-        );
-        this.entrySheet.open();
-      }.bind(this)).catch((err) => {
-        console.error(err);
-      });
+      this.entrySheet = new EntrySheet(
+        document.getElementById('screen'),
+        // Prefix url with LRM character
+        // This ensures truncation occurs correctly in an RTL document
+        // We can remove this when bug 1154438 is fixed.
+        '\u200E' + url,
+        new BrowserFrame({url: url})
+      );
+      this.entrySheet.open();
       return;
     }
 

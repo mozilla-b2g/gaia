@@ -117,7 +117,6 @@
       }
     });
 
-    this.client.switchToFrame();
     this.client.executeScript(function() {
       window.wrappedJSObject.Service.request('lock', {
         forcibly: true

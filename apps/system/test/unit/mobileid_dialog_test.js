@@ -9,11 +9,13 @@ require('/js/mobileid_dialog.js');
 require('/test/unit/mock_system_dialog_manager.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_keyboard_manager.js');
+require('/test/unit/mock_statusbar.js');
 
 var mocksForMobileIdDialog = new MocksHelper([
   'SystemDialogManager',
   'LayoutManager',
-  'KeyboardManager'
+  'KeyboardManager',
+  'StatusBar'
 ]).init();
 
 suite('MobileID Dialog', function() {

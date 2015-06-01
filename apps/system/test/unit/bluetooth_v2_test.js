@@ -67,10 +67,6 @@ suite('system/bluetooth_v2', function() {
     window.Bluetooth = new window.Bluetooth2();
   });
 
-  teardown(function() {
-    window.Bluetooth.stop();
-  });
-
   suite('setProfileConnected', function() {
     var profiles = ['hfp', 'opp', 'a2dp', 'sco'];
     setup(function() {

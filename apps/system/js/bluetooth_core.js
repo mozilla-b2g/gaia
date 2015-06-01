@@ -16,18 +16,18 @@
   BaseModule.create(BluetoothCore, {
     name: 'BluetoothCore',
 
-    _start: function() {
+    start: function() {
       // Init Bluetooth module by API version.
       if (typeof(window.navigator.mozBluetooth.onattributechanged) ===
         'undefined') { // APIv1
-        return LazyLoader.load(['js/bluetooth.js']).then(function() {
+        LazyLoader.load(['js/bluetooth.js'], function() {
           window.Bluetooth = Bluetooth1;
-          return window.Bluetooth.start();
+          window.Bluetooth.init();
         });
       } else { // APIv2
-        return LazyLoader.load(['js/bluetooth_v2.js']).then(function() {
+        LazyLoader.load(['js/bluetooth_v2.js'], function() {
           window.Bluetooth = new Bluetooth2();
-          return window.Bluetooth.start();
+          window.Bluetooth.start();
         });
       }
     }

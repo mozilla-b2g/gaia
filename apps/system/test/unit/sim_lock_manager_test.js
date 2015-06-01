@@ -58,6 +58,7 @@ suite('SimLockManager', function() {
   });
 
   teardown(function() {
+    MockService.mTeardown();
     subject.stop();
     subject.simLockSystemDialog.show.restore();
   });
@@ -78,15 +79,15 @@ suite('SimLockManager', function() {
     });
 
     test('no simpin dialog would show up on first run', function() {
-      MockService.mockQueryWith('justUpgraded', false);
-      MockService.mockQueryWith('isFtuRunning', true);
+      MockService.mUpgrading = false;
+      MockService.runningFTU = true;
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
       assert.isTrue(subject.simLockSystemDialog.close.called);
     });
 
     test('simpin dialog would show up on upgrade', function() {
-      MockService.mockQueryWith('justUpgraded', true);
-      MockService.mockQueryWith('isFtuRunning', true);
+      MockService.mUpgrading = true;
+      MockService.runningFTU = true;
       window.dispatchEvent(new CustomEvent('ftuopen'));
       assert.isTrue(subject.simLockSystemDialog.show.called);
     });
@@ -284,7 +285,8 @@ suite('SimLockManager', function() {
     });
 
     suite('Multisim handling', function() {
-      var slot1, slot2;
+      var slot1 = new MockSIMSlot(null, 0);
+      var slot2 = new MockSIMSlot(null, 1);
 
       setup(function() {
         MockSIMSlotManager.ready = true;
@@ -307,7 +309,7 @@ suite('SimLockManager', function() {
         this.sinon.stub(slot1, 'isLocked').returns(false);
         this.sinon.stub(slot1, 'getCardState').returns('unknown');
         this.sinon.stub(slot2, 'isLocked').returns(true);
-        assert.isFalse(subject.isBothSlotsLocked());
+        assert.isTrue(subject.isBothSlotsLocked());
       });
 
       test('sim1 is not locked', function() {
@@ -359,15 +361,16 @@ suite('SimLockManager', function() {
     });
 
     test('should not show if locked', function() {
-      Service.mockQueryWith('locked', true);
+      Service.locked = true;
       this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);
+      Service.locked = false;
     });
 
     test('should not show on Ftu', function() {
-      MockService.mockQueryWith('justUpgraded', false);
-      MockService.mockQueryWith('isFtuRunning', true);
+      MockService.mUpgrading = false;
+      MockService.runningFTU = true;
       this.sinon.stub(subject, 'isBothSlotsLocked').returns(true);
       subject.showIfLocked();
       assert.isFalse(subject.simLockSystemDialog.show.called);

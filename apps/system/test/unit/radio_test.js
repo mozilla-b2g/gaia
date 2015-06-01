@@ -63,11 +63,11 @@ suite('Radio > ', function() {
   });
 
   test('Should ask step ready', function(done) {
+    MockFtuLauncher.mReadyRightAway = true;
     MockLazyLoader.mLoadRightAway = true;
     Service.register('stepReady', MockFtuLauncher);
     Service.request('stepReady', 'test').then(function() {
-      assert.isTrue(MockLazyLoader.load.calledWith([
-        'js/roaming_icon.js', 
+      assert.isTrue(MockLazyLoader.load.calledWith(['js/roaming_icon.js', 
         'js/signal_icon.js',
         'js/mobile_connection_icon.js']));
       done();

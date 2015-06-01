@@ -24,7 +24,7 @@ marionette('Search - Switch Providers Test', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     providers = {
       version: search.searchDataVersion(),

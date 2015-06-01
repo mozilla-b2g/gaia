@@ -132,11 +132,11 @@ suite('system/CallscreenWindow', function() {
 
     suite('> When the lockscreen is locked', function() {
       setup(function() {
-        Service.mockQueryWith('locked', true);
+        Service.locked = true;
       });
 
       teardown(function() {
-        Service.mockQueryWith('locked', false);
+        Service.locked = false;
       });
 
       test('it should open the call screen on #locked', function() {

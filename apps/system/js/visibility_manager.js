@@ -1,4 +1,4 @@
-/* global Service */
+/* global attentionWindowManager, Service */
 'use strict';
 
 (function(exports) {
@@ -11,6 +11,7 @@
    * We may need to handle windowclosing, windowopened in the future.
    *
    * @class VisibilityManager
+   * @requires attentionWindowManager
    * @requires Service
    */
   var VisibilityManager = function VisibilityManager() {
@@ -58,14 +59,14 @@
       case 'lockscreen-apprequestforeground':
       case 'secure-apprequestforeground':
         // XXX: Use hierachy manager to know who is top most.
-        if (!Service.query('AttentionWindowManager.hasActiveWindow')) {
+        if (!attentionWindowManager.hasActiveWindow()) {
           evt.detail.setVisible(true);
         }
         break;
       case 'apprequestforeground':
         // XXX: Use hierachy manager to know who is top most.
-        if (!Service.query('locked') &&
-            !Service.query('AttentionWindowManager.hasActiveWindow')) {
+        if (!Service.locked &&
+            !attentionWindowManager.hasActiveWindow()) {
           evt.detail.setVisible(true);
         }
         break;
@@ -78,7 +79,7 @@
         this._normalAudioChannelActive = false;
         break;
       case 'attentionwindowmanager-deactivated':
-        if (window.Service.query('locked')) {
+        if (window.Service.locked) {
           this.publish('showlockscreenwindow');
           return;
         }
@@ -95,7 +96,7 @@
           notificationId = detail.notificationId;
         }
 
-        if (!Service.query('AttentionWindowManager.hasActiveWindow')) {
+        if (!attentionWindowManager.hasActiveWindow()) {
           this.publish('showwindow', {
             activity: activity,  // Trigger activity opening in AWM
             notificationId: notificationId
@@ -117,7 +118,7 @@
         break;
 
       case 'attentionopened':
-        if (!Service.query('locked')) {
+        if (!Service.locked) {
           this.publish('hidewindow', { type: evt.type });
         }
         break;
@@ -126,9 +127,9 @@
           this._resetDeviceLockedTimer();
 
           if (this._normalAudioChannelActive &&
-              evt.detail.channel !== 'normal' && Service.query('locked')) {
+              evt.detail.channel !== 'normal' && window.Service.locked) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
-              if (window.Service.query('locked')) {
+              if (window.Service.locked) {
                 this.publish('hidewindow',
                   { screenshoting: false, type: evt.type });
               }

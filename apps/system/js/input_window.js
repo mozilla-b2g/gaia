@@ -1,6 +1,6 @@
 'use strict';
 
-/* global AppWindow */
+/* global AppWindow, AppTransitionController */
 
 (function(exports) {
   /**
@@ -48,7 +48,7 @@
 
   // use only the transition controller as the sub component
   InputWindow.SUB_COMPONENTS = {
-    'transitionController': 'AppTransitionController'
+    'transitionController': AppTransitionController
   };
 
   InputWindow.prototype.containerElement = document.getElementById('keyboards');

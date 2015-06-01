@@ -16,7 +16,7 @@ marionette('Software Home Button - Power Menu', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('has proper layout', function() {

@@ -32,7 +32,7 @@ marionette('App Authentication Dialog',
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('cancel button works', function() {

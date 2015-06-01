@@ -20,7 +20,7 @@ marionette('Fullscreen layout status bar visibility >', function() {
   });
 
   setup(function() {
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     system.waitForLaunch(FULLSCREEN_LAYOUT_APP);
   });
 

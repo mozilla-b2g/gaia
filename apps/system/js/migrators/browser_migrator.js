@@ -165,7 +165,7 @@ BrowserMigrator.prototype = {
    */
   _pendingBookmarks: [],
 
-  start: function() {
+  runMigration: function() {
 
     BrowserDB.init(() => {
       BrowserDB.readVisits().then(visits => {

@@ -6,14 +6,14 @@
 /* global MockLayoutManager */
 
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/modal_dialog.js');
 
 var mocksForDialog = new MocksHelper([
-  'AppWindowManager',
-  'Service'
+  'StatusBar',
+  'AppWindowManager'
 ]).init();
 
 suite('system/ModalDialog >', function() {

@@ -1,8 +1,8 @@
 'use strict';
-/* globals Promise, asyncStorage, Service, BaseModule */
+/* globals Promise, appWindowManager, asyncStorage */
 /* exported Places */
 
-(function() {
+(function(exports) {
 
   const DEBOUNCE_TIME = 2000;
 
@@ -12,19 +12,12 @@
    * Places is the browser history, bookmark and icon management system for
    * B2G. Places monitors app events and syncs information with the Places
    * datastore for consumption by apps like Search.
-   * @requires BaseModule
+   * @requires AppWindowManager
    * @class Places
    */
   function Places() {}
-  Places.SUB_MODULES = [
-    'BrowserSettings'
-  ];
-  Places.SERVICES = [
-    'clear'
-  ];
 
-  BaseModule.create(Places, {
-    name: 'Places',
+  Places.prototype = {
 
     /**
      * The places store name.
@@ -84,7 +77,7 @@
      * @param {Function} callback
      * @memberof Places.prototype
      */
-    _start: function() {
+    start: function() {
       return new Promise(resolve => {
         window.addEventListener('applocationchange', this);
         window.addEventListener('apptitlechange', this);
@@ -154,7 +147,7 @@
      * @memberof Places.prototype
      */
     screenshotRequested: function(url) {
-      var app = Service.query('getAppByURL', url);
+      var app = appWindowManager.getAppByURL(url);
       if (!app || app.loading) {
         this.screenshotQueue[url] = setTimeout(() => {
           this.takeScreenshot(url);
@@ -170,7 +163,7 @@
         delete this.screenshotQueue[url];
       }
 
-      var app = Service.query('getAppByURL', url);
+      var app = appWindowManager.getAppByURL(url);
       if (!app) {
         console.error('Couldnt find app for:', url);
         return false;
@@ -414,5 +407,8 @@
         cb(place);
       });
     }
-  });
-}());
+  };
+
+  exports.Places = Places;
+
+}(window));

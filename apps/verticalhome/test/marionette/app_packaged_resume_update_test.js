@@ -34,7 +34,7 @@ marionette('Vertical Home - Packaged App Update', function() {
     appInstall = new AppInstall(client);
 
     // wait for the system app to be running
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     subject.waitForLaunch();
 
     // install the app

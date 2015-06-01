@@ -4,10 +4,11 @@
 
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_icc_manager.js');
+require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 var mocksForSIMSlotManager = new MocksHelper([
-  'SIMSlot', 'NavigatorMozMobileConnections'
+  'SIMSlot', 'NavigatorMozMobileConnections', 'Service'
 ]).init();
 
 suite('SIMSlotManager', function() {

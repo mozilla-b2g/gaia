@@ -1,22 +1,15 @@
 'use strict';
 
-/* global WallpaperManager, MockLazyLoader, ImageUtils,
-   MockNavigatorSettings, MockService, MocksHelper */
+/* global WallpaperManager, LazyLoader, ImageUtils,
+   MockNavigatorSettings, MockOrientationManager */
 
+requireApp('system/test/unit/mock_orientation_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/image_utils.js');
 require('/apps/system/js/wallpaper_manager.js');
-require('/shared/test/unit/mocks/mock_service.js');
-require('/apps/system/test/unit/mock_lazy_loader.js');
-
-var mocksForWallpaperManager = new MocksHelper([
-  'Service',
-  'LazyLoader'
-]).init();
 
 suite('WallpaperManager', function() {
 
-  mocksForWallpaperManager.attachTestHelpers();
   var subject;  // The WallpaperManager instance we're testing.
   var wallpaperBlob, bigWallpaperBlob, smallWallpaperBlob;
   var dataURL, bigDataURL, smallDataURL, mockPublish;
@@ -53,7 +46,7 @@ suite('WallpaperManager', function() {
     };
 
     // How big (in device pixels) is the screen in its default orientation?
-    if (MockService.mockQueryWith('isDefaultPortrait')) {
+    if (MockOrientationManager && !MockOrientationManager.isDefaultPortrait()) {
       sw = Math.max(screen.width, screen.height);
       sh = Math.min(screen.width, screen.height);
     } else {
@@ -99,13 +92,13 @@ suite('WallpaperManager', function() {
   });
 
   setup(function() {
-    this.sinon.stub(document, 'getElementById', function() {
-      return document.createElement('div');
-    });
     var self = this;
     // Mock settings
     this.realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    this.realOrientationManager = window.OrientationManager;
+    window.OrientationManager = MockOrientationManager;
 
     mockPublish = function(e) {
       if (self.onWallpaperChange) {
@@ -119,7 +112,9 @@ suite('WallpaperManager', function() {
 
     window.addEventListener('wallpaperchange', mockPublish);
 
-    this.sinon.spy(MockLazyLoader, 'load');
+    // Mock LazyLoader
+    window.LazyLoader = { };
+    window.LazyLoader.load = sinon.stub().callsArg(1);
 
     // Spy on WallpaperManager methods
     var proto = WallpaperManager.prototype;
@@ -147,7 +142,8 @@ suite('WallpaperManager', function() {
     navigator.mozSettings = this.realMozSettings;
     MockNavigatorSettings.mTeardown();
 
-    MockService.mockQueryWith('isDefaultPortrait', true);
+    window.OrientationManager = this.realOrientationManager;
+    MockOrientationManager.defaultOrientation = 'portrait-primary';
 
     this.onWallpaperChange = null;
   });
@@ -180,7 +176,7 @@ suite('WallpaperManager', function() {
         // Check that the methods were called the expected number of times
         sinon.assert.calledOnce(self.setWallpaperSpy);
         sinon.assert.notCalled(self.toBlobSpy);
-        sinon.assert.notCalled(MockLazyLoader.load);
+        sinon.assert.notCalled(LazyLoader.load);
         sinon.assert.notCalled(self.checkSizeSpy);
         sinon.assert.notCalled(self.saveSpy);
         sinon.assert.calledOnce(self.publishSpy);
@@ -216,7 +212,7 @@ suite('WallpaperManager', function() {
         assert.equal(self.setWallpaperSpy.callCount, 3);
 
         assert.ok(self.toBlobSpy.notCalled, '_toBlob called');
-        assert.ok(MockLazyLoader.load.calledOnce);
+        assert.ok(LazyLoader.load.calledOnce);
         assert.ok(self.checkSizeSpy.calledOnce, 'checkSize called');
         assert.ok(self.saveSpy.calledOnce, 'save called');
         assert.ok(self.validateSpy.notCalled,
@@ -271,7 +267,7 @@ suite('WallpaperManager', function() {
 
         assert.equal(self.setWallpaperSpy.callCount, 2);
         assert.ok(self.toBlobSpy.notCalled, '_toBlob called');
-        assert.ok(MockLazyLoader.load.calledOnce);
+        assert.ok(LazyLoader.load.calledOnce);
         assert.ok(self.checkSizeSpy.calledOnce, 'checkSize called');
         assert.ok(self.saveSpy.notCalled, 'save not called');
         assert.ok(self.validateSpy.calledOnce, 'validate called');
@@ -310,7 +306,7 @@ suite('WallpaperManager', function() {
       // Check that the methods were called the expected number of times
       assert.ok(self.setWallpaperSpy.calledOnce);
       assert.ok(self.toBlobSpy.notCalled);
-      assert.ok(MockLazyLoader.load.calledOnce);
+      assert.ok(LazyLoader.load.calledOnce);
       assert.ok(self.checkSizeSpy.calledOnce);
       assert.ok(self.saveSpy.notCalled);
       assert.ok(self.validateSpy.calledOnce);
@@ -343,7 +339,7 @@ suite('WallpaperManager', function() {
       assert.equal(data.url.substring(0, 5), 'blob:');
       // Check that the methods were called the expected number of times
       assert.ok(self.toBlobSpy.notCalled, '_toBlob not called');
-      assert.ok(MockLazyLoader.load.calledOnce);
+      assert.ok(LazyLoader.load.calledOnce);
       assert.ok(self.checkSizeSpy.calledOnce, 'checkSize called');
       assert.ok(self.saveSpy.calledOnce, 'save called');
       assert.ok(self.validateSpy.notCalled, 'validate not called');
@@ -373,7 +369,7 @@ suite('WallpaperManager', function() {
   //
   test('start and change wallpaper in landscape mode', function(done) {
     var self = this;
-    MockService.mockQueryWith('isDefaultPortrait', false);
+    MockOrientationManager.defaultOrientation = 'landscape-primary';
     // Start with a validated blob in the settings db
     MockNavigatorSettings.mSettings['wallpaper.image'] = wallpaperBlob;
     MockNavigatorSettings.mSettings['wallpaper.image.valid'] = true;
@@ -391,7 +387,7 @@ suite('WallpaperManager', function() {
         // 3 times: initial, changed, and saved wallpapers
         assert.equal(self.setWallpaperSpy.callCount, 3);
         assert.ok(self.toBlobSpy.notCalled, '_toBlob not called');
-        assert.ok(MockLazyLoader.load.calledOnce);
+        assert.ok(LazyLoader.load.calledOnce);
         assert.ok(self.checkSizeSpy.calledOnce, 'checkSize called');
         assert.ok(self.saveSpy.calledOnce, 'save called');
         assert.ok(self.validateSpy.notCalled,
@@ -436,7 +432,7 @@ suite('WallpaperManager', function() {
         assert.equal(self.toBlobSpy.callCount,
                   toBlobCallCount || 1,
                   'convert to blob call count');
-        assert.ok(MockLazyLoader.load.called,
+        assert.ok(LazyLoader.load.called,
                   'lazy loader used');
         assert.equal(self.checkSizeSpy.callCount,
                      checkSizeCallCount || 1,
@@ -457,8 +453,6 @@ suite('WallpaperManager', function() {
             assert.equal(data.width, self.screenWidth);
             assert.equal(data.height, self.screenHeight);
             done();
-          })['catch'](function(err) {
-            assert.isFalse(err);
           });
         }
       }

@@ -1,7 +1,7 @@
 // Captive Portal Test
 
 /* global CaptivePortal,
-   MockService,
+   FtuLauncher,
    MocksHelper,
    MockChromeEvent,
    MockL10n,
@@ -17,24 +17,21 @@
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mocks_helper.js');
-require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
 
 requireApp('system/js/browser_frame.js');
 requireApp('system/js/entry_sheet.js');
 requireApp('system/js/captive_portal.js');
+requireApp('system/js/ftu_launcher.js');
 
 var mocksForCaptivePortal = new MocksHelper([
   'SettingsListener',
-  'AppWindowManager',
-  'Service',
-  'LazyLoader'
+  'AppWindowManager'
 ]).init();
 
 suite('captive portal > ', function() {
@@ -178,9 +175,13 @@ suite('captive portal > ', function() {
   });
 
   test('system/captive portal while FTU running..', function() {
-    MockService.mockQueryWith('isFtuRunning', true);
+    FtuLauncher._isRunningFirstTime = true;
 
     CaptivePortal.handleEvent(event);
     assert.equal(CaptivePortal.hasOwnProperty('entrySheet'), true);
+  });
+
+  teardown(function() {
+    FtuLauncher._isRunningFirstTime = false;
   });
 });

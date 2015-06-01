@@ -1,4 +1,4 @@
-/* global AppWindow, BrowserFrame, Service */
+/* global AppWindow, BrowserFrame, OrientationManager */
 'use strict';
 
 (function(exports) {
@@ -135,7 +135,7 @@
                             this.config.manifest.orientation : null;
         var orientation3 = (this.rearWindow.manifest) ?
                             this.rearWindow.manifest.orientation : null;
-        var orientation4 = Service.query('globalOrientation');
+        var orientation4 = OrientationManager.globalOrientation;
 
         var orientation = orientation1 ||
                           orientation2 ||
@@ -176,12 +176,12 @@
   };
 
   ActivityWindow.SUB_COMPONENTS = {
-    'transitionController': 'AppTransitionController',
-    'modalDialog': 'AppModalDialog',
-    'valueSelector': 'ValueSelector',
-    'authDialog': 'AppAuthenticationDialog',
-    'childWindowFactory': 'ChildWindowFactory',
-    'statusbar': 'AppStatusbar'
+    'transitionController': window.AppTransitionController,
+    'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
+    'authDialog': window.AppAuthenticationDialog,
+    'childWindowFactory': window.ChildWindowFactory,
+    'statusbar': window.AppStatusbar
   };
 
   ActivityWindow.SUB_MODULES = {

@@ -18,7 +18,7 @@ marionette('AttentionWindow - Permission Prompt', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     fakeLoop = new FakeLoopApp(client);
   });

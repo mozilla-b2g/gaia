@@ -1,15 +1,14 @@
 'use strict';
-/* global MocksHelper, MockL10n, ModalDialog, RemoteDebugger, MockService */
+/* global MocksHelper, MockL10n, ModalDialog, RemoteDebugger, ScreenManager */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/js/devtools/remote_debugger.js');
 
 var mocksForRemoteDebugger = new MocksHelper([
   'ModalDialog',
-  'Service'
+  'ScreenManager'
 ]).init();
 
 suite('system/RemoteDebugger', function() {
@@ -40,8 +39,8 @@ suite('system/RemoteDebugger', function() {
 
   suite('handleEvent', function() {
     test('enables the screen manager', function() {
-      MockService.mockQueryWith('screenEnabled', false);
-      var screenStub = this.sinon.stub(MockService, 'request');
+      ScreenManager.screenEnabled = false;
+      var screenStub = this.sinon.stub(ScreenManager, 'turnScreenOn');
       subject.handleEvent({
         detail: {
           type: 'remote-debugger-prompt',
@@ -58,7 +57,7 @@ suite('system/RemoteDebugger', function() {
           }
         }
       });
-      assert.ok(screenStub.withArgs('turnScreenOn').calledOnce);
+      assert.ok(screenStub.calledOnce);
     });
 
     test('opens the modal dialog', function() {

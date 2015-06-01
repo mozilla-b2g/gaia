@@ -1,3 +1,16 @@
+apps/system/js/browser_mixin.js
+apps/system/js/icc.js
+apps/system/js/init_logo_handler.js
+apps/system/js/notifications.js
+apps/system/js/orientation_manager.js
+apps/system/js/payment.js
+apps/system/js/sheets_transition.js
+apps/system/js/update_manager.js
+apps/system/js/wifi.js
+apps/system/test/unit/app_install_manager_test.js
+apps/system/test/unit/orientation_manager_test.js
+apps/system/test/unit/update_manager_test.js
+apps/system/test/unit/wifi_test.js
 shared/js/blobview.js
 shared/js/keyboard_helper.js
 shared/js/mediadb.js

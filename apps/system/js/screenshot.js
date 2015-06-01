@@ -268,4 +268,12 @@
   };
 
   exports.Screenshot = Screenshot;
+
+  // XXX: We initialize ourselves here for now to avoid conflicts with other
+  // system2 stage1 patches. This instance is de-initalized in unit tests.
+  // We should move the initalization to somewhere sane (maybe System module)
+  // in the future.
+  exports.screenshot = new Screenshot();
+  exports.screenshot.start();
+
 }(window));

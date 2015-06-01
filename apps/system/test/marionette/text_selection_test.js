@@ -6,27 +6,13 @@ marionette('Text selection >', function() {
   var assert = require('assert');
   var apps = {};
   var action;
-  var system;
 
   apps[FakeTextSelectionApp.ORIGIN] =
     __dirname + '/../apps/faketextselectionapp';
 
-  var client = marionette.client({
-    apps: apps,
-    prefs: {
-      'dom.w3c_touch_events.enabled': 1,
-      'docshell.device_size_is_page_size': true,
-      'dom.mozInputMethod.enabled': false
-    }
-  });
-
-  setup(function() {
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
-  });
-
   suite('without lockscreen', function() {
     var fakeTextselectionApp;
+    var system;
     var client = marionette.client({
       profile: {
         apps: apps,
@@ -38,6 +24,8 @@ marionette('Text selection >', function() {
     });
 
     setup(function() {
+      system = client.loader.getAppClass('system');
+      system.waitForStartup();
       fakeTextselectionApp = new FakeTextSelectionApp(client);
       action = new Actions(client);
     });
@@ -408,17 +396,14 @@ marionette('Text selection >', function() {
         fakeTextselectionAppWithLockscreen.longPress('BugCenterInput');
 
         // turn off screen
-        // XXX: Use system.turnScreenOn();
         clientWithLockscreen.switchToFrame();
         clientWithLockscreen.executeScript(function() {
-          window.wrappedJSObject.Service.request(
-            'turnScreenOff', true, 'powerkey');
+          window.wrappedJSObject.ScreenManager.turnScreenOff(true, 'powerkey');
         });
         clientWithLockscreen.helper.wait(500);
         // turn on screen
-        // XXX: Use system.turnScreenOff();
         clientWithLockscreen.executeScript(function() {
-          window.wrappedJSObject.Service.request('turnScreenOn');
+          window.wrappedJSObject.ScreenManager.turnScreenOn();
         });
         clientWithLockscreen.waitFor(function() {
           return !fakeTextselectionAppWithLockscreen.bubbleVisiblity;

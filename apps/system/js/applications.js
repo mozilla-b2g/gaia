@@ -41,16 +41,6 @@
       navigator.mozApps.mgmt.onuninstall = null;
     },
 
-    waitForReady: function() {
-      return new Promise((resolve) => {
-        if (this.ready) {
-          resolve();
-        } else {
-          this.waitingResolve = resolve;
-        }
-      });
-    },
-
     /**
      * Start the Applications to get all installed Apps and
      * register apps.mgmt.oninstall and apps.mgmt.uninstall handler.
@@ -70,7 +60,6 @@
 
           self.ready = true;
           self.fireApplicationReadyEvent();
-          self.waitingResolve && self.waitingResolve();
         };
       };
 

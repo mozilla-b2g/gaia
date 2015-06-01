@@ -19,7 +19,7 @@ marionette('Software Home Button - Lockscreen Appearance', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('Does not appear on lockscreen', function() {

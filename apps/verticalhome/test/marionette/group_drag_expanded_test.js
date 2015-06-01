@@ -14,7 +14,7 @@ marionette('Vertical - Group', function() {
     actions = new Actions(client);
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     client.apps.launch(home.URL);
     home.waitForLaunch();

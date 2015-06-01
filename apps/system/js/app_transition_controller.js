@@ -1,4 +1,4 @@
-/* global Service */
+/* global AppWindowManager, SettingsListener, Service */
 'use strict';
 
 (function(exports) {
@@ -12,6 +12,13 @@
     'opening': [null, 'closing', 'opened', 'opened', 'opened', 'closed'],
     'closing': ['opened', null, 'closed', 'closed', 'opened', 'closed']
   };
+
+  var appTransitionSetting = 'app-transition.enabled';
+  var transitionEnabled =
+    SettingsListener.getSettingsLock().get(appTransitionSetting);
+  SettingsListener.observe(appTransitionSetting, true, function(value) {
+    transitionEnabled = value;
+  });
 
   /**
    * AppTransitionController controlls the opening and closing animation
@@ -86,7 +93,6 @@
   AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 200;
   AppTransitionController.prototype.CLOSING_TRANSITION_TIMEOUT = 200;
   AppTransitionController.prototype.SLOW_TRANSITION_TIMEOUT = 3500;
-  AppTransitionController.prototype._firstTransition = true;
   AppTransitionController.prototype.changeTransitionState =
     function atc_changeTransitionState(evt) {
       var currentState = this._transitionState;
@@ -143,7 +149,7 @@
         }
         this.app.broadcast('closingtimeout');
       },
-      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
+      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.CLOSING_TRANSITION_TIMEOUT);
 
       if (!this.app || !this.app.element) {
@@ -158,7 +164,11 @@
     };
 
   AppTransitionController.prototype.getAnimationName = function(type) {
-    return this.currentAnimation || this[type + 'Animation'] || type;
+    if (transitionEnabled) {
+      return this.currentAnimation || this[type + 'Animation'] || type;
+    } else {
+      return 'immediate';
+    }
   };
 
   AppTransitionController.prototype._do_opening =
@@ -167,7 +177,7 @@
       this._openingTimeout = window.setTimeout(function() {
         this.app && this.app.broadcast('openingtimeout');
       }.bind(this),
-      Service.query('slowTransition') ? this.SLOW_TRANSITION_TIMEOUT :
+      AppWindowManager.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.OPENING_TRANSITION_TIMEOUT);
       this._waitingForLoad = false;
       this.app.element.classList.add('transition-opening');
@@ -282,12 +292,11 @@
     // SearchWindow should not focus itself,
     // because the input is inside system app.
     var bottomWindow = this.app.getBottomMostWindow();
-    var topmostui = Service.query('getTopMostUI');
     return (this.app.CLASS_NAME !== 'SearchWindow' &&
             this._transitionState == 'opened' &&
             Service.query('getTopMostWindow') === this.app &&
-            topmostui &&
-            topmostui.name === bottomWindow.HIERARCHY_MANAGER);
+            Service.query('getTopMostUI').name ===
+            bottomWindow.HIERARCHY_MANAGER);
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {
@@ -376,7 +385,7 @@
 
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
-          if (Service.query('isBusyLoading')) {
+          if (Service.isBusyLoading()) {
             this._waitingForLoad = true;
             if (this.app.isHomescreen && this._transitionState == 'opening') {
               /**

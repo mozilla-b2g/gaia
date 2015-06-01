@@ -51,7 +51,7 @@
     },
 
     '_handle_ftuopen': function() {
-      if (this.service.query('justUpgraded') === false) {
+      if (this.service.query('isFtuUpgrading') === false) {
         this.simLockSystemDialog.close();
       } else {
         this.showIfLocked();
@@ -117,7 +117,7 @@
       }
       var self = this;
       // We should wait for lockscreen-appclosed event sent before checking
-      // the value of Service.query('locked') in showIfLocked method.
+      // the value of Service.locked in showIfLocked method.
       window.addEventListener('lockscreen-appclosed',
         function lockscreenOnClosed() {
           window.removeEventListener('lockscreen-appclosed',
@@ -201,7 +201,7 @@
         return false;
       }
 
-      if (Service.query('locked')) {
+      if (Service.locked) {
         this.warn('Lockscreen is on so hidden.');
         return false;
       }
@@ -213,7 +213,7 @@
 
       // FTU has its specific SIM PIN UI
       if (this.service.query('isFtuRunning') &&
-          !this.service.query('justUpgraded')) {
+          !this.service.query('isFtuUpgrading')) {
         this.warn('Running full ftu.');
         this.simLockSystemDialog.close();
         return false;

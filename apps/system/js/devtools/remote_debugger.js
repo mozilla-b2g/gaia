@@ -1,5 +1,5 @@
 'use strict';
-/* global Service, ModalDialog */
+/* global ScreenManager, ModalDialog */
 
 (function(exports) {
 
@@ -43,7 +43,7 @@
    * remote debugging on their device. This is generally called when the user
    * attempts to access the device from the App Manager.
    * @requires ModalDialog
-   * @requires Service
+   * @requires ScreenManager
    * @class RemoteDebugger
    */
   function RemoteDebugger() {
@@ -65,7 +65,9 @@
 
       // We want the user attention, so we need to turn the screen on
       // if it's off.
-      Service.request('turnScreenOn');
+      if (!ScreenManager.screenEnabled) {
+        ScreenManager.turnScreenOn();
+      }
 
       var session = e.detail.session;
       var dialog;

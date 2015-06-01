@@ -12,7 +12,7 @@ marionette('Vertical - grid', function() {
     actions = client.loader.getActions();
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     home.waitForLaunch();
   });
 

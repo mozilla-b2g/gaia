@@ -33,9 +33,9 @@ marionette('Task Manager', function() {
   setup(function() {
     actions = client.loader.getActions();
     system = client.loader.getAppClass('system');
-
-    system.waitForFullyLoaded();
     taskManager = new TaskManager(client);
+
+    system.waitForStartup();
 
     // Launching 2 apps and wait for their screenshots to be ready
     firstApp = new FakeApp(client, 'app://' + firstAppOrigin);
@@ -155,7 +155,7 @@ marionette('Task Manager', function() {
           return req;
         };
         // reset screenshotBlob state
-        var app = win.Service.query('AppWindowManager.getActiveWindow');
+        var app = win.Service.currentApp;
         app._screenshotBlob = null;
       }, [iframeId]);
 

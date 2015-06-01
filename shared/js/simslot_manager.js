@@ -69,8 +69,6 @@
       // Object created from IccManager to corresponding SIMSlot when user 
       // toggles airplane mode ON/OFF.
       IccManager.addEventListener('iccdetected', this);
-      // to notify we are inited
-      window.dispatchEvent(new CustomEvent('simslotmanagerstarted'));
     },
 
     /**

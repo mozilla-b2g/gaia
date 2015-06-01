@@ -19,11 +19,8 @@ marionette('Uninstall an ime app', function() {
   var confirmDialog;
   var settingsApp;
   var appPermissionPanel;
-  var system;
 
   setup(function() {
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
     confirmDialog = client.loader.getAppClass('system', 'confirm_dialog');
     settingsApp = new Settings(client);
 

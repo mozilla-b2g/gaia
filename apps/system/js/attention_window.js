@@ -98,11 +98,11 @@
   };
 
   AttentionWindow.SUB_COMPONENTS = {
-    'transitionController': 'AppTransitionController',
-    'modalDialog': 'AppModalDialog',
-    'authDialog': 'AppAuthenticationDialog',
-    'attentionToaster': 'AttentionToaster',
-    'stautsbar': 'AppStatusbar'
+    'transitionController': window.AppTransitionController,
+    'modalDialog': window.AppModalDialog,
+    'authDialog': window.AppAuthenticationDialog,
+    'attentionToaster': window.AttentionToaster,
+    'stautsbar': window.AppStatusbar
   };
 
   AttentionWindow.REGISTERED_EVENTS =

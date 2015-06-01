@@ -53,14 +53,12 @@
   Radio.STATES = [
     'enabled',
     'isCDMA',
-    'getDataConnectionType',
-    'dataIcon'
+    'getDataConnectionType'
   ];
 
   BaseModule.create(Radio, {
     name: 'Radio',
     EVENT_PREFIX: 'radio',
-    dataIcon: null,
 
     isCDMA: function(index) {
       return !!this.dataExclusiveCDMATypes[
@@ -84,19 +82,17 @@
     },
 
     '_observe_operatorResources.data.icon': function(value) {
-      var dataIcon = value;
-      if (!dataIcon) {
+      var dataIconValues = value;
+      if (!dataIconValues) {
         return;
       }
-      this.dataIcon = value;
 
-      for (var key in value) {
+      for (var key in dataIconValues) {
         //Change only dataIcon values that actually really know
         if (this.mobileDataIconTypes[key]) {
-          this.mobileDataIconTypes[key] = dataIcon[key];
+          this.mobileDataIconTypes[key] = dataIconValues[key];
         }
       }
-      this.publish('dataiconchanged', value, true);
     },
 
     _onDataChange: function(conn, index) {

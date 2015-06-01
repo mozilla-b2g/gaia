@@ -1,7 +1,10 @@
 'use strict';
+/* global FtuLauncher */
+/* global layoutManager */
 /* global SettingsListener */
 /* global Service */
 /* global SheetsTransition */
+/* global softwareButtonManager */
 /* global StackManager */
 /* global TouchForwarder */
 
@@ -10,6 +13,7 @@
   const kEdgeIntertia = 250;
   const kEdgeThreshold = 0.3;
   const kEdgeAngleThreshold = Math.PI / 6;
+  const kSignificant = 5 * window.devicePixelRatio;
 
   /**
    * Detects user gestures for moving between apps using edge gestures.
@@ -21,7 +25,6 @@
   function EdgeSwipeDetector() {}
 
   EdgeSwipeDetector.prototype = {
-    kSignificant: 5 * window.devicePixelRatio,
     previous: document.getElementById('left-panel'),
     next: document.getElementById('right-panel'),
     screen: document.getElementById('screen'),
@@ -33,7 +36,6 @@
      * @memberof EdgeSwipeDetector.prototype
      */
     start: function esd_init() {
-      this.kSignificant = 5 * window.devicePixelRatio;
       window.addEventListener('homescreenopened', this);
       window.addEventListener('appopened', this);
       window.addEventListener('cardviewclosed', this);
@@ -42,10 +44,10 @@
       window.addEventListener('updateprompthidden', this);
       window.addEventListener('installpromptshown', this);
       window.addEventListener('installprompthidden', this);
+      window.addEventListener('rocketbar-activating', this);
+      window.addEventListener('rocketbar-deactivated', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
-      window.addEventListener('hierarchychanged', this);
-      window.addEventListener('hierarchytopmostwindowchanged', this);
 
       ['touchstart', 'touchmove', 'touchend',
        'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -100,24 +102,6 @@
      */
     handleEvent: function esd_handleEvent(e) {
       switch (e.type) {
-        case 'hierarchychanged':
-        case 'hierarchytopmostwindowchanged':
-          // XXX: Use this.appWindowManager instead if
-          // we become part of appWindowManager submodules.
-          // i.e., Service.query('getTopMostUI') === this.parent
-          if (Service.query('getTopMostUI') &&
-              Service.query('getTopMostUI').name === 'AppWindowManager') {
-            if (Service.query('getTopMostWindow') &&
-                !Service.query('getTopMostWindow').isHomescreen &&
-                !Service.query('isFtuRunning')) {
-              this.lifecycleEnabled = true;
-            } else {
-              this.lifecycleEnabled = false;
-            }
-          } else {
-            this.lifecycleEnabled = false;
-          }
-          break;
         case 'mousedown':
         case 'mousemove':
         case 'mouseup':
@@ -140,10 +124,11 @@
         case 'appopened':
           var app = e.detail;
           if (!app.stayBackground) {
-            this.lifecycleEnabled =
-              (app.origin !== Service.query('getFtuOrigin'));
+            this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
           }
           break;
+        case 'homescreenopened':
+        case 'rocketbar-activating':
         case 'shrinking-start':
           this.lifecycleEnabled = false;
           break;
@@ -170,13 +155,11 @@
         case 'installpromptshown':
           this.lifecycleEnabled = false;
           break;
-        // XXX: Move install/update dialog into system dialog
-        // and then we could remove this.
         case 'updateprompthidden':
         case 'installprompthidden':
+        case 'rocketbar-deactivated':
         case 'shrinking-stop':
-          if (Service.query('getTopMostWindow') &&
-              !Service.query('getTopMostWindow').isHomescreen) {
+          if (Service.currentApp && !Service.currentApp.isHomescreen) {
             this.lifecycleEnabled = true;
           }
           break;
@@ -264,7 +247,7 @@
       }
 
       // If the gesture isn't horizontal we start forwarding
-      if (delta > this.kSignificant && !this._horizontalGesture()) {
+      if (delta > kSignificant && !this._horizontalGesture()) {
         this._startForwarding(e);
         return;
       }
@@ -277,7 +260,7 @@
       }
 
       // after a small threshold
-      if ((this._deltaX < this.kSignificant || this._outsideApp(e)) &&
+      if ((this._deltaX < kSignificant || this._outsideApp(e)) &&
           !this._moved) {
         return;
       }
@@ -419,16 +402,14 @@
       // but we still want to redispatch touch events to the "overlayed"
       // software home button
       var softwareButtonOverlayed =
-        Service.query('getTopMostWindow') &&
-        Service.query('getTopMostWindow').isFullScreenLayout();
-      var width = Service.query('LayoutManager.width');
-      var height = Service.query('LayoutManager.height');
+        Service.currentApp &&
+        Service.currentApp.isFullScreenLayout();
       if (softwareButtonOverlayed) {
-        var sbWidth = Service.query('SoftwareButtonManager.width');
-        var sbHeight = Service.query('SoftwareButtonManager.height');
-        return x > (width - sbWidth) || y > (height - sbHeight);
+        return x > (layoutManager.width - softwareButtonManager.width) ||
+            y > (layoutManager.height - softwareButtonManager.height);
       }
-      return (x > width || y > height);
+      return (x > layoutManager.width ||
+              y > layoutManager.height);
     },
 
     /**

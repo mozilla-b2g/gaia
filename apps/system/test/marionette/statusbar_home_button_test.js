@@ -17,10 +17,10 @@ marionette('Closing statusbar via home button >', function() {
       actions;
 
   setup(function() {
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
     actions = client.loader.getActions();
+    system = client.loader.getAppClass('system');
     client.switchToFrame();
+    system.waitForStartup();
   });
 
   function getScrollTop() {

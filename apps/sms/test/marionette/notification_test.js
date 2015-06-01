@@ -19,7 +19,7 @@ marionette('Message notification tests', function() {
 
   var client = marionette.client();
 
-  var messagesApp, storage, notificationList, utilityTray, system;
+  var messagesApp, storage, notificationList, utilityTray;
 
   function assertIsNotFocused(element, message) {
     assert.isTrue(element.scriptWith(function(el) {
@@ -28,8 +28,6 @@ marionette('Message notification tests', function() {
   }
 
   setup(function() {
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
     messagesApp = Messages.create(client);
     storage = Storage.create(client);
     notificationList = new NotificationList(client);

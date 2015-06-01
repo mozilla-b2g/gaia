@@ -1,5 +1,5 @@
-/* global AsyncSemaphore, SettingsListener, Service,
-          HeadphoneIcon, PlayingIcon, MuteIcon,
+/* global AsyncSemaphore, CustomDialog, FtuLauncher, ScreenManager,
+          SettingsListener, Service, HeadphoneIcon, PlayingIcon, MuteIcon,
           LazyLoader */
 
 (function(exports) {
@@ -9,7 +9,8 @@
    * and volume/channel change events.
    * @class SoundManager
    * @requires AsyncSemaphore
-   * @requires Service
+   * @requires FtuLauncher
+   * @requires ScreenManager
    */
   function SoundManager() {
   }
@@ -206,7 +207,7 @@
    * @memberOf SoundManager.prototype
    * @type {AsyncSemaphore}
    */
-  SoundManager.prototype.pendingRequest = null;
+  SoundManager.prototype.pendingRequest = new AsyncSemaphore();
 
   /**
    * To tell if the homescreen is visible.
@@ -246,11 +247,6 @@
    * @returns {SoundManager}
    */
   SoundManager.prototype.start = function sm_start() {
-    LazyLoader.load(['shared/js/async_semaphore.js']).then(() => {
-      this.pendingRequest = new AsyncSemaphore();
-    }).catch((err) => {
-      console.error(err);
-    });
     this.element = document.getElementById('volume');
     this.screen = document.getElementById('screen');
     this.overlay = document.getElementById('system-overlay');
@@ -382,12 +378,12 @@
         this.homescreenVisible = true;
         break;
       case 'holdhome':
-        Service.request('hideCustomDialog');
+        CustomDialog.hide();
         break;
       case 'homescreenopening':
       case 'homescreenopened':
         this.homescreenVisible = true;
-        Service.request('hideCustomDialog');
+        CustomDialog.hide();
         break;
     }
   };
@@ -402,7 +398,7 @@
    * @param {Number} offset the offset which will be added to volume value.
    */
   SoundManager.prototype.handleVolumeKey = function sm_handleVolumeKey(offset) {
-    if (!Service.query('screenEnabled') && this.currentChannel === 'none') {
+    if (!ScreenManager.screenEnabled && this.currentChannel === 'none') {
       return;
     }
 
@@ -469,8 +465,8 @@
         if (this.defaultVolumeControlChannel !== 'unknown') {
           return this.defaultVolumeControlChannel;
         } else {
-          return this.homescreenVisible || (Service.query('locked')) ||
-            Service.query('isFtuRunning') ? 'notification' : 'content';
+          return this.homescreenVisible || (Service.locked) ||
+            FtuLauncher.isFtuRunning() ? 'notification' : 'content';
         }
     }
   };
@@ -613,21 +609,23 @@
     };
 
     var self = this;
+    var screen = this.screen;
 
     if (okfn instanceof Function) {
       cancel.callback = function onCancel() {
         okfn();
-        Service.request('hideCustomDialog');
+        CustomDialog.hide();
       };
     } else {
       cancel.callback = function onCancel() {
         self.startAccumulator();
-        Service.request('hideCustomDialog');
+        CustomDialog.hide();
       };
     }
 
-    Service.request('showCustomDialog',
-      ceTitle, ceMsg, cancel, null);
+    CustomDialog
+      .show(ceTitle, ceMsg, cancel, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   };
 
   /**
@@ -1061,5 +1059,15 @@
     });
     this.muteIcon && this.muteIcon.update();
   };
+
   exports.SoundManager = SoundManager;
+  // XXX: we shoud move the code to bootstrap but it is so buggy to put there.
+  // So, we put here temporary.
+  exports.soundManager = new SoundManager();
+  if (navigator.mozL10n) {
+    // unit tests call start() manually
+    navigator.mozL10n.once(function() {
+      exports.soundManager.start();
+    });
+  }
 })(window);

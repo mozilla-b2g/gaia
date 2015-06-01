@@ -3,8 +3,7 @@
 /* globals MocksHelper, MockNavigatorSettings, NDEF, Service, MockLazyLoader,
            MockL10n, NDEFUtils, BaseModule, MockMozNfc, NfcUtils,
            MockNavigatormozSetMessageHandler, MockDOMRequest, MockPromise,
-           MockMozBluetooth, MockBTAdapter, NfcConnectSystemDialog,
-           MockService */
+           MockMozBluetooth, MockBTAdapter, NfcConnectSystemDialog */
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_moz_nfc.js');
@@ -15,7 +14,6 @@ require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_promise.js');
-require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/js/nfc_utils.js');
 requireApp('system/test/unit/mock_system_nfc_connect_dialog.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
@@ -33,7 +31,6 @@ var mocksForNfcUtils = new MocksHelper([
   'NfcConnectSystemDialog',
   'NotificationHelper',
   'LazyLoader',
-  'Service'
 ]).init();
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
@@ -422,7 +419,7 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('nfc/system_nfc_connect_dialog is loaded', function() {
-      this.sinon.spy(MockLazyLoader, 'load');
+      this.sinon.stub(MockLazyLoader, 'load');
       nfcHandoverManager.nfcConnectSystemDialog = null;
       var btssp = {mac: '', localname: ''};
       nfcHandoverManager._onRequestConnect(btssp);
@@ -631,12 +628,13 @@ suite('Nfc Handover Manager Functions', function() {
 
     test('Sending aborts when another file is transmitted concurrently',
       function() {
-      MockService.mockQueryWith('BluetoothTransfer.isFileTransferInProgress',
-        true);
+      this.sinon.stub(Service, 'query').returns(true);
       this.sinon.stub(nfcHandoverManager,'_showTryAgainNotification');
       this.sinon.stub(nfcHandoverManager, '_dispatchSendFileStatus');
       nfcHandoverManager.handleFileTransfer(fileRequest);
 
+      assert.ok(Service.query
+        .calledWith('BluetoothTransfer.isFileTransferInProgress'));
       assert.ok(nfcHandoverManager._dispatchSendFileStatus.calledWith(
                 1, fileRequest.requestId));
       assert.ok(nfcHandoverManager._showTryAgainNotification.calledOnce,

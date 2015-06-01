@@ -4,19 +4,18 @@
    MockNavigatorMozTelephony,
    MockNavigatorMozVoicemail,
    MockNavigatorSettings,
+   MockSettingsHelper,
    MockSIMSlotManager,
    ModalDialog,
    Notification,
    SIMSlotManager,
-   BaseModule
+   Voicemail
 */
 
 'use strict';
 
-requireApp('system/js/service.js');
-requireApp('system/js/base_module.js');
 requireApp('system/js/voicemail.js');
-requireApp('system/js/settings_core.js');
+requireApp('system/shared/js/settings_helper.js');
 
 requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
@@ -26,6 +25,7 @@ requireApp('system/test/unit/mock_navigator_moz_voicemail.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 
 var mocksForVoicemail = new MocksHelper([
   'ModalDialog'
@@ -36,10 +36,9 @@ suite('voicemail notification', function() {
   var realMozSettings;
   var realSIMSlotManager;
   var realL10n;
+  var realSettingsHelper;
   var realMozTelephony;
   var realMozActivity;
-  var subject;
-  var settingsCore;
 
   mocksForVoicemail.attachTestHelpers();
 
@@ -58,6 +57,9 @@ suite('voicemail notification', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    realSettingsHelper = window.SettingsHelper;
+    window.SettingsHelper = MockSettingsHelper;
+
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
@@ -66,17 +68,14 @@ suite('voicemail notification', function() {
   });
 
   setup(function(done) {
+    setupSpy = this.sinon.spy(Voicemail, 'setupNotifications');
     this.sinon.stub(MockSIMSlotManager, 'hasOnlyOneSIMCardDetected',
       function() {
         return false;
     });
-    settingsCore = BaseModule.instantiate('SettingsCore');
-    settingsCore.start();
-    subject = BaseModule.instantiate('Voicemail');
-    setupSpy = this.sinon.spy(subject, 'setupNotifications');
-    subject.start().then(function() {
+    Voicemail.init().then(function() {
       done();
-    });
+    }, done);
   });
 
   suiteTeardown(function() {
@@ -84,13 +83,12 @@ suite('voicemail notification', function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozL10n = realL10n;
     window.SIMSlotManager = realSIMSlotManager;
+    window.SettingsHelper = realSettingsHelper;
     navigator.mozTelephony = realMozTelephony;
     window.MozActivity = realMozActivity;
   });
 
   teardown(function() {
-    settingsCore.stop();
-    subject.stop();
     MockNavigatorSettings.mTeardown();
     MockSIMSlotManager.mTeardown();
     MockNavigatorMozVoicemail.mTeardown();
@@ -128,7 +126,7 @@ suite('voicemail notification', function() {
     });
 
     test('remove only voicemail notification', function(done) {
-      subject.setupNotifications().then(function() {
+      Voicemail.setupNotifications().then(function() {
         sinon.assert.calledOnce(voicemailSpy);
         sinon.assert.notCalled(systemSpy);
         done();
@@ -136,7 +134,7 @@ suite('voicemail notification', function() {
     });
 
     test('add event statuschanged voicemail listener', function(done) {
-      subject.setupNotifications().then(function() {
+      Voicemail.setupNotifications().then(function() {
         sinon.assert.calledWith(eventListenerSpy, 'statuschanged');
         sinon.assert.callOrder(voicemailSpy, eventListenerSpy);
         done();
@@ -145,7 +143,7 @@ suite('voicemail notification', function() {
   });
 
   test('no voicemail status change, no notification', function(done) {
-    var showNotificationSpy = this.sinon.spy(subject, 'showNotification');
+    var showNotificationSpy = this.sinon.spy(Voicemail, 'showNotification');
     MockNavigatorMozVoicemail.mHasMessages = false;
     MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
     setTimeout(function() {
@@ -169,8 +167,8 @@ suite('voicemail notification', function() {
     suite('showNotification and hideNotification should be called correctly',
       function() {
         setup(function() {
-          this.sinon.spy(subject, 'showNotification');
-          this.sinon.spy(subject, 'hideNotification');
+          this.sinon.spy(Voicemail, 'showNotification');
+          this.sinon.spy(Voicemail, 'hideNotification');
         });
 
         test('hasMessage is true', function(done) {
@@ -178,8 +176,8 @@ suite('voicemail notification', function() {
 
           MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
           setTimeout(function() {
-            sinon.assert.calledOnce(subject.showNotification);
-            sinon.assert.notCalled(subject.hideNotification);
+            sinon.assert.calledOnce(Voicemail.showNotification);
+            sinon.assert.notCalled(Voicemail.hideNotification);
             done();
           });
         });
@@ -189,8 +187,8 @@ suite('voicemail notification', function() {
 
           MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
           setTimeout(function() {
-            sinon.assert.notCalled(subject.showNotification);
-            sinon.assert.calledOnce(subject.hideNotification);
+            sinon.assert.notCalled(Voicemail.showNotification);
+            sinon.assert.calledOnce(Voicemail.hideNotification);
             done();
           });
         });
@@ -203,7 +201,7 @@ suite('voicemail notification', function() {
           function() {
             return true;
           });
-        subject.showNotification('title', 'text', '111');
+        Voicemail.showNotification('title', 'text', '111');
         sinon.assert.calledWith(notificationSpy, 'title');
     });
 
@@ -221,30 +219,30 @@ suite('voicemail notification', function() {
         });
 
         test('should register a click when with a voice number', function() {
-          subject.showNotification('title', 'text', voicemailNumber);
+          Voicemail.showNotification('title', 'text', voicemailNumber);
           sinon.assert.calledWith(notificationListenerSpy, 'click');
         });
 
         test('should register a close when with a voice number', function() {
-          subject.showNotification('title', 'text', voicemailNumber);
+          Voicemail.showNotification('title', 'text', voicemailNumber);
           sinon.assert.calledWith(notificationListenerSpy, 'close');
         });
 
         test('should trigger handler when with a voice number', function() {
-          subject.showNotification('title', 'text', voicemailNumber);
+          Voicemail.showNotification('title', 'text', voicemailNumber);
           notificationListenerSpy.yield();
           sinon.assert.calledWith(telephonyDialSpy, voicemailNumber);
         });
 
         test('should register a click when there is no voicemail number',
           function() {
-            subject.showNotification('title', 'text');
+            Voicemail.showNotification('title', 'text');
             sinon.assert.calledWith(notificationListenerSpy, 'click');
         });
 
         test('should register a close when there is no voicemail number',
           function() {
-            subject.showNotification('title', 'text');
+            Voicemail.showNotification('title', 'text');
             sinon.assert.calledWith(notificationListenerSpy, 'close');
         });
 
@@ -253,9 +251,9 @@ suite('voicemail notification', function() {
           var expectedText = 'voicemailNoNumberText';
           var expectedConfirm = {
             title: 'voicemailNoNumberSettings',
-            callback: subject.showVoicemailSettings
+            callback: Voicemail.showVoicemailSettings
           };
-          subject.showNotification('title', 'text');
+          Voicemail.showNotification('title', 'text');
           notificationListenerSpy.yield();
           sinon.assert.notCalled(telephonyDialSpy);
           sinon.assert.calledWithMatch(
@@ -270,7 +268,7 @@ suite('voicemail notification', function() {
               section: 'call'
             }
           };
-          subject.showVoicemailSettings();
+          Voicemail.showVoicemailSettings();
           sinon.assert.calledWith(activitySpy, expectedActivity);
         });
     });
@@ -294,7 +292,7 @@ suite('voicemail notification', function() {
               MockNavigatorMozVoicemail.mServiceId = serviceId;
               MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
               MockNavigatorMozVoicemail.mHasMessages = true;
-              sinon.spy(subject, 'showNotification');
+              sinon.spy(Voicemail, 'showNotification');
               if (!this.isMultiSIM) {
                 MockSIMSlotManager.hasOnlyOneSIMCardDetected.restore();
                 this.sinon.stub(MockSIMSlotManager,
@@ -305,7 +303,7 @@ suite('voicemail notification', function() {
             });
 
             teardown(function() {
-              subject.showNotification.restore();
+              Voicemail.showNotification.restore();
             });
 
             test('should/should not display SIM indicator', function() {
@@ -316,7 +314,7 @@ suite('voicemail notification', function() {
                   title: baseTitle
                 });
 
-              subject.showNotification(
+              Voicemail.showNotification(
                 baseTitle, 'bbbb', '1111', serviceId);
 
               sinon.assert.calledWithNew(notificationSpy);
@@ -346,7 +344,7 @@ suite('voicemail notification', function() {
                 var expectedText = 'dialNumber{"number":"' +
                   '\u200E' + this.voiceNumbers[serviceId] + '"}';
 
-                sinon.assert.calledWithExactly(subject.showNotification,
+                sinon.assert.calledWithExactly(Voicemail.showNotification,
                   expectedTitle, expectedText,
                   expectedNumber, serviceId);
 
@@ -367,7 +365,7 @@ suite('voicemail notification', function() {
                   var expectedText = 'dialNumber{"number":"' + '\u200E' +
                     MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
-                  sinon.assert.calledWithExactly(subject.showNotification,
+                  sinon.assert.calledWithExactly(Voicemail.showNotification,
                     expectedTitle, expectedText,
                     '\u200E' + this.voiceNumbers[serviceId], serviceId);
 
@@ -388,7 +386,7 @@ suite('voicemail notification', function() {
                   var expectedText = 'dialNumber{"number":"' + '\u200E' +
                     MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
-                  sinon.assert.calledWithExactly(subject.showNotification,
+                  sinon.assert.calledWithExactly(Voicemail.showNotification,
                     expectedTitle, expectedText,
                     '\u200E' + this.voiceNumbers[serviceId], serviceId);
 
@@ -406,7 +404,7 @@ suite('voicemail notification', function() {
                 // display the message as body
                 var expectedText = MockNavigatorMozVoicemail.mMessage;
 
-                sinon.assert.calledWithExactly(subject.showNotification,
+                sinon.assert.calledWithExactly(Voicemail.showNotification,
                   expectedTitle, expectedText, undefined, serviceId);
 
                 done();
@@ -416,14 +414,14 @@ suite('voicemail notification', function() {
             suite('value from settings', function() {
               setup(function() {
                 MockNavigatorMozVoicemail.mNumbers = [];
-                MockNavigatorSettings.mTriggerObservers('ril.iccInfo.mbdn',
-                  {settingValue: this.voiceNumbers});
+                MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
+                  {value: this.voiceNumbers};
               });
 
               teardown(function() {
                 MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
-                MockNavigatorSettings.mTriggerObservers('ril.iccInfo.mbdn',
-                  {settingValue: undefined});
+                MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
+                  {value: undefined};
               });
 
               test('without voicemail number, with ril.iccInfo.mbdn',
@@ -438,7 +436,7 @@ suite('voicemail notification', function() {
                     var expectedText = 'dialNumber{"number":"' +
                       expectedNumber + '"}';
 
-                    sinon.assert.calledWithExactly(subject.showNotification,
+                    sinon.assert.calledWithExactly(Voicemail.showNotification,
                       expectedTitle, expectedText, expectedNumber, serviceId);
 
                     done();
@@ -488,7 +486,7 @@ suite('voicemail notification', function() {
 
     test('place a call if there is none pending', function() {
       MockNavigatorMozTelephony.calls = [];
-      subject.showNotification(
+      Voicemail.showNotification(
         notificationTitle, notificationText, voicemailNumber);
       notificationListenerSpy.yield();
       sinon.assert.calledWith(telephonyDialSpy, voicemailNumber, 0);
@@ -496,7 +494,7 @@ suite('voicemail notification', function() {
 
     test('place a call if there is less than two pending', function() {
       MockNavigatorMozTelephony.calls = [{}];
-      subject.showNotification(
+      Voicemail.showNotification(
         notificationTitle, notificationText, voicemailNumber);
       notificationListenerSpy.yield();
       sinon.assert.calledWith(telephonyDialSpy, voicemailNumber, 0);
@@ -504,7 +502,7 @@ suite('voicemail notification', function() {
 
     test('do not place a call if there is already two pending', function() {
       MockNavigatorMozTelephony.calls = [{}, {}];
-      subject.showNotification(
+      Voicemail.showNotification(
         notificationTitle, notificationText, voicemailNumber);
       notificationListenerSpy.yield();
       sinon.assert.notCalled(telephonyDialSpy);
@@ -512,7 +510,7 @@ suite('voicemail notification', function() {
 
     test('place a voicemail call to SIM 1', function() {
       var serviceId = 0;
-      subject.showNotification(
+      Voicemail.showNotification(
         notificationTitle, notificationText, voicemailNumber, serviceId);
       notificationListenerSpy.yield();
       sinon.assert.calledWithExactly(
@@ -522,7 +520,7 @@ suite('voicemail notification', function() {
     test('place a voicemail call to SIM 2', function() {
       var serviceId = 1;
       voicemailNumber = '222';
-      subject.showNotification(
+      Voicemail.showNotification(
         notificationTitle, notificationText, voicemailNumber, serviceId);
       notificationListenerSpy.yield();
       sinon.assert.calledWithExactly(

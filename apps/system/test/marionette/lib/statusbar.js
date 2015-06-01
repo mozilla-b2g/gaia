@@ -85,7 +85,7 @@
 
     showAllRunningIcons: function() {
       this.client.executeScript(function() {
-        window.wrappedJSObject.Statusbar._icons.forEach(function(icon) {
+        window.wrappedJSObject.StatusBar._icons.forEach(function(icon) {
           icon.element.hidden = false;
         });
       });
@@ -134,7 +134,7 @@
 
       var self = this;
       this.client.executeScript(function() {
-        window.wrappedJSObject.Statusbar.kActiveIndicatorTimeout =
+        window.wrappedJSObject.StatusBar.kActiveIndicatorTimeout =
           self.kActiveIndicatorTimeout;
         self.kActiveIndicatorTimeout = null;
       });

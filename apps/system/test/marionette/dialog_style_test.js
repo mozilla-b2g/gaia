@@ -10,7 +10,7 @@ marionette('Dialogs', function() {
   setup(function() {
     system = client.loader.getAppClass('system');
     dialog = new Dialog(client);
-    system.waitForFullyLoaded();
+    system.waitForStartup();
     client.switchToFrame(system.getHomescreenIframe());
   });
 

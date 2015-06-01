@@ -359,13 +359,6 @@ System.prototype = {
     });
   },
 
-  waitForFullyLoaded: function() {
-    var body = this.client.findElement('body');
-    this.client.waitFor(function() {
-      return body.getAttribute('ready-state') == 'fullyLoaded';
-    });
-  },
-
   // Since the getScreenshot call is asynchronous and does not have any
   // external side effect, we're just queuing another screenshot request
   // afterward to be sure it's done.
@@ -425,21 +418,6 @@ System.prototype = {
     }, [service]);
   },
 
-  turnScreenOn: function() {
-    this.client.switchToFrame();
-    this.client.executeScript(function() {
-      window.wrappedJSObject.Service.request(
-        'turnScreenOn');
-    });
-  },
-
-  turnScreenOff: function() {
-    this.client.switchToFrame();
-    this.client.executeScript(function() {
-      window.wrappedJSObject.Service.request(
-        'turnScreenOff', true, 'powerkey');
-    });
-  },
 
   stopClock: function() {
     var client = this.client;
@@ -454,14 +432,13 @@ System.prototype = {
 
   stopStatusbar: function() {
     this.client.executeScript(function() {
-      window.wrappedJSObject.Service.request('Statusbar:pauseUpdate',
-        'marionette');
+      window.wrappedJSObject.StatusBar.pauseUpdate('marionette');
     });
   },
 
   stopDevtools: function() {
     this.client.executeScript(function() {
-      window.wrappedJSObject.Service.request('DeveloperHud:stop');
+      window.wrappedJSObject.developerHUD.stop();
     });
   },
 

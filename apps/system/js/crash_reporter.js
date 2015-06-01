@@ -1,4 +1,4 @@
-/* global SettingsListener, SystemBanner, LazyLoader */
+/* global SettingsListener, SystemBanner */
 /* exported CrashReporter */
 'use strict';
 
@@ -99,12 +99,9 @@ var CrashReporter = (function() {
         }
       };
     }
-    LazyLoader.load(['js/system_banner.js']).then(() => {
-      var systemBanner = new SystemBanner();
-      systemBanner.show(message, button);
-    }).catch((err) => {
-      console.error(err);
-    });
+
+    var systemBanner = new SystemBanner();
+    systemBanner.show(message, button);
   }
 
   function deleteCrash(crashID) {

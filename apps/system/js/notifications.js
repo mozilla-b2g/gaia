@@ -1,10 +1,10 @@
-/* global LazyLoader, MediaPlaybackWidget, Service,
-          SettingsListener, SettingsURL, toneUpgrader */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 
 var NotificationScreen = {
-  name: 'NotificationScreen',
   TOASTER_TIMEOUT: 3500,
   TRANSITION_FRACTION: 0.30,
   TRANSITION_DURATION: 200,
@@ -51,15 +51,16 @@ var NotificationScreen = {
   getLockScreenContainer: function ns_getLockScreenContainer() {
     // XXX: Bug 1057198 add this as a workaround before we truly
     // make LockScreen as an app.
-    var lw = Service.query('LockScreenWindowManager.getInstance');
-    if (lw && lw.getNotificationContainer()) {
-      return lw.getNotificationContainer();
-    } else {
-      return null;
+    if (window.lockScreenWindowManager &&
+         window.lockScreenWindowManager.getInstance() &&
+         window.lockScreenWindowManager.getInstance()
+          .getNotificationContainer()) {
+      return window.lockScreenWindowManager
+        .getInstance().getNotificationContainer();
     }
   },
 
-  start: function() {
+  init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
     this.notificationsContainer =
       document.getElementById('notifications-container');
@@ -96,40 +97,33 @@ var NotificationScreen = {
 
     this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
 
+    this.ringtoneURL = new SettingsURL();
+
     // set up the media playback widget, but only if |MediaPlaybackWidget| is
     // defined (we don't define it in tests)
-    LazyLoader.load(['js/media_playback.js']).then(function() {
+    if (typeof MediaPlaybackWidget !== 'undefined') {
       this.mediaPlaybackWidget = new MediaPlaybackWidget(
         document.getElementById('media-playback-container'),
-        {nowPlayingAction: 'openapp'});
-    }.bind(this))['catch'](function(err) {
-      console.error(err);
-    });
+        {nowPlayingAction: 'openapp'}
+      );
+    }
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
-      LazyLoader.load(['shared/js/settings_url.js']).then(function() {
-        if (!self.ringtoneURL) {
-          self.ringtoneURL = new SettingsURL();
-        }
-        self._sound = self.ringtoneURL.set(value);
-      })['catch'](function(err) {
-        console.error(err);
-      });
+      self._sound = self.ringtoneURL.set(value);
     });
 
     // We have new default ringtones in 2.0, so check if the version is upgraded
     // then execute the necessary migration.
-    if (Service.query('justUpgraded')) {
-      LazyLoader.load('js/tone_upgrader.js').then(function() {
-        toneUpgrader.perform('alerttone');
-      })['catch'](function(err) {
-        console.error(err);
-      });
-    }
-    Service.register('clearAll', this);
-    Service.register('addUnreadNotification', this);
-    Service.register('removeUnreadNotification', this);
+    VersionHelper.getVersionInfo().then(function(versionInfo) {
+      if (versionInfo.isUpgrade()) {
+        LazyLoader.load('js/tone_upgrader.js', function() {
+          toneUpgrader.perform('alerttone');
+        });
+      }
+    }, function(err) {
+      console.error('VersionHelper failed to lookup version settings.');
+    });
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -167,7 +161,6 @@ var NotificationScreen = {
         break;
       case 'wheel':
         this.wheel(evt);
-        break;
       case 'utilitytrayshow':
         this.updateTimestamps();
         this.hideNotificationIndicator();
@@ -230,9 +223,8 @@ var NotificationScreen = {
     }
 
     var target = evt.touches[0].target;
-    if (!target.dataset.notificationId) {
+    if (!target.dataset.notificationId)
       return;
-    }
 
     this._notification = target;
     this._containerWidth = this.container.clientWidth;
@@ -254,9 +246,8 @@ var NotificationScreen = {
     // The notification being touched is the toast
     if (this._notification.classList.contains('displayed')) {
       this._touching = false;
-      if (touchDiffY < 0) {
+      if (touchDiffY < 0)
         this.closeToast();
-      }
       return;
     }
 
@@ -362,7 +353,7 @@ var NotificationScreen = {
     if (node == this.toaster) {
       this.closeToast();
     } else {
-      Service.request('UtilityTray:hide');
+      UtilityTray.hide();
     }
   },
 
@@ -450,9 +441,9 @@ var NotificationScreen = {
     var type = detail.type || 'desktop-notification';
     notificationNode.dataset.type = type;
     notificationNode.dataset.manifestURL = manifestURL;
-    var icon;
+
     if (detail.icon) {
-      icon = document.createElement('img');
+      var icon = document.createElement('img');
       icon.src = detail.icon;
       icon.setAttribute('role', 'presentation');
       notificationNode.appendChild(icon);
@@ -520,8 +511,9 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (!behavior.noscreen && !Service.query('screenEnabled')) {
-      Service.request('turnScreenOn');
+    if (!behavior.noscreen && typeof(ScreenManager) !== 'undefined' &&
+        !ScreenManager.screenEnabled) {
+      ScreenManager.turnScreenOn();
     }
 
     var notify = !('noNotify' in detail) &&
@@ -531,7 +523,7 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.Service.query('locked')) {
+      if (this.lockscreenPreview || !window.Service.locked) {
         this.toaster.classList.add('displayed');
 
         if (this._toasterTimeout) {
@@ -547,7 +539,7 @@ var NotificationScreen = {
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (Service.query('locked') && this.lockscreenPreview) {
+    if (Service.locked && this.lockscreenPreview) {
       this.addLockScreenNotification(detail.id,
         notificationNode.cloneNode(true));
     }
@@ -651,7 +643,7 @@ var NotificationScreen = {
   },
 
   addUnreadNotification: function ns_addUnreadNotification(id, skipUpdate) {
-    if (Service.query('UtilityTray.shown')) {
+    if (UtilityTray.shown) {
       return;
     }
     this.unreadNotifications.push(id);
@@ -693,7 +685,7 @@ var NotificationScreen = {
       this.ambientIndicator.removeAttribute('aria-label');
     }
 
-    Service.request('UtilityTray:updateNotificationCount');
+    UtilityTray.updateNotificationCount();
   },
 
   closeToast: function ns_closeToast() {
@@ -708,12 +700,11 @@ var NotificationScreen = {
 
   removeLockScreenNotification:
   function ns_removeLockScreenNotification(notificationId) {
-    var lockScreenNotificationNode;
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
     this.lockScreenContainer = this.getLockScreenContainer();
     if (this.lockScreenContainer) {
-      lockScreenNotificationNode =
-        this.lockScreenContainer.querySelector(notifSelector);
+      var lockScreenNotificationNode =
+          this.lockScreenContainer.querySelector(notifSelector);
     }
 
     if (lockScreenNotificationNode) {
@@ -830,6 +821,8 @@ window.addEventListener('load', function() {
   }
 });
 
+NotificationScreen.init();
+
 SettingsListener.observe(
     'lockscreen.notifications-preview.enabled', true, function(value) {
 
@@ -837,7 +830,7 @@ SettingsListener.observe(
 });
 
 SettingsListener.observe('audio.volume.notification', 7, function(value) {
-  NotificationScreen.silent = (value === 0);
+  NotificationScreen.silent = (value == 0);
 });
 
 SettingsListener.observe('vibration.enabled', true, function(value) {

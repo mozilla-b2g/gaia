@@ -1,5 +1,9 @@
-/* global Service */
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
+
+/* global StatusBar */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -153,8 +157,7 @@ var ModalDialog = {
   },
 
   updateHeight: function sd_updateHeight() {
-    var height = Service.query('LayoutManager.height') -
-                 Service.query('Statusbar.height');
+    var height = window.layoutManager.height - StatusBar.height;
     this.overlay.style.height = height + 'px';
   },
 

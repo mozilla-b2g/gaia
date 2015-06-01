@@ -27,7 +27,7 @@ marionette('Places tests', function() {
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('Test url searching', function() {

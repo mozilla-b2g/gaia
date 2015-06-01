@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsHelper, BaseModule, LazyLoader */
+/* global SettingsHelper, BaseModule */
 
 (function() {
   /**
@@ -20,14 +20,10 @@
      * @memberof TelephonySettings.prototype
      */
     _start: function() {
-      // XXX: Deprecate SettingsHelper usage in system app
-      // and use this.readSetting instead.
-      return LazyLoader.load('shared/js/settings_helper.js').then(() => {
-        this.initVoicePrivacy();
-        this.initRoaming();
-        this.initCallerIdPreference();
-        this.initPreferredNetworkType();
-      });
+      this.initVoicePrivacy();
+      this.initRoaming();
+      this.initCallerIdPreference();
+      this.initPreferredNetworkType();
     },
 
     /**

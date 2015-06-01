@@ -25,10 +25,10 @@ marionette('LockScreen status bar', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
     lockScreen = (new LockScreen()).start(client);
     statusBar = new StatusBar(client);
 
+    system.waitForStartup();
     firstApp = new FakeApp(client, 'app://' + firstAppOrigin);
   });
 

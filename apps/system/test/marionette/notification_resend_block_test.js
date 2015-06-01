@@ -7,13 +7,8 @@ var assert = require('assert');
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 
 marionette('mozChromeNotifications:', function() {
-  var client = marionette.client();
-  var system;
 
-  setup(function() {
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
-  });
+  var client = marionette.client();
 
   test('Sending one notification, resends none', function(done) {
     var notificationTitle = 'Title:' + Date.now();

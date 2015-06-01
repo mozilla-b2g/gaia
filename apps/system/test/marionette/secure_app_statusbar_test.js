@@ -26,7 +26,7 @@ marionette('Secure app (camera from lockscreen) statusbar icons', function() {
     lockscreen = (new LockScreen()).start(client);
     statusbar = new StatusBar(client);
 
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   function launchApp(url) {

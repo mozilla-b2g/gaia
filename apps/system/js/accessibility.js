@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, LazyLoader */
+/* global SettingsListener */
 /* global AccessibilityQuicknavMenu */
 
 (function(exports) {
@@ -346,16 +346,9 @@
       this.cancelHints();
       if (aDetails.eventType === 'quicknav-menu') {
         if (!this.quicknav) {
-          LazyLoader.load(['js/accessibility_quicknav_menu.js'])
-            .then(() => {
-              this.quicknav = new AccessibilityQuicknavMenu();
-              this.quicknav.show();
-            }).catch((err) => {
-              console.error(err);
-            });
-        } else {
-          this.quicknav.show();
+          this.quicknav = new AccessibilityQuicknavMenu();
         }
+        this.quicknav.show();
       }
     },
 

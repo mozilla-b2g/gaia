@@ -1,17 +1,17 @@
 /* global AppWindow, ActivityWindow, MocksHelper, BaseModule, MockContextMenu */
 'use strict';
 
+requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_context_menu.js');
 
 requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForActivityWindow = new MocksHelper([
-  'Applications', 'SettingsListener',
-  'ManifestHelper', 'Service'
+  'OrientationManager', 'Applications', 'SettingsListener',
+  'ManifestHelper'
 ]).init();
 
 suite('system/ActivityWindow', function() {
@@ -51,6 +51,7 @@ suite('system/ActivityWindow', function() {
 
       return element;
     });
+    requireApp('system/js/service.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/base_module.js');

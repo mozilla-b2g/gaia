@@ -1,12 +1,11 @@
 'use strict';
-/* global MocksHelper, DeveloperHud */
+/* global MocksHelper, DeveloperHUD */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_service.js');
 require('/js/devtools/developer_hud.js');
 
-var mocksForDeveloperHud = new MocksHelper([
-  'SettingsListener', 'Service'
+var mocksForDeveloperHUD = new MocksHelper([
+  'SettingsListener'
 ]).init();
 
 
@@ -14,9 +13,9 @@ suite('developerHUD', function() {
 
   var subject;
 
-  mocksForDeveloperHud.attachTestHelpers();
+  mocksForDeveloperHUD.attachTestHelpers();
   setup(function() {
-    subject = new DeveloperHud();
+    subject = new DeveloperHUD();
     subject.start();
   });
 
@@ -29,7 +28,7 @@ suite('developerHUD', function() {
     target.dispatchEvent(event);
   }
 
-  function getDeveloperHud() {
+  function getDeveloperHUD() {
     var iframe = document.getElementById('target');
     var appwindow = iframe.parentElement;
     return appwindow.querySelector('.developer-hud');
@@ -91,7 +90,7 @@ suite('developerHUD', function() {
       updateMetrics([
         {name: 'bugs', value: 42}
       ]);
-      var view = getDeveloperHud();
+      var view = getDeveloperHUD();
       assert.isDefined(view);
       var widgets = view.querySelector('.widgets');
       assert.isDefined(widgets);
@@ -106,7 +105,7 @@ suite('developerHUD', function() {
       ];
 
       updateMetrics(metrics);
-      var view = getDeveloperHud();
+      var view = getDeveloperHUD();
       assert.isDefined(view);
 
       var canvas = view.querySelector('canvas');
@@ -126,7 +125,7 @@ suite('developerHUD', function() {
       ];
 
       updateMetrics(metrics);
-      var view = getDeveloperHud();
+      var view = getDeveloperHUD();
       assert.isDefined(view);
 
       var canvas = view.querySelector('canvas');
@@ -148,7 +147,7 @@ suite('developerHUD', function() {
         ];
 
         updateMetrics(metrics);
-        var view = getDeveloperHud();
+        var view = getDeveloperHUD();
         assert.isDefined(view);
 
         var canvas = view.querySelector('canvas');
@@ -174,7 +173,7 @@ suite('developerHUD', function() {
         {name: 'chaos', value: 4}
       ]);
       updateMetrics();
-      assert.isNull(getDeveloperHud());
+      assert.isNull(getDeveloperHUD());
     });
 
   });

@@ -27,7 +27,7 @@ marionette('Vertical Home - Packaged App Resuming Downloads', function() {
       system = client.loader.getAppClass('system');
       appInstall = new AppInstall(client);
 
-      system.waitForFullyLoaded();
+      system.waitForStartup();
       subject.waitForLaunch();
 
       done(err);

@@ -9,7 +9,6 @@ var MockAppTransitionController = function MockAppTransitionController(app) {
 
 MockAppTransitionController.prototype = {
   mApp: null,
-  start: function() {},
   destroy: function() {},
   changeTransitionState: function() {},
   switchTransitionState: function() {},

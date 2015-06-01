@@ -1,4 +1,4 @@
-/* global Service */
+
 (function(exports) {
   'use strict';
 
@@ -35,7 +35,7 @@
     this.addRemoteRequestSetting(
       'clear.browser.history',
       function clearHistory() {
-        Service.request('Places:clear');
+        window.places.clear();
       }
     );
 

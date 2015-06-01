@@ -1,5 +1,4 @@
-/* global LockScreenClockWidget, Service, LockScreenSlide, LazyLoader,
-          LockScreenConnInfoManager */
+/* global LockScreenClockWidget */
 'use strict';
 
 /**
@@ -13,8 +12,6 @@
   var LockScreen = function() {
   };
   LockScreen.prototype = {
-    name: 'LockScreen',
-
     configs: {
       mode: 'default'
     },
@@ -335,9 +332,7 @@
      * setting this parameter to true causes the LockScreenSlide to render
      * the slider specified in that bugzilla issue
      */
-    LazyLoader.load(['shared/js/lockscreen_slide.js']).then(() => {
-      this._unlocker = new LockScreenSlide({useNewStyle: true});
-    }).catch(function(err) {console.error(err);});
+    this._unlocker = new window.LockScreenSlide({useNewStyle: true});
     this.getAllElements();
     this.notificationsContainer =
       document.getElementById('notifications-lockscreen-container');
@@ -395,10 +390,10 @@
     // if this is the case, then the wallpaperchange event might not be captured
     //   and the lockscreen would initialize into empty wallpaper
     // so we need to see if there is already a wallpaper blob available
-    if (Service.query('getWallpaper')) {
-      var wallpaperURL = Service.query('getWallpaper');
+    if (window.wallpaperManager) {
+      var wallpaperURL = window.wallpaperManager.getBlobURL();
       if (wallpaperURL) {
-        this.updateBackground(wallpaperURL);
+        this.updateBackground(window.wallpaperManager.getBlobURL());
         this.overlay.classList.remove('uninit');
       }
     }
@@ -419,7 +414,7 @@
 
     window.SettingsListener.observe('lockscreen.passcode-lock.timeout',
       0, (function(value) {
-      this.setPassCodeLockTimeout(value);
+      this.passCodeRequestTimeout = value;
     }).bind(this));
 
     window.SettingsListener.observe('lockscreen.lock-message',
@@ -451,8 +446,6 @@
       this._generateMaskedBackgroundColor();
     }
     this.chargingStatus.start();
-    Service.register('setPassCodeEnabled', this);
-    Service.register('setPassCodeLockTimeout', this);
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -491,27 +484,11 @@
     // mobile connection state on lock screen.
     // It needs L10n too. But it's not a re-entrable function,
     // so we need to check if it's already initialized.
-    if (this._lockscreenConnInfoManager ||
-        !window.navigator.mozMobileConnections) {
-      return;
+    if (window.navigator.mozMobileConnections &&
+        !this._lockscreenConnInfoManager) {
+      this._lockscreenConnInfoManager =
+        new window.LockScreenConnInfoManager(this.connStates);
     }
-    // XXX: improve the dependency.
-    if (window.SIMSlotManager) {
-      this.startConnectionInfoManager();
-    } else {
-      window.addEventListener('simslotmanagerstarted', function s() {
-        window.removeEventListener('simslotmanagerstarted', s);
-        this.startConnectionInfoManager();
-      }.bind(this));
-    }
-  };
-
-  LockScreen.prototype.startConnectionInfoManager = function() {
-    LazyLoader.load(
-      ['shared/js/lockscreen_connection_info_manager.js']).then(() => {
-        this._lockscreenConnInfoManager =
-          new LockScreenConnInfoManager(this.connStates);
-      }).catch(function(err) {console.error(err);});
   };
 
   /*
@@ -551,16 +528,11 @@
     }
   };
 
-  LockScreen.prototype.setPassCodeLockTimeout =
-  function(val) {
-    this.passCodeRequestTimeout = val;
-  };
-
   LockScreen.prototype.setLockMessage =
   function ls_setLockMessage(val) {
     this.message.textContent = val;
     this.message.hidden = (val === '');
-  };
+  },
 
   /**
    * Light the camera and unlocking icons when user touch on our LockScreen.
@@ -660,7 +632,7 @@
 
   LockScreen.prototype.lockIfEnabled =
   function ls_lockIfEnabled(instant) {
-    if (Service.query('isFtuRunning')) {
+    if (window.FtuLauncher && window.FtuLauncher.isFtuRunning()) {
       this.unlock(instant);
       return;
     }

@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Service, SettingsListener, BrowserKeyEventManager, LazyLoader */
+/* global ScreenManager, SettingsListener, BrowserKeyEventManager */
 
 (function(exports) {
 
@@ -85,7 +85,7 @@
    * hardwareButtons.stop();  // Deattach the event listeners.
    *
    * @class    HardwareButtons
-   * @requires Service
+   * @requires ScreenManager
    * @requires BrowserKeyEventManager
    **/
   var HardwareButtons = function HardwareButtons() {
@@ -133,6 +133,9 @@
     // Kick off the FSM in the base state
     this.state = new HardwareButtonsBaseState(this);
 
+    // initiate BrowserKeyEventManager submodule
+    this.browserKeyEventManager = new BrowserKeyEventManager();
+
     window.addEventListener('softwareButtonEvent', this);
 
     // These event handler listens for hardware button events and passes the
@@ -147,12 +150,6 @@
     SettingsListener.observe('software-button.enabled', false, function(value) {
       this._softwareHome = value;
     }.bind(this));
-
-
-    return LazyLoader.load(['js/browser_key_event_manager.js']).then(() => {
-      // initiate BrowserKeyEventManager submodule
-      this.browserKeyEventManager = new BrowserKeyEventManager();
-    });
   };
 
   /**
@@ -285,7 +282,7 @@
          * @event HardwareButtonsBaseState#wake
          */
         // XXX: Unresolved dependency to screenManager
-        if (!Service.query('screenEnabled')) {
+        if (!ScreenManager.screenEnabled) {
           this.hardwareButtons.publish('wake');
           this.hardwareButtons.setState('wake', type);
         } else {
@@ -299,7 +296,7 @@
          * @event HardwareButtonsBaseState#wake
          */
         // XXX: Unresolved dependency to screenManager
-        if (!Service.query('screenEnabled')) {
+        if (!ScreenManager.screenEnabled) {
           this.hardwareButtons.publish('wake');
           this.hardwareButtons.setState('wake', type);
         } else {
@@ -801,6 +798,13 @@
     }
     this.hardwareButtons.setState('base', type);
   };
+
+  /*
+   * Start the hardware buttons events.
+   * XXX: To be moved.
+   */
+  exports.hardwareButtons = new HardwareButtons();
+  exports.hardwareButtons.start();
 
   exports.HardwareButtons = HardwareButtons;
 }(window));

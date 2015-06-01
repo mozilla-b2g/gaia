@@ -117,7 +117,7 @@
 
     _enter_closing: function() {
       if (!this.app || !this.app.element ||
-          (Service && Service.query('locked') &&
+          (Service && Service.locked &&
            !Service.query('getTopMostWindow').isFullScreen())) {
         return;
       }
@@ -150,7 +150,7 @@
 
       this.app && this.app.setVisible(true);
       this._toasterTimer = window.setTimeout(function() {
-        if (Service && Service.query('locked') &&
+        if (Service && Service.locked &&
             !Service.query('getTopMostWindow').isFullScreen()) {
           return;
         }

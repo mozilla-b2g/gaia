@@ -14,7 +14,7 @@ marionette('Search - Home Button Press', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('Home button returns to home screen', function() {

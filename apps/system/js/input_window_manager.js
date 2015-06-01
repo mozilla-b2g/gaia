@@ -87,8 +87,6 @@
     this._onDebug = false;
   };
 
-  InputWindowManager.prototype.name = 'InputWindowManager';
-
   InputWindowManager.prototype._debug = function iwm__debug(msg) {
     if (this._onDebug) {
       console.log('[InputWindowManager] ' + msg);
@@ -126,10 +124,6 @@
     window.addEventListener('cardviewbeforeshow', this);
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('mozmemorypressure', this);
-    Service.registerState('getHeight', this);
-    Service.registerState('isOutOfProcessEnabled', this);
-    Service.register('hideInputWindow', this);
-    Service.register('hideInputWindowImmediately', this);
   };
 
   InputWindowManager.prototype.stop = function iwm_stop() {
@@ -245,7 +239,7 @@
           // We need to blur the app to prevent the keyboard from refocusing
           // right away.
           // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1138977
-          var app = Service.query('getTopMostWindow');
+          var app = Service.currentApp;
           app && app.blur();
           navigator.mozInputMethod.removeFocus();
         }

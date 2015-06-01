@@ -34,7 +34,7 @@ suite('system/Payment', function() {
     var fakeIframe;
     setup(function() {
       mockApp = new MockApp();
-      MockService.mockQueryWith('getTopMostWindow', mockApp);
+      MockService.currentApp = mockApp;
       fakeIframe = document.createElement('iframe');
       this.sinon.stub(document, 'createElement').returns(fakeIframe);
       stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');

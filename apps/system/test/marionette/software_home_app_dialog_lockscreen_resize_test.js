@@ -22,7 +22,7 @@ marionette('Software Home Button - Dialog Lockscreen Resize', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     lockscreen = (new LockScreen()).start(client);
     lockscreen.relock();

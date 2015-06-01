@@ -17,11 +17,9 @@ marionette('remote protection main panel', function() {
       }
     }
   });
-  var subject, system;
+  var subject;
 
   setup(function() {
-    system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
     subject = new RpMainPanel(client);
     subject.init();
   });

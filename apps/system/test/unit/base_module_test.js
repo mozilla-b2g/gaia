@@ -1,11 +1,9 @@
-/* global BaseModule, MocksHelper, MockService, MockLazyLoader, MockPromise,
-          Deferred */
+/* global BaseModule, MocksHelper, MockService, MockLazyLoader, MockPromise */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_promise.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/test/unit/deferred.js');
 
 var mocksForBaseModule = new MocksHelper([
   'LazyLoader', 'Service'
@@ -43,33 +41,6 @@ suite('system/BaseModule', function() {
     });
     assert.isTrue(stubLoad.calledWith(['/js/app_window_manager.js']));
     stubLoad.yield();
-  });
-
-  suite('Launching promise', function() {
-    test('start should resolve right away', function(done) {
-      var LaunchingPromiseTester = function() {};
-      BaseModule.create(LaunchingPromiseTester, {
-        name: 'LaunchingPromiseTester'
-      });
-      var lpt = BaseModule.instantiate('LaunchingPromiseTester');
-      lpt.start().catch((e) => {throw e || 'Should not throw'; })
-                 .then(done, done);
-    });
-
-    test('custom start', function(done) {
-      var LaunchingPromiseTester = function() {};
-      BaseModule.create(LaunchingPromiseTester, {
-        name: 'LaunchingPromiseTester',
-        _start: function() {
-          return new Promise(function(resolve) {
-            resolve();
-          });
-        }
-      });
-      var lpt = BaseModule.instantiate('LaunchingPromiseTester');
-      lpt.start().catch((e) => {throw e || 'Should not throw'; })
-                 .then(done, done);
-    });
   });
 
   suite('BaseModule.instantiate', function() {
@@ -267,140 +238,83 @@ suite('system/BaseModule', function() {
   });
 
   suite('Submodule management', function() {
-    var fakeAppWindowManager, fakePromise;
+    var fakeAppWindowManager, fakeSubModule, fakePromise;
     setup(function() {
-      BaseModule.__clearDefined();
+      fakePromise = new MockPromise();
+      this.sinon.stub(BaseModule, 'lazyLoad', function() {
+        return fakePromise;
+      });
+      window.FakeAppWindowManager = function() {};
+      window.FakeAppWindowManager.SUB_MODULES = [
+        'FakeTaskManager',
+        'path/to/FakeSubModule'
+      ];
+      BaseModule.create(window.FakeAppWindowManager, {
+        name: 'FakeAppWindowManager'
+      });
+      window.FakeTaskManager = function() {};
+      BaseModule.create(window.FakeTaskManager, {
+        name: 'FakeTaskManager'
+      });
+      fakeAppWindowManager = new window.FakeAppWindowManager();
+      fakeAppWindowManager.start();
+      window.FakeSubModule = function() {};
+      BaseModule.create(window.FakeSubModule, {
+        name: 'FakeSubModule'
+      });
+      fakeSubModule = new window.FakeSubModule();
+      fakeSubModule.start();
     });
-    suite('Already defined submodules', function() {
-      setup(function() {
-        fakePromise = new MockPromise();
-        this.sinon.stub(BaseModule, 'lazyLoad', function() {
-          return fakePromise;
-        });
-        window.FakeAppWindowManager = function() {};
-        window.FakeAppWindowManager.SUB_MODULES = ['FakeTaskManager'];
-        BaseModule.create(window.FakeAppWindowManager, {
-          name: 'FakeAppWindowManager'
-        });
-        window.FakeTaskManager = function() {};
-        BaseModule.create(window.FakeTaskManager, {
-          name: 'FakeTaskManager'
-        });
-        fakeAppWindowManager = new window.FakeAppWindowManager();
-        fakeAppWindowManager.start();
-      });
 
-      test('submodule should be not loaded', function() {
-        fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
-        assert.isDefined(fakeAppWindowManager.fakeTaskManager);
-        assert.isFalse(fakeAppWindowManager._fakeTaskManager_loaded.called);
-      });
+    teardown(function() {
+      fakeAppWindowManager.stop();
+      window.FakeTaskManager = null;
+      window.FakeAppWindowManager = null;
     });
-    suite('Not defined submodules', function() {
-      setup(function() {
-        fakePromise = new MockPromise();
-        this.sinon.stub(BaseModule, 'lazyLoad', function() {
-          return fakePromise;
-        });
-        window.FakeAppWindowManager = function() {};
-        window.FakeAppWindowManager.SUB_MODULES = [
-          'FakeTaskManager',
-          'path/to/FakeSubModuleInDir'
-        ];
-        BaseModule.create(window.FakeAppWindowManager, {
-          name: 'FakeAppWindowManager'
-        });
-        window.FakeTaskManager = null;
-        window.FakeSubModuleInDir = null;
-        fakeAppWindowManager = new window.FakeAppWindowManager();
-        fakeAppWindowManager.start();
-      });
 
-      teardown(function() {
+    test('submodule should be loaded', function() {
+      var spy = fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
+      var spy2 = fakeAppWindowManager._fakeSubModule_loaded = this.sinon.spy();
+      fakePromise.mFulfillToValue();
+      assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+      assert.isTrue(spy.called);
+      assert.isDefined(fakeAppWindowManager.fakeSubModule);
+      assert.isTrue(spy2.called);
+    });
+
+    test('submodule loaded handler should be called if it exists', function() {
+      var spy = fakeAppWindowManager._fakeTaskManager_loaded = this.sinon.spy();
+      fakePromise.mFulfillToValue();
+      assert.isDefined(fakeAppWindowManager.fakeTaskManager);
+      assert.isTrue(spy.called);
+    });
+
+    test('submodule should be started once parent is started', function() {
+      var spyStart = this.sinon.stub(window.FakeTaskManager.prototype, 'start');
+      fakePromise.mFulfillToValue();
+      assert.isTrue(spyStart.called);
+    });
+
+    test('submodule should be stopped once parent is stopped', function() {
+      fakePromise.mFulfillToValue();
+      var spyStop =
+        this.sinon.stub(fakeAppWindowManager.fakeTaskManager, 'stop');
+      var spyStop2 =
+        this.sinon.stub(fakeAppWindowManager.fakeSubModule, 'stop');
+
+      fakeAppWindowManager.stop();
+      assert.isTrue(spyStop.called);
+      assert.isTrue(spyStop2.called);
+    });
+
+    test('submodule should not be started if the parent is already stopped',
+      function() {
+        var spyStart =
+          this.sinon.stub(window.FakeTaskManager.prototype, 'start');
         fakeAppWindowManager.stop();
-        window.FakeTaskManager = null;
-        window.FakeAppWindowManager = null;
-        window.FakeSubModuleInDir = null;
-      });
-
-      test('submodule should be loaded', function() {
-        var spy = fakeAppWindowManager._fakeTaskManager_loaded =
-          this.sinon.spy();
-        var spy2 = fakeAppWindowManager._fakeSubModuleInDir_loaded =
-          this.sinon.spy();
-        window.FakeTaskManager = function() {};
-        BaseModule.create(window.FakeTaskManager, {
-          name: 'FakeTaskManager'
-        });
-        window.FakeSubModuleInDir = function() {};
-        BaseModule.create(window.FakeSubModuleInDir, {
-          name: 'FakeSubModuleInDir'
-        });
         fakePromise.mFulfillToValue();
-        assert.isDefined(fakeAppWindowManager.fakeTaskManager);
-        assert.isTrue(spy.called);
-        assert.isDefined(fakeAppWindowManager.fakeSubModuleInDir);
-        assert.isTrue(spy2.called);
+        assert.isFalse(spyStart.called);
       });
-
-      test('submodule loaded handler should be called if it exists',
-        function() {
-          var spy = fakeAppWindowManager._fakeTaskManager_loaded =
-            this.sinon.spy();
-          window.FakeTaskManager = function() {};
-          BaseModule.create(window.FakeTaskManager, {
-            name: 'FakeTaskManager'
-          });
-          fakePromise.mFulfillToValue();
-          assert.isDefined(fakeAppWindowManager.fakeTaskManager);
-          assert.isTrue(spy.called);
-        });
-
-      test('submodule should be started once parent is started', function() {
-        window.FakeTaskManager = function() {};
-        BaseModule.create(window.FakeTaskManager, {
-          name: 'FakeTaskManager'
-        });
-        var spyStart = this.sinon.stub(window.FakeTaskManager.prototype,
-          'start');
-        fakePromise.mFulfillToValue();
-        assert.isTrue(spyStart.called);
-      });
-
-      test('submodule should be stopped once parent is stopped', function() {
-        window.FakeTaskManager = function() {};
-        window.FakeSubModuleInDir = function() {};
-        BaseModule.create(window.FakeTaskManager, {
-          name: 'FakeTaskManager'
-        });
-        BaseModule.create(window.FakeSubModuleInDir, {
-          name: 'FakeSubModuleInDir'
-        });
-        fakePromise.mFulfillToValue();
-        var spyStop =
-          this.sinon.stub(fakeAppWindowManager.fakeTaskManager, 'stop');
-        var spyStop2 =
-          this.sinon.stub(fakeAppWindowManager.fakeSubModuleInDir, 'stop');
-
-        fakeAppWindowManager.stop();
-        assert.isTrue(spyStop.called);
-        assert.isTrue(spyStop2.called);
-      });
-
-      test('submodule should not be started if the parent is already stopped',
-        function() {
-          window.FakeTaskManager = function() {};
-          BaseModule.create(window.FakeTaskManager, {
-            name: 'FakeTaskManager'
-          });
-          var spyStart =
-            this.sinon.stub(window.FakeTaskManager.prototype, 'start');
-          fakeAppWindowManager.stop();
-
-          fakePromise.mFulfillToValue();
-          assert.isFalse(spyStart.called);
-        });
-    });
   });
 
   suite('Service registration', function() {
@@ -502,41 +416,6 @@ suite('system/BaseModule', function() {
     });
   });
 
-  suite('Start chain', function() {
-    var chainTester;
-    var chainTester_startDeferred, cModule_startDeferred;
-    setup(function() {
-      chainTester_startDeferred = new Deferred();
-      cModule_startDeferred = new Deferred();
-      var ChainTester = function() {};
-      var CModule = function() {};
-      BaseModule.create(CModule, {
-        name: 'CModule',
-        DEBUG: true,
-        _start: sinon.spy(function() {
-          return cModule_startDeferred.promise;
-        })
-      });
-      ChainTester.SUB_MODULES = ['CModule'];
-      BaseModule.create(ChainTester, {
-        name: 'ChainTester',
-        DEBUG: true,
-        _start: sinon.spy(function() {
-          return chainTester_startDeferred.promise;
-        })
-      });
-      chainTester = new ChainTester();
-    });
-    test('Should wait until child start', function(done) {
-      var p = chainTester.start();
-      assert.isTrue(chainTester._start.calledOnce);
-      assert.isTrue(chainTester.cModule._start.calledOnce);
-      p.then(done, done);
-      chainTester_startDeferred.resolve();
-      cModule_startDeferred.resolve();
-    });
-  });
-
   suite('Import', function() {
     var importTester;
     setup(function() {
@@ -554,14 +433,12 @@ suite('system/BaseModule', function() {
     });
 
     test('Module start will be executed until import loaded', function() {
-      var p = new MockPromise();
-      this.sinon.stub(MockLazyLoader, 'load', function() {
-        return p;
-      });
+      var stubLoad = this.sinon.stub(MockLazyLoader, 'load');
       var stubCustomStart = this.sinon.stub(importTester, '_start');
       importTester.start();
+      assert.isTrue(stubLoad.called);
       assert.isFalse(stubCustomStart.called);
-      p.mFulfillToValue();
+      stubLoad.yield();
       assert.isTrue(stubCustomStart.called);
     });
   });

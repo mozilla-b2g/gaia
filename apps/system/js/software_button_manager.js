@@ -2,6 +2,7 @@
 /* global Event */
 /* global ScreenLayout */
 /* global SettingsListener */
+/* global OrientationManager */
 /* global Service */
 
 (function(exports) {
@@ -14,12 +15,15 @@
    * @class SoftwareButtonManager
    * @requires ScreenLayout
    * @requires SettingsListener
+   * @requires OrientationManager
    */
   function SoftwareButtonManager() {
     this.isMobile = ScreenLayout.getCurrentLayout('tiny');
     this.isOnRealDevice = ScreenLayout.isOnRealDevice();
     this.hasHardwareHomeButton =
       ScreenLayout.getCurrentLayout('hardwareHomeButton');
+    // enabled is true on mobile that has no hardware home button
+    this.enabled = !this.hasHardwareHomeButton && this.isMobile;
     this.element = document.getElementById('software-buttons');
     this.fullscreenLayoutElement =
       document.getElementById('software-buttons-fullscreen-layout');
@@ -32,12 +36,9 @@
     // Bind this to the tap function, if it's done in the
     // addEventListener call the removeEventListener won't work properly
     this._fullscreenTapFunction = this._fullscreenTapFunction.bind(this);
-    this.enabled = !this.hasHardwareHomeButton && this.isMobile;
-    // enabled is true on mobile that has no hardware home button
   }
 
   SoftwareButtonManager.prototype = {
-    name: 'SoftwareButtonManager',
 
     /**
      * True if the device has a hardware home button.
@@ -56,14 +57,9 @@
       return this._enabled;
     },
     set enabled(value) {
-      var shouldDispatch = false;
-      if (typeof(this._enabled) !== 'undefined' &&
-          this._enabled !== value) {
-        shouldDispatch = true;
-      }
       this._enabled = value;
       if (value) {
-        this._currentOrientation = Service.query('fetchCurrentOrientation');
+        this._currentOrientation = OrientationManager.fetchCurrentOrientation();
         window.screen.addEventListener('mozorientationchange', this);
         window.addEventListener('orientationchange', this);
 
@@ -88,7 +84,6 @@
         window.removeEventListener('edge-touch-redispatch', this);
         window.removeEventListener('hierachychanged', this);
       }
-      shouldDispatch && this.resizeAndDispatchEvent();
     },
 
     /**
@@ -133,7 +128,7 @@
     _buttonRect: null,
     _updateButtonRect: function() {
       var isFullscreen = !!document.mozFullScreenElement;
-      var activeApp = Service.query('getTopMostWindow');
+      var activeApp = Service.currentApp;
       var isFullscreenLayout =  activeApp && activeApp.isFullScreenLayout();
 
       var button;
@@ -183,14 +178,12 @@
             }
             this.enabled = value;
             this.toggle();
+            this.resizeAndDispatchEvent();
           }.bind(this));
       } else {
         this.enabled = false;
         this.toggle();
       }
-      Service.registerState('width', this);
-      Service.registerState('height', this);
-      Service.registerState('enabled', this);
     },
 
    /**
@@ -200,6 +193,10 @@
      * @memberof SoftwareButtonManager.prototype
      */
      resizeAndDispatchEvent: function() {
+       if (this.enabled === this.element.classList.contains('visible')) {
+         return;
+       }
+
        var element = this.element;
        if (this.enabled) {
          element.addEventListener('transitionend', function trWait() {
@@ -327,9 +324,9 @@
         case 'mozorientationchange':
           // mozorientationchange is fired before 'system-resize'
           // so we can adjust width/height before that happens.
-          var isPortrait = this._currentOrientation.contains('portrait');
-          var newOrientation = Service.query('fetchCurrentOrientation');
-          if (isPortrait && newOrientation.contains('landscape')) {
+          var isPortrait = this._currentOrientation.includes('portrait');
+          var newOrientation = OrientationManager.fetchCurrentOrientation();
+          if (isPortrait && newOrientation.includes('landscape')) {
             this.element.style.right = this.element.style.bottom;
             this.element.style.bottom = null;
           } else if (!isPortrait && newOrientation.includes('portrait')) {

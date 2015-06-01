@@ -2,17 +2,12 @@
 
 /* globals InputWindow, AppWindow */
 
-require('/shared/test/unit/mocks/mock_service.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/test/unit/mock_orientation_manager.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/test/unit/mock_app_transition_controller.js');
-
-require('/js/browser_frame.js');
-require('/js/app_window.js');
-require('/js/browser_mixin.js');
-require('/js/input_window.js');
 
 var mocksForInputWindow = new window.MocksHelper([
-  'ManifestHelper', 'Service', 'AppTransitionController'
+  'OrientationManager', 'SettingsListener', 'ManifestHelper'
 ]).init();
 
 suite('system/InputWindow', function() {
@@ -21,24 +16,25 @@ suite('system/InputWindow', function() {
   var app;
   var keyboardContainer;
 
-  setup(function() {
+  setup(function(done) {
     keyboardContainer = document.createElement('div');
     keyboardContainer.id = 'keyboards';
     document.body.appendChild(keyboardContainer);
-    this.sinon.stub(document, 'getElementById', function(id) {
-      if (id === 'keyboards') {
-        return keyboardContainer;
-      } else {
-        return document.createElement('div');
-      }
-    });
 
-    app = new InputWindow({
-      manifest: {},
-      manifestURL: 'app://keyboard.gaiamobile.org/manifestURL.webapp',
-      origin: 'app://keyboard.gaiamobile.org',
-      path: '/index.html#ime1',
-      id: 'ime1'
+    require('/js/browser_frame.js');
+    require('/js/app_transition_controller.js');
+    require('/js/app_window.js');
+    require('/js/browser_mixin.js');
+    require('/js/input_window.js', function(){
+      app = new InputWindow({
+        manifest: {},
+        manifestURL: 'app://keyboard.gaiamobile.org/manifestURL.webapp',
+        origin: 'app://keyboard.gaiamobile.org',
+        path: '/index.html#ime1',
+        id: 'ime1'
+      });
+
+      done();
     });
   });
 

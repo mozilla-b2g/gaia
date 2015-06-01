@@ -27,7 +27,7 @@ marionette('Vertical - Bookmark', function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     bookmark = new Bookmark(client, server);
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     client.apps.launch(home.URL);
   });

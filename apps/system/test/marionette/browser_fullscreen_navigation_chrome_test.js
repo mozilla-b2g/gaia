@@ -24,7 +24,7 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     halfScreenHeight = client.executeScript(function() {
       return window.innerHeight;

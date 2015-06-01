@@ -1,4 +1,4 @@
-/* global Service, AttentionWindow */
+/* global inputWindowManager, softwareButtonManager, Service, AttentionWindow */
 'use strict';
 
 (function(exports) {
@@ -10,7 +10,7 @@
    * The height of the windows would be affected by some global factor:
    *
    *
-   * * The height of Statusbar.
+   * * The height of StatusBar.
    * * The existence of Software Home Button.
    * * The existence of Keyboard.
    *
@@ -22,6 +22,7 @@
    *
    * @class LayoutManager
    * @requires SoftwareButtonManager
+   * @requires StatusBar
    * @requires Service
    */
   var LayoutManager = function LayoutManager() {};
@@ -29,7 +30,6 @@
   LayoutManager.prototype = {
     DEBUG: false,
     CLASS_NAME: 'LayoutManager',
-    name: 'LayoutManager',
     /** @lends LayoutManager */
 
     get clientWidth() {
@@ -46,13 +46,13 @@
      *
      * @memberOf LayoutManager
      */
-    height: function() {
-      var activeApp = Service.query('getTopMostWindow');
+    get height() {
+      var activeApp = Service.currentApp;
       var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
-      var softwareButtonHeight = Service.query('locked') || isFullScreenLayout ?
-        0 : (Service.query('SoftwareButtonManager.height') || 0);
+      var softwareButtonHeight = Service.locked || isFullScreenLayout ?
+        0 : softwareButtonManager.height;
       var keyboardHeight = this.keyboardEnabled ?
-        (Service.query('InputWindowManager.getHeight') || 0) : 0;
+        inputWindowManager.getHeight() : 0;
       var height = window.innerHeight - keyboardHeight - softwareButtonHeight;
 
       // Normalizing the height so that it always translates to an integral
@@ -70,19 +70,19 @@
      *
      * @memberOf LayoutManager
      */
-    width: function() {
+    get width() {
       return window.innerWidth -
-        ((Service.query('getTopMostWindow') &&
-          Service.query('getTopMostWindow').isFullScreenLayout()) ?
-          0 : (Service.query('SoftwareButtonManager.width') || 0));
+        ((Service.currentApp &&
+          Service.currentApp.isFullScreenLayout()) ?
+          0 : softwareButtonManager.width);
     },
 
     getHeightFor: function(currentWindow, ignoreKeyboard) {
       if (currentWindow instanceof AttentionWindow) {
         var keyboardHeight = this.keyboardEnabled && !ignoreKeyboard ?
-          (Service.query('InputWindowManager.getHeight') || 0) : 0;
+          inputWindowManager.getHeight() : 0;
         var height = window.innerHeight - keyboardHeight -
-          (Service.query('SoftwareButtonManager.height') || 0);
+          softwareButtonManager.height;
 
         // Normalizing the height so that it always translates to an integral
         // number of device pixels
@@ -94,10 +94,9 @@
         return height;
       }
       if (ignoreKeyboard) {
-        return this.height() +
-          (Service.query('InputWindowManager.getHeight') || 0);
+        return this.height + inputWindowManager.getHeight();
       } else {
-        return this.height();
+        return this.height;
       }
     },
 
@@ -110,7 +109,7 @@
      * @memberOf LayoutManager
      */
     match: function lm_match(width, height) {
-      return (this.width() === width && this.height() === height);
+      return (this.width === width && this.height === height);
     },
 
     /**
@@ -143,11 +142,6 @@
       window.addEventListener('lockscreen-appclosed', this);
 
       this._lastOrientation = screen.mozOrientation;
-      Service.registerState('getHeightFor', this);
-      Service.registerState('width', this);
-      Service.registerState('height', this);
-      Service.registerState('keyboardEnabled', this);
-      Service.registerState('match', this);
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -190,7 +184,7 @@
         case 'lockscreen-appclosed':
           // If the software button is enabled it will be un-hidden when
           // the lockscreen is closed and trigger a system level resize.
-          if (Service.query('SoftwareButtonManager.enabled')) {
+          if (softwareButtonManager.enabled) {
             this.publish('system-resize', systemResizeEventDetail);
           }
           break;

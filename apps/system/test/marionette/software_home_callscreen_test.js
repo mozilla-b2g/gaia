@@ -21,7 +21,7 @@ marionette('Software Home Button - Call screen Appearance', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForFullyLoaded();
+    system.waitForStartup();
 
     fakedialer = new FakeDialerApp(client);
   });

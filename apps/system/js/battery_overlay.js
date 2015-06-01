@@ -1,11 +1,14 @@
 'use strict';
-/* global BaseModule */
-/* global Service */
+/* global PowerSave */
+/* global ScreenManager */
 /* global BatteryIcon */
 /* global LazyLoader */
 
-(function() {
+(function(exports) {
+
   function BatteryOverlay() {
+    this.powerSave = new PowerSave();
+    this.powerSave.start();
     LazyLoader.load(['js/battery_icon.js']).then(function() {
       this.icon = new BatteryIcon(this);
       this.icon.start();
@@ -13,12 +16,8 @@
       console.error(err);
     });
   }
-  BatteryOverlay.SUB_MODULES = [
-    'PowerSave'
-  ];
 
-  BaseModule.create(BatteryOverlay, {
-    name: 'BatteryOverlay',
+  BatteryOverlay.prototype = {
     TOASTER_TIMEOUT: 5000,
     TRANSITION_SPEED: 1.8,
     TRANSITION_FRACTION: 0.30,
@@ -46,13 +45,14 @@
       }
     },
 
-    _start: function bm_init() {
+    start: function bm_init() {
       this.getAllElements();
       var battery = this._battery;
       if (battery) {
         // When the device is booted, check if the battery is drained. If so,
         // batteryshutdown would be triggered to inform sleepMenu shutdown.
-        this.checkBatteryDrainage.bind(this);
+        window.addEventListener('homescreen-ready',
+          this.checkBatteryDrainage.bind(this));
 
         battery.addEventListener('levelchange', this);
         battery.addEventListener('chargingchange', this);
@@ -82,11 +82,11 @@
           this.checkBatteryDrainage();
           this.displayIfNecessary();
 
-          this.powerSave && this.powerSave.onBatteryChange();
+          this.powerSave.onBatteryChange();
           this.icon && this.icon.update();
           break;
         case 'chargingchange':
-          this.powerSave && this.powerSave.onBatteryChange();
+          this.powerSave.onBatteryChange();
           this.icon && this.icon.update();
 
           // We turn the screen on if needed in order to let
@@ -97,7 +97,7 @@
             this._wasEmptyBatteryNotificationDisplayed = false;
 
             if (!this._screenOn) {
-              Service.request('turnScreenOn');
+              ScreenManager.turnScreenOn();
             }
           } else {
             this.displayIfNecessary();
@@ -142,6 +142,8 @@
         this._toasterTimeout = null;
       }
     }
-  });
+  };
 
-}());
+  exports.BatteryOverlay = BatteryOverlay;
+
+}(window));

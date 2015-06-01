@@ -1,8 +1,4 @@
-/* global AppInstallManager, KeyboardHelper, Service, ConfirmDialogHelper,
-          MockApp, MockApplications, MockChromeEvent, MockNavigatormozApps,
-          MockNavigatorWakeLock, MocksHelper, MockL10n, MockModalDialog,
-          MockNotificationScreen, MockService,
-          MockSystemBanner, MockUtilityTray */
+/* global InputWindowManager, inputWindowManager, Service */
 
 'use strict';
 
@@ -14,10 +10,12 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
+require('/js/input_window_manager.js');
+require('/js/service.js');
 
 require('/shared/js/tagged.js');
 require('/shared/js/homescreens/confirm_dialog_helper.js');
-require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
@@ -34,7 +32,7 @@ var mocksForAppInstallManager = new MocksHelper([
   'ModalDialog',
   'ManifestHelper',
   'LazyLoader',
-  'Service',
+  'FtuLauncher',
   'KeyboardHelper'
 ]).init();
 
@@ -209,7 +207,10 @@ suite('system/AppInstallManager >', function() {
     document.body.appendChild(fakeSetupDialog);
     document.body.appendChild(fakeImeListDialog);
 
-    AppInstallManager.start();
+    window.inputWindowManager =
+      this.sinon.stub(Object.create(InputWindowManager.prototype));
+
+    AppInstallManager.init();
   });
 
   teardown(function() {
@@ -633,7 +634,7 @@ suite('system/AppInstallManager >', function() {
       ];
 
       suiteTeardown(function() {
-        MockService.mockQueryWith('isFtuRunning', false);
+        MockFtuLauncher.mIsRunning = false;
       });
 
       setup(function() {
@@ -654,10 +655,10 @@ suite('system/AppInstallManager >', function() {
 
       testCases.forEach(function(testCase) {
         test(testCase.name, function() {
-          MockService.mockQueryWith('isFtuRunning', testCase.value);
+          MockFtuLauncher.mIsRunning = testCase.value;
           dispatchInstallEvent();
           assert.deepEqual(MockSystemBanner.mMessage,
-                       MockService.query('isFtuRunning') ?
+                       FtuLauncher.isFtuRunning() ?
                         null : {
                           id: 'app-install-success',
                           args: { appName: mockAppName}
@@ -1429,8 +1430,8 @@ suite('system/AppInstallManager >', function() {
   suite('3rd-party IME app flow >', function() {
     var mockApp, mockAppTwo, mockAppName, mockAppTwoName;
     setup(function() {
-      AppInstallManager.start();
-      MockService.mockQueryWith('isOutOfProcessEnabled', true);
+      AppInstallManager.init();
+      inputWindowManager.isOutOfProcessEnabled = true;
 
       navigator.mozL10n = MockL10n;
       mockAppName = 'Fake keyboard app';
@@ -1500,7 +1501,7 @@ suite('system/AppInstallManager >', function() {
     test('should be uninstalled if disabled', function() {
       // Disabling keyboard app installation.
       // Set stubbed inputWindowManager.isOutOfProcessEnabled to false
-      MockService.mockQueryWith('isOutOfProcessEnabled', false);
+      inputWindowManager.isOutOfProcessEnabled = false;
 
       this.sinon.spy(navigator.mozApps.mgmt, 'uninstall');
       AppInstallManager.handleInstallSuccess(mockApp);
@@ -1550,7 +1551,7 @@ suite('system/AppInstallManager >', function() {
       assert.deepEqual(l10nAttrs.args, {appName: mockAppName});
       AppInstallManager.setupCancelButton.click();
       AppInstallManager.handleInstallSuccess(mockAppTwo);
-      l10nAttrs = MockL10n.getAttributes(
+      var l10nAttrs = MockL10n.getAttributes(
         AppInstallManager.setupAppName);
       assert.equal(l10nAttrs.id, 'app-install-success');
       assert.deepEqual(l10nAttrs.args, {appName: mockAppTwoName});

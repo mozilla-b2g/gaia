@@ -45,7 +45,7 @@ suite('carrier info notifier >', function() {
     window.ModalDialog = MockModalDialog;
 
     window.Service = window.MockService;
-    MockService.mockQueryWith('locked', false);
+    window.Service.locked = false;
 
     realNotificationScreen = window.NotificationScreen;
     window.NotificationScreen = MockNotificationScreen;
@@ -54,7 +54,7 @@ suite('carrier info notifier >', function() {
 
   test('CDMA record information: Unlocked', function(done) {
     var ptr = 0;
-    MockService.mockQueryWith('locked', false);
+    MockService.locked = false;
     ModalDialog.mCallback = function(param) {
       assert.equal(param.text, expectedDisplay[ptr]);
       ptr++;
@@ -67,7 +67,8 @@ suite('carrier info notifier >', function() {
 
   test('CDMA record information: locked', function(done) {
     var ptr = 0;
-    MockService.mockQueryWith('locked', true);
+    var previousLocked = window.Service.locked;
+    window.Service.locked = true;
     MockNotificationScreen.mCallback = function(param) {
       assert.equal(param.text, expectedDisplay[ptr]);
       ptr++;
@@ -76,11 +77,14 @@ suite('carrier info notifier >', function() {
       }
     };
     subject.showCDMA(testData);
+    window.Service.locked = previousLocked;
   });
 
   suiteTeardown(function() {
     window.ModalDialog.mTeardown();
     window.ModalDialog = realModalDialog;
+
+    window.Service.locked = false;
 
     window.NotificationScreen.mTeardown();
     window.NotificationScreen = realNotificationScreen;

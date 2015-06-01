@@ -2,7 +2,7 @@
 
 /* global MobileIdManager, MockApplications, MocksHelper */
 
-requireApp('system/js/mobile_id_manager.js');
+requireApp('system/js/mobileid_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 
 var mocksForMobileIdManager = new MocksHelper([
@@ -26,10 +26,6 @@ suite('MobileID Manager', function() {
   suiteTeardown(function() {
     window.applications = realApplications;
     realApplications = null;
-  });
-
-  setup(function() {
-    MobileIdManager.start();
   });
 
   test(' "onpermissionrequest" is opening a Dialog', function(done) {

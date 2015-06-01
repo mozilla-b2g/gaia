@@ -12,7 +12,7 @@ marionette('Utility Tray - Gestures', function() {
     system = client.loader.getAppClass('system');
     utilityTray = new UtilityTray(client);
 
-    system.waitForFullyLoaded();
+    system.waitForStartup();
   });
 
   test('Swiping down', function() {

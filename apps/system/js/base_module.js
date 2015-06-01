@@ -40,6 +40,14 @@
   BaseModule.SUB_MODULES = [];
 
   /**
+   * Where the sub module should be put.
+   * The default value is under the parent module
+   * to avoid global object pollution.
+   * @type {Object}
+   */
+  BaseModule.SUB_MODULE_PARENT = window;
+
+  /**
    * All events of need to be listened.
    * BaseModule will add/remove the event listener in start/stop functions.
    * The function of '_handle_' form in this module will be invoked
@@ -105,13 +113,6 @@
   BaseModule.STATES = [];
 
   var SubmoduleMixin = {
-    loadWhenIdle: function(modules) {
-      return this.service.request('schedule', () => {
-        this.constructor.SUB_MODULES =
-          this.constructor.SUB_MODULES.concat(modules);
-        return this._startSubModules();
-      });
-    },
     /**
      * Helper function to load and start the submodules defined in
      * |this.constructor.SUB_MODULES|.
@@ -119,68 +120,38 @@
     _startSubModules: function() {
       if (!this.constructor.SUB_MODULES ||
           this.constructor.SUB_MODULES.length === 0) {
-        return Promise.resolve();
-      }
-
-      var submodules = this.constructor.SUB_MODULES.slice();
-      var unloaded = [];
-      submodules.forEach(function(submodule) {
-        if (BaseModule.defined(submodule) || window[submodule]) {
-          var name = BaseModule.lowerCapital(submodule);
-          if (!this[name]) {
-            this._initializeSubModule(name, submodule);
-          }
-        } else {
-          unloaded.push(submodule);
-        }
-      }, this);
-
-      if (unloaded.length === 0) {
-        this.baseSubModuleLoaded && this.baseSubModuleLoaded();
         return;
       }
 
       this.debug('lazy loading submodules: ' +
-        unloaded.concat());
-      return BaseModule.lazyLoad(unloaded).then(() => {
+        this.constructor.SUB_MODULES.concat());
+      BaseModule.lazyLoad(this.constructor.SUB_MODULES).then(function() {
         this.debug('lazy loaded submodules: ' +
-          unloaded.concat());
-        return Promise.all(
-          unloaded
-            .map(BaseModule.parsePath)
-            .map(function(module) {
-              var moduleName = BaseModule.lowerCapital(module.name);
-              if (!this[moduleName]) {
-                return this._initializeSubModule(moduleName, module.name);
-              } else {
-                return Promise.resolve();
-              }
-            }, this));
-      });
+          this.constructor.SUB_MODULES.concat());
+        this.constructor.SUB_MODULES
+          .map(BaseModule.parsePath)
+          .forEach(function(module) {
+            var moduleName = BaseModule.lowerCapital(module.name);
+            var parent = this.constructor.SUB_MODULE_PARENT || this;
+            if (!parent[moduleName]) {
+              this._initialSubModule(moduleName, module.name);
+            }
+          }, this);
+      }.bind(this));
     },
 
-    _initializeSubModule: function(moduleName, module) {
+    _initialSubModule: function(moduleName, module) {
+      var parent = this.constructor.SUB_MODULE_PARENT || this;
       var constructor = AVAILABLE_MODULES[module] || window[module];
       if (typeof(constructor) == 'function') {
         this.debug('instantiating submodule: ' + moduleName);
-        this[moduleName] = new constructor(this);
+        parent[moduleName] = new constructor(this);
         // If there is a custom submodule loaded handler, call it.
         // Otherwise we will start the submodule right away.
         if (typeof(this['_' + moduleName + '_loaded']) == 'function') {
-          return this['_' + moduleName + '_loaded']();
+          this['_' + moduleName + '_loaded']();
         } else if (this.lifeCycleState !== 'stopped') {
-          return this[moduleName].start && this[moduleName].start();
-        }
-      } else {
-        this[moduleName] = constructor;
-        // For the module which does not become class yet
-        if (this[moduleName] && this[moduleName].start) {
-          return this[moduleName].start();
-        } else if (this[moduleName] && this[moduleName].init) {
-          // backward compatibility with init.
-          return this[moduleName].init();
-        } else {
-          return undefined;
+          parent[moduleName].start && parent[moduleName].start();
         }
       }
     },
@@ -189,14 +160,16 @@
       if (!this.constructor.SUB_MODULES) {
         return;
       }
-      this.constructor.SUB_MODULES.map(BaseModule.parsePath)
+      this.constructor.SUB_MODULES
+        .map(BaseModule.parsePath)
         .forEach(function(module) {
-        var moduleName = BaseModule.lowerCapital(module.name);
-        if (this[moduleName]) {
-          this.debug('Stopping submodule: ' + moduleName);
-          this[moduleName].stop && this[moduleName].stop();
-        }
-      }, this);
+          var moduleName = BaseModule.lowerCapital(module.name);
+          var parent = this.constructor.SUB_MODULE_PARENT || this;
+          if (parent[moduleName]) {
+            this.debug('Stopping submodule: ' + moduleName);
+            parent[moduleName].stop && parent[moduleName].stop();
+          }
+        }, this);
     }
   };
 
@@ -284,7 +257,7 @@
           return;
         }
       } else {
-        this.debug('no handle event pre found. skip');
+        console.log('no handle event pre found. skip');
       }
       if (typeof(this['_handle_' + evt.type]) == 'function') {
         this.debug('handling ' + evt.type);
@@ -336,14 +309,6 @@
     }
   };
 
-  BaseModule.defined = function(name) {
-    return !!AVAILABLE_MODULES[name];
-  };
-
-  BaseModule.__clearDefined = function() {
-    AVAILABLE_MODULES = [];
-  };
-
   /**
    * Mixin the prototype with give mixin object.
    * @param  {Object} prototype The prototype of a class
@@ -389,8 +354,9 @@
     if (constructor.STATES) {
       BaseModule.mixin(constructor.prototype, StateMixin);
     }
-    // Inject this anyway.
-    BaseModule.mixin(constructor.prototype, SubmoduleMixin);
+    if (constructor.SUB_MODULES) {
+      BaseModule.mixin(constructor.prototype, SubmoduleMixin);
+    }
     if (prototype) {
       BaseModule.mixin(constructor.prototype, prototype);
       if (prototype.name) {
@@ -602,18 +568,15 @@
     },
 
     readSetting: function(name) {
-      if (this._settings && this._settings[name]) {
-        return Promise.resolve(this._settings[name]);
-      } else {
-        this.debug('reading ' + name + ' from settings db');
-        return this.service.request('SettingsCore:get', name);
-      }
+      this.debug('reading ' + name + ' from settings db');
+      return this.service.request('SettingsCore:get', name);
     },
 
     /**
-     * Custom start function, override it if necessary.
-     * If you want to block the start process of this module,
-     * return a promise here.
+     * Custom start function. Override it if necessary.
+     * Note: if you want to access submodules when it's started,
+     * override this.onSubModuleInited
+     * because they may not be loaded before custom start.
      */
     _start: function() {},
 
@@ -623,7 +586,7 @@
     _stop: function() {},
 
     /**
-     * The starting progress of a module has these steps:
+     * The starting of a module has these steps:
      * * import javascript files
      * * lazy load submodules and instantiate once loaded.
      * * custom start function
@@ -635,48 +598,33 @@
      * The service registration is expected to happen after everything is done.
      * The ordering of the remaining parts should not depends each other.
      *
-     * The start function will return a promise to let you know
-     * when the module is started.
-     * @example
-     * var a = BaseModule.instantiate('A');
-     * a.start().then(() => {
-     *   console.log('started');
-     * });
-     *
-     * Note: a module start promise will only be resolved
-     * after all the steps are resolved, including
-     * the custom start promise and the promises from all the submodules.
-     * So when you see a module is started, that means all of its
-     * submodules are started as well.
-     *
      * @memberOf BaseModule.prototype
      */
     start: function() {
       if (this.lifeCycleState !== 'stopped') {
         this.warn('already started');
-        return Promise.reject('already started');
+        return;
       }
       this.switchLifeCycle('starting');
-      return this.imports();
+      this.imports();
     },
 
     __imported: function() {
       // Do nothing if we are stopped.
       if (this.lifeCycleState === 'stopped') {
         this.warn('already stopped');
-        return Promise.resolve();
+        return;
       }
-      this.debug('in imported');
-      return Promise.all([
-        // Parent module needs to know the events from the submodule.
-        this._subscribeEvents && this._subscribeEvents(),
-        this._startSubModules && this._startSubModules(),
-        this._start(),
-        this._observeSettings && this._observeSettings(),
-        this._registerServices && this._registerServices(),
-        this._registerStates && this._registerStates()]).then(() => {
-        this.switchLifeCycle('started');
-      });
+      // Note: submodule has the higher priority on event handling.
+      // because they are started before the parent module.
+      // We may want to change it for some special case.
+      this._startSubModules && this._startSubModules();
+      this._start();
+      this._subscribeEvents && this._subscribeEvents();
+      this._observeSettings && this._observeSettings();
+      this._registerServices && this._registerServices();
+      this._registerStates && this._registerStates();
+      this.switchLifeCycle('started');
     },
 
     /**
@@ -716,15 +664,14 @@
       if (!this.constructor.IMPORTS ||
           typeof(this.constructor.IMPORTS) == 'undefined' ||
           this.constructor.IMPORTS.length === 0) {
-        return this.__imported();
+        this.__imported();
+        return;
       }
       this.debug(this.constructor.IMPORTS);
       this.debug('import loading.');
-      return LazyLoader.load(this.constructor.IMPORTS)
-        .then(() => {
-          this.debug('imported..');
-          return this.__imported();
-        });
+        LazyLoader.load(this.constructor.IMPORTS, function() {
+          this.__imported();
+        }.bind(this));
     }
   };
 

@@ -10,32 +10,32 @@
   ];
 
   /**
-   * TtlView measures and displays startup time as measured by "first paint".
+   * TTLView measures and displays startup time as measured by "first paint".
    * The load time is displayed in ms next to the type of load event.
    * There are two possible types of load events, [c] and [w].
    * [c] cold load time, is measured when the app is not currently running.
    * [w] warm load time, is measured when the app is backgrounded then launched.
-   * @class TtlView
+   * @class TTLView
    */
-  function TtlView() {
+  function TTLView() {
     SettingsListener.observe('debug.ttl.enabled', false, function(value) {
       !!value ? this.show() : this.hide();
     }.bind(this));
   }
 
-  TtlView.prototype = {
+  TTLView.prototype = {
 
     /**
-     * A reference to the element which contains the TtlView.
-     * @memberof TtlView.prototype
+     * A reference to the element which contains the TTLView.
+     * @memberof TTLView.prototype
      * @type {Element}
      */
     element: null,
 
     /**
-     * Whether or not the TtlView is visible.
-     * @memberof TtlView.prototype
-     * @return {Boolean} The TtlView is visible.
+     * Whether or not the TTLView is visible.
+     * @memberof TTLView.prototype
+     * @return {Boolean} The TTLView is visible.
      */
     get visible() {
       return this.element && this.element.style.display === 'block';
@@ -43,7 +43,7 @@
 
     /**
      * Hides the overlay.
-     * @memberof TtlView.prototype
+     * @memberof TTLView.prototype
      */
     hide: function() {
       if (this.element) {
@@ -58,7 +58,7 @@
 
     /**
      * Shows the overlay.
-     * @memberof TtlView.prototype
+     * @memberof TTLView.prototype
      */
     show: function() {
       if (!this.element) {
@@ -75,7 +75,7 @@
 
     /**
      * Creates the element for the overlay.
-     * @memberof TtlView.prototype
+     * @memberof TTLView.prototype
      */
     createElement: function() {
       var element = document.createElement('div');
@@ -90,7 +90,7 @@
     /**
      * General event handler interface.
      * Updates the overlay with as we receive load events.
-     * @memberof TtlView.prototype
+     * @memberof TTLView.prototype
      * @param  {DOMEvent} evt The event.
      */
     handleEvent: function(evt) {
@@ -111,7 +111,7 @@
 
     /**
      * Resets the load time to a clean slate.
-     * @memberof TtlView.prototype
+     * @memberof TTLView.prototype
      */
     resetLoadtime: function() {
       if (!this.element) {
@@ -122,7 +122,7 @@
 
     /**
      * Updates the load time.
-     * @memberof TtlView.prototype
+     * @memberof TTLView.prototype
      * @param {Number} time The time to load.
      * @param {String} type The type of event. Generally a single character.
      */
@@ -135,13 +135,13 @@
 
     /**
      * Toggles visibility of the overlay.
-     * @memberof TtlView.prototype
+     * @memberof TTLView.prototype
      */
     toggle: function() {
       this.visible ? this.hide() : this.show();
     }
   };
 
-  exports.TtlView = TtlView;
+  exports.TTLView = TTLView;
 
 }(window));

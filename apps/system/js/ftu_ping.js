@@ -3,8 +3,7 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump, TelemetryRequest,
-          LazyLoader */
+/* global MobileOperator, SIMSlotManager, uuid, dump, TelemetryRequest */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -344,34 +343,28 @@
 
     ping: function fp_ping() {
       var pingData = this.assemblePingData();
-      this._pingData.pingTime = Date.now();
+      var request = new TelemetryRequest({
+        reason: TELEMETRY_REASON,
+        deviceID: pingData.pingID,
+        ver: TELEMETRY_VERSION,
+        url: this._pingURL,
+        appUpdateChannel: this._infoData['app.update.channel'],
+        appVersion: this._infoData['deviceinfo.platform_version'],
+        appBuildID: this._infoData['deviceinfo.platform_build_id']
+      }, pingData);
 
-      LazyLoader.load(['shared/js/telemetry.js']).then(() => {
-        var request = new TelemetryRequest({
-          reason: TELEMETRY_REASON,
-          deviceID: pingData.pingID,
-          ver: TELEMETRY_VERSION,
-          url: this._pingURL,
-          appUpdateChannel: this._infoData['app.update.channel'],
-          appVersion: this._infoData['deviceinfo.platform_version'],
-          appBuildID: this._infoData['deviceinfo.platform_build_id']
-        }, pingData);
-
-        var self = this;
-        request.send({
-          timeout: this._pingTimeout,
-          onload: function() {
-            self.pingSuccess(this.responseText);
-          },
-          ontimeout: function() {
-            self.pingError('Timed out');
-          },
-          onerror: function() {
-            self.pingError(this.statusText);
-          }
-        });
-      }).catch((err) => {
-        console.error(err);
+      var self = this;
+      request.send({
+        timeout: this._pingTimeout,
+        onload: function() {
+          self.pingSuccess(this.responseText);
+        },
+        ontimeout: function() {
+          self.pingError('Timed out');
+        },
+        onerror: function() {
+          self.pingError(this.statusText);
+        }
       });
     },
 
