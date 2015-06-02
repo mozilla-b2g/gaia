@@ -1,3 +1,5 @@
+/* globals DeviceLightEvent */
+
 'use strict';
 
 /* globals SettingsListener, Service,
@@ -346,7 +348,7 @@ var ScreenManager = {
       self._setIdleTimeout(0);
 
       if (self._deviceLightEnabled) {
-        window.removeEventListener('devicelight', self);
+        self._removeDeviceLightEventListener();
       }
 
       window.removeEventListener('lockscreen-appclosing', self);
@@ -437,7 +439,7 @@ var ScreenManager = {
     // Attaching the event listener effectively turn on the hardware
     // device light sensor, which _must be_ done after power.screenEnabled.
     if (this._deviceLightEnabled) {
-      window.addEventListener('devicelight', this);
+      this._addDeviceLightEventListener();
     }
 
     this._reconfigScreenTimeout();
@@ -518,6 +520,7 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
+    this._previousLux = null;
 
     this._screenAutoBrightness.reset();
 
@@ -529,10 +532,33 @@ var ScreenManager = {
     // This will also toggle the actual hardware, which
     // must be done while the screen is on.
     if (enabled) {
-      window.addEventListener('devicelight', this);
+      this._addDeviceLightEventListener();
     } else {
-      window.removeEventListener('devicelight', this);
+      this._removeDeviceLightEventListener();
     }
+  },
+
+  _addDeviceLightEventListener: function scm_addDeviceLightEventListener() {
+    window.addEventListener('devicelight', this);
+
+    // Simulate an event if we don't have one before 1 second
+    function onFirstDeviceLight() {
+      window.removeEventListener('devicelight', onFirstDeviceLight);
+      clearTimeout(timeout);
+    }
+
+    var timeout = setTimeout(() => {
+      window.removeEventListener('devicelight', onFirstDeviceLight);
+
+      var event = new DeviceLightEvent('devicelight', { value: 0 });
+      this.handleEvent(event);
+    }, 1000);
+
+    window.addEventListener('devicelight', onFirstDeviceLight);
+  },
+
+  _removeDeviceLightEventListener: function scm_removeDeviceLightEvtListener() {
+    window.removeEventListener('devicelight', this);
   },
 
   _setIdleTimeout: function scm_setIdleTimeout(time, instant) {
