@@ -2632,50 +2632,43 @@ suite('calls handler', function() {
           triggerCommand('CHLD=3');
         }
 
+        setup(function() {
+          this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
+        });
+
         test('should log a warning without enough connected calls',
-        function(done) {
+        function() {
+          this.sinon.stub(console, 'warn');
           MockNavigatorMozTelephony.calls = [call1];
 
-          var addSpy =
-            this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
-          var consoleWarnStub = this.sinon.stub(console, 'warn', function() {
-            assert.isTrue(
-              consoleWarnStub.calledWith('Cannot join conference call.'));
-            assert.isFalse(addSpy.calledOnce);
-            done();
-          });
-
           triggerCHLD();
+          sinon.assert.calledWith(console.warn, 'Cannot join conference call.');
+          sinon.assert.notCalled(MockNavigatorMozTelephony.conferenceGroup.add);
         });
 
         test('should merge into group call if there are two individual calls',
-        function(done) {
+        function() {
           MockNavigatorMozTelephony.calls = [call1, call2];
 
-          var addStub =
-            this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'add',
-            function() {
-              assert.isTrue(addStub.calledWith(call1, call2));
-              done();
-            });
-
           triggerCHLD();
+          sinon.assert.calledWith(
+            MockNavigatorMozTelephony.conferenceGroup.add,
+            call1,
+            call2
+          );
         });
 
         test('should merge individual call into group if group call exists',
-        function(done) {
+        function() {
           MockNavigatorMozTelephony.calls = [call1];
           MockNavigatorMozTelephony.conferenceGroup.calls = [call2, call3];
           MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
 
-          var addStub =
-            this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'add',
-            function() {
-              assert.isTrue(addStub.calledWith(call1));
-              done();
-            });
-
           triggerCHLD();
+          sinon.assert.calledWith(
+            MockNavigatorMozTelephony.conferenceGroup.add,
+            call1
+          );
         });
       });
     });

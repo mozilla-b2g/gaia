@@ -362,13 +362,13 @@ HandledCall.prototype.connected = function hc_connected() {
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
-  var self = this;
   if (this._leftGroup) {
-    LazyL10n.get(function localized(_) {
-      CallScreen.showStatusMessage(_('caller-left-call',
-        {caller: self._cachedInfo.toString()}));
+    CallScreen.showStatusMessage({
+      id: 'caller-left-call',
+      args: { caller: this._cachedInfo.toString() }
     });
-    self._leftGroup = false;
+
+    this._leftGroup = false;
   }
 
   // Play End call tone only if the call was connected.
