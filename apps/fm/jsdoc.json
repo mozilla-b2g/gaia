@@ -1,8 +1,18 @@
 {
-  "fm": {
-    "src": ["apps/fm/js/**/*.js"],
-    "options": {
-      "destination": "docs/fm"
-    }
+  "name": "fm",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/fm/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/fm"
   }
 }

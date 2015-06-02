@@ -1,11 +1,23 @@
 {
-  "sms": {
-    "src": ["apps/sms/views/**/*.js",
-            "apps/sms/services/**/*.js",
-            "!apps/sms/desktop-mock/*"],
-    "options": {
-      "destination": "docs/sms"
-    }
+  "name": "sms",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/sms/README.md", "apps/sms/views", "apps/sms/services/js"],
+    "exclude": ["apps/sms/desktop-mock",
+                "apps/sms/views/shared/js/activity_handler.js",
+                "apps/sms/views/shared/js/utils.js",
+                "apps/sms/views/shared/js/contacts.js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/sms"
   }
 }
 

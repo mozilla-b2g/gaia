@@ -1,9 +1,18 @@
 {
-  "fl": {
-    "src": ["apps/fl/js/**/*.js",
-            "!apps/fl/js/utils.js"],
-    "options": {
-      "destination": "docs/forwardlock"
-    }
+  "name": "fl",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/fl/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/forwardlock"
   }
 }

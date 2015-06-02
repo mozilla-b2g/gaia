@@ -1,11 +1,18 @@
 {
-  "operatorvariant": {
-    "src": ["apps/operatorvariant/js/**/*.js",
-            "!apps/operatorvariant/js/operator_variant.js"
-    ],
-    "options": {
-      "destination": "docs/operatorvariant"
-    }
+  "name": "operatorvariant",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/operatorvariant/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/operatorvariant"
   }
 }
-

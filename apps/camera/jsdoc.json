@@ -1,9 +1,19 @@
 {
-  "camera": {
-    "src": ["apps/camera/README.md",
-            "apps/camera/js/**/*.js"],
-    "options": {
-      "destination": "docs/camera"
-    }
+  "name": "camera",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/camera/README.md", "apps/camera/js"],
+    "exclude": ["apps/camera/js/controllers/settings.js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/camera"
   }
 }
