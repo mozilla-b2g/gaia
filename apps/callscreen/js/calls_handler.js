@@ -17,12 +17,6 @@ var CallsHandler = (function callsHandler() {
   var exitCallScreenTimeout = null;
 
   var toneInterval = null; // Timer used to play the waiting tone
-
-  // Stores the HandledCall held by the user pressing the 'Hold' button. Null
-  // if: there is no call on hold, or the user didn't hold it by pressing
-  // the 'Hold' button.
-  var callHeldByUser = null;
-
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
 
@@ -234,12 +228,11 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    // The remaining call was held, resume it if not held by the user.
-    var remainingCallOrGroup = remainingCall.call.group || remainingCall.call;
-    if (callHeldByUser !== remainingCallOrGroup) {
-      remainingCallOrGroup.resume();
+    // The remaining call was held, resume it
+    if (remainingCall.call.group) {
+      remainingCall.call.group.resume();
     } else {
-      CallScreen.render('connected-hold');
+      remainingCall.call.resume();
     }
   }
 
@@ -404,7 +397,7 @@ var CallsHandler = (function callsHandler() {
       case 'CHLD=2':
         // Hold the active call and answer the other one
         if ((handledCalls.length === 1) && !cdmaCallWaiting()) {
-          holdOrResumeCallByUser();
+          holdOrResumeSingleCall();
         } else {
           holdAndAnswer();
         }
@@ -580,14 +573,6 @@ var CallsHandler = (function callsHandler() {
 
     telephony.active.hold();
     btHelper.toggleCalls();
-    callHeldByUser = null;
-  }
-
-  function holdOrResumeCallByUser() {
-    if (telephony.active) {
-      callHeldByUser = telephony.active;
-    }
-    holdOrResumeSingleCall();
   }
 
   function holdOrResumeSingleCall() {
@@ -606,7 +591,6 @@ var CallsHandler = (function callsHandler() {
         telephony.calls[0] : telephony.conferenceGroup;
 
       line.resume();
-      callHeldByUser = null;
       CallScreen.render('connected');
     }
   }
@@ -826,8 +810,6 @@ var CallsHandler = (function callsHandler() {
     } else {
       console.warn('Cannot join conference call.');
     }
-
-    callHeldByUser = null;
   }
 
   /* === Telephony audio channel competing functions ===*/
@@ -982,7 +964,7 @@ var CallsHandler = (function callsHandler() {
     switchToReceiver: switchToReceiver,
     switchToSpeaker: switchToSpeaker,
     switchToDefaultOut: switchToDefaultOut,
-    holdOrResumeCallByUser: holdOrResumeCallByUser,
+    holdOrResumeSingleCall: holdOrResumeSingleCall,
 
     checkCalls: onCallsChanged,
     mergeCalls: mergeCalls,

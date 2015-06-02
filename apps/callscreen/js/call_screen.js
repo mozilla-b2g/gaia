@@ -131,8 +131,8 @@ var CallScreen = {
                                         this.toggleSpeaker.bind(this));
     this.bluetoothButton.addEventListener('click',
                                           this.toggleBluetoothMenu.bind(this));
-    this.holdButton.addEventListener(
-      'click', CallsHandler.holdOrResumeCallByUser);
+    this.holdButton.addEventListener('click',
+                               CallsHandler.holdOrResumeSingleCall.bind(this));
     this.mergeButton.addEventListener('click',
                                       CallsHandler.mergeCalls.bind(this));
     this.answerButton.addEventListener('click',
