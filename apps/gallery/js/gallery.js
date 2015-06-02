@@ -724,8 +724,7 @@ function share(blobs, blobName) {
 
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
-      var msg = navigator.mozL10n.get('share-noprovider');
-      alert(msg);
+      navigator.mozL10n.formatValue('share-noprovider').then(alert);
     }
     else {
       console.warn('share activity error:', a.error.name);

@@ -1,4 +1,4 @@
-(function(define){define(function(require,exports,module){
+(function(define){define(['require','exports','module','gaia-component','gaia-icons'],function(require,exports,module){
 /*jshint esnext:true*/
 'use strict';
 

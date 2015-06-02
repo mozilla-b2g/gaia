@@ -1,17 +1,18 @@
 {
-  "search": {
-    "src": ["apps/search/js/**/*.js",
-            "!apps/search/js/contextmenu.js",
-            "!apps/search/js/places_idb.js",
-            "!apps/search/js/providers/contacts.js",
-            "!apps/search/js/providers/local_apps.js",
-            "!apps/search/js/providers/marketplace.js",
-            "!apps/search/js/providers/places.js",
-            "!apps/search/js/providers/suggestions.js",
-            "!apps/search/js/providers/webresults.js",
-            "!apps/search/js/search.js"],
-    "options": {
-      "destination": "docs/search"
-    }
+  "name": "search",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/search/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/search"
   }
 }

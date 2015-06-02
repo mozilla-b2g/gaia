@@ -133,15 +133,14 @@ c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('font-fit',this));
 
 },{}],2:[function(require,module,exports){
-/* jshint node:true */
-/* globals define */
-;(function(define){'use strict';define(function(require,exports,module){
+;(function(define){define(function(require,exports,module){
+'use strict';
+
 /**
  * Locals
  */
 
-var textContent = Object.getOwnPropertyDescriptor(Node.prototype,
-    'textContent');
+var textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
 var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
 var removeAttribute = Element.prototype.removeAttribute;
 var setAttribute = Element.prototype.setAttribute;
@@ -180,7 +179,7 @@ exports.register = function(name, props) {
 
   // Merge base getter/setter attributes with the user's,
   // then define the property descriptors on the prototype.
-  var descriptors = mixin(props.attrs || {}, base.descriptors);
+  var descriptors = Object.assign(props.attrs || {}, base.descriptors);
 
   // Store the orginal descriptors somewhere
   // a little more private and delete the original
@@ -295,9 +294,7 @@ var base = {
         if (this.lightStyle) { this.appendChild(this.lightStyle); }
       },
 
-      get: function() {
-        return textContent.get();
-      }
+      get: textContent.get
     },
 
     innerHTML: {
@@ -330,8 +327,9 @@ var defaultPrototype = createProto(HTMLElement.prototype, base.properties);
 function getBaseProto(proto) {
   if (!proto) { return defaultPrototype; }
   proto = proto.prototype || proto;
-  return !proto.GaiaComponent ?
-    createProto(proto, base.properties) : proto;
+  return !proto.GaiaComponent
+    ? createProto(proto, base.properties)
+    : proto;
 }
 
 /**
@@ -343,7 +341,7 @@ function getBaseProto(proto) {
  * @return {Object}
  */
 function createProto(proto, props) {
-  return mixin(Object.create(proto), props);
+  return Object.assign(Object.create(proto), props);
 }
 
 /**
@@ -421,11 +419,11 @@ function processCss(template, name) {
  * @param  {String} css
  */
 function injectGlobalCss(css) {
-  if (!css) {return;}
+  if (!css) return;
   var style = document.createElement('style');
   style.innerHTML = css.trim();
-  headReady().then(function() {
-    document.head.appendChild(style);
+  headReady().then(() => {
+    document.head.appendChild(style)
   });
 }
 
@@ -436,7 +434,7 @@ function injectGlobalCss(css) {
  * @private
  */
 function headReady() {
-  return new Promise(function(resolve) {
+  return new Promise(resolve => {
     if (document.head) { return resolve(); }
     window.addEventListener('load', function fn() {
       window.removeEventListener('load', fn);
@@ -516,22 +514,6 @@ function addDirObserver() {
   }
 }
 
-/**
- * Copy the values of all properties from
- * source object `target` to a target object `source`.
- * It will return the target object.
- *
- * @param   {Object} target
- * @param   {Object} source
- * @returns {Object}
- */
-function mixin(target, source) {
-  for (var key in source) {
-    target[key] = source[key];
-  }
-  return target;
-}
-
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
@@ -578,12 +560,12 @@ c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-icons',this));
 
 },{}],4:[function(require,module,exports){
+/* globals define */
 ;(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Dependencies
  */
-
 var component = require('gaia-component');
 var fontFit = require('font-fit');
 
@@ -636,11 +618,11 @@ const MINIMUM_FONT_SIZE_CENTERED = 20;
  * This is the minimum font size that we can take
  * when the header title is not centered in the window.
  */
-const MINIMUM_FONT_SIZE_UNCENTERED = 18;
+const MINIMUM_FONT_SIZE_UNCENTERED = 16;
 
 /**
- * This is the maximum font size that we can use for
- * the heade title.
+ * This is the maximum font-size
+ * for the header title.
  */
 const MAXIMUM_FONT_SIZE = 23;
 
@@ -671,7 +653,8 @@ module.exports = component.register('gaia-header', {
     };
 
     // Events
-    this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
+    this.els.actionButton.addEventListener('click',
+      e => this.onActionButtonClick(e));
     this.observer = new MutationObserver(this.onMutation.bind(this));
 
     // Properties
@@ -856,7 +839,8 @@ module.exports = component.register('gaia-header', {
 
     // Return existing unresolved
     // promise, or make a new one
-    return this.unresolved[key] = this.unresolved[key] || new Promise((resolve) => {
+    if (this.unresolved[key]) { return this.unresolved[key]; }
+    this.unresolved[key] = new Promise((resolve) => {
       this.pending[key] = this.nextTick(() => {
         var styles = this._titleStyles;
         var els = this.els.titles;
@@ -1033,9 +1017,8 @@ module.exports = component.register('gaia-header', {
    * @private
    */
   getWidth: function() {
-    var value = this.notFlush
-      ? this.clientWidth
-      : window.innerWidth;
+    var value = this.notFlush ?
+      this.clientWidth : window.innerWidth;
 
     debug('get width', value);
     return value;

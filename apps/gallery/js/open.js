@@ -14,7 +14,7 @@
   parseJPEGMetadata
 */
 
-navigator.mozL10n.once(function() {
+(function init() {
   var activity;         // The activity object we're handling
   var activityData;     // The data sent by the initiating app
   var blob;             // The blob we'll be displaying and maybe saving
@@ -224,8 +224,10 @@ navigator.mozL10n.once(function() {
   }
 
   function displayError(msgid) {
-    alert(navigator.mozL10n.get(msgid));
-    done();
+    navigator.mozL10n.formatValue(msgid).then(function(val) {
+      alert(val);
+      done();
+    });
   }
 
   function done() {
@@ -309,4 +311,4 @@ navigator.mozL10n.once(function() {
   function baseName(filename) {
     return filename.substring(filename.lastIndexOf('/') + 1);
   }
-});
+})();

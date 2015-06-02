@@ -30,8 +30,6 @@
       y: 0
     };
 
-    this.dateFormatter = new window.navigator.mozL10n.DateTimeFormat();
-
     this.keyNavigatorAdapter = new KeyNavigationAdapter();
     this.keyNavigatorAdapter.init();
     this.keyNavigatorAdapter.on('move', this._onMove.bind(this));
@@ -71,6 +69,7 @@
     this.timePrefixElement = document.getElementById('time-prefix');
     this.channelListElement = document.getElementById('channel-list');
     this.programListElement = document.getElementById('program-list');
+    this.programMetaElement = document.getElementById('program-meta');
     this.programTitleElement = document.getElementById('program-title');
     this.programDetailElement = document.getElementById('program-detail');
     this.timeMarkerContainerElement =
@@ -100,7 +99,7 @@
   };
 
   proto._onScanned = function epg__onScanned(stream) {
-    this.videoElement.src = stream;
+    this.videoElement.mozSrcObject = stream;
     this.epgController.fetchPrograms(
       this.visibleTimeOffset - this.visibleTimeSize,
       3 * this.visibleTimeSize
@@ -112,6 +111,7 @@
             .element;
       this.spatialNavigator.focus(programElement);
       this._updateProgramProgress(this._currentTime);
+      this._updateDate(this.visibleTimeOffset * this.timelineUnit);
     }.bind(this)).catch(function(err) {
       console.error(err);
     });
@@ -137,25 +137,16 @@
    */
   proto._addProgramSlot = function epg__addProgramSlot(index, time) {
     var rowElement;
-    var columnElement;
-    var textElement;
-    var progressElement;
+    var programElement;
     var i;
     for (i = 0; i < this.programListElement.children.length; i++) {
       rowElement = this.programListElement.children[i];
-      columnElement = document.createElement('LI');
-      columnElement.dataset.duration = '1';
-      columnElement.dataset.startTime = time;
-      progressElement = document.createElement('DIV');
-      progressElement.classList.add('background-progress');
-      textElement = document.createElement('DIV');
-      textElement.classList.add('title');
-      columnElement.appendChild(progressElement);
-      columnElement.appendChild(textElement);
+      programElement = document.createElement('epg-program');
+      programElement.startTime = time;
       if (index < this.timelineElement.children.length) {
-        rowElement.insertBefore(columnElement, rowElement.children[index]);
+        rowElement.insertBefore(programElement, rowElement.children[index]);
       } else {
-        rowElement.appendChild(columnElement);
+        rowElement.appendChild(programElement);
       }
     }
   };
@@ -181,43 +172,35 @@
 
   proto._updateProgramSlot = function epg__updateProgramSlot(configs) {
     var rowElement = this.programListElement.children[configs.row];
-    var columnElement = rowElement.children[configs.column];
-    var duration = parseInt(columnElement.dataset.duration, 10);
-    var progressElement;
-    var currentColumn;
+    var programElement = rowElement.children[configs.column];
+    var duration = programElement.duration;
 
     if (configs.title) {
-      columnElement.querySelector('.title').textContent = configs.title;
+      programElement.title = configs.title;
     }
 
     if (configs.duration) {
       duration = configs.duration;
-      columnElement.dataset.duration = duration;
+      programElement.duration = duration;
     }
 
     if (configs.isVisible) {
-      columnElement.classList.remove('hidden');
-      this.spatialNavigator.add(columnElement);
-      currentColumn = this.initialTime - this.epgController.timelineOffset;
-      progressElement = columnElement.querySelector('.background-progress');
-      if (configs.column + duration <= currentColumn) {
-        progressElement.style.transform = 'scaleX(1)';
-      } else {
-        progressElement.classList.add('smooth');
-      }
+      programElement.show();
+      this.spatialNavigator.add(programElement);
+      programElement.resetProgressElement(this.initialTime);
     } else {
-      columnElement.classList.add('hidden');
+      programElement.hide();
       // If the old focus element only contains partial program segment, we have
       // to refocus to the first visible element of the same program.
-      if (columnElement === this.spatialNavigator.getFocusedElement()) {
+      if (programElement === this.spatialNavigator.getFocusedElement()) {
         this.spatialNavigator.focus(
           this.epgController.programTable[configs.column][configs.row].element);
       }
-      this.spatialNavigator.remove(columnElement);
+      this.spatialNavigator.remove(programElement);
     }
 
     if (configs.item) {
-      configs.item.element = columnElement;
+      configs.item.element = programElement;
     }
   };
 
@@ -236,23 +219,11 @@
     var prevPrograms = this.epgController.programTable[timeIndex - 1];
     var row;
     var programElement;
-    var startTime;
-    var duration;
-    var scaleX;
 
     // Update progress bar in every currently playing program
     for (row in playingPrograms) {
       programElement = playingPrograms[row].element;
-      startTime = parseInt(programElement.dataset.startTime, 10);
-      duration = parseInt(programElement.dataset.duration, 10);
-
-      // There is a margin between two programs, so scale has to be normalized
-      scaleX = (time / this.timelineUnit - startTime) * EPG.COLUMN_WIDTH;
-      scaleX = scaleX / (duration * EPG.COLUMN_WIDTH - EPG.COLUMN_MARGIN);
-      scaleX = Math.min(scaleX, 1);
-      programElement.querySelector('.background-progress').style.transform =
-        'scaleX(' + scaleX + ')';
-
+      programElement.progress = time / this.timelineUnit;
       this.timeMarkerElement.style.transform =
         'translateX(' +
         ((time / this.timelineUnit - this.initialTime) * EPG.COLUMN_WIDTH) +
@@ -263,8 +234,7 @@
       if (prevPrograms && prevPrograms[row] &&
           programElement !== prevPrograms[row].element) {
         programElement = prevPrograms[row].element;
-        programElement.querySelector('.background-progress').style.transform =
-          'scaleX(1)';
+        programElement.fillProgress();
       }
     }
   };
@@ -287,19 +257,21 @@
     };
   };
 
-  proto._onFocus = function epg__onFocus(element) {
-    var rowElement = element.parentElement;
+  proto._onFocus = function epg__onFocus(programElement) {
+    var rowElement = programElement.parentElement;
     var rowIndex = parseInt(rowElement.dataset.row, 10);
     var rowOffset = this.epgController.channelOffset;
 
-    var startTime = parseInt(element.dataset.startTime, 10);
+    var startTime = programElement.startTime;
     var timelineOffset = this.epgController.timelineOffset;
-
-    element.classList.add('focus');
+    programElement.classList.add('focus');
     rowElement.classList.remove('hidden');
     this._setTitlePadding({
       setToNull: true
     });
+
+    this._displayProgramInfo(
+      startTime - this.epgController.timelineOffset, rowIndex);
 
     if (rowIndex < this.visibleChannelOffset) {
       // Move up
@@ -318,6 +290,7 @@
       // Move left and right
       this.translate.x = (this.initialTime - startTime) * EPG.COLUMN_WIDTH;
       this.visibleTimeOffset = startTime;
+      this._updateDate(startTime * this.timelineUnit);
     }
     this._setTitlePadding();
 
@@ -369,27 +342,45 @@
     var row;
     var timeOffset = this.visibleTimeOffset - this.epgController.timelineOffset;
     var programElement;
-    var programTitleElement;
-    var programStartTime;
     for(row = rowOffset; row < rowOffset + size; row++) {
       if (this.epgController.programTable[timeOffset][row]) {
         programElement =
           this.epgController.programTable[timeOffset][row].element;
-        programTitleElement = programElement.querySelector('.title');
         if (opts && opts.setToNull) {
-          programTitleElement.style.paddingLeft = null;
+          programElement.titlePadding = null;
         } else {
-          programStartTime = parseInt(programElement.dataset.startTime, 10);
-          programTitleElement.style.paddingLeft =
-            EPG.COLUMN_WIDTH * (this.visibleTimeOffset - programStartTime) +
-            'rem';
+          programElement.titlePadding = EPG.COLUMN_WIDTH *
+            (this.visibleTimeOffset - programElement.startTime) + 'rem';
         }
       }
     }
   };
 
-  proto._onUnfocus = function epg__onUnfocus(element) {
-    element.classList.remove('focus');
+  proto._displayProgramInfo = function epg__displayProgramInfo(column, row) {
+    var program = this.epgController.programTable[column][row].program;
+    this.programTitleElement.textContent = program.title;
+    this.programDetailElement.textContent = program.description;
+
+    this.programMetaElement.innerHTML = '';
+
+    var timeIntervalElement = document.createElement('LI');
+    var timeText = this._timeToString(program.startTime).timeWithPrefix;
+    timeText += ' - ';
+    timeText +=
+      this._timeToString(program.startTime + program.duration).timeWithPrefix;
+    timeIntervalElement.textContent = timeText;
+    this.programMetaElement.appendChild(timeIntervalElement);
+  };
+
+  proto._updateDate = function epg__updateDate(time) {
+    var now = new Date(time);
+    var timeFormat = navigator.mozL10n.get('EPGDate');
+    var dtf = new navigator.mozL10n.DateTimeFormat();
+    this.dateElement.textContent = dtf.localeFormat(now, timeFormat);
+  };
+
+  proto._onUnfocus = function epg__onUnfocus(programElement) {
+    programElement.classList.remove('focus');
   };
 
   proto._onMove = function epg__onMove(key) {

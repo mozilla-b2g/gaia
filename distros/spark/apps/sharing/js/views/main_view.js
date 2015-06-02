@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-header/dist/gaia-header", "gaia-icons/gaia-icons"], function (exports, _fxosMvcDistMvc, _gaiaHeaderDistGaiaHeader, _gaiaIconsGaiaIcons) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-header", "gaia-icons"], function (exports, _fxosMvcDistMvc, _gaiaHeader, _gaiaIcons) {
   "use strict";
 
   var _extends = function (child, parent) {

@@ -51,10 +51,6 @@ class SearchResults(Base):
     _search_results_loading_locator = (By.CSS_SELECTOR, '.loading')
     _search_result_locator = (By.CSS_SELECTOR, '#search-results li.item')
 
-    def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        self.wait_for_element_not_present(*self._search_results_loading_locator)
-
     @property
     def search_results(self):
         results = Wait(self.marionette).until(
@@ -64,7 +60,7 @@ class SearchResults(Base):
 
 class Result(PageRegion):
 
-    _install_button_locator = (By.CSS_SELECTOR, '.button.product.install')
+    _install_button_locator = (By.CSS_SELECTOR, '.button.install')
     _name_locator = (By.CSS_SELECTOR, 'h3[itemprop="name"]')
 
     def tap_install_button(self):

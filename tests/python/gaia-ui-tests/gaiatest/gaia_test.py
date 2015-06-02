@@ -585,20 +585,6 @@ class Accessibility(object):
             args)
 
 
-class FakeUpdateChecker(object):
-
-    def __init__(self, marionette):
-        self.marionette = marionette
-        self.fakeupdatechecker_atom = os.path.abspath(
-            os.path.join(__file__, os.path.pardir, 'atoms', "fake_update-checker.js"))
-
-    def check_updates(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        self.marionette.import_script(self.fakeupdatechecker_atom)
-        self.marionette.execute_script("GaiaUITests_FakeUpdateChecker();")
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
-
-
 class GaiaDevice(object):
 
     def __init__(self, marionette, testvars=None, manager=None):
@@ -874,9 +860,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             finally:
                 # make sure we restart to avoid leaving us in a bad state
                 self.device.start_b2g()
-
-        # Run the fake update checker
-        FakeUpdateChecker(self.marionette).check_updates()
 
         # We need to set the default timeouts because we may have a new session
         if self.marionette.timeout is None:

@@ -1,8 +1,18 @@
 {
-  "video": {
-    "src": ["apps/video/js/**/*.js"],
-    "options": {
-      "destination": "docs/video"
-    }
+  "name": "video",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/video/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/video"
   }
 }

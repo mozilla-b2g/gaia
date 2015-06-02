@@ -184,11 +184,7 @@ define(function(require) {
 
     /**
      * This internal utility function returns an array of objects describing
-     * the aps that are affected by this addon. Each object in the array has
-     * an 'app' property that holds the app object and an 'customizations'
-     * property that is an array of customizations (from the addon manifest).
-     * We implement getAddonTargets() using this information and also derive
-     * the 'reboot' and 'restart' return values of disableAddon() from it.
+     * the aps that are affected by this addon (see _getAddonAppCustomizations).
      *
      * We need to keep this code in sync with the matching gecko
      * code in dom/apps/UserCustomizations.jsm so that our list of
@@ -205,71 +201,78 @@ define(function(require) {
         return Promise.reject('not an addon');
       }
 
-      var manifest = this._getManifest(addon);
-      var customizations = manifest && manifest.customizations;
+      var customizations;
+      return AppsCache.apps().then(apps => [for (app of apps)
+        if (customizations = this._getAddonAppCustomizations(addon, app)) {
+          app: app, customizations: customizations
+        }]);
+    },
+
+    /**
+     * Returns a list of customizations (from an addon manifest), if available,
+     * that affect the app by a given addon. We implement getAddonTargets()
+     * using this information , derive the 'reboot' and 'restart' return
+     * values of disableAddon() from it and also use this function to apply
+     * addon filters.
+     *
+     * @access private
+     * @memberOf AddonManager.prototype
+     * @param {DOMApplication} addon
+     * @param {DOMApplication} app
+     * @returns {Array?} appliedCustomizations if available
+     */
+    _getAddonAppCustomizations: function(addon, app) {
+      var addonManifest = this._getManifest(addon);
+      var customizations = addonManifest && addonManifest.customizations;
 
       // If the addon does not specify any customizations, then we know
       // that it does not target any apps
       if (!customizations || customizations.length === 0) {
-        return Promise.resolve([]);
+        return;
       }
 
-      // Get a list of all installed apps
-      return AppsCache.apps().then((apps) => {
-        var customizedApps = []; // This is the array of we'll return
+      var manifest = this._getManifest(app);
 
-        // For each customization, compile the filter string into a regexp
-        var filters = [];
-        customizations.forEach(function(customization) {
-          filters.push(new RegExp(customization.filter));
-        });
+      // Ignore apps that are themselves add-ons
+      // XXX: Will themes have a role, and should we ignore them too?
+      if (manifest.role === 'addon') {
+        return;
+      }
 
-        // Now loop through the apps and see which are affected by this addon
-        apps.forEach((app) => {
-          var manifest = this._getManifest(app);
+      // If the addon doesn't have high enough privileges to affect this app
+      // then we can just return now.
+      if (!this._privilegeCheck(addon, app)) {
+        return;
+      }
 
-          // Ignore apps that are themselves add-ons
-          // XXX: Will themes have a role, and should we ignore them too?
-          if (manifest.role === 'addon') {
-            return;
-          }
+      // Get the URL of the app origin plus its launch path to
+      // compare against each of the filters.
+      // XXX: Note that we and do not check the paths used by
+      // activity handlers or any other paths in the manifest.
+      var launchPath = manifest.launch_path || '';
+      var launchURL = new URL(launchPath, app.origin).href;
 
-          // If the addon doesn't have high enough privileges to affect this app
-          // then we can just return now.
-          if (!this._privilegeCheck(addon, app)) {
-            return;
-          }
+      // For each customization, compile the filter string into a regexp
+      var filters = customizations.map(customization =>
+        new RegExp(customization.filter));
 
-          // Get the URL of the app origin plus its launch path to
-          // compare against each of the filters.
-          // XXX: Note that we and do not check the paths used by
-          // activity handlers or any other paths in the manifest.
-          var launchPath = manifest.launch_path || '';
-          var launchURL = new URL(launchPath, app.origin).href;
-          var appliedCustomizations = [];
+      var appliedCustomizations = [];
 
-          // Now loop through the filters to see what customizations are
-          // applied to this app
-          for(var i = 0; i < filters.length; i++) {
-            var filter = filters[i];
-            if (filter.test(launchURL)) {
-              appliedCustomizations.push(customizations[i]);
-              break;
-            }
-          }
+      // Now loop through the filters to see what customizations are
+      // applied to this app
+      for(var i = 0; i < filters.length; i++) {
+        var filter = filters[i];
+        if (filter.test(launchURL)) {
+          appliedCustomizations.push(customizations[i]);
+          break;
+        }
+      }
 
-          // If any customizations were applied to this app, then add it
-          // to the list of customizedApps
-          if (appliedCustomizations.length > 0) {
-            customizedApps.push({
-              app: app,
-              customizations: appliedCustomizations
-            });
-          }
-        });
-
-        return customizedApps;
-      });
+      // If any customizations were applied to this app, return the list of
+      // appliedCustomizations
+      if (appliedCustomizations.length > 0) {
+        return appliedCustomizations;
+      }
     },
 
     /**
@@ -597,6 +600,30 @@ define(function(require) {
           return addon.instance.manifestURL === manifestURL;
         });
       });
+    },
+
+    /**
+     * Returns a promise for a boolean flag indicating whether an addon affects
+     * an application or not..
+     *
+     * @access public
+     * @memberOf AddonManager.prototype
+     * @param {DOMApplication} addon addon to check
+     * @param {String} manifestURL app manifest URL to check
+     * @returns {Promise Boolean}
+     */
+    addonAffectsApp: function(addon, manifestURL) {
+      if (!manifestURL) {
+        return Promise.reject('No manifestURL given for an app');
+      }
+      if (!this._isAddon(addon.instance)) {
+        return Promise.reject('not an addon');
+      }
+
+      return AppsCache.apps().then(apps =>
+        apps.find(app => app.manifestURL === manifestURL)).then(app =>
+          app ? this._getAddonAppCustomizations(addon.instance, app) :
+            undefined).then(customizations => !!customizations);
     },
 
     get length() {

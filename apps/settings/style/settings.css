@@ -147,6 +147,12 @@ gaia-header [data-icon] > span {
   font-size: 0; /* 1 */
 }
 
+ul li > a.menu-item > * {
+  overflow: unset;
+  text-overflow: unset;
+  white-space: initial;
+}
+
 /******************************************************************************
  * Frame section
  */
@@ -1036,6 +1042,8 @@ ul li > label.range-icons.volume input {
 #fxa-unverified-text {
   padding-top: 0.8rem;
   -moz-margin-start: 6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /******************************************************************************

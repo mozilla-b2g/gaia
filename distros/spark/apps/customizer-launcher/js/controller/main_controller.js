@@ -27,7 +27,14 @@ define(["exports", "components/fxos-mvc/dist/mvc", "gaia-component", "js/view/ma
 
     MainController.prototype.main = function () {
       this.view.render();
-      this.listController.main();
+      this.dialog = document.querySelector("fxos-dev-mode-dialog");
+
+      // fxos-dev-mode-dialog checks and emit event 'enabled' when
+      // device dev mode perf is set to true. Continue to load
+      // list of apps inside dialog enabled event handler.
+      this.dialog.addEventListener("enabled", function () {
+        this.listController.main();
+      }.bind(this));
     };
 
     return MainController;

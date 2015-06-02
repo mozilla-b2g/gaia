@@ -229,6 +229,9 @@ var CallsHandler = (function callsHandler() {
       });
 
       return;
+    } else if (remainingCall.call.state === 'disconnected') {
+      // The remaining call is disconnected so do nothing.
+      return;
     }
 
     // The remaining call was held, resume it if not held by the user.
@@ -407,18 +410,7 @@ var CallsHandler = (function callsHandler() {
         }
         break;
       case 'CHLD=3':
-        // Join/Establish conference call. Since we can have at most 2 calls
-        // by spec, we can use telephony.calls[n] directly.
-        if (!telephony.conferenceGroup.state && telephony.calls.length == 2) {
-          telephony.conferenceGroup.add(
-            telephony.calls[0], telephony.calls[1]);
-          break;
-        }
-        if (telephony.conferenceGroup.state && telephony.calls.length == 1) {
-          telephony.conferenceGroup.add(telephony.calls[0]);
-          break;
-        }
-        console.warn('Cannot join conference call.');
+        mergeCalls();
         break;
       default:
         var partialCommand = command.substring(0, 3);
@@ -819,11 +811,22 @@ var CallsHandler = (function callsHandler() {
   }
 
   function mergeCalls() {
-    if (!telephony.conferenceGroup.calls.length) {
-      telephony.conferenceGroup.add(telephony.calls[0], telephony.calls[1]);
+    if (telephony.conferenceGroup.calls.length === 0 &&
+        telephony.calls.length === 2) {
+      telephony.conferenceGroup.add(telephony.calls[0], telephony.calls[1])
+                               .catch(function() {
+        CallScreen.showStatusMessage('conferenceAddError');
+      });
+    } else if (telephony.conferenceGroup.calls.length > 0 &&
+               telephony.calls.length === 1) {
+      telephony.conferenceGroup.add(telephony.calls[0])
+                               .catch(function() {
+        CallScreen.showStatusMessage('conferenceAddError');
+      });
     } else {
-      telephony.conferenceGroup.add(telephony.calls[0]);
+      console.warn('Cannot join conference call.');
     }
+
     callHeldByUser = null;
   }
 

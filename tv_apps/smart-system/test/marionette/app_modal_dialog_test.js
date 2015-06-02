@@ -91,9 +91,6 @@ marionette('Test Modal Dialog Events', function() {
 
       appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
 
-      assert.equal(appModalDialog.promptTitle.scriptWith(function(el) {
-        return el.textContent;
-      }), options.appName);
       assert.equal(appModalDialog.promptMessage.scriptWith(function(el) {
         return el.textContent;
       }), options.prompt.message);
@@ -113,9 +110,6 @@ marionette('Test Modal Dialog Events', function() {
 
       appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
 
-      assert.equal(appModalDialog.promptTitle.scriptWith(function(el) {
-        return el.textContent;
-      }), options.appName);
       assert.equal(appModalDialog.promptMessage.scriptWith(function(el) {
         return el.textContent;
       }), options.prompt.message);

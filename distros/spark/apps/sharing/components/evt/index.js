@@ -146,7 +146,7 @@ function mixin(a, b) {
 if (typeof exports === 'object') {
   module.exports = Events;
 } else if (typeof define === 'function' && define.amd) {
-  define(function(){ return Events; });
+  define([],function(){ return Events; });
 } else {
   window.evt = Events;
 }

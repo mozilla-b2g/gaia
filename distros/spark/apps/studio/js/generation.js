@@ -214,6 +214,7 @@
   exports.Generation = {
     installTheme: function(id) {
       return Storage.fetchTheme(id).then(exportTheme);
-    }
+    },
+    uninstallIfNeeded: uninstallIfNeeded
   };
 })(window);

@@ -1,11 +1,13 @@
 'use strict';
 
 // Utilities for sending data to the FxOS Telemetry Server
+/* global asyncStorage */
 
 (function(exports) {
   const DEFAULT_URL = 'https://fxos.telemetry.mozilla.org/submit/telemetry';
   const DEFAULT_APPNAME = 'FirefoxOS';
   const UNKNOWN = 'unknown';
+  const DOGFOOD_KEY = 'debug.performance_data.dogfooding';
 
   const TR = TelemetryRequest;
 
@@ -100,6 +102,44 @@
     }
 
     return xhr;
+  };
+
+  TelemetryRequest.getDeviceID = function(key) {
+    return new Promise(function(resolve, reject) {
+      // See if this is a dogfooding user
+      if (!navigator.mozSettings) {
+        reject('Invalid mozSettings');
+        return;
+      }
+
+      var dogFood = navigator.mozSettings.createLock().get(DOGFOOD_KEY);
+      if (!dogFood) {
+        reject('Couldn\'t query ' + DOGFOOD_KEY);
+        return;
+      }
+      dogFood.onsuccess = function onSuccess() {
+        var isDogfooder = dogFood.result[DOGFOOD_KEY];
+        if (!isDogfooder) {
+          //return the actual device ID from the passed in key here
+          asyncStorage.getItem(key, function(value) {
+            if (value) {
+              resolve(value);
+            } else {
+              reject('No deviceID found');
+            }
+          });
+        } else {
+          var dialPromise = navigator.mozTelephony.dial('*#06#', 0);
+          dialPromise.then(function(call) {
+            return call.result;
+          }).then(function(result) {
+            return result.statusMessage;
+          }).then(function (imei) {
+            resolve(imei);
+          }).catch(reject);
+        }
+      };
+    });
   };
 
   exports.TelemetryRequest = TelemetryRequest;

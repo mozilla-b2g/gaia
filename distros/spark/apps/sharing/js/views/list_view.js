@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-list/gaia-list", "gaia-checkbox/gaia-checkbox", "gaia-sub-header/gaia-sub-header", "gaia-loading/gaia-loading"], function (exports, _fxosMvcDistMvc, _gaiaListGaiaList, _gaiaCheckboxGaiaCheckbox, _gaiaSubHeaderGaiaSubHeader, _gaiaLoadingGaiaLoading) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-list", "gaia-checkbox", "gaia-sub-header", "gaia-loading"], function (exports, _fxosMvcDistMvc, _gaiaList, _gaiaCheckbox, _gaiaSubHeader, _gaiaLoading) {
   "use strict";
 
   var _extends = function (child, parent) {

@@ -1,4 +1,4 @@
-;(function(define){define(function(require,exports,module){
+;(function(define){define(['require','exports','module'],function(require,exports,module){
 'use strict';
 
 /**

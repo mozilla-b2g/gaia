@@ -5,7 +5,9 @@
  *   <smart-dialog class="modal-dialog">
  *     <div class="outer-container">
  *       <div class="container">
- *         <div class="modal-dialog-message">
+ *         <div class="modal-dialog-message-container">
+ *           <div class="modal-dialog-message"></div>
+ *           <div class="modal-dialog-custom-group"></div>
  *         </div>
  *         <div class="modal-dialog-button-group">
  *           <smart-button></smart-button>
@@ -50,11 +52,19 @@
     this.messageElement = document.createElement('div');
     this.messageElement.classList.add('modal-dialog-message');
 
+    this.customElementGroup = document.createElement('div');
+    this.customElementGroup.classList.add('modal-dialog-custom-group');
+
+    this.messageContainer = document.createElement('div');
+    this.messageContainer.classList.add('modal-dialog-message-container');
+    this.messageContainer.appendChild(this.messageElement);
+    this.messageContainer.appendChild(this.customElementGroup);
+
     this.buttonGroup = document.createElement('div');
     this.buttonGroup.classList.add('modal-dialog-button-group');
     this.buttonGroup.setAttribute('smart-bubbles', 'true');
 
-    this.innerContainer.appendChild(this.messageElement);
+    this.innerContainer.appendChild(this.messageContainer);
     this.innerContainer.appendChild(this.buttonGroup);
 
     this.outerContainer.appendChild(this.innerContainer);
@@ -63,6 +73,8 @@
     this.container = container || document.body;
     this.container.appendChild(this.element);
 
+    this.element.addEventListener('will-open', this);
+    this.element.addEventListener('will-close', this);
     this.element.addEventListener('opened', this);
     this.element.addEventListener('closed', this);
     this.smartBubble.addEventListener('all-items-bubbled', this);
@@ -70,9 +82,37 @@
 
   var proto = Object.create(SmartDialog);
 
+  proto._setL10n = function(element, l10n) {
+    if ((typeof l10n) === 'string') {
+      element.setAttribute('data-l10n-id', l10n);
+    } else if (navigator.mozL10n) {
+      navigator.mozL10n.setAttributes(element, l10n.id, l10n.args);
+    }
+  };
+
   proto._open = function(options) {
     this.message = options.message || {};
     var renderedCallback = options.onButtonRendered;
+
+    this.customSettings = options.customElementSettings || null;
+    if (this.customSettings) {
+      while (this.customElementGroup.firstChild) {
+        this.customElementGroup.removeChild(this.customElementGroup.firstChild);
+      }
+      // Focusable should be true when it is defaultFocus.
+      this.customSettings.focusable =
+        this.customSettings.focusable || this.customSettings.defaultFocus;
+      // Set customElementOffset to 1 when custom element is focusable,
+      // note that we only support 1 custom element at the time.
+      this.customElementOffset = this.customSettings.focusable ? 1 : 0;
+      this.customElementGroup.appendChild(this.customSettings.element);
+      this._focusedIndex = this.customSettings.defaultFocus ?
+                            0 : this._focusedIndex;
+      this.customElementGroup.classList.remove('hidden');
+    } else {
+      this.customElementOffset = 0;
+      this.customElementGroup.classList.add('hidden');
+    }
 
     // onCancel is triggered when ESC key is pressed.
     this.onCancel = options.onCancel || function() {};
@@ -84,8 +124,7 @@
       this.messageElement.classList.remove('hidden');
       this.messageElement.textContent = this.message.textRaw || '';
       if (this.message.textL10nId) {
-        this.messageElement.setAttribute('data-l10n-id',
-                                         this.message.textL10nId);
+        this._setL10n(this.messageElement, this.message.textL10nId);
       }
     }
 
@@ -95,10 +134,10 @@
     this.buttonSettings.forEach(function buildButton(buttonSetting, index) {
       var button = document.createElement('smart-button');
       button.setAttribute('type', buttonSetting.type || 'circle-text');
-      if (buttonSetting.textL10nId) {
-        button.setAttribute('data-l10n-id', buttonSetting.textL10nId);
-      }
       button.textContent = buttonSetting.textRaw || 'OK';
+      if (buttonSetting.textL10nId) {
+        this._setL10n(button, buttonSetting.textL10nId);
+      }
       button.classList.add(buttonSetting.class || 'confirm');
       if (buttonSetting.icon) {
         button.style.backgroundImage = 'url(' + buttonSetting.icon + ')';
@@ -113,8 +152,11 @@
       }.bind(this));
       this.buttonElements.push(button);
       this.buttonGroup.appendChild(button);
-      this._focusedIndex =
-                    (buttonSetting.defaultFocus) ? index : this._focusedIndex;
+      var customFocus = this.customSettings && this.customSettings.defaultFocus;
+      // We may have focusable elements in custom elements, adding offset from
+      // custom elements and reflects real focus index it should be.
+      this._focusedIndex = (buttonSetting.defaultFocus && !customFocus) ?
+        (index + this.customElementOffset) : this._focusedIndex;
       if (renderedCallback) {
         // We add render callback to let user to do more complex visual
         // modifications.
@@ -213,8 +255,17 @@
         this.element.classList.contains('closing')) {
       this.element.focus();
     } else {
-      var elem = this.buttonElements[this._focusedIndex];
-      this._scrollTo(elem);
+      var elem;
+
+      if (this.customSettings &&
+          this._focusedIndex < this.customElementOffset) {
+        elem = this.customSettings.element;
+      } else {
+        var buttonIndex = this._focusedIndex - this.customElementOffset;
+        elem = this.buttonElements[buttonIndex];
+        this._scrollTo(elem);
+      }
+
       // move focus to smart dialog while transition running
       if (elem.focus && (typeof elem.focus) === 'function') {
         elem.focus();
@@ -233,8 +284,41 @@
     this.element.removeEventListener('keydown', this);
   };
 
+  proto.moveUp = function() {
+    if (this._focusedIndex < 1 || this.customElementOffset === 0) {
+      // Do nothing when focus index is at the first custom element,
+      // or custom element is not focusable.
+      return;
+    }
+
+    this.prevButtonIndex = this._focusedIndex;
+    if (this._focusedIndex < this.customElementOffset - 1) {
+      this._focusedIndex--;
+    } else if (this._focusedIndex > this.customElementOffset - 1) {
+      this._focusedIndex = this.customElementOffset - 1;
+    }
+
+    this.focus();
+  };
+
+  proto.moveDown = function() {
+    if (this._focusedIndex > this.customElementOffset) {
+      // Do nothing when focus index is at one of the button elements.
+      return;
+    }
+
+    if (this._focusedIndex < this.customElementOffset - 1) {
+      this._focusedIndex++;
+    } else {
+      this._focusedIndex = this.prevButtonIndex || this.customElementOffset;
+    }
+
+    this.focus();
+  };
+
   proto.movePrevious = function() {
-    if (this._focusedIndex < 1) {
+    if (this._focusedIndex < 1 + this.customElementOffset) {
+      // Do nothing when focus index is at the first button element.
       return;
     }
 
@@ -243,7 +327,9 @@
   };
 
   proto.moveNext = function() {
-    if (this._focusedIndex > this.buttonElements.length - 2) {
+    if (this._focusedIndex >
+        this.buttonElements.length - 2 + this.customElementOffset) {
+      // Do nothing when focus index is at the last button element.
       return;
     }
     this._focusedIndex++;
@@ -251,7 +337,11 @@
   };
 
   proto.handleEvent = function(e) {
-    if (e.keyCode === KeyEvent.DOM_VK_LEFT) {
+    if (e.keyCode === KeyEvent.DOM_VK_UP) {
+      this.moveUp();
+    } else if (e.keyCode === KeyEvent.DOM_VK_DOWN) {
+      this.moveDown();
+    } else if (e.keyCode === KeyEvent.DOM_VK_LEFT) {
       this.movePrevious();
     } else if (e.keyCode === KeyEvent.DOM_VK_RIGHT) {
       this.moveNext();
@@ -259,7 +349,9 @@
 
     switch(e.target) {
       case this.element:
-        if (e.type === 'opened') {
+        if (e.type === 'will-open' || e.type === 'will-close') {
+          this.fireEvent('modal-dialog-' + e.type);
+        } else if (e.type === 'opened') {
           this._scrollTo(this.buttonElements[0]);
           // Play bubble animation when the smart-dialog is opened
           this.smartBubble.play(this.buttonElements);

@@ -14,7 +14,7 @@ class PlayerView(Base):
     _audio_locator = (By.ID, 'player-audio')
     _player_seek_elapsed_locator = (By.ID, 'player-seek-elapsed')
     _player_controls_play_locator = (By.ID, 'player-controls-play')
-    _cover_image_locator = (By.ID, 'player-cover-image')
+    _cover_image_locator = (By.CSS_SELECTOR, '.cover-image.visible')
     _cover_share_locator = (By.ID, 'player-cover-share')
     _rating_view_locator = (By.ID, 'player-album-rating')
     _stars_on_locator = (By.CSS_SELECTOR, '.rating-star.star-on')

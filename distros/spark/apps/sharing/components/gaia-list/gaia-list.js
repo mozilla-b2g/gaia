@@ -1,5 +1,5 @@
 /* global define */
-;(function(define){'use strict';define(function(require,exports,module){
+;(function(define){'use strict';define(['require','exports','module','gaia-component'],function(require,exports,module){
 
 /**
  * Dependencies

@@ -4,9 +4,10 @@
 
 require('/shared/test/unit/mocks/smart-screen/mock_spatial_navigator.js');
 require('/shared/test/unit/mocks/smart-screen/mock_key_navigation_adapter.js');
-require('/test/unit/mock_epg_controller.js');
 require('/shared/test/unit/mocks/smart-screen/mock_clock.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/test/unit/mock_epg_controller.js');
+require('/js/epg_program.js');
 require('/js/epg.js');
 
 
@@ -61,26 +62,6 @@ suite('tv-epg/epg', function() {
     window.navigator.mozL10n = realL10n;
   });
 
-  suite('_onScanned', function() {
-    setup(function() {
-      var promise = {
-        then: function() {
-          return promise;
-        },
-        catch: function() {
-          return promise;
-        }
-      };
-      this.sinon.stub(epg.epgController, 'fetchPrograms').returns(promise);
-    });
-
-    test('Source of video-thumbnail should be assigned', function() {
-      var prefix = 'app://tv-epg.gaiamobile.org/test/unit';
-      epg._onScanned('new-stream');
-      assert.equal(epg.videoElement.src, prefix + '/new-stream');
-    });
-  });
-
   suite('_addTimeline', function() {
     setup(function() {
       epg.programListElement.appendChild(document.createElement('UL'));
@@ -122,20 +103,12 @@ suite('tv-epg/epg', function() {
   });
 
   suite('_updateProgramSlot', function() {
-    var columnElement;
-    var textElement;
-    var progressElement;
+    var programElement;
 
     setup(function() {
       var rowElement = document.createElement('UL');
-      columnElement = document.createElement('LI');
-      textElement = document.createElement('DIV');
-      textElement.classList.add('title');
-      progressElement = document.createElement('DIV');
-      progressElement.classList.add('background-progress');
-      columnElement.appendChild(textElement);
-      columnElement.appendChild(progressElement);
-      rowElement.appendChild(columnElement);
+      programElement = document.createElement('epg-program');
+      rowElement.appendChild(programElement);
       epg.programListElement.appendChild(rowElement);
     });
 
@@ -152,9 +125,9 @@ suite('tv-epg/epg', function() {
         duration: 10
       };
       epg._updateProgramSlot(configs);
-      assert.equal(textElement.textContent, 'program1');
-      assert.isTrue(columnElement.classList.contains('hidden'));
-      assert.equal(columnElement.dataset.duration, '10');
+      assert.equal(programElement.titleElement.textContent, 'program1');
+      assert.isTrue(programElement.classList.contains('hidden'));
+      assert.equal(programElement.dataset.duration, '10');
     });
 
     test('Visible column with item', function() {
@@ -166,9 +139,9 @@ suite('tv-epg/epg', function() {
         duration: 10
       };
       epg._updateProgramSlot(configs);
-      assert.equal(textElement.textContent, 'program1');
-      assert.isFalse(columnElement.classList.contains('hidden'));
-      assert.equal(columnElement.dataset.duration, '10');
+      assert.equal(programElement.titleElement.textContent, 'program1');
+      assert.isFalse(programElement.classList.contains('hidden'));
+      assert.equal(programElement.dataset.duration, '10');
     });
 
     teardown(function() {
@@ -210,6 +183,7 @@ suite('tv-epg/epg', function() {
 
     setup(function() {
       this.sinon.stub(epg, '_setTitlePadding');
+      this.sinon.stub(epg, '_displayProgramInfo');
       fetchPrograms = this.sinon.stub(epg.epgController, 'fetchPrograms')
                           .returns({
                             then: function() {
@@ -218,7 +192,7 @@ suite('tv-epg/epg', function() {
                               };
                             }
                           });
-      columnElement = document.createElement('DIV');
+      columnElement = document.createElement('epg-program');
       rowElement = document.createElement('DIV');
       rowElement.appendChild(columnElement);
       epg.visibleChannelOffset = 10;
@@ -267,7 +241,7 @@ suite('tv-epg/epg', function() {
                           'rem, 0rem) translateZ(0.01rem)';
 
       epg.epgController.timelineOffset = 4;
-      columnElement.dataset.startTime = epg.visibleTimeOffset - 1;
+      columnElement.startTime = epg.visibleTimeOffset - 1;
       epg._onFocus(columnElement);
       assert.equal(
         epg.timelineElement.style.transform, timelineAnswer);
@@ -283,7 +257,7 @@ suite('tv-epg/epg', function() {
                           'rem, 0rem) translateZ(0.01rem)';
 
       epg.epgController.timelineOffset = 14;
-      columnElement.dataset.startTime = epg.visibleTimeOffset + 4;
+      columnElement.startTime = epg.visibleTimeOffset + 4;
       epg._onFocus(columnElement);
       assert.equal(
         epg.timelineElement.style.transform, timelineAnswer);
@@ -295,13 +269,9 @@ suite('tv-epg/epg', function() {
 
   suite('_setTitlePadding', function() {
     var programElement;
-    var titleElement;
     setup(function() {
-      programElement = document.createElement('DIV');
-      programElement.dataset.startTime = 0;
-      titleElement = document.createElement('DIV');
-      titleElement.classList.add('title');
-      programElement.appendChild(titleElement);
+      programElement = document.createElement('epg-program');
+      programElement.startTime = 0;
       epg.visibleTimeOffset = 1;
       epg.epgController.timelineOffset = 0;
       epg.epgController.programTable = {
@@ -317,12 +287,12 @@ suite('tv-epg/epg', function() {
       epg._setTitlePadding({
         setToNull: true
       });
-      assert.equal(titleElement.style.paddingLeft, '');
+      assert.equal(programElement.titleElement.style.paddingLeft, '');
     });
 
     test('Set padding-left of title element', function() {
       epg._setTitlePadding();
-      assert.equal(titleElement.style.paddingLeft, '33.8rem');
+      assert.equal(programElement.titleElement.style.paddingLeft, '33.8rem');
     });
   });
 });

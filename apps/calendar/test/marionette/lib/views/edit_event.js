@@ -98,18 +98,16 @@ EditEvent.prototype = {
   },
 
   get allDayCheckbox() {
-    return this.findElement('input[name="allday"]');
+    return this.findElement('gaia-switch[name="allday"]');
   },
 
   get allDay() {
-    // checked is a boolean attribute, should return "null" when not checked
-    return this.allDayCheckbox.getAttribute('checked') != null;
+    return this.allDayCheckbox.getAttribute('checked');
   },
 
   set allDay(value) {
     if (value !== this.allDay) {
-      // click needs to happen on label!
-      this.client.helper.closest(this.allDayCheckbox, 'label').click();
+      this.allDayCheckbox.click();
     }
   },
 

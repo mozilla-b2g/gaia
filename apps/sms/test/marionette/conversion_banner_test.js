@@ -6,6 +6,7 @@ var assert = require('chai').assert;
 
 var Messages = require('./lib/messages.js');
 var Storage = require('./lib/storage.js');
+var ThreadGenerator = require('./generators/thread');
 
 marionette('Message Type Conversion Banner', function() {
   var apps = {};
@@ -127,48 +128,18 @@ marionette('Message Type Conversion Banner', function() {
     }
 
     setup(function() {
-      var uniqueIdCounter = 0;
-
-      var smsThread = {
-        id: 1,
-        body: 'Simple SMS thread.',
-        lastMessageType: 'sms',
-        timestamp: Date.now(),
-        messages: [{
-          id: ++uniqueIdCounter,
-          iccId: null,
-          threadId: 1,
-          sender: null,
-          receiver: '+1',
-          type: 'sms',
-          delivery: 'sent',
-          body: 'Simple SMS thread.',
-          timestamp: Date.now()
-        }],
-        participants: ['+1']
-      };
-
-      var mmsThread = {
-        id: 2,
-        body: 'MMS thread.',
-        lastMessageType: 'mms',
-        timestamp: Date.now(),
-        messages: [{
-          id: ++uniqueIdCounter,
-          iccId: null,
-          threadId: 2,
-          sender: null,
-          receivers: ['a@b.c'],
-          type: 'mms',
-          delivery: 'sent',
-          body: 'MMS thread.',
-          timestamp: Date.now()
-        }],
+      var smsThread = ThreadGenerator.generate();
+      var mmsThread = ThreadGenerator.generate({
+        numberOfMessages: 1,
+        messageType: 'mms',
         participants: ['a@b.c']
-      };
+      });
 
       messagesApp.launch();
-      storage.setMessagesStorage([smsThread, mmsThread], uniqueIdCounter);
+      storage.setMessagesStorage(
+        [smsThread, mmsThread],
+        ThreadGenerator.uniqueMessageId
+      );
     });
 
     test('The banner is not shown after sending another message',

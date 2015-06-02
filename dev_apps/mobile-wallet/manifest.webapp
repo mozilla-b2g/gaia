@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "name": "Mobile Wallet",
+  "description": "New wallet version for FFOS 2.2",
+  "launch_path": "/index.html",
+  "icons": {
+    "16": "/img/icons/icon16x16.png",
+    "48": "/img/icons/icon48x48.png",
+    "60": "/img/icons/icon60x60.png",
+    "128": "/img/icons/icon128x128.png"
+  },
+  "type": "certified",
+  "permissions": {
+    "secureelement-manage": {},
+    "nfc-hci-events":{}
+  },
+  "secure_element_access": ["*/A0*"],
+  "messages": [
+     { "nfc-hci-event-transaction": "/index.html" }
+  ],
+  "orientation": "portrait",
+  "default_locale": "en"
+}

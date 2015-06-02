@@ -157,7 +157,7 @@ define(function(require) {
      */
     _onDefaultAdapterChanged:
     function bttm__onDefaultAdapterChanged(newAdapter, oldAdapter) {
-      if ((oldAdapter !== null) && (newAdapter === null)) {
+      if (oldAdapter && (newAdapter === null)) {
         Debug('_onDefaultAdapterChanged(): Can not get bluetooth adapter!');
         // Post error with reason then end the activity service.
         this._endTransferWithReason('cancelled');

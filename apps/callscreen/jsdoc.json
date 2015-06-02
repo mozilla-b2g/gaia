@@ -1,8 +1,18 @@
 {
-  "callscreen": {
-    "src": ["apps/callscreen/js/**/*.js"],
-    "options": {
-      "destination": "docs/callscreen"
-    }
+  "name": "callscreen",
+  "tags": {
+    "dictionaries": ["jsdoc"]
+  },
+  "source": {
+    "include": ["apps/callscreen/js"]
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "opts": {
+    "private": true,
+    "recurse": true,
+    "destination": "docs/callscreen"
   }
 }

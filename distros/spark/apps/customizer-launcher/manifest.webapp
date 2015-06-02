@@ -9,6 +9,7 @@
   },
   "permissions": {
     "webapps-manage": {},
-    "tcp-socket": {}
+    "tcp-socket": {},
+    "feature-detection": {}
    }
 }

@@ -49,8 +49,10 @@
       case 'mozbrowsercontextmenu':
         this.show(evt);
         break;
-      case 'modal-dialog-opened':
+      case 'modal-dialog-will-open':
         focusManager.focus();
+        break;
+      case 'modal-dialog-opened':
         this.app.publish('contextmenu-shown');
         break;
       case 'modal-dialog-closed':
@@ -69,6 +71,7 @@
 
   BrowserContextMenu.prototype._registerEvents = function bcm__regEvents() {
     // listen the event bubbled from modal dialog to determine the state
+    this.element.addEventListener('modal-dialog-will-open', this);
     this.element.addEventListener('modal-dialog-opened', this);
     this.element.addEventListener('modal-dialog-closed', this);
   };

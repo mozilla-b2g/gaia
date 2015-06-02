@@ -20,7 +20,7 @@ var matcher = function(item) {
  *   startTime: Number,
  *   duration: Number,
  *   epoch: Number,
- *   pid: Number
+ *   pid: String
  * }}
  */
 var parser = function(item) {

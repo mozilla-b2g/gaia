@@ -1028,17 +1028,23 @@ ImapJobDriver.prototype = {
 
     var addBoxCallback = function(err, alreadyExists) {
       if (err) {
-        logic(scope, 'createFolderErr', { err: err });
-        // TODO: do something clever in terms of making sure the folder didn't
-        // already exist and the server just doesn't like to provide the
-        // ALREADYEXISTS response.
-        //
-        // For now, give up immediately on the folder for safety.
-        // ensureEssentialFolders is the only logic that creates folders and it
-        // does not know about existing/pending createFolder requests, so it's
-        // for the best if we simply give up permanently on this.
-        done('failure-give-up', null);
-        return;
+        // upgrade error message that contain "already" to mean ALREADYEXISTS.
+        // TODO: make hoodiecrow support ALREADYEXISTS
+        if (err.message && /already/i.test(err.message)) {
+          alreadyExists = true;
+        } else {
+          logic(scope, 'createFolderErr', { err: err });
+          // TODO: do something clever in terms of making sure the folder didn't
+          // already exist and the server just doesn't like to provide the
+          // ALREADYEXISTS response.
+          //
+          // For now, give up immediately on the folder for safety.
+          // ensureEssentialFolders is the only logic that creates folders and it
+          // does not know about existing/pending createFolder requests, so it's
+          // for the best if we simply give up permanently on this.
+          done('failure-give-up', null);
+          return;
+        }
       }
 
       logic(scope, 'createdFolder', { alreadyExists: alreadyExists });

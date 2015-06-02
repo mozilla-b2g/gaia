@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-dialog/gaia-dialog", "gaia-progress/gaia-progress", "gaia-button/gaia-button"], function (exports, _fxosMvcDistMvc, _gaiaDialogGaiaDialog, _gaiaProgressGaiaProgress, _gaiaButtonGaiaButton) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-dialog", "gaia-progress", "gaia-button"], function (exports, _fxosMvcDistMvc, _gaiaDialog, _gaiaProgress, _gaiaButton) {
   "use strict";
 
   var _extends = function (child, parent) {

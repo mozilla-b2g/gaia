@@ -48,12 +48,20 @@ window.GaiaSwitch = (function(win) {
     e.preventDefault();
     e.stopImmediatePropagation();
     this.checked = !this.checked;
+
+    // Dispatch a click event.
     var event = new MouseEvent('click', {
       view: window,
       bubbles: true,
       cancelable: true
     });
     this.dispatchEvent(event);
+
+    // Dispatch a change event for the gaia-switch.
+    this.dispatchEvent(new CustomEvent('change', {
+      bubbles: true,
+      cancelable: false
+    }));
   };
 
   /**

@@ -8,6 +8,7 @@
     <!-- stylesheets of building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/navigation.css">
     <link rel="stylesheet" type="text/css" href="shared/style/smart-screen/icons.css">
+    <link rel="stylesheet" type="text/css" href="style/epg_program.css">
     <link rel="stylesheet" type="text/css" href="style/tv_epg.css">
 
     <!-- For test purpose on phone only -->
@@ -29,6 +30,7 @@
     <!-- building blocks -->
 
     <!-- Specific code -->
+    <script defer src="js/epg_program.js"></script>
     <script defer src="js/epg_controller.js"></script>
     <script defer src="js/epg.js"></script>
     <script defer src="js/index.js"></script>
@@ -47,11 +49,13 @@
           <div id="header">
             <div id="label">TV Guide</div>
             <div id="time"></div>
-            <div id="time-prefix"></div>
+            <div id="time-prefix-container">
+              <div id="time-prefix"></div>
+            </div>
           </div>
           <div id="epg-container">
             <div id="epg-left">
-              <div id="date">SAT, May 15</div>
+              <div id="date"></div>
               <div id="channel-list-container">
                 <ul id="channel-list">
                 </ul>
@@ -75,13 +79,12 @@
         <div id="bottom-container">
           <video id="video-thumbnail"></video>
           <div id="detail-container">
-            <div id="program-title">SportsCenter</div>
+            <div id="program-title-container">
+              <div id="program-title"></div>
+            </div>
             <ul id="program-meta">
-              <li>9:30PM - 10:30PM</li>
-              <li>TV-G</li>
-              <li>HD 1080i</li>
             </ul>
-            <div id="program-detail">Buckeyes' QB battle unprecedented but solvable</div>
+            <div id="program-detail"></div>
             <div id="progress-bar-back"></div>
             <div id="progress-bar"></div>
           </div>
