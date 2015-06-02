@@ -27,11 +27,13 @@ marionette('app install manager tests', function() {
   var appInstaller;
   var server;
   var serverManifestURL;
+  var serverIMEURL;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/../apps/hosted-app', function(err, _server) {
       server = _server;
       serverManifestURL = server.url('manifest.webapp');
+      serverIMEURL = server.url('ime_manifest.webapp');
       done(err);
     });
   });
@@ -75,6 +77,7 @@ marionette('app install manager tests', function() {
     var cancelConfirmButton = client.helper.waitForElement(
                                  system.Selector.appCancelInstallConfirmButton);
 
+    system.waitForEvent('modal-dialog-opened');
     assert.isTrue(cancelConfirmButton.scriptWith(function(el) {
       return document.activeElement === el;
     }), 'confirm button should be focused.');
@@ -123,5 +126,20 @@ marionette('app install manager tests', function() {
 
     assert.isTrue(system.isAppInstalled(serverManifestURL),
       'app should be installed');
+  });
+
+  test('install keyboard app and test setup', { devices: ['tv'] }, function() {
+    // install app
+    appInstaller.install(serverIMEURL);
+    var installButton = client.helper.waitForElement(
+                                       system.Selector.appInstallInstallButton);
+    installButton.sendKeys(Keys.enter);
+    system.waitForAppInstalled(serverIMEURL);
+
+    var laterButton = client.helper.waitForElement(
+                                    system.Selector.appInstallSetupLaterButton);
+    laterButton.sendKeys(Keys.enter);
+    client.helper.waitForElementToDisappear(
+                                    system.Selector.appInstallSetupLaterButton);
   });
 });

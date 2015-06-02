@@ -13,12 +13,16 @@ System.URL = 'app://smart-system.gaiamobile.org/manifest.webapp';
 System.Selector = Object.freeze({
   appChromeContextMenuContainer: '.appWindow.active .modal-dialog',
   appChromeContextMenuDialog: '.appWindow.active .contextmenu .modal-dialog',
-  appInstallCancelButton: '#app-install-cancel-button',
-  appInstallInstallButton: '#app-install-install-button',
-  appCancelInstallConfirmButton: '#app-install-confirm-cancel-button',
-  appCanelInstallResumeButton: '#app-install-resume-button',
-  appUninstallCancelButton: '#app-uninstall-cancel-button',
-  appUninstallConfirmButton: '#app-uninstall-confirm-button'
+  appInstallCancelButton: '.app-install-dialog smart-button:nth-child(1)',
+  appInstallInstallButton: '.app-install-dialog smart-button:nth-child(2)',
+  appCancelInstallConfirmButton:
+      '.app-install-cancel-dialog smart-button:nth-child(1)',
+  appCanelInstallResumeButton:
+      '.app-install-cancel-dialog smart-button:nth-child(2)',
+  appUninstallCancelButton: '.app-uninstall-dialog smart-button:nth-child(1)',
+  appUninstallConfirmButton: '.app-uninstall-dialog smart-button:nth-child(2)',
+  appInstallSetupLaterButton: '.setup-app-dialog smart-button:nth-child(1)',
+  appInstallSetupNowButton: '.setup-app-dialog smart-button:nth-child(2)'
 });
 
 System.prototype = {
