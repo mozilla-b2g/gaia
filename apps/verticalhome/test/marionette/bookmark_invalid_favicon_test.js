@@ -28,7 +28,7 @@ marionette('Vertical - Bookmark Favicon Failure', function() {
     home = client.loader.getAppClass('verticalhome');
     system = client.loader.getAppClass('system');
     bookmark = new Bookmark(client, server);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
 
     client.apps.launch(home.URL);
   });

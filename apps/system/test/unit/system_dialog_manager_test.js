@@ -33,7 +33,7 @@ suite('system/SystemDialogManager', function() {
 
     dialogFake = new window.SystemDialog(optionsFake);
     window.systemDialogManager = new window.SystemDialogManager();
-    window.systemDialogManager.init();
+    window.systemDialogManager.start();
     this.sinon.stub(dialogFake, 'resize');
   });
 

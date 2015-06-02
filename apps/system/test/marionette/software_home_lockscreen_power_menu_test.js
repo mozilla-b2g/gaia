@@ -17,7 +17,7 @@ marionette('Software Home Button - Lockscreen Power Menu', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   function rect(el) {

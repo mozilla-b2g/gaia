@@ -9,14 +9,12 @@ require('/js/service.js');
 require('/js/base_ui.js');
 require('/js/system_dialog.js');
 require('/js/fxa_dialog.js');
-requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForFxAccountsDialog = new MocksHelper([
   'AppWindowManager',
   'LayoutManager',
   'SystemDialogManager',
-  'KeyboardManager',
-  'StatusBar'
+  'KeyboardManager'
 ]).init();
 
 suite('system/FxAccountsDialog', function() {

@@ -1,10 +1,8 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* API Summary:
    stopSendingFile(in DOMString aDeviceAddress);
    confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
-/* global CustomDialog, MimeMapper, Service,
+/* global MimeMapper, Service, LazyLoader,
           MozActivity, NotificationHelper, UtilityTray */
 /* exported BluetoothTransfer */
 (function(exports) {
@@ -206,9 +204,8 @@ var BluetoothTransfer = {
       recommend: true
     };
 
-    var screen = document.getElementById('screen');
     this.getDeviceName(address).then(function(deviceName) {
-      CustomDialog.show(
+      Service.request('showCustomDialog',
         'acceptFileTransfer',
         {
           id: 'wantToReceiveFile',
@@ -219,15 +216,13 @@ var BluetoothTransfer = {
           }
         },
         cancel,
-        confirm,
-        screen
-      )
-      .setAttribute('data-z-index-level', 'system-dialog');
+        confirm
+      );
     });
   },
 
   declineReceive: function bt_declineReceive(address) {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     var adapter = Service.query('Bluetooth.getAdapter');
     if (adapter != null) {
       adapter.confirmReceivingFile(address, false);
@@ -239,7 +234,7 @@ var BluetoothTransfer = {
 
   acceptReceive: function bt_acceptReceive(evt) {
     this.debug('accepted the file transfer');
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     // Check storage is available or not before confirm receiving file
     var address = evt.address;
     var fileSize = evt.fileLength;
@@ -265,14 +260,13 @@ var BluetoothTransfer = {
       var confirm = {
         title: 'confirm',
         callback: function() {
-          CustomDialog.hide();
+          Service.request('hideCustomDialog');
         }
       };
 
       var body = msg;
-      var screen = document.getElementById('screen');
-      CustomDialog.show('cannotReceiveFile', body, confirm, null, screen)
-        .setAttribute('data-z-index-level', 'system-dialog');
+      Service.request('showCustomDialog', 
+        'cannotReceiveFile', body, confirm, null);
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
@@ -449,24 +443,20 @@ var BluetoothTransfer = {
       callback: this.cancelTransfer.bind(this, address)
     };
 
-    var screen = document.getElementById('screen');
-
-    CustomDialog.show(
+    Service.request('showCustomDialog',
       'cancelFileTransfer',
       'cancelFileTransfer',
       cancel,
-      confirm,
-      screen
-    )
-    .setAttribute('data-z-index-level', 'system-dialog');
+      confirm
+    );
   },
 
   continueTransfer: function bt_continueTransfer() {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
   },
 
   cancelTransfer: function bt_cancelTransfer(address) {
-    CustomDialog.hide();
+    Service.request('hideCustomDialog');
     var adapter = Service.query('Bluetooth.getAdapter');
     if (adapter !== null) {
       adapter.stopSendingFile(address);
@@ -602,71 +592,74 @@ var BluetoothTransfer = {
     var storage = navigator.getDeviceStorage(storageType);
     var getreq = storage.get(filePath);
 
-    getreq.onerror = () => {
-      var msg = 'failed to get file:' +
-                filePath + getreq.error.name +
-                getreq.error.name;
-      this.debug(msg);
-    };
-
-    getreq.onsuccess = () => {
-      var file = getreq.result;
-      // When we got the file by storage type of "sdcard"
-      // use the file.type to replace the empty fileType which is given by API
-      var fileName = file.name;
-      var extension = fileName.split('.').pop();
-      var originalType = file.type || contentType;
-      var mappedType = (MimeMapper.isSupportedType(originalType)) ?
-        originalType : MimeMapper.guessTypeFromExtension(extension);
-
-      var a = new MozActivity({
-        name: mappedType == 'text/vcard' ? 'import' : 'open',
-        data: {
-          type: mappedType,
-          blob: file,
-          // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=812098
-          // Pass the file name for Music APP since it can not open blob
-          filename: fileName
-        }
-      });
-
-      a.onerror = (e) => {
-        var msg = 'open activity error:' + a.error.name;
-        this.debug(msg);
-        switch (a.error.name) {
-        case 'NO_PROVIDER':
-          UtilityTray.hide();
-          // Cannot identify MIMETYPE
-          // So, show cannot open file dialog with unknow media type
-          this.showUnknownMediaPrompt(fileName);
-          return;
-        case 'ActivityCanceled':
-          return;
-        case 'USER_ABORT':
-          return;
-        default:
-          return;
-        }
-      };
-      a.onsuccess = (e) => {
-        var msg = 'open activity onsuccess';
+    LazyLoader.load(['shared/js/mime_mapper.js']).then(() => {
+      getreq.onerror = () => {
+        var msg = 'failed to get file:' +
+                  filePath + getreq.error.name +
+                  getreq.error.name;
         this.debug(msg);
       };
-    };
+
+      getreq.onsuccess = () => {
+        var file = getreq.result;
+        // When we got the file by storage type of "sdcard"
+        // use the file.type to replace the empty fileType which is given by API
+        var fileName = file.name;
+        var extension = fileName.split('.').pop();
+        var originalType = file.type || contentType;
+        var mappedType = (MimeMapper.isSupportedType(originalType)) ?
+          originalType : MimeMapper.guessTypeFromExtension(extension);
+
+        var a = new MozActivity({
+          name: mappedType == 'text/vcard' ? 'import' : 'open',
+          data: {
+            type: mappedType,
+            blob: file,
+            // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=812098
+            // Pass the file name for Music APP since it can not open blob
+            filename: fileName
+          }
+        });
+
+        a.onerror = (e) => {
+          var msg = 'open activity error:' + a.error.name;
+          this.debug(msg);
+          switch (a.error.name) {
+          case 'NO_PROVIDER':
+            UtilityTray.hide();
+            // Cannot identify MIMETYPE
+            // So, show cannot open file dialog with unknow media type
+            this.showUnknownMediaPrompt(fileName);
+            return;
+          case 'ActivityCanceled':
+            return;
+          case 'USER_ABORT':
+            return;
+          default:
+            return;
+          }
+        };
+        a.onsuccess = (e) => {
+          var msg = 'open activity onsuccess';
+          this.debug(msg);
+        };
+      };
+    }).catch((err) => {
+      console.error(err);
+    });
   },
 
   showUnknownMediaPrompt: function bt_showUnknownMediaPrompt(fileName) {
     var confirm = {
       title: 'confirm',
       callback: function() {
-        CustomDialog.hide();
+        Service.request('hideCustomDialog');
       }
     };
 
-    var screen = document.getElementById('screen');
     var body = {id: 'unknownMediaTypeToOpenFile', args: {fileName: fileName}};
-    CustomDialog.show('cannotOpenFile', body, confirm, null, screen)
-    .setAttribute('data-z-index-level', 'system-dialog');
+    Service.request('showCustomDialog',
+      'cannotOpenFile', body, confirm, null);
   }
 };
 

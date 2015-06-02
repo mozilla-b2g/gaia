@@ -275,7 +275,7 @@
           }
           break;
         case 'screenchange':
-          if (Service.locked && !detail.screenEnabled) {
+          if (Service.query('locked') && !detail.screenEnabled) {
             this.discardPermissionRequest();
           }
           break;
@@ -322,7 +322,8 @@
         this.cancelRequest(this.currentRequestId);
         this.isFullscreenRequest = false;
       }
-      if (detail.fullscreenorigin !== Service.currentApp.origin) {
+      if (detail.fullscreenorigin !==
+          Service.query('getTopMostWindow').origin) {
         this.isFullscreenRequest = true;
         detail.id = 'fullscreen';
         this.showPermissionPrompt(

@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, Tagged */
+/* globals BaseUI, CardsHelper, Tagged, Service */
 
 /* exported Card */
 
@@ -332,7 +332,9 @@
 
     // Use a cached screenshot if we have one for the active app
     var cachedLayer;
-    if (app.isActive()) {
+    // We may already enter the closed state.
+    if (Service.query('AppWindowManager.getActiveWindow') ===
+        this.app.getBottomMostWindow()) {
       // will be null or blob url
       cachedLayer = app.requestScreenshotURL();
       screenshotView.classList.toggle('fullscreen',

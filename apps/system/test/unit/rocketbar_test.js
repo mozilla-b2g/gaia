@@ -42,6 +42,7 @@ suite('system/Rocketbar', function() {
 
     requireApp('system/js/rocketbar.js', function() {
       subject = new Rocketbar();
+      subject.start();
       subject._port = MockIACPort;
       done();
     });
@@ -51,7 +52,6 @@ suite('system/Rocketbar', function() {
     stubById.restore();
     MockIACPort.mTearDown();
     subject._port = null;
-    MockService.currentApp = null;
   });
 
   suite('Hierarchy functions', function() {
@@ -489,7 +489,7 @@ suite('system/Rocketbar', function() {
       isBrowser: function() {},
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate')
@@ -506,7 +506,7 @@ suite('system/Rocketbar', function() {
       isBrowser: function() {},
       isActive: function() { return false; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var activateStub = this.sinon.stub(subject, 'activate');
@@ -529,7 +529,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     var resolved = Promise.resolve();
     this.sinon.stub(subject, 'activate', function() {
@@ -571,7 +571,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
 
     var maximize = this.sinon.spy(activeApp.appChrome, 'maximize');
     var resolved = Promise.resolve();
@@ -603,7 +603,7 @@ suite('system/Rocketbar', function() {
       },
       isActive: function() { return true; }
     };
-    MockService.currentApp = activeApp;
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', activeApp);
     this.sinon.stub(activeApp, 'isBrowser').returns(true);
     var setInputStub = this.sinon.stub(subject, 'setInput');
     var event = {type: 'global-search-request'};
@@ -733,11 +733,11 @@ suite('system/Rocketbar', function() {
     var showResultsStub, hideResultsStub, closeSearchStub;
 
     setup(function() {
-      MockService.currentApp = {
+      MockService.mockQueryWith('AppWindowManager.getActiveWindow', {
         isPrivateBrowser: function() {
           return false;
         }
-      };
+      });
       showResultsStub = this.sinon.stub(subject, 'showResults');
       hideResultsStub = this.sinon.stub(subject, 'hideResults');
       closeSearchStub = this.sinon.stub(subject, '_closeSearch');
@@ -771,11 +771,11 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleSubmit()', function(done) {
-    MockService.currentApp = {
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', {
       isPrivateBrowser: function() {
         return false;
       }
-    };
+    });
     var event = {
       'preventDefault': function() {
         done();
@@ -838,11 +838,11 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleSearchMessage()', function() {
-    MockService.currentApp = {
+    MockService.mockQueryWith('AppWindowManager.getActiveWindow', {
       isPrivateBrowser: function() {
         return false;
       }
-    };
+    });
     var initSearchConnectionStub = this.sinon.stub(subject,
       'initSearchConnection');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');

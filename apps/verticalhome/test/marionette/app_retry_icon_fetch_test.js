@@ -31,7 +31,7 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     system = client.loader.getAppClass('system');
     appInstall = new AppInstall(client);
 
-    system.waitForStartup();
+    system.waitForFullyLoaded();
     subject.waitForLaunch();
   });
 
