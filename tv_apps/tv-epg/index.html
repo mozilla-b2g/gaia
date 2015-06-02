@@ -17,19 +17,31 @@
 
     <!-- Shared libraries -->
     <script src="shared/js/l10n.js"></script>
-    <script defer src="/shared/js/l10n_date.js"></script>
     <script src="shared/js/manifest_helper.js"></script>
+    <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="bower_components/evt/index.js"></script>
+    <script defer src="shared/js/async_semaphore.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
     <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
+    <script defer src="shared/js/smart-screen/shared_utils.js"></script>
+    <script defer src="shared/js/smart-screen/applications.js"></script>
+    <script defer src="shared/js/smart-screen/piped_promise.js"></script>
+    <script defer src="shared/js/smart-screen/card_store.js"></script>
+    <script defer src="shared/js/smart-screen/cards/card.js"></script>
+    <script defer src="shared/js/smart-screen/cards/application.js"></script>
+    <script defer src="shared/js/smart-screen/cards/deck.js"></script>
+    <script defer src="shared/js/smart-screen/cards/folder.js"></script>
+    <script defer src="shared/js/smart-screen/card_manager.js"></script>
     <script defer src="shared/js/smart-screen/channel_manager.js"></script>
     <script defer src="shared/js/smart-screen/fake_tv_service.js"></script>
+    <script defer src="shared/js/smart-screen/pin_card.js"></script>
     <script defer src="shared/js/smart-screen/clock.js"></script>
 
     <!-- building blocks -->
 
     <!-- Specific code -->
+    <script defer src="js/context_menu.js"></script>
     <script defer src="js/epg_program.js"></script>
     <script defer src="js/epg_controller.js"></script>
     <script defer src="js/epg.js"></script>
@@ -90,6 +102,9 @@
           </div>
         </div>
       </section>
+      <menu type="context" id="context-menu">
+        <menuitem icon="style/icons/ic_pin.png" data-l10n-id="pin-to-home" id="pin-button-contextmenu"></menuitem>
+      </menu>
     </article>
   </body>
 </html>

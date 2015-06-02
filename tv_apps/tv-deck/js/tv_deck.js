@@ -1,5 +1,5 @@
 /* global ChannelManager, KeyNavigationAdapter, SimpleKeyNavigation,
-          asyncStorage, MozActivity, PinCard */
+          asyncStorage, ContextMenu, IACHandler */
 
 'use strict';
 
@@ -12,9 +12,20 @@
    * handled by onhashchange handler.
    */
   function TVDeck() {
+    this._pendingPorts = [];
     navigator.mozApps.getSelf().onsuccess = function(evt){
       if (evt.target && evt.target.result) {
         this.selfApp = evt.target.result;
+
+        // Prevent the case when _returnMeta is called before mozApps.getSelf
+        // object returns
+        if (this._pendingPorts.length) {
+          this._pendingPorts.forEach(function(port) {
+            this._sendTVDeckMeta(port);
+          }.bind(this));
+        }
+        this._pendingPorts = [];
+
         this._fetchElements();
         // XXX: Currently, we do not support tuner switching
         asyncStorage.getItem('Last-Tuner-ID', function(tunerId) {
@@ -24,6 +35,7 @@
         }.bind(this));
       }
     }.bind(this);
+    window.addEventListener('iac-tvdeck-getmeta', this._returnMeta.bind(this));
   }
 
   var proto = {};
@@ -62,15 +74,17 @@
 
     this.simpleKeyNavigation = new SimpleKeyNavigation();
 
-    this.pinCard = new PinCard(this.selfApp);
-    this.pinCard.on('update-pin-button', this.updatePinButton.bind(this));
+    this.contextmenu = new ContextMenu([{
+      element: this.pinButtonContextmenu,
+      hasText: true
+    }, {
+      element: this.pinButton,
+      hasText: false
+    }], this.selfApp);
 
     // Event listeners setup
     window.addEventListener('hashchange', this._onHashChange.bind(this));
     document.addEventListener('keyup', this._onEnterNumber.bind(this));
-
-    // Determine whether a card should be pinned or unpinned.
-    document.addEventListener('contextmenu', this.updatePinButton.bind(this));
   };
 
   proto._fetchElements = function td__fetchElements() {
@@ -137,7 +151,7 @@
         if (id === this.lastChannelId) {
           this.buttonGroupPanel.classList.remove('hidden');
           this.overlay.classList.remove('visible');
-          this.updatePinButton();
+          this.contextmenu.updateMenu();
           this.bubbleElement.play([this.pinButton, this.menuButton]);
           this.simpleKeyNavigation.start(
             [this.pinButton, this.menuButton],
@@ -290,54 +304,21 @@
     this.panelTimeoutId = null;
   };
 
-    /**
-   * Update pin button in button-group-panel and contextmenu.
-   */
-  proto.updatePinButton = function td_updatePinButton() {
-    if (this.pinCard.pinnedChannels[this.channelManager.currentHash]) {
-      // Show unpin button if current channel is pinned.
-      this.pinButtonContextmenu.setAttribute('data-l10n-id', 'unpin-from-home');
-      this.pinButtonContextmenu.onclick = this._unpinFromHome.bind(this);
-      this.pinButton.onclick = this._unpinFromHome.bind(this);
-    } else {
-      // Show pin button if current channel is not pinned yet.
-      this.pinButtonContextmenu.setAttribute('data-l10n-id', 'pin-to-home');
-      this.pinButtonContextmenu.onclick = this._pinToHome.bind(this);
-      this.pinButton.onclick = this._pinToHome.bind(this);
+  proto._returnMeta = function td__returnMeta(evt) {
+    var port = IACHandler.getPort('tvdeck-getmeta');
+    if (port) {
+      if (this.selfApp) {
+        this._sendTVDeckMeta(port);
+      } else {
+        this._pendingPorts.push(port);
+      }
     }
   };
 
-  proto._pinToHome = function td__pinToHome() {
-
-    var number = window.location.hash.split(',')[2];
-
-    /* jshint nonew:false */
-    new MozActivity({
-      name: 'pin',
-      data: {
-        type: 'Application',
-        group: 'tv',
-        name: {raw: 'CH ' + number},
-        manifestURL: this.selfApp.manifestURL,
-        launchURL: window.location.href
-      }
-    });
-  };
-
-  proto._unpinFromHome = function td__unpinFromHome() {
-
-    var message = {
-      type: 'unpin',
-      data: {
-        manifestURL: this.selfApp.manifestURL,
-        launchURL: window.location.href
-      }
-    };
-
-    this.selfApp.connect('appdeck-channel').then(function (ports) {
-      ports.forEach(function(port) {
-        port.postMessage(message);
-      });
+  proto._sendTVDeckMeta = function td__sendTVDeckMeta(port) {
+    port.postMessage({
+      origin: this.selfApp.origin,
+      manifestURL: this.selfApp.manifestURL
     });
   };
 

@@ -21,7 +21,9 @@
   proto._onScanned = function epg__onScanned() {
     this.programTable = [];
 
-    this.channelManager.setPlayingSource();
+    this.channelManager.setPlayingSource(function() {
+      window.location.hash = this.channelManager.currentHash;
+    }.bind(this));
     this._createChannelList(this.channelManager.getSource().channels);
     this.fire('scanned', this.channelManager.getTuner().tuner.stream);
   };
@@ -144,6 +146,14 @@
         }
       }
     }
+  };
+
+  proto.switchChannel = function epg_switchChannel(index) {
+    var number = this.channelManager.getSource().channels[index].channel.number;
+    this.channelManager.playingState.channelNumber = number;
+    this.channelManager.setPlayingChannel(function() {
+      window.location.hash = this.channelManager.currentHash;
+    }.bind(this));
   };
 
   proto._createChannelList = function epg__createChannelList(channels) {

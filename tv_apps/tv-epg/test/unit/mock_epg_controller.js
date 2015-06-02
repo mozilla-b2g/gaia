@@ -15,6 +15,7 @@
       };
       return promise;
     };
+    this.switchChannel = function() {};
   }
 
   exports.MockEPGController = MockEPGController;

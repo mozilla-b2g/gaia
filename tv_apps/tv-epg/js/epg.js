@@ -1,4 +1,5 @@
-/* global Clock, EPGController, SpatialNavigator, KeyNavigationAdapter */
+/* global Clock, EPGController, SpatialNavigator, KeyNavigationAdapter,
+          ContextMenu */
 
 'use strict';
 
@@ -46,7 +47,19 @@
     );
 
     this.clock = new Clock();
-    this.clock.start(this._updateClock.bind(this));
+    navigator.mozL10n.ready(function() {
+      this.clock.stop();
+      this.clock.start(this._updateClock.bind(this));
+    }.bind(this));
+
+    navigator.mozApps.getSelf().onsuccess = function(evt){
+      if (evt.target && evt.target.result) {
+        this.contextmenu = new ContextMenu([{
+          element: document.getElementById('pin-button-contextmenu'),
+          hasText: true
+        }], evt.target.result);
+      }
+    }.bind(this);
 
     this.epgController.on('scanned', this._onScanned.bind(this));
     this.epgController.on('appendChannel', this._appendChannel.bind(this));
@@ -70,6 +83,7 @@
     this.channelListElement = document.getElementById('channel-list');
     this.programListElement = document.getElementById('program-list');
     this.programMetaElement = document.getElementById('program-meta');
+    this.progressBarElement = document.getElementById('progress-bar');
     this.programTitleElement = document.getElementById('program-title');
     this.programDetailElement = document.getElementById('program-detail');
     this.timeMarkerContainerElement =
@@ -237,6 +251,12 @@
         programElement.fillProgress();
       }
     }
+
+    programElement = this.spatialNavigator.getFocusedElement();
+    if (programElement) {
+      this.progressBarElement.style.transform =
+        programElement.progressElement.style.transform;
+    }
   };
 
   proto._timeToString = function epg__timeToString(time) {
@@ -272,6 +292,9 @@
 
     this._displayProgramInfo(
       startTime - this.epgController.timelineOffset, rowIndex);
+    this.epgController.switchChannel(rowIndex);
+    this.progressBarElement.style.transform =
+      programElement.progressElement.style.transform;
 
     if (rowIndex < this.visibleChannelOffset) {
       // Move up
@@ -373,10 +396,12 @@
   };
 
   proto._updateDate = function epg__updateDate(time) {
-    var now = new Date(time);
-    var timeFormat = navigator.mozL10n.get('EPGDate');
-    var dtf = new navigator.mozL10n.DateTimeFormat();
-    this.dateElement.textContent = dtf.localeFormat(now, timeFormat);
+    if (navigator.mozL10n.readyState === 'complete') {
+      var now = new Date(time);
+      var timeFormat = navigator.mozL10n.get('EPGDate');
+      var dtf = new navigator.mozL10n.DateTimeFormat();
+      this.dateElement.textContent = dtf.localeFormat(now, timeFormat);
+    }
   };
 
   proto._onUnfocus = function epg__onUnfocus(programElement) {

@@ -41,7 +41,7 @@ suite('tv-epg/epg_program', function() {
 
     test('Program is still playing', function() {
       epgProgram.resetProgressElement(12);
-      assert.equal(epgProgram.progressElement.style.transform, '');
+      assert.equal(epgProgram.progressElement.style.transform, 'scaleX(0)');
       assert.isTrue(epgProgram.progressElement.classList.contains('smooth'));
     });
   });
