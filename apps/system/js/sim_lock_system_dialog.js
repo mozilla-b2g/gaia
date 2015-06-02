@@ -18,6 +18,8 @@
     this._dispatchEvent('created');
   };
 
+  var ORIENTATION = 'portrait-primary';
+
   SimLockSystemDialog.prototype = Object.create(SystemDialog.prototype,
     {
       visible: {
@@ -434,6 +436,7 @@
     }
 
     SystemDialog.prototype.show.apply(this);
+    screen.mozLockOrientation(ORIENTATION);
     this._visible = true;
     this.lockType = 'pin';
     this.handleCardState();
@@ -455,6 +458,7 @@
   SimLockSystemDialog.prototype.hide = function() {
     this._visible = false;
     SystemDialog.prototype.hide.apply(this);
+    screen.mozUnlockOrientation();
   };
 
   SimLockSystemDialog.prototype.close = function() {

@@ -191,6 +191,7 @@ suite('sim lock dialog', function() {
 
     setup(function() {
       stubClear = this.sinon.stub(subject, 'clear');
+      this.sinon.stub(screen, 'mozLockOrientation');
       stubApply = this.sinon.stub(SystemDialog.prototype.show, 'apply');
       subject.show();
     });
@@ -199,7 +200,29 @@ suite('sim lock dialog', function() {
       assert.isTrue(stubClear.called);
     });
 
+    test('locks the orientation', function() {
+      assert.isTrue(screen.mozLockOrientation.calledWith('portrait-primary'));
+    });
+
     test('calls to SystemDialog show method', function() {
+      assert.isTrue(stubApply.calledWith(subject));
+    });
+  });
+
+  suite('hide', function() {
+    var stubApply;
+
+    setup(function() {
+      this.sinon.stub(screen, 'mozUnlockOrientation');
+      stubApply = this.sinon.stub(SystemDialog.prototype.hide, 'apply');
+      subject.hide();
+    });
+
+    test('unlocks the orientation', function() {
+      assert.isTrue(screen.mozUnlockOrientation.calledWith());
+    });
+
+    test('calls to SystemDialog hide method', function() {
       assert.isTrue(stubApply.calledWith(subject));
     });
   });
