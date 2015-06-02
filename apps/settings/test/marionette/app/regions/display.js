@@ -17,9 +17,8 @@ module.exports = DisplayPanel;
 
 DisplayPanel.Selectors = {
   'wallpaper': '.wallpaper',
-  'lockOrientationCheckbox': '#display input[name="screen.orientation.lock"]',
-  'lockOrientationSpan':
-    '#display input[name="screen.orientation.lock"] ~ span',
+  'lockOrientationCheckbox':
+    '#display gaia-switch[name="screen.orientation.lock"]',
   'autoBrightnessItem': '.brightness-auto',
   'autoBrightnessCheckbox':
     '#display input[name="screen.automatic-brightness"]',
@@ -35,8 +34,12 @@ DisplayPanel.prototype = {
   __proto__: Base.prototype,
 
   get isLockOrientationChecked() {
-    return !!this.findElement('lockOrientationCheckbox')
-      .getAttribute('checked');
+    // Marionette has trouble returning custom properties on shadow roots.
+    // For now query the shadowRoot for checked status.
+    return this.findElement('lockOrientationCheckbox')
+      .scriptWith(function(el) {
+        return el.shadowRoot.querySelector('input[type="checkbox"]').checked;
+      });
   },
 
   get isAutoBrightnessChecked() {
@@ -64,7 +67,7 @@ DisplayPanel.prototype = {
   },
 
   tapLockOrientationCheckbox: function() {
-    this.waitForElement('lockOrientationSpan').tap();
+    this.waitForElement('lockOrientationCheckbox').tap();
   },
 
   tapWallpaper: function() {

@@ -180,7 +180,7 @@ define(function(require) {
         panel = panel || document;
 
         // preset all checkboxes
-        var rule = 'input[type="checkbox"]:not([data-ignore])';
+        var rule = 'input[type="checkbox"]:not([data-ignore]), gaia-switch';
         var checkboxes = panel.querySelectorAll(rule);
         var i, count, key;
         for (i = 0, count = checkboxes.length; i < count; i++) {
@@ -382,12 +382,13 @@ define(function(require) {
       }
 
       // update <input> values when the corresponding setting is changed
-      var input = panel.querySelector('input[name="' + key + '"]');
+      var input = panel.querySelector(`input[name="${key}"],
+        gaia-switch[name="${key}"]`);
       if (!input) {
         return;
       }
-
       switch (input.type) {
+        case 'gaia-switch':
         case 'checkbox':
         case 'switch':
           if (input.checked == value) {
@@ -430,7 +431,7 @@ define(function(require) {
      */
     onInputChange: function pu_onInputChange(event) {
       var input = event.target;
-      var type = input.type;
+      var type = input.type || input.nodeName.toLowerCase();
       var key = input.name;
 
       //XXX should we check data-ignore here?
@@ -447,6 +448,7 @@ define(function(require) {
 
       var value;
       switch (type) {
+        case 'gaia-switch':
         case 'checkbox':
         case 'switch':
           value = input.checked; // boolean

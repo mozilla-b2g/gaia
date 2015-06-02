@@ -18,6 +18,13 @@ ul li {
   color: #000;
 }
 
+/* Provide additional margin around gaia-switch to match spacing with legacy components */
+ul li > gaia-switch {
+  -moz-margin-start: 1.5rem;
+  /* The !important is necessary to override gaia-swtich scoped style. */
+  width: calc(100% - 1.5rem) !important;
+}
+
 ul+ul li:first-child {
   border-top: 0.1rem solid #e6e6e3;
 }
