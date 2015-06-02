@@ -7,6 +7,7 @@ from gaiatest.apps.base import Base
 
 
 class Settings(Base):
+    _screen_locator = (By.ID, 'screen')
 
     _settings_iframe_locator = (By.ID, 'settings-view-placeholder')
     _settings_title_locator = (By.CSS_SELECTOR, 'section#settings-view h1')
@@ -27,6 +28,9 @@ class Settings(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
+        self.switch_to_settings_iframe()
+
+    def switch_to_settings_iframe(self):
         # go into iframe of usage app settings
         frame = Wait(self.marionette).until(expected.element_present(
             *self._settings_iframe_locator))
@@ -62,6 +66,22 @@ class Settings(Base):
         size.send_keys(value)
         self.marionette.find_element(*self._usage_done_button_locator).tap()
 
+    def tap_confirm_reset(self):
+        confirm_reset_button = Wait(self.marionette).until(
+            expected.element_present(*self._confirm_reset_button_locator))
+        Wait(self.marionette).until(expected.element_displayed(confirm_reset_button))
+
+        # Workaround for bug 1161088, where tapping on the button inside the app itself
+        # makes Marionette spew out NS_ERROR_NOT_INITIALIZED errors
+        x = confirm_reset_button.rect['x'] + confirm_reset_button.rect['width']//2
+        y = confirm_reset_button.rect['y'] + confirm_reset_button.rect['height']//2
+        self.marionette.switch_to_frame()
+        self.marionette.find_element(*self._screen_locator).tap(x=x, y=y)
+
+        # go back to iframe of usage app settings
+        self.apps.switch_to_displayed_app()
+        self.switch_to_settings_iframe()
+
     def reset_wifi_usage(self):
         self.marionette.find_element(*self._reset_button_locator).tap()
 
@@ -71,12 +91,8 @@ class Settings(Base):
         reset_dialog = self.marionette.find_element(*self._reset_dialog_locator)
         reset_wifi_usage.tap()
 
-        confirm_reset_button = Wait(self.marionette).until(
-            expected.element_present(*self._confirm_reset_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(confirm_reset_button))
-        confirm_reset_button.tap()
+        self.tap_confirm_reset()
 
-        Wait(self.marionette).until(expected.element_not_displayed(reset_dialog))
 
     def reset_mobile_usage(self):
         self.marionette.find_element(*self._reset_button_locator).tap()
@@ -86,12 +102,7 @@ class Settings(Base):
         reset_dialog = self.marionette.find_element(*self._reset_dialog_locator)
         reset_mobile_usage.tap()
 
-        confirm_reset_button = Wait(self.marionette).until(
-            expected.element_present(*self._confirm_reset_button_locator))
-        Wait(self.marionette).until(expected.element_displayed(confirm_reset_button))
-        confirm_reset_button.tap()
-
-        Wait(self.marionette).until(expected.element_not_displayed(reset_dialog))
+        self.tap_confirm_reset()
 
     def tap_done(self):
         done_button = Wait(self.marionette).until(
