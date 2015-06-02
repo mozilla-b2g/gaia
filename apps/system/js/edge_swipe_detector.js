@@ -5,6 +5,7 @@
 /* global Service */
 /* global SheetsTransition */
 /* global softwareButtonManager */
+/* global rocketbar */
 /* global StackManager */
 /* global TouchForwarder */
 
@@ -238,6 +239,11 @@
       if (this._forwarding) {
         this._forward(e);
         return;
+      }
+
+      // If the rocketbar is active, we start forwarding
+      if (rocketbar.active) {
+        this._startForwarding(e);
       }
 
       // If it's a pinch gesture we start forwarding
