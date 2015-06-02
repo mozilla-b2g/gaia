@@ -1,12 +1,15 @@
-/* dialog */
-/* FIXME we have to see why we need such specific style here and why
- * the general style in confirm.css isn't sufficient */
-#setup-installed-app-dialog,
-#ime-layout-dialog,
-#app-uninstall-dialog,
-#app-install-dialog,
-#app-install-cancel-dialog,
-#app-download-cancel-dialog {
+/* dialogs */
+#app-install-dialogs h1,
+#app-install-dialogs p {
+  font-size: 3.8rem;
+  font-style: italic;
+  font-weight: lighter;
+  color: #9f9f9f;
+}
+/* ... end of dialogs */
+
+/* ... start of keyboard layout */
+#ime-layout-dialog {
   display: none;
   pointer-events: none;
   top: 0;
@@ -17,33 +20,18 @@
   background-color: rgba(0, 0, 0, 0.9);
 }
 
-#setup-installed-app-dialog.visible,
-#ime-layout-dialog.visible,
-#app-uninstall-dialog.visible,
-#app-install-dialog.visible,
-#app-install-cancel-dialog.visible,
-#app-download-cancel-dialog.visible {
+#ime-layout-dialog.visible {
   display: inline-block;
   pointer-events: auto;
 }
 
-#setup-installed-app-dialog section,
-#ime-layout-dialog section,
-#app-uninstall-dialog section,
-#app-install-dialog section,
-#app-install-cancel-dialog section,
-#app-download-cancel-dialog section {
+#ime-layout-dialog section {
   width: 96rem;
   /*height: 20rem;*/
   height: auto;
 }
 
-#setup-installed-app-dialog h1,
-#ime-layout-dialog h1,
-#app-uninstall-dialog h1,
-#app-install-dialog h1,
-#app-install-cancel-dialog h1,
-#app-download-cancel-dialog h1 {
+#ime-layout-dialog h1 {
   font-size: 3.8rem;
   font-style: italic;
   font-weight: lighter;
@@ -52,46 +40,6 @@
   background: none;
 }
 
-#app-uninstall-dialog dl > dt,
-#app-install-dialog dl > dt,
-#app-install-cancel-dialog dl > dt {
-  width: 8rem;
-  margin-right: 1rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#app-install-cancel-dialog small:first-child {
-  margin-bottom: 1rem;
-}
-
-#app-uninstall-dialog > section > menu,
-#app-install-dialog > section > menu,
-#app-install-cancel-dialog > section > menu {
-  position: relative;
-  padding-top: 13rem;
-  background: none;
-  border-top: none;
-}
-
-#app-uninstall-dialog > section > menu > smart-button:first-child,
-#app-install-dialog > section > menu > smart-button:first-child,
-#app-install-cancel-dialog > section > menu > smart-button:first-child {
-  margin-left: auto;
-}
-
-#app-uninstall-dialog > section > menu > smart-button:not(:first-child),
-#app-install-dialog > section > menu > smart-button:not(:first-child),
-#app-install-cancel-dialog > section > menu > smart-button:not(:first-child) {
-  margin-left: 4.4rem;
-}
-
-#app-install-cancel-dialog > section > p {
-  border: none;
-}
-/* ... end of dialog */
-
-/* ... start of keyboard layout */
 ul#ime-list {
   padding-left: 1.5rem;
 }

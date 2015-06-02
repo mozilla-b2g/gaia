@@ -215,6 +215,7 @@
 
     <!-- App Install -->
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
+    <script defer src="js/app_install_dialogs.js"></script>
     <script defer src="js/app_install_manager.js"></script>
 
     <!-- Notifications -->
@@ -580,59 +581,8 @@
       -->
       </div>
 
-      <form id="app-install-dialog" class='app-install-dialog generic-dialog'
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 id="app-install-message"></h1>
-          <menu data-items="2">
-            <smart-button id="app-install-cancel-button" data-l10n-id="cancel" type="circle-text">Cancel</smart-button>
-            <smart-button id="app-install-install-button" class="recommend primary" data-l10n-id="install" type="circle-text">Install</smart-button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="app-install-cancel-dialog" class='app-install-dialog generic-dialog'
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 data-l10n-id="cancelling-will-not-refund">Cancelling will not refund a purchase. Refunds for paid content are provided by the original seller.</h1>
-          <h1 data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</h1>
-          <h1 data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</h1>
-          <menu data-items="2">
-            <smart-button id="app-install-confirm-cancel-button" type="circle-text" data-l10n-id="cancel-install-button">Cancel Install</smart-button>
-            <smart-button id="app-install-resume-button" type="circle-text" data-l10n-id="resume">Resume</smart-button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="app-uninstall-dialog" class='app-uninstall-dialog generic-dialog'
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 id="app-uninstall-message"></h1>
-          <menu data-items="2">
-            <smart-button id="app-uninstall-cancel-button" data-l10n-id="cancel" type="circle-text">Cancel</smart-button>
-            <smart-button id="app-uninstall-confirm-button" class="danger" data-l10n-id="delete" type="circle-text">delete</smart-button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="app-download-cancel-dialog" class='app-install-dialog generic-dialog'
-        data-type="confirm" role="dialog"
-        data-z-index-level="app-install-dialog">
-        <section>
-          <h1></h1>
-          <p data-l10n-id="app-download-can-be-restarted">The download can
-          be restarted later.</p>
-          <menu data-items="2">
-            <button id="app-download-stop-button" class="danger confirm"
-              data-l10n-id="app-download-stop-button">Stop Download</button>
-            <button id="app-download-continue-button" class="cancel"
-              type="reset" data-l10n-id="continue">Continue</button>
-          </menu>
-        </section>
-      </form>
+      <div id="app-install-dialogs" data-z-index-level="app-install-dialog">
+      </div>
 
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
             data-z-index-level="updates-download-dialog" data-nowifi="false"
@@ -653,19 +603,6 @@
           <button id="updates-download-button" type="submit"
             data-l10n-id="download">Download</button>
         </menu>
-      </form>
-
-      <form id="setup-installed-app-dialog" class='setup-installed-app-dialog'
-            data-type="confirm" role="dialog"
-            data-z-index-level="setup-installed-app-dialog">
-        <section>
-          <h1 id="setup-app-name"></h1>
-          <p id="setup-app-description"></p>
-          <menu data-items="2">
-            <button id="setup-cancel-button" type="button" data-l10n-id="later">Later</button>
-            <button id="setup-confirm-button" class="recommend" type="button" data-l10n-id="setup">Setup</button>
-          </menu>
-        </section>
       </form>
 
       <form id="ime-layout-dialog" class="ime-layout-dialog"
