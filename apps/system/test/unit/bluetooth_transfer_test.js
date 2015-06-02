@@ -304,7 +304,7 @@ suite('system/bluetooth_transfer', function() {
           );
           assert.equal(
             MockNotificationHelper.mOptions.bodyL10n,
-            'transfer-confirmation-description'
+            'transfer-confirmation-description2'
           );
           assert.equal(
             MockNotificationHelper.mOptions.icon,

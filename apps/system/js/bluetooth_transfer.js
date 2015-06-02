@@ -177,7 +177,7 @@ var BluetoothTransfer = {
         id: 'transfer-confirmation-title',
         args: { deviceName: deviceName }
       };
-      var body = 'transfer-confirmation-description';
+      var body = 'transfer-confirmation-description2';
 
       NotificationHelper.send(title, {
         'bodyL10n': body,
@@ -193,15 +193,13 @@ var BluetoothTransfer = {
 
   showReceivePrompt: function bt_showReceivePrompt(evt) {
     var address = evt.address;
-    var fileName = evt.fileName;
-    var fileSize = this.humanizeSize(evt.fileLength);
-    var cancel = {
-      title: 'deny',
+    var no = {
+      title: 'no',
       callback: this.declineReceive.bind(this, address)
     };
 
-    var confirm = {
-      title: 'transfer',
+    var yes = {
+      title: 'yes',
       callback: this.acceptReceive.bind(this, evt),
       recommend: true
     };
@@ -209,17 +207,15 @@ var BluetoothTransfer = {
     var screen = document.getElementById('screen');
     this.getDeviceName(address).then(function(deviceName) {
       CustomDialog.show(
-        'acceptFileTransfer',
+        'acceptFileTransfer2',
         {
-          id: 'wantToReceiveFile',
+          id: 'wantToReceiveFile2',
           args: {
-            deviceName: deviceName,
-            fileName: fileName,
-            fileSize: fileSize
+            deviceName: deviceName
           }
         },
-        cancel,
-        confirm,
+        no,
+        yes,
         screen
       )
       .setAttribute('data-z-index-level', 'system-dialog');
@@ -229,7 +225,7 @@ var BluetoothTransfer = {
   declineReceive: function bt_declineReceive(address) {
     CustomDialog.hide();
     var adapter = Service.query('Bluetooth.getAdapter');
-    if (adapter != null) {
+    if (adapter !== null) {
       adapter.confirmReceivingFile(address, false);
     } else {
       var msg = 'Cannot get adapter from system Bluetooth monitor.';
@@ -283,7 +279,7 @@ var BluetoothTransfer = {
     var storage = this._deviceStorage;
 
     var availreq = storage.available();
-    availreq.onsuccess = function(e) {
+    availreq.onsuccess = function() {
       switch (availreq.result) {
       case 'available':
         // skip down to the code below
@@ -314,7 +310,7 @@ var BluetoothTransfer = {
       };
     };
 
-    availreq.onerror = function(e) {
+    availreq.onerror = function() {
       callback(false, 'cannotGetStorageState');
     };
   },
@@ -325,7 +321,7 @@ var BluetoothTransfer = {
 
   isFileTransferInProgress: function() {
     var jobs = this.transferStatusList.querySelector('div');
-    return jobs != null;
+    return jobs !== null;
   },
 
   sendFileViaHandover: function bt_sendFileViaHandover(evt) {
@@ -384,21 +380,23 @@ var BluetoothTransfer = {
     var _ = navigator.mozL10n.get;
     // Create progress dynamically in notification center
     var address = evt.address;
-    var transferMode =
+    var fileName = evt.fileName;
+    var fileSize = this.humanizeSize(evt.fileLength);
+    var transferringInfo =
       (evt.received === true) ?
-      _('bluetooth-receiving-progress') : _('bluetooth-sending-progress');
-
-    // XXX: Bug 804533 - [Bluetooth]
-    // Need sending/receiving icon for Bluetooth file transfer
+      _('bluetooth-receiving-progress2', {fileSize: fileSize}) :
+      _('bluetooth-sending-progress2', {fileSize: fileSize});
     var content =
       `<div data-icon="bluetooth-transfer-circle"></div>
-      <div class="title-container">${transferMode}</div>
+      <div class="title-container" dir="auto">${transferringInfo}</div>
+      <div class="detail" dir="auto">${fileName}</div>
       <progress value="0" max="1"></progress>`;
 
     var transferTask = document.createElement('div');
     transferTask.id = 'bluetooth-transfer-status';
     transferTask.className = 'fake-notification';
     transferTask.setAttribute('data-id', address);
+    transferTask.setAttribute('data-received', evt.received);
     transferTask.setAttribute('role', 'link');
     transferTask.innerHTML = content;
     transferTask.addEventListener('click',
@@ -422,7 +420,7 @@ var BluetoothTransfer = {
     // So that there is no progress element which was created on notification.
     // There is only 'bluetooth-opp-transfer-complete' event to notify Gaia
     // the transferring request in failed case.
-    if (finishedTask == null) {
+    if (finishedTask === null) {
       return;
     }
 
@@ -432,30 +430,57 @@ var BluetoothTransfer = {
   },
 
   onCancelTransferTask: function bt_onCancelTransferTask(evt) {
-    var id = evt.target.dataset.id;
+    var options = {
+      address: evt.target.dataset.id,
+      received: evt.target.dataset.received
+    };
     // Show confirm dialog for user to cancel transferring task
     UtilityTray.hide();
-    this.showCancelTransferPrompt(id);
+    this.showCancelTransferPrompt(options);
   },
 
-  showCancelTransferPrompt: function bt_showCancelTransferPrompt(address) {
-    var cancel = {
-      title: 'continueFileTransfer',
+  /**
+   * Show a confirmation dialog for cancel current transfer.
+   * The singular/plural file(s) is responding to transferring mode.
+   *
+   * @access private
+   * @memberOf BluetoothTransfer
+   * @param {Object} options
+   * @param {String} options.address - address of the transferring device
+   * @param {Boolean} options.received - received is received or not
+   */
+  showCancelTransferPrompt: function bt_showCancelTransferPrompt(options) {
+    var no = {
+      title: 'no',
       callback: this.continueTransfer.bind(this)
     };
 
-    var confirm = {
-      title: 'cancel',
-      callback: this.cancelTransfer.bind(this, address)
+    var yes = {
+      title: 'yes',
+      callback: this.cancelTransfer.bind(this, options.address)
     };
 
     var screen = document.getElementById('screen');
-
+    var title, body;
+    // Identify how many files are in transferring.
+    if (options.received === 'true') {
+      // receiving file(s), probably more than one
+      title = body = 'cancelTransfer-maybeMoreThanOne-file';
+    } else {
+      if (this._sendingFilesQueue[0].numberOfFiles > 1) {
+        // sending multiple files
+        title = body = 'cancelTransfer-multiple-files';
+      } else {
+        // sending one file
+        title = body = 'cancelTransfer-one-file';
+      }
+    }
+    
     CustomDialog.show(
-      'cancelFileTransfer',
-      'cancelFileTransfer',
-      cancel,
-      confirm,
+      title,
+      body,
+      no,
+      yes,
       screen
     )
     .setAttribute('data-z-index-level', 'system-dialog');
@@ -478,6 +503,8 @@ var BluetoothTransfer = {
 
   _onTransferComplete: function bt__onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
+    console.log('_onTransferComplete(): transferInfo = ' +
+      JSON.stringify(transferInfo));
     // Remove transferring progress
     this.removeProgress(transferInfo);
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
@@ -498,6 +525,16 @@ var BluetoothTransfer = {
         nData.titleL10n = 'transferFinished-sentSuccessful-title';
       }
     } else {
+      // TODO: 
+      // In failed case, might to reference error message for notification.
+      // Becasue it is risk to use filename to match with each transfer 
+      // completed task. So that would like to request error info from the
+      // system message 'bluetooth-opp-transfer-complete'.
+      // 
+      // The notifications will be these cases.
+      // 1. File could not be received
+      // 2. File transfer cancelled (manually cancel file sending)
+      // 3. File(s) transfer cancelled (manually cancel file(s) receiving)
       if (transferInfo.received) {
         nData.titleL10n = 'transferFinished-receivedFailed-title';
       } else {
@@ -630,7 +667,7 @@ var BluetoothTransfer = {
         }
       });
 
-      a.onerror = (e) => {
+      a.onerror = () => {
         var msg = 'open activity error:' + a.error.name;
         this.debug(msg);
         switch (a.error.name) {
@@ -648,7 +685,7 @@ var BluetoothTransfer = {
           return;
         }
       };
-      a.onsuccess = (e) => {
+      a.onsuccess = () => {
         var msg = 'open activity onsuccess';
         this.debug(msg);
       };

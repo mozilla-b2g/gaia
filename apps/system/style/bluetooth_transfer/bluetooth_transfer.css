@@ -5,7 +5,10 @@
 
 #bluetooth-transfer-status .title-container {
   margin: 1.4rem 0 0 3.7rem;
-  line-height: 3rem;
+}
+
+#bluetooth-transfer-status .detail {
+  margin-left: 3.7rem;
 }
 
 #bluetooth-transfer-status progress {
@@ -24,6 +27,10 @@
   background-color: #00caf2;
   transform: skew(-45deg);
   margin-left: -1rem;
+}
+
+#bluetooth-transfer-status > * {
+  pointer-events: none;
 }
 
 /* In use? */
