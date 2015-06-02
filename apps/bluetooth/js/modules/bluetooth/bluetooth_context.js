@@ -124,7 +124,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @type {Object} BluetoothAdapter
+     * @type {BluetoothAdapter}
      */
     _defaultAdapter: null,
 
@@ -162,7 +162,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _initProperties: function btc__initProperties(adapter) {
       // init observable properties
@@ -198,7 +198,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _watchDefaultAdapterAttributechanged:
     function btc__watchDefaultAdapterAttributechanged(adapter) {
@@ -212,7 +212,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _unwatchDefaultAdapterAttributechanged:
     function btc__unwatchDefaultAdapterAttributechanged(adapter) {
@@ -230,7 +230,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _watchDefaultAdapterOndevicepaired:
     function btc__watchDefaultAdapterOndevicepaired(adapter) {
@@ -244,7 +244,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _unwatchDefaultAdapterOndevicepaired:
     function btc__unwatchDefaultAdapterOndevicepaired(adapter) {
@@ -261,7 +261,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _watchDefaultAdapterOndeviceunpaired:
     function btc__watchDefaultAdapterOndeviceunpaired(adapter) {
@@ -275,7 +275,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _unwatchDefaultAdapterOndeviceunpaired:
     function btc__unwatchDefaultAdapterOndeviceunpaired(adapter) {
@@ -288,7 +288,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      * @param {event} evt
      */
     _onAdapterAttributeChanged:
@@ -330,7 +330,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      * @param {event} evt
      */
     _onAdapterDevicepaired:
@@ -353,7 +353,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      * @param {event} evt
      */
     _onAdapterDeviceunpaired:
@@ -372,8 +372,8 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter newAdapter
-     * @param {Object} BluetoothAdapter oldAdapter
+     * @param {BluetoothAdapter} newAdapter
+     * @param {BluetoothAdapter} oldAdapter
      */
     _onDefaultAdapterChanged:
     function btc__onDefaultAdapterChanged(newAdapter, oldAdapter) {
@@ -411,7 +411,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object} BluetoothAdapter adapter
+     * @param {BluetoothAdapter} adapter
      */
     _refreshPairedDevicesInfo: function btc__refreshPairedDevicesInfo(adapter) {
       var pairedDevices = adapter.getPairedDevices();
@@ -757,7 +757,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Observable array} list
+     * @param {ObservableArray} list
      * @param {String} address
      */
     _removeItemFromList: function btc__removeItemFromList(list, address) {
@@ -819,7 +819,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothContext
-     * @return {Observable Array}
+     * @return {ObservableArray}
      */
     getPairedDevices: function btc_getPairedDevices() {
       return this._pairedDevices;
@@ -830,7 +830,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothContext
-     * @return {Observable Array}
+     * @return {ObservableArray}
      */
     getRemoteDevices: function btc_getRemoteDevices() {
       return this._remoteDevices;

@@ -141,7 +141,7 @@ define(function() {
      *
      * @access public
      * @memberOf BluetoothClassOfDeviceMapper
-     * @param {Object} BluetoothClassOfDevice cod
+     * @param {BluetoothClassOfDevice} cod
      * @return {String}
      */
     getDeviceType: function btcodm_getDeviceType(cod) {
