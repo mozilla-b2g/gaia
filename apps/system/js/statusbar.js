@@ -153,6 +153,7 @@ var StatusBar = {
 
     window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('activitytitlestatechanged', this);
+    window.addEventListener('homescreentitlestatechanged', this);
     window.addEventListener('appchromecollapsed', this);
     window.addEventListener('appchromeexpanded', this);
     window.addEventListener('iconcreated', this);
@@ -326,6 +327,7 @@ var StatusBar = {
         /* falls through */
       case 'apptitlestatechanged':
       case 'activitytitlestatechanged':
+      case 'homescreentitlestatechanged':
         this.setAppearance();
         if (!this.isPaused()) {
           this.element.classList.remove('hidden');

@@ -249,7 +249,7 @@ textarea,
   overflow: hidden;
 }
 
-#windows::before {
+#windows .appWindow:not(.homescreen)::before {
   position: absolute;
   top: 0;
   width: 100%;
