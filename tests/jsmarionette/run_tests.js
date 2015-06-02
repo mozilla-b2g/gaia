@@ -5,9 +5,11 @@
  * @fileoverview Runs all jsmarionette unit tests. Does not run ui tests.
  */
 var Mocha = require('mocha');
+var path = require('path');
 
 var configs = Object.freeze({
-  'mocha/mocha-json-proxy': {
+  /* mocha */
+  'mocha-json-proxy': {
     entrypoint: 'test/helper',
     tests: [
       'test/acceptance/consumer',
@@ -17,15 +19,16 @@ var configs = Object.freeze({
     ]
   },
 
-  'mocha/mocha-tbpl-reporter': {
+  'mocha-tbpl-reporter': {
     tests: ['test/tbpl_test']
   },
 
-  'plugins/marionette-file-manager': {
+  /* plugins */
+  'marionette-file-manager': {
     tests: ['test/unit/desktop_client_file_manager_test']
   },
 
-  'plugins/marionette-plugin-forms': {
+  'marionette-plugin-forms': {
     entrypoint: 'test/test-helper',
     tests: [
       'test/unit/tests/formatters/date',
@@ -34,12 +37,13 @@ var configs = Object.freeze({
     ]
   },
 
-  'runner/marionette-profile-builder': {
+  /* runner */
+  'marionette-profile-builder': {
     entrypoint: 'test/helper',
     tests: ['test/index']
   },
 
-  'runner/mozilla-profile-builder': {
+  'mozilla-profile-builder': {
     entrypoint: 'test/helper',
     tests: [
       'test/createprofile',
@@ -50,14 +54,7 @@ var configs = Object.freeze({
     ]
   },
 
-  'runner/mozilla-runner': {
-    tests: [
-      'test/detectbinary',
-      'test/run'
-    ]
-  },
-
-  'runner/marionette-js-runner': {
+  'marionette-js-runner': {
     entrypoint: 'test/helper',
     tests: [
       'test/bin/apply-manifest_test',
@@ -70,18 +67,23 @@ var configs = Object.freeze({
       'test/optsfileparser_test',
       'test/rpc_test'
     ]
+  },
+
+  'mozilla-runner': {
+    'tests': [
+      'test/detectbinary',
+      'test/run'
+    ]
   }
 });
 
 function configureMocha(mocha, key, config) {
   if (config.entrypoint) {
-    var entrypoint = __dirname + '/' + key + '/' + config.entrypoint;
-    require(entrypoint);
+    require(norm(__dirname, '../../node_modules', key, config.entrypoint));
   }
 
   config.tests.forEach(function(test) {
-    var file = __dirname + '/' + key + '/' + test;
-    mocha.addFile(file);
+    mocha.addFile(norm(__dirname, '../../node_modules', key, test));
   });
 }
 
@@ -100,6 +102,11 @@ function main() {
   mocha.run(function(failures) {
     process.exit(failures);
   });
+}
+
+function norm() {
+  var args = Array.prototype.slice.call(arguments);
+  return path.normalize(path.resolve.apply(path, args));
 }
 
 if (require.main === module) {
