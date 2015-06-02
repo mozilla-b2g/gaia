@@ -545,7 +545,7 @@ var NotificationScreen = {
     }
 
     if (notify && !this.isResending) {
-      if (!this.silent) {
+      if (!this.silent && !behavior.silent) {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
 
@@ -565,7 +565,7 @@ var NotificationScreen = {
         }, 4000);
       }
 
-      if (this.vibrates) {
+      if (this.vibrates && !behavior.silent) {
         var pattern = [200, 200, 200];
         if (behavior.vibrationPattern && behavior.vibrationPattern.length &&
             behavior.vibrationPattern[0] > 0) {
