@@ -1,6 +1,6 @@
 'use strict';
 var EventEmitter = require('events').EventEmitter;
-var assert = require('assert');
+var assert = require('chai').assert;
 var spawn = require('child_process').spawn;
 
 global.assert = assert;

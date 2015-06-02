@@ -1,5 +1,5 @@
 'use strict';
-var assert = require('assert');
+var assert = require('chai').assert;
 
 global.assert = assert;
 global.sinon = require('sinon');

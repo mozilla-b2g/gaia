@@ -5,9 +5,26 @@
  * @fileoverview Runs all jsmarionette unit tests. Does not run ui tests.
  */
 var Mocha = require('mocha');
+var path = require('path');
 
 var configs = Object.freeze({
-  'mocha/mocha-json-proxy': {
+  'marionette-client': {
+    entrypoint: 'test/helper',
+    tests: [
+      'test/marionette/drivers/abstract-test',
+      'test/marionette/drivers/tcp-sync-test',
+      'test/marionette/drivers/tcp-test',
+      'test/marionette/actions-test',
+      'test/marionette/client-test',
+      'test/marionette/command-stream-test',
+      'test/marionette/element-test',
+      'test/marionette/error-test',
+      'test/marionette/index-test',
+      'test/marionette/multi-actions-test'
+    ]
+  },
+
+  'mocha-json-proxy': {
     entrypoint: 'test/helper',
     tests: [
       'test/acceptance/consumer',
@@ -17,15 +34,15 @@ var configs = Object.freeze({
     ]
   },
 
-  'mocha/mocha-tbpl-reporter': {
+  'mocha-tbpl-reporter': {
     tests: ['test/tbpl_test']
   },
 
-  'plugins/marionette-file-manager': {
+  'marionette-file-manager': {
     tests: ['test/unit/desktop_client_file_manager_test']
   },
 
-  'plugins/marionette-plugin-forms': {
+  'marionette-plugin-forms': {
     entrypoint: 'test/test-helper',
     tests: [
       'test/unit/tests/formatters/date',
@@ -34,30 +51,7 @@ var configs = Object.freeze({
     ]
   },
 
-  'runner/marionette-profile-builder': {
-    entrypoint: 'test/helper',
-    tests: ['test/index']
-  },
-
-  'runner/mozilla-profile-builder': {
-    entrypoint: 'test/helper',
-    tests: [
-      'test/createprofile',
-      'test/gaiaprofile',
-      'test/index',
-      'test/pref',
-      'test/profile'
-    ]
-  },
-
-  'runner/mozilla-runner': {
-    tests: [
-      'test/detectbinary',
-      'test/run'
-    ]
-  },
-
-  'runner/marionette-js-runner': {
+  'marionette-js-runner': {
     entrypoint: 'test/helper',
     tests: [
       'test/bin/apply-manifest_test',
@@ -70,19 +64,59 @@ var configs = Object.freeze({
       'test/optsfileparser_test',
       'test/rpc_test'
     ]
+  },
+
+  'marionette-profile-builder': {
+    entrypoint: 'test/helper',
+    tests: ['test/index']
+  },
+
+  'mozilla-profile-builder': {
+    entrypoint: 'test/helper',
+    tests: [
+      'test/createprofile',
+      'test/gaiaprofile',
+      'test/index',
+      'test/pref',
+      'test/profile'
+    ]
+  },
+
+  'mozilla-runner': {
+    tests: [
+      'test/detectbinary',
+      'test/run'
+    ]
   }
 });
 
 function configureMocha(mocha, key, config) {
   if (config.entrypoint) {
-    var entrypoint = __dirname + '/' + key + '/' + config.entrypoint;
-    require(entrypoint);
+    require(
+      normalize(
+        __dirname,
+        '../../node_modules',
+        key,
+        config.entrypoint
+      )
+    );
   }
 
   config.tests.forEach(function(test) {
-    var file = __dirname + '/' + key + '/' + test;
-    mocha.addFile(file);
+    mocha.addFile(
+      normalize(
+        __dirname,
+        '../../node_modules',
+        key,
+        test
+      )
+    );
   });
+}
+
+function normalize() {
+  var args = Array.prototype.slice.call(arguments);
+  return path.normalize(path.resolve.apply(path, args));
 }
 
 function main() {
