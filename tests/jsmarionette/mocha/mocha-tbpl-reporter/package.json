@@ -5,7 +5,11 @@
   "description": "Mocha reporter for TBPL (tinderboxpushlog)",
   "license": "MIT",
 
+  "devDependencies": {
+    "mocha": "^1.0.0"
+  },
+
   "peerDependencies": {
-    "mocha": "1.x"
+    "mocha": ">=1.0"
   }
 }
