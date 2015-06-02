@@ -302,7 +302,7 @@ ColdLaunch.prototype.testRun = function() {
   this
     .waitForFullyLoaded()
     .then(function(entry) {
-      runner.device.log.memory(runner.manifest.name, entry.context);
+      runner.device.log.memory(runner.appPid, entry.context);
     });
 
   // Delay launch to give time for pre-allocated process and system cool-down
