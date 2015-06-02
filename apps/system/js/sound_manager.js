@@ -398,7 +398,10 @@
    * @param {Number} offset the offset which will be added to volume value.
    */
   SoundManager.prototype.handleVolumeKey = function sm_handleVolumeKey(offset) {
-    if (!ScreenManager.screenEnabled && this.currentChannel === 'none') {
+    if ((!ScreenManager.screenEnabled && this.currentChannel === 'none') ||
+        (System.locked && (this.currentChannel === 'none' ||
+                           this.currentChannel === 'unknown' ||
+                           this.currentChannel === 'normal'))) {
       return;
     }
 
