@@ -129,7 +129,7 @@
      * @param {Boolean} persistKeyNotSet The customization didn't run for
      *                                   current OS version. Flag.
      */
-    applySettings: function ovh_applySettings(mcc, mnc, persistKeyNotSet) {
+    applySettings: function ovh_applySettings(mcc, mnc, spn, persistKeyNotSet) {
       // Save MCC and MNC codes.
       this._iccSettings.mcc = mcc;
       this._iccSettings.mnc = mnc;
@@ -498,7 +498,6 @@
           return apn.type && apn.type.indexOf('operatorvariant') == -1;
         });
         validApnSettings = this.convertApnSettings(validApnSettings);
-
         // Store default apn items to the database.
         var transaction = settings.createLock();
         var request = transaction.get('ril.data.default.apns');
