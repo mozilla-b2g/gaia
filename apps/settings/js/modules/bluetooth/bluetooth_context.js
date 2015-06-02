@@ -125,7 +125,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @type {Object BluetoothAdapter}
+     * @type {BluetoothAdapter}
      */
     _defaultAdapter: null,
 
@@ -163,7 +163,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Object BluetoothAdapter} adapter
+     * @param {BluetoothAdapter} adapter
      */
     _initProperties: function btc__initProperties(adapter) {
       // init observable properties
@@ -774,7 +774,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothContext
-     * @param {Observable array} list
+     * @param {ObservableArray} list
      * @param {String} address
      */
     _removeItemFromList: function btc__removeItemFromList(list, address) {
@@ -836,7 +836,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothContext
-     * @return {Observable Array}
+     * @return {ObservableArray}
      */
     getPairedDevices: function btc_getPairedDevices() {
       return this._pairedDevices;
@@ -847,7 +847,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothContext
-     * @return {Observable Array}
+     * @return {ObservableArray}
      */
     getRemoteDevices: function btc_getRemoteDevices() {
       return this._remoteDevices;

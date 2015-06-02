@@ -103,7 +103,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @type {Object} BluetoothAdapter
+     * @type {BluetoothAdapter}
      */
     _defaultAdapter: null,
 
