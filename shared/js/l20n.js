@@ -14,10 +14,10 @@
 
   modules.set('lib/intl', function () {
     function prioritizeLocales(def, availableLangs, requested) {
-      var supportedLocale;
+      let supportedLocale;
 
-      for (var i = 0; i < requested.length; i++) {
-        var locale = requested[i];
+      for (let i = 0; i < requested.length; i++) {
+        const locale = requested[i];
 
         if (availableLangs.indexOf(locale) !== -1) {
           supportedLocale = locale;
@@ -40,9 +40,9 @@
     const rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
     function negotiateLanguages(fn, appVersion, defaultLang, availableLangs, additionalLangs, prevLangs, requestedLangs) {
-      let allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(qps));
-      let newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
-      let langs = newLangs.map(code => ({
+      const allAvailableLangs = Object.keys(availableLangs).concat(additionalLangs || []).concat(Object.keys(qps));
+      const newLangs = prioritizeLocales(defaultLang, allAvailableLangs, requestedLangs);
+      const langs = newLangs.map(code => ({
         code: code,
         src: getLangSource(appVersion, availableLangs, additionalLangs, code),
         dir: getDirection(code)
@@ -64,7 +64,7 @@
     }
 
     function getMatchingLangpack(appVersion, langpacks) {
-      for (var i = 0, langpack; langpack = langpacks[i]; i++) {
+      for (let i = 0, langpack; langpack = langpacks[i]; i++) {
         if (langpack.target === appVersion) {
           return langpack;
         }
@@ -75,7 +75,7 @@
 
     function getLangSource(appVersion, availableLangs, additionalLangs, code) {
       if (additionalLangs && additionalLangs[code]) {
-        let lp = getMatchingLangpack(appVersion, additionalLangs[code]);
+        const lp = getMatchingLangpack(appVersion, additionalLangs[code]);
 
         if (lp && (!(code in availableLangs) || parseInt(lp.revision) > availableLangs[code])) {
           return 'extra';
@@ -89,10 +89,11 @@
       return 'app';
     }
 
-    return { negotiateLanguages };
+    return { negotiateLanguages, getDirection };
   });
   modules.set('bindings/html/dom', function () {
-    const reOverlay = /<|&\w+;/;
+    const { L10nError } = getModule('lib/errors');
+    const reOverlay = /<|&#?\w+;/;
     const allowed = {
       elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
       attributes: {
@@ -127,7 +128,7 @@
     }
 
     function getTranslatables(element) {
-      var nodes = [];
+      const nodes = [];
 
       if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
         nodes.push(element);
@@ -136,25 +137,8 @@
       return nodes.concat.apply(nodes, element.querySelectorAll('*[data-l10n-id]'));
     }
 
-    function translateDocument(view, langs, doc) {
-      let setDOMLocalized = function () {
-        doc.localized = true;
-        dispatchEvent(doc, 'DOMLocalized', langs);
-      };
-
-      if (langs[0].code === doc.documentElement.getAttribute('lang')) {
-        return Promise.resolve(setDOMLocalized());
-      }
-
-      return translateFragment(view, langs, doc.documentElement).then(() => {
-        doc.documentElement.lang = langs[0].code;
-        doc.documentElement.dir = langs[0].dir;
-        setDOMLocalized();
-      });
-    }
-
     function translateMutations(view, langs, mutations) {
-      let targets = new Set();
+      const targets = new Set();
 
       for (let mutation of mutations) {
         switch (mutation.type) {
@@ -164,7 +148,7 @@
 
           case 'childList':
             for (let addedNode of mutation.addedNodes) {
-              if (addedNode.nodeType === Node.ELEMENT_NODE) {
+              if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
                 targets.add(addedNode);
               }
             }
@@ -177,13 +161,13 @@
         return;
       }
 
-      let elements = [];
+      const elements = [];
       targets.forEach(target => target.childElementCount ? elements.concat(getTranslatables(target)) : elements.push(target));
       Promise.all(elements.map(elem => getElementTranslation(view, langs, elem))).then(translations => applyTranslations(view, elements, translations));
     }
 
     function translateFragment(view, langs, frag) {
-      let elements = getTranslatables(frag);
+      const elements = getTranslatables(frag);
       return Promise.all(elements.map(elem => getElementTranslation(view, langs, elem))).then(translations => applyTranslations(view, elements, translations));
     }
 
@@ -198,7 +182,7 @@
     }
 
     function getElementTranslation(view, langs, elem) {
-      var l10n = getAttributes(elem);
+      const l10n = getAttributes(elem);
       return l10n.id ? view.ctx.formatEntity(langs, l10n.id, l10n.args) : false;
     }
 
@@ -229,11 +213,11 @@
     }
 
     function applyTranslation(view, element, translation) {
-      var value;
+      let value;
 
       if (translation.attrs && translation.attrs.innerHTML) {
         value = translation.attrs.innerHTML;
-        console.warn('L10n Deprecation Warning: using innerHTML in translations is unsafe ' + 'and will not be supported in future versions of l10n.js. ' + 'See https://bugzil.la/1027117');
+        view.emit('deprecatewarning', new L10nError('L10n Deprecation Warning: using innerHTML in translations is unsafe ' + 'and will not be supported in future versions of l10n.js. ' + 'See https://bugzil.la/1027117'));
       } else {
         value = translation.value;
       }
@@ -242,14 +226,14 @@
         if (!reOverlay.test(value)) {
           element.textContent = value;
         } else {
-          var tmpl = element.ownerDocument.createElement('template');
+          const tmpl = element.ownerDocument.createElement('template');
           tmpl.innerHTML = value;
           overlayElement(element, tmpl.content);
         }
       }
 
-      for (var key in translation.attrs) {
-        var attrName = camelCaseToDashed(key);
+      for (let key in translation.attrs) {
+        const attrName = camelCaseToDashed(key);
 
         if (isAttrAllowed({
           name: attrName
@@ -260,20 +244,20 @@
     }
 
     function overlayElement(sourceElement, translationElement) {
-      var result = translationElement.ownerDocument.createDocumentFragment();
-      var k, attr;
-      var childElement;
+      const result = translationElement.ownerDocument.createDocumentFragment();
+      let k, attr;
+      let childElement;
 
       while (childElement = translationElement.childNodes[0]) {
         translationElement.removeChild(childElement);
 
-        if (childElement.nodeType === Node.TEXT_NODE) {
+        if (childElement.nodeType === childElement.TEXT_NODE) {
           result.appendChild(childElement);
           continue;
         }
 
-        var index = getIndexOfType(childElement);
-        var sourceChild = getNthElementOfType(sourceElement, childElement, index);
+        const index = getIndexOfType(childElement);
+        const sourceChild = getNthElementOfType(sourceElement, childElement, index);
 
         if (sourceChild) {
           overlayElement(sourceChild, childElement);
@@ -292,7 +276,7 @@
           continue;
         }
 
-        result.appendChild(document.createTextNode(childElement.textContent));
+        result.appendChild(translationElement.ownerDocument.createTextNode(childElement.textContent));
       }
 
       sourceElement.textContent = '';
@@ -312,8 +296,8 @@
     }
 
     function isAttrAllowed(attr, element) {
-      var attrName = attr.name.toLowerCase();
-      var tagName = element.tagName.toLowerCase();
+      const attrName = attr.name.toLowerCase();
+      const tagName = element.tagName.toLowerCase();
 
       if (allowed.attributes.global.indexOf(attrName) !== -1) {
         return true;
@@ -328,7 +312,7 @@
       }
 
       if (tagName === 'input' && attrName === 'value') {
-        var type = element.type.toLowerCase();
+        const type = element.type.toLowerCase();
 
         if (type === 'submit' || type === 'button' || type === 'reset') {
           return true;
@@ -339,10 +323,10 @@
     }
 
     function getNthElementOfType(context, element, index) {
-      var nthOfType = 0;
+      let nthOfType = 0;
 
-      for (var i = 0, child; child = context.children[i]; i++) {
-        if (child.nodeType === Node.ELEMENT_NODE && child.tagName === element.tagName) {
+      for (let i = 0, child; child = context.children[i]; i++) {
+        if (child.nodeType === child.ELEMENT_NODE && child.tagName === element.tagName) {
           if (nthOfType === index) {
             return child;
           }
@@ -355,8 +339,8 @@
     }
 
     function getIndexOfType(element) {
-      var index = 0;
-      var child;
+      let index = 0;
+      let child;
 
       while (child = element.previousElementSibling) {
         if (child.tagName === element.tagName) {
@@ -367,33 +351,22 @@
       return index;
     }
 
-    function dispatchEvent(root, name, langs) {
-      var event = new CustomEvent(name, {
-        bubbles: false,
-        cancelable: false,
-        detail: {
-          languages: langs
-        }
-      });
-      root.dispatchEvent(event);
-    }
-
-    return { setAttributes, getAttributes, translateDocument, translateMutations, translateFragment, translateElement, dispatchEvent };
+    return { setAttributes, getAttributes, translateMutations, translateFragment, translateElement };
   });
   modules.set('bindings/html/head', function () {
     function getResourceLinks(head) {
-      return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => el.getAttribute('href'));
+      return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), el => decodeURI(el.getAttribute('href')));
     }
 
     function getMeta(head) {
       let availableLangs = Object.create(null);
       let defaultLang = null;
       let appVersion = null;
-      let els = head.querySelectorAll('meta[name="availableLanguages"],' + 'meta[name="defaultLanguage"],' + 'meta[name="appVersion"]');
+      const els = head.querySelectorAll('meta[name="availableLanguages"],' + 'meta[name="defaultLanguage"],' + 'meta[name="appVersion"]');
 
       for (let el of els) {
-        let name = el.getAttribute('name');
-        let content = el.getAttribute('content').trim();
+        const name = el.getAttribute('name');
+        const content = el.getAttribute('content').trim();
 
         switch (name) {
           case 'availableLanguages':
@@ -401,7 +374,7 @@
             break;
 
           case 'defaultLanguage':
-            let [lang, rev] = getLangRevisionTuple(content);
+            const [lang, rev] = getLangRevisionTuple(content);
             defaultLang = lang;
 
             if (!(lang in availableLangs)) {
@@ -424,14 +397,14 @@
 
     function getLangRevisionMap(seq, str) {
       return str.split(',').reduce((seq, cur) => {
-        let [lang, rev] = getLangRevisionTuple(cur);
+        const [lang, rev] = getLangRevisionTuple(cur);
         seq[lang] = rev;
         return seq;
       }, seq);
     }
 
     function getLangRevisionTuple(str) {
-      let [lang, rev] = str.trim().split(':');
+      const [lang, rev] = str.trim().split(':');
       return [lang, parseInt(rev)];
     }
 
@@ -439,7 +412,7 @@
   });
   modules.set('bindings/html/view', function () {
     const { getResourceLinks } = getModule('bindings/html/head');
-    const { setAttributes, getAttributes, dispatchEvent, translateDocument, translateFragment, translateMutations } = getModule('bindings/html/dom');
+    const { setAttributes, getAttributes, translateFragment, translateMutations } = getModule('bindings/html/dom');
     const observerConfig = {
       attributes: true,
       characterData: false,
@@ -454,20 +427,29 @@
         this.doc = doc;
         this.ctx = this.service.env.createContext(getResourceLinks(doc.head));
         this.ready = new Promise(function (resolve) {
-          let viewReady = function (evt) {
+          const viewReady = function (evt) {
             doc.removeEventListener('DOMLocalized', viewReady);
             resolve(evt.detail.languages);
           };
 
           doc.addEventListener('DOMLocalized', viewReady);
         });
-        let observer = new MutationObserver(onMutations.bind(this));
+        const observer = new MutationObserver(onMutations.bind(this));
 
         this.observe = () => observer.observe(this.doc, observerConfig);
 
         this.disconnect = () => observer.disconnect();
 
         this.observe();
+      }
+      get languages() {
+        return this.service.languages;
+      }
+      set languages(langs) {
+        return this.service.requestLanguages(langs);
+      }
+      emit(...args) {
+        return this.service.env.emit(...args);
       }
       formatValue(id, args) {
         return this.service.languages.then(langs => this.ctx.formatValue(langs, id, args));
@@ -483,27 +465,57 @@
     View.prototype.setAttributes = setAttributes;
     View.prototype.getAttributes = getAttributes;
 
-    function translate(langs) {
-      dispatchEvent(this.doc, 'supportedlanguageschange', langs);
-      return this.ctx.fetch(langs).then(() => translateDocument(this, langs, this.doc));
-    }
-
     function onMutations(mutations) {
       return this.service.languages.then(langs => translateMutations(this, langs, mutations));
+    }
+
+    function translate(langs) {
+      dispatchEvent(this.doc, 'supportedlanguageschange', langs);
+      return this.ctx.fetch(langs).then(translateDocument.bind(this, langs));
+    }
+
+    function translateDocument(langs) {
+      const [view, doc] = [this, this.doc];
+
+      const setDOMLocalized = function () {
+        doc.localized = true;
+        dispatchEvent(doc, 'DOMLocalized', langs);
+      };
+
+      if (langs[0].code === doc.documentElement.getAttribute('lang')) {
+        return Promise.resolve(setDOMLocalized());
+      }
+
+      return translateFragment(view, langs, doc.documentElement).then(() => {
+        doc.documentElement.lang = langs[0].code;
+        doc.documentElement.dir = langs[0].dir;
+        setDOMLocalized();
+      });
+    }
+
+    function dispatchEvent(root, name, langs) {
+      const event = new CustomEvent(name, {
+        bubbles: false,
+        cancelable: false,
+        detail: {
+          languages: langs
+        }
+      });
+      root.dispatchEvent(event);
     }
 
     return { View, translate };
   });
   modules.set('lib/events', function () {
     function emit(listeners, ...args) {
-      let type = args.shift();
-
-      if (listeners[type]) {
-        listeners[type].slice().forEach(listener => listener.apply(this, args));
-      }
+      const type = args.shift();
 
       if (listeners['*']) {
         listeners['*'].slice().forEach(listener => listener.apply(this, args));
+      }
+
+      if (listeners[type]) {
+        listeners[type].slice().forEach(listener => listener.apply(this, args));
       }
     }
 
@@ -516,8 +528,8 @@
     }
 
     function removeEventListener(listeners, type, listener) {
-      let typeListeners = listeners[type];
-      let pos = typeListeners.indexOf(listener);
+      const typeListeners = listeners[type];
+      const pos = typeListeners.indexOf(listener);
 
       if (pos === -1) {
         return;
@@ -529,33 +541,55 @@
     return { emit, addEventListener, removeEventListener };
   });
   modules.set('lib/pseudo', function () {
-    function walkContent(node, fn) {
-      if (typeof node === 'string') {
-        return fn(node);
+    function walkEntry(entry, fn) {
+      if (typeof entry === 'string') {
+        return fn(entry);
       }
 
-      if (node.t === 'idOrVar') {
-        return node;
+      const newEntry = Object.create(null);
+
+      if (entry.value) {
+        newEntry.value = walkValue(entry.value, fn);
       }
 
-      var rv = Array.isArray(node) ? [] : {};
-      var keys = Object.keys(node);
+      if (entry.index) {
+        newEntry.index = entry.index;
+      }
 
-      for (var i = 0, key; key = keys[i]; i++) {
-        if (key === '$i' || key === '$x') {
-          rv[key] = node[key];
-        } else {
-          rv[key] = walkContent(node[key], fn);
+      if (entry.attrs) {
+        newEntry.attrs = Object.create(null);
+
+        for (let key in entry.attrs) {
+          newEntry.attrs[key] = walkEntry(entry.attrs[key], fn);
         }
       }
 
-      return rv;
+      return newEntry;
     }
 
-    var reAlphas = /[a-zA-Z]/g;
-    var reVowels = /[aeiouAEIOU]/g;
-    var ACCENTED_MAP = 'ȦƁƇḒḖƑƓĦĪ' + 'ĴĶĿḾȠǾƤɊŘ' + 'ŞŦŬṼẆẊẎẐ' + '[\\]^_`' + 'ȧƀƈḓḗƒɠħī' + 'ĵķŀḿƞǿƥɋř' + 'şŧŭṽẇẋẏẑ';
-    var FLIPPED_MAP = '∀ԐↃpƎɟפHIſ' + 'Ӽ˥WNOԀÒᴚS⊥∩Ʌ' + 'ＭXʎZ' + '[\\]ᵥ_,' + 'ɐqɔpǝɟƃɥıɾ' + 'ʞʅɯuodbɹsʇnʌʍxʎz';
+    function walkValue(value, fn) {
+      if (typeof value === 'string') {
+        return fn(value);
+      }
+
+      if (value.type) {
+        return value;
+      }
+
+      const newValue = Array.isArray(value) ? [] : Object.create(null);
+      const keys = Object.keys(value);
+
+      for (let i = 0, key; key = keys[i]; i++) {
+        newValue[key] = walkValue(value[key], fn);
+      }
+
+      return newValue;
+    }
+
+    const reAlphas = /[a-zA-Z]/g;
+    const reVowels = /[aeiouAEIOU]/g;
+    const ACCENTED_MAP = 'ȦƁƇḒḖƑƓĦĪ' + 'ĴĶĿḾȠǾƤɊŘ' + 'ŞŦŬṼẆẊẎẐ' + '[\\]^_`' + 'ȧƀƈḓḗƒɠħī' + 'ĵķŀḿƞǿƥɋř' + 'şŧŭṽẇẋẏẑ';
+    const FLIPPED_MAP = '∀ԐↃpƎɟפHIſ' + 'Ӽ˥WNOԀÒᴚS⊥∩Ʌ' + 'ＭXʎZ' + '[\\]ᵥ_,' + 'ɐqɔpǝɟƃɥıɾ' + 'ʞʅɯuodbɹsʇnʌʍxʎz';
 
     function makeLonger(val) {
       return val.replace(reVowels, function (match) {
@@ -569,7 +603,7 @@
       });
     }
 
-    var reWords = /[^\W0-9_]+/g;
+    const reWords = /[^\W0-9_]+/g;
 
     function makeRTL(val) {
       return val.replace(reWords, function (match) {
@@ -577,15 +611,15 @@
       });
     }
 
-    var reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
+    const reExcluded = /(%[EO]?\w|\{\s*.+?\s*\}|&[#\w]+;|<\s*.+?\s*>)/;
 
     function mapContent(fn, val) {
       if (!val) {
         return val;
       }
 
-      var parts = val.split(reExcluded);
-      var modified = parts.map(function (part) {
+      const parts = val.split(reExcluded);
+      const modified = parts.map(function (part) {
         if (reExcluded.test(part)) {
           return part;
         }
@@ -607,199 +641,129 @@
       'qps-ploc': new Pseudo('qps-ploc', 'Runtime Accented', ACCENTED_MAP, makeLonger),
       'qps-plocm': new Pseudo('qps-plocm', 'Runtime Mirrored', FLIPPED_MAP, makeRTL)
     };
-    return { walkContent, qps };
+    return { walkEntry, walkValue, qps };
   });
-  modules.set('lib/format/l20n/parser', function () {
+  modules.set('lib/format/l20n/entries/parser', function () {
     const { L10nError } = getModule('lib/errors');
     const MAX_PLACEABLES = 100;
     return {
-      _patterns: null,
-      init: function () {
-        this._patterns = {
-          index: /@cldr\.plural\(\$?(\w+)\)/g,
-          placeables: /\{\{\s*\$?([^\s]*?)\s*\}\}/,
-          unesc: /\\({{|u[0-9a-fA-F]{4}|.)/g
-        };
-      },
-      parse: function (env, string, simple) {
-        if (!this._patterns) {
-          this.init();
-        }
-
+      parse: function (emit, string) {
         this._source = string;
         this._index = 0;
-        this._length = this._source.length;
-        this.simpleMode = simple;
-        this.env = env;
-        return this.getL20n();
+        this._length = string.length;
+        this.entries = Object.create(null);
+        this.emit = emit;
+        return this.getResource();
       },
-      getAttributes: function () {
-        let attrs = Object.create(null);
-
-        while (true) {
-          let attr = this.getKVPWithIndex();
-          attrs[attr[0]] = attr[1];
-          const ws1 = this.getRequiredWS();
-
-          const ch = this._source.charAt(this._index);
-
-          if (ch === '>') {
-            break;
-          } else if (!ws1) {
-            throw this.error('Expected ">"');
-          }
-        }
-
-        return attrs;
-      },
-      getKVP: function () {
-        const key = this.getIdentifier();
+      getResource: function () {
         this.getWS();
 
-        if (this._source.charAt(this._index) !== ':') {
-          throw this.error('Expected ":"');
-        }
+        while (this._index < this._length) {
+          try {
+            this.getEntry();
+          } catch (e) {
+            if (e instanceof L10nError) {
+              this.getJunkEntry();
 
-        ++this._index;
-        this.getWS();
-        return [key, this.getValue()];
-      },
-      getKVPWithIndex: function () {
-        const key = this.getIdentifier();
-        let index = null;
-
-        if (this._source.charAt(this._index) === '[') {
-          ++this._index;
-          this.getWS();
-          index = this.getIndex();
-        }
-
-        this.getWS();
-
-        if (this._source.charAt(this._index) !== ':') {
-          throw this.error('Expected ":"');
-        }
-
-        ++this._index;
-        this.getWS();
-        return [key, this.getValue(false, undefined, index)];
-      },
-      getHash: function () {
-        ++this._index;
-        this.getWS();
-        let hash = {};
-
-        while (true) {
-          const hi = this.getKVP();
-          hash[hi[0]] = hi[1];
-          this.getWS();
-          const comma = this._source.charAt(this._index) === ',';
-
-          if (comma) {
-            ++this._index;
-            this.getWS();
-          }
-
-          if (this._source.charAt(this._index) === '}') {
-            ++this._index;
-            break;
-          }
-
-          if (!comma) {
-            throw this.error('Expected "}"');
-          }
-        }
-
-        return hash;
-      },
-      unescapeString: function (str, opchar) {
-        function replace(match, p1) {
-          switch (p1) {
-            case '\\':
-              return '\\';
-
-            case '{{':
-              return '{{';
-
-            case opchar:
-              return opchar;
-
-            default:
-              if (p1.length === 5 && p1.charAt(0) === 'u') {
-                return String.fromCharCode(parseInt(p1.substr(1), 16));
+              if (!this.emit) {
+                throw e;
               }
-
-              throw this.error('Illegal unescape sequence');
-          }
-        }
-
-        return str.replace(this._patterns.unesc, replace.bind(this));
-      },
-      getString: function (opchar) {
-        let opcharPos = this._source.indexOf(opchar, this._index + 1);
-
-        outer: while (opcharPos !== -1) {
-          let backtrack = opcharPos - 1;
-
-          while (this._source.charCodeAt(backtrack) === 92) {
-            if (this._source.charCodeAt(backtrack - 1) === 92) {
-              backtrack -= 2;
             } else {
-              opcharPos = this._source.indexOf(opchar, opcharPos + 1);
-              continue outer;
+              throw e;
             }
           }
 
-          break;
+          if (this._index < this._length) {
+            this.getWS();
+          }
         }
 
-        if (opcharPos === -1) {
-          throw this.error('Unclosed string literal');
-        }
-
-        let buf = this._source.slice(this._index + 1, opcharPos);
-
-        this._index = opcharPos + 1;
-
-        if (!this.simpleMode && buf.indexOf('\\') !== -1) {
-          buf = this.unescapeString(buf, opchar);
-        }
-
-        if (!this.simpleMode && buf.indexOf('{{') !== -1) {
-          return this.parseString(buf);
-        }
-
-        return buf;
+        return this.entries;
       },
-      getValue: function (optional, ch, index) {
-        let val;
+      getEntry: function () {
+        if (this._source[this._index] === '<') {
+          ++this._index;
+          const id = this.getIdentifier();
 
-        if (ch === undefined) {
-          ch = this._source.charAt(this._index);
-        }
-
-        if (ch === '\'' || ch === '"') {
-          val = this.getString(ch);
-        } else if (ch === '{') {
-          val = this.getHash();
-        }
-
-        if (val === undefined) {
-          if (!optional) {
-            throw this.error('Unknown value type');
+          if (this._source[this._index] === '[') {
+            ++this._index;
+            return this.getEntity(id, this.getItemList(this.getExpression, ']'));
           }
 
-          return null;
+          return this.getEntity(id);
         }
 
-        if (index) {
-          return {
-            '$v': val,
-            '$x': index
+        if (this._source.startsWith('/*', this._index)) {
+          return this.getComment();
+        }
+
+        throw this.error('Invalid entry');
+      },
+      getEntity: function (id, index) {
+        if (!this.getRequiredWS()) {
+          throw this.error('Expected white space');
+        }
+
+        const ch = this._source[this._index];
+        const value = this.getValue(ch, index === undefined);
+        let attrs;
+
+        if (value === undefined) {
+          if (ch === '>') {
+            throw this.error('Expected ">"');
+          }
+
+          attrs = this.getAttributes();
+        } else {
+          const ws1 = this.getRequiredWS();
+
+          if (this._source[this._index] !== '>') {
+            if (!ws1) {
+              throw this.error('Expected ">"');
+            }
+
+            attrs = this.getAttributes();
+          }
+        }
+
+        ++this._index;
+
+        if (id in this.entries) {
+          throw this.error('Duplicate entry ID "' + id, 'duplicateerror');
+        }
+
+        if (!attrs && !index && typeof value === 'string') {
+          this.entries[id] = value;
+        } else {
+          this.entries[id] = {
+            value,
+            attrs,
+            index
           };
         }
+      },
+      getValue: function (ch = this._source[this._index], optional = false) {
+        switch (ch) {
+          case '\'':
+          case '"':
+            return this.getString(ch, 1);
 
-        return val;
+          case '{':
+            return this.getHash();
+        }
+
+        if (!optional) {
+          throw this.error('Unknown value type');
+        }
+
+        return;
+      },
+      getWS: function () {
+        let cc = this._source.charCodeAt(this._index);
+
+        while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
+          cc = this._source.charCodeAt(++this._index);
+        }
       },
       getRequiredWS: function () {
         const pos = this._index;
@@ -811,13 +775,6 @@
         }
 
         return this._index !== pos;
-      },
-      getWS: function () {
-        let cc = this._source.charCodeAt(this._index);
-
-        while (cc === 32 || cc === 10 || cc === 9 || cc === 13) {
-          cc = this._source.charCodeAt(++this._index);
-        }
       },
       getIdentifier: function () {
         const start = this._index;
@@ -836,6 +793,210 @@
 
         return this._source.slice(start, this._index);
       },
+      getUnicodeChar: function () {
+        for (let i = 0; i < 4; i++) {
+          let cc = this._source.charCodeAt(++this._index);
+
+          if (cc > 96 && cc < 103 || cc > 64 && cc < 71 || cc > 47 && cc < 58) {
+            continue;
+          }
+
+          throw this.error('Illegal unicode escape sequence');
+        }
+
+        this._index++;
+        return String.fromCharCode(parseInt(this._source.slice(this._index - 4, this._index), 16));
+      },
+      stringRe: /"|'|{{|\\/g,
+      getString: function (opchar, opcharLen) {
+        const body = [];
+        let placeables = 0;
+        this._index += opcharLen;
+        const start = this._index;
+        let bufStart = start;
+        let buf = '';
+
+        while (true) {
+          this.stringRe.lastIndex = this._index;
+          const match = this.stringRe.exec(this._source);
+
+          if (!match) {
+            throw this.error('Unclosed string literal');
+          }
+
+          if (match[0] === '"' || match[0] === '\'') {
+            if (match[0] !== opchar) {
+              this._index += opcharLen;
+              continue;
+            }
+
+            this._index = match.index + opcharLen;
+            break;
+          }
+
+          if (match[0] === '{{') {
+            if (placeables > MAX_PLACEABLES - 1) {
+              throw this.error('Too many placeables, maximum allowed is ' + MAX_PLACEABLES);
+            }
+
+            placeables++;
+
+            if (match.index > bufStart || buf.length > 0) {
+              body.push(buf + this._source.slice(bufStart, match.index));
+              buf = '';
+            }
+
+            this._index = match.index + 2;
+            this.getWS();
+            body.push(this.getExpression());
+            this.getWS();
+            this._index += 2;
+            bufStart = this._index;
+            continue;
+          }
+
+          if (match[0] === '\\') {
+            this._index = match.index + 1;
+            const ch2 = this._source[this._index];
+
+            if (ch2 === 'u') {
+              buf += this._source.slice(bufStart, match.index) + this.getUnicodeChar();
+            } else if (ch2 === opchar || ch2 === '\\') {
+              buf += this._source.slice(bufStart, match.index) + ch2;
+              this._index++;
+            } else if (this._source.startsWith('{{', this._index)) {
+              buf += this._source.slice(bufStart, match.index) + '{{';
+              this._index += 2;
+            } else {
+              throw this.error('Illegal escape sequence');
+            }
+
+            bufStart = this._index;
+          }
+        }
+
+        if (body.length === 0) {
+          return buf + this._source.slice(bufStart, this._index - opcharLen);
+        }
+
+        if (this._index - opcharLen > bufStart || buf.length > 0) {
+          body.push(buf + this._source.slice(bufStart, this._index - opcharLen));
+        }
+
+        return body;
+      },
+      getAttributes: function () {
+        const attrs = Object.create(null);
+
+        while (true) {
+          this.getAttribute(attrs);
+          const ws1 = this.getRequiredWS();
+
+          const ch = this._source.charAt(this._index);
+
+          if (ch === '>') {
+            break;
+          } else if (!ws1) {
+            throw this.error('Expected ">"');
+          }
+        }
+
+        return attrs;
+      },
+      getAttribute: function (attrs) {
+        const key = this.getIdentifier();
+        let index;
+
+        if (this._source[this._index] === '[') {
+          ++this._index;
+          this.getWS();
+          index = this.getItemList(this.getExpression, ']');
+        }
+
+        this.getWS();
+
+        if (this._source[this._index] !== ':') {
+          throw this.error('Expected ":"');
+        }
+
+        ++this._index;
+        this.getWS();
+        const value = this.getValue();
+
+        if (key in attrs) {
+          throw this.error('Duplicate attribute "' + key, 'duplicateerror');
+        }
+
+        if (!index && typeof value === 'string') {
+          attrs[key] = value;
+        } else {
+          attrs[key] = {
+            value,
+            index
+          };
+        }
+      },
+      getHash: function () {
+        const items = Object.create(null);
+        ++this._index;
+        this.getWS();
+        let defKey;
+
+        while (true) {
+          const [key, value, def] = this.getHashItem();
+          items[key] = value;
+
+          if (def) {
+            if (defKey) {
+              throw this.error('Default item redefinition forbidden');
+            }
+
+            defKey = key;
+          }
+
+          this.getWS();
+          const comma = this._source[this._index] === ',';
+
+          if (comma) {
+            ++this._index;
+            this.getWS();
+          }
+
+          if (this._source[this._index] === '}') {
+            ++this._index;
+            break;
+          }
+
+          if (!comma) {
+            throw this.error('Expected "}"');
+          }
+        }
+
+        if (defKey) {
+          items.__default = defKey;
+        }
+
+        return items;
+      },
+      getHashItem: function () {
+        let defItem = false;
+
+        if (this._source[this._index] === '*') {
+          ++this._index;
+          defItem = true;
+        }
+
+        const key = this.getIdentifier();
+        this.getWS();
+
+        if (this._source[this._index] !== ':') {
+          throw this.error('Expected ":"');
+        }
+
+        ++this._index;
+        this.getWS();
+        return [key, this.getValue(), defItem];
+      },
       getComment: function () {
         this._index += 2;
         const start = this._index;
@@ -843,149 +1004,141 @@
         const end = this._source.indexOf('*/', start);
 
         if (end === -1) {
-          throw this.error('Comment without closing tag');
+          throw this.error('Comment without a closing tag');
         }
 
         this._index = end + 2;
-        return;
       },
-      getEntity: function (id, index) {
-        const entity = {
-          '$i': id
-        };
+      getExpression: function () {
+        let exp = this.getPrimaryExpression();
 
-        if (index) {
-          entity.$x = index;
-        }
+        while (true) {
+          let ch = this._source[this._index];
 
-        if (!this.getRequiredWS()) {
-          throw this.error('Expected white space');
-        }
-
-        const ch = this._source.charAt(this._index);
-
-        const value = this.getValue(index === null, ch);
-        let attrs = null;
-
-        if (value === null) {
-          if (ch === '>') {
-            throw this.error('Expected ">"');
-          }
-
-          attrs = this.getAttributes();
-        } else {
-          entity.$v = value;
-          const ws1 = this.getRequiredWS();
-
-          if (this._source.charAt(this._index) !== '>') {
-            if (!ws1) {
-              throw this.error('Expected ">"');
-            }
-
-            attrs = this.getAttributes();
-          }
-        }
-
-        ++this._index;
-
-        if (attrs) {
-          for (let key in attrs) {
-            entity[key] = attrs[key];
-          }
-        }
-
-        return entity;
-      },
-      getEntry: function () {
-        if (this._source.charCodeAt(this._index) === 60) {
-          ++this._index;
-          const id = this.getIdentifier();
-
-          if (this._source.charCodeAt(this._index) === 91) {
+          if (ch === '.' || ch === '[') {
             ++this._index;
-            return this.getEntity(id, this.getIndex());
-          }
-
-          return this.getEntity(id, null);
-        }
-
-        if (this._source.charCodeAt(this._index) === 47 && this._source.charCodeAt(this._index + 1) === 42) {
-          return this.getComment();
-        }
-
-        throw this.error('Invalid entry');
-      },
-      getL20n: function () {
-        const ast = [];
-        this.getWS();
-
-        while (this._index < this._length) {
-          try {
-            const entry = this.getEntry();
-
-            if (entry) {
-              ast.push(entry);
-            }
-          } catch (e) {
-            if (this.env) {
-              this.env.emit('parseerror', e);
-            } else {
-              throw e;
-            }
-          }
-
-          if (this._index < this._length) {
-            this.getWS();
-          }
-        }
-
-        return ast;
-      },
-      getIndex: function () {
-        this.getWS();
-        this._patterns.index.lastIndex = this._index;
-
-        const match = this._patterns.index.exec(this._source);
-
-        this._index = this._patterns.index.lastIndex;
-        this.getWS();
-        this._index++;
-        return [{
-          t: 'idOrVar',
-          v: 'plural'
-        }, match[1]];
-      },
-      parseString: function (str) {
-        const chunks = str.split(this._patterns.placeables);
-        const complexStr = [];
-        const len = chunks.length;
-        const placeablesCount = (len - 1) / 2;
-
-        if (placeablesCount >= MAX_PLACEABLES) {
-          throw new L10nError('Too many placeables (' + placeablesCount + ', max allowed is ' + MAX_PLACEABLES + ')');
-        }
-
-        for (let i = 0; i < chunks.length; i++) {
-          if (chunks[i].length === 0) {
-            continue;
-          }
-
-          if (i % 2 === 1) {
-            complexStr.push({
-              t: 'idOrVar',
-              v: chunks[i]
-            });
+            exp = this.getPropertyExpression(exp, ch === '[');
+          } else if (ch === '(') {
+            ++this._index;
+            exp = this.getCallExpression(exp);
           } else {
-            complexStr.push(chunks[i]);
+            break;
           }
         }
 
-        return complexStr;
+        return exp;
       },
-      error: function (message, pos) {
-        if (pos === undefined) {
-          pos = this._index;
+      getPropertyExpression: function (idref, computed) {
+        let exp;
+
+        if (computed) {
+          this.getWS();
+          exp = this.getExpression();
+          this.getWS();
+
+          if (this._source[this._index] !== ']') {
+            throw this.error('Expected "]"');
+          }
+
+          ++this._index;
+        } else {
+          exp = this.getIdentifier();
         }
+
+        return {
+          type: 'prop',
+          expr: idref,
+          prop: exp,
+          cmpt: computed
+        };
+      },
+      getCallExpression: function (callee) {
+        this.getWS();
+        return {
+          type: 'call',
+          expr: callee,
+          args: this.getItemList(this.getExpression, ')')
+        };
+      },
+      getPrimaryExpression: function () {
+        const ch = this._source[this._index];
+
+        switch (ch) {
+          case '$':
+            ++this._index;
+            return {
+              type: 'var',
+              name: this.getIdentifier()
+            };
+
+          case '@':
+            ++this._index;
+            return {
+              type: 'glob',
+              name: this.getIdentifier()
+            };
+
+          default:
+            return {
+              type: 'id',
+              name: this.getIdentifier()
+            };
+        }
+      },
+      getItemList: function (callback, closeChar) {
+        const items = [];
+        let closed = false;
+        this.getWS();
+
+        if (this._source[this._index] === closeChar) {
+          ++this._index;
+          closed = true;
+        }
+
+        while (!closed) {
+          items.push(callback.call(this));
+          this.getWS();
+
+          let ch = this._source.charAt(this._index);
+
+          switch (ch) {
+            case ',':
+              ++this._index;
+              this.getWS();
+              break;
+
+            case closeChar:
+              ++this._index;
+              closed = true;
+              break;
+
+            default:
+              throw this.error('Expected "," or "' + closeChar + '"');
+          }
+        }
+
+        return items;
+      },
+      getJunkEntry: function () {
+        const pos = this._index;
+
+        let nextEntity = this._source.indexOf('<', pos);
+
+        let nextComment = this._source.indexOf('/*', pos);
+
+        if (nextEntity === -1) {
+          nextEntity = this._length;
+        }
+
+        if (nextComment === -1) {
+          nextComment = this._length;
+        }
+
+        let nextEntry = Math.min(nextEntity, nextComment);
+        this._index = nextEntry;
+      },
+      error: function (message, type = 'parsererror') {
+        const pos = this._index;
 
         let start = this._source.lastIndexOf('<', pos - 1);
 
@@ -995,8 +1148,14 @@
 
         const context = this._source.slice(start, pos + 10);
 
-        const msg = message + ' at pos ' + pos + ': "' + context + '"';
-        return new L10nError(msg, pos, context);
+        const msg = message + ' at pos ' + pos + ': `' + context + '`';
+        const err = new L10nError(msg);
+
+        if (this.emit) {
+          this.emit(type, err);
+        }
+
+        return err;
       }
     };
   });
@@ -1006,6 +1165,7 @@
     return {
       patterns: null,
       entryIds: null,
+      emit: null,
       init: function () {
         this.patterns = {
           comment: /^\s*#|^\s*$/,
@@ -1018,48 +1178,46 @@
           placeables: /\{\{\s*([^\s]*?)\s*\}\}/
         };
       },
-      parse: function (env, source) {
+      parse: function (emit, source) {
         if (!this.patterns) {
           this.init();
         }
 
-        var ast = [];
-        this.entryIds = Object.create(null);
-        var entries = source.match(this.patterns.entries);
+        this.emit = emit;
+        var entries = {};
+        var lines = source.match(this.patterns.entries);
 
-        if (!entries) {
-          return ast;
+        if (!lines) {
+          return entries;
         }
 
-        for (var i = 0; i < entries.length; i++) {
-          var line = entries[i];
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
 
           if (this.patterns.comment.test(line)) {
             continue;
           }
 
-          while (this.patterns.multiline.test(line) && i < entries.length) {
-            line = line.slice(0, -1) + entries[++i].trim();
+          while (this.patterns.multiline.test(line) && i < lines.length) {
+            line = line.slice(0, -1) + lines[++i].trim();
           }
 
           var entityMatch = line.match(this.patterns.entity);
 
           if (entityMatch) {
             try {
-              this.parseEntity(entityMatch[1], entityMatch[2], ast);
+              this.parseEntity(entityMatch[1], entityMatch[2], entries);
             } catch (e) {
-              if (env) {
-                env.emit('parseerror', e);
-              } else {
+              if (!this.emit) {
                 throw e;
               }
             }
           }
         }
 
-        return ast;
+        return entries;
       },
-      parseEntity: function (id, value, ast) {
+      parseEntity: function (id, value, entries) {
         var name, key;
         var pos = id.indexOf('[');
 
@@ -1074,7 +1232,7 @@
         var nameElements = name.split('.');
 
         if (nameElements.length > 2) {
-          throw new L10nError('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
+          throw this.error('Error in ID: "' + name + '".' + ' Nested attributes are not supported.');
         }
 
         var attr;
@@ -1084,82 +1242,72 @@
           attr = nameElements[1];
 
           if (attr[0] === '$') {
-            throw new L10nError('Attribute can\'t start with "$"', id);
+            throw this.error('Attribute can\'t start with "$"');
           }
         } else {
           attr = null;
         }
 
-        this.setEntityValue(name, attr, key, this.unescapeString(value), ast);
+        this.setEntityValue(name, attr, key, this.unescapeString(value), entries);
       },
-      setEntityValue: function (id, attr, key, rawValue, ast) {
-        var pos, v;
+      setEntityValue: function (id, attr, key, rawValue, entries) {
         var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
+        var isSimpleValue = typeof value === 'string';
+        var root = entries;
+        var isSimpleNode = typeof entries[id] === 'string';
+
+        if (!entries[id] && (attr || key || !isSimpleValue)) {
+          entries[id] = Object.create(null);
+          isSimpleNode = false;
+        }
 
         if (attr) {
-          pos = this.entryIds[id];
-
-          if (pos === undefined) {
-            v = {
-              $i: id
-            };
-
-            if (key) {
-              v[attr] = {};
-              v[attr][key] = value;
-            } else {
-              v[attr] = value;
-            }
-
-            ast.push(v);
-            this.entryIds[id] = ast.length - 1;
-            return;
+          if (isSimpleNode) {
+            const val = entries[id];
+            entries[id] = Object.create(null);
+            entries[id].value = val;
           }
 
-          if (key) {
-            if (typeof ast[pos][attr] === 'string') {
-              ast[pos][attr] = {
-                $x: this.parseIndex(ast[pos][attr]),
-                $v: {}
-              };
-            }
-
-            ast[pos][attr].$v[key] = value;
-            return;
+          if (!entries[id].attrs) {
+            entries[id].attrs = Object.create(null);
           }
 
-          ast[pos][attr] = value;
-          return;
+          if (!entries[id].attrs && !isSimpleValue) {
+            entries[id].attrs[attr] = Object.create(null);
+          }
+
+          root = entries[id].attrs;
+          id = attr;
         }
 
         if (key) {
-          pos = this.entryIds[id];
+          isSimpleNode = false;
 
-          if (pos === undefined) {
-            v = {};
-            v[key] = value;
-            ast.push({
-              $i: id,
-              $v: v
-            });
-            this.entryIds[id] = ast.length - 1;
-            return;
+          if (typeof root[id] === 'string') {
+            const val = root[id];
+            root[id] = Object.create(null);
+            root[id].index = this.parseIndex(val);
+            root[id].value = Object.create(null);
           }
 
-          if (typeof ast[pos].$v === 'string') {
-            ast[pos].$x = this.parseIndex(ast[pos].$v);
-            ast[pos].$v = {};
-          }
-
-          ast[pos].$v[key] = value;
-          return;
+          root = root[id].value;
+          id = key;
+          isSimpleValue = true;
         }
 
-        ast.push({
-          $i: id,
-          $v: value
-        });
-        this.entryIds[id] = ast.length - 1;
+        if (isSimpleValue && (!entries[id] || isSimpleNode)) {
+          if (id in root) {
+            throw this.error();
+          }
+
+          root[id] = value;
+        } else {
+          if (!root[id]) {
+            root[id] = Object.create(null);
+          }
+
+          root[id].value = value;
+        }
       },
       parseString: function (str) {
         var chunks = str.split(this.patterns.placeables);
@@ -1168,7 +1316,7 @@
         var placeablesCount = (len - 1) / 2;
 
         if (placeablesCount >= MAX_PLACEABLES) {
-          throw new L10nError('Too many placeables (' + placeablesCount + ', max allowed is ' + MAX_PLACEABLES + ')');
+          throw this.error('Too many placeables (' + placeablesCount + ', max allowed is ' + MAX_PLACEABLES + ')');
         }
 
         for (var i = 0; i < chunks.length; i++) {
@@ -1178,8 +1326,8 @@
 
           if (i % 2 === 1) {
             complexStr.push({
-              t: 'idOrVar',
-              v: chunks[i]
+              type: 'idOrVar',
+              name: chunks[i]
             });
           } else {
             complexStr.push(chunks[i]);
@@ -1206,511 +1354,533 @@
 
         if (match[2]) {
           return [{
-            t: 'idOrVar',
-            v: match[1]
-          }, match[2]];
+            type: 'call',
+            expr: {
+              type: 'prop',
+              expr: {
+                type: 'glob',
+                name: 'cldr'
+              },
+              prop: 'plural',
+              cmpt: false
+            },
+            args: [{
+              type: 'idOrVar',
+              name: match[2]
+            }]
+          }];
         } else {
           return [{
-            t: 'idOrVar',
-            v: match[1]
+            type: 'idOrVar',
+            name: match[1]
           }];
         }
+      },
+      error: function (msg, type = 'parsererror') {
+        const err = new L10nError(msg);
+
+        if (this.emit) {
+          this.emit(type, err);
+        }
+
+        return err;
       }
     };
   });
   modules.set('lib/plurals', function () {
-    function getPluralRule(code) {
-      var locales2rules = {
-        'af': 3,
-        'ak': 4,
-        'am': 4,
-        'ar': 1,
-        'asa': 3,
-        'az': 0,
-        'be': 11,
-        'bem': 3,
-        'bez': 3,
-        'bg': 3,
-        'bh': 4,
-        'bm': 0,
-        'bn': 3,
-        'bo': 0,
-        'br': 20,
-        'brx': 3,
-        'bs': 11,
-        'ca': 3,
-        'cgg': 3,
-        'chr': 3,
-        'cs': 12,
-        'cy': 17,
-        'da': 3,
-        'de': 3,
-        'dv': 3,
-        'dz': 0,
-        'ee': 3,
-        'el': 3,
-        'en': 3,
-        'eo': 3,
-        'es': 3,
-        'et': 3,
-        'eu': 3,
-        'fa': 0,
-        'ff': 5,
-        'fi': 3,
-        'fil': 4,
-        'fo': 3,
-        'fr': 5,
-        'fur': 3,
-        'fy': 3,
-        'ga': 8,
-        'gd': 24,
-        'gl': 3,
-        'gsw': 3,
-        'gu': 3,
-        'guw': 4,
-        'gv': 23,
-        'ha': 3,
-        'haw': 3,
-        'he': 2,
-        'hi': 4,
-        'hr': 11,
-        'hu': 0,
-        'id': 0,
-        'ig': 0,
-        'ii': 0,
-        'is': 3,
-        'it': 3,
-        'iu': 7,
-        'ja': 0,
-        'jmc': 3,
-        'jv': 0,
-        'ka': 0,
-        'kab': 5,
-        'kaj': 3,
-        'kcg': 3,
-        'kde': 0,
-        'kea': 0,
-        'kk': 3,
-        'kl': 3,
-        'km': 0,
-        'kn': 0,
-        'ko': 0,
-        'ksb': 3,
-        'ksh': 21,
-        'ku': 3,
-        'kw': 7,
-        'lag': 18,
-        'lb': 3,
-        'lg': 3,
-        'ln': 4,
-        'lo': 0,
-        'lt': 10,
-        'lv': 6,
-        'mas': 3,
-        'mg': 4,
-        'mk': 16,
-        'ml': 3,
-        'mn': 3,
-        'mo': 9,
-        'mr': 3,
-        'ms': 0,
-        'mt': 15,
-        'my': 0,
-        'nah': 3,
-        'naq': 7,
-        'nb': 3,
-        'nd': 3,
-        'ne': 3,
-        'nl': 3,
-        'nn': 3,
-        'no': 3,
-        'nr': 3,
-        'nso': 4,
-        'ny': 3,
-        'nyn': 3,
-        'om': 3,
-        'or': 3,
-        'pa': 3,
-        'pap': 3,
-        'pl': 13,
-        'ps': 3,
-        'pt': 3,
-        'rm': 3,
-        'ro': 9,
-        'rof': 3,
-        'ru': 11,
-        'rwk': 3,
-        'sah': 0,
-        'saq': 3,
-        'se': 7,
-        'seh': 3,
-        'ses': 0,
-        'sg': 0,
-        'sh': 11,
-        'shi': 19,
-        'sk': 12,
-        'sl': 14,
-        'sma': 7,
-        'smi': 7,
-        'smj': 7,
-        'smn': 7,
-        'sms': 7,
-        'sn': 3,
-        'so': 3,
-        'sq': 3,
-        'sr': 11,
-        'ss': 3,
-        'ssy': 3,
-        'st': 3,
-        'sv': 3,
-        'sw': 3,
-        'syr': 3,
-        'ta': 3,
-        'te': 3,
-        'teo': 3,
-        'th': 0,
-        'ti': 4,
-        'tig': 3,
-        'tk': 3,
-        'tl': 4,
-        'tn': 3,
-        'to': 0,
-        'tr': 0,
-        'ts': 3,
-        'tzm': 22,
-        'uk': 11,
-        'ur': 3,
-        've': 3,
-        'vi': 0,
-        'vun': 3,
-        'wa': 4,
-        'wae': 3,
-        'wo': 0,
-        'xh': 3,
-        'xog': 3,
-        'yo': 0,
-        'zh': 0,
-        'zu': 3
-      };
+    const locales2rules = {
+      'af': 3,
+      'ak': 4,
+      'am': 4,
+      'ar': 1,
+      'asa': 3,
+      'az': 0,
+      'be': 11,
+      'bem': 3,
+      'bez': 3,
+      'bg': 3,
+      'bh': 4,
+      'bm': 0,
+      'bn': 3,
+      'bo': 0,
+      'br': 20,
+      'brx': 3,
+      'bs': 11,
+      'ca': 3,
+      'cgg': 3,
+      'chr': 3,
+      'cs': 12,
+      'cy': 17,
+      'da': 3,
+      'de': 3,
+      'dv': 3,
+      'dz': 0,
+      'ee': 3,
+      'el': 3,
+      'en': 3,
+      'eo': 3,
+      'es': 3,
+      'et': 3,
+      'eu': 3,
+      'fa': 0,
+      'ff': 5,
+      'fi': 3,
+      'fil': 4,
+      'fo': 3,
+      'fr': 5,
+      'fur': 3,
+      'fy': 3,
+      'ga': 8,
+      'gd': 24,
+      'gl': 3,
+      'gsw': 3,
+      'gu': 3,
+      'guw': 4,
+      'gv': 23,
+      'ha': 3,
+      'haw': 3,
+      'he': 2,
+      'hi': 4,
+      'hr': 11,
+      'hu': 0,
+      'id': 0,
+      'ig': 0,
+      'ii': 0,
+      'is': 3,
+      'it': 3,
+      'iu': 7,
+      'ja': 0,
+      'jmc': 3,
+      'jv': 0,
+      'ka': 0,
+      'kab': 5,
+      'kaj': 3,
+      'kcg': 3,
+      'kde': 0,
+      'kea': 0,
+      'kk': 3,
+      'kl': 3,
+      'km': 0,
+      'kn': 0,
+      'ko': 0,
+      'ksb': 3,
+      'ksh': 21,
+      'ku': 3,
+      'kw': 7,
+      'lag': 18,
+      'lb': 3,
+      'lg': 3,
+      'ln': 4,
+      'lo': 0,
+      'lt': 10,
+      'lv': 6,
+      'mas': 3,
+      'mg': 4,
+      'mk': 16,
+      'ml': 3,
+      'mn': 3,
+      'mo': 9,
+      'mr': 3,
+      'ms': 0,
+      'mt': 15,
+      'my': 0,
+      'nah': 3,
+      'naq': 7,
+      'nb': 3,
+      'nd': 3,
+      'ne': 3,
+      'nl': 3,
+      'nn': 3,
+      'no': 3,
+      'nr': 3,
+      'nso': 4,
+      'ny': 3,
+      'nyn': 3,
+      'om': 3,
+      'or': 3,
+      'pa': 3,
+      'pap': 3,
+      'pl': 13,
+      'ps': 3,
+      'pt': 3,
+      'rm': 3,
+      'ro': 9,
+      'rof': 3,
+      'ru': 11,
+      'rwk': 3,
+      'sah': 0,
+      'saq': 3,
+      'se': 7,
+      'seh': 3,
+      'ses': 0,
+      'sg': 0,
+      'sh': 11,
+      'shi': 19,
+      'sk': 12,
+      'sl': 14,
+      'sma': 7,
+      'smi': 7,
+      'smj': 7,
+      'smn': 7,
+      'sms': 7,
+      'sn': 3,
+      'so': 3,
+      'sq': 3,
+      'sr': 11,
+      'ss': 3,
+      'ssy': 3,
+      'st': 3,
+      'sv': 3,
+      'sw': 3,
+      'syr': 3,
+      'ta': 3,
+      'te': 3,
+      'teo': 3,
+      'th': 0,
+      'ti': 4,
+      'tig': 3,
+      'tk': 3,
+      'tl': 4,
+      'tn': 3,
+      'to': 0,
+      'tr': 0,
+      'ts': 3,
+      'tzm': 22,
+      'uk': 11,
+      'ur': 3,
+      've': 3,
+      'vi': 0,
+      'vun': 3,
+      'wa': 4,
+      'wae': 3,
+      'wo': 0,
+      'xh': 3,
+      'xog': 3,
+      'yo': 0,
+      'zh': 0,
+      'zu': 3
+    };
 
-      function isIn(n, list) {
-        return list.indexOf(n) !== -1;
-      }
+    function isIn(n, list) {
+      return list.indexOf(n) !== -1;
+    }
 
-      function isBetween(n, start, end) {
-        return typeof n === typeof start && start <= n && n <= end;
-      }
+    function isBetween(n, start, end) {
+      return typeof n === typeof start && start <= n && n <= end;
+    }
 
-      var pluralRules = {
-        '0': function () {
-          return 'other';
-        },
-        '1': function (n) {
-          if (isBetween(n % 100, 3, 10)) {
-            return 'few';
-          }
-
-          if (n === 0) {
-            return 'zero';
-          }
-
-          if (isBetween(n % 100, 11, 99)) {
-            return 'many';
-          }
-
-          if (n === 2) {
-            return 'two';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '2': function (n) {
-          if (n !== 0 && n % 10 === 0) {
-            return 'many';
-          }
-
-          if (n === 2) {
-            return 'two';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '3': function (n) {
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '4': function (n) {
-          if (isBetween(n, 0, 1)) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '5': function (n) {
-          if (isBetween(n, 0, 2) && n !== 2) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '6': function (n) {
-          if (n === 0) {
-            return 'zero';
-          }
-
-          if (n % 10 === 1 && n % 100 !== 11) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '7': function (n) {
-          if (n === 2) {
-            return 'two';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '8': function (n) {
-          if (isBetween(n, 3, 6)) {
-            return 'few';
-          }
-
-          if (isBetween(n, 7, 10)) {
-            return 'many';
-          }
-
-          if (n === 2) {
-            return 'two';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '9': function (n) {
-          if (n === 0 || n !== 1 && isBetween(n % 100, 1, 19)) {
-            return 'few';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '10': function (n) {
-          if (isBetween(n % 10, 2, 9) && !isBetween(n % 100, 11, 19)) {
-            return 'few';
-          }
-
-          if (n % 10 === 1 && !isBetween(n % 100, 11, 19)) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '11': function (n) {
-          if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
-            return 'few';
-          }
-
-          if (n % 10 === 0 || isBetween(n % 10, 5, 9) || isBetween(n % 100, 11, 14)) {
-            return 'many';
-          }
-
-          if (n % 10 === 1 && n % 100 !== 11) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '12': function (n) {
-          if (isBetween(n, 2, 4)) {
-            return 'few';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '13': function (n) {
-          if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
-            return 'few';
-          }
-
-          if (n !== 1 && isBetween(n % 10, 0, 1) || isBetween(n % 10, 5, 9) || isBetween(n % 100, 12, 14)) {
-            return 'many';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '14': function (n) {
-          if (isBetween(n % 100, 3, 4)) {
-            return 'few';
-          }
-
-          if (n % 100 === 2) {
-            return 'two';
-          }
-
-          if (n % 100 === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '15': function (n) {
-          if (n === 0 || isBetween(n % 100, 2, 10)) {
-            return 'few';
-          }
-
-          if (isBetween(n % 100, 11, 19)) {
-            return 'many';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '16': function (n) {
-          if (n % 10 === 1 && n !== 11) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '17': function (n) {
-          if (n === 3) {
-            return 'few';
-          }
-
-          if (n === 0) {
-            return 'zero';
-          }
-
-          if (n === 6) {
-            return 'many';
-          }
-
-          if (n === 2) {
-            return 'two';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '18': function (n) {
-          if (n === 0) {
-            return 'zero';
-          }
-
-          if (isBetween(n, 0, 2) && n !== 0 && n !== 2) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '19': function (n) {
-          if (isBetween(n, 2, 10)) {
-            return 'few';
-          }
-
-          if (isBetween(n, 0, 1)) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '20': function (n) {
-          if ((isBetween(n % 10, 3, 4) || n % 10 === 9) && !(isBetween(n % 100, 10, 19) || isBetween(n % 100, 70, 79) || isBetween(n % 100, 90, 99))) {
-            return 'few';
-          }
-
-          if (n % 1000000 === 0 && n !== 0) {
-            return 'many';
-          }
-
-          if (n % 10 === 2 && !isIn(n % 100, [12, 72, 92])) {
-            return 'two';
-          }
-
-          if (n % 10 === 1 && !isIn(n % 100, [11, 71, 91])) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '21': function (n) {
-          if (n === 0) {
-            return 'zero';
-          }
-
-          if (n === 1) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '22': function (n) {
-          if (isBetween(n, 0, 1) || isBetween(n, 11, 99)) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '23': function (n) {
-          if (isBetween(n % 10, 1, 2) || n % 20 === 0) {
-            return 'one';
-          }
-
-          return 'other';
-        },
-        '24': function (n) {
-          if (isBetween(n, 3, 10) || isBetween(n, 13, 19)) {
-            return 'few';
-          }
-
-          if (isIn(n, [2, 12])) {
-            return 'two';
-          }
-
-          if (isIn(n, [1, 11])) {
-            return 'one';
-          }
-
-          return 'other';
+    const pluralRules = {
+      '0': function () {
+        return 'other';
+      },
+      '1': function (n) {
+        if (isBetween(n % 100, 3, 10)) {
+          return 'few';
         }
-      };
-      var index = locales2rules[code.replace(/-.*$/, '')];
+
+        if (n === 0) {
+          return 'zero';
+        }
+
+        if (isBetween(n % 100, 11, 99)) {
+          return 'many';
+        }
+
+        if (n === 2) {
+          return 'two';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '2': function (n) {
+        if (n !== 0 && n % 10 === 0) {
+          return 'many';
+        }
+
+        if (n === 2) {
+          return 'two';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '3': function (n) {
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '4': function (n) {
+        if (isBetween(n, 0, 1)) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '5': function (n) {
+        if (isBetween(n, 0, 2) && n !== 2) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '6': function (n) {
+        if (n === 0) {
+          return 'zero';
+        }
+
+        if (n % 10 === 1 && n % 100 !== 11) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '7': function (n) {
+        if (n === 2) {
+          return 'two';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '8': function (n) {
+        if (isBetween(n, 3, 6)) {
+          return 'few';
+        }
+
+        if (isBetween(n, 7, 10)) {
+          return 'many';
+        }
+
+        if (n === 2) {
+          return 'two';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '9': function (n) {
+        if (n === 0 || n !== 1 && isBetween(n % 100, 1, 19)) {
+          return 'few';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '10': function (n) {
+        if (isBetween(n % 10, 2, 9) && !isBetween(n % 100, 11, 19)) {
+          return 'few';
+        }
+
+        if (n % 10 === 1 && !isBetween(n % 100, 11, 19)) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '11': function (n) {
+        if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
+          return 'few';
+        }
+
+        if (n % 10 === 0 || isBetween(n % 10, 5, 9) || isBetween(n % 100, 11, 14)) {
+          return 'many';
+        }
+
+        if (n % 10 === 1 && n % 100 !== 11) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '12': function (n) {
+        if (isBetween(n, 2, 4)) {
+          return 'few';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '13': function (n) {
+        if (isBetween(n % 10, 2, 4) && !isBetween(n % 100, 12, 14)) {
+          return 'few';
+        }
+
+        if (n !== 1 && isBetween(n % 10, 0, 1) || isBetween(n % 10, 5, 9) || isBetween(n % 100, 12, 14)) {
+          return 'many';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '14': function (n) {
+        if (isBetween(n % 100, 3, 4)) {
+          return 'few';
+        }
+
+        if (n % 100 === 2) {
+          return 'two';
+        }
+
+        if (n % 100 === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '15': function (n) {
+        if (n === 0 || isBetween(n % 100, 2, 10)) {
+          return 'few';
+        }
+
+        if (isBetween(n % 100, 11, 19)) {
+          return 'many';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '16': function (n) {
+        if (n % 10 === 1 && n !== 11) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '17': function (n) {
+        if (n === 3) {
+          return 'few';
+        }
+
+        if (n === 0) {
+          return 'zero';
+        }
+
+        if (n === 6) {
+          return 'many';
+        }
+
+        if (n === 2) {
+          return 'two';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '18': function (n) {
+        if (n === 0) {
+          return 'zero';
+        }
+
+        if (isBetween(n, 0, 2) && n !== 0 && n !== 2) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '19': function (n) {
+        if (isBetween(n, 2, 10)) {
+          return 'few';
+        }
+
+        if (isBetween(n, 0, 1)) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '20': function (n) {
+        if ((isBetween(n % 10, 3, 4) || n % 10 === 9) && !(isBetween(n % 100, 10, 19) || isBetween(n % 100, 70, 79) || isBetween(n % 100, 90, 99))) {
+          return 'few';
+        }
+
+        if (n % 1000000 === 0 && n !== 0) {
+          return 'many';
+        }
+
+        if (n % 10 === 2 && !isIn(n % 100, [12, 72, 92])) {
+          return 'two';
+        }
+
+        if (n % 10 === 1 && !isIn(n % 100, [11, 71, 91])) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '21': function (n) {
+        if (n === 0) {
+          return 'zero';
+        }
+
+        if (n === 1) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '22': function (n) {
+        if (isBetween(n, 0, 1) || isBetween(n, 11, 99)) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '23': function (n) {
+        if (isBetween(n % 10, 1, 2) || n % 20 === 0) {
+          return 'one';
+        }
+
+        return 'other';
+      },
+      '24': function (n) {
+        if (isBetween(n, 3, 10) || isBetween(n, 13, 19)) {
+          return 'few';
+        }
+
+        if (isIn(n, [2, 12])) {
+          return 'two';
+        }
+
+        if (isIn(n, [1, 11])) {
+          return 'one';
+        }
+
+        return 'other';
+      }
+    };
+
+    function getPluralRule(code) {
+      const index = locales2rules[code.replace(/-.*$/, '')];
 
       if (!(index in pluralRules)) {
         return function () {
@@ -1725,83 +1895,27 @@
   });
   modules.set('lib/resolver', function () {
     const { L10nError } = getModule('lib/errors');
-    var KNOWN_MACROS = ['plural'];
-    var MAX_PLACEABLE_LENGTH = 2500;
-    var nonLatin1 = /[^\x01-\xFF]/;
-    var FSI = '⁨';
-    var PDI = '⁩';
-    const meta = new WeakMap();
+    const KNOWN_MACROS = ['plural'];
+    const MAX_PLACEABLE_LENGTH = 2500;
+    const nonLatin1 = /[^\x01-\xFF]/;
+    const FSI = '⁨';
+    const PDI = '⁩';
     const resolutionChain = new WeakSet();
 
-    function createEntry(node, lang) {
-      var keys = Object.keys(node);
-
-      if (typeof node.$v === 'string' && keys.length === 2) {
-        return node.$v;
-      }
-
-      var attrs;
-
-      for (var i = 0, key; key = keys[i]; i++) {
-        if (key[0] === '$') {
-          continue;
-        }
-
-        if (!attrs) {
-          attrs = Object.create(null);
-        }
-
-        attrs[key] = createAttribute(node[key], lang, node.$i + '.' + key);
-      }
-
-      let entity = {
-        value: node.$v !== undefined ? node.$v : null,
-        index: node.$x || null,
-        attrs: attrs || null
-      };
-      meta.set(entity, {
-        id: node.$i,
-        lang
-      });
-      return entity;
-    }
-
-    function createAttribute(node, lang, id) {
-      if (typeof node === 'string') {
-        return node;
-      }
-
-      let attr = {
-        value: node.$v || (node !== undefined ? node : null),
-        index: node.$x || null
-      };
-      meta.set(attr, {
-        id,
-        lang
-      });
-      return attr;
-    }
-
-    function format(ctx, args, entity) {
+    function format(ctx, lang, args, entity) {
       if (typeof entity === 'string') {
         return [{}, entity];
       }
 
       if (resolutionChain.has(entity)) {
-        const m = meta.get(entity);
-        throw new L10nError('Cyclic reference detected: ' + m.id, m.id, m.lang);
+        throw new L10nError('Cyclic reference detected');
       }
 
       resolutionChain.add(entity);
       let rv;
 
       try {
-        rv = resolveValue({}, ctx, meta.get(entity).lang, args, entity.value, entity.index);
-      } catch (err) {
-        const m = meta.get(entity);
-        err.id = m.id;
-        err.lang = m.lang;
-        throw err;
+        rv = resolveValue({}, ctx, lang, args, entity.value, entity.index);
       } finally {
         resolutionChain.delete(entity);
       }
@@ -1826,17 +1940,17 @@
         throw new L10nError('Illegal id: ' + id);
       }
 
-      var entity = ctx._getEntity(lang, id);
+      const entity = ctx._getEntity(lang, id);
 
       if (entity) {
-        return format(ctx, args, entity);
+        return format(ctx, lang, args, entity);
       }
 
       throw new L10nError('Unknown reference: ' + id);
     }
 
     function subPlaceable(locals, ctx, lang, args, id) {
-      var res;
+      let res;
 
       try {
         res = resolveIdentifier(ctx, lang, args, id);
@@ -1846,7 +1960,7 @@
         }, '{{ ' + id + ' }}'];
       }
 
-      var value = res[1];
+      const value = res[1];
 
       if (typeof value === 'number') {
         return res;
@@ -1868,25 +1982,32 @@
     }
 
     function interpolate(locals, ctx, lang, args, arr) {
-      return arr.reduce(function (prev, cur) {
+      return arr.reduce(function ([localsSeq, valueSeq], cur) {
         if (typeof cur === 'string') {
-          return [prev[0], prev[1] + cur];
-        } else if (cur.t === 'idOrVar') {
-          var placeable = subPlaceable(locals, ctx, lang, args, cur.v);
-          return [prev[0], prev[1] + placeable[1]];
+          return [localsSeq, valueSeq + cur];
+        } else {
+          const [, value] = subPlaceable(locals, ctx, lang, args, cur.name);
+          return [localsSeq, valueSeq + value];
         }
       }, [locals, '']);
     }
 
     function resolveSelector(ctx, lang, args, expr, index) {
-      var selectorName = index[0].v;
-      var selector = resolveIdentifier(ctx, lang, args, selectorName)[1];
+      let selectorName;
+
+      if (index[0].type === 'call' && index[0].expr.type === 'prop' && index[0].expr.expr.name === 'cldr') {
+        selectorName = 'plural';
+      } else {
+        selectorName = index[0].name;
+      }
+
+      const selector = resolveIdentifier(ctx, lang, args, selectorName)[1];
 
       if (typeof selector !== 'function') {
         return selector;
       }
 
-      var argValue = index[1] ? resolveIdentifier(ctx, lang, args, index[1])[1] : undefined;
+      const argValue = index[0].args ? resolveIdentifier(ctx, lang, args, index[0].args[0].name)[1] : undefined;
 
       if (selectorName === 'plural') {
         if (argValue === 0 && 'zero' in expr) {
@@ -1922,9 +2043,9 @@
       }
 
       if (index) {
-        var selector = resolveSelector(ctx, lang, args, expr, index);
+        const selector = resolveSelector(ctx, lang, args, expr, index);
 
-        if (expr.hasOwnProperty(selector)) {
+        if (selector in expr) {
           return resolveValue(locals, ctx, lang, args, expr[selector]);
         }
       }
@@ -1936,7 +2057,7 @@
       throw new L10nError('Unresolvable value');
     }
 
-    return { createEntry, format };
+    return { format };
   });
   modules.set('lib/context', function () {
     const { L10nError } = getModule('lib/errors');
@@ -1957,10 +2078,13 @@
       formatEntity(langs, id, args) {
         return this.fetch(langs).then(this._fallback.bind(this, Context.prototype._formatEntity, id, args));
       }
-      _formatTuple(args, entity) {
+      _formatTuple(lang, args, entity, id, key) {
         try {
-          return format(this, args, entity);
+          return format(this, lang, args, entity);
         } catch (err) {
+          err.id = key ? id + '::' + key : id;
+          err.lang = lang;
+
           this._env.emit('resolveerror', err, this);
 
           return [{
@@ -1968,15 +2092,17 @@
           }, err.id];
         }
       }
-      _formatValue(args, entity) {
+      _formatValue(lang, args, entity, id) {
         if (typeof entity === 'string') {
           return entity;
         }
 
-        return this._formatTuple.call(this, args, entity)[1];
+        const [, value] = this._formatTuple.call(this, lang, args, entity, id);
+
+        return value;
       }
-      _formatEntity(args, entity) {
-        const [, value] = this._formatTuple.call(this, args, entity);
+      _formatEntity(lang, args, entity, id) {
+        const [, value] = this._formatTuple.call(this, lang, args, entity, id);
 
         const formatted = {
           value,
@@ -1988,7 +2114,7 @@
         }
 
         for (let key in entity.attrs) {
-          let [, attrValue] = this._formatTuple.call(this, args, entity.attrs[key]);
+          const [, attrValue] = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
 
           formatted.attrs[key] = attrValue;
         }
@@ -2003,33 +2129,29 @@
         return Promise.all(this._resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(() => langs);
       }
       _fallback(method, id, args, langs) {
-        let lang = langs[0];
+        const lang = langs[0];
 
         if (!lang) {
-          let err = new L10nError('"' + id + '"' + ' not found in any language.', id);
-
-          this._env.emit('notfounderror', err, this);
+          this._env.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in any language', id), this);
 
           return id;
         }
 
-        let entity = this._getEntity(lang, id);
+        const entity = this._getEntity(lang, id);
 
         if (entity) {
-          return method.call(this, args, entity);
+          return method.call(this, lang, args, entity, id);
         } else {
-          let err = new L10nError('"' + id + '"' + ' not found in ' + lang.code + '.', id, lang.code);
-
-          this._env.emit('notfounderror', err, this);
+          this._env.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), this);
         }
 
         return this._fetchResources(langs.slice(1)).then(this._fallback.bind(this, method, id, args));
       }
       _getEntity(lang, id) {
-        var cache = this._env._resCache;
+        const cache = this._env._resCache;
 
-        for (var i = 0, resId; resId = this._resIds[i]; i++) {
-          var resource = cache[resId + lang.code + lang.src];
+        for (let i = 0, resId; resId = this._resIds[i]; i++) {
+          const resource = cache[resId + lang.code + lang.src];
 
           if (resource instanceof L10nError) {
             continue;
@@ -2057,15 +2179,13 @@
   });
   modules.set('lib/env', function () {
     const { Context } = getModule('lib/context');
-    const { createEntry } = getModule('lib/resolver');
     const PropertiesParser = getModule('lib/format/properties/parser');
-    const L20nParser = getModule('lib/format/l20n/parser');
-    const { walkContent, qps } = getModule('lib/pseudo');
+    const L20nParser = getModule('lib/format/l20n/entries/parser');
+    const { walkEntry, qps } = getModule('lib/pseudo');
     const { emit, addEventListener, removeEventListener } = getModule('lib/events');
     const parsers = {
-      properties: PropertiesParser.parse.bind(PropertiesParser),
-      l20n: L20nParser.parse.bind(L20nParser),
-      json: null
+      properties: PropertiesParser,
+      l20n: L20nParser
     };
 
     class Env {
@@ -2073,7 +2193,7 @@
         this.defaultLang = defaultLang;
         this.fetch = fetch;
         this._resCache = Object.create(null);
-        let listeners = {};
+        const listeners = {};
         this.emit = emit.bind(this, listeners);
         this.addEventListener = addEventListener.bind(this, listeners);
         this.removeEventListener = removeEventListener.bind(this, listeners);
@@ -2081,28 +2201,53 @@
       createContext(resIds) {
         return new Context(this, resIds);
       }
+      _parse(syntax, lang, data) {
+        const parser = parsers[syntax];
+
+        if (!parser) {
+          return data;
+        }
+
+        const emit = (type, err) => this.emit(type, amendError(lang, err));
+
+        return parser.parse.call(parser, emit, data);
+      }
+      _create(lang, entries) {
+        if (lang.src !== 'qps') {
+          return entries;
+        }
+
+        const pseudoentries = Object.create(null);
+
+        for (let key in entries) {
+          pseudoentries[key] = walkEntry(entries[key], qps[lang.code].translate);
+        }
+
+        return pseudoentries;
+      }
       _getResource(lang, res) {
-        let cache = this._resCache;
-        let id = res + lang.code + lang.src;
+        const cache = this._resCache;
+        const id = res + lang.code + lang.src;
 
         if (cache[id]) {
           return cache[id];
         }
 
-        let syntax = res.substr(res.lastIndexOf('.') + 1);
-        let parser = parsers[syntax];
+        const syntax = res.substr(res.lastIndexOf('.') + 1);
 
-        let saveEntries = data => {
-          let ast = parser ? parser(this, data) : data;
-          cache[id] = createEntries(lang, ast);
+        const saveEntries = data => {
+          const entries = this._parse(syntax, lang, data);
+
+          cache[id] = this._create(lang, entries);
         };
 
-        let recover = err => {
+        const recover = err => {
+          err.lang = lang;
           this.emit('fetcherror', err);
           cache[id] = err;
         };
 
-        let langToFetch = lang.src === 'qps' ? {
+        const langToFetch = lang.src === 'qps' ? {
           code: this.defaultLang,
           src: 'app'
         } : lang;
@@ -2110,22 +2255,12 @@
       }
     }
 
-    function createEntries(lang, ast) {
-      let entries = Object.create(null);
-      let create = lang.src === 'qps' ? createPseudoEntry : createEntry;
-
-      for (var i = 0, node; node = ast[i]; i++) {
-        entries[node.$i] = create(node, lang);
-      }
-
-      return entries;
+    function amendError(lang, err) {
+      err.lang = lang;
+      return err;
     }
 
-    function createPseudoEntry(node, lang) {
-      return createEntry(walkContent(node, qps[lang.code].translate), lang);
-    }
-
-    return { Env };
+    return { Env, amendError };
   });
   modules.set('bindings/html/service', function () {
     const { Env } = getModule('lib/env');
@@ -2135,12 +2270,13 @@
 
     class Service {
       constructor(fetch) {
-        let meta = getMeta(document.head);
+        const meta = getMeta(document.head);
         this.defaultLanguage = meta.defaultLang;
         this.availableLanguages = meta.availableLangs;
         this.appVersion = meta.appVersion;
         this.env = new Env(this.defaultLanguage, fetch.bind(null, this.appVersion));
         this.views = [document.l10n = new View(this, document)];
+        this.env.addEventListener('deprecatewarning', err => console.warn(err));
       }
       requestLanguages(requestedLangs = navigator.languages) {
         return changeLanguages.call(this, getAdditionalLanguages(), requestedLangs);
@@ -2163,18 +2299,18 @@
     }
 
     function changeLanguages(additionalLangs, requestedLangs) {
-      let prevLangs = this.languages || [];
+      const prevLangs = this.languages || [];
       return this.languages = Promise.all([additionalLangs, prevLangs]).then(([additionalLangs, prevLangs]) => negotiateLanguages(translateViews.bind(this), this.appVersion, this.defaultLanguage, this.availableLanguages, additionalLangs, prevLangs, requestedLangs));
     }
 
     return { Service, getAdditionalLanguages };
   });
   modules.set('lib/errors', function () {
-    function L10nError(message, id, code) {
+    function L10nError(message, id, lang) {
       this.name = 'L10nError';
       this.message = message;
       this.id = id;
-      this.code = code;
+      this.lang = lang;
     }
 
     L10nError.prototype = Object.create(Error.prototype);
@@ -2186,7 +2322,7 @@
 
     function load(type, url) {
       return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
 
         if (xhr.overrideMimeType) {
           xhr.overrideMimeType(type);
@@ -2239,8 +2375,8 @@
     };
 
     function fetch(ver, res, lang) {
-      let url = res.replace('{locale}', lang.code);
-      let type = res.endsWith('.json') ? 'json' : 'text';
+      const url = res.replace('{locale}', lang.code);
+      const type = res.endsWith('.json') ? 'json' : 'text';
       return io[lang.src](lang.code, ver, url, type);
     }
 
@@ -2271,16 +2407,16 @@
     }
 
     function init() {
-      window.L10n = new Service(fetch);
-      window.L10n.requestLanguages(navigator.languages);
-      window.addEventListener('languagechange', window.L10n);
-      document.addEventListener('additionallanguageschange', window.L10n);
+      const service = new Service(fetch);
+      window.addEventListener('languagechange', service);
+      document.addEventListener('additionallanguageschange', service);
+      document.l10n.languages = navigator.languages;
     }
 
     whenInteractive(init);
 
     // XXX for easier testing with existing Gaia apps; remove later on
-    let once = callback => whenInteractive(() => document.l10n.ready.then(callback));
+    const once = callback => whenInteractive(() => document.l10n.ready.then(callback));
 
     navigator.mozL10n = {
       get: id => id,

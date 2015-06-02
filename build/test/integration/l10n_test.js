@@ -55,8 +55,8 @@ suite('L10n logic tests', function() {
         assert.isNotNull(error, 'Expected a "make" error');
         assert.include(
           stdout,
-          'L10nError: "entity0" not found in en-US in ' +
-            'app://test-l10n-missing.gaiamobile.org');
+          'L10nError: "entity0" not found in en-US ' +
+            '(app://test-l10n-missing.gaiamobile.org)');
         done();
       }
     );
@@ -68,8 +68,8 @@ suite('L10n logic tests', function() {
         assert.isNotNull(error, 'Expected a "make" error');
         assert.include(
           stdout,
-          'L10nError: Duplicate string "entity1" found in ' +
-            'app://test-l10n-duplicates.gaiamobile.org');
+          'L10nError: Duplicate string "entity1" found in en-US ' +
+            '(app://test-l10n-duplicates.gaiamobile.org)');
         done();
       }
     );

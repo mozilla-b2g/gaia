@@ -4,11 +4,13 @@ var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
 var path = require('path');
 var mockUtils = require('./mock_utils.js');
+var CrossCompatPromise = require('es6-promise').Promise;
 
 suite('webapp-optimize.js', function() {
   var app;
   var mockConfig;
   var mockJsmin;
+  var mockL20n;
   var mockFile;
   var isFileRemoved = false;
   var removedFilePath = [];
@@ -18,7 +20,6 @@ suite('webapp-optimize.js', function() {
   var fileChildren = {};
   var mockDoc;
   var MockDom;
-  var mockWin;
   var mockoptimizeConfig;
   var createdDOMs = [];
   var modifiedDOMs = [];
@@ -33,8 +34,20 @@ suite('webapp-optimize.js', function() {
       };
     };
 
+    mockL20n = {
+      getView: function() {
+        return {
+          serializeResources: function() {
+            return CrossCompatPromise.resolve(
+              [{$i: 'test-id', $v: 'testIdContent'}]);
+          }
+        };
+      }
+    };
+
     app = proxyquire.noCallThru().load(
       '../../webapp-optimize', {
+        './l10n/l20n': mockL20n,
         './utils': mockUtils,
         './jsmin': mockJsmin
       });
@@ -213,31 +226,6 @@ suite('webapp-optimize.js', function() {
       return mockDoc;
     };
 
-    mockWin = {
-      document: mockDoc,
-      navigator: {
-        mozL10n: {
-          language: {
-            code: 'testlangcode',
-            direction: 'testleft'
-          },
-          getAST: function() {
-            return function(docElt) {
-              return {
-                doc: docElt
-              };
-            };
-          },
-          bootstrap: function(file, localeBasedirFlag) {
-          },
-          ctx: {
-            requestLocales: function(locale) {
-              mockWin.navigator.mozL10n.language.code = locale;
-            }
-          }
-        }
-      }
-    };
     mockoptimizeConfig = {
       'CONCAT_LOCALES_BLACKLIST': {
         'ignoreL10nOptimizeApp': '*'
@@ -312,12 +300,11 @@ suite('webapp-optimize.js', function() {
       var htmlFile = mockUtils.getFile('index.html');
       htmlOptimizer = new app.HTMLOptimizer({
         htmlFile: htmlFile,
-        asts: {'en-test': []},
+        entries: {'en-test': []},
         webapp: {
           buildDirectoryFilePath: 'build_stage'
         },
         config: mockConfig,
-        win: mockWin,
         locales: ['en-test'],
         optimizeConfig: mockoptimizeConfig
       });
@@ -326,16 +313,14 @@ suite('webapp-optimize.js', function() {
     teardown(function() {
     });
 
-    test('_getASTs, prepare JSON AST files', function() {
-      htmlOptimizer.getAST = function(docElt) {
-        return [{$i: 'test-id', $v: 'testIdContent'}];
-      };
-      mockWin.document.documentElement = {};
-      htmlOptimizer._getASTs();
-      assert.deepEqual(htmlOptimizer.asts,
-        {'en-test': [{$i: 'test-id', $v: 'testIdContent'}]});
-      assert.equal(htmlOptimizer.asts['en-test'][0].$v,
-        'testIdContent');
+    test('serializeL10nResources, prepare JSON AST files', function(done) {
+      mockDoc.documentElement = {};
+      htmlOptimizer.serializeL10nResources().then(function() {
+        assert.deepEqual(htmlOptimizer.entries,
+          {'en-test': [{$i: 'test-id', $v: 'testIdContent'}]});
+        assert.equal(htmlOptimizer.entries['en-test'][0].$v,
+          'testIdContent');
+      }).then(done, done);
     });
 
     test('embedHtmlImports', function() {
@@ -497,7 +482,8 @@ suite('webapp-optimize.js', function() {
       isFileExist = true;
       var buildDirectoryFile = mockUtils.getFile('build_stage');
       htmlOptimizer.webapp.buildDirectoryFilePath = buildDirectoryFile.path;
-      htmlOptimizer.asts = {'en-test': [{ $i: 'testId', $v: 'testIdContent'}]};
+      htmlOptimizer.entries =
+        {'en-test': [{ $i: 'testId', $v: 'testIdContent'}]};
       fileChildren[buildDirectoryFile.leafName + '/locales-obj'] = [
         mockUtils.getFile('index.en-test.json')
       ];

@@ -1,7 +1,7 @@
 'use strict';
 
 const utils = require('./utils');
-const qps = require('./l10n/qps');
+const l20n = require('./l10n/l20n');
 const RE_PROPERTY_LINE = /(.*)\s*[:=]\s*(.*)/;
 const MODNAME = 'multilocale';
 
@@ -326,9 +326,9 @@ function L10nManager(gaiaDir,
 
       if (locale === GAIA_SOURCE_LOCALE) {
         manifestProps = sourceLocaleProps;
-      } else if (locale in qps.PSEUDO) {
-        manifestProps = qps.walkContent(
-          sourceLocaleProps, qps.PSEUDO[locale].translate);
+      } else if (locale in l20n.qps) {
+        manifestProps = l20n.walkValue(
+          sourceLocaleProps, l20n.qps[locale].translate);
       } else {
         manifestProps = getManifestProperties(webapp, locale);
       }
