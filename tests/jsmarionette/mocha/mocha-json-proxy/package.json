@@ -11,6 +11,6 @@
   },
 
   "peerDependencies": {
-    "mocha": ">=1.5"
+    "mocha": ">=1.0"
   }
 }

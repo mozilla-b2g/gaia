@@ -737,13 +737,12 @@ git-gaia-node-modules: gaia_node_modules.revision
 # we run npm rebuild on marionette-js-runner to ensure that our python bits are
 # setup properly (it's a postinstall script that runs only when we rebuild).
 #
-# calling npm install ensures that local in tree modules get installed. these
-# are not part of the pre-built node modules at this time.
+# calling npm rebuild ensures that local in tree modules get their dependencies
+# installed. These are not part of the pre-built node modules at this time.
 #
 npm-cache:
 	@echo "Using pre-deployed cache."
-	npm rebuild marionette-js-runner
-	npm install
+	./bin/rebuild_local_modules.js
 	touch -c node_modules
 
 node_modules: gaia_node_modules.revision

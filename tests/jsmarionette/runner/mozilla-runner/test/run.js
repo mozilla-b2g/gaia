@@ -1,7 +1,7 @@
 'use strict';
 suite('run', function() {
   var run = require('../lib/run').run;
-  var runtime = __dirname + '/../../../../../b2g';
+  var runtime = __dirname + '/../../../b2g';
   var assert = require('assert');
   var profile = require('mozilla-profile-builder');
   var Static = require('node-static');
