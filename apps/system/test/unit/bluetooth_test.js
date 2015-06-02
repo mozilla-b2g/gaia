@@ -1,6 +1,6 @@
 /* global MockMozBluetooth, Bluetooth, MockBTAdapter, MockDOMRequest,
           MockNavigatormozSetMessageHandler, MocksHelper,
-          MockLazyLoader, Service */
+          MockLazyLoader, Service, MockL10n */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -17,6 +17,7 @@ requireApp('system/js/bluetooth_icon.js');
 requireApp('system/js/bluetooth_transfer_icon.js');
 requireApp('system/js/bluetooth_headphone_icon.js');
 requireApp('system/js/bluetooth.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {
@@ -31,7 +32,7 @@ var mocksForBluetooth = new MocksHelper([
 ]).init();
 
 suite('system/Bluetooth_v1', function() {
-  var realMozBluetooth, realSetMessageHandler;
+  var realMozBluetooth, realSetMessageHandler, realL10n;
   mocksForBluetooth.attachTestHelpers();
 
   suiteSetup(function(done) {
@@ -42,6 +43,8 @@ suite('system/Bluetooth_v1', function() {
     MockNavigatormozSetMessageHandler.mSetup();
     realMozBluetooth = navigator.mozBluetooth;
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
+    realL10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = MockL10n;
 
     requireApp('system/js/bluetooth.js', done);
   });
@@ -50,6 +53,7 @@ suite('system/Bluetooth_v1', function() {
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realSetMessageHandler;
     switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
+    navigator.mozL10n = realL10n;
   });
 
   setup(function() {
