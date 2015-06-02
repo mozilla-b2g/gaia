@@ -122,26 +122,28 @@ Logging.prototype.mark = function(name, time) {
 };
 
 /**
- * Write the memory information to the log for a given process name belonging to
- * an application
- * @param {string} processName process name for the app e.g. Communications
- * @param {string} application app name or entry point e.g. Homescreen, Dialer
+ * Write the memory information to the log for a given process ID
+ * @param {string|number} pid process ID for which to log memory information
+ * @param {string} context origin URL context to associate with entry
  * @returns {Promise}
  */
-Logging.prototype.memory = function(processName, application) {
+Logging.prototype.memory = function(pid, context) {
   var logging = this;
+  pid = pid.toString();
 
   return new Command()
     .env('ANDROID_SERIAL', this.serial)
     .adbShell('b2g-info')
-    .pipe('grep "' + processName.substr(0, 13) + '"')
+    .pipe('grep "' + pid + '"')
     .exec()
     .then(function(output) {
-      var parts = output.split(/\s+/g);
+      var parts = output
+        .substr(output.indexOf(pid) + pid.length + 1)
+        .split(/\s+/g);
 
-      logging.info('PerformanceMemory', application + '|uss|' + parts[6]);
-      logging.info('PerformanceMemory', application + '|pss|' + parts[7]);
-      logging.info('PerformanceMemory', application + '|rss|' + parts[8]);
+      logging.info('PerformanceMemory', context + '|uss|' + parts[3]);
+      logging.info('PerformanceMemory', context + '|pss|' + parts[4]);
+      logging.info('PerformanceMemory', context + '|rss|' + parts[5]);
     });
 };
 
@@ -180,11 +182,18 @@ Logging.prototype.start = function() {
   this.stream = currentStream = currentProcess.stdout;
 
   currentStream.on('data', function(data) {
-    var parsed = device.util.parseLog(data.toString());
+    // Prevent a race condition for when we have removed the stream but have not
+    // yet parsed the data so we don't try to emit on a non-existent emitter
+    if (!currentStream) {
+      return;
+    }
 
-    parsed.messages.forEach(function(entry) {
-      currentStream.emit('entry', entry);
-    });
+    device.util
+      .parseLog(data.toString())
+      .messages
+      .forEach(function(entry) {
+        currentStream.emit('entry', entry);
+      });
   });
 };
 
@@ -203,6 +212,7 @@ Logging.prototype.stop = function() {
   if (currentProcess) {
     debug('Stopping logging process');
     currentProcess.kill('SIGINT');
+    currentStream.removeAllListeners();
     currentProcess = null;
     currentStream = null;
   }
