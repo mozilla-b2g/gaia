@@ -37,43 +37,39 @@
 
 #quick-settings a:before {
   line-height: 4rem;
-}
-
-#quick-settings > *[data-initializing] {
-  opacity: 0.5;
-}
-
-#quick-settings-wifi[data-enabled] {
-  color: #008eab;
+  transition-delay: 280ms;
 }
 
 .non-mobile #quick-settings-data {
   display: none;
 }
 
-#quick-settings-data[data-enabled] {
-  color: #008eab;
+/* Active state */
+#quick-settings-wifi[data-enabled],
+#quick-settings-airplane-mode[data-enabled],
+#quick-settings-bluetooth[data-enabled],
+#quick-settings-data[data-enabled],
+#quick-settings #quick-settings-full-app,
+#quick-settings a:active {
+  opacity: 1;
 }
 
-#quick-settings-bluetooth[data-enabled] {
-  color: #008eab;
-}
-
-#quick-settings-airplane-mode[data-enabled] {
-  color: #008eab;
-}
-
+/* Loading state */
+#quick-settings > *[data-initializing],
 #quick-settings-airplane-mode[data-enabling] {
-  color: #008eab;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
-#quick-settings-full-app:active:before {
-  color: #008eab;
+/* Inactive state */
+.quick-settings-airplane-mode,
+#quick-settings a {
+  opacity: 0.35;
 }
 
-.quick-settings-airplane-mode {
-  opacity: 0.5;
+/* Pressed state */
+#quick-settings a:active:before {
+  color: #00aac5;
+  transition-delay: 0s;
 }
 
 #quick-setting-data-enabled-dialog {
