@@ -20,24 +20,17 @@ var mocksForTimeCore = new MocksHelper([
 ]).init();
 
 suite('system/TimeCore', function() {
-  var subject, realMozL10n, MockHierarchyManager, realHidden;
+  var subject, realMozL10n, realHidden;
   mocksForTimeCore.attachTestHelpers();
 
   setup(function() {
-    MockHierarchyManager = {
-      name: 'MockHierarchyManager',
-      getTopMostWindow: function() {
-        return MockService.mTopMostWindow;
-      }
-    };
-    Service.registerState('getTopMostWindow', MockHierarchyManager);
+    MockService.mockQueryWith('getTopMostWindow', {
+      CLASS_NAME: 'LockScreenWindow'
+    });
     this.sinon.spy(MockLazyLoader, 'load');
     this.sinon.stub(MockL10n, 'ready');
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    MockService.mTopMostWindow = {
-      CLASS_NAME: 'LockScreenWindow'
-    };
     this.sinon.useFakeTimers();
     this.sinon.stub(document, 'getElementById').returns(
       document.createElement('div'));
@@ -51,7 +44,6 @@ suite('system/TimeCore', function() {
 
   test('Ftu step is ready', function(done) {
     subject.start();
-    MockFtuLauncher.mReadyRightAway = true;
     MockLazyLoader.mLoadRightAway = true;
     Service.register('stepReady', MockFtuLauncher);
     Service.request('stepReady', 'test').then(function() {
@@ -101,10 +93,10 @@ suite('system/TimeCore', function() {
 
       test('Screen is on', function() {
         isDocumentHidden = false;
-        MockService.mTopMostWindow = {
+        MockService.mockQueryWith('getTopMostWindow', {
           CLASS_NAME: 'AppWindow',
           isFullScreen: function() { return false; }
-        };
+        });
         this.sinon.stub(subject, 'start');
         window.dispatchEvent(new CustomEvent('visibilitychange'));
         assert.isTrue(subject.icon.start.called);
@@ -112,10 +104,10 @@ suite('system/TimeCore', function() {
 
       test('Screen is off', function() {
         isDocumentHidden = true;
-        MockService.mTopMostWindow = {
+        MockService.mockQueryWith('getTopMostWindow', {
           CLASS_NAME: 'AppWindow',
           isFullScreen: function() { return false; }
-        };
+        });
         this.sinon.stub(subject, 'stop');
         window.dispatchEvent(new CustomEvent('visibilitychange'));
         assert.isTrue(subject.icon.stop.called);
@@ -128,37 +120,37 @@ suite('system/TimeCore', function() {
     });
 
     test('Open secure window`', function() {
-      MockService.mTopMostWindow = {
+      MockService.mockQueryWith('getTopMostWindow', {
         CLASS_NAME: 'SecureWindow',
         isFullScreen: function() { return false; }
-      };
+      });
       window.dispatchEvent(new CustomEvent('hierarchychanged'));
       assert.isTrue(subject.icon.start.called);
     });
 
     test('Close lockscreen window`', function() {
-      MockService.mTopMostWindow = {
+      MockService.mockQueryWith('getTopMostWindow', {
         CLASS_NAME: 'AppWindow',
         isFullScreen: function() { return false; }
-      };
+      });
       window.dispatchEvent(new CustomEvent('hierarchychanged'));
       assert.isTrue(subject.icon.start.called);
     });
 
     test('Open attention window', function() {
-      MockService.mTopMostWindow = {
+      MockService.mockQueryWith('getTopMostWindow', {
         CLASS_NAME: 'AttentionWindow',
         isFullScreen: function() { return false; }
-      };
+      });
       window.dispatchEvent(new CustomEvent('hierarchychanged'));
       assert.isTrue(subject.icon.start.called);
     });
 
     test('moztime change while lockscreen is unlocked', function() {
-      MockService.mTopMostWindow = {
+      MockService.mockQueryWith('getTopMostWindow', {
         CLASS_NAME: 'AppWindow',
         isFullScreen: function() { return false; }
-      };
+      });
       var evt = new CustomEvent('timeformatchange');
       window.dispatchEvent(evt);
       MockL10n.ready.yield();
@@ -166,10 +158,10 @@ suite('system/TimeCore', function() {
     });
 
     test('timeformatchange while timeformat changed', function() {
-      MockService.mTopMostWindow = {
+      MockService.mockQueryWith('getTopMostWindow', {
         CLASS_NAME: 'AppWindow',
         isFullScreen: function() { return false; }
-      };
+      });
       var evt = new CustomEvent('timeformatchange');
       window.dispatchEvent(evt);
       MockL10n.ready.yield();

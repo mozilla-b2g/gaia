@@ -4,22 +4,17 @@
   MockNavigatorSettings,
   MocksHelper,
   NotificationScreen,
-  ScreenManager,
   MockNavigatorMozTelephony,
   MockCall,
-  MockVersionHelper,
-  UtilityTray,
-  Service
+  MockService
  */
 
 'use strict';
 
-require('/test/unit/mock_screen_manager.js');
-require('/test/unit/mock_statusbar.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_navigator_moz_chromenotifications.js');
 require('/test/unit/mock_version_helper.js');
-require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -31,16 +26,12 @@ require('/shared/test/unit/mocks/mock_audio.js');
 
 var mocksForNotificationScreen = new MocksHelper([
   'Audio',
-  'StatusBar',
-  'GestureDetector',
   'NavigatorMozChromeNotifications',
-  'ScreenManager',
   'NavigatorSettings',
   'SettingsListener',
   'SettingsURL',
-  'UtilityTray',
   'Service',
-  'VersionHelper'
+  'LazyLoader'
 ]).init();
 
 suite('system/NotificationScreen >', function() {
@@ -49,7 +40,7 @@ suite('system/NotificationScreen >', function() {
     fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator,
     fakeNotifContainer;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
-  var realVersionHelper, realMozL10n;
+  var realMozL10n;
   var isDocumentHidden;
 
   function sendChromeNotificationEvent(detail) {
@@ -82,6 +73,7 @@ suite('system/NotificationScreen >', function() {
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function(done) {
+    window.MediaPlaybackWidget = function() {};
     fakeDesktopNotifContainer = document.createElement('div');
     fakeDesktopNotifContainer.id = 'desktop-notifications-container';
     Object.defineProperty(fakeDesktopNotifContainer, 'clientWidth', {
@@ -125,9 +117,6 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterTitle);
     document.body.appendChild(fakeToasterDetail);
 
-    realVersionHelper = window.VersionHelper;
-    window.VersionHelper = MockVersionHelper(false);
-
     realMozL10n = navigator.mozL10n;
     MockL10n.DateTimeFormat = function() {
       return {
@@ -152,13 +141,14 @@ suite('system/NotificationScreen >', function() {
     });
 
     this.sinon.useFakeTimers();
-    require('/js/notifications.js', function() {
-      NotificationScreen.init();
+    require('/js/notification_screen.js', function() {
+      NotificationScreen.start();
       done();
     });
   });
 
   teardown(function() {
+    delete window.MediaPlaybackWidget;
     // real document.hidden is in a prototype, so we can just delete it.
     delete document.hidden;
 
@@ -290,17 +280,15 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('should not increment if the tray is open', function() {
-      UtilityTray.shown = true;
+      MockService.mockQueryWith('UtilityTray.shown', true);
       incrementNotications(1);
       assert.equal(document.body.getElementsByClassName('unread').length, 0);
       assert.isNull(NotificationScreen.ambientIndicator.getAttribute(
         'aria-label'));
-      UtilityTray.shown = false;
     });
 
     test('should not show ambient indicator if FTU is running', function() {
-      var query = this.sinon.stub(Service, 'query');
-      query.withArgs('isFtuRunning').returns(true);
+      MockService.mockQueryWith('isFtuRunning', true);
       incrementNotications(1);
       assert.isFalse(NotificationScreen.ambientIndicator.classList.
         contains('unread'));
@@ -532,7 +520,9 @@ suite('system/NotificationScreen >', function() {
         message: '',
         // note: works only if the test agent is launched using
         // app://test-agent.gaiamobile.org (instead of using http://)
-        manifestURL: 'app://network-alerts.gaiamobile.org/manifest.webapp'
+        manifestURL:
+          window.location.origin.replace('system.', 'network-alerts.') +
+          '/manifest.webapp'
       });
 
       assert.lengthOf(MockAudio.instances, 0);
@@ -550,7 +540,9 @@ suite('system/NotificationScreen >', function() {
         text: text,
         // note: works only if the test agent is launched using
         // app://test-agent.gaiamobile.org (instead of using http://)
-        manifestURL: 'app://network-alerts.gaiamobile.org/manifest.webapp'
+        manifestURL:
+          window.location.origin.replace('system.', 'network-alerts.') +
+          '/manifest.webapp'
       });
 
       assert.equal(fakePriorityNotifContainer.childElementCount, 1);
@@ -599,21 +591,20 @@ suite('system/NotificationScreen >', function() {
     var turnOnScreenSpy;
 
     setup(function() {
-      ScreenManager.turnScreenOff();
-      turnOnScreenSpy = this.sinon.spy(ScreenManager, 'turnScreenOn');
+      turnOnScreenSpy = this.sinon.spy(MockService, 'request');
     });
 
     test('calendar notifications should wake the screen', function() {
       details.manifestURL = CALENDAR_MANIFEST;
       NotificationScreen.addNotification(details);
-      sinon.assert.calledOnce(ScreenManager.turnScreenOn);
+      sinon.assert.calledOnce(MockService.request.withArgs('turnScreenOn'));
     });
 
     test('email notifications should not wake screen', function() {
       details.mozbehavior = { noscreen: true };
       details.manifestURL = EMAIL_MANIFEST;
       NotificationScreen.addNotification(details);
-      sinon.assert.notCalled(ScreenManager.turnScreenOn);
+      sinon.assert.notCalled(MockService.request.withArgs('turnScreenOn'));
     });
 
     test('download progress notifications should not wake screen', function() {
@@ -621,7 +612,7 @@ suite('system/NotificationScreen >', function() {
       details.manifestURL = null;
       details.type = 'download-notification-downloading';
       NotificationScreen.addNotification(details);
-      sinon.assert.notCalled(ScreenManager.turnScreenOn);
+      sinon.assert.notCalled(MockService.request);
     });
 
     test('download complete notifications should wake screen', function() {
@@ -629,7 +620,7 @@ suite('system/NotificationScreen >', function() {
       details.manifestURL = null;
       details.type = 'download-notification-complete';
       NotificationScreen.addNotification(details);
-      sinon.assert.calledOnce(ScreenManager.turnScreenOn);
+      sinon.assert.calledOnce(MockService.request);
     });
   });
 

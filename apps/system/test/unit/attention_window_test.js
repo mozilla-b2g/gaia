@@ -12,11 +12,12 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_context_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_service.js');
 
 var mocksForAttentionWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ScreenLayout',
-  'AppChrome'
+  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 
+  'AppChrome', 'Service'
 ]).init();
 
 suite('system/AttentionWindow', function() {

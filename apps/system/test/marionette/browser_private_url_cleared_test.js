@@ -26,7 +26,7 @@ marionette('Private Browser - URL Persistence', function() {
     rocketbar = new Rocketbar(client);
     search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Url is cleared after submitting and pressing home in private window',

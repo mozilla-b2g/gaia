@@ -1,14 +1,14 @@
-/* global MocksHelper, LayoutManager, TextSelectionDialog,
+/* global MocksHelper, MockService, TextSelectionDialog,
           MockSettingsListener */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_layout_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForTextSelectionDialog = new MocksHelper([
   'SettingsListener',
-  'LayoutManager'
+  'Service'
 ]).init();
 
 suite('system/TextSelectionDialog', function() {
@@ -17,10 +17,8 @@ suite('system/TextSelectionDialog', function() {
   mocksForTextSelectionDialog.attachTestHelpers();
   var mockDetail = {};
   setup(function(done) {
-    window.layoutManager = new LayoutManager();
-    window.layoutManager.start();
-    window.layoutManager.width = 360;
-    window.layoutManager.height = 480;
+    MockService.mockQueryWith('LayoutManager.width', 360);
+    MockService.mockQueryWith('LayoutManager.height', 480);
     mockDetail = {
       type: 'selectionstatechanged',
       detail: {
@@ -31,7 +29,6 @@ suite('system/TextSelectionDialog', function() {
       isCollapsed: false
     };
 
-    requireApp('system/js/service.js');
     requireApp('system/js/base_ui.js');
 
     requireApp('system/js/text_selection_dialog.js',
@@ -54,7 +51,6 @@ suite('system/TextSelectionDialog', function() {
   });
 
   teardown(function() {
-    delete window.layoutManager;
     // navigator.mozL10n = realL10n;
     document.body.removeChild(fragment);
     fragment = null;
@@ -688,8 +684,8 @@ suite('system/TextSelectionDialog', function() {
     var windowHeight;
     var windowWidth;
     setup(function() {
-      windowHeight = window.layoutManager.height;
-      windowWidth = window.layoutManager.width;
+      windowHeight = MockService.mockQueryWith('LayoutManager.height');
+      windowWidth = MockService.mockQueryWith('LayoutManager.width');
       td.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 12;
       td.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA = 43;
       td.DISTANCE_FROM_BOUNDARY = 5;

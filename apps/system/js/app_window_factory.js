@@ -27,6 +27,7 @@
   }
 
   AppWindowFactory.prototype = {
+    name: 'AppWindowFactory',
     /**
      * Indicate whether this class is started or not.
      * @access private
@@ -54,6 +55,7 @@
         window.removeEventListener('applicationready', appReady);
         this._handlePendingEvents();
       }).bind(this));
+      Service.registerState('isLaunchingWindow', this);
     },
 
     /**
@@ -187,8 +189,7 @@
           config.url.indexOf('newtab.html') === -1) {
         return;
       }
-      var app = window.appWindowManager.getApp(config.origin,
-        config.manifestURL);
+      var app = Service.query('getApp', config.origin, config.manifestURL);
       if (app) {
         if (config.evtType == 'appopenwindow') {
           app.browser.element.src = config.url;
