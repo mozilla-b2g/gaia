@@ -89,10 +89,31 @@
     this.startEventListeners();
     this.startObserveSettings();
     this.initElements();
-    this.initWindow();
+    this._fetchFTUStatus().then((occurs) => {
+      if (!occurs) {
+        this.initWindow();
+      }
+    });
     Service.register('unlock', this);
     Service.register('lock', this);
     Service.request('registerHierarchy', this);
+  };
+  
+  LockScreenWindowManager.prototype._fetchFTUStatus = function() {
+    var lock = navigator.mozSettings.createLock();
+    var setting = lock.get('ftu.manifestURL');
+    return setting.then(() => {
+      if (!setting.result['ftu.manifestURL'] ||
+          '' === setting.result['ftu.manifestURL']) {
+        // Initialize the window only when there is no FTU.
+        return Promise.resolve(false);
+      } else {
+        return Promise.resolve(true);
+      }
+    }).catch((err) => {
+      console.error('Try to get FTU value but it\'s failed');
+      throw err;
+    });
   };
 
   LockScreenWindowManager.prototype._handle_home = function() {
@@ -239,11 +260,6 @@
         } else if('true' === val ||
                   true   === val) {
           this.states.enabled = true;
-          // For performance reason, we need to create window at the moment
-          // the settings get enabled.
-          if (!this.states.instance) {
-            this.createWindow();
-          }
         }
       };
 
