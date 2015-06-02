@@ -125,7 +125,7 @@ suite('TBPL', function() {
     });
     assert.equal(
       file,
-      'node_modules/mocha-tbpl-reporter/test/xfoo'
+      'tests/jsmarionette/mocha/mocha-tbpl-reporter/test/xfoo'
     );
   });
 

@@ -7,7 +7,7 @@ var exec = require('child_process').exec,
 
 function forkFixture(test) {
   var reporterPath = __dirname + '/../reporter.js';
-  var exec = __dirname + '/../../.bin/_mocha';
+  var exec = __dirname + '/../../../../../node_modules/.bin/_mocha';
   var cmd = [
     '--reporter', reporterPath,
     '--ui', 'tdd',
@@ -31,7 +31,7 @@ function forkFixture(test) {
 
 function runFixture(test, callback) {
   var cmd =
-    __dirname + '/../../.bin/mocha' +
+    __dirname + '/../../../../../node_modules/.bin/mocha' +
     ' --ui tdd --reporter ' + __dirname + '/../reporter ' +
     __dirname + '/fixtures/' + test;
 
