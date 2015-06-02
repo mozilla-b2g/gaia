@@ -13,7 +13,7 @@ define(function(require) {
         var listElement = panel.querySelector('.addon-list');
         var addButton = panel.querySelector('.addons-add');
 
-        addonsList = AddonsList(listElement, AddonManager);  
+        addonsList = AddonsList(listElement, AddonManager);
         addButton.addEventListener('click', function() {
           // The addons list panel will update itself if new addon is installed.
           var activity = new window.MozActivity({
@@ -24,18 +24,24 @@ define(function(require) {
           activity.onsuccess = function() {};
           // Disable the button for a second so the user can't double click it
           addButton.disabled = true;
-          setTimeout(function() { 
-            addButton.disabled = false; 
+          setTimeout(function() {
+            addButton.disabled = false;
           }, 1000);
         });
       },
 
-      onBeforeShow: function() {
-        addonsList.enabled = true;
+      onBeforeShow: function(panel, options) {
+        if (options && options.manifestURL) {
+          return addonsList.setFilter(options.manifestURL).then(() =>
+            addonsList.enabled = true);
+        } else {
+          addonsList.enabled = true;
+        }
       },
 
       onBeforeHide: function() {
-        addonsList.enabled = false;
+        return addonsList.unsetFilter().then(() =>
+          addonsList.enabled = false);
       }
     });
   };
