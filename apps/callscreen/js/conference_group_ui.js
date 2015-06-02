@@ -120,11 +120,15 @@ var ConferenceGroupUI = (function() {
    * Hides the ongoing conference call details information overlay. The default
    *  Call Screen app closing delay is applied if the overlay is currently
    *  shown.
+   * @param {Boolean} delayed - Indicates if the closing should be delayed the
+   *  default time.
    */
-  function hideGroupDetails() {
-    setTimeout(_hideGroupDetails,
-               ConferenceGroupUI.isGroupDetailsShown() ?
-                 CallScreen.callEndPromptTime : 0);
+  function hideGroupDetails(delayed) {
+    if (delayed) {
+      setTimeout(_hideGroupDetails, CallScreen.callEndPromptTime);
+    } else {
+      _hideGroupDetails();
+    }
   }
 
   /**

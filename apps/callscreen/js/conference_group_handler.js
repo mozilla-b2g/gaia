@@ -45,7 +45,7 @@ var ConferenceGroupHandler = (function() {
     // Hide the conference call participant list overlay if the conference call
     //  has ended.
     if (!calls.length) {
-      ConferenceGroupUI.hideGroupDetails();
+      ConferenceGroupUI.hideGroupDetails(true);
     }
 
     LazyL10n.get(function localized(_) {
@@ -144,11 +144,16 @@ var ConferenceGroupHandler = (function() {
     return ConferenceGroupUI.isGroupDetailsShown();
   }
 
+  function hideGroupDetails() {
+    return ConferenceGroupUI.hideGroupDetails();
+  }
+
   return {
     addToGroupDetails: addToGroupDetails,
     removeFromGroupDetails: removeFromGroupDetails,
     signalConferenceEnded: signalConferenceEnded,
     isGroupDetailsShown: isGroupDetailsShown,
+    hideGroupDetails: hideGroupDetails,
     get currentDuration() {
       return groupDurationChildNode.textContent;
     }

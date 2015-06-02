@@ -95,13 +95,26 @@ suite('conference group ui', function() {
   });
 
   suite('hideGroupDetails', function() {
-    test('should hide group details', function() {
-      this.sinon.useFakeTimers();
+    test('should hide the group details inmediatly', function() {
       ConferenceGroupUI.showGroupDetails();
       assert.isTrue(
         document.getElementById('group-call-details').classList.
           contains('display'));
+
       ConferenceGroupUI.hideGroupDetails();
+      assert.isFalse(
+        document.getElementById('group-call-details').classList.
+          contains('display'));
+    });
+
+    test('should hide the group details after the default delay', function() {
+      this.sinon.useFakeTimers();
+      ConferenceGroupUI.showGroupDetails();
+
+      ConferenceGroupUI.hideGroupDetails(true);
+      assert.isTrue(
+        document.getElementById('group-call-details').classList.
+          contains('display'));
       this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
       assert.isFalse(
         document.getElementById('group-call-details').classList.

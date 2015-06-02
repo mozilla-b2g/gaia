@@ -23,6 +23,9 @@ var CallsHandler = (function callsHandler() {
   // the 'Hold' button.
   var callHeldByUser = null;
 
+  // Points to the second incoming call if any.
+  var secondIncomingCall = null;
+
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
 
@@ -205,19 +208,17 @@ var CallsHandler = (function callsHandler() {
   }
 
   function removeCall(index) {
-    handledCalls.splice(index, 1);
+    var removedHC = handledCalls.splice(index, 1);
 
     if (handledCalls.length === 0) {
       return;
     }
 
-    // Only hiding the incoming bar if we have another one to display.
-    // Let handledCall catches disconnect event itself.
-    CallScreen.hideIncoming();
-
     var remainingCall = handledCalls[0];
     if (remainingCall.call.state == 'incoming') {
-      // The active call ended, showing the incoming call
+      // The active call ended, show the incoming call as the unique call.
+      secondIncomingCall = null;
+      CallScreen.hideIncoming();
       remainingCall.show();
 
       // This is the difference between an endAndAnswer() and
@@ -228,6 +229,13 @@ var CallsHandler = (function callsHandler() {
         }
       });
 
+      return;
+    }
+
+    if (removedHC.length && removedHC[0].call === secondIncomingCall) {
+      // The incoming call ended, hide the incoming call panel.
+      secondIncomingCall = null;
+      CallScreen.hideIncoming();
       return;
     }
 
@@ -277,6 +285,8 @@ var CallsHandler = (function callsHandler() {
   }
 
   function handleCallWaiting(call) {
+    ConferenceGroupHandler.hideGroupDetails();
+
     LazyL10n.get(function localized(_) {
       var number = call.secondId ? call.secondId.number : call.id.number;
 
@@ -322,6 +332,7 @@ var CallsHandler = (function callsHandler() {
       CallScreen.holdAndAnswerOnly = true;
     }
 
+    secondIncomingCall = call;
     CallScreen.showIncoming();
     playWaitingTone(call);
   }
@@ -495,6 +506,7 @@ var CallsHandler = (function callsHandler() {
       handledCalls[0].call.hold();
     }
 
+    secondIncomingCall = null;
     CallScreen.hideIncoming();
 
     if (cdmaCallWaiting()) {
@@ -515,6 +527,7 @@ var CallsHandler = (function callsHandler() {
 
     if (telephony.active == telephony.conferenceGroup) {
       endConferenceCall().then(function() {
+        secondIncomingCall = null;
         CallScreen.hideIncoming();
       }, function() {});
       return;
@@ -554,6 +567,7 @@ var CallsHandler = (function callsHandler() {
       }
     }
 
+    secondIncomingCall = null;
     CallScreen.hideIncoming();
 
     if (cdmaCallWaiting()) {
@@ -641,6 +655,7 @@ var CallsHandler = (function callsHandler() {
       handledCalls[ignoreIndex].call.hangUp();
     }
 
+    secondIncomingCall = null;
     CallScreen.hideIncoming();
   }
 

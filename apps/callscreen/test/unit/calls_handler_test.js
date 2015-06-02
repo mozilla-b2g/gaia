@@ -336,6 +336,12 @@ suite('calls handler', function() {
         sinon.assert.calledOnce(extraHC.hide);
       });
 
+      test('should hide the conference call participant list', function() {
+        this.sinon.spy(MockConferenceGroupHandler, 'hideGroupDetails');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        sinon.assert.calledOnce(MockConferenceGroupHandler.hideGroupDetails);
+      });
+
       test('should show the call waiting UI', function() {
         this.sinon.spy(MockCallScreen, 'showIncoming');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
@@ -622,6 +628,12 @@ suite('calls handler', function() {
         telephonyAddCdmaCall.call(this, '123456');
       });
 
+      test('should hide the conference call participant list', function() {
+        this.sinon.spy(MockConferenceGroupHandler, 'hideGroupDetails');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        sinon.assert.calledOnce(MockConferenceGroupHandler.hideGroupDetails);
+      });
+
       test('should show the call waiting UI', function() {
         this.sinon.spy(MockCallScreen, 'showIncoming');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
@@ -690,12 +702,29 @@ suite('calls handler', function() {
         sinon.assert.calledOnce(MockCallScreen.hideIncoming);
       });
 
+      test('should hide the incoming call panel if incoming call is hung up',
+      function() {
+        this.sinon.spy(MockCallScreen, 'render');
+        this.sinon.spy(MockCallScreen, 'hideIncoming');
+
+        // Hang up the second incoming call.
+        MockNavigatorMozTelephony.calls = [firstCall];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+        sinon.assert.notCalled(MockCallScreen.render);
+        sinon.assert.notCalled(firstCall.resume);
+      });
+
       test('should not resume the pending call if put on hold by the user',
       function() {
         this.sinon.spy(MockCallScreen, 'render');
 
         CallsHandler.holdOrResumeCallByUser();
         MockNavigatorMozTelephony.active = null;
+
+        // Take the second incoming call.
+        CallsHandler.holdAndAnswer();
 
         // Hang up the second call.
         MockNavigatorMozTelephony.calls = [firstCall];
@@ -711,6 +740,9 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.calls[0]._hold();
         MockNavigatorMozTelephony.active = null;
 
+        // Take the second incoming call.
+        CallsHandler.holdAndAnswer();
+
         // Hang up the second call.
         MockNavigatorMozTelephony.calls = [firstCall];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
@@ -723,7 +755,8 @@ suite('calls handler', function() {
         CallsHandler.holdOrResumeCallByUser();
         MockNavigatorMozTelephony.active = null;
 
-        MockNavigatorMozTelephony.calls[1].answer();
+        // Take the second incoming call.
+        CallsHandler.holdAndAnswer();
         MockNavigatorMozTelephony.active = MockNavigatorMozTelephony.calls[1];
 
         CallsHandler.toggleCalls();
@@ -739,6 +772,9 @@ suite('calls handler', function() {
       function() {
         CallsHandler.holdOrResumeCallByUser();
         MockNavigatorMozTelephony.active = null;
+
+        // Take the second incoming call.
+        CallsHandler.holdAndAnswer();
 
         CallsHandler.mergeCalls();
 
@@ -842,6 +878,10 @@ suite('calls handler', function() {
         telephonyAddCall.call(this, firstCall, {trigger: true});
         telephonyAddCall.call(this, secondCall, {trigger: true});
 
+        // Take the second incoming call.
+        CallsHandler.holdAndAnswer();
+
+        // Hanging up the second ongoing call.
         MockNavigatorMozTelephony.calls = [firstCall];
       });
 
@@ -879,12 +919,32 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
       });
 
+      test('should hide the incoming panel if the incoming call is hung up',
+      function() {
+        this.sinon.spy(MockCallScreen, 'hideIncoming');
+        this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'resume');
+
+        // Add extra call.
+        telephonyAddCall.call(this, extraCall, {trigger: true});
+
+        // Hang up the extra call.
+        MockNavigatorMozTelephony.calls = [];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+        sinon.assert.notCalled(
+          MockNavigatorMozTelephony.conferenceGroup.resume);
+        });
+
       test('should resume the conference call if not put on hold by the user',
       function() {
         this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'resume');
 
         // Add extra call.
         telephonyAddCall.call(this, extraCall, {trigger: true});
+
+        // Take the incoming call.
+        CallsHandler.holdAndAnswer();
 
         // Hang up the extra call.
         MockNavigatorMozTelephony.calls = [];
@@ -2527,19 +2587,18 @@ suite('calls handler', function() {
       });
 
       suite('> CHLD=2', function() {
-        test('should hold the ongoing call', function() {
+        setup(function() {
           call1.answer();
           MockNavigatorMozTelephony.active = call1;
+        });
 
+        test('should hold the ongoing call', function() {
           this.sinon.spy(call1, 'hold');
           triggerCommand('CHLD=2');
           sinon.assert.calledOnce(call1.hold);
         });
 
         test('should resume the call if held', function() {
-          call1.answer();
-          MockNavigatorMozTelephony.active = call1;
-
           call1._hold();
           MockNavigatorMozTelephony.active = null;
 
@@ -2549,9 +2608,6 @@ suite('calls handler', function() {
         });
 
         test('should resume the call if held via BT', function() {
-          call1.answer();
-          MockNavigatorMozTelephony.active = call1;
-
           triggerCommand('CHLD=2');
           MockNavigatorMozTelephony.active = null;
 
@@ -2560,12 +2616,36 @@ suite('calls handler', function() {
           sinon.assert.calledOnce(call1.resume);
         });
 
-        test('should hold and answer the waiting call', function() {
+        test('should hide the incoming call panel if the incoming call is ' +
+             'hung up',
+        function() {
           telephonyAddCall.call(this, call2, {trigger: true});
 
-          var answerSpy = this.sinon.spy(call2, 'answer');
+          this.sinon.spy(MockCallScreen, 'hideIncoming');
           triggerCommand('CHLD=2');
-          sinon.assert.calledOnce(answerSpy);
+          sinon.assert.calledOnce(MockCallScreen.hideIncoming);
+        });
+
+        test('should hold the ongoing call if there\'s a second incoming call',
+        function() {
+          telephonyAddCall.call(this, call2, {trigger: true});
+
+          this.sinon.spy(call1, 'hold');
+          triggerCommand('CHLD=2');
+
+          sinon.assert.calledOnce(call1.hold);
+        });
+
+        test('should answer the incoming call if the first is held',
+        function() {
+          call1._hold();
+          MockNavigatorMozTelephony.active = null;
+
+          telephonyAddCall.call(this, call2, {trigger: true});
+
+          this.sinon.spy(call2, 'answer');
+          triggerCommand('CHLD=2');
+          sinon.assert.calledOnce(call2.answer);
         });
 
         test('should resume the call (if not held by the user)' +
@@ -2579,9 +2659,10 @@ suite('calls handler', function() {
 
           telephonyAddCall.call(this, call2, {trigger: true});
 
-          call2.answer();
-          MockNavigatorMozTelephony.active = call2;
-          call2.hangUp();
+          // Take the second incoming call.
+          CallsHandler.holdAndAnswer();
+
+          // Hang up the second call.
           MockNavigatorMozTelephony.active = null;
           MockNavigatorMozTelephony.calls = [call1];
 
@@ -2601,9 +2682,10 @@ suite('calls handler', function() {
 
           telephonyAddCall.call(this, call2, {trigger: true});
 
-          call2.answer();
-          MockNavigatorMozTelephony.active = call2;
-          call2.hangUp();
+          // Take the second incoming call.
+          CallsHandler.holdAndAnswer();
+
+          // Hang up the second call.
           MockNavigatorMozTelephony.active = null;
           MockNavigatorMozTelephony.calls = [call1];
 
