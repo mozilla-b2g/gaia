@@ -229,6 +229,9 @@ var CallsHandler = (function callsHandler() {
       });
 
       return;
+    } else if (remainingCall.call.state === 'disconnected') {
+      // The remaining call is disconnected so do nothing.
+      return;
     }
 
     // The remaining call was held, resume it if not held by the user.
