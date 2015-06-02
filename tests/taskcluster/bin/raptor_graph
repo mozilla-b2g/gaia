@@ -23,6 +23,9 @@ var originalHeadRev = process.env.GITHUB_HEAD_REV;
 
 const TC_CLIENT_OPTS = { timeout: 30 * 1000 };
 
+// taskcluster worker type for raptor tasks
+RAPTOR_WORKER_TYPE = 'raptor-single-capacity';
+
 // number of times to repeat entire suite on 'base' and on 'patch' builds
 const TEST_ITERATIONS = 6;
 
@@ -248,7 +251,7 @@ getEmulator()
     Object.keys(config).forEach(function(raptorTask) {
       var definition = config[raptorTask].definition;
 
-      config[raptorTask].params.workerType = 'raptor';
+      config[raptorTask].params.workerType = RAPTOR_WORKER_TYPE;
       config[raptorTask].params.provisionerId = 'aws-provisioner-v1';
       config[raptorTask].params.raptorTimeout = raptorTimeout;
       config[raptorTask].params.emulatorURL = emulatorBuildURL;
