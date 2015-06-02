@@ -18,5 +18,13 @@
 
     this.updateLabel('tethering', !!this.manager.connected);
   };
+
+  TetheringIcon.prototype.view = function view() {
+    return `<div id="statusbar-tethering"
+              class="sb-icon sb-icon-tethering" hidden
+              role="listitem">
+            </div>`;
+  };
+
   exports.TetheringIcon = TetheringIcon;
 }(window));

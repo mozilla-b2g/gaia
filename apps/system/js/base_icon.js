@@ -22,24 +22,17 @@
   BaseIcon.prototype = Object.create(BaseUI.prototype);
   BaseIcon.prototype.constructor = BaseIcon;
   BaseIcon.prototype.DEBUG = false;
-  BaseIcon.prototype.waitForElement = function() {
-    var self = this;
-    // XXX: To prevent icon ordering regression,
-    // we are waiting statusbar rendered and fetch the element here.
-    return new Promise(function(resolve) {
-      var element = document.getElementById(self.instanceID);
-      if (!element) {
-        // Statusbar is not launched or not rendered yet.
-        window.addEventListener('statusbariconrendered', function render() {
-          window.removeEventListener('statusbariconrendered', render);
-          element = document.getElementById(self.instanceID);
-          resolve(element);
-        });
-      } else {
-        resolve(element);
-      }
-    });
+
+  BaseUI.prototype.view = function bu_view() {
+    var view = '<div id="' + this.instanceID;
+    view += '" class="' + this.CLASS_NAME + '"></div>';
+    return view;
   };
+
+  BaseIcon.prototype.setOrder = function(priority) {
+    this.element.style.order = priority;
+  };
+
   BaseIcon.prototype.camelToDash = function(strings) {
     var i = 0;
     var ch = '';
@@ -63,10 +56,10 @@
       throw new Error('please specify a name when constructing a new icon');
     }
     var pureName = this.name.replace(/Icon$/, '');
-    var dashPureName = this.camelToDash(pureName);
-    this.instanceID = 'statusbar-' + dashPureName;
+    this.dashPureName = this.camelToDash(pureName);
+    this.instanceID = 'statusbar-' + this.dashPureName;
     if (!this.CLASS_LIST) {
-      this.CLASS_LIST = 'sb-icon sb-icon-' + dashPureName;
+      this.CLASS_LIST = 'sb-icon sb-icon-' + this.dashPureName;
     }
     if (!this.l10nId) {
       this.l10nId = 'statusbar' + pureName;
@@ -74,11 +67,15 @@
   };
   BaseIcon.prototype.EVENT_PREFIX = 'icon';
   BaseIcon.prototype.name = 'BaseIcon';
-  BaseIcon.prototype.containerElement = document.getElementById('statusbar');
+  BaseIcon.prototype.containerElement =
+    document.getElementById('statusbar-maximized') ||
+    document.createElement('div');
+
   // Overload me
   BaseIcon.prototype.instanceID = 'statusbar-base';
   BaseIcon.prototype.additionalProperties = '';
   BaseIcon.prototype.role = 'listitem';
+
   /**
    * This flag is normally true because most icons want to update
    * the status once it's rendered. But for certain special icon
@@ -111,20 +108,17 @@
     this.publish('hidden');
   };
   BaseIcon.prototype.render = function() {
-    if (this.element) {
-      this.element.classList.add('active');
-      return true;
-    }
-    this.waitForElement().then(function(ele) {
-      this.element = ele;
-      this.hide();
-      this.element.classList.add('active');
-      this.UPDATE_ON_START && this.update();
-      this.onrender && this.onrender();
-    }.bind(this)).catch(function(error) {
-      console.log(error);
-    });
-    return false;
+    this.publish('willrender');
+    this.containerElement.insertAdjacentHTML('afterbegin', this.view());
+    this._fetchElements();
+    this._registerEvents();
+    this.element = this.containerElement.querySelector('#' + this.instanceID);
+    this.hide();
+    this.element.classList.add('active');
+    this.UPDATE_ON_START && this.update();
+    this.onrender && this.onrender();
+    this.publish('rendered');
+    return true;
   };
   /**
    * An icon would be enabled once it is started.

@@ -91,5 +91,13 @@
       icon.update();
     });
   };
+
+  MobileConnectionIcon.prototype.view = function view() {
+    return `<div id="statusbar-mobile-connection"
+              class="sb-icon-mobile-connection" hidden
+              role="presentation">
+            </div>`;
+  };
+
   exports.MobileConnectionIcon = MobileConnectionIcon;
 }(window));

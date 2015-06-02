@@ -1,6 +1,6 @@
 /* global BaseModule, MocksHelper, MockNavigatorMozMobileConnections,
           MockNavigatorSettings, MockLazyLoader, MockFtuLauncher,
-          Service, MobileConnectionIcon, OperatorIcon */
+          Service, MobileConnectionIcon, OperatorIcon, MockL10n */
 
 'use strict';
 
@@ -20,6 +20,7 @@ requireApp('system/js/operator_icon.js');
 requireApp('system/js/mobile_connection_icon.js');
 requireApp('system/js/radio.js');
 requireApp('system/js/settings_core.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForRadio = new MocksHelper([
   'NavigatorMozMobileConnections',
@@ -28,16 +29,19 @@ var mocksForRadio = new MocksHelper([
 
 suite('Radio > ', function() {
   mocksForRadio.attachTestHelpers();
-  var radio, settingsCore, realMozSettings;
+  var radio, settingsCore, realMozSettings, realL10n;
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     MockNavigatorSettings.mSyncRepliesOnly = true;
+    realL10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
+    window.navigator.mozL10n = realL10n;
   });
 
   setup(function() {
@@ -67,7 +71,8 @@ suite('Radio > ', function() {
     MockLazyLoader.mLoadRightAway = true;
     Service.register('stepReady', MockFtuLauncher);
     Service.request('stepReady', 'test').then(function() {
-      assert.isTrue(MockLazyLoader.load.calledWith(['js/roaming_icon.js', 
+      assert.isTrue(MockLazyLoader.load.calledWith([
+        'js/roaming_icon.js',
         'js/signal_icon.js',
         'js/mobile_connection_icon.js']));
       done();

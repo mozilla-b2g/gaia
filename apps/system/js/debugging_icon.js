@@ -10,5 +10,14 @@
   DebuggingIcon.prototype.shouldDisplay = function() {
     return this.manager.enabled;
   };
+
+  DebuggingIcon.prototype.view = function view() {
+    return `<div id="statusbar-debugging"
+              data-icon="bug"
+              class="sb-icon sb-icon-debugging" hidden
+              role="listitem">
+            </div>`;
+  };
+
   exports.DebuggingIcon = DebuggingIcon;
 }(window));
