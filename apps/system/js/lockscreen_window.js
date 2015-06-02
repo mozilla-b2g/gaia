@@ -138,6 +138,9 @@
       // XXX: Before we can make LockScreen as a real app,
       // we need these.
       var frame = document.getElementById('lockscreen-frame');
+      if (!frame) {
+        frame = document.createElement('div');
+      }
       frame.setVisible = function() {};
       // XXX: real mozbrowser iframes would own these methods.
       frame.addNextPaintListener = function(cb) {

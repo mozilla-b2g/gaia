@@ -115,8 +115,8 @@
 
       LazyLoader.load([
         'js/screen_auto_brightness.js',
-        'js/screen_brightness_transition.js',
-        'shared/js/idletimer.js']).then(function() {
+        'js/screen_brightness_transition.js'
+      ]).then(function() {
         this._screenBrightnessTransition = new ScreenBrightnessTransition();
 
         this._screenAutoBrightness = new ScreenAutoBrightness();
@@ -488,10 +488,10 @@
      * @this {ScreenManager}
      */
     _setUnlocking: function scm_setUnlocking() {
-        this._unlocking = true;
+      this._unlocking = true;
 
-        // Need to cancel it: the last set timeout would still be triggered.
-        window.clearIdleTimeout(this._idleTimerId);
+      // Need to cancel it: the last set timeout would still be triggered.
+      window.clearIdleTimeout(this._idleTimerId);
      },
 
     /**
@@ -500,8 +500,8 @@
      * @this {ScreenManager}
      */
     _resetUnlocking: function scm_resetUnlocking() {
-        this._unlocking = false;
-        this._reconfigScreenTimeout();
+      this._unlocking = false;
+      this._reconfigScreenTimeout();
      },
 
     setScreenBrightness: function scm_setScreenBrightness(brightness, instant) {
