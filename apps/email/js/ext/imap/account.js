@@ -732,7 +732,7 @@ var properties = {
       });
     }
 
-    walkBoxes(boxesRoot.children, '', 0, null);
+    walkBoxes(boxesRoot.children, 0, null);
 
     // - detect deleted folders
     // track dead folder id's so we can issue a
