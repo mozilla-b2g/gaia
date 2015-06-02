@@ -5,8 +5,7 @@
 /* global resizeHandler, currentFrame, showFile, fileCreated, fileDeleted */
 /* global files, thumbnailClickHandler */
 
-// When the document is loaded and localized, we can start running
-navigator.mozL10n.once(function startup() {
+(function startup() {
   'use strict';
 
   var firstScanDone = false;          // Have we completed our first scan yet?
@@ -290,4 +289,4 @@ navigator.mozL10n.once(function startup() {
       }
     });
   }
-});
+})();

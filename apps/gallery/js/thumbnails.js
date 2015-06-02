@@ -18,13 +18,10 @@
   // contained in the thumbnailContainer.
   thumbnails.list = new ThumbnailList(ThumbnailDateGroup, thumbnails.container);
 
-  // Localize dates and item desc in thumbnails list when the locale changes
   // Bug 1135256: Having a listener in ThumbnailList prevents them from
   // being garbage collected since ready() holds a strong reference, so
   // we have a singleton listener here.
-  navigator.mozL10n.ready(function localize() {
-    thumbnails.list.localize();
-  });
+  navigator.mozL10n.ready(thumbnails.list.localize.bind(thumbnails.list));
 
   // How many thumbnails are visible on a page.
   // Batch sizes are based on this.
