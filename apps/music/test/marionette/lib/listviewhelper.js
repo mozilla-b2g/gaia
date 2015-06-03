@@ -8,12 +8,12 @@ var ListviewHelper = {
   albumArtForListItem: function(client, item) {
     assert.ok(item);
 
-    var bg;
+    var src;
     client.waitFor(function() {
-      bg = item.cssProperty('background-image');
-      return bg !== 'none';
+      src = item.findElement('.list-album-art').getAttribute('src');
+      return src !== null;
     });
-    return bg;
+    return src;
   }
 
 };
