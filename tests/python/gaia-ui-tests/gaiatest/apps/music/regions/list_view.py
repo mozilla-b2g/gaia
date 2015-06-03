@@ -20,8 +20,6 @@ class ListView(Base):
         Base.__init__(self, marionette)
 
         Wait(self.marionette).until(
-            lambda m: self.marionette.find_element(*self._view_locator).get_attribute('class') == 'scrolling')
-        Wait(self.marionette).until(
             lambda m: self.marionette.find_element(*self._view_locator).get_attribute('class') != 'scrolling')
 
     @property
