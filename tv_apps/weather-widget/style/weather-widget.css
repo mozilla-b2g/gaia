@@ -63,6 +63,22 @@ html, body {
   font-size: 5.4rem;
 }
 
+smart-weather > .weather-detail,
+.weather-icon-panel {
+  transform: translateY(30px);
+  opacity: 0;
+  transition: transform 0.01s cubic-bezier(0.5, 0.0, 0.0, 1.0) 0.95s,
+              opacity 0.01s ease-in 0.95s;
+}
+
+.expand smart-weather > .weather-detail,
+.expand .weather-icon-panel {
+  transform: translateY(0);
+  opacity: 1;
+  transition-delay: 0s, 0s;
+  transition-duration: 1s, 0.8s;
+}
+
 /* XXX: we leave a focusable element here for determining focus issues.
    This wiget has no focusable element by design, but we need to test
    dashboard ability on setting focus. These lines should be removed after

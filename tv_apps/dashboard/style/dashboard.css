@@ -18,7 +18,7 @@ html, body {
   position: absolute;
   width: 100%;
   height: 100%;
-  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1);
+  transition: transform 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
 }
 
 body[data-active-direction="up"] #main-section {
@@ -57,7 +57,7 @@ section {
   height: calc(100% + 26.6rem);
   background-image: url(images/Default_wallpaper_02.jpg);
   background-position: center;
-  transition: transform 0.4s cubic-bezier(0.25, 0, 0, 1);
+  transition: transform 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
 }
 
 body[data-active-direction="up"] .background {

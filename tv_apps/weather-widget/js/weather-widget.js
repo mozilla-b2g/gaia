@@ -22,6 +22,11 @@ WeatherWidget.prototype = {
     // other widgets are landed.
     this.clocks[0].tabIndex = 1;
     this.clocks[0].focus();
+
+    window.onhashchange = function(evt) {
+      document.body.classList.toggle(
+                                  'expand', window.location.hash === '#expand');
+    };
   }
 };
 
