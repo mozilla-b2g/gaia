@@ -1,9 +1,9 @@
-/* global MobileConnectionIcon, MockRadio, MocksHelper, MockL10n,
+/* global MobileConnectionIcon, MockRadio, MocksHelper, MockL10n, Service,
           MockSIMSlot, MockNavigatorMozMobileConnection, MockSIMSlotManager */
 'use strict';
 
 
-requireApp('system/js/service.js');
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 requireApp('system/js/mobile_connection_icon.js');
@@ -17,7 +17,8 @@ requireApp(
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForMobileConnectionIcon = new MocksHelper([
-  'SIMSlotManager'
+  'SIMSlotManager',
+  'Service'
 ]).init();
 
 suite('system/MobileConnectionIcon', function() {
@@ -36,6 +37,14 @@ suite('system/MobileConnectionIcon', function() {
   });
 
   setup(function() {
+    this.sinon.stub(Service, 'request', function() {
+      var container = document.createElement('div');
+      return {
+        then: function(callback) {
+          callback(container);
+        }
+      };
+    });
     this.sinon.stub(document, 'getElementById', function() {
       var ele = document.createElement('div');
       this.sinon.stub(ele, 'querySelector')

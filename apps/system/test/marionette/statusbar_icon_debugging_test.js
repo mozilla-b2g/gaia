@@ -19,6 +19,7 @@ marionette('Status Bar icons - Debugging', function() {
     system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
+    statusBar.init();
   });
 
   test('should appear when debugging is enabled', function() {

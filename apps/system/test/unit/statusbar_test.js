@@ -4,6 +4,9 @@
            UtilityTray, MockAppWindow, layoutManager */
 'use strict';
 
+require('/apps/system/js/base_ui.js');
+require('/apps/system/js/base_icon.js');
+require('/apps/system/js/service.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -25,7 +28,6 @@ var mocksForStatusBar = new MocksHelper([
   'UtilityTray',
   'LayoutManager',
   'AppWindow',
-  'Service',
   'FtuLauncher'
 ]).init();
 
@@ -33,8 +35,7 @@ suite('system/Statusbar', function() {
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
       fakeStatusBarIcons, fakeStatusbarIconsMaxWrapper, fakeStatusbarIconsMax,
       fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin;
-  var realMozL10n,
-      realLayoutManager;
+  var realMozL10n, realLayoutManager, realService;
 
   function prepareDOM() {
     fakeStatusBarNode = document.createElement('div');
@@ -75,6 +76,7 @@ suite('system/Statusbar', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
+    realService = window.Service;
     window.Service = MockService;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -105,6 +107,7 @@ suite('system/Statusbar', function() {
     Service.currentApp = null;
     navigator.mozL10n = realMozL10n;
     window.layoutManager = realLayoutManager;
+    window.Service = realService;
   });
 
   suite('init when FTU is running', function() {
@@ -419,7 +422,7 @@ suite('system/Statusbar', function() {
         setOrder: this.sinon.stub()
       };
       window.dispatchEvent(new CustomEvent('iconrendered', {detail: mockIcon}));
-      assert.isTrue(mockIcon.setOrder.calledWith(order * -1));
+      assert.isTrue(mockIcon.setOrder.calledWith(order));
     });
 
     suite('when only 2 icons fit in the maximized status bar', function() {
@@ -1202,6 +1205,43 @@ suite('system/Statusbar', function() {
 
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
       assert.isFalse(StatusBar.element.classList.contains('light'));
+    });
+  });
+
+  suite('Dependencies', function() {
+    var wifiIcon;
+
+    setup(function(done) {
+      var self = this;
+      window.Service = realService;
+      require('/apps/system/js/wifi_icon.js', function() {
+        wifiIcon = new window.WifiIcon();
+        requireApp('/apps/system/js/statusbar.js');
+        self.sinon.stub(StatusBar, 'onIconCreated');
+        StatusBar.init();
+        done();
+      });
+    });
+
+    teardown(function() {
+      window.Service = MockService;
+    });
+
+    test('icons loaded before the statusbar', function() {
+      assert(StatusBar.onIconCreated.notCalled);
+      StatusBar.finishInit();
+      assert(StatusBar.onIconCreated.calledWith(wifiIcon));
+    });
+
+    test('icon calls render before the statusbar is there', function(done) {
+      wifiIcon.element = null;
+      wifiIcon.render();
+      assert.isNull(wifiIcon.element);
+      StatusBar.finishInit();
+      window.addEventListener('iconrendered', function() {
+        assert.ok(wifiIcon.element);
+        done();
+      });
     });
   });
 

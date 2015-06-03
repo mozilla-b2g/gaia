@@ -21,7 +21,7 @@ marionette('Status Bar icons - Recording', function() {
     system = client.loader.getAppClass('system');
     statusBar = new StatusBar(client);
     system.waitForStartup();
-    // statusBar.changeDelayValue('RecordingIcon');
+    statusBar.init();
     statusBar.dispatchMozChromeEvent('recording-status', {active: true,
       requestURL: 'app://fake.recorder.org'});
   });

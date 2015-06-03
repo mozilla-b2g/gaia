@@ -1,7 +1,7 @@
-/* global BaseIcon, Service, MockL10n */
+/* global BaseIcon, Service, MockL10n, MocksHelper */
 'use strict';
 
-requireApp('system/js/service.js');
+require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/base_icon.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -9,7 +9,21 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 suite('system/BaseIcon', function() {
   var subject, manager, realL10n;
 
+  var mocksForBaseIcon = new MocksHelper([
+    'Service'
+  ]).init();
+
+  mocksForBaseIcon.attachTestHelpers();
+
   setup(function() {
+    this.sinon.stub(Service, 'request', function() {
+      var container = document.createElement('div');
+      return {
+        then: function(callback) {
+          callback(container);
+        }
+      };
+    });
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     subject = new BaseIcon(manager);
