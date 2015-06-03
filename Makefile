@@ -396,6 +396,7 @@ ifdef GAIA_DISTRIBUTION_DIR
   ifneq ($(wildcard $(DISTRIBUTION_EMAIL_SERVICES)),)
     EMAIL_SERVICES_PATH := $(DISTRIBUTION_EMAIL_SERVICES)
   endif
+  EXECUTE_PRELOAD_APP := $(shell $(call run-js-command,preload, GAIA_DIR="$(GAIA_DIR)" GAIA_DISTRIBUTION_DIR="$(GAIA_DISTRIBUTION_DIR)"))
 endif
 
 # Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
