@@ -513,16 +513,16 @@ var ConversationView = {
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
 
-    var prevPanel = args.meta.prev && args.meta.prev.panel;
+    var prevPanel = args.meta.prev;
 
     // If transitioning from composer, we don't need to notify about type
     // conversion but only after the type of the thread is set
     // (afterEnterThread)
-    if (prevPanel !== 'composer') {
+    if (!prevPanel || prevPanel.panel !== 'composer') {
       this.enableConvertNoticeBanners();
     }
 
-    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+    if (!this.isConversationPanel(args.id, prevPanel)) {
       this.initializeRendering();
     }
 
@@ -569,9 +569,9 @@ var ConversationView = {
   afterEnterThread: function conv_afterEnterThread(args) {
     var threadId = +args.id;
 
-    var prevPanel = args.meta.prev && args.meta.prev.panel;
+    var prevPanel = args.meta.prev;
 
-    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+    if (!this.isConversationPanel(threadId, prevPanel)) {
       this.renderMessages(threadId);
 
       // Populate draft if there is one
@@ -599,7 +599,7 @@ var ConversationView = {
     });
 
     // Enable notifications redirected from composer only after the user enters.
-    if (prevPanel === 'composer') {
+    if (prevPanel && prevPanel.panel === 'composer') {
       this.enableConvertNoticeBanners();
     }
 
@@ -613,7 +613,7 @@ var ConversationView = {
   beforeLeave: function conv_beforeLeave(args) {
     this.disableConvertNoticeBanners();
 
-    var nextPanel = args.meta.next && args.meta.next.panel;
+    var nextPanel = args.meta.next;
 
     // This should be in afterLeave, but the edit mode interface does not seem
     // to slide correctly. Bug 1009541
@@ -630,7 +630,7 @@ var ConversationView = {
     }
 
     // TODO move most of back() here: Bug 1010223
-    if (nextPanel !== 'group-view' && nextPanel !== 'report-view') {
+    if (!this.isConversationPanel(Threads.currentId, nextPanel)) {
       this.cleanFields();
     }
   },
@@ -814,21 +814,45 @@ var ConversationView = {
     TimeHeaders.updateAll('header[data-time-update]');
   },
 
-  isCurrentThread: function conv_isCurrentThread(threadId) {
-    return Navigation.isCurrentPanel('thread', { id: threadId }) ||
+  /**
+   * Checks if specified conversation id is currently active. It can be true for
+   * either conversation, participants or report panels.
+   * @param {number} conversationId Id of the conversation.
+   * @returns {boolean}
+   */
+  isCurrentConversation: function conv_isCurrentConversation(conversationId) {
+    return Navigation.isCurrentPanel('thread', { id: conversationId }) ||
       Navigation.isCurrentPanel('report-view', {
-        threadId: threadId
+        threadId: conversationId
       }) ||
       Navigation.isCurrentPanel('group-view', {
-        id: threadId
+        id: conversationId
       });
+  },
+
+  /**
+   * Checks if specified panel corresponds to the specified conversation id. It
+   * can be true for either conversation, participants or report panels.
+   * @param {number} conversationId Id of the conversation.
+   * @param {Object} panel Panel description object to compare against.
+   * @returns {boolean}
+   */
+  isConversationPanel:
+  function conv_isConversationPanel(conversationId, panel) {
+    if (!panel) {
+      return false;
+    }
+
+    return panel.panel === 'thread' && panel.args.id === conversationId ||
+      panel.panel === 'report-view' && panel.args.threadId === conversationId ||
+      panel.panel === 'group-view' && panel.args.id === conversationId;
   },
 
   onMessageReceived: function conv_onMessageReceived(e) {
     var message = e.message;
 
     // If user currently in other thread then there is nothing to do here
-    if (!this.isCurrentThread(message.threadId)) {
+    if (!this.isCurrentConversation(message.threadId)) {
       return;
     }
 
@@ -843,7 +867,7 @@ var ConversationView = {
 
   onMessageSending: function conv_onMessageReceived(e) {
     var message = e.message;
-    if (this.isCurrentThread(message.threadId)) {
+    if (this.isCurrentConversation(message.threadId)) {
       this.onMessage(message);
       this.forceScrollViewToBottom();
     } else {
