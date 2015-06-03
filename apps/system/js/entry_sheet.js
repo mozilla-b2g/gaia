@@ -1,66 +1,127 @@
 'use strict';
-/* global BrowserFrame */
+/* global BrowserFrame, BaseUI, Service, ChildWindowFactory */
 /* exported EntrySheet */
 
 /* Define a entry sheet.
  * It creates a element provided by container, title, content.
  */
 
-var EntrySheet = (function invocation() {
-  function EntrySheet() { // This constructor function is a local variable.
-    render.apply(this, arguments); // All arguments are values to render
+(function(exports) {
+  function EntrySheet(container, title, browser) {
+    this.container = container;
+    this.title = title;
+    this.browser = browser;
+    this.render();
+    this.childWindowFactory = new ChildWindowFactory(this);
+    Service.request('registerHierarchy', this);
   }
 
   EntrySheet.className = 'entrySheet';
+
+  EntrySheet.prototype = Object.create(BaseUI.prototype);
+
+  var instance;
+  EntrySheet.instantiate = function(title, url) {
+    var frame = new BrowserFrame({
+        url: url,
+        oop: true
+      });
+    instance = new EntrySheet(document.getElementById('screen'),
+      title, frame);
+    instance.open();
+  };
+
+  EntrySheet.close = function() {
+    instance && instance.close();
+  };
+
+  EntrySheet.prototype.name = 'EntrySheet';
+
+  EntrySheet.prototype.EVENT_PREFIX = 'entrysheet';
 
   EntrySheet.prototype.setTitle = function(title) {
     this.titleElement.textContent = title;
   };
 
+  EntrySheet.prototype.getTopMostWindow = function() {
+    return this;
+  };
+
+  EntrySheet.prototype.setFrontWindow = function(front) {
+    this.frontWindow = front;
+  };
+
+  EntrySheet.prototype.unsetFrontWindow = function() {
+    this.frontWindow = null;
+  };
+
+  EntrySheet.prototype.isActive = function() {
+    return this.element && this.element.classList.contains('active');
+  };
+
+  EntrySheet.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    }
+    return true;
+  };
+
+  EntrySheet.prototype._handle_launchactivity = function(evt) {
+    if (!this.element) {
+      return true;
+    }
+    this.element.dispatchEvent(new CustomEvent('_launchactivity', {
+      detail: evt.detail
+    }));
+    return false;
+  };
+
   EntrySheet.prototype.open = function() {
+    this.publish('-activating');
     // Transtion won't happen if adding class directly
     setTimeout(function() {
       this.element.classList.add('active');
+      this.publish('-activated');
     }.bind(this));
   };
 
   EntrySheet.prototype.close = function() {
+    this.publish('-deactivating');
     this.element.addEventListener('transitionend', function onTransitionend() {
+      this.publish('-deactivated');
       this.element.removeEventListener('transitionend', onTransitionend);
       this.element.classList.remove('disappearing');
       this.element.classList.remove('active');
 
       // Here we remove entire element once the close button is pressed.
       this.container.removeChild(this.element);
+
+      Service.request('unregisterHierarchy', this);
+      Service.unregister('open', this);
+      Service.unregister('close', this);
     }.bind(this));
     this.element.classList.add('disappearing');
   };
 
-  // These are helper functions and variables used by the methods above
-  // They're not part of the public API of the module, but they're hidden
-  // within this function scope so we don't have to define them as a
-  // property of Browser or prefix them with underscores.
-  // Now define instance methods on Set.prototype.
-  function view() {
+  EntrySheet.prototype.view = function() {
     return `<div class="${EntrySheet.className}">
-      <section role="region" class="skin-organic header">
-        <gaia-header action="close">
-          <h1 class="title">
-            <bdi class="${EntrySheet.className}-title"></bdi>
-          </h1>
-        </gaia-header>
-        <div class="throbber"></div>
-      </section>
-      <div class="content">
+      <div class="wrapper">
+        <section role="region" class="skin-organic header">
+          <gaia-header action="close">
+            <h1 class="title">
+              <bdi class="${EntrySheet.className}-title"></bdi>
+            </h1>
+          </gaia-header>
+          <div class="throbber"></div>
+        </section>
+        <div class="content">
+        </div>
       </div>
     </div>`;
-  }
+  };
 
-  function render(container, title, content) {
-    /* jshint validthis: true */
-    this.container = container;
-    this.title = title;
-    this.container.insertAdjacentHTML('beforeend', view.apply(this));
+  EntrySheet.prototype.render = function() {
+    this.container.insertAdjacentHTML('beforeend', this.view());
     this.header =
       this.container.querySelector('.' + EntrySheet.className + ' gaia-header');
     this.titleElement =
@@ -76,31 +137,27 @@ var EntrySheet = (function invocation() {
     // XXX: We may make entry sheet to generate browser frame by itself,
     // hence we don't need to check the type here.
     if (typeof(BrowserFrame) != 'undefined' &&
-        content instanceof BrowserFrame) {
-      content.element.addEventListener('mozbrowserloadstart',
+        this.browser instanceof BrowserFrame) {
+      this.browser.element.addEventListener('mozbrowserloadstart',
         function onLoadStart() {
           self.throbberElement.dataset.loading = true;
         });
-      content.element.addEventListener('mozbrowserloadend',
+      this.browser.element.addEventListener('mozbrowserloadend',
         function onLoadEnd() {
           delete self.throbberElement.dataset.loading;
         });
-      this.content.appendChild(content.element);
-    } else if (content && content.nodeType == 1) {
+      this.content.appendChild(this.browser.element);
+    } else if (this.browser && this.browser.nodeType == 1) {
       // In case the content isn't a browserElement object but a DOM element.
-      this.content.appendChild(content);
+      this.content.appendChild(this.browser);
     }
 
     this.setTitle(this.title);
     this.header.addEventListener('action', function() {
       self.close();
     });
-  }
-
-  // The public API for this module is the EntrySheet() constructor function.
-  // We need to export that function from this private namespace so that
-  // it can be used on the outside. In this case, we export the constructor
-  // by returning it. It becomes the value of the assignment expression
-  // on the first line above.
-  return EntrySheet;
-}()); // Invoke the function immediately after defining it.
+  };
+  exports.EntrySheet = EntrySheet;
+  Service.register('instantiate', EntrySheet);
+  Service.register('close', EntrySheet);
+}(window));

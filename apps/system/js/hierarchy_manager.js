@@ -66,6 +66,7 @@
       'SecureWindowManager',
       'LockScreenWindowManager',
       'UtilityTray',
+      'EntrySheet',
       'Rocketbar',
       'SystemDialogManager',
       'AppWindowManager',

@@ -66,7 +66,8 @@
    * @type {Object}
    */
   SystemDialog.prototype.SUB_COMPONENTS = {
-    'valueSelector': window.ValueSelector
+    'valueSelector': window.ValueSelector,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   /**
@@ -178,6 +179,14 @@
     this.debug('updateHeight: new height = ' + height);
   };
 
+  SystemDialog.prototype.isVisible = function() {
+    return this.element && this.element.hidden;
+  };
+
+  SystemDialog.prototype.isActive = function() {
+    return this.isVisible();
+  };
+
   /**
    * Publish 'show' event for activate the dialog
    */
@@ -209,6 +218,9 @@
       // while the dialog request 'hide' from its controller.
       this.publish('hide');
     }
+    if (this.frontWindow) {
+      this.frontWindow.kill();
+    }
   };
 
   /**
@@ -236,6 +248,31 @@
   SystemDialog.prototype.generateID = function sd_generateID() {
     if (!this.instanceID) {
       this.instanceID = this.customID;
+    }
+  };
+
+
+  /**
+   * Build bottom/top window relationship.
+   * If there's already one, kill it at first.
+   * @param {AppWindow} fronWindow The front window instance.
+   */
+  SystemDialog.prototype.setFrontWindow = function(frontWindow) {
+    if (this.frontWindow) {
+      console.warn('There is already alive child window, killing...',
+                    this.frontWindow.instanceID);
+      this.frontWindow.kill();
+    }
+    this.frontWindow = frontWindow;
+  };
+
+  SystemDialog.prototype.getTopMostWindow = function() {
+    return this.frontWindow ? this.frontWindow.getTopMostWindow() : this;
+  };
+
+  SystemDialog.prototype.unsetFrontWindow = function() {
+    if (this.frontWindow) {
+      this.frontWindow = null;
     }
   };
 

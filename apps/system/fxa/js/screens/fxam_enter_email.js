@@ -2,8 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
-   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, EntrySheet,
-   BrowserFrame */
+   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager,
+   BroadcastChannel */
 /* exported FxaModuleEnterEmail */
 
 'use strict';
@@ -18,6 +18,11 @@ var FxaModuleEnterEmail = (function() {
   var _ = null;
   var termsUrl = 'https://accounts.firefox.com/legal/terms';
   var privacyUrl = 'https://accounts.firefox.com/legal/privacy';
+
+  var channel = new BroadcastChannel('fxa');
+  function broadcast(message) {
+    channel.postMessage(message);
+  }
 
   function _isEmailValid(emailEl) {
     return emailEl && emailEl.value && emailEl.validity.valid;
@@ -115,22 +120,7 @@ var FxaModuleEnterEmail = (function() {
         return this.showErrorResponse({error: 'OFFLINE'});
       }
       var url = e.target.href;
-      if (this.entrySheet) {
-        this.entrySheet.close();
-        this.entrySheet = null;
-      }
-      this.entrySheet = new EntrySheet(
-        window.top.document.getElementById('screen'),
-        // Prefix url with LRM character
-        // This ensures truncation occurs correctly in an RTL document
-        // We can remove this when bug 1154438 is fixed.
-        '\u200E' + url,
-        new BrowserFrame({
-          url: url,
-          oop: true
-        })
-      );
-      this.entrySheet.open();
+      broadcast(['EntrySheet:instantiate', '\u200E' + url, url]);
     }
 
     document.addEventListener(
@@ -142,10 +132,7 @@ var FxaModuleEnterEmail = (function() {
       /*jshint validthis:true */
       if (document.hidden) {
         document.removeEventListener('visibilitychange', onVisibilityChange);
-        if (this.entrySheet) {
-          this.entrySheet.close();
-          this.entrySheet = null;
-        }
+        broadcast(['EntrySheet:close']);
       }
     }
 
@@ -155,10 +142,7 @@ var FxaModuleEnterEmail = (function() {
 
     function hideEntrySheet() {
       /*jshint validthis:true */
-      if (this.entrySheet) {
-        this.entrySheet.close();
-        this.entrySheet = null;
-      }
+      broadcast(['EntrySheet:close']);
       window.removeEventListener('holdhome', hideEntrySheet);
       window.removeEventListener('home', hideEntrySheet);
       window.removeEventListener('activityrequesting', hideEntrySheet);
