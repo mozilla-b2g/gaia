@@ -12,6 +12,8 @@
 (function(exports) {
   'use strict';
 
+  const kSignificant = 5 * window.devicePixelRatio;
+
   var TouchForwarder = function TouchForwarder() {
     this.destination = null;
     this._resetState();
@@ -67,7 +69,7 @@
     var deltaX = Math.abs(touch.clientX - this._startX);
     var deltaY = Math.abs(touch.clientY - this._startY);
 
-    if (deltaX > 5 || deltaY > 5) {
+    if (deltaX > kSignificant || deltaY > kSignificant) {
       this._shouldTap = false;
     }
   };

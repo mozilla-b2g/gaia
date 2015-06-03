@@ -10,6 +10,7 @@
   const kEdgeIntertia = 250;
   const kEdgeThreshold = 0.3;
   const kEdgeAngleThreshold = Math.PI / 6;
+  const kSignificant = 5 * window.devicePixelRatio;
 
   /**
    * Detects user gestures for moving between apps using edge gestures.
@@ -21,7 +22,6 @@
   function EdgeSwipeDetector() {}
 
   EdgeSwipeDetector.prototype = {
-    kSignificant: 5 * window.devicePixelRatio,
     previous: document.getElementById('left-panel'),
     next: document.getElementById('right-panel'),
     screen: document.getElementById('screen'),
@@ -33,7 +33,6 @@
      * @memberof EdgeSwipeDetector.prototype
      */
     start: function esd_init() {
-      this.kSignificant = 5 * window.devicePixelRatio;
       window.addEventListener('homescreenopened', this);
       window.addEventListener('appopened', this);
       window.addEventListener('cardviewclosed', this);
@@ -264,7 +263,7 @@
       }
 
       // If the gesture isn't horizontal we start forwarding
-      if (delta > this.kSignificant && !this._horizontalGesture()) {
+      if (delta > kSignificant && !this._horizontalGesture()) {
         this._startForwarding(e);
         return;
       }
@@ -277,7 +276,7 @@
       }
 
       // after a small threshold
-      if ((this._deltaX < this.kSignificant || this._outsideApp(e)) &&
+      if ((this._deltaX < kSignificant || this._outsideApp(e)) &&
           !this._moved) {
         return;
       }
@@ -304,7 +303,8 @@
 
       if (this._forwarding) {
         this._forward(e);
-      } else if ((this._deltaX < 5) && (this._deltaY < 5)) {
+      } else if ((this._deltaX < kSignificant) &&
+                 (this._deltaY < kSignificant)) {
         setTimeout(function(self, touchstart, touchend) {
           self._forward(touchstart);
           setTimeout(function() {
