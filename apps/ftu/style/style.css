@@ -373,9 +373,11 @@ gaia-buttons.forward-only .icon-previous {
   /* using padding-right/left on purpose as strings may be bidi,
      which can change the meaning of -moz-padding-end */
   padding-right: 6.2rem;
+  text-align: left;
 }
 #wifi:-moz-dir(rtl) [data-type="list"] li > p {
   padding-left: 6.2rem;
+  text-align: right;
 }
 
 
