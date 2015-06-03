@@ -5,9 +5,10 @@
           MockNavigationStack, MockUtils, MocksHelper,
           MockContactAllFields, MockContactDetails, MockContactsNfc,
           MockContactsSearch, MockContactsSettings, Mockfb,
-          MockImportStatusData, MockMozContacts
+          MockImportStatusData, MockMozContacts, ContactsService
 */
 
+requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
@@ -163,18 +164,25 @@ suite('Contacts', function() {
       mozContact = new MockContactAllFields();
       Contacts.setCurrent(mozContact);
 
-      this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
-        // Return the contact + additional FB info
-        cb(mozContact, {
-          id: 'FBID',
-          email: [
+      this.sinon.stub(
+        ContactsService,
+        'get',
+        function(id, cb) {
+          // Return the contact + additional FB info
+          cb(
+            mozContact,
             {
-              type: ['work'],
-              value: 'myfbemail@email.com'
+              id: 'FBID',
+              email: [
+                {
+                  type: ['work'],
+                  value: 'myfbemail@email.com'
+                }
+              ]
             }
-          ]
-        });
-      });
+          );
+        }
+      );
 
       this.sinon.stub(contacts.List, 'refresh', function(id, cb) {
         cb();
@@ -182,17 +190,15 @@ suite('Contacts', function() {
     });
 
     test('> FB contact update sends MozContacts info', function() {
-      var evt = {
-        contactID: mozContact.id,
-        reason: 'update'
-      };
 
       mockNavigation._currentView = 'view-contact-details';
+      navigator.mozContacts.dispatchEvent({
+        type: 'contactchange',
+        contactID: mozContact.id,
+        reason: 'update'
+      });
 
-      navigator.mozContacts.oncontactchange(evt);
-      sinon.assert.pass(contacts.List.getContactById.called);
-      sinon.assert.calledWith(contacts.List.getContactById, mozContact.id);
-      sinon.assert.pass(contacts.List.refresh.called);
+      sinon.assert.called(ContactsService.get);
       sinon.assert.called(contacts.List.refresh);
 
       var argument = contacts.List.refresh.getCall(0).args[0];
@@ -205,19 +211,18 @@ suite('Contacts', function() {
     suite('> Custom contact change', function() {
       test('> Trigger custom event on contact change', function(done) {
         Contacts.onLocalized();
-        var evt = {
-          contactID: 1234567,
-          reason: 'update'
-        };
 
         mockNavigation._currentView = 'view-contact-details';
-
         document.addEventListener('contactChanged', function(e) {
-          assert.equal(e.detail.contactID, evt.contactID);
+          assert.equal(e.detail.contactID, 1234567);
           done();
         });
 
-        navigator.mozContacts.oncontactchange(evt);
+        navigator.mozContacts.dispatchEvent({
+          type: 'contactchange',
+          contactID: 1234567,
+          reason: 'update'
+        });
       });
     });
   });
@@ -351,10 +356,11 @@ suite('Contacts', function() {
       this.sinon.stub(Contacts, 'view', function(view, cb) {
         cb();
       });
-      this.sinon.stub(window.contacts.List, 'getContactById',
+      this.sinon.stub(ContactsService, 'get',
        function(id, cb) {
         cb(theSelectedContact, null);
       });
+
       this.sinon.spy(window.contacts.NFC, 'startListening');
       this.sinon.spy(ActivityHandler, 'dataPickHandler');
       this.sinon.spy(contacts.Details, 'render');
@@ -365,7 +371,7 @@ suite('Contacts', function() {
       Contacts.showContactDetail('1');
 
       sinon.assert.called(Contacts.view);
-      sinon.assert.called(window.contacts.List.getContactById);
+      sinon.assert.called(ContactsService.get);
       sinon.assert.called(contacts.Details.render);
       sinon.assert.calledWith(navigation.go,
        'view-contact-details', 'go-deeper');
@@ -393,7 +399,7 @@ suite('Contacts', function() {
         ActivityHandler.activityName = 'pick';
         Contacts.showContactDetail('1');
 
-        sinon.assert.called(window.contacts.List.getContactById);
+        sinon.assert.called(ContactsService.get);
         sinon.assert.notCalled(contacts.Details.render);
         sinon.assert.notCalled(navigation.go);
         sinon.assert.called(ActivityHandler.dataPickHandler);
@@ -409,7 +415,7 @@ suite('Contacts', function() {
         ActivityHandler.activityName = 'import';
         Contacts.showContactDetail('1');
 
-        sinon.assert.called(window.contacts.List.getContactById);
+        sinon.assert.called(ContactsService.get);
         sinon.assert.called(contacts.Details.render);
         sinon.assert.called(navigation.go);
         sinon.assert.notCalled(ActivityHandler.dataPickHandler);
@@ -438,23 +444,32 @@ suite('Contacts', function() {
 
   suite('Async scripts loading', function() {
     var lastParams;
+    var handler;
     setup(function() {
+      this.sinon.stub(ContactsService, 'addListener', function(evt, cb) {
+        handler = cb;
+      });
       this.sinon.stub(LazyLoader, 'load', function(p, cb) {
         lastParams = p;
         cb();
       });
     });
+
+    teardown(function() {
+      handler = null;
+    });
+
     test('> normal load of the scripts', function() {
       Contacts.onLocalized().then(() => {
         sinon.assert.called(window.dispatchEvent);
-        assert.isNotNull(navigator.mozContacts.oncontactchange);
+        assert.isNotNull(handler);
       });
     });
     test('> loading scripts with nfc enabled', function() {
       var oldNFC = navigator.mozNfc;
       navigator.mozNfc = true;
       Contacts.onLocalized().then(() => {
-        assert.isNotNull(navigator.mozContacts.oncontactchange);
+        assert.isNotNull(handler);
         assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
         navigator.mozNfc = oldNFC;
       });
@@ -463,7 +478,7 @@ suite('Contacts', function() {
      function() {
       ActivityHandler.currentlyHandling = true;
       Contacts.onLocalized().then(() => {
-        assert.isNull(navigator.mozContacts.oncontactchange);
+        assert.isNotNull(handler);
         ActivityHandler.currentlyHandling = false;
       });
     });

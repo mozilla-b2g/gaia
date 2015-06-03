@@ -34,8 +34,7 @@ var MergeHelper = (function() {
     var mozContacts = navigator.mozContacts;
     if (!contactId || contactId === 'undefined') {
       eventHandler = onContactAdded.bind(null, merged, original);
-
-      mozContacts.addEventListener('contactchange', eventHandler);
+      ContactsService.addListener('contactchange', eventHandler);
     }
 
     return ICEData.setICEContacts(merged);
@@ -46,7 +45,8 @@ var MergeHelper = (function() {
       return;
     }
 
-    navigator.mozContacts.removeEventListener('contactchange', eventHandler);
+    ContactsService.removeListener('contactchange', eventHandler);
+
     var id = event.contactID;
 
     // Let's determine what ICE Contact is changing
