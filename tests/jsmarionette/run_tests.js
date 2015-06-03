@@ -87,8 +87,8 @@ var configs = Object.freeze({
     entrypoint: 'test/helper',
     tests: [
       'test/bin/apply-manifest_test',
+      'test/bin/consolelog_test',
       // TODO(gareth): Re-enable marionette-js-runner tests which launch b2g
-      //'test/bin/consolelog_test',
       //'test/bin/crash_test',
       //'test/bin/marionette-mocha_test',
       //'test/bin/sigint_test',
