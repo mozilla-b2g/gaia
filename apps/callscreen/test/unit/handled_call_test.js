@@ -1,8 +1,9 @@
 /* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
            HandledCall, MockCall, MockCallScreen, MockCallsHandler,
-           MockContactPhotoHelper, MockContacts, MockLazyL10n, MockMozL10n,
-           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
-           MockTonePlayer, MockUtils, MockVoicemail */
+           MockContactPhotoHelper, MockContacts, MockFontSizeUtils,
+           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockNavigatorSettings, MocksHelper, MockTonePlayer, MockUtils,
+           MockVoicemail */
 
 'use strict';
 
@@ -11,6 +12,7 @@ require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_font_size_utils.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
@@ -32,6 +34,7 @@ var mocksHelperForHandledCall = new MocksHelper([
   'CallScreen',
   'ConferenceGroupHandler',
   'CallsHandler',
+  'FontSizeUtils',
   'KeypadManager',
   'Utils',
   'LazyL10n',
@@ -394,10 +397,15 @@ suite('dialer/handled_call', function() {
       });
 
       test('should show call ended', function() {
+        var span = subject.node.querySelector('.duration span');
+
+        this.sinon.stub(MockMozL10n, 'setAttributes', function(element, id) {
+          element.setAttribute('data-l10n-id', id);
+        });
+
         mockCall._disconnect();
-        assert.equal(
-          subject.node.querySelector('.duration span').textContent,
-          'callEnded');
+        assert.isTrue(span.hasAttribute('data-l10n-id'));
+        assert.equal(span.getAttribute('data-l10n-id'), 'callEnded');
       });
 
       test('should not show the total call duration', function() {
@@ -1075,7 +1083,47 @@ suite('dialer/handled_call', function() {
 
       assert.equal(subject.additionalTelNode.textContent, 'emergencyNumber');
       assert.isTrue(subject.node.classList.contains('emergency'));
-      assert.isTrue(subject.node.textContent.contains('112'));
+      assert.isTrue(subject.node.textContent.includes('112'));
+    });
+  });
+
+  suite('Resizing the call ended string', function() {
+    var durationChildNode;
+
+    setup(function() {
+      durationChildNode = subject.node.querySelector('.duration span');
+      durationChildNode.textContent = 'Call ended';
+
+      this.sinon.spy(subject.mutationObserver, 'disconnect');
+      this.sinon.spy(subject.mutationObserver, 'observe');
+      this.sinon.spy(subject, 'computeCallEndedFontSizeRules');
+    });
+
+    test('Does not resize the string if no l10n attribute is present',
+    function() {
+      subject.observeMutation();
+      sinon.assert.notCalled(subject.mutationObserver.disconnect);
+      sinon.assert.notCalled(subject.mutationObserver.observe);
+      sinon.assert.notCalled(subject.computeCallEndedFontSizeRules);
+    });
+
+    test('Disconnects and reconnects the observer before adjusting the string',
+    function() {
+      this.sinon.stub(MockFontSizeUtils, 'getMaxFontSizeInfo').returns({
+        fontSize: 1.0
+      });
+      durationChildNode.setAttribute('data-l10n-id', 'callEnded');
+      subject.observeMutation();
+      assert.isTrue(
+        subject.mutationObserver.disconnect.calledBefore(
+          subject.computeCallEndedFontSizeRules
+        )
+      );
+      assert.isTrue(
+        subject.mutationObserver.observe.calledAfter(
+          subject.computeCallEndedFontSizeRules
+        )
+      );
     });
   });
 });

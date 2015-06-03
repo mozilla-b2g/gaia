@@ -31,10 +31,9 @@
   }
 
   .handled-call.ended .duration > span {
+    flex: 1;
     font-weight: 500;
-    max-width: 10rem;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
