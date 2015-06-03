@@ -654,7 +654,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothConnectionManager
-     * @param {Object} BluetoothDevice device
+     * @param {BluetoothDevice} device
      * @return {Promise}
      */
     connect: function btcm_connect(device) {
@@ -708,7 +708,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf BluetoothConnectionManager
-     * @param {Object} BluetoothDevice device
+     * @param {BluetoothDevice} device
      * @returns {Promise}
      */
     _connect: function btcm__connect(device) {
@@ -772,7 +772,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf BluetoothConnectionManager
-     * @param {Object} BluetoothDevice device
+     * @param {BluetoothDevice} device
      * @returns {Promise}
      */
     disconnect: function btcm_disconnect(device) {
@@ -855,7 +855,6 @@ define(function(require) {
      * @access private
      * @memberOf BluetoothConnectionManager
      * @param {String} address
-     * @param {Object} BluetoothDevice
      */
     _getPairedDeviceByAddress: 
     function btcm__getPairedDeviceByAddress(address) {
