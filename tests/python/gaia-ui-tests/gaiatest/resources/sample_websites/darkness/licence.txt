@@ -1,0 +1,81 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Template Name: Darkness
+File: Licence
+Author: OS Templates
+Author URI: http://www.os-templates.com/
+Licence URI: http://www.os-templates.com/template-terms
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+IPR
+---
+
+Intellectual Property Rights (IPR) belong to and stay with OS Templates and the their owner(s).
+
+
+TERMS OF USE
+------------
+
+This template can be used for private and commercial websites under the following terms:
+
+    * You must attribute the work in the manner specified by OS Templates (author and licensor - see Attribution section below).
+
+    * If you use our work for your clients or friends website(s), you have to inform them of the licence that comes with the template(s)
+
+    * You can not claim intellectual property rights or exclusive ownership to any of our templates, modified or unmodified. All templates are the property of OS Templates.
+
+    * You are not permitted to place any of our templates either modified or unmodified, on a diskette, CD, website or any other medium for redistribution, sale or resale.
+
+    * You can not offer our templates for re-distribution of any kind without prior written consent from us.
+
+    * You are not permitted to port / convert any of our templates for a CMS, Blog system or any other form of dynamically managed content system for distribution / re-distribution on a diskette, CD, website or any other medium or for sale or resale.
+
+      You can only port / convert a template for your personal use and if a client asks you to port a template for them.
+
+    * You can not sell or offer our templates for sale. This also includes offering our templates as part of a product package. You can sell your services but not our templates.
+
+
+
+ATTRIBUTION
+-----------
+
+All templates that can be found within this site have copyright information and credit links, that can be found in the templates footer and in the various CSS files.
+
+Credit link(s) and copyright information must stay unmodified in all web pages that use our template(s).
+
+The default credit link that can be found in the (source code) template footer is: <p class="fl_right">Template by <a target="_blank" href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+
+The default footer link may be changed to:
+
+    Code by OS Templates
+    <p class="fl_right">Code by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+
+    Design by OS Templates
+    <p class="fl_right">Design by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+
+    Thanks to OS Templates
+    <p class="fl_right">Thanks to <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+
+For companies or individuals that wish to add their information to the template footer please feel free to modify the link as such:
+
+    Website by YOURDETAILS & OS Templates
+    <p class="fl_right">Website by <a href="YOURURL">YOURDETAILS</a> & <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+
+
+COPYRIGHT INFO & CREDIT LINKS
+-----------------------------
+
+YOU ARE NOT PERMITTED TO REMOVE CREDIT LINKS AND/OR COPYRIGHT INFORMATION FROM THE TEMPLATE FOOTER OR ACCOMPANYING CSS OR JAVASCRIPT FILES
+
+OS Templates DOES NOT offer paid link removals or paid copyright removals.
+
+All of the templates and digital work that can be found on http://www.os-templates.com/ have been filed globally with various Copyright Offices. If you misuse our digital work we will seek damages and you will be prosecuted.
+
+If credit links and/or copyright information are/is intentionally removed from our digital work, legal action will be taken against those doing so.
+
+Please respect our work, a lot of time has been invested in the work that can be found in the site.
+
+Removing credit links from templates can and will result in legal action. It isn't hard to find out where our templates are being used and who is using them.
