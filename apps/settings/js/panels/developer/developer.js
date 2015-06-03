@@ -9,6 +9,9 @@ define(function(require) {
   var DialogService = require('modules/dialog_service');
   var AppsCache = require('modules/apps_cache');
   var ScreenLayout = require('shared/screen_layout');
+  var SettingsCache = require('modules/settings_cache');
+
+  const DEVTOOLS_UNRESTRICTED_KEY = 'devtools.unrestricted';
 
   /**
    * @alias module:developer/developer
@@ -43,12 +46,15 @@ define(function(require) {
       }
 
       if (navigator.mozPower) {
-        this._elements.resetButton.disabled = false;
-        this._elements.resetButton.addEventListener('click',
-          this._resetDevice.bind(this));
+        this._elements.resetSwitch.disabled = false;
+        this._elements.resetSwitch.addEventListener('click', event => {
+          this._resetDevice();
+          // The switch is updated based on the setting.
+          event.preventDefault();
+        });
       } else {
         // disable button if mozPower is undefined or can't be used
-        this._elements.resetButton.disabled = true;
+        this._elements.resetSwitch.disabled = true;
       }
     },
 
@@ -98,15 +104,19 @@ define(function(require) {
      */
     _resetDevice: function d__resetDevice() {
       require(['modules/dialog_service'], (DialogService) => {
-        DialogService.confirm('reset-devtools-warning-body', {
-          title: 'reset-devtools-warning-title',
-          submitButton: 'reset',
-          cancelButton: 'cancel'
-        }).then((result) => {
-          var type = result.type;
-          if (type === 'submit') {
-            this._wipe();
-          }
+        SettingsCache.getSettings(results => {
+          var unrestricted = results[DEVTOOLS_UNRESTRICTED_KEY];
+          DialogService.confirm(unrestricted ?
+            'unreset-devtools-warning-body' : 'reset-devtools-warning-body', {
+              title: 'reset-devtools-warning-title',
+              submitButton: 'factory-reset',
+              cancelButton: 'cancel'
+            }).then((result) => {
+              var type = result.type;
+              if (type === 'submit') {
+                this._wipe(unrestricted ? 'normal' : 'root');
+              }
+            });
         });
       });
     },
@@ -117,7 +127,7 @@ define(function(require) {
      * @access private
      * @memberOf Developer.prototype
      */
-    _wipe: function about__wipe() {
+    _wipe: function about__wipe(reason) {
       var power = navigator.mozPower;
       if (!power) {
         console.error('Cannot get mozPower');
@@ -127,7 +137,7 @@ define(function(require) {
         console.error('Cannot invoke mozPower.factoryReset()');
         return;
       }
-      power.factoryReset('root');
+      power.factoryReset(reason);
     }
   };
 

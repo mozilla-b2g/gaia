@@ -61,6 +61,7 @@
    "devtools.eventlooplag.threshold": 100,
    "devtools.remote.wifi.visible": false,
    "devtools.remote.wifi.enabled": false,
+   "devtools.unrestricted": false,
    "feedback.url": "https://input.allizom.org/api/v1/feedback/",
    "gaia.system.checkForUpdates": false,
    "gaia.ui.menu": "#f97c17",
