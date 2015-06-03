@@ -130,15 +130,16 @@ ThumbnailDateGroup.prototype.removeItem = function(thumbnail) {
   this.container.removeChild(thumbnail.htmlNode);
 };
 
-ThumbnailDateGroup.formatter = new navigator.mozL10n.DateTimeFormat();
+ThumbnailDateGroup.formatter = new Intl.DateTimeFormat(navigator.languages, {
+  month: 'long',
+  year: 'numeric',
+});
 
 ThumbnailDateGroup.prototype.localize = function() {
   var date = new Date(this.date);
-  navigator.mozL10n.formatValue('date-group-header').then(function(format) {
-    var formattedDate =
-      ThumbnailDateGroup.formatter.localeFormat(date, format);
-    this.header.textContent = formattedDate;
-  }.bind(this));
+
+  this.header.textContent = ThumbnailDateGroup.formatter.format(date);
+
   // Localize each of the group's thumbnails.
   this.thumbnails.forEach(function(thumbnail) { thumbnail.localize(); });
 };
