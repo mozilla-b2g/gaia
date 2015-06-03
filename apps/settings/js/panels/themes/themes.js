@@ -176,6 +176,9 @@ define(function(require) {
        *  @returns {Promise} fulfilled with the blob.
        */
       loadWallpaper: function th_loadWallpaper(filename) {
+        if (!filename) {
+          return Promise.resolve(null);
+        }
         var url = this._selectedTheme.substring(0, this._selectedTheme
           .lastIndexOf('/')) + filename;
 
