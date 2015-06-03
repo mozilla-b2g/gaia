@@ -16,7 +16,7 @@
          BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
          BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
-         DevToolsAuth */
+         DevToolsAuth, AdvancedTelemetry */
 'use strict';
 
 /* === Shortcuts === */
@@ -140,6 +140,8 @@ window.addEventListener('load', function startup() {
   // Please sort it alphabetically
   window.accessibility = new Accessibility();
   window.accessibility.start();
+  window.advancedTelemetry = new AdvancedTelemetry();
+  window.advancedTelemetry.start();
   window.appMigrator = new AppMigrator();
   window.appMigrator.start();
   window.appUsageMetrics = new AppUsageMetrics();
