@@ -318,7 +318,7 @@
     function lwm_openApp() {
       if (!this.states.instance) {
         var app = this.createWindow();
-        app.open();
+        app && app.open();
       } else {
         this.states.instance.open();
       }

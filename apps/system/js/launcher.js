@@ -116,13 +116,19 @@
         this.service.request('FtuLauncher:skip'),
         this.service.request('WallpaperManager:initializeWallpaper',
           this.wallpaper, this.wallpaperValid).then(() => {
+            this.debug('launching lockscreen...');
             return this.service.request('LockScreenLauncher:launch');
           }).then(() => {
-            return Promise.all([
-              this.service.request('setPassCodeEnabled', this.passcodeEnabled),
-              this.service.request('onPasscodeEnabledChanged',
-                this.passcodeEnabled)
-            ]);
+            if (this.service.query('LockScreenLauncher.launched')) {
+              this.debug('lockscreen launched, transfer passcode to submodules..');
+              return Promise.all([
+                this.service.request('setPassCodeEnabled', this.passcodeEnabled),
+                this.service.request('onPasscodeEnabledChanged',
+                  this.passcodeEnabled)
+              ]);
+            } else {
+              return Promise.resolve();
+            }
           }).then(() => {
             return Promise.all([
               this.service.request('CoverScreen:animatePoweronLogo'),

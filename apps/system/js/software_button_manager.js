@@ -106,7 +106,8 @@
      */
     _cacheHeight: null,
     get height() {
-      if (!this.enabled || !this._currentOrientation.includes('portrait')) {
+      if (!this.enabled ||
+          (this._currentOrientation && !this._currentOrientation.includes('portrait'))) {
         return 0;
       }
 

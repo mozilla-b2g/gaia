@@ -30,6 +30,10 @@
       }
     };
     this.iframe = this.createFrame();
+    if (!this.iframe || !this.iframe.parentNode) {
+      // XXX: Lockscreen DOM elements are not copied.
+      return;
+    }
 
     LazyLoader.load(['js/lockscreen_agent.js']).then(() => {
       this.lockScreenAgent = new LockScreenAgent(this.iframe);
@@ -139,6 +143,8 @@
       // we need these.
       var frame = document.getElementById('lockscreen-frame');
       if (!frame) {
+        // XXX: This means we failed to build the system app.
+        // So from now on we will try to go without lockscreen.
         frame = document.createElement('div');
       }
       frame.setVisible = function() {};
