@@ -148,8 +148,9 @@
                                            this.panelTimeoutDelay);
 
           var newStream = this.channelManager.getTuner().tuner.stream;
-          if (this.tvStreamElement.src !== newStream) {
-            this.tvStreamElement.src = newStream;
+          if (!this.tvStreamElement.mozSrcObject ||
+              this.tvStreamElement.mozSrcObject.id !== newStream.id) {
+            this.tvStreamElement.mozSrcObject = newStream;
             this.tvStreamElement.play();
           }
         }

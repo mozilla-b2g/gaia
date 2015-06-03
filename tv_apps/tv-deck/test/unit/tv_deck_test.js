@@ -144,22 +144,6 @@ suite('tv-deck/tv_deck', function() {
       tvDeck._onHashChange();
       assert.isFalse(tvDeck.channelPanel.classList.contains('hidden'));
     });
-
-    test('New video stream assigned if id equals lastChannelId', function() {
-      this.sinon.stub(tvDeck.channelManager, 'getTuner').returns({
-        tuner: {
-          stream: 'newStream'
-        }
-      });
-      this.sinon.stub(tvDeck.channelManager, 'getSource').returns({});
-      this.sinon.stub(tvDeck.channelManager, 'getChannel').returns({
-        channel: {}
-      });
-      tvDeck._onHashChange();
-
-      var newStream = 'app://tv-deck.gaiamobile.org/test/unit/newStream';
-      assert.equal(tvDeck.tvStreamElement.src, newStream);
-    });
   });
 
   suite('setHash()', function() {
