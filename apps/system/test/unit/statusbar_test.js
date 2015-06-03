@@ -822,10 +822,8 @@ suite('system/Statusbar', function() {
     test('stackchanged', function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
       this.sinon.stub(app, 'isFullScreenLayout').returns(false);
-      Statusbar.element.classList.add('hidden');
       var event = new CustomEvent('stackchanged');
       Statusbar.handleEvent(event);
-      assert.isFalse(Statusbar.element.classList.contains('hidden'));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen'));
       assert.isFalse(Statusbar.element.classList.contains('fullscreen-layout'));
       assert.isTrue(setAppearanceStub.called);

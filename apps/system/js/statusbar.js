@@ -209,6 +209,8 @@
           break;
 
         case 'sheets-gesture-begin':
+        case 'appopening':
+        case 'homescreenopening':
           this.element.classList.add('hidden');
           this.pauseUpdate(evt.type);
           break;
@@ -248,7 +250,6 @@
 
         case 'stackchanged':
           this.setAppearance();
-          this.element.classList.remove('hidden');
           break;
 
         case 'appchromecollapsed':
