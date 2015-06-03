@@ -1,0 +1,11 @@
+{
+  "name": "socket-retry-connect",
+  "version": "0.0.1",
+  "author": "James Lal [:lightsofapollo]",
+  "description": "Attempt to connect to socket multiple times",
+  "main": "index.js",
+
+  "dependencies" : {
+    "debug": "*"
+  }
+}
