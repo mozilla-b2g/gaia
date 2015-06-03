@@ -5,6 +5,7 @@
   "description": "A plugin for manipulating form fields",
   "main": "lib/index.js",
   "license": "MIT",
+
   "dependencies": {
     "marionette-client": "~1.7.1"
   }
