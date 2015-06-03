@@ -3,16 +3,14 @@ define(function(require, exports, module) {
 
 var Event = require('models/event');
 var View = require('view');
+var co = require('ext/co');
 var core = require('core');
-var dayObserver = require('day_observer');
 var isToday = require('common/calc').isToday;
 var nextTick = require('common/next_tick');
 var router = require('router');
 
 function EventBase(options) {
   View.apply(this, arguments);
-
-  this.store = core.storeFactory.get('Event');
 
   this._els = Object.create(null);
   this._changeToken = 0;
@@ -119,66 +117,21 @@ EventBase.prototype = {
    * Assigns and displays event & busytime information.
    * Marks view as "loading"
    *
-   * @param {Object} busytime for view.
-   * @param {Object} event for view.
-   * @param {Function} [callback] optional callback.
+   * @param {{event, busytime, capabilities}} record
    */
-  useModel: function(busytime, event, callback) {
-    // mark view with loading class
-    var classList = this.element.classList;
-    classList.add(this.LOADING);
+  _useModel: function(record) {
+    this.record = record;
+    this.event = new Event(record.event);
+    this.busytime = record.busytime;
+    this.originalCalendar = record.calendar;
 
-    this.event = new Event(event);
-    this.busytime = busytime;
-
-    var changeToken = ++this._changeToken;
-
-    var self = this;
-
-    this.store.ownersOf(event, fetchOwners);
-
-    function fetchOwners(err, owners) {
-      self.originalCalendar = owners.calendar;
-      self.provider = core.providerFactory.get(owners.account.providerType);
-      self.provider.eventCapabilities(
-        self.event,
-        fetchEventCaps
-      );
+    if (!record.capabilities.canUpdate) {
+      this._markReadonly(true);
+      this.element.classList.add(this.READONLY);
     }
 
-    function fetchEventCaps(err, caps) {
-      if (self._changeToken !== changeToken) {
-        return;
-      }
-
-      if (err) {
-        console.error('Failed to fetch events capabilities', err);
-
-        if (callback) {
-          classList.remove(self.LOADING);
-          callback(err);
-        }
-
-        return;
-      }
-
-      if (!caps.canUpdate) {
-        self._markReadonly(true);
-        self.element.classList.add(self.READONLY);
-      }
-
-      // inheritance hook...
-      self._updateUI();
-
-      // we only remove the loading class after the UI is rendered just to
-      // avoid potential race conditions during marionette tests (trying to
-      // read the data before it's on the DOM)
-      classList.remove(self.LOADING);
-
-      if (callback) {
-        callback();
-      }
-    }
+    // inheritance hook...
+    this._updateUI();
   },
 
   /** override me! **/
@@ -193,30 +146,28 @@ EventBase.prototype = {
    *
    * @param {String} id busytime id.
    */
-  _loadModel: function(id, callback) {
-    var self = this;
+  _loadModel: co.wrap(function *(id) {
     var token = ++this._changeToken;
     var classList = this.element.classList;
+    var result = Promise.resolve();
 
     classList.add(this.LOADING);
 
-    dayObserver.findAssociated(id).then(record => {
-      if (token === self._changeToken) {
-        self.useModel(
-          record.busytime,
-          record.event,
-          callback
-        );
-      } else {
-        // ensure loading is removed
-        classList.remove(this.LOADING);
+    try {
+      var record = yield core.bridge.fetchRecord(id);
+      if (token === this._changeToken) {
+        this._useModel(record);
       }
-    })
-    .catch(() => {
-      classList.remove(this.LOADING);
-      console.error('Error looking up records for id: ', id);
-    });
-  },
+    } catch(err) {
+      console.error(`Error looking up records for id: ${id}`);
+      console.error(`${err.message}\n${err.stack}`);
+      result = Promise.reject(err);
+    }
+
+    classList.remove(this.LOADING);
+
+    return result;
+  }),
 
   /**
    * Builds and sets defaults for a new model.
@@ -306,17 +257,12 @@ EventBase.prototype = {
       this._returnTop = this._returnTo;
     }
 
-    var self = this;
-    function completeDispatch() {
-      if (self.ondispatch) {
-        self.ondispatch();
-      }
-    }
+    var completeDispatch = () => this.ondispatch && this.ondispatch();
 
     if (id) {
       classList.add(this.UPDATE);
 
-      this._loadModel(id, completeDispatch);
+      this._loadModel(id).then(completeDispatch);
     } else {
       classList.add(this.CREATE);
 

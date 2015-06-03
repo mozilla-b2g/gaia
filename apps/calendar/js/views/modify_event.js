@@ -6,10 +6,10 @@ var EventBase = require('./event_base');
 var InputParser = require('shared/input_parser');
 var Local = require('provider/local');
 var QueryString = require('querystring');
+var co = require('ext/co');
 var core = require('core');
 var dateFormat = require('date_format');
 var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
-var nextTick = require('common/next_tick');
 var router = require('router');
 var viewFactory = require('./factory');
 
@@ -54,13 +54,6 @@ ModifyEvent.prototype = {
 
   _initEvents: function() {
     EventBase.prototype._initEvents.apply(this, arguments);
-
-    var calendars = core.storeFactory.get('Calendar');
-
-    calendars.on('add', this._addCalendarId.bind(this));
-    calendars.on('preRemove', this._removeCalendarId.bind(this));
-    calendars.on('remove', this._removeCalendarId.bind(this));
-    calendars.on('update', this._updateCalendarId.bind(this));
 
     this.deleteButton.addEventListener('click', this.deleteRecord);
     this.form.addEventListener('click', this.focusHandler);
@@ -152,7 +145,7 @@ ModifyEvent.prototype = {
    * Check if current event has been stored in the database
    */
   isSaved: function() {
-      return !!this.provider;
+    return this.element.classList.contains(this.UPDATE);
   },
 
   /**
@@ -166,128 +159,34 @@ ModifyEvent.prototype = {
     // really rare occasions "onfirstseen" is called after the EventBase
     // removed the "loading" class from the root element (seen it happen less
     // than 1% of the time)
-    this.getEl('calendarId').classList.add(self.LOADING);
-
-    var calendarStore = core.storeFactory.get('Calendar');
-    calendarStore.all(function(err, calendars) {
-      if (err) {
-        return console.error('Could not build list of calendars');
-      }
-
-      var pending = 0;
-      var self = this;
-
-      function next() {
-        if (!--pending) {
-          self.getEl('calendarId').classList.remove(self.LOADING);
-
-          if (self.onafteronfirstseen) {
-            self.onafteronfirstseen();
-          }
-        }
-      }
-
-      for (var id in calendars) {
-        pending++;
-        this._addCalendarId(id, calendars[id], next);
-      }
-
-    }.bind(this));
+    this.getEl('calendarId').classList.add(this.LOADING);
   },
 
-  /**
-   * Updates a calendar id option.
-   *
-   * @param {String} id calendar id.
-   * @param {Calendar.Model.Calendar} calendar model.
-   */
-  _updateCalendarId: function(id, calendar) {
-    var element = this.getEl('calendarId');
-    var option = element.querySelector('[value="' + id + '"]');
-    var store = core.storeFactory.get('Calendar');
+  _renderCalendars: function(records) {
+    // remove old calendars (this will be called every time we have a change on
+    // any calendar)
+    var select = this.getEl('calendarId');
+    // remove all the options
+    select.options.length = 0;
+    select.classList.remove(this.LOADING);
 
-    store.providerFor(calendar, function(err, provider) {
-      var caps = provider.calendarCapabilities(
-        calendar
-      );
-
-      if (!caps.canCreateEvent) {
-        this._removeCalendarId(id);
-        return;
-      }
-
-      if (option) {
-        option.text = calendar.remote.name;
-      }
-
-
-      if (this.oncalendarupdate) {
-        this.oncalendarupdate(calendar);
-      }
-    }.bind(this));
-  },
-
-  /**
-   * Add a single calendar id.
-   *
-   * @param {String} id calendar id.
-   * @param {Calendar.Model.Calendar} calendar calendar to add.
-   */
-  _addCalendarId: function(id, calendar, callback) {
-    var store = core.storeFactory.get('Calendar');
-    store.providerFor(calendar, function(err, provider) {
-      var caps = provider.calendarCapabilities(
-        calendar
-      );
-
-      if (!caps.canCreateEvent) {
-        if (callback) {
-          nextTick(callback);
-        }
-        return;
-      }
-
-      var option;
-      var element = this.getEl('calendarId');
-
-      option = document.createElement('option');
+    records
+    .filter(r => r.capabilities.canCreateEvent)
+    .forEach(record => {
+      var id = record.calendar._id;
+      var {name} = record.calendar.remote;
+      var option = document.createElement('option');
 
       if (id === Local.calendarId) {
         option.text = navigator.mozL10n.get('calendar-local');
         option.setAttribute('data-l10n-id', 'calendar-local');
       } else {
-        option.text = calendar.remote.name;
+        option.text = name;
       }
 
       option.value = id;
-      element.add(option);
-
-      if (callback) {
-        nextTick(callback);
-      }
-
-      if (this.onaddcalendar) {
-        this.onaddcalendar(calendar);
-      }
-    }.bind(this));
-  },
-
-  /**
-   * Remove a single calendar id.
-   *
-   * @param {String} id to remove.
-   */
-  _removeCalendarId: function(id) {
-    var element = this.getEl('calendarId');
-
-    var option = element.querySelector('[value="' + id + '"]');
-    if (option) {
-      element.removeChild(option);
-    }
-
-    if (this.onremovecalendar) {
-      this.onremovecalendar(id);
-    }
+      select.add(option);
+    });
   },
 
   /**
@@ -339,7 +238,7 @@ ModifyEvent.prototype = {
    * For now both update & create share the same
    * behaviour (redirect) in the future we may change this.
    */
-  _persistEvent: function(method, capability) {
+  _persistEvent: co.wrap(function *(method) {
     // create model data
     var data = this.formData();
     var errors;
@@ -357,114 +256,71 @@ ModifyEvent.prototype = {
       return;
     }
 
-    var self = this;
-    var provider;
+    // mark view as 'in progress' so we can style
+    // it via css during that time period
+    this.element.classList.add(this.PROGRESS);
 
-    this.store.providerFor(this.event, fetchProvider);
-
-    function fetchProvider(err, result) {
-      provider = result;
-      provider.eventCapabilities(
-        self.event.data,
-        verifyCaps
-      );
+    try {
+      // need to store date before async operation (event might change)
+      var moveDate = this.event.startDate;
+      yield core.bridge[method](this.event);
+      // move the position in the calendar to the added/edited day
+      core.timeController.move(moveDate);
+      // order is important the above method triggers the building
+      // of the dom elements so selectedDay must come after.
+      core.timeController.selectedDay = moveDate;
+      this._navigateAfterPersist(method, moveDate);
+    } catch(err) {
+      this.showErrors(err);
     }
 
-    function verifyCaps(err, caps) {
-      if (err) {
-        return console.error('Error fetching capabilities for', self.event);
-      }
+    this.element.classList.remove(this.PROGRESS);
+  }),
 
-      // safe-guard but should not ever happen.
-      if (caps[capability]) {
-        persistEvent();
-      }
+  _navigateAfterPersist: function(method, moveDate) {
+    // we pass the date so we are able to scroll to the event on the
+    // day/week views
+    var state = {
+      eventStartHour: moveDate.getHours()
+    };
+
+    if (method === 'updateEvent') {
+      // If we edit a view our history stack looks like:
+      //   /week -> /event/view -> /event/save -> /event/view
+      // We need to return all the way to the top of the stack
+      // We can remove this once we have a history stack
+      viewFactory.get('ViewEvent', v => router.go(v.returnTop(), state));
+      return;
     }
 
-    function persistEvent() {
-      var list = self.element.classList;
-
-      // mark view as 'in progress' so we can style
-      // it via css during that time period
-      list.add(self.PROGRESS);
-
-      var moveDate = self.event.startDate;
-
-      provider[method](self.event.data, function(err) {
-        list.remove(self.PROGRESS);
-
-        if (err) {
-          self.showErrors(err);
-          return;
-        }
-
-        // move the position in the calendar to the added/edited day
-        core.timeController.move(moveDate);
-        // order is important the above method triggers the building
-        // of the dom elements so selectedDay must come after.
-        core.timeController.selectedDay = moveDate;
-
-        // we pass the date so we are able to scroll to the event on the
-        // day/week views
-        var state = {
-          eventStartHour: moveDate.getHours()
-        };
-
-        if (method === 'updateEvent') {
-          // If we edit a view our history stack looks like:
-          //   /week -> /event/view -> /event/save -> /event/view
-          // We need to return all the way to the top of the stack
-          // We can remove this once we have a history stack
-          viewFactory.get('ViewEvent', function(view) {
-            router.go(view.returnTop(), state);
-          });
-
-          return;
-        }
-
-        router.go(self.returnTo(), state);
-      });
-    }
+    router.go(this.returnTo(), state);
   },
 
   /**
    * Deletes current record if provider is present and has the capability.
    */
-  deleteRecord: function(event) {
+  deleteRecord: co.wrap(function *(event) {
     if (event) {
       event.preventDefault();
     }
 
-    if (this.isSaved()) {
-      var self = this;
-      var handleDelete = function me_handleDelete() {
-        self.provider.deleteEvent(self.event.data, function(err) {
-          if (err) {
-            self.showErrors(err);
-            return;
-          }
-
-          // If we edit a view our history stack looks like:
-          //   /week -> /event/view -> /event/save -> /event/view
-          // We need to return all the way to the top of the stack
-          // We can remove this once we have a history stack
-          viewFactory.get('ViewEvent', function(view) {
-            router.go(view.returnTop());
-          });
-        });
-      };
-
-      this.provider.eventCapabilities(this.event.data, function(err, caps) {
-        if (err) {
-          return console.error('Error fetching event capabilities', this.event);
-        }
-
-        if (caps.canDelete) {
-          handleDelete();
-        }
-      });
+    if (!this.isSaved()) {
+      return;
     }
-  },
+
+    try {
+      yield core.bridge.deleteEvent(this.event);
+      // If we edit a view our history stack looks like:
+      //   /week -> /event/view -> /event/save -> /event/view
+      // We need to return all the way to the top of the stack
+      // We can remove this once we have a history stack
+      viewFactory.get('ViewEvent', view => {
+        router.go(view.returnTop());
+      });
+    } catch(err) {
+      this.showErrors(err);
+    }
+  }),
 
   /**
    * Persist current model.
@@ -478,9 +334,9 @@ ModifyEvent.prototype = {
     this.disablePrimary();
 
     if (this.isSaved()) {
-      this._persistEvent('updateEvent', 'canUpdate');
+      this._persistEvent('updateEvent');
     } else {
-      this._persistEvent('createEvent', 'canCreate');
+      this._persistEvent('createEvent');
     }
   },
 
@@ -785,7 +641,7 @@ ModifyEvent.prototype = {
   /**
    * Called on render or when toggling an all-day event
    */
-  updateAlarms: function(isAllDay, callback) {
+  updateAlarms: co.wrap(function *(isAllDay) {
     var template = AlarmTemplate;
     var alarms = [];
 
@@ -801,35 +657,27 @@ ModifyEvent.prototype = {
       }
     }
 
-    var settings = core.storeFactory.get('Setting');
     var layout = isAllDay ? 'allday' : 'standard';
-    settings.getValue(layout + 'AlarmDefault', next.bind(this));
+    var value = yield core.bridge.getSetting(layout + 'AlarmDefault');
 
-    function next(err, value) {
-      //jshint -W040
-      if (!this.isSaved() && !alarmMap[value] && !this.event.alarms.length) {
-        alarms.push({
-          layout: layout,
-          trigger: value
-        });
-      }
-
-      // Bug_898242 to show an event when default is 'none',
-      // we check if the event is not saved, if so, we push
-      // the default alarm on to the list.
-      if ((value === 'none' && this.isSaved()) || value !== 'none') {
-        alarms.push({
-          layout: layout
-        });
-      }
-
-      this.alarmList.innerHTML = template.picker.renderEach(alarms).join('');
-
-      if (callback) {
-        callback();
-      }
+    if (!this.isSaved() && !alarmMap[value] && !this.event.alarms.length) {
+      alarms.push({
+        layout: layout,
+        trigger: value
+      });
     }
-  },
+
+    // Bug_898242 to show an event when default is 'none',
+    // we check if the event is not saved, if so, we push
+    // the default alarm on to the list.
+    if ((value === 'none' && this.isSaved()) || value !== 'none') {
+      alarms.push({
+        layout: layout
+      });
+    }
+
+    this.alarmList.innerHTML = template.picker.renderEach(alarms).join('');
+  }),
 
   reset: function() {
     var list = this.element.classList;
@@ -847,7 +695,6 @@ ModifyEvent.prototype = {
 
     this._returnTo = null;
     this._markReadonly(false);
-    this.provider = null;
     this.event = null;
     this.busytime = null;
 
@@ -856,9 +703,16 @@ ModifyEvent.prototype = {
     this.form.reset();
   },
 
+  onactive: function() {
+    EventBase.prototype.onactive.apply(this, arguments);
+    this.calendarStream = core.bridge.observeCalendars();
+    this.calendarStream.listen(this._renderCalendars.bind(this));
+  },
+
   oninactive: function() {
     EventBase.prototype.oninactive.apply(this, arguments);
     this.reset();
+    this.calendarStream && this.calendarStream.cancel();
   }
 };
 
