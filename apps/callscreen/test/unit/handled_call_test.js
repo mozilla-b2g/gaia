@@ -1,8 +1,9 @@
 /* globals AudioCompetingHelper, ConferenceGroupHandler, FontSizeManager,
            HandledCall, MockCall, MockCallScreen, MockCallsHandler,
-           MockContactPhotoHelper, MockContacts, MockLazyL10n, MockMozL10n,
-           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
-           MockTonePlayer, MockUtils, MockVoicemail */
+           MockContactPhotoHelper, MockContacts, MockFontSizeUtils,
+           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockNavigatorSettings, MocksHelper, MockTonePlayer, MockUtils,
+           MockVoicemail */
 
 'use strict';
 
@@ -11,6 +12,7 @@ require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_conference_group_handler.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_font_size_utils.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
@@ -31,6 +33,7 @@ var mocksHelperForHandledCall = new MocksHelper([
   'Contacts',
   'CallScreen',
   'ConferenceGroupHandler',
+  'FontSizeUtils',
   'CallsHandler',
   'KeypadManager',
   'Utils',
@@ -118,6 +121,9 @@ suite('dialer/handled_call', function() {
                     'getFullResolution').returns(photoFullResolution);
     this.sinon.stub(MockContactPhotoHelper,
                     'getThumbnail').returns(photoThumbnail);
+    this.sinon.stub(MockFontSizeUtils, 'getMaxFontSizeInfo', function() {
+      return { fontSize: 27 };
+    });
     this.sinon.useFakeTimers(Date.now());
 
     mockCall = new MockCall(String(phoneNumber), 'dialing');
@@ -391,13 +397,14 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         MockCallScreen.mute();
         MockCallScreen.switchToSpeaker();
+        this.sinon.spy(MockMozL10n, 'setAttributes');
+        this.sinon.spy(MockMozL10n, 'translateFragment');
       });
 
       test('should show call ended', function() {
+        var span = subject.node.querySelector('.duration span');
         mockCall._disconnect();
-        assert.equal(
-          subject.node.querySelector('.duration span').textContent,
-          'callEnded');
+        sinon.assert.calledWith(MockMozL10n.setAttributes, span, 'callEnded');
       });
 
       test('should not show the total call duration', function() {
@@ -414,6 +421,22 @@ suite('dialer/handled_call', function() {
         mockCall._disconnect();
         assert.equal(subject.node.querySelector('.total-duration').textContent,
                      totalCallDuration);
+      });
+
+      test('should resize the call ended string if allowed to', function() {
+        var span = subject.node.querySelector('.duration span');
+        subject.allowResize(true);
+        mockCall._disconnect();
+        sinon.assert.calledWith(MockMozL10n.translateFragment, span);
+        sinon.assert.calledOnce(MockFontSizeUtils.getMaxFontSizeInfo);
+      });
+
+      test('should not resize the call ended string if not allowed to',
+      function() {
+        subject.allowResize(false);
+        mockCall._disconnect();
+        sinon.assert.notCalled(MockMozL10n.translateFragment);
+        sinon.assert.notCalled(MockFontSizeUtils.getMaxFontSizeInfo);
       });
 
       test('should remove listener on the call', function() {

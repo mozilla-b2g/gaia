@@ -360,7 +360,13 @@ var CallsHandler = (function callsHandler() {
   }
 
   function updateAllPhoneNumberDisplays() {
+    var visibleCalls = handledCalls.reduce(function(prev, curr) {
+      return prev + (curr.visible() ? 1 : 0);
+    }, 0);
+
     handledCalls.forEach(function(call) {
+      call.allowResize(visibleCalls <= 1);
+
       if (!call._leftGroup) {
         call.restorePhoneNumber();
       }
