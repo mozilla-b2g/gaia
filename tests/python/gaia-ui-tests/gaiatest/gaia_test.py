@@ -865,6 +865,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 # make sure we restart to avoid leaving us in a bad state
                 self.device.start_b2g()
 
+        # Make sure the screen isn't turned off in lockscreen mode
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script(
+            'window.wrappedJSObject.ScreenManager.LOCKING_TIMEOUT = 9999;')
+
         # We need to set the default timeouts because we may have a new session
         if self.marionette.timeout is None:
             # if no timeout is passed in, we detect the hardware type and set reasonable defaults
