@@ -411,6 +411,17 @@ suite('system/Statusbar', function() {
       assert.isTrue(spyGetMaximizedStatusBarWidth.called);
     });
 
+    test('it sets the order when an icon is rendered', function() {
+      var priority1 = Object.keys(StatusBar.PRIORITIES)[0];
+      var order = StatusBar.PRIORITIES[priority1].order;
+      var mockIcon = {
+        dashPureName: priority1,
+        setOrder: this.sinon.stub()
+      };
+      window.dispatchEvent(new CustomEvent('iconrendered', {detail: mockIcon}));
+      assert.isTrue(mockIcon.setOrder.calledWith(order * -1));
+    });
+
     suite('when only 2 icons fit in the maximized status bar', function() {
       var iconWithPriority1;
       var iconWithPriority2;

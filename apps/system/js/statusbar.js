@@ -88,7 +88,7 @@ var StatusBar = {
     window.addEventListener('iconshown', this);
     window.addEventListener('iconhidden', this);
     window.addEventListener('iconchanged', this);
-    window.addEventListener('iconcrendered', this);
+    window.addEventListener('iconrendered', this);
     window.addEventListener('iconwidthchanged', this);
     window.addEventListener('ftuskip', this);
     window.addEventListener('ftudone', this);
