@@ -40,72 +40,79 @@ var HTMLOptimizer = function(options) {
 };
 
 HTMLOptimizer.prototype.process = function() {
-  var mozL10n = this.win.navigator.mozL10n;
   this.mockWinObj();
 
-  this.getAST = mozL10n.getAST.bind(mozL10n);
-
-  var ignore = this.optimizeConfig.L10N_OPTIMIZATION_BLACKLIST;
-  // If this HTML document uses l10n.js, pre-localize it --
-  //   note: a document can use l10n.js by including either l10n.js or
-  //   localization resource link elements (see /shared/js/lazy_l10n.js).
-  if ((!this.win.document.querySelector('script[src$="l10n.js"]') &&
-       !this.win.document.querySelector('link[rel="localization"]')) ||
-      ignore[this.webapp.sourceDirectoryName]) {
+  // only optimize files which are l10n-enabled
+  if (!this.win.document.querySelector('link[rel="localization"]')) {
     return;
   }
+
+  this.embedHtmlImports();
+  this.optimizeDeviceTypeCSS();
+
+  var appName = this.webapp.sourceDirectoryName;
+  var fileName = this.htmlFile.leafName;
+
+  var jsAggregationBlacklist = this.optimizeConfig.JS_AGGREGATION_BLACKLIST;
+  if (this.config.GAIA_OPTIMIZE === '1' &&
+      (!jsAggregationBlacklist[appName] ||
+        (jsAggregationBlacklist[appName]
+          .indexOf(fileName) === -1) &&
+         jsAggregationBlacklist[appName] !== '*')) {
+    this.aggregateJsResources();
+  }
+
+  var globalVarWhiltelist = this.optimizeConfig.INLINE_GLOBAL_VAR_WHITELIST;
+  if (globalVarWhiltelist[appName] &&
+       globalVarWhiltelist[appName]
+         .indexOf(fileName) !== -1) {
+    this.embededGlobals();
+  }
+
+  var inlineWhitelist = this.optimizeConfig.INLINE_OPTIMIZE_WHITELIST;
+  if (inlineWhitelist[appName] &&
+      (inlineWhitelist[appName]
+        .indexOf(fileName) !== -1 ||
+        inlineWhitelist[appName] === '*')) {
+    this.inlineJsResources();
+    this.inlineCSSResources();
+  }
+
+  var concatBlacklist = this.optimizeConfig.CONCAT_LOCALES_BLACKLIST;
+  if (this.config.GAIA_CONCAT_LOCALES === '1' &&
+      (!concatBlacklist[appName] ||
+       (concatBlacklist[appName].indexOf('*') === -1 &&
+        concatBlacklist[appName].indexOf(fileName) === -1))) {
+    this.processL10nResources();
+  }
+
+  var pretranslationBlacklist = this.optimizeConfig.PRETRANSLATION_BLACKLIST;
+  if (this.config.GAIA_PRETRANSLATE === '1' &&
+      (!pretranslationBlacklist[appName] ||
+       (pretranslationBlacklist[appName].indexOf('*') === -1 &&
+        pretranslationBlacklist[appName].indexOf(fileName) === -1))) {
+    this.pretranslateHTML();
+  }
+
+  this.serializeNewHTMLDocumentOutput();
+};
+
+HTMLOptimizer.prototype.processL10nResources = function() {
+  var mozL10n = this.win.navigator.mozL10n;
+  this.getAST = mozL10n.getAST.bind(mozL10n);
 
   // Since l10n.js was read before the document was created, we need to
   // explicitly initialize it again via mozL10n.bootstrap, which looks for
   // rel="localization" links in the HTML and sets up the localization context.
   mozL10n.bootstrap(this.webapp.url, this.config);
-  this._optimize();
-};
 
-HTMLOptimizer.prototype._optimize = function() {
-  this._proceedLocales();
-
-  if (this.config.GAIA_CONCAT_LOCALES === '1') {
-    this.concatL10nResources();
-  }
-
-
-  this.embedHtmlImports();
-  this.optimizeDeviceTypeCSS();
-
-  var jsAggregationBlacklist = this.optimizeConfig.JS_AGGREGATION_BLACKLIST;
-  if (this.config.GAIA_OPTIMIZE === '1' &&
-      (!jsAggregationBlacklist[this.webapp.sourceDirectoryName] ||
-        (jsAggregationBlacklist[this.webapp.sourceDirectoryName]
-          .indexOf(this.htmlFile.leafName) === -1) &&
-         jsAggregationBlacklist[this.webapp.sourceDirectoryName] !== '*')) {
-    this.aggregateJsResources();
-  }
-
-  var globalVarWhiltelist = this.optimizeConfig.INLINE_GLOBAL_VAR_WHITELIST;
-  if (globalVarWhiltelist[this.webapp.sourceDirectoryName] &&
-       globalVarWhiltelist[this.webapp.sourceDirectoryName]
-         .indexOf(this.htmlFile.leafName) !== -1) {
-    this.embededGlobals();
-  }
-
-  var inlineWhitelist = this.optimizeConfig.INLINE_OPTIMIZE_WHITELIST;
-  if (inlineWhitelist[this.webapp.sourceDirectoryName] &&
-      (inlineWhitelist[this.webapp.sourceDirectoryName]
-        .indexOf(this.htmlFile.leafName) !== -1 ||
-        inlineWhitelist[this.webapp.sourceDirectoryName] === '*')) {
-    this.inlineJsResources();
-    this.inlineCSSResources();
-  }
-
-  this.serializeNewHTMLDocumentOutput();
-
-  this.writeAST();
+  this._getASTs();
+  this.concatL10nResources();
 };
 
 // create JSON dicts for the current language; one for the <script> tag
 // embedded in HTML and one for locales-obj/
-HTMLOptimizer.prototype._proceedLocales = function() {
+HTMLOptimizer.prototype._getASTs = function() {
   var mozL10n = this.win.navigator.mozL10n;
   var processedLocales = 0;
   while (processedLocales < this.locales.length) {
@@ -113,26 +120,20 @@ HTMLOptimizer.prototype._proceedLocales = function() {
     mozL10n.ctx.requestLocales(this.locales[processedLocales]);
 
     // create JSON dicts for the current language for locales-obj/
-    if (this.config.GAIA_CONCAT_LOCALES === '1') {
-      var ast = this.getAST();
-      if (ast !== null) {
-        this.asts[mozL10n.language.code] = ast;
-      }
+    var ast = this.getAST();
+    if (ast !== null) {
+      this.asts[mozL10n.language.code] = ast;
     }
     processedLocales++;
   }
+};
 
-  var ignore = this.optimizeConfig.PRETRANSLATION_BLACKLIST;
-  var appName = this.webapp.sourceDirectoryName;
-  var fileName = this.htmlFile.leafName;
-  if (this.config.GAIA_PRETRANSLATE === '1' &&
-      (!ignore[appName] ||
-       (ignore[appName].indexOf('*') === -1 &&
-        ignore[appName].indexOf(fileName) === -1))) {
-    // we expect the last locale to be the default one:
-    // pretranslate the document and set its lang/dir attributes
-    mozL10n.translateDocument();
-  }
+// pretranslate the document and set its lang/dir attributes
+HTMLOptimizer.prototype.pretranslateHTML = function() {
+  var mozL10n = this.win.navigator.mozL10n;
+  mozL10n.bootstrap(this.webapp.url, this.config);
+  mozL10n.ctx.requestLocales(this.config.GAIA_DEFAULT_LOCALE);
+  mozL10n.translateDocument();
 };
 
 /**
@@ -252,7 +253,10 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
     jsonLink.href = '/locales-obj/' + jsonName;
     jsonLink.rel = 'localization';
     parentNode.insertBefore(jsonLink, links[0]);
+
+    this.writeAST();
   }
+
   for (i = 0; i < links.length; i++) {
     parentNode.removeChild(links[i]);
   }
@@ -577,9 +581,6 @@ HTMLOptimizer.prototype.mockWinObj = function() {
 };
 
 HTMLOptimizer.prototype.writeAST = function() {
-  if (this.config.GAIA_CONCAT_LOCALES !== '1') {
-    return;
-  }
   var localeObjDir =
     utils.getFile(this.webapp.buildDirectoryFilePath, 'locales-obj');
   utils.ensureFolderExists(localeObjDir);

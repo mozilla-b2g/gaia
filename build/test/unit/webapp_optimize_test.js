@@ -239,7 +239,7 @@ suite('webapp-optimize.js', function() {
       }
     };
     mockoptimizeConfig = {
-      'L10N_OPTIMIZATION_BLACKLIST': {
+      'CONCAT_LOCALES_BLACKLIST': {
         'ignoreL10nOptimizeApp': '*'
       },
       'JS_AGGREGATION_BLACKLIST': {
@@ -326,27 +326,12 @@ suite('webapp-optimize.js', function() {
     teardown(function() {
     });
 
-    test('process', function() {
-      var _optimizeCalled;
-      htmlOptimizer.webapp.sourceDirectoryName = 'ignoreL10nOptimizeApp';
-      htmlOptimizer.mockWinObj = function() {};
-      htmlOptimizer._optimize = function() {
-        _optimizeCalled = true;
-      };
-      htmlOptimizer.process();
-      mockoptimizeConfig
-        .L10N_OPTIMIZATION_BLACKLIST.ignoreL10nOptimizeApp = false;
-      htmlOptimizer.process();
-      assert.equal(_optimizeCalled, true,
-        'should call callback of mozL10n.bootstrap');
-    });
-
-    test('_proceedLocales, prepare JSON AST files', function() {
+    test('_getASTs, prepare JSON AST files', function() {
       htmlOptimizer.getAST = function(docElt) {
         return [{$i: 'test-id', $v: 'testIdContent'}];
       };
       mockWin.document.documentElement = {};
-      htmlOptimizer._proceedLocales();
+      htmlOptimizer._getASTs();
       assert.deepEqual(htmlOptimizer.asts,
         {'en-test': [{$i: 'test-id', $v: 'testIdContent'}]});
       assert.equal(htmlOptimizer.asts['en-test'][0].$v,
