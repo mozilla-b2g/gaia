@@ -82,8 +82,4 @@ ul#ime-list > li > label.pack-checkbox.ime ~ a {
   padding-right: 6.1rem;
 }
 
-ul#ime-list > li > label.pack-switch ~ a {
-  padding-right: 9rem;
-}
-
 /* ... end of keyboard layout */
