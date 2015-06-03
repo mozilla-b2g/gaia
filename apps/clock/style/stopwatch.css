@@ -30,6 +30,7 @@
 #stopwatch-controls button {
   flex: auto;
   height: 3.8rem;
+  line-height: 3.6rem;
   margin: 0 0.5rem;
 }
 
@@ -53,7 +54,7 @@
   height: 4.5rem;
   padding: 1.5rem 0 0 0;
   border-top: 1px solid rgba(115, 125, 128, 0.2);
-  
+
   color: #CFE2E6;
   font: 2.5rem sans-serif;
   font-weight: 300;
