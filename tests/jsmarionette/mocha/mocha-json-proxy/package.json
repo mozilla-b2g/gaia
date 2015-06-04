@@ -3,7 +3,6 @@
   "version": "0.0.7",
   "author": "James Lal [:lightsofapollo]",
   "description": "Mocha JSON proxy reporter",
-  "license": "MIT",
   "main": "consumer",
 
   "dependencies": {

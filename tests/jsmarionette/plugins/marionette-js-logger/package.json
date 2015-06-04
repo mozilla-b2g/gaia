@@ -2,7 +2,6 @@
   "name": "marionette-js-logger",
   "version": "0.2.1",
   "description": "Realtime host -> desktop logging",
-  "license": "MIT",
   "main": "index.js",
 
   "contributors": [
