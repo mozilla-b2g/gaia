@@ -1,3 +1,8 @@
+/**
+ * NOTICE: This file should be kept in sync with
+ * system/lockscreen/style/lockscreen.css
+ **/
+
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
@@ -5,7 +10,7 @@
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 2rem 2.4rem 4.4rem;
+  padding: 1.5rem 2.4rem 4.4rem;
   color: #fff;
   opacity: 1;
 }
@@ -43,7 +48,7 @@
 }
 
 #lockscreen-clock-time {
-  line-height: 1;
+  line-height: 0.9;
   margin: -1.4rem 0 0 -0.4rem;
   font-weight: 200;
   font-size: 8.5rem;
