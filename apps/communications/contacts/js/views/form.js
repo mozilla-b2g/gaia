@@ -1276,7 +1276,9 @@ contacts.Form = (function() {
   var emptyForm = function emptyForm() {
     var textFields = textFieldsCache.get();
     for (var i = textFields.length - 1; i >= 0; i--) {
-      if (textFields[i].value && textFields[i].value.trim()) {
+      if ((textFields[i].value && textFields[i].value.trim()) ||
+          (textFields[i].valueAsDate)) {
+      //if (textFields[i].value && textFields[i].value.trim()) {
         return false;
       }
     }
