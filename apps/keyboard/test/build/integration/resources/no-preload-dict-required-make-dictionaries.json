@@ -428,6 +428,14 @@
     "dictFilePath": "dictionaries/sr-Cyrl.dict"
   },
   {
+    "label": "Українська",
+    "id": "uk",
+    "inputIds": [
+      "uk"
+    ],
+    "preload": true
+  },
+  {
     "label": "עִבְרִית",
     "id": "he",
     "inputIds": [
