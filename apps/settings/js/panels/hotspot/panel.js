@@ -107,9 +107,6 @@ define(function(require) {
       },
 
       _setHotspotSettingsEnabled: function(enabled) {
-        // disable the setting button when internet sharing is enabled
-        elements.hotspotSettingBtn.parentNode.setAttribute('aria-disabled',
-          enabled);
         elements.hotspotElement.checked = enabled;
       },
 
@@ -132,6 +129,11 @@ define(function(require) {
       _onHotspotSettingsClick: function() {
         DialogService.show('hotspot-wifiSettings', {
           settings: hotspotSettings
+        }).then((result) => {
+          if (result.type === 'submit') {
+            // reconnect hotspot settings to make new settings take effect.
+            hotspot.reEnableWifiTetheringSetting();
+          }
         });
       },
 
