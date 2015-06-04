@@ -1218,22 +1218,30 @@
      *
      * @method executeScript
      * @chainable
-     * @param {String} script script to run.
+     * @param {String} script to run.
      * @param {Array} [args] optional args for script.
      * @param {Function} callback will receive result of the return \
      *                            call in the script if there is one.
+     * @param {String} optional sandbox is a tag referring to the sandbox you
+     *                 wish to use; if you specify a new tag, a new sandbox
+     *                 will be created. If you use the special tag 'system',
+     *                 the sandbox will be created using the system principal
+     *                 which has elevated privileges.
      * @return {Object} self.
      */
-    executeScript: function executeScript(script, args, callback) {
+    executeScript: function executeScript(script, args, callback, sandbox) {
       if (typeof(args) === 'function') {
         callback = args;
         args = null;
       }
+      if (typeof(sandbox) === 'undefined')
+        sandbox = 'default';
       return this._executeScript({
         name: 'executeScript',
         parameters: {
           script: script,
-          args: args
+          args: args,
+          sandbox: sandbox
         }
       }, callback || this.defaultCallback);
     },
@@ -1480,6 +1488,7 @@
      * @param {String} options.type command type like 'executeScript'.
      * @param {String} options.value javascript string.
      * @param {String} options.args arguments for script.
+     * @param {String} options.sandbox sandbox you wish to use
      * @param {Boolean} options.timeout timeout only used in 'executeJSScript'.
      * @param {Function} callback executes when script finishes.
      * @return {Object} self.
@@ -1489,7 +1498,8 @@
         name: options.name,
         parameters: {
           script: this._convertFunction(options.parameters.script),
-          args: this._prepareArguments(options.parameters.args || [])
+          args: this._prepareArguments(options.parameters.args || []),
+          sandbox: options.parameters.sandbox
         }
       }, 'value', callback);
     }
