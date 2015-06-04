@@ -45,7 +45,7 @@ suite('system/DeviceStorageWatcher >', function() {
     fakeNotif = document.createElement('div');
     fakeNotif.id = 'storage-watcher-container';
     fakeNotif.innerHTML = [
-      '<div data-icon="storage-circle"></div>',
+      '<div data-icon="storage-circle" aria-hidden="true"></div>',
       '<div class="title-container"></div>',
       '<div class="detail"></div>'
     ].join('');

@@ -144,7 +144,7 @@ suite('system/UpdateManager', function() {
     fakeNode = document.createElement('div');
     fakeNode.id = 'update-manager-container';
     fakeNode.innerHTML = [
-      '<div data-icon="download-circle"></div>',
+      '<div data-icon="download-circle" aria-hidden="true"></div>',
       '<div class="title-container"></div>',
       '<progress></progress>'
     ].join('');

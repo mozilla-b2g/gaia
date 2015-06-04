@@ -14,6 +14,7 @@
   DebuggingIcon.prototype.view = function view() {
     return `<div id="statusbar-debugging"
               data-icon="bug"
+              data-l10n-id="statusbarDebugging"
               class="sb-icon sb-icon-debugging" hidden
               role="listitem">
             </div>`;

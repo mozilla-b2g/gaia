@@ -535,7 +535,7 @@
 
       var newNotif =
         `<div class="fake-notification" role="link">
-          <div data-icon="rocket" class="alert"></div>
+          <div data-icon="rocket" class="alert" aria-hidden="true"></div>
           <div class="title-container"></div>
           <progress></progress>
         </div>`;
