@@ -76,40 +76,40 @@ marionette('Music player metadata', function() {
       // a "blob:" URL is a blob. Produced from the metadata.
 
       bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
-      assertStartsWith('url("app:', bg);
+      assertStartsWith('app:', bg);
 
       blue = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
-      assertStartsWith('url("blob:', blue);
+      assertStartsWith('blob:', blue);
 
       red = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
-      assertStartsWith('url("blob:', red);
+      assertStartsWith('blob:', red);
 
       assert.notEqual(blue, red, 'Red and Blue should be different');
 
       music.switchToAlbumsView();
 
       bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
-      assertStartsWith('url("app:', bg);
+      assertStartsWith('app:', bg);
 
       bg = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
-      assertStartsWith('url("blob:', bg);
+      assertStartsWith('blob:', bg);
       assert.equal(bg, blue, 'Is not the blue art');
 
       bg = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
-      assertStartsWith('url("blob:', bg);
+      assertStartsWith('blob:', bg);
       assert.equal(bg, red, 'Is not the red art');
 
       music.switchToSongsView();
 
       bg = ListviewHelper.albumArtForListItem(client, music.listItems[0]);
-      assertStartsWith('url("blob:', bg);
+      assertStartsWith('blob:', bg);
       assert.equal(bg, blue, 'Is not the blue art');
 
       bg = ListviewHelper.albumArtForListItem(client, music.listItems[1]);
-      assertStartsWith('url("app:', bg);
+      assertStartsWith('app:', bg);
 
       bg = ListviewHelper.albumArtForListItem(client, music.listItems[2]);
-      assertStartsWith('url("blob:', bg);
+      assertStartsWith('blob:', bg);
       assert.equal(bg, red, 'Is not the red art');
     });
 

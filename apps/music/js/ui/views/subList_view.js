@@ -1,6 +1,6 @@
 /* exported SubListView */
 /* global LazyLoader, musicdb, TabBar, AlbumArtCache, createListElement,
-          ModeManager, MODE_PLAYER, PlayerView, TYPE_LIST */
+          ModeManager, MODE_PLAYER, PlayerView, TYPE_LIST, showImage */
 'use strict';
 
 var SubListView = {
@@ -58,11 +58,11 @@ var SubListView = {
       fileinfo = this.dataSource[0];
     }
 
-    LazyLoader.load('js/metadata/album_art_cache.js', function() {
-      AlbumArtCache.getThumbnailURL(fileinfo).then(function(url) {
-        this.albumImage.style.backgroundImage = 'url(' + url + ')';
-      }.bind(this));
-    }.bind(this));
+    LazyLoader.load('js/metadata/album_art_cache.js', () => {
+      AlbumArtCache.getThumbnailURL(fileinfo).then((url) => {
+        showImage(this.albumImage, url);
+      });
+    });
   },
 
   setAlbumName: function slv_setAlbumName(name, l10nId) {
