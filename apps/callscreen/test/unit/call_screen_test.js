@@ -203,7 +203,7 @@ suite('call screen', function() {
       this.sinon.stub(CallScreen, 'showClock');
       this.sinon.stub(CallScreen, 'initLockScreenSlide');
       this.sinon.stub(CallScreen, 'render');
-      this.sinon.spy(MockCallsHandler, 'holdOrResumeCallByUser');
+      this.sinon.spy(MockCallsHandler, 'holdOrResumeSingleCall');
       this.sinon.spy(MockCallsHandler, 'mergeCalls');
       mockElements.forEach(function(name) {
         CallScreen[name] = document.createElement('button');
@@ -215,7 +215,7 @@ suite('call screen', function() {
       sinon.assert.notCalled(CallScreen.showClock);
       sinon.assert.notCalled(CallScreen.initLockScreenSlide);
       sinon.assert.notCalled(CallScreen.render);
-      sinon.assert.notCalled(MockCallsHandler.holdOrResumeCallByUser);
+      sinon.assert.notCalled(MockCallsHandler.holdOrResumeSingleCall);
       sinon.assert.notCalled(MockCallsHandler.mergeCalls);
     });
 
@@ -261,7 +261,7 @@ suite('call screen', function() {
 
       test('hold button successfully added and notified', function() {
         CallScreen.holdButton.dispatchEvent(event);
-        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeCallByUser);
+        sinon.assert.calledOnce(MockCallsHandler.holdOrResumeSingleCall);
       });
 
       test('merge button successfully added and notified', function() {
