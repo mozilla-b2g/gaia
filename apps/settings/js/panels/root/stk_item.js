@@ -84,6 +84,7 @@ define(function(require) {
           if (icon) {
             var iconContainer = document.createElement('span');
             iconContainer.appendChild(STKHelper.getIconCanvas(icon));
+            iconContainer.setAttribute('aria-hidden', true);
             li.appendChild(iconContainer);
             self._elements.iccEntries.dataset.customIcon = true;
           } else {
@@ -100,13 +101,17 @@ define(function(require) {
           };
 
           var span = document.createElement('span');
-          span.textContent = menu[SIMNumber].entries.title;
+          var title = menu[SIMNumber].entries.title;
+          span.textContent = title;
           a.appendChild(span);
+          window.navigator.mozL10n.setAttributes(a, 'stkEntry', {title: title});
 
           if (Object.keys(menu).length > 1) {
             var small = document.createElement('small');
             small.setAttribute('data-l10n-id', 'sim' + SIMNumber);
             small.classList.add('menu-item-desc');
+            small.id = 'sim-desc-' + SIMNumber;
+            a.setAttribute('aria-describedby', small.id);
             a.appendChild(small);
           }
 
