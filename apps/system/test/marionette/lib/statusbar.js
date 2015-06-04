@@ -47,7 +47,7 @@
 
     get Icons() {
       return this.client.executeScript(function() {
-        var priorities = window.wrappedJSObject.StatusBar.PRIORITIES;
+        var priorities = window.wrappedJSObject.Statusbar.PRIORITIES;
         var icons = [];
         Object.keys(priorities).forEach(function(iconId) {
           var icon = priorities[iconId].icon;
@@ -71,7 +71,7 @@
 
     showAllRunningIcons: function() {
       this.client.executeScript(function() {
-        var priorities = window.wrappedJSObject.StatusBar.PRIORITIES;
+        var priorities = window.wrappedJSObject.Statusbar.PRIORITIES;
         Object.keys(priorities).forEach(function(iconId) {
           var icon = priorities[iconId].icon;
           if (icon) {
@@ -124,7 +124,7 @@
 
       var self = this;
       this.client.executeScript(function() {
-        window.wrappedJSObject.StatusBar.kActiveIndicatorTimeout =
+        window.wrappedJSObject.Statusbar.kActiveIndicatorTimeout =
           self.kActiveIndicatorTimeout;
         self.kActiveIndicatorTimeout = null;
       });

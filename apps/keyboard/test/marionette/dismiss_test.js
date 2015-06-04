@@ -32,9 +32,10 @@ marionette('Dimiss the keyboard', function() {
   }
 
   setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     actions = client.loader.getActions();
     systemInputMgmt = client.loader.getAppClass('system', 'input_management');
-    system = client.loader.getAppClass('system');
     keyboard = new Keyboard(client);
 
     // create a keyboard test app

@@ -18,6 +18,12 @@ marionette('Notification events', function() {
                         array: [1, 2, 3],
                         obj: {test: 'test'}}};
 
+  var system;
+  setup(function() {
+    system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
+  });
+
   test('click event starts application', function(done) {
     var notificationTitle = 'Title:' + Date.now();
 

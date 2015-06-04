@@ -55,7 +55,7 @@ var Bluetooth = {
   /* to resolve adapter request for Bluetooth:adapter */
   _getAdapterPromiseResolve: null,
 
-  init: function bt_init() {
+  start: function() {
     if (!window.navigator.mozBluetooth || this._started) {
       return;
     }
@@ -212,7 +212,7 @@ var Bluetooth = {
      *   1. connecting with a headset
      *   2. transfering a file to/from another device
      * So we need to listen to corresponding events to know we are (aren't)
-     * connected, then summarize to an event and dispatch to StatusBar
+     * connected, then summarize to an event and dispatch to Statusbar
      */
 
     // In headset connected case:

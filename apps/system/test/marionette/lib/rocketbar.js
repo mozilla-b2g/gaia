@@ -44,7 +44,7 @@ Rocketbar.prototype = {
     this.client.waitFor(function() {
       this.client.executeScript(function() {
         var win = window.wrappedJSObject;
-        return win.rocketbar && win.rocketbar.enabled;
+        return win.Service.query('Rocketbar.enabled');
       }, function(err, value) {
         lastVal = value;
       });
@@ -88,7 +88,7 @@ Rocketbar.prototype = {
 
     if (!text.length) {
       this.client.executeScript(function() {
-        window.wrappedJSObject.rocketbar.handleInput();
+        window.wrappedJSObject.Service.request('Rocketbar:handleInput');
       });
     }
 

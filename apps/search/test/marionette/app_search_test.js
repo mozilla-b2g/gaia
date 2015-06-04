@@ -13,7 +13,7 @@ marionette('Search - App search', function() {
     system = client.loader.getAppClass('system');
     search = client.loader.getAppClass('search');
     rocketbar = new Rocketbar(client);
-    system.waitForStartup();
+    system.waitForFullyLoaded();
   });
 
   test('Search apps from Rocketbar', function() {

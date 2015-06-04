@@ -24,10 +24,15 @@
     // Bug 1035048: JSMarionette should be able to know displaying app.
     function getDisplayAppOrigin() {
       return client.executeScript(function() {
-        var app = window.wrappedJSObject.Service.currentApp;
-        return app.getTopMostWindow().origin;
+        return window.wrappedJSObject.Service.query('getTopMostWindow').origin;
       });
     }
+
+    var system;
+    setup(function() {
+      system = client.loader.getAppClass('system');
+      system.waitForFullyLoaded();
+    });
 
     test('Should launch activitycallee app through inline-activity and ' +
          'launch activitycalleewindow app through window-activity and ' +

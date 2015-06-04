@@ -17,9 +17,8 @@ marionette('Status Bar icons - Alarm', function() {
 
   setup(function() {
     system = client.loader.getAppClass('system');
+    system.waitForFullyLoaded();
     statusBar = new StatusBar(client);
-    system.waitForStartup();
-    statusBar.init();
   });
 
   test('should disappear when the alarm.enabled setting changes', function() {

@@ -23,6 +23,7 @@
 /* global LockScreenStateSlideRestore */
 /* global LockScreenStateSecureAppLaunching */
 /* global LockScreenStateLogger */
+/* global Service */
 
 'use strict';
 
@@ -67,6 +68,7 @@
 (function(exports) {
 
   var LockScreenStateManager = function() {};
+  LockScreenStateManager.prototype.name = 'LockScreenStateManager';
 
   LockScreenStateManager.prototype.start =
   function lssm_start(lockScreen) {
@@ -143,6 +145,7 @@
     this.listenEvents();
     this.observeSettings();
     this.setupRules();
+    Service.register('onPasscodeEnabledChanged', this);
     return this;
   };
 
