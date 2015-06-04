@@ -24,7 +24,7 @@ var originalHeadRev = process.env.GITHUB_HEAD_REV;
 const TC_CLIENT_OPTS = { timeout: 30 * 1000 };
 
 // taskcluster worker type for raptor tasks
-RAPTOR_WORKER_TYPE = 'raptor-single-capacity';
+RAPTOR_WORKER_TYPE = 'raptor';
 
 // number of times to repeat entire suite on 'base' and on 'patch' builds
 const TEST_ITERATIONS = 6;
