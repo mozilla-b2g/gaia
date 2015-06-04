@@ -1131,6 +1131,15 @@ suite('system/Statusbar', function() {
       assert.isTrue(Statusbar.onIconCreated.calledWith(wifiIcon));
     });
 
+    test('statusbar does nothing with unknown icons', function() {
+      this.sinon.stub(wifiIcon, 'setOrder');
+      Statusbar.PRIORITIES.wifi = null;
+      Statusbar.finishInit();
+      assert.isNull(Statusbar.PRIORITIES.wifi);
+      window.dispatchEvent(new CustomEvent('iconrendered', {detail: wifiIcon}));
+      assert.isFalse(wifiIcon.setOrder.called);
+    });
+
     test('icon calls render before the statusbar is there', function(done) {
       wifiIcon.element = null;
       wifiIcon.render();
