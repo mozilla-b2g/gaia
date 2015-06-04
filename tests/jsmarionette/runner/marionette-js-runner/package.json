@@ -22,12 +22,15 @@
     "intersect": "~0.0.3",
     "indent-string": "1.2.1",
     "lodash": "3.6.0",
-    "marionette-js-logger": "0.2.1",
-    "marionette-profile-builder": "0.0.4",
-    "mocha-json-proxy": "~0.0.2",
     "object-assign": "^1.0.0",
     "promise": "^6.0.1",
     "uuid": "^2.0.1"
+  },
+
+  "peerDependencies": {
+    "marionette-js-logger": "*",
+    "marionette-profile-builder": "*",
+    "mocha-json-proxy": "*"
   },
 
   "scripts": {

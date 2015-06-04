@@ -6,15 +6,18 @@
   "main": "lib/marionette/index",
 
   "dependencies": {
-    "debug": "~0.6",
-    "json-wire-protocol": "~0.2.1",
-    "socket-retry-connect": "~0.0.1",
-    "sockit-to-me": "0.3.2"
+    "debug": "~0.6"
   },
 
   "devDependencies": {
     "yuidocjs": "~0.3",
     "node-static": "~0.6",
     "chai": "~1.7.2"
+  },
+
+  "peerDependencies": {
+    "json-wire-protocol": "*",
+    "socket-retry-connect": "*",
+    "sockit-to-me": "*"
   }
 }
