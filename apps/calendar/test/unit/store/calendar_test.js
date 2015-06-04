@@ -7,8 +7,8 @@ var CalendarError = require('common/error');
 var CalendarModel = require('models/calendar');
 var CalendarStore = require('store/calendar');
 var Factory = require('test/support/factory');
-var Local = require('provider/local');
 var core = require('core');
+var localCalendarId = require('common/constants').localCalendarId;
 
 suite('store/calendar', function() {
   var subject;
@@ -329,7 +329,7 @@ suite('store/calendar', function() {
     test('> local calendar', function() {
       var calendar = Factory('calendar', {
         color: '#BADA55',
-        _id: Local.calendarId
+        _id: localCalendarId
       });
       subject._updateCalendarColor(calendar);
       assert.equal(

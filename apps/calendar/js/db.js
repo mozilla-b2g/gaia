@@ -10,6 +10,7 @@ var core = require('core');
 var debug = require('common/debug')('db');
 var denodeifyAll = require('common/promise').denodeifyAll;
 var nextTick = require('common/next_tick');
+var localCalendarId = require('common/constants').localCalendarId;
 var probablyParseInt = require('common/probably_parse_int');
 var uuid = require('ext/uuid');
 
@@ -426,7 +427,7 @@ Db.prototype = {
     account._id = uuid();
 
     var calendar = {
-      _id: Local.calendarId,
+      _id: localCalendarId,
       accountId: account._id,
       remote: Local.defaultCalendar()
     };

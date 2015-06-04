@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
 
 var Calendar = require('templates/calendar');
-var Local = require('provider/local');
+var localCalendarId = require('common/constants').localCalendarId;
 
 suite('Templates.Calendar', function() {
   var subject;
@@ -18,7 +18,7 @@ suite('Templates.Calendar', function() {
   test('#item with local id', function() {
     var model = {
       localDisplayed: true,
-      _id: Local.calendarId,
+      _id: localCalendarId,
       name: 'foo',
       color: '#BADA55'
     };
@@ -36,7 +36,7 @@ suite('Templates.Calendar', function() {
   test('#item not local displayed', function() {
     var model = {
       localDisplayed: false,
-      _id: Local.calendarId,
+      _id: localCalendarId,
       name: 'foo'
     };
 

@@ -4,12 +4,12 @@ define(function(require, exports, module) {
 var AlarmTemplate = require('templates/alarm');
 var EventBase = require('./event_base');
 var InputParser = require('shared/input_parser');
-var Local = require('provider/local');
 var QueryString = require('querystring');
 var co = require('ext/co');
 var core = require('core');
 var dateFormat = require('date_format');
 var getTimeL10nLabel = require('common/calc').getTimeL10nLabel;
+var localCalendarId = require('common/constants').localCalendarId;
 var router = require('router');
 var viewFactory = require('./factory');
 
@@ -177,7 +177,7 @@ ModifyEvent.prototype = {
       var {name} = record.calendar.remote;
       var option = document.createElement('option');
 
-      if (id === Local.calendarId) {
+      if (id === localCalendarId) {
         option.text = navigator.mozL10n.get('calendar-local');
         option.setAttribute('data-l10n-id', 'calendar-local');
       } else {

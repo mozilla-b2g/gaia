@@ -3,12 +3,13 @@ define(function(require, exports, module) {
 'use strict';
 
 var Account = require('models/account');
-var Presets = require('common/presets');
 var Local = require('provider/local');
+var Presets = require('common/presets');
 var Responder = require('common/responder');
 var core = require('core');
 var debug = require('common/debug')('db');
 var denodeifyAll = require('common/promise').denodeifyAll;
+var localCalendarId = require('common/constants').localCalendarId;
 var nextTick = require('common/next_tick');
 var probablyParseInt = require('common/probably_parse_int');
 var uuid = require('ext/uuid');
@@ -426,7 +427,7 @@ Db.prototype = {
     account._id = uuid();
 
     var calendar = {
-      _id: Local.calendarId,
+      _id: localCalendarId,
       accountId: account._id,
       remote: Local.defaultCalendar()
     };

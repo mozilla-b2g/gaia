@@ -3,10 +3,9 @@ define(function(require, exports, module) {
 
 var Abstract = require('./abstract');
 var core = require('core');
+var localCalendarId = require('common/constants').localCalendarId;
 var mutations = require('event_mutations');
 var uuid = require('ext/uuid');
-
-var LOCAL_CALENDAR_ID = 'local-first';
 
 function Local() {
   Abstract.apply(this, arguments);
@@ -17,8 +16,6 @@ function Local() {
   this.alarms = storeFactory.get('Alarm');
 }
 module.exports = Local;
-
-Local.calendarId = LOCAL_CALENDAR_ID;
 
 /**
  * Returns the details for the default calendars.
@@ -42,7 +39,7 @@ Local.defaultCalendar = function() {
   return {
     // XXX localize this name somewhere
     name: name,
-    id: LOCAL_CALENDAR_ID,
+    id: localCalendarId,
     color: Local.prototype.defaultColor
   };
 
@@ -59,7 +56,7 @@ Local.prototype = {
 
   findCalendars: function(account, callback) {
     var list = {};
-    list[LOCAL_CALENDAR_ID] = Local.defaultCalendar();
+    list[localCalendarId] = Local.defaultCalendar();
     callback(null, list);
   },
 
