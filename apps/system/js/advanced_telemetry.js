@@ -61,15 +61,19 @@
       console.log.apply(console, args);
     }
   }
+  function tdebug(...args) {
+      args.unshift('[TAMARA]');
+      console.log.apply(console, args);
+  }
 
   function debuglongLine(longLine) {
-    var array = longLine.match(/.{1,4000}/g);
+    var array = longLine.match(/.{1,1000}/g);
     array.forEach(function(value) {
       console.log(value);
     });
   }
 
-
+  AT.DEFAULT_URL = 'http://10.19.2.10:4040/submit/telemetry/';
 
   // What setting do we listen to to turn app usage metrics on or off.
   // This default value is the same setting that turns telemetry on and off.
@@ -243,7 +247,7 @@
   // Start a new batch of data. If the transmission fails, merge the
   // new batch with the failed batch so we can try again later.
   AT.prototype.transmit = function transmit() {
-    console.log('TAMARA TIME TO TRANSMIT');
+    tdebug('TAMARA TIME TO TRANSMIT');
     var self = this;
 
     if (!this.collecting) {
@@ -256,7 +260,7 @@
     // Remember the existing metrics in case transmission fails
 //    var oldMetrics = this.metrics;
     var payload = this.metrics.packHistograms();
-    console.log('TAMARA PAYLOAD IS: ' );
+    tdebug('TAMARA PAYLOAD IS: ' );
     debuglongLine(JSON.stringify(payload));
 
     // But assume that it will succeed and start collecting new metrics now
@@ -317,23 +321,24 @@
         slowSQLstartup: {}
       };
 
-      console.log('TAMARA whole thing is IS: ' );
+      tdebug('TAMARA whole thing is IS: ' );
       debuglongLine(JSON.stringify(wrapper));
 
 
       // Build the wrapper for the telemetry version
-//      send(data, wrapper);
+      send(wrapper);
       // Now transmit the data
     });
 
- /*   function send(data, payload ) {
+    function send(payload ) {
+      tdebug('TAMARA: CALLING SEND');
 
-//      var request = new AdvancedTelemetryPing(wrapper, data);
+      var request = new AdvancedTelemetryPing(payload);
 
       // We don't actually have to do anything if the data is transmitted
       // successfully. We are already set up to collect the next batch of data.
       function onload() {
-        debug('Transmitted app usage data to');
+        tdebug('Transmitted app usage data to');
       }
 
       function retry(e) {
@@ -341,15 +346,16 @@
         // the new batch of data (which may be empty) in with the old one
         // and resave everything so we can try again later. We also record
         // the time of this failure so we don't try sending again too soon.
-        debug('App usage metrics transmission failure:', e.type);
+        tdebug('App usage metrics transmission failure:', e.type);
 
         // We use absolute time here because we will be comparing to
         // the absolute batch start time.
-        self.lastFailedTransmission = Date.now();
-        oldMetrics.merge(self.metrics);
-        self.metrics = oldMetrics;
-        self.metrics.save(true);
+//        self.lastFailedTransmission = Date.now();
+//        oldMetrics.merge(self.metrics);
+//        self.metrics = oldMetrics;
+//        self.metrics.save(true);
       }
+      console.log('TAMARA: BEFORE CALLING SEND');
 
       request.send({
         timeout: AT.REPORT_TIMEOUT,
@@ -359,7 +365,45 @@
         ontimeout: retry
       });
     }
-*/  };
+  };
+
+  function AdvancedTelemetryPing(payload) {
+    if (!payload) {
+      throw new Error('No arguments');
+    }
+    // clone so we don't put data into the object that was given to us
+    this.packet = payload;
+    this.url = AT.DEFAULT_URL;
+  }
+
+  AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
+    var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
+    tdebug('TAMARA:  INSIDE SEND');
+
+    xhr.open('POST', this.url);
+    tdebug(this.url);
+
+    if (xhrAttrs && xhrAttrs.timeout) {
+      xhr.timeout = xhrAttrs.timeout;
+    }
+
+    xhr.setRequestHeader('Content-type', 'application/json');
+    xhr.responseType = 'text';
+
+    var data = JSON.stringify(this.packet);
+    xhr.send(data);
+    //TODO:  GZIP COMPRESS.
+    tdebug(data);
+
+    if (xhrAttrs) {
+      xhr.onload = xhrAttrs.onload;
+      xhr.onerror = xhrAttrs.onerror;
+      xhr.onabort = xhrAttrs.onabort;
+      xhr.ontimeout = xhrAttrs.ontimeout;
+    }
+
+    return xhr;
+  };
 
   /*
    * A utility function get values for all of the specified settings.
@@ -510,7 +554,6 @@
     }
   };
 
-
   HistogramData.prototype.addReflowsValue = function(key, value) {
     var histValue = this.data.histograms.get(key, value);
     if (histValue) {
@@ -598,75 +641,6 @@
   HistogramData.prototype.startTime = function() {
     return this.data.start;
   };
-
-  function AdvancedTelemetryPing(args, info) {
-    if (!args) {
-      throw new Error('No arguments');
-    }
-
-    if (!args.reason) {
-      throw new Error('No reason given');
-    }
-
-    if (!args.deviceID) {
-      throw new Error('No deviceID given');
-    }
-
-    // clone so we don't put data into the object that was given to us
-    this.info = info ? JSON.parse(JSON.stringify(info)) : {};
-    this.packet = {
-      ver: args.ver || 1,
-      info: this.info
-    };
-
-//    this.info.reason = args.reason;
-//    this.info.appName = args.appName || DEFAULT_APPNAME;
-//    this.info.appUpdateChannel = args.appUpdateChannel || UNKNOWN;
-//    this.info.appBuildID = args.appBuildID || UNKNOWN;
-//    this.info.appVersion = args.appVersion || UNKNOWN;
-
-//    var uriParts = [
-//        args.url || DEFAULT_URL,
-//      encodeURIComponent(args.deviceID),
-//      encodeURIComponent(this.info.reason),
-//      encodeURIComponent(this.info.appName),
-//      encodeURIComponent(this.info.appVersion),
-//      encodeURIComponent(this.info.appUpdateChannel),
-//      encodeURIComponent(this.info.appBuildID)
-//    ];
-
-//    this.url = uriParts.join('/');
-  }
-
-
-  AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
-    var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
-
-    xhr.open('POST', this.url);
-    debug(this.url);
-
-    if (xhrAttrs && xhrAttrs.timeout) {
-      xhr.timeout = xhrAttrs.timeout;
-    }
-
-    xhr.setRequestHeader('Content-type', 'application/json');
-    xhr.responseType = 'text';
-
-    var data = JSON.stringify(this.packet);
-    xhr.send(data);
-    //TODO:  GZIP COMPRESS.
-    debug(data);
-
-    if (xhrAttrs) {
-      xhr.onload = xhrAttrs.onload;
-      xhr.onerror = xhrAttrs.onerror;
-      xhr.onabort = xhrAttrs.onabort;
-      xhr.ontimeout = xhrAttrs.ontimeout;
-    }
-
-    return xhr;
-  };
-
 
   // The AdvancedTelemetry constructor is the single value we export.
   exports.AdvancedTelemetry = AdvancedTelemetry;
