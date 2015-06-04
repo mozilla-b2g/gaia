@@ -1,6 +1,6 @@
 /* exported SubListView */
 /* global musicdb, TabBar, AlbumArt, createListElement, ModeManager,
-          MODE_PLAYER, PlayerView, TYPE_LIST, showImage */
+          MODE_PLAYER, PlayerView, TYPE_LIST */
 'use strict';
 
 var SubListView = {
@@ -26,6 +26,7 @@ var SubListView = {
 
   init: function slv_init() {
     this.albumImage = document.getElementById('views-sublist-header-image');
+    this.offscreenImage = new Image();
     this.albumName = document.getElementById('views-sublist-header-name');
     this.playAllButton = document.getElementById('views-sublist-controls-play');
     this.shuffleButton =
@@ -46,6 +47,7 @@ var SubListView = {
 
     this.dataSource = [];
     this.index = 0;
+    this.offscreenImage.src = '';
     this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
   },
@@ -57,10 +59,23 @@ var SubListView = {
     if (TabBar.playlistArray.indexOf(fileinfo) !== -1) {
       fileinfo = this.dataSource[0];
     }
+    // Set source to image and crop it to be fitted when it's onloded
+    this.offscreenImage.src = '';
+    this.albumImage.classList.remove('fadeIn');
 
     AlbumArt.getCoverURL(fileinfo).then(function(url) {
-      showImage(this.albumImage, url);
+      this.offscreenImage.addEventListener('load', slv_showImage.bind(this));
+      this.offscreenImage.src = url;
     }.bind(this));
+
+    function slv_showImage(evt) {
+      /* jshint validthis:true */
+      // Don't register multiple copies
+      evt.target.removeEventListener('load', slv_showImage);
+      var url = 'url(' + this.offscreenImage.src + ')';
+      this.albumImage.style.backgroundImage = url;
+      this.albumImage.classList.add('fadeIn');
+    }
   },
 
   setAlbumName: function slv_setAlbumName(name, l10nId) {

@@ -1,7 +1,7 @@
 /* exported TilesView */
 /* global musicdb, TabBar, App, AlbumArt, SearchView, ModeManager,
           MODE_SEARCH_FROM_TILES, IDBKeyRange, MODE_PLAYER, PlayerView,
-          musicdb, TYPE_LIST, showImage */
+          musicdb, TYPE_LIST */
 'use strict';
 
 var TilesView = {
@@ -89,10 +89,6 @@ var TilesView = {
     container.className = 'tile-container';
     container.setAttribute('role', 'button');
 
-    var albumArt = document.createElement('img');
-    albumArt.className = 'tile-album-art';
-    container.appendChild(albumArt);
-
     var titleBar = document.createElement('div');
     titleBar.className = 'tile-title-bar';
     var artistName = document.createElement('div');
@@ -128,7 +124,7 @@ var TilesView = {
     var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
     var setTileBackgroundClosure = function(url) {
-      showImage(albumArt, url, 'fadeIn');
+      tile.style.backgroundImage = 'url(' + url + ')';
     };
 
     if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
