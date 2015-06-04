@@ -502,11 +502,28 @@
         this.addWarmStartupTime(key, value);
         break;
       default:
-        debug('key is: ' + JSON.stringify(key));
-        debug('value is: ' + JSON.stringify(value));
+        this.addAppHistogram(key, value);
         break;
     }
 //    this.needsSave = true;
+  };
+
+  HistogramData.prototype.addAppHistogram = function(key, value) {
+    var histValue = this.data.histograms.get(key, value);
+    if (histValue) {
+      histValue.values++;
+      this.data.histograms.set(key, histValue);
+    } else {
+      var newValue = {
+        'values': 0,
+        'histogram_type': 4
+      };
+
+      newValue.values++;
+      this.data.histograms.set(key, newValue);
+      debug('ADDED A NEW HISTOGRAM FOR APP:' +
+        key + JSON.stringify(newValue));
+    }
   };
 
   HistogramData.prototype.addWarmStartupTime = function(key, value) {
