@@ -59,3 +59,8 @@ body {
 *.hidden {
   display: none !important;
 }
+
+#filename {
+  /* file name is not directional and stays LTR */
+  direction: ltr;
+}
