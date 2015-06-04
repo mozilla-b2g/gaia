@@ -585,15 +585,11 @@ var CallLog = {
   },
 
   enableEditModeButton: function cl_enableEditModeButton() {
-    var icon = CallLog.callLogIconEdit;
-    icon.removeAttribute('disabled');
-    icon.setAttribute('aria-disabled', false);
+    CallLog.callLogIconEdit.removeAttribute('disabled');
   },
 
   disableEditModeButton: function cl_disableEditModeButton() {
-    var icon = CallLog.callLogIconEdit;
-    icon.setAttribute('disabled', 'disabled');
-    icon.setAttribute('aria-disabled', true);
+    CallLog.callLogIconEdit.setAttribute('disabled', 'disabled');
   },
 
   showEditModeButton: function cl_showEditModeButton() {
