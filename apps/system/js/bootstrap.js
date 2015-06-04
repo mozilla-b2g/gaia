@@ -6,7 +6,7 @@
          FtuLauncher, SourceView, ScreenManager, Places,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, TaskManager, Import,
-         SuspendingAppPriorityManager, TTLView,
+         SuspendingAppPriorityManager, TTLView, TTLTelemetry,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils,
@@ -195,6 +195,7 @@ window.addEventListener('load', function startup() {
   window.taskManager = new TaskManager();
   window.taskManager.start();
   window.ttlView = new TTLView();
+  window.ttlTelemetry = new TTLTelemetry();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();
   window.wallpaperManager = new window.WallpaperManager();
