@@ -12,6 +12,10 @@ exports.execute = function(options, webapp) {
 
   nodeHelper.require('multilocale', options);
 
+  if (options.HOSTED !== '0') {
+    require('make-offline').execute(options);
+  }
+
   nodeHelper.require('copy-build-stage-data', options);
 
   // Web app optimization steps (like precompling l10n, concatenating js files,

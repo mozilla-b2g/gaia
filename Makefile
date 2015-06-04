@@ -213,6 +213,9 @@ ifdef NODE_MODULES_GIT_URL
 NODE_MODULES_SRC := git-gaia-node-modules
 endif
 
+# Enable apps to be server through service workers
+HOSTED ?= 0
+
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
