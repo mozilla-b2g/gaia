@@ -104,6 +104,10 @@
     },
 
     onIconCreated: function sb_onIconCreated(icon) {
+      if (!this.PRIORITIES[icon.dashPureName]) {
+        return;
+      }
+
       this.PRIORITIES[icon.dashPureName].icon = icon;
     },
 
@@ -177,6 +181,10 @@
         case 'iconrendered':
           icon = evt.detail;
           var iconObj = this.PRIORITIES[icon.dashPureName];
+          if (!iconObj) {
+            return;
+          }
+
           var order = iconObj && iconObj.order ? iconObj.order : 1000;
           icon.setOrder(order);
           break;
@@ -378,7 +386,7 @@
 
       this._paused++;
     },
- 
+
     resumeUpdate: function sb_resumeUpdate(evtType) {
       var eventGroup = this._eventTypeToEventGroup(evtType);
       if (!this._eventGroupStates[eventGroup]) {
