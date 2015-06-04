@@ -895,6 +895,18 @@
     "dictFilePath": "dictionaries/tr.dict"
   },
   {
+    "id": "uk",
+    "name": "Українська",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 2518,
+    "preloaded": true
+  },
+  {
     "id": "vi-Qwerty",
     "name": "Tiếng Việt (QWERTY)",
     "imEngineId": "vietnamese",
