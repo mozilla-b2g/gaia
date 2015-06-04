@@ -249,19 +249,10 @@ var ModeManager = {
     }
   },
 
-  _updateTabs: function() {
-    var hideTabs = this.currentMode === MODE_PLAYER ||
-                   this.currentMode === MODE_SEARCH_FROM_TILES ||
-                   this.currentMode === MODE_SEARCH_FROM_LIST;
-
-    TabBar.view.classList.toggle('away', hideTabs);
-  },
-
   _updateMode: function(callback) {
     this._updateBackArrow();
     this.updateTitle();
     this.updatePlayerIcon();
-    this._updateTabs();
 
     // Music only share the playing file when it's in player mode.
     // Disable the NFC sharing when it's in the other modes.

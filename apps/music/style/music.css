@@ -200,7 +200,7 @@ progress.hidden { display: none; }
 #views {
   position: relative;
   width: 100%;
-  height: calc(100% - 5rem);
+  height: 100%;
   background-color: #0E1214;
   transition: transform 300ms ease;
 }
@@ -267,9 +267,8 @@ progress.hidden { display: none; }
 #views-list,
 #views-sublist,
 #views-search {
-  height: calc(100% - 4.5rem);
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: calc(100% - 5rem);
+  overflow: hidden;
   background-color: #0E1214;
   will-change: scroll-position;
 }
@@ -279,7 +278,7 @@ body.picker-mode #views-list {
 }
 
 #views-player {
-  height: 100%;
+  height: calc(100% - 5rem);
   overflow: hidden;
 }
 
@@ -289,7 +288,14 @@ body.picker-mode #views-list {
 }
 
 #views-search {
-  height: calc(100% + 5rem);
+  height: 100%;
+}
+
+#views-scrollable-tiles-anchor,
+#views-scrollable-list-anchor {
+  height: calc(100% - 3.7rem);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Make sure the tiles and list views are tall enough that we can scroll the
@@ -340,7 +346,7 @@ body.picker-mode #views-list {
   overflow-x: hidden;
   overflow-y: auto;
   width: 100%;
-  height: calc(100% - 8rem);
+  height: calc(100% - 12.5rem);
 }
 
 #views-sublist-anchor {
@@ -925,32 +931,26 @@ html[dir="rtl"] .rating-star {
   background: transparent;
 }
 
-#tabs {
+.tabs {
   position: absolute;
   bottom: 0;
   width: 100%;
   z-index: 20;
-  transition: transform 300ms ease, opacity 300ms ease;
 }
 
-#tabs.away {
-  opacity: 0;
-  transform: translateY(4.5rem);
-}
-
-body.picker-mode #tabs {
+body.picker-mode .tabs {
   display: none;
 }
 
-#tabs li:last-child {
+.tabs li:last-child {
   margin-bottom: 0;
 }
 
-#tabs a {
+.tabs a {
   outline: none;
 }
 
-#tabs li {
+.tabs li {
   overflow: hidden;
 }
 

@@ -25,7 +25,6 @@
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/font_size_utils.js"></script>
-    <script defer src="shared/js/accessibility_helper.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/image_utils.js"></script>
     <script defer src="shared/js/omadrm/fl.js"></script>
@@ -62,28 +61,72 @@
     </gaia-header>
     <div id="views">
       <div id="views-tiles" class="view bb-tabpanel hidden" aria-labelledby="tabs-mix" role="tabpanel">
-        <form id="views-tiles-search" role="search" class="skin-dark">
-          <button id="views-tiles-search-close" data-l10n-id="search-close" type="submit">close</button>
-          <p>
-            <input id="views-tiles-search-input" type="search" dir="auto"
-                   x-inputmode="verbatim"
-                   data-l10n-id="search-music" placeholder="SearcH MusiC">
-            <button id="views-tiles-search-clear" type="reset">Clear</button>
-          </p>
-        </form>
-        <div id="views-tiles-anchor"></div>
+        <div id="views-scrollable-tiles-anchor">
+          <form id="views-tiles-search" role="search" class="skin-dark">
+            <button id="views-tiles-search-close" data-l10n-id="search-close" type="submit">close</button>
+            <p>
+              <input id="views-tiles-search-input" type="search" dir="auto"
+                     x-inputmode="verbatim"
+                     data-l10n-id="search-music" placeholder="SearcH MusiC">
+              <button id="views-tiles-search-clear" type="reset">Clear</button>
+            </p>
+          </form>
+          <div id="views-tiles-anchor"></div>
+        </div>
+        <!-- BB tabs -->
+        <div class="tabs">
+          <ul role="tablist" class="bb-tablist skin-dark">
+            <li role="presentation">
+              <a data-option="mix" role="tab" aria-selected="false" aria-controls="views-tiles" data-icon="grid" data-l10n-id="mix-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="playlist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="playlist" data-l10n-id="playlists-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="artist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="artist" data-l10n-id="artists-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="album" role="tab" aria-selected="false" aria-controls="views-list" data-icon="album" data-l10n-id="albums-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="title" role="tab" aria-selected="false" aria-controls="views-list" data-icon="songs" data-l10n-id="songs-tab"></a>
+            </li>
+          </ul>
+        </div>
       </div>
       <div id="views-list" class="view bb-tabpanel hidden" role="tabpanel">
-        <form id="views-list-search" role="search" class="skin-dark">
-          <button id="views-list-search-close" data-l10n-id="search-close" type="submit">close</button>
-          <p>
-            <input id="views-list-search-input" type="search"
-                   x-inputmode="verbatim"
-                   data-l10n-id="search-music" placeholder="SearcH MusiC">
-            <button id="views-list-search-clear" type="reset">Clear</button>
-          </p>
-        </form>
+        <div id="views-scrollable-list-anchor">
+          <form id="views-list-search" role="search" class="skin-dark">
+            <button id="views-list-search-close" data-l10n-id="search-close" type="submit">close</button>
+            <p>
+              <input id="views-list-search-input" type="search"
+                     x-inputmode="verbatim"
+                     data-l10n-id="search-music" placeholder="SearcH MusiC">
+              <button id="views-list-search-clear" type="reset">Clear</button>
+            </p>
+          </form>
         <div id="views-list-anchor" role="listbox"></div>
+        </div>
+        <!-- BB tabs -->
+        <div class="tabs">
+          <ul role="tablist" class="bb-tablist skin-dark">
+            <li role="presentation">
+              <a data-option="mix" role="tab" aria-selected="false" aria-controls="views-tiles" data-icon="grid" data-l10n-id="mix-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="playlist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="playlist" data-l10n-id="playlists-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="artist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="artist" data-l10n-id="artists-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="album" role="tab" aria-selected="false" aria-controls="views-list" data-icon="album" data-l10n-id="albums-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="title" role="tab" aria-selected="false" aria-controls="views-list" data-icon="songs" data-l10n-id="songs-tab"></a>
+            </li>
+          </ul>
+        </div>
       </div>
       <div id="views-sublist" class="view hidden">
         <div id="views-sublist-header">
@@ -96,6 +139,26 @@
         </div>
         <!-- Bug 968456. Scrollable area needs to be inside an opaque background div to help gecko -->
         <div id="views-scrollable-sublist-anchor"><div id="views-sublist-anchor" role="listbox"></div></div>
+        <!-- BB tabs -->
+        <div class="tabs">
+          <ul role="tablist" class="bb-tablist skin-dark">
+            <li role="presentation">
+              <a data-option="mix" role="tab" aria-selected="false" aria-controls="views-tiles" data-icon="grid" data-l10n-id="mix-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="playlist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="playlist" data-l10n-id="playlists-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="artist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="artist" data-l10n-id="artists-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="album" role="tab" aria-selected="false" aria-controls="views-list" data-icon="album" data-l10n-id="albums-tab"></a>
+            </li>
+            <li role="presentation">
+              <a data-option="title" role="tab" aria-selected="false" aria-controls="views-list" data-icon="songs" data-l10n-id="songs-tab"></a>
+            </li>
+          </ul>
+        </div>
       </div>
       <div id="views-player" class="view hidden">
         <div id="player-cover">
@@ -175,26 +238,6 @@
           </div>
         </div>
       </div>
-    </div>
-    <!-- BB tabs -->
-    <div id="tabs">
-      <ul role="tablist" class="bb-tablist skin-dark">
-        <li id="mix" role="presentation">
-          <a id="tabs-mix" data-option="mix" role="tab" aria-selected="false" aria-controls="views-tiles" data-icon="grid" data-l10n-id="mix-tab"></a>
-        </li>
-        <li id="playlists" role="presentation">
-          <a id="tabs-playlists" data-option="playlist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="playlist" data-l10n-id="playlists-tab"></a>
-        </li>
-        <li id="artists" role="presentation">
-          <a id="tabs-artists" data-option="artist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="artist" data-l10n-id="artists-tab"></a>
-        </li>
-        <li id="albums" role="presentation">
-          <a id="tabs-albums" data-option="album" role="tab" aria-selected="false" aria-controls="views-list" data-icon="album" data-l10n-id="albums-tab"></a>
-        </li>
-        <li id="songs" role="presentation">
-          <a id="tabs-songs" data-option="title" role="tab" aria-selected="false" aria-controls="views-list" data-icon="songs" data-l10n-id="songs-tab"></a>
-        </li>
-      </ul>
     </div>
     <!-- display scanning progress over the titlebar -->
     <div id="scan-progress" class="hidden">
