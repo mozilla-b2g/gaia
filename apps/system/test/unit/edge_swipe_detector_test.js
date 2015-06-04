@@ -9,7 +9,6 @@
 /* global MockService */
 /* global MockAppWindow */
 
-requireApp('system/js/edge_swipe_detector.js');
 
 requireApp('system/test/unit/mock_sheets_transition.js');
 requireApp('system/test/unit/mock_stack_manager.js');
@@ -30,17 +29,28 @@ suite('system/EdgeSwipeDetector >', function() {
   mocksForEdgeSwipeDetector.attachTestHelpers();
   var screen;
   var subject;
+  var realDPX;
 
-  var _devicePixelRatio = window.devicePixelRatio;
+  suiteSetup(function(done) {
+    realDPX = window.devicePixelRatio;
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      get: function() { return 1; }
+    });
+    requireApp('system/js/edge_swipe_detector.js', done);
+  });
+
+  suiteTeardown(function() {
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      get: function() { return realDPX; }
+    });
+  });
 
   setup(function() {
     home = new MockAppWindow();
     home.isHomescreen = true;
 
-    Object.defineProperty(window, 'devicePixelRatio', {
-      configurable: true,
-      value: 1
-    });
     subject = new EdgeSwipeDetector();
 
     // DOM
@@ -54,13 +64,6 @@ suite('system/EdgeSwipeDetector >', function() {
     subject.screen = screen;
     subject.start();
     MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
-  });
-
-  teardown(function() {
-    Object.defineProperty(window, 'devicePixelRatio', {
-      configurable: true,
-      value: _devicePixelRatio
-    });
   });
 
   var dialer = {
