@@ -59,12 +59,17 @@ exports.observeCalendars = function() {
     calendarStore.off('add', getAllAndWrite);
     calendarStore.off('remove', getAllAndWrite);
     calendarStore.off('update', getAllAndWrite);
-    stream._emitter.removeAllListeners();
+    stream._cancel();
   };
 
   nextTick(getAllAndWrite);
 
   return stream;
+};
+
+exports.updateCalendar = function(calendar) {
+  var calendarStore = core.storeFactory.get('Calendar');
+  return calendarStore.persist(calendar);
 };
 
 exports.createEvent = function(event) {
@@ -99,10 +104,70 @@ var persistEvent = co.wrap(function *(event, action, capability) {
   }
 });
 
-exports.getSetting = co.wrap(function *(id) {
-  var settingsStore = core.storeFactory.get('Setting');
-  return yield settingsStore.getValue(id);
-});
+exports.getSetting = function(id) {
+  var settingStore = core.storeFactory.get('Setting');
+  return settingStore.getValue(id);
+};
+
+exports.setSetting = function(id, value) {
+  var settingStore = core.storeFactory.get('Setting');
+  return settingStore.set(id, value);
+};
+
+exports.observeSetting = function(id) {
+  var stream = new FakeClientStream();
+  var settingStore = core.storeFactory.get('Setting');
+
+  var writeOnChange = function(value) {
+    stream.write(value);
+  };
+
+  settingStore.on(`${id}Change`, writeOnChange);
+
+  stream.cancel = function() {
+    settingStore.off(`${id}Change`, writeOnChange);
+    stream._cancel();
+  };
+
+  exports.getSetting(id).then(writeOnChange);
+
+  return stream;
+};
+
+exports.observeAccounts = function() {
+  var stream = new FakeClientStream();
+  var accountStore = core.storeFactory.get('Account');
+
+  var getAllAndWrite = co.wrap(function *() {
+    try {
+      var accounts = yield accountStore.all();
+      var data = object.map(accounts, (id, account) => {
+        return {
+          account: account,
+          provider: core.providerFactory.get(account.providerType)
+        };
+      });
+      stream.write(data);
+    } catch(err) {
+      console.error(`Error fetching accounts: ${err.message}`);
+    }
+  });
+
+  accountStore.on('add', getAllAndWrite);
+  accountStore.on('remove', getAllAndWrite);
+  accountStore.on('update', getAllAndWrite);
+
+  stream.cancel = function() {
+    accountStore.off('add', getAllAndWrite);
+    accountStore.off('remove', getAllAndWrite);
+    accountStore.off('update', getAllAndWrite);
+    stream._cancel();
+  };
+
+  nextTick(getAllAndWrite);
+
+  return stream;
+};
 
 /**
  * FakeClientStream is used as a temporary solution while we move all the db
@@ -112,18 +177,24 @@ exports.getSetting = co.wrap(function *(id) {
  */
 function FakeClientStream() {
   this._emitter = new EventEmitter2();
+  this._enabled = true;
 }
 
 FakeClientStream.prototype.write = function(data) {
-  this._emitter.emit('data', data);
+  this._enabled && this._emitter.emit('data', data);
 };
 
 FakeClientStream.prototype.listen = function(callback) {
-  this._emitter.on('data', callback);
+  this._enabled && this._emitter.on('data', callback);
 };
 
 FakeClientStream.prototype.unlisten = function(callback) {
-  this._emitter.off('data', callback);
+  this._enabled && this._emitter.off('data', callback);
+};
+
+FakeClientStream.prototype._cancel = function() {
+  this._emitter.removeAllListeners();
+  this._enabled = false;
 };
 
 });

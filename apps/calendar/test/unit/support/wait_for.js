@@ -9,7 +9,7 @@ function waitFor(test, callback) {
     return callback();
   }
 
-  setTimeout(() => waitFor(test, callback), 500);
+  setTimeout(() => waitFor(test, callback), 200);
 }
 
 module.exports = denodeify(waitFor);
