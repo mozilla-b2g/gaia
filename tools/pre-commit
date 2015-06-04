@@ -8,6 +8,9 @@ LINTED_DIRECTORIES="apps shared build/test/unit tv_apps"
 JSHINT_EXECUTABLE="node_modules/.bin/jshint"
 JSHINT_XFAIL_LIST="build/jshint/xfail.list"
 JSHINT_ARGS="--reporter=build/jshint/xfail $JSHINT_ARGS"
+ESLINT_EXECUTABLE="node_modules/.bin/eslint"
+ESLINT_ARGS="--ignore-path .eslintignore --ignore-path build/eslint/xfail.list -f compact -c .eslintrc"
+ESLINT_XFAIL_LIST="build/eslint/xfail.list"
 excluded_list=".jshintignore"
 L10N_XFAIL_LIST="build/l10n/xfail.list"
 
@@ -18,6 +21,10 @@ jshint_information() {
 mozL10n_information() {
   echo "Please read https://github.com/mozilla-b2g/gaia/tree/master/build/l10n/README.md for more information.\n"
 }
+eslint_information() {
+  echo "Please read https://github.com/mozilla-b2g/gaia/tree/master/build/eslint/README.md for more information.\n"
+}
+
 
 if [ ! -r $excluded_list ];
 then
@@ -47,6 +54,13 @@ then
 fi
 
 if [ ! -x "$JSHINT_EXECUTABLE" ];
+then
+  echo >&2 'You should run `npm install` to lint your patch'
+  exit 0
+fi
+
+# Skips if this repo is on an older commit where eslint is not yet available
+if [ ! -x "$ESLINT_EXECUTABLE" -a -r ".eslintrc" ];
 then
   echo >&2 'You should run `npm install` to lint your patch'
   exit 0
@@ -86,9 +100,34 @@ then
   $JSHINT_EXECUTABLE $JSHINT_ARGS $js_changed_files
   jshint_result=$?
 
-  if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 ] ; then
+  eslint_result=0
+  # Skip if this repo is on an older commit where eslint is not yet available
+  if [ -r ".eslintrc" ];
+  then
+    echo "eslint check:"
+
+    # check if a changed file is in the eslint xfail list
+    xfailed_eslint=`echo "$js_changed_files" | sort | comm -12 "$ESLINT_XFAIL_LIST" - | tr '[:space:]' ' '`
+    if [ -n "$xfailed_eslint" ] ; then
+      # warn about files being xfailed
+      for file in $js_changed_files ; do
+        one_was_ignored=""
+        if grep -q $file "$ESLINT_XFAIL_LIST" ; then
+          one_was_ignored="1"
+          echo "$file: eslint errors are ignored. Please consider fixing these errors and removing the filename from $ESLINT_XFAIL_LIST."
+        fi
+      done
+      test -n "$one_was_ignored" && eslint_information
+    fi
+
+    $ESLINT_EXECUTABLE $ESLINT_ARGS $js_changed_files
+    eslint_result=$?
+  fi
+
+  if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 -o $eslint_result -ne 0 ] ; then
     echo "There were errors while linting the files, please see above."
     test $jshint_result -ne 0 && jshint_information
+    test $eslint_result -ne 0 && eslint_information
     exit 1
   fi
 

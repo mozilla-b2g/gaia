@@ -30,6 +30,8 @@ definitions:
 
   jshint:
 
+  eslint:
+
   marionette_js_tests:
     chunks: 30
 
