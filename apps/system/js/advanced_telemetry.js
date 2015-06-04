@@ -495,12 +495,62 @@
       case 'warnings':
         this.addErrorWarningCount(key, value);
         break;
+      case 'ttl-cold-start':
+        this.addColdStartupTime(key, value);
+        break;
+      case 'ttl-warm-start':
+        this.addWarmStartupTime(key, value);
+        break;
       default:
         debug('key is: ' + JSON.stringify(key));
         debug('value is: ' + JSON.stringify(value));
         break;
     }
 //    this.needsSave = true;
+  };
+
+  HistogramData.prototype.addWarmStartupTime = function(key, value) {
+    var histValue = this.data.histograms.get(key, value);
+    if (histValue) {
+      // Broke the memory into ten buckets 1-1000 ms e.
+      histValue.values[(Math.floor((value/100)) -1)]++;
+      this.data.histograms.set(key, histValue);
+    } else {
+      var newValue = {'sum_squares_hi': 0,
+        'sum_squares_lo': 1,
+        'sum': 0,
+        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        'histogram_type': 1,
+        'bucket_count': 10,
+        'range': [0,1000]};
+
+      newValue.values[(Math.floor((value/100)) -1)]++;
+      this.data.histograms.set(key, newValue);
+      debug('ADDED A NEW HISTOGRAM FOR WARM STARTUP:' + key +
+        JSON.stringify(newValue));
+    }
+  };
+
+  HistogramData.prototype.addColdStartupTime = function(key, value) {
+    var histValue = this.data.histograms.get(key, value);
+    if (histValue) {
+      // Broke the memory into ten buckets 1-1000 ms e.
+      histValue.values[(Math.floor((value/1000)) -1)]++;
+      this.data.histograms.set(key, histValue);
+    } else {
+      var newValue = {'sum_squares_hi': 0,
+        'sum_squares_lo': 1,
+        'sum': 0,
+        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        'histogram_type': 1,
+        'bucket_count': 10,
+        'range': [0,1000]};
+
+      newValue.values[(Math.floor((value/1000)) -1)]++;
+      this.data.histograms.set(key, newValue);
+      debug('ADDED A NEW HISTOGRAM FOR COLD STARTUP:' + key +
+        JSON.stringify(newValue));
+    }
   };
 
   HistogramData.prototype.addSecurityValue = function(key, value) {
