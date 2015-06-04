@@ -1,6 +1,6 @@
 {
   "name": "raptor",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "private": true,
   "description": "Gaia performance tests",
   "main": "index.js",
