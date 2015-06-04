@@ -10,11 +10,11 @@ task:
     # Source caches contains various sources (including a tarball of gaia source
     # tree)
     - docker-worker:cache:tc-vcs
-    - docker-worker:image:quay.io/mozilla/raptor-tester:latest
+    - docker-worker:image:taskcluster/raptor-tester:0.3.1
 
   payload:
     maxRunTime: 3600
-    image: quay.io/mozilla/raptor-tester:latest
+    image: taskcluster/raptor-tester:0.3.1
     cache:
       tc-vcs: /home/worker/.tc-vcs
     env:
