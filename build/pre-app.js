@@ -23,7 +23,6 @@ function execute(options) {
 
   require('./copy-common-files').execute(options);
 
-  require('./preload').execute(options);
 }
 
 exports.execute = execute;
