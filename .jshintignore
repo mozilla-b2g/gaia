@@ -26,6 +26,7 @@ apps/keyboard/js/imes/jszhuyin/lib/**
 apps/keyboard/js/imes/handwriting/hwr/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
+shared/elements/font-fit/font-fit.js
 shared/elements/gaia-header/dist/gaia-header.js
 shared/elements/gaia-component/gaia-component.js
 shared/elements/gaia-icons/gaia-icons.js
