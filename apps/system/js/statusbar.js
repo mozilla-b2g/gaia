@@ -315,9 +315,22 @@
         app.isFullScreenLayout()
       );
 
-      this.element.classList.toggle('maximized', app.isHomescreen ||
-        !!(app.appChrome && app.appChrome.isMaximized()) ||
-           app.isAttentionWindow || app.isLockscreen);
+      var appsWithoutRocketbar = [
+        'isHomescreen',
+        'isAttentionWindow',
+        'isLockscreen'
+      ];
+
+      var noRocketbar = appsWithoutRocketbar.some(function(name) {
+        return !!(app[name]);
+      });
+
+      var chromeMaximized = !!(app.appChrome && app.appChrome.isMaximized());
+      var shouldMaximize = noRocketbar || chromeMaximized;
+
+      // Important: we need a boolean to make the toggle method
+      // takes the right decision
+      this.element.classList.toggle('maximized',  shouldMaximize || false);
     },
 
     _getMaximizedStatusbarWidth: function sb_getMaximizedStatusbarWidth() {
@@ -462,7 +475,7 @@
         this.statusbarIcons.classList.remove(className);
         this.statusbarIconsMin.classList.remove(className);
 
-        var iconWidth = iconObj.width;
+        var iconWidth = this._getIconWidth(iconObj);
 
         maximizedStatusbarWidth -= iconWidth;
         if (maximizedStatusbarWidth < 0) {
