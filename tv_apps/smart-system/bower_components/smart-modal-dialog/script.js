@@ -25,10 +25,10 @@
   var DEFAULT_MARGIN = 44;
 
   function SmartModalDialog(container, options) {
-
     // Determine whether this dialog is opened or not
     this.isOpened = false;
     this._clickedIndex = null;
+    this.defaultFocusIndex = -1;
 
     this._margin = options && options.margin ? options.margin : DEFAULT_MARGIN;
     this._translateX = 0;
@@ -78,9 +78,15 @@
     this.element.addEventListener('opened', this);
     this.element.addEventListener('closed', this);
     this.smartBubble.addEventListener('all-items-bubbled', this);
+
+    this._init();
   }
 
-  var proto = Object.create(SmartDialog);
+  var proto = Object.create(SmartDialog.prototype);
+
+  proto._init = function(container, options) {
+    // Put your custom init code here.
+  };
 
   proto._setL10n = function(element, l10n) {
     if ((typeof l10n) === 'string') {
@@ -99,18 +105,9 @@
       while (this.customElementGroup.firstChild) {
         this.customElementGroup.removeChild(this.customElementGroup.firstChild);
       }
-      // Focusable should be true when it is defaultFocus.
-      this.customSettings.focusable =
-        this.customSettings.focusable || this.customSettings.defaultFocus;
-      // Set customElementOffset to 1 when custom element is focusable,
-      // note that we only support 1 custom element at the time.
-      this.customElementOffset = this.customSettings.focusable ? 1 : 0;
       this.customElementGroup.appendChild(this.customSettings.element);
-      this._focusedIndex = this.customSettings.defaultFocus ?
-                            0 : this._focusedIndex;
       this.customElementGroup.classList.remove('hidden');
     } else {
-      this.customElementOffset = 0;
       this.customElementGroup.classList.add('hidden');
     }
 
@@ -152,11 +149,8 @@
       }.bind(this));
       this.buttonElements.push(button);
       this.buttonGroup.appendChild(button);
-      var customFocus = this.customSettings && this.customSettings.defaultFocus;
-      // We may have focusable elements in custom elements, adding offset from
-      // custom elements and reflects real focus index it should be.
-      this._focusedIndex = (buttonSetting.defaultFocus && !customFocus) ?
-        (index + this.customElementOffset) : this._focusedIndex;
+      this._focusedIndex =
+        (buttonSetting.defaultFocus) ? index : this._focusedIndex;
       if (renderedCallback) {
         // We add render callback to let user to do more complex visual
         // modifications.
@@ -173,8 +167,8 @@
     if (this.isOpened) {
       return;
     }
-    this._focusedIndex = -1;
     this.isOpened = true;
+    this._focusedIndex = this.defaultFocusIndex;
     // We should wait two frames for reflow.
     window.requestAnimationFrame(function() {
       window.requestAnimationFrame(this._open.bind(this, options));
@@ -199,7 +193,6 @@
       this.focus();
     }
   };
-
 
   /**
    * Scroll the list to the input element
@@ -250,21 +243,17 @@
     return newTranslate;
   };
 
+  proto._getFocusedElement = function() {
+    return this.buttonElements[this._focusedIndex];
+  };
+
   proto.focus = function() {
     if (this.element.classList.contains('opening') ||
         this.element.classList.contains('closing')) {
       this.element.focus();
     } else {
-      var elem;
-
-      if (this.customSettings &&
-          this._focusedIndex < this.customElementOffset) {
-        elem = this.customSettings.element;
-      } else {
-        var buttonIndex = this._focusedIndex - this.customElementOffset;
-        elem = this.buttonElements[buttonIndex];
-        this._scrollTo(elem);
-      }
+      var elem = this._getFocusedElement()
+      this._scrollTo(elem);
 
       // move focus to smart dialog while transition running
       if (elem.focus && (typeof elem.focus) === 'function') {
@@ -274,7 +263,7 @@
   };
 
   proto.blur = function() {
-    var elem = this.buttonElements[this._focusedIndex];
+    var elem = this._getFocusedElement();
     if (elem.blur && (typeof elem.blur === 'function')) {
       elem.blur();
     }
@@ -284,40 +273,8 @@
     this.element.removeEventListener('keydown', this);
   };
 
-  proto.moveUp = function() {
-    if (this._focusedIndex < 1 || this.customElementOffset === 0) {
-      // Do nothing when focus index is at the first custom element,
-      // or custom element is not focusable.
-      return;
-    }
-
-    this.prevButtonIndex = this._focusedIndex;
-    if (this._focusedIndex < this.customElementOffset - 1) {
-      this._focusedIndex--;
-    } else if (this._focusedIndex > this.customElementOffset - 1) {
-      this._focusedIndex = this.customElementOffset - 1;
-    }
-
-    this.focus();
-  };
-
-  proto.moveDown = function() {
-    if (this._focusedIndex > this.customElementOffset) {
-      // Do nothing when focus index is at one of the button elements.
-      return;
-    }
-
-    if (this._focusedIndex < this.customElementOffset - 1) {
-      this._focusedIndex++;
-    } else {
-      this._focusedIndex = this.prevButtonIndex || this.customElementOffset;
-    }
-
-    this.focus();
-  };
-
   proto.movePrevious = function() {
-    if (this._focusedIndex < 1 + this.customElementOffset) {
+    if (this._focusedIndex < 1) {
       // Do nothing when focus index is at the first button element.
       return;
     }
@@ -327,25 +284,24 @@
   };
 
   proto.moveNext = function() {
-    if (this._focusedIndex >
-        this.buttonElements.length - 2 + this.customElementOffset) {
-      // Do nothing when focus index is at the last button element.
+    if (this._focusedIndex > this.buttonElements.length - 2) {
+      // Do nothing when focus index is at the last button element
       return;
     }
     this._focusedIndex++;
     this.focus();
   };
 
-  proto.handleEvent = function(e) {
-    if (e.keyCode === KeyEvent.DOM_VK_UP) {
-      this.moveUp();
-    } else if (e.keyCode === KeyEvent.DOM_VK_DOWN) {
-      this.moveDown();
-    } else if (e.keyCode === KeyEvent.DOM_VK_LEFT) {
+  proto._handleKeyEvent = function(e) {
+    if (e.keyCode === KeyEvent.DOM_VK_LEFT) {
       this.movePrevious();
     } else if (e.keyCode === KeyEvent.DOM_VK_RIGHT) {
       this.moveNext();
     }
+  };
+
+  proto.handleEvent = function(e) {
+    this._handleKeyEvent(e);
 
     switch(e.target) {
       case this.element:

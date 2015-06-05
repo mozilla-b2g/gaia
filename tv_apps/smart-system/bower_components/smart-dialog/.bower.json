@@ -21,6 +21,5 @@
   },
   "_source": "git://github.com/smart-components/smart-dialog.git",
   "_target": "*",
-  "_originalSource": "smart-components/smart-dialog",
-  "_direct": true
+  "_originalSource": "smart-components/smart-dialog"
 }

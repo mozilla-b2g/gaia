@@ -16,13 +16,14 @@
   "dependencies": {
     "smart-dialog": "smart-components/smart-dialog",
     "smart-bubbles": "smart-components/smart-bubbles",
-    "smart-button": "smart-components/smart-button"
+    "smart-button": "smart-components/smart-button",
+    "smart-icons": "smart-components/smart-icons"
   },
-  "_release": "a5666d5dea",
+  "_release": "36275a3742",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "a5666d5deacfd5fde571a1af1e2d6d967b36fd16"
+    "commit": "36275a3742389663d16c61b53a426fd3401e4850"
   },
   "_source": "git://github.com/smart-components/smart-modal-dialog.git",
   "_target": "*",
