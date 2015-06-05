@@ -246,6 +246,8 @@ var CpScreenHelper = (function() {
       var aside = document.createElement('aside');
       aside.className = 'pack-end';
       aside.setAttribute('data-icon', 'forward');
+      // Icon is for presentation only.
+      aside.setAttribute('aria-hidden', true);
 
       var p = document.createElement('p');
       p.textContent = apns[i].carrier;
