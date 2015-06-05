@@ -2962,6 +2962,84 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('Theme Group', function() {
+    test('Added', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'added'
+        }
+      });
+
+      assert.isTrue(app1.element.classList.contains('theme-media'));
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Sanitazation', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'hidden',
+          type: 'added'
+        }
+      });
+
+      assert.isFalse(app1.element.classList.contains('hidden'));
+    });
+
+    test('Changed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-settings',
+          type: 'changed'
+        }
+      });
+
+      assert.isTrue(app1.element.classList.contains('theme-settings'));
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Removed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'added'
+        }
+      });
+
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-group',
+          content: 'theme-media',
+          type: 'removed'
+        }
+      });
+
+      assert.isFalse(app1.element.classList.contains('theme-media'));
+      assert.isTrue(stubPublish.calledOnce);
+    });
+  });
+
   suite('application-name', function() {
     test('application-name for browser window', function() {
       var browser1 = new AppWindow(fakeWrapperConfig);
