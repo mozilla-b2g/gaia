@@ -1,4 +1,4 @@
-/* global utils, ConfirmDialog, Contacts, fb, ContactsService*/
+/* global utils, ConfirmDialog, Contacts, fb*/
 'use strict';
 
 //
@@ -36,13 +36,10 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       return;
     }
 
-    ContactsService.getAll(function(e, contactsFromAPI) {
-      if (e) {
-        cb();
-        return;
-      }
+    var request = navigator.mozContacts.find({});
+    request.onsuccess = function onSuccess() {
       contacts = [];
-      contactsFromAPI.forEach(function onContact(ct) {
+      request.result.forEach(function onContact(ct) {
         if (theContacts.indexOf(ct.id) !== -1 && !fb.isFbContact(ct)) {
           contacts.push(ct);
         }
@@ -50,7 +47,12 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       if (cb) {
         cb(contacts);
       }
-    });
+    };
+    request.onerror = function onError() {
+      if (cb) {
+        cb();
+      }
+    };
   };
 
   //

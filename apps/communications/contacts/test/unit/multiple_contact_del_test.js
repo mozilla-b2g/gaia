@@ -1,10 +1,9 @@
 /*jshint node: true, browser: true */
-/* globals MockContactsList, MockMozContacts, Mockfb, utils,
+/* globals MockContactsList, MockMozContacts, Mockfb,
 MocksHelper, contactsRemover, contacts, MockContactsSettings */
 
 'use strict';
 
-requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
@@ -99,9 +98,6 @@ suite('Multiple Contacts Delete', function() {
     mocksHelperForDelete.suiteSetup();
     realSettings = contacts.Settings;
     contacts.Settings = MockContactsSettings;
-    window.utils.misc = {
-      toMozContact: function() {}
-    };
   });
 
   suiteTeardown(function() {
@@ -111,13 +107,13 @@ suite('Multiple Contacts Delete', function() {
     window.utils.overlay = realOverlay;
     mocksHelperForDelete.suiteTeardown();
     contacts.Settings = realSettings;
-    delete window.utils.misc;
+
   });
 
   setup(function() {
-    this.sinon.stub(utils.misc, 'toMozContact');
     subject = new contactsRemover();
   });
+
 
   test('Correct initialization given an array of ids', function(done) {
     var ids = getContactIds();

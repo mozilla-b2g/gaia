@@ -18,7 +18,6 @@
 /* global utils */
 /* global VcardFilename */
 /* global WebrtcClient */
-/* global ContactsService */
 
 var contacts = window.contacts || {};
 
@@ -344,39 +343,34 @@ contacts.Details = (function() {
     favoriteMessage.style.pointerEvents = 'none';
 
     var promise = new Promise(function(resolve, reject) {
-      ContactsService.save(
-        utils.misc.toMozContact(contact),
-        function(e) {
-          if (e) {
-            favoriteMessage.style.pointerEvents = 'auto';
-            console.error('Error saving favorite');
-            reject('Error saving favorite');
-            resolve(false);
-            return;
-          }
+      var request =
+        navigator.mozContacts.save(utils.misc.toMozContact(contact));
+      request.onsuccess = function onsuccess() {
+        isAFavoriteChange = true;
+        var cList = contacts.List;
+        /*
+           Two contacts are returned because the enrichedContact is readonly
+           and if the Contact is edited we need to prevent saving
+           FB data on the mozContacts DB.
+        */
+         cList.getContactById(contact.id,
+                             function onSuccess(savedContact, enrichedContact) {
+          renderFavorite(savedContact);
+          setContact(savedContact);
+          favoriteMessage.style.pointerEvents = 'auto';
+        }, function onError() {
+          console.error('Error reloading contact');
+          favoriteMessage.style.pointerEvents = 'auto';
+        });
+        resolve(isAFavoriteChange);
+      };
 
-          isAFavoriteChange = true;
-          /*
-             Two contacts are returned because the enrichedContact is readonly
-             and if the Contact is edited we need to prevent saving
-             FB data on the mozContacts DB.
-          */
-
-          ContactsService.get(
-            contact.id,
-            function onSuccess(savedContact, enrichedContact) {
-              renderFavorite(savedContact);
-              setContact(savedContact);
-              favoriteMessage.style.pointerEvents = 'auto';
-            },
-            function onError() {
-              console.error('Error reloading contact');
-              favoriteMessage.style.pointerEvents = 'auto';
-            }
-          );
-          resolve(isAFavoriteChange);
-        }
-      );
+      request.onerror = function onerror() {
+        favoriteMessage.style.pointerEvents = 'auto';
+        console.error('Error saving favorite');
+        reject('Error saving favorite');
+        resolve(false);
+      };
     }).then();
 
     return promise;

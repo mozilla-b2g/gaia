@@ -18,7 +18,6 @@ requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
-requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/js/utilities/ice_data.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
@@ -114,8 +113,7 @@ suite('Contacts', function() {
     });
 
     test('Should evict cache', function() {
-      var evt = new CustomEvent('contactchange');
-      navigator.mozContacts.dispatchEvent(evt);
+      navigator.mozContacts.oncontactchange({});
       sinon.assert.calledOnce(Cache.evict);
     });
   });

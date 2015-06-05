@@ -16,7 +16,6 @@
 /* global SimDomGenerator */
 /* global utils */
 /* global VCFReader */
-/* global ContactsService */
 
 var contacts = window.contacts || {};
 
@@ -989,28 +988,27 @@ contacts.Settings = (function() {
 
   var checkNoContacts = function checkNoContacts() {
     var exportButton = exportContacts.firstElementChild;
-
-    ContactsService.isEmpty(function(error, isEmpty) {
-      if (error) {
-        window.console.warn(
-          'Error while trying to know the contact number',
-          error
-        );
-        // In case of error is safer to leave enabled
-        exportButton.removeAttribute('disabled');
-        bulkDeleteButton.removeAttribute('disabled');
-        return;
-      }
-      if (isEmpty) {
+    var req = navigator.mozContacts.getCount();
+    req.onsuccess = function() {
+      if (req.result === 0) {
         exportButton.setAttribute('disabled', 'disabled');
         bulkDeleteButton.setAttribute('disabled', 'disabled');
         setICEButton.setAttribute('disabled', 'disabled');
-      } else {
-        exportButton.removeAttribute('disabled');
-        bulkDeleteButton.removeAttribute('disabled');
-        setICEButton.removeAttribute('disabled');
       }
-    });
+      else {
+         exportButton.removeAttribute('disabled');
+         bulkDeleteButton.removeAttribute('disabled');
+         setICEButton.removeAttribute('disabled');
+      }
+    };
+
+    req.onerror = function() {
+      window.console.warn('Error while trying to know the contact number',
+                          req.error.name);
+      // In case of error is safer to leave enabled
+      exportButton.removeAttribute('disabled');
+      bulkDeleteButton.removeAttribute('disabled');
+    };
   };
 
   function saveStatus(data) {

@@ -1,5 +1,4 @@
 'use strict';
-/* global ContactsService */
 /* global MockContactsList */
 /* global MockContacts */
 /* global ContactsExporter */
@@ -8,7 +7,6 @@
 /* global MockMozL10n */
 /* global MocksHelper */
 
-requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
@@ -81,6 +79,16 @@ suite('Contacts Exporter', function() {
     window._ = navigator.mozL10n.get;
 
     navigator.mozContacts = MockMozContacts;
+    sinon.stub(navigator.mozContacts, 'find', function() {
+      return {
+        set onsuccess(cb) {
+          cb(MockContactsList());
+        },
+        set onerror(cb) {
+        },
+        result: MockContactsList()
+      };
+    });
 
     sinon.spy(MockExportStrategy, 'shouldShowProgress');
     sinon.spy(MockExportStrategy, 'doExport');
@@ -122,15 +130,10 @@ suite('Contacts Exporter', function() {
     MockExportStrategy.hasDeterminativeProgress.restore();
     MockExportStrategy.setProgressStep.restore();
     mocksHelperForExporter.suiteTeardown();
+
   });
 
   setup(function() {
-    this.sinon.stub(ContactsService, 'getAll', function(cb) {
-      var contacts = MockContactsList();
-      setTimeout(function() {
-        cb(null, contacts);
-      });
-    });
     menuOverlay = document.createElement('form');
     menuOverlay.innerHTML = '<menu>' +
       '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>' +
@@ -148,6 +151,7 @@ suite('Contacts Exporter', function() {
   teardown(function() {
     menuOverlay.parentNode.removeChild(menuOverlay);
   });
+
 
   test('Correct initialization given an array of ids', function(done) {
     subject.init(ids, function onInitDone(contacts) {

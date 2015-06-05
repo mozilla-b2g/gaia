@@ -1,7 +1,6 @@
 /* global Contacts */
 /* global ICEData */
 /* global ConfirmDialog */
-/* global ContactsService */
 
 /**
  * ICE Settings view. In charge of selecting
@@ -101,7 +100,7 @@ contacts.ICE = (function() {
     var numRetrievedContacts = 0;
 
     iceContactsIds.forEach(function(iceContact, index) {
-      ContactsService.get(iceContact.id, function(cindex, contact) {
+      contacts.List.getContactById(iceContact.id, function(cindex, contact) {
         var theContact = {
           active: iceContactsIds[cindex].active,
           mozContact: contact
@@ -276,7 +275,7 @@ contacts.ICE = (function() {
    */
   function contactNotAllowed(id) {
     return new Promise(function(resolve, reject) {
-      ContactsService.get(id, function(contact, isFBContact) {
+      contacts.List.getContactById(id, function(contact, isFBContact) {
         if(Array.isArray(contact.tel) && contact.tel[0] &&
          contact.tel[0].value && contact.tel[0].value.trim()) {
           resolve(id);
@@ -319,7 +318,7 @@ contacts.ICE = (function() {
         return;
       }
 
-      ContactsService.get(id, function(contact) {
+      contacts.List.getContactById(id, function(contact) {
         var theContact = {
           active: active,
           mozContact: contact

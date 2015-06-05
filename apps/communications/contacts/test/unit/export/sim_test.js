@@ -2,7 +2,6 @@
 /* global ContactsSIMExport */
 /* global MockMozContacts */
 
-requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/js/export/sim.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 

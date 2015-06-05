@@ -1,4 +1,4 @@
-/* globals mozContact, fb, ContactsService */
+/* globals mozContact, fb */
 'use strict';
 
 /*
@@ -68,19 +68,15 @@ function contactsRemover() {
       }
       return;
     }
-
-    deleteContact(
-      currentId,
-      function(e) {
-        if (e) {
-          notifyError();
-          return;
-        }
-        totalRemoved++;
-        notifyDeleted(currentId);
-        continueCb(ids);
-      }
-    );
+    var request = deleteContact(currentId);
+    request.onSuccess = function() {
+      totalRemoved++;
+      notifyDeleted(currentId);
+      continueCb(ids);
+    };
+    request.onError = function() {
+      notifyError();
+    };
   }
 
   function notifyError() {
@@ -107,14 +103,25 @@ function contactsRemover() {
     }
   }
 
-  function deleteContact(currentID, callback) {
+  function deleteContact(currentID) {
+    var request;
+    var outreq = {onSuccess: null, onError: null};
     var contact = new mozContact();
     contact.id = currentID;
 
-    ContactsService.remove(
-      contact,
-      callback
-    );
+    if (fbData[contact.id]) {
+      var fbContact = new fb.Contact(fbData[contact.id]);
+      request = fbContact.remove();
+    } else {
+      request = navigator.mozContacts.remove(contact);
+    }
+    request.onsuccess = function() {
+      outreq.onSuccess();
+    };
+    request.onerror = function() {
+      outreq.onError();
+    };
+    return outreq;
   }
 }
 

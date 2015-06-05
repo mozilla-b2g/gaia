@@ -13,8 +13,6 @@
 /* global SmsIntegration */
 /* global TAG_OPTIONS */
 /* global utils */
-/* global ContactsService */
-
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -87,6 +85,7 @@ var Contacts = (function() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
+    var cList = contacts.List;
     var params = hasParams.length > 1 ?
       utils.extractParams(hasParams[1]) : -1;
 
@@ -97,7 +96,7 @@ var Contacts = (function() {
       case 'view-contact-details':
         initContactsList();
         initDetails(function onInitDetails() {
-          // At this point, a parameter is required
+          // At this point, a parameter is required.
           if (params == -1) {
             console.error('Param missing');
             return;
@@ -107,7 +106,7 @@ var Contacts = (function() {
           // from the device.
           if ('id' in params) {
             var id = params.id;
-            ContactsService.get(id, function onSuccess(savedContact) {
+            cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
 
               // Enable NFC listening is available
@@ -143,7 +142,7 @@ var Contacts = (function() {
             // Editing existing contact
             if (params.id) {
               var id = params.id;
-              ContactsService.get(id, function onSuccess(savedContact) {
+              cList.getContactById(id, function onSuccess(savedContact) {
                 currentContact = savedContact;
                 // Check if we have extra parameters to render
                 if ('extras' in params) {
@@ -234,7 +233,7 @@ var Contacts = (function() {
         initContactsList();
       } else {
         // Unregister here to avoid un-necessary list operations.
-        ContactsService.removeListener('contactchange', oncontactchange);
+        navigator.mozContacts.oncontactchange = null;
       }
 
       if (contactsList) {
@@ -342,7 +341,7 @@ var Contacts = (function() {
 
   var contactListClickHandler = function originalHandler(id) {
     initDetails(function onDetailsReady() {
-      ContactsService.get(id, function findCb(contact, fbContact) {
+      contacts.List.getContactById(id, function findCb(contact, fbContact) {
 
         // Enable NFC listening is available
         if ('mozNfc' in navigator) {
@@ -370,7 +369,7 @@ var Contacts = (function() {
   };
 
   var updateContactDetail = function updateContactDetail(id) {
-    ContactsService.get(id, function findCallback(contact) {
+    contactsList.getContactById(id, function findCallback(contact) {
       currentContact = contact;
       contactsDetails.render(currentContact);
     });
@@ -817,7 +816,7 @@ var Contacts = (function() {
     }
   };
 
-  var oncontactchange = function oncontactchange(event) {
+  navigator.mozContacts.oncontactchange = function oncontactchange(event) {
     if (typeof pendingChanges[event.contactID] !== 'undefined') {
       pendingChanges[event.contactID].push({
         contactID: event.contactID,
@@ -839,9 +838,6 @@ var Contacts = (function() {
     performOnContactChange(event);
   };
 
-
-  ContactsService.addListener('contactchange', oncontactchange);
-
   var performOnContactChange = function performOnContactChange(event) {
     // To be on the safe side for now we evict the cache everytime a
     // contact change event is received. In the future, we may want to check
@@ -854,7 +850,7 @@ var Contacts = (function() {
       case 'update':
         if (currView == 'view-contact-details' && currentContact != null &&
           currentContact.id == event.contactID) {
-          ContactsService.get(event.contactID,
+          contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
               currentContact = contact;
               if (contactsDetails) {

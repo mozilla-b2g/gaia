@@ -24,6 +24,7 @@ require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_moz_nfc.js');
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
+
 requireApp('communications/contacts/js/contacts_tag.js');
 requireApp('communications/contacts/js/views/form.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -323,7 +324,6 @@ suite('Render contact form', function() {
     });
   });
 
-  requireApp('communications/contacts/services/contacts.js');
   suite('Render edit form', function() {
 
     function assertDateContent(selector, date) {
@@ -1032,4 +1032,5 @@ suite('Render contact form', function() {
     assert.isTrue(valueType === data.adr[c].countryName,
                   'Type Value as Expected');
   }
+
 });

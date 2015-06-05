@@ -6,21 +6,8 @@ function MockMozContactsObj(contacts) {
   this.contacts = contacts;
 }
 
-var listeners = {};
 MockMozContactsObj.prototype = {
   limit: 20,
-
-  addEventListener: function(evt, handler) {
-    listeners[evt] = handler;
-  },
-
-  removeEventListener: function(evt, handler) {
-    delete listeners[evt];
-  },
-
-  dispatchEvent: function(evt) {
-    listeners[evt.type] && listeners[evt.type](evt);
-  },
 
   _getRequest: function(options) {
     var that = this;
