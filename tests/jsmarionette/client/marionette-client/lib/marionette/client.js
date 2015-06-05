@@ -1224,16 +1224,19 @@
      *                            call in the script if there is one.
      * @return {Object} self.
      */
-    executeScript: function executeScript(script, args, callback) {
+    executeScript: function executeScript(script, args, callback, sandbox) {
       if (typeof(args) === 'function') {
         callback = args;
         args = null;
       }
+      if (typeof(sandbox) === 'undefined')
+        sandbox = 'default';
       return this._executeScript({
         name: 'executeScript',
         parameters: {
           script: script,
-          args: args
+          args: args,
+          sandbox: sandbox
         }
       }, callback || this.defaultCallback);
     },
@@ -1489,7 +1492,8 @@
         name: options.name,
         parameters: {
           script: this._convertFunction(options.parameters.script),
-          args: this._prepareArguments(options.parameters.args || [])
+          args: this._prepareArguments(options.parameters.args || []),
+          sandbox: options.parameters.sandbox
         }
       }, 'value', callback);
     }
