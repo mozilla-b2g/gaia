@@ -23,13 +23,12 @@ SelectionHelper.prototype = {
 
   get selectedContent() {
     return this.client.executeScript(this.getSelectionCmd() +
-      'return sel.toString();', [this.element]);
+      'return sel.toString();', [this.element], null, 'system');
   },
 
   getSelectionCmd: function() {
     if (this.isInputOrTextarea) {
-      return 'var sel = SpecialPowers.wrap(arguments[0]).editor.selection;' +
-             'sel = SpecialPowers.unwrap(sel);';
+      return 'var sel = arguments[0].editor.selection;';
     } else {
       return 'var sel = window.getSelection();';
     }
@@ -38,12 +37,12 @@ SelectionHelper.prototype = {
   selectionRectList: function(idx) {
     var cmd = this.getSelectionCmd() + 'return sel.getRangeAt(' + idx + ')' +
       '.getClientRects();';
-    return this.client.executeScript(cmd, [this.element]);
+    return this.client.executeScript(cmd, [this.element], null, 'system');
   },
 
   rangeCount: function() {
     var cmd = this.getSelectionCmd() + 'return sel.rangeCount;';
-    return this.client.executeScript(cmd, [this.element]);
+    return this.client.executeScript(cmd, [this.element], null, 'system');
   },
 
   /**
