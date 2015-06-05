@@ -8,8 +8,13 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/funny/icon.png",
+    "84": "/collections/funny/icon_84.png",
     "90": "/collections/funny/icon_90.png",
     "120": "/collections/funny/icon_120.png",
-    "135": "/collections/funny/icon_135.png"
+    "126": "/collections/funny/icon_126.png",
+    "135": "/collections/funny/icon_135.png",
+    "142": "/collections/funny/icon_142.png",
+    "189": "/collections/funny/icon_189.png",
+    "284": "/collections/funny/icon_284.png"
   }
 }
