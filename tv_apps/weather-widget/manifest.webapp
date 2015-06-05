@@ -9,7 +9,7 @@
       "description": "widget for showing weather and world clock"
     }
   },
-  "widgetPage": [
+  "widgetPages": [
     "/widget.html"
   ],
   "icons": {
