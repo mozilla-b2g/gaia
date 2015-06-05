@@ -31,15 +31,18 @@ define(function(require) {
         });
 
         elements.securityTypeSelector.addEventListener('change', (evt) => {
+          this._settingsTouched = true;
           this._updatePasswordItemVisibility(evt.target.value);
           this._updateSubmitButtonState();
         });
 
         elements.tethering_ssid.addEventListener('input', () => {
+          this._settingsTouched = true;
           this._updateSubmitButtonState();
         });
 
         elements.passwordInput.addEventListener('input', () => {
+          this._settingsTouched = true;
           this._updateSubmitButtonState();
         });
       },
@@ -72,6 +75,7 @@ define(function(require) {
         elements.showPassword.checked = false;
         elements.passwordInput.type = 'password';
         this._reset();
+        this._settingsTouched = false;
         this._updateSubmitButtonState();
       },
 
@@ -95,7 +99,8 @@ define(function(require) {
       _isNotSubmitable: function() {
         var securityType = elements.securityTypeSelector.value;
         var pwdLength = elements.passwordInput.value.length;
-        return (pwdLength < 8 || pwdLength > 63) && (securityType !== 'open');
+        return (pwdLength < 8 || pwdLength > 63) && (securityType !== 'open') ||
+          !this._settingsTouched;
       },
 
       _configInput: function(input) {

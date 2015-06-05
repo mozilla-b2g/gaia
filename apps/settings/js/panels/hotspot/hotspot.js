@@ -10,6 +10,8 @@ define(function(require) {
   // modules / helpers
   var SettingsListener = require('shared/settings_listener');
 
+  const RE_ENABLE_WIFI_TETHERING_TIME = 1000;
+
   var Hotspot = function() {
     this._settings = navigator.mozSettings;
   };
@@ -217,6 +219,19 @@ define(function(require) {
           }
           break;
       }
+    },
+
+    reEnableWifiTetheringSetting: function() {
+      if (!this.wifiHotspotSetting) {
+        return;
+      }
+
+      // The time is used to avoid the quick changes on the toggle that may
+      // cause bad user experience.
+      this._setWifiTetheringSetting(false);
+      setTimeout(() => {
+        this._setWifiTetheringSetting(true);
+      }, RE_ENABLE_WIFI_TETHERING_TIME);
     },
 
     /**
