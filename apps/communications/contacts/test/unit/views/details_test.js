@@ -2,6 +2,7 @@
 
 /* global ActivityHandler */
 /* global contacts */
+/* global ContactsService */
 /* global MockContactAllFields */
 /* global MockContacts */
 /* global MockContactsButtons */
@@ -22,6 +23,7 @@
 /* exported _ */
 
 //Avoiding lint checking the DOM file renaming it to .html
+requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
 requireApp(
   'communications/contacts/test/unit/webrtc-client/mock_webrtc_client.js');
@@ -262,6 +264,18 @@ suite('Render contact', function() {
     test('change in favorite not render the window', function(done) {
       var contactWoPhoto = new MockContactAllFields();
       contactWoPhoto.photo = null;
+      // Stub so save is working as if it was successful
+      this.sinon.stub(ContactsService, 'save', function(contact, cb) {
+        cb();
+      });
+      // Stub find, so request is working
+      this.sinon.stub(navigator.mozContacts, 'find', function(options) {
+        return {
+          onsuccess: function(){},
+          onerror: function() {}
+        };
+      });
+
       subject.setContact(contactWoPhoto);
       subject.render(null, TAG_OPTIONS);
       var spy = sinon.spy(subject, 'toggleFavorite');
