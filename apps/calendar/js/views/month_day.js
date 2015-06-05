@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 var Calc = require('common/calc');
-var dayObserver = require('day_observer');
+var core = require('core');
 
 // MonthDay represents a single day inside the Month view grid.
 function MonthDay(options) {
@@ -19,6 +19,7 @@ MonthDay.prototype = {
   date: null,
   element: null,
   month: null,
+  _observer: null,
 
   create: function() {
     var dayId = Calc.getDayId(this.date);
@@ -57,11 +58,12 @@ MonthDay.prototype = {
   },
 
   activate: function() {
-    dayObserver.on(this.date, this._updateBusyCount);
+    this._observer = core.bridge.observeDay(this.date);
+    this._observer.listen(this._updateBusyCount);
   },
 
   deactivate: function() {
-    dayObserver.off(this.date, this._updateBusyCount);
+    this._observer && this._observer.cancel();
   },
 
   destroy: function() {

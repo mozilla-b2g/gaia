@@ -169,6 +169,24 @@ exports.observeAccounts = function() {
   return stream;
 };
 
+exports.observeDay = function(date) {
+  var stream = new FakeClientStream();
+  var emit = stream.write.bind(stream);
+
+  stream.cancel = function() {
+    dayObserver.off(date, emit);
+    stream._cancel();
+  };
+
+  // FIXME: nextTick only really needed because dayObserver dispatches the
+  // first callback synchronously, easier to solve it here than to change
+  // dayObserver; we can remove this nextTick call after moving to threads.js
+  // (since it will always be async)
+  nextTick(() => dayObserver.on(date, emit));
+
+  return stream;
+};
+
 /**
  * FakeClientStream is used as a temporary solution while we move all the db
  * calls into the worker. In the end all the methods inside this file will be

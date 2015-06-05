@@ -5,7 +5,6 @@ var Parent = require('view');
 var core = require('core');
 var createDay = require('common/calc').createDay;
 var dateFormat = require('date_format');
-var dayObserver = require('day_observer');
 var isAllDay = require('common/calc').isAllDay;
 var performance = require('performance');
 var template = require('templates/month_day_agenda');
@@ -21,6 +20,7 @@ MonthDayAgenda.prototype = {
   __proto__: Parent.prototype,
 
   date: null,
+  _observer: null,
 
   selectors: {
     element: '#month-day-agenda',
@@ -53,22 +53,24 @@ MonthDayAgenda.prototype = {
 
   oninactive: function() {
     Parent.prototype.oninactive.call(this);
-    if (this.date) {
-      dayObserver.off(this.date, this._render);
-    }
+    this._unobserve();
     this.controller.removeEventListener('selectedDayChange', this);
     this.date = null;
+  },
+
+  _unobserve: function() {
+    this._observer && this._observer.cancel();
+    this._observer = null;
   },
 
   changeDate: function(date) {
     // first time view is active the `selectedDay` is null
     date = date || createDay(new Date());
 
-    if (this.date) {
-      dayObserver.off(this.date, this._render);
-    }
     this.date = date;
-    dayObserver.on(this.date, this._render);
+    this._unobserve();
+    this._observer = core.bridge.observeDay(date);
+    this._observer.listen(this._render);
 
     var formatId = 'months-day-view-header-format';
     this.currentDate.textContent = dateFormat.localeFormat(
