@@ -32,7 +32,8 @@ define(function(require) {
           alertPanelConfirmInput: $('.cw-alert .cw-alert-checkbox-label input'),
           alertPanelCancelButton: $('.cw-alert .cw-alert-cancel'),
           alertLabel: $('#menuItem-callWaiting .alert-label'),
-          fdnItem: $('#menuItem-callFdn'),
+          callFdnItem: $('#menuItem-callFdn'),
+          callFdnAnchor: $('#menuItem-callFdn a'),
           callWaitingItem: $('#menuItem-callWaiting'),
           callWaitingInput: $('#menuItem-callWaiting .checkbox-label input'),
           callForwardingItem: $('#menuItem-callForwarding'),
@@ -52,6 +53,7 @@ define(function(require) {
 
         this._bindPanelReadyEvent();
         this._bindCallForwardingMenuItemClickEvent();
+        this._bindCallFdnMenuItemClickEvent();
 
         this._addVoiceTypeChangeListeners();
 
@@ -101,6 +103,14 @@ define(function(require) {
       _bindCallForwardingMenuItemClickEvent: function() {
         this._elements.callForwardingAnchor.onclick = () => {
           SettingsService.navigate('call-forwarding', {
+            cardIndex: this._cardIndex
+          });
+        };
+      },
+
+      _bindCallFdnMenuItemClickEvent: function() {
+        this._elements.callFdnAnchor.onclick = () => {
+          SettingsService.navigate('call-fdnSettings', {
             cardIndex: this._cardIndex
           });
         };
@@ -198,7 +208,7 @@ define(function(require) {
           var icc = navigator.mozIccManager.getIccById(iccId);
           if (icc) {
             icc.getServiceState('fdn').then((hasFdn) => {
-              this._elements.fdnItem.hidden = !hasFdn;
+              this._elements.callFdnItem.hidden = !hasFdn;
             });
           }
         }
