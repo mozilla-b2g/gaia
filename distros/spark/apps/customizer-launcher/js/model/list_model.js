@@ -23,11 +23,37 @@ define(["exports", "components/fxos-mvc/dist/mvc", "js/lib/helpers"], function (
 
     _extends(ListModel, Model);
 
+    ListModel.prototype.getAllApps = function () {
+      return new Promise(function (resolve, reject) {
+        AppsHelper.getAllApps().then(function (allApps) {
+          resolve(allApps);
+        });
+      });
+    };
+
+    ListModel.prototype.filterCustomizerAddon = function (apps) {
+      return apps.filter(function (app) {
+        return app.manifestURL == "app://customizer.gaiamobile.org/manifest.webapp";
+      });
+    };
+
+    ListModel.prototype.getCustomizerAddOn = function (allApps) {
+      var _this = this;
+      return new Promise(function (resolve, reject) {
+        var addOnList = _this.filterCustomizerAddon(allApps);
+        if (addOnList && addOnList.length == 1) {
+          resolve(addOnList[0]);
+        } else {
+          reject(new Error("Cannot fetch customizer add on"));
+        }
+      });
+    };
+
     ListModel.prototype.filterApps = function (apps) {
-      var excludedApps = ["Built-in Keyboard", "Settings"];
+      var excludedApps = ["app://keyboard.gaiamobile.org/manifest.webapp", "app://customizer-launcher.gaiamobile.org/manifest.webapp"];
 
       return apps.filter(function (app) {
-        return app.manifest.role !== "addon" && app.manifest.role !== "theme" && app.manifest.role !== "system" && excludedApps.indexOf(app.manifest.name) === -1;
+        return app.manifest.role !== "addon" && app.manifest.role !== "theme" && app.manifest.role !== "system" && excludedApps.indexOf(app.manifestURL) === -1;
       });
     };
 
@@ -42,27 +68,16 @@ define(["exports", "components/fxos-mvc/dist/mvc", "js/lib/helpers"], function (
       return detail;
     };
 
-    ListModel.prototype.getAppList = function () {
-      var _this = this;
+    ListModel.prototype.getAppList = function (allApps) {
+      var _this2 = this;
       return new Promise(function (resolve, reject) {
         var installedApps = Object.create(null);
-        AppsHelper.getAllApps().then(function (allApps) {
-          var filterList = _this.filterApps(allApps);
-          filterList.forEach(function (app) {
-            installedApps[app.manifestURL] = _this.fillAppDetails(app);
-          });
-
-          _this.logObject(installedApps);
-          resolve(installedApps);
+        var filterList = _this2.filterApps(allApps);
+        filterList.forEach(function (app) {
+          return installedApps[app.manifestURL] = _this2.fillAppDetails(app);
         });
+        resolve(installedApps);
       });
-    };
-
-    ListModel.prototype.logObject = function (app) {
-      for (var i in app) {
-        console.log("property & values: ", i + " : & : ");
-        console.log(app[i]);
-      }
     };
 
     return ListModel;

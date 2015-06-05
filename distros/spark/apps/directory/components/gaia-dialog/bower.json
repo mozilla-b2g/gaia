@@ -1,6 +1,6 @@
 {
   "name": "gaia-dialog",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "homepage": "https://github.com/gaia-components/gaia-dialog",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -18,6 +18,6 @@
   ],
   "dependencies": {
     "gaia-text-input": "gaia-components/gaia-text-input",
-    "gaia-icons": "gaia-components/gaia-icons#~0.7.4"
+    "gaia-icons": "gaia-components/gaia-icons#~0.8.0"
   }
 }

@@ -44,6 +44,14 @@ define(["exports"], function (exports) {
           generator.opScript(_this.changes.script);
         }
 
+        if (_this.changes.createAttributes) {
+          generator.opCreateAttributes(_this.changes.createAttributes);
+        }
+
+        if (_this.changes.removeAttributes) {
+          generator.opRemoveAttributes(_this.changes.removeAttributes);
+        }
+
         if (_this.changes.properties) {
           generator.opSetProperties(_this.changes.properties);
         }

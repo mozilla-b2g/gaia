@@ -59,14 +59,15 @@ define(["exports", "components/fxos-mvc/dist/mvc"], function (exports, _componen
           url: "https://github.com/fxos/dialer",
           revision: "835af6ccf608a51bc87711d1c40fc4f33a1fc12b"
         },
-        "http://fxos.github.io/customizer/app/manifest.webapp": {
-          manifestURL: "http://fxos.github.io/customizer/app/manifest.webapp",
-          name: "customizer",
-          description: "An addon for FirefoxOS which builds customizes application interfaces.",
-          author: "The Gaia Team",
+        "http://mikehenrty.github.io/fxos-cracked/manifest.webapp": {
+          manifestURL: "http://mikehenrty.github.io/fxos-cracked/manifest.webapp",
+          name: "cracked",
+          description: "A virtual cracked screen for your FirefoxOS device.",
+          icon: "http://mikehenrty.github.io/fxos-cracked/style/icons/128.png",
+          author: "David Flanagan",
           type: "addon",
-          url: "https://github.com/fxos/customizer",
-          revision: "71d6d9f227d9104c973c813537661ed8bdf291db"
+          url: "https://github.com/mikehenrty/fxos-cracked",
+          revision: "16016c86f464c23e0465b22d43c08f52c1cc7349"
         }
       };
     };

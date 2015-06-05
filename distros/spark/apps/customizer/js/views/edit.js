@@ -18,7 +18,7 @@ define(["exports"], function (exports) {
   /* global esprima */
   /* global html_beautify */
 
-  var editViewTemplate = "<gaia-modal>\n  <style scoped>\n    .gaia-modal {\n      background: var(--background, #fff);\n      display: none;\n      position: fixed;\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n    }\n    .gaia-modal.active {\n      display: block;\n    }\n    .tab-pane {\n      box-sizing: padding-box;\n      display: none;\n      position: absolute;\n      top: 96px;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: auto;\n    }\n    .tab-pane.active {\n      display: block;\n    }\n    textarea,\n    input {\n      -moz-user-select: text !important;\n    }\n    gaia-property-inspector {\n      --background: #000;\n      --header-background: #000;\n    }\n    textarea,\n    gaia-tabs,\n    .tab-pane {\n      background: #000;\n      color: #fff;\n    }\n    fxos-code-editor {\n      display: block;\n      width: 100%;\n      height: 100%;\n    }\n    .errors {\n      background: #e51e1e;\n      color: #fff;\n      position: absolute;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: 20px;\n      overflow: hidden;\n      z-index: 2;\n      opacity: 0;\n      transition: opacity 0.2s ease;\n      pointer-events: none;\n    }\n    .errors.active {\n      opacity: 1;\n    }\n    .errors.active + fxos-code-editor {\n      height: calc(100% - 20px);\n    }\n  </style>\n  <gaia-header>\n    <button data-action=\"cancel\" data-icon=\"close\"></button>\n    <h1>Edit</h1>\n    <button data-action=\"save\">Save</button>\n  </gaia-header>\n  <gaia-tabs selected=\"0\">\n    <a href=\"#\">HTML</a>\n    <a href=\"#\">Script</a>\n    <a href=\"#\">Attributes</a>\n    <a href=\"#\">Properties</a>\n  </gaia-tabs>\n  <section class=\"tab-pane active\" data-id=\"html\">\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"script\">\n    <div class=\"errors\"></div>\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"attributes\">\n    <gaia-property-inspector root-property=\"attributes\" data-textarea=\"textarea\"></gaia-property-inspector>\n  </section>\n  <section class=\"tab-pane\" data-id=\"properties\">\n    <gaia-property-inspector data-textarea=\"textarea\"></gaia-property-inspector>\n  </section>\n</gaia-modal>";
+  var editViewTemplate = "<gaia-modal>\n  <style scoped>\n    .gaia-modal {\n      background: var(--background, #fff);\n      display: none;\n      position: fixed;\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n    }\n    .gaia-modal.active {\n      display: block;\n    }\n    .tab-pane {\n      box-sizing: padding-box;\n      display: none;\n      position: absolute;\n      top: 96px;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: auto;\n    }\n    .tab-pane.active {\n      display: block;\n    }\n    textarea,\n    input {\n      -moz-user-select: text !important;\n    }\n    textarea,\n    gaia-tabs,\n    .tab-pane {\n      background: #000;\n      color: #fff;\n    }\n    fxos-code-editor {\n      display: block;\n      width: 100%;\n      height: 100%;\n    }\n    .errors {\n      background: #e51e1e;\n      color: #fff;\n      position: absolute;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: 20px;\n      overflow: hidden;\n      z-index: 2;\n      opacity: 0;\n      transition: opacity 0.2s ease;\n      pointer-events: none;\n    }\n    .errors.active {\n      opacity: 1;\n    }\n    .errors.active + fxos-code-editor {\n      height: calc(100% - 20px);\n    }\n  </style>\n  <gaia-header>\n    <button data-action=\"cancel\" data-icon=\"close\"></button>\n    <h1>Edit</h1>\n    <button data-action=\"save\">Save</button>\n  </gaia-header>\n  <gaia-tabs selected=\"0\">\n    <a href=\"#\">HTML</a>\n    <a href=\"#\">Script</a>\n    <a href=\"#\">Properties</a>\n  </gaia-tabs>\n  <section class=\"tab-pane active\" data-id=\"html\">\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"script\">\n    <div class=\"errors\"></div>\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"properties\">\n    <fxos-inspector></fxos-inspector>\n  </section>\n</gaia-modal>";
 
   var EditView = (function (View) {
     var EditView = function EditView(options) {
@@ -41,8 +41,7 @@ define(["exports"], function (exports) {
 
       this.htmlCodeEditor = this.$("section[data-id=\"html\"] > fxos-code-editor");
       this.scriptCodeEditor = this.$("section[data-id=\"script\"] > fxos-code-editor");
-      this.attributeInspector = this.$("section[data-id=\"attributes\"] > gaia-property-inspector");
-      this.propertyInspector = this.$("section[data-id=\"properties\"] > gaia-property-inspector");
+      this.propertyInspector = this.$("section[data-id=\"properties\"] > fxos-inspector");
 
       this.scriptErrors = this.$("section[data-id=\"script\"] > .errors");
 
@@ -86,16 +85,25 @@ define(["exports"], function (exports) {
         _this.validateScriptTimeout = setTimeout(_this.validateScript.bind(_this), 2000);
       });
 
-      this.on("save", "gaia-property-inspector", function (evt) {
-        var keyPath = [];
-        var parts = evt.detail.path.substr(1).split("/");
-        parts.forEach(function (part) {
-          return keyPath.push(part);
-        });
-        keyPath = keyPath.join(".");
+      this.propertyInspector.addEventListener("createattribute", function (evt) {
+        var detail = JSON.parse(evt.detail);
+
+        _this.controller.changes.createAttributes = _this.controller.changes.createAttributes || {};
+        _this.controller.changes.createAttributes[detail.expression] = detail.name;
+      });
+
+      this.propertyInspector.addEventListener("removeattribute", function (evt) {
+        var detail = JSON.parse(evt.detail);
+
+        _this.controller.changes.removeAttributes = _this.controller.changes.removeAttributes || {};
+        _this.controller.changes.removeAttributes[detail.expression] = detail.name;
+      });
+
+      this.propertyInspector.addEventListener("save", function (evt) {
+        var detail = JSON.parse(evt.detail);
 
         _this.controller.changes.properties = _this.controller.changes.properties || {};
-        _this.controller.changes.properties[keyPath] = evt.detail.newValue;
+        _this.controller.changes.properties[detail.expression] = detail.value;
       });
 
       this.el.addEventListener("contextmenu", function (evt) {
@@ -122,10 +130,9 @@ define(["exports"], function (exports) {
       });
 
       this.htmlCodeEditor.value = html;
-      this.scriptCodeEditor.value = "/**\n * You can edit a script to be inserted\n * in the generated add-on here.\n *\n * Globals:\n *   selector [String]\n *   el       [HTMLElement]\n *   mo       [MutationObserver]\n */\n\n //el.addEventListener('click', function(evt) {\n //  alert('Clicked!');\n //});\n";
+      this.scriptCodeEditor.value = "/**\n * You can edit a script to be inserted\n * in the generated add-on here.\n *\n * Globals:\n *   selector [String]\n *   el       [HTMLElement]\n *   mo       [MutationObserver]\n */\n\n//el.addEventListener('click', function(evt) {\n//  alert('Clicked!');\n//});\n";
 
-      this.attributeInspector.set(clonedTarget);
-      this.propertyInspector.set(clonedTarget);
+      this.propertyInspector.setRootTarget(clonedTarget);
     };
 
     EditView.prototype.validateScript = function () {

@@ -87,19 +87,22 @@ module.exports = component.register('gaia-list', {
     els.container.appendChild(els.ripple);
     this.els.inner.appendChild(els.container);
 
-    var duration = 500;
-
-    setTimeout(function() {
+    var end = 'transitionend';
+    requestAnimationFrame(function() {
       els.ripple.style.visibility = '';
       els.ripple.style.transform = 'scale(' + pos.item.width + ')';
-      els.ripple.style.transitionDuration = duration  + 'ms';
-      setTimeout(function() {
+      els.ripple.style.transitionDuration = '500ms';
+
+      els.ripple.addEventListener(end, function fn() {
+        els.ripple.removeEventListener(end, fn);
         els.ripple.style.transitionDuration = '1000ms';
         els.ripple.style.opacity = '0';
-        setTimeout(function() {
+
+        els.ripple.addEventListener(end, function fn() {
+          els.ripple.removeEventListener(end, fn);
           els.container.remove();
-        }, 1000);
-      }, duration);
+        });
+      });
     });
   },
 
@@ -224,7 +227,7 @@ module.exports = component.register('gaia-list', {
       display: none;
     }
 
-    /** Titles
+    /** Descriptions
      ---------------------------------------------------------*/
 
     ::content small,
@@ -255,6 +258,7 @@ module.exports = component.register('gaia-list', {
 
     :host-context([dir=rtl]) ::content i:before {
       transform: scale(-1, 1);
+      text-align: end;
     }
 
     /** Divided

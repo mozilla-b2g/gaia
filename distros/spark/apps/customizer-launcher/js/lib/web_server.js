@@ -27,6 +27,8 @@ define(["exports", "components/fxos-web-server/dist/fxos-web-server"], function 
             return;
           }
         }
+        // Default response for all other requests
+        response.send(null, 404);
       });
     };
 

@@ -50,6 +50,7 @@ gaia-header {
   font-weight: bold !important;
   height: 32px !important;
   min-width: 40px !important;
+  margin: 15px 0 !important;
   -moz-user-select: none;
   --button-background: var(--color-blue);
   --button-color: white;

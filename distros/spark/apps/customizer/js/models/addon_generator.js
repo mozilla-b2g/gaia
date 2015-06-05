@@ -89,17 +89,21 @@ define(["exports"], function (exports) {
       this.operations.push("/*=AddonGenerator::remove*/\nel.parentNode.removeChild(el);\n/*==*/");
     };
 
-    AddonGenerator.prototype.opSetAttribute = function (name, value) {
-      this.operations.push("/*=AddonGenerator::setAttribute*/\nel.setAttribute('" + name + "', '" + value + "');\n/*==*/");
+    AddonGenerator.prototype.opCreateAttributes = function (attributes) {
+      for (var expression in attributes) {
+        this.createAttributeHelper(expression, attributes[expression]);
+      }
     };
 
-    AddonGenerator.prototype.opSetProperty = function (name, value) {
-      this.operations.push("/*=AddonGenerator::setProperty*/\nel." + name + " = " + JSON.stringify(value) + ";\n/*==*/");
+    AddonGenerator.prototype.opRemoveAttributes = function (attributes) {
+      for (var expression in attributes) {
+        this.removeAttributeHelper(expression, attributes[expression]);
+      }
     };
 
     AddonGenerator.prototype.opSetProperties = function (properties) {
-      for (var name in properties) {
-        this.setProperty(name, properties[name]);
+      for (var expression in properties) {
+        this.setPropertyHelper(expression, properties[expression]);
       }
     };
 
@@ -135,6 +139,24 @@ define(["exports"], function (exports) {
       this.operations.push("/*=AddonGenerator::moveBefore*/\nvar destination = document.querySelector('" + getSelector(destination) + "');\nif (destination && destination.parentNode) {\n  destination.parentNode.insertBefore(el, destination);\n}\n/*==*/");
     };
 
+    AddonGenerator.prototype.createAttributeHelper = function (expression, name) {
+      var assignment = (expression[0] === "[") ? "el" + expression : "el." + expression;
+
+      this.operations.push("/*=AddonGenerator::createAttribute*/\n" + assignment + ".setNamedItem(document.createAttribute(" + JSON.stringify(name) + "));\n/*==*/");
+    };
+
+    AddonGenerator.prototype.removeAttributeHelper = function (expression, name) {
+      var assignment = (expression[0] === "[") ? "el" + expression : "el." + expression;
+
+      this.operations.push("/*=AddonGenerator::removeAttribute*/\n" + assignment + ".removeNamedItem(" + JSON.stringify(name) + ");\n/*==*/");
+    };
+
+    AddonGenerator.prototype.setPropertyHelper = function (expression, value) {
+      var assignment = (expression[0] === "[") ? "el" + expression : "el." + expression;
+
+      this.operations.push("/*=AddonGenerator::setProperty*/\n" + assignment + " = " + JSON.stringify(value) + ";\n/*==*/");
+    };
+
     return AddonGenerator;
   })(Model);
 
@@ -163,14 +185,6 @@ define(["exports"], function (exports) {
 
     Array.prototype.forEach.call(element.classList, function (item) {
       selector += "." + item;
-    });
-
-    Array.prototype.forEach.call(element.attributes, function (attr) {
-      if (attr.nodeName.toLowerCase() === "class") {
-        return;
-      }
-
-      selector += "[" + attr.nodeName + "=\"" + attr.nodeValue + "\"]";
     });
 
     return selector;

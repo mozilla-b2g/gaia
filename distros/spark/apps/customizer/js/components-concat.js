@@ -1,188 +1,5 @@
 function componentsSource() {/*
-(function() {(function(define){'use strict';define(function(require,exports,module){
-
-
-var pointer = [
-  { down: 'touchstart', up: 'touchend', move: 'touchmove' },
-  { down: 'mousedown', up: 'mouseup', move: 'mousemove' }
-]['ontouchstart' in window ? 0 : 1];
-
-
-var debug = 0 ? console.log.bind(console) : function() {};
-
-
-
-module.exports = Drag;
-
-
-function Drag(config) {
-  debug('init', config);
-  this.config(config);
-  this.dragging = false;
-  this.setupEvents();
-}
-
-
-Drag.prototype.config = function(config) {
-  this.slideDuration = config.slideDuration || 140;
-  this.container = config.container;
-  this.handle = config.handle;
-  this.max = {
-    x: this.container.width - this.handle.width,
-    y: this.container.height - this.handle.height
-  };
-};
-
-
-Drag.prototype.setupEvents = function() {
-  debug('setup events', pointer);
-  this.onPointerStart = this.onPointerStart.bind(this);
-  this.onPointerMove = this.onPointerMove.bind(this);
-  this.onPointerEnd = this.onPointerEnd.bind(this);
-  this.handle.el.addEventListener(pointer.down, this.onPointerStart);
-};
-
-
-Drag.prototype.onPointerStart = function(e) {
-  debug('pointer start', e);
-  this.point = getPoint(e);
-  addEventListener(pointer.move, this.onPointerMove);
-  addEventListener(pointer.up, this.onPointerEnd);
-  clearTimeout(this.timeout);
-  this.timeout = setTimeout(() => this.dragging = true, 200);
-};
-
-
-Drag.prototype.onPointerEnd = function(e) {
-  debug('pointer end', e);
-  clearTimeout(this.timeout);
-  this.timeout = setTimeout(() => this.dragging = false);
-  removeEventListener(pointer.move, this.onPointerMove);
-  removeEventListener(pointer.up, this.onPointerEnd);
-  this.dispatch('ended', e);
-};
-
-
-Drag.prototype.onPointerMove = function(e) {
-  debug('pointer move', e);
-  e.preventDefault();
-  var previous = this.point;
-  this.point = getPoint(e);
-  this.setDuration(0);
-  this.translateDelta(
-    this.point.pageX - previous.pageX,
-    this.point.pageY - previous.pageY
-  );
-};
-
-
-Drag.prototype.translateDelta = function(deltaX, deltaY) {
-  debug('translate by', deltaX, deltaY);
-  this.translate(
-    this.handle.x + deltaX,
-    this.handle.y + deltaY
-  );
-};
-
-
-Drag.prototype.translate = function(x, y) {
-  debug('translate', x, y);
-  var position = this.clamp(this.normalize(x, y));
-  var translate = 'translate(' + position.x + 'px,' + position.y + 'px)';
-  var ratio = {
-    x: (position.x / this.max.x) || 0,
-    y: (position.y / this.max.y) || 0
-  }
-  this.handle.el.style.transform = translate
-  this.handle.x = position.x;
-  this.handle.y = position.y
-  this.dispatch('translate', this.handle);
-};
-
-
-Drag.prototype.transition = function(x, y) {
-  debug('transition', x, y);
-  var pos = this.clamp(this.normalize(x, y));
-  var duration = this.getDuration(this.handle, pos);
-  this.setDuration(duration);
-  this.translate(pos.x, pos.y);
-};
-
-
-Drag.prototype.normalize = function(x, y) {
-  return {
-    x: typeof x == 'string' ? (Number(x) * this.max.x) : x,
-    y: typeof y == 'string' ? (Number(y) * this.max.y) : y
-  }
-};
-
-
-Drag.prototype.snap = function() {
-  debug('snap');
-  var edges = this.getClosestEdges();
-  this.transition(edges.x, edges.y)
-  this.dispatch('snapped', edges);
-};
-
-
-Drag.prototype.clamp = function(pos) {
-  return {
-    x: Math.max(0, Math.min(this.max.x, pos.x)),
-    y: Math.max(0, Math.min(this.max.y, pos.y)),
-  };
-};
-
-
-Drag.prototype.getDuration = function(from, to) {
-  var distanceX = Math.abs(from.x - to.x);
-  var distanceY = Math.abs(from.y - to.y);
-  var distance = Math.max(distanceX, distanceY);
-  var axis = distanceY > distanceX ? 'y' : 'x';
-  var ratio = distance / this.max[axis];
-  return this.slideDuration * ratio;
-};
-
-
-Drag.prototype.setDuration = function(ms) {
-  this.handle.el.style.transitionDuration = ms + 'ms';
-}
-
-
-Drag.prototype.getClosestEdges = function() {
-  return {
-    x: this.handle.x <= (this.max.x / 2) ?  '0' : '1',
-    y: this.handle.y <= (this.max.y / 2) ?  '0' : '1'
-  };
-};
-
-
-Drag.prototype.dispatch = function(name, detail) {
-  var e = new CustomEvent('drag' + name, { bubble: false, detail: detail })
-  this.container.el.dispatchEvent(e);
-  debug('dispatched', e);
-};
-
-
-Drag.prototype.on = function(name, fn) {
-  this.container.el.addEventListener('drag' + name, fn);
-}
-
-
-Drag.prototype.off = function(name, fn) {
-  this.container.el.removeEventListener('drag' + name, fn);
-}
-
-
-
-function getPoint(e) {
-  return ~e.type.indexOf('mouse') ? e : e.touches[0];
-}
-
-});})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(require,exports,module);}:
-function(c){var m={exports:{}},r=function(n){return w[n];};
-w[n]=c(r,m.exports,m)||m.exports;};})('drag',this));
-
+(function() {
 ;(function(define){'use strict';define(function(require,exports,module){
 
 var textContent = Object.getOwnPropertyDescriptor(Node.prototype,
@@ -194,10 +11,17 @@ var noop  = function() {};
 
 
 exports.register = function(name, props) {
-  var baseProto = getBaseProto(props.extends)
+  var baseProto = getBaseProto(props.extends);
+  var template = props.template || baseProto.templateString
+  var extensible = props.extensible = props.hasOwnProperty('extensible')?
+    props.extensible : true
   delete props.extends
-  if (props.template) {
-    var output = processCss(props.template, name);
+  if (template) {
+    if (extensible && props.template) {
+      props.templateString = props.template;
+    }
+
+    var output = processCss(template, name);
 
     props.template = document.createElement('template');
     props.template.innerHTML = output.template;
@@ -1727,114 +1551,6 @@ return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-dom-tree',this))
 var component = require('customizer-gaia-component');
 
 
-var debug = 1 ? console.log.bind(console) : function() {};
-
-
-module.exports = component.register('customizer-gaia-css-inspector', {
-
-  
-  created: function() {
-    debug('created');
-    this.setupShadowRoot();
-    this.els = {
-      inner: this.shadowRoot.querySelector('.inner'),
-      styles: this.shadowRoot.querySelector('.styles')
-    };
-  },
-
-  set: function(el) {
-    debug('set element', el);
-    this.root = el;
-    this.render();
-  },
-
-  render: function() {
-    var styles = getStylesForElement(this.root);
-    this.renderStyles(styles);
-  },
-
-  renderStyles: function(styles) {
-    this.els.styles.innerHTML = '';
-    for (var prop in styles) {
-      var li = document.createElement('li');
-      li.innerHTML = `<span class="prop">${prop}: </span><span class="value">${styles[prop]}</span>`;
-      this.els.styles.appendChild(li);
-    }
-  },
-
-  template: `
-    <style>
-      * { box-sizing: border-box; }
-
-      :host {
-        display: block;
-      }
-
-      .inner {
-        color: var(--text-color);
-        background: var(--background);
-        font-family: Consolas,Monaco,"Andale Mono",monospace;
-        line-height: 1;
-        -moz-user-select: none;
-        cursor: default;
-      }
-
-      .styles {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      .styles li {
-        margin-bottom: 0.27em;
-      }
-
-
-      .styles li > .prop {
-
-      }
-
-      .styles li > .value {
-        color: var(--highlight-color);
-      }
-
-    </style>
-    <div class="inner">
-      <ul class="styles"></ul>
-    </div>
-  `
-});
-
-function getStylesForElement(el) {
-  var styles = {};
-
-  [].forEach.call(document.styleSheets, (sheet) => {
-    [].forEach.call(sheet.cssRules, (rule) => {
-      if (!el.matches(rule.selectorText)) return;
-      debug('matching rule', rule);
-      var style = rule.style;
-      [].forEach.call(style, (prop) => {
-        styles[prop] = style[prop];
-      });
-    });
-  });
-
-  debug('got styles', styles);
-  return styles;
-}
-
-});})(typeof define=='function'&&define.amd?define
-:(function(n,w){'use strict';return typeof module=='object'?function(c){
-c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
-return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-css-inspector',this));
-
-;(function(define){'use strict';define(function(require,exports,module){
-
-
-
-var component = require('customizer-gaia-component');
-
-
 module.exports = component.register('customizer-gaia-modal', {
 
   
@@ -2748,1122 +2464,6 @@ function nextTick(fn) {
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-header',this));
 
-;(function(define){define(function(require,exports,module){
-
-
-
-var component = require('customizer-gaia-component');
-
-
-var debug = 0 ? console.log.bind(console) : function() {};
-
-var forEach = [].forEach;
-
-
-
-module.exports = component.register('customizer-gaia-pages', {
-  created: function() {
-    this.reset();
-    this.setupRoutes();
-    this.noTransitions = this.hasAttribute('no-transitions');
-    this.addEventListener('animationend', e => this.transitionEnded(e));
-    debug('created');
-  },
-
-  setupRoutes: function() {
-    this.selector = this.getAttribute('selector') || '[data-route]';
-    this.pages = [].slice.call(this.querySelectorAll(this.selector));
-    this.routes = this.pages.map(page => this.createRoute(page));
-    this.routes.sort((a, b) =>  b.specificity - a.specificity);
-    debug('routes setup', this.routes);
-  },
-
-  createRoute: function(page, index) {
-    debug('create route', page, index);
-    var pattern = page.dataset.route;
-    var media = page.getAttribute('route-media');
-    var route = new Route(pattern)
-    route.matchMedia = media ? window.matchMedia(media) : { matches: true };
-    route.fallback = page.getAttribute('route-fallback');
-    route.page = page;
-
-    page.route = route;
-    page.order = index;
-
-    return route;
-  },
-
-  pushState: function(path) {
-    this.history = this.history.slice(0, this.historyIndex + 1);
-    this.history.push(path)
-    this.historyIndex = this.history.length - 1;
-  },
-
-  getState: function() {
-    return this.history[this.historyIndex];
-  },
-
-  back: function(options) {
-    if (!this.historyIndex) { return; }
-    options = options || {};
-    options.pushState = false;
-    this.historyIndex--;
-    this.navigate(this.getState(), options);
-  },
-
-  forward: function() {
-    var last = this.historyIndex === this.history.length - 1;
-    if (last) { return; }
-    this.historyIndex++;
-    this.navigate(this.getState(), { pushState: false });
-  },
-
-  navigate: function(path, options) {
-    debug('navigate', path);
-    path = this.resolvePath(path)
-    if (path === this.path) { return; }
-
-    var pushState = !options || options.pushState !== false;
-    var dir = options && options.dir;
-    var result;
-    var route;
-
-    for (var i = 0, l = this.routes.length; i < l; i++) {
-      route = this.routes[i];
-      result = route.match(path);
-      debug('checked route', route.pattern, result)
-      if (result && route.page !== this.current) {
-        break;
-      }
-    }
-    if (!route.matchMedia.matches) {
-      this.navigate(route.fallback);
-      return;
-    }
-    this.params = result;
-    this.path = path;
-
-    if (result) this.showPage(route.page, dir);
-    if (pushState) { this.pushState(path); }
-
-    this.deselectLinks();
-    this.selectLinks();
-
-    this.dispatchEvent(new Event('changed'));
-  },
-
-  reset: function() {
-    this.history = [];
-    this.path = null;
-    this.params = null;
-  },
-
-  resolvePath: function(path) {
-    if (path[0] === '/') return path;
-    return (this.getState() + '/' + path).replace(/\/\/+/g, '/');
-  },
-
-  showPage: function(next, direction) {
-    debug('on matched', next);
-    var prev = this.current;
-    var transitions = !this.noTransitions;
-    var dir = {}
-    dir.next = direction || this.getDirection(next, prev);
-    dir.prev = dir.next === 'forward' ? 'back' : 'forward'
-    this.current = next
-    if (!this.history.length) {
-      this.animationsOff();
-      setTimeout(() => this.animationsOn());
-    }
-    if (prev) {
-      if (transitions) { prev.classList.add('leave-' + dir.prev); }
-      prev.classList.remove('matched');
-      prev.setAttribute('aria-hidden', 'true');
-      prev.dispatchEvent(new Event('unmatched'));
-    }
-    if (transitions) { next.classList.add('enter-' + dir.next); }
-    next.classList.add('matched');
-    next.removeAttribute('aria-hidden');
-    next.dispatchEvent(new Event('matched'));
-  },
-
-  transitionEnded: function(e) {
-    debug('transition ended');
-    e.target.classList.remove(
-       'enter-forward',
-       'enter-back',
-       'leave-forward',
-       'leave-back');
-  },
-
-  getDirection: function(nextPage, prevPage) {
-    var nextOrder = Number(nextPage.dataset.order || this.pages.indexOf(nextPage));
-    var prevOrder = prevPage
-      ? Number(prevPage.dataset.order || this.pages.indexOf(prevPage))
-      : -1;
-
-    return nextOrder > prevOrder ? 'forward' : 'back';
-  },
-
-  animationsOn: function() {
-    this.classList.remove('no-animations');
-  },
-
-  animationsOff: function() {
-    this.classList.add('no-animations');
-  },
-
-  deselectLinks: function() {
-    forEach.call(this.links || [], el => el.classList.remove('selected'));
-    this.links = null;
-  },
-
-  selectLinks: function() {
-    var url = this.getState();
-    this.links = document.querySelectorAll('a[href="#' + url + '"]');
-    forEach.call(this.links, el => el.classList.add('selected'));
-  },
-
-  template: `
-    <content></content>
-
-    <style>
-
-      :host {
-        position: relative;
-        width: 100%;
-        height: 100%;
-
-        display: block;
-        overflow: hidden;
-      }
-
-      ::content [data-route] {
-        position: absolute;
-        left: 0;
-        top: 0;
-
-        display: block;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-
-        animation-duration: 400ms;
-        animation-fill-mode: forwards;
-        animation-timing-function: ease-out;
-        pointer-events: none;
-        opacity: 0;
-      }
-
-      :host(.no-animations) [data-route] {
-        animation-duration: 0s !important;
-      }
-
-      ::content [data-route].matched,
-      ::content .enter-forward,
-      ::content .leave-forward,
-      ::content .enter-back,
-      ::content .leave-back {
-        opacity: 1;
-      }
-
-      ::content [data-route].matched {
-        pointer-events: auto;
-      }
-
-      ::content .enter-back {
-        animation-name: page-enter-left;
-      }
-
-      ::content .leave-forward {
-        animation-name: page-enter-right;
-        animation-timing-function: ease-in;
-        animation-direction: reverse;
-      }
-
-      ::content .leave-back {
-        animation-name: page-enter-left;
-        animation-timing-function: ease-in;
-        animation-direction: reverse;
-      }
-
-      
-
-      ::content .enter-forward {
-        animation-name: page-enter-right;
-      }
-
-      
-
-      :host-context([dir=rtl]) ::content .enter-forward {
-        animation-name: page-enter-left !important;
-      }
-
-      :host-context([dir=rtl]) ::content .enter-back {
-        animation-name: page-enter-right !important;
-      }
-
-      :host-context([dir=rtl]) ::content .leave-forward {
-        animation-name: page-enter-left !important;
-        animation-timing-function: ease-in;
-        animation-direction: reverse;
-      }
-
-      :host-context([dir=rtl]) ::content .leave-back {
-        animation-name: page-enter-right !important;
-        animation-timing-function: ease-in;
-        animation-direction: reverse;
-      }
-    </style>
-  `,
-
-  globalCss: `
-    @keyframes page-enter-right {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(0%); }
-    }
-
-    @keyframes page-enter-left {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(0%); }
-    }
-  `
-});
-
-
-function Route(pattern) {
-  debug('create route', pattern);
-  var self = this;
-  this.keys = [];
-  this.pattern = pattern;
-  this.specificity = (pattern.match(/(?:\/)[\:\w]+/g) || []).length;
-  this.regex = new RegExp(pattern.replace(this.paramRegex, (match) => {
-    self.keys.push(match.substr(1));
-    return '([^\/\\s]+)';
-  }));
-}
-
-
-Route.prototype.paramRegex = /(\:[^\/\s]+)/g;
-
-
-Route.prototype.match = function(url) {
-  var match = this.regex.exec(url);
-  var result = {};
-  if (!match) return null;
-  match.slice(1).forEach((value, i) => result[this.keys[i]] = value);
-  return result;
-};
-
-});})(typeof define=='function'&&define.amd?define
-:(function(n,w){'use strict';return typeof module=='object'?function(c){
-c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
-return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-pages',this));
-;(function(define){define(function(require,exports,module){
-
-'use strict';
-
-
-var debug = 0 ? console.log.bind(console) : function() {};
-var map = [].map;
-
-
-
-module.exports = format;
-
-function format(thing) {
-  var formatter = getObjectFormatter(thing)
-    || getValueFormatter(thing);
-
-  var result = formatter(thing);
-  var formatted = result.formatted || result;
-  var type = Array.isArray(formatted) ? 'object' : 'value';
-
-  if (type === 'object') {
-    formatted.sort((a, b) => {
-      if (a.key > b.key) {
-        return 1;
-      }
-      if (a.key < b.key) {
-        return -1;
-      }
-      return 0;
-    }).sort((a, b) => {
-      if (a.value === undefined && b.value !== undefined) {
-        return 1;
-      }
-      if (a.value !== undefined && b.value === undefined) {
-        return -1;
-      }
-      return 0;
-    });
-  }
-
-  return {
-    title: result.title,
-    formatted: formatted,
-    displayType: type,
-    original: thing
-  };
-}
-
-format.shallow = function(thing) {
-  return getValueFormatter(thing)(thing);
-};
-
-function getValueFormatter(thing) {
-  debug('get value formatter', thing);
-
-  var type = thing != null
-    && thing.constructor
-    && thing.constructor.name;
-
-  if (thing === undefined) { type = 'undefined'; }
-  if (thing === null) { type = 'null'; }
-
-  return formatters.values[type] || formatters.values.default;
-}
-
-function getObjectFormatter(thing) {
-  debug('get object formattr', thing);
-  if (!thing) { return; }
-  for (var ctor in formatters.objects) {
-    if (thing instanceof window[ctor]) {
-      return formatters.objects[ctor];
-    }
-  }
-  if (thing.toString && thing.toString() === '[object Map]') {
-    return formatters.objects.Map;
-  }
-}
-
-var formatters = {
-  objects: {
-    NodeList: nodeList,
-    HTMLCollection: nodeList,
-    DOMTokenList: nodeList,
-
-    HTMLElement: function(el) {
-      debug('HTMLElement', el);
-      var hash = getNodeProps(el, el);
-      var list = sortByKey(toArray(hash));
-
-      return {
-        formatted: list,
-        title: getNodeTitle.HTMLElement(el)
-      };
-    },
-
-    Text: function(node) {
-      debug('Node', node);
-      var hash = getNodeProps(node, node);
-      var list = sortByKey(toArray(hash));
-
-      return {
-        formatted: list,
-        title: getNodeTitle.Text(node)
-      };
-    },
-
-    HTMLDocument: function(doc) {
-      debug('Node', doc);
-      var hash = getNodeProps(doc, doc);
-      var list = sortByKey(toArray(hash));
-
-      return {
-        formatted: list,
-        title: doc.constructor.name
-      };
-    },
-
-    NamedNodeMap: function(obj) {
-      debug('NamedNodeMap', obj);
-      return map.call(obj, (attr) => {
-        var item = format.shallow(attr);
-        item.key = attr.name;
-        item.writable = true;
-        return item;
-      });
-    },
-
-    DOMStringMap: function(obj) {
-      debug('DOMStringMap', obj);
-      var result = [];
-
-      for (var key in obj) {
-        var item = format.shallow(obj[key]);
-        item.key = key;
-        result.push(item);
-      }
-
-      return result;
-    },
-
-    CSS2Properties: function(obj) {
-      debug('CSS2Properties', obj);
-      return map.call(obj, key => {
-        var item = format.shallow(obj[key]);
-        item.key = key;
-        return item;
-      });
-    },
-
-    Map: function(obj) {
-      debug('Map', obj);
-      var result = [];
-
-      for (var [key, value] of obj.entries()) {
-        var item = format.shallow(value);
-        item.key = key;
-        item.writable = true;
-        result.push(item);
-      }
-
-      return result;
-    }
-  },
-
-  values: {
-    Boolean: common,
-    Number: common,
-
-    String: function(value) {
-      debug('String', value);
-      return {
-        value: value,
-        displayValue: '\'' + value + '\'',
-        type: 'string',
-      };
-    },
-
-    Function: function(fn) {
-      debug('Function', fn);
-      return {
-        value: fn,
-        displayValue: fn.toString(),
-        type: 'function',
-        native: isNativeFn(fn)
-      };
-    },
-
-    Attr: function(attr) {
-      debug('Attr', attr, attr.value);
-      return {
-        value: attr.value,
-        displayValue: '\'' + attr.value + '\'',
-        type: 'Attr'
-      };
-    },
-
-    null: function() {
-      return {
-        value: null,
-        displayValue: 'null',
-        type: 'null'
-      };
-    },
-
-    undefined: function() {
-      return {
-        value: undefined,
-        displayValue: 'undefined',
-        type: 'undefined'
-      };
-    },
-
-    default: function(value) {
-      debug('default', value);
-      return {
-        value: value,
-        displayValue: value.constructor.name,
-        type: value.constructor.name
-      };
-    }
-  }
-};
-
-
-function nodeList(obj) {
-  debug('NodeList', obj);
-  return map.call(obj, (value, i) => {
-    var item = format.shallow(value);
-    item.key = i;
-    return item;
-  });
-}
-
-function common(value) {
-  debug('Common', value);
-  return {
-    constructor: value.constructor,
-    value: value,
-    displayValue: value,
-    type: typeof value
-  };
-}
-
-
-
-function getNodeProps(instance, level) {
-  if (!level) return {};
-  debug('get props', level.toString());
-  var result = getNodeProps(instance, Object.getPrototypeOf(level));
-
-  Object.getOwnPropertyNames(level).forEach(key => {
-    if (isConstant(key)) { return; }
-    var descriptor = Object.getOwnPropertyDescriptor(level, key);
-    var value = format.shallow(instance[key]);
-
-    if (value.native) return;
-
-    value.key = key;
-    value.writable = isWritable(descriptor);
-
-    result[key] = value;
-  });
-
-  return result;
-}
-
-function toArray(obj) {
-  return Object.keys(obj).map(key => obj[key]);
-}
-
-function sortByKey(list) {
-  return list.sort((a, b) => a.key > b.key);
-}
-
-function isNativeFn(value) {
-  return value && !!~value.toString().indexOf('[native code]');
-}
-
-var constantRegex = /^[A-Z_]+$/;
-
-function isConstant(key) {
-  return constantRegex.test(key);
-}
-
-
-function isWritable(descriptor) {
-  return !!(descriptor.set || descriptor.writable);
-}
-
-var getNodeTitle = {
-  HTMLElement: function(el) {
-    debug('toString.element', el);
-    var id = el.id ? '#' + el.id : '';
-    var className = el.className ? '.' + el.className.split(' ').join('.') : '';
-    var tagName = el.tagName.toLowerCase();
-    return '<' + tagName + id + className + '>';
-  },
-
-  Text: function(node) {
-    debug('toString.textNode', node);
-    var value = node.nodeValue.trim().replace(/\n/g, '\\n');
-    return '<text!' + value + '>';
-  }
-};
-
-});})(typeof define=='function'&&define.amd?define
-:(function(n,w){'use strict';return typeof module=='object'?function(c){
-c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
-return w[n];},m.exports,m);w[n]=m.exports;};})('./lib/format',this));
-
-;(function(define){'use strict';define(function(require,exports,module){
-
-
-
-var GaiaTextarea = require('customizer-gaia-text-input-multiline');
-var component = require('customizer-gaia-component');
-var format = require('./lib/format');
-var GaiaPage = require('customizer-gaia-pages');
-
-
-var debug = 0 ? console.log.bind(console) : function() {};
-
-var allAttributes = (
-  'accept accept-charset accesskey action alt async autocomplete autofocus autoplay challenge ' +
-  'charset checked class colspan content contenteditable contextmenu controls coords crossorigin ' +
-  'defer dir disabled download draggable dropzone enctype form formaction formenctype formmethod ' +
-  'formnovalidate formtarget headers height hidden href hreflang http-equiv id ismap keytype label ' +
-  'lang list loop manifest max maxlength media method min multiple muted name novalidate onabort ' +
-  'onafterprint onbeforeprint onbeforeunload onblur oncanplay oncanplaythrough onchange onclick ' +
-  'oncontextmenu oncopy oncuechange oncut ondblclick ondrag ondragend ondragenter ondragleave ' +
-  'ondragover ondragstart ondrop ondurationchange onemptied onended onerror onfocus onhashchange ' +
-  'oninput oninvalid onkeydown onkeypress onkeyup onload onloadeddata onloadedmetadata onloadstart ' +
-  'onmessage onmousedown onmousemove onmouseout onmouseover onmouseup onoffline ononline onpagehide ' +
-  'onpageshow onpaste onpause onplay onplaying onpopstate onprogress onratechange onreset onresize ' +
-  'onscroll onsearch onseeked onseeking onselect onshow onstalled onstorage onsubmit onsuspend ' +
-  'ontimeupdate ontoggle ontouchcancel ontouchend ontouchmove ontouchstart onunload onvolumechange ' +
-  'onwaiting onwheel open pattern placeholder poster preload readonly rel required rev rowspan ' +
-  'sandbox scoped seamless selected shape size sizes sortable spellcheck src srcdoc step style ' +
-  'tabindex target title translate type usemap value width xmlns'
-).split(' ');
-
-
-module.exports = component.register('customizer-gaia-property-inspector', {
-
-  
-  created: function() {
-    debug('created');
-    this.setupShadowRoot();
-
-    this.els = {
-      inner: this.shadowRoot.querySelector('.inner'),
-      props: this.shadowRoot.querySelector('.props'),
-      router: this.shadowRoot.querySelector('customizer-gaia-pages'),
-      pages: this.shadowRoot.querySelectorAll('[data-route]'),
-      header: this.shadowRoot.querySelector('customizer-gaia-header'),
-      saveButton: this.shadowRoot.querySelector('.save'),
-      search: this.shadowRoot.querySelector('input[type="search"]')
-    };
-
-    this.els.title = this.els.header.querySelector('h1');
-
-    this.router = this.els.router;
-    this.shadowRoot.addEventListener('click', e => this.onClick(e));
-    this.router.addEventListener('changed', e => this.onPageChange(e));
-    this.els.header.addEventListener('action', () => this.router.back({ dir: 'back' }));
-    this.els.search.addEventListener('keyup', e => this.onKeyUp(e));
-    this.els.saveButton.addEventListener('click', () => {
-      var path = this.router.path;
-      var input = this.shadowRoot.querySelector('.value-page > input');
-      var oldFormattedValue = format(dataFromPath(path, this.node).value);
-      var oldValue = oldFormattedValue.formatted.value;
-      var newValue = input.value;
-
-      setValueForPath(path, this.node, newValue);
-
-      var e = new CustomEvent('save', {
-        detail: {
-          path: path,
-          oldValue: oldValue,
-          newValue: newValue
-        }
-      });
-      setTimeout(() => this.dispatchEvent(e));
-
-      this.router.back({ dir: 'back' });
-    });
-
-    this.rootProperty = this.getAttribute('root-property');
-  },
-
-  attached: function() {
-    this.els.header.attachedCallback();
-  },
-
-  attrs: {
-    rootProperty: {
-      get: function() { return this._rootProperty || ''; },
-      set: function(value) {
-        value = value || '';
-        if (value === this._rootProperty) { return; }
-        this.setAttr('root-property', value);
-        this._rootProperty = value;
-
-        if (this.node) {
-          this.router.reset();
-          this.router.navigate('/' + value);
-        }
-      }
-    }
-  },
-
-  set: function(node) {
-    debug('set node', node);
-    this.node = node;
-    this.router.reset();
-    this.router.navigate('/' + this.rootProperty);
-  },
-
-  onClick: function(e) {
-    debug('click', e);
-    var a = e.target.closest('a');
-    if (!a) { return; }
-    e.preventDefault();
-    var href = a.getAttribute('href');
-    if (href === 'back') { this.router.back({ dir: 'back' }); }
-    else { this.router.navigate(href, { dir: 'forward' }); }
-  },
-
-  onPageChange: function() {
-    debug('on page change');
-    var page = this.router.current;
-    var path = this.router.path;
-    var data = dataFromPath(path, this.node);
-    var formatted = format(data.value);
-    var displayType = formatted.displayType;
-    var el = render[displayType](formatted.formatted);
-
-    this.setTitle(formatted.title || data.key);
-    this.toggleSaveButton(displayType === 'value');
-    this.toggleSearch(displayType !== 'value');
-    this.toggleBackButton(path !== '/' + this.rootProperty);
-    this.els.search.value = '';
-
-    page.innerHTML = '';
-    page.appendChild(el);
-  },
-
-  onKeyUp: function(e) {
-    debug('on key up');
-
-    clearTimeout(this._searchTimeout);
-    this._searchTimeout = setTimeout(() => {
-      var value = (this.els.search.value || '').toLowerCase();
-      var items = [].slice.apply(this.shadowRoot.querySelectorAll('.items > a'));
-      items.forEach((item) => {
-        item.hidden = value && item.dataset.searchText.indexOf(value) === -1;
-      });
-    }, 500);
-  },
-
-  setTitle: function(text) {
-    this.els.title.textContent = text;
-  },
-
-  toggleSaveButton: function(value) {
-    this.els.saveButton.hidden = !value;
-  },
-
-  toggleBackButton: function(value) {
-    this.els.header.action = value ? 'back' : '';
-  },
-
-  toggleSearch: function(value) {
-    this.els.search.hidden = !value;
-  },
-
-  template: `
-    <div class="inner">
-      <customizer-gaia-header action="back" not-flush>
-        <h1>Header</h1>
-        <button class="save">Save</button>
-      </customizer-gaia-header>
-      <input type="search" placeholder="Search...">
-      <customizer-gaia-pages manual class="no-animations">
-        <section data-route="."></section>
-        <section data-route="."></section>
-      </customizer-gaia-pages>
-    </div>
-
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style-type: none;
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
-
-      a[hidden] {
-        display: none;
-      }
-
-      :host {
-        display: block;
-      }
-
-      .inner {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-
-        display: flex;
-        flex-direction: column;
-
-        font-size: 0.9em;
-        color: var(--text-color);
-        background: var(--background);
-        -moz-user-select: none;
-        cursor: default;
-      }
-
-      customizer-gaia-pages {
-        flex: 1;
-      }
-
-      .value-page {
-        display: flex;
-        height: 100%;
-      }
-
-      .props {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-      }
-
-      .item {
-        display: block;
-        padding: 0.5em 0.5em;
-        border-bottom: solid 1px var(--border-color);
-        opacity: 0.6;
-      }
-
-      .item.clickable {
-        opacity: 1;
-      }
-
-      .item .name {
-        font: inherit;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .item .value {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .item > .value {
-        color: var(--highlight-color);
-      }
-
-      input {
-        background:
-          var(--text-input-background,
-          var(--input-background,
-          var(--background-minus,
-          #fff)));
-        border: 1px solid var(--input-border-color, var(--border-color, var(--background-plus, #E7E7E7)));
-        color: var(--text-color, #000);
-        font: inherit;
-        display: block;
-        margin: 0;
-        padding: 0 16px;
-        width: 100%;
-        height: 40px;
-        resize: none;
-      }
-
-      input[type="search"] {
-        border-radius: 30px;
-      }
-    </style>`
-});
-
-function dataFromPath(path, object) {
-  debug('object from path', path, object);
-  var key;
-
-  var value = path.split('/').reduce((object, part) => {
-    key = part;
-    return part ? object[part] : object;
-  }, object);
-
-  if (key !== 'attributes') {
-    return {
-      key: key,
-      value: value
-    };
-  }
-
-  var attributesMap = new Map();
-
-  allAttributes.forEach((name) => {
-    attributesMap.set(name, undefined);
-  });
-
-  [].forEach.call(value, (attr) => {
-    attributesMap.set(attr.name, attr.value);
-  });
-
-  return {
-    key: key,
-    value: attributesMap
-  };
-}
-
-function setValueForPath(path, object, value) {
-  var keys = path.split('/');
-  keys.shift();
-
-  var currentObject = object;
-  var currentKey = keys[0];
-
-  for (var i = 0; i < keys.length - 1; i++) {
-    currentObject = currentObject[currentKey];
-    currentKey = keys[i + 1];
-  }
-
-  var setter = currentObject[currentKey];
-  if (setter instanceof Attr) {
-    setter.value = value;
-  }
-
-  else {
-    currentObject[currentKey] = value;
-  }
-}
-
-var render = {
-  object: function(props) {
-    debug('render props', props);
-    var list = document.createElement('div');
-    list.className = 'items';
-
-    var items = [];
-    props.forEach(prop => {
-      var item = document.createElement('a');
-      var key = document.createElement('h3');
-      var value = document.createElement('div');
-      var isObject = typeof prop.value === 'object';
-
-      key.className = 'name';
-      value.className = 'value';
-
-      key.textContent = prop.key;
-      value.textContent = prop.displayValue;
-
-      item.appendChild(key);
-      item.appendChild(value);
-      item.className = 'item';
-      item.dataset.searchText = ((prop.key || '') + '').toLowerCase();
-
-      if (isObject || prop.writable) {
-        item.classList.add('clickable');
-        item.href = prop.key;
-      }
-
-      list.appendChild(item);
-      items.push(item);
-    });
-
-    return list;
-  },
-
-  value: function(item) {
-    debug('render value', item)
-    var input = document.createElement('input');
-    var el = document.createElement('div');
-    el.className = 'value-page';
-    input.type = 'text';
-    input.value = item.value;
-    el.appendChild(input);
-    return el;
-  }
-};
-
-function getDisplayValue(value) {
-  if (typeof value === 'string') { return '\'' + value + '\''; }
-  else if (value instanceof HTMLElement) return toString.element(value);
-  else if (value instanceof Text) return toString.textNode(value);
-  else return value;
-}
-
-});})(typeof define=='function'&&define.amd?define
-:(function(n,w){'use strict';return typeof module=='object'?function(c){
-c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
-return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-property-inspector',this));
-
-(function(define){'use strict';define(function(require,exports,module){
-
-
-
-
-
-
-var component = require('customizer-gaia-component');
-
-
-
-module.exports = component.register('customizer-gaia-sub-header', {
-  created: function() {
-    this.setupShadowRoot();
-  },
-
-  template: `<div class="inner">
-      <div class="line left"></div>
-      <div class="middle"><content></content></div>
-      <div class="line right"></div>
-    </div>
-
-    <style>
-
-    :host {
-      display: block;
-    }
-
-    .inner {
-      display: flex;
-      margin: 16px 16px 0 16px;
-      align-items: center;
-    }
-
-    .line {
-      position: relative;
-      height: 2px;
-      flex: 1;
-
-      background:
-        var(--border-color,
-        var(--background-plus));
-    }
-
-    .middle {
-      margin: 0 14px 0 14px;
-      padding: 0;
-      text-transform: uppercase;
-      font-size: 14px;
-      font-weight: normal;
-
-      color:
-        var(--color-epsilon);
-    }
-
-    a,
-    button {
-      position: relative;
-      display: block;
-      padding-right: 16px;
-      font: inherit;
-      cursor: pointer;
-
-      color:
-        var(--highlight-color);
-    }
-
-    
-
-    a:active,
-    button:active {
-      opacity: 0.5;
-    }
-
-    a:after,
-    button:after {
-      content: " ";
-      position: absolute;
-      width: 0px;
-      height: 0px;
-      top: 6px;
-      right: 0px;
-      border-bottom: 8px solid;
-      border-left: 8px solid transparent;
-
-      border-bottom-color:
-        var(--highlight-color,
-        var(--color-zeta))
-    }
-
-    </style>`
-});
-
-});})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(require,exports,module);}:
-function(c){var m={exports:{}},r=function(n){return w[n];};
-w[n]=c(r,m.exports,m)||m.exports;};})('customizer-gaia-sub-header',this));
-
 
 ;(function(define){'use strict';define(function(require,exports,module){
 
@@ -3944,19 +2544,22 @@ module.exports = component.register('customizer-gaia-list', {
     els.container.appendChild(els.ripple);
     this.els.inner.appendChild(els.container);
 
-    var duration = 500;
-
-    setTimeout(function() {
+    var end = 'transitionend';
+    requestAnimationFrame(function() {
       els.ripple.style.visibility = '';
       els.ripple.style.transform = 'scale(' + pos.item.width + ')';
-      els.ripple.style.transitionDuration = duration  + 'ms';
-      setTimeout(function() {
+      els.ripple.style.transitionDuration = '500ms';
+
+      els.ripple.addEventListener(end, function fn() {
+        els.ripple.removeEventListener(end, fn);
         els.ripple.style.transitionDuration = '1000ms';
         els.ripple.style.opacity = '0';
-        setTimeout(function() {
+
+        els.ripple.addEventListener(end, function fn() {
+          els.ripple.removeEventListener(end, fn);
           els.container.remove();
-        }, 1000);
-      }, duration);
+        });
+      });
     });
   },
 
@@ -4091,6 +2694,7 @@ module.exports = component.register('customizer-gaia-list', {
 
     :host-context([dir=rtl]) ::content i:before {
       transform: scale(-1, 1);
+      text-align: end;
     }
 
     
@@ -4332,382 +2936,288 @@ module.exports = component.register('customizer-gaia-button', {
 define:typeof module=='object'?function(c){c(require,exports,module);}:function(c){
 var m={exports:{}},r=function(n){return w[n];};w[n]=c(r,m.exports,m)||m.exports;};})('customizer-gaia-button',this));
 
+;(function(define){define(function(require,exports,module){
 
-(function(define){'use strict';define(function(require,exports,module){
+'use strict';
 
 
 
-var component = require('customizer-gaia-component');
-var Drag = require('drag');
+var GaiaDialogMenu = require('customizer-gaia-dialog-menu');
 
 
-var debug = 0 ? console.log.bind(console) : function() {};
 
+var forEach = [].forEach;
+var slice = [].slice;
 
 
-module.exports = component.register('customizer-gaia-switch', {
-  extends: HTMLInputElement.prototype,
+var proto = Object.create(HTMLElement.prototype);
 
-  rtl: true,
+proto.createdCallback = function() {
+  this.createShadowRoot().innerHTML = template;
 
-  created: function() {
-    this.setupShadowRoot();
+  this.els = {
+    inner: this.shadowRoot.querySelector('.inner'),
+    moreButton: this.shadowRoot.querySelector('.more-button')
+  };
 
-    this.els = {
-      inner: this.shadowRoot.querySelector('.inner'),
-      track: this.shadowRoot.querySelector('.track'),
-      handle: this.shadowRoot.querySelector('.handle')
-    }
-    this.updateDir = this.updateDir.bind(this);
-    this.toggle = this.toggle.bind(this)
-    on(this, 'click', e => this.onClick(e))
-    this.setupDrag();
-    this.disabled = this.getAttribute('disabled');
-    this.checked = this.getAttribute('checked')
-    setTimeout(() => {
-      this.activateTransitions();
-      this.makeAccessible();
-    });
-  },
+  this.els.moreButton.addEventListener('click', this.openOverflow.bind(this));
 
-  
-  makeAccessible: function() {
-    this.setAttribute('role', 'switch')
-    this.tabIndex = 0;
+  var self = this;
+  this.reflow_raf = rafWrap(this.reflow, this);
+  addEventListener('resize', this.reflow_raf);
+  this.shadowStyleHack();
 
-    this.setAttr('aria-checked', this.checked);
-    if (this.disabled) {
-      this.setAttr('aria-disabled', true);
-    }
-  },
-
-  attached: function() {
-    debug('attached');
-    on(document, 'dirchanged', this.updateDir);
-  },
-
-  detached: function() {
-    debug('detached');
-    off(document, 'dirchanged', this.updateDir);
-  },
-
-  setupDrag: function() {
-    debug('setup drag');
-
-    this.drag = new Drag({
-      container: {
-        el: this.els.track,
-        width: 50,
-        height: 32
-      },
-
-      handle: {
-        el: this.els.handle,
-        width: 32,
-        height: 32,
-        x: 0,
-        y: 0
-      },
-    });
-
-    this.drag.on('ended', () => this.drag.snap());
-    this.drag.on('snapped', (e) => this.onSnapped(e));
-  },
-
-  activateTransitions: function() {
-    debug('activate transitions');
-    this.els.inner.classList.add('transitions-on');
-  },
-
-  onClick: function(e) {
-    debug('click', e);
-    e.stopPropagation();
-    if (this.drag.dragging) { return; }
-    if (this.disabled) { return; }
-    this.toggle();
-  },
-
-  updateDir: function() {
-    debug('update dir', dir());
-    this.updatePosition();
-  },
-
-  onSnapped: function(e) {
-    debug('snapped', e, convert.toChecked(e.detail.x));
-    this.checked = convert.toChecked(e.detail.x);
-  },
-
-  toggle: function(value) {
-    debug('toggle', value);
-    this.checked = !this.checked;
-  },
-
-  updatePosition: function() {
-    var edge = convert.toEdge(this.checked);
-    this.drag.transition(edge, 0);
-    debug('updated position', edge);
-  },
-
-  attrs: {
-    checked: {
-      get: function() { return this._checked; },
-      set: function(value) {
-        debug('set checked', value);
-        value = !!(value || value === '');
-
-        if (this._checked === value) { return; }
-
-        var changed = this._checked !== undefined;
-        this._checked = value;
-
-        this.els.handle.style.transform = '';
-        this.els.handle.style.transition = '';
-
-        if (value) {
-          this.setAttr('checked', '');
-          this.setAttr('aria-checked', true);
-        } else {
-          this.removeAttr('checked');
-          this.setAttr('aria-checked', false);
-        }
-
-        this.updatePosition();
-
-        if (changed) { this.dispatchEvent(new CustomEvent('change')); }
-      }
-    },
-
-    disabled: {
-      get: function() { return this._disabled; },
-      set: function(value) {
-        value = !!(value || value === '');
-        if (this._disabled === value) { return; }
-        debug('set disabled', value);
-        this._disabled = value;
-        if (value) {
-          this.setAttr('disabled', '');
-          this.setAttr('aria-disabled', true);
-        } else {
-          this.removeAttr('disabled');
-          this.removeAttr('aria-disabled');
-        }
-      }
-    }
-  },
-
-  template: `
-    <div class="inner">
-      <div class="track">
-        <div class="handle">
-          <div class="handle-head"></div>
-        </div>
-      </div>
-    </div>
-    <style>
-
-    :host {
-      display: inline-block;
-      position: relative;
-      border-radius: 18px;
-      outline: 0;
-    }
-
-    :host([disabled]) {
-      pointer-events: none;
-      opacity: 0.5;
-    }
-
-    
-
-    .inner {
-      display: block;
-      width: 50px;
-      height: 32px;
-      direction: ltr;
-    }
-
-    
-
-    .track {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 18px;
-
-      
-
-      background:
-        var(--switch-background,
-        var(--background-minus,
-        var(--background-plus,
-        rgba(0,0,0,0.2))));
-    }
-
-    
-
-    .track:after {
-      content: " ";
-      display: block;
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 25px;
-      transform: scale(0);
-      transition-property: transform;
-      transition-duration: 200ms;
-      transition-delay: 300ms;
-
-      
-
-      background-color:
-        var(--highlight-color, #000)
-    }
-
-    
-
-    [checked] .track:after {
-      transform: scale(1);
-    }
-
-    
-
-    .handle {
-      position: relative;
-      z-index: 1;
-      width: 32px;
-      height: 32px;
-    }
-
-    
-
-    .inner:not(.transitions-on) .handle {
-      transition: none !important;
-    }
-
-    
-
-    .handle-head {
-      display: flex;
-      box-sizing: border-box;
-      width: 36px;
-      height: 36px;
-      position: relative;
-      top: -2px;
-      left: -2px;
-      border-radius: 50%;
-      border: 1px solid;
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-
-      
-
-      background:
-        var(--switch-head-background,
-        var(--input-background,
-        var(--button-background,
-        var(--background-plus,
-        #fff))));
-
-      border-color:
-        var(--switch-head-border-color,
-        var(--switch-background,
-        var(--border-color,
-        var(--background-minus,
-        rgba(0,0,0,0.2)))));
-    }
-
-    
-
-    .handle-head:after {
-      content: "";
-      display: block;
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      transform: scale(0);
-      transition-property: transform;
-      transition-duration: 300ms;
-      transition-delay: 600ms;
-
-      
-
-      background:
-        var(--highlight-color, #000)
-    }
-
-    
-
-    [checked] .handle-head:after {
-      transform: scale(1);
-    }
-
-  </style>`
-})
-addEventListener('keypress', function(e) {
-  var isSpaceKey = e.which === 32;
-  var el = document.activeElement;
-  var isGaiaSwitch = el.tagName === 'GAIA-SWITCH';
-  if (isSpaceKey && isGaiaSwitch) { el.click(); }
-});
-
-
-addEventListener('click', function(e) {
-  var label = getLabel(e.target);
-  var gaiaSwitch = getLinkedSwitch(label);
-  if (gaiaSwitch) { gaiaSwitch.toggle(); }
-}, true);
-
-
-function getLinkedSwitch(label) {
-  if (!label) { return; }
-  var id = label.getAttribute('for');
-  var el = id && document.getElementById(id);
-  return el && el.tagName === 'GAIA-SWITCH' ? el : null;
-}
-
-
-function getLabel(el) {
-  return el && (el.tagName == 'LABEL' ? el : getLabel(el.parentNode));
-}
-
-
-
-
-function dir() {
-  return document.dir || 'ltr';
-}
-
-
-var convert = {
-  ltr: {
-    edges: { '0': false, '1': true },
-    checked: { 'true': '1', 'false': '0' }
-  },
-
-  rtl: {
-    edges: { '0': true, '1': false },
-    checked: { 'true': '0', 'false': '1' }
-  },
-
-  toChecked: function(edge) {
-    return this[dir()].edges[edge];
-  },
-
-  toEdge: function(checked) {
-    return this[dir()].checked[checked];
+  if (document.readyState === 'loading') {
+    addEventListener('load', this.reflow.bind(this));
+    return;
   }
+
+  this.style.visibility = 'hidden';
+  self.reflow_raf();
 };
 
-function on(el, name, fn) { el.addEventListener(name, fn); }
-function off(el, name, fn) { el.removeEventListener(name, fn); }
+proto.attachedCallback = function() {
+  this.style.visibility = 'hidden';
+  this.reflow_raf();
+};
+
+proto.reflow = function() {
+  this.release();
+  var overflow = this.getOverflowData();
+  if (overflow.overflowed) { this.onOverflowed(overflow); }
+  this.style.visibility = '';
+};
+
+proto.getOverflowData = function() {
+  var space = this.els.inner.clientWidth;
+  var child = this.children[0];
+  var overflowed = false;
+  var willFit = 0;
+  var total = 0;
+  var overflow;
+  var width;
+
+  while (child) {
+    width = child.clientWidth;
+    overflow = width + total - space;
+
+    if (overflow > 3) {
+      overflowed = true;
+      break;
+    }
+
+    willFit++;
+    total += width;
+    child = child.nextElementSibling;
+  }
+
+  return {
+    willFit: willFit,
+    remaining: space - total,
+    overflowed: overflowed
+  };
+};
+
+proto.onOverflowed = function(overflow) {
+  var items = slice.call(this.children, 0, -1);
+  var minMoreButtonWidth = 70;
+  var extra = overflow.remaining < minMoreButtonWidth ? 1 : 0;
+  var numToHide = items.length - overflow.willFit + extra;
+
+  this.hiddenChildren = slice.call(items, 0 - numToHide);
+  this.hiddenChildren.forEach(function(el) { el.classList.add('overflowing'); });
+  this.els.inner.classList.add('overflowed');
+};
+
+proto.release = function() {
+  if (!this.hiddenChildren) { return; }
+  this.els.inner.classList.remove('overflowed');
+  forEach.call(this.hiddenChildren, function(el) {
+    el.classList.remove('overflowing');
+  });
+};
+
+proto.getTotalItemLength = function() {
+  return [].reduce.call(this.children, function(total, el) {
+    return total + el.clientWidth;
+  }, 0);
+};
+
+proto.shadowStyleHack = function() {
+  var style = this.shadowRoot.querySelector('style').cloneNode(true);
+  this.classList.add('-content', '-host');
+  style.setAttribute('scoped', '');
+  this.appendChild(style);
+};
+
+proto.openOverflow = function(e) {
+  this.dialog = new GaiaDialogMenu();
+
+  this.hiddenChildren.forEach(function(el) {
+    this.dialog.appendChild(el);
+    el.classList.remove('overflowing');
+  }, this);
+
+  this.appendChild(this.dialog);
+  this.dialog.addEventListener('click', this.dialog.close.bind(this.dialog));
+  this.dialog.addEventListener('closed', this.onDialogClosed.bind(this));
+  this.dialog.open(e);
+};
+
+proto.onDialogClosed = function() {
+  this.dialog.remove();
+  this.dialog = null;
+
+  this.hiddenChildren.forEach(function(el) {
+    el.classList.add('overflowing');
+    this.insertBefore(el, this.lastChild);
+  }, this);
+
+};
+
+var template = `
+<style>
+
+
+
+::-moz-focus-inner { border: 0; }
+
+
+
+.-host {
+  display: block;
+}
+
+
+
+.inner {
+  display: flex;
+  height: 45px;
+  overflow: hidden;
+
+  border-top: 1px solid;
+  border-color:
+    var(--border-color,
+    var(--background-plus));
+
+  justify-content: space-between;
+}
+
+
+
+.-content > *,
+.more-button {
+  box-sizing: border-box;
+  flex: 1 0 0;
+  height: 100%;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  font-size: 17px;
+  line-height: 45px;
+  font-style: italic;
+  font-weight: lighter;
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 200ms 300ms;
+
+  color:
+    var(--text-color, inherit);
+}
+
+
+
+.more-button :active,
+.-content > :active {
+  transition: none;
+  color: var(--highlight-color);
+}
+
+
+
+.-content > .overflowing {
+  display: none;
+}
+
+
+
+.-content > [disabled] {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.-content > [data-icon] {
+  font-size: 0;
+}
+
+
+
+style {
+  display: none !important;
+}
+
+
+
+.more-button {
+  display: none;
+  flex: 0.7;
+}
+
+
+
+.more-button:before {
+  font-family: 'customizer-gaia-icons';
+  font-weight: 500;
+  content: 'more';
+  text-rendering: optimizeLegibility;
+  font-style: normal;
+  font-size: 32px;
+}
+
+
+
+.overflowed .more-button {
+  display: block;
+}
+
+</style>
+
+<div class="inner">
+  <content></content>
+  <button class="more-button"></button>
+</div>`;
+
+
+function rafWrap(fn, ctx) {
+  var raf = requestAnimationFrame;
+  var frame;
+
+  return function() {
+    if (frame) { return; }
+    var args = arguments;
+
+    frame = raf(function() {
+      raf(function() {
+        frame = null;
+        fn.apply(ctx, arguments);
+      });
+    });
+  };
+}
+try {
+  module.exports = document.registerElement('customizer-gaia-toolbar', { prototype: proto });
+  module.exports.proto = proto;
+} catch (e) {
+  if (e.name !== 'NotSupportedError') {
+    throw e;
+  }
+}
 
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
-return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-switch',this));
+return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-toolbar',this));
 
 
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.JSZip=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){

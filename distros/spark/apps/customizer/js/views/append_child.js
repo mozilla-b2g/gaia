@@ -15,7 +15,7 @@ define(["exports"], function (exports) {
 
   /* global View */
 
-  var appendChildViewTemplate = "\n<style scoped>\n.shadow-host {\n  z-index: 10000001;\n}\n</style>\n<gaia-dialog-prompt></gaia-dialog-prompt>\n";
+  var appendChildViewTemplate = "\n<style scoped>\n.shadow-host {\n  z-index: 10000001;\n}\n</style>\n<gaia-dialog-prompt>Enter new element name, e.g. \"div\"</gaia-dialog-prompt>\n";
 
   var AppendChildView = (function (View) {
     var AppendChildView = function AppendChildView(options) {
@@ -29,11 +29,27 @@ define(["exports"], function (exports) {
     _extends(AppendChildView, View);
 
     AppendChildView.prototype.init = function (controller) {
+      var _this = this;
       View.prototype.init.call(this, controller);
 
       this.dialog = this.$("gaia-dialog-prompt");
-      this.dialog.els.input.placeholder = "New element tagName, e.g. \"div\"";
-      this.dialog.els.submit.addEventListener("click", this._submit.bind(this));
+
+      // Automatically set focus to the input box when the
+      // <gaia-dialog-prompt> is opened.
+      this.dialog.addEventListener("opened", function () {
+        _this.dialog.els.input.focus();
+      });
+
+      // Reset the <gaia-dialog-prompt> value when closed.
+      this.dialog.addEventListener("closed", function () {
+        _this.dialog.els.input.value = "";
+      });
+
+      // Submit the new element tag name when the
+      // <gaia-dialog-prompt> is submitted.
+      this.dialog.els.submit.addEventListener("click", function () {
+        _this.controller.submit(_this.dialog.els.input.value);
+      });
     };
 
     AppendChildView.prototype.template = function () {
@@ -42,10 +58,6 @@ define(["exports"], function (exports) {
 
     AppendChildView.prototype.open = function () {
       this.dialog.open();
-    };
-
-    AppendChildView.prototype._submit = function (e) {
-      this.controller.submit(this.dialog.els.input.value); // tagName
     };
 
     return AppendChildView;

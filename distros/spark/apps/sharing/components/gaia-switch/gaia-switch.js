@@ -65,7 +65,7 @@ module.exports = component.register('gaia-switch', {
     // Make tabable
     this.tabIndex = 0;
 
-    this.setAttr('aria-checked', this.checked);
+    this.setAttribute('aria-checked', this.checked);
     if (this.disabled) {
       this.setAttr('aria-disabled', true);
     }
@@ -155,10 +155,10 @@ module.exports = component.register('gaia-switch', {
 
         if (value) {
           this.setAttr('checked', '');
-          this.setAttr('aria-checked', true);
+          this.setAttribute('aria-checked', true);
         } else {
           this.removeAttr('checked');
-          this.setAttr('aria-checked', false);
+          this.setAttribute('aria-checked', false);
         }
 
         this.updatePosition();

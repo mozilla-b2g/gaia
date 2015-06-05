@@ -120,7 +120,7 @@ Gaia theme variables
   --header-background: var(--highlight-color);
   --header-color: var(--color-beta);
   --header-icon-color: var(--color-beta);
-  --header-button-color: var(--link-color);
+  --header-button-color: var(--color-beta);
 }
 
 .theme-settings {

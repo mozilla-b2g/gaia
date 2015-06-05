@@ -27,27 +27,44 @@ define(["exports", "components/fxos-mvc/dist/mvc", "js/model/list_model", "js/vi
     _extends(ListController, Controller);
 
     ListController.prototype.main = function () {
-      this.createList();
+      var _this = this;
+      this.model.getAllApps().then(function (allApps) {
+        _this.enableCustomizerAddOn(allApps).then(function () {
+          return _this.createList(allApps);
+        });
+      });
     };
 
-    ListController.prototype.createList = function () {
-      var _this = this;
+    ListController.prototype.enableCustomizerAddOn = function (allApps) {
+      var _this2 = this;
+      return new Promise(function (resolve, reject) {
+        _this2.model.getCustomizerAddOn(allApps).then(function (addon) {
+          if (addon && !addon.enabled) {
+            navigator.mozApps.mgmt.setEnabled(addon, true);
+          }
+          resolve();
+        });
+      });
+    };
+
+    ListController.prototype.createList = function (allApps) {
+      var _this3 = this;
       this.listView.render();
       document.body.appendChild(this.listView.el);
 
-      this.model.getAppList().then(function (allApps) {
-        _this.listView.update(allApps);
-        _this.listView.setOpenHandler(_this.handleOpen.bind(_this));
+      this.model.getAppList(allApps).then(function (appsList) {
+        _this3.listView.update(appsList);
+        _this3.listView.setOpenHandler(_this3.handleOpen.bind(_this3));
       });
     };
 
     ListController.prototype.handleOpen = function (data) {
-      var _this2 = this;
+      var _this4 = this;
       if (data.app) {
         this.webServer.startServer().then(function (result) {
           if (result) {
-            _this2.launchApp(data);
-            _this2.webServer.setData(data.manifestURL);
+            _this4.launchApp(data);
+            _this4.webServer.setData(data.manifestURL);
           }
         });
       } else {

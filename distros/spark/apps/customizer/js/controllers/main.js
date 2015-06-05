@@ -50,52 +50,39 @@ define(["exports"], function (exports) {
         eval.call(window, source);
 
         var editView = new EditView();
-        var actionMenuView = new ActionMenuView();
         var viewSourceView = new ViewSourceView();
         var appendChildView = new AppendChildView();
         var copyMoveView = new CopyMoveView();
         var mainView = new MainView({
           editView: editView,
-          actionMenuView: actionMenuView,
           viewSourceView: viewSourceView,
           appendChildView: appendChildView,
           copyMoveView: copyMoveView
         });
 
-        var editController = new EditController({
+        _this2.editController = new EditController({
           view: editView
         });
 
-        var viewSourceController = new ViewSourceController({
+        _this2.viewSourceController = new ViewSourceController({
           view: viewSourceView
         });
 
-        var appendChildController = new AppendChildController({
+        _this2.appendChildController = new AppendChildController({
           view: appendChildView
         });
 
-        var copyMoveController = new CopyMoveController({
+        _this2.copyMoveController = new CopyMoveController({
           view: copyMoveView
-        });
-
-        var actionMenuController = new ActionMenuController({
-          view: actionMenuView,
-          editController: editController,
-          viewSourceController: viewSourceController,
-          appendChildController: appendChildController,
-          copyMoveController: copyMoveController
         });
 
         _this2.view = mainView;
         mainView.init(_this2);
 
-        _this2.actionMenuController = actionMenuController;
-
-        editController.mainController = _this2;
-        viewSourceController.mainController = _this2;
-        actionMenuController.mainController = _this2;
-        appendChildController.mainController = _this2;
-        copyMoveController.mainController = _this2;
+        _this2.editController.mainController = _this2;
+        _this2.viewSourceController.mainController = _this2;
+        _this2.appendChildController.mainController = _this2;
+        _this2.copyMoveController.mainController = _this2;
 
         console.log("[Customizer] Lazy-initialized modules");
         resolve();

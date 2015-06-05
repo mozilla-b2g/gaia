@@ -15,7 +15,7 @@ html.loading {
 }
 
 html.loading body {
-  background: black url(/icons/Icon_P2P_Sharing.png) no-repeat center;
+  background: black url(/icons/sharing_189.png) no-repeat center;
 }
 
 [disabled] {

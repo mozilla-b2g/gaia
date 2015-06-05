@@ -36,7 +36,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
 
     MainView.prototype.template = function (isActivity) {
       var action = isActivity ? "action=\"back\"" : "";
-      var string = "\n      <gaia-header " + action + ">\n        <h1>Hackerplace</h1>\n        <a id=\"upload-link\" target=\"_blank\"\n           href=\"https://github.com/fxos/directory#submission-process\"></a>\n      </gaia-header>\n      <gaia-dialog-alert id=\"alert-dialog\">Placeholder</gaia-dialog-alert>";
+      var string = "\n      <gaia-header " + action + ">\n        <h1>Hackerplace</h1>\n        <a id=\"upload-link\" target=\"_blank\"\n           href=\"https://github.com/fxos/directory/blob/master/README.md#submission-process\"></a>\n      </gaia-header>\n      <gaia-dialog-alert id=\"alert-dialog\">Placeholder</gaia-dialog-alert>";
       return string;
     };
 

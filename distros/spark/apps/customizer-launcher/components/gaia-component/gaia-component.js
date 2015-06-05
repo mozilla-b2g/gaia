@@ -20,13 +20,26 @@ var noop  = function() {};
  */
 exports.register = function(name, props) {
   var baseProto = getBaseProto(props.extends);
+  var template = props.template || baseProto.templateString;
+
+  // Components are extensible by default but can be declared
+  // as non extensible as an optimization to avoid
+  // storing the template strings
+  var extensible = props.extensible = props.hasOwnProperty('extensible')?
+    props.extensible : true;
 
   // Clean up
   delete props.extends;
 
   // Pull out CSS that needs to be in the light-dom
-  if (props.template) {
-    var output = processCss(props.template, name);
+  if (template) {
+    // Stores the string to be reprocessed when
+    // a new component extends this one
+    if (extensible && props.template) {
+      props.templateString = props.template;
+    }
+
+    var output = processCss(template, name);
 
     props.template = document.createElement('template');
     props.template.innerHTML = output.template;

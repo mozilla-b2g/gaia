@@ -129,29 +129,37 @@
       }
 
       function addWallpaper(blob) {
-        var type = MimeMapper.guessExtensionFromType(blob.type);
-        if (!type) {
-          throw new Error('Unrecognized type: ' + blob.type);
+        // if we don't have a (valid) wallpaper we still want an empty JSON
+        var wallpaperFile = null;
+        var wallpaper = { homescreen: null };
+        if (blob) {
+          var type = MimeMapper.guessExtensionFromType(blob.type);
+          if (type) {
+            wallpaperFile = 'wallpaper.' + type;
+            wallpaper.homescreen = '/' + wallpaperFile;
+          } else {
+            console.error('Unrecognized type: ' + blob.type);
+          }
         }
-
-        var wallpaperFile = 'wallpaper.' + type;
-        var wallpaperJSON = JSON.stringify(
-          { homescreen: '/' + wallpaperFile }
-        );
 
         // We can't use Promise.all to add both files because it corrupts the
         // zip
         return Promise.resolve()
-          .then(() => inner.addResource('wallpaper.json', wallpaperJSON))
-          .then(() => inner.addResource(wallpaperFile, blob));
+          .then(() => inner.addResource(
+            'wallpaper.json', JSON.stringify(wallpaper)))
+          .then(function() {
+            if (wallpaperFile) {
+              inner.addResource(wallpaperFile, blob);
+            }
+          });
       }
 
       var zipPromise = addManifest().then(addCSS);
-      var image;
+      var image = null;
       if (theme.autotheme) {
         image = theme.autotheme.image;
-        zipPromise = zipPromise.then(() => addWallpaper(image));
       }
+      zipPromise = zipPromise.then(() => addWallpaper(image));
 
       return zipPromise.then(inner.asBlob.bind(inner))
         .then((packageBlob) => {

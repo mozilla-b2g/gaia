@@ -1,9 +1,9 @@
+/* globals define */
 ;(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Dependencies
  */
-
 var component = require('gaia-component');
 var fontFit = require('font-fit');
 
@@ -56,11 +56,11 @@ const MINIMUM_FONT_SIZE_CENTERED = 20;
  * This is the minimum font size that we can take
  * when the header title is not centered in the window.
  */
-const MINIMUM_FONT_SIZE_UNCENTERED = 18;
+const MINIMUM_FONT_SIZE_UNCENTERED = 16;
 
 /**
- * This is the maximum font size that we can use for
- * the heade title.
+ * This is the maximum font-size
+ * for the header title.
  */
 const MAXIMUM_FONT_SIZE = 23;
 
@@ -91,7 +91,8 @@ module.exports = component.register('gaia-header', {
     };
 
     // Events
-    this.els.actionButton.addEventListener('click', e => this.onActionButtonClick(e));
+    this.els.actionButton.addEventListener('click',
+      e => this.onActionButtonClick(e));
     this.observer = new MutationObserver(this.onMutation.bind(this));
 
     // Properties
@@ -276,7 +277,8 @@ module.exports = component.register('gaia-header', {
 
     // Return existing unresolved
     // promise, or make a new one
-    return this.unresolved[key] = this.unresolved[key] || new Promise((resolve) => {
+    if (this.unresolved[key]) { return this.unresolved[key]; }
+    this.unresolved[key] = new Promise((resolve) => {
       this.pending[key] = this.nextTick(() => {
         var styles = this._titleStyles;
         var els = this.els.titles;
@@ -453,9 +455,8 @@ module.exports = component.register('gaia-header', {
    * @private
    */
   getWidth: function() {
-    var value = this.notFlush
-      ? this.clientWidth
-      : window.innerWidth;
+    var value = this.notFlush ?
+      this.clientWidth : window.innerWidth;
 
     debug('get width', value);
     return value;
@@ -596,7 +597,7 @@ module.exports = component.register('gaia-header', {
         if (action === this._action) { return; }
         this.setAttr('action', action);
         this._action = action;
-      },
+      }
     },
 
     titleStart: {

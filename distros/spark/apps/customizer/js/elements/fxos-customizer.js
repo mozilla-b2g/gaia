@@ -6,7 +6,7 @@ define(["exports"], function (exports) {
 
     var proto = Object.create(HTMLElement.prototype);
 
-    var template = "<style>\n[data-icon]:before,\n.ligature-icons {\n  font-family: \"gaia-icons\";\n  content: attr(data-icon);\n  display: inline-block;\n  font-weight: 500;\n  font-style: normal;\n  text-decoration: inherit;\n  text-transform: none;\n  text-rendering: optimizeLegibility;\n  font-size: 30px;\n  -webkit-font-smoothing: antialiased;\n}\n\ngaia-dom-tree {\n  width: 100%;\n  height: 100%;\n}\n\n.pin {\n  position: absolute;\n  top: 0;\n  right: 0;\n  margin: 1rem !important;\n\n  opacity: 1;\n\n  transition: opacity 0.5s ease-in-out;\n}\n\n.pin.scrolling {\n  pointer-events: none;\n\n  opacity: 0;\n}\n</style>\n<gaia-button circular class=\"pin\" data-action=\"settings\">\n  <i data-icon=\"settings\"></i>\n</gaia-button>\n<gaia-dom-tree></gaia-dom-tree>\n<gaia-css-inspector></gaia-css-inspector>\n<gaia-modal>\n  <p>lorem ipsum...</p>\n</gaia-modal>";
+    var template = "<style>\n[data-icon]:before {\n  font-family: \"gaia-icons\";\n  content: attr(data-icon);\n  display: inline-block;\n  font-weight: 500;\n  font-style: normal;\n  text-decoration: inherit;\n  text-transform: none;\n  text-rendering: optimizeLegibility;\n  font-size: 30px;\n}\n[data-customizer-icon]:before {\n  font-family: \"customizer-icons\";\n  content: attr(data-customizer-icon);\n  display: inline-block;\n  font-weight: 500;\n  font-style: normal;\n  text-decoration: inherit;\n  text-transform: none;\n  text-rendering: optimizeLegibility;\n  font-size: 30px;\n}\ngaia-dom-tree {\n  width: 100%;\n  height: calc(100% - 46px);\n}\n.pin {\n  position: absolute;\n  top: 0;\n  right: 0;\n  margin: 1rem !important;\n  opacity: 1;\n  transition: opacity 0.5s ease-in-out;\n}\n.pin.scrolling {\n  pointer-events: none;\n  opacity: 0;\n}\n</style>\n<gaia-button circular class=\"pin\" data-action=\"settings\">\n  <i data-icon=\"settings\"></i>\n</gaia-button>\n<gaia-dom-tree></gaia-dom-tree>\n<gaia-toolbar>\n  <button data-customizer-icon=\"edit\" data-action=\"edit\" disabled></button>\n  <button data-customizer-icon=\"copy\" data-action=\"copyOrMove\" disabled></button>\n  <button data-customizer-icon=\"append\" data-action=\"append\" disabled></button>\n  <button data-customizer-icon=\"remove\" data-action=\"remove\" disabled></button>\n  <button data-customizer-icon=\"source\" data-action=\"viewSource\" disabled></button>\n</gaia-toolbar>";
 
     proto.createdCallback = function () {
       this.shadow = this.createShadowRoot();
@@ -14,12 +14,11 @@ define(["exports"], function (exports) {
 
       this.settingsButton = this.shadow.querySelector("[data-action=\"settings\"]");
       this.gaiaDomTree = this.shadow.querySelector("gaia-dom-tree");
-      this.gaiaCssInspector = this.shadow.querySelector("gaia-css-inspector");
-      this.gaiaModal = this.shadow.querySelector("gaia-modal");
+      this.gaiaToolbar = this.shadow.querySelector("gaia-toolbar");
 
       this.settingsButton.addEventListener("click", this._handleMenuAction.bind(this));
       this.gaiaDomTree.addEventListener("click", this._handleSelected.bind(this));
-      this.gaiaDomTree.addEventListener("longpressed", this._handleLongPressed.bind(this));
+      this.gaiaToolbar.addEventListener("click", this._handleAction.bind(this));
 
       this._watchScrolling();
 
@@ -115,7 +114,6 @@ define(["exports"], function (exports) {
     proto._handleMenuAction = function (e) {
       var action = e.target.dataset.action;
       if (action) {
-        console.log(action);
         this.dispatchEvent(new CustomEvent("menu", {
           detail: action
         }));
@@ -130,17 +128,21 @@ define(["exports"], function (exports) {
         return;
       }
 
-      this._selected = (selectedNode.nodeType === Node.TEXT_NODE) ? selectedNode.parentNode : selectedNode;
+      var selected = this._selected = (selectedNode.nodeType === Node.TEXT_NODE) ? selectedNode.parentNode : selectedNode;
+
+      [].forEach.call(this.gaiaToolbar.querySelectorAll("button"), function (button) {
+        button.disabled = !selected;
+      });
+
+      this.gaiaToolbar.querySelector("[data-action=\"viewSource\"]").disabled = (selected.tagName !== "SCRIPT" || !selected.hasAttribute("src")) && (selected.tagName !== "LINK" || !selected.hasAttribute("href"));
 
       this.dispatchEvent(new CustomEvent("selected", {
         detail: this._selected
       }));
     };
 
-    proto._handleLongPressed = function (e) {
-      this._handleSelected(e);
-
-      this.dispatchEvent(new CustomEvent("action", {
+    proto._handleAction = function (e) {
+      this.dispatchEvent(new CustomEvent("action:" + e.target.dataset.action, {
         detail: this._selected
       }));
     };
