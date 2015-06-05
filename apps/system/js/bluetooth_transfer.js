@@ -265,7 +265,7 @@ var BluetoothTransfer = {
       };
 
       var body = msg;
-      Service.request('showCustomDialog', 
+      Service.request('showCustomDialog',
         'cannotReceiveFile', body, confirm, null);
   },
 
@@ -385,7 +385,7 @@ var BluetoothTransfer = {
     // XXX: Bug 804533 - [Bluetooth]
     // Need sending/receiving icon for Bluetooth file transfer
     var content =
-      `<div data-icon="bluetooth-transfer-circle"></div>
+      `<div data-icon="bluetooth-transfer-circle" aria-hidden="true"></div>
       <div class="title-container">${transferMode}</div>
       <progress value="0" max="1"></progress>`;
 

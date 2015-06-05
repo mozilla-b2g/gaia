@@ -159,7 +159,7 @@
           messageElement, timerElement;
       /* create panel
        <div class="media-recording-status fake-notification" role="listitem">
-         <div data-icon="video"></div>
+         <div data-icon="video" aria-hidden="true"></div>
          <div class="title-container">
            <div class="origin"></div>
            <div class="timestamp"></div>
@@ -173,6 +173,7 @@
 
       iconElement = document.createElement('div');
       iconElement.dataset.icon = item.icon;
+      iconElement.setAttribute('aria-hidden', true);
       iconElement.className = 'alert';
       panelElement.appendChild(iconElement);
 
