@@ -411,7 +411,7 @@
 
     onArrangeMode: function() {
       if (this._focusScrollable !== this.folderScrollable) {
-        this._cleanFolderScrollable();
+        this.cleanFolderScrollable();
       }
     },
 
@@ -510,13 +510,13 @@
       if (focusElem === this.settingsButton) {
         this.openSettings();
       } else if (focusElem === this.editButton) {
-        this._cleanFolderScrollable();
+        this.cleanFolderScrollable();
         this.edit.toggleEditMode();
         // XXX: Reset card filter when entering edit mode
         this.filterManager.resetFilter();
       } else if (focusElem &&
           this.filterElementIds.indexOf(focusElem.id) > -1) {
-        this._cleanFolderScrollable();
+        this.cleanFolderScrollable();
       } else {
         // Current focus is on a card
         var cardId = focusElem.dataset.cardId;
@@ -675,12 +675,13 @@
       if(scrollable === this.cardScrollable && this._folderCard &&
                         itemElem.dataset.cardId !== this._folderCard.cardId &&
                         !this.cardScrollable.isHovering) {
-        this._cleanFolderScrollable();
+        this.cleanFolderScrollable();
       }
     },
 
-    _cleanFolderScrollable: function() {
-      if (this._focusScrollable === this.folderScrollable) {
+    cleanFolderScrollable: function(doNotChangeFocus) {
+      if (this._focusScrollable === this.folderScrollable &&
+          !doNotChangeFocus) {
         this.spatialNavigator.focus(this.cardScrollable);
       }
       this.spatialNavigator.remove(this.folderScrollable);
@@ -698,7 +699,7 @@
     },
 
     handleCardUnhover: function(scrollable, itemElem, nodeElem) {
-      this._cleanFolderScrollable();
+      this.cleanFolderScrollable();
     },
 
     determineFolderExpand: function(evt) {

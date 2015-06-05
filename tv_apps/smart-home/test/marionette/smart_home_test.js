@@ -66,6 +66,42 @@ marionette('Smart Home', function() {
       element.sendKeys(Keys.enter);
       assert.isFalse(containsClass(cardFilter, 'hidden'));
     });
+
+    test('Collapse folder when filter is focused',
+        { devices: ['tv'] }, function() {
+
+      // add new folder
+      client.executeScript(function() {
+        var home = window.wrappedJSObject.home;
+        var newFolder = home.cardManager.insertNewFolder({id: 'new-folder'},
+          home.cardManager._cardList.length);
+        var card = home.cardManager._deserializeCardEntry({group: 'application',
+          manifestURL: 'app://tv-epg.gaiamobile.org/manifest.webapp',
+          type: 'Application'
+        });
+        newFolder.addCard(card);
+      });
+
+      var element = client.findElement('#main-section');
+      var newFolderCard =
+        client.findElement('#card-list div.card[data-idx="4"]');
+      client.waitFor(function() {
+        return containsClass(newFolderCard, 'focused');
+      });
+
+      // move focus to card filter
+      element.sendKeys(Keys.down);
+      element.sendKeys(Keys.down);
+
+      // wait until animation of card filter ends
+      var cardFilter = client.findElement('#filter-tab-group');
+      client.waitFor(function() {
+        return !containsClass(cardFilter, 'closed');
+      });
+
+      // wait for folder to be collapsed
+      client.helper.waitForElementToDisappear('#folder-list .card');
+    });
   });
 
 });
