@@ -1,5 +1,6 @@
 var Parser = require('./parser');
-var TOKEN = 'Performance Entry: ';
+var TOKEN = 'PerformanceTiming';
+var OLD_TOKEN = 'Performance Entry: ';
 
 /**
  * Determine whether a log entry is one for performance marks and measures
@@ -7,7 +8,7 @@ var TOKEN = 'Performance Entry: ';
  * @returns {boolean}
  */
 var matcher = function(item) {
-  return item.message.indexOf(TOKEN) !== -1;
+  return item.tag === TOKEN;
 };
 
 /**
@@ -24,9 +25,8 @@ var matcher = function(item) {
  * }}
  */
 var parser = function(item) {
-  var index = item.message.indexOf(TOKEN) + TOKEN.length;
   var parts = item.message
-    .substr(index)
+    .replace(OLD_TOKEN, '')
     .split('|');
   var name = parts[2].split('@');
 

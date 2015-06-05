@@ -2,6 +2,7 @@ var util = require('util');
 var Promise = require('promise');
 var spawn = require('child_process').spawn;
 var Command = require('./command');
+var byline = require('byline');
 var debug = require('debug')('mozdevice:logging');
 
 var ADB_HOST = process.env.ADB_HOST;
@@ -116,8 +117,7 @@ Logging.prototype.clear = function() {
  * @returns {Promise}
  */
 Logging.prototype.mark = function(name, time) {
-  var mark = util.format(
-    'Performance Entry: system.gaiamobile.org|mark|%s|0|0|%s', name, time);
+  var mark = util.format('system.gaiamobile.org|mark|%s|0|0|%s', name, time);
   return this.info('PerformanceTiming', mark);
 };
 
@@ -137,9 +137,9 @@ Logging.prototype.memory = function(pid, context) {
     .pipe('grep "' + pid + '"')
     .exec()
     .then(function(output) {
-      var parts = output
-        .substr(output.indexOf(pid) + pid.length + 1)
-        .split(/\s+/g);
+      var parts = output.split(/\s+/g);
+      var index = parts.indexOf(pid) + 1;
+      parts = parts.slice(index);
 
       logging.info('PerformanceMemory', context + '|uss|' + parts[3]);
       logging.info('PerformanceMemory', context + '|pss|' + parts[4]);
@@ -179,7 +179,7 @@ Logging.prototype.start = function() {
     env: env
   });
 
-  this.stream = currentStream = currentProcess.stdout;
+  this.stream = currentStream = byline(currentProcess.stdout);
 
   currentStream.on('data', function(data) {
     // Prevent a race condition for when we have removed the stream but have not
