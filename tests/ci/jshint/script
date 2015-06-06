@@ -1,3 +1,3 @@
 #! /bin/bash -vex
 
-NOXFAIL=1 make hint
+make hint
