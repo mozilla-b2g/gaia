@@ -1,8 +1,9 @@
-/* global ID3v2Metadata, fetchBlobView, fetchBuffer, makeBlobView, readBlob,
-   readPicSlice, assertBuffersEqual, pass, fail */
+/* global ID3v2Metadata, fetchBlobView, fetchBuffer, makeBlobView,
+   MockLazyLoader, readBlob, readPicSlice, assertBuffersEqual, pass, fail */
 'use strict';
 
 require('/test/unit/metadata/utils.js');
+require('/js/metadata/id3v1.js');
 require('/js/metadata/id3v2.js');
 
 suite('id3v2 tags', function() {
@@ -243,6 +244,77 @@ suite('id3v2 tags', function() {
           })
           .then(pass(done), fail(done));
       });
+    });
+
+  });
+
+  suite('invalid files', function() {
+    var RealLazyLoader;
+
+    setup(function() {
+      RealLazyLoader = window.LazyLoader;
+      window.LazyLoader = MockLazyLoader;
+    });
+
+    teardown(function() {
+      window.LazyLoader = RealLazyLoader;
+    });
+
+    [2, 3, 4].forEach(function(version) {
+      suite('invalid id3v2.' + version, function() {
+
+        test('invalid frame size', function(done) {
+          var filename = '/test-data/id3v2.' + version +
+                         '-invalid-frame-size.mp3';
+          fetchBlobView(filename)
+            .then(ID3v2Metadata.parse)
+            .then(function(metadata) {
+              assert.strictEqual(metadata.tag_format, undefined);
+              assert.strictEqual(metadata.artist, undefined);
+              assert.strictEqual(metadata.album, undefined);
+              assert.strictEqual(metadata.title, undefined);
+              assert.strictEqual(metadata.tracknum, undefined);
+              assert.strictEqual(metadata.trackcount, undefined);
+              assert.strictEqual(metadata.discnum, undefined);
+              assert.strictEqual(metadata.disccount, undefined);
+            })
+            .then(pass(done), fail(done));
+        });
+
+        test('invalid skipped frame', function(done) {
+          var filename = '/test-data/id3v2.' + version +
+                         '-invalid-skipped-frame-size.mp3';
+          fetchBlobView(filename)
+            .then(ID3v2Metadata.parse)
+            .then(function(metadata) {
+              assert.strictEqual(metadata.tag_format, undefined);
+              assert.strictEqual(metadata.artist, undefined);
+              assert.strictEqual(metadata.album, undefined);
+              assert.strictEqual(metadata.title, undefined);
+              assert.strictEqual(metadata.tracknum, undefined);
+              assert.strictEqual(metadata.trackcount, undefined);
+              assert.strictEqual(metadata.discnum, undefined);
+              assert.strictEqual(metadata.disccount, undefined);
+            })
+            .then(pass(done), fail(done));
+        });
+      });
+    });
+
+    test('id3v1+2 with invalid ID3v2 frame size', function(done) {
+      var filename = '/test-data/id3v1+2-invalid-frame-size.mp3';
+      fetchBlobView(filename)
+        .then(ID3v2Metadata.parse)
+        .then(function(metadata) {
+          // Here we should have the v1 tag content.
+          assert.strictEqual(metadata.tag_format, 'id3v1');
+          assert.strictEqual(metadata.artist, 'AC/DC');
+          assert.strictEqual(metadata.album, 'Dirty Deeds Done Dirt Cheap');
+          assert.strictEqual(metadata.title, 'Problem Child OLD');
+          assert.strictEqual(metadata.tracknum, 5);
+          assert.strictEqual(metadata.trackcount, undefined);
+        })
+        .then(pass(done), fail(done));
     });
 
   });

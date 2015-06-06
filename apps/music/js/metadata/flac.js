@@ -57,7 +57,6 @@ var FLACMetadata = (function() {
             metadata.picture = VorbisPictureComment.readPicFrame(block.view);
           });
           has_picture = true;
-
         }
 
         return (!has_vorbis_comment || !has_picture);

@@ -1,4 +1,4 @@
-/* global BlobView */
+/* global BlobView, ID3v1Metadata, LazyLoader */
 /* exported ID3v2Metadata */
 'use strict';
 
@@ -42,7 +42,14 @@ var ID3v2Metadata = (function() {
           reject(err);
           return;
         }
-        resolve(parseFrames(header, moreview));
+        try {
+          resolve(parseFrames(header, moreview));
+        } catch(e) {
+          console.warn('Invalid ID3v2 data for', blobview.blob.name, ':', e);
+          LazyLoader.load('js/metadata/id3v1.js', function() {
+            resolve(ID3v1Metadata.parse(blobview));
+          });
+        }
       });
     });
   }
@@ -85,7 +92,7 @@ var ID3v2Metadata = (function() {
    *
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} blobview The audio file to parse.
-   * @return {Promise} A Promise returning the parsed metadata object.
+   * @return {Object} The metadata extracted from the ID3 tag.
    */
   function parseFrames(header, blobview) {
     var metadata = {};
@@ -106,8 +113,7 @@ var ID3v2Metadata = (function() {
         // In id3v2.4, the size includes itself, i.e. the rest of the header
         // is |extended_header_size - 4|.
         extended_header_size = blobview.readID3Uint28BE() - 4;
-      }
-      else { // id3version === 3
+      } else { // id3version === 3
         // In id3v2.3, the size *excludes* itself, i.e. the rest of the header
         // is |extended_header_size|.
         extended_header_size = blobview.readUnsignedInt();
@@ -132,7 +138,6 @@ var ID3v2Metadata = (function() {
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} blobview The audio file being parsed.
    * @param {Metadata} metadata The (partially filled-in) metadata object.
-   * @return {Promise} A Promise returning the parsed metadata object.
    */
   function parseFrame(header, blobview, metadata) {
     var frameid, framesize, frameflags, frame_unsynchronized = false;
