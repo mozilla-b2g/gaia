@@ -5,35 +5,16 @@ gjslint is stuck supporting some old standards, jshint is more up-to-date, and a
 
 ## How
 
-Over time we will switch files over to being linted by jshint instead of gjslint,
-we will acomplish this by having a `build/jshint/xfail.list` file in the gaia project.
-Each js file listed in this file does not currently pass jshint, and therefore
-will still be checked by gjslint. It will also be parsed by jshint, but the errors
-it finds will be considered only warnings!
-If a file is not present in the `build/jshint/xfail.list`, we will no longer test it in gjslint.
-This is different from `.jshintignore` (which is a list of files to ignore by both linters, external libraries, etc).
-
-So whenever you fix the jshint errors for one file, don't forget to remove it
-from `build/jshint/xfail.list`!
-
 From the Gaia root directory:
 * Run `make lint` to lint your code using this rule.
-* Run `make hint` to lint the Gaia code using jshint. Use `VERBOSE=1` to see all
-  xfailed errors.
-* Run `make gjslint` to lint the only the files from `build/jshint/xfail.list` using gjslint
+* Run `make hint` to lint the Gaia code using jshint.
 
 You can use `APP=<app directory>` (eg `APP=sms`) to restrict the run to a
 specific application.
 
-## Commiting
-
-The pre-commit hook will warn you when files you edit are in the `build/jshint/xfail.list`. Otherwise it uses the same rules as described above.
-
 ## Fixing simple things
 
-First of all, if the errors you see are simple, you will probably want to just fix them so we can remove the file from `build/jshint/xfail.list`.  Always check with your module peers before cleaning up a file just to clean it up however.  If there are any questions about hint errors feel free to ask in #gaia in IRC for someones opinion.
-
-Here are a few of the "simple" hint errors you might encounter and how to fix them:
+If there are any questions about hint errors feel free to ask in #gaia in IRC for someones opinion. Here are a few of the "simple" hint errors you might encounter and how to fix them:
 
 ### `Missing "use strict" statement`
 
@@ -111,12 +92,3 @@ example https://github.com/mozilla-b2g/gaia/blob/master/apps/sms/test/unit/.jshi
 
 We suggest waiting to fix a file with a bunch of errors until a stable time between branches when the code is less likely to create merge conflicts while bringing fixes back to old branches.
 If you are planning on refactoring a bigger problem file, you should definitely fix the hint first!
-
-## How to generate the xfail.list from scratch
-
-You can run the following command:
-
-```bash
-( export LC_ALL=C ; ./node_modules/.bin/jshint apps shared | awk -F: '{ print $1 }' | sort | uniq | grep '\.js$' ) > build/jshint/xfail.list
-```
-
