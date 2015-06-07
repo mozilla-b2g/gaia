@@ -12,6 +12,7 @@
 /* global MockThumbnailImage */
 /* global MockMozNfc */
 /* global utils */
+/* global ContactsService */
 /* exported _ */
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
@@ -104,15 +105,13 @@ suite('Render contact form', function() {
     window.fb = Mockfb;
     realThumbnailImage = utils.thumbnailImage;
     utils.thumbnailImage = MockThumbnailImage;
-    document.body.innerHTML = MockFormDom;
-    footer = document.querySelector('footer');
-    subject = contacts.Form;
+
 
     ActivityHandler = {
       currentlyHandling: false
     };
 
-    subject.init();
+
   });
 
   suiteTeardown(function() {
@@ -128,10 +127,16 @@ suite('Render contact form', function() {
   });
 
   setup(function() {
+    document.body.innerHTML = MockFormDom;
+    footer = document.querySelector('footer');
+    subject = contacts.Form;
+    subject.init();
     mockContact = new MockContactAllFields();
   });
 
   teardown(function() {
+    footer = null;
+    subject = null;
     window.fb.setIsFbContact(false);
     window.fb.setIsFbLinked(false);
   });
@@ -241,15 +246,15 @@ suite('Render contact form', function() {
     });
 
     test('with date params', function() {
+      var date = new Date(0);
       var params = {
-        date: new Date(0)
+        date: date
       };
+
       subject.render(params);
 
       var valueDate = document.querySelector('#date_0').valueAsDate;
-
-      assert.equal(valueDate.toDateString(), params.date.toDateString());
-
+      assert.equal(valueDate, date);
       assertSaveState(null);
     });
 
@@ -316,6 +321,7 @@ suite('Render contact form', function() {
     });
 
     test('Reset button phone field', function() {
+      subject.render();
       var phoneNumberField = document.getElementById('number_0');
       phoneNumberField.value = '123456';
       phoneNumberField.nextElementSibling.click();
@@ -816,6 +822,7 @@ suite('Render contact form', function() {
   });
 
   suite('Delete Contact', function() {
+    requireApp('communications/contacts/services/contacts.js');
     var deleteButton;
     var realSearch;
     var realMozContacts;
@@ -824,7 +831,7 @@ suite('Render contact form', function() {
     });
 
     suiteSetup(function() {
-      deleteButton = document.querySelector('#delete-contact');
+
 
       realSearch = contacts.Search;
       contacts.Search = MockContactsSearch;
@@ -836,6 +843,14 @@ suite('Render contact form', function() {
     suiteTeardown(function() {
       contacts.Search = realSearch;
       navigator.mozContacts = realMozContacts;
+    });
+
+    setup(function() {
+      deleteButton = document.querySelector('#delete-contact');
+    });
+
+    teardown(function() {
+      deleteButton = null;
     });
 
     test('show confirm', function() {
@@ -863,18 +878,18 @@ suite('Render contact form', function() {
       var exitSearchModeStub = sinon.stub(contacts.Search,
         'exitSearchMode', function() {
         assert.isTrue(true);
-        contactsStub.restore();
+        ContactsService.remove.restore();
         exitSearchModeStub.restore();
         done();
       });
-      var contactsStub = sinon.stub(window.navigator.mozContacts,
-        'remove', function() {
-        return {
-          set onsuccess(cb) {
-            cb();
-          }
-        };
-      });
+
+      this.sinon.stub(
+        ContactsService,
+        'remove',
+        function(contact, cb) {
+          cb();
+        }
+      );
 
       ConfirmDialog.executeYes();
     });
@@ -885,8 +900,6 @@ suite('Render contact form', function() {
     var realMozContacts;
 
     suiteSetup(function() {
-      deleteButton = document.querySelector('#delete-contact');
-
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = new MockMozContactsObj([]);
     });
@@ -897,18 +910,20 @@ suite('Render contact form', function() {
 
     setup(function() {
       this.sinon.spy(contacts.NFC, 'stopListening');
-
+      deleteButton = document.querySelector('#delete-contact');
       deleteButton.click();
 
-      this.sinon.stub(window.navigator.mozContacts,
-        'remove', function() {
-        return {
-          set onsuccess(cb) {
-            cb();
-          }
-        };
-      });
+      this.sinon.stub(
+        ContactsService,
+        'remove',
+        function(contact, cb) {
+          cb();
+        }
+      );
+    });
 
+    teardown(function() {
+      deleteButton = null;
     });
 
     test('> delete contact with NFC disabled does nothing', function() {
@@ -928,15 +943,21 @@ suite('Render contact form', function() {
 
   suite('> Save contact', function() {
     suiteSetup(function(done) {
-      var deviceContact = new MockContactAllFields();
-      subject.render(deviceContact);
-
       LazyLoader.load(['/shared/js/text_normalizer.js',
                      '/shared/js/simple_phone_matcher.js',
                      '/shared/js/contacts/contacts_matcher.js'], function() {
         contacts.Matcher.match = function() {};
         done();
       });
+    });
+    var deviceContact;
+    setup(function() {
+      deviceContact = new MockContactAllFields();
+      subject.render(deviceContact);
+    });
+
+    teardown(function() {
+      deviceContact = null;
     });
 
     test('> Updating a contact makes it set as global contact', function() {
@@ -973,7 +994,7 @@ suite('Render contact form', function() {
   });
 
   suite('> Add new contact', function() {
-    suiteSetup(function(){
+    setup(function(){
       subject.render();
     });
     test('> Adding a contact doesn\'t make it a global contact', function() {

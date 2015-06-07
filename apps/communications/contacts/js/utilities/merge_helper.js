@@ -1,7 +1,7 @@
 'use strict';
 
 /* exported MergeHelper */
-/* globals LazyLoader, ICEData, contacts */
+/* globals LazyLoader, ICEData, contacts, ContactsService */
 
 /**
  *
@@ -31,11 +31,9 @@ var MergeHelper = (function() {
 
     // If we still don't know the contact id
     // (this happens when merge is done from 'add new contact')
-    var mozContacts = navigator.mozContacts;
     if (!contactId || contactId === 'undefined') {
       eventHandler = onContactAdded.bind(null, merged, original);
-
-      mozContacts.addEventListener('contactchange', eventHandler);
+      ContactsService.addListener('contactchange', eventHandler);
     }
 
     return ICEData.setICEContacts(merged);
@@ -46,7 +44,8 @@ var MergeHelper = (function() {
       return;
     }
 
-    navigator.mozContacts.removeEventListener('contactchange', eventHandler);
+    ContactsService.removeListener('contactchange', eventHandler);
+
     var id = event.contactID;
 
     // Let's determine what ICE Contact is changing
