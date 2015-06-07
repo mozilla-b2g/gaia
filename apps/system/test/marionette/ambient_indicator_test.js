@@ -6,7 +6,13 @@ var UtilityTray = require('./lib/utility_tray');
 var NotificationTest = require('./lib/notification').NotificationTest;
 marionette('Ambient indicator', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    profile: {
+      settings: {
+        'notifications.resend': false
+      }
+    }
+  });
 
   var ambientIndicator = new AmbientIndicator(client);
   var details, notification, system, utilityTray;

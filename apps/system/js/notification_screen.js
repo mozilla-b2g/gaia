@@ -1,7 +1,7 @@
 /* global LazyLoader, MediaPlaybackWidget, Service,
           SettingsListener, SettingsURL, toneUpgrader */
-'use strict';
 
+'use strict';
 
 var NotificationScreen = {
   name: 'NotificationScreen',
@@ -130,6 +130,8 @@ var NotificationScreen = {
     Service.register('clearAll', this);
     Service.register('addUnreadNotification', this);
     Service.register('removeUnreadNotification', this);
+
+    this.resendStoredNotifications();
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -800,35 +802,32 @@ var NotificationScreen = {
     }
     window.dispatchEvent(
       new window.CustomEvent('lockscreen-notification-request-clear'));
+  },
+
+  resendStoredNotifications: function() {
+    if ('mozSettings' in navigator && navigator.mozSettings) {
+      var key = 'notifications.resend';
+      var req = navigator.mozSettings.createLock().get(key);
+      req.onsuccess = req.onerror = function onsuccess() {
+        var resendEnabled = req.result[key] || false;
+        if (!resendEnabled) {
+          return;
+        }
+
+        var resendCallback = (function(number) {
+          window.dispatchEvent(
+            new CustomEvent('desktop-notification-resend',
+              { detail: { number: number } }));
+        }).bind(this);
+
+        if ('mozChromeNotifications' in navigator) {
+          navigator.mozChromeNotifications.
+            mozResendAllNotifications(resendCallback);
+        }
+      };
+    }
   }
-
-
 };
-
-window.addEventListener('load', function() {
-  window.removeEventListener('load', this);
-  if ('mozSettings' in navigator && navigator.mozSettings) {
-    var key = 'notifications.resend';
-    var req = navigator.mozSettings.createLock().get(key);
-    req.onsuccess = function onsuccess() {
-      var resendEnabled = req.result[key] || false;
-      if (!resendEnabled) {
-        return;
-      }
-
-      var resendCallback = (function(number) {
-        window.dispatchEvent(
-          new CustomEvent('desktop-notification-resend',
-            { detail: { number: number } }));
-      }).bind(this);
-
-      if ('mozChromeNotifications' in navigator) {
-        navigator.mozChromeNotifications.
-          mozResendAllNotifications(resendCallback);
-      }
-    };
-  }
-});
 
 SettingsListener.observe(
     'lockscreen.notifications-preview.enabled', true, function(value) {
