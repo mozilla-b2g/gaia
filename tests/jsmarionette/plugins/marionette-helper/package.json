@@ -7,8 +7,7 @@
     "email": "dev-gaia@lists.mozilla.org"
   },
 
-  "peerDependencies": {
-    "marionette-apps": "*",
-    "marionette-client": ">=1.0.0"
+  "dependencies": {
+    "marionette-apps": "file:../marionette-apps"
   }
 }
