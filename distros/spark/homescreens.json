@@ -24,17 +24,16 @@
       ["apps", "video"],
       ["outoftree_apps", "facebook"],
       ["outoftree_apps", "twitter"],
-      ["outoftree_apps", "runwhatsapppreview"],
+      ["outoftree_apps", "pluotsorbet"],
       ["outoftree_apps", "loop"],
-      ["outoftree_apps", "buddyup"],
-      ["outoftree_apps", "yammer"]
+      ["outoftree_apps", "buddyup"]
     ], [
       ["apps", "costcontrol"],
       ["outoftree_apps", "notes"],
       ["outoftree_apps", "calculator"],
       ["outoftree_apps", "hexgl"],
       ["outoftree_apps", "tanx"],
-      ["outoftree_apps", "sechelt"]
+      ["outoftree_apps", "swooop"]
     ]
   ],
   "preferences": {
