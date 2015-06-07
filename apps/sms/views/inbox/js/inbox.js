@@ -501,17 +501,56 @@ var InboxView = {
       });
     }
 
-    return Utils.confirm(
-      {
-        id: 'deleteThreads-confirmation-message',
-        args: { n: selected.length }
-      },
-      null,
-      {
-        text: 'delete',
-        className: 'danger'
+    var unreadMessagesCount = 0; 
+    var unreadThreadIds = [];
+
+    // Check if all threads are read.
+    unreadThreadIds = selected.reduce(function(list, threadId) {
+      if(Threads.get(threadId).unreadCount) {
+        unreadMessagesCount += Threads.get(threadId).unreadCount;
+        list.push(threadId);
       }
-    ).then(performDeletion.bind(this));
+
+      return list;
+    }, []);
+    
+    if(unreadThreadIds.length) {
+      Utils.confirm(
+        {
+          id: 'messages',
+          args: { n: selected.length }
+        },
+        null,
+        {
+          text: 'delete',
+          className: 'danger'
+        }
+      ).then(function resolve() {
+        countinueDelete();
+      },
+      function reject() {
+        unreadThreadIds.forEach(function(threadId) {
+          selected.splice(selected.indexOf(threadId),1);
+        });
+        countinueDelete();
+      });
+    } else {
+      countinueDelete();
+    }
+
+    function countinueDelete() {
+      return Utils.confirm(
+        {
+          id: 'deleteThreads-confirmation-message',
+          args: { n: selected.length }
+        },
+        null,
+        {
+          text: 'delete',
+          className: 'danger'
+        }
+      ).then(performDeletion.bind(this));
+    }
   },
 
   setEmpty: function inbox_setEmpty(empty) {
