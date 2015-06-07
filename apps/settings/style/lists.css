@@ -19,7 +19,7 @@ ul li {
 }
 
 /* Provide additional margin around gaia-switch to match spacing with legacy components */
-ul li > gaia-switch {
+section:not(#root) ul li > gaia-switch {
   -moz-margin-start: 1.5rem;
   /* The !important is necessary to override gaia-swtich scoped style. */
   width: calc(100% - 1.5rem) !important;

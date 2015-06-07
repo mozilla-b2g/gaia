@@ -18,14 +18,12 @@ module.exports = RootPanel;
 
 RootPanel.Selectors = {
   'airplaneModeCheckbox': '.airplaneMode-input',
-  'airplaneModeMenuItem': '#menuItem-airplaneMode',
   'airplaneModeSpan': '.airplaneMode-input ~ span',
   'applicationStorageDesc': '.application-storage-desc',
   'batteryDesc': '.battery-desc',
   'bluetoothDesc': '.bluetooth-desc',
   'firefoxAccountDesc': '#fxa-desc',
-  'geolocationCheckbox': 'input[name="geolocation.enabled"]',
-  'geolocationSpan': 'input[name="geolocation.enabled"] ~ span',
+  'geolocationSwitch': 'gaia-switch[name="geolocation.enabled"]',
   'languageDesc': '.language-desc',
   'mediaStorageDesc': '.media-storage-desc',
   'simManagerItem': '#simCardManager-settings',
@@ -101,7 +99,7 @@ RootPanel.prototype = {
   // geolocation
   geolocation: function(enabled) {
     if (enabled !== this.geolocationCheckboxChecked) {
-      this.waitForElement('geolocationSpan').tap();
+      this.waitForElement('geolocationSwitch').tap();
       this.client.waitFor(function() {
         return enabled === this.geolocationCheckboxChecked;
       }.bind(this));
@@ -109,7 +107,7 @@ RootPanel.prototype = {
   },
 
   get geolocationCheckboxChecked() {
-    return !!this.findElement('geolocationCheckbox').getAttribute('checked');
+    return !!this.findElement('geolocationSwitch').getAttribute('checked');
   },
 
   get geolocationEnabledSetting() {
