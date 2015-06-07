@@ -43,11 +43,11 @@ class AccessibilityScreenreader(Base):
 class AccessibilityColors(Base):
 
     _filter_enable_switch_locator = (
-      By.CSS_SELECTOR, 'input[name="accessibility.colors.enable"]')
+      By.CSS_SELECTOR, '[name="accessibility.colors.enable"]')
     _invert_switch_locator = (
-      By.CSS_SELECTOR, 'input[name="accessibility.colors.invert"]')
+      By.CSS_SELECTOR, '[name="accessibility.colors.invert"]')
     _grayscale_switch_locator = (
-      By.CSS_SELECTOR, 'input[name="accessibility.colors.grayscale"]')
+      By.CSS_SELECTOR, '[name="accessibility.colors.grayscale"]')
     _contrast_slider_locator = (
       By.CSS_SELECTOR, 'input[name="accessibility.colors.contrast"]')
 
