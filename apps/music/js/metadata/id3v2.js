@@ -44,8 +44,12 @@ var ID3v2Metadata = (function() {
           reject(err);
           return;
         }
-        parseFrames(header, moreview, metadata);
-        resolve(metadata);
+        try {
+          parseFrames(header, moreview, metadata);
+          resolve(metadata);
+        } catch(e) {
+          reject(e);
+        }
       });
     });
   }
@@ -89,7 +93,7 @@ var ID3v2Metadata = (function() {
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} blobview The audio file to parse.
    * @param {Metadata} metadata The (partially filled-in) metadata object.
-   * @return {Promise} A Promise returning the parsed metadata object.
+   * @return {Object} The metadata extracted from the ID3 tag.
    */
   function parseFrames(header, blobview, metadata) {
     // In id3v2.3, the "unsynchronized" flag in the tag header applies to
@@ -107,8 +111,7 @@ var ID3v2Metadata = (function() {
         // In id3v2.4, the size includes itself, i.e. the rest of the header
         // is |extended_header_size - 4|.
         extended_header_size = blobview.readID3Uint28BE() - 4;
-      }
-      else { // id3version === 3
+      } else { // id3version === 3
         // In id3v2.3, the size *excludes* itself, i.e. the rest of the header
         // is |extended_header_size|.
         extended_header_size = blobview.readUnsignedInt();
@@ -131,7 +134,6 @@ var ID3v2Metadata = (function() {
    * @param {Object} header The header object for this ID3 tag.
    * @param {BlobView} blobview The audio file being parsed.
    * @param {Metadata} metadata The (partially filled-in) metadata object.
-   * @return {Promise} A Promise returning the parsed metadata object.
    */
   function parseFrame(header, blobview, metadata) {
     var frameid, framesize, frameflags, frame_unsynchronized = false;

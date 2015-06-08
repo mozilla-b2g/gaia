@@ -58,7 +58,6 @@ var FLACMetadata = (function() {
             metadata.picture.end += block.view.viewOffset;
           });
           has_picture = true;
-
         }
 
         return (!has_vorbis_comment || !has_picture);
