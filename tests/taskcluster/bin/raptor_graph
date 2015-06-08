@@ -36,6 +36,8 @@ const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_prefi
                           { gaia_name: "communications/dialer", th_name: "Dialer", th_prefix: "di" },
                           { gaia_name: "email", th_name: "Email", th_prefix: "em" },
                           { gaia_name: "fm", th_name: "FM", th_prefix: "fm" },
+                          { gaia_name: "gallery", th_name: "Gallery", th_prefix: "ga" },
+                          { gaia_name: "music", th_name: "Music", th_prefix: "mu" },
                           { gaia_name: "settings", th_name: "Settings", th_prefix: "se" },
                           { gaia_name: "test-startup-limit", th_name: "Test-startup", th_prefix: "te" }];
 
