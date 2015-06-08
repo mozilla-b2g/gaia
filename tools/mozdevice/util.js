@@ -435,9 +435,9 @@ Util.prototype.parseLog = function(contents) {
   var badLines = 0;
   var messages = [];
 
-  contents
-    .split('\n')
-    .forEach(function(line) {
+  var lines = contents.match(/[^\r\n]+/g);
+  if (lines) {
+    lines.forEach(function(line) {
       // Strip any whitespace at the end
       line = line.replace(/\s+$/g);
 
@@ -468,6 +468,7 @@ Util.prototype.parseLog = function(contents) {
         badLines++;
       }
     });
+  }
 
   return {
     type: type,

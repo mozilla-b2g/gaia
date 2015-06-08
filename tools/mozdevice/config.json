@@ -39,6 +39,12 @@
         "inputEvent": "/dev/input/event0",
         "dimensions": [320, 480],
         "swipePadding": [40, 40, 40, 40]
+      },
+      "AOSP on HammerHead": {
+        "hdmiResolution": "1080p",
+        "inputEvent": "/dev/input/event1",
+        "dimensions": [1080, 1920],
+        "swipePadding": [40, 40, 40, 40],
       }
     },
     "b2g": {
