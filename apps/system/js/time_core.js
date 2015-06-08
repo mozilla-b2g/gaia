@@ -8,6 +8,7 @@
     'moztimechange',
     'timeformatchange',
     'hierarchychanged',
+    'languagechange',
     'visibilitychange'
   ];
   TimeCore.SETTINGS = [
@@ -96,19 +97,20 @@
     _handle_moztimechange: function() {
       this._timechanged();
     },
+    _handle_languagechange: function() {
+      this._timechanged();
+    },
     _timechanged: function() {
-      navigator.mozL10n.ready(function _updateTime() {
-        // To stop clock for reseting the clock interval which runs every 60
-        // seconds. The reason to do this is that the time updated will be
-        // exactly aligned to minutes which means always getting 0 on seconds
-        // part.
-        this.toggle(false);
-        this.toggle(true);
+      // To stop clock for reseting the clock interval which runs every 60
+      // seconds. The reason to do this is that the time updated will be
+      // exactly aligned to minutes which means always getting 0 on seconds
+      // part.
+      this.toggle(false);
+      this.toggle(true);
 
-        // But we still need to consider if we're locked. So may we need to
-        // hide it again.
-        this.toggle(this.checkTopMostWindowNeedClock());
-      }.bind(this));
+      // But we still need to consider if we're locked. So may we need to
+      // hide it again.
+      this.toggle(this.checkTopMostWindowNeedClock());
     }
   });
 }(window));

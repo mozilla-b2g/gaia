@@ -1,10 +1,9 @@
 /* global BaseModule, MockService, MockFtuLauncher,
-          MockL10n, Service, MockLazyLoader,
+          Service, MockLazyLoader,
           MocksHelper, TimeIcon */
 'use strict';
 
 requireApp('system/test/unit/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/js/service.js');
@@ -20,7 +19,7 @@ var mocksForTimeCore = new MocksHelper([
 ]).init();
 
 suite('system/TimeCore', function() {
-  var subject, realMozL10n, realHidden;
+  var subject, realHidden;
   mocksForTimeCore.attachTestHelpers();
 
   setup(function() {
@@ -28,9 +27,6 @@ suite('system/TimeCore', function() {
       CLASS_NAME: 'LockScreenWindow'
     });
     this.sinon.spy(MockLazyLoader, 'load');
-    this.sinon.stub(MockL10n, 'ready');
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
     this.sinon.useFakeTimers();
     this.sinon.stub(document, 'getElementById').returns(
       document.createElement('div'));
@@ -38,7 +34,6 @@ suite('system/TimeCore', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n = realMozL10n;
     subject.stop();
   });
 
@@ -153,7 +148,6 @@ suite('system/TimeCore', function() {
       });
       var evt = new CustomEvent('timeformatchange');
       window.dispatchEvent(evt);
-      MockL10n.ready.yield();
       assert.isTrue(subject.icon.start.called);
     });
 
@@ -164,7 +158,6 @@ suite('system/TimeCore', function() {
       });
       var evt = new CustomEvent('timeformatchange');
       window.dispatchEvent(evt);
-      MockL10n.ready.yield();
       assert.isTrue(subject.icon.start.called);
     });
   });

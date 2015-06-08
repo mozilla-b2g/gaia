@@ -11,6 +11,12 @@
     if (!this.clock) {
       this.clock = new Clock();
     }
+    this.timeFormatter = new Intl.DateTimeFormat(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+
     this.clock.start(this.update.bind(this));
   };
   TimeIcon.prototype._stop = function() {
@@ -22,16 +28,6 @@
       BaseIcon.prototype.render.apply(this);
       this.rendered = true;
     }
-  };
-
-  TimeIcon.prototype._getTimeFormat = function(timeFormat) {
-    if (this.manager._ampm) {
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
-    } else {
-      timeFormat = timeFormat.replace('%p', '').trim();
-    }
-
-    return timeFormat;
   };
 
   TimeIcon.prototype.view = function view() {
@@ -46,14 +42,21 @@
     }
     this.manager.active ? this.show() : this.hide();
     now = now || new Date();
-    var _ = navigator.mozL10n.get;
-    var f = new navigator.mozL10n.DateTimeFormat();
 
-    var timeFormat = window.navigator.mozHour12 ?
-      _('shortTimeFormat12') : _('shortTimeFormat24');
-    timeFormat = this._getTimeFormat(timeFormat);
-    var formatted = f.localeFormat(now, timeFormat);
-    this.element.innerHTML = formatted;
+    var timeText = this.timeFormatter.format(now);
+
+    if (this.timeFormatter.resolvedOptions().hour12 === true) {
+      // this is a non-standard, Gecko only API, but we have
+      // no other way to get the am/pm portion of the date to wrap it in
+      // a <span/> element.
+      var amPm = now.toLocaleFormat('%p');
+      if (this.manager._ampm) {
+        timeText = timeText.replace(amPm, '<span>$&</span>');
+      } else {
+        timeText = timeText.replace(amPm, '').trim();
+      }
+    }
+    this.element.innerHTML = timeText;
 
     Service.request('OperatorIcon:update', now);
     this.publish('changed');
