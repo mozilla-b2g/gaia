@@ -175,12 +175,14 @@ var InboxView = {
     }
 
     function* updateThreadNode(number) {
-      var contact = yield InboxView.findContact(number, { photoURL: true });
+      var contact = yield InboxView.findContact(number, { photo: true });
+      Threads.get(node.id).contactDetails = contact;
+
       var isContact = !!contact.isContact;
 
       picture.classList.toggle('has-picture', isContact);
       picture.classList.toggle(
-        'default-picture', isContact && !contact.photoURL
+        'default-picture', isContact && !contact.photo
       );
 
       title.textContent = contact.title || number;
@@ -190,19 +192,21 @@ var InboxView = {
         window.URL.revokeObjectURL(photoUrl);
       }
 
-      if (contact.photoURL) {
-        node.dataset.photoUrl = contact.photoURL;
+      if (contact.photo) {
+        photoUrl = window.URL.createObjectURL(contact.photo);
       } else if (photoUrl) {
-        node.dataset.photoUrl = '';
+        photoUrl = '';
       }
 
-      if (contact.photoURL) {
+      node.dataset.photoUrl = photoUrl;
+
+      if (photoUrl) {
         // Use multiple image background to display default image until real
         // contact image thumbnail is decoded by Gecko. Difference is especially
         // noticeable on slow devices. Please keep default image in sync with
         // what defined in CSS (sms.css/.threadlist-item-picture)
         picture.firstElementChild.style.backgroundImage = [
-          'url(' + contact.photoURL + ')',
+          'url(' + photoURL + ')',
           'url(/views/inbox/style/images/default_contact_image.png)'
         ].join(', ');
       } else {
@@ -306,26 +310,26 @@ var InboxView = {
           }]
         };
 
-        var thread = Threads.get(+threadId);
+        Threads.get(+threadId).then((thread) => {
+          if (!thread.isDraft) {
+            var isRead = thread.unreadCount > 0;
+            var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
 
-        if (!thread.isDraft) {
-          var isRead = thread.unreadCount > 0;
-          var l10nKey = isRead ? 'mark-as-read' : 'mark-as-unread';
+            params.items.push(
+              {
+                l10nId: l10nKey,
+                method: this.markReadUnread.bind(this, [threadId], isRead)
+              }
+            );
+          }
 
-          params.items.push(
-            {
-              l10nId: l10nKey,
-              method: this.markReadUnread.bind(this, [threadId], isRead)
-            }
-          );
-        }
+          params.items.push({
+            l10nId: 'cancel'
+          });
 
-        params.items.push({
-          l10nId: 'cancel'
+          var options = new OptionMenu(params);
+          options.show();
         });
-
-        var options = new OptionMenu(params);
-        options.show();
 
         break;
       case 'submit':
@@ -354,30 +358,27 @@ var InboxView = {
         n: selected.selectedCount
       });
 
-      var hasUnreadselected = selected.selectedList.some((id) => {
-        var thread  = Threads.get(id);
+      Threads.getSeveral(selected.selectedList).then(threads => {
+        var hasUnreadselected = threads.some((thread) => {
+          if (thread && thread.unreadCount) {
+            return thread.unreadCount > 0;
+          }
+          return false;
+        });
 
-        if (thread && thread.unreadCount) {
-          return thread.unreadCount > 0;
-        }
-        return false;
-      });
+        var allDraft = threads.every((thread) => thread.isDraft);
 
-      var allDraft = selected.selectedList.every((id) => {
-        return (Threads.get(id).isDraft);
-      });
-
-      if (allDraft) {
-        this.readUnreadButton.disabled = true;
-      } else {
-        if (!hasUnreadselected) {
-          this.readUnreadButton.dataset.action = 'mark-as-unread';
+        if (allDraft) {
+          this.readUnreadButton.disabled = true;
         } else {
-          this.readUnreadButton.dataset.action = 'mark-as-read';
+          if (!hasUnreadselected) {
+            this.readUnreadButton.dataset.action = 'mark-as-unread';
+          } else {
+            this.readUnreadButton.dataset.action = 'mark-as-read';
+          }
+          this.readUnreadButton.disabled = false;
         }
-        this.readUnreadButton.disabled = false;
-      }
-
+      });
     } else {
       this.deleteButton.disabled = true;
       this.readUnreadButton.disabled = true;
@@ -385,19 +386,20 @@ var InboxView = {
     }
   },
 
-  markReadUnread: function inbox_markReadUnread(selected, isRead) {
-    selected.forEach((id) => {
-      var thread = Threads.get(+id);
+  markReadUnread: function thlui_markReadUnread(selected, isRead) {
+    Threads.getSeveral(selected).then((threads) => {
+      threads.forEach((thread) => {
+        var markable = thread && !thread.isDraft &&
+          (isRead || !thread.getDraft());
 
-      var markable = thread && !thread.isDraft &&
-        (isRead || !thread.getDraft());
+        if (markable) {
+          thread.unreadCount = isRead ? 0 : 1;
+          thread.save(); // TODO same transaction in getSeveral and save
+          this.mark(thread.id, isRead ? 'read' : 'unread');
 
-      if (markable) {
-        thread.unreadCount = isRead ? 0 : 1;
-        this.mark(thread.id, isRead ? 'read' : 'unread');
-
-        MessageManager.markThreadRead(thread.id, isRead);
-      }
+          MessageManager.markThreadRead(thread.id, isRead);
+        }
+      });
     });
 
     this.cancelEdit();
@@ -437,6 +439,7 @@ var InboxView = {
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
   delete: function inbox_delete(selected) {
+    // TODO convert to new Threads
     function performDeletion() {
     /* jshint validthis: true */
 
@@ -585,7 +588,7 @@ var InboxView = {
           // Find draft-containing threads that have already been rendered
           // and update them so they mark themselves appropriately
           if (document.getElementById(`thread-${draft.threadId}`)) {
-            this.updateThread(Threads.get(draft.threadId));
+            Threads.get(draft.threadId).then(this.updateThread.bind(this));
           }
         } else {
           // Safely assume there is a threadless draft
@@ -593,7 +596,7 @@ var InboxView = {
 
           // Render draft only in case we haven't rendered it yet.
           if (!Threads.has(draft.id)) {
-            var thread = Thread.create(draft);
+            var thread = Thread.fromDraft(draft);
             Threads.set(draft.id, thread);
             this.appendThread(thread);
           }
@@ -648,7 +651,7 @@ var InboxView = {
     function onRenderThread(thread) {
       /* jshint validthis: true */
       // Register all threads to the Threads object.
-      Threads.set(thread.id, thread);
+      Threads.put(thread);
 
       if (!hasThreads) {
         hasThreads = true;
@@ -809,7 +812,7 @@ var InboxView = {
     var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
     var recordTime = +thread.timestamp;
 
-    Threads.set(thread.id, thread);
+    Threads.update(thread);
 
     // Edge case: if we just received a message that is older than the latest
     // one in the thread, we only need to update the 'unread' status.

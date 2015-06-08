@@ -1,10 +1,10 @@
-/*global Drafts */
+/*global
+  Drafts,
+  SmsDB
+*/
 
 (function(exports) {
   'use strict';
-
-  var threads = new Map();
-  var messageMap = new Map();
 
   function Thread(thread) {
     var length = Thread.FIELDS.length;
@@ -25,7 +25,7 @@
 
   Thread.FIELDS = [
     'body', 'id', 'lastMessageSubject', 'lastMessageType',
-    'participants', 'timestamp', 'unreadCount', 'isDraft'
+    'participants', 'timestamp', 'unreadCount', 'isDraft', 'contactDetails'
   ];
 
   Thread.fromMessage = function(record, options) {
@@ -82,86 +82,89 @@
       Thread.fromDraft(record, options);
   };
 
-  var Threads = exports.Threads = {
+  Thread.prototype = {
+    save: function() {
+      return SmsDB.Threads.put(this);
+    }
+  };
+
+  exports.Threads = {
     registerMessage: function(message) {
       var threadId = +message.threadId;
-      var messageId = +message.id;
 
-      if (!this.has(threadId)) {
-        this.set(threadId, Thread.create(message));
-      }
-      this.get(threadId).messages.set(messageId, message);
-      messageMap.set(messageId, threadId);
+      return SmsDB.Threads.getForUpdate(threadId, (thread) => {
+        if (!thread) {
+          thread = Thread.fromMessage(message);
+        }
+        thread.messages.push(message);
+        return thread;
+      });
     },
-    unregisterMessage: function(id) {
-      id = +id;
-      var threadId = messageMap.get(id);
-
-      if (this.has(threadId)) {
-        this.get(threadId).messages.delete(id);
-      }
-      messageMap.delete(id);
-    },
-    set: function(id, thread) {
-      var old, length, key;
-      id = +id;
-      if (threads.has(id)) {
-        // Updates the reference
-        old = threads.get(id);
-        length = Thread.FIELDS.length;
-        for (var i = 0; i < length; i++) {
-          key = Thread.FIELDS[i];
-          old[key] = thread[key];
+    // TODO unregisterMessage
+    update: function(thread) {
+      return SmsDB.Threads.getForUpdate(thread.id, (existingThread) => {
+        if (!existingThread) {
+          return thread;
         }
 
-        return threads;
-      }
-      return threads.set(id, new Thread(thread));
+        Thread.FIELDS.forEach((key) => {
+          existingThread[key] = thread[key];
+        });
+
+        return existingThread;
+      });
+    },
+    put: function(thread) {
+      return SmsDB.Threads.put(new Thread(thread));
     },
     get: function(id) {
-      return threads.get(+id);
+      return SmsDB.Threads.get(+id);
+    },
+    getSeveral: function(ids) {
+      return SmsDB.Threads.getSeveral(ids);
     },
     has: function(id) {
-      return threads.has(+id);
+      return SmsDB.Threads.has(+id);
     },
     delete: function(id) {
       id = +id;
 
-      var thread = this.get(id);
+      Drafts.delete({
+        threadId: id
+      });
 
-      if (!thread) {
-        return;
-      }
-
-      threads.delete(id);
-
-      var draft = thread.getDraft();
-      if (draft) {
-        Drafts.delete(draft).store();
-      }
+      return Promise.all([
+        Drafts.store(),
+        SmsDB.Threads.delete(id)
+      ]).then(() => {});
     },
     clear: function() {
-      threads = new Map();
+      return SmsDB.Threads.clear();
     },
     forEach: function(callback) {
-      threads.forEach(function(v, k) {
-        callback(v, k);
-      });
+      return SmsDB.Threads.forEach(callback);
     },
     keys: function() {
       return threads.keys();
     },
-    get size() {
-      // support: gecko 18 - size might be a function
-      if (typeof threads.size === 'function') {
-        return +threads.size();
+
+    set currentId(id) {
+      if (id === null) {
+        this.active = null;
+        this._currentId = null;
+        return;
       }
-      return +threads.size;
+
+      id = +id;
+      this._currentId = id;
+      this.active = this.get(id);
     },
-    currentId: null,
-    get active() {
-      return threads.get(+Threads.currentId);
-    }
+
+    get currentId() {
+      return this._currentId;
+    },
+
+    active: null
   };
 
   exports.Thread = Thread;

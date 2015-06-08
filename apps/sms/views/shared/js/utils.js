@@ -97,11 +97,8 @@
         details.isContact = true;
 
         // Add photo
-        if (include.photoURL) {
-          var photo = ContactPhotoHelper.getThumbnail(contact);
-          if (photo) {
-            details.photoURL = window.URL.createObjectURL(photo);
-          }
+        if (include.photo) {
+          details.photo = ContactPhotoHelper.getThumbnail(contact);
         }
 
         details.name = name;

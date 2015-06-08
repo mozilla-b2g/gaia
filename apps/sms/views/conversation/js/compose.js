@@ -652,22 +652,26 @@ var Compose = (function() {
       /* Bug 1040144: replace ConversationView direct invocation by a
        * instantiation-time property
        */
-      var recipients = Threads.active ?
-        Threads.active.participants :
-        ConversationView.recipients && ConversationView.recipients.numbers;
-      var hasEmailRecipient = recipients ?
-        recipients.some(Utils.isEmailAddress) :
-        false;
+      var threadPromise = Threads.active || Promise.resolve();
+      threadPromise.then((thread) => {
+        var recipients = thread ?
+          thread.participants :
+          ConversationView.recipients && ConversationView.recipients.numbers;
+        var hasEmailRecipient = recipients ?
+          recipients.some(Utils.isEmailAddress) :
+          false;
 
-      /* Note: in the future, we'll maybe want to force 'mms' from the UI */
-      var newType =
-        hasAttachment() || hasSubject() || hasEmailRecipient || isTextTooLong ?
-        'mms' : 'sms';
+        /* Note: in the future, we'll maybe want to force 'mms' from the UI */
+        var newType =
+          hasAttachment() || hasSubject() ||
+          hasEmailRecipient || isTextTooLong ?
+          'mms' : 'sms';
 
-      if (newType !== state.type) {
-        state.type = newType;
-        this.emit('type');
-      }
+        if (newType !== state.type) {
+          state.type = newType;
+          this.emit('type');
+        }
+      });
     },
 
     updateEmptyState: function() {
