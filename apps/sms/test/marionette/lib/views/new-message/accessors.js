@@ -9,6 +9,7 @@ var SELECTORS = Object.freeze({
   recipientsInput: '#messages-to-field [contenteditable=true]:last-child',
   recipientsList: '#messages-recipients-list',
   recipients: '#messages-recipients-list .recipient[contenteditable=false]',
+  pickContactButton: '#messages-contact-pick-button',
   messageInput: '#messages-input',
   subjectInput: '.subject-composer-input',
   sendButton: '#messages-send-button',
@@ -40,6 +41,10 @@ NewMessageAccessor.prototype = {
 
   get recipients() {
     return this.client.findElements(SELECTORS.recipients);
+  },
+
+  get pickContactButton() {
+    return this.client.helper.waitForElement(SELECTORS.pickContactButton);
   },
 
   get messageInput() {

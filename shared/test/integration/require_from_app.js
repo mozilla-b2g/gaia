@@ -6,8 +6,15 @@ var appRoot = require('app-root-path');
 
 // TODO Export this helper in its own npm package
 
-var FromApp = {
-  filePathFromApp: function(app, relativePath) {
+function FromApp(app) {
+  this.app = app;
+  return this;
+}
+
+FromApp.prototype = {
+  filePath: function(relativePath) {
+    var app = this.app;
+
     if (['dialer', 'contacts'].indexOf(app) !== -1) {
       app = 'communications/' + app;
     }
@@ -15,9 +22,11 @@ var FromApp = {
     return appRoot + '/apps/' + app + '/test/marionette/' + relativePath;
   },
 
-  requireFromApp: function(app, resource) {
-    return require(FromApp.filePathFromApp(app, resource));
+  require: function(resource) {
+    return require(this.filePath(resource));
   }
 };
 
-module.exports = FromApp;
+module.exports = function(app) {
+  return new FromApp(app);
+};
