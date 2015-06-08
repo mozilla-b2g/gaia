@@ -783,7 +783,11 @@ class GaiaDevice(object):
         return self.marionette.execute_script("return window.wrappedJSObject.Service.query('locked')")
 
     def lock(self):
+        self.marionette.switch_to_frame()
         GaiaData(self.marionette).set_setting('lockscreen.enabled', True)
+        # Make sure the screen isn't turned off in lockscreen mode
+        self.marionette.execute_script(
+            'window.wrappedJSObject.ScreenManager.LOCKING_TIMEOUT = 9999;')
         self.turn_screen_off()
         self.turn_screen_on()
         assert self.is_locked, 'The screen is not locked'
@@ -860,11 +864,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             finally:
                 # make sure we restart to avoid leaving us in a bad state
                 self.device.start_b2g()
-
-        # Make sure the screen isn't turned off in lockscreen mode
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script(
-            'window.wrappedJSObject.ScreenManager.LOCKING_TIMEOUT = 9999;')
 
         # We need to set the default timeouts because we may have a new session
         if self.marionette.timeout is None:
