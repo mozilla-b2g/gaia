@@ -1,10 +1,10 @@
-/* global applyCache */
 /* global Cache */
 
 'use strict';
 
 requireApp('communications/contacts/js/utilities/performance_helper.js');
 requireApp('communications/contacts/js/bootstrap.js');
+requireApp('communications/contacts/js/cache.js');
 
 const DUMMY_CONTACT_UUID = '06eecb011f424a97aaa615c26ef66e0c';
 const ANOTHER_DUMMY_CONTACT_UUID = 'c7e3e90e2d8d4ade872ba3575deef54d';
@@ -297,7 +297,7 @@ suite('Bootstrap - empty cache', function() {
 
   suite('No cache', function() {
     setup(function(done) {
-      applyCache('firstChunk').then(done);
+      Cache.apply('firstChunk').then(done);
     });
 
     test('Cache should not be active', function() {
@@ -335,7 +335,7 @@ suite('Bootstrap - Valid cache, one contact', function() {
 
   suite('Cache with one contact', function() {
     setup(function(done) {
-      applyCache('firstChunk').then(done);
+      Cache.apply('firstChunk').then(done);
     });
 
     test('Cache should be active', function() {
@@ -404,7 +404,7 @@ suite('Bootstrap - Valid cache, multiple contacts', function() {
 
   suite('Cache with multiple contacts', function() {
     setup(function(done) {
-      applyCache('firstChunk').then(done);
+      Cache.apply('firstChunk').then(done);
     });
 
     test('Cache should be active', function() {
@@ -487,7 +487,7 @@ suite('Bootstrap - Valid cache, multiple contacts, favorites', function() {
 
   suite('Cache with multiple contacts and favorites', function() {
     setup(function(done) {
-      applyCache('firstChunk').then(done);
+      Cache.apply('firstChunk').then(done);
     });
 
     test('Cache should be active', function() {
@@ -571,7 +571,7 @@ suite('Bootstrap - Evict and undo cache', function() {
     setup(function(done) {
       localStorage.setItem('firstChunk',
                            JSON.stringify(VALID_CACHE_ONE_CONTACT));
-      applyCache('firstChunk').then(done);
+      Cache.apply('firstChunk').then(done);
       spy = sinon.spy(window, 'setTimeout');
     });
 
@@ -630,7 +630,7 @@ suite('Bootstrap - Evict cache right away', function() {
     setup(function(done) {
       localStorage.setItem('firstChunk',
                            JSON.stringify(VALID_CACHE_ONE_CONTACT));
-      applyCache('firstChunk').then(done);
+      Cache.apply('firstChunk').then(done);
       spy = sinon.spy(window, 'setTimeout');
     });
 
