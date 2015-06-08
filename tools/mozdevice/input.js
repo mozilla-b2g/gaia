@@ -29,7 +29,8 @@ Input.prototype.installBinary = function() {
     return Promise.resolve(null);
   }
 
-  var binary = path.join(__dirname, 'orng');
+  var apiLevel = this.device.properties['ro.build.version.sdk'];
+  var binary = path.join(__dirname, apiLevel >= 16 ? 'orng.pie' : 'orng');
   var serial = this.serial;
 
   return this.device.util
