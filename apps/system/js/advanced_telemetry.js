@@ -12,7 +12,7 @@
 
   // This is the asyncStorage key we use to persist our device ID
   // v1 of this ID used a randomly generated String, while v2 uses a UUID
-//  const DEVICE_ID_KEY = 'metrics.app_usage.deviceID.v2';
+  const DEVICE_ID_KEY = 'metrics.advanced_telemetry.deviceID.v2';
 
   // Various event types we use. Constants here to be sure we use the
   // same values when registering, unregistering and handling these.
@@ -73,16 +73,16 @@
     });
   }
 
-  AT.DEFAULT_URL = 'http://10.19.2.10:4040/submit/telemetry/';
-
   // What setting do we listen to to turn app usage metrics on or off.
   // This default value is the same setting that turns telemetry on and off.
   AT.TELEMETRY_ENABLED_KEY = 'debug.performance_data.advanced_telemetry';
 
   // Base URL for sending data reports
   // Can be overridden with metrics.appusage.reportURL setting.
-  AT.REPORT_URL = 'https://fxos.telemetry.mozilla.org/submit/telemetry';
-
+  // Needs to be formatted as:
+  // /submit/telemetry/id/reason/appName/appUpdateChannel/appVersion/appBuildID
+  AT.REPORT_URL = 'https://incoming.telemetry.mozilla.org/submit/telemetry';
+  //AT.REPORT_URL = 'http://10.19.2.10:4040/submit/telemetry';
   // How often do we try to send the reports
   // Can be overridden with metrics.appusage.reportInterval setting.
 //  AT.REPORT_INTERVAL = 24 * 60 * 60 * 1000;  // 1 DAY
@@ -144,11 +144,28 @@
       HistogramData.load(function(loadedMetrics) {
         self.metrics = loadedMetrics;
         debug('Calling getConfigurationSettiongs');
-        getConfigurationSettings();
+        getDeviceID();
       });
     }
 
     debug('starting app usage metrics collection');
+
+
+    function getDeviceID() {
+      asyncStorage.getItem(DEVICE_ID_KEY, function(value) {
+        if (value) {
+          self.deviceID = value;
+        }
+        else {
+          // Our device id does not need to be unique, just probably unique.
+          self.deviceID = uuid();
+          asyncStorage.setItem(DEVICE_ID_KEY, self.deviceID);
+        }
+
+        // Move on to the next step in the startup process
+        getConfigurationSettings();
+      });
+    }
 
     function getConfigurationSettings() {
       debug('getConfigurationSettings');
@@ -326,14 +343,15 @@
 
 
       // Build the wrapper for the telemetry version
-      send(wrapper);
+      send(wrapper, deviceResponse);
       // Now transmit the data
     });
 
-    function send(payload ) {
+    function send(payload, deviceInfoQuery) {
       tdebug('TAMARA: CALLING SEND');
 
-      var request = new AdvancedTelemetryPing(payload);
+      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
+                                              self.deviceID);
 
       // We don't actually have to do anything if the data is transmitted
       // successfully. We are already set up to collect the next batch of data.
@@ -367,13 +385,27 @@
     }
   };
 
-  function AdvancedTelemetryPing(payload) {
+  function AdvancedTelemetryPing(payload, deviceQuery, did) {
     if (!payload) {
       throw new Error('No arguments');
     }
     // clone so we don't put data into the object that was given to us
     this.packet = payload;
-    this.url = AT.DEFAULT_URL;
+    tdebug('ENTERING CTOR');
+
+    // /id/reason/appName/appUpdateChannel/appVersion/appBuildID
+    var uriParts = [
+        AT.REPORT_URL,
+      encodeURIComponent(did),
+      encodeURIComponent('advancedtelemetry'),
+      encodeURIComponent(AT.TELEMETRY_APP_NAME),
+      encodeURIComponent(deviceQuery['app.update.channel']),
+      encodeURIComponent(deviceQuery['deviceinfo.platform_version']),
+      encodeURIComponent(deviceQuery['deviceinfo.platform_build_id'])
+    ];
+
+    this.url = uriParts.join('/');
+    tdebug('TAMARA URL IS: ' + this.url);
   }
 
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
