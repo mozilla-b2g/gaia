@@ -11,9 +11,9 @@
 require('/shared/js/event_dispatcher.js');
 
 require('/views/shared/test/unit/mock_messages.js');
-require('/views/shared/test/unit/mock_navigatormoz_sms.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_smil.js');
+require('/services/test/unit/mock_navigatormoz_sms.js');
 require('/services/test/unit/mock_threads.js');
 
 require('/views/shared/js/utils.js');
