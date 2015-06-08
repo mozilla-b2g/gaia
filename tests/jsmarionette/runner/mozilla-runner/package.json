@@ -1,0 +1,11 @@
+{
+  "name": "mozilla-runner",
+  "version": "0.5.0",
+  "author": "James Lal [:lightsofapollo]",
+  "description": "Firefox / B2G runtime manager.",
+  "main": "index.js",
+
+  "dependencies" : {
+    "debug": "*"
+  }
+}
