@@ -3,6 +3,7 @@
 
 var gulp = require('gulp');
 var shell = require('gulp-shell');
+var ghPages = require('gulp-gh-pages');
 var del = require('del');
 var fs = require('fs');
 var path = require('path');
@@ -42,3 +43,7 @@ gulp.task('clean', function(cb) {
 
 gulp.task('docs', jsdocTasks);
 
+gulp.task('github', ['docs'], function() {
+  return gulp.src('./docs/**/*')
+    .pipe(ghPages());
+});
