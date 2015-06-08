@@ -54,7 +54,7 @@
         var rect = element.scriptWith(function(el) {
           return el.getBoundingClientRect();
         });
-        var expectedTop = -478;
+        var expectedTop = -(rect.height - 2);
         return (rect.top === expectedTop);
       }.bind(this));
     },

@@ -24,6 +24,7 @@
 #screen.locked.secure-app #software-buttons.visible {
   transform: translateY(-100%);
   visibility: visible;
+  pointer-events: none;
 }
 
 #screen.locked.attention #software-buttons.visible.attention-lockscreen {
@@ -85,6 +86,7 @@
   outline-offset: -1.75rem;
   -moz-outline-radius: 50%;
   box-sizing: border-box;
+  pointer-events: all;
 }
 
 #fullscreen-software-home-button,
