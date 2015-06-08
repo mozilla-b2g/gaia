@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 var Overlap = require('utils/overlap');
 var buildElement = require('utils/dom').buildElement;
-var dayObserver = require('day_observer');
+var core = require('core');
 var isSameDate = require('common/calc').isSameDate;
 var localeFormat = require('date_format').localeFormat;
 var relativeDuration = require('common/calc').relativeDuration;
@@ -31,6 +31,7 @@ SingleDay.prototype = {
   _isActive: false,
   _borderWidth: 0.1,
   _attached: false,
+  _observer: null,
 
   setup: function() {
     this.day = buildElement(template.day.render({
@@ -76,7 +77,8 @@ SingleDay.prototype = {
     if (this._isActive) {
       return;
     }
-    dayObserver.on(this.date, this._render);
+    this._observer = core.bridge.observeDay(this.date);
+    this._observer.listen(this._render);
     window.addEventListener('localized', this);
     this._isActive = true;
   },
@@ -189,7 +191,7 @@ SingleDay.prototype = {
     if (!this._isActive) {
       return;
     }
-    dayObserver.off(this.date, this._render);
+    this._observer.cancel();
     window.removeEventListener('localized', this);
     this._isActive = false;
   },
