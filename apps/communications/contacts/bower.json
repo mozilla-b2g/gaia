@@ -1,0 +1,15 @@
+{
+  "name": "contacts-app-nga",
+  "version": "0.0.0",
+  "authors": [
+    "Gaia Team <gaia@firefoxos.com>"
+  ],
+  "description": "Contacts prototype",
+  "private": true,
+  "ignore": [
+    "bower_components"
+  ],
+  "dependencies": {
+    "threads": "gaia-components/threads#master"
+  }
+}
