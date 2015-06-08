@@ -31,6 +31,9 @@ Gallery.Selector = Object.freeze({
   editButton: '#fullscreen-edit-button-tiny',
   confirmButton: '#confirm-ok',
   overlayView: '#overlay',
+  overlayTitle: '#overlay-title',
+  overlayText: '#overlay-text',
+  overlayCameraButton: '#overlay-camera-button',
   editView: '#edit-view',
   editExposureButton: '#edit-exposure-button',
   editCropButton: '#edit-crop-button',
@@ -89,6 +92,29 @@ Gallery.prototype = {
    */
   get overlayView() {
     return this.client.helper.waitForElement(Gallery.Selector.overlayView);
+  },
+
+  /**
+   * @return {Marionette.Element} Container for overlay message title.
+   */
+  get overlayTitle() {
+    return this.client.helper.waitForElement(Gallery.Selector.overlayTitle);
+  },
+  
+  /**
+   * @return {Marionette.Element} Container for overlay message content.
+   */
+  get overlayText() {
+    return this.client.helper.waitForElement(Gallery.Selector.overlayText);
+  },
+
+  /**
+   * @return {Marionette.Element} Container for the camera button 
+   *                              when no media is found.
+   */
+  get cameraButton() {
+    return this.client.helper.waitForElement(Gallery.Selector.
+      overlayCameraButton);
   },
 
   /**
@@ -317,7 +343,7 @@ Gallery.prototype = {
    * Start the Gallery, save the client for future ops, and wait for the
    * Gallery to finish an initial render.
    */
-  launch: function() {
+  launch: function(nomedia) {
 
     this.client.apps.launch(Gallery.ORIGIN);
     this.client.apps.switchToApp(Gallery.ORIGIN);
@@ -325,6 +351,10 @@ Gallery.prototype = {
     this.client.helper.waitForElement('body');
     // Make sure the gallery is done scanning for new content.
     this.client.setSearchTimeout(1000);
-    this.client.helper.waitForElement(Gallery.Selector.thumbnail);
+
+    // Check for thumbnail when loaded with images
+    if (!nomedia) {
+      this.client.helper.waitForElement(Gallery.Selector.thumbnail); 
+    }
   }
 };
