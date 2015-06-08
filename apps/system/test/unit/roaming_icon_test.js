@@ -23,7 +23,7 @@ suite('system/RoamingIcon', function() {
 
   setup(function() {
     MockService.mockQueryWith('hasActiveCall', false);
-    MockService.mockQueryWith('Radio.enabled', true);
+    MockService.mockQueryWith('Radio.settingEnabled', true);
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     this.sinon.stub(document, 'getElementById', function() {
@@ -51,7 +51,7 @@ suite('system/RoamingIcon', function() {
   });
 
   test('SIM card is absent', function() {
-    MockService.mockQueryWith('Radio.enabled', true);
+    MockService.mockQueryWith('Radio.settingEnabled', true);
     this.sinon.stub(subject, 'hide');
     this.sinon.stub(subject.manager, 'isAbsent').returns(true);
     subject.update();
@@ -59,7 +59,7 @@ suite('system/RoamingIcon', function() {
   });
 
   test('Radio is disabled', function() {
-    MockService.mockQueryWith('Radio.enabled', false);
+    MockService.mockQueryWith('Radio.settingEnabled', false);
     this.sinon.stub(subject, 'hide');
     subject.update();
     assert.isTrue(subject.hide.called);

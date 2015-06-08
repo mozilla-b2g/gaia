@@ -47,10 +47,12 @@
   ];
 
   Radio.SETTINGS = [
-    'operatorResources.data.icon'
+    'operatorResources.data.icon',
+    'ril.radio.disabled'
   ];
 
   Radio.STATES = [
+    'settingEnabled',
     'enabled',
     'isCDMA',
     'getDataConnectionType',
@@ -81,6 +83,11 @@
 
     '_handle_airplanemode-disabled': function() {
       this.enabled = true;
+    },
+
+    '_observe_ril.radio.disabled': function(value) {
+      this.settingEnabled = !value;
+      this.icon && this.icon.update();
     },
 
     '_observe_operatorResources.data.icon': function(value) {

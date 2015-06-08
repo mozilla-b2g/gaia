@@ -38,7 +38,7 @@
       return;
     }
 
-    if (!Service.query('Radio.enabled')) {
+    if (!Service.query('Radio.settingEnabled')) {
       this.debug('radio is disabled');
       this.hide();
       return;
@@ -116,7 +116,7 @@
     var previousHidden = this.dataText.hidden;
     var previousText = this.dataText.textContent;
     var data = this.manager.conn.data;
-    if (!data.connected || Service.query('Radio.enabled') === false) {
+    if (!data.connected || Service.query('Radio.settingEnabled') === false) {
       this.dataText.hidden = true;
       if (!previousHidden) {
         this.publish('changed');

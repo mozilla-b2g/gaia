@@ -35,7 +35,7 @@
       return;
     }
 
-    if (!Service.query('Radio.enabled')) {
+    if (!Service.query('Radio.settingEnabled')) {
       this.debug('radio disabled');
       this.hide();
       return;

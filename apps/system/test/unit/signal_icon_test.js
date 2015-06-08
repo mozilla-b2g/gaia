@@ -27,7 +27,7 @@ suite('system/SignalIcon', function() {
     MockService.mockQueryWith('getDataConnectionType', '');
     MockService.mockQueryWith('isCDMA', false);
     MockService.mockQueryWith('inCall', false);
-    MockService.mockQueryWith('Radio.enabled', true);
+    MockService.mockQueryWith('Radio.settingEnabled', true);
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     this.sinon.stub(document, 'getElementById', function() {
@@ -173,7 +173,7 @@ suite('system/SignalIcon', function() {
 
   suite('update', function() {
     test('SIM card is absent', function() {
-      MockService.mockQueryWith('Radio.enabled', true);
+      MockService.mockQueryWith('Radio.settingEnabled', true);
       this.sinon.stub(subject, 'hide');
       this.sinon.stub(subject.manager, 'isAbsent').returns(true);
       subject.update();
@@ -184,7 +184,7 @@ suite('system/SignalIcon', function() {
     });
 
     test('SIM card is locked', function() {
-      MockService.mockQueryWith('Radio.enabled', true);
+      MockService.mockQueryWith('Radio.settingEnabled', true);
       this.sinon.stub(subject, 'hide');
       this.sinon.stub(subject.manager, 'isLocked').returns(true);
       subject.update();
@@ -192,7 +192,7 @@ suite('system/SignalIcon', function() {
     });
 
     test('Radio is disabled', function() {
-      MockService.mockQueryWith('Radio.enabled', false);
+      MockService.mockQueryWith('Radio.settingEnabled', false);
       this.sinon.stub(subject, 'hide');
       subject.update();
       assert.isTrue(subject.hide.called);
@@ -250,7 +250,7 @@ suite('system/SignalIcon', function() {
 
   suite('Update data text', function() {
     setup(function() {
-      MockService.mockQueryWith('Radio.enabled', true);
+      MockService.mockQueryWith('Radio.settingEnabled', true);
       MockService.mockQueryWith('inCall', false);
       MockService.mockQueryWith('isCDMA', false);
       subject.manager.conn.data = {
@@ -262,7 +262,7 @@ suite('system/SignalIcon', function() {
     });
 
     test('Should hide data text if radio is disabled', function() {
-      MockService.mockQueryWith('Radio.enabled', false);
+      MockService.mockQueryWith('Radio.settingEnabled', false);
       subject.updateDataText();
       assert.equal(subject.dataText.hidden, true);
     });

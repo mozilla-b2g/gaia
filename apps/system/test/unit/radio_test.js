@@ -78,6 +78,16 @@ suite('Radio > ', function() {
     });
   });
 
+
+  test('Should update icon when fallback settings is changed', function() {
+    radio.icon = new MobileConnectionIcon(radio);
+    this.sinon.stub(radio.icon, 'update');
+    MockNavigatorSettings.mTriggerObservers(
+      'ril.radio.disabled', { settingValue: true });
+    assert.isFalse(radio.settingEnabled);
+    assert.isTrue(radio.icon.update.called);
+  });
+
   suite('Update icons on multi-SIM device', function() {
     setup(function() {
       radio._stepReady = true;
