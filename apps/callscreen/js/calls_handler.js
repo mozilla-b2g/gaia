@@ -38,6 +38,13 @@ var CallsHandler = (function callsHandler() {
       // Somehow the muted property appears to true after initialization.
       // Set it to false.
       telephony.muted = false;
+      // Once bug 1129882 and bug 1113086 are landed, the new audio channel
+      // service will manage all the channels from System app, and to call
+      // this api is let the audio channel service know the Callscreen app
+      // is using the telephony audio channel.
+      if (telephony.ownAudioChannel) {
+        telephony.ownAudioChannel();
+      }
     }
 
     // XXX: Use BTManager.isConnected() through btHelper
