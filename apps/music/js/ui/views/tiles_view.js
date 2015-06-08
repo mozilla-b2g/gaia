@@ -131,7 +131,7 @@ var TilesView = {
       var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
       var setTileBackgroundClosure = function(url) {
-        showImage(albumArt, url, 'fadeIn');
+        showImage(albumArt, url);
       };
 
       if (index <= NUM_INITIALLY_VISIBLE_TILES) {
