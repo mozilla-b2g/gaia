@@ -3,60 +3,58 @@
 (function(module, ns) {
   'use strict';
 
-  var STATUSES = Object.freeze({
+  var ERRORS = Object.freeze({
+    'element not accessible': 'ElementNotAccessibleError',
+    'element not selectable': 'ElementIsNotSelectable',
+    'element not visible': 'ElementNotVisible',
+    'invalid cookie domain': 'InvalidCookieDomain',
+    'invalid element coordinates': 'InvalidElementCoordinates',
+    'invalid element state': 'InvalidElementState',
+    'invalid selector': 'InvalidSelector',
+    'invalid xpath selector': 'XPathLookupError',
+    'javascript error': 'JavaScriptError',
+    'no such alert': 'NoAlertOpenError',
     'no such element': 'NoSuchElement',
     'no such frame': 'NoSuchFrame',
-    'unknown command': 'UnknownCommand',
-    'stale element reference': 'StaleElementReference',
-    'element not visible': 'ElementNotVisible',
-    'invalid element state': 'InvalidElementState',
-    'unknown error': 'UnknownError',
-    'element not selectable': 'ElementIsNotSelectable',
-    'javascript error': 'JavaScriptError',
-    'invalid xpath selector': 'XPathLookupError',
-    'timeout': 'Timeout',
     'no such window': 'NoSuchWindow',
-    'invalid cookie domain': 'InvalidCookieDomain',
+    'script timeout': 'ScriptTimeout',
+    'stale element reference': 'StaleElementReference',
+    'timeout': 'Timeout',
     'unable to set cookie': 'UnableToSetCookie',
     'unexpected alert open': 'UnexpectedAlertOpen',
-    'no such alert': 'NoAlertOpenError',
-    'script timeout': 'ScriptTimeout',
-    'invalid element coordinates': 'InvalidElementCoordinates',
-    'invalid selector': 'InvalidSelector',
+    'unknown command': 'UnknownCommand',
+    'unknown error': 'UnknownError',
     'webdriver error': 'GenericError',
-    'element not accessible': 'ElementNotAccessibleError'
   });
 
   var CODES = Object.freeze({
-    7: STATUSES['no such element'],
-    8: STATUSES['no such frame'],
-    9: STATUSES['unknown command'],
-    10: STATUSES['stale element reference'],
-    11: STATUSES['element not visible'],
-    12: STATUSES['invalid element state'],
-    13: STATUSES['unknown error'],
-    15: STATUSES['element not selectable'],
-    17: STATUSES['javascript error'],
-    19: STATUSES['invalid xpath selector'],
-    21: STATUSES['timeout'],
-    23: STATUSES['no such window'],
-    24: STATUSES['invalid cookie domain'],
-    25: STATUSES['unable to set cookie'],
-    26: STATUSES['unexpected alert open'],
-    27: STATUSES['no such alert'],
-    28: STATUSES['script timeout'],
-    29: STATUSES['invalid element coordinates'],
-    32: STATUSES['invalid selector'],
-    56: STATUSES['element not accessible'],
-    500: STATUSES['webdriver error']
+    7: ERRORS['no such element'],
+    8: ERRORS['no such frame'],
+    9: ERRORS['unknown command'],
+    10: ERRORS['stale element reference'],
+    11: ERRORS['element not visible'],
+    12: ERRORS['invalid element state'],
+    13: ERRORS['unknown error'],
+    15: ERRORS['element not selectable'],
+    17: ERRORS['javascript error'],
+    19: ERRORS['invalid xpath selector'],
+    21: ERRORS['timeout'],
+    23: ERRORS['no such window'],
+    24: ERRORS['invalid cookie domain'],
+    25: ERRORS['unable to set cookie'],
+    26: ERRORS['unexpected alert open'],
+    27: ERRORS['no such alert'],
+    28: ERRORS['script timeout'],
+    29: ERRORS['invalid element coordinates'],
+    32: ERRORS['invalid selector'],
+    56: ERRORS['element not accessible'],
+    500: ERRORS['webdriver error']
   });
 
-  var DEFAULT_STATUS = STATUSES['webdriver error'];
+  var DEFAULT_ERROR = ERRORS['webdriver error'];
 
   /**
-   * Returns an error object given
-   * a error object from the marionette client.
-   * Expected input follows this format:
+   * Returns an error object given an error object from the Marionette client.
    *
    * Codes are from:
    * http://code.google.com/p/selenium/wiki/JsonWireProtocol#Response_Status_Codes
@@ -64,24 +62,37 @@
    * Status strings are from:
    * https://w3c.github.io/webdriver/webdriver-spec.html#handling-errors
    *
-   *    {
-   *      message: "Something",
-   *      stacktrace: "wentwrong@line",
-   *      status: "javascript error"
-   *    }
+   * The expected input for protocol version 2 and higher:
+   *
+   *     {
+   *       error: "javascript error",
+   *       message: "Something",
+   *       stacktrace: "wentwrong@line",
+   *     }
+   *
+   * The expected input for protocol version 1:
+   *
+   *     {
+   *       message: "Something",
+   *       stacktrace: "wentwrong@line",
+   *       status: "javascript error",
+   *     }
    *
    * @param {Client} client which the error originates from.
    * @param {Object} options for error (see above).
    */
   function MarionetteError(client, options) {
-    var status = DEFAULT_STATUS;
-    if (options.status in CODES)
-      status = CODES[options.status];
-    else if (options.status in STATUSES)
-      status = STATUSES[options.status];
+    var error = DEFAULT_ERROR;
+    if (options.status in CODES) {
+      error = CODES[options.status];
+    } else if (options.status in ERRORS) {
+      error = ERRORS[options.status];
+    } else if (options.error in ERRORS) {
+      error = ERRORS[options.error];
+    }
 
     this.client = client;
-    this.type = status;
+    this.type = error;
     this.name = this.type;
 
     this.message = this.name;
@@ -108,7 +119,7 @@
     }
   });
 
-  MarionetteError.STATUSES = STATUSES;
+  MarionetteError.ERRORS = ERRORS;
   MarionetteError.CODES = CODES;
   module.exports = MarionetteError;
 

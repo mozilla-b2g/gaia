@@ -137,11 +137,11 @@ suite('marionette/drivers/abstract', function() {
 
   });
 
-  suite('.connect', function() {
+  suite('.connect with protocol 1', function() {
     var cmd, calledChild;
 
     setup(function(done) {
-      cmd = exampleCmds.connect();
+      cmd = exampleCmds.connectProto1();
       calledChild = false;
 
       subject._connect = function() {
@@ -161,11 +161,65 @@ suite('marionette/drivers/abstract', function() {
       });
     });
 
-    test('should set .traits', function() {
-      assert.deepEqual(subject.traits, []);
+    test('should set .marionetteProtocol', function() {
+      assert.property(subject, 'marionetteProtocol');
+      assert.strictEqual(subject.marionetteProtocol, 1 /* fallback */);
     });
 
     test('should set .applicationType', function() {
+      assert.property(subject, 'applicationType');
+      assert.strictEqual(subject.applicationType, cmd.applicationType);
+    });
+
+    test('should set .traits', function() {
+      assert.property(subject, 'traits');
+      assert.strictEqual(subject.traits, cmd.traits);
+    });
+
+    test('should call _connect', function() {
+      assert.strictEqual(calledChild, true);
+    });
+
+    test('should not be waiting', function() {
+      assert.strictEqual(subject._waiting, false);
+    });
+
+    test('should be ready', function() {
+      assert.strictEqual(subject.ready, true);
+    });
+  });
+
+  suite('.connect with protocol 2', function() {
+    var cmd, calledChild;
+
+    setup(function(done) {
+      cmd = exampleCmds.connectProto2();
+      calledChild = false;
+
+      subject._connect = function() {
+        subject.connectionId = 10;
+        calledChild = true;
+        //this will cause connect to callback to fire
+        subject._onDeviceResponse({
+          id: 10,
+          response: cmd
+        });
+      };
+
+      assert.strictEqual(subject._waiting, true);
+
+      subject.connect(function() {
+        done();
+      });
+    });
+
+    test('should set .marionetteProtocol', function() {
+      assert.property(subject, 'marionetteProtocol');
+      assert.strictEqual(subject.marionetteProtocol, cmd.marionetteProtocol);
+    });
+
+    test('should set .applicationType', function() {
+      assert.property(subject, 'applicationType');
       assert.strictEqual(subject.applicationType, cmd.applicationType);
     });
 
@@ -180,7 +234,6 @@ suite('marionette/drivers/abstract', function() {
     test('should be ready', function() {
       assert.strictEqual(subject.ready, true);
     });
-
   });
 
   suite('._nextCommand', function() {
@@ -245,7 +298,6 @@ suite('marionette/drivers/abstract', function() {
     });
 
     suite('when device is not ready', function() {
-
       test('should throw an error', function() {
         assert.throws(function() {
           subject.send({ type: 'newSession' });
@@ -304,4 +356,3 @@ suite('marionette/drivers/abstract', function() {
 
 
 });
-

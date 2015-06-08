@@ -16,7 +16,7 @@ suite('marionette/element', function() {
 
   id = '{fake-uuid-root}';
 
-  function simpleCommand(method, type, responseKey) {
+  function simpleCommand(method, type, response, key) {
     suite('.' + method, function() {
       device.
         issues(method).
@@ -26,8 +26,8 @@ suite('marionette/element', function() {
             id: id
           }
         }).
-        serverResponds(responseKey).
-        callbackReceives(responseKey);
+        serverResponds(response).
+        callbackReceives(key);
     });
   }
 
@@ -53,10 +53,10 @@ suite('marionette/element', function() {
 
   suite('._sendCommand', function() {
     device.
-      issues('_sendCommand', { name: 'test' }, 'ok').
-      shouldSend({ name: 'test', parameters:{ id: id}}).
-      serverResponds('ok').
-      callbackReceives('ok');
+      issues('_sendCommand', {name: 'test'}).
+      shouldSend({name: 'test', parameters: {id: id}}).
+      serverResponds('value').
+      callbackReceives('value');
   });
 
   suite('.findElement', function() {
@@ -73,8 +73,8 @@ suite('marionette/element', function() {
       serverResponds('findElementResponse');
 
     test('should send callback a single element', function() {
-      var value = device.commandCallback.value,
-          resultId = exampleCmds.findElementResponse().value;
+      var value = device.commandCallback.value;
+      var resultId = exampleCmds.findElementResponse().value;
       assert.instanceOf(value, Element);
       assert.strictEqual(value.id, resultId);
     });
@@ -194,7 +194,7 @@ suite('marionette/element', function() {
           }
         }).
         serverResponds('ok').
-        callbackReceives('ok');
+        callbackReceives();
     });
 
     suite('when given a string', function() {
@@ -209,7 +209,7 @@ suite('marionette/element', function() {
           }
         }).
         serverResponds('ok').
-        callbackReceives('ok');
+        callbackReceives();
     });
   });
 
@@ -269,15 +269,15 @@ suite('marionette/element', function() {
     });
   });
 
-  simpleCommand('tagName', 'getElementTagName', 'value');
+  simpleCommand('tagName', 'getElementTagName', 'value', 'value');
   simpleCommand('click', 'clickElement', 'ok');
-  simpleCommand('text', 'getElementText', 'value');
+  simpleCommand('text', 'getElementText', 'value', 'value');
   simpleCommand('clear', 'clearElement', 'ok');
-  simpleCommand('selected', 'isElementSelected', 'value');
-  simpleCommand('enabled', 'isElementEnabled', 'value');
-  simpleCommand('displayed', 'isElementDisplayed', 'value');
-  simpleCommand('size', 'getElementRect', 'value');
-  simpleCommand('location', 'getElementRect', 'value');
-  simpleCommand('rect', 'getElementRect', 'value');
+  simpleCommand('selected', 'isElementSelected', 'value', 'value');
+  simpleCommand('enabled', 'isElementEnabled', 'value', 'value');
+  simpleCommand('displayed', 'isElementDisplayed', 'value', 'value');
+  simpleCommand('size', 'getElementRect', 'value', 'value');
+  simpleCommand('location', 'getElementRect', 'value', 'value');
+  simpleCommand('rect', 'getElementRect', 'value', 'value');
 
 });
