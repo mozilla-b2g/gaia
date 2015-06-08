@@ -3,9 +3,9 @@ define(function(require, exports, module) {
 
 var Abstract = require('./abstract');
 var CalendarModel = require('models/calendar');
-var Local = require('provider/local');
 var core = require('core');
 var denodeifyAll = require('common/promise').denodeifyAll;
+var localCalendarId = require('common/constants').localCalendarId;
 var probablyParseInt = require('common/probably_parse_int');
 
 function Store() {
@@ -166,7 +166,7 @@ Store.prototype = {
 
   _setCalendarColor: function(calendar) {
     // local calendar should always use the same color
-    if (calendar._id === Local.calendarId) {
+    if (calendar._id === localCalendarId) {
       calendar.color = Store.LOCAL_COLOR;
       return;
     }
