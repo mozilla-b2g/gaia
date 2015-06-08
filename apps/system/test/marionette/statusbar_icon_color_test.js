@@ -78,6 +78,7 @@ marionette('Statusbar colors', function() {
   test('statusbar icons keep color after add homescreen', function() {
     waitVisible();
     helper.unlockScreen(client);
+    waitForLightColor();
     var url = server.url('sample.html');
     bookmark.openAndSave(url);
     waitForLightColor();
@@ -93,9 +94,11 @@ marionette('Statusbar colors', function() {
     // Ensure that the page is loaded.
     system.gotoBrowser(url);
     client.switchToFrame();
+    waitForLightColor();
 
     system.appChromeContextLink.click();
     system.appChromeContextMenuShare.click();
+    system.waitForActivityMenu();
     system.cancelActivity.click();
     waitForLightColor();
   });
@@ -106,12 +109,11 @@ marionette('Statusbar colors', function() {
     waitForDarkColor();
     launchSettingsActivity();
     client.waitFor(function() {
-      var filter = system.statusbar.scriptWith(function(element) {
+      var filter = system.statusbarShadowActivity.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       return filter.indexOf('none') === -1;
     });
-    waitForLightColor();
   });
 
   test('statusbar icons are dark when utility tray is open', function() {
@@ -121,12 +123,11 @@ marionette('Statusbar colors', function() {
     waitForLightColor();
     utilityTray.open();
     client.waitFor(function() {
-      var filter = system.statusbar.scriptWith(function(element) {
+      var filter = system.statusbarShadowTray.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       return filter.indexOf('none') > -1;
     });
-    waitForDarkColor();
   });
 
   function launchSettingsActivity() {
@@ -173,7 +174,7 @@ marionette('Statusbar colors', function() {
 
   function waitForColor(light) {
     client.waitFor(function() {
-      var filter = system.statusbar.scriptWith(function(element) {
+      var filter = system.statusbarShadow.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       var index = filter.indexOf('none');

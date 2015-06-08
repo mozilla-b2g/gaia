@@ -55,7 +55,7 @@ System.Selector = Object.freeze({
   softwareHomeFullscreen: '#fullscreen-software-home-button',
   softwareHomeFullscreenLayout: '#software-buttons-fullscreen-layout',
   statusbar: '#statusbar',
-  statusbarShadow: '.appWindow.active .statusbar-shadow',
+  statusbarShadow: '.appWindow.active > .titlebar .statusbar-shadow',
   statusbarShadowTray: '#statusbar-tray',
   statusbarShadowActivity: '.activityWindow.active .statusbar-shadow',
   statusbarMaximizedWrapper: '#statusbar-maximized-wrapper',

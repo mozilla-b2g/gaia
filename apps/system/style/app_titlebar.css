@@ -7,11 +7,6 @@
   z-index: 6;
 }
 
-#screen:not(.cards-view) .appWindow.active:not(.inside-edges):not(.transition-closing):not(.transition-opening) .titlebar .statusbar-shadow,
-#screen.utility-tray .titlebar .statusbar-shadow {
-  visibility: hidden;
-}
-
 .appWindow .titlebar .statusbar-shadow {
   height: 100%;
   background-size: 100% 100%;
@@ -19,8 +14,7 @@
   background-position: bottom right;
 }
 
-#screen:not(.rocketbar-focused):not(.utility-tray):not(.locked) #statusbar.light,
-.appWindow.light .titlebar .statusbar-shadow {
+#screen:not(.rocketbar-focused):not(.utility-tray):not(.locked) .appWindow.active.light > .titlebar .statusbar-shadow {
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'1 -1 0.3019 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
 }
 
@@ -46,20 +40,20 @@
 }
 
 /* Transitions between the maximized / minimized status bars */
-.chrome + .titlebar .titlebar-maximized {
+#statusbar:not(.maximized) ~ #windows > .appWindow.active > .titlebar .titlebar-maximized {
   opacity: 0;
 }
 
-.chrome.maximized + .titlebar .titlebar-maximized {
+#statusbar.maximized ~ #windows > .appWindow.active > .titlebar .titlebar-maximized {
   opacity: 1;
 }
 
-.chrome + .titlebar .titlebar-minimized {
+#statusbar:not(.maximized) ~ #windows > .appWindow.active > .titlebar .titlebar-minimized {
   transform: translateY(calc(var(--statusbar-height) * -1));
   opacity: 1;
 }
 
-.chrome.maximized + .titlebar .titlebar-minimized {
+#statusbar.maximized ~ #windows > .appWindow.active > .titlebar .titlebar-minimized {
   opacity: 0;
 }
 
@@ -76,10 +70,6 @@
 }
 
 /* Special cases */
-#screen.utility-tray .appWindow .titlebar {
-  visibility: hidden;
-}
-
 #screen.attention #statusbar-minimized {
   display: none;
 }

@@ -15,7 +15,7 @@
   position: fixed;
   width: 100%;
   height: var(--statusbar-height);
-  top: 0;
+  top: calc(var(--statusbar-height) * -1);
   left: 0;
   pointer-events: none;
 }
@@ -26,11 +26,6 @@
 }
 
 #statusbar.hidden {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#statusbar-maximized-wrapper {
   opacity: 0;
   visibility: hidden;
 }
@@ -64,11 +59,6 @@
   filter: none;
 }
 
-#screen:not(.locked).utility-tray #statusbar-maximized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
 #screen.locked #statusbar-maximized-wrapper,
 #screen:not(.locked).minimized-tray #statusbar-minimized-wrapper {
   opacity: 1;
@@ -92,7 +82,6 @@
   }
 }
 
-#screen.utility-tray #statusbar,
 #screen.attention #statusbar {
   top: 0;
   background-color: black;
@@ -100,16 +89,6 @@
 
 #screen.utility-tray #statusbar {
   background-color: transparent;
-}
-
-#screen.utility-tray.utility-tray-in-transition #statusbar {
-  top: -3rem;
-}
-
-/* When the utility tray is displayed, the title bar is hidden, so we only show
- the maximised status bar. */
-#screen.utility-tray #statusbar-minimized {
-  display: none;
 }
 
 body #statusbar {
