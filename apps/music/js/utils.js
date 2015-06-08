@@ -83,6 +83,7 @@ function createListElement(option, data, index, highlight) {
         var shuffleIcon = document.createElement('div');
         shuffleIcon.className = 'list-playlist-icon';
         shuffleIcon.dataset.icon = 'shuffle';
+        shuffleIcon.setAttribute('data-l10n-id', 'shuffle-toggle');
         a.appendChild(shuffleIcon);
       }
 
