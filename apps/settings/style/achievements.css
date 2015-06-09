@@ -1,0 +1,27 @@
+/**
+ * Achievements
+ */
+
+.achievements-item {
+  opacity: 0.4;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.5rem 0;
+}
+
+.achievements-item.rewarded {
+  opacity: 1;
+}
+
+.achievements-item .icon {
+  width: 4rem;
+  height: 4rem;
+  flex-shrink: 0;
+}
+
+.achievements-item .details {
+  display: flex;
+  flex-direction: column;
+  white-space: normal;
+}
