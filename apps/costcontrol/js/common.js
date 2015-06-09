@@ -23,13 +23,13 @@ function getTopUpTimeout(callback) {
          window.getTopUpTimeout(callback);
 }
 
-function addNetworkUsageAlarm(dataInterface, dataLimit, callback) {
+function addNetworkUsageAlarm(dataInterface, dataLimit, onsuccess, onerror) {
   var handlerContainer = document.getElementById('message-handler');
   if (handlerContainer) {
     handlerContainer.contentWindow
-      .addNetworkUsageAlarm(dataInterface, dataLimit, callback);
+      .addNetworkUsageAlarm(dataInterface, dataLimit, onsuccess, onerror);
   } else {
-    window.addNetworkUsageAlarm(dataInterface, dataLimit, callback);
+    window.addNetworkUsageAlarm(dataInterface, dataLimit, onsuccess, onerror);
   }
 }
 
