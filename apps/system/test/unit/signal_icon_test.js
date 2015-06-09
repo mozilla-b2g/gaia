@@ -238,12 +238,12 @@ suite('system/SignalIcon', function() {
 
     test('Emergency call only', function() {
       subject.manager.conn.voice.state = 'searching';
-      this.sinon.stub(subject, 'updateSignal');
+      this.sinon.spy(subject, 'updateSignal');
       this.sinon.stub(subject, 'show');
       subject.update();
       assert.isTrue(subject.updateSignal.called);
       assert.isTrue(subject.show.called);
-      assert.equal(dataset.level, -1);
+      assert.equal(dataset.level, 0);
       assert.equal(dataset.searching, 'true');
     });
   });
@@ -318,172 +318,174 @@ suite('system/SignalIcon', function() {
     });
   });
 
-  test('no network without sim, not searching', function() {
-    subject.manager.conn.voice = {
-      connected: false,
-      relSignalStrength: null,
-      emergencyCallsOnly: false,
-      state: 'notSearching',
-      roaming: false,
-      network: {}
-    };
+  suite('Signal states', function() {
+    test('no network without sim, not searching', function() {
+      subject.manager.conn.voice = {
+        connected: false,
+        relSignalStrength: null,
+        emergencyCallsOnly: false,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = null;
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(true);
+      subject.manager.simCard.cardState = null;
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(true);
 
-    subject.update();
+      subject.update();
 
-    assert.isUndefined(dataset.level);
-    assert.isUndefined(dataset.searching);
-  });
+      assert.isUndefined(dataset.level);
+      assert.isUndefined(dataset.searching);
+    });
 
-  test('no network without sim, searching', function() {
-    subject.manager.conn.voice = {
-      connected: false,
-      relSignalStrength: null,
-      emergencyCallsOnly: false,
-      state: 'searching',
-      roaming: false,
-      network: {}
-    };
+    test('no network without sim, searching', function() {
+      subject.manager.conn.voice = {
+        connected: false,
+        relSignalStrength: null,
+        emergencyCallsOnly: false,
+        state: 'searching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = null;
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(true);
+      subject.manager.simCard.cardState = null;
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(true);
 
-    subject.update();
+      subject.update();
 
-    assert.isUndefined(dataset.level);
-    assert.isUndefined(dataset.searching);
-  });
+      assert.isUndefined(dataset.level);
+      assert.isUndefined(dataset.searching);
+    });
 
-  test('no network with sim, sim locked', function() {
-    subject.manager.conn.voice = {
-      connected: false,
-      relSignalStrength: null,
-      emergencyCallsOnly: false,
-      state: 'notSearching',
-      roaming: false,
-      network: {}
-    };
+    test('no network with sim, sim locked', function() {
+      subject.manager.conn.voice = {
+        connected: false,
+        relSignalStrength: null,
+        emergencyCallsOnly: false,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = 'pinRequired';
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(false);
-    sinon.stub(subject.manager, 'isLocked').returns(true);
+      subject.manager.simCard.cardState = 'pinRequired';
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(false);
+      sinon.stub(subject.manager, 'isLocked').returns(true);
 
-    subject.update();
+      subject.update();
 
-    assert.isFalse(subject.isVisible());
-  });
+      assert.isFalse(subject.isVisible());
+    });
 
-  test('searching', function() {
-    subject.manager.conn.voice = {
-      connected: false,
-      relSignalStrength: null,
-      emergencyCallsOnly: false,
-      state: 'searching',
-      roaming: false,
-      network: {}
-    };
+    test('searching', function() {
+      subject.manager.conn.voice = {
+        connected: false,
+        relSignalStrength: null,
+        emergencyCallsOnly: false,
+        state: 'searching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = 'ready';
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(false);
+      subject.manager.simCard.cardState = 'ready';
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(false);
 
-    subject.update();
+      subject.update();
 
-    assert.equal(dataset.level, 0);
-    assert.isUndefined(dataset.searching);
-  });
+      assert.equal(dataset.level, 0);
+      assert.equal(dataset.searching, 'true');
+    });
 
-  test('emergency calls only, no sim', function() {
-    subject.manager.conn.voice = {
-      connected: false,
-      relSignalStrength: 80,
-      emergencyCallsOnly: true,
-      state: 'notSearching',
-      roaming: false,
-      network: {}
-    };
+    test('emergency calls only, no sim', function() {
+      subject.manager.conn.voice = {
+        connected: false,
+        relSignalStrength: 80,
+        emergencyCallsOnly: true,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = null;
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(true);
+      subject.manager.simCard.cardState = null;
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(true);
 
-    subject.update();
+      subject.update();
 
-    assert.isUndefined(dataset.level);
-    assert.isUndefined(dataset.searching);
-  });
+      assert.isUndefined(dataset.level);
+      assert.isUndefined(dataset.searching);
+    });
 
-  test('emergency calls only, with sim', function() {
-    subject.manager.conn.voice = {
-      connected: false,
-      relSignalStrength: 80,
-      emergencyCallsOnly: true,
-      state: 'notSearching',
-      roaming: false,
-      network: {}
-    };
+    test('emergency calls only, with sim', function() {
+      subject.manager.conn.voice = {
+        connected: false,
+        relSignalStrength: 80,
+        emergencyCallsOnly: true,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = 'pinRequired';
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(false);
-    sinon.stub(subject.manager, 'isLocked').returns(true);
+      subject.manager.simCard.cardState = 'pinRequired';
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(false);
+      sinon.stub(subject.manager, 'isLocked').returns(true);
 
-    subject.update();
+      subject.update();
 
-    assert.isFalse(subject.isVisible());
-  });
+      assert.isFalse(subject.isVisible());
+    });
 
-  test('normal carrier', function() {
-    subject.manager.conn.voice = {
-      connected: true,
-      relSignalStrength: 80,
-      emergencyCallsOnly: false,
-      state: 'notSearching',
-      roaming: false,
-      network: {}
-    };
+    test('normal carrier', function() {
+      subject.manager.conn.voice = {
+        connected: true,
+        relSignalStrength: 80,
+        emergencyCallsOnly: false,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = 'ready';
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(false);
+      subject.manager.simCard.cardState = 'ready';
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(false);
 
-    subject.update();
+      subject.update();
 
-    assert.equal(dataset.level, 4);
-    assert.isUndefined(dataset.searching);
-  });
+      assert.equal(dataset.level, 4);
+      assert.isUndefined(dataset.searching);
+    });
 
-  test('EVDO connection, show data call signal strength', function() {
-    subject.manager.conn.voice = {
-      connected: false,
-      relSignalStrength: 0,
-      emergencyCallsOnly: false,
-      state: 'notSearching',
-      roaming: false,
-      network: {}
-    };
+    test('EVDO connection, show data call signal strength', function() {
+      subject.manager.conn.voice = {
+        connected: false,
+        relSignalStrength: 0,
+        emergencyCallsOnly: false,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.conn.data = {
-      connected: true,
-      relSignalStrength: 80,
-      type: 'evdo',
-      emergencyCallsOnly: false,
-      state: 'notSearching',
-      roaming: false,
-      network: {}
-    };
+      subject.manager.conn.data = {
+        connected: true,
+        relSignalStrength: 80,
+        type: 'evdo',
+        emergencyCallsOnly: false,
+        state: 'notSearching',
+        roaming: false,
+        network: {}
+      };
 
-    subject.manager.simCard.cardState = 'ready';
-    subject.manager.simCard.iccInfo = {};
-    sinon.stub(subject.manager, 'isAbsent').returns(false);
+      subject.manager.simCard.cardState = 'ready';
+      subject.manager.simCard.iccInfo = {};
+      sinon.stub(subject.manager, 'isAbsent').returns(false);
 
-    subject.update();
-    assert.equal(dataset.level, 4);
+      subject.update();
+      assert.equal(dataset.level, 4);
+    });
   });
 
   suite('updateSignal', function() {
