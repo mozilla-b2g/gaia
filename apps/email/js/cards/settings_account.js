@@ -123,7 +123,9 @@ return [
       var dialog = tngAccountDeleteConfirmNode.cloneNode(true);
       var content = dialog.getElementsByTagName('p')[0];
       mozL10n.setAttributes(content, 'settings-account-delete-prompt',
-                            { account: account.name });
+        // Replacing the '@' character with '\u200b@\u200b'
+        // where \u200b is a zero-width space allows for line-breaking
+        { account: account.name.replace(/@/, '\u200b@\u200b') });
       ConfirmDialog.show(dialog,
         { // Confirm
           id: 'account-delete-ok',
