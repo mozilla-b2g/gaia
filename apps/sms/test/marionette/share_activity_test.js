@@ -41,7 +41,7 @@ marionette('Messages as share target', function() {
         messagesApp.switchTo();
       });
 
-      test('Should close activity if in Composer panel', function() {
+      test.skip('Should close activity if in Composer panel', function() {
         assert.ok(
           messagesApp.Composer.header.getAttribute('action') === 'close',
           'Close activity button should be visible'
