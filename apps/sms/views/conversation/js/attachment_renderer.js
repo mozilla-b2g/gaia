@@ -8,7 +8,7 @@
   'use strict';
   // do not create thumbnails for too big attachments
   // (see bug 805114 for a similar issue in Gallery)
-  const MAX_THUMBNAIL_GENERATION_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_THUMBNAIL_GENERATION_SIZE = 10 * 1024 * 1024; // 5MB
 
   // Actual thumbnails size should be 10 rem (100px) * devicePixelRatio
   const THUMBNAIL_SIZE = 100 * window.devicePixelRatio;
