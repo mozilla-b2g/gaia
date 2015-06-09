@@ -63,6 +63,7 @@
     "rimraf": "2.2.5",
     "sinon": "1.7.3",
     "slugid": "^1.0.2",
+    "sms": "file:./apps/sms",
     "socket-retry-connect": "file:./tests/jsmarionette/client/socket-retry-connect",
     "sockit-to-me": "file:./tests/jsmarionette/client/sockit-to-me",
     "superagent-promise": ">=0.2.0",
