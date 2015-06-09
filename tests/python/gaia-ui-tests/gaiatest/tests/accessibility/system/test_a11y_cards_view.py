@@ -15,7 +15,7 @@ class TestCardsViewAccessibility(GaiaTestCase):
 
         # Launch the test apps
         for app in self._test_apps:
-            self.apps.launch(app)
+            self.apps.launch(app, switch_to_frame=False)
 
         # Switch to top level frame before starting the test
         self.marionette.switch_to_frame()
