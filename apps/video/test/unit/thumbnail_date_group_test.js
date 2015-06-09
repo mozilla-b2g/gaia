@@ -5,7 +5,7 @@
  */
 'use strict';
 
-require('/shared/js/tagged.js');
+require('/shared/js/sanitizer.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');

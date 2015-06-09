@@ -1,22 +1,22 @@
-/* global Tagged */
+/* global Sanitizer */
 
 'use strict';
 
-require('/shared/js/tagged.js');
+require('/shared/js/sanitizer.js');
 
 suite('tagged template helper', function() {
 
   test('#escapeHTML', function() {
     var myVal = '<b>hello</b>';
-    var generated = Tagged.escapeHTML `${myVal} world`;
+    var generated = Sanitizer.escapeHTML `${myVal} world`;
     assert.equal(generated, '&lt;b&gt;hello&lt;&#x2F;b&gt; world');
   });
 
   test('#createSafeHTML', function() {
-    var title = 'Click me';
+    var t = 'Click me';
     var url = '" ><script>alert(1)</script>';
     var s;
-    s = Tagged.createSafeHTML`<a href="${url}" title="${title}">${title}</a>`;
+    s = Sanitizer.createSafeHTML`<a href="${url}" title="${t}">${t}</a>`;
 
     var expectedDocs = 'https://developer.mozilla.org/en-US/Firefox_OS/'+
                         'Security/Security_Automation';
@@ -28,8 +28,8 @@ suite('tagged template helper', function() {
 
   test('#unwrapSafeHTML', function() {
     var escapeMe = '<s>hax</s>';
-    var obj = Tagged.createSafeHTML`<b>${escapeMe}</b>`;
-    var unwrapped = Tagged.unwrapSafeHTML(obj);
+    var obj = Sanitizer.createSafeHTML`<b>${escapeMe}</b>`;
+    var unwrapped = Sanitizer.unwrapSafeHTML(obj);
     assert.equal(unwrapped, '<b>&lt;s&gt;hax&lt;&#x2F;s&gt;</b>');
   });
 

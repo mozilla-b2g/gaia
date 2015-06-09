@@ -1,7 +1,7 @@
 /* globals define, module */
 
 /**
- * tagged.js is a simple library to help you escape HTML using template strings
+ * A simple library to help you escape HTML using template strings.
  *
  * It's the counterpart to our eslint "no-unsafe-innerhtml" plugin that helps us
  * avoid unsafe coding practices.
@@ -19,12 +19,12 @@
   } else if (typeof exports === 'object') {
     module.exports = factory();
   } else {
-    root.Tagged = factory();
+    root.Sanitizer = factory();
   }
 }(this, function () {
   'use strict';
 
-  var Tagged = {
+  var Sanitizer = {
     _entity: /[&<>"'/]/g,
 
     _entities: {
@@ -37,7 +37,7 @@
     },
 
     getEntity: function (s) {
-      return Tagged._entities[s];
+      return Sanitizer._entities[s];
     },
 
     /**
@@ -49,7 +49,8 @@
       for (var i = 0; i < strings.length; i++) {
         result += strings[i];
         if (i < values.length) {
-          result += String(values[i]).replace(Tagged._entity, Tagged.getEntity);
+          result += String(values[i]).replace(Sanitizer._entity,
+            Sanitizer.getEntity);
         }
       }
 
@@ -59,7 +60,7 @@
      * Escapes HTML and returns a wrapped object to be used during DOM insertion
      */
     createSafeHTML: function (strings, ...values) {
-      var escaped = Tagged.escapeHTML(strings, ...values);
+      var escaped = Sanitizer.escapeHTML(strings, ...values);
       return {
         __html: escaped,
         toString: function () {
@@ -78,6 +79,6 @@
     }
   };
 
-  return Tagged;
+  return Sanitizer;
 
 }));

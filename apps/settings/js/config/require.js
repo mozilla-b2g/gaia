@@ -61,8 +61,8 @@ require.config({
     'shared/toaster': {
       exports: 'Toaster'
     },
-    'shared/tagged': {
-      exports: 'Tagged'
+    'shared/sanitizer': {
+      exports: 'Sanitizer'
     },
     'shared/sim_settings_helper': {
       exports: 'SimSettingsHelper'

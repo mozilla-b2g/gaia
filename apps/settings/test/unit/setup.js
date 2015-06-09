@@ -24,8 +24,8 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/screen_layout': {
         exports: 'ScreenLayout'
       },
-      'shared/tagged': {
-        exports: 'Tagged'
+      'shared/sanitizer': {
+        exports: 'Sanitizer'
       },
       'shared/tz_select': {
         exports: 'tzSelect'

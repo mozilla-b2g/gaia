@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MozActivity, Tagged */
+/* global MozActivity, Sanitizer */
 (function(exports) {
   /**
    * ImeMenu displays a list of currently enabled IMEs in an overlay.
@@ -78,8 +78,8 @@
      * @memberof ImeMenu.prototype
      */
     imeMenuView: function({title, cancelLabel}) {
-      return Tagged.escapeHTML `<form role="dialog" data-type="value-selector"
-        class="ime-menu value-selector-container"
+      return Sanitizer.escapeHTML `<form role="dialog"
+        data-type="value-selector" class="ime-menu value-selector-container"
         data-z-index-level="action-menu">
         <section>
           <h1 data-l10n-id="${title}"></h1>
@@ -99,7 +99,7 @@
      * @memberof ImeMenu.prototype
      */
     menuItemView: function({layoutName, appName, layoutId, selected}) {
-      return Tagged.escapeHTML `<li role="option" aria-selected="${selected}"
+      return Sanitizer.escapeHTML `<li role="option" aria-selected="${selected}"
         data-id="${layoutId}">
         <label role="presentation">
           <span class="item-label">${layoutName}</span>

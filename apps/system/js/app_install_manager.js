@@ -7,7 +7,7 @@
 /* global NotificationScreen */
 /* global Service */
 /* global SystemBanner */
-/* global Tagged */
+/* global Sanitizer */
 /* global UtilityTray */
 /* global applications */
 
@@ -121,7 +121,7 @@
     },
 
     imeListView: function({displayName, imeName}) {
-      return Tagged.escapeHTML `<li>
+      return Sanitizer.escapeHTML `<li>
          <a>${displayName}</a>
          <label class="pack-checkbox ime">
            <input type="checkbox" name="keyboards" value="${imeName}">

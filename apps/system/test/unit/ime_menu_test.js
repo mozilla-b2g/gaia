@@ -5,7 +5,7 @@
 requireApp('system/js/ime_menu.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/shared/js/tagged.js');
+requireApp('system/shared/js/sanitizer.js');
 
 var mocksForAppInstallManager = new MocksHelper([
   'LazyLoader'
