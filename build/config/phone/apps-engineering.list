@@ -1,3 +1,4 @@
+dev_apps/acl-daemon
 apps/*
 outoftree_apps/*
 dev_apps/marketplace-dev.allizom.org

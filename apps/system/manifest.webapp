@@ -45,7 +45,8 @@
     "nfc-manager":{},
     "downloads":{},
     "systemXHR":{},
-    "feature-detection": {}
+    "feature-detection": {},
+    "tcp-socket": {}
   },
   "locales": {
     "ar": {

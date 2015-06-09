@@ -60,6 +60,8 @@ var NotificationScreen = {
   resendReceived: 0,
   resendExpecting: 0,
 
+  SYSTEM_MANIFEST_URL: window.location.origin + '/manifest.webapp',
+
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
     this.container =
@@ -348,6 +350,14 @@ var NotificationScreen = {
     return date;
   },
 
+  /**
+   * Check if notification is from system and marked silent in icon url.
+   */
+  isSilentNotification: function ns_isSilentNotication(detail) {
+    return detail.manifestURL === this.SYSTEM_MANIFEST_URL &&
+      detail.icon && detail.icon.indexOf('silent=1') !== -1;
+  },
+
   updateToaster: function ns_updateToaster(detail, type, dir) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
@@ -532,7 +542,7 @@ var NotificationScreen = {
     }
 
     if (notify && !this.isResending) {
-      if (!this.silent) {
+      if (!this.silent && !this.isSilentNotification(detail)) {
         var ringtonePlayer = new Audio();
         ringtonePlayer.src = this._sound;
         ringtonePlayer.mozAudioChannelType = 'notification';
@@ -544,7 +554,7 @@ var NotificationScreen = {
         }, 2000);
       }
 
-      if (this.vibrates) {
+      if (this.vibrates && !this.isSilentNotification(detail)) {
         if (document.hidden) {
           // bug 1050023: disable vibration for downloads when asleep
           if (type.indexOf('download-notification-downloading') === -1) {

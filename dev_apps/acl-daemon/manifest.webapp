@@ -1,0 +1,22 @@
+{
+    "name": "ACL-Daemon",
+    "description":"Test ACL messages",
+    "launch_path":"/index.html",
+    "developer":{
+        "name": "The Gaia Team",
+        "url":"https://github.com/mozilla-b2g/gaia"
+    },
+    "default_locale": "en-US",
+    "icons": {
+        "128": "/style/icons/icon.png"
+    },
+    "type": "certified",
+    "permissions": {
+        "tcp-socket" : {
+          "description" : "Listens on a TCP socket for system app connections"
+        },
+        "external-app": {
+          "description": "Allowed to be killed"
+        }
+    }
+}
