@@ -82,9 +82,36 @@ suite('system/HomescreenWindow', function() {
         homescreenWindow.browser.element.getAttribute('mozapptype'),
         'homescreen');
     });
-    test('homescree is created', function() {
+    test('homescreen is created', function() {
       assert.isTrue(homescreenWindow.isHomescreen);
     });
+
+    test('setBrowserConfig creates app chrome', function() {
+      homescreenWindow.config = null;
+      homescreenWindow.setBrowserConfig('fakeManifestURL');
+      assert.isTrue(!!homescreenWindow.config);
+      assert.isTrue(!!homescreenWindow.config.chrome);
+    });
+
+    test('setBrowserConfig on browserchrome does not create app chrome',
+      function() {
+        var verticalHomeUrl =
+          'app://verticalhome.gaiamobile.org/manifest.webapp';
+        var mockVerticalHome = {
+          manifestURL: verticalHomeUrl,
+          origin: 'fakeOrigin',
+          manifest: {}
+        };
+
+        MockApplications.mRegisterMockApp(mockVerticalHome);
+
+        homescreenWindow.config = null;
+        homescreenWindow.setBrowserConfig(verticalHomeUrl);
+        assert.isTrue(!!homescreenWindow.config);
+        assert.isFalse(!!homescreenWindow.config.chrome);
+
+        MockApplications.mUnregisterMockApp(mockVerticalHome);
+      });
 
     test('ensure should change the url', function() {
       var url = homescreenWindow.browser.element.src;
