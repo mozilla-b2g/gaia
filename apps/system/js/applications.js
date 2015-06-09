@@ -109,6 +109,16 @@
       return null;
     },
 
+    getByOrigin: function a_getByORigin(origin) {
+      for (var manifestURL in this.installedApps) {
+        if (this.installedApps[manifestURL].origin === origin) {
+          return this.getByManifestURL(manifestURL);
+        }
+      }
+
+      return null;
+    },
+
     /**
      * Broadcast ApplicationReadyEvent when mozApps.mgmt.getAll() done.
      * @memberof Applications.prototype

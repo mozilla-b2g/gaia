@@ -1,6 +1,7 @@
 {
    "accessibility.invert": false,
    "accessibility.screenreader": false,
+   "app-compatibility.enabled": false,
    "alarm.enabled": false,
    "app-transition.enabled": true,
    "app.cards_view.screenshots.enabled": true,
