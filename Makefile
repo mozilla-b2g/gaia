@@ -93,6 +93,9 @@ NODE_MODULES_SRC?=modules.tar
 # tv
 GAIA_DEVICE_TYPE?=phone
 
+# Android Compatibility Layer
+ENABLE_APP_COMPATIBILITY?=0
+
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -444,6 +447,7 @@ TEST_DIRS ?= $(GAIA_DIR)/tests
 define BUILD_CONFIG
 { \
   "ADB" : "$(patsubst "%",%,$(ADB))", \
+  "ENABLE_APP_COMPATIBILITY": $(ENABLE_APP_COMPATIBILITY), \
   "GAIA_DIR" : "$(GAIA_DIR)", \
   "PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
   "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
