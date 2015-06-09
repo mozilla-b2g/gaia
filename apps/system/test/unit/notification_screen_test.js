@@ -931,7 +931,7 @@ suite('system/NotificationScreen >', function() {
       suite('setting is true >', function() {
         setup(function() {
           MockNavigatorSettings.mSettings[setting] = true;
-          window.dispatchEvent(new CustomEvent('load'));
+          NotificationScreen.start();
         });
 
         test('mozResendAllNotifications called', function() {
@@ -956,20 +956,17 @@ suite('system/NotificationScreen >', function() {
       suite('setting is false >', function() {
         setup(function() {
           MockNavigatorSettings.mSettings[setting] = false;
-          window.dispatchEvent(new CustomEvent('load'));
+          NotificationScreen.start();
         });
 
         test('mozResendAllNotifications not called', function() {
+          this.sinon.clock.tick();
           assert.ok(resendSpy.notCalled);
         });
 
         test('desktop-notification-resend not sent', function() {
-          var expectedEvent =
-            new CustomEvent('desktop-notification-resend',
-              { detail: { number: 1 } });
-          assert.ok(dispatchEventSpy.called);
-          assert.notEqual(
-            dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);
+          this.sinon.clock.tick();
+          assert.ok(dispatchEventSpy.notCalled);
         });
       });
     });
