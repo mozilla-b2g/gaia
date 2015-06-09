@@ -132,6 +132,22 @@
   background: hsla(0, 0%, 20%, 1) url(images/grippy.png) no-repeat center / 7.2rem;
 }
 
+/* In order to make the utility tray easier to drag when the SHB is enabled */
+/* we  use a pseudoelement that increases the dragging area */
+#screen.software-button-enabled #utility-tray > #utility-tray-grippy:after {
+  height: var(--software-home-button-height);
+  content: "";
+  display: block;
+  position: relative;
+  bottom: -2rem;
+  background-color: transparent;
+  pointer-events: none;
+}
+
+#screen.utility-tray.software-button-enabled #utility-tray > #utility-tray-grippy:after {
+  pointer-events: all;
+}
+
 [data-icon] {
   float: left;
   width: 3rem;
