@@ -39,6 +39,8 @@ const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_prefi
                           { gaia_name: "gallery", th_name: "Gallery", th_prefix: "ga" },
                           { gaia_name: "music", th_name: "Music", th_prefix: "mu" },
                           { gaia_name: "settings", th_name: "Settings", th_prefix: "se" },
+                          { gaia_name: "sms", th_name: "SMS", th_prefix: "sm" },
+                          { gaia_name: "video", th_name: "Video", th_prefix: "vi" },
                           { gaia_name: "test-startup-limit", th_name: "Test-startup", th_prefix: "te" }];
 
 // number of times each app is launched during the launch test
