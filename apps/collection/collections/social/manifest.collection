@@ -11,8 +11,13 @@
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/social/icon.png",
+    "84": "/collections/social/icon_84.png",
     "90": "/collections/social/icon_90.png",
     "120": "/collections/social/icon_120.png",
-    "135": "/collections/social/icon_135.png"
+    "126": "/collections/social/icon_126.png",
+    "135": "/collections/social/icon_135.png",
+    "142": "/collections/social/icon_142.png",
+    "189": "/collections/social/icon_189.png",
+    "284": "/collections/social/icon_284.png"
   }
 }
