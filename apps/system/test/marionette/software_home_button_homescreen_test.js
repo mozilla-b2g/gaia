@@ -9,7 +9,8 @@ marionette('Software Home Button - Modal Dialog', function() {
       settings: {
         'software-button.enabled': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var home, system, actions;
 
