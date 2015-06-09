@@ -301,8 +301,8 @@ var GaiaApps = {
         console.log('app with origin \'' + origin + '\' is already running');
         sendResponse();
       } else {
-        window.addEventListener('windowopened', function appOpen() {
-          window.removeEventListener('windowopened', appOpen);
+        window.addEventListener('launchapp', function appOpen() {
+          window.removeEventListener('launchapp', appOpen);
           waitFor(
             function() {
               console.log('app with origin \'' + origin + '\' has launched');
