@@ -5,7 +5,8 @@
     "tap": "tap %d %d %d 1",
     "doubleTap": "tap %d %d 2 1",
     "keydown": "keydown %d",
-    "keyup": "keyup %d"
+    "keyup": "keyup %d",
+    "reset": "reset"
   },
   "devices": {
     "android": {
@@ -38,6 +39,12 @@
         "hdmiResolution": null,
         "inputEvent": "/dev/input/event0",
         "dimensions": [320, 480],
+        "swipePadding": [40, 40, 40, 40]
+      },
+      "AOSP on HammerHead": {
+        "hdmiResolution": "1080p",
+        "inputEvent": "/dev/input/event1",
+        "dimensions": [1080, 1920],
         "swipePadding": [40, 40, 40, 40]
       }
     },

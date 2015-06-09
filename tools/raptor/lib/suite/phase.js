@@ -288,20 +288,13 @@ Phase.prototype.test = function() {
 };
 
 /**
- * There is a bug on the flame that causes it to stop responding to injected
- * touch events after a B2G restart. Swiping on the screen for some reason
- * jump-starts the responsiveness. Swipe with a downward motion on the
- * homescreen since we're at the top anyway and this won't move anywhere
+ * Input event will be ignored if the value equals to the kernel cached one.
+ * Initiate a reset to set cached values 0 after a B2G restart. Check bug
+ * 1168269 commment 22 for more information.
  * @returns {Promise}
  */
-Phase.prototype.swipeHack = function() {
-  var x = this.device.config.dimensions[0] / 2;
-  var startY = 250;
-  var endY = 350;
-  var steps = 10;
-  var duration = this.device.touchFrequency * steps;
-
-  return this.device.input.drag(x, startY, x, endY, steps, duration);
+Phase.prototype.resetInput = function() {
+  return this.device.input.reset();
 };
 
 /**

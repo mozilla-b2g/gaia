@@ -29,7 +29,6 @@ var VERTICAL_CONTEXT = 'verticalhome.gaiamobile.org';
 var ColdLaunch = function(options) {
   Phase.call(this, options);
 
-  this.swipeHackDelay = this.options.emulator ? 6 * 1000 : 3 * 1000;
   this.title = 'Cold Launch';
   var runner = this;
 
@@ -39,7 +38,7 @@ var ColdLaunch = function(options) {
    * 2. Restart B2G
    * 3. Pre-fetch the application's coordinates
    * 4. Wait for the Homescreen to load so we know when to be able to launch
-   * 5. Swipe down on the Homescreen to account for Flame tapping bugs
+   * 5. Reset kernel cached values so following input events won't be ignored
    */
 
   this.getDevice()
@@ -275,11 +274,9 @@ ColdLaunch.prototype.prime = function() {
   // Delay launch to give time for pre-allocated process and system cool-down
   setTimeout(function() {
     return runner
-      .swipeHack()
+      .resetInput()
       .then(function() {
-        setTimeout(function() {
-          runner.launch();
-        }, runner.swipeHackDelay);
+        runner.launch();
       });
   }, this.options.launchDelay);
 
@@ -332,9 +329,8 @@ ColdLaunch.prototype.closeApp = function() {
 };
 
 /**
- * Retry handler which is invoked if a test run fails to complete. Attempts to
- * close the contextual application and do a Homescreen swipe to reinitialize
- * tap capability on a Flame.
+ * Retry handler which is invoked if a test run fails to complete. Do a input
+ * reset to clear kernel cached values.
  * @returns {Promise}
  */
 ColdLaunch.prototype.retry = function() {
@@ -343,7 +339,7 @@ ColdLaunch.prototype.retry = function() {
   return this
     .closeApp()
     .then(function() {
-      return runner.swipeHack();
+      return runner.resetInput();
     });
 };
 
