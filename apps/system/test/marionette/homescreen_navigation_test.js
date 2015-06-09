@@ -15,7 +15,8 @@ marionette('Homescreen navigation >', function() {
       },
       settings: {
         'devtools.overlay': true,
-        'hud.reflows': true
+        'hud.reflows': true,
+        'notifications.resend': false
       }
     }
   });
