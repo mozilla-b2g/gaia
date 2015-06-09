@@ -152,22 +152,30 @@ for app in $APPS; do
 
     communications/contacts)
       echo "Starting contacts"
+      # Accross versions, we can have various names for the attachment
+      # directory, so let's delete all of them
+      adb shell "rm -r $IDB_BASE/chrome$IDB_PATH/*csotncta*"
       adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.sqlite || exit 1
       ATTACHMENT_DIR=$SCRIPT_DIR/contactsDb-$CONTACT_COUNT
       tar -xvzf $SCRIPT_DIR/ContactPictures-$CONTACT_COUNT.tar.gz -C $SCRIPT_DIR
-      adb shell "rm $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/*"
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.files/ || exit 1
+      # In recent builds, the directory will be automatically renamed to
+      # 3406066227csotncta.files when B2G starts up.
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
       ;;
 
     sms)
       echo "Starting sms"
+      # Accross versions, we can have various names for the attachment
+      # directory, so let's delete all of them
+      adb shell "rm -r $IDB_BASE/chrome$IDB_PATH/*ssm*"
       adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/226660312ssm.sqlite || exit 1
       ATTACHMENT_DIR=$SCRIPT_DIR/smsDb-$SMS_COUNT
       tar -xvzf $SCRIPT_DIR/Attachments-$SMS_COUNT.tar.gz -C $SCRIPT_DIR
-      adb shell "rm $IDB_BASE/chrome$IDB_PATH/226660312ssm/*"
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm.files/ || exit 1
+      # In recent builds, the directory will be automatically renamed to
+      # 226660312ssm.files when B2G starts up.
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
       ;;
