@@ -4,12 +4,10 @@
   "description": "Make it your own, share it with everyone.",
   "launch_path": "/index.html",
   "icons": {
-    "16": "/img/icons/icon16x16.png",
-    "48": "/img/icons/icon48x48.png",
-    "60": "/img/icons/icon60x60.png",
-    "128": "/img/icons/icon128x128.png",
-    "256": "/img/icons/icon256x256.png",
-    "512": "/img/icons/icon512x512.png"
+    "84": "/img/icons/studio_84.png",
+    "126": "/img/icons/studio_126.png",
+    "142": "/img/icons/studio_142.png",
+    "189": "/img/icons/studio_189.png"
   },
   "orientation": "default",
   "developer": {

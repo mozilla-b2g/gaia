@@ -88,7 +88,7 @@
     },
 
     installTheme: function() {
-      return Generation.installTheme(currentTheme.id)
+      return Generation.installTheme(currentTheme.id, true)
         .then(this.refreshTheme);
     },
 

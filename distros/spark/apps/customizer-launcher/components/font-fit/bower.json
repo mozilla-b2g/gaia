@@ -1,7 +1,7 @@
 {
   "name": "font-fit",
   "main": "font-fit.js",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
   ],
@@ -11,6 +11,8 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "README.md",
+    "index.html",
+    "package.json"
   ]
 }

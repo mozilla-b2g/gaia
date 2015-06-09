@@ -64,3 +64,23 @@ li .button:active:after {
   background-color: #b2f2ff;
   color: #fff;
 }
+
+/* Disabled */
+.bb-button[aria-disabled="true"],
+.button[aria-disabled="true"] {
+  background-color: rgba(0,0,0,0.05);
+  color: #c7c7c7;
+  pointer-events: none;
+}
+
+.bb-button[aria-disabled="true"].recommend,
+.button[aria-disabled="true"].recommend {
+  background-color: #97cbd5;
+  color: rgba(255,255,255,0.5);
+}
+
+.bb-button[aria-disabled="true"].danger,
+.button[aria-disabled="true"].danger {
+  background-color: #eb7474;
+  color: rgba(255,255,255,0.5);
+}

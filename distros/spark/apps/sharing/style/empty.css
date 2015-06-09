@@ -1,0 +1,8 @@
+#proximity-empty-list {
+  margin-top: 12px;
+}
+
+#proximity-empty-list li {
+  padding-top: 20px !important;
+  font-size: 16px !important;
+}

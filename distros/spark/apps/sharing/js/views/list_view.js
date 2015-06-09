@@ -32,12 +32,16 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-list", "gaia-checkbox", "gaia-sub-
     _extends(ListView, View);
 
     ListView.prototype.layout = function (template) {
-      var loading = this.controller._everRendered ? "" : "<gaia-loading></gaia-loading>";
-      var string = "\n      <gaia-sub-header>" + this.title + "</gaia-sub-header>\n      <gaia-list>\n        " + loading + "\n        " + template + "\n      </gaia-list>";
+      var string = "\n      <gaia-sub-header>" + this.title + "</gaia-sub-header>\n      <gaia-list>\n        " + template + "\n      </gaia-list>";
       return string;
     };
 
     ListView.prototype.render = function (params) {
+      if (!params.length) {
+        this.el.innerHTML = "";
+        return;
+      }
+
       View.prototype.render.call(this, params);
 
       if (this.type === "toggle") {
@@ -48,10 +52,6 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-list", "gaia-checkbox", "gaia-sub-
     };
 
     ListView.prototype.template = function (app) {
-      // Hack! Write this to the controller so that all categories lose the
-      // loading indicator when we get any networked apps.
-      this.controller._everRendered = true;
-
       var desc = (app.peer && app.peer.name) || (app.manifest.developer && app.manifest.developer.name) || app.manifest.description || "No information available";
       var toggle = (this.type === "toggle" && "data-action=\"toggle\"") || "";
       var string = "\n      <li tabindex=\"0\" " + toggle + ">\n        <img data-action=\"description\" data-id=\"" + app.manifestURL + "\"\n         src=\"" + app.icon + "\"></img>\n        <div class=\"description\" data-action=\"description\"\n         data-id=\"" + app.manifestURL + "\">\n          <h3>" + app.manifest.name + "</h3>\n          <h4>" + desc + "</h4>\n        </div>\n        " + this._control(app) + "\n      </li>";

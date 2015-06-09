@@ -23,6 +23,10 @@ html.loading body {
   opacity: 0.5;
 }
 
+.hide {
+  display: none !important;
+}
+
 gaia-header {
   margin-bottom: 0.5rem;
 }

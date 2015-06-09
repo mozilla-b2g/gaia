@@ -1,0 +1,1 @@
+define(['./fxos-dev-mode-dialog/fxos-dev-mode-dialog'], function(m) { return m; });

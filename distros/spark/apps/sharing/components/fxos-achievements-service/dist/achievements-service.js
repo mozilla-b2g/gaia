@@ -71,7 +71,7 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
       }
 
       var issuedOn;
-      return SettingsHelper.get("achievements", {}).then(function (achievements) {
+      return SettingsHelper.get("achievements", []).then(function (achievements) {
         var achievement = achievements.find(function (achievement) {
           return achievement.criteria === criteria;
         });

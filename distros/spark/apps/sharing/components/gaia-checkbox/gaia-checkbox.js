@@ -1,21 +1,20 @@
-(function(define){define(['require','exports','module','gaia-component','gaia-icons'],function(require,exports,module){
-/*jshint esnext:true*/
-'use strict';
+/* global define */
+(function(define){'use strict';define(['require','exports','module','gaia-icons','gaia-component'],function(require,exports,module){
 
 /**
  * Dependencies
  */
 
-var component = require('gaia-component');
-
-// Load icon font
 require('gaia-icons');
+var component = require('gaia-component');
 
 /**
  * Exports
  */
 
 module.exports = component.register('gaia-checkbox', {
+  extends: HTMLInputElement.prototype,
+
   created: function() {
     this.setupShadowRoot();
 
@@ -27,8 +26,18 @@ module.exports = component.register('gaia-checkbox', {
     this.danger = this.getAttribute('danger');
     this.name = this.getAttribute('name');
 
+    // process everything that doesn't affect user interaction
+    // after the component is created
+    setTimeout(() => this.makeAccessible());
+  },
+
+  makeAccessible: function() {
+    this.setAttribute('role', 'checkbox');
+
     // Make tabable
     this.tabIndex = 0;
+
+    this.setAttr('aria-checked', this.checked);
   },
 
   onClick: function(e) {
@@ -44,15 +53,15 @@ module.exports = component.register('gaia-checkbox', {
 
   check: function() {
     if (this.checked) { return; }
-    this.els.inner.setAttribute('checked', '');
-    this.setAttribute('checked', '');
+    this.setAttr('checked', '');
+    this.setAttribute('aria-checked', true);
     this._checked = true;
   },
 
   uncheck: function() {
     if (!this.checked) { return; }
-    this.els.inner.removeAttribute('checked');
-    this.removeAttribute('checked');
+    this.removeAttr('checked');
+    this.setAttribute('aria-checked', false);
     this._checked = false;
   },
 
@@ -65,8 +74,8 @@ module.exports = component.register('gaia-checkbox', {
     danger: {
       get: function() { return this._danger; },
       set: function(value) {
-        if (value || value === '') { this.els.inner.setAttribute('danger', value); }
-        else { this.els.inner.removeAttribute('danger'); }
+        if (value || value === '') { this.setAttr('danger', value); }
+        else { this.removeAttr('danger'); }
         this._danger = value;
       }
     },
@@ -74,8 +83,8 @@ module.exports = component.register('gaia-checkbox', {
     name: {
       get: function() { return this._name; },
       set: function(value) {
-        if (value === null) { this.els.inner.removeAttribute('name'); }
-        else { this.els.inner.setAttribute('name', value); }
+        if (value === null) { this.removeAttr('name'); }
+        else { this.setAttr('name', value); }
         this._name = value;
       }
     }
@@ -216,13 +225,21 @@ module.exports = component.register('gaia-checkbox', {
     }`
 });
 
+// Makes checkboxs togglable via keboard
+addEventListener('keypress', function(e) {
+  if (e.which !== 32) { return; }
+  var el = document.activeElement;
+  var isCheckbox = el.tagName === 'GAIA-CHECKBOX';
+  if (isCheckbox) { el.click(); }
+});
+
 // Bind a 'click' delegate to the
 // window to listen for all clicks
 // and toggle checkboxes when required.
 addEventListener('click', function(e) {
   var label = getLabel(e.target);
-  var checkbox = getLinkedCheckbox(label);
-  if (checkbox) { checkbox.toggle(); }
+  var gaiaCheckbox = getLinkedCheckbox(label);
+  if (gaiaCheckbox) { gaiaCheckbox.toggle(); }
 }, true);
 
 /**
@@ -235,7 +252,7 @@ function getLinkedCheckbox(label) {
   if (!label) { return; }
   var id = label.getAttribute('for');
   var el = id && document.getElementById(id);
-  return el && el.tagName === 'GAIA-CHECKBOX' ? el : null;// || label.querySelector('gaia-checkbox');
+  return el && el.tagName === 'GAIA-CHECKBOX' ? el : null;
 }
 
 /**
@@ -249,15 +266,7 @@ function getLabel(el) {
   return el && (el.tagName == 'LABEL' ? el : getLabel(el.parentNode));
 }
 
-// Makes checkboxs togglable via keboard
-addEventListener('keypress', function(e) {
-  if (e.which !== 32) { return; }
-  var el = document.activeElement;
-  var isCheckbox = el.tagName === 'GAIA-CHECKBOX';
-  if (isCheckbox) { el.click(); }
-});
-
 });})(typeof define=='function'&&define.amd?define
-:(function(n,w){return typeof module=='object'?function(c){
+:(function(n,w){'use strict';return typeof module=='object'?function(c){
 c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
 return w[n];},m.exports,m);w[n]=m.exports;};})('gaia-checkbox',this));

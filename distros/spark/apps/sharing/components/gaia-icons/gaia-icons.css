@@ -23,3 +23,20 @@
 	font-size: 30px;
 	-webkit-font-smoothing: antialiased;
 }
+
+[data-icon]:not([data-l10n-id]):not([aria-hidden="true"]):before {
+	/* Highlight cases where icons are not localized and still visible to screen
+	   reader */
+	background: rgba(255, 0, 0, 0.4);
+}
+
+[data-icon]:not([data-l10n-id]):not([aria-hidden="true"]):after {
+	background: #333;
+	color: #fff;
+	position: absolute;
+	width: 20rem;
+	border-radius: 0.5rem;
+	padding: 0.5rem;
+	content: "Icon is not localized and is still visible to screen reader. Please add data-l10n-id or aria-label for localization or use aria-hidden to hide the icon from screen reader.";
+	z-index: 9999;
+}

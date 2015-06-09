@@ -53,7 +53,7 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-button", "gaia-switch"], function 
     };
 
     ShareSettingsView.prototype.template = function () {
-      var string = "\n      <li>\n        <div>\n          <h3>Share My Apps</h3>\n          <h4 id=\"share-description\">Turn on to share apps</h4>\n        </div>\n        <gaia-switch id=\"share-enabled\"></gaia-switch>\n      </li>\n      <li>\n        <div>\n          <h3>Device Name</h3>\n          <h4 id=\"device-name\">Loading...</h4>\n        </div>\n        <i class=\"forward-light\"></i>\n      </li>\n      <li class=\"borderless\">\n        <button disabled id=\"rename-device\" class=\"button\">\n          Rename Device\n        </button>\n      </li>\n    ";
+      var string = "\n      <li>\n        <div>\n          <h3>Share My Apps</h3>\n          <h4 id=\"share-description\">Turn on to share apps</h4>\n        </div>\n        <gaia-switch id=\"share-enabled\"></gaia-switch>\n      </li>\n      <li>\n        <div>\n          <h3>Device Name</h3>\n          <h4 id=\"device-name\">Loading...</h4>\n        </div>\n        <i class=\"forward-light\"></i>\n      </li>\n      <li class=\"borderless\">\n        <div aria-disabled=\"true\" id=\"rename-device\" class=\"button\">\n          Rename Device\n        </div>\n      </li>\n    ";
 
       return string;
     };
@@ -88,7 +88,7 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-button", "gaia-switch"], function 
         set: function (deviceName) {
           var _this3 = this;
           setTimeout(function () {
-            _this3.els.renameDevice.removeAttribute("disabled");
+            _this3.els.renameDevice.removeAttribute("aria-disabled");
             _this3.els.deviceName.textContent = deviceName;
           });
         }

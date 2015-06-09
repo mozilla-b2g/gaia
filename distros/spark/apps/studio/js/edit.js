@@ -150,7 +150,7 @@
           }
 
           // Updating the installed theme
-          return Generation.installTheme(currentTheme.id)
+          return Generation.installTheme(currentTheme.id, false)
                  .then(Storage.fetchTheme.bind(null, currentTheme.id))
                  .then((theme) => {
                    // Refresh

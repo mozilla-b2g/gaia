@@ -41,7 +41,7 @@
     });
   }
 
-  function importBlob(blob) {
+  function importBlob(blob, enable) {
     console.log('importBlob');
     if (!navigator.getDeviceStorage) {
       return Promise.reject(new Error('getDeviceStorage is unavailable.'));
@@ -70,10 +70,14 @@
             var file = this.result;
             navigator.mozApps.mgmt.import(file).then(
               function(app) {
-                var setting = { "theme.selected" : app.manifestURL };
-                var req = navigator.mozSettings.createLock().set(setting);
-                req.onsuccess = resolve.bind(null, app.manifestURL);
-                req.onerror = sendError;
+                if (enable) {
+                  var setting = { 'theme.selected' : app.manifestURL };
+                  var req = navigator.mozSettings.createLock().set(setting);
+                  req.onsuccess = resolve.bind(null, app.manifestURL);
+                  req.onerror = sendError;
+                } else {
+                  resolve(app.manifestURL);
+                }
               },
               function(error) { sendError('Error importing: ' + error.name); }
             );
@@ -89,7 +93,7 @@
     });
   }
 
-  function exportTheme(theme) {
+  function exportTheme(enable, theme) {
     // Worker path configuration.
     zip.workerScriptsPath = './js/libs/';
 
@@ -168,7 +172,7 @@
         }).then((appBlob) => {
           return uninstallIfNeeded(theme)
             .then(() => {
-              return importBlob(appBlob);
+              return importBlob(appBlob, enable);
             })
             .then((manifestURL) => {
               theme.manifestURL = manifestURL;
@@ -181,7 +185,9 @@
             ))
             .catch((e) => {
               console.error('Error while importing blob', e);
-              proposeDownload(appBlob);
+              // Desktop debug
+              // proposeDownload(appBlob);
+              alert('This device is not theming compatible');
             });
         });
     });
@@ -219,10 +225,34 @@
     document.body.appendChild(override);
   }
 
+  function checkIfSelected(theme) {
+    return new Promise((resolve, reject) => {
+      var req = navigator.mozSettings.createLock().get('theme.selected');
+      req.onsuccess = function(e) {
+        resolve([(req.result['theme.selected'] == theme.manifestURL), theme]);
+      };
+      req.onerror = reject;
+    });
+  }
+
   exports.Generation = {
-    installTheme: function(id) {
-      return Storage.fetchTheme(id).then(exportTheme);
+    installTheme: function(id, enable) {
+      return Storage.fetchTheme(id)
+      .then(checkIfSelected)
+      .then((results) => {
+        exportTheme.apply(null, results)
+      });
     },
-    uninstallIfNeeded: uninstallIfNeeded
+    uninstallIfNeeded: function(theme) {
+      return checkIfSelected(theme)
+      .then((results) => {
+        var selected = results[0];
+        if (selected) {
+          alert("You can't remove the selected theme");
+        } else {
+          return uninstallIfNeeded(theme);
+        }
+      });
+    }
   };
 })(window);

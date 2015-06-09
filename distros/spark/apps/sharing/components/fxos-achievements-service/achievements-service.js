@@ -63,7 +63,7 @@ export default class AchievementsService {
     }
 
     let issuedOn;
-    return SettingsHelper.get('achievements', {}).then(achievements => {
+    return SettingsHelper.get('achievements', []).then(achievements => {
       let achievement = achievements.find(
         achievement => achievement.criteria === criteria);
 

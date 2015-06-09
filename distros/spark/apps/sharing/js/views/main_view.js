@@ -1,4 +1,4 @@
-define(["exports", "fxos-mvc/dist/mvc", "gaia-header", "gaia-icons"], function (exports, _fxosMvcDistMvc, _gaiaHeader, _gaiaIcons) {
+define(["exports", "fxos-mvc/dist/mvc", "gaia-header", "gaia-icons", "fxos-dev-mode-dialog"], function (exports, _fxosMvcDistMvc, _gaiaHeader, _gaiaIcons, _fxosDevModeDialog) {
   "use strict";
 
   var _extends = function (child, parent) {
@@ -22,7 +22,7 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-header", "gaia-icons"], function (
     _extends(MainView, View);
 
     MainView.prototype.template = function () {
-      var string = "\n      <gaia-header data-action=\"back\">\n        <h1 data-action=\"developer\">P2P Sharing</h1>\n      </gaia-header>";
+      var string = "\n      <fxos-dev-mode-dialog></fxos-dev-mode-dialog>\n      <gaia-header data-action=\"back\">\n        <h1 data-action=\"developer\">P2P Sharing</h1>\n      </gaia-header>";
 
       return string;
     };

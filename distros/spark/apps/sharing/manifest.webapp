@@ -42,6 +42,12 @@
     "browser": {},
     "desktop-notification": {
       "description": "For sending achievements notifications to Gaia::System"
+    },
+    "wifi-manage": {
+      "description": "To check if the device is connected to a network"
+    },
+    "feature-detection": {
+      "description": "For dev mode pref"
     }
   },
   "icons": {

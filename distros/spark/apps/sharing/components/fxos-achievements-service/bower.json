@@ -1,6 +1,6 @@
 {
   "name": "fxos-achievements-service",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Achievements service for embedding achievements support into Gaia apps",
   "homepage": "https://github.com/fxos/fxos-achievements-service",
   "license": "MPL",

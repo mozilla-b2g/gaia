@@ -1,4 +1,4 @@
-define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/gaia-header", "js/element/fxos-dev-mode-dialog"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaHeaderDistGaiaHeader, _jsElementFxosDevModeDialog) {
+define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/gaia-header", "components/fxos-dev-mode-dialog/fxos-dev-mode-dialog"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaHeaderDistGaiaHeader, _componentsFxosDevModeDialogFxosDevModeDialog) {
   "use strict";
 
   var _extends = function (child, parent) {

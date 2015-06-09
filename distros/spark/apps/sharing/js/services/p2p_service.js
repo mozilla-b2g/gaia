@@ -1,4 +1,4 @@
-define(["exports", "dns-sd.js/dist/dns-sd", "fxos-mvc/dist/mvc", "app/js/models/peer", "app/js/services/apps_service", "app/js/services/broadcast_service", "app/js/services/device_name_service", "app/js/services/http_client_service", "app/js/services/http_server_service", "app/js/services/share_service"], function (exports, _dnsSdJsDistDnsSd, _fxosMvcDistMvc, _appJsModelsPeer, _appJsServicesAppsService, _appJsServicesBroadcastService, _appJsServicesDeviceNameService, _appJsServicesHttpClientService, _appJsServicesHttpServerService, _appJsServicesShareService) {
+define(["exports", "dns-sd.js/dist/dns-sd", "fxos-mvc/dist/mvc", "app/js/models/peer", "app/js/services/apps_service", "app/js/services/broadcast_service", "app/js/services/device_name_service", "app/js/services/http_client_service", "app/js/services/http_server_service", "app/js/services/share_service", "app/js/services/wifi_service"], function (exports, _dnsSdJsDistDnsSd, _fxosMvcDistMvc, _appJsModelsPeer, _appJsServicesAppsService, _appJsServicesBroadcastService, _appJsServicesDeviceNameService, _appJsServicesHttpClientService, _appJsServicesHttpServerService, _appJsServicesShareService, _appJsServicesWifiService) {
   "use strict";
 
   var _extends = function (child, parent) {
@@ -21,6 +21,7 @@ define(["exports", "dns-sd.js/dist/dns-sd", "fxos-mvc/dist/mvc", "app/js/models/
   var HttpClientService = _appJsServicesHttpClientService["default"];
   var HttpServerService = _appJsServicesHttpServerService["default"];
   var ShareService = _appJsServicesShareService["default"];
+  var WifiService = _appJsServicesWifiService["default"];
   /*import IconService from 'app/js/services/icon_service';*/
 
   var P2pService = (function (Service) {
@@ -67,6 +68,10 @@ define(["exports", "dns-sd.js/dist/dns-sd", "fxos-mvc/dist/mvc", "app/js/models/
 
       ShareService.addEventListener("share", function () {
         return _this.sendPeersInfo();
+      });
+
+      WifiService.addEventListener("statuschange", function (status) {
+        return _this._wifiStatusChange(status);
       });
     };
 
@@ -189,6 +194,13 @@ define(["exports", "dns-sd.js/dist/dns-sd", "fxos-mvc/dist/mvc", "app/js/models/
       this._peers.forEach(function (peer) {
         HttpClientService.signalDisconnecting(peer);
       });
+    };
+
+    P2pService.prototype._wifiStatusChange = function (status) {
+      if (status !== "connected") {
+        this._peers = [];
+        this._dispatchEvent("proximity");
+      }
     }
 
     /**

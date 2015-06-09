@@ -23,7 +23,8 @@ define(["exports", "fxos-achievements-service/dist/achievements-service", "app/j
         criteria: ACHIEVEMENT_CRITERIA,
         evidence: ACHIEVEMENT_EVIDENCE,
         name: "Sharing is Caring",
-        description: "Share your apps and add-ons in Sharing app."
+        description: "Share your apps and add-ons with the Sharing app",
+        image: "icons/sharing-is-caring.png"
       });
     });
   };

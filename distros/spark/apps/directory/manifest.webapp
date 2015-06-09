@@ -10,6 +10,9 @@
     "device-storage:apps": {
       "description": "For installing apps",
       "access": "readwrite"
+    },
+    "feature-detection": {
+      "description": "For dev mode perf"
     }
   },
   "icons": {
