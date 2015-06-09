@@ -1,3 +1,4 @@
+/* globals LazyLoader, PasscodeHelper */
 'use strict';
 (function(exports) {
 
@@ -9,6 +10,7 @@
    */
   var SettingsMigrator = function SettingsMigrator() {
     this._kLocaleTime = 'locale.hour12';
+    this._oldPasscode = 'lockscreen.passcode-lock.code';
   };
 
   SettingsMigrator.prototype = {
@@ -35,6 +37,16 @@
         var cset = {};
         cset[this._kLocaleTime] = is12hFormat;
         window.navigator.mozSettings.createLock().set(cset);
+      }
+      if (result[this._oldPasscode] !== undefined)  {
+        LazyLoader.load(['/shared/js/passcode_helper.js']).then(() => {
+          var set = {};
+          var passcode = result[this._oldPasscode];
+          set[this._oldPasscode] = undefined;
+          PasscodeHelper.set(passcode).then(() => {
+            window.navigator.mozSettings.createLock().set(set);
+          });
+        });
       }
     }
   };
