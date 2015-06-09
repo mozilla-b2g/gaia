@@ -43,7 +43,10 @@ var Startup = {
     '/views/shared/js/smil.js',
     '/views/shared/js/notify.js',
     '/views/shared/js/activity_handler.js',
-    '/views/shared/js/localization_helper.js'
+    '/views/shared/js/localization_helper.js',
+    '/lib/bridge.js',
+    '/services/js/activity/activity_shim.js',
+    '/services/js/activity/activity_client.js'
   ],
 
   _lazyLoadInit: function() {

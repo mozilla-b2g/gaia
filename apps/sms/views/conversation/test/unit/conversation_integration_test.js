@@ -14,7 +14,6 @@ require('/views/shared/test/unit/mock_contact.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/views/shared/test/unit/mock_moz_activity.js');
 require('/views/shared/test/unit/mock_information.js');
-require('/views/shared/test/unit/mock_activity_handler.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/js/utils.js');
 require('/views/shared/js/settings.js');
@@ -28,14 +27,15 @@ require('/views/conversation/js/attachment.js');
 require('/views/shared/js/contact_renderer.js');
 require('/views/shared/js/navigation.js');
 require('/services/test/unit/mock_threads.js');
+require('/services/test/unit/activity/mock_activity_client.js');
 
 var mHelperIntegration = new MocksHelper([
   'MessageManager',
   'MozActivity',
   'Information',
-  'ActivityHandler',
   'Navigation',
-  'Threads'
+  'Threads',
+  'ActivityClient'
 ]).init();
 
 suite('ConversationView Integration', function() {

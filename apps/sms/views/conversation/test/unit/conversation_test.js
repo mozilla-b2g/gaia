@@ -3,15 +3,16 @@
          Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
-         MockContacts, ActivityHandler, Recipients, MockMozActivity,
+         MockContacts, Recipients, MockMozActivity,
          InboxView, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise,
          MockLazyLoader, WaitingScreen, Navigation, MockSettings,
+         ActivityClient,
+         AssetsHelper,
          DocumentFragment,
          Errors,
          MockCompose,
-         AssetsHelper,
          SMIL,
          TaskRunner,
          Thread
@@ -46,7 +47,6 @@ require('/views/shared/test/unit/mock_activity_picker.js');
 require('/views/shared/test/unit/mock_dialog.js');
 require('/views/shared/test/unit/mock_smil.js');
 require('/views/shared/test/unit/mock_compose.js');
-require('/views/shared/test/unit/mock_activity_handler.js');
 require('/views/shared/test/unit/mock_information.js');
 require('/views/shared/test/unit/mock_contact_renderer.js');
 require('/services/test/unit/mock_message_manager.js');
@@ -56,6 +56,7 @@ require('/views/shared/test/unit/mock_inbox.js');
 require('/views/shared/test/unit/mock_selection_handler.js');
 require('/services/test/unit/mock_drafts.js');
 require('/services/test/unit/mock_threads.js');
+require('/services/test/unit/activity/mock_activity_client.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -80,7 +81,6 @@ var mocksHelperForConversationView = new MocksHelper([
   'ErrorDialog',
   'Contacts',
   'SMIL',
-  'ActivityHandler',
   'TimeHeaders',
   'ContactRenderer',
   'Information',
@@ -98,7 +98,8 @@ var mocksHelperForConversationView = new MocksHelper([
   'Drafts',
   'Draft',
   'Threads',
-  'Thread'
+  'Thread',
+  'ActivityClient'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -195,6 +196,8 @@ suite('conversation.js >', function() {
     this.sinon.stub(Compose, 'on');
     this.sinon.stub(Compose, 'off');
     this.sinon.useFakeTimers();
+
+    this.sinon.stub(ActivityClient);
 
     ConversationView.recipients = null;
     ConversationView.init();
@@ -2664,7 +2667,6 @@ suite('conversation.js >', function() {
         this.sinon.stub(ConversationView, 'close');
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
-        this.sinon.stub(ActivityHandler, 'isInActivity').returns(false);
       });
 
       test('when not in an activity, deletes the thread and navigates back',
@@ -2676,7 +2678,8 @@ suite('conversation.js >', function() {
 
       test('when in an activity, deletes the thread and closes activity',
       function() {
-        ActivityHandler.isInActivity.returns(true);
+        ActivityClient.hasPendingRequest.returns(true);
+
         ConversationView.deleteUIMessages(testMessages.map((m) => m.id));
         sinon.assert.notCalled(ConversationView.back);
         sinon.assert.called(ConversationView.close);
@@ -4308,10 +4311,10 @@ suite('conversation.js >', function() {
           });
 
           test('No menu displayed while activating header in activity',
-            function() {
+          function() {
+            ActivityClient.hasPendingRequest.returns(true);
 
             var contact = new MockContact();
-            this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
 
             ConversationView.prompt({
               number: '999',
@@ -4325,10 +4328,10 @@ suite('conversation.js >', function() {
           });
 
           test('No view contact option while in message and activity',
-            function() {
+          function() {
+            ActivityClient.hasPendingRequest.returns(true);
 
             var contact = new MockContact();
-            this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
 
             ConversationView.prompt({
               number: '999',
@@ -5029,7 +5032,7 @@ suite('conversation.js >', function() {
 
       test('then closes if we\'re in the activity', function() {
         this.sinon.stub(ConversationView, 'close');
-        this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
+        ActivityClient.hasPendingRequest.returns(true);
 
         sendSmsToSeveralRecipients();
         sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
@@ -5920,14 +5923,13 @@ suite('conversation.js >', function() {
   });
 
   suite('Close button behaviour', function() {
-    test('Call ActivityHandler.leaveActivity', function(done) {
-      this.sinon.stub(ActivityHandler, 'leaveActivity');
+    test('Call ActivityClient.postResult', function(done) {
       this.sinon.stub(ConversationView, 'cleanFields');
       ConversationView.initRecipients();
 
       ConversationView.close().then(function() {
         sinon.assert.called(ConversationView.cleanFields);
-        sinon.assert.called(ActivityHandler.leaveActivity);
+        sinon.assert.calledWithExactly(ActivityClient.postResult);
       }).then(done, done);
     });
   });
@@ -6587,7 +6589,6 @@ suite('conversation.js >', function() {
         transitionArgs = getTransitionArgs();
         this.sinon.spy(MockLazyLoader, 'load');
         this.sinon.spy(window, 'MultiSimActionButton');
-        this.sinon.stub(ActivityHandler, 'isInActivity').returns(false);
         ConversationView.beforeEnter(transitionArgs);
       });
 
@@ -6596,7 +6597,7 @@ suite('conversation.js >', function() {
 
         assert.equal(messagesHeader.getAttribute('action'), 'back');
 
-        ActivityHandler.isInActivity.returns(true);
+        ActivityClient.hasPendingRequest.returns(true);
         ConversationView.beforeEnter(transitionArgs);
 
         assert.equal(messagesHeader.getAttribute('action'), 'close');

@@ -103,6 +103,11 @@ marionette('Messages as "new" activity target', function() {
 
       assert.isTrue(messagesApp.Composer.sendButton.enabled());
 
+      assert.equal(
+        messagesApp.Composer.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
+
       messagesApp.send();
 
       // Verify that everything is fine with rendered message content
@@ -115,6 +120,11 @@ marionette('Messages as "new" activity target', function() {
       // Validate that header is correctly set even that thread list hasn't
       // been loaded yet.
       assert.equal(messagesApp.Conversation.headerTitle.text(), number);
+
+      assert.equal(
+        messagesApp.Composer.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
 
       // Verify that xss wasn't successful for thread case
       assert.isTrue(client.executeScript(function() {
@@ -132,6 +142,11 @@ marionette('Messages as "new" activity target', function() {
 
       assert.isFalse(messagesApp.Composer.sendButton.enabled());
       assert.equal(messagesApp.Composer.recipients.length, 0);
+
+      assert.equal(
+        messagesApp.Composer.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
 
       assertIsFocused(
         messagesApp.Composer.recipientsInput,
@@ -154,6 +169,11 @@ marionette('Messages as "new" activity target', function() {
 
       assert.isTrue(messagesApp.Composer.sendButton.enabled());
 
+      assert.equal(
+        messagesApp.Composer.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
+
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
@@ -175,6 +195,11 @@ marionette('Messages as "new" activity target', function() {
 
       assert.isTrue(messagesApp.Composer.sendButton.enabled());
 
+      assert.equal(
+        messagesApp.Composer.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
+
       assertIsFocused(
         messagesApp.Composer.messageInput, 'Message input should be focused'
       );
@@ -192,6 +217,11 @@ marionette('Messages as "new" activity target', function() {
       );
 
       assert.isFalse(messagesApp.Composer.sendButton.enabled());
+
+      assert.equal(
+        messagesApp.Composer.header.getAttribute('action'), 'close',
+        'Close activity button should be visible'
+      );
 
       // Validate that header is correctly set even that thread list hasn't
       // been loaded yet.
