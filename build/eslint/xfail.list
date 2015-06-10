@@ -61,6 +61,7 @@ apps/clock/test/unit/form_button_test.js
 apps/clock/test/unit/tabs_test.js
 apps/clock/test/unit/utils_test.js
 apps/communications/contacts/js/bootstrap.js
+apps/communications/contacts/js/cache.js
 apps/communications/contacts/js/contacts_matching_ui.js
 apps/communications/contacts/js/views/list.js
 apps/communications/contacts/test/unit/contacts_action_menu_test.js
