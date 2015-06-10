@@ -475,7 +475,7 @@ if (!contacts.MatchingUI) {
        *
        * @param{Object} Master contact
        *
-       * @param{Object} Hash of matching contacts from contacts.Matcher module
+       * @param{Object} Hash of matching contacts from Matcher module
        *
        * @param{Function} Success callback when the UI is ready
        *

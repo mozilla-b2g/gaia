@@ -1,5 +1,7 @@
 /* global Contacts, contacts, utils, LazyLoader */
 /* global ContactsService */
+/* global Matcher */
+
 'use strict';
 
 window.Contacts = window.Contacts || {};
@@ -43,7 +45,7 @@ Contacts.MultipleSelect = (function() {
     ];
     LazyLoader.load(DEPENDENCIES, function() {
       contactsToImport.forEach((contact, index) => {
-        contacts.Matcher.match(contact, 'passive', {
+        Matcher.match(contact, 'passive', {
           onmatch: (matches) => {
             var callbacks = {
               success: () => {
