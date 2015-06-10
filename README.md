@@ -187,8 +187,8 @@ make test-integration OOP=1
   - [Node.js](http://nodejs.org)
   - [MDN: for high level overview](https://developer.mozilla.org/en-US/docs/Marionette/Marionette_JavaScript_Tools)
   - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
-  - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/marionette-js-runner)
-  - [marionette-client: for anything to do with client.X](http://lightsofapollo.github.io/marionette_js_client/api-docs/classes/Marionette.Client.html)
+  - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/gaia/tree/master/tests/jsmarionette/runner)
+  - [marionette-client: for anything to do with client.X](http://mozilla-b2g.github.io/marionette-js-client/api-docs/classes/Marionette.Client.html)
 
 #### Gotchas
 
