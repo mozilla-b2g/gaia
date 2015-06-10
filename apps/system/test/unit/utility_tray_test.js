@@ -30,15 +30,44 @@ suite('system/UtilityTray', function() {
     return evt;
   }
 
-  function fakeTouches(start, end, target) {
+  function fakeTouches(yPoints, target) {
     target = target || UtilityTray.topPanel;
 
-    UtilityTray.onTouchStart({ target: target, pageX: 42, pageY: start });
-    UtilityTray.screenHeight = 480;
 
+    var start = yPoints[0];
+    var moves = yPoints.slice(1);
+    var end = yPoints.slice(-1);
+    var lastY = start;
+
+    fakeTouchStart(start, target);
+
+    moves.forEach(y => {
+      fakeTouchMove(lastY, y, target);
+      lastY = y;
+    });
+
+    fakeTouchEnd(end, target);
+  }
+
+  function fakeTouchStart(y, target) {
+    UtilityTray.screenHeight = 480;
+    UtilityTray.onTouchStart({
+      target: target,
+      touches: [{ target: target, pageX: 42, pageY: y }],
+      timeStamp: Date.now(),
+      preventDefault: () => {}
+    });
+  }
+
+  function fakeTouchMove(start, end, target) {
     var y = start;
     while (y != end) {
-      UtilityTray.onTouchMove({ target: target, pageX: 42, pageY: y });
+      UtilityTray.onTouchMove({
+        target: target,
+        timeStamp: Date.now(),
+        touches: [{ target: target, pageX: 42, pageY: y }],
+        preventDefault: () => {}
+      });
 
       if (y < end) {
         y++;
@@ -46,7 +75,16 @@ suite('system/UtilityTray', function() {
         y--;
       }
     }
-    UtilityTray.onTouchEnd({target: target, pageX: 42, pageY: y});
+  }
+
+  function fakeTouchEnd(y, target) {
+    UtilityTray.onTouchEnd({
+      target: target,
+      timeStamp: Date.now(),
+      changedTouches: [{ target: target, pageX: 42, pageY: y }],
+      preventDefault: () => {},
+      stopImmediatePropagation: () => {}
+    });
   }
 
   function fakeTransitionEnd() {
@@ -88,6 +126,17 @@ suite('system/UtilityTray', function() {
     var notifications = document.createElement('div');
     notifications.style.cssText = 'height: 100px; display: block;';
 
+    var notification = document.createElement('div');
+    notification.className = 'notification';
+    notifications.style.cssText = 'height: 100px; display: block;';
+
+    var stickyNotification = document.createElement('div');
+    stickyNotification.className = 'fake-notification';
+    stickyNotification.style.cssText = 'height: 100px; display: block;';
+
+    var someButton = document.createElement('button');
+    var someListItem = document.createElement('li');
+
     var topPanel = document.createElement('div');
     topPanel.style.cssText = 'height: 20px; display: block;';
 
@@ -96,6 +145,19 @@ suite('system/UtilityTray', function() {
 
     var softwareButtons = document.createElement('div');
     softwareButtons.style.cssText = 'height: 20px; display: block;';
+
+    /**
+     * Assemble
+     */
+
+    statusbar.appendChild(statusbarIcons);
+    topPanel.appendChild(statusbar);
+    notifications.appendChild(notification);
+    overlay.appendChild(stickyNotification);
+    overlay.appendChild(someButton);
+    overlay.appendChild(someListItem);
+    overlay.appendChild(notifications);
+    overlay.appendChild(grippy);
 
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
@@ -151,7 +213,6 @@ suite('system/UtilityTray', function() {
     });
   });
 
-
   suite('hide', function() {
     setup(function() {
       UtilityTray.hide(true);
@@ -179,9 +240,8 @@ suite('system/UtilityTray', function() {
     });
   });
 
-
   suite('onTouch', function() {
-    suite('taping the left corner', function() {
+    suite('tapping the left corner', function() {
       var appChrome, titleStub, app;
 
       setup(function() {
@@ -198,7 +258,7 @@ suite('system/UtilityTray', function() {
         this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
         this.sinon.stub(appChrome, 'isMaximized').returns(false);
         this.sinon.stub(app, 'isTransitioning').returns(false);
-        fakeTouches(0, 2);
+        fakeTouches([0, 2]);
         assert.isTrue(titleStub.called);
       });
 
@@ -206,7 +266,7 @@ suite('system/UtilityTray', function() {
         this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
         this.sinon.stub(appChrome, 'isMaximized').returns(false);
         this.sinon.stub(app, 'isTransitioning').returns(true);
-        fakeTouches(0, 2);
+        fakeTouches([0, 2]);
         assert.isFalse(titleStub.called);
       });
 
@@ -214,7 +274,7 @@ suite('system/UtilityTray', function() {
         this.sinon.stub(appChrome, 'useCombinedChrome').returns(false);
         this.sinon.stub(appChrome, 'isMaximized').returns(false);
         this.sinon.stub(app, 'isTransitioning').returns(false);
-        fakeTouches(0, 2);
+        fakeTouches([0, 2]);
         assert.isFalse(titleStub.called);
       });
 
@@ -222,14 +282,22 @@ suite('system/UtilityTray', function() {
         this.sinon.stub(appChrome, 'useCombinedChrome').returns(true);
         this.sinon.stub(appChrome, 'isMaximized').returns(true);
         this.sinon.stub(app, 'isTransitioning').returns(false);
-        fakeTouches(0, 2);
+        fakeTouches([0, 2]);
         assert.isFalse(titleStub.called);
       });
 
       test('should hide the Utility tray', function() {
         UtilityTray.show(true);
-        fakeTouches(0, 2);
+        fakeTouches([0, 2]);
         assert.equal(UtilityTray.showing, false);
+      });
+
+      test('the tray can be opened after', function() {
+        fakeTouches([0, 2]);
+        assert.isFalse(UtilityTray.shown);
+        fakeTouches([0, 400]);
+        fakeTransitionEnd();
+        assert.isTrue(UtilityTray.shown);
       });
     });
 
@@ -238,32 +306,47 @@ suite('system/UtilityTray', function() {
 
       setup(function() {
         UtilityTray.isTap = true;
+        UtilityTray.hide(true);
         publishStub = this.sinon.stub(UtilityTray, 'publish');
       });
 
+      teardown(function() {
+        fakeTransitionEnd();
+      });
+
       test('should not be shown by a tap', function() {
-        fakeTouches(0, 5);
+        fakeTouches([0, 5]);
         assert.equal(UtilityTray.showing, false);
       });
 
       test('should not trigger overlayopening event by a tap', function() {
-        fakeTouches(0, 5);
+        fakeTouches([0, 5]);
         assert.isFalse(publishStub.calledWith('-overlayopening'));
       });
 
       test('should be shown by a drag from the top', function() {
-        fakeTouches(0, 100);
-        assert.equal(UtilityTray.showing, true);
+        fakeTouches([0, 100]);
+        assert.isTrue(UtilityTray.showing, true);
       });
 
       test('should trigger overlayopening event', function() {
-        fakeTouches(0, 100);
+        fakeTouches([0, 100]);
         assert.isTrue(publishStub.calledWith('-overlayopening'));
+      });
+
+      test('Should be hidden when dragged down then up', function() {
+        UtilityTray.hide(true);
+        var target = UtilityTray.topPanel;
+        fakeTouchStart(100, target); // touch
+        fakeTouchMove(100, 400, target); // drag down
+        fakeTouchMove(400, 100, target); // drag up
+        fakeTouchEnd(100, target); // release
+        assert.isFalse(UtilityTray.showing);
       });
 
       test('should add utility-tray-in-transition class with drag from top',
         function() {
-          fakeTouches(0, 100);
+          fakeTouches([0, 100]);
           assert.isTrue(UtilityTray.screen.classList.contains(
             'utility-tray-in-transition'));
         }
@@ -284,7 +367,7 @@ suite('system/UtilityTray', function() {
         MockService.mockQueryWith('getTopMostWindow', app);
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
-        fakeTouches(0, 100);
+        fakeTouches([0, 100]);
 
         sinon.assert.calledWith(app.iframe.sendTouchEvent, 'touchcancel');
       });
@@ -304,7 +387,7 @@ suite('system/UtilityTray', function() {
         MockService.mockQueryWith('getTopMostWindow', app);
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
-        fakeTouches(0, 100);
+        fakeTouches([0, 100]);
 
         sinon.assert.notCalled(app.iframe.sendTouchEvent);
       });
@@ -320,23 +403,23 @@ suite('system/UtilityTray', function() {
       });
 
       test('should not be hidden by a tap', function() {
-        fakeTouches(480, 475, UtilityTray.grippy);
+        fakeTouches([480, 475], UtilityTray.grippy);
         assert.equal(UtilityTray.showing, true);
       });
 
       test('should be hidden by a drag from the bottom', function() {
-        fakeTouches(480, 380, UtilityTray.grippy);
+        fakeTouches([480, 380], UtilityTray.grippy);
         assert.equal(UtilityTray.showing, false);
       });
 
       test('should be hidden by a drag from the softwareButtons', function() {
-        fakeTouches(480, 380, UtilityTray.softwareButtons);
+        fakeTouches([480, 380], UtilityTray.softwareButtons);
         assert.equal(UtilityTray.showing, false);
       });
 
       test('should add utility-tray-in-transition class on drag from bottom',
         function() {
-          fakeTouches(480, 380, UtilityTray.grippy);
+          fakeTouches([480, 380], UtilityTray.grippy);
           assert.isTrue(UtilityTray.screen.classList.contains(
             'utility-tray-in-transition'));
         }
@@ -551,42 +634,44 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: touchstart', function() {
     mocksHelperForUtilityTray.attachTestHelpers();
+
     setup(function() {
       UtilityTray.hide();
-      fakeEvt = createEvent('touchstart', false, true);
+      UtilityTray.transitioning = false;
+      fakeEvt = createEvent('touchstart', true, true);
       fakeEvt.touches = [0];
+    });
+
+    teardown(function() {
+      UtilityTray.active = false;
     });
 
     test('onTouchStart is not called if LockScreen is locked', function() {
       MockService.mockQueryWith('locked', true);
-      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      var stub = this.sinon.stub(UtilityTray, 'startMove');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
 
     test('onTouchStart is called if LockScreen is not locked', function() {
       MockService.mockQueryWith('locked', false);
-      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
-      UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
+      var stub = this.sinon.stub(UtilityTray, 'startMove');
+      UtilityTray.grippy.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
     test('events on the topPanel are handled', function() {
       MockService.mockQueryWith('locked', false);
-      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      var stub = this.sinon.stub(UtilityTray, 'startMove');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
     test('onTouchStart is called when ftu is running', function() {
       MockService.mockQueryWith('isFtuRunning', true);
-      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      var stub = this.sinon.stub(UtilityTray, 'startMove');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
-    });
-
-    test('Don\'t preventDefault if the target is the overlay', function() {
-      assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
     });
 
     test('preventDefault if the target is the statusbar', function() {
@@ -605,9 +690,38 @@ suite('system/UtilityTray', function() {
 
     test('onTouchStart is not called if already opened', function() {
       UtilityTray.show();
-      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      var stub = this.sinon.stub(UtilityTray, 'startMove');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
+    });
+
+    test('not called if non-draggable target', function() {
+      var stub = this.sinon.stub(UtilityTray, 'startMove');
+      var overlay = UtilityTray.overlay;
+      var notification = overlay.querySelector('.notification');
+      var stickyNotification = overlay.querySelector('.fake-notification');
+      var button = overlay.querySelector('button');
+      var li = overlay.querySelector('li');
+
+      [
+        stickyNotification,
+        notification,
+        button,
+        li
+      ].forEach(el => {
+        var fakeEvt = createEvent('touchstart', true, true);
+        fakeEvt.touches = [0];
+        el.dispatchEvent(fakeEvt);
+        assert.ok(stub.notCalled);
+      });
+    });
+
+    test('not called if button is target', function() {
+      var stub = this.sinon.stub(UtilityTray, 'startMove');
+      var notification = UtilityTray.notifications
+        .querySelector('.notification');
+      notification.dispatchEvent(fakeEvt);
+      sinon.assert.notCalled(stub);
     });
 
     suite('Custom events', function() {
@@ -639,22 +753,10 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: touchend', function() {
     setup(function() {
-      fakeEvt = createEvent('touchend', false, true);
+      fakeEvt = createEvent('touchend', true, true);
       fakeEvt.changedTouches = [0];
 
       UtilityTray.active = true;
-    });
-
-    test('Don\'t preventDefault if the target is the overlay', function() {
-      assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
-    });
-
-    test('preventDefault if the target is the statusbar', function() {
-      assert.isFalse(UtilityTray.statusbarIcons.dispatchEvent(fakeEvt));
-    });
-
-    test('preventDefault if the target is the grippy', function() {
-      assert.isFalse(UtilityTray.grippy.dispatchEvent(fakeEvt));
     });
 
     test('Test UtilityTray.active, should be false', function() {
@@ -742,14 +844,37 @@ suite('system/UtilityTray', function() {
       doAction(true);
     });
 
-    test('utility-tray-abortopen is correctly dispatched', function(done) {
+    test('utility-tray-abortopen is called when the tray ' +
+      'is closed before it is fully opened', function(done) {
       window.addEventListener('utility-tray-abortopen',
         function gotIt() {
           window.removeEventListener('utility-tray-abortopen', gotIt);
           assert.isTrue(true, 'got the event');
           done();
         });
-      doAction(false);
+
+      UtilityTray.hide(true);
+
+      var target = UtilityTray.topPanel;
+
+      fakeTouches([2, 200, 2], target);
+    });
+
+    test('The tray does not move when tapped', function() {
+      UtilityTray.show(true);
+
+      var target = UtilityTray.overlay;
+      var startY = target.style.transform;
+
+      fakeTouchStart(200, target);
+      fakeTouchMove(200, 196, target);
+      assert.equal(startY, target.style.transform);
+      fakeTouchEnd(200, target);
+
+      fakeTouchStart(200, target);
+      fakeTouchMove(200, 190, target);
+      assert.notEqual(startY, target.style.transform);
+      fakeTouchEnd(190, target);
     });
   });
 
@@ -808,78 +933,6 @@ suite('system/UtilityTray', function() {
           done();
         });
       doAction(true);
-    });
-  });
-
-  suite('mousedown event on the statusbar', function() {
-    setup(function() {
-      fakeEvt = createEvent('mousedown', true, true);
-      UtilityTray.show();
-    });
-
-    test('keyboard shown > preventDefault mousedown event', function() {
-      var imeShowEvt = createEvent('keyboardimeswitchershow');
-      UtilityTray.handleEvent(imeShowEvt);
-
-      assert.isFalse(UtilityTray.statusbar.dispatchEvent(fakeEvt));
-      assert.isFalse(UtilityTray.overlay.dispatchEvent(fakeEvt));
-    });
-
-    test('keyboard hidden > Don\'t preventDefault mousedown event', function() {
-      var imeShowEvt = createEvent('keyboardimeswitcherhide');
-      UtilityTray.handleEvent(imeShowEvt);
-
-      assert.isTrue(UtilityTray.statusbar.dispatchEvent(fakeEvt));
-      assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
-    });
-
-    test('_pdIMESwitcherShow > Don\'t preventDefault on rocketbar',
-      function() {
-      var evt = {
-        target: {
-          id: 'rocketbar-input'
-        },
-        preventDefault: function() {}
-      };
-      var defaultStub = this.sinon.stub(evt, 'preventDefault');
-      UtilityTray._pdIMESwitcherShow(evt);
-      assert.isTrue(defaultStub.notCalled);
-    });
-  });
-
-  suite('mouse events', function() {
-    var evt;
-
-    setup(function() {
-      evt = {
-        type: 'mousedown',
-        target: UtilityTray.grippy,
-        preventDefault: this.sinon.spy()
-      };
-    });
-
-    test('it preventsDefault when target is this.grippy', function() {
-      evt.target = UtilityTray.grippy;
-      UtilityTray.handleEvent(evt);
-      assert.isTrue(evt.preventDefault.called);
-    });
-
-    test('it preventsDefault when target is this.statusbarIcons', function() {
-      evt.target = UtilityTray.statusbarIcons;
-      UtilityTray.handleEvent(evt);
-      assert.isTrue(evt.preventDefault.called);
-    });
-
-    test('it preventsDefault when target is this.topPanel', function() {
-      evt.target = UtilityTray.topPanel;
-      UtilityTray.handleEvent(evt);
-      assert.isTrue(evt.preventDefault.called);
-    });
-
-    test('it does not preventsDefault when target is not top', function() {
-      evt.target = UtilityTray.overlay;
-      UtilityTray.handleEvent(evt);
-      assert.isFalse(evt.preventDefault.called);
     });
   });
 
