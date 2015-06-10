@@ -191,6 +191,14 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake4'
   };
 
+  var fakeAppWithName = {
+    url: 'http://fakeapp.com/index.html',
+    manifest: {
+      name: 'Fake App Name'
+    },
+    origin: 'http://fakeapp.com'
+  };
+
   var fakeInputAppConfig = {
     url: 'app://www.fakeinput/index.html',
     manifest: {},
@@ -2066,6 +2074,18 @@ suite('system/AppWindow', function() {
       app1.config.url = url;
     });
 
+    test('Locationchange event resets name and title', function() {
+      var app1 = new AppWindow(fakeWrapperConfig);
+
+      app1.handleEvent({
+        type: 'mozbrowserlocationchange',
+        detail: 'http://example.com/page.html'
+      });
+
+      assert.equal(app1.name, 'example.com');
+      assert.equal(app1.title, 'http://example.com/page.html');
+    });
+
     test('Scroll event', function() {
       var app4 = new AppWindow(fakeAppConfig4);
       app4.manifest = null;
@@ -2497,6 +2517,7 @@ suite('system/AppWindow', function() {
         assert.equal(app1.webManifestURL, manifestURL);
         assert.ok(app1.webManifest);
         assert.equal(app1.webManifest.name, 'My App');
+        assert.equal(app1.name, 'App');
         assert.ok(app1.webManifest.icons[0]);
       });
 
@@ -2563,11 +2584,19 @@ suite('system/AppWindow', function() {
     assert.isTrue(app1.browser.element.src.indexOf('http://changed.url') >= 0);
   });
 
-  test('Launch wrapper should have name from title config', function() {
+  test('Launch wrapper should take title from app name', function() {
+    var app1 = new AppWindow(fakeAppWithName);
+    this.sinon.clock.tick();
+    assert.equal(app1.name, 'Fake App Name');
+    assert.equal(app1.identificationTitle.textContent, 'Fake App Name');
+  });
+
+  test('Launch wrapper should take title from hostname if no name provided',
+    function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     this.sinon.clock.tick();
-    assert.equal(app1.name, 'Fakebook');
-    assert.equal(app1.identificationTitle.textContent, 'Fakebook');
+    assert.equal(app1.name, 'www.fake5');
+    assert.equal(app1.identificationTitle.textContent, 'www.fake5');
   });
 
   test('revive browser', function() {

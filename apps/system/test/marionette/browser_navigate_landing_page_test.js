@@ -1,6 +1,7 @@
 'use strict';
 
 var assert = require('assert');
+var urlUtility = require('url');
 var Server = require('../../../../shared/test/integration/server');
 var Rocketbar = require('./lib/rocketbar');
 
@@ -64,8 +65,9 @@ marionette('Browser - Navigating from the landing page',
     client.waitFor(function() {
       return !client.findElement(sel.appChromeWindowsButton).displayed();
     });
+    var hostname = urlUtility.parse(url).hostname;
     client.waitFor(function() {
-      return system.appUrlbar.text().indexOf('Sample page') === 0;
+      return system.appUrlbar.text().indexOf(hostname) === 0;
     });
     assert.ok(system.appChromeReloadButton.displayed());
     assert.ok(!client.findElement(sel.appChromeBack).displayed());
