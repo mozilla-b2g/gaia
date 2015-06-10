@@ -506,36 +506,41 @@ contacts.Details = (function() {
     if (!contact.adr) {
       return;
     }
-    for (var i = 0; i < contact.adr.length; i++) {
-      var currentAddress = contact.adr[i];
-      // Sanity check
-      if (Contacts.isEmpty(currentAddress, ['streetAddress', 'postalCode',
-        'locality', 'countryName'])) {
-        continue;
-      }
-      var address = currentAddress.streetAddress || '';
-      var escapedStreet = Normalizer.escapeHTML(address, true);
-      var locality = currentAddress.locality;
-      var escapedLocality = Normalizer.escapeHTML(locality, true);
-      var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
-      var country = currentAddress.countryName || '';
-      var escapedCountry = Normalizer.escapeHTML(country, true);
-      var postalCode = currentAddress.postalCode || '';
-      var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
+    // Load what we need
+    LazyLoader.load('/contacts/js/utilities/mozContact.js', function() {
+      for (var i = 0; i < contact.adr.length; i++) {
+        var currentAddress = contact.adr[i];
+        // Sanity check
+        if (utils.mozContact.haveEmptyFields(currentAddress,
+            ['streetAddress', 'postalCode', 'locality', 'countryName'])) {
+          continue;
+        }
+        var address = currentAddress.streetAddress || '';
+        var escapedStreet = Normalizer.escapeHTML(address, true);
+        var locality = currentAddress.locality;
+        var escapedLocality = Normalizer.escapeHTML(locality, true);
+        var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
+        var country = currentAddress.countryName || '';
+        var escapedCountry = Normalizer.escapeHTML(country, true);
+        var postalCode = currentAddress.postalCode || '';
+        var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
 
-      var addressField = {
-        streetAddress: escapedStreet,
-        postalCode: escapedPostalCode,
-        locality: escapedLocality || '',
-        countryName: escapedCountry,
-        type: _(escapedType) || escapedType ||
-                                        TAG_OPTIONS['address-type'][0].value,
-        'type_l10n_id': currentAddress.type,
-        i: i
-      };
-      var template = utils.templates.render(addressesTemplate, addressField);
-      listContainer.appendChild(template);
-    }
+        var addressField = {
+          streetAddress: escapedStreet,
+          postalCode: escapedPostalCode,
+          locality: escapedLocality || '',
+          countryName: escapedCountry,
+          type: _(escapedType) || escapedType ||
+                                          TAG_OPTIONS['address-type'][0].value,
+          'type_l10n_id': currentAddress.type,
+          i: i
+        };
+        var template = utils.templates.render(addressesTemplate, addressField);
+        listContainer.appendChild(template);
+      }
+    });
+
+
   };
 
   var renderDuplicate = function cd_renderDuplicate(contact) {

@@ -49,6 +49,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/helper.js');
+requireApp('communications/contacts/js/utilities/mozContact.js');
 requireApp('communications/contacts/js/utilities/extract_params.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');

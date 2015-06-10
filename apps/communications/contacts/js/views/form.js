@@ -780,55 +780,59 @@ contacts.Form = (function() {
     }
 
     fillContact(myContact, function contactFilled(myContact) {
-      // Use the isEmpty function to check fields but address
+      // Check if all fields but address are empty
       // and inspect address by it self.
       var fields = ['givenName', 'familyName', 'org', 'tel',
         'email', 'note', 'bday', 'anniversary', 'adr'];
-      if (Contacts.isEmpty(myContact, fields)) {
-        return;
-      }
 
-      var contact;
-      if (myContact.id) { //Editing a contact
-        currentContact.tel = [];
-        currentContact.email = [];
-        currentContact.org = [];
-        currentContact.adr = [];
-        currentContact.note = [];
-        currentContact.photo = [];
-        currentContact.bday = null;
-        currentContact.anniversary = null;
-        var readOnly = ['id', 'updated', 'published'];
-        for (var field in myContact) {
-          if (readOnly.indexOf(field) == -1) {
-            currentContact[field] = myContact[field];
-          }
+      // Load what we need to check myContact
+      LazyLoader.load('/contacts/js/utilities/mozContact.js', function() {
+        if (utils.mozContact.haveEmptyFields(myContact, fields)) {
+          return;
         }
-        contact = currentContact;
 
-        if (fb.isFbContact(contact)) {
-          // If it is a FB Contact not linked it will be automatically linked
-          // As now there is additional contact data entered by the user
-          if (!fb.isFbLinked(contact)) {
-            var fbContact = new fb.Contact(contact);
-            // Here the contact has been promoted to linked but not saved yet
-            fbContact.promoteToLinked();
+        var contact;
+        if (myContact.id) { //Editing a contact
+          currentContact.tel = [];
+          currentContact.email = [];
+          currentContact.org = [];
+          currentContact.adr = [];
+          currentContact.note = [];
+          currentContact.photo = [];
+          currentContact.bday = null;
+          currentContact.anniversary = null;
+          var readOnly = ['id', 'updated', 'published'];
+          for (var field in myContact) {
+            if (readOnly.indexOf(field) == -1) {
+              currentContact[field] = myContact[field];
+            }
           }
+          contact = currentContact;
 
-          setPropagatedFlag('givenName', deviceGivenName[0], contact);
-          setPropagatedFlag('familyName', deviceFamilyName[0], contact);
-          createName(contact);
+          if (fb.isFbContact(contact)) {
+            // If it is a FB Contact not linked it will be automatically linked
+            // As now there is additional contact data entered by the user
+            if (!fb.isFbLinked(contact)) {
+              var fbContact = new fb.Contact(contact);
+              // Here the contact has been promoted to linked but not saved yet
+              fbContact.promoteToLinked();
+            }
+
+            setPropagatedFlag('givenName', deviceGivenName[0], contact);
+            setPropagatedFlag('familyName', deviceFamilyName[0], contact);
+            createName(contact);
+          }
+        } else {
+          contact = utils.misc.toMozContact(myContact);
         }
-      } else {
-        contact = utils.misc.toMozContact(myContact);
-      }
 
-      updateCategoryForImported(contact);
+        updateCategoryForImported(contact);
 
-      var callbacks = cookMatchingCallbacks(contact);
-      cancelHandler = doCancel.bind(callbacks);
-      formHeader.addEventListener('action', cancelHandler);
-      doMatch(contact, callbacks);
+        var callbacks = cookMatchingCallbacks(contact);
+        cancelHandler = doCancel.bind(callbacks);
+        formHeader.addEventListener('action', cancelHandler);
+        doMatch(contact, callbacks);
+      });
     });
   }
 
