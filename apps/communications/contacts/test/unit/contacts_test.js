@@ -16,6 +16,7 @@ requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_datastore_migrator.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+// requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_sms_integration.js');
 requireApp('communications/contacts/test/unit/mock_contacts_details.js');
@@ -106,6 +107,7 @@ suite('Contacts', function() {
 
     sinon.spy(window, 'navigationStack');
     requireApp('communications/contacts/js/utilities/performance_helper.js');
+    requireApp('communications/contacts/js/main_navigation.js');
     requireApp('communications/contacts/js/contacts.js', done);
   });
 

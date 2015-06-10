@@ -77,6 +77,7 @@ suite('Contacts', function() {
 
     sinon.spy(window, 'navigationStack');
     requireApp('communications/contacts/js/utilities/performance_helper.js');
+    requireApp('communications/contacts/js/main_navigation.js');
     requireApp('communications/contacts/js/contacts.js', done);
   });
 

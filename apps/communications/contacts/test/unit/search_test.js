@@ -1,5 +1,5 @@
 'use strict';
-/* global contacts, MockSearchHtml, Normalizer, MockSearchSource */
+/* global contacts, MockSearchHtml, Normalizer, MockSearchSource, MocksHelper */
 
 requireApp('communications/contacts/test/unit/mock_search.html.js');
 requireApp('communications/contacts/test/unit/mock_search_source.js');
@@ -9,8 +9,16 @@ require('/shared/js/contacts/utilities/image_loader.js');
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/utilities.js');
-require('/shared/js/contacts/search.js');
+requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_main_navigation.js');
+
 require('/contacts/js/fb_resolver.js');
+
+new MocksHelper([
+  'MainNavigation'
+]).init();
+
+require('/shared/js/contacts/search.js');
 
 suite('Search mode', function() {
   var searchBox, searchList, noResults;
