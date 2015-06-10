@@ -1,4 +1,4 @@
-/* global ActionMenu, BaseModule, LazyLoader */
+/* global ActionMenu, BaseModule, LazyLoader, BroadcastChannel */
 'use strict';
 
 (function() {
@@ -17,6 +17,8 @@
   ];
   BaseModule.create(MultiScreenController, {
     name: 'MultiScreenController',
+
+    EVENT_PREFIX: 'remote-',
     DEBUG: false,
 
     enabled: function() {
@@ -44,8 +46,7 @@
             return Promise.reject();
           }
 
-          // TODO: launch in external display (Bug 1156727)
-
+          this.postMessage(displayId, 'launch-app', config);
           return Promise.resolve(displayId);
         });
     },
@@ -107,16 +108,33 @@
         }));
       });
     },
+    postMessage: function(target, type, detail) {
+      this.debug('broadcast message to #' + target + ': ' +
+        type + ', ' + JSON.stringify(detail));
+
+      this.broadcastChannel.postMessage({
+        target: target,
+        type: type,
+        detail: detail
+      });
+    },
     _start: function() {
       this._enabled = false;
       this.actionMenu = null;
       this.queryPromiseCallback = null;
+
+      this.broadcastChannel = new BroadcastChannel('multiscreen');
+      this.broadcastChannel.addEventListener('message', this);
     },
     _stop: function() {
       if (this._enabled) {
         window.removeEventListener('mozChromeEvent', this);
         this._enabled = false;
       }
+
+      this.broadcastChannel.close();
+      this.broadcastChannel = null;
+
       if (this.queryPromiseCallback) {
         this.queryPromiseCallback.reject('module has been stoped');
         this.queryPromiseCallback = null;
@@ -149,6 +167,25 @@
 
       this.queryPromiseCallback = null;
       this.debug('got mozChromeEvent: ' + JSON.stringify(detail));
+    },
+    _handle_message: function(evt) {
+      var data = evt.data;
+      if (data.target !== undefined) {
+        return;
+      }
+      this.debug('got message from #' + data.source + ': ' +
+        data.type + ', ' + JSON.stringify(data.detail));
+
+      switch(data.type) {
+        case 'launch-app-success':
+        case 'launch-app-error':
+          this.publish(data.type, {
+            displayId: data.source,
+            config: data.detail.config,
+            reason: data.detail.reason
+          });
+          break;
+      }
     },
     '_observe_multiscreen.enabled': function(value) {
       if (value == this._enabled) {

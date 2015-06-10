@@ -15,12 +15,6 @@ suite('system/remote/App', function() {
 
   var subject;
 
-  function triggerCustomEvent(type, detail) {
-    window.dispatchEvent(new CustomEvent(type, {
-      detail: detail
-    }));
-  }
-
   setup(function() {
     window.location.hash = '#123';
     subject = BaseModule.instantiate('App');
@@ -45,20 +39,6 @@ suite('system/remote/App', function() {
       subject.stop();
       subject.start();
       assert.equal(subject._displayId, -1);
-    });
-  });
-
-  suite('wallpaper', function() {
-    setup(function() {
-      subject.start();
-    });
-
-    test('should change background image', function() {
-      triggerCustomEvent('wallpaperchange', {
-        url: 'test.jpg'
-      });
-      var m = /url\("([^"]+)"\)/.exec(document.body.style.backgroundImage);
-      assert.equal(m[1], 'test.jpg');
     });
   });
 });
