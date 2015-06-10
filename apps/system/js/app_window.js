@@ -1650,10 +1650,10 @@
   /**
    * Lock the orientation for this app anyway.
    */
-  AppWindow.prototype.lockOrientation = function() {
+  AppWindow.prototype.lockOrientation = function(forceOrientation) {
     var manifest = this.manifest || this.config.manifest;
-    var orientation = manifest ? (manifest.orientation ||
-                      Service.query('globalOrientation')) :
+    var orientation = forceOrientation ||
+                      manifest && manifest.orientation ||
                       Service.query('globalOrientation');
     if (orientation) {
       var rv = screen.mozLockOrientation(orientation);

@@ -1,4 +1,4 @@
-/* global SystemDialog, SIMSlotManager, applications */
+/* global SystemDialog, SIMSlotManager, applications, Service */
 'use strict';
 
 (function(exports) {
@@ -436,7 +436,8 @@
     }
 
     SystemDialog.prototype.show.apply(this);
-    screen.mozLockOrientation(ORIENTATION);
+    var appWindow = Service.query('getTopMostWindow');
+    appWindow.lockOrientation(ORIENTATION);
     this._visible = true;
     this.lockType = 'pin';
     this.handleCardState();
@@ -458,7 +459,8 @@
   SimLockSystemDialog.prototype.hide = function() {
     this._visible = false;
     SystemDialog.prototype.hide.apply(this);
-    screen.mozUnlockOrientation();
+    var appWindow = Service.query('getTopMostWindow');
+    appWindow.lockOrientation();
   };
 
   SimLockSystemDialog.prototype.close = function() {
