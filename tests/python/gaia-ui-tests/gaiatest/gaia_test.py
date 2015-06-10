@@ -494,7 +494,7 @@ class GaiaData(object):
             return [file for file in files if file['name'].endswith(extension)]
         return files
 
-    def send_sms(self, number, message):
+    def send_sms(self, number, message, skip_verification=False):
         self.marionette.switch_to_frame()
         import json
         number = json.dumps(number)
@@ -502,7 +502,7 @@ class GaiaData(object):
 
         self.marionette.push_permission('sms', True)
         self.set_bool_pref('dom.sms.enabled', True)
-        result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message))
+        result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s, %s)' % (number, message, str(skip_verification).lower()))
         self.marionette.push_permission('sms', False)
         self.clear_user_pref('dom.sms.enabled')
 

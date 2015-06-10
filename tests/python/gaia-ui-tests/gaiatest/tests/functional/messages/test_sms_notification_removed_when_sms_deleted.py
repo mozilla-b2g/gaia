@@ -25,7 +25,7 @@ class TestSmsNotificationRemovedWhenSMSDeleted(GaiaTestCase):
         messages.launch()
 
         # Send a SMS to the device
-        self.data_layer.send_sms(self.environment.phone_numbers[0], _text_message_content)
+        self.data_layer.send_sms(self.environment.phone_numbers[0], _text_message_content, skip_verification=True)
 
         system = System(self.marionette)
 
