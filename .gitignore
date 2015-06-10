@@ -53,6 +53,7 @@ manifest.appcache
 /build/config/custom-extensions.json
 /build/config/custom-prefs.js
 /build/config/custom-settings.json
+/build/eslint/xfail.list.tmp
 /build_stage/
 /coverage/
 /local.mk

@@ -8,8 +8,8 @@ LINTED_DIRECTORIES="apps shared build/test/unit tv_apps"
 JSHINT_EXECUTABLE="node_modules/.bin/jshint"
 JSHINT_ARGS="--reporter=build/jshint/reporter $JSHINT_ARGS"
 ESLINT_EXECUTABLE="node_modules/.bin/eslint"
-ESLINT_ARGS="--ignore-path .eslintignore --ignore-path build/eslint/xfail.list -f compact -c .eslintrc"
 ESLINT_XFAIL_LIST="build/eslint/xfail.list"
+ESLINT_ARGS="--ignore-path ${ESLINT_XFAIL_LIST}.tmp -f compact -c .eslintrc"
 excluded_list=".jshintignore"
 L10N_XFAIL_LIST="build/l10n/xfail.list"
 
@@ -68,8 +68,12 @@ then
   then
     echo "eslint check:"
 
+    # filter comments from xfail.list:
+    sed 's/\s*#.*$//' "$ESLINT_XFAIL_LIST" | sort -u > "$ESLINT_XFAIL_LIST".tmp
+
     # check if a changed file is in the eslint xfail list
-    xfailed_eslint=`echo "$js_changed_files" | sort | comm -12 "$ESLINT_XFAIL_LIST" - | tr '[:space:]' ' '`
+    xfailed_eslint=`echo "$js_changed_files" | sort | comm -12 "$ESLINT_XFAIL_LIST".tmp - | tr '[:space:]' ' '`
+
     if [ -n "$xfailed_eslint" ] ; then
       # warn about files being xfailed
       for file in $js_changed_files ; do
@@ -84,6 +88,7 @@ then
 
     $ESLINT_EXECUTABLE $ESLINT_ARGS $js_changed_files
     eslint_result=$?
+    rm "$ESLINT_XFAIL_LIST".tmp
   fi
 
   if [ $jshint_result -ne 0 -o $eslint_result -ne 0 ] ; then
