@@ -412,16 +412,6 @@ var Contacts = (function() {
     return prop.length;
   };
 
-  var updatePhoto = function updatePhoto(photo, dest) {
-    var background = '';
-    if (photo != null) {
-      background = 'url(' + URL.createObjectURL(photo) + ')';
-    }
-    dest.style.backgroundImage = background;
-    // Only for testing purposes
-    dest.dataset.photoReady = 'true';
-  };
-
   // Checks if an object fields are empty, by empty means
   // field is null and if it's an array it's length is 0
   var isEmpty = function isEmpty(obj, fields) {
@@ -1066,7 +1056,6 @@ var Contacts = (function() {
     'sendSms': sendSms,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
-    'updatePhoto': updatePhoto,
     'checkCancelableActivity': checkCancelableActivity,
     'isEmpty': isEmpty,
     'getLength': getLength,

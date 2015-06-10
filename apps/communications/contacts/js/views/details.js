@@ -609,14 +609,14 @@ contacts.Details = (function() {
     if (photo) {
       var currentHash = cover.dataset.imgHash;
       if (!currentHash) {
-        Contacts.updatePhoto(photo, cover);
+        utils.dom.updatePhoto(photo, cover);
         updateHash(photo, cover);
       }
       else {
         // Need to recalculate the hash and see whether the images changed
         calculateHash(photo, function(newHash) {
           if (currentHash !== newHash) {
-            Contacts.updatePhoto(photo, cover);
+            utils.dom.updatePhoto(photo, cover);
             cover.dataset.imgHash = newHash;
           }
           else {
