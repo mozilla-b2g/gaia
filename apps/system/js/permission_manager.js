@@ -1,4 +1,4 @@
-/* global Service, applications, ManifestHelper, Tagged */
+/* global Service, applications, ManifestHelper, Sanitizer */
 'use strict';
 (function(exports) {
   /**
@@ -105,7 +105,7 @@
      * @memberof PermissionManager.prototype
      */
     deviceOptionView: function({id, checked, label}) {
-      return Tagged.escapeHTML `<label class="device-list deviceEnable">
+      return Sanitizer.escapeHTML `<label class="device-list deviceEnable">
           <input class="input-enable" id="${id}" type="checkbox" ${checked}>
           <span></span>
         </label>

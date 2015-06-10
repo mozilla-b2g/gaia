@@ -1,7 +1,7 @@
 /* global AppWindow, Card, MocksHelper, CardsHelper */
 'use strict';
 
-require('/shared/js/tagged.js');
+require('/shared/js/sanitizer.js');
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForCard = new MocksHelper([

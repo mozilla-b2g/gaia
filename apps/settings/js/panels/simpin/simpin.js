@@ -5,7 +5,7 @@ define(function(require) {
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
   var SIMSlotManager = require('shared/simslot_manager');
   var DialogService = require('modules/dialog_service');
-  var Tagged = require('shared/tagged');
+  var Sanitizer = require('shared/sanitizer');
   var Toaster = require('shared/toaster');
   var SimSecurity = require('modules/sim_security');
 
@@ -32,7 +32,7 @@ define(function(require) {
       });
     },
     simPinView: function({simIndex, simName, changeSimLabel}) {
-      return Tagged.escapeHTML `
+      return Sanitizer.escapeHTML `
         <li class="simpin-enabled simpin-enabled-${simIndex}
           simpin-${simIndex}">
           <label class="pack-switch">

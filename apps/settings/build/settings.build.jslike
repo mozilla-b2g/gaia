@@ -23,7 +23,7 @@
     'shared/settings_listener': 'empty:',
     'shared/simslot': 'empty:',
     'shared/simslot_manager': 'empty:',
-    'shared/tagged': 'empty:',
+    'shared/sanitizer': 'empty:',
     'shared/toaster': 'empty:',
     'shared/sim_settings_helper': 'empty:',
     'shared/settings_helper': 'empty:',

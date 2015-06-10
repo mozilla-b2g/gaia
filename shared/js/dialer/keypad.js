@@ -187,7 +187,7 @@ var KeypadManager = {
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
-                     '/shared/js/tagged.js',
+                     '/shared/js/sanitizer.js',
                      '/dialer/js/suggestion_bar.js']);
 
     this._observePreferences();

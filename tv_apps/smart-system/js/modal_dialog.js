@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global KeyboardManager, focusManager, Tagged */
+/* global KeyboardManager, focusManager, Sanitizer */
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
@@ -369,7 +369,7 @@ var ModalDialog = {
 
     var itemsHTML = '';
     for (var i = 0; i < data.options.length; i++) {
-      itemsHTML += Tagged.escapeHTML `<li>
+      itemsHTML += Sanitizer.escapeHTML `<li>
         <button id="${data.options[i].id}">${data.options[i].text}</button>
       </li>`;
     }

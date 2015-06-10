@@ -1,9 +1,9 @@
 'use strict';
-/* global Tagged */
+/* global Sanitizer */
 /* exported Templates */
 var Templates = {
   soundList: function({l10nID}) {
-    return Tagged.escapeHTML `
+    return Sanitizer.escapeHTML `
       <section hidden>
         <gaia-subheader skin="organic">
           <span data-l10n-id="${l10nID}"></span>
@@ -13,7 +13,7 @@ var Templates = {
   },
 
   soundItem: function({l10nID, name}) {
-    return Tagged.escapeHTML `
+    return Sanitizer.escapeHTML `
       <li>
         <aside class="pack-end">
           <a class="actions-button"></a>

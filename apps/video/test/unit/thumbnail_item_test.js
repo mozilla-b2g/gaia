@@ -5,7 +5,7 @@
 'use strict';
 
 require('/shared/js/l10n.js');
-require('/shared/js/tagged.js');
+require('/shared/js/sanitizer.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('/video/js/thumbnail_item.js');

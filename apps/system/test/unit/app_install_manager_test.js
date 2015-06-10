@@ -15,7 +15,7 @@ requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
-require('/shared/js/tagged.js');
+require('/shared/js/sanitizer.js');
 require('/shared/js/homescreens/confirm_dialog_helper.js');
 require('/shared/test/unit/mocks/mock_service.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');

@@ -1,4 +1,4 @@
-/* global MediaUtils,Tagged,ThumbnailItem */
+/* global MediaUtils,Sanitizer,ThumbnailItem */
 /**
  * ThumbnailDateGroup is a grouping mechanism supported in video app. It
  * groups video data by its year and month, see bug 908380. The grouping
@@ -6,7 +6,7 @@
  * two groups as different groups. ThumbnailDateGroup also sorts the added video
  * data descendant. We can just put a item into group and let it sort the list.
  *
- * The tagged.js library is used to escape HTML within the view method.
+ * The sanitizer.js library is used to escape HTML within the view method.
  * It is used when rendering group header, the HTML DOM node of this object.
  *
  * The HTML Node of this object contains all UI of its children. If we move it,
@@ -74,7 +74,7 @@ function ThumbnailDateGroup(item) {
 
 // static functions
 ThumbnailDateGroup.view = function() {
-  return Tagged.escapeHTML `<li role="presentation">
+  return Sanitizer.escapeHTML `<li role="presentation">
       <div class="thumbnail-group-header" role="heading"
            aria-level="1"></div>
       <ul class="thumbnail-group-container" role="listbox"

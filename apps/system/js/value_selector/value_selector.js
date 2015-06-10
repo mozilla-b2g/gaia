@@ -1,5 +1,5 @@
 /* global BaseUI, InputParser, ValueSelector, SpinDatePicker,
-          ValuePicker, Tagged, LazyLoader */
+          ValuePicker, Sanitizer, LazyLoader */
 
 'use strict';
 
@@ -157,7 +157,7 @@
   ValueSelector.prototype.view = function vs_view() {
     /* jshint maxlen: false */
     var id = this.CLASS_NAME + this.instanceID;
-    return Tagged.escapeHTML `<div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
+    return Sanitizer.escapeHTML `<div data-z-index-level="value-selector" class="value-selector" id="${id}" hidden>
       <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
         <section class="value-selector-container">
           <h1 class="value-selector-options-title" data-l10n-id="choose-option"></h1>
@@ -221,7 +221,7 @@
 
   ValueSelector.prototype.optionView = function(
     {index, checked, labelFor,text}) {
-    return Tagged.escapeHTML `<li role="option" data-option-index="${index}"
+    return Sanitizer.escapeHTML `<li role="option" data-option-index="${index}"
         aria-selected="${checked}" dir="auto">
         <label role="presentation" for="${labelFor}">
           <span>${text}</span>
@@ -230,7 +230,7 @@
   };
 
   ValueSelector.prototype.groupView = function({text}) {
-    return Tagged.escapeHTML `<li role="subheader" dir="auto">
+    return Sanitizer.escapeHTML `<li role="subheader" dir="auto">
         <label role="presentation">
           <span>${text}</span>
         </label>

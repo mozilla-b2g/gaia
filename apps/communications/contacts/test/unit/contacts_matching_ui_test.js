@@ -12,7 +12,7 @@
 /* global MockURL */
 
 require('/shared/js/lazy_loader.js');
-require('/shared/js/tagged.js');
+require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 requireApp('communications/contacts/test/unit/' +

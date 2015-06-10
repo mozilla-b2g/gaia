@@ -11,7 +11,7 @@ define(function(require) {
 
   var _ = window.navigator.mozL10n.get;
   var l10n = window.navigator.mozL10n;
-  var Tagged = require('shared/tagged');
+  var Sanitizer = require('shared/sanitizer');
   var SimSettingsHelper = require('shared/sim_settings_helper');
   var AirplaneModeHelper = require('shared/airplane_mode_helper');
   var MobileOperator = require('shared/mobile_operator');
@@ -65,7 +65,7 @@ define(function(require) {
     },
 
     simItemView: function({simIndex}) {
-      return Tagged.escapeHTML `<li class="sim-card sim-card-${simIndex}">
+      return Sanitizer.escapeHTML `<li class="sim-card sim-card-${simIndex}">
         <div class="sim-card-icon"></div>
         <div class="information-container">
           <p class="sim-card-name"></p>

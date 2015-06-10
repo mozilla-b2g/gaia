@@ -1,4 +1,4 @@
-/* global MediaUtils,Tagged,VideoUtils */
+/* global MediaUtils,Sanitizer,VideoUtils */
 /**
  * ThumbnailItem is view object for a single video data. It renders video with
  * ThumbnailItem.view. ThumbnailItem keeps the referenced video data, while
@@ -141,7 +141,7 @@ function ThumbnailItem(videoData) {
 ThumbnailItem.titleMaxLines = 2;
 
 ThumbnailItem.view = function({title, durationText, typeText}) {
-  return Tagged.escapeHTML `<li class="thumbnail" role="option">
+  return Sanitizer.escapeHTML `<li class="thumbnail" role="option">
       <div class="inner">
         <div class="unwatched"></div>
         <img class="img" role="presentation"></img>

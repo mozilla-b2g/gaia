@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, Tagged, Service */
+/* globals BaseUI, CardsHelper, Sanitizer, Service */
 
 /* exported Card */
 
@@ -90,7 +90,7 @@
    * @memberOf Card.prototype
    */
   Card.prototype.template = function() {
-    return Tagged.escapeHTML `<div class="titles">
+    return Sanitizer.escapeHTML `<div class="titles">
      <h1 id="${this.titleId}" dir="auto" class="title">${this.title}</h1>
      <p class="subtitle">
       <span class="subtitle-url">${this.subTitle}</span>
