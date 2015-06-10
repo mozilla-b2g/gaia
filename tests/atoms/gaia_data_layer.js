@@ -227,6 +227,7 @@ var GaiaDataLayer = {
     };
     req.onerror = function() {
       console.log('error getting setting ' + req.error.name);
+      callback('Error getting setting: ' + req.error.name);
     };
   },
 

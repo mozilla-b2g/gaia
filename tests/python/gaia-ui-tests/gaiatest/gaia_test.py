@@ -255,8 +255,11 @@ class GaiaData(object):
     def get_setting(self, name):
         self.marionette.push_permission('settings-read', True)
         self.marionette.push_permission('settings-api-read', True)
-        return self.marionette.execute_async_script(
+        result = self.marionette.execute_async_script(
             'return GaiaDataLayer.getSetting("%s")' % name)
+        if type(result) is str:
+            assert 'Error getting setting: ' not in result, "Unable to get setting with name %s: %s" % (name, result)
+        return result
 
     @property
     def all_settings(self):
