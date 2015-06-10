@@ -1,4 +1,4 @@
-/* globals BaseModule, MozActivity, Service */
+/* globals BaseModule, MozActivity */
 
 'use strict';
 
@@ -15,12 +15,6 @@
     TRACE: false,
 
     _handle_holdcamera: function(event) {
-      // Avoid triggering the Camera app multiple times if the lockscreen is
-      // locked
-      if (Service.query('locked')) {
-        return;
-      }
-
       this.debug('Received holdcamera');
       /* jshint unused:false */
       var activity = new MozActivity({

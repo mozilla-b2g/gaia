@@ -1,4 +1,4 @@
-/* global MocksHelper, BaseModule, Service */
+/* global MocksHelper, BaseModule */
 'use strict';
 
 require('/js/service.js');
@@ -36,31 +36,9 @@ suite('system/CameraTrigger', function() {
       activitySpy = this.sinon.spy(window, 'MozActivity');
     });
 
-    suite('LockScreen not locked', function() {
-      setup(function() {
-        this.sinon.stub(Service, 'query', function() {
-          return false;
-        });
-      });
-
-      test('holdcamera triggers MozActivity', function() {
-        window.dispatchEvent(new CustomEvent('holdcamera', {}));
-        sinon.assert.calledWith(activitySpy, expectedActivity);
-      });
+    test('holdcamera triggers MozActivity', function() {
+      window.dispatchEvent(new CustomEvent('holdcamera', {}));
+      sinon.assert.calledWith(activitySpy, expectedActivity);
     });
-
-    suite('LockScreen is locked', function() {
-      setup(function() {
-        this.sinon.stub(Service, 'query', function() {
-          return true;
-        });
-      });
-
-      test('holdcamera inhibited by lockscreen', function() {
-        window.dispatchEvent(new CustomEvent('holdcamera', {}));
-        sinon.assert.notCalled(activitySpy);
-      });
-    });
-
   });
 });
