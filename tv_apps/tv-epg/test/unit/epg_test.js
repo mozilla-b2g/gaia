@@ -40,6 +40,7 @@ suite('tv-epg/epg', function() {
     createMockElement('timeline');
     createMockElement('time-prefix');
     createMockElement('channel-list');
+    createMockElement('progress-bar');
     createMockElement('program-list');
     createMockElement('program-title');
     createMockElement('program-detail');

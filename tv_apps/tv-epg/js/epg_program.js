@@ -14,6 +14,7 @@ window.EPGProgram = (function(exports) {
 
     this.progressElement = document.createElement('DIV');
     this.progressElement.classList.add('background-progress');
+    this.progressElement.style.transform = 'scaleX(0)';
     this.appendChild(this.progressElement);
   };
 

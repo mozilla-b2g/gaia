@@ -11,11 +11,11 @@ require('/shared/test/unit/mocks/smart-screen/mock_tv_tuner.js');
 require('/shared/test/unit/mocks/smart-screen/mock_tv_manager.js');
 require('/shared/test/unit/mocks/smart-screen/mock_channel_manager.js');
 require('/bower_components/smart-bubbles/script.js');
-require('/test/unit/mock_pin_card.js');
+require('/test/unit/mock_context_menu.js');
 require('/js/tv_deck.js');
 
 var mocksHelper = new MocksHelper([
-  'PinCard',
+  'ContextMenu',
   'ChannelManager',
   'KeyNavigationAdapter',
   'SimpleKeyNavigation'
@@ -279,38 +279,6 @@ suite('tv-deck/tv_deck', function() {
     test('panelTimeoutId should be cleared', function() {
       tvDeck._onPanelTimeout();
       assert.isNull(tvDeck.panelTimeoutId);
-    });
-  });
-
-  suite('updatePinButton()', function() {
-    var _pinToHome;
-    var _unpinFromHome;
-
-    setup(function() {
-      _pinToHome = this.sinon.stub(tvDeck, '_pinToHome');
-      _unpinFromHome = this.sinon.stub(tvDeck, '_unpinFromHome');
-    });
-
-    test('_pinToHome should be called if cuurent channel is not pinned yet.',
-      function() {
-        tvDeck.pinCard.pinnedChannels = {
-          '#t1,s1,c1': true
-        };
-        tvDeck.channelManager.currentHash = '#t1,s1,c2';
-        tvDeck.updatePinButton();
-        tvDeck.pinButton.click();
-        assert.isTrue(_pinToHome.called);
-    });
-
-    test('_unpinFromHome should be called if cuurent channel is pinned.',
-      function() {
-        tvDeck.pinCard.pinnedChannels = {
-          '#t1,s1,c1': true
-        };
-        tvDeck.channelManager.currentHash = '#t1,s1,c1';
-        tvDeck.updatePinButton();
-        tvDeck.pinButton.click();
-        assert.isTrue(_unpinFromHome.called);
     });
   });
 });

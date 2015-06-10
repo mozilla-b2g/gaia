@@ -29,5 +29,11 @@
       "access": "readonly",
       "description": "Read card list"
     }
+  },
+  "connections": {
+    "tvdeck-getmeta": {
+      "description": "get app information of tvdeck",
+      "rules": {}
+    }
   }
 }

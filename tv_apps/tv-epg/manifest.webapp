@@ -19,6 +19,13 @@
   },
   "orientation": "landscape",
   "permissions": {
-    "tv": {}
+    "tv": {},
+    "webapps-manage": {}
+  },
+  "datastores-access": {
+    "home_cards": {
+      "access": "readonly",
+      "description": "Read card list"
+    }
   }
 }
