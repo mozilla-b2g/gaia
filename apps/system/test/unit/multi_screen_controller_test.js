@@ -1,4 +1,4 @@
-/* global MocksHelper, ActionMenu, BaseModule */
+/* global MocksHelper, ActionMenu, BaseModule, BroadcastChannel */
 'use strict';
 
 requireApp('system/test/unit/mock_lazy_loader.js');
@@ -18,7 +18,9 @@ suite('system/MultiScreenController', function() {
   var subject;
   var settingsKey = 'multiscreen.enabled';
 
-  var mockConfig = {};
+  var mockConfig = {
+    url: 'test'
+  };
   var mockExternalDisplays = [
     {
       id: 1,
@@ -44,6 +46,13 @@ suite('system/MultiScreenController', function() {
 
   teardown(function() {
     subject.stop();
+  });
+
+  suite('start', function() {
+    test('should establish a broadcast channel', function() {
+      assert.isNotNull(subject.broadcastChannel);
+      assert.equal(subject.broadcastChannel.name, 'multiscreen');
+    });
   });
 
   suite('settings', function() {
@@ -158,19 +167,35 @@ suite('system/MultiScreenController', function() {
   });
 
   suite('chooseDisplay', function() {
+    var broadcastChannel;
+
     setup(function() {
+      broadcastChannel = new BroadcastChannel('multiscreen');
+
       this.sinon.stub(subject, 'queryExternalDisplays', function() {
         return Promise.resolve();
       });
     });
 
-    test('should resolve if user chooses an external display', function(done) {
+    teardown(function() {
+      broadcastChannel.close();
+    });
+
+    test('should post "launch-app" message and resolve if user chooses an ' +
+                                            'external display', function(done) {
+      var chosenDisplayId = 123;
       this.sinon.stub(subject, 'showMenu', function() {
-        return Promise.resolve(1);
+        return Promise.resolve(chosenDisplayId);
       });
+      this.sinon.stub(subject, 'postMessage');
       subject.chooseDisplay(mockConfig).then(function(displayId) {
         done(function() {
-          assert.equal(displayId, 1);
+          assert.isTrue(subject.postMessage.calledWith(
+            chosenDisplayId,
+            'launch-app',
+            mockConfig
+          ));
+          assert.equal(displayId, chosenDisplayId);
         });
       });
     });
@@ -203,6 +228,87 @@ suite('system/MultiScreenController', function() {
         stayBackground: true
       }).catch(function() {
         done();
+      });
+    });
+  });
+
+  suite('postMessage', function() {
+    test('should post the message well-formedly', function(done) {
+      var fakeDisplayId = 123;
+      var fakeType = 'type';
+      var fakeDetail = {
+        data1: '1',
+        data2: 2
+      };
+      this.sinon.stub(subject.broadcastChannel, 'postMessage', function(data) {
+        done(function() {
+          assert.equal(data.target, fakeDisplayId);
+          assert.equal(data.type, fakeType);
+          assert.equal(data.detail, fakeDetail);
+          assert.isUndefined(data.source);
+        });
+      });
+      subject.postMessage(fakeDisplayId, fakeType, fakeDetail);
+    });
+  });
+
+  suite('receive messages', function() {
+    var broadcastChannel;
+    var fakeDisplayId = 123;
+
+    setup(function() {
+      broadcastChannel = new BroadcastChannel('multiscreen');
+    });
+
+    teardown(function() {
+      broadcastChannel.close();
+    });
+
+    test('should invoke "_handle_message" when receiving broadcast messages',
+                                                                function(done) {
+      this.sinon.stub(subject, '_handle_message', function() {
+        done();
+      });
+      broadcastChannel.postMessage({});
+    });
+
+    test('should publish event when receiving "launch-app-success"',
+                                                                function(done) {
+      this.sinon.stub(subject, 'publish', function(event, detail) {
+        console.log(event);
+        if (event == 'launch-app-success') {
+          done(function() {
+            assert.equal(detail.displayId, fakeDisplayId);
+            assert.equal(detail.config.url, mockConfig.url);
+          });
+        }
+      });
+      broadcastChannel.postMessage({
+        source: fakeDisplayId,
+        type: 'launch-app-success',
+        detail: {
+          config: mockConfig
+        }
+      });
+    });
+
+    test('should publish event when receiving "launch-app-error"',
+                                                                function(done) {
+      this.sinon.stub(subject, 'publish', function(event, detail) {
+        console.log(event);
+        if (event == 'launch-app-error') {
+          done(function() {
+            assert.equal(detail.displayId, fakeDisplayId);
+            assert.equal(detail.reason, 'reason');
+          });
+        }
+      });
+      broadcastChannel.postMessage({
+        source: fakeDisplayId,
+        type: 'launch-app-error',
+        detail: {
+          reason: 'reason'
+        }
       });
     });
   });

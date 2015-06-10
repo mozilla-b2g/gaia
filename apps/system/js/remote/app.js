@@ -7,11 +7,8 @@
 
   App.SUB_MODULES = [
     'WallpaperManager',
-    'remote/RemoteAppWindowManager'
-  ];
-
-  App.EVENTS = [
-    'wallpaperchange'
+    'remote/RemoteAppWindowManager',
+    'remote/MessageController'
   ];
 
   App.STATES = [
@@ -34,12 +31,6 @@
         parseInt(window.location.hash.substring(1), 10) :
         -1;
       this.debug('displayId: ' + this._displayId);
-    },
-
-    _handle_wallpaperchange: function(evt) {
-      document.body.style.backgroundImage =
-        'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +
-        'url(' + evt.detail.url + ')';
     }
   });
 }(window));

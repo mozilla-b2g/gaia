@@ -55,7 +55,6 @@ suite('system/remote/RemoteAppWindowManager', function() {
       this.sinon.stub(window, 'BrowserFrame', function(config) {
         this.element = fakeElement;
       });
-      subject.launchApp(fakeConfig);
     });
 
     teardown(function() {
@@ -63,14 +62,43 @@ suite('system/remote/RemoteAppWindowManager', function() {
     });
 
     test('should pass untouched config to BrowserFrame', function() {
+      subject.launchApp(fakeConfig);
       assert.isTrue(window.BrowserFrame.calledWith(fakeConfig));
       assert.isNotNull(subject.currentApp);
     });
 
     test('should create a container for browserFrame', function() {
+      subject.launchApp(fakeConfig);
+
       var appWindow = document.querySelector('.appWindow');
       assert.isNotNull(appWindow);
       assert.equal(subject.currentApp.container, appWindow);
+    });
+
+    test('should resolve after receiving "animationend"', function(done) {
+      subject.launchApp(fakeConfig).then(function(config) {
+        done(function() {
+          assert.equal(config, fakeConfig);
+        });
+      });
+
+      var appWindow = document.querySelector('.appWindow');
+      appWindow.dispatchEvent(new CustomEvent('animationend'));
+    });
+
+    test('should resolve immediately', function(done) {
+      subject.launchApp(fakeConfig, true).then(function(config) {
+        done(function() {
+          assert.equal(config, fakeConfig);
+        });
+      });
+    });
+
+    test('should reject if previous app is during animation', function(done) {
+      subject.launchApp(fakeConfig);
+      subject.launchApp(fakeConfig).catch(function(reason) {
+        done();
+      });
     });
   });
 
@@ -122,23 +150,6 @@ suite('system/remote/RemoteAppWindowManager', function() {
       this.sinon.stub(subject, 'killCurrentApp');
       fakeElement.dispatchEvent(new CustomEvent('mozbrowserclose'));
       assert.isTrue(subject.killCurrentApp.called);
-    });
-
-    test('should trigger _handle_animationend when animationend', function() {
-      this.sinon.stub(subject, '_handle_animationend');
-      subject.currentApp.container.dispatchEvent(
-        new CustomEvent('animationend'));
-      assert.isTrue(subject._handle_animationend.called);
-    });
-
-    test('should remove animation class when animationend', function() {
-      var container = subject.currentApp.container;
-      assert.isTrue(container.classList.contains('opening'));
-      subject._handle_animationend({
-        target: container,
-        animationName: 'opening'
-      });
-      assert.isFalse(container.classList.contains('opening'));
     });
   });
 });
