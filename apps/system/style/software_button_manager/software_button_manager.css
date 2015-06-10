@@ -14,6 +14,14 @@
   background: black;
 }
 
+#software-buttons-dead-space {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1rem;
+  width: 100%;
+}
+
 #screen.locked #software-buttons,
 #software-buttons.no-transition {
   transition: none;
@@ -73,20 +81,28 @@
 #software-home-button,
 #fullscreen-software-home-button,
 #fullscreen-layout-software-home-button {
-  --button-width: 5rem;
-  width: var(--button-width);
-  height: var(--button-width);
+  --button-width: 7rem;
+  --button-height: 5rem;
+  --ring-height-width: 5rem;
+  width: 7rem;
+  height: 5rem;
   margin: 0;
   padding: 0;
   background: transparent;
   border: 0;
+  box-sizing: border-box;
+  pointer-events: all;
+}
+
+#software-home-ring {
+  width: var(--ring-height-width);
+  height: var(--ring-height-width);
   outline-width: 0.35rem;
   outline-style: solid;
   outline-color: #ffffff;
   outline-offset: -1.75rem;
   -moz-outline-radius: 50%;
-  box-sizing: border-box;
-  pointer-events: all;
+  margin: 0 auto;
 }
 
 #fullscreen-software-home-button,
@@ -95,9 +111,9 @@
   box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.45), inset 0 1px 5px 0 rgba(0, 0, 0, 0.45);
 }
 
-#software-home-button.active,
-#fullscreen-software-home-button.active,
-#fullscreen-layout-software-home-button.active {
+#software-home-button.active #software-home-ring,
+#fullscreen-software-home-button.active #software-home-ring,
+#fullscreen-layout-software-home-button.active #software-home-ring {
   outline-color: #00caf2;
 }
 
@@ -115,11 +131,20 @@
 }
 
 @media (orientation: landscape) {
+  #software-home-button,
+  #fullscreen-software-home-button {
+    width: var(--button-height);
+    height: var(--button-width);
+  }
   #fullscreen-software-home-button {
     top: auto;
     left: auto;
     right: 0.5rem;
     bottom: calc(50% - var(--button-width) / 2);
+  }
+  #software-buttons-dead-space {
+    height: 100%;
+    width: 1rem;
   }
 }
 
