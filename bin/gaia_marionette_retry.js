@@ -64,6 +64,19 @@ function summarize(results) {
   console.log('passed: %d', results.pass);
   console.log('failed: %d', results.fail);
   console.log('todo: %d', results.pending);
+ 
+  // Check if we were supposed to run tests but then didn't do anything.
+  if (process.env.TEST_FILES &&
+      results.pass == 0 &&
+      results.fail == 0 &&
+      results.pending == 0) {
+    console.log('!!! ERROR !!!');
+    console.log('Failed to run any tests.');
+    console.log('Should have run ', process.env.TEST_FILES);
+    process.exit(1);
+  }
+
+  // Check if we had failed tests.
   if (results.fail > 0) {
     process.exit(1);
   }

@@ -195,6 +195,10 @@ if [ ! -z $TEST_MANIFEST ]; then
   TEST_FILES=$(./node_modules/.bin/apply-manifest $TEST_MANIFEST $TEST_FILES)
 fi
 
+# We export TEST_FILES here to enable gaia_marionette_retry to self
+# diagnose in the case where we told it to run tests but it ran none.
+export TEST_FILES
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 $TARGET \
