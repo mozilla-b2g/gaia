@@ -918,7 +918,13 @@ function init() {
   );
 }
 
-window.addEventListener('load', function(e) {
+window.addEventListener('localized', function onDOMLocalized(e) {
+  // PERFORMANCE MARKER (1): navigationLoaded
+  // Designates that the app's *core* chrome or navigation interface
+  // exists in the DOM and is marked as ready to be displayed.
+  window.performance.mark('navigationLoaded');
+  window.removeEventListener('localized', onDOMLocalized);
+
   AirplaneModeHelper.ready(function() {
     airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';
     init();
@@ -940,14 +946,11 @@ window.addEventListener('load', function(e) {
     // "above-the-fold" content.
     window.performance.mark('contentInteractive');
   });
-}, false);
+});
+
 
 // Turn off radio immediately when window is unloaded.
 window.addEventListener('unload', function(e) {
   mozFMRadio.disable();
 }, false);
 
-// PERFORMANCE MARKER (1): navigationLoaded
-// Designates that the app's *core* chrome or navigation interface
-// exists in the DOM and is marked as ready to be displayed.
-window.performance.mark('navigationLoaded');
