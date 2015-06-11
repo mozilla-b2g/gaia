@@ -1,7 +1,7 @@
 'use strict';
 /* global ContactsService */
 /* global MockContactsList */
-/* global MockContacts */
+/* global MockConfirmDialog */
 /* global ContactsExporter */
 /* global MockExportStrategy */
 /* global MockMozContacts */
@@ -227,7 +227,7 @@ suite('Contacts Exporter', function() {
         errorName;
 
     setup(function(done) {
-      sinon.spy(MockContacts, 'confirmDialog');
+      sinon.spy(MockConfirmDialog, 'show');
       subject.init(ids, function onInitDone(contacts) {
         error = {
           'reason': 'BIGerror'
@@ -241,17 +241,17 @@ suite('Contacts Exporter', function() {
       });
     });
     teardown(function() {
-      MockContacts.confirmDialog.restore();
+      MockConfirmDialog.show.restore();
     });
 
     test('Error dialog is called', function() {
-      assert.ok(MockContacts.confirmDialog.calledOnce);
+      assert.ok(MockConfirmDialog.show.calledOnce);
     });
 
     test('The proper error shows', function() {
       // errors are called with the structure
       // {title, error, retry, cancel}
-      assert.equal(MockContacts.confirmDialog.args[0][1], errorName);
+      assert.equal(MockConfirmDialog.show.args[0][1], errorName);
     });
 
     test('Status shown', function() {

@@ -232,7 +232,7 @@ contacts.ICE = (function() {
           ConfirmDialog.hide();
         }
       };
-      Contacts.confirmDialog(null, l10nId || 'ICEUnknownError', dismiss);
+      ConfirmDialog.show(null, l10nId || 'ICEUnknownError', dismiss);
     });
   }
 

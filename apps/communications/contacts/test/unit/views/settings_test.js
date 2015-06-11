@@ -13,6 +13,7 @@
 /* global MockNavigatorMozMobileConnections */
 /* global MockNavigatorSettings */
 /* global MockSdCard */
+/* global ConfirmDialog */
 /* global utils */
 
 require('/shared/js/lazy_loader.js');
@@ -611,7 +612,7 @@ suite('Contacts settings >', function() {
     suiteSetup(function(done) {
       mockFbUtils = fb.utils;
       require('/shared/js/contacts/import/facebook/fb_utils.js', function() {
-        sinon.stub(Contacts, 'confirmDialog', function(attr, msg, no, yes) {
+        sinon.stub(ConfirmDialog, 'show', function(attr, msg, no, yes) {
           yes.callback();
         });
 
@@ -658,7 +659,7 @@ suite('Contacts settings >', function() {
 
     suiteTeardown(function() {
       fb.utils = mockFbUtils;
-      Contacts.confirmDialog.restore();
+      ConfirmDialog.show.restore();
       Contacts.utility.restore();
       window.addEventListener.restore();
       Contacts.showOverlay.restore();

@@ -34,7 +34,7 @@ contacts.BulkDelete = (function() {
         }
       };
 
-      Contacts.confirmDialog(null,
+      ConfirmDialog.show(null,
         {'id': 'ContactConfirmDel', 'args': {n: n}}, cancelObject,
           removeObject);
     });

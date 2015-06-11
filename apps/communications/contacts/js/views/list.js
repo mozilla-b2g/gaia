@@ -1284,7 +1284,7 @@ contacts.List = (function() {
       }
     };
 
-    Contacts.confirmDialog(null, msg, noObject);
+    ConfirmDialog.show(null, msg, noObject);
   };
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {

@@ -1,7 +1,6 @@
 'use strict';
 /* global ActivityHandler */
 /* global Cache */
-/* global ConfirmDialog */
 /* global contacts */
 /* global ContactsTag */
 /* global DeferredActions */
@@ -766,6 +765,7 @@ var Contacts = (function() {
   };
 
   var addAsyncScripts = function addAsyncScripts() {
+
     var lazyLoadFiles = [
       '/shared/js/contacts/utilities/templates.js',
       '/shared/js/contacts/contacts_shortcuts.js',
@@ -773,7 +773,9 @@ var Contacts = (function() {
       '/contacts/js/tag_options.js',
       '/shared/js/text_normalizer.js',
       SHARED_UTILS_PATH + '/status.js',
-      '/shared/js/contacts/utilities/dom.js'
+      '/shared/js/contacts/utilities/dom.js',
+      '/shared/js/confirm.js',
+      document.getElementById('confirmation-message')
     ];
 
     // Lazyload nfc.js if NFC is available
@@ -937,13 +939,6 @@ var Contacts = (function() {
     LazyLoader.load('/shared/js/l10n_date.js');
   });
 
-  function loadConfirmDialog() {
-    var args = Array.slice(arguments);
-    Contacts.utility('Confirm', function viewLoaded() {
-      ConfirmDialog.show.apply(ConfirmDialog, args);
-    }, SHARED);
-  }
-
   /**
    * Specifies dependencies for resources
    * E.g., mapping Facebook as a dependency of views
@@ -1066,7 +1061,6 @@ var Contacts = (function() {
     'updateContactDetail': updateContactDetail,
     'showStatus': showStatus,
     'loadFacebook': loadFacebook,
-    'confirmDialog': loadConfirmDialog,
     'close': close,
     'view': loadView,
     'utility': loadUtility,
