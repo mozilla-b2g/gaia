@@ -592,6 +592,7 @@ suite('system/AppChrome', function() {
         }
       });
       assert.equal(chrome.element.style.backgroundColor, '');
+      assert.isTrue(app.element.classList.contains('light'));
     });
 
     test('metachange changed', function() {

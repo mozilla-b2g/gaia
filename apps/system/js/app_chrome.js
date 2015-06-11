@@ -559,7 +559,13 @@
       this.scrollable.style.backgroundColor = color;
     }
 
-    if (color === 'transparent' || color === '') {
+    if (color === '') {
+      this.app.element.classList.add('light');
+      this.app.publish('titlestatechanged');
+      return;
+    }
+
+    if (color === 'transparent') {
       this.app.element.classList.remove('light');
       this.app.publish('titlestatechanged');
       return;
