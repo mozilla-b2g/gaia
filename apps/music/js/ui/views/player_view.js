@@ -798,15 +798,7 @@ var PlayerView = {
     var x = (ratio * this.seekBar.offsetWidth -
       this.seekIndicator.offsetWidth / 2);
 
-    if (this.isLTR) {
-      x = x + 'px';
-    } else {
-      if (x < 0) {
-        x = Math.abs(x) + 'px';
-      } else {
-        x = '-' + x + 'px';
-      }
-    }
+    x = x + 'px';
 
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
@@ -1030,11 +1022,8 @@ var PlayerView = {
             x = 1;
           }
 
-          if (this.isLTR) {
-            this.seekTime = x * this.seekBar.max;
-          } else {
-            this.seekTime = this.audio.duration - x * this.seekBar.max;
-          }
+          this.seekTime = x * this.seekBar.max;
+
           this.setSeekBar(this.audio.startTime,
             this.audio.duration, this.seekTime);
         }
