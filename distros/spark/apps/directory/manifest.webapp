@@ -13,6 +13,13 @@
     },
     "feature-detection": {
       "description": "For dev mode perf"
+    },
+    "settings": {
+      "description": "For reading/writing achievements settings",
+      "access": "readwrite"
+    },
+    "desktop-notification": {
+      "description": "For sending achievements notifications to Gaia::System"
     }
   },
   "icons": {

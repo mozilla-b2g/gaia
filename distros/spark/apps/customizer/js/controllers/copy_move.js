@@ -20,10 +20,16 @@ define(["exports"], function (exports) {
 
     _extends(CopyMoveController, Controller);
 
+    CopyMoveController.prototype.teardown = function () {
+      this.view = null;
+
+      this.target = null;
+    };
+
     CopyMoveController.prototype.open = function (target) {
       this.target = target;
 
-      this.view.domTree.filter = "#" + this.mainController.view.el.id;
+      this.view.domTree.filter = "#" + window.__customizer__.mainController.view.el.id;
       this.view.domTree.setRoot(document.documentElement);
       this.view.domTree.render();
 

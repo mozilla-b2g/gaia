@@ -20,6 +20,13 @@ define(["exports"], function (exports) {
 
     _extends(EditController, Controller);
 
+    EditController.prototype.teardown = function () {
+      this.view = null;
+
+      this.target = null;
+      this.changes = null;
+    };
+
     EditController.prototype.open = function (target) {
       this.target = target;
 

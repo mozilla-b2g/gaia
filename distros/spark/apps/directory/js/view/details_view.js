@@ -1,4 +1,4 @@
-define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/gaia-header", "components/gaia-sub-header/gaia-sub-header", "components/gaia-button/gaia-button", "js/lib/helpers"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaHeaderDistGaiaHeader, _componentsGaiaSubHeaderGaiaSubHeader, _componentsGaiaButtonGaiaButton, _jsLibHelpers) {
+define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/gaia-header", "components/gaia-sub-header/gaia-sub-header", "components/gaia-list/gaia-list", "components/gaia-button/gaia-button", "js/lib/helpers"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaHeaderDistGaiaHeader, _componentsGaiaSubHeaderGaiaSubHeader, _componentsGaiaListGaiaList, _componentsGaiaButtonGaiaButton, _jsLibHelpers) {
   "use strict";
 
   var _extends = function (child, parent) {
@@ -27,6 +27,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
     var DetailsView = function DetailsView() {
       this.el = document.createElement("div");
       this.el.id = "app-details";
+      this.el.classList.add("popup");
       this.closeHandlers = [];
       this.installHandlers = [];
     };
@@ -165,7 +166,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
     };
 
     DetailsView.prototype.template = function () {
-      var string = "\n      <gaia-header>\n        <a id=\"close-button\"><i data-icon=\"close\"></i></a>\n        <h1 id=\"details-title\">App Details</h1>\n      </gaia-header>\n      <gaia-list id=\"info-section\" class=\"install-list\">\n        <li class=\"item\">\n          <img class=\"icon\" />\n          <div flex class=\"description\">\n            <p class=\"name\"></p>\n            <p class=\"author\"></p>\n          </div>\n          <span class=\"install-info\">Installed</span>\n          <gaia-button class=\"install-button\"></gaia-button>\n        </li>\n      </gaia-list>\n      <p id=\"full-description\"></p>\n      <div id=\"addon-section\">\n        <gaia-sub-header>Affected Apps</gaia-sub-header>\n        <p id=\"affected-apps\"></div>\n      </div>";
+      var string = "\n      <gaia-header>\n        <a id=\"close-button\" class=\"close\"><i data-icon=\"close\"></i></a>\n        <h1 id=\"details-title\">App Details</h1>\n      </gaia-header>\n      <gaia-list class=\"info-list install-list\">\n        <li class=\"item\">\n          <img class=\"icon\" />\n          <div flex class=\"description\">\n            <p class=\"name\"></p>\n            <p class=\"author\"></p>\n          </div>\n          <span class=\"install-info\">Installed</span>\n          <gaia-button class=\"install-button\"></gaia-button>\n        </li>\n      </gaia-list>\n      <p id=\"full-description\"></p>\n      <div id=\"addon-section\">\n        <gaia-sub-header>Affected Apps</gaia-sub-header>\n        <p id=\"affected-apps\"></div>\n      </div>";
       return string;
     };
 

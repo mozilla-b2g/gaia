@@ -1,64 +1,70 @@
-;(function(define){define(function(require,exports,module){
-/*jshint esnext:true*/
-'use strict';
+/* global define */
+;(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Dependencies
  */
 
-var GaiaDialog = require('gaia-dialog');
-
-
-var proto = GaiaDialog.extend();
+require('gaia-dialog');
+var component = require('gaia-component');
 
 /**
- * Runs when an instance of `GaiaTabs`
- * is first created.
- *
- * The initial value of the `select` attribute
- * is used to select a tab.
- *
- * @private
+ * Exports
  */
-proto.createdCallback = function() {
-  this.onCreated();
-  this.els.submit = this.shadowRoot.querySelector('.submit');
-  this.els.submit.addEventListener('click', this.close.bind(this));
-};
+module.exports = component.register('gaia-dialog-alert', {
+  created: function() {
+    this.setupShadowRoot();
 
-proto.template = `
-<style>
-.shadow-host {
-  display: none;
-}
+    this.els = {
+      dialog: this.shadowRoot.querySelector('gaia-dialog'),
+      submit: this.shadowRoot.querySelector('.submit')
+    };
 
-.shadow-host[opened],
-.shadow-host.animating {
-  display: block;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
-</style>
+    this.els.dialog.addEventListener('opened', () => {
+      this.setAttribute('opened', '');
+    });
 
-<gaia-dialog>
-  <section>
-    <p><content></content></p>
-  </section>
-  <div>
-    <button class="submit primary">Ok</button>
-  </div>
-</gaia-dialog>`;
+    this.els.dialog.addEventListener('closed', () => {
+      this.removeAttribute('opened');
+    });
 
-// Register and expose the constructor
-try {
-  module.exports = document.registerElement('gaia-dialog-alert', { prototype: proto });
-  module.exports.proto = proto;
-} catch (e) {
-  if (e.name !== 'NotSupportedError') {
-    throw e;
-  }
-}
+    this.els.submit.addEventListener('click', this.close.bind(this));
+  },
+
+  open: function(e) {
+    this.els.dialog.open(e);
+  },
+
+  close: function() {
+    this.els.dialog.close();
+  },
+
+  template: `
+    <gaia-dialog>
+      <section>
+        <p><content></content></p>
+      </section>
+      <div>
+        <button class="submit primary">Ok</button>
+      </div>
+    </gaia-dialog>
+
+    <style>
+ 
+    :host {
+      display: none;
+    }
+
+    :host[opened],
+    :host.animating {
+      display: block;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+ 
+    </style>`
+});
 
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){

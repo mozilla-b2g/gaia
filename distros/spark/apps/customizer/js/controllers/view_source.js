@@ -20,6 +20,12 @@ define(["exports"], function (exports) {
 
     _extends(ViewSourceController, Controller);
 
+    ViewSourceController.prototype.teardown = function () {
+      this.view = null;
+
+      this.target = null;
+    };
+
     ViewSourceController.prototype.open = function (target) {
       console.log("view source controller open");
       this.target = target;

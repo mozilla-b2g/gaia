@@ -20,7 +20,10 @@
     "storage": {},
     "webapps-manage": {},
     "device-storage:sdcard": { "access": "readwrite" },
-    "settings": { "access": "readwrite" }
+    "settings": { "access": "readwrite" },
+    "feature-detection": {
+      "description": "For dev mode pref"
+    }
   },
   "activities": {
     "share": {

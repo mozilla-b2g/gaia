@@ -1,78 +1,78 @@
-;(function(define){define(function(require,exports,module){
-/*jshint esnext:true*/
-'use strict';
+/* global define */
+;(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Dependencies
  */
 
-var GetTextInput = require('gaia-text-input');
-var GaiaDialog = require('gaia-dialog');
+require('gaia-text-input');
+require('gaia-dialog');
+var component = require('gaia-component');
 
 /**
- * Extend from `GaiaDialog` prototype
- *
- * @type {Object}
+ * Exports
  */
-var proto = GaiaDialog.extend();
+module.exports = component.register('gaia-dialog-prompt', {
+  created: function() {
+    this.setupShadowRoot();
 
-/**
- * Runs when an instance of `GaiaTabs`
- * is first created.
- *
- * The initial value of the `select` attribute
- * is used to select a tab.
- *
- * @private
- */
-proto.createdCallback = function() {
-  this.onCreated();
+    this.els = {
+      dialog: this.shadowRoot.querySelector('gaia-dialog'),
+      input: this.shadowRoot.querySelector('gaia-text-input'),
+      submit: this.shadowRoot.querySelector('.submit'),
+      cancel: this.shadowRoot.querySelector('.cancel')
+    };
 
-  this.els.input = this.shadowRoot.querySelector('gaia-text-input');
-  this.els.submit = this.shadowRoot.querySelector('.submit');
-  this.els.cancel = this.shadowRoot.querySelector('.cancel');
+    this.els.dialog.addEventListener('opened', () => {
+      this.setAttribute('opened', '');
+    });
 
-  this.els.input.placeholder = this.firstChild.textContent;
-  this.els.cancel.addEventListener('click', this.close.bind(this));
-  this.els.submit.addEventListener('click', this.close.bind(this));
-};
+    this.els.dialog.addEventListener('closed', () => {
+      this.removeAttribute('opened');
+    });
 
-proto.template = `
-<style>
-gaia-dialog-prompt {
-  display: none;
-}
+    this.els.input.placeholder = this.firstChild.textContent;
+    this.els.cancel.addEventListener('click', this.close.bind(this));
+    this.els.submit.addEventListener('click', this.close.bind(this));
+  },
 
-gaia-dialog-prompt[opened],
-gaia-dialog-prompt.animating {
-  display: block;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
+  open: function(e) {
+    this.els.dialog.open(e);
+  },
 
-gaia-text-input {
-  margin: 16px !important;
-}
-</style>
+  close: function() {
+    this.els.dialog.close();
+  },
 
-<gaia-dialog>
-  <div><gaia-text-input></gaia-text-input></div>
-  <fieldset>
-    <button class="cancel">Cancel</button>
-    <button class="submit primary">Ok</button>
-  </fieldset>
-</gaia-dialog>`;
+  template: `
+    <gaia-dialog>
+      <div><gaia-text-input></gaia-text-input></div>
+      <fieldset>
+        <button class="cancel">Cancel</button>
+        <button class="submit primary">Ok</button>
+      </fieldset>
+    </gaia-dialog>
 
-// Register and expose the constructor
-try {
-  module.exports = document.registerElement('gaia-dialog-prompt', { prototype: proto });
-  module.exports.proto = proto;
-} catch (e) {
-  if (e.name !== 'NotSupportedError') {
-    throw e;
-  }
-}
+    <style>
+
+    :host {
+      display: none;
+    }
+
+    :host[opened],
+    :host.animating {
+      display: block;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+
+    gaia-text-input {
+      margin: 16px !important;
+    }
+
+    </style>`
+});
 
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){

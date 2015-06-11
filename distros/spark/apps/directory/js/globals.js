@@ -7,7 +7,8 @@ define(["exports"], function (exports) {
     baseUrl: "/",
     paths: {
       "gaia-dialog": "components/gaia-dialog/gaia-dialog",
-      "gaia-component": "components/gaia-component/gaia-component"
+      "gaia-component": "components/gaia-component/gaia-component",
+      "gaia-icons": "components/gaia-icons/gaia-icons"
     }
   });
 });

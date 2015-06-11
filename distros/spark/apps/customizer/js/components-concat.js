@@ -271,7 +271,7 @@ function load() {
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
-  link.href = base + 'gaia-icons/gaia-icons.css';
+  link.href = base + 'customizer-gaia-icons/customizer-gaia-icons.css';
   document.head.appendChild(link);
   exports.loaded = true;
 }
@@ -651,513 +651,476 @@ module.exports = component.register('customizer-gaia-text-input', {
 });})((function(n,w){return typeof define=='function'&&define.amd?
 define:typeof module=='object'?function(c){c(require,exports,module);}:function(c){
 var m={exports:{}},r=function(n){return w[n];};w[n]=c(r,m.exports,m)||m.exports;};})('customizer-gaia-text-input',this));
-;(function(define){define(function(require,exports,module){
 
-
-
-'use strict';
-
-
-var proto = Object.create(HTMLElement.prototype);
-
-var innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
-var removeAttribute = proto.removeAttribute;
-var setAttribute = proto.setAttribute;
-var has = Object.prototype.hasOwnProperty;
-
-
-proto.createdCallback = function() {
-  this.createShadowRoot().innerHTML = template;
-
-  this.els = {
-    inner: this.shadowRoot.querySelector('.dialog-inner'),
-    background: this.shadowRoot.querySelector('.background'),
-    window: this.shadowRoot.querySelector('.window')
-  };
-
-  this.shadowRoot.addEventListener('click', e => this.onClick(e));
-  this.setupAnimationListeners();
-  this.styleHack();
-};
-
-proto.onClick = function(e) {
-  var el = closest('[on-click]', e.target, this);
-  if (!el) { return; }
-  var method = el.getAttribute('on-click');
-  if (typeof this[method] == 'function') { this[method](); }
-};
-
-proto.setupAnimationListeners = function() {
-  this.addEventListener('animationstart', this.onAnimationStart.bind(this));
-  this.addEventListener('animationend', this.onAnimationEnd.bind(this));
-};
-
-proto.styleHack = function() {
-  var style = this.shadowRoot.querySelector('style').cloneNode(true);
-  this.classList.add('shadow-content', 'shadow-host');
-  style.setAttribute('scoped', '');
-  this.appendChild(style);
-};
-
-proto.open = function(options) {
-  if (this.isOpen) { return; }
-  this.animateIn(options);
-  this.isOpen = true;
-  this.setAttribute('opened', '');
-  this.dispatch('opened');
-};
-
-proto.close = function(options) {
-  if (!this.isOpen) { return; }
-  var self = this;
-  self.isOpen = false;
-  this.animateOut(function() {
-    self.removeAttribute('opened');
-    self.dispatch('closed');
-  });
-};
-
-proto.attributeChangedCallback = function(name, from, to) {
-  if (this.attrs[name]) { this[name] = to; }
-};
-
-proto.setAttribute = function(attr, value) {
-  this.els.inner.setAttribute(attr, value);
-  setAttribute.call(this, attr, value);
-};
-
-proto.removeAttribute = function(attr) {
-  this.els.inner.removeAttribute(attr);
-  removeAttribute.call(this, attr);
-};
-
-proto.animateIn = function(e) {
-  var hasTarget = e && ('clientX' in e || e.touches);
-  if (hasTarget) { return  this.animateInFromTarget(e); }
-
-  var self = this;
-  this.dispatch('animationstart');
-  this.els.background.classList.add('animate-in');
-  this.els.background.addEventListener('animationend', function fn() {
-    self.els.background.removeEventListener('animationend', fn);
-    self.els.window.classList.add('animate-in');
-    self.dispatch('animationend');
-  });
-};
-
-proto.animateInFromTarget = function(e) {
-  var pos = e.touches && e.touches[0] || e;
-  var scale = Math.sqrt(innerWidth * innerHeight) / 10;
-  var background = this.els.background;
-  var duration = scale * 7;
-  var end = 'transitionend';
-  var self = this;
-
-  background.style.transform = 'translate(' + pos.clientX + 'px, ' + pos.clientY + 'px)';
-  background.style.transitionDuration = duration + 'ms';
-  background.classList.add('circular');
-  this.dispatch('animationstart');
-
-  var reflow = background.offsetTop;
-
-  background.style.transform += ' scale(' + scale + ')';
-  background.style.opacity = 1;
-
-  background.addEventListener(end, function fn() {
-    background.removeEventListener(end, fn);
-    self.els.window.classList.add('animate-in');
-    self.dispatch('animationend');
-  });
-};
-
-proto.animateOut = function(callback) {
-  var end = 'animationend';
-  var background = this.els.background;
-  var self = this;
-  var classes = {
-    el: this.classList,
-    window: this.els.window.classList,
-    background: this.els.background.classList
-  };
-
-  this.dispatch('animationstart');
-  classes.window.add('animate-out');
-
-  this.els.window.addEventListener(end, function fn(e) {
-    self.els.window.removeEventListener(end, fn);
-    e.stopPropagation();
-    classes.background.add('animate-out');
-    self.els.background.addEventListener(end, function fn() {
-      self.els.background.removeEventListener(end, fn);
-      classes.window.remove('animate-out', 'animate-in');
-      classes.background.remove('animate-out', 'animate-in');
-      background.classList.remove('circular');
-      background.style = '';
-      self.dispatch('animationend');
-      if (callback) { callback(); }
-    });
-  });
-};
-
-proto.onAnimationStart = function() {
-  this.classList.add('animating');
-};
-
-proto.onAnimationEnd = function() {
-  this.classList.remove('animating');
-};
-
-proto.dispatch = function(name) {
-  this.dispatchEvent(new CustomEvent(name));
-};
-
-proto.attrs = {
-  opened: {
-    get: function() { return !!this.isOpen; },
-    set: function(value) {
-      value = value === '' || value;
-      if (!value) { this.close(); }
-      else { this.open(); }
-    }
-  }
-};
-
-Object.defineProperties(proto, proto.attrs)
-Object.defineProperty(proto, 'innerHTML', {
-  get: function() { return innerHTML.get.call(this); },
-  set: function(html) {
-    var style = this.querySelector('style');
-    innerHTML.set.call(this, html);
-    this.appendChild(style);
-  }
-});
-
-var template = `
-<style>
-
-.shadow-content * {
-  box-sizing: border-box;
-  font-weight: inherit;
-  font-size: inherit;
-}
-
-.shadow-content p,
-.shadow-content h1,
-.shadow-content h2,
-.shadow-content h3,
-.shadow-content h4,
-.shadow-content button,
-.shadow-content fieldset {
-  padding: 0;
-  margin: 0;
-  border: 0;
-}
-
-.shadow-host {
-  display: none;
-  position: fixed;
-  top: 0px; left: 0px;
-  width: 100%;
-  height: 100%;
-  z-index: 200;
-  font-style: italic;
-  text-align: center;
-}
-
-.shadow-host[opened],
-.shadow-host.animating {
-  display: block;
-}
-
-
-
-.dialog-inner {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-}
-
-
-
-.background {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  background: rgba(199,199,199,0.85);
-}
-
-
-
-.background.circular {
-  width: 40px;
-  height: 40px;
-  margin: -20px;
-  border-radius: 50%;
-  will-change: transform, opacity;
-  transition-property: opacity, transform;
-  transition-timing-function: linear;
-}
-
-
-
-.background.animate-in {
-  animation-name: customizer-gaia-dialog-fade-in;
-  animation-duration: 300ms;
-  animation-fill-mode: forwards;
-}
-
-
-
-.background.animate-out {
-  animation-name: customizer-gaia-dialog-fade-out;
-  animation-delay: 300ms;
-  animation-duration: 300ms;
-  animation-fill-mode: forwards;
-  opacity: 1;
-}
-
-
-
-.window {
-  position: relative;
-  width: 90%;
-  max-width: 350px;
-  margin: auto;
-  box-shadow: 0 1px 0 0px rgba(0,0,0,0.15);
-  background: var(--color-iota);
-  opacity: 0;
-}
-
-.window.animate-in {
-  animation-name: customizer-gaia-dialog-entrance;
-  animation-duration: 300ms;
-  animation-timing-function: cubic-bezier(0.175, 0.885, 0.320, 1.275);
-  animation-fill-mode: forwards;
-}
-
-.window.animate-out {
-  animation-name: customizer-gaia-dialog-fade-out;
-  animation-duration: 200ms;
-  animation-delay: 100ms;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  opacity: 1;
-}
-
-
-
-.shadow-content h1 {
-  padding: 16px;
-  font-size: 23px;
-  line-height: 26px;
-  font-weight: 200;
-  font-style: italic;
-  color: #858585;
-}
-
-.shadow-content strong {
-  font-weight: 700;
-}
-
-.shadow-content small {
-  font-size: 0.8em;
-}
-
-
-
-.shadow-content section {
-  padding: 33px 18px;
-  color: #858585;
-}
-
-.shadow-content section > *:not(:last-child) {
-  margin-bottom: 13px;
-}
-
-
-
-.shadow-content p {
-  text-align: left;
-}
-
-
-
-.shadow-content button {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 50px;
-  margin: 0;
-  border: 0;
-  padding: 0rem 16px;
-  cursor: pointer;
-  font: inherit;
-  background: var(--color-beta);
-  color: var(--color-epsilon);
-  transition: all 200ms;
-  transition-delay: 300ms;
-  border-radius: 0;
-}
-
-
-
-.shadow-content button.primary {
-  color: var(--highlight-color);
-}
-
-
-
-.shadow-content button.danger {
-  color: var(--color-destructive);
-}
-
-
-
-.shadow-content button[disabled] {
-  color: var(--color-zeta);
-}
-
-
-
-.shadow-content button:after {
-  content: '';
-  display: block;
-  position: absolute;
-  height: 1px;
-  left: 6px;
-  right: 6px;
-  top: 49px;
-  background: #E7E7E7;
-}
-
-.shadow-content button:last-of-type:after {
-  display: none;
-}
-
-.shadow-content button:active {
-  background-color: var(--highlight-color);
-  color: #fff;
-  transition: none;
-}
-
-.shadow-content button:active:after {
-  background: var(--highlight-color);
-  transition: none;
-}
-
-.shadow-content button[data-icon]:before {
-  float: left;
-}
-
-
-
-.shadow-content fieldset {
-  overflow: hidden;
-}
-
-.shadow-content fieldset button {
-  position: relative;
-  float: left;
-  width: 50%;
-}
-
-.shadow-content fieldset button:after {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  right: 0px;
-  left: auto;
-  width: 1px;
-  height: calc(100% - 12px);
-  background: #e7e7e7;
-  transition: all 200ms;
-  transition-delay: 200ms;
-}
-
-</style>
-
-<div class="dialog-inner">
-  <div class="background" on-click="close"></div>
-  <div class="window"><content></content></div>
-</div>`;
-
-var animations = `
-@keyframes customizer-gaia-dialog-entrance {
-  0% {
-    opacity: 0;
-    transform: translateY(100px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0px);
-  }
-}
-
-@keyframes customizer-gaia-dialog-fade-in {
-  0% { opacity: 0 }
-  100% { opacity: 1 }
-}
-
-@keyframes customizer-gaia-dialog-fade-out {
-  0% { opacity: 1 }
-  100% { opacity: 0 }
-}`;
-
-(function() {
-  var style = document.createElement('style');
-  style.innerHTML = animations;
-
-  headReady().then(() => {
-    document.head.appendChild(style);
-  });
-
-  
-  function headReady() {
-    return new Promise(resolve => {
-      if (document.head) { return resolve(); }
-      window.addEventListener('load', function fn() {
-        window.removeEventListener('load', fn);
-        resolve();
-      });
-    });
-  }
-})()
-try {
-  module.exports = document.registerElement('customizer-gaia-dialog', { prototype: proto });
-  module.exports.proto = proto;
-
-  module.exports.extend = function() {
-    return mixin(Object.create(proto), extended);
-  };
-} catch (e) {
-  if (e.name !== 'NotSupportedError') {
-    throw e;
-  }
-}
-
-var extended = {
-  onCreated: function() {
+;(function(define){'use strict';define(function(require,exports,module){
+
+
+var component = require('customizer-gaia-component');
+
+
+var debug = 0 ? console.log.bind(console) : function() {};
+
+
+
+module.exports = component.register('customizer-gaia-dialog', {
+  created: function() {
+    this.setupShadowRoot();
+    
+    this.els = {
+      inner: this.shadowRoot.querySelector('.dialog-inner'),
+      background: this.shadowRoot.querySelector('.background'),
+      window: this.shadowRoot.querySelector('.window')
+    };
+
+    this.shadowRoot.addEventListener('click', e => this.onClick(e));
+    this.setupAnimationListeners();
+  },
+
+  onClick: function(e) {
+    var el = closest('[on-click]', e.target, this);
+    if (!el) { return; }
+    debug('onClick');
+    var method = el.getAttribute('on-click');
+    if (typeof this[method] == 'function') { this[method](); }
+  },
+
+  setupAnimationListeners: function() {
+    this.addEventListener('animationstart', this.onAnimationStart.bind(this));
+    this.addEventListener('animationend', this.onAnimationEnd.bind(this));
+  },
+
+  open: function(options) {
+    if (this.isOpen) { return; }
+    debug('open dialog');
+    requestAnimationFrame(this.animateIn.bind(this, options));
+    this.isOpen = true;
+    this.setAttr('opened', '');
+    this.dispatch('opened');
+  },
+
+  close: function(options) {
+    if (!this.isOpen) { return; }
+    debug('close dialog');
+    this.isOpen = false;
+    requestAnimationFrame(this.animateOut.bind(this, () => {
+      this.removeAttr('opened');
+      this.dispatch('closed');
+    }));
+  },
+
+  animateIn: function(e) {
+    var hasTarget = e && ('clientX' in e || e.touches);
+    if (hasTarget) { return this.animateInFromTarget(e); }
+    var background = this.els.background;
+    var end = 'animationend';
+
+    debug('animate in');
+    this.dispatch('animationstart');
+    background.classList.add('animate-in');
+    background.addEventListener(end, function fn() {
+      background.removeEventListener(end, fn);
+      debug(end);
+      this.els.window.classList.add('animate-in');
+      this.dispatch('animationend');
+    }.bind(this));
+  },
+  animateInFromTarget: function(e) {
+    debug('animate in from target');
+    var pos = e.touches && e.touches[0] || e;
+    var scale = Math.sqrt(window.innerWidth * window.innerHeight) / 10;
+    var background = this.els.background;
+    var duration = scale * 7;
+    var end = 'transitionend';
     var self = this;
 
-    this.createShadowRoot().innerHTML = this.template;
-    this.els = { dialog: this.shadowRoot.querySelector('customizer-gaia-dialog') };
-    this.setupAnimationListeners();
-    this.styleHack();
+    background.style.transform =
+      'translate(' + pos.clientX + 'px, ' + pos.clientY + 'px)';
+    background.style.transitionDuration = duration + 'ms';
+    background.classList.add('circular');
+    debug('animation start');
+    this.dispatch('animationstart');
 
-    this.els.dialog.addEventListener('opened', function() {
-      setAttribute.call(self, 'opened', '');
+    background.offsetTop;
+
+    background.style.transform += ' scale(' + scale + ')';
+    background.style.opacity = 1;
+
+    background.addEventListener(end, function fn() {
+      background.removeEventListener(end, fn);
+      debug(end);
+      self.els.window.classList.add('animate-in');
+      self.dispatch('animationend');
+    });
+  },
+
+  animateOut: function(callback) {
+    var end = 'animationend';
+    var background = this.els.background;
+    var self = this;
+    var classes = {
+      el: this.classList,
+      window: this.els.window.classList,
+      background: this.els.background.classList
+    };
+
+    this.dispatch('animationstart');
+    classes.window.add('animate-out');
+
+    this.els.window.addEventListener(end, function fn(e) {
+      self.els.window.removeEventListener(end, fn);
+      e.stopPropagation();
+      classes.background.add('animate-out');
+      self.els.background.addEventListener(end, function fn() {
+        self.els.background.removeEventListener(end, fn);
+        classes.window.remove('animate-out', 'animate-in');
+        classes.background.remove('animate-out', 'animate-in');
+        background.classList.remove('circular');
+        background.style = '';
+        self.dispatch('animationend');
+        if (callback) { callback(); }
+      });
+    });
+  },
+
+  onAnimationStart: function() {
+    this.classList.add('animating');
+  },
+
+  onAnimationEnd: function() {
+    this.classList.remove('animating');
+  },
+
+  dispatch: function(name) {
+    this.dispatchEvent(new CustomEvent(name));
+  },
+
+  attrs: {
+    opened: {
+      get: function() { return !!this.isOpen; },
+      set: function(value) {
+        value = value === '' || value;
+        if (!value) { this.close(); }
+        else { this.open(); }
+      }
+    }
+  },
+
+  template: `
+    <div class="dialog-inner">
+      <div class="background" on-click="close"></div>
+      <div class="window"><content></content></div>
+    </div>
+
+    <style>
+
+    ::content * {
+      box-sizing: border-box;
+      font-weight: inherit;
+      font-size: inherit;
+    }
+
+    ::content p,
+    ::content h1,
+    ::content h2,
+    ::content h3,
+    ::content h4,
+    ::content button,
+    ::content fieldset {
+      padding: 0;
+      margin: 0;
+      border: 0;
+    }
+
+    :host {
+      display: none;
+      position: fixed;
+      top: 0px; left: 0px;
+      width: 100%;
+      height: 100%;
+      z-index: 200;
+      font-style: italic;
+      text-align: center;
+    }
+
+    :host[opened],
+    :host.animating {
+      display: block;
+    }
+
+    
+
+    .dialog-inner {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    
+
+    .background {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      background: rgba(199,199,199,0.85);
+    }
+
+    
+
+    .background.circular {
+      width: 40px;
+      height: 40px;
+      margin: -20px;
+      border-radius: 50%;
+      will-change: transform, opacity;
+      transition-property: opacity, transform;
+      transition-timing-function: linear;
+    }
+
+    
+
+    .background.animate-in {
+      animation-name: customizer-gaia-dialog-fade-in;
+      animation-duration: 300ms;
+      animation-fill-mode: forwards;
+    }
+
+    
+
+    .background.animate-out {
+      animation-name: customizer-gaia-dialog-fade-out;
+      animation-delay: 300ms;
+      animation-duration: 300ms;
+      animation-fill-mode: forwards;
+      opacity: 1;
+    }
+
+    
+
+    .window {
+      position: relative;
+      width: 90%;
+      max-width: 350px;
+      margin: auto;
+      box-shadow: 0 1px 0 0px rgba(0,0,0,0.15);
+      background: var(--color-iota);
+      transition: opacity 300ms;
+      opacity: 0;
+    }
+
+    .window.animate-in {
+      animation-name: customizer-gaia-dialog-entrance;
+      animation-duration: 300ms;
+      animation-timing-function: cubic-bezier(0.175, 0.885, 0.320, 1.275);
+      animation-fill-mode: forwards;
+      opacity: 1;
+    }
+
+    .window.animate-out {
+      animation-name: customizer-gaia-dialog-fade-out;
+      animation-duration: 200ms;
+      animation-delay: 100ms;
+      animation-timing-function: linear;
+      animation-fill-mode: forwards;
+      opacity: 1;
+    }
+
+    
+
+    ::content h1 {
+      padding: 16px;
+      font-size: 23px;
+      line-height: 26px;
+      font-weight: 200;
+      font-style: italic;
+      color: #858585;
+    }
+
+    ::content strong {
+      font-weight: 700;
+    }
+
+    ::content small {
+      font-size: 0.8em;
+    }
+
+    
+
+    ::content section {
+      padding: 33px 18px;
+      color: #858585;
+    }
+
+    ::content section > *:not(:last-child) {
+      margin-bottom: 13px;
+    }
+
+    
+
+    ::content p {
+      text-align: -moz-start;
+    }
+
+    
+
+    ::content button {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 50px;
+      margin: 0;
+      border: 0;
+      padding: 0rem 16px;
+      cursor: pointer;
+      font: inherit;
+      background: var(--color-beta);
+      color: var(--color-epsilon);
+      transition: all 200ms;
+      transition-delay: 300ms;
+      border-radius: 0;
+    }
+
+    
+
+    ::content button.primary {
+      color: var(--highlight-color);
+    }
+
+    
+
+    ::content button.danger {
+      color: var(--color-destructive);
+    }
+
+    
+
+    ::content button[disabled] {
+      color: var(--color-zeta);
+    }
+
+    
+
+    ::content button:after {
+      content: '';
+      display: block;
+      position: absolute;
+      height: 1px;
+      left: 6px;
+      right: 6px;
+      top: 49px;
+      background: #E7E7E7;
+    }
+
+    ::content button:last-of-type:after {
+      display: none;
+    }
+
+    ::content button:active {
+      background-color: var(--highlight-color);
+      color: #fff;
+      transition: none;
+    }
+
+    ::content button:active:after {
+      background: var(--highlight-color);
+      transition: none;
+    }
+
+    ::content button[data-icon]:before {
+      float: left;
+    }
+
+    
+
+    ::content fieldset {
+      overflow: hidden;
+    }
+
+    ::content fieldset button {
+      position: relative;
+      float: left;
+      width: 50%;
+    }
+
+    ::content fieldset button:after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      right: 0px;
+      left: auto;
+      width: 1px;
+      height: calc(100% - 12px);
+      background: #e7e7e7;
+      transition: all 200ms;
+      transition-delay: 200ms;
+    }
+
+    </style>`,
+
+  globalCss: `
+    @keyframes customizer-gaia-dialog-entrance {
+      0% { transform: translateY(100px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes customizer-gaia-dialog-fade-in {
+      0% { opacity: 0 }
+      100% { opacity: 1 }
+    }
+
+    @keyframes customizer-gaia-dialog-fade-out {
+      0% { opacity: 1 }
+      100% { opacity: 0 }
+    }`
+});
+
+function closest(selector, el, top) {
+  return el && el !== top ? (el.matches(selector) ? el : closest(el.parentNode))
+    : null;
+}
+
+});})(typeof define=='function'&&define.amd?define
+:(function(n,w){'use strict';return typeof module=='object'?function(c){
+c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
+return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-dialog',this));
+
+
+;(function(define){'use strict';define(function(require,exports,module){
+
+
+
+require('customizer-gaia-text-input');
+require('customizer-gaia-dialog');
+var component = require('customizer-gaia-component');
+
+
+module.exports = component.register('customizer-gaia-dialog-prompt', {
+  created: function() {
+    this.setupShadowRoot();
+
+    this.els = {
+      dialog: this.shadowRoot.querySelector('customizer-gaia-dialog'),
+      input: this.shadowRoot.querySelector('customizer-gaia-text-input'),
+      submit: this.shadowRoot.querySelector('.submit'),
+      cancel: this.shadowRoot.querySelector('.cancel')
+    };
+
+    this.els.dialog.addEventListener('opened', () => {
+      this.setAttribute('opened', '');
     });
 
-    this.els.dialog.addEventListener('closed', function() {
-      removeAttribute.call(self, 'opened');
+    this.els.dialog.addEventListener('closed', () => {
+      this.removeAttribute('opened');
     });
+
+    this.els.input.placeholder = this.firstChild.textContent;
+    this.els.cancel.addEventListener('click', this.close.bind(this));
+    this.els.submit.addEventListener('click', this.close.bind(this));
   },
 
   open: function(e) {
@@ -1168,92 +1131,35 @@ var extended = {
     this.els.dialog.close();
   },
 
-  setAttribute: function(attr, value) {
-    this.els.dialog.setAttribute(attr, value);
-    setAttribute.call(this, attr, value);
-  },
+  template: `
+    <customizer-gaia-dialog>
+      <div><customizer-gaia-text-input></customizer-gaia-text-input></div>
+      <fieldset>
+        <button class="cancel">Cancel</button>
+        <button class="submit primary">Ok</button>
+      </fieldset>
+    </customizer-gaia-dialog>
 
-  removeAttribute: function(attr) {
-    this.els.dialog.removeAttribute(attr);
-    removeAttribute.call(this, attr);
-  }
-};
+    <style>
 
-function closest(selector, el, top) {
-  return el && el !== top
-    ? (el.matches(selector) ? el : closest(el.parentNode))
-    : null;
-}
+    :host {
+      display: none;
+    }
 
-function mixin(a, b) {
-  for (var key in b) { a[key] = b[key]; }
-  return a;
-}
+    :host[opened],
+    :host.animating {
+      display: block;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
 
-});})(typeof define=='function'&&define.amd?define
-:(function(n,w){'use strict';return typeof module=='object'?function(c){
-c(require,exports,module);}:function(c){var m={exports:{}};c(function(n){
-return w[n];},m.exports,m);w[n]=m.exports;};})('customizer-gaia-dialog',this));
+    customizer-gaia-text-input {
+      margin: 16px !important;
+    }
 
-;(function(define){define(function(require,exports,module){
-
-'use strict';
-
-
-
-var GetTextInput = require('customizer-gaia-text-input');
-var GaiaDialog = require('customizer-gaia-dialog');
-
-
-var proto = GaiaDialog.extend();
-
-
-proto.createdCallback = function() {
-  this.onCreated();
-
-  this.els.input = this.shadowRoot.querySelector('customizer-gaia-text-input');
-  this.els.submit = this.shadowRoot.querySelector('.submit');
-  this.els.cancel = this.shadowRoot.querySelector('.cancel');
-
-  this.els.input.placeholder = this.firstChild.textContent;
-  this.els.cancel.addEventListener('click', this.close.bind(this));
-  this.els.submit.addEventListener('click', this.close.bind(this));
-};
-
-proto.template = `
-<style>
-customizer-gaia-dialog-prompt {
-  display: none;
-}
-
-customizer-gaia-dialog-prompt[opened],
-customizer-gaia-dialog-prompt.animating {
-  display: block;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
-
-customizer-gaia-text-input {
-  margin: 16px !important;
-}
-</style>
-
-<customizer-gaia-dialog>
-  <div><customizer-gaia-text-input></customizer-gaia-text-input></div>
-  <fieldset>
-    <button class="cancel">Cancel</button>
-    <button class="submit primary">Ok</button>
-  </fieldset>
-</customizer-gaia-dialog>`
-try {
-  module.exports = document.registerElement('customizer-gaia-dialog-prompt', { prototype: proto });
-  module.exports.proto = proto;
-} catch (e) {
-  if (e.name !== 'NotSupportedError') {
-    throw e;
-  }
-}
+    </style>`
+});
 
 });})(typeof define=='function'&&define.amd?define
 :(function(n,w){'use strict';return typeof module=='object'?function(c){

@@ -5,13 +5,21 @@ body {
   overflow-x: hidden;
   background-color: var(--background);
   color: var(--title-color);
+
+  --header-height: 50px;
+  --tabs-height: 45px;
+  --slide-transition: transform 0.2s ease;
+}
+
+.red {
+  color: red;
 }
 
 gaia-header {
   --header-background: #9ab0c0;
   --header-icon-color: #ffffff;
   --header-title-color: #ffffff;
-
+  height: var(--header-height);
 }
 
 gaia-header #upload-link {
@@ -23,6 +31,7 @@ gaia-header #upload-link {
 #tabs-container {
   --border-color: transparent;
   border-bottom: 1px solid #e7e7e7 !important;
+  height: var(--tabs-height);
 }
 
 #tabs-container a {
@@ -32,6 +41,8 @@ gaia-header #upload-link {
 .install-list {
   position: absolute !important;
   width: 100%;
+  height: calc(95vh - var(--header-height) - var(--tabs-height));
+  overflow: scroll !important;
 }
 
 .install-list > .item {
@@ -57,7 +68,7 @@ gaia-header #upload-link {
 }
 
 .install-list {
-  transition: transform 0.2s ease;
+  transition: var(--slide-transition);
 }
 
 .install-list .item {
@@ -110,7 +121,7 @@ gaia-header #upload-link {
   transform: translateX(0);
 }
 
-#app-details {
+.popup {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -120,19 +131,20 @@ gaia-header #upload-link {
   background-color: var(--background);
   color: var(--text-color);
   --header-icon-color: var(--text-color);
-  transition: transform 0.2s ease;
+  transition: var(--slide-transition);
   transform: translateY(100%);
 }
 
-#app-details.active {
+.popup.active {
   transform: translateY(0);
 }
 
-#app-details #close-button {
+.popup .close {
   left: -10px;
 }
 
-#app-details #info-section {
+gaia-list.info-list {
+  height: 70px;
   margin-top: 14px;
   position: relative !important;
 }
@@ -142,4 +154,41 @@ gaia-header #upload-link {
   font-size: 15px;
   line-height: 20px;
   padding: 2px 16px;
+}
+
+#upload-list.install-list {
+  height: calc(100vh - var(--header-height));
+}
+
+.form #upload-list.install-list {
+  transform: translateX(-100%);
+}
+
+#upload-form {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  transform: translateX(100%);
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  transition: var(--slide-transition);
+}
+
+#form-fields {
+  margin-top: 13px;
+  padding: 0 16px;
+}
+
+.form #upload-form {
+  transform: translateX(0);
+}
+
+#upload-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+
+#upload-buttons gaia-button {
+  width: 45% !important;
+  display: inline !important;
 }

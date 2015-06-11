@@ -1,254 +1,243 @@
-;(function(define){define(function(require,exports,module){
-/*jshint esnext:true*/
-'use strict';
+/* global define */
+;(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Dependencies
  */
 
-var GaiaDialog = require('gaia-dialog');
-
-// Load icon-font
-require('gaia-icons');
+require('gaia-dialog');
+var component = require('gaia-component');
 
 /**
- * Extend from `GaiaDialog` prototype
- *
- * @type {Object}
+ * Exports
  */
-var proto = GaiaDialog.extend();
+module.exports = component.register('gaia-dialog-select', {
+  created: function() {
+    this.setupShadowRoot();
 
-/**
- * Runs when an instance of `GaiaTabs`
- * is first created.
- *
- * The initial value of the `select` attribute
- * is used to select a tab.
- *
- * @private
- */
-proto.createdCallback = function() {
-  this.onCreated();
+    this.els = {
+      dialog: this.shadowRoot.querySelector('gaia-dialog'),
+      submit: this.shadowRoot.querySelector('.submit'),
+      cancel: this.shadowRoot.querySelector('.cancel'),
+      list: this.shadowRoot.querySelector('ul')
+    };
 
-  this.els.submit = this.shadowRoot.querySelector('.submit');
-  this.els.cancel = this.shadowRoot.querySelector('.cancel');
-  this.els.list = this.shadowRoot.querySelector('ul');
+    this.els.dialog.addEventListener('opened', () => {
+      this.setAttribute('opened', '');
+    });
 
-  this.multiple = this.hasAttribute('multiple');
+    this.els.dialog.addEventListener('closed', () => {
+      this.removeAttribute('opened');
+    });
 
-  on(this.els.list, 'click', this.onListClick, this);
-  on(this.els.submit, 'click', this.close, this);
-  on(this.els.cancel, 'click', this.close, this);
-};
+    this.multiple = this.hasAttribute('multiple');
 
-proto.onListClick = function(e) {
-  var el = getLi(e.target);
-  var selected = el.getAttribute('aria-selected') === 'true';
+    this.els.list.addEventListener('click', this.onListClick.bind(this));
+    this.els.submit.addEventListener('click', this.close.bind(this));
+    this.els.cancel.addEventListener('click', this.close.bind(this));
+  },
 
-  if (this.multiple) { this.onChangeMultiple(el, selected); }
-  else { this.onChange(el, selected); }
-};
+  open: function(e) {
+    this.els.dialog.open(e);
+  },
 
-proto.onChange = function(el, selected) {
-  this.clearSelected();
-  if (!selected) { el.setAttribute('aria-selected', !selected); }
-  this.fireChange();
-  this.close();
-};
+  close: function() {
+    this.els.dialog.close();
+  },
 
-proto.onChangeMultiple = function(el, selected) {
-  el.setAttribute('aria-selected', !selected);
-  this.fireChange();
-};
+  onListClick: function(e) {
+    var el = getLi(e.target);
+    var selected = el.getAttribute('aria-selected') === 'true';
 
-proto.clearSelected = function() {
-  [].forEach.call(this.selectedOptions, function(option) {
-    option.removeAttribute('aria-selected');
-  });
-};
+    if (this.multiple) { this.onChangeMultiple(el, selected); }
+    else { this.onChange(el, selected); }
+  },
 
-proto.fireChange = function() {
-  var e = new CustomEvent('change', { detail: { value: this.valueString }});
-  this.dispatchEvent(e);
-};
+  onChange: function(el, selected) {
+    this.clearSelected();
+    if (!selected) { el.setAttribute('aria-selected', !selected); }
+    this.fireChange();
+    this.close();
+  },
 
-proto.attrs = {
-  multiple: {
-    get: function() { return !!this._multiple; },
-    set: function(value) {
-      value = value === '' ? true : value;
-      if (value === this._multiple) { return; }
-      if (!value) {
-        this._multiple = false;
-        this.removeAttribute('multiple');
-      } else {
-        this._multiple = true;
-        this.setAttribute('multiple', '');
+  onChangeMultiple: function(el, selected) {
+    el.setAttribute('aria-selected', !selected);
+    this.fireChange();
+  },
+
+  clearSelected: function() {
+    [].forEach.call(this.selectedOptions, function(option) {
+      option.removeAttribute('aria-selected');
+    });
+  },
+
+  fireChange: function() {
+    var e = new CustomEvent('change', { detail: { value: this.valueString }});
+    this.dispatchEvent(e);
+  },
+
+  attrs: {
+    multiple: {
+      get: function() { return !!this._multiple; },
+      set: function(value) {
+        value = value === '' ? true : value;
+        if (value === this._multiple) { return; }
+        if (!value) {
+          this._multiple = false;
+          this.removeAttribute('multiple');
+        } else {
+          this._multiple = true;
+          this.setAttribute('multiple', '');
+        }
       }
+    },
+
+    options: {
+      get: function() { return this.querySelectorAll('li'); }
+    },
+
+    selectedOptions: {
+      get: function() {
+        return this.querySelectorAll('li[aria-selected="true"]');
+      }
+    },
+
+    selected: {
+      get: function() { return this.selectedOptions[0]; }
+    },
+
+    value: {
+      get: function() {
+        var selected = this.selectedOptions[0];
+        return selected && selected.getAttribute('value');
+      }
+    },
+
+    valueString: {
+      get: function() {
+        var selected = this.selected;
+        return selected && selected.textContent;
+      }
+    },
+
+    length: {
+      get: function() { return this.options.length; }
     }
   },
 
-  options: {
-    get: function() { return this.querySelectorAll('li'); }
-  },
+  template: `
+    <gaia-dialog>
+      <content select="h1"></content>
+      <ul><content select="li"></content></ul>
+      <fieldset>
+        <button class="cancel">Cancel</button>
+        <button class="submit primary">Select</button>
+      </fieldset>
+    </gaia-dialog>
 
-  selectedOptions: {
-    get: function() { return this.querySelectorAll('li[aria-selected="true"]'); }
-  },
+    <style>
 
-  selected: {
-    get: function() { return this.selectedOptions[0]; }
-  },
-
-  value: {
-    get: function() {
-      var selected = this.selectedOptions[0];
-      return selected && selected.getAttribute('value');
+    :host {
+      display: none;
     }
-  },
 
-  valueString: {
-    get: function() {
-      var selected = this.selected;
-      return selected && selected.textContent;
+    :host[opened],
+    :host.animating {
+      display: block;
+      position: fixed;
+      width: 100%;
+      height: 100%;
     }
-  },
 
-  length: {
-    get: function() { return this.options.length; }
-  }
-};
+    /** Title (duplicate from gaia-dialog)
+     ---------------------------------------------------------*/
 
-Object.defineProperties(proto, proto.attrs);
+    ::content h1 {
+      padding: 16px;
+      font-size: 23px;
+      line-height: 26px;
+      font-weight: 200;
+      font-style: italic;
+      color: #858585;
+    }
 
-proto.template = `
-<style>
-.shadow-host {
-  display: none;
-}
+    /** List
+     ---------------------------------------------------------*/
 
-.shadow-host[opened],
-.shadow-host.animating {
-  display: block;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
+    ul {
+      display: block;
+      padding: 0;
+      margin: 0;
+    }
 
-/** Title (duplicate from gaia-dialog)
- ---------------------------------------------------------*/
+    /** Options
+     ---------------------------------------------------------*/
 
-.shadow-content h1 {
-  padding: 16px;
-  font-size: 23px;
-  line-height: 26px;
-  font-weight: 200;
-  font-style: italic;
-  color: #858585;
-}
+    ::content li {
+      position: relative;
+      display: block;
+      padding: 16px;
+      text-align: -moz-start;
+      -moz-user-select: none;
+      cursor: pointer;
+    }
 
-/** List
- ---------------------------------------------------------*/
+    ::content li[aria-selected='true'] {
+      color: #00CAF2;
+      font-weight: normal;
+    }
 
-ul {
-  display: block;
-  padding: 0;
-  margin: 0;
-}
+    ::content li:after {
+      content: '';
+      display: block;
+      position: absolute;
+      height: 1px;
+      left: 16px;
+      right: 16px;
+      bottom: 1px;
+      background: #E7E7E7;
+    }
 
-/** Options
- ---------------------------------------------------------*/
+    ::content li:last-of-type:after {
+      display: none
+    }
 
-.shadow-content li {
-  position: relative;
-  display: block;
-  padding: 16px;
-  text-align: left;
-  -moz-user-select: none;
-  cursor: pointer;
-}
+    /** Buttons
+     ---------------------------------------------------------*/
 
-.shadow-content li[aria-selected='true'] {
-  color: #00CAF2;
-  font-weight: normal;
-}
+    ::host:not([multiple]) .submit {
+      display: none !important;
+    }
 
-.shadow-content li:after {
-  content: '';
-  display: block;
-  position: absolute;
-  height: 1px;
-  left: 16px;
-  right: 16px;
-  bottom: 1px;
-  background: #E7E7E7;
-}
+    ::host:not([multiple]) .cancel {
+      width: 100% !important;
+    }
 
-.shadow-content li:last-of-type:after {
-  display: none
-}
+    ::host:not([multiple]) .cancel:after {
+      display: none% !important;
+    }
 
-/** Buttons
- ---------------------------------------------------------*/
+    /** Tick Icon
+     ---------------------------------------------------------*/
 
-gaia-dialog:not([multiple]) .submit {
-  display: none !important;
-}
+    ::content li[aria-selected='true']:before {
+      content: 'tick';
+      position: absolute;
+      top: 50%; right: 20px;
+      display: block;
+      margin-top: -12px;
+      font-family: 'gaia-icons';
+      font-style: normal;
+      font-size: 14px;
+      font-weight: 500;
+      text-rendering: optimizeLegibility;
+    }
 
-gaia-dialog:not([multiple]) .cancel {
-  width: 100% !important;
-}
-
-gaia-dialog:not([multiple]) .cancel:after {
-  display: none% !important;
-}
-
-/** Tick Icon
- ---------------------------------------------------------*/
-
-.shadow-content li[aria-selected='true']:before {
-  content: 'tick';
-  position: absolute;
-  top: 50%; right: 20px;
-  display: block;
-  margin-top: -12px;
-  font-family: 'gaia-icons';
-  font-style: normal;
-  font-size: 14px;
-  font-weight: 500;
-  text-rendering: optimizeLegibility;
-}
-
-</style>
-
-<gaia-dialog>
-  <content select="h1"></content>
-  <ul><content select="li"></content></ul>
-  <fieldset>
-    <button class="cancel">Cancel</button>
-    <button class="submit primary">Select</button>
-  </fieldset>
-</gaia-dialog>`;
-
-
-function on(el, name, fn, ctx) {
-  if (ctx) { fn = fn.bind(ctx); }
-  el.addEventListener(name, fn);
-}
+    </style>`
+});
 
 function getLi(el) {
   return el && (el.tagName === 'LI' ? el : getLi(el.parentNode));
-}
-
-
-// Register and expose the constructor
-try {
-  module.exports = document.registerElement('gaia-dialog-select', { prototype: proto });
-  module.exports.proto = proto;
-} catch (e) {
-  if (e.name !== 'NotSupportedError') {
-    throw e;
-  }
 }
 
 });})(typeof define=='function'&&define.amd?define

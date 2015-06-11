@@ -15,13 +15,15 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
 
   var View = _componentsFxosMvcDistMvc.View;
   var MainView = (function (View) {
-    var MainView = function MainView() {
-      View.apply(this, arguments);
+    var MainView = function MainView(opts) {
+      this.el = opts.el;
+      this.uploadHandler = null;
     };
 
     _extends(MainView, View);
 
     MainView.prototype.render = function (isActivity) {
+      var _this = this;
       View.prototype.render.call(this, [isActivity]);
 
       if (isActivity) {
@@ -31,12 +33,27 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
             window.dispatchEvent(new CustomEvent("request-activity-finish"));
           }
         });
+      } else {
+        var uploadBtn = document.getElementById("upload-link");
+        if (!uploadBtn) {
+          return;
+        }
+        uploadBtn.addEventListener("click", function () {
+          if (_this.uploadHandler) {
+            _this.uploadHandler();
+          }
+        });
       }
+    };
+
+    MainView.prototype.onUpload = function (handler) {
+      this.uploadHandler = handler;
     };
 
     MainView.prototype.template = function (isActivity) {
       var action = isActivity ? "action=\"back\"" : "";
-      var string = "\n      <gaia-header " + action + ">\n        <h1>Hackerplace</h1>\n        <a id=\"upload-link\" target=\"_blank\"\n           href=\"https://github.com/fxos/directory/blob/master/README.md#submission-process\"></a>\n      </gaia-header>\n      <gaia-dialog-alert id=\"alert-dialog\">Placeholder</gaia-dialog-alert>\n      <fxos-dev-mode-dialog></fxos-dev-mode-dialog>";
+      var upload = isActivity ? "" : "<button id=\"upload-link\"></button>";
+      var string = "\n      <gaia-header " + action + ">\n        <h1>Hackerplace</h1>" + upload + "\n      </gaia-header>\n      <gaia-dialog-alert id=\"alert-dialog\">Placeholder</gaia-dialog-alert>\n      <fxos-dev-mode-dialog></fxos-dev-mode-dialog>";
       return string;
     };
 

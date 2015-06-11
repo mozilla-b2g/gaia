@@ -59,7 +59,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "js/model/list_model", "js/vi
       document.body.appendChild(this.addonView.el);
       this.detailsView.render();
       document.body.appendChild(this.detailsView.el);
-      this.alertDialog = document.querySelector("#alert-dialog");
+      this.alertDialog = document.body.querySelector("#alert-dialog");
 
       this.list = this.model.getAppList();
       this.appView.update(this.list);
@@ -209,7 +209,20 @@ define(["exports", "components/fxos-mvc/dist/mvc", "js/model/list_model", "js/vi
       };
 
       installReq.onsuccess = function () {
+        if (type === "addon") {
+          // Enable add-ons immediately by default.
+          navigator.mozApps.mgmt.setEnabled(installReq.result, true);
+        }
         _this2.refreshInstalledList();
+        window.dispatchEvent(new CustomEvent("achievement-rewarded", {
+          detail: {
+            criteria: "achievements/fab-finder",
+            evidence: "urn:fxos-directory:app:installed",
+            name: "Fab Finder",
+            description: "Install an app or add-on from Hackerplace",
+            image: "./img/fab-finder.png"
+          }
+        }));
       };
     };
 

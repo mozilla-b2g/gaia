@@ -20,6 +20,12 @@ define(["exports"], function (exports) {
 
     _extends(AppendChildController, Controller);
 
+    AppendChildController.prototype.teardown = function () {
+      this.view = null;
+
+      this.target = null;
+    };
+
     AppendChildController.prototype.open = function (target) {
       this.target = target;
 
