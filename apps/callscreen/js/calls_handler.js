@@ -34,12 +34,6 @@ var CallsHandler = (function callsHandler() {
 
   /* === Setup === */
   function setup() {
-    if (telephony) {
-      // Somehow the muted property appears to true after initialization.
-      // Set it to false.
-      telephony.muted = false;
-    }
-
     // XXX: Use BTManager.isConnected() through btHelper
     // once bug 929376 is finished.
     btHelper.getConnectedDevicesByProfile(btHelper.profiles.HFP,
@@ -153,10 +147,8 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    // First incoming or outgoing call, reset mute and speaker.
+    // First incoming or outgoing call reset the speaker.
     if (handledCalls.length === 0) {
-      CallScreen.unmute();
-
       /**
        * Do not connect bluetooth SCO for first incoming/outgoing call.
        *

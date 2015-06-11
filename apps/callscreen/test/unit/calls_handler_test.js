@@ -147,12 +147,6 @@ suite('calls handler', function() {
         sinon.assert.calledOnce(MockCallScreen.showPlaceNewCallButton);
       });
 
-      test('should unmute', function() {
-        this.sinon.spy(MockCallScreen, 'unmute');
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        sinon.assert.calledOnce(MockCallScreen.unmute);
-      });
-
       test('should switch sound to default out', function() {
         this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
