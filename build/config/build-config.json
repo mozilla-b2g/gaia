@@ -1,6 +1,0 @@
-{
-  "rebuildBlacklist": [
-    "apps/calendar/js/presets.js",
-    "dev_apps/test-agent/config.json"
-  ]
-}

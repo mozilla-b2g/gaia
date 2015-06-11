@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/bluetooth.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/bluetooth.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global SettingsListener, Service, BluetoothIcon, BluetoothTransferIcon,
+          BluetoothHeadphoneIcon, LazyLoader, BluetoothTransfer */
+/* exported Bluetooth1 */
+'use strict';
+
+(function(exports) {
+var Bluetooth = {
+  name: 'Bluetooth',
+
+  _setProfileConnected: function bt_setProfileConnected(profile, connected) {
+    var value = this['_' + profile + 'Connected'];
+    if (value !== connected) {
+      this['_' + profile + 'Connected'] = connected;
+
+      // Raise an event for the profile connection changes.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('bluetoothprofileconnectionchange',
+        /* canBubble */ true, /* cancelable */ false,
+        {
+          name: profile,
+          connected: connected
+        });
+      window.dispatchEvent(evt);
+      // Update Bluetooth and profile icons
+      this.icon &amp;&amp; this.icon.update();
+      if (profile === 'opp' &amp;&amp; this.transferIcon) {
+        this.transferIcon.update();
+      }
+      if (profile === 'a2dp' &amp;&amp; this.headphoneIcon) {
+        this.headphoneIcon.update();
+      }
+    }
+  },
+
+  /**
+   * check if bluetooth profile is connected.
+   *
+   * @private
+   * @param {String} profile profile name
+   * @return {Boolean} connected state
+   */
+  _isProfileConnected: function bt__isProfileConnected(profile) {
+    var isConnected = this['_' + profile + 'Connected'];
+    if (isConnected === undefined) {
+      return false;
+    } else {
+      return isConnected;
+    }
+  },
+
+  /* this property store a reference of the default adapter */
+  defaultAdapter: null,
+  /* to host single adapter promise for Bluetooth:adapter */
+  _getAdapterPromise: null,
+  /* to resolve adapter request for Bluetooth:adapter */
+  _getAdapterPromiseResolve: null,
+
+  start: function() {
+    if (!window.navigator.mozBluetooth || this._started) {
+      return;
+    }
+    this._started = true;
+
+    var bluetooth = window.navigator.mozBluetooth;
+
+    SettingsListener.observe('bluetooth.enabled', true, function(value) {
+      if (!bluetooth) {
+        // roll back the setting value to notify the UIs
+        // that Bluetooth interface is not available
+        if (value) {
+          SettingsListener.getSettingsLock().set({
+            'bluetooth.enabled': false
+          });
+        }
+        return;
+      }
+      this._settingsEnabled = value;
+      this.icon &amp;&amp; this.icon.update();
+    }.bind(this));
+
+    // send default bluetooth state so quick settings
+    // could be get updated
+    var req = SettingsListener.getSettingsLock()
+      .get('bluetooth.enabled');
+    req.onsuccess = function get_onsuccess() {
+      if (req.result['bluetooth.enabled']) {
+        window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
+      } else {
+        window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
+      }
+    };
+
+    // when bluetooth adapter is ready, a.k.a enabled,
+    // try to get defaultAdapter at this moment
+    bluetooth.onadapteradded = () => {
+      this.initDefaultAdapter();
+    };
+
+    // when bluetooth is really enabled
+    // emit event to notify QuickSettings
+    bluetooth.addEventListener('enabled', () => {
+      this.icon &amp;&amp; this.icon.update();
+      window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
+    });
+
+    // when bluetooth is really disabled, emit event to notify QuickSettings
+    bluetooth.addEventListener('disabled', () => {
+      this.icon &amp;&amp; this.icon.update();
+      this._getAdapterPromise = null;
+      window.dispatchEvent(new CustomEvent('bluetooth-disabled'));
+    });
+
+    // if bluetooth is enabled in booting time, try to get adapter now
+    this.initDefaultAdapter();
+
+    /* In file transfering case:
+     * since System Message can't be listened in two js files within a app,
+     * so we listen here but dispatch events to bluetooth_transfer.js
+     * when getting bluetooth file transfer start/complete system messages
+     */
+    navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
+      (transferInfo) => {
+        this._setProfileConnected('opp', true);
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('bluetooth-opp-transfer-start',
+          /* canBubble */ true, /* cancelable */ false,
+          {transferInfo: transferInfo});
+        window.dispatchEvent(evt);
+      }
+    );
+
+    navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
+      (transferInfo) => {
+        this._setProfileConnected('opp', false);
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('bluetooth-opp-transfer-complete',
+          /* canBubble */ true, /* cancelable */ false,
+          {transferInfo: transferInfo});
+        window.dispatchEvent(evt);
+      }
+    );
+
+    window.addEventListener('request-enable-bluetooth', this);
+    window.addEventListener('request-disable-bluetooth', this);
+
+    // expose functions to Service.request
+    Service.register('adapter', this);
+    Service.register('pair', this);
+    Service.register('getPairedDevices', this);
+    // expose functions to Service.query
+    Service.registerState('isEnabled', this);
+    Service.registerState('getAdapter', this);
+    Service.registerState('isOPPProfileConnected', this);
+    Service.registerState('isA2DPProfileConnected', this);
+    Service.registerState('isSCOProfileConnected', this);
+
+    LazyLoader.load(['js/bluetooth_transfer.js',
+                     'js/bluetooth_icon.js',
+                     'js/bluetooth_transfer_icon.js',
+                     'js/bluetooth_headphone_icon.js']).then(function() {
+      BluetoothTransfer.start();
+      this.icon = new BluetoothIcon(this);
+      this.icon.start();
+      this.transferIcon = new BluetoothTransferIcon(this);
+      this.transferIcon.start();
+      this.headphoneIcon = new BluetoothHeadphoneIcon(this);
+      this.headphoneIcon.start();
+    }.bind(this)).catch(function(err) {
+      console.error(err);
+    });
+  },
+
+  handleEvent: function bt_handleEvent(evt) {
+    switch (evt.type) {
+      // enable bluetooth hardware and update settings value
+      case 'request-enable-bluetooth':
+        SettingsListener.getSettingsLock().set({
+          'bluetooth.enabled': true
+        });
+        break;
+      // disable bluetooth hardware and update settings value
+      case 'request-disable-bluetooth':
+        SettingsListener.getSettingsLock().set({
+          'bluetooth.enabled': false
+        });
+        break;
+    }
+  },
+
+  // Get adapter for BluetoothTransfer when everytime bluetooth is enabled
+  initDefaultAdapter: function bt_initDefaultAdapter() {
+    var bluetooth = window.navigator.mozBluetooth;
+
+    if (!bluetooth || !bluetooth.enabled ||
+        !('getDefaultAdapter' in bluetooth)) {
+      return;
+    }
+
+    var req = bluetooth.getDefaultAdapter();
+    req.onsuccess = () => {
+      this.defaultAdapter = req.result;
+      // resolve the adapter request
+      if (this._getAdapterPromiseResolve) {
+        this._getAdapterPromiseResolve(this.defaultAdapter);
+      }
+      this._adapterAvailableHandler(this.defaultAdapter);
+    };
+  },
+
+  _adapterAvailableHandler: function bt__adapterAvailableHandler(adapter) {
+    /* for v1, we only support two use cases for bluetooth connection:
+     *   1. connecting with a headset
+     *   2. transfering a file to/from another device
+     * So we need to listen to corresponding events to know we are (aren't)
+     * connected, then summarize to an event and dispatch to Statusbar
+     */
+
+    // In headset connected case:
+    adapter.onhfpstatuschanged = (evt) => {
+      this._setProfileConnected('hfp', evt.status);
+    };
+
+    adapter.ona2dpstatuschanged = (evt) => {
+      this._setProfileConnected('a2dp', evt.status);
+    };
+
+    adapter.onscostatuschanged = (evt) => {
+      this._setProfileConnected('sco', evt.status);
+    };
+  },
+
+  /**
+   * Get adapter from bluetooth through promise interface.
+   * XXX: Since BTv1 get onenabled event before onadapteradded event,
+   * We need to watch if adapter is retrieved.
+   *
+   * _getAdapterPromise is used to make sure we return the same
+   * promise to outter caller.
+   * resolve is cached in _getAdapterPromiseResolve and will execute
+   * when the adapter is set.
+   *
+   * @public
+   * @return {Promise} A promise that resolve the Bluetooth Adapter
+   */
+  adapter: function bt__adapter() {
+    if (!this._getAdapterPromise) {
+      this._getAdapterPromise = new Promise((resolve) => {
+        if (this.defaultAdapter !== null) {
+          resolve(this.defaultAdapter);
+        } else {
+          // cache the resolve and execute when adapter is ready
+          this._getAdapterPromiseResolve = resolve;
+        }
+      });
+    }
+    return this._getAdapterPromise;
+  },
+
+  /**
+   * Return device pairing result.
+   *
+   * @public
+   * @param {string} mac target device address
+   * @return {Promise} A promise that resolve when pair successfully,
+   *                   reject when pair failed
+   */
+  pair: function bt__pair(mac) {
+    return new Promise((resolve, reject) => {
+      var req = this._adapter.pair(mac);
+      req.onsuccess = () => {
+        resolve();
+      };
+      req.onerror = () => {
+        reject(req.error.name);
+      };
+    });
+  },
+
+  /**
+   * Return paired devices list.
+   *
+   * @public
+   * @returns {Object[]} sequence of BluetoothDevice
+   */
+  getPairedDevices: function bt__getPairedDevices() {
+    return new Promise((resolve, reject) => {
+      var req = this._adapter.getPairedDevices();
+      req.onsuccess = () => {
+        resolve(req.result);
+      };
+      req.onerror = () => {
+        reject(req.error.name);
+      };
+    });
+  },
+
+  /**
+   * Return bluetooth adapter.
+   *
+   * @public
+   */
+  get getAdapter() {
+    return this.defaultAdapter;
+  },
+
+  /**
+   * maintain bluetooth enable/disable stat.
+   *
+   * @public
+   */
+  get isEnabled() {
+    return this._settingsEnabled;
+  },
+
+  /**
+   * Check if bluetooth OPP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isOPPProfileConnected() {
+    return this._isProfileConnected('opp');
+  },
+
+  /**
+   * Check if bluetooth A2DP profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isA2DPProfileConnected() {
+    return this._isProfileConnected('a2dp');
+  },
+
+  /**
+   * Check if bluetooth SCO profile is connected.
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get isSCOProfileConnected() {
+    return this._isProfileConnected('sco');
+  },
+
+  /**
+   * Check if any of bluetooth profiles is connected.
+   * Referenced by Bluetooth icon update
+   *
+   * @public
+   * @return {Boolean} connected state
+   */
+  get connected() {
+    return this._isProfileConnected('hfp') ||
+      this._isProfileConnected('a2dp') ||
+      this._isProfileConnected('opp');
+  }
+};
+
+exports.Bluetooth1 = Bluetooth;
+})(window);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

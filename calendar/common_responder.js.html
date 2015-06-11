@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: common/responder.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: common/responder.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// this code is from test-agent might use native dom events
+// or something else in the future to replace this.
+define(function(require, exports, module) {
+'use strict';
+
+/**
+ * @param {Object} list of events to add onto responder.
+ */
+function Responder(events) {
+  this._$events = Object.create(null);
+
+  // Buffer for emitWhenListener that hangs onto events dispatched for topics
+  // no one is currently listening for. Inspired by email's function
+  // of the same name.
+  this.buffer = {};
+
+  if (typeof(events) !== 'undefined') {
+    this.addEventListener(events);
+  }
+}
+module.exports = Responder;
+
+/**
+ * Stringifies request to websocket
+ *
+ *
+ * @param {String} command command name.
+ * @param {Object} data object to be sent over the wire.
+ * @return {String} json object.
+ */
+Responder.stringify = function stringify(command, data) {
+  return JSON.stringify([command, data]);
+};
+
+/**
+ * Parses request from WebSocket.
+ *
+ * @param {String} json json string to translate.
+ * @return {Object} ex: { event: 'test', data: {} }.
+ */
+Responder.parse = function parse(json) {
+  var data;
+  try {
+    data = (json.forEach) ? json : JSON.parse(json);
+  } catch (e) {
+    throw new Error('Could not parse json: "' + json + '"');
+  }
+
+  return data;
+};
+
+Responder.prototype = {
+  parse: Responder.parse,
+  stringify: Responder.stringify,
+
+  /**
+   * Events on this instance
+   *
+   * @type Object
+   */
+  events: null,
+
+  /**
+   * Recieves json string event and dispatches an event.
+   *
+   * @param {String|Object} json data object to respond to.
+   * @param {String} json.event event to emit.
+   * @param {Object} json.data data to emit with event.
+   * @param {Object} [params] option number of params to pass to emit.
+   * @return {Object} result of WebSocketCommon.parse.
+   */
+  respond: function respond(json) {
+    var event = Responder.parse(json);
+    var args = Array.prototype.slice.call(arguments).slice(1);
+    this.emit.apply(this, event.concat(args));
+    return event;
+  },
+
+  /**
+   * Adds an event listener to this object.
+   *
+   * @param {String} type event name.
+   * @param {Function} callback event callback.
+   */
+  addEventListener: function addEventListener(type, callback) {
+    var event;
+
+    if (typeof(callback) === 'undefined' &amp;&amp; typeof(type) === 'object') {
+      for (event in type) {
+        if (type.hasOwnProperty(event)) {
+          this.addEventListener(event, type[event]);
+        }
+      }
+
+      return this;
+    }
+
+    if (!(type in this._$events)) {
+      this._$events[type] = [];
+    }
+
+    this._$events[type].push(callback);
+    return this.flushTopicBuffer(type);
+  },
+
+  /**
+   * Adds an event listener which will
+   * only fire once and then remove itself.
+   *
+   *
+   * @param {String} type event name.
+   * @param {Function} callback fired when event is emitted.
+   */
+  once: function once(type, callback) {
+    var self = this;
+    function onceCb() {
+      /*jshint validthis:true */
+      self.removeEventListener(type, onceCb);
+      callback.apply(this, arguments);
+    }
+
+    this.addEventListener(type, onceCb);
+    return this.flushTopicBuffer(type);
+  },
+
+  flushTopicBuffer: function flushTopicBuffer(topic) {
+    if (!(topic in this.buffer)) {
+      // Nothing to flush.
+      return this;
+    }
+
+    this.buffer[topic].forEach(args => {
+      args.unshift(topic);
+      this.emit.apply(this, args);
+    });
+
+    return this;
+  },
+
+  /**
+   * Emits an event.
+   *
+   * Accepts any number of additional arguments to pass unto
+   * event listener.
+   *
+   * @param {String} eventName name of the event to emit.
+   * @param {Object} [arguments] additional arguments to pass.
+   */
+  emit: function emit() {
+    var args = Array.prototype.slice.call(arguments),
+        event = args.shift(),
+        eventList,
+        self = this;
+
+    if (event in this._$events) {
+      eventList = this._$events[event];
+
+      eventList.forEach(function(callback) {
+        if (typeof(callback) === 'object' &amp;&amp; callback.handleEvent) {
+          callback.handleEvent({ type: event, data: args });
+        } else {
+          callback.apply(self, args);
+        }
+      });
+    }
+
+    return this;
+  },
+
+  emitWhenListener: function emitWhenListener() {
+    var args = Array.prototype.slice.call(arguments);
+    var event = args.shift();
+
+    if (event in this._$events &amp;&amp; this._$events[event].length) {
+      // Someone is already listening for this event, so this is just
+      // a regular old emit.
+      return this.emit.apply(this, arguments);
+    }
+
+    if (!(event in this.buffer)) {
+      this.buffer[event] = [];
+    }
+
+    // Now just push the call info onto the topic buffer.
+    this.buffer[event].push(args);
+    return this;
+  },
+
+  /**
+   * Removes all event listeners for a given event type
+   *
+   *
+   * @param {String} event event type to remove.
+   */
+  removeAllEventListeners: function removeAllEventListeners(name) {
+    if (name in this._$events) {
+      //reuse array
+      this._$events[name].length = 0;
+    }
+
+    return this;
+  },
+
+  /**
+   * Removes a single event listener from a given event type
+   * and callback function.
+   *
+   *
+   * @param {String} eventName event name.
+   * @param {Function} callback same instance of event handler.
+   */
+  removeEventListener: function removeEventListener(name, callback) {
+    var i, length, events;
+
+    if (!(name in this._$events)) {
+      return false;
+    }
+
+    events = this._$events[name];
+
+    for (i = 0, length = events.length; i &lt; length; i++) {
+      if (events[i] &amp;&amp; events[i] === callback) {
+        events.splice(i, 1);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+};
+
+Responder.prototype.on = Responder.prototype.addEventListener;
+Responder.prototype.off = Responder.prototype.removeEventListener;
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

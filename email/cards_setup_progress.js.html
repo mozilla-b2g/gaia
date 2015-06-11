@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: cards/setup_progress.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: cards/setup_progress.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Show a spinner in for two possible steps in the setup of an account:
+ *
+ * 1) During the autoconfig step, when figuring out the capabilities of the
+ * server, and possibly needing an oauth jump.
+ *
+ * 2) During the manual config or password flow when finally connecting to the
+ * service to confirm password and settings are correct.
+ *
+ * So the possible flows are:
+ *
+ * OAuth: setup_account_info -> setup_progress -> setup_account_prefs
+ * autoconfig password: setup_account_info -> setup_progress ->
+ *                      setup_password -> setup_progress -> setup_account_prefs
+ * manual config: setup_account_info -> setup_manual_config ->
+ *                setup_progress -> setup_account_prefs
+ */
+'use strict';
+define(function(require) {
+
+var MailAPI = require('api'),
+    cards = require('cards'),
+    oauthFetch = require('cards/oauth2/fetch');
+
+return [
+  require('./base')(require('template!./setup_progress.html')),
+  {
+    onArgs: function(args) {
+      this.args = args;
+      this.callingCard = args.callingCard;
+      this.creationInProcess = true;
+      this.pushedSecondaryCard = false;
+      this.cardHasBeenShown = false;
+      this.createCanceled = false;
+    },
+
+    extraClasses: ['anim-fade', 'anim-overlay'],
+
+    cancelCreation: function() {
+      if (!this.creationInProcess) {
+        return;
+      }
+      // XXX implement cancellation
+    },
+
+    onCardVisible: function() {
+      if (this.cardHasBeenShown) {
+        // If this card was made visible because of a cancel of a secondary
+        // config card, just go back one more card. The setTimeout is a hack.
+        // Without it, the final card is not actionable because the
+        // onTransitionEnd is not fired on this second removeCardAndSuccessors
+        // call while done as part of finishing up the previous card's
+        // removeCardAndSuccessors. A queue approach as described in 973038 does
+        // not help. It seems like the _transitionEnd for the second call does
+        // not ever fire. Need some async delay, not sure why yet. Otherwise,
+        // _eatingEventsUntilNextCard ends up as true, since the reset logic for
+        // it in _onTransitionEnd does not fire. An immediate setTimeout is not
+        // enough, bothersome that it needs a time threshold.
+        // pushedSecondaryCard is needed besides just a cardHasBeenShown,
+        // because this card calls the oauth code, which may show its own cards,
+        // but then navigate back to this card for a moment. In that case, the
+        // card needs to stay up and visible.
+        if (this.pushedSecondaryCard) {
+          setTimeout(this.onBack.bind(this), 100);
+        }
+      } else {
+        // First time the card has been shown, can now sort out what card to
+        // show next. This logic could be in onArgs, but it is racy, where
+        // learnAbout could complete before the animation to this card completes
+        // which would lead to a case where think we have pushed a secondary
+        // card, but it is really the first time this card is shown, so it would
+        // be hard to know if this card was being shown for first time setup
+        // reasons, or because a cancel/back had occurred. Ideally, learnAbout()
+        // would be called in setup_account_info, but since it could take a
+        // moment to complete by waiting for network connections to complete as
+        // part of autodiscovery, this card is shown to give the user feedback
+        // that something is happening. Instead of using the card visible state
+        // as a hack to know the cancel state, switch to a callingCard card
+        // passing approach so the next card can give a specific callingCard
+        // cancel signal. However, bug 973038 needs to be solved, or some way
+        // to remove more than one card at a time. Passing `2` to the
+        // removeCardAndSuccessors call from this card if callingCard cancel
+        // signal was received would also work, if we get proper expectations
+        // around the number of ontransitioned events in that case.
+        this.cardHasBeenShown = true;
+        if (!this.args.password) {
+          this.learnAbout();
+        } else {
+          // The manual config pathway.
+          this.tryCreate();
+        }
+      }
+    },
+
+    onBack: function(e) {
+      if (e) {
+        e.preventDefault();
+      }
+      this.cancelCreation();
+      this.createCanceled = true;
+      cards.removeCardAndSuccessors(this, 'animate', 1);
+    },
+
+    /**
+     * Trigger the back-end's autoconfig logic based on just knowing the user's
+     * email address to figure out what to do next.
+     */
+    learnAbout: function() {
+      MailAPI.learnAboutAccount({
+        emailAddress: this.args.emailAddress
+      }, function(details) {
+        var args = this.args;
+        args.configInfo = details.configInfo;
+        var result = details.result;
+
+        // - We can autoconfig and it's time to use oauth!
+        if (result === 'need-oauth2') {
+          oauthFetch(details.configInfo.oauth2Settings, {
+            login_hint: args.emailAddress
+          })
+          .then(function(response) {
+            // Cancellation means lose the progress card and go back to entering
+            // the user's email address.
+            if (response.status === 'cancel') {
+              this.onBack();
+            // Successful oauth'ing means time to complete the account creation.
+            } else if (response.status === 'success') {
+              args.configInfo.oauth2Secrets = response.secrets;
+              args.configInfo.oauth2Tokens = response.tokens;
+              this.tryCreate();
+            // Any other error means things did not work.  Things not working
+            // implies things will never work and so let's dump the user into
+            // the manual config card.
+            } else {
+              console.error('Unknown oauthFetch status: ' + response.status);
+              this._divertToManualConfig();
+            }
+          }.bind(this), this.onCreationError.bind(this));
+        // We can autoconfig but we need the user's password.
+        } else if (result === 'need-password') {
+          // Track that a secondary card was added that could lead to a cancel
+          // in that case, need to cancel this card too.
+          this.pushedSecondaryCard = true;
+          cards.pushCard(
+            'setup_account_password', 'animate',
+            {
+              displayName: args.displayName,
+              emailAddress: args.emailAddress
+            },
+            'right');
+        // No configuration data available, the user's only option is manual
+        // config.
+        } else { // must be no-config-info and even if not, we'd want this.
+          this._divertToManualConfig();
+        }
+      }.bind(this));
+    },
+
+    /**
+     * learnAbout decided the only option for the user is to manually configure
+     * their account.  Sorry, user!
+     */
+    _divertToManualConfig: function() {
+      this.pushedSecondaryCard = true;
+      cards.pushCard('setup_manual_config', 'animate', {
+        displayName: this.args.displayName,
+        emailAddress: this.args.emailAddress
+      },
+      'right');
+    },
+
+    tryCreate: function() {
+      var args = this.args;
+      var options = {
+        displayName: args.displayName,
+        emailAddress: args.emailAddress,
+        password: args.password,
+        outgoingPassword: args.outgoingPassword
+      };
+
+      MailAPI.tryToCreateAccount(
+        options,
+        args.configInfo || null,
+        function(err, errDetails, account) {
+          this.creationInProcess = false;
+          if (err) {
+            this.onCreationError(err, errDetails);
+          } else {
+            if (this.createCanceled) {
+              account.deleteAccount();
+            } else {
+              this.onCreationSuccess(account);
+            }
+          }
+        }.bind(this));
+    },
+
+    onCreationError: function(err, errDetails) {
+      this.callingCard.showError(err, errDetails);
+      cards.removeCardAndSuccessors(this, 'animate', 1);
+    },
+
+    onCreationSuccess: function(account) {
+      cards.pushCard('setup_account_prefs', 'animate',
+      {
+        account: account
+      });
+    },
+
+    die: function() {
+      this.cancelCreation();
+    }
+  }
+];
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_cacheDom">_cacheDom</a></li><li><a href="global.html#_cacheDomTimeoutId">_cacheDomTimeoutId</a></li><li><a href="global.html#_cacheListLimit">_cacheListLimit</a></li><li><a href="global.html#_clearCachedMessages">_clearCachedMessages</a></li><li><a href="global.html#_considerCacheDom">_considerCacheDom</a></li><li><a href="global.html#_distanceBetweenMessages">_distanceBetweenMessages</a></li><li><a href="global.html#_divertToManualConfig">_divertToManualConfig</a></li><li><a href="global.html#_focusEditorWithCursorAtEnd">_focusEditorWithCursorAtEnd</a></li><li><a href="global.html#_isCacheableCardState">_isCacheableCardState</a></li><li><a href="global.html#_onAttachmentDone">_onAttachmentDone</a></li><li><a href="global.html#_onVScrollStopped">_onVScrollStopped</a></li><li><a href="global.html#_showFolder">_showFolder</a></li><li><a href="global.html#_topBar">_topBar</a></li><li><a href="global.html#_warnAttachmentSizeExceeded">_warnAttachmentSizeExceeded</a></li><li><a href="global.html#addAttachmentsSubjectToSizeLimits">addAttachmentsSubjectToSizeLimits</a></li><li><a href="global.html#advance">advance</a></li><li><a href="global.html#bindContainerHandler">bindContainerHandler</a></li><li><a href="global.html#bindToSlice">bindToSlice</a></li><li><a href="global.html#buildBodyDom">buildBodyDom</a></li><li><a href="global.html#calculateTotalAttachmentsSize">calculateTotalAttachmentsSize</a></li><li><a href="global.html#callHeaderFontSize">callHeaderFontSize</a></li><li><a href="global.html#canReplyAll">canReplyAll</a></li><li><a href="global.html#changeIfSame">changeIfSame</a></li><li><a href="global.html#checkExpectingMessageSuid">checkExpectingMessageSuid</a></li><li><a href="global.html#cloneAndSave">cloneAndSave</a></li><li><a href="global.html#cloneAsInertNodeAvoidingCustomElementHorrors">cloneAsInertNodeAvoidingCustomElementHorrors</a></li><li><a href="global.html#currentMessage">currentMessage</a></li><li><a href="global.html#delayedSaveFromNode">delayedSaveFromNode</a></li><li><a href="global.html#deleteBubble">deleteBubble</a></li><li><a href="global.html#die">die</a></li><li><a href="global.html#editBubble">editBubble</a></li><li><a href="global.html#expectingMessageSuid">expectingMessageSuid</a></li><li><a href="global.html#extractAddresses">extractAddresses</a></li><li><a href="global.html#fileSize">fileSize</a></li><li><a href="global.html#fromEditor">fromEditor</a></li><li><a href="global.html#hideAccounts">hideAccounts</a></li><li><a href="global.html#hideEmptyLayout">hideEmptyLayout</a></li><li><a href="global.html#indexOfMessageById">indexOfMessageById</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#insertBubble">insertBubble</a></li><li><a href="global.html#isValidAddress">isValidAddress</a></li><li><a href="global.html#learnAbout">learnAbout</a></li><li><a href="global.html#loadNextChunk">loadNextChunk</a></li><li><a href="global.html#messages_complete">messages_complete</a></li><li><a href="global.html#messagesSlice">messagesSlice</a></li><li><a href="global.html#onAccountsSplice">onAccountsSplice</a></li><li><a href="global.html#onAddressInput">onAddressInput</a></li><li><a href="global.html#onAddressKeydown">onAddressKeydown</a></li><li><a href="global.html#onBack">onBack</a></li><li><a href="global.html#onCardVisible">onCardVisible</a></li><li><a href="global.html#onClickAccount">onClickAccount</a></li><li><a href="global.html#onCurrentCardDocumentVisibilityChange">onCurrentCardDocumentVisibilityChange</a></li><li><a href="global.html#onCurrentMessage">onCurrentMessage</a></li><li><a href="global.html#onEnvelopeClick">onEnvelopeClick</a></li><li><a href="global.html#onFolderPickerClosing">onFolderPickerClosing</a></li><li><a href="global.html#onFolderShown">onFolderShown</a></li><li><a href="global.html#onLatestFolder">onLatestFolder</a></li><li><a href="global.html#onMessagesSpliceRemove">onMessagesSpliceRemove</a></li><li><a href="global.html#onNext">onNext</a></li><li><a href="global.html#onPrevious">onPrevious</a></li><li><a href="global.html#onSend">onSend</a></li><li><a href="global.html#onUsePassword">onUsePassword</a></li><li><a href="global.html#populateEditor">populateEditor</a></li><li><a href="global.html#proceed">proceed</a></li><li><a href="global.html#reallySend">reallySend</a></li><li><a href="global.html#renderAttachments">renderAttachments</a></li><li><a href="global.html#renderSendStatus">renderSendStatus</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#save">save</a></li><li><a href="global.html#saveFromNode">saveFromNode</a></li><li><a href="global.html#selectedMessagesUpdated">selectedMessagesUpdated</a></li><li><a href="global.html#setCurrentMessage">setCurrentMessage</a></li><li><a href="global.html#setCurrentMessageBySuid">setCurrentMessageBySuid</a></li><li><a href="global.html#setMessageChecked">setMessageChecked</a></li><li><a href="global.html#setRefreshState">setRefreshState</a></li><li><a href="global.html#setSelectState">setSelectState</a></li><li><a href="global.html#showAccounts">showAccounts</a></li><li><a href="global.html#showEmptyLayout">showEmptyLayout</a></li><li><a href="global.html#showFolder">showFolder</a></li><li><a href="global.html#showLargeMessageWarning">showLargeMessageWarning</a></li><li><a href="global.html#sizeLastSync">sizeLastSync</a></li><li><a href="global.html#skipEmitContentEvents">skipEmitContentEvents</a></li><li><a href="global.html#sliceEvents">sliceEvents</a></li><li><a href="global.html#subject">subject</a></li><li><a href="global.html#toggleOutboxSyncingDisplay">toggleOutboxSyncingDisplay</a></li><li><a href="global.html#updateAccount">updateAccount</a></li><li><a href="global.html#updateAttachmentsAriaLabel">updateAttachmentsAriaLabel</a></li><li><a href="global.html#updateAttachmentsSize">updateAttachmentsSize</a></li><li><a href="global.html#updateMessageDom">updateMessageDom</a></li><li><a href="global.html#validateAddresses">validateAddresses</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:29 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

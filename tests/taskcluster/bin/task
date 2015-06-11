@@ -1,6 +1,0 @@
-#! /usr/bin/env node
-
-var task = require('../tasks/' + process.argv[2]);
-var decorate = require('../decorate_task');
-
-process.stdout.write(JSON.stringify(decorate(task).task));

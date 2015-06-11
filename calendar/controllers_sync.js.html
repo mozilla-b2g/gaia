@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/sync.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/sync.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Responder = require('common/responder');
+var core = require('core');
+var isOffline = require('common/is_offline');
+
+/**
+ * Handles all synchronization related
+ * tasks. The intent is that this will
+ * be the focal point for any view
+ * to observe sync events and this
+ * controller will decide when to actually
+ * tell the stores when to sync.
+ */
+function Sync() {
+  this.pending = 0;
+
+  Responder.call(this);
+}
+module.exports = Sync;
+
+Sync.prototype = {
+  __proto__: Responder.prototype,
+
+  startEvent: 'syncStart',
+  completeEvent: 'syncComplete',
+
+  _incrementPending: function() {
+    if (!this.pending) {
+      this.emit('syncStart');
+    }
+
+    this.pending++;
+  },
+
+  _resolvePending: function() {
+    if (!(--this.pending)) {
+      this.emit('syncComplete');
+    }
+
+    if (this.pending &lt; 0) {
+      dump('\n\n Error calendar sync .pending is &lt; 0 \n\n');
+    }
+  },
+
+  /**
+   * Sync all accounts, calendars, events.
+   * There is no callback for all intentionally.
+   *
+   * Use:
+   *
+   *    controller.once('syncComplete', cb);
+   *
+   */
+  all: function(callback) {
+    // this is for backwards compatibility... in reality we should remove
+    // callbacks from .all.
+    if (callback) {
+      this.once('syncComplete', callback);
+    }
+
+    if (isOffline()) {
+      this.emit('offline');
+      this.emit('syncComplete');
+      return;
+    }
+
+    var account = core.storeFactory.get('Account');
+
+    account.all(function(err, list) {
+
+      for (var key in list) {
+        this.account(list[key]);
+      }
+
+      // If we have nothing to sync
+      if (!this.pending) {
+        this.emit('syncComplete');
+      }
+
+    }.bind(this));
+ },
+
+  /**
+   * Initiates a sync for a single calendar.
+   *
+   * @param {Object} account parent of calendar.
+   * @param {Object} calendar specific calendar to sync.
+   * @param {Function} [callback] optional callback.
+   */
+  calendar: function(account, calendar, callback) {
+    var store = core.storeFactory.get('Calendar');
+    var self = this;
+
+    this._incrementPending();
+    store.sync(account, calendar, err => {
+      self._resolvePending();
+      this.handleError(err, callback);
+    });
+  },
+
+  /**
+   * Initiates a sync of a single account and all
+   * associated calendars (calendars that exist after
+   * the full sync of the account itself).
+   *
+   * The contract is if an callback is given the callback MUST handle the
+   * error given. The default behaviour is to bubble up the error up to the
+   * error controller.
+   *
+   * @param {Object} account sync target.
+   * @param {Function} [callback] optional callback.
+  */
+  account: function(account, callback) {
+    var storeFactory = core.storeFactory;
+    var accountStore = storeFactory.get('Account');
+    var calendarStore = storeFactory.get('Calendar');
+
+    var self = this;
+
+    this._incrementPending();
+    accountStore.sync(account, err => {
+      if (err) {
+        self._resolvePending();
+        return this.handleError(err, callback);
+      }
+
+      var pending = 0;
+      function next() {
+        if (!(--pending)) {
+          self._resolvePending();
+
+          if (callback) {
+            callback();
+          }
+        }
+      }
+
+      function fetchCalendars(err, calendars) {
+        if (err) {
+          self._resolvePending();
+          return self.handleError(err, callback);
+        }
+
+        for (var key in calendars) {
+          pending++;
+          self.calendar(account, calendars[key], next);
+        }
+      }
+
+      // find all calendars
+      calendarStore.remotesByAccount(
+        account._id,
+        fetchCalendars
+      );
+    });
+  },
+
+  /**
+   * Private helper for choosing how to dispatch errors.
+   * When given a callback the callback will be called otherwise the error
+   * controller will be invoked.
+   */
+  handleError: function(err, callback) {
+    if (callback) {
+      return callback(err);
+    }
+
+    core.errorController.dispatch(err);
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

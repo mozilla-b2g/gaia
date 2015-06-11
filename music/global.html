@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Global</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Global</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="AlbumArtCache"><span class="type-signature"></span>AlbumArtCache<span class="type-signature"></span></h4>
+
+
+<p class="summary"><p>Handle fetching album art and thumbnail management for already-parsed audio
+files.</p></p>
+
+
+
+<div class="description">
+    <p>Handle fetching album art and thumbnail management for already-parsed audio
+files.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="album_art_cache.js.html">album_art_cache.js</a>, <a href="album_art_cache.js.html#line9">line 9</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="AudioMetadata"><span class="type-signature"></span>AudioMetadata<span class="type-signature"></span></h4>
+
+
+<p class="summary">Parse the metadata for an audio file.</p>
+
+
+
+<div class="description">
+    <p>Parse the metadata for an audio file.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="core.js.html">core.js</a>, <a href="core.js.html#line25">line 25</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="FLACMetadata"><span class="type-signature"></span>FLACMetadata<span class="type-signature"></span></h4>
+
+
+<p class="summary"><p>Parse metadata for FLAC files (this is very similar to Ogg files, but with a
+different container format).</p></p>
+
+
+
+<div class="description">
+    <p>Parse metadata for FLAC files (this is very similar to Ogg files, but with a
+different container format).</p>
+<p>Format information:
+  http://flac.sourceforge.net/format.html</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="flac.js.html">flac.js</a>, <a href="flac.js.html#line12">line 12</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="ForwardLockMetadata"><span class="type-signature"></span>ForwardLockMetadata<span class="type-signature"></span></h4>
+
+
+<p class="summary">Parse metadata for ForwardLocked files.</p>
+
+
+
+<div class="description">
+    <p>Parse metadata for ForwardLocked files. Generally, this will forward on to
+the metadata parser for the underlying format.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="forward_lock.js.html">forward_lock.js</a>, <a href="forward_lock.js.html#line9">line 9</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="ID3v1Metadata"><span class="type-signature"></span>ID3v1Metadata<span class="type-signature"></span></h4>
+
+
+<p class="summary">Parse files with ID3v1 metadata.</p>
+
+
+
+<div class="description">
+    <p>Parse files with ID3v1 metadata. Metadata includes title, artist, album,
+and possibly the track number. Year, comment and genre are ignored.</p>
+<p>Format information:
+  http://www.id3.org/ID3v1
+  http://en.wikipedia.org/wiki/ID3</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="id3v1.js.html">id3v1.js</a>, <a href="id3v1.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="ID3v2Metadata"><span class="type-signature"></span>ID3v2Metadata<span class="type-signature"></span></h4>
+
+
+<p class="summary">Parse files with ID3v2 metadata.</p>
+
+
+
+<div class="description">
+    <p>Parse files with ID3v2 metadata.</p>
+<p>Format information:
+  http://id3.org/Developer%20Information</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="id3v2.js.html">id3v2.js</a>, <a href="id3v2.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="MetadataFormats"><span class="type-signature"></span>MetadataFormats<span class="type-signature"></span></h4>
+
+
+<p class="summary"><p>Delegates metadata parsing to the appropriate parser based on magic header
+values.</p></p>
+
+
+
+<div class="description">
+    <p>Delegates metadata parsing to the appropriate parser based on magic header
+values.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="formats.js.html">formats.js</a>, <a href="formats.js.html#line10">line 10</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="MP4Metadata"><span class="type-signature"></span>MP4Metadata<span class="type-signature"></span></h4>
+
+
+<p class="summary">Parse files with MP4 metadata.</p>
+
+
+
+<div class="description">
+    <p>Parse files with MP4 metadata.</p>
+<p>Format information:
+  https://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/
+    QTFFChap1/qtff1.html
+  http://en.wikipedia.org/wiki/MPEG-4_Part_14
+  http://atomicparsley.sourceforge.net/mpeg-4files.html</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mp4.js.html">mp4.js</a>, <a href="mp4.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="OggMetadata"><span class="type-signature"></span>OggMetadata<span class="type-signature"></span></h4>
+
+
+<p class="summary">Parse files with Ogg metadata (e.g.</p>
+
+
+
+<div class="description">
+    <p>Parse files with Ogg metadata (e.g. Vorbis comments or Opus tags).</p>
+<p>Format information:
+  http://wiki.xiph.org/VorbisComment</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ogg.js.html">ogg.js</a>, <a href="ogg.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AlbumArtCache">AlbumArtCache</a></li><li><a href="global.html#AudioMetadata">AudioMetadata</a></li><li><a href="global.html#FLACMetadata">FLACMetadata</a></li><li><a href="global.html#ForwardLockMetadata">ForwardLockMetadata</a></li><li><a href="global.html#ID3v1Metadata">ID3v1Metadata</a></li><li><a href="global.html#ID3v2Metadata">ID3v2Metadata</a></li><li><a href="global.html#MetadataFormats">MetadataFormats</a></li><li><a href="global.html#MP4Metadata">MP4Metadata</a></li><li><a href="global.html#OggMetadata">OggMetadata</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:24 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

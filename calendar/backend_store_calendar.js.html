@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: backend/store/calendar.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: backend/store/calendar.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Abstract = require('./abstract');
+var CalendarModel = require('models/calendar');
+var core = require('core');
+var denodeifyAll = require('common/promise').denodeifyAll;
+var localCalendarId = require('common/constants').localCalendarId;
+var probablyParseInt = require('common/probably_parse_int');
+
+function Store() {
+  Abstract.apply(this, arguments);
+  this._usedColors = [];
+
+  denodeifyAll(this, [
+    'markWithError',
+    'remotesByAccount',
+    'sync',
+    'providerFor',
+    'ownersOf'
+  ]);
+}
+module.exports = Store;
+
+/**
+ * Remote calendar colors
+ */
+Store.REMOTE_COLORS = [
+  '#00aacc', // light blue
+  '#bad600', // light green
+  '#df4784', // pink
+  '#f9bc17', // yellow
+  '#0766b7', // dark blue
+  '#76a408', // dark green
+  '#33a185'  // teal
+];
+
+/**
+ * Local calendar color (orange)
+ */
+Store.LOCAL_COLOR = '#f97c17',
+
+/**
+ * List of possible calendar capabilities.
+ */
+Store.capabilities = {
+  createEvent: 'canCreateEvent',
+  updateEvent: 'canUpdateEvent',
+  deleteEvent: 'canDeleteEvent'
+};
+
+Store.prototype = {
+  __proto__: Abstract.prototype,
+
+  _store: 'calendars',
+
+  _dependentStores: [
+    'calendars', 'events', 'busytimes',
+    'alarms', 'icalComponents'
+  ],
+
+  _parseId: probablyParseInt,
+
+  _createModel: function(obj, id) {
+    if (!(obj instanceof CalendarModel)) {
+      obj = new CalendarModel(obj);
+    }
+
+    if (typeof(id) !== 'undefined') {
+      obj._id = id;
+    }
+
+    return obj;
+  },
+
+  _removeDependents: function(id, trans) {
+    var store = core.storeFactory.get('Event');
+    store.removeByIndex('calendarId', id, trans);
+  },
+
+  /**
+   * Marks a given calendar with an error.
+   *
+   * Emits a 'error' event immediately.. This method is typically
+   * triggered by an account wide error.
+   *
+   *
+   * @param {Object} calendar model.
+   * @param {Calendar.Error} error for given calendar.
+   * @param {IDBTransaction} transaction optional.
+   * @param {Function} callback fired when model is saved [err, id, model].
+   */
+  markWithError: function(calendar, error, trans, callback) {
+    if (typeof(trans) === 'function') {
+      callback = trans;
+      trans = null;
+    }
+
+    if (!calendar._id) {
+      throw new Error('given calendar must be persisted.');
+    }
+
+    calendar.error = {
+      name: error.name,
+      date: new Date()
+    };
+
+    this.persist(calendar, trans, callback);
+  },
+
+  persist: function(calendar, trans, callback) {
+    if (typeof(trans) === 'function') {
+      callback = trans;
+      trans = undefined;
+    }
+
+    this._updateCalendarColor(calendar);
+
+    var cb = callback;
+    var cached = this._cached[calendar._id];
+
+    if (cached &amp;&amp; cached.localDisplayed !== calendar.localDisplayed) {
+      cb = function(err, id, model) {
+        this.emit('calendarVisibilityChange', id, model);
+        callback(err, id, model);
+      }.bind(this);
+    }
+
+    Abstract.prototype.persist.call(this, calendar, trans, cb);
+  },
+
+  remove: function(id, trans, callback) {
+    this._removeCalendarColorFromCache(id);
+    Abstract.prototype.remove.apply(this, arguments);
+  },
+
+  _updateCalendarColor: function(calendar) {
+    // we avoid storing multiple colors for same calendar in case of an
+    // "update" operation
+    this._removeCalendarColorFromCache(calendar._id);
+    this._setCalendarColor(calendar);
+    // cache is built asynchronously, we need to store the color as soon as
+    // possible to avoid adding same color multiple times in a row (eg.
+    // account with multiple calendars will call persist multiple times)
+    this._usedColors.push(calendar.color);
+  },
+
+  _removeCalendarColorFromCache: function(id) {
+    // we need to remove the color from index as soon as possible to avoid
+    // race conditions (remove is async)
+    var color = this.getColorByCalendarId(id);
+    var index = this._usedColors.indexOf(color);
+    if (index !== -1) {
+      this._usedColors.splice(index, 1);
+    }
+  },
+
+  getColorByCalendarId: function(id) {
+    return this._cached[id] &amp;&amp; this._cached[id].color;
+  },
+
+  _setCalendarColor: function(calendar) {
+    // local calendar should always use the same color
+    if (calendar._id === localCalendarId) {
+      calendar.color = Store.LOCAL_COLOR;
+      return;
+    }
+
+    // restore previous color only if it is part of the palette, otherwise we
+    // get the next available color (or least used)
+    var prevColor = this.getColorByCalendarId(calendar._id);
+    if (prevColor &amp;&amp; Store.REMOTE_COLORS.indexOf(prevColor) !== -1) {
+      calendar.color = prevColor;
+    } else {
+      calendar.color = this._getNextColor();
+    }
+  },
+
+  _getNextColor: function() {
+    var available = Store.REMOTE_COLORS.filter(function(color) {
+      return this._usedColors.indexOf(color) === -1;
+    }, this);
+
+    return available.length ? available[0] : this._getLeastUsedColor();
+  },
+
+  _getLeastUsedColor: function() {
+    var counter = {};
+    this._usedColors.forEach(function(color) {
+      counter[color] = (counter[color] || 0) + 1;
+    });
+
+    var leastUsedColor;
+    var leastUsedCount = Infinity;
+    for (var color in counter) {
+      if (counter[color] &lt; leastUsedCount) {
+        leastUsedCount = counter[color];
+        leastUsedColor = color;
+      }
+    }
+
+    return leastUsedColor;
+  },
+
+  shouldDisplayCalendar: function(calendarId) {
+    var calendar = this._cached[calendarId];
+    return calendar &amp;&amp; calendar.localDisplayed;
+  },
+
+  /**
+   * Find calendars in a specific account.
+   * Results will be returned in an object where
+   * the key is the remote.id and the value is the calendar.
+   *
+   * @param {String|Numeric} accountId id of account.
+   * @param {Function} callback [err, object] see above.
+   */
+  remotesByAccount: function(accountId, trans, callback) {
+    if (typeof(trans) === 'function') {
+      callback = trans;
+      trans = null;
+    }
+
+    if (!trans) {
+      trans = core.db.transaction(this._store);
+    }
+
+    var store = trans.objectStore(this._store);
+
+    var reqKey = IDBKeyRange.only(accountId);
+    var req = store.index('accountId').mozGetAll(reqKey);
+
+    req.onerror = function remotesError(e) {
+      callback(e.target.error);
+    };
+
+    var self = this;
+    req.onsuccess = function remotesSuccess(e) {
+      var result = Object.create(null);
+      e.target.result.forEach(function(calendar) {
+        result[calendar.remote.id] = self._createModel(
+          calendar,
+          calendar._id
+        );
+      });
+
+      callback(null, result);
+    };
+  },
+
+  /**
+   * Sync remote and local events for a calendar.
+   *
+   * TODO: Deprecate use of this function in favor of a sync methods
+   *       inside of providers.
+   */
+  sync: function(account, calendar, callback) {
+    var provider = core.providerFactory.get(account.providerType);
+    provider.syncEvents(account, calendar, callback);
+  },
+
+  /**
+   * Shortcut to find provider for calendar.
+   *
+   * @param {Calendar.Models.Calendar} calendar input calendar.
+   * @param {Function} callback [err, provider].
+   */
+  providerFor: function(calendar, callback) {
+    this.ownersOf(calendar, function(err, owners) {
+      if (err) {
+        return callback(err);
+      }
+
+      callback(null, core.providerFactory.get(owners.account.providerType));
+    });
+  },
+
+  /**
+   * Finds calendar/account for a given event.
+   *
+   * TODO: think about moving this function into its
+   * own file as a mixin.
+   *
+   * @param {Object|String|Numeric} objectOrId must contain .calendarId.
+   * @param {Function} callback [err, { ... }].
+   */
+  ownersOf: function(objectOrId, callback) {
+    var result = {};
+
+    var accountStore = core.storeFactory.get('Account');
+
+    // case 1. given a calendar
+    if (objectOrId instanceof CalendarModel) {
+      result.calendar = objectOrId;
+      accountStore.get(objectOrId.accountId, fetchAccount);
+      return;
+    }
+
+    // case 2 given a calendar id or object
+
+    if (typeof(objectOrId) === 'object') {
+      objectOrId = objectOrId.calendarId;
+    }
+
+    // why??? because we use this method in event store too..
+    var calendarStore = core.storeFactory.get('Calendar');
+    calendarStore.get(objectOrId, fetchCalendar);
+
+    function fetchCalendar(err, calendar) {
+      if (err) {
+        return callback(err);
+      }
+
+      result.calendar = calendar;
+      accountStore.get(calendar.accountId, fetchAccount);
+    }
+
+    function fetchAccount(err, account) {
+      if (err) {
+        return callback(err);
+      }
+
+      result.account = account;
+      callback(null, result);
+    }
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

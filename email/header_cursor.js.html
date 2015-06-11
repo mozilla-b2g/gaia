@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: header_cursor.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: header_cursor.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*global define */
+'use strict';
+/**
+ * @fileoverview Bug 918303 - HeaderCursor added to provide MessageListCard and
+ *     MessageReaderCard the current message and whether there are adjacent
+ *     messages that can be advanced to. Expect for [other] consumers to add
+ *     additional data to messagesSlice items after they've left the MailAPI.
+ */
+define(function(require) {
+  var array = require('array'),
+      evt = require('evt'),
+      model = require('model');
+
+  function makeListener(type, obj) {
+    return function() {
+      var args = Array.slice(arguments);
+      this.emit.apply(this, ['messages_' + type].concat(args));
+    }.bind(obj);
+  }
+
+  /**
+   * @constructor
+   */
+  function HeaderCursor() {
+    // Inherit from evt.Emitter.
+    evt.Emitter.call(this);
+
+    // Need to distinguish between search and nonsearch slices,
+    // since there can be two cards that both are listening for
+    // slice changes, but one is for search output, and one is
+    // for nonsearch output. The message_list is an example.
+    this.searchMode = 'nonsearch';
+  }
+
+  HeaderCursor.prototype = evt.mix({
+    /**
+     * @type {CurrentMessage}
+     */
+    currentMessage: null,
+
+    /**
+     * @type {HeadersViewSlice}
+     */
+    messagesSlice: null,
+
+    /**
+     * @type {String}
+     */
+    expectingMessageSuid: null,
+
+    /**
+     * @type {Array}
+     */
+    sliceEvents: ['splice', 'change', 'status', 'remove', 'complete'],
+
+    _inited: false,
+
+    /**
+     * Sets up the event wiring and will trigger the slice creation by listening
+     * to model 'folder' changes. Want to wait until there are views that need
+     * to use the header_cursor for showing UI, to avoid extra work, like in the
+     * background sync case.
+     */
+    init: function() {
+      this._inited = true;
+
+      // Listen for some slice events to do some special work.
+      this.on('messages_splice', this.onMessagesSplice.bind(this));
+      this.on('messages_remove', this.onMessagesSpliceRemove.bind(this));
+      this.on('messages_complete', function() {
+        // Consumers, like message_list, always want their 'complete' work
+        // to fire, but by default the slice removes the complete handler
+        // at the end. So rebind on each call here.
+        if (this.messagesSlice) {
+          this.messagesSlice.oncomplete = makeListener('complete', this);
+        }
+      }.bind(this));
+
+      // Listen to model for folder changes.
+      this.onLatestFolder = this.onLatestFolder.bind(this);
+      model.latest('folder', this.onLatestFolder);
+    },
+
+    /**
+     * The messageReader told us it wanted to advance, so we should go ahead
+     * and update our currentMessage appropriately and then report the new one.
+     *
+     * @param {string} direction either 'next' or 'previous'.
+     */
+    advance: function(direction) {
+      var index = this.indexOfMessageById(this.currentMessage.header.id);
+      switch (direction) {
+        case 'previous':
+          index -= 1;
+          break;
+        case 'next':
+          index += 1;
+          break;
+      }
+
+      var messages = this.messagesSlice.items;
+      if (index &lt; 0 || index >= messages.length) {
+        // We can't advance that far!
+        return;
+      }
+
+      this.setCurrentMessageByIndex(index);
+    },
+
+    /**
+     * Tracks a messageSuid to use in selecting
+     * the currentMessage once the slice data loads.
+     * @param {String} messageSuid The message suid.
+     */
+    setCurrentMessageBySuid: function(messageSuid) {
+      this.expectingMessageSuid = messageSuid;
+      this.checkExpectingMessageSuid();
+    },
+
+    /**
+     * Sets the currentMessage if there are messages now to check
+     * against expectingMessageSuid. Only works if current folder
+     * is set to an "inbox" type, so only useful for jumps into
+     * the email app from an entry point like a notification.
+     * @param  {Boolean} eventIfNotFound if set to true, an event
+     * is emitted if the messageSuid is not found in the set of
+     * messages.
+     */
+    checkExpectingMessageSuid: function(eventIfNotFound) {
+      var messageSuid = this.expectingMessageSuid;
+      if (!messageSuid || !model.folder || model.folder.type !== 'inbox') {
+        return;
+      }
+
+      var index = this.indexOfMessageById(messageSuid);
+      if (index > -1) {
+        this.expectingMessageSuid = null;
+        return this.setCurrentMessageByIndex(index);
+      }
+
+      if (eventIfNotFound) {
+        console.error('header_cursor could not find messageSuid ' +
+                      messageSuid + ', emitting messageSuidNotFound');
+        this.emit('messageSuidNotFound', messageSuid);
+      }
+    },
+
+    /**
+     * @param {MailHeader} header message header.
+     */
+    setCurrentMessage: function(header) {
+      if (!header) {
+        return;
+      }
+
+      this.setCurrentMessageByIndex(this.indexOfMessageById(header.id));
+    },
+
+    setCurrentMessageByIndex: function(index) {
+      var messages = this.messagesSlice.items;
+
+      // Do not bother if not a valid index.
+      if (index === -1 || index > messages.length - 1) {
+        return;
+      }
+
+      var header = messages[index];
+      if ('header' in header) {
+        header = header.header;
+      }
+
+      var currentMessage = new CurrentMessage(header, {
+        hasPrevious: index !== 0,                 // Can't be first
+        hasNext: index !== messages.length - 1    // Can't be last
+      });
+
+      this.emit('currentMessage', currentMessage, index);
+      this.currentMessage = currentMessage;
+    },
+
+    /**
+     * @param {string} id message id.
+     * @return {number} the index of the message cursor's current message
+     *     in the message slice it has checked out.
+     */
+    indexOfMessageById: function(id) {
+      var messages = (this.messagesSlice &amp;&amp; this.messagesSlice.items) || [];
+      return array.indexOfGeneric(messages, function(message) {
+        var other = 'header' in message ? message.header.id : message.id;
+        return other === id;
+      });
+    },
+
+    /**
+     * @param {Object} folder the folder we switched to.
+     */
+    onLatestFolder: function(folder) {
+      // It is possible that the notification of latest folder is fired
+      // but in the meantime the foldersSlice could be cleared due to
+      // a change in the current account, before this listener is called.
+      // So skip this work if no foldersSlice, this method will be called
+      // again soon.
+      if (!model.foldersSlice) {
+        return;
+      }
+
+      this.freshMessagesSlice();
+    },
+
+    startSearch: function(phrase, whatToSearch) {
+      this.searchMode = 'search';
+      this.bindToSlice(model.api.searchFolderMessages(model.folder,
+                                                      phrase,
+                                                      whatToSearch));
+    },
+
+    endSearch: function() {
+      this.die();
+      this.searchMode = 'nonsearch';
+      this.freshMessagesSlice();
+    },
+
+    freshMessagesSlice: function() {
+      this.bindToSlice(model.api.viewFolderMessages(model.folder));
+    },
+
+    /**
+     * holds on to messagesSlice and binds some events to it.
+     * @param  {Slice} messagesSlice the new messagesSlice.
+     */
+    bindToSlice: function(messagesSlice) {
+      this.die();
+
+      this.messagesSlice = messagesSlice;
+      this.sliceEvents.forEach(function(type) {
+        messagesSlice['on' + type] = makeListener(type, this);
+      }.bind(this));
+    },
+
+    onMessagesSplice: function(index, howMany, addedItems,
+                                         requested, moreExpected) {
+      // Avoid doing work if get called while in the process of
+      // shutting down.
+      if (!this.messagesSlice) {
+        return;
+      }
+
+      // If there was a messageSuid expected and at the top, then
+      // check to see if it was received. This is really just nice
+      // for when a new message notification comes in, as the atTop
+      // test is a bit fuzzy generally. Not all slices go to the top.
+      if (this.messagesSlice.atTop &amp;&amp; this.expectingMessageSuid &amp;&amp;
+          this.messagesSlice.items &amp;&amp; this.messagesSlice.items.length) {
+        this.checkExpectingMessageSuid(true);
+      }
+    },
+
+    /**
+     * Choose a new currentMessage if we spilled the existing one.
+     * Otherwise, emit 'currentMessage' event to update stale listeners
+     * in case we spilled a sibling.
+     *
+     * @param {MailHeader} removedHeader header that got removed.
+     * @param {number} removedFromIndex index header was removed from.
+     */
+    onMessagesSpliceRemove: function(removedHeader, removedFromIndex) {
+      if (this.currentMessage !== removedHeader) {
+        // Emit 'currentMessage' event in case we're spilling a sibling.
+        return this.setCurrentMessage(this.currentMessage);
+      }
+
+      var messages = this.messagesSlice.items;
+      if (messages.length === 0) {
+        // No more messages... sad!
+        return (this.currentMessage = null);
+      }
+
+      var index = Math.min(removedFromIndex, messages.length - 1);
+      var message = this.messagesSlice.items[index];
+      this.setCurrentMessage(message);
+    },
+
+    die: function() {
+      if (this.messagesSlice) {
+        this.messagesSlice.die();
+        this.messagesSlice = null;
+      }
+
+      this.currentMessage = null;
+    }
+  });
+
+  /*
+   * Override the .on method so that initialization and slice creation is
+   * delayed until there are listeners.
+   */
+  var oldOn = HeaderCursor.prototype.on;
+  HeaderCursor.prototype.on = function() {
+    if (!this._inited) {
+      this.init();
+      HeaderCursor.prototype.on = oldOn;
+    }
+
+    return oldOn.apply(this, arguments);
+  };
+
+  /**
+   * @constructor
+   * @param {MailHeader} header message header.
+   * @param {Object} siblings whether message has next and previous siblings.
+   */
+  function CurrentMessage(header, siblings) {
+    this.header = header;
+    this.siblings = siblings;
+  }
+
+  CurrentMessage.prototype = {
+    /**
+     * @type {MailHeader}
+     */
+    header: null,
+
+    /**
+     * Something like { hasPrevious: true, hasNext: false }.
+     * @type {Object}
+     */
+    siblings: null
+  };
+
+  return {
+    CurrentMessage: CurrentMessage,
+    cursor: new HeaderCursor()
+  };
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_cacheDom">_cacheDom</a></li><li><a href="global.html#_cacheDomTimeoutId">_cacheDomTimeoutId</a></li><li><a href="global.html#_cacheListLimit">_cacheListLimit</a></li><li><a href="global.html#_clearCachedMessages">_clearCachedMessages</a></li><li><a href="global.html#_considerCacheDom">_considerCacheDom</a></li><li><a href="global.html#_distanceBetweenMessages">_distanceBetweenMessages</a></li><li><a href="global.html#_divertToManualConfig">_divertToManualConfig</a></li><li><a href="global.html#_focusEditorWithCursorAtEnd">_focusEditorWithCursorAtEnd</a></li><li><a href="global.html#_isCacheableCardState">_isCacheableCardState</a></li><li><a href="global.html#_onAttachmentDone">_onAttachmentDone</a></li><li><a href="global.html#_onVScrollStopped">_onVScrollStopped</a></li><li><a href="global.html#_showFolder">_showFolder</a></li><li><a href="global.html#_topBar">_topBar</a></li><li><a href="global.html#_warnAttachmentSizeExceeded">_warnAttachmentSizeExceeded</a></li><li><a href="global.html#addAttachmentsSubjectToSizeLimits">addAttachmentsSubjectToSizeLimits</a></li><li><a href="global.html#advance">advance</a></li><li><a href="global.html#bindContainerHandler">bindContainerHandler</a></li><li><a href="global.html#bindToSlice">bindToSlice</a></li><li><a href="global.html#buildBodyDom">buildBodyDom</a></li><li><a href="global.html#calculateTotalAttachmentsSize">calculateTotalAttachmentsSize</a></li><li><a href="global.html#callHeaderFontSize">callHeaderFontSize</a></li><li><a href="global.html#canReplyAll">canReplyAll</a></li><li><a href="global.html#changeIfSame">changeIfSame</a></li><li><a href="global.html#checkExpectingMessageSuid">checkExpectingMessageSuid</a></li><li><a href="global.html#cloneAndSave">cloneAndSave</a></li><li><a href="global.html#cloneAsInertNodeAvoidingCustomElementHorrors">cloneAsInertNodeAvoidingCustomElementHorrors</a></li><li><a href="global.html#currentMessage">currentMessage</a></li><li><a href="global.html#delayedSaveFromNode">delayedSaveFromNode</a></li><li><a href="global.html#deleteBubble">deleteBubble</a></li><li><a href="global.html#die">die</a></li><li><a href="global.html#editBubble">editBubble</a></li><li><a href="global.html#expectingMessageSuid">expectingMessageSuid</a></li><li><a href="global.html#extractAddresses">extractAddresses</a></li><li><a href="global.html#fileSize">fileSize</a></li><li><a href="global.html#fromEditor">fromEditor</a></li><li><a href="global.html#hideAccounts">hideAccounts</a></li><li><a href="global.html#hideEmptyLayout">hideEmptyLayout</a></li><li><a href="global.html#indexOfMessageById">indexOfMessageById</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#insertBubble">insertBubble</a></li><li><a href="global.html#isValidAddress">isValidAddress</a></li><li><a href="global.html#learnAbout">learnAbout</a></li><li><a href="global.html#loadNextChunk">loadNextChunk</a></li><li><a href="global.html#messages_complete">messages_complete</a></li><li><a href="global.html#messagesSlice">messagesSlice</a></li><li><a href="global.html#onAccountsSplice">onAccountsSplice</a></li><li><a href="global.html#onAddressInput">onAddressInput</a></li><li><a href="global.html#onAddressKeydown">onAddressKeydown</a></li><li><a href="global.html#onBack">onBack</a></li><li><a href="global.html#onCardVisible">onCardVisible</a></li><li><a href="global.html#onClickAccount">onClickAccount</a></li><li><a href="global.html#onCurrentCardDocumentVisibilityChange">onCurrentCardDocumentVisibilityChange</a></li><li><a href="global.html#onCurrentMessage">onCurrentMessage</a></li><li><a href="global.html#onEnvelopeClick">onEnvelopeClick</a></li><li><a href="global.html#onFolderPickerClosing">onFolderPickerClosing</a></li><li><a href="global.html#onFolderShown">onFolderShown</a></li><li><a href="global.html#onLatestFolder">onLatestFolder</a></li><li><a href="global.html#onMessagesSpliceRemove">onMessagesSpliceRemove</a></li><li><a href="global.html#onNext">onNext</a></li><li><a href="global.html#onPrevious">onPrevious</a></li><li><a href="global.html#onSend">onSend</a></li><li><a href="global.html#onUsePassword">onUsePassword</a></li><li><a href="global.html#populateEditor">populateEditor</a></li><li><a href="global.html#proceed">proceed</a></li><li><a href="global.html#reallySend">reallySend</a></li><li><a href="global.html#renderAttachments">renderAttachments</a></li><li><a href="global.html#renderSendStatus">renderSendStatus</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#save">save</a></li><li><a href="global.html#saveFromNode">saveFromNode</a></li><li><a href="global.html#selectedMessagesUpdated">selectedMessagesUpdated</a></li><li><a href="global.html#setCurrentMessage">setCurrentMessage</a></li><li><a href="global.html#setCurrentMessageBySuid">setCurrentMessageBySuid</a></li><li><a href="global.html#setMessageChecked">setMessageChecked</a></li><li><a href="global.html#setRefreshState">setRefreshState</a></li><li><a href="global.html#setSelectState">setSelectState</a></li><li><a href="global.html#showAccounts">showAccounts</a></li><li><a href="global.html#showEmptyLayout">showEmptyLayout</a></li><li><a href="global.html#showFolder">showFolder</a></li><li><a href="global.html#showLargeMessageWarning">showLargeMessageWarning</a></li><li><a href="global.html#sizeLastSync">sizeLastSync</a></li><li><a href="global.html#skipEmitContentEvents">skipEmitContentEvents</a></li><li><a href="global.html#sliceEvents">sliceEvents</a></li><li><a href="global.html#subject">subject</a></li><li><a href="global.html#toggleOutboxSyncingDisplay">toggleOutboxSyncingDisplay</a></li><li><a href="global.html#updateAccount">updateAccount</a></li><li><a href="global.html#updateAttachmentsAriaLabel">updateAttachmentsAriaLabel</a></li><li><a href="global.html#updateAttachmentsSize">updateAttachmentsSize</a></li><li><a href="global.html#updateMessageDom">updateMessageDom</a></li><li><a href="global.html#validateAddresses">validateAddresses</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:29 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

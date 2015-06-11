@@ -1,7 +1,0 @@
-{
-  "name": "marionette-file-manager",
-  "version": "0.0.4",
-  "author": "Evan Tseng <evanxd@mozilla.com>",
-  "description": "A marionette plugin to manage(add, remove) files in device storage.",
-  "main": "index.js"
-}

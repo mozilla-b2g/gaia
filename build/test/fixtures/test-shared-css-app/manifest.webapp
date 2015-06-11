@@ -1,9 +1,0 @@
-{
-  "name": "Test Shared CSS",
-  "description": "Test shared CSS functionalities",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "Ricky",
-    "url": "http://www.mozilla.org"
-  }
-}

@@ -1,9 +1,0 @@
-#screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="time-selector"] {
-  height: calc(100% - 7rem - var(--software-home-button-height));
-}
-
-@media (orientation: landscape) {
-  #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="time-selector"] {
-    height: calc(100% - 7rem);
-  }
-}

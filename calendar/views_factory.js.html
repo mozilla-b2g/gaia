@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/factory.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/factory.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var asyncRequire = require('common/async_require');
+var debug = require('common/debug')('viewFactory');
+var nextTick = require('common/next_tick');
+var snakeCase = require('snake_case');
+
+exports._instances = Object.create(null);
+
+/**
+ * Initializes a view and stores
+ * a internal reference so when
+ * view is called a second
+ * time the same view is used.
+ *
+ * Makes an asynchronous call to
+ * load the script if we do not
+ * have the view cached.
+ *
+ *    // for example if you have
+ *    // a calendar view Foo
+ *
+ *    viewFactory.get('Foo', function(view) {
+ *      (view instanceof require('views/foo')) === true
+ *    });
+ *
+ * @param {String} name view name.
+ * @param {Function} view loaded callback.
+ */
+exports.get = function(name, cb) {
+  if (this._registered(name)) {
+    debug(`Found view named ${name}`);
+    this._get(name, cb);
+    return;
+  }
+
+  var path = `views/${snakeCase(name)}`;
+
+  try {
+    // we try sync require first since it should be faster (skip an extra
+    // "tick"); our modules are bundled into few files during build time, so
+    // sync require should work in almost all the calls (will only fail if
+    // module was not defined/loaded before)
+    var Ctor = require(path);
+    debug(`Initializing view ${name} registered as ${path}`);
+    this._initView(name, Ctor, cb);
+  } catch(e) {
+    debug(`Will try to load view ${name} at ${path}`);
+    asyncRequire(path).then(Ctor => {
+      debug(`Loaded view ${name}`);
+      this._initView(name, Ctor, cb);
+    });
+  }
+},
+
+exports._registered = function(name) {
+  return name in this._instances;
+};
+
+exports._get = function(name, cb) {
+  var view = this._instances[name];
+  cb &amp;&amp; nextTick(() => cb.call(null, view));
+};
+
+exports._initView = function(name, Ctor, cb) {
+  if (this._registered(name)) {
+    // need to safeguard in case async load is triggered multiple times before
+    // we can save a reference to the Constructor and/or view instance (would
+    // trigger the window.require callback multiple times)
+    return;
+  }
+  var view = new Ctor();
+  this._instances[name] = view;
+  this._get(name, cb);
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

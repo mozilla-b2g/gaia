@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: panels/sound/tone_manager.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: panels/sound/tone_manager.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global URL, MozActivity */
+/**
+ * Handle tone functionality in sound panel
+ * @module ToneManager
+ */
+define(function(require) {
+  'use strict';
+
+  var SettingsListener = require('shared/settings_listener');
+  var SettingsCache = require('modules/settings_cache');
+  var ForwardLock = require('shared/omadrm/fl');
+
+  var ToneManager = function() {
+    this._elements = null;
+    this._tones = null;
+  };
+
+  ToneManager.prototype = {
+    /**
+     * initialization.
+     *
+     * @access public
+     * @memberOf ToneManager.prototype
+     */
+    init: function tm_init(elements) {
+      this._elements = elements;
+      this._configureTones();
+      this._handleTones();
+
+      this._elements.manageTones.addEventListener('click',
+        this._manageTonesClickHandler);
+    },
+
+    /**
+     * Initialize the ring tone and alert tone menus.
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     */
+    _configureTones: function tm_configureTones() {
+      // This array has one element for each selectable tone that
+      // appears in the "Tones" section of ../elements/sound.html.
+      this._tones = [{
+        pickType: 'alerttone',
+        settingsKey: 'notification.ringtone',
+        allowNone: true, // Allow "None" as a choice for alert tones.
+        button: this._elements.alertToneSelection,
+        desc: this._elements.alertToneSelectionDesc
+      }];
+
+      // If we're a telephone, then show the section for ringtones, too.
+      if (navigator.mozTelephony) {
+        this._tones.push({
+          pickType: 'ringtone',
+          settingsKey: 'dialer.ringtone',
+          allowNone: false, // The ringer must always have an actual sound.
+          button: this._elements.ringToneSelection,
+          desc: this._elements.ringToneSelectionDesc
+        });
+        this._elements.ringer.hidden = false;
+      }
+    },
+
+    /**
+     * The button looks like a select element and holds the name of the
+     * currently-selected tone. Sometimes the name is an l10n ID
+     * and sometimes it is just text.
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     */
+    _renderToneName: function tm_renderToneName(tone, tonename) {
+      var l10nID = tonename &amp;&amp; tonename.l10nID;
+
+      if (l10nID) {
+        tone.desc.setAttribute('data-l10n-id', l10nID);
+      } else {
+        tone.desc.removeAttribute('data-l10n-id');
+        tone.desc.textContent = tonename;
+      }
+    },
+
+    /**
+     * render tone content
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     * @param  {Object} tone     tone element
+     * @param  {Object} result     web activity result
+     * @param  {String} secret   sound is playable
+     */
+    _renderTone: function tm_renderTone(tone, result, secret) {
+      var oldRingtoneName = null;
+
+      var l10nId = tone.desc.getAttribute('data-l10n-id');
+      if (!l10nId) {
+        oldRingtoneName = tone.desc.textContent;
+      }
+      tone.desc.setAttribute('data-l10n-id', 'saving-tone');
+      var promise;
+      var self = this;
+      // If we got a locked ringtone, we have to unlock it first
+      if (result.blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
+        ForwardLock.unlockBlob(secret, result.blob, function(unlocked) {
+          promise = self._isPlayableTone(unlocked);
+        });
+      } else {  // Otherwise we can just use the blob directly.
+        promise = self._isPlayableTone(result.blob);
+      }
+      promise.then(function(isPlayable) {
+        if (isPlayable) {
+          self._setRingtone(tone.settingsKey, result.l10nID,
+            result.name, result.blob, result.id);
+        } else {
+          if (l10nId) {
+            tone.desc.setAttribute('data-l10n-id', l10nId);
+          } else {
+             // remove temp 'saving-tone' l10nId
+            tone.desc.removeAttribute('data-l10n-id');
+            tone.desc.textContent = oldRingtoneName;
+          }
+          alert(navigator.mozL10n.get('unplayable-ringtone'));
+        }
+      });
+    },
+
+    /**
+     * Call web activity to pick a tone
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     * @param  {Object} tone          tone element
+     * @param  {Number} currentToneID tone id
+     * @param  {String} secret        forwardlock secret key
+     */
+    _pickTone: function tm_pickRingTone(tone, currentToneID, secret) {
+      var self = this;
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: tone.pickType,
+          allowNone: tone.allowNone,
+          currentToneID: currentToneID,
+          // If we have a secret then there is locked content on the
+          // phone so include it as a choice for the user
+          includeLocked: (secret !== null)
+        }
+      });
+
+      activity.onsuccess = function() {
+        var result = activity.result;
+        if (!result.blob) {
+          if (tone.allowNone) {
+            // If we allow a null blob, then everything is okay
+            self._setRingtone(tone.settingsKey, result.l10nID, result.name,
+              result.blob, result.id);
+          } else {
+            // Otherwise this is an error and we should not change the
+            // current setting. (The ringtones app should never return
+            // a null blob if allowNone is false, but other apps might.)
+            alert(navigator.mozL10n.get('unplayable-ringtone'));
+          }
+          return;
+        }
+
+        self._renderTone(tone, result, secret);
+      };
+    },
+
+    /**
+     * Update Ringtones list.
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     */
+    _handleTones: function tm_handleTones() {
+      // For each kind of tone, hook up the button that will allow the user
+      // to select a sound for that kind of tone.
+      this._tones.forEach(function(tone) {
+        var nameKey = tone.settingsKey + '.name';
+        var idKey = tone.settingsKey + '.id';
+
+        SettingsListener.observe(nameKey, '',
+          this._renderToneName.bind(this, tone));
+
+        var self = this;
+        // When the user clicks the button, we launch an activity that lets
+        // the user select new ringtone.
+        tone.button.addEventListener('click', function() {
+          // First, get the ID of the currently-selected tone.
+          SettingsCache.getSettings(function(results) {
+            var currentToneID = results[idKey];
+
+            // Before we can start the Pick activity, we need to know if there
+            // is locked content on the phone because we don't want the user to
+            // see "Purchased Media" as a choice if there isn't any purchased
+            // media on the phone. The ForwardLock secret key is not generated
+            // until it is needed, so we can use its existance to
+            // determine whether to show the Purchased Media app.
+            ForwardLock.getKey(function(secret) {
+              self._pickTone(tone, currentToneID, secret);
+            });
+          });
+        });
+      }.bind(this));
+    },
+
+    /**
+     * Save the sound blob in the settings so that other apps can use it.
+     * Also save the sound name in the db so we can display it in the
+     * future.  And update the button text to the new name now.
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     * @param  {String} settingsKey   key string
+     * @param  {String} l10nID        element l10nID id
+     * @param  {String} toneName      element name
+     * @param  {Blob} blob            tone blob
+     * @param  {String} id            tone id
+     */
+    _setRingtone: function tm_setRingtone(settingsKey, l10nID, toneName,
+      blob, id) {
+      var blobKey = settingsKey;
+      var nameKey = settingsKey + '.name';
+      var idKey = settingsKey + '.id';
+
+      // Update the settings database. This will cause the button
+      // text to change as well because of the SettingsListener above.
+      var values = {};
+      var name = l10nID ? {l10nID : l10nID} : toneName;
+
+      values[blobKey] = blob;
+      values[nameKey] = name || '';
+      values[idKey] = id;
+      navigator.mozSettings.createLock().set(values);
+    },
+
+    /**
+     * Make sure that the blob we got from the activity is actually
+     * a playable audio file. It would be very bad to set an corrupt
+     * blob as a ringtone because then the phone wouldn't ring!
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     * @param  {Blob} blob            tone blob
+     * @return {Promise} A promise that resolves to the media playable stat
+     */
+    _isPlayableTone: function tm_isPlayableTone(blob) {
+      return new Promise(function(resolve, reject) {
+        var player = new Audio();
+        player.preload = 'metadata';
+        player.src = URL.createObjectURL(blob);
+        player.oncanplay = function() {
+          release();
+          resolve(true);
+        };
+        player.onerror = function() {
+          release();
+          resolve(false);
+        };
+
+        function release() {
+          URL.revokeObjectURL(player.src);
+          player.removeAttribute('src');
+          player.load();
+        }
+      });
+    },
+
+    /**
+     * Call ringtone activity to manage tones.
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     */
+    _manageTonesClickHandler: function tm_manageTonesClickHandler() {
+      var activity = new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'ringtone'
+        }
+      });
+
+      // We should hopefully never encounter this error, but if we do, it means
+      // we couldn't find the ringtone app. It also has the happy side effect of
+      // quieting jshint about not using the `activity` variable.
+      activity.onerror = function() {
+        console.log(this.error);
+        if (this.error.name === 'NO_PROVIDER') {
+          alert(navigator.mozL10n.get('no-ringtone-app'));
+        }
+      };
+    }
+  };
+
+  return function ctor_toneManager() {
+    return new ToneManager();
+  };
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-@SimPinDialog.html">@SimPinDialog</a></li><li><a href="module-abou_more_info_commitInfo.html">abou_more_info/commitInfo</a></li><li><a href="module-abou_more_info_DeviceInfo.html">abou_more_info/DeviceInfo</a></li><li><a href="module-about_FactoryReset.html">about/FactoryReset</a></li><li><a href="module-about_HardwareInfo.html">about/HardwareInfo</a></li><li><a href="module-about_UpdateCheck.html">about/UpdateCheck</a></li><li><a href="module-about_more_info_hardwareInfo.html">about_more_info/hardwareInfo</a></li><li><a href="module-achievements_achievements_template.html">achievements/achievements_template</a></li><li><a href="module-addons_addons_template.html">addons/addons_template</a></li><li><a href="module-AddonsItem.html">AddonsItem</a></li><li><a href="module-AddonsList.html">AddonsList</a></li><li><a href="module-apn_list_apn_template_factory.html">apn_list/apn_template_factory</a></li><li><a href="module-AppsCache.html">AppsCache</a></li><li><a href="module-Bluetooth.html">Bluetooth</a></li><li><a href="module-bluetooth_bt_template_factory.html">bluetooth/bt_template_factory</a></li><li><a href="module-BluetoothAdapterManager.html">BluetoothAdapterManager</a></li><li><a href="module-BluetoothClassOfDeviceMapper.html">BluetoothClassOfDeviceMapper</a></li><li><a href="module-BluetoothConnectionManager.html">BluetoothConnectionManager</a></li><li><a href="module-BluetoothContext.html">BluetoothContext</a></li><li><a href="module-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-call_call_forwarding.html">call/call_forwarding</a></li><li><a href="module-call_call_settings_task_scheduler.html">call/call_settings_task_scheduler</a></li><li><a href="module-DateTime.html">DateTime</a></li><li><a href="module-Defer.html">Defer</a></li><li><a href="module-developer_developer.html">developer/developer</a></li><li><a href="module-DialogManager.html">DialogManager</a></li><li><a href="module-DialogService.html">DialogService</a></li><li><a href="module-display_display.html">display/display</a></li><li><a href="module-HomescreenItem.html">HomescreenItem</a></li><li><a href="module-Hotspot.html">Hotspot</a></li><li><a href="module-HotspotSettings.html">HotspotSettings</a></li><li><a href="module-js_activity_handler.html">js/activity_handler</a></li><li><a href="module-keyboard_enabled_layouts.html">keyboard/enabled_layouts</a></li><li><a href="module-keyboard_installed_keyboards.html">keyboard/installed_keyboards</a></li><li><a href="module-keyboard_keyboard_template.html">keyboard/keyboard_template</a></li><li><a href="module-keyboard_add_layouts_core.html">keyboard_add_layouts/core</a></li><li><a href="module-keyboard_add_layouts_keyboard_template.html">keyboard_add_layouts/keyboard_template</a></li><li><a href="module-keyboard_add_layouts_layout_template.html">keyboard_add_layouts/layout_template</a></li><li><a href="module-keyboard_add_layouts_nested_template_factory.html">keyboard_add_layouts/nested_template_factory</a></li><li><a href="module-KeyboardContext.html">KeyboardContext</a></li><li><a href="module-modules_apn_apn_item.html">modules/apn/apn_item</a></li><li><a href="module-modules_base_dependency_graph.html">modules/base/dependency_graph</a></li><li><a href="module-modules_base_module.html">modules/base/module</a></li><li><a href="module-modules_base_task_scheduler.html">modules/base/task_scheduler</a></li><li><a href="module-modules_bluetooth_version_detector.html">modules/bluetooth/version_detector</a></li><li><a href="module-modules_mvvm_observable.html">modules/mvvm/observable</a></li><li><a href="module-modules_mvvm_observable_array.html">modules/mvvm/observable_array</a></li><li><a href="module-PageTransitions.html">PageTransitions</a></li><li><a href="module-Panel.html">Panel</a></li><li><a href="module-PanelCache.html">PanelCache</a></li><li><a href="module-panels_operator_settings_models_auto_selection_model.html">panels/operator_settings/models/auto_selection_model</a></li><li><a href="module-panels_operator_settings_models_mobile_connection_wrapper.html">panels/operator_settings/models/mobile_connection_wrapper</a></li><li><a href="module-panels_operator_settings_models_network_type_manager.html">panels/operator_settings/models/network_type_manager</a></li><li><a href="module-panels_operator_settings_models_panel_model.html">panels/operator_settings/models/panel_model</a></li><li><a href="module-panels_operator_settings_models_roaming_preference_manager.html">panels/operator_settings/models/roaming_preference_manager</a></li><li><a href="module-panels_root_airplane_mode_item.html">panels/root/airplane_mode_item</a></li><li><a href="module-panels_root_battery_item.html">panels/root/battery_item</a></li><li><a href="module-panels_root_bluetooth_item.html">panels/root/bluetooth_item</a></li><li><a href="module-panels_root_findmydevice_item.html">panels/root/findmydevice_item</a></li><li><a href="module-panels_root_language_item.html">panels/root/language_item</a></li><li><a href="module-panels_root_low_priority_items.html">panels/root/low_priority_items</a></li><li><a href="module-panels_root_nfc_item.html">panels/root/nfc_item</a></li><li><a href="module-PanelUtils.html">PanelUtils</a></li><li><a href="module-PermissionsList.html">PermissionsList</a></li><li><a href="module-PrivacyPanelItem.html">PrivacyPanelItem</a></li><li><a href="module-root_root.html">root/root</a></li><li><a href="module-SettingsCache.html">SettingsCache</a></li><li><a href="module-SettingsPanel.html">SettingsPanel</a></li><li><a href="module-SettingsService.html">SettingsService</a></li><li><a href="module-SimCardManager.html">SimCardManager</a></li><li><a href="module-SimSecurity.html">SimSecurity</a></li><li><a href="module-SimSecurityItem.html">SimSecurityItem</a></li><li><a href="module-SliderHandler.html">SliderHandler</a></li><li><a href="module-themes_layout_template.html">themes/layout_template</a></li><li><a href="module-ThemesItem.html">ThemesItem</a></li><li><a href="module-ToneManager.html">ToneManager</a></li><li><a href="module-VolumeManager.html">VolumeManager</a></li><li><a href="module-Wallpaper.html">Wallpaper</a></li><li><a href="module-wifi_manage_networks_wifi_known_networks.html">wifi_manage_networks/wifi_known_networks</a></li><li><a href="module-wifi_wps_wifi_wps.html">wifi_wps/wifi_wps</a></li><li><a href="module-WifiContext.html">WifiContext</a></li><li><a href="module-WifiUtils.html">WifiUtils</a></li><li><a href="module-WifiWps.html">WifiWps</a></li></ul><h3>Classes</h3><ul><li><a href="AddonDetails.html">AddonDetails</a></li><li><a href="AppStorageItem.html">AppStorageItem</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DeveloperServiceWorkers.html">DeveloperServiceWorkers</a></li><li><a href="EventEmitter.html">EventEmitter</a></li><li><a href="module-abou_more_info_commitInfo-commitInfo.html">commitInfo</a></li><li><a href="module-abou_more_info_DeviceInfo-DeviceInfo.html">DeviceInfo</a></li><li><a href="module-about_FactoryReset-FactoryReset.html">FactoryReset</a></li><li><a href="module-about_HardwareInfo-HardwareInfo.html">HardwareInfo</a></li><li><a href="module-about_UpdateCheck-UpdateCheck.html">UpdateCheck</a></li><li><a href="module-about_more_info_hardwareInfo-HardwareInfo.html">HardwareInfo</a></li><li><a href="module-BluetoothDevice-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-call_call_forwarding-CallForwarding.html">CallForwarding</a></li><li><a href="module-call_call_settings_task_scheduler-CallSettingsTaskScheduler.html">CallSettingsTaskScheduler</a></li><li><a href="module-developer_developer-Developer.html">Developer</a></li><li><a href="module-display_display-Display.html">Display</a></li><li><a href="module-keyboard_enabled_layouts-KeyboardEnabledLayoutsCore.html">KeyboardEnabledLayoutsCore</a></li><li><a href="module-keyboard_installed_keyboards-KeyboardCore.html">KeyboardCore</a></li><li><a href="module-keyboard_add_layouts_core-KeyboardAddLayoutsCore.html">KeyboardAddLayoutsCore</a></li><li><a href="module-KeyboardContext-Keyboard.html">Keyboard</a></li><li><a href="module-KeyboardContext-Layout.html">Layout</a></li><li><a href="module-modules_apn_apn_item-ApnItem.html">ApnItem</a></li><li><a href="module-modules_base_dependency_graph-DependencyGraph.html">DependencyGraph</a></li><li><a href="module-modules_base_task_scheduler-TaskScheduler.html">TaskScheduler</a></li><li><a href="module-modules_mvvm_observable_array-ObservableArray.html">ObservableArray</a></li><li><a href="module-modules_mvvm_observable-Observable.html">Observable</a></li><li><a href="module-panels_operator_settings_models_mobile_connection_wrapper-MobileConnetionWrapper.html">MobileConnetionWrapper</a></li><li><a href="module-panels_operator_settings_models_network_type_manager-NetworkTypeManager.html">NetworkTypeManager</a></li><li><a href="module-panels_operator_settings_models_panel_model-OperatorSettingsPanelModel.html">OperatorSettingsPanelModel</a></li><li><a href="module-panels_operator_settings_models_roaming_preference_manager-RoamingPreferenceManager.html">RoamingPreferenceManager</a></li><li><a href="module-panels_root_airplane_mode_item-AirplaneModeItem.html">AirplaneModeItem</a></li><li><a href="module-panels_root_battery_item-BatteryItem.html">BatteryItem</a></li><li><a href="module-panels_root_bluetooth_item-BluetoothItem.html">BluetoothItem</a></li><li><a href="module-panels_root_findmydevice_item-FindMyDeviceItem.html">FindMyDeviceItem</a></li><li><a href="module-panels_root_language_item-LanguageItem.html">LanguageItem</a></li><li><a href="module-panels_root_nfc_item-NFCItem.html">NFCItem</a></li><li><a href="module-root_root-Root.html">Root</a></li><li><a href="module-wifi_manage_networks_wifi_known_networks-WifiKnownNetworks.html">WifiKnownNetworks</a></li><li><a href="StateModel.html">StateModel</a></li><li><a href="USBStorageItem.html">USBStorageItem</a></li></ul><h3>Events</h3><ul><li><a href="module-SettingsCache.html#event:settingsChange">settingsChange</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_customize">_customize</a></li><li><a href="global.html#_datePickerChange">_datePickerChange</a></li><li><a href="global.html#_getInstance">_getInstance</a></li><li><a href="global.html#_hideActionMenu">_hideActionMenu</a></li><li><a href="global.html#_MODE">_MODE</a></li><li><a href="global.html#_renderAuthorizedNumbers">_renderAuthorizedNumbers</a></li><li><a href="global.html#_renderFdnContact">_renderFdnContact</a></li><li><a href="global.html#_renderTimeFormat">_renderTimeFormat</a></li><li><a href="global.html#_renderTimeZone">_renderTimeZone</a></li><li><a href="global.html#_showActionMenu">_showActionMenu</a></li><li><a href="global.html#_timePickerChange">_timePickerChange</a></li><li><a href="global.html#_updateContact">_updateContact</a></li><li><a href="global.html#_updateUI">_updateUI</a></li><li><a href="global.html#CarrierSettings">CarrierSettings</a></li><li><a href="global.html#DeviceStorageHelper">DeviceStorageHelper</a></li><li><a href="global.html#FileSizeFormatter">FileSizeFormatter</a></li><li><a href="global.html#getIccByIndex">getIccByIndex</a></li><li><a href="global.html#getWallpaperPath">getWallpaperPath</a></li><li><a href="global.html#loadWallpaper">loadWallpaper</a></li><li><a href="global.html#openDialog">openDialog</a></li><li><a href="global.html#openLink">openLink</a></li><li><a href="global.html#reopenSettings">reopenSettings</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#rollbackTheme">rollbackTheme</a></li><li><a href="global.html#saveConfig">saveConfig</a></li><li><a href="global.html#setWallpaper">setWallpaper</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:38 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

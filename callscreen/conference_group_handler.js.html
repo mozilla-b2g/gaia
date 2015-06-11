@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: conference_group_handler.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: conference_group_handler.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* globals CallsHandler, CallScreen, ConferenceGroupUI, FontSizeManager,
+           LazyL10n */
+
+/* exported ConferenceGroupHandler */
+
+'use strict';
+/**
+ * Manages and handles conference call logic.
+ * Exposes the following functionality:
+ *  - To add and to remove calls to and from the ongoing conference call details
+ *     information overlay.
+ *  - To be signaled by other actors that a conference call has ended.
+ *  - To check if the conference call details information overlay is shown.
+ *  - To get the current conference call duration.
+ */
+var ConferenceGroupHandler = (function() {
+
+  /**
+   * Object initialization.
+   */
+  var bdiCount = document.createElement('bdi');
+  var groupLine = document.getElementById('group-call');
+  var groupLabel = document.getElementById('group-call-label');
+  groupLabel.appendChild(bdiCount);
+  // FIXME/bug 1007148: Refactor duration element structure
+  var groupDuration = document.querySelector('#group-call > .duration');
+  var groupDurationChildNode = groupDuration.querySelector('span');
+  var groupTotalDurationChildNode =
+    groupDuration.querySelector('.total-duration');
+
+  var telephony = window.navigator.mozTelephony;
+  if (telephony.conferenceGroup) {
+    telephony.conferenceGroup.oncallschanged = onCallsChanged;
+    telephony.conferenceGroup.onstatechange = onStateChange;
+  }
+
+  /**
+   * Private helper functions.
+   */
+
+  function onCallsChanged() {
+    var calls = telephony.conferenceGroup.calls;
+    CallScreen.updateCallsDisplay();
+    // Hide the conference call participant list overlay if the conference call
+    //  has ended.
+    if (!calls.length) {
+      ConferenceGroupUI.hideGroupDetails();
+    }
+
+    LazyL10n.get(function localized(_) {
+      var groupDetailsHeaderText = _('conferenceCall', {n: calls.length});
+      bdiCount.textContent = groupDetailsHeaderText;
+      ConferenceGroupUI.setGroupDetailsHeader(bdiCount.textContent);
+    });
+
+    // When hanging up phones on conferenceGroup.calls.length >= 2,
+    // we need to update handledCalls here since conferenceGroup.oncallschanged
+    // rather than telephony.oncallschanges raises.
+    // In case of conferenceGroup.calls.length &lt; 2, check should be performed
+    // in onStateChange to ignore transitional oncallschanged events before
+    // exiting.
+    if (telephony.conferenceGroup.calls.length >= 2) {
+      CallsHandler.checkCalls();
+    }
+
+    if (CallsHandler.isFirstCallOnCdmaNetwork()) {
+      CallScreen.cdmaConferenceCall();
+    }
+  }
+
+  function show() {
+    groupLine.hidden = false;
+    groupLine.classList.remove('ended');
+    groupLine.classList.remove('held');
+    CallScreen.createTicker(groupDuration);
+    CallScreen.setCallerContactImage();
+  }
+
+  function end() {
+    groupTotalDurationChildNode.textContent =
+      groupDurationChildNode.textContent;
+    LazyL10n.get(function localized(_) {
+      groupDurationChildNode.textContent = _('callEnded');
+    });
+    groupLine.classList.add('ended');
+    groupLine.classList.remove('held');
+    FontSizeManager.adaptToSpace(
+      CallScreen.getScenario(), groupLabel, false, 'end');
+    CallScreen.stopTicker(groupDuration);
+
+    setTimeout(function(evt) {
+      groupLine.hidden = true;
+      CallScreen.updateCallsDisplay();
+    }, CallScreen.callEndPromptTime);
+  }
+
+  function onStateChange() {
+    switch (telephony.conferenceGroup.state) {
+      case 'resuming':
+      case 'connected':
+        show();
+        break;
+      case 'held':
+        groupLine.classList.add('held');
+        break;
+      case '':
+        // Exiting conference call
+        end();
+        CallsHandler.checkCalls();
+        break;
+    }
+  }
+
+  /**
+   * Publicly exposed API functions.
+   */
+
+  function signalConferenceEnded() {
+    ConferenceGroupUI.markCallsAsEnded();
+  }
+
+  function addToGroupDetails(node) {
+    ConferenceGroupUI.addCall(node);
+  }
+
+  function removeFromGroupDetails(node) {
+    ConferenceGroupUI.removeCall(node);
+  }
+
+  function isGroupDetailsShown() {
+    return ConferenceGroupUI.isGroupDetailsShown();
+  }
+
+  return {
+    addToGroupDetails: addToGroupDetails,
+    removeFromGroupDetails: removeFromGroupDetails,
+    signalConferenceEnded: signalConferenceEnded,
+    isGroupDetailsShown: isGroupDetailsShown,
+    get currentDuration() {
+      return groupDurationChildNode.textContent;
+    }
+  };
+})();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ConferenceGroupHandler">ConferenceGroupHandler</a></li><li><a href="global.html#ConferenceGroupUI">ConferenceGroupUI</a></li><li><a href="global.html#onLoadCallScreen">onLoadCallScreen</a></li><li><a href="global.html#unloadCallScreen">unloadCallScreen</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:21 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

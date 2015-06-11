@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: model.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: model.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+define(function(require) {
+  var evt = require('evt'),
+      // Expect a module to provide a function that allows setting up model/api
+      // pieces that depend on specific UI or localizations.
+      modelInit = require('model_init');
+
+  function dieOnFatalError(msg) {
+    console.error('FATAL:', msg);
+    throw new Error(msg);
+  }
+
+  function saveHasAccount(acctsSlice) {
+    // Save localStorage value to improve startup choices
+    localStorage.setItem('data_has_account',
+                         (acctsSlice.items.length ? 'yes' : 'no'));
+
+    console.log('WRITING LOCAL STORAGE ITEM: ' + 'data_has_account',
+                (acctsSlice.items.length ? 'yes' : 'no'));
+  }
+
+/**
+ * Provides a front end to the API and slice objects returned from the API.
+ * Since the UI right now is driven by a shared set of slices, this module
+ * tracks those slices and creates events when they are changed. This means
+ * the card modules do not need a direct reference to each other to change
+ * the backing data for a card, and that card modules and app logic do not
+ * need a hard, static dependency on the MailAPI object. This allows some
+ * more flexible and decoupled loading scenarios. In particular, cards can
+ * be created an inserted into the DOM without needing the back end to
+ * complete its startup and initialization.
+ *
+ * It mixes in 'evt' capabilities, so it will be common to see model
+ * used with 'latest' and 'latestOnce' to get the latest model data
+ * whenever it loads.
+ *
+ * Down the road, it may make sense to have more than one model object
+ * in play. At that point, it may make sense to morph this into a
+ * constructor function and then have the card objects receive a model
+ * instance property for their model reference.
+ *
+ * @type {Object}
+ */
+  var model = {
+    firstRun: null,
+
+    /**
+    * acctsSlice event is fired when the property changes.
+    * event: acctsSlice
+    * @param {Object} the acctsSlice object.
+    **/
+    acctsSlice: null,
+
+    /**
+    * account event is fired when the property changes.
+    * event: account
+    * @param {Object} the account object.
+    **/
+    account: null,
+
+    /**
+    * foldersSlice event is fired when the property changes.
+    * event: foldersSlice
+    * @param {Object} the foldersSlice object.
+    **/
+    foldersSlice: null,
+
+    /**
+    * folder event is fired when the property changes.
+    * event: folder
+    * @param {Object} the folder object.
+    **/
+    folder: null,
+
+    /**
+     * emits an event based on a property value. Since the
+     * event is based on a property value that is on this
+     * object, *do not* use emitWhenListener, since, due to
+     * the possibility of queuing old values with that
+     * method, it could cause bad results (bug 971617), and
+     * it is not needed since the latest* methods will get
+     * the latest value on this object.
+     * @param  {String} id event ID/property name
+     */
+    _callEmit: function(id) {
+      this.emit(id, this[id]);
+    },
+
+    inited: false,
+
+    /**
+     * Returns true if there is an account. Should only be
+     * called after inited is true.
+     */
+    hasAccount: function() {
+      return (model.getAccountCount() > 0);
+    },
+
+    /**
+     * Given an account ID, get the account object. Only works once the
+     * acctsSlice property is available. Use model.latestOnce to get a
+     * handle on an acctsSlice property, then call this method.
+     * @param  {String} id account ID.
+     * @return {Object}    account object.
+     */
+    getAccount: function(id) {
+      if (!model.acctsSlice || !model.acctsSlice.items) {
+        throw new Error('No acctsSlice available');
+      }
+
+      var targetAccount;
+      model.acctsSlice.items.some(function(account) {
+        if (account.id === id) {
+          return !!(targetAccount = account);
+        }
+      });
+
+      return targetAccount;
+    },
+
+    /**
+     * Get the numbers of configured account.
+     * Should only be called after this.inited is true.
+     * @return {Number} numbers of account.
+     */
+    getAccountCount: function() {
+      var count = 0;
+
+      if (model.acctsSlice &amp;&amp;
+          model.acctsSlice.items &amp;&amp;
+          model.acctsSlice.items.length) {
+        count = model.acctsSlice.items.length;
+      }
+
+      return count;
+    },
+
+    /**
+     * Call this to initialize the model. It can be called more than once
+     * per the lifetime of an app. The usual use case for multiple calls
+     * is when a new account has been added.
+     *
+     * It is *not* called by default in this module to allow for lazy startup,
+     * and for cases like unit tests that may not want to trigger a full model
+     * creation for a simple UI test.
+     *
+     * @param  {boolean} showLatest Choose the latest account in the
+     * acctsSlice. Otherwise it choose the account marked as the default
+     * account.
+     */
+    init: function(showLatest, callback) {
+      require(['api'], function(api) {
+        if (!this.api) {
+          this.api = api;
+          modelInit(this, api);
+        }
+
+        // If already initialized before, clear out previous state.
+        this.die();
+
+        var acctsSlice = api.viewAccounts(false);
+        acctsSlice.oncomplete = (function() {
+          // To prevent a race between Model.init() and
+          // acctsSlice.oncomplete, only assign model.acctsSlice when
+          // the slice has actually loaded (i.e. after
+          // acctsSlice.oncomplete fires).
+          model.acctsSlice = acctsSlice;
+
+          saveHasAccount(acctsSlice);
+
+          if (acctsSlice.items.length) {
+            // For now, just use the first one; we do attempt to put unified
+            // first so this should generally do the right thing.
+            // XXX: Because we don't have unified account now, we should
+            //      switch to the latest account which user just added.
+            var account = showLatest ? acctsSlice.items.slice(-1)[0] :
+                                       acctsSlice.defaultAccount;
+
+            this.changeAccount(account, callback);
+          } else if (callback) {
+            callback();
+          }
+
+          this.inited = true;
+          this._callEmit('acctsSlice');
+
+          // Once the API/worker has started up and we have received account
+          // data, consider the app fully loaded: we have verified full flow
+          // of data from front to back.
+          evt.emitWhenListener('metrics:apiDone');
+        }).bind(this);
+
+        acctsSlice.onchange = function() {
+          saveHasAccount(acctsSlice);
+        };
+      }.bind(this));
+    },
+
+    /**
+     * Changes the current account tracked by the model. This results
+     * in changes to the 'account', 'foldersSlice' and 'folder' properties.
+     * @param  {Object}   account  the account object.
+     * @param  {Function} callback function to call once the account and
+     * related folder data has changed.
+     */
+    changeAccount: function(account, callback) {
+      // Do not bother if account is the same.
+      if (this.account &amp;&amp; this.account.id === account.id) {
+        if (callback) {
+          callback();
+        }
+        return;
+      }
+
+      this._dieFolders();
+
+      this.account = account;
+      this._callEmit('account');
+
+      var foldersSlice = this.api.viewFolders('account', account);
+      foldersSlice.oncomplete = (function() {
+        this.foldersSlice = foldersSlice;
+        this.foldersSlice.onchange = this.notifyFoldersSliceOnChange.bind(this);
+        this.selectInbox(callback);
+        this._callEmit('foldersSlice');
+      }).bind(this);
+    },
+
+    /**
+     * Given an account ID, change the current account to that account.
+     * @param  {String} accountId
+     * @return {Function} callback
+     */
+    changeAccountFromId: function(accountId, callback) {
+      if (!this.acctsSlice || !this.acctsSlice.items.length) {
+        throw new Error('No accounts available');
+      }
+
+      this.acctsSlice.items.some(function(account) {
+        if (account.id === accountId) {
+          this.changeAccount(account, callback);
+          return true;
+        }
+      }.bind(this));
+    },
+
+    /**
+     * Just changes the folder property tracked by the model.
+     * Assumes the folder still belongs to the currently tracked
+     * account. It also does not result in any state changes or
+     * event emitting if the new folder is the same as the
+     * currently tracked folder.
+     * @param  {Object} folder the folder object to use.
+     */
+    changeFolder: function(folder) {
+      if (folder &amp;&amp; (!this.folder || folder.id !== this.folder.id)) {
+        this.folder = folder;
+        this._callEmit('folder');
+      }
+    },
+
+    /**
+     * For the already loaded account and associated foldersSlice,
+     * set the inbox as the tracked 'folder'.
+     * @param  {Function} callback function called once the inbox
+     * has been selected.
+     */
+    selectInbox: function(callback) {
+      this.selectFirstFolderWithType('inbox', callback);
+    },
+
+    /**
+     * For the already loaded account and associated foldersSlice, set
+     * the given folder as the tracked folder. The account MUST have a
+     * folder with the given type, or a fatal error will occur.
+     */
+    selectFirstFolderWithType: function(folderType, callback) {
+      if (!this.foldersSlice) {
+        throw new Error('No foldersSlice available');
+      }
+
+      var folder = this.foldersSlice.getFirstFolderWithType(folderType);
+      if (!folder) {
+        dieOnFatalError('We have an account without a folderType ' +
+                        folderType + '!', this.foldersSlice.items);
+      }
+
+      if (this.folder &amp;&amp; this.folder.id === folder.id) {
+        if (callback) {
+          callback();
+        }
+      } else {
+        if (callback) {
+          this.once('folder', callback);
+        }
+        this.changeFolder(folder);
+      }
+    },
+
+    /**
+     * Called by other code when it knows the current account
+     * has received new inbox messages. Just triggers an
+     * event with the count for now.
+     * @param  {Object} accountUpdate update object from
+     * sync.js accountResults object structure.
+     */
+    notifyInboxMessages: function(accountUpdate) {
+      if (accountUpdate.id === this.account.id) {
+        model.emit('newInboxMessages', accountUpdate.count);
+      }
+    },
+
+    /**
+     * Triggered by the foldersSlice onchange event
+     * @param  {Object} folder the folder that changed.
+     */
+    notifyFoldersSliceOnChange: function(folder) {
+      model.emit('foldersSliceOnChange', folder);
+    },
+
+    notifyBackgroundSendStatus: function(data) {
+      model.emit('backgroundSendStatus', data);
+    },
+
+    // Lifecycle
+
+    _dieFolders: function() {
+      if (this.foldersSlice) {
+        this.foldersSlice.die();
+      }
+      this.foldersSlice = null;
+
+      this.folder = null;
+    },
+
+    die: function() {
+      if (this.acctsSlice) {
+        this.acctsSlice.die();
+      }
+      this.acctsSlice = null;
+      this.account = null;
+
+      this._dieFolders();
+    }
+  };
+
+  return evt.mix(model);
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_cacheDom">_cacheDom</a></li><li><a href="global.html#_cacheDomTimeoutId">_cacheDomTimeoutId</a></li><li><a href="global.html#_cacheListLimit">_cacheListLimit</a></li><li><a href="global.html#_clearCachedMessages">_clearCachedMessages</a></li><li><a href="global.html#_considerCacheDom">_considerCacheDom</a></li><li><a href="global.html#_distanceBetweenMessages">_distanceBetweenMessages</a></li><li><a href="global.html#_divertToManualConfig">_divertToManualConfig</a></li><li><a href="global.html#_focusEditorWithCursorAtEnd">_focusEditorWithCursorAtEnd</a></li><li><a href="global.html#_isCacheableCardState">_isCacheableCardState</a></li><li><a href="global.html#_onAttachmentDone">_onAttachmentDone</a></li><li><a href="global.html#_onVScrollStopped">_onVScrollStopped</a></li><li><a href="global.html#_showFolder">_showFolder</a></li><li><a href="global.html#_topBar">_topBar</a></li><li><a href="global.html#_warnAttachmentSizeExceeded">_warnAttachmentSizeExceeded</a></li><li><a href="global.html#addAttachmentsSubjectToSizeLimits">addAttachmentsSubjectToSizeLimits</a></li><li><a href="global.html#advance">advance</a></li><li><a href="global.html#bindContainerHandler">bindContainerHandler</a></li><li><a href="global.html#bindToSlice">bindToSlice</a></li><li><a href="global.html#buildBodyDom">buildBodyDom</a></li><li><a href="global.html#calculateTotalAttachmentsSize">calculateTotalAttachmentsSize</a></li><li><a href="global.html#callHeaderFontSize">callHeaderFontSize</a></li><li><a href="global.html#canReplyAll">canReplyAll</a></li><li><a href="global.html#changeIfSame">changeIfSame</a></li><li><a href="global.html#checkExpectingMessageSuid">checkExpectingMessageSuid</a></li><li><a href="global.html#cloneAndSave">cloneAndSave</a></li><li><a href="global.html#cloneAsInertNodeAvoidingCustomElementHorrors">cloneAsInertNodeAvoidingCustomElementHorrors</a></li><li><a href="global.html#currentMessage">currentMessage</a></li><li><a href="global.html#delayedSaveFromNode">delayedSaveFromNode</a></li><li><a href="global.html#deleteBubble">deleteBubble</a></li><li><a href="global.html#die">die</a></li><li><a href="global.html#editBubble">editBubble</a></li><li><a href="global.html#expectingMessageSuid">expectingMessageSuid</a></li><li><a href="global.html#extractAddresses">extractAddresses</a></li><li><a href="global.html#fileSize">fileSize</a></li><li><a href="global.html#fromEditor">fromEditor</a></li><li><a href="global.html#hideAccounts">hideAccounts</a></li><li><a href="global.html#hideEmptyLayout">hideEmptyLayout</a></li><li><a href="global.html#indexOfMessageById">indexOfMessageById</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#insertBubble">insertBubble</a></li><li><a href="global.html#isValidAddress">isValidAddress</a></li><li><a href="global.html#learnAbout">learnAbout</a></li><li><a href="global.html#loadNextChunk">loadNextChunk</a></li><li><a href="global.html#messages_complete">messages_complete</a></li><li><a href="global.html#messagesSlice">messagesSlice</a></li><li><a href="global.html#onAccountsSplice">onAccountsSplice</a></li><li><a href="global.html#onAddressInput">onAddressInput</a></li><li><a href="global.html#onAddressKeydown">onAddressKeydown</a></li><li><a href="global.html#onBack">onBack</a></li><li><a href="global.html#onCardVisible">onCardVisible</a></li><li><a href="global.html#onClickAccount">onClickAccount</a></li><li><a href="global.html#onCurrentCardDocumentVisibilityChange">onCurrentCardDocumentVisibilityChange</a></li><li><a href="global.html#onCurrentMessage">onCurrentMessage</a></li><li><a href="global.html#onEnvelopeClick">onEnvelopeClick</a></li><li><a href="global.html#onFolderPickerClosing">onFolderPickerClosing</a></li><li><a href="global.html#onFolderShown">onFolderShown</a></li><li><a href="global.html#onLatestFolder">onLatestFolder</a></li><li><a href="global.html#onMessagesSpliceRemove">onMessagesSpliceRemove</a></li><li><a href="global.html#onNext">onNext</a></li><li><a href="global.html#onPrevious">onPrevious</a></li><li><a href="global.html#onSend">onSend</a></li><li><a href="global.html#onUsePassword">onUsePassword</a></li><li><a href="global.html#populateEditor">populateEditor</a></li><li><a href="global.html#proceed">proceed</a></li><li><a href="global.html#reallySend">reallySend</a></li><li><a href="global.html#renderAttachments">renderAttachments</a></li><li><a href="global.html#renderSendStatus">renderSendStatus</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#save">save</a></li><li><a href="global.html#saveFromNode">saveFromNode</a></li><li><a href="global.html#selectedMessagesUpdated">selectedMessagesUpdated</a></li><li><a href="global.html#setCurrentMessage">setCurrentMessage</a></li><li><a href="global.html#setCurrentMessageBySuid">setCurrentMessageBySuid</a></li><li><a href="global.html#setMessageChecked">setMessageChecked</a></li><li><a href="global.html#setRefreshState">setRefreshState</a></li><li><a href="global.html#setSelectState">setSelectState</a></li><li><a href="global.html#showAccounts">showAccounts</a></li><li><a href="global.html#showEmptyLayout">showEmptyLayout</a></li><li><a href="global.html#showFolder">showFolder</a></li><li><a href="global.html#showLargeMessageWarning">showLargeMessageWarning</a></li><li><a href="global.html#sizeLastSync">sizeLastSync</a></li><li><a href="global.html#skipEmitContentEvents">skipEmitContentEvents</a></li><li><a href="global.html#sliceEvents">sliceEvents</a></li><li><a href="global.html#subject">subject</a></li><li><a href="global.html#toggleOutboxSyncingDisplay">toggleOutboxSyncingDisplay</a></li><li><a href="global.html#updateAccount">updateAccount</a></li><li><a href="global.html#updateAttachmentsAriaLabel">updateAttachmentsAriaLabel</a></li><li><a href="global.html#updateAttachmentsSize">updateAttachmentsSize</a></li><li><a href="global.html#updateMessageDom">updateMessageDom</a></li><li><a href="global.html#validateAddresses">validateAddresses</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:29 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

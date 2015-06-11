@@ -1,1 +1,0 @@
-define(['./gaia-list/gaia-list'], function(m) { return m; });

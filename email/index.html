@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h2>Front-End Notes</h2><p>The email front end code dynamically loads each card implementation, and uses
+HTML cached in a document cookie as part of startup. The cached HTML is just
+for the first card the user will see when launching the app. By using the
+cached HTML, it allows for a quick display to the user while the rest of the
+UI and back-end (which runs in a web worker) starts up.</p>
+<p>Once real data is available from the back-end, the cached HTML is removed and
+the card with the real data is inserted.</p>
+<p>This means the index.html file is fairly sparse. It just contains one script
+tag to inject the cached HTML into the DOM, and that script triggers the load
+of the main app JS after injecting the cached HTML.</p>
+<p>The main app JS is built using the Makefile in the email directory. The email
+app uses a module loader plugins to load templates: the 'tmpl!...' dependencies,
+which in turn depend on 'text!...' dependencies. These loader plugins
+participate in the build by leveraging special &quot;pluginBuilder&quot; modules,
+tmpl_builder.js and text_builder.js respectively. Since those builder modules
+support a few JS build environments, they contain extra code in them, but
+they are not actually loaded during the runtime of application, just during the
+build process.</p>
+<p>Since it has its own custom build processes, the usual Gaia build processes
+do not result in much extra optimization. The Gaia build process for the
+localizations still occurs, and the full collection of JS strings for the
+translations are inlined, but the HTML DOM is not pre-localized, as each card
+HTML is stored in its own .html file that is loaded on demand when the card
+is needed.</p>
+<h2>OAuth2 customization</h2><p>OAuth2 is used to connect to some email providers, and this requires some
+configuration information. There is a default configuration set up, but it is
+strongly recommended that you use specific configuration based on your
+deployment.</p>
+<p>To provide different configuration, create a file that contains a JSON structure
+that looks like this:</p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;oauth2&quot;: {
+    &quot;google&quot;: {
+      &quot;clientId&quot;: &quot;yourValueHere&quot;,
+      &quot;clientSecret&quot;: &quot;yourValueHere&quot;
+    }
+  }
+}</code></pre><p>Then, as part of the main Gaia build, set the DISTRIBUTION_EMAIL_SERVICES
+environment variable to the path of this JSON file. The email build step will
+overwrite the <code>js/services.js</code> file in the build area with this new
+configuration.</p>
+<h2>Back-End Code Location</h2><p>The e-mail back-end is not developed in this repository.  All of the code in
+GAIA/apps/email/js/ext/* and its sub-directories comes from:
+https://github.com/mozilla-b2g/gaia-email-libs-and-more</p>
+<p>If you want to make fixes to the code, then please issue pull requests against
+that repository. This is particularly important since the e-mail back-end uses
+staged loading of some roll-up files to get the best performance.</p>
+<p>The e-mail back-end repo copies over a few files to this repository via that
+repository's <code>make install-into-gaia</code> command.</p>
+<h2>Running in Firefox</h2><p>Would you like to develop the e-mail app in Firefox instead of b2g desktop?
+Yes, you would.</p>
+<h3>Step 1: Turn on mozTCPSocket</h3><p>In order to do IMAP stuff, you need to flip the big switch that enables the use
+of TCP sockets.  This does not let all webpages open TCP sockets; they still
+need the permission we authorize in step 2.</p>
+<ul>
+<li>Open &quot;about:config&quot; in the browser.</li>
+<li>Right-click anywhere in the config setting listing, and choose &quot;New&quot;,
+&quot;Boolean&quot; from the context menu.</li>
+<li>Enter &quot;dom.mozTCPSocket.enabled&quot; in the &quot;Enter the preference name&quot; box and
+click the &quot;OK&quot; button.</li>
+<li>Select &quot;true&quot; on the next dialog box and click the &quot;OK&quot; button.</li>
+</ul>
+<h3>Step 2: Authorize mozAnon/mozSystem XHR's and mozTCPSocket use</h3><p>Now we need to authorize the host you will be running the e-mail app from to be
+able to establish IMAP and ActiveSync connections.  IMAP connections depend on
+the &quot;tcp-socket&quot; permission to establish TCP connections.  ActiveSync depends on
+&quot;systemXHR&quot; in order to issue cross-origin requests and avoid reusing
+credentials from other connections.</p>
+<p>Copy/modify the following code to use whatever URL you are hosting the e-mail
+app on.  If you are running b2g-desktop in debug mode by doing &quot;make profile
+DEBUG=1&quot; then it will host on port 8080.  If you did not explicitly specify a
+domain with GAIA_DOMAIN=domain to the make invocation, then your domain is
+gaiamobile.org and the app will be found at &quot;email.gaiamobile.org:8080&quot;.  Make
+sure your /etc/hosts file is pointing this domain at 127.0.0.1!</p>
+<p>Bring up the error console in firefox by hitting control-shift-J.  Paste the
+code into the &quot;Code&quot; box and click the &quot;evaluate&quot; button.</p>
+<pre class="prettyprint source"><code>host = 'http://email.gaiamobile.org:8080';
+perm = Components.classes[&quot;@mozilla.org/permissionmanager;1&quot;]
+                 .createInstance(Components.interfaces.nsIPermissionManager);
+ios = Components.classes[&quot;@mozilla.org/network/io-service;1&quot;]
+                .getService(Components.interfaces.nsIIOService);
+uri = ios.newURI(host, null, null);
+perm.add(uri, 'systemXHR', 1);
+perm.add(uri, 'tcp-socket', 1);
+'Successfully added systemXHR and tcp-socket permissions for '+host;</code></pre><p>At the bottom of the Error Console list, you should see an entry that confirms
+the permissions were added.</p>
+<h3>Step 3: Run Gaia E-Mail!</h3><p>Start the b2g-desktop instance to serve the e-mail app on port 8080.</p>
+<p>Browse to http://email.gaiamobile.org:8080/ or whatever URL you used above.</p>
+<h2>Build Notes</h2><p>The email app takes advantage of some features in the gaia build system to do
+some optimizations:</p>
+<ul>
+<li>Apps can define an app-specific build/build.js in their directory. This is run
+as part of the general Gaia build steps. Email uses this to create a directory
+in <code>gaia/build_stage/email</code> and runs some optimizations around JS and CSS
+concatenation.</li>
+</ul>
+<p>For DEBUG=1 builds, the email source directory is used as-is, and the shared
+resources are magically linked in via the Gaia build system.</p>
+<p>When using GAIA_OPTIMIZE=1, which is set by <code>make production</code>, the email build
+runs some uglify2 minification on the files. This can take a while, so if you
+are doing multiple, rapid edit-device push cycles you should not use this.</p>
+<p>If you want to give snapshots of builds, say for UX reviews, you should use
+the application.zip generated in the <code>profile/webapps/email.gaiamobile.org</code>
+directory.</p></article>
+    </section>
+
+
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        header_cursor.js
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Bug 918303 - HeaderCursor added to provide MessageListCard and
+    MessageReaderCard the current message and whether there are adjacent
+    messages that can be advanced to. Expect for [other] consumers to add
+    additional data to messagesSlice items after they've left the MailAPI.</p></div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="header_cursor.js.html">header_cursor.js</a>, <a href="header_cursor.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_cacheDom">_cacheDom</a></li><li><a href="global.html#_cacheDomTimeoutId">_cacheDomTimeoutId</a></li><li><a href="global.html#_cacheListLimit">_cacheListLimit</a></li><li><a href="global.html#_clearCachedMessages">_clearCachedMessages</a></li><li><a href="global.html#_considerCacheDom">_considerCacheDom</a></li><li><a href="global.html#_distanceBetweenMessages">_distanceBetweenMessages</a></li><li><a href="global.html#_divertToManualConfig">_divertToManualConfig</a></li><li><a href="global.html#_focusEditorWithCursorAtEnd">_focusEditorWithCursorAtEnd</a></li><li><a href="global.html#_isCacheableCardState">_isCacheableCardState</a></li><li><a href="global.html#_onAttachmentDone">_onAttachmentDone</a></li><li><a href="global.html#_onVScrollStopped">_onVScrollStopped</a></li><li><a href="global.html#_showFolder">_showFolder</a></li><li><a href="global.html#_topBar">_topBar</a></li><li><a href="global.html#_warnAttachmentSizeExceeded">_warnAttachmentSizeExceeded</a></li><li><a href="global.html#addAttachmentsSubjectToSizeLimits">addAttachmentsSubjectToSizeLimits</a></li><li><a href="global.html#advance">advance</a></li><li><a href="global.html#bindContainerHandler">bindContainerHandler</a></li><li><a href="global.html#bindToSlice">bindToSlice</a></li><li><a href="global.html#buildBodyDom">buildBodyDom</a></li><li><a href="global.html#calculateTotalAttachmentsSize">calculateTotalAttachmentsSize</a></li><li><a href="global.html#callHeaderFontSize">callHeaderFontSize</a></li><li><a href="global.html#canReplyAll">canReplyAll</a></li><li><a href="global.html#changeIfSame">changeIfSame</a></li><li><a href="global.html#checkExpectingMessageSuid">checkExpectingMessageSuid</a></li><li><a href="global.html#cloneAndSave">cloneAndSave</a></li><li><a href="global.html#cloneAsInertNodeAvoidingCustomElementHorrors">cloneAsInertNodeAvoidingCustomElementHorrors</a></li><li><a href="global.html#currentMessage">currentMessage</a></li><li><a href="global.html#delayedSaveFromNode">delayedSaveFromNode</a></li><li><a href="global.html#deleteBubble">deleteBubble</a></li><li><a href="global.html#die">die</a></li><li><a href="global.html#editBubble">editBubble</a></li><li><a href="global.html#expectingMessageSuid">expectingMessageSuid</a></li><li><a href="global.html#extractAddresses">extractAddresses</a></li><li><a href="global.html#fileSize">fileSize</a></li><li><a href="global.html#fromEditor">fromEditor</a></li><li><a href="global.html#hideAccounts">hideAccounts</a></li><li><a href="global.html#hideEmptyLayout">hideEmptyLayout</a></li><li><a href="global.html#indexOfMessageById">indexOfMessageById</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#insertBubble">insertBubble</a></li><li><a href="global.html#isValidAddress">isValidAddress</a></li><li><a href="global.html#learnAbout">learnAbout</a></li><li><a href="global.html#loadNextChunk">loadNextChunk</a></li><li><a href="global.html#messages_complete">messages_complete</a></li><li><a href="global.html#messagesSlice">messagesSlice</a></li><li><a href="global.html#onAccountsSplice">onAccountsSplice</a></li><li><a href="global.html#onAddressInput">onAddressInput</a></li><li><a href="global.html#onAddressKeydown">onAddressKeydown</a></li><li><a href="global.html#onBack">onBack</a></li><li><a href="global.html#onCardVisible">onCardVisible</a></li><li><a href="global.html#onClickAccount">onClickAccount</a></li><li><a href="global.html#onCurrentCardDocumentVisibilityChange">onCurrentCardDocumentVisibilityChange</a></li><li><a href="global.html#onCurrentMessage">onCurrentMessage</a></li><li><a href="global.html#onEnvelopeClick">onEnvelopeClick</a></li><li><a href="global.html#onFolderPickerClosing">onFolderPickerClosing</a></li><li><a href="global.html#onFolderShown">onFolderShown</a></li><li><a href="global.html#onLatestFolder">onLatestFolder</a></li><li><a href="global.html#onMessagesSpliceRemove">onMessagesSpliceRemove</a></li><li><a href="global.html#onNext">onNext</a></li><li><a href="global.html#onPrevious">onPrevious</a></li><li><a href="global.html#onSend">onSend</a></li><li><a href="global.html#onUsePassword">onUsePassword</a></li><li><a href="global.html#populateEditor">populateEditor</a></li><li><a href="global.html#proceed">proceed</a></li><li><a href="global.html#reallySend">reallySend</a></li><li><a href="global.html#renderAttachments">renderAttachments</a></li><li><a href="global.html#renderSendStatus">renderSendStatus</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#save">save</a></li><li><a href="global.html#saveFromNode">saveFromNode</a></li><li><a href="global.html#selectedMessagesUpdated">selectedMessagesUpdated</a></li><li><a href="global.html#setCurrentMessage">setCurrentMessage</a></li><li><a href="global.html#setCurrentMessageBySuid">setCurrentMessageBySuid</a></li><li><a href="global.html#setMessageChecked">setMessageChecked</a></li><li><a href="global.html#setRefreshState">setRefreshState</a></li><li><a href="global.html#setSelectState">setSelectState</a></li><li><a href="global.html#showAccounts">showAccounts</a></li><li><a href="global.html#showEmptyLayout">showEmptyLayout</a></li><li><a href="global.html#showFolder">showFolder</a></li><li><a href="global.html#showLargeMessageWarning">showLargeMessageWarning</a></li><li><a href="global.html#sizeLastSync">sizeLastSync</a></li><li><a href="global.html#skipEmitContentEvents">skipEmitContentEvents</a></li><li><a href="global.html#sliceEvents">sliceEvents</a></li><li><a href="global.html#subject">subject</a></li><li><a href="global.html#toggleOutboxSyncingDisplay">toggleOutboxSyncingDisplay</a></li><li><a href="global.html#updateAccount">updateAccount</a></li><li><a href="global.html#updateAttachmentsAriaLabel">updateAttachmentsAriaLabel</a></li><li><a href="global.html#updateAttachmentsSize">updateAttachmentsSize</a></li><li><a href="global.html#updateMessageDom">updateMessageDom</a></li><li><a href="global.html#validateAddresses">validateAddresses</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:30 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/app_modal_dialog.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/app_modal_dialog.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global BaseUI */
+'use strict';
+
+(function(exports) {
+  var _ = navigator.mozL10n.get;
+  var _id = 0;
+
+  /**
+   * The ModalDialog of the AppWindow.
+   *
+   * Including **alert**, **prompt**, **confirm**, and
+   * **single select** dialogs.
+   *
+   * @class AppModalDialog
+   * @param {AppWindow} app The app window instance
+   *                        where this dialog should popup.
+   * @extends BaseUI
+   */
+  var AppModalDialog = function AppModalDialog(app) {
+    this.app = app;
+    this.containerElement = app.element;
+    this.events = [];
+    // One to one mapping.
+    this.instanceID = _id++;
+    this._injected = false;
+    this._visible = false;
+    app.element.addEventListener('mozbrowsershowmodalprompt', this);
+    return this;
+  };
+
+  AppModalDialog.prototype = Object.create(BaseUI.prototype);
+
+  AppModalDialog.prototype.CLASS_NAME = 'AppModalDialog';
+
+  AppModalDialog.prototype.ELEMENT_PREFIX = 'modal-dialog-';
+
+  AppModalDialog.prototype.customID = function amd_customID() {
+    if (this.app) {
+      return '[' + this.app.origin + ']';
+    } else {
+      return '';
+    }
+  };
+
+  AppModalDialog.prototype.handleEvent = function amd_handleEvent(evt) {
+    this.app.debug('handling ' + evt.type);
+    evt.preventDefault();
+    evt.stopPropagation();
+    this.events.push(evt);
+    this.menuHeight = 0;
+    if (!this._injected) {
+      this.render();
+    }
+    this.show();
+    this._injected = true;
+  };
+
+  AppModalDialog.prototype.isVisible = function amd_isVisible() {
+    return this._visible;
+  };
+
+  AppModalDialog.prototype._fetchElements = function amd__fetchElements() {
+    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+    this.elements = {};
+
+    var toCamelCase = function toCamelCase(str) {
+      return str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
+    };
+
+    this.elementClasses = ['alert', 'alert-ok', 'alert-message',
+      'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
+      'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
+      'alert-title', 'confirm-title', 'prompt-title',
+      'custom-prompt', 'custom-prompt-message', 'custom-prompt-buttons',
+      'custom-prompt-checkbox'];
+
+
+    // Loop and add element with camel style name to Modal Dialog attribute.
+    this.elementClasses.forEach(function createElementRef(name) {
+      this.elements[toCamelCase(name)] =
+        this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
+    }, this);
+
+    this.elements.menu = this.element.querySelector('menu');
+  };
+
+  AppModalDialog.prototype._registerEvents = function amd__registerEvents() {
+    var elements = this.elements;
+    for (var id in elements) {
+      var tagName = elements[id].tagName.toLowerCase();
+      if (tagName == 'button' || tagName == 'ul') {
+        if (elements[id].classList.contains('confirm')) {
+          elements[id].addEventListener('click',
+            this.confirmHandler.bind(this));
+        } else if (elements[id].classList.contains('cancel')) {
+          elements[id].addEventListener('click', this.cancelHandler.bind(this));
+        }
+      }
+    }
+  };
+
+  AppModalDialog.prototype.view = function amd_view() {
+    var id = this.CLASS_NAME + this.instanceID;
+    return `&lt;div class="modal-dialog" id="${id}">
+            &lt;form class="modal-dialog-alert generic-dialog"
+            role="dialog" tabindex="-1">
+            &lt;div class="modal-dialog-message-container inner">
+              &lt;h3 class="modal-dialog-alert-title">&lt;/h3>
+              &lt;p>
+                &lt;span class="modal-dialog-alert-message">&lt;/span>
+              &lt;/p>
+            &lt;/div>
+            &lt;menu>
+              &lt;button class="modal-dialog-alert-ok confirm affirmative"
+              data-l10n-id="ok">&lt;/button>
+            &lt;/menu>
+          &lt;/form>
+          &lt;form class="modal-dialog-confirm generic-dialog"
+          role="dialog" tabindex="-1">
+            &lt;div class="modal-dialog-message-container inner">
+              &lt;h3 class="modal-dialog-confirm-title">&lt;/h3>
+              &lt;p>
+                &lt;span class="modal-dialog-confirm-message">&lt;/span>
+              &lt;/p>
+            &lt;/div>
+            &lt;menu data-items="2">
+              &lt;button class="modal-dialog-confirm-cancel cancel"
+              data-l10n-id="cancel">&lt;/button>
+              &lt;button class="modal-dialog-confirm-ok confirm affirmative"
+              data-l10n-id="ok">&lt;/button>
+            &lt;/menu>
+          &lt;/form>
+          &lt;form class="modal-dialog-prompt generic-dialog"
+            role="dialog" tabindex="-1">
+            &lt;div class="modal-dialog-message-container inner">
+              &lt;h3 class="modal-dialog-prompt-title">&lt;/h3>
+              &lt;p>
+                &lt;span class="modal-dialog-prompt-message">&lt;/span>
+                &lt;input class="modal-dialog-prompt-input" />
+              &lt;/p>
+            &lt;/div>
+            &lt;menu data-items="2">
+              &lt;button class="modal-dialog-prompt-cancel cancel"
+               data-l10n-id="cancel">&lt;/button>
+              &lt;button class="modal-dialog-prompt-ok confirm affirmative"
+              data-l10n-id="ok">&lt;/button>
+            &lt;/menu>
+          &lt;/form>
+          &lt;form class="modal-dialog-select-one generic-dialog"
+            role="dialog" tabindex="-1">
+            &lt;div class="modal-dialog-message-container inner">
+              &lt;h3 class="modal-dialog-select-one-title">&lt;/h3>
+              &lt;ul class="modal-dialog-select-one-menu">&lt;/ul>
+            &lt;/div>
+            &lt;menu>
+              &lt;button class="modal-dialog-select-one-cancel cancel"
+              data-l10n-id="cancel">&lt;/button>
+            &lt;/menu>
+          &lt;/form>
+          &lt;form class="modal-dialog-custom-prompt generic-dialog"
+            role="dialog" tabindex="-1">
+            &lt;div class="modal-dialog-message-container inner">
+              &lt;h3 class="modal-dialog-custom-prompt-title">&lt;/h3>
+              &lt;p class="modal-dialog-custom-prompt-message">&lt;/p>
+              &lt;label class="pack-checkbox">
+                &lt;input class="modal-dialog-custom-prompt-checkbox"
+                type="checkbox"/>
+                &lt;span>&lt;/span>
+              &lt;/label>
+            &lt;/div>
+            &lt;menu class="modal-dialog-custom-prompt-buttons">&lt;/menu>
+          &lt;/form>
+        &lt;/div>`;
+  };
+
+  AppModalDialog.prototype.processNextEvent = function amd_processNextEvent() {
+    this.events.splice(0, 1);
+    if (this.events.length) {
+      this.show();
+    } else {
+      this.hide();
+    }
+  };
+
+  AppModalDialog.prototype.kill = function amd_kill() {
+    this._visible = false;
+    this.containerElement.removeChild(this.element);
+  };
+
+  // Show relative dialog and set message/input value well
+  AppModalDialog.prototype.show = function amd_show() {
+    if (!this.events.length) {
+      return;
+    }
+
+    this._visible = true;
+    var evt = this.events[0];
+
+    var message = evt.detail.message || '';
+    var title = this._getTitle(evt.detail.title);
+    var elements = this.elements;
+
+    var type = evt.detail.promptType || evt.detail.type;
+
+    switch (type) {
+      case 'alert':
+        elements.alertTitle.textContent = title;
+        elements.alertMessage.textContent = message;
+        elements.alert.classList.add('visible');
+        elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.alert.focus();
+
+        this.updateMaxHeight();
+        break;
+
+      case 'prompt':
+        elements.prompt.classList.add('visible');
+        elements.promptInput.value = evt.detail.initialValue;
+        elements.promptTitle.textContent = title;
+        elements.promptMessage.textContent = message;
+        elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.promptCancel.textContent = evt.noText ?
+          evt.noText : _('cancel');
+        elements.prompt.focus();
+        break;
+
+      case 'confirm':
+        elements.confirm.classList.add('visible');
+        elements.confirmTitle.textContent = title;
+        elements.confirmMessage.textContent = message;
+        elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.confirmCancel.textContent = evt.noText ?
+          evt.noText : _('cancel');
+        elements.confirm.focus();
+        break;
+
+      case 'selectone':
+        this.buildSelectOneDialog(message);
+        elements.selectOne.classList.add('visible');
+        elements.selectOne.focus();
+        break;
+
+      case 'custom-prompt':
+        var customPrompt = evt.detail;
+        elements.customPrompt.classList.add('visible');
+        elements.customPromptMessage.textContent = customPrompt.message;
+        // Display custom list of buttons
+        elements.customPromptButtons.innerHTML = '';
+        elements.customPromptButtons.setAttribute('data-items',
+                                                  customPrompt.buttons.length);
+        var domElement = null;
+        for (var i = customPrompt.buttons.length - 1; i >= 0; i--) {
+          var button = customPrompt.buttons[i];
+          domElement = document.createElement('button');
+          domElement.dataset.buttonIndex = i;
+          if (button.messageType === 'builtin') {
+            domElement.setAttribute('data-l10n-id', button.message);
+          } else if (button.messageType === 'custom') {
+            // For custom button, we assume that the text is already translated
+            domElement.textContent = button.message;
+          } else {
+            console.error('Unexpected button type : ' + button.messageType);
+            continue;
+          }
+          domElement.addEventListener('click', this.confirmHandler.bind(this));
+          elements.customPromptButtons.appendChild(domElement);
+        }
+        domElement.classList.add('affirmative');
+
+        // Eventualy display a checkbox:
+        var checkbox = elements.customPromptCheckbox;
+        if (customPrompt.showCheckbox) {
+          if (customPrompt.checkboxCheckedByDefault) {
+            checkbox.setAttribute('checked', 'true');
+          } else {
+            checkbox.removeAttribute('checked');
+          }
+          // We assume that checkbox custom message is already translated
+          checkbox.nextElementSibling.textContent =
+            customPrompt.checkboxMessage;
+        } else {
+          checkbox.parentNode.classList.add('hidden');
+        }
+
+        elements.customPrompt.focus();
+        break;
+    }
+
+    this.app.browser.element.setAttribute('aria-hidden', true);
+    this.element.classList.add('visible');
+  };
+
+  AppModalDialog.prototype.hide = function amd_hide() {
+    this._visible = false;
+    this.element.blur();
+    this.app.browser.element.removeAttribute('aria-hidden');
+    this.element.classList.remove('visible');
+    if (this.app) {
+      this.app.focus();
+    }
+    if (!this.events.length) {
+      return;
+    }
+
+    var evt = this.events[0];
+    var type = evt.detail.promptType || evt.detail.type;
+    if (type === 'prompt') {
+      this.elements.promptInput.blur();
+    }
+    this.elements[type].classList.remove('visible');
+  };
+
+  // When user clicks OK button on alert/confirm/prompt
+  AppModalDialog.prototype.confirmHandler =
+    function amd_confirmHandler(clickEvt) {
+      if (!this.events.length) {
+        return;
+      }
+
+      clickEvt.preventDefault();
+
+      var elements = this.elements;
+
+      var evt = this.events[0];
+
+      var type = evt.detail.promptType || evt.detail.type;
+      switch (type) {
+        case 'alert':
+          elements.alert.classList.remove('visible');
+          break;
+
+        case 'prompt':
+          evt.detail.returnValue = elements.promptInput.value;
+          elements.prompt.classList.remove('visible');
+          break;
+
+        case 'confirm':
+          evt.detail.returnValue = true;
+          elements.confirm.classList.remove('visible');
+          break;
+
+        case 'custom-prompt':
+          var returnValue = {
+            selectedButton: clickEvt.target.dataset.buttonIndex
+          };
+          if (evt.detail.showCheckbox) {
+            returnValue.checked = elements.customPromptCheckbox.checked;
+          }
+          evt.detail.returnValue = returnValue;
+          elements.customPrompt.classList.remove('visible');
+          break;
+      }
+
+      if (evt.detail.unblock) {
+        evt.detail.unblock();
+      }
+
+      this.processNextEvent();
+    };
+
+  // When user clicks cancel button on confirm/prompt or
+  // when the user try to escape the dialog with the escape key
+  AppModalDialog.prototype.cancelHandler =
+    function amd_cancelHandler(clickEvt) {
+      if (!this.events.length) {
+        return;
+      }
+
+      clickEvt.preventDefault();
+      var evt = this.events[0];
+      var elements = this.elements;
+
+      var type = evt.detail.promptType || evt.detail.type;
+      switch (type) {
+        case 'alert':
+          elements.alert.classList.remove('visible');
+          break;
+
+        case 'prompt':
+          /* return null when click cancel */
+          evt.detail.returnValue = null;
+          elements.prompt.classList.remove('visible');
+          break;
+
+        case 'confirm':
+          /* return false when click cancel */
+          evt.detail.returnValue = false;
+          elements.confirm.classList.remove('visible');
+          break;
+
+        case 'selectone':
+          /* return null when click cancel */
+          evt.detail.returnValue = null;
+          elements.selectOne.classList.remove('visible');
+          break;
+      }
+
+      if (evt.detail.unblock) {
+        evt.detail.unblock();
+      }
+
+      this.processNextEvent();
+    };
+
+  // When user selects an option on selectone dialog
+  AppModalDialog.prototype.selectOneHandler =
+    function amd_selectOneHandler(target) {
+      if (!this.events.length) {
+        return;
+      }
+
+      var elements = this.elements;
+
+      var evt = this.events[0];
+
+      evt.detail.returnValue = target.id;
+      elements.selectOne.classList.remove('visible');
+
+      if (evt.detail.unblock) {
+        evt.detail.unblock();
+      }
+
+      this.processNextEvent();
+    };
+
+  AppModalDialog.prototype.updateMaxHeight = function() {
+    // Setting maxHeight for being able to scroll long
+    // texts: formHeight - menuHeight - titleHeight - margin
+    // We should fix this in a common way for all the dialogs
+    // in the building blocks layer: Bug 1096902
+    this.menuHeight = this.menuHeight || this.elements.menu.offsetHeight;
+    var messageHeight = this.element.offsetHeight - this.menuHeight;
+    messageHeight -= this.elements.alertTitle.offsetHeight;
+    var margin = window.getComputedStyle(this.elements.alertTitle).marginBottom;
+    var messageContainer = this.elements.alert.querySelector('.inner p');
+    var calc = 'calc(' + messageHeight + 'px - ' + margin + ')';
+    messageContainer.style.maxHeight = calc;
+  };
+
+  AppModalDialog.prototype._getTitle =
+    function amd__getTitle(title) {
+      //
+      // XXX Bug 982006, subsystems like uriloader still report errors with
+      // titles which are important to the user for context in diagnosing
+      // issues.
+      //
+      // However, we will ignore all titles containing a URL using the app
+      // protocol. These types of titles simply indicate that the active
+      // application is prompting and are more confusing to the user than
+      // useful. Instead we will return the application name if there is one
+      // or an empty string.
+      //
+      if (!title ||
+          title.includes('app://')) {
+        return this.app.name || '';
+      }
+
+      return title;
+    };
+  exports.AppModalDialog = AppModalDialog;
+}(window));
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

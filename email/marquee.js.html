@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: marquee.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: marquee.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+define(function() {
+
+/**
+ * HTML Marquee in JavaScript/CSS
+ * - slow scrolling of text depending on `behavior' and `timingFunction'
+ *   parameters provided to the `activate' method
+ * - start aligned left with delay (see marquee.css for details on classes)
+ *
+ * Creates a HTML element of the form:
+ *  &lt;headerNode>
+ *    &lt;div id="marquee-h-wrapper">
+ *      &lt;div id="marquee-h-text" class="marquee">
+ *          Marqueed text content
+ *      &lt;/div>
+ *    &lt;/div>
+ *  &lt;/headerNode>
+ * where 'headerNode' is the node that will containt the text that needs a
+ * marquee (i.e. &lt;header>, &lt;h1>, etc.).
+ */
+var Marquee = {
+  /**
+   * List of supported timing functions
+   */
+  timingFunction: ['linear', 'ease'],
+
+  /**
+   * Setup the marquee DOM structure
+   * @param {string} text the string of text that requires a marquee.
+   * @param {element} headerNode the DOM element parent of the text.
+   */
+  setup: function marquee_setup(text, headerNode) {
+    this._headerNode = headerNode;
+
+    this._headerWrapper = document.getElementById('marquee-h-wrapper');
+    if (!this._headerWrapper) {
+      this._headerWrapper = document.createElement('div');
+      this._headerWrapper.id = 'marquee-h-wrapper';
+      this._headerNode.appendChild(this._headerWrapper);
+    }
+
+    var headerText = document.getElementById('marquee-h-text');
+    if (!headerText) {
+      headerText = document.createElement('div');
+      headerText.id = 'marquee-h-text';
+      this._headerWrapper.dir = 'auto';
+      this._headerWrapper.appendChild(headerText);
+    }
+
+    headerText.textContent = text;
+  },
+
+  /**
+   * Activate the marquee
+   * NOTE: This should only be called once the DOM structure is updated with
+   *       Marquee.setup() and all created DOM elements are appended to the
+   *       document, otherwise the text overflow check will not work properly.
+   * @param {string} behavior the way the marquee behaves: 'scroll' (default)
+   *                           for continuous right-to-left (rtl) scrolling or
+   *                           'alternate' for alternating right-to-left and
+   *                           left-to-right scrolling.
+   * @param {string} timingFun the animation timing function: 'linear' (default)
+   *                           for linear animation speed, or 'ease' for slow
+   *                           start of the animation.
+   */
+  activate: function marquee_activate(behavior, timingFun) {
+    if (!this._headerNode || !this._headerWrapper) {
+      return;
+    }
+
+    // Set defaults for arguments
+    var mode = behavior || 'scroll';
+    var tf = timingFun || null;
+    var timing = (Marquee.timingFunction.indexOf(tf) >= 0) ? tf : 'linear';
+    var marqueeCssClass = 'marquee';
+
+    var titleText = document.getElementById('marquee-h-text');
+    var cssClass, width;
+
+    // Regardless of text character alignment, still want shorter text that does
+    // not span the whole element area to be aligned to match the UI. The
+    // dir="auto" on titleText will still preserve the correct order of the
+    // characters in the text.
+    titleText.classList.remove('ltr-align');
+    titleText.classList.remove('rtl-align');
+    titleText.classList.add((document.dir === 'rtl' ? 'rtl' : 'ltr') +
+                           '-align');
+
+    // Check if the title text overflows, and if so, add the marquee class
+    // NOTE: this can only be checked it the DOM structure is updated
+    //       through Marquee.setup()
+    if (this._headerWrapper.clientWidth &lt; this._headerWrapper.scrollWidth) {
+      // Track the CSS classes added to the text
+      this._marqueeCssClassList = [];
+      switch (mode) {
+        case 'scroll':
+          cssClass = marqueeCssClass + '-rtl';
+          // Set the width of the marquee to match the text contents length
+          width = this._headerWrapper.scrollWidth;
+          titleText.style.width = width + 'px';
+          // Start the marquee animation (aligned left with delay)
+          titleText.classList.add(cssClass + '-start-' + timing);
+          this._marqueeCssClassList.push(cssClass + '-start-' + timing);
+
+          var self = this;
+          titleText.addEventListener('animationend', function() {
+            titleText.classList.remove(cssClass + '-start-' + timing);
+            this._marqueeCssClassList.pop();
+            // Correctly calculate the width of the marquee
+            var visibleWidth = self._headerWrapper.clientWidth + 'px';
+            titleText.style.transform = 'translateX(' + visibleWidth + ')';
+            // Enable the continuous marquee
+            titleText.classList.add(cssClass);
+            this._marqueeCssClassList.push(cssClass);
+          });
+          break;
+        case 'alternate':
+          // If rtl text, then need to switch the direction of the animation.
+          var dirSuffix = '';
+          if (window.getComputedStyle(titleText).direction === 'rtl') {
+            dirSuffix = '-rtl';
+          }
+          timing += dirSuffix;
+
+          cssClass = marqueeCssClass + '-alt-';
+          // Set the width of the marquee to match the text contents length
+          width =
+              this._headerWrapper.scrollWidth - this._headerWrapper.clientWidth;
+          titleText.style.width = width + 'px';
+
+          // Start the marquee animation (aligned left with delay)
+          titleText.classList.add(cssClass + timing);
+          break;
+      }
+    } else {
+      if (!this._marqueeCssClassList) {
+        return;
+      }
+      // Remove the active marquee CSS classes
+      for (var titleCssClass in this._marqueeCssClassList) {
+        titleText.classList.remove(titleCssClass);
+      }
+
+      titleText.style.transform = '';
+    }
+  }
+};
+
+return Marquee;
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_cacheDom">_cacheDom</a></li><li><a href="global.html#_cacheDomTimeoutId">_cacheDomTimeoutId</a></li><li><a href="global.html#_cacheListLimit">_cacheListLimit</a></li><li><a href="global.html#_clearCachedMessages">_clearCachedMessages</a></li><li><a href="global.html#_considerCacheDom">_considerCacheDom</a></li><li><a href="global.html#_distanceBetweenMessages">_distanceBetweenMessages</a></li><li><a href="global.html#_divertToManualConfig">_divertToManualConfig</a></li><li><a href="global.html#_focusEditorWithCursorAtEnd">_focusEditorWithCursorAtEnd</a></li><li><a href="global.html#_isCacheableCardState">_isCacheableCardState</a></li><li><a href="global.html#_onAttachmentDone">_onAttachmentDone</a></li><li><a href="global.html#_onVScrollStopped">_onVScrollStopped</a></li><li><a href="global.html#_showFolder">_showFolder</a></li><li><a href="global.html#_topBar">_topBar</a></li><li><a href="global.html#_warnAttachmentSizeExceeded">_warnAttachmentSizeExceeded</a></li><li><a href="global.html#addAttachmentsSubjectToSizeLimits">addAttachmentsSubjectToSizeLimits</a></li><li><a href="global.html#advance">advance</a></li><li><a href="global.html#bindContainerHandler">bindContainerHandler</a></li><li><a href="global.html#bindToSlice">bindToSlice</a></li><li><a href="global.html#buildBodyDom">buildBodyDom</a></li><li><a href="global.html#calculateTotalAttachmentsSize">calculateTotalAttachmentsSize</a></li><li><a href="global.html#callHeaderFontSize">callHeaderFontSize</a></li><li><a href="global.html#canReplyAll">canReplyAll</a></li><li><a href="global.html#changeIfSame">changeIfSame</a></li><li><a href="global.html#checkExpectingMessageSuid">checkExpectingMessageSuid</a></li><li><a href="global.html#cloneAndSave">cloneAndSave</a></li><li><a href="global.html#cloneAsInertNodeAvoidingCustomElementHorrors">cloneAsInertNodeAvoidingCustomElementHorrors</a></li><li><a href="global.html#currentMessage">currentMessage</a></li><li><a href="global.html#delayedSaveFromNode">delayedSaveFromNode</a></li><li><a href="global.html#deleteBubble">deleteBubble</a></li><li><a href="global.html#die">die</a></li><li><a href="global.html#editBubble">editBubble</a></li><li><a href="global.html#expectingMessageSuid">expectingMessageSuid</a></li><li><a href="global.html#extractAddresses">extractAddresses</a></li><li><a href="global.html#fileSize">fileSize</a></li><li><a href="global.html#fromEditor">fromEditor</a></li><li><a href="global.html#hideAccounts">hideAccounts</a></li><li><a href="global.html#hideEmptyLayout">hideEmptyLayout</a></li><li><a href="global.html#indexOfMessageById">indexOfMessageById</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#insertBubble">insertBubble</a></li><li><a href="global.html#isValidAddress">isValidAddress</a></li><li><a href="global.html#learnAbout">learnAbout</a></li><li><a href="global.html#loadNextChunk">loadNextChunk</a></li><li><a href="global.html#messages_complete">messages_complete</a></li><li><a href="global.html#messagesSlice">messagesSlice</a></li><li><a href="global.html#onAccountsSplice">onAccountsSplice</a></li><li><a href="global.html#onAddressInput">onAddressInput</a></li><li><a href="global.html#onAddressKeydown">onAddressKeydown</a></li><li><a href="global.html#onBack">onBack</a></li><li><a href="global.html#onCardVisible">onCardVisible</a></li><li><a href="global.html#onClickAccount">onClickAccount</a></li><li><a href="global.html#onCurrentCardDocumentVisibilityChange">onCurrentCardDocumentVisibilityChange</a></li><li><a href="global.html#onCurrentMessage">onCurrentMessage</a></li><li><a href="global.html#onEnvelopeClick">onEnvelopeClick</a></li><li><a href="global.html#onFolderPickerClosing">onFolderPickerClosing</a></li><li><a href="global.html#onFolderShown">onFolderShown</a></li><li><a href="global.html#onLatestFolder">onLatestFolder</a></li><li><a href="global.html#onMessagesSpliceRemove">onMessagesSpliceRemove</a></li><li><a href="global.html#onNext">onNext</a></li><li><a href="global.html#onPrevious">onPrevious</a></li><li><a href="global.html#onSend">onSend</a></li><li><a href="global.html#onUsePassword">onUsePassword</a></li><li><a href="global.html#populateEditor">populateEditor</a></li><li><a href="global.html#proceed">proceed</a></li><li><a href="global.html#reallySend">reallySend</a></li><li><a href="global.html#renderAttachments">renderAttachments</a></li><li><a href="global.html#renderSendStatus">renderSendStatus</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#save">save</a></li><li><a href="global.html#saveFromNode">saveFromNode</a></li><li><a href="global.html#selectedMessagesUpdated">selectedMessagesUpdated</a></li><li><a href="global.html#setCurrentMessage">setCurrentMessage</a></li><li><a href="global.html#setCurrentMessageBySuid">setCurrentMessageBySuid</a></li><li><a href="global.html#setMessageChecked">setMessageChecked</a></li><li><a href="global.html#setRefreshState">setRefreshState</a></li><li><a href="global.html#setSelectState">setSelectState</a></li><li><a href="global.html#showAccounts">showAccounts</a></li><li><a href="global.html#showEmptyLayout">showEmptyLayout</a></li><li><a href="global.html#showFolder">showFolder</a></li><li><a href="global.html#showLargeMessageWarning">showLargeMessageWarning</a></li><li><a href="global.html#sizeLastSync">sizeLastSync</a></li><li><a href="global.html#skipEmitContentEvents">skipEmitContentEvents</a></li><li><a href="global.html#sliceEvents">sliceEvents</a></li><li><a href="global.html#subject">subject</a></li><li><a href="global.html#toggleOutboxSyncingDisplay">toggleOutboxSyncingDisplay</a></li><li><a href="global.html#updateAccount">updateAccount</a></li><li><a href="global.html#updateAttachmentsAriaLabel">updateAttachmentsAriaLabel</a></li><li><a href="global.html#updateAttachmentsSize">updateAttachmentsSize</a></li><li><a href="global.html#updateMessageDom">updateMessageDom</a></li><li><a href="global.html#validateAddresses">validateAddresses</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:29 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,6 +1,0 @@
-{
-  "name": "fullscreen nav app",
-  "launch_path": "/index.html",
-  "fullscreen": true,
-  "chrome": { "navigation": true }
-}

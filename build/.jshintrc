@@ -1,9 +1,0 @@
-{
-  "extends": "../.jshintrc",
-  "predef": [
-    "suiteSetup",
-    "suiteTeardown"
-  ],
-  "node": true,
-  "mocha": true
-}

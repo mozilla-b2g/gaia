@@ -1,8 +1,0 @@
-{
-  "maxImagePixelSize": 6000000,
-  "maxSnapshotPixelSize": 4000000,
-  "requiredEXIFPreviewSize": {
-    "width": 1200,
-    "height": 1222
-  }
-}

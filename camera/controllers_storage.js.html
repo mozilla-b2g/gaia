@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/storage.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/storage.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+/**
+ * Dependencies
+ */
+
+var debug = require('debug')('controller:storage');
+var bindAll = require('lib/bind-all');
+var Storage = require('lib/storage');
+
+/**
+ * Exports
+ */
+
+module.exports = function(app) { return new StorageController(app); };
+module.exports.StorageController = StorageController;
+
+/**
+ * Initialize a new `StorageController`
+ *
+ * @param {App} app
+ */
+function StorageController(app) {
+  bindAll(this);
+  this.app = app;
+  this.camera = app.camera;
+  this.settings = app.settings;
+  this.storage = app.storage || new Storage();
+  this.bindEvents();
+  this.configure();
+  debug('initialized');
+}
+
+/**
+ * Initial configuration.
+ *
+ * Give the camera a way to create video filepaths.
+ * This is so that the camera can record videos
+ * directly to the final location without us
+ * having to move the video file from temporary,
+ * to final location at recording end.
+ *
+ * @private
+ */
+StorageController.prototype.configure = function() {
+  this.storage.configure();
+  this.camera.createVideoFilepath = this.storage.createVideoFilepath;
+  this.updateMaxFileSize();
+};
+
+/**
+ * Bind to relevant events.
+ *
+ * @private
+ */
+StorageController.prototype.bindEvents = function() {
+  debug('bind events');
+
+  // App
+  this.settings.pictureSizes.on('change:selected', this.updateMaxFileSize);
+  this.app.on('previewgallery:deletepicture', this.storage.deletePicture);
+  this.app.on('previewgallery:deletevideo', this.storage.deleteVideo);
+  this.app.on('settings:configured', this.updateMaxFileSize);
+  this.app.on('camera:newimage', this.storePicture);
+  this.app.on('camera:newvideo', this.storeVideo);
+  this.app.on('visible', this.storage.check);
+
+  // Storage
+  this.storage.on('volumechanged', this.app.firer('storage:volumechanged'));
+  this.storage.on('itemdeleted', this.app.firer('storage:itemdeleted'));
+  this.storage.on('changed', this.onChanged);
+  this.storage.on('checked', this.onChecked);
+  debug('events bound');
+};
+
+/**
+ * Relay storage state change events.
+ *
+ * @param  {String} state
+ * @private
+ */
+StorageController.prototype.onChanged = function(state) {
+  debug('changed: %s', state);
+  this.app.emit('storage:changed', state);
+};
+
+/**
+ * Emit the outcome of a storage check
+ * so that other parts of the app
+ * can respond.
+ *
+ * @param  {String} value
+ * @private
+ */
+StorageController.prototype.onChecked = function(value) {
+  debug('checked: %s', value);
+  this.app.emit('storage:checked', value);
+  this.app.emit('storage:checked:' + value);
+};
+
+/**
+ * Store a picture.
+ *
+ * In either case, save the memory-backed
+ * photo blob to device storage, retrieve
+ * the resulting File (blob) and pass that
+ * around instead of the original memory blob.
+ *
+ * This is critical for "pick" activity consumers
+ * where the memory-backed Blob is either highly
+ * inefficent or will almost-immediately become
+ * inaccesible, depending on the state of the
+ * platform. https://bugzil.la/982779
+ *
+ * @param  {Object} picture
+ * @private
+ */
+StorageController.prototype.storePicture = function(picture) {
+  var memoryBlob = picture.blob;
+  var self = this;
+
+  this.storage.addPicture(
+    memoryBlob,
+    function(error, filepath, abspath, fileBlob) {
+      picture.blob = fileBlob;
+      picture.filepath = filepath;
+      debug('stored picture', picture);
+      self.app.emit('newmedia', picture);
+  });
+};
+
+/**
+ * Store a video.
+ *
+ * Store the poster image,
+ * then emit the app 'newvideo'
+ * event. This signifies the video
+ * fully ready.
+ *
+ * We don't store the video blob like
+ * we do for images, as it is recorded
+ * directly to the final location.
+ * This is for memory reason.
+ *
+ * @param  {Object} video
+ */
+StorageController.prototype.storeVideo = function(video) {
+  debug('new video', video);
+  var poster = video.poster;
+  var self = this;
+
+  // Add the poster image to the image storage
+  poster.filepath = video.filepath.replace('.3gp', '.jpg');
+  video.isVideo = true;
+
+  this.storage.addPicture(
+    poster.blob,
+    { filepath: poster.filepath },
+    function(error, path, absolutePath, fileBlob) {
+      // Replace the memory-backed Blob with the DeviceStorage file-backed File.
+      // Note that "video" references "poster", so video previews will use this
+      // File.
+      poster.blob = fileBlob;
+      debug('new video', video);
+      self.app.emit('newmedia', video);
+  });
+};
+
+/**
+ * Calculate and set a `maxFileSize`
+ * value on the storage instance.
+ *
+ * This is so that it can alert us when there
+ * isn't enough space left in storage
+ * to accomodate a new picture.
+ *
+ * It is very unlikely that a JPEG file will have a file size that is
+ * more than half a byte per pixel. There is some fixed EXIF overhead
+ * that is the same for small and large pictures, however, so we add
+ * an additional 25,000 bytes of padding.
+ *
+ * @private
+ */
+StorageController.prototype.updateMaxFileSize = function() {
+  var pictureSize = this.settings.pictureSizes.selected('data');
+  /* Depending on when we get loaded, we may not have a picture size yet. */
+  if (pictureSize) {
+    var bytes = (pictureSize.width * pictureSize.height / 2) + 25000;
+    this.storage.setMaxFileSize(bytes);
+    debug('maxFileSize updated %s', bytes);
+  }
+};
+
+});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.html#.exports">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#bindEvents">bindEvents</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#display">display</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#hide">hide</a></li><li><a href="global.html#localize">localize</a></li><li><a href="global.html#onShutterEnd">onShutterEnd</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#setScreenReaderVisible">setScreenReaderVisible</a></li><li><a href="global.html#setupSwitch">setupSwitch</a></li><li><a href="global.html#setZoom">setZoom</a></li><li><a href="global.html#setZoomPreviewAdjustment">setZoomPreviewAdjustment</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#shutter">shutter</a></li><li><a href="global.html#updatePreview">updatePreview</a></li><li><a href="global.html#updatePreviewMetrics">updatePreviewMetrics</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:28 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

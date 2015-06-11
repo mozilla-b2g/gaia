@@ -1,5 +1,0 @@
-#! /bin/bash -ve
-gem install travis-artifacts
-travis-artifacts upload --path artifacts/
-echo "Uploaded to:"
-echo "http://$ARTIFACTS_S3_BUCKET.s3.amazonaws.com/artifacts/$TRAVIS_BUILD_NUMBER/$TRAVIS_JOB_NUMBER/iupload.txt$"

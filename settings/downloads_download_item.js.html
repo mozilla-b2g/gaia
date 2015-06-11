@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: downloads/download_item.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: downloads/download_item.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global DownloadFormatter */
+'use strict';
+
+/**
+ * Download Item helper.
+ * Creates and updates the DOM needed to render a download as a list item.
+ *
+ * Usage:
+ *   var li = DownloadItem.create(download);
+ *
+ * Once you got the reference, you can attach event listeners or update the
+ * content explicitely if you know the download has been modified:
+ *   DownloadItem.update(li, download);
+ *
+ * This helper requires some l10n resources, make sure to import them:
+ *   &lt;link rel="localization"
+ *         href="/shared/locales/download/download.{locale}.properties">
+ */
+
+window.DownloadItem = (function DownloadItem() {
+
+  // Generates the following DOM, take into account that
+  // the css needed for the classes above is in settings app:
+  // downloads.css
+  // @param {DomDownload} Download object to get the output from
+  //
+  //&lt;li data-url="{url}" data-state="{download.state}">
+  //  &lt;aside class="download-status">
+  //  &lt;/aside>
+  //  &lt;aside class="pack-end"
+  //      data-id="{download.id}">
+  //  &lt;/aside>
+  //  &lt;p class="fileName">Filename.doc&lt;/p>
+  //  &lt;p class="info">57% - 4.1MB of 7MB&lt;/p>
+  //  &lt;progress value="57" max="100">&lt;/progress>
+  //&lt;/li>
+  var create = function create(download) {
+    var id = getDownloadId(download);
+    var li = document.createElement('li');
+    li.dataset.url = download.url;
+    li.dataset.state = getDownloadState(download);
+    li.id = id;
+    li.dataset.id = id;
+
+    var label = document.createElement('label');
+    label.classList.add('pack-checkbox');
+    var checkBox = document.createElement('input');
+    checkBox.setAttribute('type', 'checkbox');
+    checkBox.value = getDownloadId(download);
+
+    var span = document.createElement('span');
+
+    label.appendChild(checkBox);
+    label.appendChild(span);
+
+
+    var asideStatus = document.createElement('aside');
+    asideStatus.className = 'download-status';
+    var asideAction = document.createElement('aside');
+    asideAction.classList.add('pack-end');
+    asideAction.dataset.id = id;
+
+    var pFileName = document.createElement('p');
+    pFileName.classList.add('fileName');
+    pFileName.textContent = DownloadFormatter.getFileName(download);
+
+    var pInfo = document.createElement('p');
+    pInfo.classList.add('info');
+
+    var progress = document.createElement('progress');
+    progress.max = 100;
+
+    li.appendChild(label);
+    li.appendChild(asideStatus);
+    li.appendChild(asideAction);
+    li.appendChild(pFileName);
+    li.appendChild(pInfo);
+    li.appendChild(progress);
+
+    return update(li, download);
+  };
+
+  // Given a DOM Download Item generated with the previous
+  // method, update the style and the content based on the
+  // given download.
+  // @param {Dom Element} LI element representing the download
+  // @param {DomDownload} Download object
+  var update = function update(domElement, download) {
+    var state = getDownloadState(download);
+    var domNodes = getElements(domElement);
+    // Update the state properly in the element
+    domElement.dataset.state = state;
+    // Update content
+    updateContent(domNodes, download);
+
+    return domElement;
+  };
+
+  // Update the content of the elements according to the download
+  // status
+  // @param {Object of DOM Element} Dictionary containing the DOM
+  //   elements accesible by name
+  // @param {DomDownload} Download object
+  var updateContent = function updateContent(domNodes, download) {
+    var _ = navigator.mozL10n.get;
+    var state = getDownloadState(download);
+    if (state === 'downloading') {
+      domNodes.progress.value =
+        DownloadFormatter.getPercentage(download);
+
+      navigator.mozL10n.setAttributes(domNodes.info, 'partialResult', {
+        partial: DownloadFormatter.getDownloadedSize(download),
+        total: DownloadFormatter.getTotalSize(download)
+      });
+
+    } else {
+      var status = '';
+      switch (state) {
+        case 'stopped':
+        case 'failed':
+          status = _('download-' + state);
+          break;
+        case 'succeeded':
+          status = DownloadFormatter.getTotalSize(download);
+          break;
+      }
+      DownloadFormatter.getDate(download, function(date) {
+        navigator.mozL10n.setAttributes(domNodes.info, 'summary', {
+          date: date,
+          status: status
+        });
+      });
+    }
+  };
+
+  // Get's the DOM nodes for the Download Node to apply
+  // the specific style
+  // @param {DOM element} Given a Download LI generated with the
+  //   create method, returns in an object the different components
+  //   making them accessible via name
+  var getElements = function getElements(domElement) {
+    var domNodes = {};
+
+    domNodes.asideStatus = domElement.querySelector('aside:not(pack-end)');
+    domNodes.asideAction = domElement.querySelector('aside.pack-end');
+    domNodes.progress = domElement.getElementsByTagName('progress')[0];
+    // Should never change with current UI specs
+    domNodes.fileName = domElement.querySelector('p.fileName');
+    domNodes.info = domElement.querySelector('p.info');
+
+    return domNodes;
+  };
+
+  var getDownloadId = function getDownloadId(download) {
+    // We need to use this to generate our id because datastore ids are not
+    // compatible with dom element ids.
+    return DownloadFormatter.getUUID(download);
+  };
+
+  var updateDownloadId = function updateDownloadId(download,
+                                                   domElement) {
+    // Get our new element id.
+    var id = getDownloadId(download);
+    // Update all the relevant instances of the item id.
+    domElement.id = id;
+    domElement.dataset.id = id;
+    domElement.getElementsByTagName('input')[0].value = id;
+  };
+
+  var getDownloadState = function getDownloadState(download) {
+    var state = download.state;
+
+    if (state === 'stopped') {
+      if (download.error !== null) {
+        state = 'failed';
+      } else if (!window.navigator.onLine) {
+        // Remain downloading state when the connectivity was lost
+        state = 'downloading';
+      }
+    }
+
+    return state;
+  };
+
+  return {
+    'create': create,
+    'refresh': update,
+    'getDownloadId': getDownloadId,
+    'updateDownloadId': updateDownloadId
+  };
+
+}());
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-@SimPinDialog.html">@SimPinDialog</a></li><li><a href="module-abou_more_info_commitInfo.html">abou_more_info/commitInfo</a></li><li><a href="module-abou_more_info_DeviceInfo.html">abou_more_info/DeviceInfo</a></li><li><a href="module-about_FactoryReset.html">about/FactoryReset</a></li><li><a href="module-about_HardwareInfo.html">about/HardwareInfo</a></li><li><a href="module-about_UpdateCheck.html">about/UpdateCheck</a></li><li><a href="module-about_more_info_hardwareInfo.html">about_more_info/hardwareInfo</a></li><li><a href="module-achievements_achievements_template.html">achievements/achievements_template</a></li><li><a href="module-addons_addons_template.html">addons/addons_template</a></li><li><a href="module-AddonsItem.html">AddonsItem</a></li><li><a href="module-AddonsList.html">AddonsList</a></li><li><a href="module-apn_list_apn_template_factory.html">apn_list/apn_template_factory</a></li><li><a href="module-AppsCache.html">AppsCache</a></li><li><a href="module-Bluetooth.html">Bluetooth</a></li><li><a href="module-bluetooth_bt_template_factory.html">bluetooth/bt_template_factory</a></li><li><a href="module-BluetoothAdapterManager.html">BluetoothAdapterManager</a></li><li><a href="module-BluetoothClassOfDeviceMapper.html">BluetoothClassOfDeviceMapper</a></li><li><a href="module-BluetoothConnectionManager.html">BluetoothConnectionManager</a></li><li><a href="module-BluetoothContext.html">BluetoothContext</a></li><li><a href="module-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-call_call_forwarding.html">call/call_forwarding</a></li><li><a href="module-call_call_settings_task_scheduler.html">call/call_settings_task_scheduler</a></li><li><a href="module-DateTime.html">DateTime</a></li><li><a href="module-Defer.html">Defer</a></li><li><a href="module-developer_developer.html">developer/developer</a></li><li><a href="module-DialogManager.html">DialogManager</a></li><li><a href="module-DialogService.html">DialogService</a></li><li><a href="module-display_display.html">display/display</a></li><li><a href="module-HomescreenItem.html">HomescreenItem</a></li><li><a href="module-Hotspot.html">Hotspot</a></li><li><a href="module-HotspotSettings.html">HotspotSettings</a></li><li><a href="module-js_activity_handler.html">js/activity_handler</a></li><li><a href="module-keyboard_enabled_layouts.html">keyboard/enabled_layouts</a></li><li><a href="module-keyboard_installed_keyboards.html">keyboard/installed_keyboards</a></li><li><a href="module-keyboard_keyboard_template.html">keyboard/keyboard_template</a></li><li><a href="module-keyboard_add_layouts_core.html">keyboard_add_layouts/core</a></li><li><a href="module-keyboard_add_layouts_keyboard_template.html">keyboard_add_layouts/keyboard_template</a></li><li><a href="module-keyboard_add_layouts_layout_template.html">keyboard_add_layouts/layout_template</a></li><li><a href="module-keyboard_add_layouts_nested_template_factory.html">keyboard_add_layouts/nested_template_factory</a></li><li><a href="module-KeyboardContext.html">KeyboardContext</a></li><li><a href="module-modules_apn_apn_item.html">modules/apn/apn_item</a></li><li><a href="module-modules_base_dependency_graph.html">modules/base/dependency_graph</a></li><li><a href="module-modules_base_module.html">modules/base/module</a></li><li><a href="module-modules_base_task_scheduler.html">modules/base/task_scheduler</a></li><li><a href="module-modules_bluetooth_version_detector.html">modules/bluetooth/version_detector</a></li><li><a href="module-modules_mvvm_observable.html">modules/mvvm/observable</a></li><li><a href="module-modules_mvvm_observable_array.html">modules/mvvm/observable_array</a></li><li><a href="module-PageTransitions.html">PageTransitions</a></li><li><a href="module-Panel.html">Panel</a></li><li><a href="module-PanelCache.html">PanelCache</a></li><li><a href="module-panels_operator_settings_models_auto_selection_model.html">panels/operator_settings/models/auto_selection_model</a></li><li><a href="module-panels_operator_settings_models_mobile_connection_wrapper.html">panels/operator_settings/models/mobile_connection_wrapper</a></li><li><a href="module-panels_operator_settings_models_network_type_manager.html">panels/operator_settings/models/network_type_manager</a></li><li><a href="module-panels_operator_settings_models_panel_model.html">panels/operator_settings/models/panel_model</a></li><li><a href="module-panels_operator_settings_models_roaming_preference_manager.html">panels/operator_settings/models/roaming_preference_manager</a></li><li><a href="module-panels_root_airplane_mode_item.html">panels/root/airplane_mode_item</a></li><li><a href="module-panels_root_battery_item.html">panels/root/battery_item</a></li><li><a href="module-panels_root_bluetooth_item.html">panels/root/bluetooth_item</a></li><li><a href="module-panels_root_findmydevice_item.html">panels/root/findmydevice_item</a></li><li><a href="module-panels_root_language_item.html">panels/root/language_item</a></li><li><a href="module-panels_root_low_priority_items.html">panels/root/low_priority_items</a></li><li><a href="module-panels_root_nfc_item.html">panels/root/nfc_item</a></li><li><a href="module-PanelUtils.html">PanelUtils</a></li><li><a href="module-PermissionsList.html">PermissionsList</a></li><li><a href="module-PrivacyPanelItem.html">PrivacyPanelItem</a></li><li><a href="module-root_root.html">root/root</a></li><li><a href="module-SettingsCache.html">SettingsCache</a></li><li><a href="module-SettingsPanel.html">SettingsPanel</a></li><li><a href="module-SettingsService.html">SettingsService</a></li><li><a href="module-SimCardManager.html">SimCardManager</a></li><li><a href="module-SimSecurity.html">SimSecurity</a></li><li><a href="module-SimSecurityItem.html">SimSecurityItem</a></li><li><a href="module-SliderHandler.html">SliderHandler</a></li><li><a href="module-themes_layout_template.html">themes/layout_template</a></li><li><a href="module-ThemesItem.html">ThemesItem</a></li><li><a href="module-ToneManager.html">ToneManager</a></li><li><a href="module-VolumeManager.html">VolumeManager</a></li><li><a href="module-Wallpaper.html">Wallpaper</a></li><li><a href="module-wifi_manage_networks_wifi_known_networks.html">wifi_manage_networks/wifi_known_networks</a></li><li><a href="module-wifi_wps_wifi_wps.html">wifi_wps/wifi_wps</a></li><li><a href="module-WifiContext.html">WifiContext</a></li><li><a href="module-WifiUtils.html">WifiUtils</a></li><li><a href="module-WifiWps.html">WifiWps</a></li></ul><h3>Classes</h3><ul><li><a href="AddonDetails.html">AddonDetails</a></li><li><a href="AppStorageItem.html">AppStorageItem</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DeveloperServiceWorkers.html">DeveloperServiceWorkers</a></li><li><a href="EventEmitter.html">EventEmitter</a></li><li><a href="module-abou_more_info_commitInfo-commitInfo.html">commitInfo</a></li><li><a href="module-abou_more_info_DeviceInfo-DeviceInfo.html">DeviceInfo</a></li><li><a href="module-about_FactoryReset-FactoryReset.html">FactoryReset</a></li><li><a href="module-about_HardwareInfo-HardwareInfo.html">HardwareInfo</a></li><li><a href="module-about_UpdateCheck-UpdateCheck.html">UpdateCheck</a></li><li><a href="module-about_more_info_hardwareInfo-HardwareInfo.html">HardwareInfo</a></li><li><a href="module-BluetoothDevice-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-call_call_forwarding-CallForwarding.html">CallForwarding</a></li><li><a href="module-call_call_settings_task_scheduler-CallSettingsTaskScheduler.html">CallSettingsTaskScheduler</a></li><li><a href="module-developer_developer-Developer.html">Developer</a></li><li><a href="module-display_display-Display.html">Display</a></li><li><a href="module-keyboard_enabled_layouts-KeyboardEnabledLayoutsCore.html">KeyboardEnabledLayoutsCore</a></li><li><a href="module-keyboard_installed_keyboards-KeyboardCore.html">KeyboardCore</a></li><li><a href="module-keyboard_add_layouts_core-KeyboardAddLayoutsCore.html">KeyboardAddLayoutsCore</a></li><li><a href="module-KeyboardContext-Keyboard.html">Keyboard</a></li><li><a href="module-KeyboardContext-Layout.html">Layout</a></li><li><a href="module-modules_apn_apn_item-ApnItem.html">ApnItem</a></li><li><a href="module-modules_base_dependency_graph-DependencyGraph.html">DependencyGraph</a></li><li><a href="module-modules_base_task_scheduler-TaskScheduler.html">TaskScheduler</a></li><li><a href="module-modules_mvvm_observable_array-ObservableArray.html">ObservableArray</a></li><li><a href="module-modules_mvvm_observable-Observable.html">Observable</a></li><li><a href="module-panels_operator_settings_models_mobile_connection_wrapper-MobileConnetionWrapper.html">MobileConnetionWrapper</a></li><li><a href="module-panels_operator_settings_models_network_type_manager-NetworkTypeManager.html">NetworkTypeManager</a></li><li><a href="module-panels_operator_settings_models_panel_model-OperatorSettingsPanelModel.html">OperatorSettingsPanelModel</a></li><li><a href="module-panels_operator_settings_models_roaming_preference_manager-RoamingPreferenceManager.html">RoamingPreferenceManager</a></li><li><a href="module-panels_root_airplane_mode_item-AirplaneModeItem.html">AirplaneModeItem</a></li><li><a href="module-panels_root_battery_item-BatteryItem.html">BatteryItem</a></li><li><a href="module-panels_root_bluetooth_item-BluetoothItem.html">BluetoothItem</a></li><li><a href="module-panels_root_findmydevice_item-FindMyDeviceItem.html">FindMyDeviceItem</a></li><li><a href="module-panels_root_language_item-LanguageItem.html">LanguageItem</a></li><li><a href="module-panels_root_nfc_item-NFCItem.html">NFCItem</a></li><li><a href="module-root_root-Root.html">Root</a></li><li><a href="module-wifi_manage_networks_wifi_known_networks-WifiKnownNetworks.html">WifiKnownNetworks</a></li><li><a href="StateModel.html">StateModel</a></li><li><a href="USBStorageItem.html">USBStorageItem</a></li></ul><h3>Events</h3><ul><li><a href="module-SettingsCache.html#event:settingsChange">settingsChange</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_customize">_customize</a></li><li><a href="global.html#_datePickerChange">_datePickerChange</a></li><li><a href="global.html#_getInstance">_getInstance</a></li><li><a href="global.html#_hideActionMenu">_hideActionMenu</a></li><li><a href="global.html#_MODE">_MODE</a></li><li><a href="global.html#_renderAuthorizedNumbers">_renderAuthorizedNumbers</a></li><li><a href="global.html#_renderFdnContact">_renderFdnContact</a></li><li><a href="global.html#_renderTimeFormat">_renderTimeFormat</a></li><li><a href="global.html#_renderTimeZone">_renderTimeZone</a></li><li><a href="global.html#_showActionMenu">_showActionMenu</a></li><li><a href="global.html#_timePickerChange">_timePickerChange</a></li><li><a href="global.html#_updateContact">_updateContact</a></li><li><a href="global.html#_updateUI">_updateUI</a></li><li><a href="global.html#CarrierSettings">CarrierSettings</a></li><li><a href="global.html#DeviceStorageHelper">DeviceStorageHelper</a></li><li><a href="global.html#FileSizeFormatter">FileSizeFormatter</a></li><li><a href="global.html#getIccByIndex">getIccByIndex</a></li><li><a href="global.html#getWallpaperPath">getWallpaperPath</a></li><li><a href="global.html#loadWallpaper">loadWallpaper</a></li><li><a href="global.html#openDialog">openDialog</a></li><li><a href="global.html#openLink">openLink</a></li><li><a href="global.html#reopenSettings">reopenSettings</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#rollbackTheme">rollbackTheme</a></li><li><a href="global.html#saveConfig">saveConfig</a></li><li><a href="global.html#setWallpaper">setWallpaper</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:38 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

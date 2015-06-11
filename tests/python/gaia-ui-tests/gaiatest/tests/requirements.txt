@@ -1,3 +1,0 @@
-# This includes the packages required to run some of the gaia-ui-tests
-
-plivo==0.9.6

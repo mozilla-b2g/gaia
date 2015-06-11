@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: bridge.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: bridge.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports) {
+'use strict';
+
+var EventEmitter2 = require('ext/eventemitter2');
+var co = require('ext/co');
+var core = require('core');
+var dayObserver = require('day_observer');
+var nextTick = require('common/next_tick');
+var object = require('common/object');
+
+/**
+ * Fetch all the data needed to display the busytime information on the event
+ * views based on the busytimeId
+ */
+exports.fetchRecord = function(busytimeId) {
+  return co(function *() {
+    var record = yield dayObserver.findAssociated(busytimeId);
+    var eventStore = core.storeFactory.get('Event');
+    var owners = yield eventStore.ownersOf(record.event);
+    var provider = core.providerFactory.get(owners.account.providerType);
+    var capabilities = yield provider.eventCapabilities(record.event);
+
+    record.calendar = owners.calendar;
+    record.account = owners.account;
+    record.capabilities = capabilities;
+
+    return record;
+  });
+};
+
+/**
+ * Fetch all the calendars from database and emits a new event every time the
+ * values changes.
+ *
+ * @returns {ClientStream}
+ */
+exports.observeCalendars = function() {
+  // TODO: replace with real threads.client.stream when we get db into worker
+  var stream = new FakeClientStream();
+  var calendarStore = core.storeFactory.get('Calendar');
+
+  var getAllAndWrite = co.wrap(function *() {
+    // calendarStore.all() returns an object! we convert into an array since
+    // that is easier to render/manipulate
+    var calendars = yield calendarStore.all();
+    var data = yield object.map(calendars, co.wrap(function *(id, calendar) {
+      var provider = yield calendarStore.providerFor(calendar);
+      var caps = provider.calendarCapabilities(calendar);
+      return { calendar: calendar, capabilities: caps };
+    }));
+    stream.write(data);
+  });
+
+  calendarStore.on('add', getAllAndWrite);
+  calendarStore.on('remove', getAllAndWrite);
+  calendarStore.on('update', getAllAndWrite);
+
+  stream.cancel = function() {
+    calendarStore.off('add', getAllAndWrite);
+    calendarStore.off('remove', getAllAndWrite);
+    calendarStore.off('update', getAllAndWrite);
+    stream._cancel();
+  };
+
+  nextTick(getAllAndWrite);
+
+  return stream;
+};
+
+exports.updateCalendar = function(calendar) {
+  var calendarStore = core.storeFactory.get('Calendar');
+  return calendarStore.persist(calendar);
+};
+
+exports.createEvent = function(event) {
+  return persistEvent(event, 'create', 'canCreate');
+};
+
+exports.updateEvent = function(event) {
+  return persistEvent(event, 'update', 'canUpdate');
+};
+
+exports.deleteEvent = function(event) {
+  return persistEvent(event, 'delete', 'canDelete');
+};
+
+var persistEvent = co.wrap(function *(event, action, capability) {
+  event = event.data || event;
+  try {
+    var eventStore = core.storeFactory.get('Event');
+    var provider = yield eventStore.providerFor(event);
+    var caps = yield provider.eventCapabilities(event);
+    if (!caps[capability]) {
+      return Promise.reject(new Error(`Can't ${action} event`));
+    }
+    return provider[action + 'Event'](event);
+  } catch(err) {
+    console.error(
+      `${action} Error for event "${event._id}" ` +
+      `on calendar "${event.calendarId}"`
+    );
+    console.error(err);
+    return Promise.reject(err);
+  }
+});
+
+exports.getSetting = function(id) {
+  var settingStore = core.storeFactory.get('Setting');
+  return settingStore.getValue(id);
+};
+
+exports.setSetting = function(id, value) {
+  var settingStore = core.storeFactory.get('Setting');
+  return settingStore.set(id, value);
+};
+
+exports.observeSetting = function(id) {
+  var stream = new FakeClientStream();
+  var settingStore = core.storeFactory.get('Setting');
+
+  var writeOnChange = function(value) {
+    stream.write(value);
+  };
+
+  settingStore.on(`${id}Change`, writeOnChange);
+
+  stream.cancel = function() {
+    settingStore.off(`${id}Change`, writeOnChange);
+    stream._cancel();
+  };
+
+  exports.getSetting(id).then(writeOnChange);
+
+  return stream;
+};
+
+exports.observeAccounts = function() {
+  var stream = new FakeClientStream();
+  var accountStore = core.storeFactory.get('Account');
+
+  var getAllAndWrite = co.wrap(function *() {
+    try {
+      var accounts = yield accountStore.all();
+      var data = object.map(accounts, (id, account) => {
+        return {
+          account: account,
+          provider: core.providerFactory.get(account.providerType)
+        };
+      });
+      stream.write(data);
+    } catch(err) {
+      console.error(`Error fetching accounts: ${err.message}`);
+    }
+  });
+
+  accountStore.on('add', getAllAndWrite);
+  accountStore.on('remove', getAllAndWrite);
+  accountStore.on('update', getAllAndWrite);
+
+  stream.cancel = function() {
+    accountStore.off('add', getAllAndWrite);
+    accountStore.off('remove', getAllAndWrite);
+    accountStore.off('update', getAllAndWrite);
+    stream._cancel();
+  };
+
+  nextTick(getAllAndWrite);
+
+  return stream;
+};
+
+exports.observeDay = function(date) {
+  var stream = new FakeClientStream();
+  var emit = stream.write.bind(stream);
+
+  stream.cancel = function() {
+    dayObserver.off(date, emit);
+    stream._cancel();
+  };
+
+  // FIXME: nextTick only really needed because dayObserver dispatches the
+  // first callback synchronously, easier to solve it here than to change
+  // dayObserver; we can remove this nextTick call after moving to threads.js
+  // (since it will always be async)
+  nextTick(() => dayObserver.on(date, emit));
+
+  return stream;
+};
+
+/**
+ * FakeClientStream is used as a temporary solution while we move all the db
+ * calls into the worker. In the end all the methods inside this file will be
+ * transfered into the "backend/calendar_service.js" and we will simply call
+ * the `threads.client('calendar')` API
+ */
+function FakeClientStream() {
+  this._emitter = new EventEmitter2();
+  this._enabled = true;
+}
+
+FakeClientStream.prototype.write = function(data) {
+  this._enabled &amp;&amp; this._emitter.emit('data', data);
+};
+
+FakeClientStream.prototype.listen = function(callback) {
+  this._enabled &amp;&amp; this._emitter.on('data', callback);
+};
+
+FakeClientStream.prototype.unlisten = function(callback) {
+  this._enabled &amp;&amp; this._emitter.off('data', callback);
+};
+
+FakeClientStream.prototype._cancel = function() {
+  this._emitter.removeAllListeners();
+  this._enabled = false;
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

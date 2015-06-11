@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/eu_roaming_manager.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/eu_roaming_manager.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* globals SIMSlotManager, Notification, MozActivity, Promise,
+           LazyLoader, BaseModule */
+'use strict';
+
+(function() {
+  var EU_ROAMING_FILE_PATH = '/resources/eu-roaming.json';
+
+  /**
+   * EuRoamingManager observes the mobile codes of the current connected
+   * operator and display a notification when necessary.
+   *
+   * @class EuRoamingManager
+   */
+  function EuRoamingManager(core) {
+    this._connections = Array.slice(core.mobileConnections || []);
+
+    this._simMobileCodes = [];
+    this._curNetworkMobileCodes = [];
+
+    this._homeOperatorList = null;
+    this._foreignOperatorList = null;
+  }
+
+  BaseModule.create(EuRoamingManager, {
+    name: 'EuRoamingManager',
+    TAG_PREFIX: 'euRoamingNotificaton',
+    EU_ROAMING_ENABLED_KEY: 'eu-roaming.enabled',
+    EU_ROAMING_NOTIFICATION_STATE_KEY: 'eu-roaming.notification.state',
+    NOTIFICATION_STATES: {
+      UNAVAILABLE: 'unavailable',
+      DISPLAYED: 'displayed',
+      OPENED: 'opened'
+    },
+
+    /**
+     * Starts the module.
+     *
+     * @memberof EuRoamingManager.prototype
+     */
+    _start: function() {
+      // Clear existing notifications.
+      this._clearNotifications();
+      this._init();
+    },
+
+    /**
+     * Load the EU roaming file and register related listeners when necessary.
+     *
+     * @memberof EuRoamingManager.prototype
+     * @returns {Promise}
+     */
+    _init: function() {
+      var that = this;
+
+      return this._loadJSON(EU_ROAMING_FILE_PATH)
+      .then(function(result) {
+        if (!result) {
+          return;
+        }
+
+        that._homeOperatorList = result.home;
+        that._foreignOperatorList = result.foreign;
+
+        if (that._homeOperatorList &amp;&amp;
+            that._foreignOperatorList &amp;&amp;
+            Object.keys(that._homeOperatorList).length > 0 &amp;&amp;
+            Object.keys(that._foreignOperatorList).length > 0) {
+          that._initValues();
+          that._addSimChangeListener();
+          that._addDataChangeListener();
+
+          // Check the current state ar first.
+          that._connections.forEach(
+            that._tryShowEuRoamingNotification.bind(that));
+        }
+      });
+    },
+
+    /**
+     * Initialzes values.
+     *
+     * @memberof EuRoamingManager.prototype
+     */
+    _initValues: function() {
+      // Initialize the default values.
+      SIMSlotManager.getSlots().forEach(function(simSlot, index) {
+        this._curNetworkMobileCodes.push(null);
+
+        var iccInfo = simSlot &amp;&amp; simSlot.simCard &amp;&amp; simSlot.simCard.iccInfo;
+        if (iccInfo) {
+          this._simMobileCodes.push({ mcc: iccInfo.mcc, mnc: iccInfo.mnc });
+        } else {
+          this._simMobileCodes.push(null);
+        }
+      }, this);
+    },
+
+    /**
+     * Check if the mobile codes is a valid EU romaing home operator.
+     *
+     * @memberof EuRoamingManager.prototype
+     * @param {String} mcc
+     * @param {String} mnc
+     * @returns {Boolean}
+     */
+    _isEURoamingHomeOperator: function(mcc, mnc) {
+      if (!this._homeOperatorList || !mcc || !mnc) {
+        return false;
+      }
+      return !!this._homeOperatorList[mcc][mnc];
+    },
+
+    /**
+     * Check if the mobile codes is a valid EU romaing foreign operator.
+     *
+     * @memberof EuRoamingManager.prototype
+     * @param {String} mcc
+     * @param {String} mnc
+     * @returns {Boolean}
+     */
+    _isEURoamingForeignOperator: function(mcc, mnc) {
+      if (!this._foreignOperatorList || !mcc || !mnc) {
+        return false;
+      }
+      return !!this._foreignOperatorList[mcc][mnc];
+    },
+
+    /**
+     * Add listeners on events related to the change of the mobile codes stored
+     * on the icc card.
+     *
+     * @memberof EuRoamingManager.prototype
+     */
+    _addSimChangeListener: function() {
+      ['updated', 'iccinfochange', 'cardstatechange'].forEach(
+        function(eventName) {
+          window.addEventListener('simslot-' + eventName,
+            this._onSimChanged.bind(this));
+      }, this);
+    },
+
+    /**
+     * Add listeners on events related to the change of the mobile codes of the
+     * currently connected data network.
+     *
+     * @memberof EuRoamingManager.prototype
+     */
+    _addDataChangeListener: function() {
+      this._connections.forEach(function(connection, index) {
+        connection.addEventListener('datachange', function() {
+          this._tryShowEuRoamingNotification(connection, index);
+        }.bind(this));
+      }, this);
+    },
+
+    /**
+     * The function stores the mobile codes of the currently used sim card and
+     * try to display the notification.
+     *
+     * @memberof EuRoamingManager.prototype
+     */
+    _onSimChanged: function(event) {
+      var simSlot = event.detail;
+      var iccInfo = simSlot &amp;&amp; simSlot.simCard &amp;&amp; simSlot.simCard.iccInfo;
+
+      if (!iccInfo) {
+        return;
+      }
+
+      this._simMobileCodes[simSlot.index] =
+        { mcc: iccInfo.mcc, mnc: iccInfo.mnc };
+      this._tryShowEuRoamingNotification(simSlot.conn, simSlot.index);
+    },
+
+    /**
+     * The function displays the EU roaming notification when:
+     *   - Roaming on the newly connected data network.
+     *   - The mobile codes of the operators of the sim card are listed in the
+     *     "home" section of the EU roaming file.
+     *   - The mobile codes of the operators of the connected data network are
+     *     listed in the "foreign" section of the EU roaming file.
+     *
+     * @memberof EuRoamingManager.prototype
+     * @param {MobileConnection} connection
+     * @param {Number} index
+     * @returns {Promise}
+     */
+    _tryShowEuRoamingNotification: function(connection, index) {
+      var data = connection.data;
+      var network = data &amp;&amp; data.network;
+      if (!network) {
+        return;
+      }
+
+      var simMobileCode = this._simMobileCodes[index];
+      var simMcc = simMobileCode &amp;&amp; simMobileCode.mcc;
+      var simMnc = simMobileCode &amp;&amp; simMobileCode.mnc;
+
+      var curNetworkMobileCode = this._curNetworkMobileCodes[index];
+      var curNetworkMcc = curNetworkMobileCode &amp;&amp; curNetworkMobileCode.mcc;
+      var curNetworkMnc = curNetworkMobileCode &amp;&amp; curNetworkMobileCode.mnc;
+
+      if (network.mcc !== curNetworkMcc || network.mnc !== curNetworkMnc) {
+        // a new operator detected.
+        this._curNetworkMobileCodes[index] =
+          { mcc: network.mcc, mnc: network.mnc };
+
+        if (data.roaming &amp;&amp;
+            // check if the operator of the sim is in the EU regulation list.
+            this._isEURoamingHomeOperator(simMcc, simMnc) &amp;&amp;
+            // check if the new operator is a supported foreign operator or not.
+            this._isEURoamingForeignOperator(network.mcc, network.mnc)) {
+          return this._getState(this.EU_ROAMING_NOTIFICATION_STATE_KEY + index)
+          .then(function(notificationState) {
+            this._setState(this.EU_ROAMING_ENABLED_KEY + index, true);
+            // display the notification if it has never been opened before.
+            if (notificationState !== this.NOTIFICATION_STATES.OPENED) {
+              this._showNotification(index);
+              return this._setState(
+                this.EU_ROAMING_NOTIFICATION_STATE_KEY + index,
+                this.NOTIFICATION_STATES.DISPLAYED);
+            }
+          }.bind(this)).catch(function(err) {
+            console.error(err);
+          });
+        } else {
+          return Promise.all([
+            this._setState(this.EU_ROAMING_ENABLED_KEY + index, false),
+            this._setState(this.EU_ROAMING_NOTIFICATION_STATE_KEY + index,
+            this.NOTIFICATION_STATES.UNAVAILABLE)
+          ]).catch(function(err) {
+            console.error(err);
+          });
+        }
+      }
+    },
+
+    /**
+     * Clear all notifications of EU roaming.
+     *
+     * @memberof EuRoamingManager.prototype
+     * @returns {Promise}
+     */
+    _clearNotifications: function() {
+      var that = this;
+      return Notification.get().then(function(notifications) {
+        notifications.forEach(function(notification) {
+          var tag = notification &amp;&amp; notification.tag;
+          if (!tag || !tag.startsWith(that.TAG_PREFIX)) {
+            return;
+          }
+          notification.close();
+        });
+      });
+    },
+
+    /**
+     * Shows the EU roaming notification of a sim card.
+     *
+     * @memberof EuRoamingManager.prototype
+     * @param {Number} serviceId
+     */
+    _showNotification: function(serviceId) {
+      var _ = navigator.mozL10n.get;
+      var iconUrl =  window.location.origin + '/style/eu_roaming_manager/' +
+        'eu_roaming.png';
+      var options = {
+        body: _('euRoamingNotificationMsg'),
+        icon: iconUrl,
+        tag: this.TAG_PREFIX + serviceId,
+        mozbehavior: {
+          showOnlyOnce: true
+        }
+      };
+      var notification =
+        new Notification(_('euRoamingNotificationTitle'), options);
+
+      notification.onclick = function() {
+        this._triggerSettingsActivity(serviceId);
+        notification.close();
+      }.bind(this);
+
+      notification.onclose = function() {
+        this._setState(this.EU_ROAMING_NOTIFICATION_STATE_KEY + serviceId,
+          this.NOTIFICATION_STATES.OPENED);
+      }.bind(this);
+    },
+
+    /**
+     * Invokes an activity for setting the EU roaming apn.
+     *
+     * @memberof EuRoamingManager.prototype
+     * @param {Number} serviceId
+     */
+    _triggerSettingsActivity: function(serviceId) {
+      var activity = new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'apn-list',
+          options: {
+            role: 'activity',
+            type: 'default',
+            serviceId: serviceId
+          }
+        }
+      });
+      activity.onsuccess = function() {};
+    },
+
+    _getState: function(key) {
+      return new Promise(function(resolve, reject) {
+        var req = navigator.mozSettings.createLock().get(key);
+        req.onsuccess = function() {
+          resolve(req.result[key]);
+        };
+        req.onerror = function() {
+          reject('get state ' + key + ' error');
+        };
+      });
+    },
+
+    _setState: function(key, state) {
+      return new Promise(function(resolve, reject) {
+        var obj = {};
+        obj[key] = state;
+        var req = navigator.mozSettings.createLock().set(obj);
+        req.onsuccess = resolve;
+        req.onerror = function() {
+          reject('set state ' + key + ' error');
+        };
+      });
+    },
+
+    _loadJSON: function(path) {
+      return LazyLoader.getJSON(path).then(function(json) {
+        return Promise.resolve(json);
+      }, function(error) {
+        return Promise.resolve(null);
+      });
+    }
+  });
+}());
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

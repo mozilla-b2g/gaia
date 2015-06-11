@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Calendar</h1><p>This is the home of the Firefox OS calendar app.</p>
+<h3>Directory Structure</h3><pre class="prettyprint source"><code>build/            => calendar build configuration
+elements/         => lazy loaded html elements (see /shared/js/html_imports.js)
+js/               => calendar application code
+js/controllers/   => various utilities living between views and models
+js/ext/           => dependency / external javascript libraries
+js/models/        => model wrappers around indexedDB calendar data
+js/provider/      => provides apis to frontend code running on the main thread
+                     to send tasks to web worker. right now all of our database operations
+                     run on the main thread (https://bugzil.la/701634). common pattern is to
+                     send a sync operation to the worker which emits events to the
+                     provider code which formats calendar data and shoves it in indexedDB
+js/service/       => runs in worker and bridges communication between main thread and caldav library
+js/store/         => wrappers around calendar database collections
+js/utils/         => miscellaneous library code mostly for computing or storing things
+                     synchronously in memory
+js/views/         => javascript that manages the dom representation for the UI
+                     makes calls to model and provider layers to accomplish backend tasks
+                     often listens to store events for data changes and updates the UI
+js/worker/        => abstraction on top of web worker api, facilitates main thread &lt;> worker
+locales/          => translations to various locales exposed via l10n
+style/            => css, fonts, images, etc.
+test/             => calendar test code
+test/interop/     => calendar client &lt;> server interoperability tests that use marionette
+test/marionette/  => webdriver tests written with the marionette-js-runner framework
+test/unit/        => javascript unit tests run in the browser via test-agent</code></pre><h4>A note about js/ext</h4><p>The external libraries versioned in js/ext are populated by <a href="http://volojs.org/">volo</a> which saves their url, version, git tag, etc in <code>package.json</code>. Check out the documentation <a href="https://github.com/volojs/volo/tree/master/commands">here</a> for help adding, updating, and removing dependencies.</p>
+<h3>Interop Tests</h3><p>We have a test suite that checks whether or not we're interoperable with a particular calendar server. In order to run the test suite against your favorite server:</p>
+<ol>
+<li>Add a file named <code>config.json</code> at <code>apps/calendar/test/interop/&lt;provider&gt;/config.json</code>. The json configuration file needs to have<ul>
+<li>user (username)</li>
+<li>password (user password)</li>
+<li>fullUrl (url for caldav server)</li>
+<li>calendars (array of caldav calendar display names)</li>
+</ul>
+</li>
+<li>Make sure that your provider is in the list of providers located at <code>apps/calendar/test/interop/basic.js</code>.</li>
+<li>Execute <code>TEST_FILES=apps/calendar/test/interop/basic.js ./bin/gaia-marionette</code></li>
+</ol>
+<h3>Related material</h3><ul>
+<li>Unit tests: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Testing/Gaia_unit_tests</li>
+<li>Integration tests: https://developer.mozilla.org/en-US/Firefox_OS/Platform/Automated_testing/Gaia_integration_tests</li>
+<li>Calendaring: http://calconnect.org/</li>
+<li>CalDAV spec: http://tools.ietf.org/html/rfc4791</li>
+<li>CalDAV library: https://github.com/mozilla-b2g/caldav</li>
+<li>iCalendar spec: http://tools.ietf.org/html/rfc5545</li>
+<li>iCalendar library: https://github.com/mozilla-comm/ical.js</li>
+<li>Helpful command line utilities: https://npmjs.org/package/b2g-scripts</li>
+</ul>
+<h3>Distribution and Customization</h3><p>A calendar.json file may be specified inside of distribution/calendar.json. This will override the generated presets.js file during the build. At a minimum Google Oauth credentials should be provided for production releases. Failure to do so may result in broken calendars at some point.</p>
+<p>You can signup for Google credentials here: https://code.google.com/apis/console/b/0/?pli=1#access</p></article>
+    </section>
+
+
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        common/create_dom_promise.js
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Simple helper function to convert basic platform DOMRequest
+    into Promise. Deprecate once there is platform support for something
+    like DOMRequest.then().</p></div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="common_create_dom_promise.js.html">common/create_dom_promise.js</a>, <a href="common_create_dom_promise.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        common/promise.js
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Utilities for converting async functions which use
+    node-style callbacks to also cater promises callers.</p></div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="common_promise.js.html">common/promise.js</a>, <a href="common_promise.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        controllers/periodic_sync.js
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Period sync controller manages</p>
+<pre class="prettyprint source"><code>1. Seeding first sync alarm when app starts.
+2. Syncing when a sync alarm fires and issuing a new sync alarm.
+3. Invalidating any existing sync alarms and issuing a new one
+   when the sync interval changes.</code></pre></div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="controllers_periodic_sync.js.html">controllers/periodic_sync.js</a>, <a href="controllers_periodic_sync.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:32 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

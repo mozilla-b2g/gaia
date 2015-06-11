@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/confirm.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/confirm.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+/*jshint laxbreak:true*/
+
+'use strict';
+
+/**
+ * Module Dependencies
+ */
+
+var prepareBlob = require('lib/prepare-preview-blob');
+var debug = require('debug')('controller:confirm');
+var ConfirmView = require('views/confirm');
+var bindAll = require('lib/bind-all');
+
+/**
+ * Exports
+ */
+
+module.exports = function(options) { return new ConfirmController(options); };
+module.exports.ConfirmController = ConfirmController;
+
+/**
+ * Initialize a new `ConfirmController`
+ *
+ * @param {Object} options
+ */
+function ConfirmController(app) {
+  this.app = app;
+  this.settings = app.settings;
+  this.activity = app.activity;
+  this.camera = app.camera;
+  this.container = app.el;
+
+  // Allow these dependencies
+  // to be injected if need be.
+  this.ConfirmView = app.ConfirmView || ConfirmView;
+  this.prepareBlob = app.prepareBlob || prepareBlob;
+
+  bindAll(this);
+  this.bindEvents();
+  debug('initialized');
+}
+
+ConfirmController.prototype.renderView = function() {
+  if (!this.activity.pick) { return; }
+
+  if (!this.view) {
+    this.view = new this.ConfirmView();
+    this.view.maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
+    this.view.render().appendTo(this.container);
+
+    // We want to listen to select events exactly once
+    // The media is selected, the confirm view dismissed
+    // and the activity returns
+    this.view.once('click:select', this.onSelectMedia);
+    this.view.on('click:retake', this.onRetakeMedia);
+    this.view.on('loadingvideo', this.app.firer('busy'));
+    this.view.on('playingvideo', this.app.firer('ready'));
+  }
+
+  this.view.show();
+  this.app.set('confirmViewVisible', true);
+};
+
+/**
+ * Bind callbacks to required events.
+ *
+ */
+ConfirmController.prototype.bindEvents = function() {
+
+  // Render/Show the view on the `newimage` and `newvideo` events
+  // since they are fired immediately when tapping 'Capture'/'Stop'.
+  // This prevents the 'Capture'/'Stop' button from being able to be
+  // triggered multiple times before the confirm view appears.
+  this.camera.on('newimage', this.renderView);
+  this.camera.on('newvideo', this.renderView);
+
+  // Update the MediaFrame contents with the image/video upon
+  // receiving the `newmedia` event. This event is slightly delayed
+  // since it waits for the storage callback to complete.
+  this.app.on('newmedia', this.onNewMedia);
+};
+
+/**
+ * When inside a 'pick' activity
+ * will present the user with a
+ * confirm overlay where they can
+ * decide to 'select' or 'retake'
+ * the photo or video
+ *
+ * @param  {Object} data
+ *
+ */
+ConfirmController.prototype.onNewMedia = function(newMedia) {
+  if (!this.activity.pick) { return; }
+
+  this.newMedia = newMedia;
+  if (newMedia.isVideo) { // Is video
+    this.view.showVideo(newMedia);
+  } else { // Is Image
+    this.prepareBlob(this.newMedia.blob, this.view.showImage);
+  }
+};
+
+ConfirmController.prototype.onSelectMedia = function() {
+  this.app.emit('confirm:selected', this.newMedia);
+};
+
+ConfirmController.prototype.onRetakeMedia = function() {
+  this.view.hide();
+  this.view.clearMediaFrame();
+  this.app.set('confirmViewVisible', false);
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.html#.exports">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#bindEvents">bindEvents</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#display">display</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#hide">hide</a></li><li><a href="global.html#localize">localize</a></li><li><a href="global.html#onShutterEnd">onShutterEnd</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#setScreenReaderVisible">setScreenReaderVisible</a></li><li><a href="global.html#setupSwitch">setupSwitch</a></li><li><a href="global.html#setZoom">setZoom</a></li><li><a href="global.html#setZoomPreviewAdjustment">setZoomPreviewAdjustment</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#shutter">shutter</a></li><li><a href="global.html#updatePreview">updatePreview</a></li><li><a href="global.html#updatePreviewMetrics">updatePreviewMetrics</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:28 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

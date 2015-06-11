@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/bt_template_factory.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/bt_template_factory.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * The template function for generating an UI element for an item of Bluetooth
+ * paired/remote device.
+ *
+ * @module bluetooth/bt_template_factory
+ */
+define(function() {
+  'use strict';
+
+  var _debug = false;
+  var Debug = function() {};
+  if (_debug) {
+    Debug = function bttf_debug(msg) {
+      console.log('--> [BluetoothTemplateFactory]: ' + msg);
+    };
+  }
+
+  function btTemplate(deviceType, onItemClick, observableItem) {
+    var device = observableItem;
+
+    var nameSpan = document.createElement('span');
+    _updateItemName(nameSpan, device.name);
+
+    var descSmall = document.createElement('small');
+    if (deviceType === 'remote') {
+      descSmall.setAttribute('data-l10n-id', 'device-status-tap-connect');
+    }
+
+    var li = document.createElement('li');
+    var anchor = document.createElement('a');
+    li.classList.add('bluetooth-device');
+
+    // According to Bluetooth class of device to give icon style.
+    Debug('device.type = ' + device.type);
+    li.classList.add('bluetooth-type-' + device.type);
+
+    // According to 'descriptionText' property to give description.
+    _updateItemDescriptionText(li, descSmall, device.descriptionText,
+                               deviceType);
+
+    anchor.appendChild(nameSpan);
+    anchor.appendChild(descSmall); // should append this first
+    li.appendChild(anchor);
+
+    // Add pairing progress in remote device.
+    if (deviceType === 'remote') {
+      var pairingProgress = document.createElement('progress');
+      pairingProgress.classList.add('overlapping-icon');
+      pairingProgress.classList.add('hidden');
+      li.appendChild(pairingProgress);
+    }
+
+    // Register the handler for the click event.
+    if (typeof onItemClick === 'function') {
+      li.onclick = function() {
+        onItemClick(observableItem);
+      };
+    }
+
+    // Observe name property for update device name
+    // while device 'onattributechanged' event is coming.
+    device.observe('name', function(newName) {
+      _updateItemName(nameSpan, newName);
+    });
+
+    // Observe descriptionText property for update device description
+    // while the connection status changed.
+    device.observe('descriptionText', function(descriptionText) {
+      _updateItemDescriptionText(li, descSmall, descriptionText, deviceType);
+    });
+
+    return li;
+  }
+
+  function _updateItemName(element, name) {
+    if (name !== '') {
+      element.removeAttribute('data-l10n-id');
+      element.textContent = name;
+    } else {
+      element.setAttribute('data-l10n-id', 'unnamed-device');
+    }
+  }
+
+  function _updateItemDescriptionText(li, element, descriptionText,
+                                      deviceType) {
+    Debug('_updateItemDescriptionText(): descriptionText = ' + descriptionText);
+    switch (descriptionText) {
+      case 'tapToConnect':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id', 'device-status-tap-connect');
+        // Rollback icon layout for remote device.
+        if (deviceType === 'remote') {
+          // hide the pairing progress
+          li.querySelector('progress').classList.add('hidden');
+          // show the device icon
+          li.classList.remove('icon-hidden');
+        }
+        break;
+      case 'pairing':
+        li.setAttribute('aria-disabled', true);
+        element.setAttribute('data-l10n-id', 'device-status-pairing');
+        // The remote device has different icon layout 
+        // while it's in inline pairing progress.
+        if (deviceType === 'remote') {
+          // hide the device icon
+          li.classList.add('icon-hidden');
+          // show the pairing progress
+          li.querySelector('progress').classList.remove('hidden');
+        }
+        break;
+      case 'paired':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id', 'device-status-paired');
+        // Rollback icon layout for remote device.
+        if (deviceType === 'remote') {
+          // hide the pairing progress
+          li.querySelector('progress').classList.add('hidden');
+          // show the device icon
+          li.classList.remove('icon-hidden');
+        }
+        break;
+      case 'connecting':
+        li.setAttribute('aria-disabled', true);
+        element.setAttribute('data-l10n-id', 'device-status-connecting');
+        break;
+      case 'connectedWithDeviceMedia':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-device-media');
+        break;
+      case 'connectedWithDevice':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-device');
+        break;
+      case 'connectedWithMedia':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected-media');
+        break;
+      case 'connectedWithNoProfileInfo':
+        li.removeAttribute('aria-disabled');
+        element.setAttribute('data-l10n-id',
+          'device-status-connected');
+        break;
+      case 'disconnected':
+        li.removeAttribute('aria-disabled');
+        element.removeAttribute('data-l10n-id');
+        element.textContent = '';
+        break;
+      default:
+        break;
+    }
+  }
+
+  return function ctor_btTemplate(deviceType, onItemClick) {
+    return btTemplate.bind(null, deviceType, onItemClick);
+  };
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-bluetooth_bt_template_factory.html">bluetooth/bt_template_factory</a></li><li><a href="module-BluetoothAdapterManager.html">BluetoothAdapterManager</a></li><li><a href="module-BluetoothClassOfDeviceMapper.html">BluetoothClassOfDeviceMapper</a></li><li><a href="module-BluetoothConnectionManager.html">BluetoothConnectionManager</a></li><li><a href="module-BluetoothContext.html">BluetoothContext</a></li><li><a href="module-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-modules_bluetooth_version_detector.html">modules/bluetooth/version_detector</a></li></ul><h3>Classes</h3><ul><li><a href="module-BluetoothDevice-BluetoothDevice.html">BluetoothDevice</a></li></ul><h3>Global</h3><ul><li><a href="global.html#requirejs">requirejs</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:26 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

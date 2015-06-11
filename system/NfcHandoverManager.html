@@ -1,0 +1,4625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: NfcHandoverManager</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: NfcHandoverManager</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        NfcHandoverManager
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    <h4 class="name" id="NfcHandoverManager"><span class="type-signature"></span>new NfcHandoverManager<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>NfcHandoverManager handles handovers from other Bluetooth devices according
+to the specification of the NFC Forum
+(Document: NFCForum-TS-ConnectionHandover_1_2.doc).</p></p>
+    
+
+
+
+<div class="description">
+    <p>NfcHandoverManager handles handovers from other Bluetooth devices according
+to the specification of the NFC Forum
+(Document: NFCForum-TS-ConnectionHandover_1_2.doc).</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line7">line 7</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="_adapter"><span class="type-signature"></span>_adapter<span class="type-signature"> :Object</span></h4>
+
+
+<p class="summary"><p>Default bluetooth adapter</p>.</p>
+
+
+
+<div class="description">
+    <p>Default bluetooth adapter</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line45">line 45</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="actionQueue"><span class="type-signature"></span>actionQueue<span class="type-signature"> :Array</span></h4>
+
+
+<p class="summary"><p>Keeps a list of actions that need to be performed after
+Bluetooth is turned on.</p></p>
+
+
+
+<div class="description">
+    <p>Keeps a list of actions that need to be performed after
+Bluetooth is turned on.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line53">line 53</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="bluetoothAutoEnabled"><span class="type-signature"></span>bluetoothAutoEnabled<span class="type-signature"> :boolean</span></h4>
+
+
+<p class="summary">Remembers whether Bluetooth was enabled or automatically.</p>
+
+
+
+<div class="description">
+    <p>Remembers whether Bluetooth was enabled or automatically.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line100">line 100</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="bluetoothStatusSaved"><span class="type-signature"></span>bluetoothStatusSaved<span class="type-signature"> :boolean</span></h4>
+
+
+<p class="summary"><p>Remembers whether Bluetooth was already saved during an earlier
+file transfer.</p></p>
+
+
+
+<div class="description">
+    <p>Remembers whether Bluetooth was already saved during an earlier
+file transfer.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line93">line 93</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="DEBUG"><span class="type-signature"></span>DEBUG<span class="type-signature"> :boolean</span></h4>
+
+
+<p class="summary"><p>Flag which turns on debuging messages</p>.</p>
+
+
+
+<div class="description">
+    <p>Flag which turns on debuging messages</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line38">line 38</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="incomingFileTransferInProgress"><span class="type-signature"></span>incomingFileTransferInProgress<span class="type-signature"> :boolean</span></h4>
+
+
+<p class="summary">Set to true during a file transfer that was initiated by another device.</p>
+
+
+
+<div class="description">
+    <p>Set to true during a file transfer that was initiated by another device.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line85">line 85</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="responseTimeoutFunction"><span class="type-signature"></span>responseTimeoutFunction<span class="type-signature"> :Object</span></h4>
+
+
+<p class="summary"><p>Set whenever a timeout is defined while waiting for an outstanding
+handover response.</p></p>
+
+
+
+<div class="description">
+    <p>Set whenever a timeout is defined while waiting for an outstanding
+handover response.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line78">line 78</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="responseTimeoutMillis"><span class="type-signature"></span>responseTimeoutMillis<span class="type-signature"> :Number</span></h4>
+
+
+<p class="summary"><p>The length of the timeout in milliseconds to wait for an outstanding
+handover response.</p></p>
+
+
+
+<div class="description">
+    <p>The length of the timeout in milliseconds to wait for an outstanding
+handover response.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line70">line 70</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="sendFileQueue"><span class="type-signature"></span>sendFileQueue<span class="type-signature"> :Object</span></h4>
+
+
+<p class="summary">Keeps a list of send file requests made via peer.sendFile(blob).</p>
+
+
+
+<div class="description">
+    <p>Keeps a list of send file requests made via peer.sendFile(blob).
+It will be inspected in the handling of Handover Select messages
+to distinguish between static and negotiated handovers.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line62">line 62</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="settingsNotified"><span class="type-signature"></span>settingsNotified<span class="type-signature"></span></h4>
+
+
+<p class="summary">Used to prevent triggering Settings multiple times.</p>
+
+
+
+<div class="description">
+    <p>Used to prevent triggering Settings multiple times.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line106">line 106</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="_cancelIncomingFileTransfer"><span class="type-signature"></span>_cancelIncomingFileTransfer<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>This function will be called after a timeout when we did not receive
+the Hs record within three seconds.</p></p>
+    
+
+
+
+<div class="description">
+    <p>This function will be called after a timeout when we did not receive
+the Hs record within three seconds. At this point we cancel the file
+transfer.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line406">line 406</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_cancelSendFileTransfer"><span class="type-signature"></span>_cancelSendFileTransfer<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>This function will be called after a timeout when we did not receive the
+Hs record within three seconds.</p></p>
+    
+
+
+
+<div class="description">
+    <p>This function will be called after a timeout when we did not receive the
+Hs record within three seconds. At this point we cancel the file
+transfer.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line390">line 390</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_checkConnected"><span class="type-signature"></span>_checkConnected<span class="signature">(btssp)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Check if a device is already paired and connected.</p>
+    
+
+
+
+<div class="description">
+    <p>Check if a device is already paired and connected.</p>
+<p>BTv2 deprecate the device.connected property.
+connect stat should be retrieved by adapter.getConnectedDevices API</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>btssp</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>BT SSP record</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line604">line 604</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_clearBluetoothStatus"><span class="type-signature"></span>_clearBluetoothStatus<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Forget a previously saved Bluetooth status.</p>
+    
+
+
+
+<div class="description">
+    <p>Forget a previously saved Bluetooth status.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line212">line 212</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_clearTimeout"><span class="type-signature"></span>_clearTimeout<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>Clears timeout that handles the case an outstanding handover message
+has not been received within a certain timeframe.</p></p>
+    
+
+
+
+<div class="description">
+    <p>Clears timeout that handles the case an outstanding handover message
+has not been received within a certain timeframe.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line548">line 548</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_dispatchSendFileStatus"><span class="type-signature"></span>_dispatchSendFileStatus<span class="signature">(status, request)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Dispatches status of file sending to mozNfc.</p>
+    
+
+
+
+<div class="description">
+    <p>Dispatches status of file sending to mozNfc.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>status</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>status of file send operation</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>request</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>ID of the operation</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line564">line 564</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_doConnect"><span class="type-signature"></span>_doConnect<span class="signature">(device)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Connects via bluetooth to the paired device.</p>
+    
+
+
+
+<div class="description">
+    <p>Connects via bluetooth to the paired device.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Device to be paired</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line306">line 306</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_doFileTransfer"><span class="type-signature"></span>_doFileTransfer<span class="signature">(mac)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>Performs bluetooth file transfer if this.sendFileRequest exists
+to other device</p>.</p>
+    
+
+
+
+<div class="description">
+    <p>Performs bluetooth file transfer if this.sendFileRequest exists
+to other device</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mac</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>MAC address of the other device</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line420">line 420</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_doHandoverRequest"><span class="type-signature"></span>_doHandoverRequest<span class="signature">(ndef, MozNFCPeer)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>Performs tha actual handover request</p>.</p>
+    
+
+
+
+<div class="description">
+    <p>Performs tha actual handover request</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ndef</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>NDEF message conating the handover request record</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>MozNFCPeer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MozNFCPeer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>object.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line441">line 441</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_doPairing"><span class="type-signature"></span>_doPairing<span class="signature">(mac)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>Performs bluetooth pairing with other device</p>.</p>
+    
+
+
+
+<div class="description">
+    <p>Performs bluetooth pairing with other device</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mac</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>MAC address of the peer device</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line323">line 323</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_findPairedDevice"><span class="type-signature"></span>_findPairedDevice<span class="signature">(mac, foundCb, notFoundCb)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Look for a paired device and invoke the appropriate callback function.</p>
+    
+
+
+
+<div class="description">
+    <p>Look for a paired device and invoke the appropriate callback function.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mac</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>MAC address of the device</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>foundCb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Found callback</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>notFoundCb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Not found callback</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line280">line 280</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_getBluetoothSSP"><span class="type-signature"></span>_getBluetoothSSP<span class="signature">(ndef)</span><span class="type-signature"> &rarr; {Object|string|string}</span></h4>
+
+    
+    <p class="summary"><p>Gets the data about other device taking part in handover proces
+from NDEF message</p>.</p>
+    
+
+
+
+<div class="description">
+    <p>Gets the data about other device taking part in handover proces
+from NDEF message</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ndef</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>NDEF message</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line255">line 255</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+<ul>
+        <li>
+<div class="param-desc">
+    <p>ssp - object containing info about other devices</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+</li>
+    
+        <li>
+<div class="param-desc">
+    <p>ssp.mac - mac addres of other devices</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+</li>
+    
+        <li>
+<div class="param-desc">
+    <p>ssp.localName - local name if present in NDEF message,
+null otherwise</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+</li>
+    </ul>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_handleHandoverRequest"><span class="type-signature"></span>_handleHandoverRequest<span class="signature">(ndef, MozNFCPeer)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Handles NDEF Handover Request message.</p>
+    
+
+
+
+<div class="description">
+    <p>Handles NDEF Handover Request message.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ndef</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>NDEF message containing handover request record</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>MozNFCPeer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MozNFCPeer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>object.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line697">line 697</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_handleHandoverSelect"><span class="type-signature"></span>_handleHandoverSelect<span class="signature">(ndef)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Handle NDEF Handover Select message.</p>
+    
+
+
+
+<div class="description">
+    <p>Handle NDEF Handover Select message.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ndef</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>NDEF message containing handover select record</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line664">line 664</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_handleSimplifiedPairingRecord"><span class="type-signature"></span>_handleSimplifiedPairingRecord<span class="signature">(ndef)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Handles simplified pairing record.</p>
+    
+
+
+
+<div class="description">
+    <p>Handles simplified pairing record.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ndef</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>NDEF message containing simplified pairing record</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line651">line 651</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_initiateFileTransfer"><span class="type-signature"></span>_initiateFileTransfer<span class="signature">(msg)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>Initiate a file transfer by sending a Handover Request to the
+remote device.</p></p>
+    
+
+
+
+<div class="description">
+    <p>Initiate a file transfer by sending a Handover Request to the
+remote device.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>msg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>message object</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>peer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MozNFCPeer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An instance of MozNFCPeer object.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>blob</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Blob</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>File to be sent.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>requestId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Request ID.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line490">line 490</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_logVisibly"><span class="type-signature"></span>_logVisibly<span class="signature">(msg, opObject)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>Logs message in logcat</p>.</p>
+    
+
+
+
+<div class="description">
+    <p>Logs message in logcat</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>msg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>debug messages</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>object to printed after doing JSON.stringfy</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line114">line 114</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_onRequestConnect"><span class="type-signature"></span>_onRequestConnect<span class="signature">(btssp)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Handles connection request by asking user for confirmation.</p>
+    
+
+
+
+<div class="description">
+    <p>Handles connection request by asking user for confirmation.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>btssp</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>BT SSP (Secure Simple Pairing) data.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line575">line 575</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_restoreBluetoothStatus"><span class="type-signature"></span>_restoreBluetoothStatus<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Restore the Bluetooth status.</p>
+    
+
+
+
+<div class="description">
+    <p>Restore the Bluetooth status.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line195">line 195</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_saveBluetoothStatus"><span class="type-signature"></span>_saveBluetoothStatus<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Save the on/off status of Bluetooth.</p>
+    
+
+
+
+<div class="description">
+    <p>Save the on/off status of Bluetooth.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line184">line 184</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_showFailedNotification"><span class="type-signature"></span>_showFailedNotification<span class="signature">(msg)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Show an error notification when file transfer failed.</p>
+    
+
+
+
+<div class="description">
+    <p>Show an error notification when file transfer failed.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>msg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional message.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line365">line 365</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_showTryAgainNotification"><span class="type-signature"></span>_showTryAgainNotification<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Show 'send failed, try again' notification.</p>
+    
+
+
+
+<div class="description">
+    <p>Show 'send failed, try again' notification.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line378">line 378</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_start"><span class="type-signature"></span>_start<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Initializes event and message handlers, initializes properties.</p>
+    
+
+
+
+<div class="description">
+    <p>Initializes event and message handlers, initializes properties.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line130">line 130</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="_transferStarted"><span class="type-signature"></span>_transferStarted<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">BluetoothTransfer notifies us that a file transfer has started.</p>
+    
+
+
+
+<div class="description">
+    <p>BluetoothTransfer notifies us that a file transfer has started.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line786">line 786</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="handleFileTransfer"><span class="type-signature"></span>handleFileTransfer<span class="signature">(msg)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary">Trigger a file transfer with a remote device via BT.</p>
+    
+
+
+
+<div class="description">
+    <p>Trigger a file transfer with a remote device via BT.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>msg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>message object</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>peer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MozNFCPeer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An instance of MozNFCPeer object.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>blob</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Blob</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>File to be sent.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>requestId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Request ID.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line757">line 757</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="isHandoverInProgress"><span class="type-signature"></span>isHandoverInProgress<span class="signature">()</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+    <p class="summary">Returns true if a handover is in progress.</p>
+    
+
+
+
+<div class="description">
+    <p>Returns true if a handover is in progress.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line777">line 777</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>true if handover is in progress.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="transferComplete"><span class="type-signature"></span>transferComplete<span class="signature">(details)</span><span class="type-signature"></span></h4>
+
+    
+    <p class="summary"><p>Tells NfcHandoverManager that a BT file transfer
+has been completed.</p></p>
+    
+
+
+
+<div class="description">
+    <p>Tells NfcHandoverManager that a BT file transfer
+has been completed.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>details</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>succeeded True if file transfer was successfull.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line796">line 796</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="tryHandover"><span class="type-signature"></span>tryHandover<span class="signature">(ndefMsg, MozNFCPeer)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+    <p class="summary">Checks if the first record of NDEF message is a handover record.</p>
+    
+
+
+
+<div class="description">
+    <p>Checks if the first record of NDEF message is a handover record.
+If yes the NDEF message is handled according to handover record type.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ndefMsg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>array of NDEF records</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>MozNFCPeer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MozNFCPeer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>object.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="js_nfc_handover_manager.js.html">js/nfc_handover_manager.js</a>, <a href="js_nfc_handover_manager.js.html#line723">line 723</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>true if handover record was found and handled, false
+if no handover record was found</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:45 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

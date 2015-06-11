@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/sim_lock_system_dialog.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/sim_lock_system_dialog.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global SystemDialog, SIMSlotManager, applications */
+'use strict';
+
+(function(exports) {
+  /**
+   * @class SimLockSystemDialog
+   * @param {options} object for attributes `onShow`, `onHide` callback.
+   * @extends SystemDialog
+   */
+  var SimLockSystemDialog = function(controller) {
+    this.instanceID = 'simlock-dialog';
+    this.controller = controller;
+    this.options = {};
+    /**
+     * render the dialog
+     */
+    this.render();
+    this._dispatchEvent('created');
+  };
+
+  var ORIENTATION = 'portrait-primary';
+
+  SimLockSystemDialog.prototype = Object.create(SystemDialog.prototype,
+    {
+      visible: {
+        configurable: false,
+        get: function() {
+          return this._visible;
+        }
+      },
+    });
+
+  SimLockSystemDialog.prototype.lockType = 'pin';
+
+  SimLockSystemDialog.prototype.lockTypeMap = {
+    'pinRequired': 'pin',
+    'pukRequired': 'puk',
+    'networkLocked': 'nck',
+    'corporateLocked': 'cck',
+    'serviceProviderLocked': 'spck',
+    'network1Locked': 'nck1',
+    'network2Locked': 'nck2',
+    'hrpdNetworkLocked': 'hnck',
+    'ruimCorporateLocked': 'rcck',
+    'ruimServiceProviderLocked': 'rspck'
+  };
+
+  SimLockSystemDialog.prototype.customID = 'simlock-dialog';
+
+  SimLockSystemDialog.prototype.DEBUG = false;
+
+  SimLockSystemDialog.prototype.name = 'SimLockSystemDialog';
+
+  SimLockSystemDialog.prototype.EVENT_PREFIX = 'simlock';
+
+  SimLockSystemDialog.prototype.view = function spd_view() {
+    return `&lt;div id="${this.instanceID}" role="dialog"
+           class="generic-dialog" data-z-index-level="system-dialog" hidden>
+           &lt;section role="region">
+             &lt;gaia-header>
+               &lt;h1>&lt;/h1>
+             &lt;/gaia-header>
+             &lt;div class="container">
+             &lt;div id="errorMsg" class="error" hidden>
+               &lt;div id="messageHeader">The PIN was incorrect.&lt;/div>
+               &lt;span id="messageBody">3 tries left.&lt;/span>
+             &lt;/div>
+             &lt;!-- tries left -->
+             &lt;div id="triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden>
+            &lt;/div>
+             &lt;!-- sim pin input field -->
+             &lt;div id="pinArea" hidden>
+               &lt;div data-l10n-id="simPin">&lt;/div>
+               &lt;div class="input-wrapper">
+                 &lt;input name="simpin" type="password" x-inputmode="digit"
+                 size="8" maxlength="8" />
+               &lt;/div>
+             &lt;/div>
+             &lt;!-- sim puk input field -->
+             &lt;div id="pukArea" hidden>
+               &lt;div data-l10n-id="pukCode">&lt;/div>
+               &lt;div class="input-wrapper">
+                 &lt;input name="simpuk" type="password" x-inputmode="digit"
+                 size="8" maxlength="8" />
+               &lt;/div>
+             &lt;/div>
+             &lt;!-- sim nck/cck/spck input field -->
+             &lt;div id="xckArea" hidden>
+               &lt;div name="xckDesc" data-l10n-id="nckCode">&lt;/div>
+               &lt;div class="input-wrapper">
+                 &lt;input name="xckpin" type="number" size="16"
+                 maxlength="16" />
+               &lt;/div>
+             &lt;/div>
+             &lt;!-- new sim pin input field -->
+             &lt;div id="newPinArea" hidden>
+               &lt;div data-l10n-id="newSimPinMsg">&lt;/div>
+               &lt;div class="input-wrapper">
+                 &lt;input name="newSimpin" type="password"
+                 x-inputmode="digit" size="8" maxlength="8" />
+               &lt;/div>
+             &lt;/div>
+             &lt;!-- confirm new sim pin input field -->
+             &lt;div id="confirmPinArea" hidden>
+               &lt;div data-l10n-id="confirmNewSimPinMsg">&lt;/div>
+               &lt;div class="input-wrapper">
+                 &lt;input name="confirmNewSimpin" type="password"
+                 x-inputmode="digit" size="8" maxlength="8" />
+               &lt;/div>
+             &lt;/div>
+             &lt;/div>
+           &lt;/section>
+           &lt;menu data-items="2">
+             &lt;button type="reset" data-l10n-id="skip">&lt;/button>
+             &lt;button data-l10n-id="ok" type="submit">&lt;/button>
+           &lt;/menu>
+           &lt;/div>`;
+  };
+
+  SimLockSystemDialog.prototype.onHide = function() {
+    this._visible = false;
+    this.controller &amp;&amp; this.controller.onHide();
+  };
+
+  SimLockSystemDialog.prototype.updateHeight = function() {
+    SystemDialog.prototype.updateHeight.apply(this, arguments);
+    document.activeElement.scrollIntoView(false);
+  };
+
+  SimLockSystemDialog.prototype._registerEvents = function() {
+    this.dialogDone.onclick = this.verify.bind(this);
+    this.dialogSkip.onclick = this.skip.bind(this);
+    this.dialogDone.onmousedown = this._handle_mousedown.bind(this);
+    this.dialogSkip.onmousedown = this._handle_mousedown.bind(this);
+    this.header.addEventListener('action', this.back.bind(this));
+    this.pinInput = this.getNumberPasswordInputField('simpin');
+    this.pukInput = this.getNumberPasswordInputField('simpuk');
+    this.xckInput = this.getNumberPasswordInputField('xckpin');
+    this.newPinInput = this.getNumberPasswordInputField('newSimpin');
+    this.confirmPinInput =
+      this.getNumberPasswordInputField('confirmNewSimpin');
+
+    this.ensureFocusInView(this.pinInput, this.containerDiv);
+    this.ensureFocusInView(this.pukInput, this.containerDiv);
+  };
+
+  SimLockSystemDialog.prototype._fetchElements = function spl_initElements() {
+    this.dialogTitle =
+      document.querySelector('#simlock-dialog gaia-header h1');
+    this.dialogDone =
+      document.querySelector('#simlock-dialog button[type="submit"]');
+    this.dialogSkip =
+      document.querySelector('#simlock-dialog button[type="reset"]');
+    this.header = document.querySelector('#simlock-dialog gaia-header');
+
+    this.pinArea = document.getElementById('pinArea');
+    this.pukArea = document.getElementById('pukArea');
+    this.xckArea = document.getElementById('xckArea');
+    this.desc = document.querySelector('#xckArea div[name="xckDesc"]');
+    this.newPinArea = document.getElementById('newPinArea');
+    this.confirmPinArea = document.getElementById('confirmPinArea');
+
+    this.triesLeftMsg = document.getElementById('triesLeft');
+
+    this.errorMsg = document.getElementById('errorMsg');
+    this.errorMsgHeader = document.getElementById('messageHeader');
+    this.errorMsgBody = document.getElementById('messageBody');
+
+    this.containerDiv = document.querySelector('#simlock-dialog .container');
+  };
+
+  SimLockSystemDialog.prototype.getNumberPasswordInputField = function(name) {
+    var inputField = document.querySelector('input[name="' + name + '"]');
+    var self = this;
+
+    inputField.addEventListener('input', function(evt) {
+      if (evt.target !== inputField) {
+        return;
+      }
+
+      checkDialogDone();
+    });
+
+    inputField.addEventListener('focus', function() {
+      checkDialogDone();
+    });
+
+    function checkDialogDone() {
+      if (inputField.value.length >= 4) {
+        self.dialogDone.disabled = false;
+      } else {
+        self.dialogDone.disabled = true;
+      }
+    }
+
+
+    return inputField;
+  };
+
+  SimLockSystemDialog.prototype.handleCardState = function() {
+    var _ = navigator.mozL10n.setAttributes;
+
+    if (!this._currentSlot) {
+      return;
+    }
+
+    var card = this._currentSlot.simCard;
+
+    var cardState = card.cardState;
+    var lockType = this.lockTypeMap[cardState];
+
+    var request = this._currentSlot.getCardLockRetryCount(lockType);
+    request.onsuccess = (function() {
+      var retryCount = request.result.retryCount;
+      if (retryCount) {
+        var l10nArgs = { n: retryCount };
+        _(this.triesLeftMsg, 'inputCodeRetriesLeft', l10nArgs);
+        this.triesLeftMsg.hidden = false;
+      }
+    }).bind(this);
+    request.onerror = function() {
+      console.log('Could not fetch CardLockRetryCount', request.error.name);
+    };
+
+    switch (lockType) {
+      case 'pin':
+        this.lockType = lockType;
+        this.errorMsg.hidden = true;
+        this.inputFieldControl(true, false, false, false);
+        break;
+      case 'puk':
+        this.lockType = lockType;
+        _(this.errorMsgHeader, 'simCardLockedMsg');
+        _(this.errorMsgBody, 'enterPukMsg');
+        this.errorMsg.hidden = false;
+        this.inputFieldControl(false, true, false, true);
+        break;
+      case 'nck':
+      case 'cck':
+      case 'spck':
+      case 'nck1':
+      case 'nck2':
+      case 'hnck':
+      case 'rcck':
+      case 'rspck':
+        this.lockType = lockType;
+        this.errorMsg.hidden = true;
+        this.inputFieldControl(false, false, true, false);
+        _(this.desc, lockType + 'Code');
+        break;
+      default:
+        this.skip();
+        break;
+    }
+    if (this.lockType !== 'pin' || !SIMSlotManager.isMultiSIM()) {
+      _(this.dialogTitle, this.lockType + 'Title');
+    } else {
+      _(this.dialogTitle, 'multiSIMpinTitle',
+        { n: this._currentSlot.index + 1 });
+    }
+  };
+
+  SimLockSystemDialog.prototype.handleError = function(lockType, retryCount) {
+    var retry = (retryCount) ? retryCount : -1;
+    this.showErrorMsg(retry, lockType);
+    if (retry === -1) {
+      this.skip();
+      return;
+    }
+    if (lockType === 'pin') {
+      this.pinInput.focus();
+    } else if (lockType === 'puk') {
+      this.pukInput.focus();
+    } else {
+      this.xckInput.focus();
+    }
+  };
+
+  SimLockSystemDialog.prototype.showErrorMsg = function(retry, type) {
+    var _ = navigator.mozL10n.setAttributes;
+    var l10nArgs = { n: retry };
+
+    _(this.triesLeftMsg, 'inputCodeRetriesLeft', l10nArgs);
+    _(this.errorMsgHeader, type + 'ErrorMsg');
+    if (retry !== 1) {
+      _(this.errorMsgBody, type + 'AttemptMsg2', l10nArgs);
+    } else {
+      _(this.errorMsgBody, type + 'LastChanceMsg');
+    }
+
+    this.errorMsg.hidden = false;
+  };
+
+  SimLockSystemDialog.prototype.unlockPin = function() {
+    var pin = this.pinInput.value;
+    if (pin === '') {
+      return;
+    }
+
+    var options = { lockType: 'pin', pin: pin };
+    this.unlockCardLock(options);
+  };
+
+  SimLockSystemDialog.prototype.unlockPuk = function() {
+    var _ = navigator.mozL10n.setAttributes;
+
+    var puk = this.pukInput.value;
+    var newPin = this.newPinInput.value;
+    var confirmPin = this.confirmPinInput.value;
+    if (puk === '' || newPin === '' || confirmPin === '') {
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      _(this.errorMsgHeader, 'newPinErrorMsg');
+      _(this.errorMsgBody, '');
+      this.errorMsg.hidden = false;
+      return;
+    }
+    var options = {lockType: 'puk', puk: puk, newPin: newPin };
+    this.unlockCardLock(options);
+    this.clear();
+  };
+
+  SimLockSystemDialog.prototype.unlockXck = function() {
+    var xck = this.xckInput.value;
+    if (xck === '') {
+      return;
+    }
+
+    var options = {lockType: this.lockType, pin: xck };
+    this.unlockCardLock(options);
+    this.clear();
+  };
+
+  SimLockSystemDialog.prototype.unlockCardLock = function(options) {
+    var req = this._currentSlot.unlockCardLock(options);
+    this.disableInput();
+    req.onsuccess = this.requestClose.bind(this, 'success');
+    req.onerror = (function spl_unlockCardLockError(result) {
+      this.clear();
+      this.handleError(options.lockType, req.error.retryCount);
+    }).bind(this);
+  };
+
+  SimLockSystemDialog.prototype.focus = function() {
+    switch (this.lockType) {
+      case 'pin':
+        this.pinInput.focus();
+        break;
+      case 'puk':
+        this.pukInput.focus();
+        break;
+      default:
+        this.xckInput.focus();
+        break;
+    }
+  };
+
+  SimLockSystemDialog.prototype.inputFieldControl =
+    function(isPin, isPuk, isXck, isNewPin) {
+      this.pinArea.hidden = !isPin;
+      this.pukArea.hidden = !isPuk;
+      this.xckArea.hidden = !isXck;
+      this.newPinArea.hidden = !isNewPin;
+      this.confirmPinArea.hidden = !isNewPin;
+      this.requestFocus();
+    };
+
+  SimLockSystemDialog.prototype._handle_mousedown = function(evt) {
+    evt.preventDefault();
+  };
+
+  SimLockSystemDialog.prototype.verify = function() {
+    if (this.lockType === 'pin') {
+      this.unlockPin();
+    } else if (this.lockType === 'puk') {
+      this.unlockPuk();
+    } else {
+      this.unlockXck();
+    }
+    return false;
+  };
+
+  SimLockSystemDialog.prototype.onHide = function() {
+    this.clear();
+    if (this.onclose) {
+      this.onclose();
+    }
+  };
+
+  SimLockSystemDialog.prototype.disableInput = function() {
+    this.pinInput.disabled = true;
+    this.pukInput.disabled = true;
+    this.xckInput.disabled = true;
+    this.newPinInput.disabled = true;
+    this.confirmPinInput.disabled = true;
+  };
+
+  SimLockSystemDialog.prototype.enableInput = function() {
+    this.pinInput.disabled = false;
+    this.pukInput.disabled = false;
+    this.xckInput.disabled = false;
+    this.newPinInput.disabled = false;
+    this.confirmPinInput.disabled = false;
+  };
+
+  SimLockSystemDialog.prototype.clear = function() {
+    this.enableInput();
+    this.errorMsg.hidden = true;
+    this.pinInput.value = '';
+    this.pinInput.blur();
+    this.pukInput.value = '';
+    this.pukInput.blur();
+    this.xckInput.value = '';
+    this.xckInput.blur();
+    this.newPinInput.value = '';
+    this.newPinInput.blur();
+    this.confirmPinInput.value = '';
+    this.confirmPinInput.blur();
+  };
+
+  SimLockSystemDialog.prototype.onclose = null;
+
+  SimLockSystemDialog.prototype._visible = false;
+
+  /**
+   * Show the SIM pin dialog
+   * @param {Object} slot SIMSlot instance.
+   * @param {Boolean} [skipped] If the last slot is skipped or not.
+   */
+  SimLockSystemDialog.prototype.show = function(slot, skipped) {
+    this.clear();
+    if (slot) {
+      this._currentSlot = slot;
+    }
+
+    SystemDialog.prototype.show.apply(this);
+    screen.mozLockOrientation(ORIENTATION);
+    this._visible = true;
+    this.lockType = 'pin';
+    this.handleCardState();
+
+    if (skipped) {
+      this.header.setAttribute('action', 'back');
+      // Force header-text to be repositioned
+      // now the action-button is present
+      this.dialogTitle.textContent = this.dialogTitle.textContent;
+    } else {
+      this.header.removeAttribute('action');
+    }
+  };
+
+  SimLockSystemDialog.prototype.requestClose = function() {
+    this._dispatchEvent('requestclose');
+  };
+
+  SimLockSystemDialog.prototype.hide = function() {
+    this._visible = false;
+    SystemDialog.prototype.hide.apply(this);
+    screen.mozUnlockOrientation();
+  };
+
+  SimLockSystemDialog.prototype.close = function() {
+    this._dispatchEvent('close');
+    this.hide();
+    this._visible = false;
+  };
+
+  SimLockSystemDialog.prototype.skip = function() {
+    this._dispatchEvent('skip');
+  };
+
+  SimLockSystemDialog.prototype.back = function() {
+    this._dispatchEvent('back');
+  };
+
+  // With the keyboard active the inputs, ensure they get scrolled
+  // into view
+  SimLockSystemDialog.prototype.ensureFocusInView =
+    function(element, container) {
+      element.addEventListener('focus', function(e) {
+        window.addEventListener('system-resize', function resize() {
+          window.removeEventListener('system-resize', resize);
+          // The layout always has the input at the bottom, so
+          // just always ensure we scroll to the bottom
+          container.scrollTop = container.offsetHeight;
+        });
+      });
+    };
+
+  SimLockSystemDialog.prototype.requestFocus = function() {
+    this._dispatchEvent('requestfocus');
+  };
+
+  SimLockSystemDialog.prototype._dispatchEvent = function _dispatchEvent(name) {
+    var self = this;
+    if (applications.ready) {
+      this.publish(name);
+    } else {
+      window.addEventListener('applicationready', function onReady() {
+        window.removeEventListener('applicationready', onReady);
+        self.publish(name);
+      });
+    }
+  };
+
+  exports.SimLockSystemDialog = SimLockSystemDialog;
+}(window));
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/statusbar.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/statusbar.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+  Copyright 2012, Mozilla Foundation
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+/*global Service, UtilityTray, LazyLoader */
+
+'use strict';
+
+(function(exports) {
+  var Statusbar = {
+    name: 'Statusbar',
+
+    // The indices indicate icons priority (lower index = highest priority)
+    // In each object:
+    // * witdth: is the icon element width or null if size is variable
+    // * order: is the order in which the icons will be displayed
+    PRIORITIES: {
+      'emergency-callback': { width: 16 + 4, order: 12},
+      'battery': {width: 25 + 4, order: 2},
+      'recording': {width: 16 + 4, order: 16},
+      'airplane-mode': {width: 16 + 4, order: 3},
+      'wifi': {width: 16 + 4, order: 4},
+      'mobile-connection': {width: null, order: 5}, // Width can change
+      'time': {width: null, order: 1}, // Width can change
+      'debugging': {width: 16 + 4, order: 11},
+      'download': {width: 16 + 4, order: 13},
+      'geolocation': {width: 16 + 4, order: 17},
+      'network-activity': {width: 16 + 4, order: 6},
+      'tethering': {width: 16 + 4, order: 7},
+      'bluetooth-transfer': {width: 16 + 4, order: 9},
+      'bluetooth': {width: 16 + 4, order: 8},
+      'nfc': {width: 16 + 4, order: 10},
+      'usb': {width: 16 + 4, order: 14},
+      'alarm': {width: 16 + 4, order: 22},
+      'bluetooth-headphone': {width: 16 + 4, order: 19},
+      'mute': {width: 16 + 4, order: 15},
+      'call-forwardings': {width: null, order: 18}, // Width can change
+      'playing': {width: 16 + 4, order: 21},
+      'headphone': {width: 16 + 4, order: 20},
+      'operator': {width: null, order: 23} // Only visible in the maximized.
+    },
+
+    /* Whether or not status bar is actively updating or not */
+    active: true,
+
+    _minimizedStatusbarWidth: window.innerWidth,
+
+    /* For other modules to acquire */
+    get height() {
+      if (document.mozFullScreen ||
+          (Service.query('getTopMostWindow') &amp;&amp;
+           Service.query('getTopMostWindow').isFullScreen())) {
+        return 0;
+      } else {
+        return this._cacheHeight ||
+               (this._cacheHeight =
+                this.element.getBoundingClientRect().height);
+      }
+    },
+
+    start: function() {
+      this.getAllElements();
+
+      // cache height.
+      this._cacheHeight = this.element.getBoundingClientRect().height;
+
+      window.addEventListener('apptitlestatechanged', this);
+      window.addEventListener('activitytitlestatechanged', this);
+      window.addEventListener('appchromecollapsed', this);
+      window.addEventListener('appchromeexpanded', this);
+      window.addEventListener('iconcreated', this);
+      window.addEventListener('iconshown', this);
+      window.addEventListener('iconhidden', this);
+      window.addEventListener('iconchanged', this);
+      window.addEventListener('iconrendered', this);
+      window.addEventListener('iconwidthchanged', this);
+      if (Service.query('FtuLauncher.isFinished')) {
+        this.finishInit();
+      } else {
+        window.addEventListener('ftuskip', this);
+        window.addEventListener('ftudone', this);
+      }
+      Service.registerState('height', this);
+      Service.register('pauseUpdate', this);
+    },
+
+    iconContainer: function sb_iconContainer(icon) {
+      if (icon.dashPureName === 'operator') {
+        return this.statusbarTray;
+      }
+      return this.statusbarIconsMax;
+    },
+
+    onIconCreated: function sb_onIconCreated(icon) {
+      if (!this.PRIORITIES[icon.dashPureName]) {
+        return;
+      }
+
+      this.PRIORITIES[icon.dashPureName].icon = icon;
+    },
+
+    /**
+     * Finish all initializing statusbar event handlers
+     */
+    finishInit: function() {
+      window.addEventListener('sheets-gesture-begin', this);
+      window.addEventListener('sheets-gesture-end', this);
+      window.addEventListener('utilitytraywillshow', this);
+      window.addEventListener('utilitytraywillhide', this);
+      window.addEventListener('utility-tray-overlayopened', this);
+      window.addEventListener('utility-tray-overlayclosed', this);
+      window.addEventListener('utility-tray-abortopen', this);
+      window.addEventListener('utility-tray-abortclose', this);
+      window.addEventListener('cardviewshown', this);
+      window.addEventListener('cardviewclosed', this);
+
+      // Listen to 'lockscreen-appopened', 'lockscreen-appclosing', and
+      // 'lockpanelchange' in order to correctly set the visibility of
+      // the statusbar clock depending on the active lockscreen panel
+      window.addEventListener('lockscreen-appopened', this);
+      window.addEventListener('lockscreen-appclosing', this);
+      window.addEventListener('lockpanelchange', this);
+
+      // Listen to orientation change and SHB activation/deactivation.
+      window.addEventListener('system-resize', this);
+
+      window.addEventListener('attentionopened', this);
+      window.addEventListener('appopening', this);
+      window.addEventListener('appopened', this);
+      window.addEventListener('hierarchytopmostwindowchanged', this);
+      window.addEventListener('activityopened', this);
+      window.addEventListener('activitydestroyed', this);
+      window.addEventListener('homescreenopening', this);
+      window.addEventListener('homescreenopened', this);
+      window.addEventListener('stackchanged', this);
+
+      // Listen to updates dialog
+      window.addEventListener('updatepromptshown', this);
+      window.addEventListener('updateprompthidden', this);
+
+      // We need to preventDefault on mouse events until
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
+      var events = ['touchstart', 'touchmove', 'touchend',
+                    'mousedown', 'mousemove', 'mouseup'];
+      events.forEach(function bindEvents(name) {
+        this.topPanel.addEventListener(name, this.panelHandler.bind(this));
+      }, this);
+
+      this.statusbarIcons.addEventListener('wheel', this);
+
+      LazyLoader.load(['js/utility_tray.js']).then(function() {
+        this.utilityTray = UtilityTray;
+        UtilityTray.init();
+      }.bind(this)).catch((err) => {
+        console.error('UtilityTray load or init error', err);
+      });
+
+      Service.register('onIconCreated', this);
+      Service.register('iconContainer', this);
+    },
+
+    handleEvent: function sb_handleEvent(evt) {
+      var icon;
+      switch (evt.type) {
+        case 'ftudone':
+        case 'ftuskip':
+          this.finishInit();
+          break;
+        case 'iconrendered':
+          icon = evt.detail;
+          var iconObj = this.PRIORITIES[icon.dashPureName];
+          if (!iconObj) {
+            return;
+          }
+
+          var order = iconObj &amp;&amp; iconObj.order ? iconObj.order : 1000;
+          icon.setOrder(order);
+          break;
+        case 'iconchanged':
+          this.cloneStatusbar();
+          break;
+        case 'iconshown':
+        case 'iconhidden':
+          this._updateIconVisibility();
+          break;
+        case 'iconwidthchanged':
+          this._updateMinimizedStatusbarWidth();
+          icon = evt.detail;
+          if (icon.name === 'OperatorIcon') {
+            this.updateOperatorWidth(icon);
+          }
+          break;
+
+        case 'attentionopened':
+          this.element.classList.add('maximized');
+          this.element.classList.remove('light');
+          break;
+
+        case 'sheets-gesture-begin':
+          this.element.classList.add('hidden');
+          this.pauseUpdate(evt.type);
+          break;
+
+        case 'utilitytraywillshow':
+        case 'utilitytraywillhide':
+        case 'cardviewshown':
+          this.pauseUpdate(evt.type);
+          break;
+
+        case 'utility-tray-overlayopened':
+        case 'utility-tray-overlayclosed':
+        case 'utility-tray-abortopen':
+        case 'utility-tray-abortclose':
+        case 'cardviewclosed':
+          this.resumeUpdate(evt.type);
+          break;
+
+        case 'wheel':
+          if (evt.deltaMode === evt.DOM_DELTA_PAGE &amp;&amp; evt.deltaY &amp;&amp;
+            evt.deltaY &lt; 0 &amp;&amp; !this.isLocked()) {
+            window.dispatchEvent(new CustomEvent('statusbarwheel'));
+          }
+          break;
+
+        case 'system-resize':
+          // Reprioritize icons when:
+          // * Screen orientation changes
+          // * Software home button is enabled/disabled
+          this._updateMinimizedStatusbarWidth();
+          break;
+
+        case 'sheets-gesture-end':
+          this.element.classList.remove('hidden');
+          this.resumeUpdate(evt.type);
+          break;
+
+        case 'stackchanged':
+          this.setAppearance();
+          this.element.classList.remove('hidden');
+          break;
+
+        case 'appchromecollapsed':
+          this.setAppearance();
+          this._updateMinimizedStatusbarWidth();
+          break;
+
+        case 'appopened':
+        case 'hierarchytopmostwindowchanged':
+        case 'appchromeexpanded':
+          this.setAppearance();
+          this.element.classList.remove('hidden');
+          this._updateMinimizedStatusbarWidth();
+          break;
+
+        case 'activityopened':
+          this._updateMinimizedStatusbarWidth();
+          /* falls through */
+        case 'apptitlestatechanged':
+        case 'activitytitlestatechanged':
+          this.setAppearance();
+          if (!this.isPaused()) {
+            this.element.classList.remove('hidden');
+          }
+          break;
+        case 'homescreenopened':
+          // In some cases, if the user has been switching apps so fast and
+          // quickly he press the home button, we might miss the
+          // |sheets-gesture-end| event so we must resume the statusbar
+          // if needed
+          this.setAppearance();
+          this.resumeUpdate(evt.type);
+          this.element.classList.remove('hidden');
+          this.element.classList.remove('fullscreen');
+          this.element.classList.remove('fullscreen-layout');
+          break;
+        case 'activitydestroyed':
+          this._updateMinimizedStatusbarWidth();
+          break;
+        case 'updatepromptshown':
+          this.element.classList.remove('light');
+          break;
+        case 'updateprompthidden':
+          this.setAppearance();
+          break;
+      }
+    },
+
+    setAppearance: function() {
+      var app = Service.query('getTopMostWindow');
+      if (!app) {
+        return;
+      }
+
+      this.element.classList.toggle('light',
+        !!(app.appChrome &amp;&amp; app.appChrome.useLightTheming())
+      );
+
+      this.element.classList.toggle('fullscreen',
+        app.isFullScreen()
+      );
+
+      this.element.classList.toggle('fullscreen-layout',
+        app.isFullScreenLayout()
+      );
+
+      var appsWithoutRocketbar = [
+        'isHomescreen',
+        'isAttentionWindow',
+        'isLockscreen'
+      ];
+
+      var noRocketbar = appsWithoutRocketbar.some(function(name) {
+        return !!(app[name]);
+      });
+
+      var chromeMaximized = !!(app.appChrome &amp;&amp; app.appChrome.isMaximized());
+      var shouldMaximize = noRocketbar || chromeMaximized;
+
+      // Important: we need a boolean to make the toggle method
+      // takes the right decision
+      this.element.classList.toggle('maximized',  shouldMaximize || false);
+    },
+
+    _getMaximizedStatusbarWidth: function sb_getMaximizedStatusbarWidth() {
+      // Let's consider the style of the status bar:
+      // * padding: 0 0.3rem;
+      return Math.round((Service.query('LayoutManager.width') ||
+        window.innerWidth) - (3 * 2));
+    },
+
+    _updateMinimizedStatusbarWidth: function() {
+      var app = Service.query('getTopMostWindow');
+      var appChrome = app &amp;&amp; app.appChrome;
+
+      // Only calculate the search input width when the chrome is minimized
+      // Bug 1118025 for more info
+      if (appChrome &amp;&amp; appChrome.isMaximized()) {
+        this._updateIconVisibility();
+        return;
+      }
+
+      // Get the actual width of the rocketbar, and determine the remaining
+      // width for the minimized statusbar.
+      var element = appChrome &amp;&amp; appChrome.element &amp;&amp;
+        appChrome.element.querySelector('.urlbar .chrome-title-container');
+
+      if (element) {
+        this._minimizedStatusbarWidth = Math.round(
+            ((Service.query('LayoutManager.width') || window.innerWidth)) -
+            element.getBoundingClientRect().width -
+            // Remove padding and margin
+            5 - 3);
+      } else {
+        this._minimizedStatusbarWidth = this._getMaximizedStatusbarWidth();
+      }
+
+      this._updateIconVisibility();
+    },
+
+
+    // Update the width of the date element. Called when the content changed.
+    updateOperatorWidth: function(icon) {
+      var iconObj = this.PRIORITIES.operator;
+      if (!iconObj) {
+        return false;
+      }
+      iconObj.width = this._getWidthFromDomElementWidth(icon);
+      return true;
+    },
+
+    _paused: 0,
+
+    _eventGroupStates: {
+      utilitytrayopening: false,
+      utilitytrayclosing: false,
+      cardview: false,
+      sheetsgesture: false,
+      marionette: false
+    },
+
+    pauseUpdate: function sb_pauseUpdate(evtType) {
+      var eventGroup = this._eventTypeToEventGroup(evtType);
+      if (this._eventGroupStates[eventGroup]) {
+        return;
+      }
+      this._eventGroupStates[eventGroup] = true;
+
+      this._paused++;
+    },
+
+    resumeUpdate: function sb_resumeUpdate(evtType) {
+      var eventGroup = this._eventTypeToEventGroup(evtType);
+      if (!this._eventGroupStates[eventGroup]) {
+        return;
+      }
+      this._eventGroupStates[eventGroup] = false;
+
+      this._paused--;
+      if (!this.isPaused()) {
+        this._updateIconVisibility();
+      }
+    },
+
+    /**
+     * Map event types to event groups.
+     *
+     * @param {string} evtType
+     * @returns {string}
+     */
+    _eventTypeToEventGroup: function sb_eventTypeToEventGroup(evtType) {
+      switch (evtType) {
+        case 'utilitytraywillshow':
+        case 'utility-tray-overlayopened':
+        case 'utility-tray-abortclose':
+          return 'utilitytrayopening';
+        case 'utilitytraywillhide':
+        case 'utility-tray-overlayclosed':
+        case 'utility-tray-abortopen':
+          return 'utilitytrayclosing';
+        case 'cardviewshown':
+        case 'cardviewclosed':
+          return 'cardview';
+        case 'sheets-gesture-begin':
+        case 'sheets-gesture-end':
+        case 'homescreenopened':
+          return 'sheetsgesture';
+      }
+      return evtType;
+    },
+
+    isPaused: function sb_isPaused() {
+      return this._paused > 0;
+    },
+
+    _updateIconVisibility: function sb_updateIconVisibility() {
+      if (this.isPaused()) {
+        return;
+      }
+
+      // Let's refresh the minimized clone.
+      this.cloneStatusbar();
+
+      var maximizedStatusbarWidth = this._getMaximizedStatusbarWidth();
+      var minimizedStatusbarWidth = this._minimizedStatusbarWidth;
+
+      Object.keys(this.PRIORITIES).forEach(function(iconId) {
+        var iconObj = this.PRIORITIES[iconId];
+        var icon = iconObj.icon;
+        if (!icon) {
+          return;
+        }
+        if (!icon.isVisible()) {
+          return;
+        }
+
+        var className = 'sb-hide-' + iconId;
+
+        if (maximizedStatusbarWidth &lt; 0) {
+          this.statusbarIcons.classList.add(className);
+          return;
+        }
+
+        this.statusbarIcons.classList.remove(className);
+        this.statusbarIconsMin.classList.remove(className);
+
+        var iconWidth = this._getIconWidth(iconObj);
+
+        maximizedStatusbarWidth -= iconWidth;
+        if (maximizedStatusbarWidth &lt; 0) {
+          // Add a class to the container so that both status bars inherit it.
+          this.statusbarIcons.classList.add(className);
+          return;
+        }
+
+        minimizedStatusbarWidth -= iconWidth;
+        if (minimizedStatusbarWidth &lt; 0) {
+          // This icon needs to be hidden on the minimized status bar only.
+          this.statusbarIconsMin.classList.add(className);
+        }
+      }.bind(this));
+    },
+
+    _getIconWidth: function sb_getIconWidth(iconObj) {
+      var iconWidth = iconObj.width;
+
+      if (!iconWidth) {
+        // The width of this icon is not static.
+        var icon = iconObj.icon;
+        if (!icon || !icon.element) {
+          return 0;
+        }
+        iconWidth = this._getWidthFromDomElementWidth(icon);
+      }
+
+      return iconWidth;
+    },
+
+    _getWidthFromDomElementWidth: function(icon) {
+      var style = window.getComputedStyle(icon.element);
+      var iconWidth = icon.element.clientWidth +
+        parseInt(style.marginLeft, 10) +
+        parseInt(style.marginRight, 10);
+
+      return iconWidth;
+    },
+
+    panelHandler: function sb_panelHandler(evt) {
+      // Do not forward events if FTU is running
+      if (Service.query('isFtuRunning')) {
+        return;
+      }
+
+      // Do not forward events is utility-tray is active
+      if (this.utilityTray &amp;&amp; this.utilityTray.active) {
+        return;
+      }
+
+      var app = Service.query('getTopMostWindow');
+      app &amp;&amp; app.handleStatusbarTouch(evt, this._cacheHeight);
+    },
+
+    getAllElements: function sb_getAllElements() {
+      this._icons = new Map();
+
+      this.element = document.getElementById('statusbar');
+      this.background = document.getElementById('statusbar-background');
+      this.statusbarIcons = document.getElementById('statusbar-icons');
+      this.statusbarIconsMax = document.getElementById('statusbar-maximized');
+      this.screen = document.getElementById('screen');
+      this.topPanel = document.getElementById('top-panel');
+      this.statusbarTray = document.getElementById('statusbar-tray');
+
+      // Dummy element used at initialization.
+      this.statusbarIconsMin = document.createElement('div');
+      this.statusbarIcons.appendChild(this.statusbarIconsMin);
+
+      this.cloneStatusbar();
+    },
+
+    cloneStatusbar: function() {
+      var className = this.statusbarIconsMin.className;
+      this.statusbarIcons.removeChild(this.statusbarIconsMin);
+      this.statusbarIconsMin =
+        this.statusbarIconsMax.parentNode.cloneNode(true);
+      this.statusbarIconsMin.setAttribute('id', 'statusbar-minimized-wrapper');
+      this.statusbarIconsMin.firstElementChild.setAttribute('id',
+        'statusbar-minimized');
+      this.statusbarIconsMin.className = className;
+      this.statusbarIcons.appendChild(this.statusbarIconsMin);
+    },
+
+    // To reduce the duplicated code
+    isLocked: function() {
+      return Service.query('locked');
+    },
+
+    toCamelCase: function sb_toCamelCase(str) {
+      return str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
+    },
+
+    toClassName: function(str) {
+      str = str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+  };
+  exports.Statusbar = Statusbar;
+}(window));
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,9 +1,0 @@
-.sim-default {
-  display: none;
-  margin-left: 0.15rem;
-  font-style: italic;
-}
-
-.is-default .sim-default {
-  display: initial;
-}

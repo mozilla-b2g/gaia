@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/confirm.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/confirm.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+/**
+ * Dependencies
+ */
+
+var debug = require('debug')('view:confirm');
+var addPanAndZoomHandlers = require('lib/panzoom');
+var orientation = require('lib/orientation');
+var MediaFrame = require('MediaFrame');
+var bind = require('lib/bind');
+var View = require('view');
+
+/**
+ * Exports
+ */
+
+module.exports = View.extend({
+  name: 'confirm',
+
+  initialize: function() {
+    this.on('destroy', this.onDestroy);
+  },
+
+  render: function() {
+    var l10n = navigator.mozL10n;
+
+    this.el.innerHTML = this.template({
+      retake: l10n.get('retake-button'),
+      select: l10n.get('select-button')
+    });
+
+    // Get elements
+    this.els.mediaFrame = this.find('.js-media-frame');
+    this.els.retake = this.find('.js-retake');
+    this.els.select = this.find('.js-select');
+
+    // Disable buttons on this view by default
+    // until an image/video is displayed
+    this.disableButtons();
+
+    // Initialize the MediaFrame component
+    this.setupMediaFrame();
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
+    bind(this.els.retake, 'click', this.onButtonClick);
+    bind(this.els.select, 'click', this.onButtonClick);
+    return this;
+  },
+
+  setupMediaFrame: function() {
+    this.mediaFrame = new MediaFrame(this.els.mediaFrame, true,
+                                     this.maxPreviewSize);
+    this.mediaFrame.video.onloading = this.onVideoLoading;
+    this.mediaFrame.video.onplaying = this.onVideoPlaying;
+    addPanAndZoomHandlers(this.mediaFrame);
+    window.addEventListener('resize', this.onResize);
+    return this;
+  },
+
+  onVideoLoading: function() {
+    this.emit('loadingvideo', 'loadingVideo');
+  },
+
+  onVideoPlaying: function() {
+    this.emit('playingvideo');
+  },
+
+  clearMediaFrame: function() {
+    this.mediaFrame.clear();
+    this.disableButtons();
+  },
+
+  hide: function() {
+    this.el.classList.add('hidden');
+    orientation.lock();
+  },
+
+  show: function() {
+    this.el.classList.remove('hidden');
+    orientation.unlock();
+  },
+
+  disableButtons: function() {
+    this.els.retake.setAttribute('disabled', true);
+    this.els.select.setAttribute('disabled', true);
+  },
+
+  enableButtons: function() {
+    this.els.retake.removeAttribute('disabled');
+    this.els.select.removeAttribute('disabled');
+  },
+
+  showImage: function(image) {
+    this.enableButtons();
+    this.mediaFrame.displayImage(
+      image.blob,
+      image.width,
+      image.height,
+      image.preview,
+      image.rotation,
+      image.mirrored);
+    return this;
+  },
+
+  showVideo: function(video) {
+    this.enableButtons();
+    this.mediaFrame.displayVideo(
+      video.blob,
+      video.poster.blob,
+      video.width,
+      video.height,
+      video.rotation);
+    return this;
+  },
+
+  template: function(data) {
+    /*jshint maxlen:false*/
+    return '&lt;div class="confirm-media-frame js-media-frame">&lt;/div>' +
+    '&lt;footer id="confirm-controls" class="confirm-controls">' +
+      '&lt;button class="retake-button js-retake" name="retake">' +
+      data.retake + '&lt;/button>' +
+      '&lt;button class="select-button test-confirm-select js-select" name="select">' +
+      data.select + '&lt;/button>' +
+    '&lt;/footer>';
+  },
+
+  onButtonClick: function(event) {
+    var el = event.currentTarget;
+    var name = el.getAttribute('name');
+    this.emit('click:' + name);
+  },
+
+  onResize: function() {
+    this.mediaFrame.resize();
+    if (this.mediaFrame.displayingVideo) {
+      this.mediaFrame.video.setPlayerSize();
+    }
+  },
+
+  onDestroy: function() {
+    window.removeEventListener('resize', this.onResize);
+    this.mediaFrame.clear();
+  }
+});
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.html#.exports">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#bindEvents">bindEvents</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#display">display</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#hide">hide</a></li><li><a href="global.html#localize">localize</a></li><li><a href="global.html#onShutterEnd">onShutterEnd</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#setScreenReaderVisible">setScreenReaderVisible</a></li><li><a href="global.html#setupSwitch">setupSwitch</a></li><li><a href="global.html#setZoom">setZoom</a></li><li><a href="global.html#setZoomPreviewAdjustment">setZoomPreviewAdjustment</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#shutter">shutter</a></li><li><a href="global.html#updatePreview">updatePreview</a></li><li><a href="global.html#updatePreviewMetrics">updatePreviewMetrics</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:28 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

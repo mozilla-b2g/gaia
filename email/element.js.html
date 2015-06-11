@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: element.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: element.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * element 0.0.0-native-register
+ * Copyright (c) 2013-2014, The Dojo Foundation All Rights Reserved.
+ * Available via the MIT or new BSD license.
+ * see: http://github.com/jrburke/element for details
+ */
+/*jshint browser: true */
+/*globals define */
+define(function() {
+  'use strict';
+  var slice = Array.prototype.slice,
+      callbackSuffix = 'Callback',
+      callbackSuffixLength = callbackSuffix.length,
+      charRegExp = /[^a-z]/g;
+
+  /**
+   * Converts an attribute like a-long-attr to aLongAttr
+   * @param  {String} attrName The attribute name
+   * @return {String}
+   */
+  function makePropName(attrName) {
+    var parts = attrName.split('-');
+    for (var i = 1; i &lt; parts.length; i++) {
+      parts[i] = parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
+    }
+    return parts.join('');
+  }
+
+  /**
+   * Given an attribute name, set the corresponding property
+   * name on the custom element instance, if it has such a
+   * property.
+   * @param  {Object} instance the custom element instance.
+   * @param  {String} attrName the attribute name.
+   * @param  {String} attrValue The attribute value.
+   */
+  function setPropFromAttr(instance, attrName, attrValue) {
+    var proto = Object.getPrototypeOf(instance),
+        propName = makePropName(attrName),
+        descriptor = Object.getOwnPropertyDescriptor(proto, propName);
+
+    // Only check immediate prototype for a property that
+    // matches, to avoid calling base setters that may be
+    // on original HTML-based element that could cause
+    // bad effects. Needs more testing for those cases to
+    // confirm, but since element is a mixin approach, this
+    // approach is safe.
+    if (descriptor &amp;&amp; descriptor.set) {
+      instance[propName] = attrValue;
+    }
+  }
+
+  function makePropFn(prop) {
+    return function() {
+      var i, ret,
+          args = slice.call(arguments),
+          fns = this._element.props[prop];
+
+      for (i = 0; i &lt; fns.length; i++) {
+        ret = fns[i].apply(this, args);
+      }
+
+      // Last function wins on the return value.
+      return ret;
+    };
+  }
+
+  function mixFnProp(proto, prop, value, operation) {
+    if (proto.hasOwnProperty(prop)) {
+      var existing = proto._element.props[prop];
+      if (!existing) {
+        existing = proto._element.props[prop] = [proto[prop]];
+        proto[prop] = makePropFn(prop);
+      }
+      operation = operation || 'push';
+      existing[operation](value);
+    } else {
+      proto[prop] = value;
+    }
+  }
+
+  function mix(proto, mixin) {
+    // Allow a top level of a mixin to be an array of other
+    // mixins.
+    if (Array.isArray(mixin)) {
+      mixin.forEach(function(mixin) {
+        mix(proto, mixin);
+      });
+      return;
+    }
+
+    Object.keys(mixin).forEach(function(key) {
+      var suffixIndex,
+          descriptor = Object.getOwnPropertyDescriptor(mixin, key);
+
+      // Any property that ends in Callback, like the custom element
+      // lifecycle events, can be multiplexed.
+      suffixIndex = key.indexOf(callbackSuffix);
+      if (suffixIndex > 0 &amp;&amp;
+          suffixIndex === key.length - callbackSuffixLength) {
+        mixFnProp(proto, key, descriptor.value);
+      } else {
+        Object.defineProperty(proto, key, descriptor);
+      }
+    });
+  }
+
+  /**
+   * Main module export. These methods are visible to
+   * any module.
+   */
+  var element = {
+    /**
+     * The AMD loader plugin API. Called by an AMD loader
+     * to handle 'element!' resources.
+     * @param  {String} id     module ID to load.
+     * @param  {Function} req  context-specific `require` function.
+     * @param  {Function} onload function to call once loading is complete.
+     * @param  {Object} config config from the loader. Normally just has
+     * config.isBuild if in a build scenario.
+     */
+    load: function(id, req, onload, config) {
+      // Normal dependency request.
+      req([id], function(mod) {
+        // For builds do nothing else. Also if no module export or
+        // it is a function because the module already called
+        // document.register itself, then do not bother with the
+        // other work.
+        if (config.isBuild || !mod || typeof mod === 'function') {
+          return onload();
+        }
+
+        // Create the prototype for the custom element.
+        // Allow the module to be an array of mixins.
+        // If it is an array, then mix them all in to the
+        // prototype.
+        var proto = Object.create(HTMLElement.prototype);
+
+        // Define a property to hold all the element-specific information
+        Object.defineProperty(proto, '_element', {
+          enumerable: false,
+          configurable: false,
+          writable: false,
+          value: {}
+        });
+        proto._element.props = {};
+
+        mix(proto, mod);
+
+        // Wire attributes to this element's custom/getter setters.
+        // Because of the 'unshift' use, this will actually execute
+        // before the templateCreatedCallback, which is good. The
+        // exterior API should set up the internal state before
+        // other parts of createdCallback run.
+        mixFnProp(proto, 'createdCallback', function attrCreated() {
+          var i, item,
+              attrs = this.attributes;
+
+          for (i = 0; i &lt; attrs.length; i++) {
+            item = attrs.item(i);
+            setPropFromAttr(this, item.nodeName, item.value);
+          }
+        }, 'unshift');
+
+        // Listen for attribute changed calls, and just trigger getter/setter
+        // calling if matching property. Make sure it is the first one in
+        // the listener set.
+        mixFnProp(proto, 'attributeChangedCallback',
+        function attrChanged(name, oldValue, newValue) {
+            // Only called if value has changed, so no need to check
+            // oldValue !== newValue
+            setPropFromAttr(this, name, newValue);
+        }, 'unshift');
+
+        // Translate any characters that are unfit for custom element
+        // names to dashes
+        id = id.toLowerCase().replace(charRegExp, '-');
+
+        onload(document.registerElement(id, {
+          prototype: proto
+        }));
+      });
+    }
+  };
+
+  return element;
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_cacheDom">_cacheDom</a></li><li><a href="global.html#_cacheDomTimeoutId">_cacheDomTimeoutId</a></li><li><a href="global.html#_cacheListLimit">_cacheListLimit</a></li><li><a href="global.html#_clearCachedMessages">_clearCachedMessages</a></li><li><a href="global.html#_considerCacheDom">_considerCacheDom</a></li><li><a href="global.html#_distanceBetweenMessages">_distanceBetweenMessages</a></li><li><a href="global.html#_divertToManualConfig">_divertToManualConfig</a></li><li><a href="global.html#_focusEditorWithCursorAtEnd">_focusEditorWithCursorAtEnd</a></li><li><a href="global.html#_isCacheableCardState">_isCacheableCardState</a></li><li><a href="global.html#_onAttachmentDone">_onAttachmentDone</a></li><li><a href="global.html#_onVScrollStopped">_onVScrollStopped</a></li><li><a href="global.html#_showFolder">_showFolder</a></li><li><a href="global.html#_topBar">_topBar</a></li><li><a href="global.html#_warnAttachmentSizeExceeded">_warnAttachmentSizeExceeded</a></li><li><a href="global.html#addAttachmentsSubjectToSizeLimits">addAttachmentsSubjectToSizeLimits</a></li><li><a href="global.html#advance">advance</a></li><li><a href="global.html#bindContainerHandler">bindContainerHandler</a></li><li><a href="global.html#bindToSlice">bindToSlice</a></li><li><a href="global.html#buildBodyDom">buildBodyDom</a></li><li><a href="global.html#calculateTotalAttachmentsSize">calculateTotalAttachmentsSize</a></li><li><a href="global.html#callHeaderFontSize">callHeaderFontSize</a></li><li><a href="global.html#canReplyAll">canReplyAll</a></li><li><a href="global.html#changeIfSame">changeIfSame</a></li><li><a href="global.html#checkExpectingMessageSuid">checkExpectingMessageSuid</a></li><li><a href="global.html#cloneAndSave">cloneAndSave</a></li><li><a href="global.html#cloneAsInertNodeAvoidingCustomElementHorrors">cloneAsInertNodeAvoidingCustomElementHorrors</a></li><li><a href="global.html#currentMessage">currentMessage</a></li><li><a href="global.html#delayedSaveFromNode">delayedSaveFromNode</a></li><li><a href="global.html#deleteBubble">deleteBubble</a></li><li><a href="global.html#die">die</a></li><li><a href="global.html#editBubble">editBubble</a></li><li><a href="global.html#expectingMessageSuid">expectingMessageSuid</a></li><li><a href="global.html#extractAddresses">extractAddresses</a></li><li><a href="global.html#fileSize">fileSize</a></li><li><a href="global.html#fromEditor">fromEditor</a></li><li><a href="global.html#hideAccounts">hideAccounts</a></li><li><a href="global.html#hideEmptyLayout">hideEmptyLayout</a></li><li><a href="global.html#indexOfMessageById">indexOfMessageById</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#insertBubble">insertBubble</a></li><li><a href="global.html#isValidAddress">isValidAddress</a></li><li><a href="global.html#learnAbout">learnAbout</a></li><li><a href="global.html#loadNextChunk">loadNextChunk</a></li><li><a href="global.html#messages_complete">messages_complete</a></li><li><a href="global.html#messagesSlice">messagesSlice</a></li><li><a href="global.html#onAccountsSplice">onAccountsSplice</a></li><li><a href="global.html#onAddressInput">onAddressInput</a></li><li><a href="global.html#onAddressKeydown">onAddressKeydown</a></li><li><a href="global.html#onBack">onBack</a></li><li><a href="global.html#onCardVisible">onCardVisible</a></li><li><a href="global.html#onClickAccount">onClickAccount</a></li><li><a href="global.html#onCurrentCardDocumentVisibilityChange">onCurrentCardDocumentVisibilityChange</a></li><li><a href="global.html#onCurrentMessage">onCurrentMessage</a></li><li><a href="global.html#onEnvelopeClick">onEnvelopeClick</a></li><li><a href="global.html#onFolderPickerClosing">onFolderPickerClosing</a></li><li><a href="global.html#onFolderShown">onFolderShown</a></li><li><a href="global.html#onLatestFolder">onLatestFolder</a></li><li><a href="global.html#onMessagesSpliceRemove">onMessagesSpliceRemove</a></li><li><a href="global.html#onNext">onNext</a></li><li><a href="global.html#onPrevious">onPrevious</a></li><li><a href="global.html#onSend">onSend</a></li><li><a href="global.html#onUsePassword">onUsePassword</a></li><li><a href="global.html#populateEditor">populateEditor</a></li><li><a href="global.html#proceed">proceed</a></li><li><a href="global.html#reallySend">reallySend</a></li><li><a href="global.html#renderAttachments">renderAttachments</a></li><li><a href="global.html#renderSendStatus">renderSendStatus</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#save">save</a></li><li><a href="global.html#saveFromNode">saveFromNode</a></li><li><a href="global.html#selectedMessagesUpdated">selectedMessagesUpdated</a></li><li><a href="global.html#setCurrentMessage">setCurrentMessage</a></li><li><a href="global.html#setCurrentMessageBySuid">setCurrentMessageBySuid</a></li><li><a href="global.html#setMessageChecked">setMessageChecked</a></li><li><a href="global.html#setRefreshState">setRefreshState</a></li><li><a href="global.html#setSelectState">setSelectState</a></li><li><a href="global.html#showAccounts">showAccounts</a></li><li><a href="global.html#showEmptyLayout">showEmptyLayout</a></li><li><a href="global.html#showFolder">showFolder</a></li><li><a href="global.html#showLargeMessageWarning">showLargeMessageWarning</a></li><li><a href="global.html#sizeLastSync">sizeLastSync</a></li><li><a href="global.html#skipEmitContentEvents">skipEmitContentEvents</a></li><li><a href="global.html#sliceEvents">sliceEvents</a></li><li><a href="global.html#subject">subject</a></li><li><a href="global.html#toggleOutboxSyncingDisplay">toggleOutboxSyncingDisplay</a></li><li><a href="global.html#updateAccount">updateAccount</a></li><li><a href="global.html#updateAttachmentsAriaLabel">updateAttachmentsAriaLabel</a></li><li><a href="global.html#updateAttachmentsSize">updateAttachmentsSize</a></li><li><a href="global.html#updateMessageDom">updateMessageDom</a></li><li><a href="global.html#validateAddresses">validateAddresses</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:29 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

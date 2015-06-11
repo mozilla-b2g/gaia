@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: store/busytime.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: store/busytime.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Abstract = require('./abstract');
+var Calc = require('common/calc');
+var binsearch = require('common/binsearch');
+var core = require('core');
+var compare = require('common/compare');
+var denodeifyAll = require('common/promise').denodeifyAll;
+
+/**
+ * Objects saved in the busytime store:
+ *
+ *    {
+ *      _id: (uuid),
+ *      start: Calendar.Calc.dateToTransport(x),
+ *      end: Calendar.Calc.dateToTransport(x),
+ *      eventId: eventId,
+ *      calendarId: calendarId
+ *    }
+ *
+ */
+function Busytime() {
+  Abstract.apply(this, arguments);
+  this._setupCache();
+
+  denodeifyAll(this, [
+    'removeEvent',
+    'loadSpan'
+  ]);
+}
+module.exports = Busytime;
+
+Busytime.prototype = {
+  __proto__: Abstract.prototype,
+
+  _store: 'busytimes',
+
+  _dependentStores: ['alarms', 'busytimes'],
+
+  _setupCache: function() {
+    this._byEventId = Object.create(null);
+  },
+
+  _createModel: function(input, id) {
+    return this.initRecord(input, id);
+  },
+
+  initRecord: function(input, id) {
+    var _super = Abstract.prototype._createModel;
+    var model = _super.apply(this, arguments);
+    model.startDate = Calc.dateFromTransport(model.start);
+    model.endDate = Calc.dateFromTransport(model.end);
+    return model;
+  },
+
+  _removeDependents: function(id, trans) {
+    core.storeFactory.get('Alarm').removeByIndex('busytimeId', id, trans);
+  },
+
+  removeEvent: function(id, trans, callback) {
+    if (typeof(trans) === 'function') {
+      callback = trans;
+      trans = undefined;
+    }
+
+    if (typeof(trans) === 'undefined') {
+      trans = core.db.transaction(
+        this._dependentStores,
+        'readwrite'
+      );
+    }
+
+    // build the request using the inherited method
+    var req = this.removeByIndex('eventId', id, trans);
+
+    // get the original method which handles the generic bit
+    var success = req.onsuccess;
+
+    // override the default .onsuccess to get the ids
+    // so we can emit remove events.
+    var self = this;
+    req.onsuccess = function(e) {
+      var cursor = e.target.result;
+
+      if (cursor) {
+        var id = cursor.primaryKey;
+        self.emit('remove', id);
+      }
+
+      success(e);
+    };
+
+    this._transactionCallback(trans, callback);
+  },
+
+  _startCompare: function(aObj, bObj) {
+    var a = aObj.start.utc;
+    var b = bObj.start.utc;
+    return compare(a, b);
+  },
+
+  /**
+   * Loads all busytimes in given timespan.
+   *
+   * @param {Calendar.Timespan} span timespan.
+   * @param {Function} callback node style callback
+   *                            where first argument is
+   *                            an error (or null)
+   *                            and the second argument
+   *                            is a list of all loaded
+   *                            busytimes in the timespan.
+   */
+  loadSpan: function(span, callback) {
+    var trans = core.db.transaction(this._store);
+    var store = trans.objectStore(this._store);
+
+    var startPoint = Calc.dateToTransport(new Date(span.start));
+    var endPoint = Calc.dateToTransport(new Date(span.end));
+
+    // XXX: we need to implement busytime chunking
+    // to make this efficient.
+    var keyRange = IDBKeyRange.lowerBound(startPoint.utc);
+
+    var index = store.index('end');
+    var self = this;
+
+    index.mozGetAll(keyRange).onsuccess = function(e) {
+      var data = e.target.result;
+
+      // sort data
+      data = data.sort(self._startCompare);
+
+      // attempt to find a start time that occurs
+      // after the end time of the span
+      var idx = binsearch.insert(
+        data,
+        { start: { utc: endPoint.utc + 1 } },
+        self._startCompare
+      );
+
+      // remove unrelated timespan...
+      data = data.slice(0, idx);
+
+      // fire callback
+      if (callback) {
+        callback(null, data.map(function(item) {
+          return self.initRecord(item);
+        }));
+      }
+
+    };
+  },
+
+  /* we don't use id based caching for busytimes */
+
+  _addToCache: function() {},
+  _removeFromCache: function() {}
+
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/lock_screen_window_manager.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/lock_screen_window_manager.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+/* global Service, LockScreenWindow, LockScreenInputWindow */
+/* global LockScreenPasscodeValidator, BaseModule, LazyLoader */
+
+(function(exports) {
+  /**
+   * Manage LockScreenWindow apps. This is a subset of the AppWindow manager,
+   * and will not handle most cases the later one would handle. Only those
+   * meaningful cases, like secure app open, close, requesting kill all apps
+   * or turn the secure mode on/off, would be handled. However, if we need
+   * to handle cases in the future, we would extend this manager.
+   *
+   * So far the LockScreenWindowManager would only manager 1 secure app at once,
+   * but there're already some designations for multiple apps.
+   *
+   * @constructor LockScreenWindowManager
+   */
+  var LockScreenWindowManager = function() {};
+
+  LockScreenWindowManager.prototype.setup =
+  function lswm_setup() {
+    /**
+     * @memberof LockScreenWindowManager#
+     * @prop {DOMElement} windows - the `#windows` element, which is the same
+     *                              element that the would AppWindowManager use.
+     * @prop {DOMElement} screen - the `#screen` element.
+     */
+    this.elements = {
+      windows: null,
+      screen: null
+    };
+
+    /**
+     * @memberof LockScreenWindowManager#
+     */
+    this.states = {
+      ready: false,
+      FTUOccurs: false,
+      enabled: true,
+      instance: null,
+      windowCreating: false
+    };
+
+    /**
+     * @memberof LockScreenWindowManager#
+     */
+    this.configs = {
+      inputWindow: {
+        // Before we put things inside an iframe, do not resize LW.
+        resizeMode: false,
+        get height() {
+          return 300;
+        }
+      },
+      listens: ['lockscreen-request-unlock',
+                'lockscreen-appcreated',
+                'lockscreen-appterminated',
+                'lockscreen-appclose',
+                'screenchange',
+                'system-resize',
+                'ftuopen',
+                'ftudone',
+                'overlaystart',
+                'showlockscreenwindow',
+                'secure-appclosed',
+                'lockscreen-request-inputpad-open',
+                'lockscreen-request-inputpad-close'
+               ]
+    };
+  };
+
+  LockScreenWindowManager.prototype.name = 'LockScreenWindowManager';
+  LockScreenWindowManager.prototype.EVENT_PREFIX = 'lockscreenwindowmanager';
+  /**
+   * This function will be invoked by hierarchyManager.
+   */
+  LockScreenWindowManager.prototype.getActiveWindow = function() {
+    return this.isActive() ? this.states.instance : null;
+  };
+
+  LockScreenWindowManager.prototype.locked = function() {
+    return this.isActive();
+  };
+
+  /**
+   * To initialize the class instance (register events, observe settings, etc.)
+   */
+  LockScreenWindowManager.prototype.start =
+  function lwm_start() {
+    this.setup();
+    this.startEventListeners();
+    this.startObserveSettings();
+    this.initElements();
+    Service.register('unlock', this);
+    Service.register('lock', this);
+    Service.request('registerHierarchy', this);
+    Service.registerState('locked', this);
+    BaseModule.lazyLoad(['LockScreenPasscodeValidator']).then(function() {
+      var lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
+      lockScreenPasscodeValidator.start();
+    });
+  };
+
+  LockScreenWindowManager.prototype._handle_home = function() {
+    if (this.isActive()) {
+      // XXX: I don't want to change the order of event registration
+      // at this early-refactoring stage, so do this to minimize the
+      // risk and complete the work.
+      window.dispatchEvent(
+        new CustomEvent('lockscreen-notify-homepressed'));
+      return false;
+    }
+    return true;
+  };
+
+  LockScreenWindowManager.prototype._handle_holdhome = function() {
+    if (this.isActive()) {
+      return false;
+    }
+    return true;
+  };
+
+  LockScreenWindowManager.prototype.respondToHierarchyEvent = function(evt) {
+    if (this['_handle_' + evt.type]) {
+      return this['_handle_' + evt.type](evt);
+    } else {
+      return true;
+    }
+  };
+
+  /**
+   * @listens lockscreen-appcreated - when a lockscreen app got created, it
+   *                                  would fire this event.
+   * @listens lockscreen-appterminated - when a lockscreen app got really
+   *                                     closed, it would fire this event.
+   * @listens lockscreen-apprequestclose - when a lockscreen app has been
+   *                                       called to close itself, the event
+   *                                       would be fired
+   * @listens screenchange - means to initialize the lockscreen and its window
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.handleEvent =
+    function lwm_handleEvent(evt) {
+      var app = null;
+      switch (evt.type) {
+        case 'overlaystart':
+          if (this.isActive()) {
+            this.states.instance.setVisible(false);
+          }
+          break;
+        case 'showlockscreenwindow':
+          if (this.isActive()) {
+            this.states.instance.setVisible(true);
+          }
+          break;
+        case 'ftuopen':
+          this.states.FTUOccurs = true;
+          // Need immediatly unlocking (hide window).
+          this.closeApp(true);
+          break;
+        case 'ftudone':
+          this.states.FTUOccurs = false;
+          break;
+        case 'lockscreen-request-unlock':
+          this.responseUnlock(evt.detail);
+          break;
+        case 'lockscreen-appcreated':
+          app = evt.detail;
+          this.registerApp(app);
+          break;
+        case 'lockscreen-appterminated':
+          app = evt.detail;
+          this.unregisterApp(app);
+          break;
+        case 'secure-appclosed':
+          this.states.instance.lockOrientation();
+          break;
+        case 'system-resize':
+          if (this.states.instance &amp;&amp; this.states.instance.isActive()) {
+            var p = this.states.instance.resize();
+            if (typeof evt.detail.waitUntil === 'function') {
+              evt.detail.waitUntil(p);
+            }
+          }
+          break;
+        case 'screenchange':
+          // The screenchange may be invoked by proximity sensor,
+          // or the power button. If it's caused by the proximity sensor,
+          // we should not open the LockScreen, because the user may stay
+          // in another app, not the LockScreen.
+          if ('proximity' !== evt.detail.screenOffBy &amp;&amp;
+              !this.states.FTUOccurs &amp;&amp;
+              this.states.ready) {
+            // The app would be inactive while screen off.
+            this.states.enabled &amp;&amp; this.openApp();
+            if (evt.detail.screenEnabled &amp;&amp; this.states.instance &amp;&amp;
+                this.isActive() &amp;&amp;
+                !Service.query('SecureWindowManager.isActive')) {
+              // In theory listen to 'visibilitychange' event can solve this
+              // issue, since it would be fired at the correct moment that
+              // we can lock the orientation successfully, but this event
+              // would not be received when user press the button twice
+              // quickly, so we need to keep this workaround.
+              this.states.instance.lockOrientation();
+            }
+          }
+          break;
+        case 'lockscreen-request-inputpad-open':
+          this.onInputpadOpen();
+          break;
+        case 'lockscreen-request-inputpad-close':
+          this.onInputpadClose();
+          break;
+      }
+    };
+
+  /**
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.initElements =
+    function lwm_initElements() {
+      var selectors = { windows: 'windows', screen: 'screen'};
+      for (var name in selectors) {
+        var id = selectors[name];
+        this.elements[name] = document.getElementById(id);
+      }
+    };
+
+  /**
+   * Hook observers of settings to allow or ban window opening.
+   *
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.startObserveSettings =
+    function lwm_startObserveSettings() {
+      var enabledListener = this.handleEnable.bind(this);
+
+      // FIXME(ggp) this is currently used by Find My Device to force locking.
+      // Should be replaced by a proper IAC API in bug 992277.
+      var lockListener = (event) => {
+        if (true === event.settingValue) {
+          this.openApp();
+        }
+      };
+
+      window.SettingsListener.observe('lockscreen.enabled',
+        true, enabledListener);
+
+      // We are only interested in changes to the setting, rather
+      // than its value, so just observe it instead of using SettingsListener
+      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+          lockListener);
+    };
+
+  /**
+   * Hook listeners of events this manager interested in.
+   *
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.startEventListeners =
+    function lwm_startEventListeners() {
+      this.configs.listens.forEach((function _initEvent(type) {
+        self.addEventListener(type, this);
+      }).bind(this));
+    };
+
+  /**
+   * Remove listeners of events this manager interested in.
+   *
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.stopEventListeners =
+    function lwm_stopEventListeners() {
+      this.configs.listens.forEach((function _unbind(ename) {
+        self.removeEventListener(ename, this);
+      }).bind(this));
+    };
+
+  /**
+   * Close the lockscreen app.
+   * If it's not enabled, would do nothing.
+   *
+   * @param {boolean} instant - true if instantly close.
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.closeApp =
+    function lwm_closeApp(instant) {
+      if (!this.states.enabled || !this.isActive()) {
+        return;
+      }
+      this.states.instance.close(instant ? 'immediate': undefined);
+      this.elements.screen.classList.remove('locked');
+      this.toggleLockedSetting(false);
+      this.publish(this.EVENT_PREFIX + '-deactivated', this);
+    };
+
+  /**
+   * Open the lockscreen app.
+   * If it's necessary, would create a new window.
+   * If it's not enabled, would do nothing.
+   *
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.openApp =
+    function lwm_openApp() {
+      if (!this.states.instance) {
+        var app = this.createWindow();
+        app &amp;&amp; app.open();
+      } else {
+        this.states.instance.open();
+      }
+      this.elements.screen.classList.add('locked');
+      this.toggleLockedSetting(true);
+      this.publish(this.EVENT_PREFIX + '-activated', this);
+    };
+
+  /**
+   * Message passing method. Would publish to the whole System app.
+   *
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.publish =
+    function lwm_publish(ne, detail) {
+      var event = new CustomEvent(ne, { detail: detail });
+      window.dispatchEvent(event);
+    };
+
+  /**
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.registerApp =
+    function lwm_registerApp(app) {
+      this.states.instance = app;
+    };
+
+  /**
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.unregisterApp =
+    function lwm_unregisterApp(app) {
+      this.states.instance = null;
+    };
+
+  /**
+   * When screenchange hanneped, create LockScreen and LockScreenWindow
+   * if it is needed.
+   *
+   * @private
+   * @return {LockScreenWindow}
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.createWindow =
+    function lwm_createWindow() {
+      if (this.states.windowCreating) {
+        return false;
+      }
+      this.states.windowCreating = true;
+      var app = new LockScreenWindow();
+      // XXX: Before we can use real InputWindow and InputWindowManager,
+      // we need this to
+      LazyLoader.load(['js/lockscreen_input_window.js']).then(() => {
+        app.inputWindow = new LockScreenInputWindow();
+      }).catch((err) => {
+        console.error(err);
+      });
+      this.states.windowCreating = false;
+      return app;
+    };
+
+  /**
+   * First time we launch, we must check the init value of enabled,
+   * to see if we need to open the window.
+   *
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.handleEnable =
+    function(enabled) {
+      this.states.ready = true;
+      if (typeof(enabled) === String) {
+        enabled = (enabled === 'true');
+      }
+      this.states.enabled = enabled;
+    };
+
+  LockScreenWindowManager.prototype.unlock =
+    function lwm_unlock(detail) {
+      // XXX:
+      // There is a self-routing here:
+      // Service.request('unlock') ->
+      // LockscreenWindowManager#unlock ->
+      // ['lockscreen-request-unlock'] ->
+      // LockscreenWindowManager#responseUnlock |
+      // VisibilityManager#firing showwindow
+      //
+      // We should just call responseUnlock here,
+      // but VisibilityManager needs this event to notify
+      // AppWindowManager to showwindow correctly;
+      // The reason not using lockscreen-appclosing/lockscreen-appclosed
+      // is the race of mozActivity launch coming from lockscreen
+      // and homescreen will race to be opened and cause performance issue.
+      //
+      // We should adjust LockScreenWindow to use lockscreen-appclosing/closed
+      // to have the activitiy/notification info hence we could change
+      // VisibilityManager later to avoid this workaround.
+      this.publish('lockscreen-request-unlock', detail);
+    };
+
+  LockScreenWindowManager.prototype.responseUnlock =
+    function lwm_responseUnlock(detail) {
+      var forcibly = (detail &amp;&amp; detail.forcibly) ? true : false;
+      this.closeApp(forcibly);
+    };
+
+  LockScreenWindowManager.prototype.lock =
+    function lwm_lock(detail) {
+      this.openApp();
+    };
+
+  LockScreenWindowManager.prototype.getInstance =
+    function lwm_getInstance() {
+      return this.states.instance;
+    };
+
+  LockScreenWindowManager.prototype.isActive =
+    function lwm_isActive() {
+      if (null === this.states.instance) {
+        return false;
+      } else {
+        return this.states.instance.isActive();
+      }
+    };
+
+  LockScreenWindowManager.prototype.onInputpadOpen =
+    function lwm_onInputpadOpen() {
+      this.states.instance.inputWindow.open();
+      this.states.instance.resize();
+    };
+
+  LockScreenWindowManager.prototype.onInputpadClose =
+    function lwm_onInputpadClose() {
+      this.states.instance.inputWindow.close();
+      this.states.instance.resize();
+    };
+
+  LockScreenWindowManager.prototype.toggleLockedSetting =
+    function lswm_toggleLockedSetting(value) {
+      if (!window.navigator.mozSettings) {
+        return;
+      }
+      window.SettingsListener.getSettingsLock().set({
+        'lockscreen.locked': value
+      });
+    };
+
+  /** @exports LockScreenWindowManager */
+  exports.LockScreenWindowManager = LockScreenWindowManager;
+})(window);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

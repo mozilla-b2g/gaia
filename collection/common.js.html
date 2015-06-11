@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: common.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: common.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+/* global eme */
+/* global Promise */
+
+(function (exports) {
+
+  // choose best ratio for device
+  function chooseBackgroundRatio(pixelRatio) {
+    // background ratios supported by mozilla cdn
+    var backgroundOptions = [1, 1.5, 2, 2.25];
+
+    return Math.max.apply(null,
+        backgroundOptions.filter((r) => pixelRatio >= r));
+  }
+
+  const backgroundRatio = chooseBackgroundRatio(window.devicePixelRatio);
+
+  const suffix =
+    backgroundRatio === 1 ? '.jpg' : ('@' + backgroundRatio + 'x.jpg');
+
+  const mozCdnPath = '/collection/background/{categoryId}' + suffix;
+
+  const APPS_IN_ICON = 3;
+
+  function Common() {}
+
+  Common.prototype = {
+
+    cdnHost: null,
+
+    APPS_IN_ICON: APPS_IN_ICON,
+
+    chooseBackgroundRatio: chooseBackgroundRatio,
+
+    b64toBlob: function b64toBlob(b64) {
+      return new Promise((resolve, reject) => {
+        var img = new Image();
+
+        img.onload = function onload() {
+          var canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob(resolve);
+        };
+
+        img.onerror = reject;
+
+        img.src = b64;
+      });
+    },
+
+    // TODO
+    // add support for 'size' parameter (like getEmeBackground has) to fetch
+    // smaller backgrounds when the full size image is not required
+    // (like when creating collection icons)
+    getMozBackground: function getMozBackground(collection) {
+      if (!collection.categoryId) {
+        return Promise.reject('no categoryId');
+      }
+
+      if (this.cdnHost) {
+        return this._fetchMozBackground(collection);
+      }
+
+      return new Promise((resolve, reject) => {
+        var req = navigator.mozSettings.createLock().get('cdn.url');
+        req.onsuccess = () => {
+          this.cdnHost = req.result['cdn.url'];
+          resolve();
+        };
+      }).then(this._fetchMozBackground.bind(this, collection));
+    },
+
+
+    /**
+     * Fetches the background once we have the URL from settings.
+     */
+    _fetchMozBackground: function(collection) {
+      var url = this.cdnHost + mozCdnPath.replace('{categoryId}',
+        collection.categoryId);
+      var xhr = new XMLHttpRequest({mozSystem: true});
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
+
+      return new Promise((resolve, reject) => {
+        xhr.onload = function onload() {
+          if (xhr.status === 200) {
+            var blob = new Blob([xhr.response], {type: 'image/jpg'});
+            eme.log('getMozBackground', 'success', url);
+
+            resolve({
+              blob: blob,
+              source: url,
+              checksum: 'mozilla'  // TODO: generate checksum from image data
+            });
+
+          } else {
+            reject('xhr.status ' + xhr.status);
+          }
+        };
+
+        xhr.onerror = function onerror() {
+          reject('xhr error');
+        };
+
+        xhr.send();
+      });
+
+    },
+
+    getEmeBackground: function getEmeBackground(collection, size) {
+      var checksum;
+
+      var options = {
+        width: size || undefined,
+        height: size || undefined
+      };
+
+      if (collection.categoryId) {
+        options.categoryId = collection.categoryId;
+      }
+      else {
+        options.query = collection.query;
+      }
+
+      if (collection.background) {
+        checksum = collection.background.checksum;
+
+        // when we send _checksum server will not return an image if checksum
+        // was not updated, so check that we really have background data
+        if (collection.background.blob) {
+          options._checksum = checksum;
+        }
+      }
+
+      return eme.api.Search.bgimage(options)
+        .then((response) => {
+          if (checksum &amp;&amp; checksum === response.checksum) {
+            eme.log('background didn\'t change (checksum match)');
+            return collection.background;
+          } else {
+            var b64;
+            var image = response.response.image;
+            if (image) {
+              b64 = image.data;
+              if (/image\//.test(image.MIMEType)) {  // base64 image data
+                b64 = 'data:' + image.MIMEType + ';base64,' + image.data;
+              }
+            }
+
+            return this.b64toBlob(b64).then(function toBg(blob) {
+
+              return {
+                blob: blob,
+                source: response.response.source,
+                checksum: response.checksum || null
+              };
+            });
+          }
+        });
+    },
+
+
+    // get background for a collection from
+    // 1. mozilla cdn
+    // 2. e.me api
+    getBackground: function getBackground(collection, size) {
+      return this.getMozBackground(collection)
+            .catch(function (e) {
+              eme.log('getBackground', e, 'trying e.me background');
+              return this.getEmeBackground(collection, size);
+            }.bind(this))
+            .catch(function (e) {
+              eme.log('getBackground', 'failed', e);
+            });
+    },
+
+    getWebIcons: function getWebIcons(collection) {
+      var options =
+        (collection.categoryId) ? {categoryId: collection.categoryId} :
+                                  {query: collection.query};
+
+      options.limit = APPS_IN_ICON;
+
+      return eme.api.Apps.search(options).then(response => {
+        var webicons =
+          response.response.apps.slice(0, APPS_IN_ICON).map(app => app.icon);
+
+        return webicons;
+      });
+    },
+
+    /**
+     * prepares the assets needed for rendering a collection's icon:
+     * 1. background
+     * 2. web icons
+     *
+     * returns a promise resolved when all assets requests are done and
+     * updates the collection instance but not the db
+     *
+     */
+    prepareAssets: function prepareAssets(collection) {
+      var ready = Promise.resolve(null);
+
+      var backgroundPromise = collection.backgroundReady ?
+                              ready : this.getBackground(collection);
+
+      var iconsPromise = collection.iconsReady ?
+                              ready : this.getWebIcons(collection);
+
+      return Promise.all([iconsPromise, backgroundPromise])
+            .then((results) => {
+              // results are null if not fetched
+              collection.webicons = results[0] || collection.webicons;
+              collection.background = results[1] || collection.background;
+              return collection;
+            });
+    }
+  };
+
+  exports.Common = new Common();
+
+}(window));
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:22 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

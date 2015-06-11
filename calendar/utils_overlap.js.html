@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: utils/overlap.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: utils/overlap.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Conflict manager
+ */
+define(function(require, exports, module) {
+'use strict';
+
+/**
+ * Module dependencies
+ */
+var ConflictSpan = require('conflict_span');
+var IntervalTree = require('interval_tree');
+var Timespan = require('common/timespan');
+
+function Overlap() {
+  this.reset();
+}
+module.exports = Overlap;
+
+Overlap.prototype = {
+  reset: function() {
+    this.tree = new IntervalTree();
+    this.conflicts = {};
+    this.elements = {};
+  },
+
+  add: function(myBusytime, element) {
+    this.tree.add(myBusytime);
+    this.elements[myBusytime._id] = element;
+
+    // Check for conflicts, bail if none
+    var related = this._findRelated(myBusytime);
+    if (0 === related.length) {
+      return;
+    }
+
+    var myID = myBusytime._id;
+    var myCS = this.conflicts[myID];
+
+    var self = this;
+    related.forEach(function(otherBusytime) {
+      // Get the other's ID, skip the current
+      var otherID = otherBusytime._id;
+      if (otherID === myID) {
+        return;
+      }
+
+      var otherCS = self.conflicts[otherID];
+      if (!myCS &amp;&amp; !otherCS) {
+        // This is a brand new conflict.
+        myCS = new ConflictSpan(self);
+        myCS.add(myBusytime).add(otherBusytime);
+      } else if (myCS &amp;&amp; !otherCS) {
+        // Other time can join this one's existing span
+        myCS.add(otherBusytime);
+      } else if (!myCS &amp;&amp; otherCS) {
+        // This time can join the other's existing span
+        myCS = otherCS.add(myBusytime);
+      } else if (myCS &amp;&amp; otherCS &amp;&amp; myCS != otherCS) {
+        // Both already in different spans, so absorb other into this
+        myCS.absorb(otherCS);
+      }
+    });
+
+  },
+
+  /**
+   * Remove a busytime from the collection.
+   * Unlike other methods you must pass a real
+   * busytime object.
+   *
+   * @param {Object} busytime full busytime object.
+   */
+  remove: function(busytime) {
+    this._clearLayout(busytime);
+    this.tree.remove(busytime);
+    delete this.elements[busytime._id];
+    var myID = busytime._id;
+    var myCS = this.conflicts[myID];
+    if (myCS) {
+      myCS.remove(busytime);
+    }
+  },
+
+  /**
+   * Get the ConflictSpan associated with this busytime, if any.
+   *
+   * @param {Object|String} busytime id or busytime object.
+   * @return {Object} associated ConflictSpan, if any.
+   */
+  getConflictSpan: function(busytime) {
+    var id = this._busytimeId(busytime);
+    return this.conflicts[id];
+  },
+
+  /**
+   * @param {Object|String} busytime id or busytime object.
+   * @return {HTMLElement} associated dom element.
+   */
+  getElement: function(busytime) {
+    var id = this._busytimeId(busytime);
+    return this.elements[id];
+  },
+
+  /** private */
+
+  _busytimeId: function(busytime) {
+    return (typeof(busytime) === 'string') ? busytime : busytime._id;
+  },
+
+  /**
+   * Search tree for busytimes that overlap with the given.
+   */
+  _findRelated: function(busytime) {
+    //XXX: this is bad encapsulation but
+    //     we generate these when we insert
+    //     the points in the tree.
+    var span = new Timespan(busytime._startDateMS, busytime._endDateMS);
+    return this.tree.query(span);
+  },
+
+  /**
+   * Clear the layout from a busytime element, presumably because it has just
+   * been removed from conflict.
+   *
+   * @param {Object} busytime full busytime object.
+   */
+  _clearLayout: function(busytime) {
+    var el = this.elements[busytime._id];
+    el.style.width = '';
+    el.style.left = '';
+    el.classList.remove('has-overlaps', 'many-overlaps');
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

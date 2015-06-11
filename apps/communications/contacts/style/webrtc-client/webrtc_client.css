@@ -1,9 +1,0 @@
-li button.icon-webrtc-voice:before {
-  background-image: url(/contacts/style/webrtc-client/images/actionicon_contacts_webrtc_audio.png);
-  background-size: 3rem;
-}
-
-li button.icon-webrtc-video:before {
-  background-image: url(/contacts/style/webrtc-client/images/actionicon_contacts_webrtc_video.png);
-  background-size: 3rem;
-}

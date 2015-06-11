@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: backend/provider/caldav_pull_events.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: backend/provider/caldav_pull_events.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Calc = require('common/calc');
+var core = require('core');
+var debug = require('common/debug')('pull events');
+var uuid = require('ext/uuid');
+
+/**
+ * Event synchronization class for caldav provider.
+ *
+ * Options:
+ *  - account: (Calendar.Models.Account) required
+ *  - calendar: (Calendar.Models.Calendar) required
+ *
+ * Example:
+ *
+ *    // instance of a service stream
+ *    var stream;
+ *
+ *    var pull = new Calendar.Provider.CaldavPullEvents(stream, {
+ *      calendar: calendarModel,
+ *      account: accountModel,
+ *    });
+ *
+ *    stream.request(function() {
+ *      // stream is complete here the audit of
+ *      // events can be made. They are flushed
+ *      // to the cache where possible but not actually
+ *      // persisted in the database.
+ *
+ *      // assuming we are ready commit the changes
+ *      pull.commit(function(err) {
+ *        // all changes have been committed at this point.
+ *      });
+ *    });
+ *
+ * @param {Calendar.Responder} stream event emitter usually
+ *                                    a service stream.
+ * @param {Object} options options for instance (see above).
+ */
+function PullEvents(stream, options) {
+  if (options.calendar) {
+    this.calendar = options.calendar;
+  } else {
+    throw new Error('.calendar option must be given');
+  }
+
+  if (options.account) {
+    this.account = options.account;
+  } else {
+    throw new Error('.account option must be given');
+  }
+
+  stream.on('event', this);
+  stream.on('component', this);
+  stream.on('occurrence', this);
+  stream.on('missingEvents', this);
+
+  this.icalQueue = [];
+  this.eventQueue = [];
+  this.busytimeQueue = [];
+  this.alarmQueue = [];
+
+  var storeFactory = core.storeFactory;
+  this._busytimeStore = storeFactory.get('Busytime');
+
+  // Catch account events to watch for mid-sync removal
+  this._accountStore = storeFactory.get('Account');
+  this._accountStore.on('remove', this._onRemoveAccount.bind(this));
+
+  this._aborted = false;
+  this._trans = null;
+}
+module.exports = PullEvents;
+
+PullEvents.prototype = {
+  eventQueue: null,
+  busytimeQueue: null,
+
+  /**
+   * Get db id for busytime.
+   *
+   * @param {Object} busytime service sent busytime.
+   */
+  busytimeIdFromRemote: function(busytime) {
+    var eventId = this.eventIdFromRemote(busytime, !busytime.isException);
+
+    return busytime.start.utc + '-' +
+           busytime.end.utc + '-' +
+           eventId;
+  },
+
+  /**
+   * Get db id for event.
+   *
+   * @param {Object} event service sent event or '.remote'
+   *                       property in db event.
+   *
+   * @param {Boolean} ignoreException when true will ignore
+   *                                  recurrence exceptions.
+   *
+   * @return {String} database object id.
+   */
+  eventIdFromRemote: function(event, ignoreException) {
+    var id = event.eventId || event.id;
+
+    if (!ignoreException &amp;&amp; event.recurrenceId) {
+      id += '-' + event.recurrenceId.utc;
+    }
+
+    return this.calendar._id + '-' + id;
+  },
+
+  /**
+   * Format an incoming event.
+   *
+   * @param {Object} event service sent event.
+   */
+  formatEvent: function(event) {
+    // get id or parent id we ignore the exception
+    // rules here so children (exceptions) can lookup
+    // their parents id.
+    var id = this.eventIdFromRemote(event, true);
+
+    var result = Object.create(null);
+    result.calendarId = this.calendar._id;
+    result.remote = event;
+
+    if (event.recurrenceId) {
+      result.parentId = id;
+      // don't ignore the exceptions
+      result._id = this.eventIdFromRemote(event);
+    } else {
+      result._id = id;
+    }
+
+    return result;
+  },
+
+  /**
+   * Formats and tags busytime sent from service.
+   *
+   * @param {Object} time service sent busytime.
+   */
+  formatBusytime: function(time) {
+    var eventId = this.eventIdFromRemote(time, !time.isException);
+    var id = eventId + '-' + uuid.v4();
+    var calendarId = this.calendar._id;
+
+    time._id = id;
+    time.calendarId = calendarId;
+    time.eventId = eventId;
+
+    if (time.alarms) {
+      var i = 0;
+      var len = time.alarms.length;
+      var alarm;
+
+      for (; i &lt; len; i++) {
+        alarm = time.alarms[i];
+        alarm.eventId = eventId;
+        alarm.busytimeId = id;
+      }
+    }
+
+    return this._busytimeStore.initRecord(time);
+  },
+
+  handleOccurrenceSync: function(item) {
+    var alarms;
+
+    if ('alarms' in item) {
+      alarms = item.alarms;
+      delete item.alarms;
+
+      if (alarms.length) {
+        var i = 0;
+        var len = alarms.length;
+        var now = Date.now();
+
+        for (; i &lt; len; i++) {
+          var alarm = {
+            startDate: {},
+            eventId: item.eventId,
+            busytimeId: item._id
+          };
+
+          // Copy the start object
+          for (var j in item.start) {
+            alarm.startDate[j] = item.start[j];
+          }
+          alarm.startDate.utc += (alarms[i].trigger * 1000);
+
+          var alarmDate = Calc.dateFromTransport(item.end);
+          if (alarmDate.valueOf() &lt; now) {
+            continue;
+          }
+          this.alarmQueue.push(alarm);
+        }
+      }
+    }
+
+    this.busytimeQueue.push(item);
+  },
+
+  handleComponentSync: function(component) {
+    component.eventId = this.eventIdFromRemote(component);
+    component.calendarId = this.calendar._id;
+
+    if (!component.lastRecurrenceId) {
+      delete component.lastRecurrenceId;
+    }
+
+    this.icalQueue.push(component);
+  },
+
+  handleEventSync: function(event) {
+    var exceptions = event.remote.exceptions;
+    delete event.remote.exceptions;
+
+    var id = event._id;
+
+    // clear any busytimes that could possibly be
+    // related to this event as we will be adding new
+    // ones as part of the sync.
+    this._busytimeStore.removeEvent(id);
+
+    this.eventQueue.push(event);
+
+    var component = event.remote.icalComponent;
+    delete event.remote.icalComponent;
+
+    // don't save components for exceptions.
+    // the parent has the ical data.
+    if (!event.remote.recurrenceId) {
+      this.icalQueue.push({
+        data: component,
+        eventId: event._id
+      });
+    }
+
+    if (exceptions) {
+      for (var i = 0; i &lt; exceptions.length; i++) {
+        this.handleEventSync(this.formatEvent(exceptions[i]));
+      }
+    }
+  },
+
+  /**
+   * Account removal event handler. Aborts the rest of sync processing, if
+   * the account deleted is the subject of the current sync.
+   *
+   * @param {String} database object id.
+   */
+  _onRemoveAccount: function(id) {
+    if (id === this.account._id) {
+      // This is our account, so abort the sync.
+      this.abort();
+    }
+  },
+
+  /**
+   * Abort the sync. After this, further events will be ignored and commit()
+   * will do nothing.
+   */
+  abort: function() {
+    if (this._aborted) {
+      // Bail, if already aborted.
+      return;
+    }
+    // Flag that the sync should be aborted.
+    this._aborted = true;
+    if (this._trans) {
+      // Attempt to abort the in-progress commit transaction
+      this._trans.abort();
+    }
+  },
+
+  handleEvent: function(event) {
+    if (this._aborted) {
+      // Ignore all events, if the sync has been aborted.
+      return;
+    }
+
+    var data = event.data;
+
+    switch (event.type) {
+      case 'missingEvents':
+        this.removeList = data[0];
+        break;
+      case 'occurrence':
+        var occur = this.formatBusytime(data[0]);
+        this.handleOccurrenceSync(occur);
+        break;
+      case 'component':
+        this.handleComponentSync(data[0]);
+        break;
+      case 'event':
+        var e = this.formatEvent(data[0]);
+        this.handleEventSync(e);
+        break;
+    }
+  },
+
+  /**
+   * Commit all pending records.
+   *
+   *
+   * @param {IDBTransaction} [trans] optional transaction.
+   * @param {Function} callback fired when transaction completes.
+   */
+  commit: function(trans, callback) {
+    var storeFactory = core.storeFactory;
+    var eventStore = storeFactory.get('Event');
+    var icalComponentStore = storeFactory.get('IcalComponent');
+    var busytimeStore = storeFactory.get('Busytime');
+    var alarmStore = storeFactory.get('Alarm');
+
+    if (typeof(trans) === 'function') {
+      callback = trans;
+      trans = core.db.transaction(
+        ['calendars', 'events', 'busytimes', 'alarms', 'icalComponents'],
+        'readwrite'
+      );
+    }
+
+    if (this._aborted) {
+      // Commit nothing, if sync was aborted.
+      return callback &amp;&amp; callback(null);
+    }
+
+    // Stash a reference to the transaction, in case we still need to abort.
+    this._trans = trans;
+
+    var self = this;
+
+    this.eventQueue.forEach(function(event) {
+      debug('add event', event);
+      eventStore.persist(event, trans);
+    });
+
+    this.icalQueue.forEach(function(ical) {
+      debug('add component', ical);
+      icalComponentStore.persist(ical, trans);
+    });
+
+    this.busytimeQueue.forEach(function(busy) {
+      debug('add busytime', busy);
+      busytimeStore.persist(busy, trans);
+    });
+
+    this.alarmQueue.forEach(function(alarm) {
+      debug('add alarm', alarm);
+      alarmStore.persist(alarm, trans);
+    });
+
+    if (this.removeList) {
+      this.removeList.forEach(function(id) {
+        eventStore.remove(id, trans);
+      });
+    }
+
+    function handleError(e) {
+      if (e &amp;&amp; e.type !== 'abort') {
+        console.error('Error persisting sync results', e);
+      }
+
+      // if we have an event preventDefault so we don't trigger window.onerror
+      if (e &amp;&amp; e.preventDefault) {
+        e.preventDefault();
+      }
+
+      self._trans = null;
+      callback &amp;&amp; callback(e);
+    }
+
+    trans.addEventListener('error', handleError);
+    trans.addEventListener('abort', handleError);
+
+
+    trans.addEventListener('complete', function() {
+      self._trans = null;
+      callback &amp;&amp; callback(null);
+    });
+
+    return trans;
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

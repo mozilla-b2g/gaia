@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/modify_account.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/modify_account.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Account = require('models/account');
+var AccountCreation = require('utils/account_creation');
+var OAuthWindow = require('oauth_window');
+var Presets = require('common/presets');
+var URI = require('utils/uri');
+var View = require('view');
+var core = require('core');
+var isOffline = require('common/is_offline');
+var router = require('router');
+
+require('dom!modify-account-view');
+
+var DEFAULT_AUTH_TYPE = 'basic';
+var OAUTH_AUTH_CREDENTIALS = [
+  'client_id',
+  'scope',
+  'redirect_uri',
+  'state'
+];
+
+function ModifyAccount(options) {
+  View.apply(this, arguments);
+
+  this.deleteRecord = this.deleteRecord.bind(this);
+  this.cancel = this.cancel.bind(this);
+  this.displayOAuth2 = this.displayOAuth2.bind(this);
+  this.hideHeaderAndForm = this.hideHeaderAndForm.bind(this);
+  this.cancelDelete = this.cancelDelete.bind(this);
+
+  this.accountHandler = new AccountCreation();
+  this.accountHandler.on('authorizeError', this);
+
+  // bound so we can add remove listeners
+  this._boundSaveUpdateModel = this.save.bind(this, { updateModel: true });
+}
+module.exports = ModifyAccount;
+
+ModifyAccount.prototype = {
+  __proto__: View.prototype,
+
+  _changeToken: 0,
+
+  selectors: {
+    element: '#modify-account-view',
+    form: '.modify-account-form',
+    fields: '*[name]',
+    saveButton: '#modify-account-view .save',
+    deleteButton: '#modify-account-view .delete-confirm',
+    deleteRecordButton: '.delete-record',
+    cancelDeleteButton: '#modify-account-view .delete-cancel',
+    header: '#modify-account-header',
+    status: '#modify-account-view section[role="status"]',
+    errors: '#modify-account-view .errors',
+    oauth2Window: '#oauth2',
+    oauth2SignIn: '#modify-account-view .force-oauth2'
+  },
+
+  progressClass: 'in-progress',
+  removeDialogClass: 'remove-dialog',
+
+  get authenticationType() {
+    if (this.preset &amp;&amp; this.preset.authenticationType) {
+      return this.preset.authenticationType;
+    }
+
+    return DEFAULT_AUTH_TYPE;
+  },
+
+  get oauth2Window() {
+    return this._findElement('oauth2Window');
+  },
+
+  get oauth2SignIn() {
+    return this._findElement('oauth2SignIn');
+  },
+
+  get deleteRecordButton() {
+    return this._findElement('deleteRecordButton');
+  },
+
+  get deleteButton() {
+    return this._findElement('deleteButton');
+  },
+
+  get cancelDeleteButton() {
+    return this._findElement('cancelDeleteButton');
+  },
+
+  get header() {
+    return this._findElement('header');
+  },
+
+  get saveButton() {
+    return this._findElement('saveButton');
+  },
+
+  get form() {
+    return this._findElement('form');
+  },
+
+  get fields() {
+    if (!this._fields) {
+      var result = this._fields = {};
+      var elements = this.element.querySelectorAll(
+        this.selectors.fields
+      );
+
+      var i = 0;
+      var len = elements.length;
+
+      for (i; i &lt; len; i++) {
+        var el = elements[i];
+        result[el.getAttribute('name')] = el;
+      }
+    }
+
+    return this._fields;
+  },
+
+  handleEvent: function(event) {
+    var type = event.type;
+    var data = event.data;
+
+    switch (type) {
+      case 'authorizeError':
+        // we only expect one argument an error object.
+        this.showErrors(data[0]);
+        break;
+    }
+  },
+
+  updateForm: function() {
+    var update = ['user', 'fullUrl'];
+
+    update.forEach(function(name) {
+      var field = this.fields[name];
+      field.value = this.model[name];
+    }, this);
+  },
+
+  updateModel: function() {
+    var update = ['user', 'password', 'fullUrl'];
+
+    update.forEach(function(name) {
+      var field = this.fields[name];
+      var value = field.value;
+      if (name === 'fullUrl') {
+        // Prepend a scheme if url has neither port nor scheme
+        var port = URI.getPort(value);
+        var scheme = URI.getScheme(value);
+        if (!port &amp;&amp; !scheme) {
+          value = 'https://' + value;
+        }
+      }
+
+      this.model[name] = value;
+    }, this);
+  },
+
+  deleteRecord: function(e) {
+    if (e) {
+      e.preventDefault();
+    }
+
+    var id = this.model._id;
+    var store = core.storeFactory.get('Account');
+
+    // begin the removal (which will emit the preRemove event) but don't wait
+    // for it to complete...
+    store.remove(id);
+
+    // semi-hack clear the :target - harmless in tests
+    // but important in the current UI because css :target
+    // does not get cleared (for some reason)
+    window.location.replace('#');
+
+    // TODO: in the future we may want to store the entry
+    // url of this view and use that instead of this
+    // hard coded value...
+    router.show('/advanced-settings/');
+  },
+
+  cancel: function(event) {
+    if (event) {
+      event.preventDefault();
+    }
+
+    window.history.back();
+  },
+
+  cancelDelete: function(event) {
+    this.element.classList.remove(this.removeDialogClass);
+    this.cancel(event);
+  },
+
+  save: function(options, e) {
+
+    if (e) {
+      e.preventDefault();
+    }
+
+    var list = this.element.classList;
+    var self = this;
+
+    if (isOffline()) {
+      this.showErrors([{name: 'offline'}]);
+      return;
+    }
+
+    list.add(this.progressClass);
+
+    this.errors.textContent = '';
+
+    if (options &amp;&amp; options.updateModel) {
+      this.updateModel();
+    }
+
+    this.accountHandler.send(this.model, function(err) {
+      list.remove(self.progressClass);
+      if (!err) {
+        router.go(self.completeUrl);
+      }
+    });
+  },
+
+  hideHeaderAndForm: function() {
+    this.element.classList.add(this.removeDialogClass);
+  },
+
+  displayOAuth2: function(event) {
+    if (event) {
+      event.preventDefault();
+    }
+
+    var self = this;
+    this.oauth2Window.classList.add(View.ACTIVE);
+
+    navigator.mozApps.getSelf().onsuccess = function(e) {
+      var app = e.target.result;
+      app.clearBrowserData().onsuccess = function() {
+        self._redirectToOAuthFlow();
+      };
+    };
+  },
+
+  /**
+   * @param {String} preset name of value in Calendar.Presets.
+   */
+  _createModel: function(preset, callback) {
+    var settings = Presets[preset];
+    var model = new Account(settings.options);
+    model.preset = preset;
+    return model;
+  },
+
+  _redirectToOAuthFlow: function() {
+
+    var apiCredentials = this.preset.apiCredentials;
+    var params = {
+      /*
+       * code response type for now might change when we can use window.open
+       */
+      response_type: 'code',
+      /* offline so we get refresh_token[s] */
+      access_type: 'offline',
+      /* we us force so we always get a refresh_token */
+      approval_prompt: 'force'
+    };
+
+    OAUTH_AUTH_CREDENTIALS.forEach(function(key) {
+      if (key in apiCredentials) {
+        params[key] = apiCredentials[key];
+      }
+    });
+
+    var oauth = this._oauthDialog = new OAuthWindow(
+      this.oauth2Window,
+      apiCredentials.authorizationUrl,
+      params
+    );
+
+    var self = this;
+
+    oauth.open();
+    oauth.onabort = function() {
+      self.cancel();
+    };
+
+    oauth.oncomplete = function(params) {
+      if ('error' in params) {
+        // Ruh roh
+        return self.cancel();
+      }
+
+      if (!params.code) {
+        return console.error('authentication error');
+      }
+
+      // Fistpump!
+      self.model.oauth = { code: params.code };
+      self.save();
+    };
+  },
+
+  render: function() {
+    if (!this.model) {
+      throw new Error('must provider model to ModifyAccount');
+    }
+
+    this.form.addEventListener('submit', this._boundSaveUpdateModel);
+    this.saveButton.addEventListener('click', this._boundSaveUpdateModel);
+    this.header.addEventListener('action', this.cancel);
+    this.deleteRecordButton.addEventListener('click', this.hideHeaderAndForm);
+
+    if (this.model._id) {
+      this.type = 'update';
+      this.deleteButton.addEventListener('click', this.deleteRecord);
+      this.cancelDeleteButton.addEventListener('click', this.cancelDelete);
+    } else {
+      this.type = 'create';
+    }
+
+    var list = this.element.classList;
+    list.add(this.type);
+    list.add('preset-' + this.model.preset);
+    list.add('provider-' + this.model.providerType);
+    list.add('auth-' + this.authenticationType);
+
+    if (this.model.error) {
+      list.add('error');
+    }
+
+    if (this.authenticationType === 'oauth2') {
+      this.oauth2SignIn.addEventListener('click', this.displayOAuth2);
+
+      if (this.type === 'create') {
+        this.displayOAuth2();
+      }
+
+      this.fields.user.disabled = true;
+      this.saveButton.disabled = true;
+    }
+
+    this.form.reset();
+    this.updateForm();
+
+    var usernameType = this.model.usernameType;
+    this.fields.user.type = (usernameType === undefined) ?
+        'text' : usernameType;
+
+    this.header.runFontFitSoon();
+ },
+
+  destroy: function() {
+    var list = this.element.classList;
+
+    list.remove(this.type);
+
+    list.remove('preset-' + this.model.preset);
+    list.remove('provider-' + this.model.providerType);
+    list.remove('auth-' + this.authenticationType);
+    list.remove('error');
+    list.remove(this.removeDialogClass);
+
+    this.fields.user.disabled = false;
+    this.saveButton.disabled = false;
+
+    this._fields = null;
+    this.form.reset();
+
+    this.deleteRecordButton.removeEventListener('click',
+      this.hideHeaderAndForm);
+    this.oauth2SignIn.removeEventListener('click', this.displayOAuth2);
+    this.saveButton.removeEventListener('click', this._boundSaveUpdateModel);
+    this.deleteButton.removeEventListener('click', this.deleteRecord);
+    this.cancelDeleteButton.removeEventListener('click', this.cancelDelete);
+    this.header.removeEventListener('action',
+                                    this.cancel);
+    this.form.removeEventListener('submit', this._boundSaveUpdateModel);
+  },
+
+  dispatch: function(data) {
+    if (this.model) {
+      this.destroy();
+    }
+
+    var params = data.params;
+    var changeToken = ++this._changeToken;
+
+    this.completeUrl = '/settings/';
+
+    var self = this;
+    function displayModel(err, model) {
+      self.preset = Presets[model.preset];
+
+      // race condition another dispatch has queued
+      // while we where waiting for an async event.
+      if (self._changeToken !== changeToken) {
+        return;
+      }
+
+      if (err) {
+        return console.error('Error displaying model in ModifyAccount', data);
+      }
+
+      self.model = model;
+      self.render();
+
+      if (self.ondispatch) {
+        self.ondispatch();
+      }
+    }
+
+    if (params.id) {
+      core.storeFactory.get('Account').get(params.id, displayModel);
+    } else if (params.preset) {
+      displayModel(null, this._createModel(params.preset));
+    }
+  },
+
+  oninactive: function() {
+    View.prototype.oninactive.apply(this, arguments);
+
+    if (this._oauthDialog) {
+      this._oauthDialog.close();
+      this._oauthDialog = null;
+    }
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

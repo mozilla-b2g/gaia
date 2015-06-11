@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/notification.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/notification.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+/**
+* Dependencies
+*/
+
+var mix = require('lib/mixin');
+var View = require('view');
+
+/**
+ * Exports
+ */
+
+module.exports = View.extend({
+  name:'notification',
+  tag: 'ul',
+  time: 3000,
+
+  initialize: function() {
+    this.counter = 0;
+    this.hash = {};
+    // For accessibility purposes list/listitem semantics is not necessary.
+    // Instead notifications are presented as status ARIA live regions.
+    this.el.setAttribute('role', 'presentation');
+  },
+
+  /**
+   * Display a new notification.
+   *
+   * Options:
+   *
+   *   - `text {L10nId}`
+   *         L10nId may be:
+   *         a string -> l10nId
+   *         an object -> {id: l10nId, args: l10nArgs}
+   *         an object -> {html: string}
+   *       read more at: http://mzl.la/1A76Fby
+   *   - `className {String}`
+   *   - `persistent {Boolean}`
+   *
+   * @param  {Object} options
+   * @return {Number} id for clearing
+   * @public
+   */
+  display: function(options) {
+    var item = mix({}, options);
+    var id = ++this.counter;
+    var self = this;
+
+    item.el = document.createElement('li');
+    item.el.className = options.className || '';
+
+    var span = document.createElement('span');
+    if (typeof(options.text) === 'string') {
+      span.setAttribute('data-l10n-id', options.text);
+    } else {
+      if (options.text.html) {
+        span.innerHTML = options.text.html;
+      }
+    }
+    item.el.appendChild(span);
+    if (options.attrs) { this.setAttributes(item.el, options.attrs); }
+    // Notification should have the semantics of the status ARIA live region.
+    item.el.setAttribute('role', 'status');
+    // Making notfication assertive, so it is spoken right away and not queued.
+    item.el.setAttribute('aria-live', 'assertive');
+    this.el.appendChild(item.el);
+
+    // Remove last temporary
+    // notification in the way
+    this.clear(this.temporary);
+
+    // Remove non-persistent
+    // messages after 3s
+    if (!item.persistent) {
+      this.temporary = id;
+      this.hide(this.persistent);
+      item.clearTimeout = setTimeout(function() {
+        self.clear(id);
+      }, this.time);
+    }
+
+    // Remove previous persistent
+    if (item.persistent) {
+      this.clear(this.persistent);
+      this.persistent = id;
+    }
+
+    // Store and return
+    this.hash[id] = item;
+    return id;
+  },
+
+  setAttributes: function(el, attrs) {
+    for (var key in attrs) { el.setAttribute(key, attrs[key]); }
+  },
+
+  /**
+   * Clear notfication by id.
+   *
+   * Remove the notification from the DOM,
+   * clear any existing `clearTimeout` that
+   * may have been installed on creation.
+   *
+   * @param  {Number} item
+   * @public
+   */
+  clear: function(id) {
+    var item = this.hash[id];
+    if (!item || item.cleared) { return; }
+
+    this.el.removeChild(item.el);
+    clearTimeout(item.clearTimeout);
+    item.cleared = true;
+
+    // Clear references
+    if (item === this.temporary) { this.temporary = null; }
+    if (item === this.persistent) { this.persistent = null; }
+    delete this.hash[id];
+
+    // Show persistent notification
+    // (if there still is one)
+    this.show(this.persistent);
+  },
+
+  /**
+   * Hide a notification.
+   *
+   * @param  {Number} id
+   * @private
+   */
+  hide: function(id) {
+    var item = this.hash[id];
+    if (!item) { return; }
+    item.el.classList.add('hidden');
+  },
+
+  /**
+   * Show a hidden notification.
+   *
+   * @param  {Number} id
+   * @private
+   */
+  show: function(id) {
+    var item = this.hash[id];
+    if (!item) { return; }
+    item.el.classList.remove('hidden');
+  }
+});
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.html#.exports">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#bindEvents">bindEvents</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#display">display</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#hide">hide</a></li><li><a href="global.html#localize">localize</a></li><li><a href="global.html#onShutterEnd">onShutterEnd</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#setScreenReaderVisible">setScreenReaderVisible</a></li><li><a href="global.html#setupSwitch">setupSwitch</a></li><li><a href="global.html#setZoom">setZoom</a></li><li><a href="global.html#setZoomPreviewAdjustment">setZoomPreviewAdjustment</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#shutter">shutter</a></li><li><a href="global.html#updatePreview">updatePreview</a></li><li><a href="global.html#updatePreviewMetrics">updatePreviewMetrics</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:28 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

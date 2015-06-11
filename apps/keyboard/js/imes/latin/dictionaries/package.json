@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "xml2js": "^0.4.6",
-    "yargs": "^1.3.2"
-  }
-}

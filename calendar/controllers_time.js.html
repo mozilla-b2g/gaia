@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/time.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/time.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+// Controls the selected/displayed dates by all the calendar views.
+// ---
+// All views that needs to listen date selection/navigation changes, or set
+// a new value, should do it through this module (eg. day/week/month views and
+// DayObserver)
+
+var isSameDate = require('common/calc').isSameDate;
+var Responder = require('common/responder');
+
+function Time() {
+  Responder.call(this);
+
+  this._timeCache = Object.create(null);
+}
+module.exports = Time;
+
+Time.prototype = {
+  __proto__: Responder.prototype,
+
+  /**
+   * Current position in time.
+   * Includes year, month and day.
+   *
+   * @type {Date}
+   */
+  _position: null,
+
+  /**
+   * Current center point of cached
+   * time spans. This is not the last
+   * loaded timespan but the last
+   * requested timespan.
+   *
+   * @type {Calendar.Timespan}
+   */
+  _currentTimespan: null,
+
+  /**
+   * Hash that contains
+   * the pieces of the current _position.
+   * (month, day, year)
+   */
+  _timeCache: null,
+
+  /**
+   * The time 'scale' of the current
+   * state of the calendar.
+   *
+   * Usually one of: ['day', 'month', 'week']
+   * @type {String}
+   */
+  _scale: null,
+
+  /**
+   * private state of mostRecentDayType
+   */
+  _mostRecentDayType: 'day',
+
+  /**
+   * When true will lock the cache so no records are
+   * purged. This is critical during sync because some
+   * records may not yet be in the database.
+   */
+  cacheLocked: false,
+
+  /**
+   * Returns the most recently changed
+   * day type either 'day' or 'selectedDay'
+   */
+  get mostRecentDayType() {
+    return this._mostRecentDayType;
+  },
+
+  get mostRecentDay() {
+    if (this.mostRecentDayType === 'selectedDay') {
+      return this.selectedDay;
+    } else {
+      return this.position;
+    }
+  },
+
+  get timespan() {
+    return this._currentTimespan;
+  },
+
+  get scale() {
+    return this._scale;
+  },
+
+  set scale(value) {
+    var oldValue = this._scale;
+    if (value !== oldValue) {
+      this._scale = value;
+      this.emit('scaleChange', value, oldValue);
+    }
+  },
+
+  get selectedDay() {
+    return this._selectedDay;
+  },
+
+  set selectedDay(value) {
+    var day = this._selectedDay;
+    this._mostRecentDayType = 'selectedDay';
+    if (!day || !isSameDate(day, value)) {
+      this._selectedDay = value;
+      this.emit('selectedDayChange', value, day);
+    }
+  },
+
+  /**
+   * Helper function to 'move' state of calendar
+   * to the most recently modified day type.
+   *
+   * (in the case where selectedDay was changed after day)
+   */
+  moveToMostRecentDay: function() {
+    if (this.mostRecentDayType === 'selectedDay') {
+      this.move(this.selectedDay);
+    }
+  },
+
+  _updateCache: function(type, value) {
+    var old = this._timeCache[type];
+
+    if (!old || !isSameDate(value, old)) {
+      this._timeCache[type] = value;
+      this.emit(type + 'Change', value, old);
+    }
+  },
+
+  get month() {
+    return this._timeCache.month;
+  },
+
+  get day() {
+    return this._timeCache.day;
+  },
+
+  get year() {
+    return this._timeCache.year;
+  },
+
+  get position() {
+    return this._position;
+  },
+
+  /**
+   * Sets position of controller
+   * in time.
+   *
+   * @param {Date} date position to move to.
+   */
+  move: function(date) {
+    var year = date.getFullYear();
+    var month = date.getMonth();
+    var yearDate = new Date(year, 0, 1);
+    var monthDate = new Date(year, month, 1);
+
+    this._position = date;
+    this._mostRecentDayType = 'day';
+
+    this._updateCache('year', yearDate);
+    this._updateCache('month', monthDate);
+    this._updateCache('day', date);
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

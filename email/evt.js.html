@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: evt.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: evt.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*
+ * Custom events lib. Notable features:
+ *
+ * - the module itself is an event emitter. Useful for "global" pub/sub.
+ * - evt.mix can be used to mix in an event emitter into existing object.
+ * - notification of listeners is done in a try/catch, so all listeners
+ *   are notified even if one fails. Errors are thrown async via setTimeout
+ *   so that all the listeners can be notified without escaping from the
+ *   code via a throw within the listener group notification.
+ * - new evt.Emitter() can be used to create a new instance of an
+ *   event emitter.
+ * - Uses "this" internally, so always call object with the emitter args.
+ */
+'use strict';
+define(function() {
+
+  var evt,
+      slice = Array.prototype.slice,
+      props = ['_events', '_pendingEvents', 'on', 'once', 'latest',
+               'latestOnce', 'removeListener', 'emitWhenListener', 'emit'];
+
+  function Emitter() {
+    this._events = {};
+    this._pendingEvents = {};
+  }
+
+  Emitter.prototype = {
+    on: function(id, fn) {
+      var listeners = this._events[id],
+          pending = this._pendingEvents[id];
+      if (!listeners) {
+        listeners = this._events[id] = [];
+      }
+      listeners.push(fn);
+
+      if (pending) {
+        pending.forEach(function(args) {
+          fn.apply(null, args);
+        });
+        delete this._pendingEvents[id];
+      }
+      return this;
+    },
+
+    once: function(id, fn) {
+      var self = this,
+          fired = false;
+      function one() {
+        if (fired) {
+          return;
+        }
+        fired = true;
+        fn.apply(null, arguments);
+        // Remove at a further turn so that the event
+        // forEach in emit does not get modified during
+        // this turn.
+        setTimeout(function() {
+          self.removeListener(id, one);
+        });
+      }
+      return this.on(id, one);
+    },
+
+    /**
+     * Waits for a property on the object that has the event interface
+     * to be available. That property MUST EVALUATE TO A TRUTHY VALUE.
+     * hasOwnProperty is not used because many objects are created with
+     * null placeholders to give a proper JS engine shape to them, and
+     * this method should not trigger the listener for those cases.
+     * If the property is already available, call the listener right
+     * away. If not available right away, listens for an event name that
+     * matches the property name.
+     * @param  {String}   id property name.
+     * @param  {Function} fn listener.
+     */
+    latest: function(id, fn) {
+      if (this[id] &amp;&amp; !this._pendingEvents[id]) {
+        fn(this[id]);
+      }
+      this.on(id, fn);
+    },
+
+    /**
+     * Same as latest, but only calls the listener once.
+     * @param  {String}   id property name.
+     * @param  {Function} fn listener.
+     */
+    latestOnce: function(id, fn) {
+      if (this[id] &amp;&amp; !this._pendingEvents[id]) {
+        fn(this[id]);
+      } else {
+        this.once(id, fn);
+      }
+    },
+
+    removeListener: function(id, fn) {
+      var i,
+          listeners = this._events[id];
+      if (listeners) {
+        i = listeners.indexOf(fn);
+        if (i !== -1) {
+          listeners.splice(i, 1);
+        }
+        if (listeners.length === 0) {
+          delete this._events[id];
+        }
+      }
+    },
+
+    /**
+     * Like emit, but if no listeners yet, holds on
+     * to the value until there is one. Any other
+     * args after first one are passed to listeners.
+     * @param  {String} id event ID.
+     */
+    emitWhenListener: function(id) {
+      var listeners = this._events[id];
+      if (listeners) {
+        this.emit.apply(this, arguments);
+      } else {
+        if (!this._pendingEvents[id]) {
+          this._pendingEvents[id] = [];
+        }
+        this._pendingEvents[id].push(slice.call(arguments, 1));
+      }
+    },
+
+    emit: function(id) {
+      var args = slice.call(arguments, 1),
+          listeners = this._events[id];
+
+      if (listeners) {
+        listeners.forEach(function(fn) {
+          try {
+            fn.apply(null, args);
+          } catch (e) {
+            // Throw at later turn so that other listeners
+            // can complete. While this messes with the
+            // stack for the error, continued operation is
+            // valued more in this tradeoff.
+            // This also means we do not need to .catch()
+            // for the wrapping promise.
+            setTimeout(function() {
+              throw e;
+            });
+          }
+        });
+      }
+    }
+  };
+
+  evt = new Emitter();
+  evt.Emitter = Emitter;
+
+  evt.mix = function(obj) {
+    var e = new Emitter();
+    props.forEach(function(prop) {
+      if (obj.hasOwnProperty(prop)) {
+        throw new Error('Object already has a property "' + prop + '"');
+      }
+      obj[prop] = e[prop];
+    });
+    return obj;
+  };
+
+  return evt;
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_cacheDom">_cacheDom</a></li><li><a href="global.html#_cacheDomTimeoutId">_cacheDomTimeoutId</a></li><li><a href="global.html#_cacheListLimit">_cacheListLimit</a></li><li><a href="global.html#_clearCachedMessages">_clearCachedMessages</a></li><li><a href="global.html#_considerCacheDom">_considerCacheDom</a></li><li><a href="global.html#_distanceBetweenMessages">_distanceBetweenMessages</a></li><li><a href="global.html#_divertToManualConfig">_divertToManualConfig</a></li><li><a href="global.html#_focusEditorWithCursorAtEnd">_focusEditorWithCursorAtEnd</a></li><li><a href="global.html#_isCacheableCardState">_isCacheableCardState</a></li><li><a href="global.html#_onAttachmentDone">_onAttachmentDone</a></li><li><a href="global.html#_onVScrollStopped">_onVScrollStopped</a></li><li><a href="global.html#_showFolder">_showFolder</a></li><li><a href="global.html#_topBar">_topBar</a></li><li><a href="global.html#_warnAttachmentSizeExceeded">_warnAttachmentSizeExceeded</a></li><li><a href="global.html#addAttachmentsSubjectToSizeLimits">addAttachmentsSubjectToSizeLimits</a></li><li><a href="global.html#advance">advance</a></li><li><a href="global.html#bindContainerHandler">bindContainerHandler</a></li><li><a href="global.html#bindToSlice">bindToSlice</a></li><li><a href="global.html#buildBodyDom">buildBodyDom</a></li><li><a href="global.html#calculateTotalAttachmentsSize">calculateTotalAttachmentsSize</a></li><li><a href="global.html#callHeaderFontSize">callHeaderFontSize</a></li><li><a href="global.html#canReplyAll">canReplyAll</a></li><li><a href="global.html#changeIfSame">changeIfSame</a></li><li><a href="global.html#checkExpectingMessageSuid">checkExpectingMessageSuid</a></li><li><a href="global.html#cloneAndSave">cloneAndSave</a></li><li><a href="global.html#cloneAsInertNodeAvoidingCustomElementHorrors">cloneAsInertNodeAvoidingCustomElementHorrors</a></li><li><a href="global.html#currentMessage">currentMessage</a></li><li><a href="global.html#delayedSaveFromNode">delayedSaveFromNode</a></li><li><a href="global.html#deleteBubble">deleteBubble</a></li><li><a href="global.html#die">die</a></li><li><a href="global.html#editBubble">editBubble</a></li><li><a href="global.html#expectingMessageSuid">expectingMessageSuid</a></li><li><a href="global.html#extractAddresses">extractAddresses</a></li><li><a href="global.html#fileSize">fileSize</a></li><li><a href="global.html#fromEditor">fromEditor</a></li><li><a href="global.html#hideAccounts">hideAccounts</a></li><li><a href="global.html#hideEmptyLayout">hideEmptyLayout</a></li><li><a href="global.html#indexOfMessageById">indexOfMessageById</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#insertBubble">insertBubble</a></li><li><a href="global.html#isValidAddress">isValidAddress</a></li><li><a href="global.html#learnAbout">learnAbout</a></li><li><a href="global.html#loadNextChunk">loadNextChunk</a></li><li><a href="global.html#messages_complete">messages_complete</a></li><li><a href="global.html#messagesSlice">messagesSlice</a></li><li><a href="global.html#onAccountsSplice">onAccountsSplice</a></li><li><a href="global.html#onAddressInput">onAddressInput</a></li><li><a href="global.html#onAddressKeydown">onAddressKeydown</a></li><li><a href="global.html#onBack">onBack</a></li><li><a href="global.html#onCardVisible">onCardVisible</a></li><li><a href="global.html#onClickAccount">onClickAccount</a></li><li><a href="global.html#onCurrentCardDocumentVisibilityChange">onCurrentCardDocumentVisibilityChange</a></li><li><a href="global.html#onCurrentMessage">onCurrentMessage</a></li><li><a href="global.html#onEnvelopeClick">onEnvelopeClick</a></li><li><a href="global.html#onFolderPickerClosing">onFolderPickerClosing</a></li><li><a href="global.html#onFolderShown">onFolderShown</a></li><li><a href="global.html#onLatestFolder">onLatestFolder</a></li><li><a href="global.html#onMessagesSpliceRemove">onMessagesSpliceRemove</a></li><li><a href="global.html#onNext">onNext</a></li><li><a href="global.html#onPrevious">onPrevious</a></li><li><a href="global.html#onSend">onSend</a></li><li><a href="global.html#onUsePassword">onUsePassword</a></li><li><a href="global.html#populateEditor">populateEditor</a></li><li><a href="global.html#proceed">proceed</a></li><li><a href="global.html#reallySend">reallySend</a></li><li><a href="global.html#renderAttachments">renderAttachments</a></li><li><a href="global.html#renderSendStatus">renderSendStatus</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#reset">reset</a></li><li><a href="global.html#save">save</a></li><li><a href="global.html#saveFromNode">saveFromNode</a></li><li><a href="global.html#selectedMessagesUpdated">selectedMessagesUpdated</a></li><li><a href="global.html#setCurrentMessage">setCurrentMessage</a></li><li><a href="global.html#setCurrentMessageBySuid">setCurrentMessageBySuid</a></li><li><a href="global.html#setMessageChecked">setMessageChecked</a></li><li><a href="global.html#setRefreshState">setRefreshState</a></li><li><a href="global.html#setSelectState">setSelectState</a></li><li><a href="global.html#showAccounts">showAccounts</a></li><li><a href="global.html#showEmptyLayout">showEmptyLayout</a></li><li><a href="global.html#showFolder">showFolder</a></li><li><a href="global.html#showLargeMessageWarning">showLargeMessageWarning</a></li><li><a href="global.html#sizeLastSync">sizeLastSync</a></li><li><a href="global.html#skipEmitContentEvents">skipEmitContentEvents</a></li><li><a href="global.html#sliceEvents">sliceEvents</a></li><li><a href="global.html#subject">subject</a></li><li><a href="global.html#toggleOutboxSyncingDisplay">toggleOutboxSyncingDisplay</a></li><li><a href="global.html#updateAccount">updateAccount</a></li><li><a href="global.html#updateAttachmentsAriaLabel">updateAttachmentsAriaLabel</a></li><li><a href="global.html#updateAttachmentsSize">updateAttachmentsSize</a></li><li><a href="global.html#updateMessageDom">updateMessageDom</a></li><li><a href="global.html#validateAddresses">validateAddresses</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:29 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

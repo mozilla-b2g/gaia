@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/overlay.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/overlay.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+/**
+ * Dependencies
+ */
+
+var debug = require('debug')('controller:overlay');
+var Overlay = require('views/overlay');
+var bindAll = require('lib/bind-all');
+
+/**
+ * Exports
+ */
+
+module.exports = function(app) { return new OverlayController(app); };
+module.exports.OverlayController = OverlayController;
+
+/**
+ * Initialize a new `OverlayController`
+ *
+ * @param {App} app
+ */
+function OverlayController(app) {
+  bindAll(this);
+  this.app = app;
+  this.activity = app.activity;
+  this.l10nGet = app.l10nGet;
+  this.batteryOverlay = null;
+  this.storageOverlay = null;
+  this.bindEvents();
+  debug('initialized');
+}
+
+OverlayController.prototype.bindEvents = function() {
+  this.app.on('storage:changed', this.onStorageChanged);
+  this.app.on('change:batteryStatus', this.onBatteryChanged);
+  this.app.on('camera:requesting', this.onCameraRequesting);
+  this.app.on('camera:error', this.onCameraError);
+};
+
+/**
+ * Respond to storage `statechange`
+ * events by inserting or destroying
+ * overlays from the app.
+ *
+ * @param  {String} value  ['nospace'|'shared'|'unavailable'|'available']
+ */
+OverlayController.prototype.onStorageChanged = function(state) {
+  var self = this;
+  debug('storage changed: \'%s\'', state);
+
+  if (this.storageOverlay) {
+    this.storageOverlay.destroy();
+    this.storageOverlay = null;
+  }
+
+  if (state !== 'available') {
+    this.createOverlay(state, onOverlayCreated);
+  }
+
+  function onOverlayCreated(overlay) {
+    self.storageOverlay = overlay;
+  }
+};
+
+/**
+ * Respond to battery `statuschange`
+ * events by inserting or destroying
+ * overlays from the app.
+ *
+ * @param  {String} status  ['shutdown'|'critical'|'verylow'|'low']
+ */
+OverlayController.prototype.onBatteryChanged = function(state) {
+  var self = this;
+  debug('battery state change: \'%s\'', state);
+
+  if (this.batteryOverlay) {
+    this.batteryOverlay.destroy();
+    this.batteryOverlay = null;
+  }
+
+  if (state === 'shutdown') {
+    this.createOverlay(state, onOverlayCreated);
+  }
+
+  function onOverlayCreated(overlay) {
+    self.batteryOverlay = overlay;
+  }
+};
+
+/**
+ * Respond to camera `requesting`
+ * events by destroying overlays
+ * from the app.
+ *
+ * @param  {String} state  ['start'|'success'|'fail']
+ */
+OverlayController.prototype.onCameraRequesting = function() {
+  if (this.cameraErrorOverlay) {
+    this.cameraErrorOverlay.destroy();
+    this.cameraErrorOverlay = null;
+  }
+};
+
+/**
+ * Respond to camera `error`
+ * events by inserting overlays
+ * into the app.
+ *
+ * @param  {String} state  ['start'|'success'|'fail']
+ */
+OverlayController.prototype.onCameraError = function(type) {
+  var self = this;
+  debug('camera error type: \'%s\'', type);
+
+  this.createOverlay(type, onOverlayCreated);
+
+  function onOverlayCreated(overlay) {
+    self.cameraErrorOverlay = overlay;
+  }
+};
+
+OverlayController.prototype.createOverlay = function(type, callback) {
+  var self = this;
+  if (!this.app.localized()) {
+    this.app.showSpinner();
+    this.app.on('localized', onLocalized);
+    return;
+  }
+
+  function onLocalized() {
+    self.app.clearSpinner();
+    self.createOverlay(type, callback);
+  }
+
+  var data = this.getOverlayData(type);
+  if (!data) {
+    if (typeof callback === 'function') {
+      callback(null);
+    }
+    return;
+  }
+
+  var closable = this.activity.pick &amp;&amp; type !== 'request-fail';
+
+  var overlay = new Overlay({
+    type: type,
+    closable: closable,
+    data: data
+  }).appendTo(document.body)
+    .on('click:close-btn', function() {
+      self.app.emit('activitycanceled');
+    });
+
+  debug('inserted \'%s\' overlay', type);
+
+  if (typeof callback === 'function') {
+    callback(overlay);
+  }
+};
+
+/**
+ * Get the overlay data required
+ * to render a specific type of overlay.
+ *
+ * @param  {String} type
+ * @return {Object}
+ */
+OverlayController.prototype.getOverlayData = function(type) {
+  var data = {};
+
+  switch (type) {
+    case 'unavailable':
+      data.title = this.l10nGet('nocard2-title');
+      data.body = this.l10nGet('nocard3-text');
+    break;
+    case 'nospace':
+      data.title = this.l10nGet('nospace2-title');
+      data.body = this.l10nGet('nospace2-text');
+    break;
+    case 'shared':
+      data.title = this.l10nGet('pluggedin2-title');
+      data.body = this.l10nGet('pluggedin2-text');
+    break;
+    case 'shutdown':
+      data.title = this.l10nGet('battery-shutdown-title');
+      data.body = this.l10nGet('battery-shutdown-text');
+    break;
+    case 'request-fail':
+      data.title = this.l10nGet('camera-unavailable-title');
+      data.body = this.l10nGet('camera-unavailable-text');
+    break;
+    default:
+      return false;
+  }
+
+  data.closeButtonText = this.l10nGet('close-button');
+
+  return data;
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.html#.exports">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#bindEvents">bindEvents</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#display">display</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#hide">hide</a></li><li><a href="global.html#localize">localize</a></li><li><a href="global.html#onShutterEnd">onShutterEnd</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#setScreenReaderVisible">setScreenReaderVisible</a></li><li><a href="global.html#setupSwitch">setupSwitch</a></li><li><a href="global.html#setZoom">setZoom</a></li><li><a href="global.html#setZoomPreviewAdjustment">setZoomPreviewAdjustment</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#shutter">shutter</a></li><li><a href="global.html#updatePreview">updatePreview</a></li><li><a href="global.html#updatePreviewMetrics">updatePreviewMetrics</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:28 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,9 +1,0 @@
-<svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
-  <filter id="brightness50percent">
-    <feComponentTransfer>
-      <feFuncR type="linear" slope="0.5"/>
-      <feFuncG type="linear" slope="0.5"/>
-      <feFuncB type="linear" slope="0.5"/>
-    </feComponentTransfer>
-  </filter>
-</svg>

@@ -1,5 +1,0 @@
-{
-  "name": "hosted nav app",
-  "launch_path": "/index.html",
-  "chrome": { "navigation": true }
-}

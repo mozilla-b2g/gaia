@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/pair_view.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/pair_view.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global getTruncated */
+/* exported Pairview */
+
+'use strict';
+
+var Pairview = {
+  /**
+   * flag for debugging.
+   */
+  _debug: false,
+
+  /**
+   * remote device name to pair with.
+   */
+  _remoteDeviceName: null,
+
+  /**
+   * device authentication method
+   */
+  _pairMethod: null,
+
+  /**
+   * event handler of pairing request
+   */
+  _options: null,
+
+  _passkey: '',
+
+  pairview: document.getElementById('pair-view'),
+
+  nameLabel: document.getElementById('label-name'),
+  pairDescription: document.getElementById('pair-description'),
+  pairButton: document.getElementById('button-pair'),
+  closeButton: document.getElementById('button-close'),
+
+  comfirmationItem: document.getElementById('confirmation-method'),
+  pinInputItem: document.getElementById('pin-input-method'),
+
+  passkey: document.getElementById('passkey'),
+  pinInput: document.getElementById('pin-input'),
+
+  get isFullAttentionMode() {
+    return (window.innerHeight > 200);
+  },
+
+  show: function pv_show() {
+    if (!this.isFullAttentionMode) {
+      this.close();
+      return;
+    }
+
+    var _ = navigator.mozL10n.get;
+    this.pairButton.addEventListener('click', this);
+    this.closeButton.addEventListener('click', this);
+    window.addEventListener('resize', this);
+
+    this._remoteDeviceName = this._remoteDeviceName || _('unnamed-device');
+    var truncatedDeviceName = getTruncated(this._remoteDeviceName, {
+      node: this.nameLabel,
+      maxLine: 2,
+      ellipsisIndex: 3
+    });
+
+    this.nameLabel.textContent = truncatedDeviceName;
+    this.pairview.hidden = false;
+
+    // Since pairing process is migrated from Settings app to Bluetooth app,
+    // there is no way to identify the pairing request in active/passive mode.
+    // In order to let the pairing messsage consistency,
+    // given the pairing mode to be passive.
+    var stringName = 'passive-pair-' + this._pairMethod;
+    this.pairDescription.textContent =
+      _(stringName, {device: truncatedDeviceName});
+
+    switch (this._pairMethod) {
+      case 'displaypasskey':
+      case 'confirmation':
+        this.passkey.textContent = this._passkey;
+        this.comfirmationItem.hidden = false;
+        this.pinInputItem.hidden = true;
+        break;
+      case 'enterpincode':
+        this.pinInputItem.hidden = false;
+        this.comfirmationItem.hidden = true;
+        this.pinInput.focus();
+        break;
+      case 'consent':
+        this.comfirmationItem.hidden = false;
+        this.pinInputItem.hidden = true;
+        break;
+    }
+  },
+
+  /**
+   * It is used to init pairing information in this pair view.
+   *
+   * @memberOf Pairview
+   * @access public
+   * @param {String} method - method of this pairing request
+   * @param {Object} options
+   * @param {String} options.deviceName - name of the remote bluetooth device
+   * @param {BluetoothPairingHandle} options.handle - property handle that
+                                                      carries specific method
+                                                      to reply by user.
+   */
+  init: function pv_init(method, options) {
+    this._pairMethod = method;
+    this._options = options;
+    this._remoteDeviceName = options.deviceName;
+
+    if (options.handle &amp;&amp; options.handle.passkey) {
+      var passkey = options.handle.passkey;
+      var len = passkey.toString().length;
+      var zeros = (len &lt; 6) ? (new Array((6 - len) + 1)).join('0') : '';
+      this._passkey = zeros + passkey;
+    }
+
+    // show() only until the page is localized.
+    navigator.mozL10n.once(Pairview.show.bind(Pairview));
+  },
+
+  close: function pv_close() {
+    // Since user clicked close button, we reject pairing request.
+    // Because the reject() interface of pairing requests are same, we do same
+    // operation here.
+    this._options.handle.reject().then(() => {
+      this.debug('Resolved in reject ' + this._pairMethod + ' request.');
+      // Close window by self.
+      window.close();
+    }, (aReason) => {
+      this.debug('Rejected in reject ' + this._pairMethod +
+                 ' request with reason: ' + aReason);
+      // Close window by self.
+      window.close();
+    });
+  },
+
+  closeInput: function pv_closeInput() {
+    if (!this.pinInputItem.hidden) {
+      this.pinInput.blur();
+    }
+  },
+
+  handleEvent: function pv_handleEvent(evt) {
+    var _ = navigator.mozL10n.get;
+    if (!evt.target) {
+      return;
+    }
+
+    switch (evt.type) {
+      case 'click':
+        evt.preventDefault();
+
+        switch (evt.target.id) {
+          case 'button-pair':
+            this.pairDescription.textContent = _('device-status-waiting');
+            this.pairButton.disabled = true;
+            this.closeButton.disabled = true;
+
+            switch (this._pairMethod) {
+              case 'displaypasskey':
+                // Do nothing here since the pairing method display passkey only
+                // Close window by self.
+                window.close();
+                break;
+              case 'enterpincode':
+                var pinCode = this.pinInput.value;
+                this._options.handle.setPinCode(pinCode).then(() => {
+                  this.debug('Resolved setPinCode operation');
+                  // Close window by self.
+                  window.close();
+                }, (aReason) => {
+                  this.debug('Rejected setPinCode with reason: ' + aReason);
+                  // Close window by self.
+                  window.close();
+                });
+                break;
+              case 'confirmation':
+              case 'consent':
+                this._options.handle.accept().then(() => {
+                  this.debug('Resolved in ' + this._pairMethod + ' request');
+                  // Close window by self.
+                  window.close();
+                }, (aReason) => {
+                  this.debug('Rejected in ' + this._pairMethod + ' request ' +
+                             ' with reason: ' + aReason);
+                  // Close window by self.
+                  window.close();
+                });
+                break;
+            }
+            break;
+          case 'button-close':
+            this.close();
+            break;
+        }
+        break;
+      case 'resize':
+        // XXX: this is hack that we have to close the attention in this case,
+        // while in most other cases, we would just change it into an active
+        // status bar
+        if (!this.isFullAttentionMode) {
+          this.close();
+        }
+        break;
+
+      default:
+        break;
+    }
+  },
+
+  debug: function(msg) {
+    if (this._debug) {
+      console.log('Pairview(): ' + msg);
+    }
+  }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-bluetooth_bt_template_factory.html">bluetooth/bt_template_factory</a></li><li><a href="module-BluetoothAdapterManager.html">BluetoothAdapterManager</a></li><li><a href="module-BluetoothClassOfDeviceMapper.html">BluetoothClassOfDeviceMapper</a></li><li><a href="module-BluetoothConnectionManager.html">BluetoothConnectionManager</a></li><li><a href="module-BluetoothContext.html">BluetoothContext</a></li><li><a href="module-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-modules_bluetooth_version_detector.html">modules/bluetooth/version_detector</a></li></ul><h3>Classes</h3><ul><li><a href="module-BluetoothDevice-BluetoothDevice.html">BluetoothDevice</a></li></ul><h3>Global</h3><ul><li><a href="global.html#requirejs">requirejs</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:26 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

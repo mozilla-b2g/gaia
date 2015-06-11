@@ -1,7 +1,0 @@
-{
-  "name": "marionette-plugin-forms",
-  "version": "0.0.4",
-  "author": "Mike Pennisi",
-  "description": "A plugin for manipulating form fields",
-  "main": "lib/index.js"
-}

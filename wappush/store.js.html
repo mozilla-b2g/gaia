@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: store.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: store.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* exported StoreProvisioning */
+
+/* global uuid */
+
+'use strict';
+
+/**
+ * The StoreProvisioning singleton is a database helper in charge of storing the
+ * APNs into the settings database.
+ *
+ */
+var StoreProvisioning = (function() {
+  var CP_APN_KEY = 'ril.data.cp.apns';
+
+  var MCC_KEY = 'operatorvariant.mcc';
+
+  var MNC_KEY = 'operatorvariant.mnc';
+
+  var mccMncCodes = { mcc: '000', mnc: '00' };
+
+  /**
+   * Loads the operator numeric value (MCC and MNC codes) stored into the
+   * settings database. The APNs are stored relaying on these codes.
+   *
+   * @param {Number} iccCardIndex Index of the card on which the message was
+   *                              received. We are going to add the apns to
+   *                              the right card.
+   * @param {function} callback It will be called once the work is done (only
+   *                            useful for unit testing). This function doesn't
+   *                            any parameter.
+   */
+  function sp_getMccMncCodes(iccCardIndex, callback) {
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
+    iccCardIndex = iccCardIndex || 0;
+
+    var transaction = navigator.mozSettings.createLock();
+    var mccRequest = transaction.get(MCC_KEY);
+    mccRequest.onsuccess = function() {
+      var mccs = mccRequest.result[MCC_KEY];
+      if (!mccs || !Array.isArray(mccs) || !mccs[iccCardIndex]) {
+        mccMncCodes.mcc = '000';
+      } else {
+        mccMncCodes.mcc = mccs[iccCardIndex];
+      }
+      var mncRequest = transaction.get(MNC_KEY);
+      mncRequest.onsuccess = function() {
+        var mncs = mncRequest.result[MNC_KEY];
+        if (!mncs || !Array.isArray(mncs) || !mncs[iccCardIndex]) {
+          mccMncCodes.mnc = '00';
+        } else {
+          mccMncCodes.mnc = mncs[iccCardIndex];
+        }
+        if (callback) {
+          callback(mccMncCodes.mcc, mccMncCodes.mnc);
+        }
+      };
+    };
+  }
+
+  /**
+   * Stores the APNs into the settings database.
+   *
+   * @param {Array} parameters The array containing the APNs.
+   * @param {Number} iccCardIndex Index of the card on which the message was
+   *                              received.
+   * @param {function} callback It will be called once the work is done (only
+   *                            useful for unit testing). This function doesn't
+   *                            accetp any parameter.
+   */
+  function sp_provision(parameters, iccCardIndex, callback) {
+    var existingApns = null;
+    var newApns = {};
+
+    // Add an unique id to identify APNs with the same carrier name
+    for (var i = 0; i &lt; parameters.length; i++) {
+      parameters[i]._id = uuid();
+    }
+
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+    sp_getMccMncCodes(iccCardIndex, function sp_getMccMncCodesCb() {
+      var transaction = navigator.mozSettings.createLock();
+      var load = transaction.get(CP_APN_KEY);
+      load.onsuccess = function onsuccessCb() {
+        existingApns = load.result[CP_APN_KEY];
+        var data = {}, mcc = mccMncCodes.mcc, mnc = mccMncCodes.mnc;
+
+        if (!existingApns) {
+          newApns[mcc] = {};
+          newApns[mcc][mnc] = parameters;
+          data[CP_APN_KEY] = newApns;
+        } else {
+          if (!existingApns[mcc]) {
+            existingApns[mcc] = {};
+          }
+          if (!existingApns[mcc][mnc]) {
+            existingApns[mcc][mnc] = [];
+          }
+          // TODO: Should we handle possible duplicated APNs?
+          existingApns[mcc][mnc] = existingApns[mcc][mnc].concat(parameters);
+          data[CP_APN_KEY] = existingApns;
+        }
+        transaction.set(data);
+
+        iccCardIndex = iccCardIndex || 0;
+        var request = transaction.get('ril.data.apnSettings');
+        request.onsuccess = function() {
+          var apnSettings = request.result['ril.data.apnSettings'];
+          if (!apnSettings || !Array.isArray(apnSettings)) {
+            apnSettings = [[], []];
+          }
+
+          var apnList = apnSettings[iccCardIndex];
+          parameters.forEach(function(apn) {
+            var apnEnabled =  false;
+            for (var i = 0; i &lt; apnList.length; i++) {
+              if (apnList[i].types[0] === apn.types[0]) {
+                apnList[i] = apn;
+                apnEnabled = true;
+                break;
+              }
+            }
+
+            if (!apnEnabled) {
+              apnList.push(apn);
+            }
+          });
+
+          transaction.set({
+            'ril.data.apnSettings': apnSettings,
+            'apn.selections': null
+          });
+          if (callback) {
+            callback();
+          }
+        };
+
+        request.onerror = function onError() {
+          if (callback) {
+            callback();
+          }
+        };
+      };
+      load.onerror = function onerrorCb() {
+        if (callback) {
+          callback();
+        }
+      };
+    });
+  }
+
+  return {
+    getMccMncCodes: sp_getMccMncCodes,
+    provision: sp_provision
+  };
+})();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ProvisioningAuthentication">ProvisioningAuthentication</a></li><li><a href="global.html#StoreProvisioning">StoreProvisioning</a></li><li><a href="global.html#WhiteList">WhiteList</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:23 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

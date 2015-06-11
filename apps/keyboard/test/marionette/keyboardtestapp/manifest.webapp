@@ -1,9 +1,0 @@
-{
-  "name": "keyboard tests",
-  "description": "A keyboard testing app.",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  }
-}

@@ -1,4 +1,0 @@
-#! /bin/bash -e
-
-mkdir -p artifacts
-echo "upload me" > artifacts/iupload.txt

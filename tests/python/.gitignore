@@ -1,6 +1,0 @@
-build/
-debug/
-dist/
-*.pyc
-gaiatest.egg-info
-.idea/

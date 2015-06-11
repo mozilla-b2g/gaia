@@ -1,2 +1,0 @@
-#!/bin/bash
-echo $@ >> ./build/test/integration/result

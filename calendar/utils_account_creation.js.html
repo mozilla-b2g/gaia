@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: utils/account_creation.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: utils/account_creation.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Responder = require('common/responder');
+var core = require('core');
+var denodeifyAll = require('common/promise').denodeifyAll;
+
+/**
+ * Helper class to create accounts.
+ * Emits events during the process of
+ * creation to allow views to hook into
+ * the full cycle while further separating
+ * this logic from their own.
+ *
+ *
+ * Events:
+ *
+ *    - authorize
+ *    - calendar sync
+ *
+ */
+function AccountCreation() {
+  Responder.call(this);
+
+  denodeifyAll(this, [ 'send' ]);
+}
+module.exports = AccountCreation;
+
+AccountCreation.prototype = {
+  __proto__: Responder.prototype,
+
+  /**
+   * Sends a request to create an account.
+   *
+   * @param {Calendar.Models.Account} model account details.
+   * @param {Function} callback fired when entire transaction is complete.
+   */
+  send: function(model, callback) {
+    var self = this;
+    var storeFactory = core.storeFactory;
+    var accountStore = storeFactory.get('Account');
+    var calendarStore = storeFactory.get('Calendar');
+
+    // begin by persisting the account
+    accountStore.verifyAndPersist(model, function(accErr, id, result) {
+
+      if (accErr) {
+        // we bail when we cannot create the account
+        // but also give custom error events.
+        self.emit('authorizeError', accErr);
+        callback(accErr);
+        return;
+      }
+
+
+      self.emit('authorize', result);
+
+      // finally sync the account so when
+      // we exit the request the user actually
+      // has some calendars. This should not take
+      // too long (compared to event sync).
+      accountStore.sync(result, function(syncErr) {
+        if (syncErr) {
+          self.emit('calendarSyncError', syncErr);
+          callback(syncErr);
+          return;
+        }
+
+        function syncCalendars(err, calendars) {
+          if (err) {
+            console.error('Error fetch calendar list in account creation');
+            return callback(err);
+          }
+
+          self.emit('calendarSync');
+
+          // note we don't wait for any of this to complete
+          // we just begin the sync and let the event handlers
+          // on the sync controller do the work.
+          for (var key in calendars) {
+            core.syncController.calendar(
+              result,
+              calendars[key]
+            );
+          }
+
+          callback(null, result);
+        }
+
+        // begin sync of calendars
+        calendarStore.remotesByAccount(
+          result._id,
+          syncCalendars
+        );
+      });
+    });
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/permission_manager.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/permission_manager.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global Service, applications, ManifestHelper, Sanitizer */
+'use strict';
+(function(exports) {
+  /**
+   * Handle Web API permissions such as geolocation, getUserMedia
+   * @class PermissionManager
+   * @requires Applications
+   */
+  function PermissionManager() {
+  }
+
+  PermissionManager.prototype = {
+
+    currentOrigin: undefined,
+    permissionType: undefined,
+    currentPermissions: undefined,
+    currentChoices: {}, //select choices
+    isFullscreenRequest: false,
+    isVideo: false,
+    isAudio: false,
+    /**
+     * special dialog for camera selection while in app mode and
+     * permission is granted
+     */
+    isCamSelector: false,
+    responseStatus: undefined,
+    /**
+     * A queue of pending requests.
+     */
+    pending: [],
+
+    /**
+     * The ID of the request currently visible on the screen. This has the value
+     * "undefined" when there is no request visible on the screen.
+     */
+    currentRequestId: undefined,
+
+    /**
+     * start the PermissionManager to init variables and listeners
+     * @memberof PermissionManager.prototype
+     */
+    start: function pm_start() {
+      // Div over in which the permission UI resides.
+      this.overlay = document.getElementById('permission-screen');
+      this.dialog = document.getElementById('permission-dialog');
+      this.title = document.getElementById('permission-title');
+      this.message = document.getElementById('permission-message');
+      this.moreInfo = document.getElementById('permission-more-info');
+      this.moreInfoLink = document.getElementById('permission-more-info-link');
+      this.hideInfoLink = document.getElementById('permission-hide-info-link');
+      this.moreInfoBox = document.getElementById('permission-more-info-box');
+
+      // "Yes"/"No" buttons on the permission UI.
+      this.buttons = document.getElementById('permission-buttons');
+      this.yes = document.getElementById('permission-yes');
+      this.no = document.getElementById('permission-no');
+
+      // Remember the choice checkbox
+      this.remember = document.getElementById('permission-remember-checkbox');
+      this.rememberSection =
+        document.getElementById('permission-remember-section');
+      this.deviceSelector =
+        document.getElementById('permission-device-selector');
+      this.devices = document.getElementById('permission-devices');
+
+      var self = this;
+      this.rememberSection.addEventListener('click',
+        function onLabelClick() {
+        self.remember.checked = !self.remember.checked;
+      });
+
+      window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('attentionopening', this);
+      window.addEventListener('attentionopened', this);
+      window.addEventListener('lockscreen-appopened', this);
+      window.addEventListener('screenchange', this);
+
+      /* On home/holdhome pressed, discard permission request.
+       * XXX: We should make permission dialog be embededd in appWindow
+       * Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
+       * Gecko bug is https://bugzilla.mozilla.org/show_bug.cgi?id=852013
+       */
+      this.discardPermissionRequest = this.discardPermissionRequest.bind(this);
+      window.addEventListener('home', this.discardPermissionRequest);
+      window.addEventListener('holdhome', this.discardPermissionRequest);
+
+      /* If an application that is currently running needs to get killed for
+       * whatever reason we want to discard it's request for permissions.
+       */
+      window.addEventListener('appterminated', (function(evt) {
+        if (evt.detail.origin == this.currentOrigin) {
+          this.discardPermissionRequest();
+        }
+      }).bind(this));
+
+      // Ensure that the focus is not stolen by the permission overlay, as
+      // it may appears on top of a &lt;select> element, and just cancel it.
+      this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
+        evt.preventDefault();
+      });
+    },
+
+    /**
+     * Returns the view for each device option.
+     * @memberof PermissionManager.prototype
+     */
+    deviceOptionView: function({id, checked, label}) {
+      return Sanitizer.escapeHTML `&lt;label class="device-list deviceEnable">
+          &lt;input class="input-enable" id="${id}" type="checkbox" ${checked}>
+          &lt;span>&lt;/span>
+        &lt;/label>
+        &lt;span class="device-item" data-l10n-id="${label}">&lt;/span>`;
+    },
+
+    /**
+     * Request all strings to show
+     * @memberof PermissionManager.prototype
+     */
+    getStrings: function getStrings(detail) {
+      // If we are in fullscreen, the strings are slightly different.
+      if (this.isFullscreenRequest) {
+        var fullscreenMessage = {
+          id: 'fullscreen-request',
+          args: {
+            'origin': detail.fullscreenorigin
+          }};
+        return {
+          message: fullscreenMessage,
+          moreInfoText: null
+        };
+      }
+
+      // If it's a regular request (non-fullscreen), we review
+      // the permission and create the strings accordingly
+      var permissionID = 'perm-' + this.permissionType.replace(':', '-');
+      var app = applications.getByManifestURL(detail.manifestURL);
+      var message = '';
+      if (detail.isApp) {
+        var appName = new ManifestHelper(app.manifest).name;
+        message = {
+          id: permissionID + '-appRequest',
+          args: {
+            'app': appName
+          }};
+      } else {
+        message = {
+          id: permissionID + '-webRequest',
+          args: {
+            'site': detail.origin
+          }};
+      }
+
+      var moreInfoText = permissionID + '-more-info';
+      return {
+        message : message,
+        moreInfoText: moreInfoText
+      };
+    },
+
+    /**
+     * stop the PermissionManager to reset variables and listeners
+     * @memberof PermissionManager.prototype
+     */
+    stop: function pm_stop() {
+      this.currentOrigin = null;
+      this.permissionType = null;
+      this.currentPermissions = null;
+      this.currentChoices = {};
+      this.fullscreenRequest = null;
+      this.isVideo = false;
+      this.isAudio = false;
+      this.isCamSelector = false;
+
+      this.responseStatus = null;
+      this.pending = [];
+      this.currentRequestId = null;
+
+      this.overlay = null;
+      this.dialog = null;
+      this.title = null;
+      this.message = null;
+      this.moreInfo = null;
+      this.moreInfoLink = null;
+      this.moreInfoBox = null;
+
+      this.remember = null;
+      this.rememberSection = null;
+      this.deviceSelector = null;
+      this.devices = null;
+
+      this.buttons = null;
+      this.yes = null;
+      this.no = null;
+
+      window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('attentionopening', this);
+      window.removeEventListener('attentionopened', this);
+      window.removeEventListener('lockscreen-appopened', this);
+      window.removeEventListener('screenchange', this);
+      window.removeEventListener('home', this.discardPermissionRequest);
+      window.removeEventListener('holdhome', this.discardPermissionRequest);
+    },
+
+    /**
+     * Reset current values
+     * @memberof PermissionManager.prototype
+     */
+    cleanDialog: function pm_cleanDialog() {
+      delete this.overlay.dataset.type;
+      this.permissionType = undefined;
+      this.currentPermissions = undefined;
+      this.currentChoices = {};
+      this.isVideo = false;
+      this.isAudio = false;
+      this.isCamSelector = false;
+
+      //handled in showPermissionPrompt
+      if (this.message.classList.contains('hidden')) {
+        this.message.classList.remove('hidden');
+      }
+      if (!this.moreInfoBox.classList.contains('hidden')) {
+        this.moreInfoBox.classList.add('hidden');
+      }
+      this.devices.innerHTML = '';
+      if (!this.deviceSelector.classList.contains('hidden')) {
+        this.deviceSelector.classList.add('hidden');
+      }
+      this.buttons.dataset.items = 2;
+      this.no.style.display = 'inline';
+    },
+
+    /**
+     * Queue or show the permission prompt
+     * @memberof PermissionManager.prototype
+     */
+    queuePrompt: function(detail) {
+      this.pending.push(detail);
+    },
+
+    /**
+     * Event handler interface for mozChromeEvent.
+     * @memberof PermissionManager.prototype
+     * @param {DOMEvent} evt The event.
+     */
+    handleEvent: function pm_handleEvent(evt) {
+      var detail = evt.detail;
+      switch (detail.type) {
+        case 'permission-prompt':
+          if (!!this.currentRequestId) {
+            this.queuePrompt(detail);
+            return;
+          }
+          this.handlePermissionPrompt(detail);
+          break;
+        case 'cancel-permission-prompt':
+          this.discardPermissionRequest();
+          break;
+        case 'fullscreenoriginchange':
+          delete this.overlay.dataset.type;
+          this.cleanDialog();
+          this.handleFullscreenOriginChange(detail);
+          break;
+      }
+
+      switch (evt.type) {
+        case 'attentionopened':
+        case 'attentionopening':
+          if (this.currentOrigin !== evt.detail.origin) {
+            this.discardPermissionRequest();
+          }
+          break;
+        case 'lockscreen-appopened':
+          if (this.currentRequestId == 'fullscreen') {
+            this.discardPermissionRequest();
+          }
+          break;
+        case 'screenchange':
+          if (Service.query('locked') &amp;&amp; !detail.screenEnabled) {
+            this.discardPermissionRequest();
+          }
+          break;
+      }
+    },
+
+    /**
+     * Handle getUserMedia device select options
+     * @memberof PermissionManager.prototype
+     * @param {DOMEvent} evt The event.
+     */
+    optionClickhandler: function pm_optionClickhandler(evt) {
+      var link = evt.target;
+      if (!link) {
+        return;
+      }
+      if (link.classList.contains('input-enable')) {
+        if (link.checked) {
+          this.currentChoices['video-capture'] = link.id;
+        }
+        var items = this.devices.querySelectorAll('input[type="checkbox"]');
+        // Uncheck unselected option, allow 1 selection at same time
+        for (var i = 0; i &lt; items.length; i++) {
+          if (items[i].id !== link.id) {
+            items[i].checked = false;
+            items[i].disabled = false; // Not allow to uncheck last option
+          } else {
+            link.disabled = true;
+          }
+        }
+      }
+    },
+
+    /**
+     * Show the request for the new domain
+     * @memberof PermissionManager.prototype
+     * @param {Object} detail The event detail object.
+     */
+    handleFullscreenOriginChange:
+      function pm_handleFullscreenOriginChange(detail) {
+      // If there's already a fullscreen request visible, cancel it,
+      // we'll show the request for the new domain.
+      if (this.isFullscreenRequest) {
+        this.cancelRequest(this.currentRequestId);
+        this.isFullscreenRequest = false;
+      }
+      if (detail.fullscreenorigin !==
+          Service.query('getTopMostWindow').origin) {
+        this.isFullscreenRequest = true;
+        detail.id = 'fullscreen';
+        this.showPermissionPrompt(
+          detail,
+          function foo() {},
+          function() {
+            document.mozCancelFullScreen();
+          }
+        );
+      }
+    },
+
+    /**
+     * Prepare for permission prompt
+     * @memberof PermissionManager.prototype
+     * @param {Object} detail The event detail object.
+     */
+    handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
+      // Clean dialog if was rendered before
+      this.cleanDialog();
+      this.isFullscreenRequest = false;
+      this.currentOrigin = detail.origin;
+      this.currentRequestId = detail.id;
+
+      if (detail.permissions) {
+        if ('video-capture' in detail.permissions) {
+          this.isVideo = true;
+
+          // video selector is only for app
+          if (detail.isApp &amp;&amp; detail.isGranted &amp;&amp;
+            detail.permissions['video-capture'].length > 1) {
+            this.isCamSelector = true;
+          }
+        }
+        if ('audio-capture' in detail.permissions) {
+          this.isAudio = true;
+        }
+      } else { // work in &lt;1.4 compatible mode
+        if (detail.permission) {
+          this.permissionType = detail.permission;
+          if ('video-capture' === detail.permission) {
+            this.isVideo = true;
+          }
+          if ('audio-capture' === detail.permission) {
+            this.isAudio = true;
+          }
+        }
+      }
+
+      // Set default permission
+      if (this.isVideo &amp;&amp; this.isAudio) {
+        this.permissionType = 'media-capture';
+      } else {
+        if (detail.permission) {
+          this.permissionType = detail.permission;
+        } else if (detail.permissions) {
+          this.permissionType = Object.keys(detail.permissions)[0];
+        }
+      }
+      this.overlay.dataset.type = this.permissionType;
+
+      if (this.isAudio || this.isVideo) {
+        if (!detail.isApp) {
+          // Not show remember my choice option in website
+          this.rememberSection.style.display = 'none';
+        } else {
+          this.rememberSection.style.display = 'block';
+        }
+
+        // Set default options
+        this.currentPermissions = detail.permissions;
+        for (var permission2 in detail.permissions) {
+          if (detail.permissions.hasOwnProperty(permission2)) {
+            // gecko might not support audio/video option
+            if (detail.permissions[permission2].length > 0) {
+              this.currentChoices[permission2] =
+                detail.permissions[permission2][0];
+            }
+          }
+        }
+      }
+
+      if ((this.isAudio || this.isVideo) &amp;&amp; !detail.isApp &amp;&amp;
+        !this.isCamSelector) {
+        // gUM always not remember in web mode
+        this.remember.checked = false;
+      } else {
+        this.remember.checked = detail.remember ? true : false;
+      }
+
+      if (detail.isApp) { // App
+        var app = applications.getByManifestURL(detail.manifestURL);
+
+        if (this.isCamSelector) {
+          this.title.setAttribute('data-l10n-id', 'title-cam');
+        } else {
+          this.title.setAttribute('data-l10n-id', 'title-app');
+        }
+        navigator.mozL10n.setAttributes(
+          this.deviceSelector,
+          'perm-camera-selector-appRequest',
+          { 'app': new ManifestHelper(app.manifest).name }
+        );
+      } else { // Web content
+        this.title.setAttribute('data-l10n-id', 'title-web');
+        navigator.mozL10n.setAttributes(
+          this.deviceSelector,
+          'perm-camera-selector-webRequest',
+          { 'site': detail.origin }
+        );
+      }
+
+      var self = this;
+
+      this.showPermissionPrompt(
+        detail,
+        function pm_permYesCB() {
+          self.dispatchResponse(
+            detail.id,
+            'permission-allow',
+            self.remember.checked
+          );
+        },
+        function pm_permNoCB() {
+          self.dispatchResponse(
+            detail.id,
+            'permission-deny',
+            self.remember.checked
+          );
+        }
+      );
+    },
+    /**
+     * Send permission choice to gecko
+     * @memberof PermissionManager.prototype
+     */
+    dispatchResponse: function pm_dispatchResponse(id, type, remember) {
+      if (this.isCamSelector) {
+        remember = true;
+      }
+      this.responseStatus = type;
+
+      var response = {
+        id: id,
+        type: type,
+        remember: remember
+      };
+
+      if (this.isVideo || this.isAudio || this.isCamSelector) {
+        response.choices = this.currentChoices;
+      }
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentEvent', true, true, response);
+      window.dispatchEvent(event);
+    },
+
+    /**
+     * Hide prompt
+     * @memberof PermissionManager.prototype
+     */
+    hidePermissionPrompt: function pm_hidePermissionPrompt() {
+      this.overlay.classList.remove('visible');
+      this.devices.removeEventListener('click', this);
+      this.devices.classList.remove('visible');
+      this.currentRequestId = undefined;
+      // Cleanup the event handlers.
+      this.yes.removeEventListener('click', this.yesHandler);
+      this.yes.callback = null;
+      this.no.removeEventListener('click', this.noHandler);
+      this.no.callback = null;
+      this.moreInfo.classList.add('hidden');
+      this.moreInfoLink.removeEventListener('click',
+        this.moreInfoHandler);
+      this.hideInfoLink.removeEventListener('click',
+        this.hideInfoHandler);
+      if (!this.hideInfoLink.classList.contains('hidden')) {
+        this.toggleInfo();
+      }
+      // XXX: This is telling AppWindowManager to focus the active app.
+      // After we are moving into AppWindow, we need to remove that
+      // and call this.app.focus() instead.
+      this.publish('permissiondialoghide');
+    },
+
+    publish: function(eventName, detail) {
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent(eventName, true, true, detail);
+      window.dispatchEvent(event);
+    },
+
+    /**
+     * Show the next request, if we have one.
+     * @memberof PermissionManager.prototype
+     */
+    showNextPendingRequest: function pm_showNextPendingRequest() {
+      if (this.pending.length === 0) {
+        return;
+      }
+
+      var request = this.pending.shift();
+
+      if ((this.currentOrigin === request.origin) &amp;&amp;
+        (this.permissionType === Object.keys(request.permissions)[0])) {
+        this.dispatchResponse(request.id, this.responseStatus,
+            this.remember.checked);
+        this.showNextPendingRequest();
+        return;
+      }
+
+      this.handlePermissionPrompt(request);
+    },
+
+    /**
+     * Event listener function for the yes/no buttons.
+     * @memberof PermissionManager.prototype
+     */
+    clickHandler: function pm_clickHandler(evt) {
+      var callback = null;
+      if (evt.target === this.yes &amp;&amp; this.yes.callback) {
+        callback = this.yes.callback;
+        this.responseStatus = 'permission-allow';
+      } else if (evt.target === this.no &amp;&amp; this.no.callback) {
+        callback = this.no.callback;
+        this.responseStatus = 'permission-deny';
+      } else if (evt.target === this.moreInfoLink ||
+                 evt.target === this.hideInfoLink) {
+        this.toggleInfo();
+        return;
+      }
+      this.hidePermissionPrompt();
+
+      // Call the appropriate callback, if it is defined.
+      if (callback) {
+        window.setTimeout(callback, 0);
+      }
+      this.showNextPendingRequest();
+    },
+
+    toggleInfo: function pm_toggleInfo() {
+      this.moreInfoLink.classList.toggle('hidden');
+      this.hideInfoLink.classList.toggle('hidden');
+      this.moreInfoBox.classList.toggle('hidden');
+    },
+
+    /**
+     * Form the media source selection list
+     * @memberof PermissionManager.prototype
+     */
+    listDeviceOptions: function pm_listDeviceOptions() {
+      var checked;
+
+      // show description
+      this.deviceSelector.classList.remove('hidden');
+      // build device list
+      this.currentPermissions['video-capture'].forEach(option => {
+        // Match currentChoices
+        checked = (this.currentChoices['video-capture'] === option) ?
+            'checked=true disabled=true' : '';
+        if (checked) {
+          this.currentChoices['video-capture'] = option;
+        }
+
+        var item_li = document.createElement('li');
+        item_li.className = 'device-cell';
+        item_li.innerHTML = this.deviceOptionView({
+                              id: option,
+                              checked: checked,
+                              label: 'device-' + option
+                            });
+        this.devices.appendChild(item_li);
+      });
+      this.devices.addEventListener('click',
+        this.optionClickhandler.bind(this));
+      this.devices.classList.add('visible');
+    },
+
+    /**
+     * Put the message in the dialog.
+     * @memberof PermissionManager.prototype
+     */
+    showPermissionPrompt:
+      function pm_showPermissionPrompt(detail, yescallback, nocallback) {
+      // Note plain text since this may include text from
+      // untrusted app manifests, for example.
+      var text = this.getStrings(detail);
+      if (typeof(text.message) === 'object') {
+        navigator.mozL10n.setAttributes(this.message,
+          text.message.id, text.message.args);
+      } else {
+        this.message.setAttribute('data-l10n-id', text.message);
+      }
+      if (text.moreInfoText) {
+        // Show the "More info… " link.
+        this.moreInfo.classList.remove('hidden');
+        this.moreInfoHandler = this.clickHandler.bind(this);
+        this.hideInfoHandler = this.clickHandler.bind(this);
+        this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
+        this.hideInfoLink.addEventListener('click', this.hideInfoHandler);
+        this.moreInfoBox.setAttribute('data-l10n-id', text.moreInfoText);
+      }
+      this.currentRequestId = detail.id;
+
+      // Not show the list if there's only 1 option
+      if (this.isVideo &amp;&amp; this.currentPermissions['video-capture'].length > 1) {
+        this.listDeviceOptions();
+      }
+
+      // Set event listeners for the yes and no buttons
+      var isSharedPermission = this.isVideo || this.isAudio ||
+           this.permissionType === 'geolocation';
+
+      this.yes.setAttribute('data-l10n-id',
+        isSharedPermission ? 'share-' + this.permissionType : 'allow');
+      this.yesHandler = this.clickHandler.bind(this);
+      this.yes.addEventListener('click', this.yesHandler);
+      this.yes.callback = yescallback;
+
+      this.no.setAttribute('data-l10n-id', isSharedPermission ?
+        'dontshare-' + this.permissionType : 'dontallow');
+      this.noHandler = this.clickHandler.bind(this);
+      this.no.addEventListener('click', this.noHandler);
+      this.no.callback = nocallback;
+
+      // customize camera selector dialog
+      if (this.isCamSelector) {
+        this.message.classList.add('hidden');
+        this.rememberSection.style.display = 'none';
+        this.buttons.dataset.items = 1;
+        this.no.style.display = 'none';
+        this.yes.setAttribute('data-l10n-id', 'ok');
+      }
+      // Make the screen visible
+      this.overlay.classList.add('visible');
+    },
+
+    /**
+     * Cancels a request with a specfied id. Request can either be
+     * currently showing, or pending. If there are further pending requests,
+     * the next is shown.
+     * @memberof PermissionManager.prototype
+     */
+    cancelRequest: function pm_cancelRequest(id) {
+      if (this.currentRequestId === id) {
+        // Request is currently being displayed. Hide the permission prompt,
+        // and show the next request, if we have any.
+        this.hidePermissionPrompt();
+        this.showNextPendingRequest();
+      } else {
+        // The request is currently not being displayed. Search through the
+        // list of pending requests, and remove it from the list if present.
+        for (var i = 0; i &lt; this.pending.length; i++) {
+          if (this.pending[i].id === id) {
+            this.pending.splice(i, 1);
+            break;
+          }
+        }
+      }
+    },
+
+    /**
+     * Clean current request queue and
+     * send refuse permission request message to gecko
+     * @memberof PermissionManager.prototype
+     */
+    discardPermissionRequest: function pm_discardPermissionRequest() {
+      if (this.currentRequestId === undefined ||
+          this.currentRequestId === null) {
+        return;
+      }
+
+      if (this.currentRequestId == 'fullscreen') {
+        if (this.no.callback) {
+          this.no.callback();
+        }
+        this.isFullscreenRequest = false;
+      } else {
+        this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
+      }
+
+      this.hidePermissionPrompt();
+      this.pending = [];
+    }
+  };
+
+  exports.PermissionManager = PermissionManager;
+
+})(window);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

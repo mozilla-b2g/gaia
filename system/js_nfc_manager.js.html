@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: js/nfc_manager.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: js/nfc_manager.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* Copyright © 2013, Deutsche Telekom, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* globals CustomEvent, MozActivity,
+           NfcUtils, NDEF, BaseModule, NfcIcon,
+           LazyLoader, Service */
+
+'use strict';
+
+(function(exports) {
+
+  const NFC_HW_EVENTS =
+    ['enable', 'disable', 'enable-polling', 'disable-polling',
+     'hw-change-success', 'hw-change-failure'];
+
+  const NFC_HW_STATE_TABLE = {
+    'disabling': [null, null, null, null, 'disabled', 'enabled'],
+    'disabled': ['enabling', null, null, null, null, null],
+    'enabling': [null, null, null, null, 'enabled', 'disabled'],
+    'enabled': [null, 'disabling', 'polling-on', 'polling-off', null, null],
+    // enabled state in which NFC HW is polling for NFC tags/peers
+    'polling-on': [null, 'disabling', null, 'polling-off', null, null],
+    // enabled state with low power consumption, NFC HW is not actively
+    // polling for NFC tags/peers. Card emulation is active.
+    'polling-off': [null, 'disabling', 'polling-on', null, null, null]
+  };
+
+  /**
+   * NfcManager is responsible for NFC support. It controls NFC hardware
+   * state, detects NFC tags and triggers appropriate activities, detects NFC
+   * peers and takes part in NFC P2P sharing process (with ShrinkingUI),
+   * detects NFC Handover requests and passes them to NfcHandoverManager for
+   * handling.
+   * @class NfcManager
+   * @requires BaseModule
+   * @requires ScreenManager
+   * @requires MozActivity
+   * @requires NDEF
+   * @requires NfcUtils
+   */
+  var NfcManager = function() {
+  };
+
+  NfcManager.SETTINGS = [
+    'nfc.enabled',
+    'nfc.debugging.enabled'
+  ];
+
+  NfcManager.SUB_MODULES = [
+    'NfcHandoverManager'
+  ];
+
+  NfcManager.STATES = [
+    'isActive'
+  ];
+
+  NfcManager.EVENTS = [
+    'screenchange',
+    'lockscreen-appopened',
+    'lockscreen-appclosed'
+  ];
+
+  BaseModule.create(NfcManager, {
+    name: 'NfcManager',
+    DEBUG: false,
+
+    /**
+     * Current NFC Hardware state
+     * @memberof NfcManager.prototype
+     * @type {String}
+     */
+    _hwState: null,
+
+    /**
+     * Initializes NfcManager, sets up listeners and handlers
+     * @memberof NfcManager.prototype
+     */
+    _start: function nm_start() {
+      this.debug('Starting NFC Manager');
+      this._hwState = 'disabled';
+      LazyLoader.load(['js/nfc_icon.js']).then(function() {
+        this.icon = new NfcIcon(this);
+        this.icon.start();
+      }.bind(this)).catch(function(err) {
+        console.error(err);
+      });
+
+      window.navigator.mozSetMessageHandler('nfc-manager-tech-discovered',
+        (msg) => this._handleTechDiscovered(msg));
+      window.navigator.mozSetMessageHandler('nfc-manager-tech-lost',
+        (msg) => this._handleTechLost(msg));
+
+      // reseting nfc.status to default state, as the device could've
+      // been restarted when HW change was in progress
+      this.writeSetting({ 'nfc.status':'disabled' });
+    },
+
+    /**
+     * Removes all listeners and handlers
+     * @memberof NfcManager.prototype
+     */
+    _stop: function nm_stop() {
+      this.debug('Stopping NFC Manager');
+
+      window.navigator.mozSetMessageHandler('nfc-manager-tech-discovered',
+                                            null);
+      window.navigator.mozSetMessageHandler('nfc-manager-tech-lost', null);
+    },
+
+    '_observe_nfc.enabled': function(enabled) {
+      this._doNfcStateTransition(enabled ? 'enable' : 'disable');
+    },
+
+    '_observe_nfc.debugging.enabled': function(enabled) {
+      this.DEBUG = enabled;
+    },
+
+    _handle_screenchange: function(evt) {
+      var nfcEvt = Service.query('screenEnabled') &amp;&amp;
+                  !Service.query('locked') ?
+                  'enable-polling' : 'disable-polling';
+      this._doNfcStateTransition(nfcEvt);
+    },
+
+    '_handle_lockscreen-appopened': function(evt) {
+      this._doNfcStateTransition('disable-polling');
+    },
+
+    '_handle_lockscreen-appclosed': function(evt) {
+      this._doNfcStateTransition('enable-polling');
+    },
+
+    /**
+     * Returns if NFC is active or not, depending on the hardware state
+     * @memberof NfcManager.prototype
+     * returns {boolean} isActive
+     */
+    isActive: function nm_isActive() {
+      return this._hwState === 'enabled' || this._hwState === 'polling-on' ||
+             this._hwState === 'polling-off';
+    },
+
+    /**
+     * Handler for nfc-manager-tech-discovered messages which originate from
+     * gecko. Basing on the first NDEF record tnf and type this method can use
+     * NfcHandoverManager to handle handover scenarios. Basing on the techList
+     * array it can either trigger P2P sharing scenario or create MozActivities
+     * for other apps to act upon.
+     * @memberof NfcManager.prototype
+     * @param {Object} msg gecko originated message
+     * @param {Array} msg.records NDEF records
+     * @param {string} msg.type set to 'techDiscovered'
+     */
+    _handleTechDiscovered: function nm_handleTechDiscovered(msg) {
+      this.debug('Technology Discovered: ' + JSON.stringify(msg));
+      msg = msg || {};
+      msg.records = Array.isArray(msg.records) ? msg.records : [];
+
+      this.publish('nfc-tech-discovered', this, /* without prefix */ true);
+      window.navigator.vibrate([25, 50, 125]);
+
+      if (this.nfcHandoverManager.tryHandover(msg.records, msg.peer)) {
+        return;
+      }
+
+      if (msg.records.length) {
+        this._fireNDEFDiscovered(msg.records);
+      } else if (msg.peer) {
+        this._checkP2PRegistration();
+      } else {
+        this.debug('Got tag without NDEF records, ignoring.');
+      }
+    },
+
+    /**
+     * Handler for nfc-manager-tech-lost messages
+     * @memberof NfcManager.prototype
+     * @param {Object} msg - tech lost message
+     */
+    _handleTechLost: function nm_handleTechLost(msg) {
+      this.debug('Technology Lost: ' + JSON.stringify(msg));
+
+      window.navigator.vibrate([125, 50, 25]);
+      window.dispatchEvent(new CustomEvent('nfc-tech-lost'));
+
+      // Clean up P2P UI events
+      this._cleanP2PUI();
+    },
+
+    /**
+     * Performs NFC state transition. Checks in NFC HW State Table
+     * if NFC HW Event (argument) triggers a transition from current HW state
+     * to a different one. If transition exists, _hwState is changed to new
+     * state and state entry function is called.
+     * @memberof NfcManager.prototype
+     * @param {string} evt - NFC HW Event
+     */
+    _doNfcStateTransition: function(evt) {
+      var evtIdx = NFC_HW_EVENTS.indexOf(evt);
+      var state = NFC_HW_STATE_TABLE[this._hwState][evtIdx];
+      if (!state) {
+        this.debug('no transition from ' + this._hwState + '[' + evt + ']');
+        return;
+      }
+
+      this.debug('state: ' + this._hwState + '[' + evt + ']' + ' -> ' + state);
+      this._hwState = state;
+      this._processNfcStateChange();
+    },
+
+    /**
+     * State entry function. Called after transitioning to new NFC HW state.
+     * Depending on _hwState it can trigger a new HW change request,
+     * change 'nfc.status' setting or update NFC icon.
+     * @memberof NfcManager.prototype
+     */
+    _processNfcStateChange: function() {
+      var nfc = window.navigator.mozNfc;
+      var promise;
+
+      switch (this._hwState) {
+        case 'disabling':
+          this.writeSetting({ 'nfc.status': this._hwState });
+          promise = nfc.powerOff();
+          break;
+        case 'disabled':
+          this.writeSetting({ 'nfc.status': this._hwState });
+          this.icon &amp;&amp; this.icon.update();
+          break;
+        case 'enabling':
+          this.writeSetting({ 'nfc.status': this._hwState });
+          promise = nfc.startPoll();
+          break;
+        case 'enabled':
+          this.writeSetting({ 'nfc.status': this._hwState });
+          this.icon &amp;&amp; this.icon.update();
+          break;
+        case 'polling-on':
+          promise = nfc.startPoll();
+          break;
+        case 'polling-off':
+          promise = nfc.stopPoll();
+          break;
+      }
+
+      if (promise) {
+        promise.then(() => this._doNfcStateTransition('hw-change-success'))
+        .catch(() => this._doNfcStateTransition('hw-change-failure'));
+      }
+    },
+
+    /**
+     * Step 1 of system app fallback P2P sharing.
+     * Queries Gecko (via NFC dom) if currently visible app has registered
+     * onpeerready handler. If the result is true, shrinking-start event is
+     * dispatched to ShrinkingUI, which will trigger UI change asking the
+     * user to confirm sharing.
+     * @memberof NfcManager.prototype
+     */
+    _checkP2PRegistration: function nm_checkP2PRegistration() {
+      var nfc = window.navigator.mozNfc;
+      var activeApp = this.service.query('getTopMostWindow');
+      var manifestURL = activeApp.manifestURL ||
+        this.service.manifestURL;
+
+      // Do not allow shrinking if we are on the private browser landing page.
+      if (activeApp.isPrivateBrowser() &amp;&amp;
+        activeApp.config.url.startsWith('app://')) {
+        return;
+      }
+
+      nfc.checkP2PRegistration(manifestURL).then(result => {
+        if (result) {
+          if (activeApp.isTransitioning() || activeApp.isSheetTransitioning()) {
+            return;
+          }
+
+          this._initP2PUI();
+        } else {
+          this.debug('CheckP2PRegistration failed');
+          this._cleanP2PUI();
+        }
+      });
+    },
+
+    /**
+     * P2P UI clean up helper, notifies ShrinkingUI to stop shrinking animation
+     * and removes 'shrinking-sent' listener.
+     * @memberof NfcManager.prototype
+     */
+    _cleanP2PUI: function() {
+      window.removeEventListener('shrinking-sent', this._handleShrinkingSent);
+      this.publish('shrinking-stop', this, /* without prefix */ true);
+    },
+
+    /**
+     * Notifies ShrinkingUI to start shrinking animation and starts listening
+     * for 'shrinking-sent' event.
+     * @memberof NfcManager.prototype
+     */
+    _initP2PUI: function() {
+      this.publish('shrinking-start', this, /* without prefix */ true);
+
+      this._handleShrinkingSent = () => {
+        this._cleanP2PUI();
+        this._dispatchP2PUserResponse();
+      };
+
+      window.addEventListener('shrinking-sent', this._handleShrinkingSent);
+    },
+
+    /**
+     * Step 2 of system app fallback P2P sharing.
+     * Notifies Gecko to fire onpeerready handler of the currently visible app.
+     * @memberof NfcManager.prototype
+     */
+    _dispatchP2PUserResponse: function nm_dispatchP2PUserResponse() {
+      var nfc = window.navigator.mozNfc;
+      var activeApp = this.service.query('getTopMostWindow');
+      var manifestURL = activeApp.manifestURL ||
+        this.service.manifestURL;
+
+      nfc.notifyUserAcceptedP2P(manifestURL);
+    },
+
+    /**
+     * Fires NDEF related activities to launch other apps to perform
+     * further actions with NDEF Message contents. If the first NDEF record
+     * contains a well know type additional parsing will be done in helper
+     * methods. In general the name of activity will be 'nfc-ndef-discovered',
+     * in some case other names may be used (e.g. 'dial' in case of tel uri)
+     * @memberof NfcManager.prototype
+     * @param {Array} records - NDEF Message
+     */
+    _fireNDEFDiscovered: function nm_fireNDEFDiscovered(records) {
+      this.debug('_fireNDEFDiscovered: ' + JSON.stringify(records));
+      var smartPoster = this._getSmartPoster(records);
+      var record = smartPoster || records[0] || { tnf: NDEF.TNF_EMPTY };
+
+      var data = NDEF.payload.decode(record.tnf, record.type, record.payload);
+      var options = this._createNDEFActivityOptions(data);
+
+      if (data !== null) {
+        options.data.records = records;
+      }
+
+      this.debug('_fireNDEFDiscovered activity: ', JSON.stringify(options));
+      var activity = new MozActivity(options);
+      activity.onerror = () => {
+        this.debug('Firing nfc-ndef-discovered activity failed');
+      };
+    },
+
+    /**
+     * Retrieves Smart Poster record from NDEF records array following
+     * the rule outlined in NFCForum-SmartPoster_RTD_1.0, 3.4:
+     * "If an NDEF message contains one or multiple URI [URI] records
+     * in addition to the Smart Poster record at the top level (i.e.,
+     * not nested), the Smart Poster record overrides them. The NDEF
+     * application MUST use only the Smart Poster record."
+     * @memberof NfcManager.prototype
+     * @param {Array} records - array of NDEF records
+     * @returns {Object} record - SmartPostr record or null
+     */
+    _getSmartPoster: function nm_getSmartPoster(records) {
+      var nfcUtils = new NfcUtils();
+      if (!Array.isArray(records) || !records.length) {
+        return null;
+      }
+
+      var smartPosters = records.filter(function isSmartPoster(r) {
+        return nfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
+      });
+
+      if (smartPosters.length &amp;&amp; records[0].tnf === NDEF.TNF_WELL_KNOWN &amp;&amp;
+          (nfcUtils.equalArrays(records[0].type, NDEF.RTD_URI) ||
+           nfcUtils.equalArrays(records[0].type, NDEF.RTD_SMART_POSTER))) {
+        return smartPosters[0];
+      }
+      return null;
+    },
+
+    /**
+     * Basing on decoded payload from first record of NDEF message prepares
+     * activity options object which will be used to launch MozActivity
+     * @memberof NfcManager.prototype
+     * @param {Object} payload - decoded payload of first record from NDEF msg
+     * @returns {Object} options - object used to construct MozActivity
+     */
+    _createNDEFActivityOptions: function nm_createNDEFActivityOptions(payload) {
+      var options = { name: 'nfc-ndef-discovered', data: {}};
+      if (payload === null) {
+        return options;
+      }
+
+      if (payload.type === 'uri') {
+        if (payload.uri.indexOf('tel:') === 0) {
+          // dial a number
+          options.name = 'dial';
+          options.data.type = 'webtelephony/number';
+          options.data.number = payload.uri.substring(4);
+          options.data.uri = payload.uri;
+        } else if (payload.uri.indexOf('mailto:') === 0) {
+          // create new mail
+          options.name = 'new';
+          options.data.type = 'mail';
+          options.data.url = payload.uri;
+        } else if (payload.uri.indexOf('http://') === 0 ||
+                   payload.uri.indexOf('https://') === 0 ||
+                   payload.uri.indexOf('data:text/html') === 0) {
+          // launch browser
+          options.name = 'view';
+          options.data.type = 'url';
+          options.data.url = payload.uri;
+        } else {
+          options.data = payload;
+        }
+      } else if (payload.type === 'smartposter' &amp;&amp;
+        (payload.uri.indexOf('http://') === 0 ||
+         payload.uri.indexOf('https://') === 0)) {
+        // smartposter adaptation for browser handling
+        options.name = 'view';
+        options.data = payload;
+        options.data.type = 'url';
+        options.data.url = payload.uri;
+        delete options.data.uri;
+      } else if (payload.type === 'text/vcard') {
+        // contact import
+        options.name = 'import';
+        options.data = payload;
+      } else {
+        options.data = payload;
+      }
+
+      if (options.name !== 'nfc-ndef-discovered') {
+        options.data.src = 'nfc';
+      }
+
+      return options;
+    }
+  });
+}());
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,8 +1,0 @@
-{
-  "browser": {
-    "src": ["tv_apps/browser/js/**/*.js"],
-    "options": {
-      "destination": "docs/browser"
-    }
-  }
-}

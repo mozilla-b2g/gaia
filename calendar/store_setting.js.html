@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: store/setting.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: store/setting.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Abstract = require('./abstract');
+var denodeifyAll = require('common/promise').denodeifyAll;
+var nextTick = require('common/next_tick');
+
+function Setting() {
+  Abstract.apply(this, arguments);
+  denodeifyAll(this, [
+    'getValue',
+    'set'
+  ]);
+}
+module.exports = Setting;
+
+Setting.prototype = {
+  __proto__: Abstract.prototype,
+
+  _store: 'settings',
+
+  /**
+   * Default option values.
+   */
+  defaults: {
+    standardAlarmDefault: -300,
+    alldayAlarmDefault: 32400,
+    syncFrequency: 15,
+    syncAlarm: {
+      alarmId: null,
+      start: null,
+      end: null
+    }
+  },
+
+  /** disable caching */
+  _addToCache: function() {},
+  _removeFromCache: function() {},
+
+  /**
+   * This method also will use the internal cache to ensure
+   * callers are in a consistent state and don't require round
+   * trips to the database. When the value does not exist defaults
+   * are used where possible...
+   *
+   *
+   *    settings.getValue('syncFrequency', function(err, value) {
+   *      // ...
+   *    });
+   *
+   *
+   * @param {String} key name of setting.
+   * @param {Function} callback usual [err, value] does not include metadata.
+   */
+  getValue: function(key, callback) {
+    var self = this;
+
+    if (key in this._cached) {
+      nextTick(function handleCached() {
+        callback(null, self._cached[key].value);
+      });
+
+      // we have cached value exit...
+      return;
+    }
+
+    this.get(key, function handleStored(err, value) {
+      if (err) {
+        return callback(err);
+      }
+
+      if (value === undefined &amp;&amp; self.defaults[key] !== undefined) {
+        value = { value: self.defaults[key] };
+      }
+
+      self._cached[key] = value;
+      callback(null, value.value);
+    });
+  },
+
+  /**
+   * Persist a setting change.
+   *
+   * In addition to updating the value of the setting
+   * it will also update the updatedAt &amp; createdAt properties
+   * of the record.
+   *
+   * Calling this function will also emit a 'change' event
+   * prior to fully persisting the record to the database.
+   *
+   * Example:
+   *
+   *    var settingStore;
+   *
+   *    settingStore.set('syncFrequency', 15, function() {
+   *      // done
+   *    });
+   *
+   *    // somewhere else in the app:
+   *
+   *    settingStore.on('syncFrequencyChange', function(value) {
+   *      // value === 15
+   *    });
+   *
+   * @param {String} key name of setting.
+   * @param {Object} value any object that IndexedDb can store.
+   * @param {IDBTransaction} [trans] idb transaction optional.
+   * @param {Function} [callback] optional callback.
+   */
+  set: function(key, value, trans, callback) {
+    if (typeof(trans) === 'function') {
+      callback = trans;
+      trans = null;
+    }
+
+    var cached = this._cached[key];
+    var record;
+
+    if (cached &amp;&amp; cached._id) {
+      cached.value = value;
+      cached.updatedAt = new Date();
+      record = cached;
+    } else {
+      var created = new Date();
+      this._cached[key] = record = {
+        _id: key,
+        createdAt: created,
+        updatedAt: created,
+        value: value
+      };
+    }
+
+    this.emit(key + 'Change', value, record);
+    this.persist(record, trans, callback);
+  }
+
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

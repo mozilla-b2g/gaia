@@ -1,6 +1,0 @@
-{
-  "name": "marionette-content-script",
-  "version": "0.0.4",
-  "description": "Preloads a given file into all content contexts",
-  "main": "index.js"
-}

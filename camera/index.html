@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Camera</h1><ul>
+<li>Allows the user to <strong>take photographs</strong></li>
+<li>Allows the user to <strong>record videos</strong></li>
+<li>Responds to <strong>incoming activities</strong> ('pick'), which allow the user to capture images/video for use inside another app (eg. capturing an image to attach to an email).</li>
+<li>Allows the user to <strong>review</strong> recently taken images/videos.</li>
+<li>Allows the user to <strong>share</strong> images/videos when reviewing.</li>
+<li>Allows the user to <strong>delete</strong> images/videos when reviewing.</li>
+</ul>
+<p>The camera app is very 'modular'. We have broken the codebase down into a collection of 'Views' and 'Controllers'. Below I go into more detail about the architectural decisions made, and why we made them.</p>
+<h2>Modules</h2><p>We are using <a href="http://en.wikipedia.org/wiki/Asynchronous_module_definition">AMD</a> modules, loaded using 'Alemeda' (a lighter version of <a href="http://requirejs.org">RequireJS</a>) and building/optimizing using <a href="http://requirejs.org/docs/optimization.html">'r.js'</a> (the RequireJS optimizer). We have dependencies on files (<code>shared/js</code>)  which aren't AMD modules. For those we use the <a href="http://requirejs.org/docs/api.html#config-shim">'shim'</a> options in our <a href="js/require_config.js"><code>requirejs_config.js</code></a></p>
+<h2>camera.js</h2><p>The <a href="js/camera.js">camera.js</a> module is currently an interface to the camera hardware. It also maintains a degree of state, including things like: current camera (front/back), current flash mode (auto/on/off), current capture mode (camera/video).</p>
+<p>Before the refactor, the entire app was inside <code>camera.js</code>, so there are still remnants of things that shouldn't belong there:</p>
+<ul>
+<li>Confirm dialogs</li>
+<li>Device storage</li>
+</ul>
+<p>Moving forward we would like to see <code>camera.js</code> broken down further into distinct parts,</p>
+<ul>
+<li>Camera acquisition/configuration</li>
+<li>Flash settings</li>
+<li>Capture</li>
+<li>Image processing</li>
+</ul>
+<h2>Views</h2><p>When we speak of 'views' we are referring to a reusable UI component that makes up part of our app. The camera app consists of the following 'views':</p>
+<ul>
+<li><a href="js/views/controls.js">Controls</a></li>
+<li><a href="js/views/viewfinder.js">Viewfinder</a></li>
+<li><a href="js/views/focusring.js">Focus Ring</a></li>
+<li><a href="js/views/overlay.js">Overlay</a></li>
+<li><a href="js/views/hud.js">HUD</a> (heads up display)</li>
+<li><a href="js/filmstrip.js">Filmstrip</a> (legacy)</li>
+</ul>
+<p>Each view is an instantiable 'class' which extends from a <a href="js/lib/view.js">base class</a>. The base class provides the view with some basic methods. Because views are instantiable, we can stamp out as many as we need.</p>
+<pre class="prettyprint source lang-js"><code>var viewfinder1 = new Viewfinder();
+var viewfinder2 = new Viewfinder();
+var viewfinder3 = new Viewfinder();</code></pre><p>Although during the life-cycle of the camera we usually only create one instance of each view, it keeps view state encapsulated and makes unit testing easy! If we wanted to write a test suite to test all the methods of the <code>Viewfinder</code> class, we can simply create a fresh instance of <code>Viewfinder</code> to work with each time.</p>
+<p>If our views were 'singletons' (non-instantiable) they would be very difficult to unit test. Between each test we would have to be very diligent in restoring any state that may have be altered, so that we can ensure that the next test will be being run in an identical environment.</p>
+<h3>Encapsulation</h3><p>It's important that we keep our view modules clean of any 'app' code. Having app code inside view modules make them harder to test, and also limits where and how they can be used.</p>
+<p>Imagine each view module as its own document or iframe, it can/should only operate within its own scope, emitting useful events that our app can listen to, if it so wishes.</p>
+<h2>Controllers</h2><p>Controllers have too been designed as instantiable 'classes'; which may seem strange when not looking from a TDD (Test Driven Development) perspective. This has a few benefits:</p>
+<ul>
+<li>When unit testing our controllers we can (just like views) instantiate a fresh Controller for each test. Guaranteeing a clean, consistent state for each test.</li>
+<li>It lays down a consistent module pattern.</li>
+<li>It makes state easily accessible, as <code>this</code> is always to hand.</li>
+<li>No methods are trapped inside module closures, so we can stub/spy them easily in our unit tests.</li>
+</ul>
+<h3>The <code>create()</code> method</h3><p>You may see some controllers have the following code:</p>
+<pre class="prettyprint source lang-js"><code>exports = module.exports = create;
+exports.Controller = Controller;
+
+function create(options) {
+  var controller = new Controller(options);
+  controller.setupStuff();
+  return controller;
+}</code></pre><p>This can look confusing at first, so let me explain. The <code>create</code> method acts as a 'factory'. When called it will create an instance of our class, perform some init work, and return the instance. Alternatively we could put the call to <code>.setupStuff()</code> inside the constructor and export the pure constructor, but this is becomes problematic when unit testing.</p>
+<p>Alternative:</p>
+<pre class="prettyprint source lang-js"><code>module.exports = Controller;
+
+function Controller(options) {
+  this.thing = options.thing;
+  this.setupStuff();
+}</code></pre><p>...means you can't ever create an instance of <code>Controller</code> without <code>Controller.protoype.setupStuff</code> being run.</p>
+<pre class="prettyprint source lang-js"><code>var controller = new Controller();
+this.controller.setupStuff.called; //=> true</code></pre><p>Let's say I want to test <code>Controller.prototype.doThing()</code>. To test this method I need to instantiate an instance of <code>Controller</code> to work with. If within my constructor method I am running several other methods, I have already made changes to my class before we've even had a chance to test anything.</p>
+<p>By restricting the constructor to simply managing arguments and setting up properties on the instance, what we get back is pure/untouched and ready for testing, without the overhead of stubbing out and restoring unwanted methods called inside the constructor.</p>
+<h2>Build step</h2><p>The camera app has it's own <a href="Makefile"><code>Makefile</code></a>. A Makefile is similar to Grunt, but written in bash, it is essentially a list of tasks that can be run (via <code>make &lt;task-name&gt;</code>). When a Gaia application has its own <code>apps/&lt;app-name&gt;/Makefile</code>, it will be automatically run when Gaia builds.</p>
+<p>At the root we also have <a href="gaia_build.json"><code>gaia_build.json</code></a>, which tells Gaia to fetch the built app from <code>build_stage/camera</code> instead of <code>apps/camera</code>, before zipping it up to <code>profile/webapps/camera/application.zip</code>.</p>
+<p>Our <code>Makefile</code> has two tasks, one to <strong>'build'</strong> and one to <strong>'clean'</strong> (delete the build). The build steps are as follows:</p>
+<ol>
+<li>Remove any previous camera build from the <code>build_stage/</code></li>
+<li>Create an new directory <code>build_stage/camera</code></li>
+<li>Copy all the entire <code>shared/</code> directory into our build directory. This is so that any shared dependencies that we are using are available in <code>build_stage/camera/shared/</code>, mimicking the magically resolved <code>/shared/</code> HTTP requests in development.</li>
+<li>Run the <code>r.js</code> (RequireJS optimizer), pointing it at our <code>require_config.jslike</code> file (<code>.jslike</code> because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing <code>require()</code> calls) and CSS (tracing <code>@import</code>) in two single files.</li>
+</ol>
+<h2>Camera configuration</h2><p>All the configuration variables are included in js/config/config.js. To customize your camera there are two options:</p>
+<ol>
+<li>Edit js/config/config.js and change the desired values</li>
+<li><p>'''Build time configuration''' It is also possible to create an external config.js file that will be used at build time instead of the default one. Two steps:</p>
+</li>
+<li><p>Copy js/config/config.js to any location and modify the desired values</p>
+</li>
+<li>Especify the env variable GAIA_DISTRIBUTION_DIR that points to the location of your custom config.js before building the app e.g:</li>
+</ol>
+<p>GAIA_DISTRIBUTION_DIR=~/CUSTOM/CONFIG/DIRECTORY make APP=camera</p>
+<h2>Debug messages in javascript console</h2><ul>
+<li>To enable debug messages for all modules</li>
+</ul>
+<p>localStorage.debug = '*'</p>
+<ul>
+<li>To enable debug messages for a particular module</li>
+</ul>
+<p>localStorage.debug = 'controllers:hud'</p>
+<ul>
+<li>To disable debug messages:</li>
+</ul>
+<p>localStorage.removeItem('debug')</p>
+<h2>Activities</h2><p>Lockscreen, Gallery</p>
+<pre class="prettyprint source"><code>{
+  &quot;source&quot;: {
+    &quot;data&quot;: {
+      &quot;type&quot;: &quot;photos&quot;
+    },
+    &quot;name&quot;: &quot;record&quot;
+  }
+}</code></pre><p>Video</p>
+<pre class="prettyprint source"><code>{
+  &quot;source&quot;: {
+    &quot;data&quot;: {
+      &quot;type&quot;: &quot;videos&quot;
+    },
+    &quot;name&quot;: &quot;record&quot;
+  }
+}</code></pre><p>SMS</p>
+<pre class="prettyprint source"><code>{
+  &quot;source&quot;: {
+    &quot;data&quot;: {
+      &quot;type&quot;: [&quot;image/*&quot;, &quot;audio/*&quot;, &quot;video/*&quot;],
+      &quot;maxFileSizeBytes&quot;: 307200
+    },
+    &quot;name&quot;: &quot;pick&quot;
+  }
+}</code></pre><p>Browser: <code>input[type=&quot;file&quot;]</code>, <code>input[type=&quot;file&quot;][capture]</code></p>
+<pre class="prettyprint source"><code>{
+  &quot;source&quot;: {
+    &quot;data&quot;: {
+      &quot;type&quot;: [],
+      &quot;nocrop&quot;: true
+    },
+    &quot;name&quot;: &quot;pick&quot;
+  }
+}</code></pre><p>Browser: <code>input[type=&quot;file&quot;][accept=&quot;image/*&quot;]</code>, <code>input[type=&quot;file&quot;][accept=&quot;image/*&quot;][capture]</code></p>
+<pre class="prettyprint source"><code>{
+  &quot;source&quot;: {
+    &quot;data&quot;: {
+      &quot;type&quot;: [&quot;image/gif&quot;, &quot;image/jpeg&quot;, &quot;image/pjpeg&quot;, &quot;image/png&quot;, &quot;image/svg+xml&quot;, &quot;image/tiff&quot;, &quot;image/vnd.microsoft.icon&quot;],
+      &quot;nocrop&quot;: true
+    },
+    &quot;name&quot;: &quot;pick&quot;
+  }
+}</code></pre><h2>Integration tests</h2><p>mozCamera API is not available on B2G desktop. The integration tests can only be run on device so they are disabled on TPBL. Running these tests before marking a pull request for review is going to help prevent regressions and give you confidence that you haven't made any obvious silly mistakes. You will have a proof that you still have a functional camera with working basic functionality.</p>
+<ul>
+<li>To run the tests you have first to make sure that you have an engineering build of b2g in your device.</li>
+</ul>
+<p>To launch the tests you have to follow the steps below in your terminal and in the directory of your gaia clone:</p>
+<ul>
+<li>export MARIONETTE_RUNNER_HOST=marionette-device-host</li>
+<li>make test-integration-test APP=camera</li>
+</ul>
+<p>If you want to run only one of the test suits you can do:</p>
+<p>make test-integration-test APP=camera TEST_FILES=apps/camera/test/marionette/capture_test.js</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.html#.exports">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#bindEvents">bindEvents</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#display">display</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#hide">hide</a></li><li><a href="global.html#localize">localize</a></li><li><a href="global.html#onShutterEnd">onShutterEnd</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#setScreenReaderVisible">setScreenReaderVisible</a></li><li><a href="global.html#setupSwitch">setupSwitch</a></li><li><a href="global.html#setZoom">setZoom</a></li><li><a href="global.html#setZoomPreviewAdjustment">setZoomPreviewAdjustment</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#shutter">shutter</a></li><li><a href="global.html#updatePreview">updatePreview</a></li><li><a href="global.html#updatePreviewMetrics">updatePreviewMetrics</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:28 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

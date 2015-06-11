@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/pinch.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/pinch.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+/**
+ * Dependencies
+ */
+
+var unbind = require('lib/bind').unbind;
+var bindAll = require('lib/bind-all');
+var bind = require('lib/bind');
+var events = require('evt');
+
+/**
+ * Mixin event emitter
+ */
+
+events(Pinch.prototype);
+
+/**
+ * Exports
+ */
+
+module.exports = Pinch;
+
+/**
+ * Initialize a new `Pinch` interface.
+ *
+ * @constructor
+ */
+function Pinch(el) {
+  bindAll(this);
+  this.attach(el);
+}
+
+Pinch.prototype.attach = function(el) {
+  this.el = el;
+
+  bind(this.el, 'touchstart', this.onTouchStart);
+  bind(window, 'touchmove', this.onTouchMove);
+  bind(window, 'touchend', this.onTouchEnd);
+};
+
+Pinch.prototype.detach = function() {
+  unbind(this.el, 'touchstart', this.onTouchStart);
+  unbind(window, 'touchmove', this.onTouchMove);
+  unbind(window, 'touchend', this.onTouchEnd);
+
+  this.el = null;
+};
+
+Pinch.prototype.enable = function() {
+  this.disabled = false;
+};
+
+Pinch.prototype.disable = function() {
+  this.disabled = true;
+};
+
+Pinch.prototype.onTouchStart = function(evt) {
+  if (evt.touches.length !== 2 || this.disabled) {
+    return;
+  }
+
+  this.lastTouchA = evt.touches[0];
+  this.lastTouchB = evt.touches[1];
+  this.isPinching = true;
+  this.emit('started');
+};
+
+Pinch.prototype.onTouchMove = function(evt) {
+  if (!this.isPinching || this.disabled) {
+    return;
+  }
+
+  var touchA = getNewTouchA(this, evt.touches);
+  var touchB = getNewTouchB(this, evt.touches);
+  var deltaPinch = getDeltaPinch(this, touchA, touchB);
+
+  this.emit('changed', deltaPinch);
+
+  this.lastTouchA = touchA;
+  this.lastTouchB = touchB;
+};
+
+Pinch.prototype.onTouchEnd = function(evt) {
+  if (!this.isPinching || this.disabled) {
+    return;
+  }
+
+  if (evt.touches.length &lt; 2) {
+    this.isPinching = false;
+    this.emit('ended');
+  }
+};
+
+function getNewTouchA(pinch, touches) {
+  if (!pinch.lastTouchA) {
+    return null;
+  }
+
+  for (var i = 0, length = touches.length, touch; i &lt; length; i++) {
+    touch = touches[i];
+    if (touch.identifier === pinch.lastTouchA.identifier) {
+      return touch;
+    }
+  }
+  return null;
+}
+
+function getNewTouchB(pinch, touches) {
+  if (!pinch.lastTouchB) {
+    return null;
+  }
+
+  for (var i = 0, length = touches.length, touch; i &lt; length; i++) {
+    touch = touches[i];
+    if (touch.identifier === pinch.lastTouchB.identifier) {
+      return touch;
+    }
+  }
+  return null;
+}
+
+function getDeltaPinch(pinch, touchA, touchB) {
+  var lastTouchA = pinch.lastTouchA;
+  var lastTouchB = pinch.lastTouchB;
+  if (!touchA || !lastTouchA || !touchB || !lastTouchB) {
+    return 0;
+  }
+
+  var oldDistance = Math.sqrt(
+    Math.pow(lastTouchB.pageX - lastTouchA.pageX, 2) +
+    Math.pow(lastTouchB.pageY - lastTouchA.pageY, 2));
+  var newDistance = Math.sqrt(
+    Math.pow(touchB.pageX - touchA.pageX, 2) +
+    Math.pow(touchB.pageY - touchA.pageY, 2));
+  return newDistance - oldDistance;
+}
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.html#.exports">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html"></a></li><li><a href="global.html#bindEvents">bindEvents</a></li><li><a href="global.html#clear">clear</a></li><li><a href="global.html#display">display</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#hide">hide</a></li><li><a href="global.html#localize">localize</a></li><li><a href="global.html#onShutterEnd">onShutterEnd</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#setScreenReaderVisible">setScreenReaderVisible</a></li><li><a href="global.html#setupSwitch">setupSwitch</a></li><li><a href="global.html#setZoom">setZoom</a></li><li><a href="global.html#setZoomPreviewAdjustment">setZoomPreviewAdjustment</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#shutter">shutter</a></li><li><a href="global.html#updatePreview">updatePreview</a></li><li><a href="global.html#updatePreviewMetrics">updatePreviewMetrics</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:28 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,7 +1,0 @@
-#! /bin/bash -ve
-
-echo "Downloading b2g-desktop"
-make b2g
-
-# Install virtualenv and radicale on Travis.
-make caldav-server-install

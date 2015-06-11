@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/shared/js/startup.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/shared/js/startup.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
+/*global ActivityHandler, ConversationView, InboxView, MessageManager,
+         Settings, LazyLoader, TimeHeaders, Information, SilentSms,
+         App, Navigation, EventDispatcher, LocalizationHelper,
+         InterInstanceEventDispatcher
+*/
+
+var Startup = {
+  _lazyLoadScripts: [
+    '/shared/js/settings_listener.js',
+    '/shared/js/mime_mapper.js',
+    '/shared/js/notification_helper.js',
+    '/shared/js/option_menu.js',
+    '/shared/js/gesture_detector.js',
+    '/shared/js/settings_url.js',
+    '/shared/js/mobile_operator.js',
+    '/shared/js/multi_sim_action_button.js',
+    '/shared/js/image_utils.js',
+    '/shared/elements/gaia_sim_picker/script.js',
+    '/views/shared/js/waiting_screen.js',
+    '/views/shared/js/errors.js',
+    '/views/shared/js/dialog.js',
+    '/views/shared/js/error_dialog.js',
+    '/views/conversation/js/link_helper.js',
+    '/views/conversation/js/link_action_handler.js',
+    '/views/shared/js/contact_renderer.js',
+    '/views/shared/js/activity_picker.js',
+    '/views/conversation/js/information.js',
+    '/views/shared/js/shared_components.js',
+    '/views/shared/js/task_runner.js',
+    '/views/shared/js/silent_sms.js',
+    '/views/conversation/js/recipients.js',
+    '/views/conversation/js/attachment.js',
+    '/views/conversation/js/attachment_renderer.js',
+    '/views/conversation/js/conversation.js',
+    '/views/conversation/js/subject_composer.js',
+    '/views/conversation/js/compose.js',
+    '/views/shared/js/wbmp.js',
+    '/views/shared/js/smil.js',
+    '/views/shared/js/notify.js',
+    '/views/shared/js/activity_handler.js',
+    '/views/shared/js/localization_helper.js',
+    '/lib/bridge.js',
+    '/services/js/activity/activity_shim.js',
+    '/services/js/activity/activity_client.js'
+  ],
+
+  _lazyLoadInit: function() {
+    var lazyLoadPromise = LazyLoader.load(this._lazyLoadScripts).then(() => {
+      LocalizationHelper.init();
+
+      InterInstanceEventDispatcher.connect();
+
+      // dispatch contentInteractive when all the modules initialized
+      SilentSms.init();
+      ActivityHandler.init();
+
+      // Init UI Managers
+      TimeHeaders.init();
+      ConversationView.init();
+      Information.initDefaultViews();
+
+      // Dispatch post-initialize event for continuing the pending action
+      Startup.emit('post-initialize');
+      window.performance.mark('contentInteractive');
+
+      // Fetch mmsSizeLimitation and max concat
+      Settings.init();
+
+      window.performance.mark('objectsInitEnd');
+    });
+    this._initHeaders();
+    return lazyLoadPromise;
+  },
+
+  _initHeaders: function() {
+    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
+    for (var i = 0, l = headers.length; i &lt; l; i++) {
+      headers[i].removeAttribute('no-font-fit');
+    }
+  },
+
+  /**
+  * We wait for the DOMContentLoaded event in the event sequence. After we
+  * loaded the first panel of threads, we lazy load all non-critical JS files.
+  * As a result, if the 'load' event was not sent yet, this will delay it even
+  * more until all these non-critical JS files are loaded. This is fine.
+  */
+  init: function() {
+    function initializeDefaultPanel(firstPageLoadedCallback) {
+      Navigation.off('navigated', initializeDefaultPanel);
+
+      InboxView.init();
+      InboxView.renderThreads(firstPageLoadedCallback).then(() => {
+        window.performance.mark('fullyLoaded');
+        App.setReady();
+      });
+    }
+
+    var loaded = function() {
+      window.removeEventListener('DOMContentLoaded', loaded);
+
+      window.performance.mark('navigationLoaded');
+
+      MessageManager.init();
+      Navigation.init();
+
+      // If initial panel is default one and app isn't run from notification,
+      // then just navigate to it, otherwise we can delay default panel
+      // initialization until we navigate to requested non-default panel.
+      if (Navigation.isDefaultPanel() &amp;&amp;
+        !navigator.mozHasPendingMessage('notification')) {
+        Navigation.toDefaultPanel();
+        initializeDefaultPanel(this._lazyLoadInit.bind(this));
+      } else {
+        Navigation.on('navigated', initializeDefaultPanel);
+
+        this._lazyLoadInit();
+      }
+
+      // dispatch navigationInteractive when thread list related modules
+      // initialized
+      window.performance.mark('navigationInteractive');
+    }.bind(this);
+
+    window.addEventListener('DOMContentLoaded', loaded);
+  }
+};
+
+EventDispatcher.mixin(Startup).init();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#Compose">Compose</a></li><li><a href="global.html#FixturePhones">FixturePhones</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:35 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

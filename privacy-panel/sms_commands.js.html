@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: sms/commands.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: sms/commands.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Command module to handle lock, ring, locate features.
+ * 
+ * @module Commands
+ * @return {Object}
+ */
+define([
+  'shared/settings_listener',
+  'shared/settings_helper',
+  'shared/settings_url'
+],
+
+function(SettingsListener, SettingsHelper, SettingsURL) {
+  'use strict';
+
+  var Commands = {
+    TRACK_UPDATE_INTERVAL_MS: 10000,
+
+    _ringer: null,
+
+    _lockscreenEnabled: false,
+
+    _lockscreenPassCodeEnabled: false,
+
+    _geolocationEnabled: false,
+
+    init: function fmdc_init() {
+      var ringer = this._ringer = new Audio();
+      ringer.mozAudioChannelType = 'ringer';
+      ringer.loop = true;
+
+      var ringtoneURL = new SettingsURL();
+      SettingsListener.observe('dialer.ringtone', '', function(value) {
+        var ringing = !ringer.paused;
+
+        ringer.pause();
+        ringer.src = ringtoneURL.set(value);
+        if (ringing) {
+          ringer.play();
+        }
+      });
+
+      var self = this;
+      SettingsListener.observe('lockscreen.enabled', false, function(value) {
+        self._lockscreenEnabled = value;
+      });
+
+      SettingsListener.observe('lockscreen.passcode-lock.enabled', false,
+        function(value) {
+          self._lockscreenPassCodeEnabled = value;
+        }
+      );
+
+      SettingsListener.observe('geolocation.enabled', false, function(value) {
+        self._geolocationEnabled = value;
+      });
+    },
+
+    invokeCommand: function fmdc_get_command(name, args) {
+      this._commands[name].apply(this, args);
+    },
+
+    deviceHasPasscode: function fmdc_device_has_passcode() {
+      return !!(this._lockscreenEnabled &amp;&amp; this._lockscreenPassCodeEnabled);
+    },
+
+    _ringTimeoutId: null,
+
+    _commands: {
+      locate: function fmdc_track(duration, reply) {
+        var options = {
+          enableHighAccuracy: true,
+          timeout: duration * 1000,
+          maximumAge: 0
+        };
+
+        reply = reply || function() {};
+
+        function success(position) {
+          reply(true, position);
+        }
+
+        function error(err) {
+          reply(false, err.message);
+        }
+
+        navigator.geolocation.getCurrentPosition(success, error, options);
+      },
+
+      lock: function fmdc_lock(message, passcode, reply) {
+        var settings = {
+          'lockscreen.enabled': true,
+          'lockscreen.passcode-lock.enabled': true,
+          'lockscreen.lock-immediately': true
+        };
+
+        if (message) {
+          settings['lockscreen.lock-message'] = message;
+        }
+
+        if (!this.deviceHasPasscode() &amp;&amp; passcode) {
+          settings['lockscreen.passcode-lock.code'] = passcode;
+        }
+
+        var request = SettingsListener.getSettingsLock().set(settings);
+        request.onsuccess = function() {
+          reply(true);
+        };
+
+        request.onerror = function() {
+          reply(false, 'failed to set settings');
+        };
+      },
+
+      ring: function fmdc_ring(duration, reply) {
+        var ringer = this._ringer;
+
+        var stop = function() {
+          ringer.pause();
+          ringer.currentTime = 0;
+          clearTimeout(this._ringTimeoutId);
+          this._ringTimeoutId = null;
+        }.bind(this);
+
+        var ringing = !ringer.paused || this._ringTimeoutId !== null;
+        if (ringing || duration === 0) {
+          if (ringing &amp;&amp; duration === 0) {
+            stop();
+          }
+
+          if (reply) {
+            reply(true);
+          }
+          return;
+        }
+
+        var request = SettingsListener.getSettingsLock().set({
+          // hard-coded max volume taken from
+          // https://wiki.mozilla.org/WebAPI/AudioChannels
+          'audio.volume.notification': 15
+        });
+
+        request.onsuccess = function() {
+          ringer.play();
+          reply(true);
+        };
+
+        request.onerror = function() {
+          reply(false, 'failed to set volume');
+        };
+
+        this._ringTimeoutId = setTimeout(stop, duration * 1000);
+      }
+    }
+  };
+
+  return Commands;
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-About.html">About</a></li><li><a href="module-ALADefineCustomLocation.html">ALADefineCustomLocation</a></li><li><a href="module-ALAException.html">ALAException</a></li><li><a href="module-AlaPanel.html">AlaPanel</a></li><li><a href="module-AppList.html">AppList</a></li><li><a href="module-BlurSlider.html">BlurSlider</a></li><li><a href="module-Commands.html">Commands</a></li><li><a href="module-ExceptionsPanel.html">ExceptionsPanel</a></li><li><a href="module-PanelController.html">PanelController</a></li><li><a href="module-PassCodePanel.html">PassCodePanel</a></li><li><a href="module-PassPhrase.html">PassPhrase</a></li><li><a href="module-RootPanel.html">RootPanel</a></li><li><a href="module-RPExecuteCommands.html">RPExecuteCommands</a></li><li><a href="module-RpPanel.html">RpPanel</a></li><li><a href="module-ScreenLockPanel.html">ScreenLockPanel</a></li><li><a href="module-TcAppDetailsPanel.html">TcAppDetailsPanel</a></li><li><a href="module-TcApplicationsPanel.html">TcApplicationsPanel</a></li><li><a href="module-TcPanel.html">TcPanel</a></li><li><a href="module-TcPermDetailsPanel.html">TcPermDetailsPanel</a></li><li><a href="module-TcPermissionsPanel.html">TcPermissionsPanel</a></li></ul><h3>Classes</h3><ul><li><a href="module-ALADefineCustomLocation-init.html">init</a></li><li><a href="module-ALAException-init.html">init</a></li><li><a href="module-ExceptionsPanel-init.html">init</a></li><li><a href="module-RootPanel-init.html">init</a></li><li><a href="module-RpPanel-init.html">init</a></li></ul><h3>Global</h3><ul><li><a href="global.html#requirejs">requirejs</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:25 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

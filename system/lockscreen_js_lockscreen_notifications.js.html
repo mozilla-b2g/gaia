@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lockscreen/js/lockscreen_notifications.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lockscreen/js/lockscreen_notifications.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+/* global LockScreenNotificationBuilder, LazyLoader */
+
+(function(exports) {
+  /**
+   * Manage Notifications in Lockscreen:
+   * Handle notification changes from Notifications, and
+   * update Lockscreen visuals accordingly.
+   *
+   * @constructor LockScreenNotifications
+   */
+  var LockScreenNotifications = function() {};
+
+  LockScreenNotifications.prototype.start =
+  function lsn_start(lockScreen, container){
+    this._lockScreen = lockScreen;
+    this.container = container;
+    LazyLoader.load(['lockscreen/js/lockscreen_notification_builder.js'])
+      .then(() => {
+        this._lockScreenNotificationBuilder =
+          new LockScreenNotificationBuilder(this.container);
+        this._lockScreenNotificationBuilder.start();
+      });
+    this.arrow =
+      document.getElementById('lockscreen-notification-arrow');
+    // The 'scroll' event can't be forwarded via 'window'.
+    this.container.addEventListener('scroll', this);
+    this.configs = {
+      listens: [
+        'lockscreen-notification-request-highlight',
+        'lockscreen-notification-notify-highlighted',
+        'lockscreen-notification-request-clean-highlighted',
+        'lockscreen-notification-request-activate',
+        'lockscreen-notification-request-append',
+        'lockscreen-notification-request-remove',
+        'lockscreen-notification-request-clear',
+        'lockscreen-appopened',
+        'lockscreen-appclosed',
+        'touchstart',
+        'visibilitychange',
+        'scroll'
+      ],
+      // UX require to cancel the highlighted state after
+      // idle 3 seconds.
+      timeoutHighlighted: 3000
+    };
+    this.configs.listens.forEach((ename) => {
+      window.addEventListener(ename, this);
+    });
+
+    this.states = {
+      // UX require to clean idle and highlighted notification
+      // after sevaral seconds.
+      highlightedNotifications: {},
+      currentHighlighted: null,
+      currentHighlightedId: null,
+      arrowVisible: false // container is scrollable
+    };
+  };
+
+  LockScreenNotifications.prototype.handleEvent =
+  function lsn_handleEvent(evt) {
+    var detail = evt.detail || {};
+    var { id, timestamp, node } = detail;
+    switch (evt.type) {
+      case 'lockscreen-notification-request-append':
+        this.onNotificationAppend(id, node);
+      break;
+      case 'lockscreen-notification-request-remove':
+        var containerEmpty = false;
+        if (evt.detail &amp;&amp; evt.detail.containerEmpty) {
+          containerEmpty = true;
+        }
+        this.onNotificationRemoved(containerEmpty);
+      break;
+      case 'lockscreen-notification-request-clear':
+        this.onNotificationsClear();
+      break;
+      case 'lockscreen-notification-request-highlight':
+        if (!this.notificationOutOfViewport(evt.detail.node)) {
+          evt.detail.highlighter();
+        }
+      break;
+      case 'lockscreen-notification-notify-highlighted':
+        this.onNotificationHighlighted(id, timestamp);
+      break;
+      case 'lockscreen-notification-request-clean-highlighted':
+        this.onCleanHighlighted(id, timestamp);
+      break;
+      case 'lockscreen-notification-request-activate':
+        this.onNotificationActivate(evt.detail);
+      break;
+      case 'touchstart':
+        if (!evt.target.classList.contains('notification') &amp;&amp;
+            !evt.target.classList.contains('button-actionable')) {
+          this.onNotificationsBlur();
+        }
+      break;
+      case 'lockscreen-appopened':
+        // When it's visible because of locking, bind the listener.
+        window.addEventListener('touchstart', this);
+      break;
+      case 'lockscreen-appclosed':
+        // When it's invisible because of unlocking, unbind the listener.
+        window.removeEventListener('touchstart', this);
+      break;
+      case 'scroll':
+        this.onContainerScrolling();
+      break;
+      case 'visibilitychange':
+        if (!document.hidden) {
+          // When it's visible, bind the listener.
+          window.addEventListener('touchstart', this);
+          this.updateTimestamps();
+        } else {
+          // When it's invisible, unbind the listener.
+          window.removeEventListener('touchstart', this);
+        }
+      break;
+    }
+  };
+
+  LockScreenNotifications.prototype.onContainerScrolling =
+  function lsn_onContainerScrolling() {
+    if (this.notificationOutOfViewport(this.states.currentHighlighted)) {
+      this.onNotificationsBlur();
+    }
+  };
+
+  LockScreenNotifications.prototype.notificationOutOfViewport =
+  function lsn_notificationOutOfViewport(node) {
+    var top, bottom;
+    var topBoundary, bottomBoundary;
+    if (node) {
+      // If we're in HVGA resolution, the too small notification container
+      // would lead second and following up notifications overlap the boundary
+      // by several pixels.
+      var HVGATolerance = 0;
+      if (this._getWindowInnerDimension().height &lt;= 480) {
+        HVGATolerance = 1;
+      }
+      topBoundary = this.container.getBoundingClientRect().top;
+      bottomBoundary = this.container.getBoundingClientRect().bottom;
+      top = node.getBoundingClientRect().top;
+      bottom = node.getBoundingClientRect().bottom;
+      if (top &lt; topBoundary ||
+          bottom > bottomBoundary + HVGATolerance) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  };
+
+  /**
+   * Get the notification at the bottom boundary.
+   */
+  LockScreenNotifications.prototype.notificationAtBottomBoundary =
+  function lsn_notificationAtBottomBoundary() {
+    var boundaryElement = this.arrow;
+    var detectingPoint = {
+      x: window.innerWidth >> 1,
+      y: boundaryElement.getBoundingClientRect().top +
+        this.configs.boundaryThresholdBottom
+    };
+    var element = document.elementFromPoint(detectingPoint.x, detectingPoint.y);
+    if (element.classList.contains('notification')) {
+      return element;
+    }
+    return null;
+  };
+
+  /**
+   * Get the notification at the top boundary.
+   */
+  LockScreenNotifications.prototype.notificationAtTopBoundary =
+  function lsn_notificationAtBottomBoundary() {
+    var boundaryElement = this.container;
+    var detectingPoint = {
+      x: window.innerWidth >> 1,
+      y: boundaryElement.getBoundingClientRect().top +
+        this.configs.boundaryThresholdTop
+    };
+    var element = document.elementFromPoint(detectingPoint.x, detectingPoint.y);
+    if (element.classList.contains('notification')) {
+      return element;
+    }
+    return null;
+  };
+
+  LockScreenNotifications.prototype.onNotificationsBlur =
+  function lsn_onNotificationsBlur() {
+    var id = this.states.currentHighlightedId;
+    var notificationNode = this.states.currentHighlighted;
+    if (notificationNode &amp;&amp;
+        notificationNode.classList.contains('actionable')) {
+      this.removeNotificationHighlight(notificationNode);
+      delete this.states.highlightedNotifications[id];
+      this.states.currentHighlighted = null;
+      this.states.currentHighlightedId = null;
+
+      this._tryAddTopMaskByNotification(notificationNode);
+    }
+  };
+
+  /**
+   * Record the timestamp when a notification is highlighted.
+   */
+  LockScreenNotifications.prototype.onNotificationHighlighted =
+  function lsn_onNotificationHighlighted(id, timestamp) {
+    // Overwrite existing because re-clicking on it is legal.
+    this.states.highlightedNotifications[id] = timestamp;
+    this.states.currentHighlightedId = id;
+    this.states.currentHighlighted = this.container.querySelector(
+      '[data-notification-id="' + id + '"]');
+
+    // because background of an active actionable notification can be clipped
+    // by the top mask implemented in lockscreen visual refresh 2.0 (bug1023500)
+    // we need to cancel the mask when the 'top' (in the visible viewport, not
+    // the whole container) notification is active, by 'top-actionable' class.
+    // (note: the 'top mask' displays only when the container scrolls to bottom)
+
+    // such 'top'-ness is decided by the viewport size of the container:
+    // if the container can show N visible notifications,
+    // then the last-Nth notification is that 'top' notification.
+
+    // Illustration:
+    //
+    // --top------------------ container -------------bottom--
+    //                               ======= viewport ========
+    // ------------------------------=========================
+    // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
+    // |     |     |     |     |     |  0  |  1  |  2  |  3  |
+    // ------------------------------=========================
+    // In this illustration, the ID of the visually top notification in the
+    // viewport is #5; the number of notifications in container viewport is 4.
+    // We can select the #5 notification by :nth-last-of-type(4).
+
+    var numNotificationInContainerViewport =
+        this._getNumNotificationInContainerViewport();
+
+    if (this.container.querySelector('div.notification:nth-last-of-type(' +
+          numNotificationInContainerViewport + ')') ===
+          this.states.currentHighlighted){
+      this.container.classList.add('top-actionable');
+    }else{
+      this.container.classList.remove('top-actionable');
+    }
+  };
+
+  /**
+   * Clean the highlighted notification.
+   */
+  LockScreenNotifications.prototype.onCleanHighlighted =
+  function lsn_onNotificationHighlighted(id, timestamp) {
+    var prevTimestamp = this.states.highlightedNotifications[id];
+    if (prevTimestamp &amp;&amp;
+        timestamp - prevTimestamp > this.configs.timeoutHighlighted) {
+      var notificationNode = this.container.querySelector(
+        '[data-notification-id="' + id + '"]');
+      if (notificationNode &amp;&amp;
+          notificationNode.classList.contains('actionable')) {
+        this.removeNotificationHighlight(notificationNode);
+        delete this.states.highlightedNotifications[id];
+        this.states.currentHighlighted = null;
+        this.states.currentHighlightedId = null;
+
+        this._tryAddTopMaskByNotification(notificationNode);
+      }
+    }
+  };
+
+  LockScreenNotifications.prototype.removeNotificationHighlight =
+  function lsn_removeNotificationHighlight(node) {
+    node.classList.remove('actionable');
+    node.querySelector('.button-actionable').remove();
+    var oldPrevious = this.container.querySelector(
+      '.notification.previous-actionable');
+    if (null !== oldPrevious) {
+      oldPrevious.classList.remove('previous-actionable');
+    }
+  };
+
+  /**
+   * When user clicked on the notification while it's locked.
+   */
+  LockScreenNotifications.prototype.onNotificationActivate =
+  function lsn_onNotificationActivate(info) {
+    this._lockScreen._unlockingMessage = {
+      notificationId: info.notificationId
+    };
+    window.dispatchEvent(
+      new CustomEvent('lockscreen-notification-request-activate-unlock'));
+  };
+
+  /**
+   * When new notification appended, do the visual change.
+   * Would receive a ordinary Notificaition node.
+   */
+  LockScreenNotifications.prototype.onNotificationAppend =
+  function lsn_onNotificationsAppend(id, node) {
+      var notifSelector = '[data-notification-id="' + id + '"]';
+      // First we try and find an existing notification with the same id.
+      // If we have one, we'll replace it. If not, we'll create a new node.
+      var oldLockScreenNode =
+        this.container.querySelector(notifSelector);
+      if (oldLockScreenNode) {
+        this.container.replaceChild(
+          node,
+          oldLockScreenNode
+        );
+      }
+      else {
+        this.container.insertBefore(
+          node,
+          this.container.firstElementChild
+        );
+      }
+
+      this._lockScreenNotificationBuilder.decorate(node);
+      this.showColoredMaskBG();
+
+      // UX specifies that the container should scroll to top
+      /* note two things:
+       * 1. we need to call adjustContainerVisualHints even
+       *    though we're setting scrollTop, since setting sT doesn't
+       *    necessarily invoke onscroll (if the old container is already
+       *    scrolled to top, we might still need to decide to show
+       *    the arrow)
+       * 2. set scrollTop before calling adjustContainerVisualHints
+       *    since sT = 0 will hide the mask if it's showing,
+       *    and if we call aCVH before setting sT,
+       *    under some circumstances aCVH would decide to show mask,
+       *    only to be negated by st = 0 (waste of energy!).
+       */
+      this.scrollToTop();
+
+      // check if lockscreen notifications visual
+      // hints (masks &amp; arrow) need to show
+      this.adjustContainerVisualHints();
+  };
+
+  LockScreenNotifications.prototype.onNotificationRemoved =
+  function lsn_onNotificationRemoved(containerEmpty) {
+    // if we don't have any notifications,
+    // use the no-notifications masked background for lockscreen
+    if (containerEmpty) {
+      this.hideColoredMaskBG();
+    }
+    // check if lockscreen notifications visual
+    // hints (masks &amp; arrow) need to show
+    this.adjustContainerVisualHints();
+  };
+
+  LockScreenNotifications.prototype.onNotificationsClear =
+  function lsn_onNotificationsClear() {
+    // remove the "have notifications" masked background from lockscreen
+    this.hideColoredMaskBG();
+    // check if lockscreen notifications visual
+    // hints (masks &amp; arrow) need to show
+    this.adjustContainerVisualHints();
+  };
+
+  /**
+   * Bind lockscreen onto this module
+   *
+   * @this {LockScreenNotifications}
+   * @memberof LockScreenNotifications
+   * @param bindLockScreen the lockScreen instance
+   */
+  LockScreenNotifications.prototype.bindLockScreen =
+  function lsn_bindLockScreen(lockScreen) {
+    this._lockScreen = lockScreen;
+  };
+
+  /**
+   * When we have notifications, show bgcolor from wallpaper
+   * Remove the simple gradient at the same time
+   * 
+   * @memberof LockScreenNotifications
+   * @this {LockScreenNotifications}
+   */
+  LockScreenNotifications.prototype.showColoredMaskBG =
+  function lsn_showColoredMaskBG() {
+    this._lockScreen.maskedBackground.style.backgroundColor =
+      this._lockScreen.maskedBackground.dataset.wallpaperColor;
+
+    this._lockScreen.maskedBackground.classList.remove('blank');
+  };
+
+  /**
+   * When we don't have notifications, use the
+   * simple gradient as lockscreen's masked background
+   * 
+   * @memberof LockScreenNotifications
+   * @this {LockScreenNotifications}
+   */
+  LockScreenNotifications.prototype.hideColoredMaskBG =
+  function lsn_hideColoredMaskBG() {
+    this._lockScreen.maskedBackground.style.backgroundColor = 'transparent';
+    this._lockScreen.maskedBackground.classList.add('blank');
+  };
+
+  /**
+   * We use a smaller notifications container when we have a media player
+   * widget on the lockscreen. This function collapses the container.
+   * 
+   * @memberof LockScreenNotifications
+   * @this {LockScreenNotifications}
+   */
+  LockScreenNotifications.prototype.collapseNotifications =
+  function lsn_collapseNotifications() {
+    this._lockScreen.notificationsContainer.classList.add('collapsed');
+    this._lockScreen.notificationArrow.classList.add('collapsed');
+  };
+
+  /**
+   * ...and this function expands the container.
+   * 
+   * @memberof LockScreenNotifications
+   * @this {LockScreenNotifications}
+   */
+  LockScreenNotifications.prototype.expandNotifications =
+  function lsn_expandNotifications() {
+    this._lockScreen.notificationsContainer.classList.remove('collapsed');
+    this._lockScreen.notificationArrow.classList.remove('collapsed');
+  };
+
+  /**
+   * adjust the container's visual hints: masks and "more notification" arrow
+   * @memberof LockScreenNotifications
+   * @this {LockScreenNotifications}
+   */
+  LockScreenNotifications.prototype.adjustContainerVisualHints =
+  function lsn_adjustContainerVisualHints() {
+    var notificationsContainer = this._lockScreen.notificationsContainer;
+
+    /* mask:
+     * the gradient masks only show when:
+     * - "top" mask: when the user scrolls to bottom (this is a solid mask)
+     * - "both" mask: when the user scrolls in between (this is a gradient mask)
+     * (but we need to rule out the situation that
+     * the container isn't actually scrollable)
+     */
+    if(notificationsContainer.clientHeight ===
+       notificationsContainer.scrollHeight){
+      // no mask if the container can't be scrolled
+      this._setMaskVisibility(false, false);
+    }else{
+      if(notificationsContainer.scrollTop +
+      notificationsContainer.clientHeight ===
+      notificationsContainer.scrollHeight){
+        // user scrolls to bottom -> top mask
+        this._setMaskVisibility(true, false);
+      }else if(0 === notificationsContainer.scrollTop){
+        // user scrolls to top -> no mask
+        this._setMaskVisibility(false, false);
+      }else{
+        // anything in between -> "both" mask
+        this._setMaskVisibility(false, true);
+      }
+    }
+
+    /*
+     * arrow: 
+     * The "more notifications" arrow only shows
+     * when the user is on the top of the container
+     * and the container is scrollable
+     */
+    this._setArrowVisibility(
+      0 === notificationsContainer.scrollTop &amp;&amp;
+      notificationsContainer.clientHeight &lt;
+      notificationsContainer.scrollHeight
+    );
+  };
+
+  /**
+   * Sets the masks' visibility.
+   *
+   * @private
+   * @memberof LockScreenNotifications
+   * @this {LockScreenNotifications}
+   * @param top Boolen shows top solid mask or not
+   * @param both Boolen shows top-and-bottom gradient masks or not
+   */
+  LockScreenNotifications.prototype._setMaskVisibility =
+  function lsn__setMaskVisibility(top, both) {
+    var notificationsContainer = this._lockScreen.notificationsContainer;
+
+    if(top){
+      notificationsContainer.classList.add('masked-top');
+    }else{
+      notificationsContainer.classList.remove('masked-top');
+    }
+
+    if(both){
+      notificationsContainer.classList.add('masked-both');
+    }else{
+      notificationsContainer.classList.remove('masked-both');
+    }
+  };
+
+  /**
+   * Sets the arrow's visibility.
+   *
+   * @private
+   * @memberof LockScreenNotifications
+   * @this {LockScreenNotifications}
+   * @param top Boolen shows top solid mask or not
+   * @param both Boolen shows top-and-bottom gradient masks or not
+   */
+  LockScreenNotifications.prototype._setArrowVisibility =
+  function lsn__setArrowVisibility(visible) {
+    var notificationArrow = this._lockScreen.notificationArrow;
+
+    if(visible){
+      notificationArrow.classList.add('visible');
+      this.states.arrowVisible = true;
+    }else{
+      notificationArrow.classList.remove('visible');
+      this.states.arrowVisible = false;
+    }
+  };
+
+  /**
+   * Scrolls the notifications to the top
+   */
+  LockScreenNotifications.prototype.scrollToTop =
+  function lsn_scrollToTop() {
+    this._lockScreen.notificationsContainer.scrollTop = 0;
+  };
+
+  LockScreenNotifications.prototype._getWindowInnerDimension =
+  function lsn_getWindowInnerDimension() {
+    return {
+            height: window.innerHeight,
+            width: window.innerWidth
+           };
+  };
+
+  /**
+   * Get the number of notifications visible in the container.
+   * we have 2 viewable notifications for HVGA lockscreen with music player
+   * widget, and for larger screen, and the absence of the widget,
+   * we can allow one, or two, more viewable notifications.
+   */
+  LockScreenNotifications.prototype._getNumNotificationInContainerViewport =
+  function lsn_getNumNotificationInContainerViewport() {
+    var numNotificationInContainerViewport = 2;
+
+    // monitor > HVGA => allow one more notification
+    if (this._getWindowInnerDimension().height > 480) {
+      numNotificationInContainerViewport++;
+    }
+
+    // no music player widget => also allow one more notification
+    if (!this.container.classList.contains('collapsed')) {
+      numNotificationInContainerViewport++;
+    }
+
+    return numNotificationInContainerViewport;
+  };
+
+  LockScreenNotifications.prototype._tryAddTopMaskByNotification =
+  function lsn_tryAddTopMaskByNotification(notificationNode) {
+    // if the unhighlighted node was the visually top notification of the
+    // viewport, add the top mask back by removing the top-actionable class.
+    // (see also: onNotificationHighlighted)
+    var numNotificationInContainerViewport =
+        this._getNumNotificationInContainerViewport();
+    if (this.container.querySelector('div.notification:nth-last-of-type(' +
+        numNotificationInContainerViewport + ')') === notificationNode){
+      this.container.classList.remove('top-actionable');
+    }
+  };
+
+  LockScreenNotifications.prototype.updateTimestamps =
+  function lsn_updateTimestamps() {
+    var timestamps = [...document.querySelectorAll('.notification .timestamp')];
+    timestamps.forEach((element) => {
+      element.textContent =
+        this.prettyDate(new Date(element.dataset.timestamp));
+    });
+  };
+
+  /**
+   * Display a human-readable relative timestamp.
+   */
+  LockScreenNotifications.prototype.prettyDate =
+  function lsn_prettyDate(time) {
+    var date;
+    if (navigator.mozL10n) {
+      date = navigator.mozL10n.DateTimeFormat().fromNow(time, true);
+    } else {
+      date = time.toLocaleFormat();
+    }
+    return date;
+  };
+
+  /** @exports LockScreenWindowManager */
+  exports.LockScreenNotifications = LockScreenNotifications;
+})(window);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AppWindowManager.html">AppWindowManager</a></li><li><a href="module-CardsHelper.html">CardsHelper</a></li><li><a href="module-Clock.html">Clock</a></li><li><a href="module-LockScreen.html">LockScreen</a></li><li><a href="module-LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="module-LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="module-OrientationManager.html">OrientationManager</a></li><li><a href="module-PopupWindow.html">PopupWindow</a></li><li><a href="module-SecureWindow.html">SecureWindow</a></li><li><a href="module-SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="module-SecureWindowManager.html">SecureWindowManager</a></li><li><a href="module-Service.html">Service</a></li><li><a href="module-SuspendingAppPriorityManager.html">SuspendingAppPriorityManager</a></li><li><a href="module-WallpaperManager.html">WallpaperManager</a></li><li><a href="module-WrapperFactory.html">WrapperFactory</a></li></ul><h3>Classes</h3><ul><li><a href="ActionMenu.html">ActionMenu</a></li><li><a href="Activities.html">Activities</a></li><li><a href="ActivityWindow.html">ActivityWindow</a></li><li><a href="ActivityWindowManager.html">ActivityWindowManager</a></li><li><a href="AppAuthenticationDialog.html">AppAuthenticationDialog</a></li><li><a href="AppChrome.html">AppChrome</a></li><li><a href="Applications.html">Applications</a></li><li><a href="AppModalDialog.html">AppModalDialog</a></li><li><a href="AppTransitionController.html">AppTransitionController</a></li><li><a href="AppWindowFactory.html">AppWindowFactory</a></li><li><a href="AttentionWindow.html">AttentionWindow</a></li><li><a href="AudioChannelService.html">AudioChannelService</a></li><li><a href="BaseModule.html">BaseModule</a></li><li><a href="BaseUI.html">BaseUI</a></li><li><a href="BluetoothCore.html">BluetoothCore</a></li><li><a href="BrowserContextMenu.html">BrowserContextMenu</a></li><li><a href="BrowserFrame.html">BrowserFrame</a></li><li><a href="CallForwarding.html">CallForwarding</a></li><li><a href="CallscreenWindow.html">CallscreenWindow</a></li><li><a href="CellBroadcastSystem.html">CellBroadcastSystem</a></li><li><a href="Clock.html">Clock</a></li><li><a href="ContextMenuView.html">ContextMenuView</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DevToolsAuth.html">DevToolsAuth</a></li><li><a href="DialerAgent.html">DialerAgent</a></li><li><a href="EdgeSwipeDetector.html">EdgeSwipeDetector</a></li><li><a href="EuRoamingManager.html">EuRoamingManager</a></li><li><a href="ExternalStorageMonitor.html">ExternalStorageMonitor</a></li><li><a href="FxAccountsDialog.html">FxAccountsDialog</a></li><li><a href="GlobalOverlayWindow.html">GlobalOverlayWindow</a></li><li><a href="HardwareButtons.html">HardwareButtons</a></li><li><a href="HardwareButtonsBaseState.html">HardwareButtonsBaseState</a></li><li><a href="HardwareButtonsCameraState.html">HardwareButtonsCameraState</a></li><li><a href="HardwareButtonsHomeState.html">HardwareButtonsHomeState</a></li><li><a href="HardwareButtonsScreenshotState.html">HardwareButtonsScreenshotState</a></li><li><a href="HardwareButtonsSleepState.html">HardwareButtonsSleepState</a></li><li><a href="HardwareButtonsSystemLogState.html">HardwareButtonsSystemLogState</a></li><li><a href="HardwareButtonsVolumeState.html">HardwareButtonsVolumeState</a></li><li><a href="HardwareButtonsWakeState.html">HardwareButtonsWakeState</a></li><li><a href="HomeGesture.html">HomeGesture</a></li><li><a href="HomescreenLauncher.html">HomescreenLauncher</a></li><li><a href="HomescreenWindow.html">HomescreenWindow</a></li><li><a href="HomescreenWindowManager.html">HomescreenWindowManager</a></li><li><a href="ImeMenu.html">ImeMenu</a></li><li><a href="InputWindow.html">InputWindow</a></li><li><a href="InternetSharing.html">InternetSharing</a></li><li><a href="LayoutManager.html">LayoutManager</a></li><li><a href="LockScreenChargingStatus.html">LockScreenChargingStatus</a></li><li><a href="LockScreenNotifications.html">LockScreenNotifications</a></li><li><a href="LockScreenPasscodeValidator.html">LockScreenPasscodeValidator</a></li><li><a href="LockScreenWindow.html">LockScreenWindow</a></li><li><a href="LockScreenWindowManager.html">LockScreenWindowManager</a></li><li><a href="LogoLoader.html">LogoLoader</a></li><li><a href="LogShake.html">LogShake</a></li><li><a href="MediaRecording.html">MediaRecording</a></li><li><a href="MobileIdDialog.html">MobileIdDialog</a></li><li><a href="NfcCore.html">NfcCore</a></li><li><a href="NfcHandoverManager.html">NfcHandoverManager</a></li><li><a href="NfcManager.html">NfcManager</a></li><li><a href="PermissionManager.html">PermissionManager</a></li><li><a href="Places.html">Places</a></li><li><a href="PopupWindow.html">PopupWindow</a></li><li><a href="RemoteDebugger.html">RemoteDebugger</a></li><li><a href="Rocketbar.html">Rocketbar</a></li><li><a href="Screenshot.html">Screenshot</a></li><li><a href="SecureWindow.html">SecureWindow</a></li><li><a href="SecureWindowFactory.html">SecureWindowFactory</a></li><li><a href="SecureWindowManager.html">SecureWindowManager</a></li><li><a href="SettingsCore.html">SettingsCore</a></li><li><a href="SimLockSystemDialog.html">SimLockSystemDialog</a></li><li><a href="SimPinSystemDialog.html">SimPinSystemDialog</a></li><li><a href="SleepMenu.html">SleepMenu</a></li><li><a href="SoftwareButtonManager.html">SoftwareButtonManager</a></li><li><a href="SoundManager.html">SoundManager</a></li><li><a href="SourceView.html">SourceView</a></li><li><a href="SystemBanner.html">SystemBanner</a></li><li><a href="SystemDialogManager.html">SystemDialogManager</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="TelephonySettings.html">TelephonySettings</a></li><li><a href="TtlView.html">TtlView</a></li><li><a href="UsbStorage.html">UsbStorage</a></li><li><a href="VisibilityManager.html">VisibilityManager</a></li><li><a href="WallpaperManager.html">WallpaperManager</a></li></ul><h3>Events</h3><ul><li><a href="ActivityWindow.html#event:activitybackground">activitybackground</a></li><li><a href="ActivityWindow.html#event:activityclose">activityclose</a></li><li><a href="ActivityWindow.html#event:activityclosing">activityclosing</a></li><li><a href="ActivityWindow.html#event:activitycreated">activitycreated</a></li><li><a href="ActivityWindow.html#event:activityforeground">activityforeground</a></li><li><a href="ActivityWindow.html#event:activityopen">activityopen</a></li><li><a href="ActivityWindow.html#event:activityopening">activityopening</a></li><li><a href="ActivityWindow.html#event:activityrendered">activityrendered</a></li><li><a href="ActivityWindow.html#event:activityterminated">activityterminated</a></li><li><a href="ActivityWindow.html#event:activitywillrender">activitywillrender</a></li><li><a href="AppWindow.html#event:appclose">appclose</a></li><li><a href="AppWindow.html#event:appclosing">appclosing</a></li><li><a href="AppWindow.html#event:appopen">appopen</a></li><li><a href="AppWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:appclose">appclose</a></li><li><a href="AttentionWindow.html#event:appclosing">appclosing</a></li><li><a href="AttentionWindow.html#event:appopen">appopen</a></li><li><a href="AttentionWindow.html#event:appopening">appopening</a></li><li><a href="AttentionWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="AttentionWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="AttentionWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="AttentionWindow.html#event:attentionopened">attentionopened</a></li><li><a href="AttentionWindow.html#event:attentionopening">attentionopening</a></li><li><a href="AttentionWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="AttentionWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="AttentionWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="CallscreenWindow.html#event:appclose">appclose</a></li><li><a href="CallscreenWindow.html#event:appclosing">appclosing</a></li><li><a href="CallscreenWindow.html#event:appopen">appopen</a></li><li><a href="CallscreenWindow.html#event:appopening">appopening</a></li><li><a href="CallscreenWindow.html#event:attentionclosed">attentionclosed</a></li><li><a href="CallscreenWindow.html#event:attentionclosing">attentionclosing</a></li><li><a href="CallscreenWindow.html#event:attentioncreated">attentioncreated</a></li><li><a href="CallscreenWindow.html#event:attentionopened">attentionopened</a></li><li><a href="CallscreenWindow.html#event:attentionopening">attentionopening</a></li><li><a href="CallscreenWindow.html#event:attentionrendered">attentionrendered</a></li><li><a href="CallscreenWindow.html#event:attentionterminated">attentionterminated</a></li><li><a href="CallscreenWindow.html#event:attentionwillrender">attentionwillrender</a></li><li><a href="GlobalOverlayWindow.html#event:appclose">appclose</a></li><li><a href="GlobalOverlayWindow.html#event:appclosing">appclosing</a></li><li><a href="GlobalOverlayWindow.html#event:appopen">appopen</a></li><li><a href="GlobalOverlayWindow.html#event:appopening">appopening</a></li><li><a href="HardwareButtonsBaseState.html#event:wake">wake</a></li><li><a href="HardwareButtonsCameraState.html#event:camera">camera</a></li><li><a href="HardwareButtonsCameraState.html#event:holdcamera">holdcamera</a></li><li><a href="HardwareButtonsHomeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsHomeState.html#event:home">home</a></li><li><a href="HardwareButtonsHomeState.html#event:volumedown+sleep">volumedown+sleep</a></li><li><a href="HardwareButtonsHomeState.html#event:volumeup+volumedown">volumeup+volumedown</a></li><li><a href="HardwareButtonsSleepState.html#event:holdsleep">holdsleep</a></li><li><a href="HardwareButtonsSleepState.html#event:sleep">sleep</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumedown">volumedown</a></li><li><a href="HardwareButtonsVolumeState.html#event:volumeup">volumeup</a></li><li><a href="HardwareButtonsWakeState.html#event:holdhome">holdhome</a></li><li><a href="HardwareButtonsWakeState.html#event:holdsleep">holdsleep</a></li><li><a href="HomescreenLauncher.html#event:homescreen-changed">homescreen-changed</a></li><li><a href="HomescreenLauncher.html#event:homescreen-ready">homescreen-ready</a></li><li><a href="HomescreenWindow.html#event:appclose">appclose</a></li><li><a href="HomescreenWindow.html#event:appclosing">appclosing</a></li><li><a href="HomescreenWindow.html#event:appopen">appopen</a></li><li><a href="HomescreenWindow.html#event:appopening">appopening</a></li><li><a href="HomescreenWindow.html#event:homescreenbackground">homescreenbackground</a></li><li><a href="HomescreenWindow.html#event:homescreenclose">homescreenclose</a></li><li><a href="HomescreenWindow.html#event:homescreenclosed">homescreenclosed</a></li><li><a href="HomescreenWindow.html#event:homescreenclosing">homescreenclosing</a></li><li><a href="HomescreenWindow.html#event:homescreencreated">homescreencreated</a></li><li><a href="HomescreenWindow.html#event:homescreenforeground">homescreenforeground</a></li><li><a href="HomescreenWindow.html#event:homescreenopen">homescreenopen</a></li><li><a href="HomescreenWindow.html#event:homescreenopening">homescreenopening</a></li><li><a href="HomescreenWindow.html#event:homescreenrendered">homescreenrendered</a></li><li><a href="HomescreenWindow.html#event:homescreenterminated">homescreenterminated</a></li><li><a href="HomescreenWindow.html#event:homescreenwillrender">homescreenwillrender</a></li><li><a href="InputWindow.html#event:_ready">_ready</a></li><li><a href="InputWindow.html#event:appclose">appclose</a></li><li><a href="InputWindow.html#event:appclosing">appclosing</a></li><li><a href="InputWindow.html#event:appopen">appopen</a></li><li><a href="InputWindow.html#event:appopening">appopening</a></li><li><a href="InputWindow.html#event:mozbrowserresize">mozbrowserresize</a></li><li><a href="LayoutManager.html#event:system-resize">system-resize</a></li><li><a href="LockScreenWindow.html#event:appclose">appclose</a></li><li><a href="LockScreenWindow.html#event:appclosing">appclosing</a></li><li><a href="LockScreenWindow.html#event:appopen">appopen</a></li><li><a href="LockScreenWindow.html#event:appopening">appopening</a></li><li><a href="LockScreenWindow.html#event:lockscreen-appresize">lockscreen-appresize</a></li><li><a href="LockScreenWindow.html#~event:_withkeyboard">_withkeyboard</a></li><li><a href="LockScreenWindow.html#~event:_withoutkeyboard">_withoutkeyboard</a></li><li><a href="module-OrientationManager.html#event:reset-orientation">reset-orientation</a></li><li><a href="PopupWindow.html#event:appclose">appclose</a></li><li><a href="PopupWindow.html#event:appclosing">appclosing</a></li><li><a href="PopupWindow.html#event:appopen">appopen</a></li><li><a href="PopupWindow.html#event:appopening">appopening</a></li><li><a href="SecureWindow.html#event:appclose">appclose</a></li><li><a href="SecureWindow.html#event:appclosing">appclosing</a></li><li><a href="SecureWindow.html#event:appopen">appopen</a></li><li><a href="SecureWindow.html#event:appopening">appopening</a></li></ul><h3>Namespaces</h3><ul><li><a href="BrowserDB.html">BrowserDB</a></li><li><a href="BrowserDB.db.html">db</a></li></ul><h3>Global</h3><ul><li><a href="global.html#%2522_observe_vibration.enabled%2522">"_observe_vibration.enabled"</a></li><li><a href="global.html#_choiceFromDefaultAction">_choiceFromDefaultAction</a></li><li><a href="global.html#_debug">_debug</a></li><li><a href="global.html#_deleteAudioChannelFromInterruptedAudioChannels">_deleteAudioChannelFromInterruptedAudioChannels</a></li><li><a href="global.html#_fadeInFadedOutAudioChannels">_fadeInFadedOutAudioChannels</a></li><li><a href="global.html#_getDefaultPreferredNetworkType">_getDefaultPreferredNetworkType</a></li><li><a href="global.html#_getDefaultPreferredNetworkTypes">_getDefaultPreferredNetworkTypes</a></li><li><a href="global.html#_handle_audiochanneldestroyed">_handle_audiochanneldestroyed</a></li><li><a href="global.html#_handle_audiochannelstatechanged">_handle_audiochannelstatechanged</a></li><li><a href="global.html#_handle_hierarchytopmostwindowchanged">_handle_hierarchytopmostwindowchanged</a></li><li><a href="global.html#_handle_mozChromeEvent">_handle_mozChromeEvent</a></li><li><a href="global.html#_handleAudioChannel">_handleAudioChannel</a></li><li><a href="global.html#_isAudioChannelInBackground">_isAudioChannelInBackground</a></li><li><a href="global.html#_isNeededToFadeOutForActiveAudioChannel">_isNeededToFadeOutForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToFadeOutForNewAudioChannel">_isNeededToFadeOutForNewAudioChannel</a></li><li><a href="global.html#_isNeededToResumeWhenOtherEndsForActiveAudioChannel">_isNeededToResumeWhenOtherEndsForActiveAudioChannel</a></li><li><a href="global.html#_isNeededToVibrateForActiveAudioChannel">_isNeededToVibrateForActiveAudioChannel</a></li><li><a href="global.html#_manageAudioChannels">_manageAudioChannels</a></li><li><a href="global.html#_resetAudioChannel">_resetAudioChannel</a></li><li><a href="global.html#_resumeAudioChannels">_resumeAudioChannels</a></li><li><a href="global.html#_sendContentEvent">_sendContentEvent</a></li><li><a href="global.html#_start">_start</a></li><li><a href="global.html#_stepReady">_stepReady</a></li><li><a href="global.html#active">active</a></li><li><a href="global.html#addObserver">addObserver</a></li><li><a href="global.html#applyPolicy">applyPolicy</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#checkTopSites">checkTopSites</a></li><li><a href="global.html#connected">connected</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#DownloadNotification">DownloadNotification</a></li><li><a href="global.html#enabled">enabled</a></li><li><a href="global.html#encodeEmptyHandoverSelect">encodeEmptyHandoverSelect</a></li><li><a href="global.html#encodeHandoverRequest">encodeHandoverRequest</a></li><li><a href="global.html#encodeHandoverSelect">encodeHandoverSelect</a></li><li><a href="global.html#ensureValueUnderKeyIsArray">ensureValueUnderKeyIsArray</a></li><li><a href="global.html#formatMAC">formatMAC</a></li><li><a href="global.html#FxaModuleCoppa">FxaModuleCoppa</a></li><li><a href="global.html#FxaModuleEnterEmail">FxaModuleEnterEmail</a></li><li><a href="global.html#FxaModuleEnterPassword">FxaModuleEnterPassword</a></li><li><a href="global.html#FxaModuleSetPassword">FxaModuleSetPassword</a></li><li><a href="global.html#FxaModuleSigninSuccess">FxaModuleSigninSuccess</a></li><li><a href="global.html#FxaModuleSignupSuccess">FxaModuleSignupSuccess</a></li><li><a href="global.html#getTopMostWindow">getTopMostWindow</a></li><li><a href="global.html#hasActiveCall">hasActiveCall</a></li><li><a href="global.html#idb">idb</a></li><li><a href="global.html#IGNORED_INPUT_TYPES">IGNORED_INPUT_TYPES</a></li><li><a href="global.html#initCallerIdPreference">initCallerIdPreference</a></li><li><a href="global.html#initPreferredNetworkType">initPreferredNetworkType</a></li><li><a href="global.html#initRoaming">initRoaming</a></li><li><a href="global.html#initVoicePrivacy">initVoicePrivacy</a></li><li><a href="global.html#launch">launch</a></li><li><a href="global.html#lockScreen">lockScreen</a></li><li><a href="global.html#parseBluetoothSSP">parseBluetoothSSP</a></li><li><a href="global.html#parseHandoverNDEF">parseHandoverNDEF</a></li><li><a href="global.html#parseMAC">parseMAC</a></li><li><a href="global.html#PRIORITIES">PRIORITIES</a></li><li><a href="global.html#registerHierarchy">registerHierarchy</a></li><li><a href="global.html#searchForBluetoothAC">searchForBluetoothAC</a></li><li><a href="global.html#sendNDEFMessageToNFCPeer">sendNDEFMessageToNFCPeer</a></li><li><a href="global.html#setVisits">setVisits</a></li><li><a href="global.html#SpinDatePicker">SpinDatePicker</a></li><li><a href="global.html#unregisterHierarchy">unregisterHierarchy</a></li><li><a href="global.html#validateCPS">validateCPS</a></li><li><a href="global.html#ValuePicker">ValuePicker</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:40 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

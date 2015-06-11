@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/event.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/event.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>define(function(require, exports, module) {
+'use strict';
+
+var Calc = require('common/calc');
+var probablyParseInt = require('common/probably_parse_int');
+
+/**
+ * Creates a wrapper around a event instance from the db
+ */
+function Event(data) {
+  var isNew = false;
+
+  if (typeof(data) === 'undefined') {
+    isNew = true;
+    data = Object.create(null);
+    data.remote = {};
+  }
+
+  this.data = data;
+  /** shortcut */
+  var remote = this.remote = this.data.remote;
+
+  if ('start' in remote &amp;&amp; !('startDate' in remote)) {
+    remote.startDate = Calc.dateFromTransport(
+      remote.start
+    );
+  }
+
+  if ('end' in remote &amp;&amp; !('endDate' in remote)) {
+    remote.endDate = Calc.dateFromTransport(
+      remote.end
+    );
+  }
+
+  if (isNew) {
+    this.resetToDefaults();
+  }
+
+  var start = this.remote.startDate;
+  var end = this.remote.endDate;
+
+  // the typeof check is to see if we have already
+  // set the value in resetToDefaults (or prior)
+  if (
+      typeof(this._isAllDay) === 'undefined' &amp;&amp;
+      Calc.isOnlyDate(start) &amp;&amp;
+      Calc.isOnlyDate(end)
+  ) {
+    // mostly to handle the case before the time
+    // where we actually managed isAllDay as a setter.
+    this.isAllDay = true;
+  } else {
+    // not on prototype intentionally because
+    // we need to either need to resetToDefaults
+    // or check startDate/endDate in the constructor.
+    this.isAllDay = false;
+  }
+}
+module.exports = Event;
+
+Event.prototype = {
+
+  /**
+   * Sets default values of an event.
+   */
+  resetToDefaults: function() {
+    var now = new Date();
+
+    this.isAllDay = false;
+
+    this.startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+    this.endDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1
+    );
+  },
+
+  get _id() {
+    return this.data._id;
+  },
+
+  _setDate: function(date, field) {
+    if (!(date instanceof Date)) {
+      throw new TypeError('must pass instance of Date');
+    }
+
+    var allDay = this.isAllDay;
+
+    if (allDay) {
+      // clone the existing date
+      date = new Date(date.valueOf());
+
+      // filter out the stuff we don't care about
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+    }
+
+    this.remote[field] = Calc.dateToTransport(
+      date,
+      null, // TODO allow setting tzid
+      allDay
+    );
+
+    this.remote[field + 'Date'] = date;
+  },
+
+  /* start date */
+
+  get startDate() {
+    return this.remote.startDate;
+  },
+
+  set startDate(value) {
+    this._setDate(value, 'start');
+  },
+
+  /* end date */
+
+  get endDate() {
+    return this.remote.endDate;
+  },
+
+  set endDate(value) {
+    this._setDate(value, 'end');
+  },
+
+  set isAllDay(value) {
+    this._isAllDay = value;
+
+    // send values through the their setter.
+    if (this.endDate) {
+      this.endDate = this.endDate;
+    }
+
+    if (this.startDate) {
+      this.startDate = this.startDate;
+    }
+  },
+
+  get isAllDay() {
+    return this._isAllDay;
+  },
+
+  /* associated records */
+
+  get calendarId() {
+    return this.data.calendarId;
+  },
+
+  set calendarId(value) {
+    if (value &amp;&amp; typeof(value) !== 'number') {
+      value = probablyParseInt(value);
+    }
+
+    this.data.calendarId = value;
+  },
+
+  /* simple setters */
+
+  get syncToken() {
+    return this.remote.syncToken;
+  },
+
+  set syncToken(value) {
+    this.remote.syncToken = value;
+  },
+
+  get title() {
+    return this.remote.title || '';
+  },
+
+  set title(value) {
+    this.remote.title = value;
+  },
+
+  get description() {
+    return this.remote.description || '';
+  },
+
+  set description(value) {
+    this.remote.description = value;
+  },
+
+  get location() {
+    return this.remote.location || '';
+  },
+
+  set location(value) {
+    this.remote.location = value;
+    return this.remote.location;
+  },
+
+  get alarms() {
+    return this.remote.alarms || [];
+  },
+
+  set alarms(value) {
+    this.remote.alarms = value;
+    return this.remote.alarms;
+  },
+
+  /**
+   * If data doesn't have any errors, the event
+   * takes on the attributes of data.
+   *
+   * @param {Object} data, object that contains
+   *  at least some attributes of the event object.
+   *
+   * @return {Object} errors if validationErrors returns erros,
+   *  true otherwise.
+   */
+  updateAttributes: function(data) {
+    var errors = this.validationErrors(data);
+    if (errors) {
+      return errors;
+    }
+    for (var field in data) {
+      this[field] = data[field];
+    }
+    return true;
+  },
+
+  /**
+   * Validates the contents of the model.
+   *
+   * Output example:
+   *
+   *   [
+   *     {
+   *       name: 'invalidDate',
+   *       properties: ['startDate', 'endDate']
+   *     }
+   *     //...
+   *   ]
+   *
+   * @param {Object} data, optional object that contains
+   *  at least some attributes of the event object.
+   * @return {Array|False} see above.
+   */
+  validationErrors: function(data) {
+    var obj = data || this;
+    var end = obj.endDate.valueOf();
+    var start = obj.startDate.valueOf();
+    var errors = [];
+
+    if (start >= end) {
+      errors.push({
+        name: 'start-after-end'
+      });
+    }
+
+    if (errors.length) {
+      return errors;
+    }
+
+    return false;
+  }
+};
+
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
