@@ -348,6 +348,11 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
     if (script.defer) {
       scriptConfig = deferred;
     }
+
+    if (scriptFile.file && scriptFile.file.exists()) {
+      utils.writeContent(scriptFile.file, content);
+    }
+
     scriptConfig.content += content;
     scriptConfig.lastNode = script;
     // some apps (email) use version in the script types
