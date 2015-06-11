@@ -232,7 +232,7 @@ make test-integration-test APP=camera TEST_FILES=apps/camera/test/marionette/cap
 
 ## JSDOC
 
-Generated jsdoc is hosted in [http://mozilla-b2g.github.io/gaia/camera/](http://mozilla-b2g.github.io/gaia/camera/). You can generate it locally with following command:
+Generated jsdoc is hosted on [http://mozilla-b2g.github.io/gaia/camera/](http://mozilla-b2g.github.io/gaia/camera/). You can generate it locally with the following command:
 
 ```
 $ gulp jsdoc:camera

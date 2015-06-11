@@ -14,3 +14,11 @@ TEST_FILES=apps/keyboard/test/build/integration/keyboard_test.js make build-test
 for build test.
 
 If you change the IME files, the dictionary filesize will be changed as well. Remember to update the test config `dictFileSize` in `apps/keyboard/test/build/integration/resources/`.
+
+## JSDOC
+
+Generated jsdoc is hosted on [http://mozilla-b2g.github.io/gaia/keyboard/](http://mozilla-b2g.github.io/gaia/keyboard/). You can generate it locally with the following command:
+
+```
+$ gulp jsdoc:keyboard
+```

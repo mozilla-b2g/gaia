@@ -186,7 +186,7 @@ Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete 
 
 ## JSDOC
 
-Generated jsdoc is hosted in [http://mozilla-b2g.github.io/gaia/settings/](http://mozilla-b2g.github.io/gaia/settings/). You can generate it locally with following command:
+Generated jsdoc is hosted on [http://mozilla-b2g.github.io/gaia/settings/](http://mozilla-b2g.github.io/gaia/settings/). You can generate it locally with the following command:
 
 ```
 $ gulp jsdoc:settings
