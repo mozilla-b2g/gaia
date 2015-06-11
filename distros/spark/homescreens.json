@@ -25,14 +25,11 @@
       ["outoftree_apps", "facebook"],
       ["outoftree_apps", "twitter"],
       ["outoftree_apps", "pluotsorbet"],
-      ["outoftree_apps", "loop"],
       ["outoftree_apps", "buddyup"]
     ], [
       ["apps", "costcontrol"],
       ["outoftree_apps", "notes"],
       ["outoftree_apps", "calculator"],
-      ["outoftree_apps", "hexgl"],
-      ["outoftree_apps", "tanx"],
       ["outoftree_apps", "swooop"]
     ]
   ],
