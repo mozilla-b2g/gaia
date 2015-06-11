@@ -2,7 +2,8 @@
 
 /* global module */
 
-var _ = require('lodash');
+// TODO(gaye): This is no bueno and we need to fix.
+var _ = require('SMS/node_modules/lodash');
 
 var ThreadGenerator = {
   uniqueThreadId: 0,
