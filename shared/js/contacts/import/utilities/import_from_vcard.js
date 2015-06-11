@@ -1,4 +1,5 @@
 /* global Contacts, VCardReader, ConfirmDialog, contacts, LazyLoader */
+/* global Matcher */
 'use strict';
 
 var utils = window.utils || {};
@@ -102,7 +103,7 @@ utils.importFromVcard = function(file, callback) {
         if (evt.target.result) {
           var contact = evt.target.result;
 
-          contacts.Matcher.match(contact, 'passive', {
+          Matcher.match(contact, 'passive', {
             onmatch: function(matches) {
               var callbacks = {
                 success: function(mergedContact) {

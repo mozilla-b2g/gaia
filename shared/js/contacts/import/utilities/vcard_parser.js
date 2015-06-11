@@ -1,4 +1,5 @@
 /* global contacts, LazyLoader, utils, Rest, MimeMapper */
+/* global Matcher */
 /* exported VCFReader */
 
 'use strict';
@@ -729,7 +730,7 @@ var VCFReader = (function _VCFReader() {
           VCFReader._save(contact, afterSaveFn);
         }
       };
-      contacts.Matcher.match(contact, 'passive', matchCbs);
+      Matcher.match(contact, 'passive', matchCbs);
     }
 
     saveContact(contactObjects[cursor]);

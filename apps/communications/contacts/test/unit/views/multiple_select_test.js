@@ -22,13 +22,13 @@ suite('MultipleSelect view', function() {
     document.body.innerHTML = MockMultipleSelectHTML;
     Contacts.MultipleSelect.init();
 
-    realMatcher = window.contacts.Matcher;
-    window.contacts.Matcher = MockMatcher;
+    realMatcher = window.Matcher;
+    window.Matcher = MockMatcher;
   });
 
   suiteTeardown(function() {
     window.LazyLoader = realLazyLoader;
-    window.contacts.Matcher = realMatcher;
+    window.Matcher = realMatcher;
   });
 
   test('Adding contacts to the view', function() {

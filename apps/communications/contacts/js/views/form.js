@@ -15,6 +15,7 @@
 /* global ICEData */
 /* global MergeHelper */
 /* global ContactsService */
+/* global Matcher */
 
 var contacts = window.contacts || {};
 
@@ -985,7 +986,7 @@ contacts.Form = (function() {
     LazyLoader.load(['/shared/js/text_normalizer.js',
                      '/shared/js/simple_phone_matcher.js',
                      '/shared/js/contacts/contacts_matcher.js'], function() {
-      contacts.Matcher.match(contact, 'active', callbacks);
+      Matcher.match(contact, 'active', callbacks);
     });
   };
 

@@ -2,6 +2,7 @@
 /* global Curtain */
 /* global LazyLoader */
 /* global MergeHelper */
+/* global Matcher */
 
 var contacts = window.contacts || {};
 
@@ -68,7 +69,7 @@ if (!contacts.MatchingController) {
         parent.ContactsService.get(cid, function success(mContact) {
           // Master contact
           contact = mContact;
-          contacts.Matcher.match(contact, 'active', callbacks);
+          Matcher.match(contact, 'active', callbacks);
         }, abort);
       });
     }

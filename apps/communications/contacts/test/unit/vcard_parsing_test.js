@@ -100,8 +100,8 @@ suite('vCard parsing settings', function() {
       };
 
       window.contacts = window.contacts || {};
-      realMatcher = window.contacts.Matcher;
-      window.contacts.Matcher = MockMatcher;
+      realMatcher = window.Matcher;
+      window.Matcher = MockMatcher;
 
       realMerge = window.contacts.adaptAndMerge;
       window.contacts.adaptAndMerge = MockAdaptAndMerge;
@@ -127,7 +127,7 @@ suite('vCard parsing settings', function() {
 
     suiteTeardown(function() {
       navigator.mozContacts = realMozContacts;
-      window.contacts.Matcher = realMatcher;
+      window.Matcher = realMatcher;
       window.contacts.adaptAndMerge = realMerge;
       window.utils = realUtils;
       window.Rest = realRest;
@@ -646,7 +646,7 @@ suite('vCard parsing settings', function() {
     });
     test('- vcard parser must return id of matched contact', function(done) {
       // Force the matcher to find a contact with a known id
-      var matchStub = sinon.stub(window.contacts.Matcher, 'match',
+      var matchStub = sinon.stub(window.Matcher, 'match',
        function(contact, type, cbs) {
         cbs.onmatch([]);
       });

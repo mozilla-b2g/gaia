@@ -1,6 +1,7 @@
 'use strict';
 
-/* global fb, utils, contacts */
+/* global fb, utils */
+/* global Matcher */
 
 
 if (!window.FacebookConnector) {
@@ -72,7 +73,7 @@ if (!window.FacebookConnector) {
             onmismatch: successCb
           };
           // Try to match and if so merge is performed
-          contacts.Matcher.match(data, 'passive', cbs);
+          Matcher.match(data, 'passive', cbs);
         },
         error: errorCb
       };

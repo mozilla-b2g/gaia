@@ -15,7 +15,6 @@
 /* global utils */
 /* global ContactsService */
 
-
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
 

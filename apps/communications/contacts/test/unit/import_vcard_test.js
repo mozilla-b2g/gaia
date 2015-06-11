@@ -125,8 +125,8 @@ suite('Import from vcard', function() {
     });
 
     window.contacts = window.contacts || {};
-    realMatcher = window.contacts.Matcher;
-    window.contacts.Matcher = MockMatcher;
+    realMatcher = window.Matcher;
+    window.Matcher = MockMatcher;
 
     window.utils.overlay = {
       total: 0,
@@ -159,7 +159,7 @@ suite('Import from vcard', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
-    window.contacts.Matcher = realMatcher;
+    window.Matcher = realMatcher;
     window.utils.status = realStatus;
     window.utils.overlay = realOverlay;
     mocksHelperForImportVcard.suiteTeardown();

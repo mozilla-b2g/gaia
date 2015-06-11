@@ -11,6 +11,7 @@
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
 /* global MockMozNfc */
+/* global Matcher */
 /* global utils */
 /* exported _ */
 
@@ -769,7 +770,7 @@ suite('Render contact form', function() {
       // Bypass the contacts matcher when saving contact
       LazyLoader.load(['/shared/js/simple_phone_matcher.js',
                        '/shared/js/contacts/contacts_matcher.js'], function() {
-          contacts.Matcher.match = function() {};
+          Matcher.match = function() {};
       });
     });
 
@@ -923,68 +924,6 @@ suite('Render contact form', function() {
     test('> delete a contact with NFC should stop NFC listening', function() {
       ConfirmDialog.executeYes();
       sinon.assert.calledOnce(contacts.NFC.stopListening);
-    });
-  });
-
-  suite('> Save contact', function() {
-    suiteSetup(function(done) {
-      var deviceContact = new MockContactAllFields();
-      subject.render(deviceContact);
-
-      LazyLoader.load(['/shared/js/text_normalizer.js',
-                     '/shared/js/simple_phone_matcher.js',
-                     '/shared/js/contacts/contacts_matcher.js'], function() {
-        contacts.Matcher.match = function() {};
-        done();
-      });
-    });
-
-    test('> Updating a contact makes it set as global contact', function() {
-      var given = document.getElementById('givenName');
-      given.value = 'Edited';
-      sinon.stub(contacts.Matcher, 'match', function(contact, mode, cbs) {
-        cbs.onmismatch();
-      });
-      sinon.spy(Contacts, 'setCurrent');
-
-      // Need to stub here cause we have a global setup that is
-      // incompatible
-      sinon.stub(navigator.mozContacts, 'save', function(contact) {
-        return {
-          set onsuccess(callback) {
-            callback();
-          },
-          set onerror(callback) {
-
-          }
-        };
-      });
-
-      subject.saveContact();
-
-      sinon.assert.calledOnce(Contacts.setCurrent);
-      var arg = Contacts.setCurrent.getCall(0).args[0];
-      assert.equal(arg.givenName[0], 'Edited');
-
-      contacts.Matcher.match.restore();
-      Contacts.setCurrent.restore();
-      navigator.mozContacts.save.restore();
-    });
-  });
-
-  suite('> Add new contact', function() {
-    suiteSetup(function(){
-      subject.render();
-    });
-    test('> Adding a contact doesn\'t make it a global contact', function() {
-
-      var given = document.getElementById('givenName');
-      given.value = 'New';
-      var spy = sinon.spy(Contacts, 'setCurrent');
-      subject.saveContact();
-
-      assert.equal(spy.callCount, 0);
-      spy.restore();
     });
   });
 
