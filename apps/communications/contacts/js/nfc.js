@@ -1,7 +1,7 @@
 'use strict';
 
-/* global LazyLoader, ContactToVcard, MozNDEFRecord, fb, Contacts,
-          NDEF, NfcUtils */
+/* global LazyLoader, ContactToVcard, MozNDEFRecord, fb, utils,
+          NDEF, NfcUtils, utils*/
 
 var contacts = window.contacts || {};
 
@@ -72,7 +72,7 @@ contacts.NFC = (function() {
   };
 
   var handlePeerReadyForFb = function() {
-    Contacts.showStatus({
+    utils.status.show({
       id: 'facebook-export-forbidden'
     });
   };

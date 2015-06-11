@@ -67,7 +67,7 @@ contacts.BulkDelete = (function() {
 
     contactsRemoverObj.onError = function onError() {
       Contacts.hideOverlay();
-      Contacts.showStatus({
+      utils.status.show({
         id: 'deleteError-general'
       });
       contacts.Settings.refresh();
@@ -75,7 +75,7 @@ contacts.BulkDelete = (function() {
 
     contactsRemoverObj.onFinished = function onFinished() {
       Contacts.hideOverlay();
-      Contacts.showStatus({
+      utils.status.show({
         id: 'DeletedTxt',
         args: {n: contactsRemoverObj.getDeletedCount()}
       });

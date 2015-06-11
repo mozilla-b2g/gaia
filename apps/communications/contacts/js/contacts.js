@@ -699,10 +699,6 @@ var Contacts = (function() {
     }, SHARED_UTILS);
   };
 
-  var showStatus = function c_showStatus(messageId, additionalId) {
-    utils.status.show(messageId, additionalId);
-  };
-
   var showSettings = function showSettings() {
     initSettings(function onSettingsReady() {
       // The number of FB Friends has to be recalculated
@@ -1059,7 +1055,6 @@ var Contacts = (function() {
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
-    'showStatus': showStatus,
     'loadFacebook': loadFacebook,
     'close': close,
     'view': loadView,

@@ -154,7 +154,7 @@ suite('Render contact', function() {
     window.Contacts = MockContacts;
     realFb = window.fb;
     window.fb = Mockfb;
-    window.Contacts.extServices = MockExtFb;
+    window.ExtServices = MockExtFb;
     dom = document.createElement('section');
     dom.id = 'view-contact-details';
     dom.innerHTML = MockDetailsDom;

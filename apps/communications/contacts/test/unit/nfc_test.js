@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MockMozNfc, contacts, MocksHelper, Contacts, fb,
+/* global MockMozNfc, contacts, MocksHelper, fb,
           MockMozNDEFRecord, mozContact, NfcUtils */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
@@ -25,6 +25,7 @@ mocksHelperForNFC.init();
 
 suite('NFC', function() {
   var realMozNfc;
+  var realUtils;
   var realMozNDEFRecord;
   var nfcUtils;
 
@@ -32,11 +33,17 @@ suite('NFC', function() {
     requireApp(
       'communications/contacts/test/unit/mock_contacts.js',
       function() {
+        realUtils = window.utils;
         realMozNfc = window.navigator.mozNfc;
         window.navigator.mozNfc = MockMozNfc;
 
         realMozNDEFRecord = window.MozNDEFRecord;
         window.MozNDEFRecord = MockMozNDEFRecord;
+
+        window.utils = {};
+        window.utils.status = {
+          show: function() {}
+        };
 
         mocksHelperForNFC.suiteSetup();
         requireApp('communications/contacts/js/nfc.js', done);
@@ -49,6 +56,7 @@ suite('NFC', function() {
     mocksHelperForNFC.suiteTeardown();
     window.navigator.mozNfc = realMozNfc;
     window.MozNDEFRecord = realMozNDEFRecord;
+    window.utils = realUtils;
   });
 
   teardown(function() {
@@ -70,7 +78,7 @@ suite('NFC', function() {
   });
 
   test('Facebook contact should not be shared', function() {
-    var spy = this.sinon.spy(Contacts, 'showStatus');
+    var spy = this.sinon.spy(window.utils.status, 'show');
     fb.setIsFbContact(true);
     contacts.NFC.startListening();
     navigator.mozNfc.onpeerready(
@@ -78,7 +86,7 @@ suite('NFC', function() {
         peer: MockMozNfc.MockNFCPeer
       }
     );
-    sinon.assert.called(spy, 'showStatus');
+    sinon.assert.called(spy);
   });
 
   // Bug 1013845
