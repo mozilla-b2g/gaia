@@ -181,6 +181,7 @@ suite('STK (App menu) >', function() {
         ], map, function(MockStkHelper) {
           // we have to replace `require` in icc.js
           window.require = function(modules, callback) {
+            navigator.mozL10n = MockL10n;
             callback(MockStkHelper);
           };
           testRequire(['icc'], {}, function() {
