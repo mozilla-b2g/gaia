@@ -1,160 +1,178 @@
 'use strict';
 
+/* jshint esnext:true */
 /* exported MultiContact */
 /* globals Promise, LazyLoader, contacts */
 
-// ATTENTION: This library lazy loads contacts_merger.js
+// ATTENTION: This library lazy-loads contacts_merger.js
 
 var MultiContact = (function() {
-  var datastores = Object.create(null);
-  var datastoresLoading = false;
-  var DS_READY_EVENT = 'ds_ready';
+  const MOZ_CONTACTS_OWNER = 'app://communications.gaiamobile.org';
 
-  var MOZ_CONTACTS_OWNER = 'app://communications.gaiamobile.org';
+  /**
+   * Retrieves all datastores in 'contacts' store.
+   *
+   * @return {Promise<Object>}
+   */
+  function refreshDatastores() {
+    return navigator.getDataStores('contacts').then(dsList => {
+      let datastores = Object.create(null);
+      dsList.forEach(ds => datastores[ds.owner] = ds);
 
-  function getDatastore(owner) {
-    if (datastores[owner]) {
-      return Promise.resolve(datastores[owner]);
-    }
-
-    return new Promise(function(resolve, reject) {
-      if (datastoresLoading === true) {
-        document.addEventListener(DS_READY_EVENT, function handler() {
-          document.removeEventListener(DS_READY_EVENT, handler);
-          resolve(datastores[owner]);
-        });
-      }
-      else {
-        datastoresLoading = true;
-
-        navigator.getDataStores('contacts').then(function success(dsList) {
-          dsList.forEach(function(aDs) {
-            datastores[aDs.owner] = aDs;
-          });
-          // This is needed because mozContact DB is not exposed as a Datastore
-          // Once bug 1016838 lands this will not be needed
-          datastores[MOZ_CONTACTS_OWNER] = new MozContactsDatastore();
-          resolve(datastores[owner]);
-          datastoresLoading = false;
-          document.dispatchEvent(new CustomEvent(DS_READY_EVENT));
-        }, function err(error) {
-            console.error('Error while obtaining datastores: ', error.name);
-        });
-      }
+      // This is needed because mozContact DB is not exposed as a Datastore
+      // Once bug 1016838 lands this will not be needed
+      datastores[MOZ_CONTACTS_OWNER] = new MozContactsDatastore();
+      return datastores;
     });
+  }
+
+  /**
+   * A promise that returns all datastores.
+   * @type {Promise}
+   */
+  var datastoresPromise;
+
+  /**
+   * Finds a datastore by owner. If the store is not found at first, we refresh
+   * the datastores in case a new datastore was created while we were running.
+   *
+   * @param {String} owner Datastore owner name
+   * @return {Promise<DataStore>}
+   */
+  function getDatastore(origin) {
+    if (!datastoresPromise) {
+      datastoresPromise = refreshDatastores();
+    }
+    var error = new Error('Could not find DS with origin', origin);
+    var getDS = datastores => datastores[origin] || Promise.reject(error);
+    return datastoresPromise.then(getDS)
+      .catch(() => {
+        // In case a datastore has been created during this session
+        datastoresPromise = refreshDatastores();
+        return datastoresPromise.then(getDS);
+      });
   }
 
   // Adapter object to obtain data from the mozContacts as if it were a DS
   // Once bug 1016838 lands this will not be needed
-  function MozContactsDatastore() {
-  }
+  function MozContactsDatastore() {}
 
   MozContactsDatastore.prototype = {
-    get: function(id) {
-      return new Promise(function(resolve, reject) {
-
-        var options = {
+    get: id => {
+      return new Promise((resolve, reject) => {
+        let req = navigator.mozContacts.find({
           filterBy: ['id'],
           filterOp: 'equals',
           filterValue: id
-        };
+        });
 
-        var req = navigator.mozContacts.find(options);
-
-        req.onsuccess = function() {
-          resolve(JSON.parse(JSON.stringify(req.result[0])));
-        };
-
-        req.onerror = function() {
-          reject(req.error);
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          if (req.result.length > 0) {
+            resolve(JSON.parse(JSON.stringify(req.result[0])));
+          } else {
+            resolve();
+          }
         };
       });
     },
-    get name() {
-      return 'mozContacts';
-    }
+    get name() { return 'mozContacts'; }
   };
 
+  /**
+   * Returns a Promise with the merged contact information for the given GCDS
+   * entry.
+   *
+   * @param {Object} entry Global entry for a particular contact as it is
+   *                 stored in the GCDS. It should have this form:
+   *                 {
+   *                   id: <String>, // GCDS index.
+   *                   entryData: <Array<GlobalContactInfo>>,
+   *                 }
+   *                 where GlobalContactInfo is the pointer to the actual
+   *                 contact information stored in a DataStore owned by a
+   *                 Contact Provider registered with the GCDS. This should
+   *                 be an object like:
+   *                 {
+   *                    origin: <String>, // Origin of the Contact Provider
+   *                                      // that is source of this contact
+   *                                      // information.
+   *                    uid: <String>, // Index of the Contact Provider's
+   *                                   // DataStore for this contact.
+   *                 }
+   * @return {Promise<MozContact>}
+   */
   function getData(entry) {
     if (!entry || !entry.id || !Array.isArray(entry.entryData)) {
-      return Promise.reject({
-        name: 'InvalidEntry'
-      });
+      return Promise.reject(new Error('InvalidEntry'));
     }
 
-    return new Promise(function(resolve, reject) {
-      var operations = [];
-
-      var entryData = entry.entryData;
-
-      var mozContactId;
-      entryData.forEach(function fetchEntry(aEntry) {
-        var owner = aEntry.origin;
-        if (owner === MOZ_CONTACTS_OWNER) {
-          mozContactId = aEntry.uid;
+    let mozContactId;
+    // Get the contact information from each Contact Provider pointed within
+    // the GCDS entry.
+    let contactProviderEntries = entry.entryData
+      .filter(cpEntry => !!cpEntry.origin && !!cpEntry.uid)
+      .map(cpEntry => {
+        let origin = cpEntry.origin;
+        if (origin === MOZ_CONTACTS_OWNER) {
+          mozContactId = cpEntry.uid;
         }
 
-        getDatastore(owner).then(function success(datastore) {
-          operations.push(datastore.get(aEntry.uid));
-          // It is needed to wait to have all operations ready
-          if (operations.length === entryData.length) {
-            execute(operations, resolve, reject, {
-              targetId: entry.id,
-              mozContactId: mozContactId
-            });
-          }
-        }, function error(err) {
-            console.error('Error while obtaining datastore: ', err.name);
-            reject(err);
-        });
+        return getDatastore(origin).then(store => store.get(entry.uid));
+      });
+
+    return Promise.all(contactProviderEntries).then(contacts => {
+      let options = {
+        targetId: entry.id,
+        mozContactId: mozContactId
+      };
+
+      // The GCDS may store more than one pointer to a contact source for each
+      // entry, in that case we need to do a passive merge before returning
+      // the result.
+      return new Promise((resolve, reject) => {
+        if (contacts.length === 1) {
+          contacts[0].id = options.targetId;
+          return resolve(contacts[0]);
+        }
+
+        _inMemoryMerge(contacts, options, resolve, reject);
       });
     });
   }
 
-
-  function execute(operations, resolve, reject, options) {
-    Promise.all(operations).then(function success(results) {
-      if (results.length === 1) {
-        results[0].id = options.targetId;
-        resolve(results[0]);
-        return;
-      }
-
+  function _inMemoryMerge(operations, options, resolve, reject) {
+    LazyLoader.load('/shared/js/contacts/contacts_merger.js', () => {
       if (options.mozContactId) {
-        results = reorderResults(results, options.mozContactId);
+        operations = reorderResults(operations, options.mozContactId);
       }
 
-      LazyLoader.load('/shared/js/contacts/contacts_merger.js',
-        function() {
-          var matchings = createMatchingContacts(results);
-
-          contacts.Merger.inMemoryMerge(results[0], matchings).then(
-            function success(mergedResult) {
-              mergedResult.id = options.targetId;
-              resolve(mergedResult);
-          }, function error(err) {
-              console.log('Error while merging: ', err);
-              reject(err);
-          });
-      });
-    }, function error(err) {
-        console.error('Error while getting data: ', err.name);
-        reject(err);
+      let matchings = createMatchingContacts(operations);
+      resolve(contacts.Merger.inMemoryMerge(operations[0], matchings)
+        .then(mergedResult => {
+          mergedResult.id = options.targetId;
+          return mergedResult;
+        }));
     });
   }
 
-
-  // This function reorders the contact data results array in order to
-  // put the mozContact in the first position, as mozContact data will be taken
-  // precedence over other datastore data
+  /**
+   * This function reorders the contact data results array in order to put the
+   * mozContact first, as mozContact data will take precedence over other
+   * datastore data
+   *
+   * @param {Array<DataStore>} results Array of datastores to reorder
+   * @param {String} mozContactId
+   *
+   * @return {Array<DataStore>}
+   */
   function reorderResults(results, mozContactId) {
-    var out = [];
+    let out = [];
 
-    for (var j = 0; j < results.length; j++) {
+    for (let j = 0; j < results.length; j++) {
       if (results[j].id === mozContactId) {
         out.unshift(results[j]);
-      }
-      else {
+      } else {
         out.push(results[j]);
       }
     }
@@ -162,21 +180,18 @@ var MultiContact = (function() {
     return out;
   }
 
-  // This function adapts the result array to the input object expected by
-  // the contacts_merger module
+  /**
+   * Adapts the result array to the input object expected by the
+   * contacts_merger module
+   *
+   * @param {Array} results
+   * @return {Array}
+   */
   function createMatchingContacts(results) {
-    var out = [];
-
-    for (var j = 1; j < results.length; j++) {
-      out.push({
-        matchingContact: results[j]
-      });
-    }
-
+    let out = results.map(result => ({ matchingContact: result }));
+    out.shift(); // Remove first element
     return out;
   }
 
-  return {
-    'getData': getData
-  };
+  return { getData };
 })();
