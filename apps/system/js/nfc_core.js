@@ -8,6 +8,7 @@
   };
 
   NfcCore.IMPORTS = [
+    'shared/js/utilities.js',
     'shared/js/nfc_utils.js'
   ];
 
