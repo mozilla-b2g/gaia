@@ -124,6 +124,9 @@ RAPTOR?=0
 # Share performance and usage data
 SHARE_PERF_USAGE?=1
 
+# what major version of node we expect to run?
+NODE_VERSION=v0.10
+
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
@@ -747,6 +750,11 @@ npm-cache:
 	touch -c node_modules
 
 node_modules: gaia_node_modules.revision
+ifneq ($(NODEJS),)
+ifneq ($(shell echo $(NODE_VERSION) | cut -d '.' -f1 -f2),$(shell $(NODEJS) --version | cut -d '.' -f1 -f2))
+	@echo 'Please use $(NODE_VERSION) of nodejs or it may cause unexpected error.'
+endif
+endif
 	# Running make without using a dependency ensures that we can run
 	# "make node_modules" with a custom NODE_MODULES_GIT_URL variable, and then
 	# run another target without specifying the variable
