@@ -2,6 +2,7 @@
 'use strict';
 
 require('/test/unit/metadata/utils.js');
+require('/js/metadata/id3v1.js');
 require('/js/metadata/id3v2.js');
 
 suite('id3v2 tags', function() {
@@ -230,6 +231,31 @@ suite('id3v2 tags', function() {
             assert.strictEqual(metadata.title, 'Volcanic Machinery');
             assert.strictEqual(metadata.tracknum, 13);
             assert.strictEqual(metadata.trackcount, 15);
+          });
+        });
+      });
+    });
+
+  });
+
+  suite('invalid files', function() {
+
+    [2, 3, 4].forEach(function(version) {
+      suite('invalid id3v2.' + version, function() {
+
+        test('invalid frame size', function(done) {
+          var filename = '/test-data/id3v2.' + version +
+                         '-invalid-frame-size.mp3';
+          parseMetadata(filename).catch(function(e) {
+            done();
+          });
+        });
+
+        test('invalid skipped frame', function(done) {
+          var filename = '/test-data/id3v2.' + version +
+                         '-invalid-skipped-frame-size.mp3';
+          parseMetadata(filename).catch(function() {
+            done();
           });
         });
       });
