@@ -1,0 +1,20 @@
+{
+  "name": "Gallery Activity Tester",
+  "description": "Gallery Activity Tester app",
+  "type": "privileged",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "share": {
+      "href": "/index.html#activity-share",
+      "filters": {
+        "type": ["image/*"]
+       },
+      "disposition": "window",
+      "returnValue": true
+    }
+  }
+}
