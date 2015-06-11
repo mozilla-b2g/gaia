@@ -79,29 +79,32 @@ define(function(require) {
         }
       },
 
+      _showStepsRequired(type) {
+        // If an addon injected a script then we have to restart any
+        // affected apps. And if those apps are system apps, then we
+        // need to reboot the device.
+        if (type === 'reboot') {
+          // XXX We could do a confirm dialog here asking the user if
+          // they want to go ahead and reboot the device now.
+          Toaster.showToast({
+            messageL10nId: 'addon-reboot-required',
+            latency: 3000,
+            useTransition: true
+          });
+        } else if (type === 'restart') {
+          Toaster.showToast({
+            messageL10nId: 'addon-restart-apps-to-disable',
+            latency: 3000,
+            useTransition: true
+          });
+        }
+      },
+
       _onAppEnabledChange: function(enabled) {
         this._elements.toggle.checked = enabled;
         if (!enabled) {
-          AddonManager.getAddonDisableType(this._curAddon).then((type) => {
-            // If an addon injected a script then we have to restart any
-            // affected apps. And if those apps are system apps, then we
-            // need to reboot the device.
-            if (type === 'reboot') {
-              // XXX We could do a confirm dialog here asking the user if
-              // they want to go ahead and reboot the device now.
-              Toaster.showToast({
-                messageL10nId: 'addon-reboot-required',
-                latency: 3000,
-                useTransition: true
-              });
-            } else if (type === 'restart') {
-              Toaster.showToast({
-                messageL10nId: 'addon-restart-apps-to-disable',
-                latency: 3000,
-                useTransition: true
-              });
-            }
-          });
+          AddonManager.getAddonDisableType(this._curAddon).then(
+            this._showStepsRequired);
         }
       },
 
@@ -115,9 +118,14 @@ define(function(require) {
 
       _onDelete: function() {
         this._elements.deleteButton.disabled = true; // don't delete it twice!
-        AddonManager.deleteAddon(this._curAddon).then(() => {
-          SettingsService.navigate('addons');  // go back
-        }, (reason) => {
+        var disableType;
+        AddonManager.getAddonDisableType(this._curAddon).then(type => {
+          disableType = type;
+          return AddonManager.deleteAddon(this._curAddon);
+        }).then(() => {
+          this._showStepsRequired(disableType);
+          SettingsService.navigate('addons'); /* go back*/
+        }).catch(reason => {
           console.error('Addon deletion failed:', reason);
           // If the user cancelled deletion, we need to reenable the button
           this._elements.deleteButton.disabled = false;
