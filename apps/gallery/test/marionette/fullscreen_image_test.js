@@ -13,8 +13,7 @@ marionette('the gallery', function() {
       prefs: {
         'device.storage.enabled': true,
         'device.storage.testing': true,
-        'device.storage.prompt.testing': true,
-        'webgl.force-enabled': true
+        'device.storage.prompt.testing': true
       }
     }
   });
@@ -49,19 +48,38 @@ marionette('the gallery', function() {
     assert.ok(app.thumbnailsView.displayed());
   });
 
-  test.skip('should flick through images in fullscreen mode', function() {
+  test('should flick through images in fullscreen mode', function() {
     // Acquire a duplicate of an image by launching the editing
     // mode and saving it.
     app.thumbnail.click();
+    client.waitFor(function() {
+      return app.fullscreenView.displayed();
+    });
     app.editButton.click();
     app.waitForImageEditor();
+    app.waitForAutoEnhanceButtonOff();
+    app.editEnhanceButton.click();
+    app.waitForAutoEnhanceButtonOn();
+    client.waitFor(function() {
+      return app.editSaveButton.enabled();
+    });
     app.editSaveButton.click();
     client.waitFor(function() {
       return app.thumbnails.length == 2;
     });
+    assert.ok(app.fullscreenView.displayed());    
+    
+    // go back to the thumbnail view, and click the first thumbnail
+    app.fullscreenBackButton.click();
+    client.waitFor(function() {
+      return app.thumbnailsView.displayed();
+    });
+    app.thumbnail.click();
+    client.waitFor(function() {
+      return app.fullscreenView.displayed();
+    });
 
     // You should be able to swipe between the two in fullscreen mode.
-    app.thumbnail.click();
     var translateX = app.getFrameTranslation(app.fullscreenFrame2);
     assert.strictEqual(translateX, 0);
 
@@ -70,7 +88,7 @@ marionette('the gallery', function() {
     var centerY = size.height / 2;
 
     actions.flick(app.fullscreenFrame2, centerX + 100,
-                  centerY, centerX - 100, centerY).perform();
+                   centerY, centerX - 100, centerY).perform();
 
     //Swiping centers the fullscreen view on the second frame.
     translateX = app.getFrameTranslation(app.fullscreenFrame3);
