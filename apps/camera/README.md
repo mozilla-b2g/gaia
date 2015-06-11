@@ -229,3 +229,11 @@ To launch the tests you have to follow the steps below in your terminal and in t
 If you want to run only one of the test suits you can do:
 
 make test-integration-test APP=camera TEST_FILES=apps/camera/test/marionette/capture_test.js
+
+## JSDOC
+
+Generated jsdoc is hosted in [http://mozilla-b2g.github.io/gaia/camera/](http://mozilla-b2g.github.io/gaia/camera/). You can generate it locally with following command:
+
+```
+$ gulp jsdoc:camera
+```
