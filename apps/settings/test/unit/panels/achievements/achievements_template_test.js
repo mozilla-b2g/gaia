@@ -38,6 +38,7 @@ suite('Achievements Template > ', function() {
     assert.ok(small);
     assert.equal(small.getAttribute('data-l10n-id'),
       'achievements-sharing-is-caring-description');
+    assert.isTrue(small.classList.contains('description'));
 
     var icon = subject.querySelector('img');
     assert.ok(icon);
