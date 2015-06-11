@@ -17,9 +17,6 @@ var MockContacts = {
   isEmpty: function(prop) {
     return false;
   },
-  updatePhoto: function(photo, dest) {
-    dest.setAttribute('backgroundImage', photo);
-  },
   hideOverlay: function() {
   },
   loadFacebook: function(cb) {

@@ -28,12 +28,21 @@ if (!utils.dom) {
     // nodes matching a selector.
     // CAUTION: Please be careful using this function as it could
     // be quite expensive depending on the container and selector.
-    Dom.removeClassFromNodes = function(container,
-      selector, clazz) {
+    Dom.removeClassFromNodes = function(container, selector, clazz) {
       var nodes = container.querySelectorAll(selector);
       for (var i = 0, n = nodes.length; i < n; ++i) {
         nodes[i].classList.remove(clazz);
       }
+    };
+
+    Dom.updatePhoto = function(photo, dest) {
+      var background = '';
+      if (photo != null) {
+        background = 'url(' + URL.createObjectURL(photo) + ')';
+      }
+      dest.style.backgroundImage = background;
+      // Only for testing purposes
+      dest.dataset.photoReady = 'true';
     };
 
   })(document);

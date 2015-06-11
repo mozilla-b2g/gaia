@@ -690,7 +690,7 @@ suite('Render contact', function() {
         //assert.include(dom.innerHTML, contact.photo[0]);
 
         observer.disconnect();
-        var spy = sinon.spy(Contacts, 'updatePhoto');
+        var spy = sinon.spy(utils.dom, 'updatePhoto');
 
         var observer2 = new MutationObserver(function() {
           observer2.disconnect();
