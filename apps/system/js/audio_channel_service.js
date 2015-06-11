@@ -16,7 +16,8 @@
   AudioChannelService.EVENTS = [
     'audiochannelstatechanged',
     'audiochanneldestroyed',
-    'hierarchytopmostwindowchanged'
+    'hierarchytopmostwindowchanged',
+    'systemwindowaudiochannelsregistered'
   ];
 
   AudioChannelService.SUB_MODULES = [
@@ -26,6 +27,8 @@
   BaseModule.create(AudioChannelService, {
     name: 'AudioChannelService',
     DEBUG: false,
+    // If true, all audio channels of System app are muted.
+    _isSystemMuted: false,
     // A map contains playing audio channels.
     _activeAudioChannels: null,
     // An array contains audio channels could be resumed
@@ -40,6 +43,7 @@
     _start: function() {
       this._activeAudioChannels = new Map();
       this._interruptedAudioChannels = [];
+      this._muteSystemAudioChannels();
       this.debug('Start Audio Channel Manager');
     },
 
@@ -86,6 +90,13 @@
         this.debug(this._topMostWindow.name + ' is opened');
         this._resumeAudioChannels(this._topMostWindow);
       }
+    },
+
+    /**
+     * Mute the System app's audio channels after they are registered.
+     */
+    _handle_systemwindowaudiochannelsregistered: function() {
+      this._muteSystemAudioChannels();
     },
 
     /**
@@ -212,6 +223,29 @@
         isAudioChannelInBackground = false;
       }
       return isAudioChannelInBackground;
+    },
+
+    _muteSystemAudioChannels: function() {
+      var audioChannels = this.service.query('SystemWindow.getAudioChannels');
+      if (!this._isSystemMuted && audioChannels && audioChannels.size) {
+        audioChannels.forEach((audioChannel, name) => {
+          this._sendContentEvent({
+            type: 'system-audiochannel-mute', name: name, isMuted: true
+          });
+        });
+        this._isSystemMuted = true;
+      }
+    },
+
+    /**
+     * Send MozContentEvent to control the audio chanenl in System app.
+     *
+     * @param {Object} detail The arguments for passing to Gecko.
+     * @param {Object} detail.type The operation for the audio channel.
+     */
+    _sendContentEvent: function(detail) {
+      var evt = new CustomEvent('mozContentEvent', { detail: detail });
+      window.dispatchEvent(evt);
     }
   });
 }());

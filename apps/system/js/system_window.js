@@ -11,12 +11,17 @@
    */
   var SystemWindow = function() {};
 
+  SystemWindow.STATES = [
+    'getAudioChannels'
+  ];
+
   SystemWindow.EVENTS = [
     'mozChromeEvent'
   ];
 
   BaseModule.create(SystemWindow, {
     name: 'SystemWindow',
+    EVENT_PREFIX: 'systemwindow',
     DEBUG: false,
     // The fake app window ID of System app.
     instanceID: null,
@@ -49,8 +54,13 @@
               name, new AudioChannelController(this, { name: name })
             );
           });
+          this.publish('audiochannelsregistered');
           break;
       }
+    },
+
+    getAudioChannels: function() {
+      return this.audioChannels;
     },
 
     /**

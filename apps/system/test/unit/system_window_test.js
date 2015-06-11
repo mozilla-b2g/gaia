@@ -1,8 +1,10 @@
 'use strict';
 /* global BaseModule */
 /* global MockAudioChannelController */
+/* global Service */
 
 requireApp('system/test/unit/mock_audio_channel_controller.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/system_window.js');
 
@@ -50,5 +52,27 @@ suite('system/SystemWindow', function() {
     assert.ok(subject.audioChannels.has('normal'));
     assert.ok(subject.audioChannels.has('notification'));
     assert.ok(subject.audioChannels.has('telephony'));
+  });
+
+  suite('Audio channels', function() {
+    test('Get no audio channels', function() {
+      var audioChannels = Service.query('getAudioChannels');
+      assert.equal(audioChannels.size, 0);
+    });
+
+    test('Get audio channels', function() {
+      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'system-audiochannel-list',
+          audioChannels: ['normal', 'notification', 'telephony']
+        }
+      }));
+      var audioChannels = Service.query('getAudioChannels');
+      assert.equal(audioChannels.size, 3);
+      var names = audioChannels.keys();
+      assert.equal(names.next().value, 'normal');
+      assert.equal(names.next().value, 'notification');
+      assert.equal(names.next().value, 'telephony');
+    });
   });
 });
