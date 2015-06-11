@@ -28,6 +28,7 @@ requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 requireApp('communications/contacts/js/contacts_tag.js');
 requireApp('communications/contacts/js/views/form.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_external_services.js');
@@ -83,6 +84,7 @@ window._ = navigator.mozL10n.get;
 requireApp('communications/contacts/js/tag_options.js');
 
 var mocksForm = new MocksHelper([
+  'MainNavigation',
   'Contacts',
   'ConfirmDialog',
   'ContactPhotoHelper'

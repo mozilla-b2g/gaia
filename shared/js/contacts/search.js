@@ -1,5 +1,4 @@
 'use strict';
-/* global Contacts */
 /* global fb */
 /* global ImageLoader */
 /* global LazyLoader */
@@ -73,8 +72,7 @@ contacts.Search = (function() {
 
     searchEnabled = !!defaultEnabled;
 
-    navigationController = navigation ||
-      (window.Contacts && Contacts.navigation);
+    navigationController = navigation || window.MainNavigation;
   };
 
   var initialized = false;

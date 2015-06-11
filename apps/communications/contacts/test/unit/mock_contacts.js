@@ -1,5 +1,4 @@
 'use strict';
-/* global MockNavigationStack */
 /* global ConfirmDialog */
 /* exported MockContacts */
 /* exported COMMS_APP_ORIGIN */
@@ -32,7 +31,6 @@ var MockContacts = {
     importLive: function() {},
     importGmail: function() {}
   },
-  navigation: new MockNavigationStack(),
   checkCancelableActivity: function() {},
   cancel: function() {},
   confirmDialog: function() {

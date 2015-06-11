@@ -9,10 +9,11 @@
 /* global fbLoader */
 /* global LazyLoader */
 /* global MozActivity */
-/* global navigationStack */
+/* global MainNavigation */
 /* global SmsIntegration */
 /* global TAG_OPTIONS */
 /* global utils */
+
 /* global ContactsService */
 
 /* exported COMMS_APP_ORIGIN */
@@ -41,12 +42,10 @@ var Contacts = (function() {
     }
   };
 
-  var navigation = new navigationStack('view-contacts-list');
-
   var goToForm = function edit() {
     var transition = ActivityHandler.currentlyHandling ? 'activity-popup'
                                                        : 'fade-in';
-    navigation.go('view-contact-form', transition);
+    MainNavigation.go('view-contact-form', transition);
   };
 
   var contactTag,
@@ -116,7 +115,7 @@ var Contacts = (function() {
 
               contactsDetails.render(currentContact);
 
-              navigation.go(sectionId, 'right-left');
+              MainNavigation.go(sectionId, 'right-left');
             }, function onError() {
               console.error('Error retrieving contact');
             });
@@ -127,7 +126,7 @@ var Contacts = (function() {
           } else if (params.mozContactParam) {
             var contact = ActivityHandler.mozContactParam;
             contactsDetails.render(contact, null, true);
-            navigation.go(sectionId, 'activity-popup');
+            MainNavigation.go(sectionId, 'activity-popup');
           }
         });
         break;
@@ -173,7 +172,7 @@ var Contacts = (function() {
       case 'add-parameters':
         initContactsList();
         initForm(function onInitForm() {
-          navigation.home();
+          MainNavigation.home();
           if (ActivityHandler.currentlyHandling) {
             selectList(params, true);
           }
@@ -181,11 +180,11 @@ var Contacts = (function() {
         break;
       case 'multiple-select-view':
         Contacts.view('multiple_select', () => {
-          navigation.go('multiple-select-view', 'activity-popup');
+          MainNavigation.go('multiple-select-view', 'activity-popup');
         });
         break;
       case 'home':
-        navigation.home();
+        MainNavigation.home();
         break;
     }
 
@@ -360,9 +359,9 @@ var Contacts = (function() {
 
         contactsDetails.render(currentContact, currentFbContact);
         if (contacts.Search && contacts.Search.isInSearchMode()) {
-          navigation.go('view-contact-details', 'go-deeper-search');
+          MainNavigation.go('view-contact-details', 'go-deeper-search');
         } else {
-          navigation.go('view-contact-details', 'go-deeper');
+          MainNavigation.go('view-contact-details', 'go-deeper');
         }
       });
     });
@@ -482,7 +481,7 @@ var Contacts = (function() {
 
     ContactsTag.fillTagOptions(tagsList, contactTag, options);
 
-    navigation.go('view-select-tag', 'right-left');
+    MainNavigation.go('view-select-tag', 'right-left');
     if (document.activeElement) {
       document.activeElement.blur();
     }
@@ -511,14 +510,14 @@ var Contacts = (function() {
   };
 
   var handleBack = function handleBack(cb) {
-    navigation.back(cb);
+    MainNavigation.back(cb);
   };
 
   var handleCancel = function handleCancel() {
     //If in an activity, cancel it
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
-      navigation.home();
+      MainNavigation.home();
     } else {
       handleBack();
     }
@@ -719,7 +718,7 @@ var Contacts = (function() {
     initSettings(function onSettingsReady() {
       // The number of FB Friends has to be recalculated
       contacts.Settings.refresh();
-      navigation.go('view-settings', 'fade-in');
+      MainNavigation.go('view-settings', 'fade-in');
     });
   };
 
@@ -849,7 +848,7 @@ var Contacts = (function() {
     // is not needed.
     Cache.evict();
     initContactsList();
-    var currView = navigation.currentView();
+    var currView = MainNavigation.currentView();
     switch (event.reason) {
       case 'update':
         if (currView == 'view-contact-details' && currentContact != null &&
@@ -877,7 +876,7 @@ var Contacts = (function() {
         if (currentContact != null && currentContact.id == event.contactID &&
           (currView == 'view-contact-details' ||
           currView == 'view-contact-form')) {
-          navigation.home();
+          MainNavigation.home();
         }
         contactsList.remove(event.contactID, event.reason);
         currentContact = {};
@@ -930,7 +929,7 @@ var Contacts = (function() {
 
     document.addEventListener('visibilitychange', function visibility(e) {
       if (document.hidden === false &&
-          navigation.currentView() === 'view-settings') {
+          MainNavigation.currentView() === 'view-settings') {
         Contacts.view('Settings', function viewLoaded() {
           contacts.Settings.updateTimestamps();
         });
@@ -1063,7 +1062,6 @@ var Contacts = (function() {
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
-    'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
     'checkCancelableActivity': checkCancelableActivity,

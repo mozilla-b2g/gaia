@@ -14,6 +14,7 @@
 /* global ActionMenu */
 /* global ICEData */
 /* global MergeHelper */
+/* global MainNavigation */
 /* global ContactsService */
 /* global Matcher */
 
@@ -634,7 +635,7 @@ contacts.Form = (function() {
       if ('mozNfc' in navigator && contacts.NFC) {
         contacts.NFC.stopListening();
       }
-      Contacts.navigation.home();
+      MainNavigation.home();
     };
 
     ContactsService.remove(

@@ -1,5 +1,5 @@
 /* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu,
-   ContactToVcardBlob, VcardFilename, VcardActivityHandler */
+   ContactToVcardBlob, VcardFilename, VcardActivityHandler, MainNavigation */
 /* exported ActivityHandler */
 
 'use strict';
@@ -124,7 +124,7 @@ var ActivityHandler = {
         }
         this._currentActivity = activity;
         Contacts.checkCancelableActivity();
-        Contacts.navigation.home();
+        MainNavigation.home();
         break;
       case 'import':
         this.importContactsFromFile(activity);

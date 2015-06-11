@@ -14,6 +14,7 @@ require('/shared/js/setImmediate.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_action_menu.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
@@ -28,6 +29,7 @@ if (!window.utils) {
 }
 
 var mocksHelperForActivities = new MocksHelper([
+  'MainNavigation',
   'Contacts',
   'ConfirmDialog',
   'LazyLoader',

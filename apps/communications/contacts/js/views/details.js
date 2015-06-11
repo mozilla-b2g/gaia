@@ -18,6 +18,7 @@
 /* global utils */
 /* global VcardFilename */
 /* global WebrtcClient */
+/* global MainNavigation */
 /* global ContactsService */
 
 var contacts = window.contacts || {};
@@ -119,12 +120,12 @@ contacts.Details = (function() {
 
     if (ActivityHandler.currentActivityIsNot(['import'])) {
       ActivityHandler.postCancel();
-      Contacts.navigation.home();
+      MainNavigation.home();
     }
     else if (contacts.ICEView && contacts.ICEView.iceListDisplayed) {
       ICEData.getActiveIceContacts().then(function(list) {
         if (!Array.isArray(list) || list.length === 0) {
-          Contacts.navigation.home();
+          MainNavigation.home();
         }
         else {
           doHandleDetailsBack();
@@ -146,7 +147,7 @@ contacts.Details = (function() {
       var message = { 'type': 'contactsiframe', 'message': 'back' };
       window.parent.postMessage(message, COMMS_APP_ORIGIN);
     } else {
-      Contacts.navigation.back(resetPhoto);
+      MainNavigation.back(resetPhoto);
     }
   };
 
