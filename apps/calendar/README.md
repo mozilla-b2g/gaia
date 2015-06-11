@@ -64,3 +64,11 @@ We have a test suite that checks whether or not we're interoperable with a parti
 A calendar.json file may be specified inside of distribution/calendar.json. This will override the generated presets.js file during the build. At a minimum Google Oauth credentials should be provided for production releases. Failure to do so may result in broken calendars at some point.
 
 You can signup for Google credentials here: https://code.google.com/apis/console/b/0/?pli=1#access
+
+## JSDOC
+
+Generated jsdoc is hosted in [http://mozilla-b2g.github.io/gaia/calendar/](http://mozilla-b2g.github.io/gaia/calendar/). You can generate it locally with following command:
+
+```
+$ gulp jsdoc:calendar
+```
