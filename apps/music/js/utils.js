@@ -101,7 +101,7 @@ function createListElement(option, data, index, highlight) {
 
       LazyLoader.load('js/metadata/album_art_cache.js', function() {
         AlbumArtCache.getThumbnailURL(data).then(function(url) {
-          showImage(albumImg, url, 'fadeIn');
+          showImage(albumImg, url);
         });
       });
 
