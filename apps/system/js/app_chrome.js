@@ -40,6 +40,11 @@
     this.render();
 
     if (this.app.themeColor) {
+      // If titlestatechanged is fired during creation, appChrome won't have
+      // been set yet.
+      app.appChrome = this;
+
+      this._themeChanged = true;
       this.setThemeColor(this.app.themeColor);
     }
 
@@ -75,9 +80,12 @@
 
     if (this.isSearchApp()) {
       this.app.element.classList.add('search-app');
-      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
     } else {
       this.app.element.classList.remove('search-app');
+    }
+
+    if (this.app.isHomescreen || this.isSearchApp()) {
+      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
     }
 
     if (chrome.bar) {
@@ -90,7 +98,7 @@
 
       if (this.app.isPrivateBrowser()) {
         this.element.classList.add('private');
-      } else {
+      } else if (!this.app.themeColor) {
         this.app.element.classList.add('light');
       }
 
@@ -100,7 +108,7 @@
     if (chrome.maximized) {
       this.element.classList.add('maximized');
 
-      if (!this.app.isBrowser()) {
+      if (!this.app.isBrowser() && !this.app.isHomescreen) {
         this.app.element.classList.add('scrollable');
       }
     }

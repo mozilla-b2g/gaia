@@ -22,6 +22,13 @@
   };
 
   /**
+   * A homescreen black-list of homescreens to not display the rocketbar on.
+   */
+  const ROCKETBAR_BLACKLIST = [
+    'app://verticalhome.gaiamobile.org/manifest.webapp'
+  ];
+
+  /**
    * Fired when the homescreen window is created.
    * @event HomescreenWindow#homescreencreated
    */
@@ -102,6 +109,13 @@
       this.browser_config.isHomescreen = true;
       this.config = this.browser_config;
       this.isHomescreen = true;
+
+      if (ROCKETBAR_BLACKLIST.indexOf(app.manifestURL) === -1) {
+        this.config.chrome = {
+          maximized: true,
+          scrollable: true
+        };
+      }
     };
 
   HomescreenWindow.REGISTERED_EVENTS = AppWindow.REGISTERED_EVENTS;
