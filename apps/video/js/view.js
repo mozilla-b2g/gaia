@@ -30,6 +30,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var touchStartID = null;
   var isPausedWhileDragging;
   var sliderRect;
+  window.pause = pause;
 
   //
   // Bug 1088456: when the view activity is launched by the bluetooth transfer
