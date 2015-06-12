@@ -255,14 +255,16 @@ var Pick = (function() {
       fullImageHeight = pickedFileInfo.metadata.height;
     }
 
-    var cropRegion;
+    var cropRegion, cropFraction;
 
     if (request.source.data.nocrop || !cropEditor.hasBeenCropped()) {
       cropRegion = null;
+      cropFraction = 1;
     }
     else {
       // Get the user's crop region from the crop editor
       cropRegion = cropEditor.getCropRegion();
+      cropFraction = cropRegion.width * cropRegion.height;
 
       // Scale to match the actual image size
       cropRegion.left = Math.round(cropRegion.left * fullImageWidth);
@@ -275,23 +277,37 @@ var Pick = (function() {
     if (pickWidth && pickHeight) {
       outputSize = { width: pickWidth, height: pickHeight };
     }
-    else if (CONFIG_MAX_PICK_PIXEL_SIZE) {
-      outputSize = CONFIG_MAX_PICK_PIXEL_SIZE;
-    }
     else {
-      outputSize = null;
+      // If no desired size is specified, we have to impose some kind of limit
+      // so that really big images aren't decoded at full size. If there is no
+      // build time configuration that specifies the desired maximum pick
+      // size, then we use half of the configured maximum decode size. Pick
+      // activities are memory-sensitive because the system app needs to keep
+      // both the requesting app and the gallery app alive at once.
+      outputSize =
+        CONFIG_MAX_PICK_PIXEL_SIZE ||
+        CONFIG_MAX_IMAGE_PIXEL_SIZE >> 1;
+
+      // If the pick request specifed a maxFileSizeBytes parameter then
+      // we'll use this as a hint for the output size. (We make no guarantee
+      // about the file size of the returned blob, but we try to be close)
+      // JPEG files typically have about 3 times as many pixels as bytes.
+      if (request.source.data.maxFileSizeBytes) {
+        var requestOutputSize =
+          Math.round(request.source.data.maxFileSizeBytes / cropFraction * 3);
+        outputSize = Math.min(outputSize, requestOutputSize);
+      }
     }
 
-    // show spinner if cropResizeRotate will downsample image
+    // show spinner if cropResizeRotate will decode and modify the image
     if (cropRegion !== null ||
-        outputSize !== null ||
-        (pickedFileInfo.metadata !== undefined &&
-         pickedFileInfo.metadata.rotation !== undefined &&
-         pickedFileInfo.metadata.rotation) ||
-        (pickedFileInfo.metadata.mirrored !== undefined &&
-         pickedFileInfo.metadata.mirrored)) {
+        typeof outputsize === 'object' ||
+        outputSize < fullImageWidth * fullImageHeight ||
+        pickedFileInfo.metadata.rotation ||
+        pickedFileInfo.metadata.mirrored) {
       Spinner.show();
     }
+
     cropResizeRotate(pickedFile, cropRegion, outputSize, pickType,
                      pickedFileInfo.metadata,
                      function(error, blob) {
