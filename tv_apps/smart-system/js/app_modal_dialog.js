@@ -1,5 +1,5 @@
-/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation, KeyEvent,
-          SmartModalDialog, focusManager */
+/* global AppModalDialog, AirplaneMode, SimpleKeyNavigation,
+          SmartModalDialog, SmartInputDialog, focusManager */
 'use strict';
 
 (function(exports) {
@@ -80,9 +80,11 @@
     this.container = document.getElementById(
       this.CLASS_NAME + 'Container' + this.instanceID);
     this.smartModalDialog = new SmartModalDialog(this.container);
+    this.smartInputDialog = new SmartInputDialog(this.container);
     this.container.addEventListener('modal-dialog-will-open', this);
     this.container.addEventListener('modal-dialog-closed', this);
     this.isSmartModalDialog = false;
+    this.isSmartInputDialog = false;
 
     this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
     this.element.setAttribute('tabIndex', -1);
@@ -247,16 +249,17 @@
         } else {
           option.buttonSettings[0].textL10nId = 'ok';
         }
+        this.smartModalDialog.open(option);
         break;
 
       case 'confirm':
         option = {
           message: { textRaw: message },
           buttonSettings: [{
+            onClick: self.cancelHandler.bind(self)
+          },{
             defaultFocus: true,
             onClick: self.confirmHandler.bind(self)
-          },{
-            onClick: self.cancelHandler.bind(self)
           }],
           onCancel: self.cancelHandler.bind(self)
         };
@@ -272,30 +275,22 @@
         } else {
           option.buttonSettings[0].textL10nId = 'cancel';
         }
+        this.smartModalDialog.open(option);
         break;
 
       case 'prompt':
-        var promptInput = document.createElement('gaia-text-input');
-        promptInput.value = evt.detail.initialValue;
-        promptInput.setAttribute('clearable', true);
-        promptInput.addEventListener('keyup', function(evt) {
-          if (evt.keyCode === KeyEvent.DOM_VK_RETURN) {
-            self.smartModalDialog.buttonElements[1].click();
-          }
-        });
-
         option = {
           message: { textRaw: message },
-          customElementSettings: {
-            element: promptInput,
-            defaultFocus: true
-          },
+          initialInputValue: evt.detail.initialValue,
           buttonSettings: [{
-            onClick: self.confirmHandler.bind(self)
-          },{
             onClick: self.cancelHandler.bind(self)
+          },{
+            onClick: self.confirmHandler.bind(self)
           }],
-          onCancel: self.cancelHandler.bind(self)
+          onCancel: self.cancelHandler.bind(self),
+          onReturned: function() {
+            self.smartInputDialog.buttonElements[1].click();
+          }.bind(self)
         };
 
         if (evt.yesText) {
@@ -309,12 +304,12 @@
         } else {
           option.buttonSettings[0].textL10nId = 'cancel';
         }
+        this.smartInputDialog.open(option);
         break;
     }
 
     this.app.publish('modaldialog-' + type + '-shown');
     this.app.browser.element.setAttribute('aria-hidden', true);
-    this.smartModalDialog.open(option);
   };
 
   // Show relative dialog and set message/input value well
@@ -339,9 +334,17 @@
     switch (type) {
       case 'alert':
       case 'confirm':
-      case 'prompt':
-        this._show(evt);
         this.isSmartModalDialog = true;
+        this.isSmartInputDialog = false;
+        this._show(evt);
+        // Early return because we don't need to handle key navigation and
+        // smart-dialog open in smart-modal-dialog.
+        return;
+
+      case 'prompt':
+        this.isSmartModalDialog = true;
+        this.isSmartInputDialog = true;
+        this._show(evt);
         // Early return because we don't need to handle key navigation and
         // smart-dialog open in smart-modal-dialog.
         return;
@@ -428,10 +431,13 @@
   };
 
   AppModalDialog.prototype.isFocusable = function amd_isFocusable() {
-    if (this.isSmartModalDialog) {
+    if (this.isSmartModalDialog && !this.isSmartInputDialog) {
       return !!this.smartModalDialog.element &&
         !this.smartModalDialog.element.classList.contains('closed');
-    } else {
+    } else if (this.isSmartModalDialog && this.isSmartInputDialog) {
+      return !!this.smartInputDialog.element &&
+        !this.smartInputDialog.element.classList.contains('closed');
+    } else if (!this.isSmartModalDialog) {
       return !!this.element &&
         !this.element.classList.contains('closed');
     }
@@ -441,7 +447,13 @@
     // XXX: Focusing smart-button fails at the second time popup if we don't
     // postpone it. We need to find the root cause.
     document.activeElement.blur();
-    if (!this.element.classList.contains('opened')) {
+    if (this.isSmartModalDialog && !this.isSmartInputDialog) {
+      this.smartModalDialog.focus();
+      return;
+    } else if (this.isSmartModalDialog && this.isSmartInputDialog) {
+      this.smartInputDialog.focus();
+      return;
+    } else if (!this.isSmartModalDialog) {
       this.element.focus();
       return;
     }
@@ -460,7 +472,13 @@
   };
 
   AppModalDialog.prototype.getElement = function amd_getElement() {
-    return this.element;
+    if (this.isSmartModalDialog && !this.isSmartInputDialog) {
+      return this.smartModalDialog.element;
+    } else if (this.isSmartModalDialog && this.isSmartInputDialog) {
+      return this.smartInputDialog.element;
+    } else if (!this.isSmartModalDialog) {
+      return this.element;
+    }
   };
 
   // When user clicks OK button on alert/confirm/prompt
@@ -481,8 +499,7 @@
       var type = evt.detail.promptType || evt.detail.type;
       switch (type) {
         case 'prompt':
-          evt.detail.returnValue =
-            this.smartModalDialog.customElementGroup.firstChild.value;
+          evt.detail.returnValue = this.smartInputDialog.textInput.value;
           break;
 
         case 'confirm':

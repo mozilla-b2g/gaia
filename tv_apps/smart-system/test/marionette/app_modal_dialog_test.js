@@ -80,6 +80,21 @@ marionette('Test Modal Dialog Events', function() {
     appModalDialog.waitForDialogClosed(appModalDialog.alertDialog);
   });
 
+  test('alert modal dialog should focus on ok when opened', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('alert', options.alert.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
+
+      appModalDialog.waitForDialogOpened(appModalDialog.alertDialog);
+      assert.ok(appModalDialog.alertOk.scriptWith(function(el) {
+        return document.activeElement === el;
+      }));
+    });
+
   test('prompt modal dialog should disappear - ok', testOptions,
     function() {
       launchModalDialogApp();
@@ -118,6 +133,22 @@ marionette('Test Modal Dialog Events', function() {
       appModalDialog.waitForDialogClosed(appModalDialog.promptDialog);
     });
 
+  test('prompt modal dialog should focus on input when opened', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('prompt', options.prompt.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
+
+      appModalDialog.waitForDialogOpened(appModalDialog.promptDialog);
+
+      assert.ok(appModalDialog.promptInput.scriptWith(function(el) {
+        return document.activeElement === el;
+      }));
+    });
+
   test('confirm modal dialog should disappear - ok', testOptions,
     function() {
       launchModalDialogApp();
@@ -154,6 +185,22 @@ marionette('Test Modal Dialog Events', function() {
 
       appModalDialog.sendKeyToElement(appModalDialog.confirmCancel, Keys.enter);
       appModalDialog.waitForDialogClosed(appModalDialog.confirmDialog);
+    });
+
+  test('confirm modal dialog should focus on ok when opened', testOptions,
+    function() {
+      launchModalDialogApp();
+      client.executeAsyncScript(function(options) {
+        window.wrappedJSObject.showDialog('confirm', options.confirm.message);
+        marionetteScriptFinished();
+      }, [options]);
+      client.switchToFrame();
+
+      appModalDialog.waitForDialogOpened(appModalDialog.confirmDialog);
+
+      assert.ok(appModalDialog.confirmOk.scriptWith(function(el) {
+        return document.activeElement === el;
+      }));
     });
 
 });

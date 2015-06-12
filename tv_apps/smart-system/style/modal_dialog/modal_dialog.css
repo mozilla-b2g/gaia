@@ -105,7 +105,6 @@
 .appWindow > .modal-dialog input:focus {
   font-style: normal;
   color: #e7e7e7;
-
 }
 
 .appWindow > .smart-modal-dialog-container .modal-dialog .modal-dialog-message {
@@ -117,6 +116,10 @@
   padding: 0 0 3.4rem 0;
   text-align: center;
   white-space: pre-wrap;
+}
+
+.appWindow > .smart-modal-dialog-container .modal-dialog input {
+  box-shadow: none; /* override the box-shadow from the input_areas.css */
 }
 
 #modal-dialog-alert,

@@ -17,6 +17,7 @@
   "dependencies": {
     "smart-dialog": "smart-components/smart-dialog",
     "smart-bubbles": "smart-components/smart-bubbles",
-    "smart-button": "smart-components/smart-button"
+    "smart-button": "smart-components/smart-button",
+    "smart-icons": "smart-components/smart-icons"
   }
 }

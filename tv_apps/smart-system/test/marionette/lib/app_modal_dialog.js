@@ -17,26 +17,31 @@ module.exports = ModalDialog;
 
 ModalDialog.Selector = Object.freeze({
   alert: {
-    dialog: '.appWindow.active .smart-modal-dialog-container .modal-dialog',
-    ok: '.appWindow.active .modal-dialog-button-group' +
-        ' smart-button:nth-child(1)',
-    message: '.appWindow.active .modal-dialog-message'
+    dialog: '.appWindow.active .smart-modal-dialog-container' +
+            ' .modal-dialog-opened',
+    ok: '.appWindow.active .modal-dialog-opened' +
+        ' .modal-dialog-button-group smart-button:nth-child(1)',
+    message: '.appWindow.active .modal-dialog-opened .modal-dialog-message'
   },
   prompt: {
-    dialog: '.appWindow.active .smart-modal-dialog-container .modal-dialog',
-    ok: '.appWindow.active .modal-dialog-button-group' +
-        ' smart-button:nth-child(2)',
-    cancel: '.appWindow.active .modal-dialog-button-group' +
-            ' smart-button:nth-child(1)',
-    message: '.appWindow.active .modal-dialog-message'
+    dialog: '.appWindow.active .smart-modal-dialog-container' +
+            ' .modal-dialog-opened',
+    ok: '.appWindow.active .modal-dialog-opened' +
+        ' .modal-dialog-button-group smart-button:nth-child(2)',
+    cancel: '.appWindow.active .modal-dialog-opened' +
+            ' .modal-dialog-button-group smart-button:nth-child(1)',
+    message: '.appWindow.active .modal-dialog-opened .modal-dialog-message',
+    input: '.appWindow.active .modal-dialog-opened' +
+           ' .modal-dialog-input-group input'
   },
   confirm: {
-    dialog: '.appWindow.active .smart-modal-dialog-container .modal-dialog',
-    ok: '.appWindow.active .modal-dialog-button-group' +
-        ' smart-button:nth-child(2)',
-    cancel: '.appWindow.active .modal-dialog-button-group' +
-            ' smart-button:nth-child(1)',
-    message: '.appWindow.active .modal-dialog-message'
+    dialog: '.appWindow.active .smart-modal-dialog-container' +
+            ' .modal-dialog-opened',
+    ok: '.appWindow.active .modal-dialog-opened' +
+        ' .modal-dialog-button-group smart-button:nth-child(2)',
+    cancel: '.appWindow.active' +
+            ' .modal-dialog-button-group smart-button:nth-child(1)',
+    message: '.appWindow.active .modal-dialog-opened .modal-dialog-message'
   }
 });
 
@@ -72,6 +77,10 @@ ModalDialog.prototype = {
 
   get promptMessage() {
     return this.client.findElement(ModalDialog.Selector.prompt.message);
+  },
+
+  get promptInput() {
+    return this.client.findElement(ModalDialog.Selector.prompt.input);
   },
 
   get confirmDialog() {

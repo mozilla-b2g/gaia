@@ -19,7 +19,6 @@
     "smart-banner": "gaia-components/smart-banner",
     "smart-bubbles": "smart-components/smart-bubbles",
     "smart-dialog": "smart-components/smart-dialog",
-    "smart-modal-dialog": "smart-components/smart-modal-dialog",
-    "gaia-text-input": "gaia-components/gaia-text-input"
+    "smart-modal-dialog": "smart-components/smart-modal-dialog"
   }
 }
