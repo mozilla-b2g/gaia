@@ -334,7 +334,7 @@ gaia-buttons.forward-only .icon-previous {
   padding: 0 1.5rem 0.5rem 1.5rem;
   display: flex;
   flex-direction: column;
-  -moz-box-sizing: padding-box;
+  -moz-box-sizing: border-box;
 }
 #wifi li.connected p {
   color: #00AACC;

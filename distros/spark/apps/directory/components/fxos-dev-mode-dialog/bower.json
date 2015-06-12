@@ -1,6 +1,6 @@
 {
   "name": "fxos-dev-mode-dialog",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Developer Mode prompt for Gaia apps.",
   "homepage": "https://github.com/fxos/fxos-dev-mode-dialog",
   "license": "MPL",

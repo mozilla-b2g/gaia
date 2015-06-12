@@ -149,7 +149,7 @@
   padding-bottom: 0;
   -moz-padding-start: 1.45rem;
   -moz-padding-end: 0.8rem;
-  box-sizing: padding-box;
+  box-sizing: border-box;
   overflow: hidden;
   float: none;
   background-color: rgba(204,204,204,0.2);

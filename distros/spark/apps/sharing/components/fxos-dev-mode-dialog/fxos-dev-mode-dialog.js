@@ -15,7 +15,7 @@ var template = `<style>
 .modal-dialog > section {
   color: #FAFAFA;
   padding: 80px 25px 0;
-  -moz-box-sizing: padding-box;
+  -moz-box-sizing: border-box;
   font-size: 22px;
   line-height: 30px;
   font-weight: 300;

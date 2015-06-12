@@ -28,7 +28,7 @@ body[role="application"] [role="dialog"]:before {
 
 body[role="application"] [role="dialog"] > div {
   padding: 0 2.5rem 0 2rem;
-  -moz-box-sizing: padding-box;
+  -moz-box-sizing: border-box;
   width: 100%;
   display: inline-block;
   vertical-align: middle;
