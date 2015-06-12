@@ -2,15 +2,14 @@
 
 /* global MockNavigatorSettings, MockasyncStorage, MockXMLHttpRequest,
           MockNavigatorMozMobileConnections, MockNavigatorMozIccManager,
-          MockNavigatorMozTelephony, MockMobileOperator, MockSIMSlotManager,
-          MockSIMSlot, MockAppsMgmt, MocksHelper */
+          MockMobileOperator, MockSIMSlotManager, MockSIMSlot, MockAppsMgmt,
+          MocksHelper */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
 require('/apps/system/test/unit/mock_xmlhttprequest.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
@@ -55,7 +54,7 @@ suite('FtuPing', function() {
   var realMobileConnections, realIccManager;
   var realMobileOperator, realSIMSlotManager;
   var realNavigatorLanguage;
-  var realMozApps, realMozTelephony;
+  var realMozApps;
   var FtuPing;
 
   suiteSetup(function() {
@@ -68,7 +67,6 @@ suite('FtuPing', function() {
     realSIMSlotManager = window.SIMSlotManager;
     realMozApps = navigator.mozApps;
     realNavigatorLanguage = navigator.language;
-    realMozTelephony = navigator.mozTelephony;
 
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
@@ -78,7 +76,6 @@ suite('FtuPing', function() {
     window.MobileOperator = MockMobileOperator;
     window.SIMSlotManager = MockSIMSlotManager;
     navigator.mozApps = { mgmt: MockAppsMgmt };
-    navigator.mozTelephony = MockNavigatorMozTelephony;
     switchReadOnlyProperty(navigator,'language', realNavigatorLanguage);
   });
 
@@ -91,7 +88,6 @@ suite('FtuPing', function() {
     window.MobileOperator = realMobileOperator;
     window.SIMSlotManager = realSIMSlotManager;
     navigator.mozApps = realMozApps;
-    navigator.mozTelephony = realMozTelephony;
     switchReadOnlyProperty(navigator,'language', realNavigatorLanguage);
   });
 
@@ -546,53 +542,6 @@ suite('FtuPing', function() {
       var newLocale = 'zh-TW';
       switchReadOnlyProperty(navigator,'language', newLocale);
       assert.equal(FtuPing.assemblePingData().locale, newLocale);
-    });
-  });
-
-  suite('deviceID', function() {
-    setup(function() {
-      MockNavigatorSettings.mSettings['ftu.pingURL'] = 'test_url';
-      MockasyncStorage.mItems['ftu.pingEnabled'] = true;
-
-      this.sinon.stub(window, 'uuid', function() {
-        return 'uuid';
-      });
-
-      this.sinon.stub(navigator.mozTelephony, 'dial', function() {
-        return Promise.resolve({
-          result: Promise.resolve({
-            success: true,
-            serviceCode: 'scImei',
-            statusMessage: 'fakeImei'
-          })
-        });
-      });
-    });
-
-    test('is IMEI for dogfooder', function(done) {
-      MockNavigatorSettings.mSettings['debug.performance_data.dogfooding'] = '1';
-      FtuPing.initSettings().then(function() {
-        var pingData = FtuPing.assemblePingData();
-        assert.equal(pingData.pingID, 'fakeImei');
-        done();
-      });
-    });
-
-    test('is generated when not set', function(done) {
-      FtuPing.initSettings().then(function() {
-        var pingData = FtuPing.assemblePingData();
-        assert.equal(pingData.pingID, 'uuid');
-        done();
-      });
-    });
-
-    test('restores gracefully from asyncStorage', function(done) {
-      MockasyncStorage.mItems['ftu.pingID'] = 'ping_id';
-      FtuPing.initSettings().then(function() {
-        var pingData = FtuPing.assemblePingData();
-        assert.equal(pingData.pingID, 'ping_id');
-        done();
-      });
     });
   });
 });

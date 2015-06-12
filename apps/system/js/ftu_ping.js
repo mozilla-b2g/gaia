@@ -102,55 +102,41 @@
 
     initSettings: function fp_initSettings() {
       var self = this;
+      return new Promise(function(resolve, reject) {
+        self.reset();
 
-      function getDeviceID() {
-        // The TelemetryRequest API rejects when device ID can't be found, which
-        // means we can't easily chain it to other promises, so we wrap it here
-        return new Promise(function(resolve, reject) {
-          var promise = TelemetryRequest.getDeviceID(FTU_PING_ID);
-          promise.then(function(deviceID) {
-            self.debug('Found deviceID: ' + deviceID);
-            self._pingData.pingID = deviceID;
-            resolve();
-          }).catch(function(error) {
-            self.debug('Generating deviceID: ' + error);
+        self._pingData.screenHeight = window.screen.height;
+        self._pingData.screenWidth = window.screen.width;
+        self._pingData.devicePixelRatio = window.devicePixelRatio;
+
+        self.getAsyncStorageItems([FTU_PING_ID, FTU_PING_ACTIVATION,
+                                   FTU_PING_ENABLED,
+                                   FTU_PING_NETWORK_FAIL_COUNT],
+                                  function(items) {
+
+          self._pingData.pingID = items[FTU_PING_ID];
+          self._pingData.activationTime = items[FTU_PING_ACTIVATION];
+          self._pingEnabled = items[FTU_PING_ENABLED];
+
+          if (!self._pingData.pingID) {
             self._pingData.pingID = uuid();
             window.asyncStorage.setItem(FTU_PING_ID, self._pingData.pingID);
-            resolve();
-          });
-        });
-      }
+          }
 
-      function getAsyncItems() {
-        return new Promise(function(resolve, reject) {
-          self.getAsyncStorageItems([FTU_PING_ACTIVATION,
-                                     FTU_PING_ENABLED,
-                                     FTU_PING_NETWORK_FAIL_COUNT],
-                                    function(items) {
+          if (!self._pingData.activationTime) {
+            self._pingData.activationTime = Date.now();
+            window.asyncStorage.setItem(FTU_PING_ACTIVATION,
+                                        self._pingData.activationTime);
+          }
 
-            self._pingData.activationTime = items[FTU_PING_ACTIVATION];
-            self._pingEnabled = items[FTU_PING_ENABLED];
+          if (self._pingEnabled === null) {
+            self._pingEnabled = true;
+          }
 
-            if (!self._pingData.activationTime) {
-              self._pingData.activationTime = Date.now();
-              window.asyncStorage.setItem(FTU_PING_ACTIVATION,
-                                          self._pingData.activationTime);
-            }
+          if (typeof(items[FTU_PING_NETWORK_FAIL_COUNT]) === 'number') {
+            self._networkFailCount = items[FTU_PING_NETWORK_FAIL_COUNT];
+          }
 
-            if (self._pingEnabled === null) {
-              self._pingEnabled = true;
-            }
-
-            if (typeof(items[FTU_PING_NETWORK_FAIL_COUNT]) === 'number') {
-              self._networkFailCount = items[FTU_PING_NETWORK_FAIL_COUNT];
-            }
-            resolve();
-          });
-        });
-      }
-
-      function getSettings() {
-        return new Promise(function(resolve, reject) {
           var allSettings = [FTU_PING_URL, FTU_PING_TRY_INTERVAL,
                              FTU_PING_TIMEOUT, FTU_PING_MAX_NETWORK_FAILS].
                             concat(OBSERVE_SETTINGS);
@@ -181,15 +167,7 @@
             resolve();
           });
         });
-      }
-
-      self.reset();
-
-      self._pingData.screenHeight = window.screen.height;
-      self._pingData.screenWidth = window.screen.width;
-      self._pingData.devicePixelRatio = window.devicePixelRatio;
-
-      return Promise.all([getDeviceID(), getAsyncItems(), getSettings()]);
+      });
     },
 
     initPreinstalledApps: function fp_initPreinstalledApps(callback) {
@@ -252,11 +230,8 @@
     },
 
     ensurePing: function fp_ensurePing() {
-      var self = this;
-      LazyLoader.load('shared/js/telemetry.js').then(function() {
-        return Promise.all([self.initSettings(), self.initPreinstalledApps()])
-                      .then(self.startPing.bind(self));
-      });
+      var initPromises = [this.initSettings(), this.initPreinstalledApps()];
+      Promise.all(initPromises).then(this.startPing.bind(this));
     },
 
     onSettingChanged: function fp_onSettingChanged(evt) {
@@ -371,28 +346,32 @@
       var pingData = this.assemblePingData();
       this._pingData.pingTime = Date.now();
 
-      var request = new TelemetryRequest({
-        reason: TELEMETRY_REASON,
-        deviceID: pingData.pingID,
-        ver: TELEMETRY_VERSION,
-        url: this._pingURL,
-        appUpdateChannel: this._infoData['app.update.channel'],
-        appVersion: this._infoData['deviceinfo.platform_version'],
-        appBuildID: this._infoData['deviceinfo.platform_build_id']
-      }, pingData);
+      LazyLoader.load(['shared/js/telemetry.js']).then(() => {
+        var request = new TelemetryRequest({
+          reason: TELEMETRY_REASON,
+          deviceID: pingData.pingID,
+          ver: TELEMETRY_VERSION,
+          url: this._pingURL,
+          appUpdateChannel: this._infoData['app.update.channel'],
+          appVersion: this._infoData['deviceinfo.platform_version'],
+          appBuildID: this._infoData['deviceinfo.platform_build_id']
+        }, pingData);
 
-      var self = this;
-      request.send({
-        timeout: this._pingTimeout,
-        onload: function() {
-          self.pingSuccess(this.responseText);
-        },
-        ontimeout: function() {
-          self.pingError('Timed out');
-        },
-        onerror: function() {
-          self.pingError(this.statusText);
-        }
+        var self = this;
+        request.send({
+          timeout: this._pingTimeout,
+          onload: function() {
+            self.pingSuccess(this.responseText);
+          },
+          ontimeout: function() {
+            self.pingError('Timed out');
+          },
+          onerror: function() {
+            self.pingError(this.statusText);
+          }
+        });
+      }).catch((err) => {
+        console.error(err);
       });
     },
 
