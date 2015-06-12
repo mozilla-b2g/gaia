@@ -37,6 +37,7 @@ suite('Views.CreateAccount', function() {
   });
 
   teardown(function(done) {
+    subject.destroy();
     testSupport.calendar.clearStore(
       core.db,
       ['accounts'],
@@ -62,29 +63,21 @@ suite('Views.CreateAccount', function() {
   });
 
   suite('#_initEvents', function() {
-
-    test('when an account is added', function() {
-      var store = storeFactory.get('Account');
-      var renderCalled = false;
-      subject.render = function() {
-        renderCalled = true;
-      };
-
-      store.emit('add');
-
-      assert.equal(renderCalled, true);
+    setup(function(done) {
+      subject.render = done;
+      subject._initEvents();
     });
 
-    test('when an account is removed', function() {
+    test('when an account is added', function(done) {
       var store = storeFactory.get('Account');
-      var renderCalled = false;
-      subject.render = function() {
-        renderCalled = true;
-      };
+      subject.render = done;
+      store.emit('add');
+    });
 
+    test('when an account is removed', function(done) {
+      var store = storeFactory.get('Account');
+      subject.render = done;
       store.emit('remove');
-
-      assert.equal(renderCalled, true);
     });
   });
 
@@ -98,8 +91,7 @@ suite('Views.CreateAccount', function() {
 
       setup(function(done) {
         presets = Object.keys(Presets);
-        subject.render();
-        subject.onrender = done;
+        subject.render().then(done).catch(done);
       });
 
       test('each preset is displayed', function() {
@@ -132,8 +124,7 @@ suite('Views.CreateAccount', function() {
         var accountStore = storeFactory.get('Account');
 
         accountStore.persist({ preset: 'one' }, function() {
-          subject.render();
-          subject.onrender = done;
+          subject.render().then(done).catch(done);
         });
       });
 

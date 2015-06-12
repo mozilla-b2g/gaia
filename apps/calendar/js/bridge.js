@@ -134,6 +134,16 @@ exports.observeSetting = function(id) {
   return stream;
 };
 
+exports.getAccount = function(id) {
+  var accountStore = core.storeFactory.get('Account');
+  return accountStore.get(id);
+};
+
+exports.deleteAccount = function(id) {
+  var accountStore = core.storeFactory.get('Account');
+  return accountStore.remove(id);
+};
+
 exports.observeAccounts = function() {
   var stream = new FakeClientStream();
   var accountStore = core.storeFactory.get('Account');
@@ -185,6 +195,17 @@ exports.observeDay = function(date) {
   nextTick(() => dayObserver.on(date, emit));
 
   return stream;
+};
+
+
+/**
+ * Returns a list of available presets filtered by
+ * the currently used presets in the database.
+ * (can't create multiple local calendars)
+ */
+exports.availablePresets = function(presetList) {
+  var accountStore = core.storeFactory.get('Account');
+  return accountStore.availablePresets(presetList);
 };
 
 /**

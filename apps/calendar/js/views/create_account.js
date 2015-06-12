@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 var Presets = require('common/presets');
 var View = require('view');
+var co = require('ext/co');
 var core = require('core');
 var template = require('templates/account');
 
@@ -11,7 +12,6 @@ require('dom!create-account-view');
 function CreateAccount(options) {
   View.apply(this, arguments);
   this.cancel = this.cancel.bind(this);
-  this._initEvents();
 }
 module.exports = CreateAccount;
 
@@ -21,7 +21,6 @@ CreateAccount.prototype = {
   _changeToken: 0,
 
   presets: Presets,
-
 
   selectors: {
     element: '#create-account-view',
@@ -38,24 +37,18 @@ CreateAccount.prototype = {
   },
 
   _initEvents: function() {
-    var self = this;
-    var store = core.storeFactory.get('Account');
-
-    // Here instead of bind
-    // for inheritance / testing reasons.
-    function render() {
-      self.render();
-    }
-
-    store.on('remove', render);
-    store.on('add', render);
-
+    this._accountStream = core.bridge.observeAccounts();
+    this._accountStream.listen(() => this.render());
     this.header.addEventListener('action', this.cancel);
   },
 
-  render: function() {
+  destroy: function() {
+    this._accountStream && this._accountStream.cancel();
+    this.header.removeEventListener('action', this.cancel);
+  },
+
+  render: co.wrap(function *() {
     var presets = this.presets;
-    var store = core.storeFactory.get('Account');
     var listElement = this.accounts;
     var currentToken = ++this._changeToken;
 
@@ -68,30 +61,26 @@ CreateAccount.prototype = {
       );
     }
 
-    store.availablePresets(presets, function(err, available) {
+    try {
+      var available = yield core.bridge.availablePresets(presets);
       if (this._changeToken !== currentToken) {
         // another render call takes priority over this one.
         return;
       }
-
-      if (err) {
-        return console.error('Error displaying presets', err);
-      }
-
       available.forEach(renderPreset);
+    } catch (err) {
+      console.error('Error displaying presets', err);
+    }
+  }),
 
-      if (this.onrender) {
-        this.onrender();
-      }
-
-    }.bind(this));
+  onfirstseen: function() {
+    // render will be called as a side-effect of _initEvents
+    this._initEvents();
   },
 
   cancel: function() {
     window.history.back();
   }
 };
-
-CreateAccount.prototype.onfirstseen = CreateAccount.prototype.render;
 
 });
