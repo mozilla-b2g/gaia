@@ -31,19 +31,27 @@ class TestFtu(GaiaTestCase):
         ssid = self.testvars['wifi']['ssid']
         psk = self.testvars['wifi'].get('psk')
         keymanagement = self.testvars['wifi'].get('keyManagement')
+        share_data_default = True
+
+        # Assume a SIM is present if we assigned a phone number
+        # Don't trust internal API for this, since it's an external condition
+        has_a_sim = bool(self.testvars['local_phone_numbers'])
 
         self.wait_for_condition(lambda m: self.ftu.languages_list > 0, message="No languages listed on screen")
 
         # select en-US due to the condition of this test is only for en-US
         self.ftu.tap_language("en-US")
 
-        # Tap enable data if sim network present
-        if self.device.has_mobile_connection:
+        # If a SIM is present, the cell data screen comes up
+        if has_a_sim:
             self.ftu.tap_next_to_cell_data_section()
-            self.ftu.enable_data()
-            self.wait_for_condition(
-                lambda m: self.data_layer.is_cell_data_connected,
-                message='Cell data was not connected by FTU app')
+            # Tap enable data if connection is also present. You might have
+            # a SIM, but without a valid connection.
+            if self.device.has_mobile_connection:
+                self.ftu.enable_data()
+                self.wait_for_condition(
+                    lambda m: self.data_layer.is_cell_data_connected,
+                    message='Cell data was not connected by FTU app')
 
         # Tap next
         self.ftu.tap_next_to_wifi_section()
@@ -60,7 +68,7 @@ class TestFtu(GaiaTestCase):
 
         self.apps.switch_to_displayed_app()
 
-        # Set timezone if not connected to sim network
+        # Set timezone if there's no connection
         if not self.device.has_mobile_connection:
             self.ftu.tap_next_to_timezone_section()
             # UTC-05:00 America/New York is the default info if no network is detected
@@ -79,8 +87,8 @@ class TestFtu(GaiaTestCase):
             message='Geolocation was not disabled by the FTU app')
         self.ftu.tap_next_to_import_contacts_section()
 
-        if self.device.has_mobile_connection:
-            # Tap import from SIM
+        # If there's a SIM, try importing from it
+        if has_a_sim:
             # You can do this as many times as you like without db conflict
             self.ftu.tap_import_from_sim()
             self.ftu.wait_for_contacts_imported()
@@ -92,9 +100,23 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_next_to_firefox_accounts_section()
         self.ftu.tap_next_to_welcome_browser_section()
 
-        # Tap the statistics box and check that it sets a setting
-        self.ftu.tap_statistics_checkbox()
-        self.assertTrue(self.data_layer.get_setting('debug.performance_data.shared'))
+        # Verify the "Share Data" option matches expected initial state
+        # There's a very small lag on this after the dialog appears.
+        Wait(self.marionette).until(
+            lambda m: self.ftu.is_share_data_enabled == share_data_default,
+            message="Send Data UI state should match initial internal state")
+
+        # Verify that internal state matches UI state
+        self.assertEqual(self.data_layer.get_setting(
+            'debug.performance_data.shared'), self.ftu.is_share_data_enabled,
+            msg='Send Data internal state should match UI state')
+
+        # Toggle "Share Data" and verify that it also toggled internal state
+        self.ftu.toggle_share_data()
+        self.assertEqual(self.data_layer.get_setting(
+            'debug.performance_data.shared'), not share_data_default,
+            msg='Send Data internal state should be changed by UI')
+
         self.ftu.tap_next_to_privacy_browser_section()
 
         # Enter a dummy email address and check it set inside the os

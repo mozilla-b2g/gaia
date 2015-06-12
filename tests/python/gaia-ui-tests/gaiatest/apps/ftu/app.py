@@ -335,6 +335,18 @@ class Ftu(Base):
     def a11y_click_statistics_checkbox(self):
         self.accessibility.click(self.marionette.find_element(*self._statistic_checkbox_locator))
 
+    @property
+    def is_share_data_enabled(self):
+        return self.marionette.find_element(
+            *self._statistic_checkbox_locator).is_selected()
+
+    def toggle_share_data(self):
+        # Use for functional operation vs. UI operation
+        initial_state = self.is_share_data_enabled
+        self.tap_statistics_checkbox()
+        Wait(self.marionette).until(
+            lambda m: self.is_share_data_enabled is not initial_state)
+
     def tap_next_to_privacy_browser_section(self):
         self.tap_next()
         Wait(self.marionette).until(expected.element_displayed(
