@@ -19,9 +19,6 @@
    }, {
      "issuer": "Studio",
      "criteria": "achievements/creative-kind"
-   }, {
-     "issuer": "Bugilla Lite",
-     "criteria": "achievements/bug-buster"
    }],
    "alarm.enabled": false,
    "app-transition.enabled": true,

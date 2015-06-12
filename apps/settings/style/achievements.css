@@ -15,8 +15,8 @@
 }
 
 .achievements-item .icon {
-  width: 4rem;
-  height: 4rem;
+  width: 5rem;
+  height: 5rem;
   flex-shrink: 0;
 }
 
@@ -24,4 +24,11 @@
   display: flex;
   flex-direction: column;
   white-space: normal;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.achievements-item .details .description {
+  font-size: 1.4rem;
+  color: #505859;
 }

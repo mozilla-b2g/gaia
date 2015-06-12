@@ -26,6 +26,7 @@ define(function(require) {
       container.classList.add('achievements-item');
       details.classList.add('details');
       details.setAttribute('role', 'presentation');
+      small.classList.add('description');
       icon.classList.add('icon');
       icon.setAttribute('aria-hidden', true);
 
