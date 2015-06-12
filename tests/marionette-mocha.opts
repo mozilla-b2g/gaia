@@ -1,5 +1,3 @@
 --timeout 180s
---profile-builder ./shared/test/integration/profile_builder.js
 --profile-base ./shared/test/integration/profile.js
 ./shared/test/integration/setup.js
-

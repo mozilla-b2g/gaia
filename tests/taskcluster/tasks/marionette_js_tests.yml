@@ -23,7 +23,7 @@ task:
       PART: '{{chunk}}'
       NBPARTS: '{{totalChunks}}'
       REPORTER: 'mocha-tbpl-reporter'
-      TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
+      TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
       NODE_MODULES_SRC: npm-cache
 
     command:

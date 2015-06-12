@@ -171,7 +171,7 @@ function runTests(filenames, args, retry) {
  */
 function runTest(filename, args, retry) {
   return new Promise(function(resolve, reject) {
-    var command = path.resolve(__dirname, '../node_modules/.bin/marionette-mocha');
+    var command = path.resolve(__dirname, '../.bin/marionette-mocha');
     args = args.concat(filename);
 
     var jsmarionette = spawn(command, args);
