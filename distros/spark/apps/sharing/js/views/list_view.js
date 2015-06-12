@@ -76,7 +76,11 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-list", "gaia-checkbox", "gaia-sub-
         string = "<gaia-checkbox data-id=\"" + app.manifestURL + "\" data-action=\"toggle\"\n          class=\"control\" " + enabled + ">\n         </gaia-checkbox>";
       } else if (this.type === "download") {
         if (app.installed) {
-          string = "<gaia-button data-id=\"" + app.manifestURL + "\" data-action=\"open\"\n           class=\"control\">\n            Open\n          </gaia-button>";
+          if (app.manifest.role === "addon" || app.manifest.role === "theme") {
+            string = "<gaia-button disabled>Installed</gaia-button>";
+          } else {
+            string = "<gaia-button data-id=\"" + app.manifestURL + "\" data-action=\"open\"\n             class=\"control\">\n              Open\n            </gaia-button>";
+          }
         } else {
           string = "<gaia-button data-id=\"" + app.manifestURL + "\" data-action=\"download\"\n           class=\"control\">\n            Install\n          </gaia-button>";
         }

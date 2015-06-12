@@ -133,12 +133,23 @@ define(["exports", "fxos-mvc/dist/mvc", "app/js/models/app", "app/js/services/ap
     };
 
     ShareController.prototype.toggle = function (e) {
+      if (e && e.preventDefault) {
+        e.preventDefault();
+      }
+
+      var el = e.target.querySelector(".control") || e.target;
+      var checked = el.checked;
+
       AppsService.getApps().then(function (apps) {
-        var el = e.target.querySelector(".control");
         var app = App.getApp(apps, { manifestURL: el.dataset.id });
-        ShareService.setAppShare(app, !el.checked).then(function () {
-          return el.toggle();
-        });
+
+        ShareService.setAppShare(app, !checked);
+
+        // If there's a .control element under this one, then the user must have
+        // tapped on the description.
+        if (e.target.querySelector(".control")) {
+          el.toggle();
+        }
       });
     };
 
