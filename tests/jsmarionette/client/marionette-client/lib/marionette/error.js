@@ -23,7 +23,8 @@
     'script timeout': 'ScriptTimeout',
     'invalid element coordinates': 'InvalidElementCoordinates',
     'invalid selector': 'InvalidSelector',
-    'webdriver error': 'GenericError'
+    'webdriver error': 'GenericError',
+    'element not accessible': 'ElementNotAccessibleError'
   });
 
   var CODES = Object.freeze({
@@ -46,6 +47,7 @@
     28: STATUSES['script timeout'],
     29: STATUSES['invalid element coordinates'],
     32: STATUSES['invalid selector'],
+    56: STATUSES['element not accessible'],
     500: STATUSES['webdriver error']
   });
 
