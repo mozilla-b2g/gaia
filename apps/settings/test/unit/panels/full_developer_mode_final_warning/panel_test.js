@@ -4,7 +4,6 @@
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
 
 suite('Full developer mode final warning > ', function() {
-  var MockSettingsService;
   var FinalWarning;
 
   var realL10n;
@@ -17,7 +16,6 @@ suite('Full developer mode final warning > ', function() {
   ];
   var map = {
     '*': {
-      'modules/settings_service': 'MockSettingsService',
       'modules/dialog_panel': 'MockDialogPanel'
     }
   };
@@ -37,14 +35,6 @@ suite('Full developer mode final warning > ', function() {
     // Create a new requirejs context
     var requireCtx = testRequire([], map, function() {});
 
-    // Define MockSettingsService
-    MockSettingsService = {
-      back: sinon.stub()
-    };
-    define('MockSettingsService', function() {
-      return MockSettingsService;
-    });
-
     // Define MockDialogPanel
     define('MockDialogPanel', function() {
       return function(options) {
@@ -54,8 +44,6 @@ suite('Full developer mode final warning > ', function() {
             options.onInit(panel);
             panel.querySelector('button[type="submit"]').onclick =
               options.onSubmit.bind(options);
-            panel.querySelector('button[type="reset"]').onclick =
-              options.onCancel.bind(options);
           },
           beforeShow: function(panel) {
             if (!this._initialized) {
@@ -114,12 +102,6 @@ suite('Full developer mode final warning > ', function() {
             });
         }
       }
-    });
-
-    test('click on the cancel button', function() {
-      warning.init(document.body);
-      cancelBtn.dispatchEvent(new Event('click'));
-      sinon.assert.calledWith(MockSettingsService.back);
     });
   });
 });

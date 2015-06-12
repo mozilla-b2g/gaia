@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var SettingsService = require('modules/settings_service');
   var DialogPanel = require('modules/dialog_panel');
 
   return function ctor_full_dev_warning() {
@@ -21,7 +20,9 @@ define(function(require) {
       },
       onSubmit: function() {
         if (this._count === 1) {
-          this._wipe();
+          this._wipe().catch(() => {
+            this.close();
+          });
           return Promise.reject();
         } else {
           this._count--;
@@ -29,29 +30,24 @@ define(function(require) {
           return Promise.reject();
         }
       },
-      onCancel: function() {
-        this._close();
-      },
       _updateWarningInfo: function(count) {
         window.navigator.mozL10n.setAttributes(this._warningDialog.warningInfo,
           'enable-full-dev-mode-final-warning-msg', {
             count: count
           });
       },
-      _close: function() {
-        SettingsService.back();
-      },
       _wipe: function() {
         var power = navigator.mozPower;
         if (!power) {
           console.error('Cannot get mozPower');
-          this._close();
+          return Promise.reject();
         }
         if (!power.factoryReset) {
           console.error('Cannot invoke mozPower.factoryReset()');
-          this._close();
+          return Promise.reject();
         }
         power.factoryReset('root');
+        return Promise.resolve();
       }
     });
   };

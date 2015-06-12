@@ -1,0 +1,39 @@
+<element name="full-developer-mode-warning" extends="section">
+  <template>
+    <div class="full-dev-mode-warning" hidden>
+      <gaia-confirm>
+        <h1 data-l10n-id="enable-full-dev-mode-first-warning-title"></h1>
+        <p>
+          <span data-l10n-id="enable-full-dev-mode-first-warning-msg-1"></span>
+          <br/>
+          <br/>
+          <span data-l10n-id="enable-full-dev-mode-first-warning-msg-2"></span>
+          <br/>
+          <br/>
+          <span data-l10n-id="enable-full-dev-mode-first-warning-msg-3"></span>
+        </p>
+        <gaia-buttons skin="dark">
+          <button data-l10n-id="cancel" class="cancel-btn"></button>
+          <button data-l10n-id="enable" class="danger enable-btn"></button>
+        </gaia-buttons>
+      </gaia-confirm>
+    </div>
+
+    <div class="dev-menu-disabled-warning" hidden>
+      <gaia-confirm>
+        <h1 data-l10n-id="developer-menu-disabled-warning-title"></h1>
+        <p>
+          <span data-l10n-id="developer-menu-disabled-warning-msg-1"></span>
+          <br/>
+          <br/>
+          <span data-l10n-id="developer-menu-disabled-warning-msg-2"></span>
+        </p>
+        <gaia-buttons skin="dark">
+          <button data-l10n-id="close" class="close-btn"></button>
+        </gaia-buttons>
+      </gaia-confirm>
+    </div>
+
+    <panel data-path="panels/full_developer_mode_warning/panel"></panel>
+  </template>
+</element>
