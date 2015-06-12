@@ -19,9 +19,8 @@ var exec = require('child_process').exec;
 var fs = require('fs');
 var fsPath = require('path');
 
-// TODO(gaye): This is terrible :(
 // we need to know where to invoke the Makefile
-var GAIA_ROOT = fsPath.resolve(__dirname, '..', '..', '..', '..');
+var GAIA_ROOT = fsPath.resolve(__dirname, '..', '..', '..');
 
 // custom profile folder for tests... We use this as a baseProfile option in
 // marionette-profile-builder so while we use these files we never directly

@@ -1,9 +1,9 @@
 'use strict';
-var assert = require('assert');
-var fsPath = require('path');
-var subject = require('../lib/detectbinary').detectBinary;
-
 suite('detectbinary', function() {
+  var fsPath = require('path');
+  var assert = require('assert');
+  var subject = require('../lib/detectbinary').detectBinary;
+
   var platforms = {
     mac: {
       path: __dirname + '/fixtures/product-mac',

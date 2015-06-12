@@ -21,7 +21,7 @@ task:
     # confusing to figure out who calls what this should be improved.
     env:
       REPORTER: 'mocha-tbpl-reporter'
-      TEST_MANIFEST: '{{gaia}}/shared/test/integration/tbpl-manifest.json'
+      TEST_MANIFEST: './shared/test/integration/tbpl-manifest.json'
       GAIA_DEVICE_TYPE: 'tv'
       NODE_MODULES_SRC: npm-cache
 

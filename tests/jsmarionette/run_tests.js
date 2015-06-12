@@ -8,6 +8,11 @@ var Mocha = require('mocha');
 var path = require('path');
 
 var configs = Object.freeze({
+  /* client */
+  'json-wire-protocol': {
+    tests: ['test/index-test']
+  },
+
   'marionette-client': {
     entrypoint: 'test/helper',
     tests: [
@@ -21,21 +26,61 @@ var configs = Object.freeze({
       'test/marionette/error-test',
       'test/marionette/index-test',
       'test/marionette/multi-actions-test'
-    ],
+    ]
+  },
 
-    dependencies: {
-      'json-wire-protocol': {
-        tests: ['test/index-test']
-      },
+  'socket-retry-connect': {
+    tests: ['test']
+  },
 
-      'socket-retry-connect': {
-        tests: ['test']
-      },
+  'sockit-to-me': {
+    tests: ['test/sockit_test']
+  },
 
-      'sockit-to-me': {
-        tests: ['test/sockit_test']
-      }
-    }
+  /* mocha */
+  'mocha-json-proxy': {
+    entrypoint: 'test/helper',
+    tests: [
+      'test/acceptance/consumer',
+      'test/acceptance/reporter',
+      'test/consumer',
+      'test/reporter'
+    ]
+  },
+
+  'mocha-tbpl-reporter': {
+    tests: ['test/tbpl_test']
+  },
+
+  /* plugins */
+  'marionette-file-manager': {
+    tests: ['test/unit/desktop_client_file_manager_test']
+  },
+
+  'marionette-plugin-forms': {
+    entrypoint: 'test/test-helper',
+    tests: [
+      'test/unit/tests/formatters/date',
+      'test/unit/tests/formatters/time',
+      'test/unit/tests/utils/padzeros'
+    ]
+  },
+
+  /* runner */
+  'marionette-profile-builder': {
+    entrypoint: 'test/helper',
+    tests: ['test/index']
+  },
+
+  'mozilla-profile-builder': {
+    entrypoint: 'test/helper',
+    tests: [
+      'test/createprofile',
+      'test/gaiaprofile',
+      'test/index',
+      'test/pref',
+      'test/profile'
+    ]
   },
 
   'marionette-js-runner': {
@@ -50,61 +95,14 @@ var configs = Object.freeze({
       'test/error_ipc_test',
       'test/optsfileparser_test',
       'test/rpc_test'
-    ],
-
-    dependencies: {
-      'marionette-profile-builder': {
-        entrypoint: 'test/helper',
-        tests: ['test/index'],
-
-        dependencies: {
-          'mozilla-profile-builder': {
-            entrypoint: 'test/helper',
-            tests: [
-              'test/createprofile',
-              'test/gaiaprofile',
-              'test/index',
-              'test/pref',
-              'test/profile'
-            ]
-          }
-        }
-      },
-
-      'mocha-json-proxy': {
-        entrypoint: 'test/helper',
-        tests: [
-          'test/acceptance/consumer',
-          'test/acceptance/reporter',
-          'test/consumer',
-          'test/reporter'
-        ]
-      },
-
-      'mozilla-runner': {
-        tests: [
-          'test/detectbinary',
-          'test/run'
-        ]
-      }
-    }
-  },
-
-  'marionette-file-manager': {
-    tests: ['test/unit/desktop_client_file_manager_test']
-  },
-
-  'marionette-plugin-forms': {
-    entrypoint: 'test/test-helper',
-    tests: [
-      'test/unit/tests/formatters/date',
-      'test/unit/tests/formatters/time',
-      'test/unit/tests/utils/padzeros'
     ]
   },
 
-  'mocha-tbpl-reporter': {
-    tests: ['test/tbpl_test']
+  'mozilla-runner': {
+    'tests': [
+      'test/detectbinary',
+      'test/run'
+    ]
   }
 });
 
@@ -116,22 +114,6 @@ function configureMocha(mocha, key, config) {
   config.tests.forEach(function(test) {
     mocha.addFile(norm(__dirname, '../../node_modules', key, test));
   });
-
-  if ('dependencies' in config) {
-    for (var dependency in config.dependencies) {
-      var dependencyConfig = config.dependencies[dependency];
-      configureMocha(
-        mocha,
-        key + '/node_modules/' + dependency,
-        dependencyConfig
-      );
-    }
-  }
-}
-
-function norm() {
-  var args = Array.prototype.slice.call(arguments);
-  return path.normalize(path.resolve.apply(path, args));
 }
 
 function main() {
@@ -146,7 +128,14 @@ function main() {
     configureMocha(mocha, key, config);
   }
 
-  mocha.run(process.exit.bind(process));
+  mocha.run(function(failures) {
+    process.exit(failures);
+  });
+}
+
+function norm() {
+  var args = Array.prototype.slice.call(arguments);
+  return path.normalize(path.resolve.apply(path, args));
 }
 
 if (require.main === module) {
