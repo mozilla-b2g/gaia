@@ -25,7 +25,7 @@
   right: 0;
   height: 5rem;
 
-  background-color: #00adad;
+  background-color: var(--header-background);
   content: "";
 }
 
