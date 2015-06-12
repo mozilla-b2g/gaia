@@ -21,6 +21,7 @@ define(["exports", "fxos-mvc/dist/mvc", "app/js/services/device_name_service"], 
       Controller.call(this, options);
 
       this.view.render();
+      document.body.appendChild(this.view.el);
 
       DeviceNameService.addEventListener("devicenamechange", function (e) {
         return _this._updateDeviceName(e);
@@ -30,18 +31,12 @@ define(["exports", "fxos-mvc/dist/mvc", "app/js/services/device_name_service"], 
     _extends(DeviceNameController, Controller);
 
     DeviceNameController.prototype.main = function () {
-      var _this2 = this;
-      document.body.appendChild(this.view.el);
-
-      setTimeout(function () {
-        _this2.view.el.open();
-      });
+      this.view.el.open();
     };
 
     DeviceNameController.prototype.handleOpened = function () {};
 
     DeviceNameController.prototype.handleClosed = function () {
-      document.body.removeChild(this.view.el);
       DeviceNameService.signalDeviceNameCanceled();
     };
 

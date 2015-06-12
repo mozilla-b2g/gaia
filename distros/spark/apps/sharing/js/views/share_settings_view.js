@@ -20,9 +20,12 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-button", "gaia-switch"], function 
 
   var View = _fxosMvcDistMvc.View;
   var ShareSettingsView = (function (View) {
-    var ShareSettingsView = function ShareSettingsView() {
+    var ShareSettingsView = function ShareSettingsView(options) {
+      View.call(this, options);
+
       this.el = document.createElement("gaia-list");
       this.el.id = "share-settings";
+      this.el.classList.add("app-list");
 
       this.render();
     };
@@ -44,16 +47,15 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-button", "gaia-switch"], function 
         _this.els.shareDescription = _this.$("#share-description");
 
         _this.els.renameDevice = _this.$("#rename-device");
-        _this.els.renameDevice.addEventListener("click", function (e) {
-          return _this._handleRenameDevice(e);
-        });
 
         _this.els.deviceName = _this.$("#device-name");
+
+        _this.on("click", "#rename-device");
       });
     };
 
     ShareSettingsView.prototype.template = function () {
-      var string = "\n      <li>\n        <div>\n          <h3>Share My Apps</h3>\n          <h4 id=\"share-description\">Turn on to share apps</h4>\n        </div>\n        <gaia-switch id=\"share-enabled\"></gaia-switch>\n      </li>\n      <li>\n        <div>\n          <h3>Device Name</h3>\n          <h4 id=\"device-name\">Loading...</h4>\n        </div>\n        <i class=\"forward-light\"></i>\n      </li>\n      <li class=\"borderless\">\n        <div aria-disabled=\"true\" id=\"rename-device\" class=\"button\">\n          Rename Device\n        </div>\n      </li>\n    ";
+      var string = "<li>\n        <div flex>\n          <h3>Share My Apps</h3>\n          <h4 id=\"share-description\">Turn on to share apps</h4>\n        </div>\n        <gaia-switch id=\"share-enabled\"></gaia-switch>\n      </li>\n      <li>\n        <div flex>\n          <h3>Device Name</h3>\n          <h4 id=\"device-name\">Loading...</h4>\n        </div>\n        <a aria-disabled=\"true\" data-action=\"rename\" id=\"rename-device\">\n          Rename\n        </a>\n      </li>";
 
       return string;
     };
@@ -73,10 +75,6 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-button", "gaia-switch"], function 
 
     ShareSettingsView.prototype._handleShareEnabledChange = function (e) {
       this.controller.toggleBroadcasting(e.target.checked);
-    };
-
-    ShareSettingsView.prototype._handleRenameDevice = function (e) {
-      this.controller.handleRenameDevice();
     };
 
     _classProps(ShareSettingsView, null, {

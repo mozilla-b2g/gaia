@@ -124,12 +124,20 @@ define(["exports"], function (exports) {
     };
 
     EditView.prototype.setTarget = function (target) {
+      var _this2 = this;
       var clonedTarget = target.cloneNode(true);
-      var html = html_beautify(clonedTarget.innerHTML.trim(), {
-        indent_size: 2
-      });
+      var html = clonedTarget.innerHTML.trim();
 
-      this.htmlCodeEditor.value = html;
+      this.htmlCodeEditor.value = "Loading...";
+
+      setTimeout(function () {
+        html = html_beautify(html, {
+          indent_size: 2
+        });
+
+        _this2.htmlCodeEditor.value = html;
+      }, 1);
+
       this.scriptCodeEditor.value = "/**\n * You can edit a script to be inserted\n * in the generated add-on here.\n *\n * Globals:\n *   selector [String]\n *   el       [HTMLElement]\n *   mo       [MutationObserver]\n */\n\n//el.addEventListener('click', function(evt) {\n//  alert('Clicked!');\n//});\n";
 
       this.propertyInspector.setRootTarget(clonedTarget);

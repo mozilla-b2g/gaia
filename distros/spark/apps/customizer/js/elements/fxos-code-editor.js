@@ -6,7 +6,7 @@ define(["exports"], function (exports) {
 
     var proto = Object.create(HTMLElement.prototype);
 
-    var template = "<style scoped>\n  .container {\n    position: relative;\n    width: 100%;\n    height: 100%;\n  }\n  .line-numbers {\n    background: #95368c;\n    color: #fff;\n    font-family: Consolas,Monaco,\"Andale Mono\",monospace;\n    font-size: 14px;\n    line-height: 1.2em;\n    position: absolute;\n    padding: 0 2px;\n    top: 0;\n    left: 0;\n    width: 28px;\n    height: 100%;\n    overflow: hidden;\n  }\n  textarea {\n    background: #000;\n    border: none;\n    color: #fff;\n    font-family: Consolas,Monaco,\"Andale Mono\",monospace;\n    font-size: 14px;\n    line-height: 1.2em;\n    position: absolute;\n    top: 0;\n    left: 32px;\n    width: calc(100% - 32px);\n    height: 100%;\n    margin: 0;\n    padding: 0;\n    -moz-user-select: text !important;\n  }\n  .line-numbers,\n  textarea {\n    font-family: Consolas,Monaco,\"Andale Mono\",monospace;\n    font-size: 14px;\n    line-height: 1.2em;\n  }\n</style>\n<div class=\"container\">\n  <div class=\"line-numbers\">\n    <div>1</div>\n  </div>\n  <textarea wrap=\"off\"></textarea>\n</div>";
+    var template = "<style scoped>\n  .container {\n    position: relative;\n    width: 100%;\n    height: 100%;\n  }\n  .line-numbers {\n    background: #95368c;\n    color: #fff;\n    font-family: Consolas,Monaco,\"Andale Mono\",monospace;\n    font-size: 14px;\n    line-height: 1.2em;\n    position: absolute;\n    padding: 0 2px;\n    top: 0;\n    left: 0;\n    width: 28px;\n    height: 100%;\n    overflow: hidden;\n  }\n  textarea {\n    background: #000;\n    border: none;\n    color: #fff;\n    font-family: Consolas,Monaco,\"Andale Mono\",monospace;\n    font-size: 14px;\n    line-height: 1.2em;\n    position: absolute;\n    top: 0;\n    left: 32px;\n    width: calc(100% - 32px);\n    height: 100%;\n    margin: 0;\n    padding: 0;\n    -moz-user-select: text !important;\n  }\n  .line-numbers,\n  textarea {\n    font-family: Consolas,Monaco,\"Andale Mono\",monospace;\n    font-size: 14px;\n    line-height: 1.2em;\n  }\n</style>\n<div class=\"container\">\n  <div class=\"line-numbers\">\n    <div>1</div>\n  </div>\n  <textarea autocomplete=\"off\"\n            autocorrect=\"off\"\n            autocapitalize=\"off\"\n            inputmode=\"verbatim\"\n            x-inputmode=\"verbatim\"\n            spellcheck=\"false\"\n            wrap=\"off\"></textarea>\n</div>";
 
     proto.createdCallback = function () {
       var _this = this;
@@ -44,13 +44,15 @@ define(["exports"], function (exports) {
     function updateLineNumbers(element) {
       var html = "";
 
-      var lines = element.value.split("\n").length;
-      if (lines === element.lineNumbers.childElementCount) {
-        return;
-      }
+      if (element.value.length < 5000) {
+        var lines = element.value.split("\n").length;
+        if (lines === element.lineNumbers.childElementCount) {
+          return;
+        }
 
-      for (var i = 1; i <= lines; i++) {
-        html += "<div>" + i + "</div>";
+        for (var i = 1; i <= lines; i++) {
+          html += "<div>" + i + "</div>";
+        }
       }
 
       element.lineNumbers.innerHTML = html;

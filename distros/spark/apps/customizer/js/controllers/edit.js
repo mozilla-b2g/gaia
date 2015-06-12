@@ -37,7 +37,13 @@ define(["exports"], function (exports) {
     };
 
     EditController.prototype.close = function () {
-      this.view.close();
+      if (this.changes.innerHTML || this.changes.script || this.changes.createAttributes || this.changes.removeAttributes || this.changes.properties) {
+        if (window.confirm("Are you sure you want to discard your changes?")) {
+          this.view.close();
+        }
+      } else {
+        this.view.close();
+      }
     };
 
     EditController.prototype.save = function () {

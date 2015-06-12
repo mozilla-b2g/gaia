@@ -106,11 +106,11 @@ define(["exports", "fxos-mvc/dist/mvc", "app/js/models/app"], function (exports,
       */
     };
 
-    AppsService.prototype.getApps = function () {
+    AppsService.prototype.getApps = function (noFilter) {
       var _this3 = this;
       return new Promise(function (resolve, reject) {
         _this3._getApps().then(function () {
-          resolve(_this3._apps);
+          resolve(noFilter ? _this3._apps : App.filterDefaults(_this3._apps));
         }, reject);
       });
     };
@@ -159,7 +159,6 @@ define(["exports", "fxos-mvc/dist/mvc", "app/js/models/app"], function (exports,
             }
 
             Promise.all(iconPromises).then(function () {
-              _this5._apps = App.filterDefaults(_this5._apps);
               oresolve(_this5._apps);
               _this5._dispatchEvent("updated");
             });

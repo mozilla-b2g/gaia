@@ -17,7 +17,7 @@ define(["exports"], function (exports) {
 
     var proto = Object.create(HTMLElement.prototype);
 
-    var template = "<style scoped>\n  [data-icon]:before {\n    font-family: \"gaia-icons\";\n    content: attr(data-icon);\n    display: inline-block;\n    font-weight: 500;\n    font-style: normal;\n    text-decoration: inherit;\n    text-transform: none;\n    text-rendering: optimizeLegibility;\n    font-size: 30px;\n  }\n  [flex] {\n    display: flex;\n    justify-content: space-between;\n    padding: 0 5px;\n  }\n  [flex] > * {\n    flex: 1 1 auto;\n    margin-right: 5px;\n    margin-left: 5px;\n  }\n  #container {\n    box-sizing: border-box;\n    position: relative;\n    width: 100%;\n    height: 100%;\n    overflow-x: hidden;\n    overflow-y: auto;\n  }\n  gaia-list a {\n    position: relative;\n    text-decoration: none;\n  }\n  gaia-list [hidden] {\n    display: none;\n  }\n  gaia-list h3 {\n    font-size: 18px;\n    max-width: calc(100% - 2em);\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  gaia-list [data-icon] {\n    position: absolute;\n    padding: 1.6em 1em;\n    top: 0;\n    right: 0;\n  }\n  gaia-list .value {\n    color: #00aac5;\n  }\n  fxos-code-editor {\n    display: block;\n    width: 100%;\n    height: calc(100% - 100px);\n  }\n</style>\n<div id=\"container\"></div>\n<gaia-dialog-prompt id=\"new-attribute-name\">\n  Enter new attribute name\n</gaia-dialog-prompt>";
+    var template = "<style scoped>\n  [data-customizer-icon]:before {\n    font-family: \"customizer-icons\";\n    content: attr(data-customizer-icon);\n    display: inline-block;\n    font-weight: 500;\n    font-style: normal;\n    text-decoration: inherit;\n    text-transform: none;\n    text-rendering: optimizeLegibility;\n    font-size: 30px;\n  }\n  [flex] {\n    display: flex;\n    justify-content: space-between;\n    padding: 0 5px;\n  }\n  [flex] > * {\n    flex: 1 1 auto;\n    margin-right: 5px;\n    margin-left: 5px;\n  }\n  #container {\n    box-sizing: border-box;\n    position: relative;\n    width: 100%;\n    height: 100%;\n    overflow-x: hidden;\n    overflow-y: auto;\n  }\n  gaia-list a {\n    position: relative;\n    text-decoration: none;\n  }\n  gaia-list [hidden] {\n    display: none;\n  }\n  gaia-list h3 {\n    font-size: 18px;\n    max-width: calc(100% - 2em);\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  gaia-list [data-customizer-icon] {\n    position: absolute;\n    padding: 1.6em 1em;\n    top: 0;\n    right: 0;\n  }\n  gaia-list .value {\n    color: #00aac5;\n  }\n  fxos-code-editor {\n    display: block;\n    width: 100%;\n    height: calc(100% - 100px);\n  }\n</style>\n<div id=\"container\"></div>\n<gaia-dialog-prompt id=\"new-attribute-name\">\n  Enter new attribute name\n</gaia-dialog-prompt>";
 
     proto.createdCallback = function () {
       var _this = this;
@@ -280,7 +280,7 @@ define(["exports"], function (exports) {
 
       // Append "X" button to remove attributes.
       if (target instanceof window.NamedNodeMap) {
-        a.innerHTML += "<i data-icon=\"close\" data-action=\"remove\"></i>";
+        a.innerHTML += "<i data-customizer-icon=\"remove\" data-action=\"remove\"></i>";
       }
 
       return a;
@@ -304,7 +304,7 @@ define(["exports"], function (exports) {
     function renderAddAttributeItem() {
       var a = document.createElement("a");
       a.href = "#add-attribute";
-      a.innerHTML = "<h3>Create New Attribute</h3>\n<i data-icon=\"add\"></i>";
+      a.innerHTML = "<h3>Create New Attribute</h3>\n<i data-customizer-icon=\"add\"></i>";
 
       return a;
     }

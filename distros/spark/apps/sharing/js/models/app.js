@@ -76,6 +76,13 @@ define(["exports", "fxos-mvc/dist/mvc"], function (exports, _fxosMvcDistMvc) {
       });
     };
 
+    App.filterMarketplaces = function (apps) {
+      var filterManifestURLs = ["https://marketplace.firefox.com/packaged.webapp", "app://directory.gaiamobile.org/manifest.webapp"];
+      return apps.filter(function (app) {
+        return filterManifestURLs.indexOf(app.manifestURL) !== -1;
+      });
+    };
+
     return App;
   })(Model);
 

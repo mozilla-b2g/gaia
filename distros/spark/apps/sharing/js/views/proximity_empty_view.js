@@ -27,7 +27,7 @@ define(["exports", "fxos-mvc/dist/mvc"], function (exports, _fxosMvcDistMvc) {
     _extends(ProximityEmptyView, View);
 
     ProximityEmptyView.prototype.template = function () {
-      var string = "<li class=\"hide\"></li>\n      <li id=\"no-network\" class=\"hide\">\n        You are not currently connected to a WiFi network. Connect to one to\n        discover people nearby to share with.\n      </li>\n      <li id=\"proximity-empty\" class=\"hide\">\n        <div>\n          There is nobody nearby on your WiFi network who is sharing anything.\n          <gaia-loading></gaia-loading>\n        </div>\n      </li>";
+      var string = "<li class=\"hide\"></li>\n      <li id=\"no-network\" class=\"hide\">\n        You are not currently connected to a WiFi network. Connect to one to\n        discover people nearby to share with.\n      </li>\n      <li id=\"proximity-empty\" class=\"hide\">\n        <div>\n          No users found sharing on your WiFi network.\n          <gaia-loading></gaia-loading>\n        </div>\n      </li>";
       return string;
     };
 

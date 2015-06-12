@@ -6,7 +6,7 @@ define(["exports"], function (exports) {
 
     var proto = Object.create(HTMLElement.prototype);
 
-    var template = "<style scoped>\n[data-icon]:before {\n  font-family: \"gaia-icons\";\n  content: attr(data-icon);\n  display: inline-block;\n  font-weight: 500;\n  font-style: normal;\n  text-decoration: inherit;\n  text-transform: none;\n  text-rendering: optimizeLegibility;\n  font-size: 30px;\n}\n[data-customizer-icon]:before {\n  font-family: \"customizer-icons\";\n  content: attr(data-customizer-icon);\n  display: inline-block;\n  font-weight: 500;\n  font-style: normal;\n  text-decoration: inherit;\n  text-transform: none;\n  text-rendering: optimizeLegibility;\n  font-size: 30px;\n}\ngaia-dom-tree {\n  width: 100%;\n  height: calc(100% - 46px);\n}\n.pin {\n  position: absolute;\n  top: 0;\n  right: 0;\n  margin: 1rem !important;\n  opacity: 1;\n  transition: opacity 0.5s ease-in-out;\n}\n.pin.scrolling {\n  pointer-events: none;\n  opacity: 0;\n}\n</style>\n<gaia-button circular class=\"pin\" data-action=\"settings\">\n  <i data-icon=\"settings\"></i>\n</gaia-button>\n<gaia-dom-tree></gaia-dom-tree>\n<gaia-toolbar>\n  <button data-customizer-icon=\"edit\" data-action=\"edit\" disabled></button>\n  <button data-customizer-icon=\"copy\" data-action=\"copyOrMove\" disabled></button>\n  <button data-customizer-icon=\"append\" data-action=\"append\" disabled></button>\n  <button data-customizer-icon=\"remove\" data-action=\"remove\" disabled></button>\n  <button data-customizer-icon=\"source\" data-action=\"viewSource\" disabled></button>\n</gaia-toolbar>";
+    var template = "<style scoped>\n[data-icon]:before {\n  font-family: \"gaia-icons\";\n  content: attr(data-icon);\n  display: inline-block;\n  font-weight: 500;\n  font-style: normal;\n  text-decoration: inherit;\n  text-transform: none;\n  text-rendering: optimizeLegibility;\n  font-size: 30px;\n}\n[data-customizer-icon]:before {\n  font-family: \"customizer-icons\";\n  content: attr(data-customizer-icon);\n  display: inline-block;\n  font-weight: 500;\n  font-style: normal;\n  text-decoration: inherit;\n  text-transform: none;\n  text-rendering: optimizeLegibility;\n  font-size: 30px;\n}\ngaia-dom-tree {\n  width: 100%;\n  height: calc(100% - 46px);\n}\n.pin {\n  position: absolute;\n  top: 0;\n  right: 0;\n  margin: 1rem !important;\n  opacity: 1;\n  transition: opacity 0.5s ease-in-out;\n}\n.pin.scrolling {\n  pointer-events: none;\n  opacity: 0;\n}\n</style>\n<gaia-button circular class=\"pin\" data-action=\"settings\">\n  <i data-icon=\"settings\"></i>\n</gaia-button>\n<gaia-dom-tree></gaia-dom-tree>\n<gaia-toolbar>\n  <button data-customizer-icon=\"edit\" data-action=\"edit\" disabled></button>\n  <button data-customizer-icon=\"copy\" data-action=\"copyOrMove\" disabled></button>\n  <button data-icon=\"add\" data-action=\"append\" disabled></button>\n  <button data-customizer-icon=\"source\" data-action=\"viewSource\" disabled></button>\n  <button data-icon=\"delete\" data-action=\"remove\" disabled></button>\n</gaia-toolbar>";
 
     proto.createdCallback = function () {
       this.shadow = this.createShadowRoot();
@@ -39,13 +39,39 @@ define(["exports"], function (exports) {
         this._root = null;
       }
 
-      // If we've got a new root node, set that one up
-      if (rootNode) {
-        this._root = rootNode;
-        rootNode.addEventListener("click", this._rootNodeClickHandler);
-        this.gaiaDomTree.setRoot(rootNode);
-        this.gaiaDomTree.render();
-        this.watchChanges();
+      if (!rootNode) {
+        return;
+      }
+
+      // Set up the new root node
+      this._root = rootNode;
+      rootNode.addEventListener("click", this._rootNodeClickHandler);
+      this.gaiaDomTree.setRoot(rootNode);
+      this.gaiaDomTree.render();
+      this.watchChanges();
+
+      // Pre-expand the root node
+      var rootTreeNode = this.gaiaDomTree.treeMap.get(rootNode);
+      if (rootTreeNode) {
+        this.gaiaDomTree.expandNode(rootTreeNode);
+      }
+
+      var head = rootNode.querySelector("head");
+      var body = rootNode.querySelector("body");
+      if (!head || !body) {
+        return;
+      }
+
+      // Pre-expand the <head> node
+      var headTreeNode = this.gaiaDomTree.treeMap.get(head);
+      if (headTreeNode) {
+        this.gaiaDomTree.expandNode(headTreeNode);
+      }
+
+      // Pre-expand the <body> node
+      var bodyTreeNode = this.gaiaDomTree.treeMap.get(body);
+      if (bodyTreeNode) {
+        this.gaiaDomTree.expandNode(bodyTreeNode);
       }
     };
 

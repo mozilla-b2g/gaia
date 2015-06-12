@@ -15,10 +15,13 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-list"], function (exports, _fxosMv
 
   var View = _fxosMvcDistMvc.View;
   var ShareSummaryView = (function (View) {
-    var ShareSummaryView = function ShareSummaryView() {
+    var ShareSummaryView = function ShareSummaryView(options) {
+      View.call(this, options);
+
       this.el = document.createElement("gaia-list");
       this.el.id = "sharing-summary";
       this.el.addEventListener("click", this._handleClick.bind(this));
+      this.el.classList.add("app-list");
 
       this.render();
     };
@@ -26,7 +29,7 @@ define(["exports", "fxos-mvc/dist/mvc", "gaia-list"], function (exports, _fxosMv
     _extends(ShareSummaryView, View);
 
     ShareSummaryView.prototype.template = function () {
-      var string = "\n      <li>\n        <div>\n          <h3>Share My Apps</h3>\n          <h4 id=\"sharing-summary-status\">Sharing Off</h4>\n        </div>\n        <i id=\"sharing-summary-caret\" data-icon=\"forward-light\"></i>\n      </li>";
+      var string = "\n      <li>\n        <div flex>\n          <h3>Share My Apps</h3>\n          <h4 id=\"sharing-summary-status\">Sharing Off</h4>\n        </div>\n        <i id=\"sharing-summary-caret\" data-icon=\"forward-light\"\n         aria-hidden=\"true\"></i>\n      </li>";
       return string;
     };
 
