@@ -880,7 +880,10 @@ suite('marionette/client', function() {
 
       test('should call _executeScript', function() {
         assert.deepEqual(calledWith, [
-          { name: 'executeScript', parameters: { script: script, args: null }},
+          {
+            name: 'executeScript',
+            parameters: { script: script, args: null, sandbox: 'default' }
+          },
           commandCallback
         ]);
       });
@@ -1110,6 +1113,7 @@ suite('marionette/client', function() {
   suite('._executeScript', function() {
       var cmd = 'return window.location',
           args = [{1: true}],
+          sandbox = 'default',
           type = 'executeScript';
 
     suite('with args', function() {
@@ -1117,7 +1121,8 @@ suite('marionette/client', function() {
         name: type,
         parameters: {
           script: cmd,
-          args: args
+          args: args,
+          sandbox: sandbox
         }
       };
 
@@ -1132,7 +1137,8 @@ suite('marionette/client', function() {
       var request = {
         name: type,
         parameters: {
-          script: cmd
+          script: cmd,
+          sandbox: sandbox
         }
       };
 
@@ -1142,7 +1148,8 @@ suite('marionette/client', function() {
           name: type,
           parameters: {
             script: cmd,
-            args: []
+            args: [],
+            sandbox: sandbox
           }
         }).
         serverResponds('getUrlResponse').
