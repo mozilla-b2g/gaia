@@ -204,6 +204,11 @@ CameraController.prototype.onPickActivity = function(data) {
  * @private
  */
 CameraController.prototype.capture = function() {
+  if (this.disableCapture) {
+    this.app.emit('ready');
+    return;
+  }
+
   if (this.shouldCountdown()) {
     this.app.emit('startcountdown');
     return;
@@ -440,7 +445,8 @@ CameraController.prototype.onHDRChange = function(hdr) {
 };
 
 CameraController.prototype.onBatteryStatusChange = function(status) {
-  if (status === 'shutdown') { this.camera.stopRecording(); }
+  this.disableCapture = status === 'shutdown';
+  if (this.disableCapture) { this.camera.stopRecording(); }
 };
 
 /**

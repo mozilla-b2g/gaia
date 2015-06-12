@@ -520,6 +520,16 @@ suite('controllers/camera', function() {
       this.controller.onBatteryStatusChange('shutdown');
       assert.isTrue(this.camera.stopRecording.called);
     });
+
+    test('Should prevent capture on low battery', function() {
+      this.controller.onBatteryStatusChange('shutdown');
+      this.controller.capture();
+      assert.isFalse(this.camera.capture.called);
+
+      this.controller.onBatteryStatusChange('healthy');
+      this.controller.capture();
+      assert.isTrue(this.camera.capture.called);
+    });
   });
 
   suite('CameraController#shutdownCamera()', function() {
