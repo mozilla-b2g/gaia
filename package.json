@@ -82,5 +82,10 @@
     "jszip": "^2.5.0",
     "node-uuid": "^1.4.2",
     "yargs": "^1.3.2"
+  },
+
+  "scripts": {
+    "refresh": "npmr install",
+    "marionette": "gaia-marionette"
   }
 }
