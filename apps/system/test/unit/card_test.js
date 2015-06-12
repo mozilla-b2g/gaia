@@ -10,6 +10,17 @@ var mocksForCard = new MocksHelper([
 
 suite('system/Card', function() {
 
+  function createTouchEvent(type, target, x, y) {
+    var touch = document.createTouch(window, target, 1, x, y, x, y);
+    var touchList = document.createTouchList(touch);
+
+    var evt = document.createEvent('TouchEvent');
+    evt.initTouchEvent(type, true, true, window,
+                       0, false, false, false, false,
+                       touchList, touchList, touchList);
+    return evt;
+  }
+
   function makeApp(config) {
     var appWindow = new AppWindow({
       launchTime: 4,
@@ -32,7 +43,8 @@ suite('system/Card', function() {
 
   mocksForCard.attachTestHelpers();
   var mockManager = {
-    useAppScreenshotPreviews: true
+    useAppScreenshotPreviews: true,
+    SWIPE_UP_THRESHOLD: 480/4
   };
   var cardsList;
 
@@ -272,6 +284,31 @@ suite('system/Card', function() {
     });
   });
 
+  suite('killApp >', function() {
+    setup(function() {
+      this.card = new Card({
+        app: makeApp({ name: 'dummyapp' }),
+        manager: mockManager
+      });
+      this.card.render();
+    });
+    test('kills app', function() {
+      var card = this.card;
+      this.sinon.stub(card.app, 'kill');
+      card.killApp();
+      assert.ok(card.app.kill.calledOnce, 'kill was called');
+    });
+    test('stops event listeners', function() {
+      var card = this.card;
+      this.sinon.stub(card, 'handleEvent');
+      card.killApp();
+      var touchStartEvt = createTouchEvent('touchstart',
+                                           card.element, 100, 100);
+      card.element.dispatchEvent(touchStartEvt);
+      assert.equal(card.handleEvent.callCount, 0, 'handleEvent not called');
+    });
+  });
+
   suite('previews > ', function() {
     suiteSetup(function(){
       this.getIconStub = sinon.stub(CardsHelper, 'getIconURIForApp',
@@ -318,38 +355,52 @@ suite('system/Card', function() {
     });
   });
 
-  suite('move > ', function() {
-    var realIW;
-    suiteSetup(function() {
-      realIW = window.innerWidth;
-      Object.defineProperty(window, 'innerWidth', {
-        configurable: true,
-        get: function() { return 320; }
-      });
-    });
-
-    suiteTeardown(function() {
-      Object.defineProperty(window, 'innerWidth', {
-        configurable: true,
-        get: function() { return realIW; }
-      });
-    });
-
+  suite('events > ', function() {
     setup(function(){
       this.card = new Card({
         app: makeApp({ name: 'dummyapp' }),
         manager: mockManager
       });
       this.card.render();
-      this.card.position = 0;
-      this.card.manager.position = 0;
+    });
+    test('touch', function() {
+      var card = this.card,
+          element = this.card.element,
+          yOffset;
+      this.sinon.spy(card, 'handleEvent');
+      this.sinon.spy(card, 'onCrossSlide');
+      var touchStartEvt = createTouchEvent('touchstart',
+                                           element, 100, 100);
+      element.dispatchEvent(touchStartEvt);
+      assert.ok(card.handleEvent.calledOnce, 'touchstart handled');
+      assert.ok(Array.isArray(card.startTouchPosition));
+      card.handleEvent.reset();
+
+      var touchMoveEvt = createTouchEvent('touchmove',
+                                           element, 90, 10);
+      card.element.dispatchEvent(touchMoveEvt);
+      assert.ok(card.handleEvent.calledOnce, 'touchmove handled');
+      assert.ok(card.deltaX, 'deltaX');
+      assert.ok(card.deltaY, 'deltaY');
+      assert.ok(card.onCrossSlide.calledOnce,
+                'vertical touchmove called onCrossSlide');
+      yOffset = card.element.style.transform
+                    .replace(/translateY\(([^\)]+)\)/, '$1');
+      assert.ok(yOffset && parseInt(yOffset) < 0,
+                'transform: translateY is negative');
+      card.handleEvent.reset();
+      assert.equal(card.element.style.transition, 'transform 0s linear 0s');
+
+
+      var touchEndEvt = createTouchEvent('touchend',
+                                           element, 10, 10);
+      card.element.dispatchEvent(touchEndEvt);
+      assert.ok(card.handleEvent.calledOnce, 'touchend handled');
+      yOffset = card.element.style.transform
+                    .replace(/translateY\(([^\)]+)\)/, '$1');
+      assert.ok(!yOffset || yOffset === '0px');
+      assert.ok(!card.element.style.transition, 'transition is removed');
     });
 
-    test('should apply a transform', function() {
-      this.card.move(100, 0);
-      var style = this.card.element.style;
-      var expected = 'translateX(100px)';
-      assert.equal(style.transform, expected);
-    });
   });
 });
