@@ -34,7 +34,7 @@ task:
 
   extra:
     treeherder:
-      groupSymbol: Rpt
+      groupSymbol: Results
       groupName: "Raptor Performance Tests"
       symbol: '{{treeherderSym}}'
     treeherderEnv:

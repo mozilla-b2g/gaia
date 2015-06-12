@@ -151,7 +151,8 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
     params: {
       raptorApp: nextApp.gaia_name,
       raptorSuiteName: suiteName,
-      treeherderSym: symbol
+      //treeherderSym: symbol
+      treeherderSym: nextApp.th_name
     }
   };
 });
