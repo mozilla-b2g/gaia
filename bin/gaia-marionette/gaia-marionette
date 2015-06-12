@@ -5,10 +5,12 @@
 # for more options.
 export MOZ_DISABLE_NONLOCAL_CONNECTIONS=1
 
-# Find the source of this file
+# Find the source of this file. This will exist in
+# $GAIA/node_modules/.bin/gaia-marionette.
 SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
-DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+DIR="$(cd "$(dirname $SOURCE)" && pwd)"
+BINDIR="$(cd "$DIR/../../bin" && pwd)"
 BUILDAPP=${BUILDAPP:-desktop}
 
 safe_which() {
@@ -21,7 +23,7 @@ safe_which() {
 # Go to the isolated Python environment if we already setup the virtualenv.
 VIRTUALENV=$(safe_which virtualenv)
 
-CI_VENV=$(find $DIR/.. -path "*/ci_venv")
+CI_VENV=$(find $BINDIR/.. -path "*/ci_venv")
 if [ -x "$VIRTUALENV" -a -x "$CI_VENV" ]; then
   source ./ci_venv/bin/activate
 fi
@@ -43,26 +45,13 @@ if [ -n "$SKIP_TEST_FILES" ]; then
   SKIP_TEST_FILES="$SKIP_TEST_FILES_SCRIPT"
 fi
 
-# make sure node_modules are 100% up to date
-make node_modules
-
-if [ "$BUILDAPP" == "desktop" ]; then
-    # download b2g-desktop (if its not present)
-    make -C $DIR/../ b2g
-fi
-
-# tests can timeout without the profile-test folder so build it here.
-if [ ! -d $DIR/../profile-test ]; then
-  PROFILE_FOLDER=profile-test make -C $DIR/../
-fi
-
-HARNESS_PATHS=$(cat ./tests/jsmarionette/marionette_tests.txt)
+HARNESS_PATHS="$(cat "$BINDIR/../tests/jsmarionette/marionette_tests.txt")"
 
 if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
     if [ -z "$SKIP_TEST_FILES" ]; then
       if [ -z "$HARNESS_ONLY" ]; then
-        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
+        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" \
                               -or -path "*/dev_apps/*/test/marionette/*_test.js" \
                               -or -path "*/tv_apps/*/test/marionette/*_test.js" \
                               -or -path "*/tests/integration/*/*_test.js")
@@ -71,12 +60,12 @@ if [ -z "$TEST_FILES" ]; then
       fi
 
       for wildcard in $HARNESS_PATHS; do
-        HARNESS_FILES=$(find tests/jsmarionette -path $wildcard)
+        HARNESS_FILES=$(find "$BINDIR/../tests/jsmarionette" -path $wildcard)
         TEST_FILES="$TEST_FILES $HARNESS_FILES"
       done
     else
       if [ -z "$HARNESS_ONLY" ]; then
-        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+        TEST_FILES=$(find "$BINDIR/.." -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
                               -or -path "*/dev_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
                               -or -path "*/tv_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
                               -or -path "*/tests/integration/*/*_test.js" $SKIP_TEST_FILES)
@@ -85,18 +74,18 @@ if [ -z "$TEST_FILES" ]; then
       fi
 
       for wildcard in $HARNESS_PATHS; do
-        HARNESS_FILES=$(find tests/jsmarionette -path $wildcard $SKIP_TEST_FILES)
+        HARNESS_FILES=$(find "$BINDIR/../tests/jsmarionette" -path $wildcard $SKIP_TEST_FILES)
         TEST_FILES="$TEST_FILES $HARNESS_FILES"
       done
     fi
   else
     if [ -z "$SKIP_TEST_FILES" ]; then
-      TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
+      TEST_FILES=$(find "$BINDIR/.." -path "*/apps/$APP/test/marionette/*_test.js" \
                             -or -path "*/dev_apps/$APP/test/marionette/*_test.js" \
                             -or -path "*/tv_apps/$APP/test/marionette/*_test.js" \
                             -or -path "*/tests/integration/$APP/*_test.js")
     else
-      TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+      TEST_FILES=$(find "$BINDIR/.." -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/dev_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/tv_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
                             -or -path "*/tests/integration/$APP/*_test.js" $SKIP_TEST_FILES)
@@ -122,7 +111,7 @@ fi
 
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
   # the xulrunner directory isn't in the environment
-  XULRUNNER_DIRECTORY=$(ls -d "$DIR"/../b2g_sdk/* | sort -nr | head -n1 2> /dev/null)
+  XULRUNNER_DIRECTORY=$(ls -d "$BINDIR"/../b2g_sdk/* | sort -nr | head -n1 2> /dev/null)
 fi
 
 if [ -z "$XPCSHELLSDK" ] ; then
@@ -131,7 +120,6 @@ fi
 
 # find xpcshell and put it in the path
 XPCSHELL_DIR=$(dirname "$XPCSHELLSDK")
-
 
 VERBOSE_OPTS=""
 if [ "$VERBOSE" ]; then
@@ -184,15 +172,15 @@ fi
 
 TARGET=""
 if [[ $@ == *"mocha-tbpl-reporter"* ]]; then
-  TARGET=$DIR/gaia_marionette_retry.js
+  TARGET="$DIR/../gaia-marionette/gaia_marionette_retry.js"
 else
-  TARGET=$DIR/../node_modules/.bin/marionette-mocha
+  TARGET="$DIR/marionette-mocha"
 fi
 
 export PATH=$XPCSHELL_DIR:$PATH
 
 if [ ! -z $TEST_MANIFEST ]; then
-  TEST_FILES=$(./node_modules/.bin/apply-manifest $TEST_MANIFEST $TEST_FILES)
+  TEST_FILES="$("$DIR/apply-manifest" $TEST_MANIFEST $TEST_FILES)"
 fi
 
 # We export TEST_FILES here to enable gaia_marionette_retry to self
@@ -202,7 +190,6 @@ export TEST_FILES
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 $TARGET \
-  --timeout 60s \
   $VERBOSE_OPTS \
   $OOP_OPTS \
   $RUNTIME_OPTS \
@@ -210,4 +197,5 @@ $TARGET \
   $BUILDAPP_OPTS \
   $TEST_FILES \
   $DEVICE_TYPE_OPT \
+  --profile-builder "$DIR/../gaia-marionette/node_modules/profile-builder" \
   $@

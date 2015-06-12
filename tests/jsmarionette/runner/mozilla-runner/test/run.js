@@ -1,11 +1,13 @@
 'use strict';
-suite('run', function() {
-  var run = require('../lib/run').run;
-  var runtime = __dirname + '/../../../b2g';
-  var assert = require('assert');
-  var profile = require('mozilla-profile-builder');
-  var Static = require('node-static');
+var Static = require('node-static');
+var assert = require('assert');
+var profile = require('mozilla-profile-builder');
+var run = require('../lib/run').run;
 
+var runtime = __dirname + '/../../../../../b2g';
+
+'use strict';
+suite('run', function() {
   test('launch b2g', function(done) {
     var options = { product: 'b2g', profile: process.env.PROFILE_FOLDER };
     this.timeout(5000);
