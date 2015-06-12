@@ -9,6 +9,10 @@ window.GaiaProgress = (function(win) {
   var baseurl = window.GaiaProgressBaseurl || '/shared/elements/gaia_progress/';
 
   proto.createdCallback = function() {
+    //set Accessibility attributes on creation
+    this.setAttribute('role', 'progressbar');
+    this.setAttribute('aria-live', 'polite');
+
     var shadow = this.createShadowRoot();
 
     this._template = template.content.cloneNode(true);
@@ -30,6 +34,7 @@ window.GaiaProgress = (function(win) {
   proto.start = function() {
     this.setAttribute('animated', '');
     this._progress.classList.add('animated');
+    this.setAttribute('data-l10n-id', 'gaia-progress-loading');
   };
 
   /**
@@ -39,6 +44,7 @@ window.GaiaProgress = (function(win) {
   proto.stop = function() {
     this.removeAttribute('animated');
     this._progress.classList.remove('animated');
+    this.setAttribute('data-l10n-id', 'gaia-progress-loaded');
   };
 
   var template = document.createElement('template');
