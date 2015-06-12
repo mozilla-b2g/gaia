@@ -30,18 +30,18 @@ RAPTOR_WORKER_TYPE = 'raptor';
 const TEST_ITERATIONS = 6;
 
 // FirefoxOS apps to include in the launch test
-const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_prefix: "ca" },
-                          { gaia_name: "clock", th_name: "Clock", th_prefix: "cl" },
-                          { gaia_name: "communications/contacts", th_name: "Contacts", th_prefix: "co" },
-                          { gaia_name: "communications/dialer", th_name: "Dialer", th_prefix: "di" },
-                          { gaia_name: "email", th_name: "Email", th_prefix: "em" },
-                          { gaia_name: "fm", th_name: "FM", th_prefix: "fm" },
-                          { gaia_name: "gallery", th_name: "Gallery", th_prefix: "ga" },
-                          { gaia_name: "music", th_name: "Music", th_prefix: "mu" },
-                          { gaia_name: "settings", th_name: "Settings", th_prefix: "se" },
-                          { gaia_name: "sms", th_name: "SMS", th_prefix: "sm" },
-                          { gaia_name: "video", th_name: "Video", th_prefix: "vi" },
-                          { gaia_name: "test-startup-limit", th_name: "Test-startup", th_prefix: "te" }];
+const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_test_prefix: "ca", th_result: "Cal" },
+                          { gaia_name: "clock", th_name: "Clock", th_test_prefix: "cl", th_result: "Clk" },
+                          { gaia_name: "communications/contacts", th_name: "Contacts", th_test_prefix: "co", th_result: "Con" },
+                          { gaia_name: "communications/dialer", th_name: "Dialer", th_test_prefix: "di", th_result: "Dlr" },
+                          { gaia_name: "email", th_name: "Email", th_test_prefix: "em", th_result: "Eml"},
+                          { gaia_name: "fm", th_name: "FM", th_test_prefix: "fm", th_result: "FM" },
+                          { gaia_name: "gallery", th_name: "Gallery", th_test_prefix: "ga", th_result: "Gal" },
+                          { gaia_name: "music", th_name: "Music", th_test_prefix: "mu", th_result: "Mus" },
+                          { gaia_name: "settings", th_name: "Settings", th_test_prefix: "se", th_result: "Set" },
+                          { gaia_name: "sms", th_name: "SMS", th_test_prefix: "sm", th_result: "SMS" },
+                          { gaia_name: "video", th_name: "Video", th_test_prefix: "vi", th_result: "Vid" },
+                          { gaia_name: "test-startup-limit", th_name: "Test-startup", th_test_prefix: "te", th_result: "Tst" }];
 
 // number of times each app is launched during the launch test
 const LAUNCH_TEST_RUNS = 30;
@@ -103,7 +103,7 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
   suiteName = nextApp.th_name + " app launch test (on base)";
 
   for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
-    symbol = nextApp.th_prefix + iteration;
+    symbol = nextApp.th_test_prefix + iteration;
     taskName = nextApp.gaia_name + "BaseTask" + iteration;
     requiredBaseTasks.push(taskName);
     config[taskName] = {
@@ -124,7 +124,7 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
 
   for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
     // want the symbol number to continue to increment from the base tasks
-    symbol = nextApp.th_prefix + (iteration + TEST_ITERATIONS);
+    symbol = nextApp.th_test_prefix + (iteration + TEST_ITERATIONS);
     taskName = nextApp.gaia_name + "PatchTask" + iteration;
     requiredPatchTasks.push(taskName);
     config[taskName] = {
@@ -143,7 +143,7 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
   // single result task for all of the base and patch tasks
   suiteName = nextApp.th_name + " app launch test results";
   taskName = nextApp.gaia_name + 'ResultsTask';
-  symbol = nextApp.th_prefix;
+  symbol = nextApp.th_test_prefix;
   config[taskName] = {
     definition: 'raptor_result',
     requiredBaseTasks: requiredBaseTasks,
@@ -151,7 +151,7 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
     params: {
       raptorApp: nextApp.gaia_name,
       raptorSuiteName: suiteName,
-      treeherderSym: symbol
+      treeherderSym: nextApp.th_result
     }
   };
 });
