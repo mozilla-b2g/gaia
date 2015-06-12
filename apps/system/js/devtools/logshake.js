@@ -124,7 +124,7 @@
       for (var i = 0; i < storages.length; i++) {
         if (storages[i].storageName === storageName) {
           return storages[i];
-	}
+        }
       }
       return navigator.getDeviceStorage('sdcard');
     },
@@ -134,10 +134,6 @@
       var storage = this.getDeviceStorage();
       var requestsRemaining = logFilenames.length;
       var self = this;
-
-      if (notif) {
-        notif.close();
-      }
 
       function onSuccess() {
         /* jshint validthis: true */
@@ -150,8 +146,8 @@
             var pathComponents = file.name.split('/');
             return pathComponents[pathComponents.length - 1];
           });
-          /* jshint nonew: false */
-          new MozActivity({
+
+          var activity = new MozActivity({
             name: 'share',
             data: {
               type: 'application/vnd.moz-systemlog',
@@ -159,6 +155,18 @@
               filenames: logNames
             }
           });
+
+          activity.onsuccess = function() {
+            if (!notif) {
+              return;
+            }
+
+            if ('close' in notif) {
+              notif.close();
+            } else {
+              self.closeSystemMessageNotification(notif);
+            }
+          };
         }
       }
 
@@ -243,7 +251,6 @@
 
     handleSystemMessageNotification: function(message) {
       debug('Received system message: ' + JSON.stringify(message));
-      this.closeSystemMessageNotification(message);
 
       if (!('logshakePayload' in message.data)) {
         console.warn('Received logshake system message notification without ' +
@@ -256,7 +263,7 @@
       if ('error' in payload) {
         this.showErrorMessage(payload.error);
       } else if ('logFilenames' in payload) {
-        this.triggerShareLogs(payload.logFilenames);
+        this.triggerShareLogs(payload.logFilenames, message);
       } else {
         console.warn('Unidentified payload: ' + JSON.stringify(payload));
       }
