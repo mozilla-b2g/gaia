@@ -111,7 +111,7 @@ var PlayerView = {
     this.dataSource = [];
     this.playingBlob = null;
     this.currentIndex = 0;
-    this.setSeekBar(0, 0, 0); // Set 0 to default seek position
+    this.setSeekBar(0, 0); // Set 0 to default seek position
     this.intervalID = null;
 
     this.view.addEventListener('click', this);
@@ -405,7 +405,7 @@ var PlayerView = {
     // this can prevent showing wrong duration
     // due to b2g cannot get some mp3's duration
     // and the seekBar can still show 00:00 to -00:00
-    this.setSeekBar(0, 0, 0);
+    this.setSeekBar(0, 0);
   },
 
   updateRemoteMetadata: function pv_updateRemoteMetadata() {
@@ -767,32 +767,28 @@ var PlayerView = {
       this.audio.currentTime = Math.floor(seekTime);
     }
 
-    this.setSeekBar(0, this.audio.duration, this.audio.currentTime);
+    this.setSeekBar(this.audio.duration, this.audio.currentTime);
   },
 
-  setSeekBar: function pv_setSeekBar(startTime, endTime, currentTime) {
-    if (!isFinite(endTime)) {
-      endTime = Math.max(this.seekBar.max, currentTime);
-    }
-
+  setSeekBar: function pv_setSeekBar(endTime, currentTime) {
     if (this.seekBar.max != endTime) {
       // Duration changed, update accessibility label.
       navigator.mozL10n.setAttributes(this.seekSlider,
         'playbackSeekBar', {'duration': formatTime(endTime)});
     }
 
-    this.seekBar.min = startTime;
-    this.seekBar.max = endTime;
+    this.seekBar.max = isFinite(endTime) ? endTime : 0;
     this.seekBar.value = currentTime;
 
     var formattedCurrentTime = formatTime(currentTime);
     // Adjust values for accessibility
     this.seekSlider.setAttribute('aria-valuetext', formattedCurrentTime);
-    this.seekSlider.setAttribute('aria-valuemax', endTime);
+    this.seekSlider.setAttribute('aria-valuemax', this.seekBar.max);
     this.seekSlider.setAttribute('aria-valuenow', currentTime);
 
     // if endTime is 0, that's a reset of seekBar
-    var ratio = (endTime !== 0) ? (currentTime / endTime) : 0;
+    var ratio = (isFinite(endTime) && endTime !== 0) ?
+        (currentTime / endTime) : 0;
     // The width of the seek indicator must be also considered
     // so we divide the width of seek indicator by 2 to find the center point
     var x = (ratio * this.seekBar.offsetWidth -
@@ -1035,8 +1031,7 @@ var PlayerView = {
           } else {
             this.seekTime = this.audio.duration - x * this.seekBar.max;
           }
-          this.setSeekBar(this.audio.startTime,
-            this.audio.duration, this.seekTime);
+          this.setSeekBar(this.audio.duration, this.seekTime);
         }
         break;
       case 'touchend':
