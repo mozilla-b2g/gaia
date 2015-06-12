@@ -186,44 +186,113 @@ suite('system/LogShake', function() {
       var getSpy = this.sinon.spy(mockDeviceStorage, 'get');
 
       var notification = notificationSpy.firstCall.thisValue;
-      var closeSpy = this.sinon.spy(notification, 'close');
       notification.onclick();
 
       assert.isTrue(storageSpy.calledOnce, 'getDeviceStorage should be called');
       assert.isTrue(getSpy.calledOnce, '.get() should be called');
       assert.equal(getSpy.firstCall.args[0], filename,
         '.get() should have been called with filename from event');
-      sinon.assert.calledOnce(closeSpy);
     });
 
-    test('triggerShareLogs launches MozActivity', function() {
-      var filename = 'dev-log-main.log';
-      var mockBlob = {
-        type: 'text/plain',
-        name: 'logs/timestamp/dev-log-main.log'
-      };
+    suite('MozActivity handling', function() {
+      var filename, mockBlob, expectedActivity, mockDeviceStorage, notification;
+      var getSpy, activityStub, closeSpy, closeSystemSpy;
 
-      var expectedActivity = {
-        name: 'share',
-        data: {
-          type: 'application/vnd.moz-systemlog',
-          blobs: [ mockBlob ],
-          filenames: [ filename ]
-        }
-      };
+      setup(function() {
+        filename = 'dev-log-main.log';
+        mockBlob = {
+          type: 'text/plain',
+          name: 'logs/timestamp/dev-log-main.log'
+        };
 
-      var mockDeviceStorage = MockNavigatorGetDeviceStorage();
-      mockDeviceStorage._freeSpace = Number.MAX_VALUE;
+        expectedActivity = {
+          name: 'share',
+          data: {
+            type: 'application/vnd.moz-systemlog',
+            blobs: [ mockBlob ],
+            filenames: [ filename ]
+          }
+        };
 
-      var getSpy = this.sinon.spy(mockDeviceStorage, 'get');
-      var activitySpy = this.sinon.spy(window, 'MozActivity');
+        mockDeviceStorage = MockNavigatorGetDeviceStorage();
+        mockDeviceStorage._freeSpace = Number.MAX_VALUE;
 
-      logshake.triggerShareLogs([ filename ]);
+        getSpy = this.sinon.spy(mockDeviceStorage, 'get');
+        activityStub = this.sinon.stub(window, 'MozActivity', function() {
+          return new MockDOMRequest();
+        });
 
-      // Simulate success of reading file
-      var getRequest = getSpy.getCall(0).returnValue;
-      getRequest.fireSuccess(mockBlob);
-      assert.isTrue(activitySpy.calledWith(expectedActivity));
+        notification = notificationSpy.firstCall.thisValue;
+        closeSpy = this.sinon.spy(notification, 'close');
+
+        closeSystemSpy =
+          this.sinon.spy(logshake, 'closeSystemMessageNotification');
+      });
+
+      function triggerGetSuccess() {
+        // Simulate success of reading file
+        var getRequest = getSpy.getCall(0).returnValue;
+        getRequest.fireSuccess(mockBlob);
+      }
+
+      function triggerActivitySuccess() {
+        var activity = activityStub.getCall(0).returnValue;
+        activity.fireSuccess();
+      }
+
+      function triggerActivityError() {
+        var activity = activityStub.getCall(0).returnValue;
+        activity.fireError();
+      }
+
+      test('triggerShareLogs launches MozActivity', function() {
+        logshake.triggerShareLogs([ filename ]);
+
+        triggerGetSuccess();
+
+        sinon.assert.calledWith(activityStub, expectedActivity);
+      });
+
+      test('close notification with MozActivity success', function() {
+        logshake.triggerShareLogs([ filename ], notification);
+
+        triggerGetSuccess();
+        triggerActivitySuccess();
+
+        sinon.assert.calledOnce(closeSpy);
+      });
+
+      test('calls closeSystemMessageNotification with MozActivity success',
+        function() {
+          // Use an empty object since we just want one without 'close()'
+          logshake.triggerShareLogs([ filename ], {});
+
+          triggerGetSuccess();
+          triggerActivitySuccess();
+
+          sinon.assert.calledOnce(closeSystemSpy);
+        });
+
+      test('keep notification with MozActivity error', function() {
+        logshake.triggerShareLogs([ filename ], notification);
+
+        triggerGetSuccess();
+        triggerActivityError();
+
+        sinon.assert.notCalled(closeSpy);
+      });
+
+      test('dont call closeSystemMessageNotification with MozActivity error',
+        function() {
+          // Use an empty object since we just want one without 'close()'
+          logshake.triggerShareLogs([ filename ], {});
+
+          triggerGetSuccess();
+          triggerActivityError();
+
+          sinon.assert.notCalled(closeSystemSpy);
+        });
+
     });
   });
 
@@ -288,7 +357,7 @@ suite('system/LogShake', function() {
       test('formatError() with a string', function() {
         var error = 'Unknown error';
         var msg = logshake.formatError(error);
-	assert.equal(msg, error);
+        assert.equal(msg, error);
       });
 
       test('formatError() with an object', function() {
@@ -297,7 +366,7 @@ suite('system/LogShake', function() {
           unixErrno: 30 // EROFS
         };
         var msg = logshake.formatError(error);
-	assert.equal(msg, 'logsOperationFailed{"operation":"makeDir"}');
+        assert.equal(msg, 'logsOperationFailed{"operation":"makeDir"}');
       });
     });
 
@@ -429,15 +498,6 @@ suite('system/LogShake', function() {
             notification.data.logshakePayload.error));
         delete notification.data.logshakePayload;
       });
-
-      test('calls closeSystemMessageNotification',
-        function() {
-          var closeSpy =
-            this.sinon.spy(logshake, 'closeSystemMessageNotification');
-          logshake.handleSystemMessageNotification(notification);
-          assert.isTrue(closeSpy.calledOnce);
-          assert.isTrue(closeSpy.calledWith(notification));
-        });
     });
 
     suite('closeSystemMessageNotification behavior', function() {
