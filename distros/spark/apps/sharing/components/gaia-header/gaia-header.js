@@ -86,8 +86,7 @@ module.exports = component.register('gaia-header', {
     // Elements
     this.els = {
       actionButton: this.shadowRoot.querySelector('.action-button'),
-      buttons: this.querySelectorAll('button, a'),
-      titles: this.querySelectorAll('h1')
+      titles: this.getElementsByTagName('h1')
     };
 
     // Events

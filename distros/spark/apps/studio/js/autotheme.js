@@ -129,6 +129,10 @@
     },
 
     showPalette(where) {
+      if (!where) {
+        return;
+      }
+
       where.textContent = '';
 
       if (!this.palette) {

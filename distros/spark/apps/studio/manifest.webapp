@@ -23,6 +23,9 @@
     "settings": { "access": "readwrite" },
     "feature-detection": {
       "description": "For dev mode pref"
+    },
+    "desktop-notification": {
+      "description": "For sending achievements notifications to Gaia::System"
     }
   },
   "activities": {
@@ -31,7 +34,7 @@
       "filters": {
         "type": ["image/*"],
         "number": {
-          "max": 1 
+          "max": 1
         }
        },
       "disposition": "window",

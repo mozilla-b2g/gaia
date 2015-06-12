@@ -29,13 +29,13 @@ define(["exports", "fxos-mvc/dist/mvc"], function (exports, _fxosMvcDistMvc) {
 
         request.onsuccess = function () {
           var result = request.result["lightsaber.device_name"];
-
-          if (result) {
-            _this._deviceName = result;
-            resolve();
-          } else {
+          if (!result) {
             _this._isDefault = true;
           }
+
+          _this._deviceName = result || "";
+
+          resolve();
         };
 
         request.onerror = function (e) {

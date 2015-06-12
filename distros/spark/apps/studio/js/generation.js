@@ -240,7 +240,7 @@
       return Storage.fetchTheme(id)
       .then(checkIfSelected)
       .then((results) => {
-        exportTheme.apply(null, results)
+        return exportTheme(results[0] || enable, results[1]);
       });
     },
     uninstallIfNeeded: function(theme) {

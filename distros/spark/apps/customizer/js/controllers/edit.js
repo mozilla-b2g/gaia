@@ -69,6 +69,7 @@ define(["exports"], function (exports) {
           generator.opSetProperties(_this.changes.properties);
         }
 
+        _this.changes = {};
         _this.close();
       });
     };

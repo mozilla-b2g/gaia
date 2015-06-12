@@ -1,4 +1,5 @@
 /*global
+  AchievementsService,
   AutoTheme,
   Defer,
   Details,
@@ -22,6 +23,9 @@
     duplicateDialogInput: document.querySelector('.duplicate-theme-title-input'),
     duplicateDialogConfirm: document.
       querySelector('#duplicate-theme-dialog .confirm'),
+
+    // Create an achievements service
+    achievementsService: new AchievementsService(),
 
     prepareForDisplay: function(params) {
       var currentList = this.panel.querySelector('gaia-list');
@@ -116,7 +120,13 @@
 
         Storage.createTheme(theme).then(() => {
           this.prepareForDisplay();
-        }).catch(function(error) {
+        }).then(() => this.achievementsService.reward({
+          criteria: 'achievements/creative-kind',
+          evidence: 'urn:studio:theme:created',
+          name: 'Creative Kind',
+          description: 'Use Theme Editor to create a new theme',
+          image: './img/creative-kind.png'
+        })).catch(function(error) {
           console.log(error);
         });
       });

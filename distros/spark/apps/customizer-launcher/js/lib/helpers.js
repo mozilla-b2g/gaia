@@ -1,6 +1,7 @@
-define(["exports"], function (exports) {
+define(["exports", "components/fxos-achievements-service/dist/achievements-service"], function (exports, _componentsFxosAchievementsServiceDistAchievementsService) {
   "use strict";
 
+  var AchievementsService = _componentsFxosAchievementsServiceDistAchievementsService["default"];
   var IconHelper = (function () {
     var IconHelper = function IconHelper() {};
 
@@ -76,4 +77,20 @@ define(["exports"], function (exports) {
   })();
 
   exports.AppsHelper = AppsHelper;
+  var AchievementsHelper = (function () {
+    var AchievementsHelper = function AchievementsHelper() {
+      // Create an achievements service
+      this.achievementsService = new AchievementsService();
+
+      window.addEventListener("achievement-rewarded", this);
+    };
+
+    AchievementsHelper.prototype.handleEvent = function (aEvent) {
+      this.achievementsService.reward(aEvent.detail);
+    };
+
+    return AchievementsHelper;
+  })();
+
+  exports.AchievementsHelper = AchievementsHelper;
 });

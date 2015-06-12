@@ -12,6 +12,13 @@
   "permissions": {
     "webapps-manage": {},
     "tcp-socket": {},
-    "feature-detection": {}
-   }
+    "feature-detection": {},
+    "settings": {
+      "access": "readwrite",
+      "description": "For reading and writing achievements settings"
+    },
+    "desktop-notification": {
+      "description": "For sending achievements notifications to Gaia::System"
+    }
+  }
 }

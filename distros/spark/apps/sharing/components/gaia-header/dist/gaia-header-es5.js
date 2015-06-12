@@ -1,19 +1,27 @@
 "use strict";
 
-!(function (e) {
-  if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();else if ("function" == typeof define && define.amd) define([], e);else {
-    var f;"undefined" != typeof window ? f = window : "undefined" != typeof global ? f = global : "undefined" != typeof self && (f = self), f.GaiaHeader = e();
+(function (f) {
+  if (typeof exports === "object" && typeof module !== "undefined") {
+    module.exports = f();
+  } else if (typeof define === "function" && define.amd) {
+    define([], f);
+  } else {
+    var g;if (typeof window !== "undefined") {
+      g = window;
+    } else if (typeof global !== "undefined") {
+      g = global;
+    } else if (typeof self !== "undefined") {
+      g = self;
+    } else {
+      g = this;
+    }g.GaiaHeader = f();
   }
 })(function () {
   var define, module, exports;return (function e(t, n, r) {
     function s(o, u) {
       if (!n[o]) {
         if (!t[o]) {
-          var a = typeof require == "function" && require;if (!u && a) {
-            return a(o, !0);
-          }if (i) {
-            return i(o, !0);
-          }var f = new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND", f);
+          var a = typeof require == "function" && require;if (!u && a) return a(o, !0);if (i) return i(o, !0);var f = new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND", f);
         }var l = n[o] = { exports: {} };t[o][0].call(l.exports, function (e) {
           var n = t[o][1][e];return s(n ? n : e);
         }, l, l.exports, e, t, n, r);
@@ -161,10 +169,10 @@
         };
       })("font-fit", this));
     }, {}], 2: [function (require, module, exports) {
-      /* jshint node:true */
-      /* globals define */
       ;(function (define) {
-        "use strict";define(function (require, exports, module) {
+        define(function (require, exports, module) {
+          "use strict";
+
           /**
            * Locals
            */
@@ -208,7 +216,7 @@
 
             // Merge base getter/setter attributes with the user's,
             // then define the property descriptors on the prototype.
-            var descriptors = mixin(props.attrs || {}, base.descriptors);
+            var descriptors = Object.assign(props.attrs || {}, base.descriptors);
 
             // Store the orginal descriptors somewhere
             // a little more private and delete the original
@@ -335,9 +343,7 @@
                   }
                 },
 
-                get: function get() {
-                  return textContent.get();
-                }
+                get: textContent.get
               },
 
               innerHTML: {
@@ -386,7 +392,7 @@
            * @return {Object}
            */
           function createProto(proto, props) {
-            return mixin(Object.create(proto), props);
+            return Object.assign(Object.create(proto), props);
           }
 
           /**
@@ -461,9 +467,7 @@
            * @param  {String} css
            */
           function injectGlobalCss(css) {
-            if (!css) {
-              return;
-            }
+            if (!css) return;
             var style = document.createElement("style");
             style.innerHTML = css.trim();
             headReady().then(function () {
@@ -561,22 +565,6 @@
               document.dispatchEvent(new Event("dirchanged"));
             }
           }
-
-          /**
-           * Copy the values of all properties from
-           * source object `target` to a target object `source`.
-           * It will return the target object.
-           *
-           * @param   {Object} target
-           * @param   {Object} source
-           * @returns {Object}
-           */
-          function mixin(target, source) {
-            for (var key in source) {
-              target[key] = source[key];
-            }
-            return target;
-          }
         });
       })(typeof define == "function" && define.amd ? define : (function (n, w) {
         "use strict";return typeof module == "object" ? function (c) {
@@ -631,15 +619,15 @@
         };
       })("gaia-icons", this));
     }, {}], 4: [function (require, module, exports) {
+      /* globals define */
       ;(function (define) {
         "use strict";define(function (require, exports, module) {
 
           /**
            * Dependencies
            */
-
           var component = require("gaia-component");
-          var fontFit = require("font-fit");
+          var _fontFit = require("font-fit");
 
           /**
            * Load 'gaia-icons' font-family
@@ -690,11 +678,11 @@
            * This is the minimum font size that we can take
            * when the header title is not centered in the window.
            */
-          var MINIMUM_FONT_SIZE_UNCENTERED = 18;
+          var MINIMUM_FONT_SIZE_UNCENTERED = 16;
 
           /**
-           * This is the maximum font size that we can use for
-           * the heade title.
+           * This is the maximum font-size
+           * for the header title.
            */
           var MAXIMUM_FONT_SIZE = 23;
 
@@ -722,8 +710,7 @@
               // Elements
               this.els = {
                 actionButton: this.shadowRoot.querySelector(".action-button"),
-                buttons: this.querySelectorAll("button, a"),
-                titles: this.querySelectorAll("h1")
+                titles: this.getElementsByTagName("h1")
               };
 
               // Events
@@ -930,7 +917,10 @@
 
               // Return existing unresolved
               // promise, or make a new one
-              return this.unresolved[key] = this.unresolved[key] || new Promise(function (resolve) {
+              if (this.unresolved[key]) {
+                return this.unresolved[key];
+              }
+              this.unresolved[key] = new Promise(function (resolve) {
                 _this4.pending[key] = _this4.nextTick(function () {
                   var styles = _this4._titleStyles;
                   var els = _this4.els.titles;
@@ -986,17 +976,7 @@
              * @return {Object} {fontSize, textWidth}
              * @private
              */
-            fontFit: (function (_fontFit) {
-              function fontFit(_x, _x2) {
-                return _fontFit.apply(this, arguments);
-              }
-
-              fontFit.toString = function () {
-                return _fontFit.toString();
-              };
-
-              return fontFit;
-            })(function (text, space) {
+            fontFit: function fontFit(text, space) {
               var opts = arguments[2] === undefined ? {} : arguments[2];
 
               debug("font fit:", text, space, opts);
@@ -1009,8 +989,8 @@
                 space: space
               };
 
-              return fontFit(fontFitArgs);
-            }),
+              return _fontFit(fontFitArgs);
+            },
 
             /**
              * Start the observer listening
