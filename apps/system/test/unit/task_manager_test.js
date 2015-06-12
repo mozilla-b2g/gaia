@@ -1,4 +1,4 @@
-/* global MockStackManager, MockNavigatorSettings, MockService,
+/* global MockStackManager, MockSettingsListener, MockService,
           TaskManager, Card, AppWindow,
           HomescreenWindow, MocksHelper, MockL10n */
 
@@ -7,13 +7,12 @@
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_stack_manager.js');
-requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_lazy_loader.js');
 
 require('/shared/js/event_safety.js');
 require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_service.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForTaskManager = new MocksHelper([
@@ -21,7 +20,8 @@ var mocksForTaskManager = new MocksHelper([
   'HomescreenWindow',
   'AppWindow',
   'Service',
-  'LazyLoader'
+  'LazyLoader',
+  'SettingsListener'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -52,7 +52,7 @@ suite('system/TaskManager >', function() {
   var fakeInnerWidth = 360;
   var fakeInnerHeight = 640;
 
-  var screenNode, realMozSettings, realSettingsListener, realL10n;
+  var screenNode, realL10n;
   var cardsView, cardsList, noRecentWindowsNode;
   var innerHeightDescriptor, innerWidthDescriptor,
       scrollLeftDescriptor, scrollTopDescriptor,
@@ -94,6 +94,15 @@ suite('system/TaskManager >', function() {
     // Then dispatch the cardviewshow event after a tick
     clock.tick();
   }
+  function hideTaskManager(clock) {
+    window.dispatchEvent(new CustomEvent('taskmanagerhide'));
+
+    // the cardviewbeforeclose event after a tick
+    // the cardviewclosed event after a tick
+    clock.tick(2);
+    // FIXME: TaskManager should do this itself
+    cardsList.innerHTML = '';
+  }
 
   function fakeFinish(clock, app) {
     clock.tick(100); // smooth timeout
@@ -101,18 +110,17 @@ suite('system/TaskManager >', function() {
     clock.tick(); // timeout before close event is dispatched
   }
 
-  var apps, home;
-  var sms, game, game2;
+  var apps = {}, appConfigs, home;
   var taskManager;
   var scrollProperties = {};
 
   mocksForTaskManager.attachTestHelpers();
-  suiteSetup(function cv_suiteSetup(done) {
 
-    apps = {
-      'http://sms.gaiamobile.org': new AppWindow({
+  suiteSetup(function cv_suiteSetup(done) {
+    appConfigs = {
+      'sms': {
         launchTime: 5,
-        name: 'SMS',
+        name: 'sms',
         frame: document.createElement('div'),
         manifest: {
           orientation: 'portrait-primary'
@@ -129,10 +137,10 @@ suite('system/TaskManager >', function() {
         },
         origin: 'http://sms.gaiamobile.org',
         blur: function() {}
-      }),
-      'http://game.gaiamobile.org': new AppWindow({
+      },
+      'game': {
         launchTime: 4,
-        name: 'GAME',
+        name: 'game',
         manifest: {
           orientation: 'landscape-primary'
         },
@@ -145,10 +153,10 @@ suite('system/TaskManager >', function() {
         },
         origin: 'http://game.gaiamobile.org',
         blur: function() {}
-      }),
-      'browser1': new AppWindow({
+      },
+      'browser1': {
         launchTime: 4,
-        name: 'BROWSER1',
+        name: 'browser1',
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -161,10 +169,10 @@ suite('system/TaskManager >', function() {
         },
         origin: 'http://browser1.somedomain.tld/path',
         blur: function() {}
-      }),
-      'http://game2.gaiamobile.org': new AppWindow({
+      },
+      'game2': {
         launchTime: 3,
-        name: 'GAME2',
+        name: 'game2',
         manifest: {
           orientation: 'landscape-secondary'
         },
@@ -177,9 +185,9 @@ suite('system/TaskManager >', function() {
         },
         origin: 'http://game2.gaiamobile.org',
         blur: function() {}
-      }),
-      'browser2': new AppWindow({
-        name: 'BROWSER2',
+      },
+      'browser2': {
+        name: 'browser2',
         rotatingDegree: 0,
         isBrowser: function() {
           return true;
@@ -192,8 +200,8 @@ suite('system/TaskManager >', function() {
         },
         origin: 'http://browser2.somedomain.tld/',
         blur: function() {}
-      }),
-      'search': new AppWindow({
+      },
+      'search': {
         name: 'search',
         rotatingDegree: 0,
         isBrowser: function() {
@@ -210,62 +218,8 @@ suite('system/TaskManager >', function() {
           role: 'search'
         },
         blur: function() {}
-      })
+      }
     };
-
-    sms = new AppWindow({
-      instanceID: 'AppWindow-0',
-      launchTime: 5,
-      name: 'SMS',
-      manifest: {
-        orientation: 'portrait-primary'
-      },
-      rotatingDegree: 0,
-      origin: 'http://sms.gaiamobile.org',
-      requestScreenshotURL: function() {
-        return null;
-      },
-      getScreenshot: function(callback) {
-        callback();
-      },
-      blur: function() {}
-    });
-
-    game = new AppWindow({
-      instanceID: 'AppWindow-1',
-      launchTime: 5,
-      name: 'GAME',
-      manifest: {
-        orientation: 'portrait-primary'
-      },
-      rotatingDegree: 90,
-      origin: 'http://game.gaiamobile.org',
-      requestScreenshotURL: function() {
-        return null;
-      },
-      getScreenshot: function(callback) {
-        callback();
-      },
-      blur: function() {}
-    });
-
-    game2 = new AppWindow({
-      instanceID: 'AppWindow-2',
-      launchTime: 5,
-      name: 'GAME2',
-      manifest: {
-        orientation: 'portrait-primary'
-      },
-      rotatingDegree: 270,
-      origin: 'http://game2.gaiamobile.org',
-      requestScreenshotURL: function() {
-        return null;
-      },
-      getScreenshot: function(callback) {
-        callback();
-      },
-      blur: function() {}
-    });
 
     innerHeightDescriptor = Object
                               .getOwnPropertyDescriptor(window, 'innerHeight');
@@ -328,30 +282,6 @@ suite('system/TaskManager >', function() {
     screenNode.appendChild(cardsView);
     document.body.appendChild(screenNode);
 
-    realMozSettings = navigator.mozSettings;
-    window.navigator.mozSettings = MockNavigatorSettings;
-    // dont reset the mock between tests
-    MockNavigatorSettings.mSetup = function() {};
-    MockNavigatorSettings.mTeardown = function() {};
-
-    // init with minimum default settings
-    MockNavigatorSettings
-      .mSettings['app.cards_view.screenshots.enabled'] = true;
-    MockNavigatorSettings.mSyncRepliesOnly = true;
-
-    realSettingsListener = window.SettingsListener;
-    // minimal mock for SettingsListener
-    window.SettingsListener = {
-      observe: function(name, defaultValue, callback) {
-        MockNavigatorSettings.addObserver(name, function(event) {
-          callback(event.settingValue);
-        });
-      },
-      getSettingsLock: function() {
-        return MockNavigatorSettings.createLock();
-      }
-    };
-
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
@@ -361,11 +291,7 @@ suite('system/TaskManager >', function() {
     requireApp('system/js/base_ui.js');
     requireApp('system/js/card.js');
 
-
     requireApp('system/js/task_manager.js', function() {
-      // normally done by bootstrap
-      taskManager = new TaskManager();
-      taskManager.start();
       done();
     });
 
@@ -382,52 +308,58 @@ suite('system/TaskManager >', function() {
                           scrollToDescriptor);
 
     screenNode.parentNode.removeChild(screenNode);
-    navigator.mozSettings = realMozSettings;
-    window.SettingsListener = realSettingsListener;
     navigator.mozL10n = realL10n;
   });
 
-  // The whole suite should use fakeTimers to prevent intemittents
-  // since the code logic is timer-heavy
   setup(function() {
+    apps = {};
+    MockStackManager.mStack = [];
     MockService.mockQueryWith('getHomescreen', home);
     MockService.mockQueryWith('fetchCurrentOrientation', 'portrait-primary');
     MockService.mockQueryWith('defaultOrientation', 'portrait-primary');
+    // The whole suite should use fakeTimers to prevent intemittents
+    // since the code logic is timer-heavy
     this.sinon.useFakeTimers();
 
     scrollProperties['cards-view'] = {
       scrollLeft: 0, scrollTop: 0
     };
+    // reset DOM
+    cardsList.innerHTML = '';
   });
-
   // We make sure to end each test with a hidden cardview
   // and all setTimeouts triggered
   teardown(function() {
-    taskManager.hide();
+    if (!taskManager) {
+      return;
+    }
+    taskManager.hide(); // setActive(false) publishes -activated event,
+    // the cardviewbeforeclose event after a tick
+    // the cardviewclosed event after a tick
+    this.sinon.clock.tick();
+    taskManager.stop();
     this.sinon.clock.tick(500); // 100ms exit + 400ms safety
   });
 
   suite('Hierarchy functions', function() {
-    setup(function() {
-      this.sinon.stub(taskManager, '_fetchElements');
-      this.sinon.stub(taskManager, '_registerEvents');
-      this.sinon.stub(taskManager, '_unregisterEvents');
-      taskManager.stack = [];
-      taskManager.unfilteredStack = [];
-    });
-
     teardown(function() {
-      taskManager.stop();
+      if (taskManager) {
+        hideTaskManager(this.sinon.clock);
+        taskManager.stop();
+        taskManager = null;
+      }
     });
 
     test('start should register hierarchy', function() {
       this.sinon.stub(MockService, 'request');
+      taskManager = new TaskManager();
       taskManager.start();
       assert.isTrue(
         MockService.request.calledWith('registerHierarchy', taskManager));
     });
 
     test('stop should unregister hierarchy', function() {
+      taskManager = new TaskManager();
       taskManager.start();
       this.sinon.stub(MockService, 'request');
       taskManager.stop();
@@ -436,6 +368,8 @@ suite('system/TaskManager >', function() {
     });
 
     test('setActive to true should publish -activated', function(done) {
+      taskManager = new TaskManager();
+      taskManager.start();
       window.addEventListener(taskManager.EVENT_PREFIX + '-activated',
         function onactivated() {
           window.removeEventListener(taskManager.EVENT_PREFIX + '-activated',
@@ -446,6 +380,8 @@ suite('system/TaskManager >', function() {
     });
 
     test('setActive to false should publish -deactivated', function(done) {
+      taskManager = new TaskManager();
+      taskManager.start();
       taskManager.setActive(true);
       window.addEventListener(taskManager.EVENT_PREFIX + '-deactivated',
         function ondeactivated() {
@@ -459,6 +395,8 @@ suite('system/TaskManager >', function() {
 
   suite('sanity check > ', function() {
     test('instantiable TaskManager', function(){
+      taskManager = new TaskManager();
+      taskManager.start();
       assert.isTrue(taskManager instanceof window.TaskManager,
                   'taskManager instanceof TaskManager');
 
@@ -475,6 +413,13 @@ suite('system/TaskManager >', function() {
       assert.ok(card && card instanceof window.Card,
                 'Card instantiation');
     });
+
+    test('settings properties', function(){
+      taskManager = new TaskManager();
+      assert.equal(typeof taskManager._observeSettings, 'function');
+      assert.equal(typeof taskManager._unobserveSettings, 'function');
+      assert.equal(typeof taskManager._settings, 'object');
+    });
   });
 
   suite('when a document is fullscreen', function() {
@@ -485,6 +430,8 @@ suite('system/TaskManager >', function() {
         configurable: true,
         get: function() { return true; }
       });
+      taskManager = new TaskManager();
+      taskManager.start();
     });
 
     teardown(function() {
@@ -492,6 +439,8 @@ suite('system/TaskManager >', function() {
         configurable: true,
         get: function() { return realFullScreen; }
       });
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
     test('should exit fullscreen when showing',
@@ -503,44 +452,75 @@ suite('system/TaskManager >', function() {
   });
 
   suite('settings > ', function() {
-    suite('screenshots settings >', function() {
-      var SETTING_KEY;
-      suiteSetup(function() {
-        SETTING_KEY = TaskManager.prototype.SCREENSHOT_PREVIEWS_SETTING_KEY;
-      });
+    setup(function() {
+      taskManager = new TaskManager();
+    });
 
-      // taskManager should've added an observer when it started
-      test('observes setting at startup', function() {
-        var observers = MockNavigatorSettings.mObservers[SETTING_KEY];
-        assert.equal(observers.length, 1,
-          'exactly one observer is watching ' + SETTING_KEY);
-      });
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
+    });
+    test('observes settings at startup', function() {
+      var spy = this.sinon.spy(MockSettingsListener, 'observe');
+      taskManager.start();
+      var numSettings = Object.keys(taskManager._settings).length;
+      var proto = TaskManager.prototype;
+      assert.equal(numSettings, 2);
+      assert.equal(spy.callCount, 2);
+      var calls = [0,1].map(i => spy.getCall(i));
+      assert.ok(calls.some(call => {
+        return call.args[0] === proto.SCREENSHOT_PREVIEWS_SETTING_KEY;
+      }));
+      assert.ok(calls.some(call => {
+        return call.args[0] === proto.APP_GROUPING_SETTING_KEY;
+      }));
+    });
+    test('observes screenshots setting updates', function() {
+      taskManager.start();
+      var SETTING_KEY = taskManager.SCREENSHOT_PREVIEWS_SETTING_KEY;
+      MockSettingsListener.mTriggerCallback(SETTING_KEY, false);
+      assert.ok(!taskManager.useAppScreenshotPreviews,
+        'useAppScreenshotPreviews is false when setting is false');
 
-      test('observes setting updates', function() {
-        var event = { settingValue: false };
-        MockNavigatorSettings.mTriggerObservers(SETTING_KEY, event);
-        assert.ok(!taskManager.useAppScreenshotPreviews,
-          'useAppScreenshotPreviews is false when setting is false');
+      MockSettingsListener.mTriggerCallback(SETTING_KEY, true);
+      assert.ok(taskManager.useAppScreenshotPreviews,
+        'useAppScreenshotPreviews is true when setting is true');
+    });
+    test('observes grouping setting updates', function() {
+      taskManager.start();
+      var SETTING_KEY = TaskManager.prototype.APP_GROUPING_SETTING_KEY;
+      MockSettingsListener.mTriggerCallback(SETTING_KEY, false);
+      assert.ok(!taskManager.useAppGrouping,
+        'useAppGrouping is false when setting is false');
 
-        event = { settingValue: true };
-        MockNavigatorSettings.mTriggerObservers(SETTING_KEY, event);
-        assert.ok(taskManager.useAppScreenshotPreviews,
-          'useAppScreenshotPreviews is true when setting is true');
-      });
+      MockSettingsListener.mTriggerCallback(SETTING_KEY, true);
+      assert.ok(taskManager.useAppGrouping,
+        'useAppGrouping is true when setting is true');
     });
   });
 
   suite('populated task manager >', function() {
-    suiteSetup(function() {
+    setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
+
       MockStackManager.mStack = [];
-      for (var app in apps) {
-        MockStackManager.mStack.push(apps[app]);
+      var app;
+      for (var key in appConfigs) {
+        app = new AppWindow(appConfigs[key]);
+        apps[key] = app;
+        MockStackManager.mStack.push(app);
       }
-      apps.home = home;
+    });
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
     suite('display cardsview >', function() {
       setup(function() {
+        this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
+            .returns(Promise.resolve('data:image/png;base64,abc+'));
         MockService.mockQueryWith('getTopMostWindow', apps.search);
         MockStackManager.mCurrent = MockStackManager.mStack.length -1;
         showTaskManager(this.sinon.clock);
@@ -625,7 +605,7 @@ suite('system/TaskManager >', function() {
       test('wheel up event', function() {
         var card = taskManager.currentCard;
         var killAppStub = this.sinon.stub(card, 'killApp');
-        this.sinon.stub(taskManager.currentCard.app, 'killable', function() {
+        this.sinon.stub(card.frontApp, 'killable', function() {
           return true;
         });
         taskManager.handleEvent({
@@ -656,9 +636,9 @@ suite('system/TaskManager >', function() {
       setup(function() {
         MockStackManager.mOutOfStack = true;
         MockStackManager.mStack = [
-          apps['http://sms.gaiamobile.org'],
-          apps['http://game.gaiamobile.org'],
-          apps['http://game2.gaiamobile.org']
+          apps.sms,
+          apps.game,
+          apps.game2
         ];
         MockStackManager.mCurrent = MockStackManager.mStack.length -1;
         taskManager.show();
@@ -670,14 +650,14 @@ suite('system/TaskManager >', function() {
 
       test('currentCard should be the last in the stack',
       function() {
-        var currentApp = taskManager.currentCard.app;
+        var currentApp = taskManager.currentCard.frontApp;
         var expectedPosition = MockStackManager.mStack.indexOf(currentApp);
         assert.equal(expectedPosition, MockStackManager.mCurrent);
       });
 
       test('exitToApp handles out-of-stack app',
       function(done) {
-        var outOfStackApp = game2;
+        var outOfStackApp = apps.search;
         var openStub = this.sinon.stub(outOfStackApp, 'open');
         waitForEvent(window, 'cardviewclosed').then(function(evt) {
           assert.isTrue(openStub.calledOnce);
@@ -693,6 +673,12 @@ suite('system/TaskManager >', function() {
     suite('display cardsview via holdhome >', function() {
       setup(function(done) {
         assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+
+        MockStackManager.mStack = [
+          apps.sms
+        ];
+        MockStackManager.mCurrent = MockStackManager.mStack.length -1;
+
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
         sendHoldhome();
@@ -711,6 +697,11 @@ suite('system/TaskManager >', function() {
       setup(function(done) {
         MockService.mockQueryWith('keyboardEnabled', true);
         assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+
+        MockStackManager.mStack = [
+          apps.sms
+        ];
+        MockStackManager.mCurrent = MockStackManager.mStack.length -1;
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
 
@@ -732,6 +723,10 @@ suite('system/TaskManager >', function() {
 
     suite('populated task manager in rocketbar >', function() {
       setup(function() {
+        MockStackManager.mStack = [
+          apps.sms
+        ];
+        MockStackManager.mCurrent = MockStackManager.mStack.length -1;
         showTaskManager(this.sinon.clock);
       });
 
@@ -743,8 +738,14 @@ suite('system/TaskManager >', function() {
 
   suite('empty task manager >', function() {
     setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
       MockStackManager.mStack = [];
       MockStackManager.mCurrent = -1;
+    });
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
     test('Empty task manager opens', function(done) {
@@ -804,19 +805,25 @@ suite('system/TaskManager >', function() {
 
   suite('hide > ', function() {
     setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
       MockStackManager.mStack = [
-        apps['http://sms.gaiamobile.org'],
-        apps['http://game.gaiamobile.org']
-      ];
+        appConfigs.sms,
+        appConfigs.game
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
       MockStackManager.mCurrent = 0;
-      MockService.mockQueryWith('AppWindowManager.getActiveWindow',
-        apps['http://sms.gaiamobile.org']);
+      MockService.mockQueryWith('AppWindowManager.getActiveWindow', apps.sms);
 
       showTaskManager(this.sinon.clock);
     });
 
     teardown(function() {
-      cardsList.innerHTML = '';
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
     test('taskManager should not be active', function() {
@@ -890,16 +897,29 @@ suite('system/TaskManager >', function() {
   });
 
   suite('setActive', function() {
+    setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
+      this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
+          .returns(Promise.resolve('data:image/png;base64,abc+'));
+      MockService.mockQueryWith('getTopMostWindow', apps.search);
+      MockStackManager.mStack = [];
+      MockStackManager.mCurrent = MockStackManager.mStack.length -1;
+      taskManager.stack = taskManager.unfilteredStack = [];
+    });
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
+    });
+
     test('setActive true', function(done) {
-      assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       // setActive(true) should fire cardsviewshown event
       waitForEvent(window, 'cardviewshown').then(function(event) {
         assert.isTrue(cardsView.classList.contains('active'));
         assert.isTrue(taskManager.isShown(), 'isShown is true');
         done();
       }, failOnReject);
-      // minimal-setup
-      cardsView.classList.remove('active');
+
       taskManager.setActive(true);
       this.sinon.clock.tick();
     });
@@ -919,19 +939,22 @@ suite('system/TaskManager >', function() {
     });
   });
 
-  suite('one app is displayed >', function() {
+  suite('tapping on an app >', function() {
     setup(function() {
-      MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
+      taskManager = new TaskManager();
+      taskManager.start();
+      MockStackManager.mStack = [
+        appConfigs.sms,
+        appConfigs.game
+      ].map((config) => {
+        return new AppWindow(config);
+      });
       MockStackManager.mCurrent = 0;
       showTaskManager(this.sinon.clock);
     });
-  });
-
-  suite('tapping on an app >', function() {
-    setup(function() {
-      MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
-      MockStackManager.mCurrent = 0;
-      showTaskManager(this.sinon.clock);
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
     test('displays the new app before dismissing the task manager',
@@ -955,39 +978,50 @@ suite('system/TaskManager >', function() {
 
   suite('closeApp', function() {
     setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
       MockStackManager.mStack = [
-        apps['http://sms.gaiamobile.org'],
-        apps['http://game.gaiamobile.org']
-      ];
+        appConfigs.sms,
+        appConfigs.game
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
       MockStackManager.mCurrent = 0;
       showTaskManager(this.sinon.clock);
+      this.sinon.clock.tick();
     });
+
     teardown(function() {
-      cardsList.innerHTML = '';
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
     test('removes the card for that app', function() {
-      var card = taskManager.getCardAtIndex(0);
-      var removeCardStub = this.sinon.stub(taskManager, 'removeCard');
-      sendAppTerminated(card.app);
-      assert.isTrue(removeCardStub.calledOnce);
+      this.sinon.stub(taskManager, 'removeApp');
+      sendAppTerminated(apps.sms);
+      assert.isTrue(taskManager.removeApp.calledOnce);
     });
 
     test('destroys the card', function() {
       var card = taskManager.getCardAtIndex(0);
       var destroySpy = this.sinon.spy(card, 'destroy');
+      assert.equal(card.apps.length, 1);
+      assert.equal(taskManager.stack.length, 2);
       assert.isTrue(card && card.element &&
                     card.element.parentNode == taskManager.cardsList);
-      var instanceID = card.app.instanceID;
-      sendAppTerminated(card.app);
+      var instanceID = card.frontApp.instanceID;
+      sendAppTerminated(card.frontApp);
       assert.isTrue(destroySpy.calledOnce);
-      assert.equal(cardsList.childNodes.length, 1);
+      assert.equal(cardsList.children.length, 1);
       assert.isFalse(instanceID in taskManager.cardsByAppID);
     });
 
     suite('after destroying all the cards', function() {
       setup(function() {
-        sendAppTerminated(apps['http://sms.gaiamobile.org']);
+        sendAppTerminated(apps.sms);
+        sendAppTerminated(apps.game);
       });
 
       test('should go back home', function(done) {
@@ -998,7 +1032,7 @@ suite('system/TaskManager >', function() {
         }, failOnReject)
         .then(function() { done(); }, done);
 
-        sendAppTerminated(apps['http://game.gaiamobile.org']);
+        sendAppTerminated(apps.game);
         fakeFinish(this.sinon.clock, home);
       });
     });
@@ -1006,29 +1040,36 @@ suite('system/TaskManager >', function() {
 
   suite('app is killed', function() {
     setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
       MockStackManager.mStack = [
-        apps['http://sms.gaiamobile.org'],
-        apps['http://game.gaiamobile.org']
-      ];
+        appConfigs.sms,
+        appConfigs.game
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
       MockStackManager.mCurrent = 0;
       taskManager.isRocketbar = false;
       showTaskManager(this.sinon.clock);
     });
 
     teardown(function() {
-      cardsList.innerHTML = '';
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
-    test('removeCard is called on appterminated', function() {
-      var deadApp = apps['http://game.gaiamobile.org'];
+    test('removeApp is called on appterminated', function() {
+      var deadApp = apps.game;
       var card = taskManager.cardsByAppID[deadApp.instanceID];
-      var removeCardSpy = this.sinon.spy(taskManager, 'removeCard');
+      var removeAppSpy = this.sinon.spy(taskManager, 'removeApp');
       var destroySpy = this.sinon.spy(card, 'destroy');
       var event = new CustomEvent('appterminated',
                                   { detail: deadApp });
       window.dispatchEvent(event);
 
-      assert.isTrue(removeCardSpy.calledOnce, 'removeCard was called');
+      assert.isTrue(removeAppSpy.calledOnce, 'removeApp was called');
       assert.isTrue(destroySpy.calledOnce, 'card.destroy was called');
       assert.equal(cardsList.childNodes.length, 1);
     });
@@ -1036,7 +1077,17 @@ suite('system/TaskManager >', function() {
 
   suite('exit >', function() {
     setup(function() {
-      taskManager.hide();
+      taskManager = new TaskManager();
+      taskManager.start();
+      MockStackManager.mStack = [
+        appConfigs.sms,
+        appConfigs.game
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
+      MockStackManager.mCurrent = 0;
     });
 
     test('locking the screen should trigger an exit', function() {
@@ -1070,7 +1121,7 @@ suite('system/TaskManager >', function() {
       });
 
       test('selected app is opened', function(done) {
-        var targetApp = apps['http://game.gaiamobile.org'];
+        var targetApp = apps.game;
         var stub = this.sinon.stub(targetApp, 'open');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -1083,7 +1134,7 @@ suite('system/TaskManager >', function() {
       });
 
       test('no touch input handled while opening selected app', function(done) {
-        var targetApp = apps['http://game.gaiamobile.org'];
+        var targetApp = apps.game;
         this.sinon.spy(taskManager, 'handleEvent');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -1114,14 +1165,13 @@ suite('system/TaskManager >', function() {
 
     suite('when opening from an app', function() {
       setup(function() {
-        MockService.mockQueryWith('AppWindowManager.getActiveWindow',
-          apps['http://sms.gaiamobile.org']);
+        MockService.mockQueryWith('AppWindowManager.getActiveWindow', apps.sms);
         MockStackManager.mCurrent = 0;
         showTaskManager(this.sinon.clock);
       });
 
       test('selected app is opened', function(done) {
-        var targetApp = apps['http://game.gaiamobile.org'];
+        var targetApp = apps.game;
         var stub = this.sinon.stub(targetApp, 'open');
 
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -1162,10 +1212,10 @@ suite('system/TaskManager >', function() {
 
       test('newStackPosition is defined when app is selected', function(done) {
         MockStackManager.mCurrent = 0;
-        var targetApp = apps['http://game.gaiamobile.org'];
+        var targetApp = apps.game;
+        var stackPosition = taskManager.unfilteredStack.indexOf(targetApp);
 
         waitForEvent(window, 'cardviewclosed').then(function(evt) {
-          var stackPosition = taskManager.stack.indexOf(targetApp);
           assert.equal(evt.detail.newStackPosition,
                        stackPosition,
                        'current newStackPosition in event.detail');
@@ -1184,27 +1234,41 @@ suite('system/TaskManager >', function() {
 
   suite('filtering > ', function() {
     setup(function() {
-      MockService.mockQueryWith('AppWindowManager.getActiveWindow',
-        apps.browser2);
-      MockStackManager.mCurrent = 0;
+      taskManager = new TaskManager();
+      taskManager.start();
+
+      this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
+          .returns(Promise.resolve('data:image/png;base64,abc+'));
       MockStackManager.mStack = [
-        apps['http://sms.gaiamobile.org'],
-        apps.browser1,
-        apps['http://game.gaiamobile.org'],
-        apps.browser2,
-        apps['http://game2.gaiamobile.org']
-      ];
+        appConfigs.sms,
+        appConfigs.browser1,
+        appConfigs.game,
+        appConfigs.browser2
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
+      MockStackManager.mCurrent = 0;
+      MockService.mockQueryWith('AppWindowManager.getActiveWindow',
+        apps.sms);
       showTaskManager(this.sinon.clock, 'browser-only');
     });
+
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
+    });
+
     test('filter for browsers', function() {
       assert.equal(taskManager.stack.length, 2);
       // ensure sms app is filtered out, so browser1 should be first
-      var currentCard = taskManager.currentCard;
-      assert.equal(currentCard.app, apps.browser1);
+      var firstCard = taskManager.getCardAtIndex(0);
+      assert.equal(firstCard.frontApp, apps.browser1);
     });
     test('exitToApp sets newStackPosition correctly using a filtered stack',
     function(done) {
-      var targetApp = apps.browser1;
+      var targetApp = apps.browser2;
       var expectedPosition = MockStackManager.mStack.indexOf(targetApp);
       var stub = this.sinon.stub(targetApp, 'open');
 
@@ -1217,10 +1281,9 @@ suite('system/TaskManager >', function() {
       taskManager.exitToApp(targetApp);
       fakeFinish(this.sinon.clock, targetApp);
     });
-
     test('exitToApp given no app opens home', function(done) {
       var expectedPosition = -1;
-      var stub = this.sinon.stub(apps.home, 'open');
+      var stub = this.sinon.stub(home, 'open');
 
       waitForEvent(window, 'cardviewclosed').then(function(evt) {
         assert.isTrue(stub.calledOnce, 'selected app open method was called');
@@ -1229,19 +1292,30 @@ suite('system/TaskManager >', function() {
       .then(function() { done(); }, done);
 
       taskManager.exitToApp();
-      fakeFinish(this.sinon.clock, apps.home);
+      fakeFinish(this.sinon.clock, home);
     });
   });
 
   suite('filtering > /w search role', function() {
     setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
+      this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
+          .returns(Promise.resolve('data:image/png;base64,abc+'));
       MockService.mockQueryWith('AppWindowManager.getActiveWindow',
         apps.search);
-      MockStackManager.mCurrent = 1;
+
       MockStackManager.mStack = [
-        apps.browser1,
-        apps.search
-      ];
+        appConfigs.browser1,
+        appConfigs.search,
+        appConfigs.sms
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
+
+      MockStackManager.mCurrent = 1;
       showTaskManager(this.sinon.clock, 'browser-only');
     });
     test('filter includes search app', function() {
@@ -1253,9 +1327,17 @@ suite('system/TaskManager >', function() {
   suite('filtering > no matches ', function() {
     var stub, _filterName;
     setup(function() {
-      taskManager.hide();
-      MockService.mockQueryWith('AppWindowManager.getActiveWindow',
-        apps['http://sms.gaiamobile.org']);
+      taskManager = new TaskManager();
+      taskManager.start();
+      MockStackManager.mStack = [
+        appConfigs.sms
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
+
+      MockService.mockQueryWith('AppWindowManager.getActiveWindow', apps.sms);
       _filterName = 'browser-only';
       stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
           assert.equal(filterName, _filterName);
@@ -1263,33 +1345,51 @@ suite('system/TaskManager >', function() {
         });
     });
 
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
+    });
+
     test('filter function is called and empty stack is the result', function() {
-      taskManager.show(_filterName);
+      showTaskManager(this.sinon.clock, _filterName);
       stub.calledWith([_filterName]);
       assert.isTrue(cardsView.classList.contains('empty'),
                     'Should be displaying no recent browser windows');
     });
 
     test('but apps should still enterTaskManager', function() {
-      MockStackManager.mStack.forEach(function(app) {
+      MockStackManager.mStack.forEach((app) => {
         this.sinon.spy(app, 'enterTaskManager');
-      }, this);
+      });
 
-      taskManager.show(_filterName);
+      showTaskManager(this.sinon.clock, _filterName);
 
       MockStackManager.mStack.forEach(function(app) {
         sinon.assert.calledOnce(app.enterTaskManager);
       }, this);
-    })  ;
+    });
 
   });
 
   suite('orientation', function() {
-    var app;
     setup(function() {
-      app = apps['http://sms.gaiamobile.org'];
-      MockService.mockQueryWith('AppWindowManager.getActiveWindow', app);
+      taskManager = new TaskManager();
+      taskManager.start();
+      MockStackManager.mStack = [
+        appConfigs.sms,
+      ].map((config) => {
+        var app = new AppWindow(config);
+        apps[app.name] = app;
+        return app;
+      });
       MockStackManager.mCurrent = 0;
+      MockService.mockQueryWith('AppWindowManager.getActiveWindow', apps.sms);
+      MockStackManager.mCurrent = 0;
+    });
+
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
     });
 
     test('lock orientation when showing', function() {
@@ -1324,6 +1424,52 @@ suite('system/TaskManager >', function() {
         showTaskManager(this.sinon.clock);
         assert.isTrue(taskManager.isShown());
       });
+    });
+  });
+
+  suite('grouping.enabled ', function() {
+    var browserWindows;
+    function cloneConfig(config) {
+      return JSON.parse(JSON.stringify(config));
+    }
+
+    setup(function() {
+      taskManager = new TaskManager();
+      taskManager.start();
+      browserWindows = {};
+      var browserConfig = appConfigs.browser1;
+      ['http://host.com/page1', 'http://host.com/page2'].forEach(url => {
+        var app = new AppWindow(cloneConfig(browserConfig));
+        browserWindows[url] = app;
+        app.config.url = app.url = url;
+        MockStackManager.mStack.push(app);
+      });
+      this.sinon.stub(AppWindow.prototype, 'getSiteIconUrl')
+          .returns(Promise.resolve('data:image/png;base64,abc+'));
+
+      MockSettingsListener.mTriggerCallback(
+        taskManager.APP_GROUPING_SETTING_KEY,
+        true
+      );
+    });
+    teardown(function() {
+      hideTaskManager(this.sinon.clock);
+      taskManager.stop();
+    });
+    test('create a single card from grouped windows', function() {
+      assert.ok(taskManager.useAppGrouping);
+      showTaskManager(this.sinon.clock);
+      var app1 = browserWindows['http://host.com/page1'];
+      var app2 = browserWindows['http://host.com/page2'];
+      // sanity-check the test setup
+      assert.ok(app1.config.url !== app2.config.url);
+
+      // one card element created for both apps
+      assert.equal(taskManager.cardsList.children.length, 1);
+
+      // pointers in cardsByAppID point to same card for both apps
+      assert.equal(taskManager.cardsByAppID[app1.instanceID],
+                   taskManager.cardsByAppID[app1.instanceID]);
     });
   });
 });

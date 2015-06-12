@@ -64,6 +64,12 @@ marionette('Task Manager', function() {
       taskManager.show();
     });
 
+    test('last card should be center of viewport', function() {
+      var cards = taskManager.cards;
+      var locn = cards[cards.length -1].location();
+      assert(locn.x === fullWidth / 4);
+    });
+
     test('should display moz-element screenshots for all apps',
     function() {
       var cards = taskManager.cards;
@@ -92,6 +98,22 @@ marionette('Task Manager', function() {
     setup(function() {
       firstApp.launch();
       taskManager.show();
+    });
+
+    test('active app should be center of viewport', function() {
+      var cards = taskManager.cards;
+      var activeInstanceId = client.executeScript(function() {
+        var win = window.wrappedJSObject;
+        return win.appWindowManager.getActiveApp().instanceID;
+      });
+      var activeCard = taskManager.element.findElement(
+        '[data-app-instance-id="'+activeInstanceId+'"]'
+      );
+
+      var locn = activeCard.location();
+      assert.equal(locn.x, fullWidth / 4);
+      assert.equal(activeCard.getAttribute('data-app-instance-id'),
+                  cards[cards.length -1].getAttribute('data-app-instance-id'));
     });
 
     test('should display a blob screenshot only for the current app',
