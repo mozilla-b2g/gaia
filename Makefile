@@ -180,7 +180,7 @@ REPORTER?=mocha-tbpl-reporter
 endif
 REPORTER?=spec
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
-TEST_MANIFEST?=./shared/test/integration/local-manifest.json
+TEST_MANIFEST?=$(shell pwd)/shared/test/integration/local-manifest.json
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -746,27 +746,9 @@ npm-cache:
 	npm install
 	touch -c node_modules
 
-node_modules: gaia_node_modules.revision
-	# Running make without using a dependency ensures that we can run
-	# "make node_modules" with a custom NODE_MODULES_GIT_URL variable, and then
-	# run another target without specifying the variable
-	$(MAKE) $(NODE_MODULES_SRC)
-ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
-else ifeq "$(NODE_MODULES_SRC)" "git-gaia-node-modules"
-	rm -fr node_modules
-	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
-endif
-ifneq "$(NODE_MODULES_SRC)" "npm-cache"
-	node --version
-	npm --version
-	VIRTUALENV_EXISTS=$(VIRTUALENV_EXISTS) npm install && npm rebuild
-	@echo "node_modules installed."
-	touch -c $@
-endif
-ifeq ($(BUILDAPP),device)
-	export LANG=en_US.UTF-8;
-endif
+node_modules:
+	# TODO: Get rid of references to gaia-node-modules stuff.
+	npm install
 
 ###############################################################################
 # Tests                                                                       #
@@ -804,11 +786,8 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test: b2g
-	TEST_MANIFEST=$(TEST_MANIFEST) \
-	./bin/gaia-marionette \
-		--reporter $(REPORTER) \
-		--buildapp $(BUILDAPP)
+test-integration-test: b2g node_modules
+	TEST_MANIFEST=$(TEST_MANIFEST) ./node_modules/.bin/gaia-marionette --buildapp $(BUILDAPP) --reporter $(REPORTER)
 
 .PHONY: jsmarionette-unit-tests
 jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv

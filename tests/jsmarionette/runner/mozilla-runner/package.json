@@ -6,6 +6,7 @@
   "main": "index.js",
 
   "dependencies" : {
-    "debug": "*"
+    "debug": "*",
+    "mozilla-profile-builder": "file:../mozilla-profile-builder"
   }
 }

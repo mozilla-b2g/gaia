@@ -1,0 +1,12 @@
+{
+  "name": "gaia-marionette",
+  "version": "0.0.1",
+  "bin": "./gaia-marionette",
+
+  "dependencies": {
+    "es6-promise": "2.0.1",
+    "marionette-js-runner": "file:../../tests/jsmarionette/runner/marionette-js-runner",
+    "mocha-tbpl-reporter": "file:../../tests/jsmarionette/mocha/mocha-tbpl-reporter",
+    "profile-builder": "file:../../shared/test/integration/profile-builder"
+  }
+}
