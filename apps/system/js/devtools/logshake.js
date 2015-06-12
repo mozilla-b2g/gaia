@@ -15,7 +15,7 @@
    * logs as displayed by logcat using DeviceStorage to persist the file for
    * future access. It communicates with gecko code running in
    * b2g/chrome/content/shell.js using a SystemAppProxy custom event based API.
-   * It requires the preference 'devtools.logshake' to be enabled
+   * It requires the preference 'devtools.logshake.enabled' to be enabled
    *
    * @class LogShake
    */
@@ -95,15 +95,14 @@
     },
 
     /**
-     * Handle an event of type capture-logs-success. event.detail.locations is
-     * an array of absolute paths to the saved log files, and
-     * event.detail.logFolder is the folder name where the logs are located.
+     * Handle an event of type capture-logs-success where event.detail.logPaths
+     * is an array of absolute paths to the saved log files.
      */
     handleCaptureLogsSuccess: function(event) {
       debug('handling capture-logs-success');
       navigator.vibrate(100);
       this._notify('logsSavedHeader', 'logsSavedBody',
-                   this.triggerShareLogs.bind(this, event.detail.logFilenames),
+                   this.triggerShareLogs.bind(this, event.detail.logPaths),
                    event.detail);
       this._shakeId = null;
     },
@@ -129,10 +128,10 @@
       return navigator.getDeviceStorage('sdcard');
     },
 
-    triggerShareLogs: function(logFilenames, notif) {
+    triggerShareLogs: function(logPaths, notif) {
       var logFiles = [];
       var storage = this.getDeviceStorage();
-      var requestsRemaining = logFilenames.length;
+      var requestsRemaining = logPaths.length;
       var self = this;
 
       function onSuccess() {
@@ -175,8 +174,8 @@
         self.handleCaptureLogsError({detail: {error: this.error}});
       }
 
-      for (var logFilename of logFilenames) {
-        var req = storage.get(logFilename);
+      for (var logPath of logPaths) {
+        var req = storage.get(logPath);
         req.onsuccess = onSuccess;
         req.onerror = onError;
       }
@@ -263,8 +262,8 @@
       var payload = message.data.logshakePayload;
       if ('error' in payload) {
         this.showErrorMessage(payload.error);
-      } else if ('logFilenames' in payload) {
-        this.triggerShareLogs(payload.logFilenames, message);
+      } else if ('logPaths' in payload) {
+        this.triggerShareLogs(payload.logPaths, message);
       } else {
         console.warn('Unidentified payload: ' + JSON.stringify(payload));
       }
