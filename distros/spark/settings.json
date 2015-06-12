@@ -1,3 +1,4 @@
 {
-  "developer.menu.enabled": true
+  "developer.menu.enabled": true,
+  "usb.transfer": "1"
 }
