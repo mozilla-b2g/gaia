@@ -2,6 +2,8 @@
 
 /* global module */
 var InboxAccessor = require('./views/inbox/accessors');
+var ComposerAccessor = require('./views/new-message/accessors');
+var NewMessageView = require('./views/new-message/view');
 var ConversationAccessor = require('./views/conversation/accessors');
 
 (function(module) {
@@ -14,48 +16,12 @@ var ConversationAccessor = require('./views/conversation/accessors');
     BACKSPACE: '\ue003'
   };
 
-  function observeElementStability(el) {
-    delete el.dataset.__stable;
-
-    function markElementAsStable() {
-      return setTimeout(function() {
-        el.dataset.__stable = 'true';
-        observer.disconnect();
-      }, 1000);
-    }
-
-    var timeout = markElementAsStable();
-    var observer = new MutationObserver(function() {
-      if (timeout) {
-        clearTimeout(timeout);
-        timeout = markElementAsStable();
-      }
-    });
-    observer.observe(el, { childList: true, subtree: true });
-  }
-
   var SELECTORS = Object.freeze({
     main: '#main-wrapper',
 
     optionMenu: 'body > form[data-type=action] menu',
     systemMenu: 'form[data-z-index-level="action-menu"]',
     contactPromptMenu: '.contact-prompt menu',
-
-    Composer: {
-      toField: '#messages-to-field',
-      recipientsInput: '#messages-to-field [contenteditable=true]',
-      recipient: '#messages-recipients-list .recipient[contenteditable=false]',
-      messageInput: '#messages-input',
-      subjectInput: '.subject-composer-input',
-      sendButton: '#messages-send-button',
-      attachButton: '#messages-attach-button',
-      header: '#messages-header',
-      charCounter: '.message-counter',
-      moreHeaderButton: '#messages-options-button',
-      mmsLabel: '.mms-label',
-      attachment: '#messages-input .attachment-container',
-      messageConvertNotice: '#messages-convert-notice'
-    },
 
     Message: {
       content: '.message-content > p:first-child',
@@ -83,69 +49,7 @@ var ConversationAccessor = require('./views/conversation/accessors');
 
         manifestURL: MANIFEST_URL,
 
-        Composer: {
-          get toField() {
-            return client.helper.waitForElement(SELECTORS.Composer.toField);
-          },
-
-          get recipientsInput() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.recipientsInput
-            );
-          },
-
-          get recipients() {
-            return client.findElements(SELECTORS.Composer.recipient);
-          },
-
-          get messageInput() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.messageInput
-            );
-          },
-
-          get subjectInput() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.subjectInput
-            );
-          },
-
-          get sendButton() {
-            return client.helper.waitForElement(SELECTORS.Composer.sendButton);
-          },
-
-          get attachButton() {
-            return client.helper.waitForElement(
-              SELECTORS.Composer.attachButton
-            );
-          },
-
-          get header() {
-            return client.helper.waitForElement(SELECTORS.Composer.header);
-          },
-
-          get charCounter() {
-            return client.findElement(SELECTORS.Composer.charCounter);
-          },
-
-          get mmsLabel() {
-            return client.findElement(SELECTORS.Composer.mmsLabel);
-          },
-
-          get attachment() {
-            return client.findElement(SELECTORS.Composer.attachment);
-          },
-
-          get conversionBanner() {
-            return client.findElement(SELECTORS.Composer.messageConvertNotice);
-          },
-
-          showOptions: function() {
-            client.helper.waitForElement(
-              SELECTORS.Composer.moreHeaderButton
-            ).tap();
-          }
-        },
+        Composer: new ComposerAccessor(client),
 
         Conversation: new ConversationAccessor(client),
 
@@ -264,23 +168,8 @@ var ConversationAccessor = require('./views/conversation/accessors');
           }
         },
 
-        addRecipient: function(number) {
-          this.Composer.recipientsInput.sendKeys(number + Chars.ENTER);
-
-          // Since recipient.js re-renders recipients all the time (when new
-          // recipient is added or old is removed) and it can happen several
-          // times during single "add" or "remove" operation we should
-          // wait until Recipients View is in a final state. The problem here is
-          // that between "findElement" and "displayed" calls element can
-          // actually be removed from DOM and re-created again that will lead to
-          // "stale element" exception.
-          var toField = this.Composer.toField;
-          toField.scriptWith(observeElementStability);
-          client.helper.waitFor(function() {
-            return toField.scriptWith(function(el) {
-              return !!el.dataset.__stable;
-            });
-          });
+        addRecipient: function(recipient) {
+          new NewMessageView(client).addNewRecipient(recipient);
         },
 
         getRecipient: function(number) {

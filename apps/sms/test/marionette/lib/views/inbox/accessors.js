@@ -27,6 +27,12 @@ InboxAccessor.prototype = {
     return this.client.helper.waitForElement(SELECTORS.mmsConversation);
   },
 
+  get createNewMessageButton() {
+    return this.client.helper.waitForElement(
+      SELECTORS.navigateToComposerHeaderButton
+    );
+  },
+
   waitToAppear: function() {
     return this.client.helper.waitForElement(SELECTORS.main);
   },
@@ -34,8 +40,7 @@ InboxAccessor.prototype = {
   // Temporary solution to keep the current tests running.
   // TODO: bug 1167103
   navigateToComposer: function() {
-    this.client.helper.waitForElement(SELECTORS.navigateToComposerHeaderButton)
-      .tap();
+    this.createNewMessageButton.tap();
   }
 };
 
