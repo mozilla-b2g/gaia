@@ -23,9 +23,9 @@ define(function(require) {
           hotspotSettingBtn:
             panel.querySelector('#hotspot-settings-section a'),
           hotspotElement:
-            panel.querySelector('input#tethering-wifi-enabled'),
+            panel.querySelector('#tethering-wifi-enabled'),
           usbTetheringElement:
-            panel.querySelector('input#tethering-usb-enabled'),
+            panel.querySelector('#tethering-usb-enabled'),
           hotspotSecurityType: panel.querySelector('#wifi-security-type'),
           hotspotSSID: panel.querySelector('span.hotspotSSID')
         };
