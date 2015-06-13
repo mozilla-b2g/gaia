@@ -47,8 +47,10 @@ suite('GaiaSwitch', function() {
     assert.equal(input.checked, false);
 
     element.addEventListener('click', function(e) {
-      assert.equal(e.target.checked, true);
-      done();
+      setTimeout(function() {
+        assert.equal(e.target.checked, true);
+        done();
+      });
     });
 
     element.handleClick({

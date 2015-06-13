@@ -8,16 +8,14 @@
     <div>
       <ul>
         <li>
-          <label class="pack-switch">
-            <input type="checkbox" name="lockscreen.enabled" class="lockscreen-enable" class="uninit">
-            <span data-l10n-id="lockScreen">Lock Screen</span>
-          </label>
+          <gaia-switch name="lockscreen.enabled" class="lockscreen-enable">
+            <label data-l10n-id="lockScreen"></label>
+          </gaia-switch>
         </li>
         <li class="lockscreen-enabled">
-          <label class="pack-switch">
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" class="passcode-enable" class="uninit">
-            <span data-l10n-id="passcode-lock">Passcode Lock</span>
-          </label>
+          <gaia-switch name="lockscreen.passcode-lock.enabled" class="passcode-enable">
+            <label data-l10n-id="passcode-lock"></label>
+          </gaia-switch>
         </li>
         <li class="passcode-enabled" id="passcode-timeout-row">
           <p data-l10n-id="require-passcode">Require passcode</p>

@@ -47,7 +47,6 @@ window.GaiaSwitch = (function(win) {
   proto.handleClick = function(e) {
     e.preventDefault();
     e.stopImmediatePropagation();
-    this.checked = !this.checked;
 
     // Dispatch a click event.
     var event = new MouseEvent('click', {
@@ -56,6 +55,10 @@ window.GaiaSwitch = (function(win) {
       cancelable: true
     });
     this.dispatchEvent(event);
+
+    if (!event.defaultPrevented) {
+      this.checked = !this.checked;
+    }
 
     // Dispatch a change event for the gaia-switch.
     this.dispatchEvent(new CustomEvent('change', {
