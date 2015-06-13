@@ -29,12 +29,18 @@
     }
 
     this.instanceID = _id++;
-
     return this;
   }
 
   Card.prototype = Object.create(BaseUI.prototype);
   Card.prototype.constructor = Card;
+
+  /**
+   * The point at which we take a swipe to be intentional
+   * @type {String}
+   * @memberof Card.prototype
+   */
+  Card.prototype.SWIPE_WOBBLE_THRESHOLD = 4 * window.devicePixelRatio;
 
   /**
    * @type {String}
@@ -182,29 +188,6 @@
     }
   };
 
-  Card.prototype.move = function(deltaX, deltaY) {
-    deltaX = deltaX || 0;
-    deltaY = deltaY || 0;
-
-    var windowWidth = this.manager.windowWidth || window.innerWidth;
-    var offset = this.position - this.manager.position;
-    var positionX = deltaX + offset * (windowWidth * 0.55);
-
-    this.element.dataset.positionX = positionX;
-
-    var style = { transform: '' };
-
-    if (deltaX || offset) {
-      style.transform = 'translateX(' + positionX + 'px)';
-    }
-
-    if (deltaY) {
-      style.transform = 'translateY(' + deltaY + 'px)';
-    }
-
-    this.applyStyle(style);
-  };
-
   /**
    * Build a card representation of an app window.
    * @memberOf Card.prototype
@@ -233,7 +216,6 @@
     if (this.sslState) {
       elem.dataset.ssl = this.sslState;
     }
-    elem.setAttribute('aria-labelledby', this.titleId);
 
     this.viewClassList.forEach(function(cls) {
       elem.classList.add(cls);
@@ -245,6 +227,7 @@
 
     this._fetchElements();
     this._updateDisplay();
+    this._registerEvents();
 
     this.publish('rendered');
     return elem;
@@ -282,6 +265,9 @@
    * @memberOf Card.prototype
    */
   Card.prototype.killApp = function() {
+    // we dont want any further events between now and
+    // when appterminated causes the card to be destroyed
+    this._unregisterEvents();
     this.app.kill();
   };
 
@@ -291,6 +277,8 @@
    */
   Card.prototype.destroy = function() {
     this.publish('willdestroy');
+    this._unregisterEvents();
+
     var element = this.element;
     if (element && element.parentNode) {
       element.parentNode.removeChild(element);
@@ -353,6 +341,126 @@
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
     this.iconButton = this.element.querySelector('.appIcon');
+  };
+
+  Card.prototype._registerEvents = function c__registerEvents() {
+    this.element.addEventListener('touchstart', this);
+    this.element.addEventListener('touchmove', this);
+    this.element.addEventListener('touchend', this);
+    this._eventsRegistered = true;
+  };
+
+  Card.prototype._unregisterEvents = function c__unregisterEvents() {
+    if (!this._eventsRegistered || !this.element) {
+      return;
+    }
+    this.element.removeEventListener('touchstart', this);
+    this.element.removeEventListener('touchmove', this);
+    this.element.removeEventListener('touchend', this);
+    this._eventsRegistered = false;
+  };
+
+  Card.prototype.handleEvent = function(evt) {
+    var verticalY;
+    var tapThreshold = 1;
+    switch (evt.type) {
+      case 'touchstart':
+        evt.stopPropagation();
+        this._dragPhase = '';
+        this.deltaX = 0;
+        this.deltaY = 0;
+        this.startTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
+        break;
+
+      case 'touchmove':
+        evt.stopPropagation();
+        this.deltaX = evt.touches[0].pageX - this.startTouchPosition[0];
+        this.deltaY = this._ease(
+          evt.touches[0].pageY - this.startTouchPosition[1],
+          this.manager.SWIPE_UP_THRESHOLD
+        );
+        verticalY = -1 * this.deltaY;
+        switch (this._dragPhase) {
+          case '':
+            if (verticalY > Math.abs(this.deltaX) &&
+                verticalY > this.SWIPE_WOBBLE_THRESHOLD) {
+              this._dragPhase = 'cross-slide';
+              // dont try and transition while dragging
+              this.element.style.transition = 'transform 0s linear';
+              this.onCrossSlide(evt);
+            }
+            break;
+
+          case 'cross-slide':
+            this.onCrossSlide(evt);
+            break;
+        }
+        break;
+
+      case 'touchend':
+        this.deltaX = evt.changedTouches[0].pageX - this.startTouchPosition[0];
+        this.deltaY = this._ease(
+          evt.changedTouches[0].pageY - this.startTouchPosition[1],
+          this.manager.SWIPE_UP_THRESHOLD
+        );
+        if (Math.abs(this.deltaX) <= tapThreshold ||
+            Math.abs(this.deltaY) <= tapThreshold) {
+          this._resetY();
+          return;
+        }
+        verticalY = -1 * this.deltaY;
+        // cross-slide should be more up than across
+        if (verticalY > Math.abs(this.deltaX) &&
+            verticalY > this.manager.SWIPE_UP_THRESHOLD &&
+            this.app.killable()) {
+          // leave the card where it is if it will be destroyed
+          this.killApp();
+        } else {
+          // return it to vertical center
+          this._resetY();
+        }
+        break;
+    }
+  };
+
+  /**
+   * @memberOf Card.prototype
+   * @param {DOMEvent} evt
+   */
+  Card.prototype.onCrossSlide = function(evt) {
+    // move card up by the delta - the threshold
+    var offsetY = this.deltaY - this.SWIPE_WOBBLE_THRESHOLD;
+    this.element.style.transform = 'translateY(' + offsetY + 'px)';
+  };
+
+  /**
+   * Ease for y-axis movement to damp start of the cross-slide
+   * @memberOf Card.prototype
+   * @param x {number} incremental value from 0 to max
+   * @param max {number}
+   */
+  Card.prototype._ease = function(x, max) {
+    var y;
+    var pt = Math.abs(x)/max;
+    var sign = x >= 0 ? 1 : -1;
+    var q1 = 0.25 - Math.pow(0.25, 1.675);
+    if (pt <= 0.25) {
+      // ease in at first
+      y = Math.pow(pt, 1.675);
+    } else {
+      // linear (minus offet)
+      y = pt - q1;
+    }
+    return sign * max * y;
+  };
+
+  /**
+   * @memberOf Card.prototype
+   */
+  Card.prototype._resetY = function(evt) {
+    // remove the inline transition so we transition per the stylesheet
+    this.element.style.removeProperty('transition');
+    this.element.style.transform = 'translateY(0)';
   };
 
   Card.prototype.getDisplayURLString = function(url) {

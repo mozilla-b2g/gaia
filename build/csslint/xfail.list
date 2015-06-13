@@ -49,6 +49,7 @@ apps/sms/views/shared/style/common.css 0 1
 apps/sms/views/shared/style/sms.css 0 2
 apps/sms/views/inbox/style/inbox.css 0 2
 apps/system/mobile_id/style/mobile_id.css 0 16
+apps/system/style/cards_view/cards_view.css 3 0
 apps/system/style/modal_dialog/modal_dialog.css 0 1
 apps/system/style/net_error.css 1 0
 apps/system/style/sound_manager/sound_manager.css 1 3
