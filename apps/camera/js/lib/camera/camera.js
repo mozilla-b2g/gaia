@@ -48,7 +48,9 @@ function Camera(options) {
 
   // Minimum video duration length for creating a
   // video that contains at least few samples, see bug 899864.
-  this.minRecordingTime = options.minRecordingTime  || 1000;
+  // Empirical testing has shown that it is common to get corrupted
+  // files under 1400ms (e.g. on the nexus 5).
+  this.minRecordingTime = options.minRecordingTime || 1500;
 
   // Number of bytes left on disk to let us stop recording.
   this.recordSpacePadding = options.recordSpacePadding || 1024 * 1024 * 1;
@@ -847,7 +849,12 @@ Camera.prototype.startRecording = function(options) {
   this.getFreeVideoStorageSpace(gotStorageSpace);
 
   function gotStorageSpace(err, freeBytes) {
-    if (err) { return self.onRecordingError(); }
+    if (self.stopRecordPending) {
+      debug('start recording interrupted (getFreeVideoStorageSpace)');
+      return self.stoppedRecording();
+    }
+
+    if (err) { return self.onStartRecordingError(); }
 
     var notEnoughSpace = freeBytes < self.video.minSpace;
     var remaining = freeBytes - self.video.spacePadding;
@@ -857,7 +864,7 @@ Camera.prototype.startRecording = function(options) {
     // Don't continue if there
     // is not enough space
     if (notEnoughSpace) {
-      self.onRecordingError('nospace2');
+      self.onStartRecordingError('nospace2');
       return;
     }
 
@@ -871,10 +878,14 @@ Camera.prototype.startRecording = function(options) {
     self.createVideoFilepath(createVideoFilepathDone);
 
     function createVideoFilepathDone(errorMsg, filepath) {
+      if (self.stopRecordPending) {
+        debug('start recording interrupted (createVideoFilepath)');
+        return self.stoppedRecording();
+      }
+
       if (typeof filepath === 'undefined') {
         debug(errorMsg);
-        self.onRecordingError('error-video-file-path');
-        return;
+        return self.onStartRecordingError('error-video-file-path');
       }
 
       video.filepath = filepath;
@@ -885,13 +896,29 @@ Camera.prototype.startRecording = function(options) {
   }
 
   function onError(err) {
+    // Regardless of error, if we called out to mozCamera, it may have
+    // created an empty file and we need to clean that up.
+    storage.delete(video.filepath);
+    // IN_PROGRESS means there is already a startRecording call in
+    // progress; we can ignore it because it will have its own duplicated
+    // success/error path.
+    if (err.name === 'NS_ERROR_IN_PROGRESS') {
+      debug('start recording error (in progress)');
+      return;
+    }
+    // ABORT means a stopRecording call interrupted us. Since it never
+    // transitioned to the Started recording state, we need to stop
+    // explicitly here.
+    if (err.name === 'NS_ERROR_ABORT') {
+      debug('start recording error (abort)');
+      return self.stoppedRecording();
+    }
     // Ignore err as we use our own set of error
     // codes; instead trigger using the default
-    self.onRecordingError();
+    self.onStartRecordingError();
   }
 
   function onSuccess() {
-    self.startVideoTimer();
     self.ready();
 
     // User closed app while
@@ -902,6 +929,11 @@ Camera.prototype.startRecording = function(options) {
       self.stopRecording();
     }
   }
+};
+
+Camera.prototype.startedRecording = function() {
+  debug('started recording');
+  this.startVideoTimer();
 };
 
 /**
@@ -922,15 +954,24 @@ Camera.prototype.stopRecording = function() {
   debug('stop recording');
 
   var notRecording = !this.get('recording');
-  var filepath = this.video.filepath;
-  var storage = this.storage.video;
-  var self = this;
 
-  if (notRecording) { return; }
+  // Even if we have requested a recording to stop, that doesn't
+  // mean it has finished yet, as we need to wait for the recorder
+  // state change event.
+  if (notRecording || this.stopRecordPending) {
+    debug('not recording or stop pending');
+    return;
+  }
 
+  this.stopRecordPending = true;
   this.busy();
-  this.stopVideoTimer();
   this.mozCamera.stopRecording();
+};
+
+Camera.prototype.stoppedRecording = function(recorded) {
+  debug('stopped recording');
+  this.stopVideoTimer();
+  this.stopRecordPending = false;
   this.set('recording', false);
 
   // Unlock orientation when stopping video recording.
@@ -939,41 +980,31 @@ Camera.prototype.stopRecording = function() {
   // making such high level decicions.
   this.orientation.start();
 
-  // Register a listener for writing
-  // completion of current video file
-  storage.addEventListener('change', onStorageChange);
-
-  function onStorageChange(e) {
-    // If the storage becomes unavailable
-    // For instance when yanking the SD CARD
-    if (e.reason === 'unavailable') {
-      storage.removeEventListener('change', onStorageChange);
-      self.emit('ready');
-      return;
-    }
-    debug('video file ready', e.path);
-    var matchesFile = e.path.indexOf(filepath) > -1;
-
-    // Regard the modification as video file writing
-    // completion if e.path matches current video
-    // filename. Note e.path is absolute path.
-    if (e.reason !== 'modified' || !matchesFile) { return; }
-
-    // We don't need the listener anymore.
-    storage.removeEventListener('change', onStorageChange);
-
+  var self = this;
+  var elapsedTime = self.get('videoElapsed');
+  var filepath;
+  var req;
+  var storage;
+  if (recorded) {
     // Re-fetch the blob from storage
-    var req = storage.get(filepath);
-    req.onerror = self.onRecordingError;
+    storage = this.storage.video;
+    filepath = this.video.filepath;
+    req = storage.get(filepath);
+    req.onerror = onError;
     req.onsuccess = onSuccess;
+  }
 
-    function onSuccess() {
-      debug('got video blob');
-      self.onNewVideo({
-        blob: req.result,
-        filepath: filepath
-      });
-    }
+  function onError(e) {
+    self.onStopRecordingError(filepath);
+  }
+
+  function onSuccess() {
+    debug('got video blob');
+    self.onNewVideo({
+      blob: req.result,
+      filepath: filepath,
+      elapsedTime: elapsedTime
+    });
   }
 };
 
@@ -983,30 +1014,23 @@ Camera.prototype.stopRecording = function() {
  * object and then get video meta data
  * to add to it.
  *
- * If the video was too short, we delete
- * it from storage and abort to prevent
- * the app from ever knowing a new
- * (potentially corrupted) video file
- * was recorded.
+ * If we fail to decode the metadata from
+ * the file, we delete it from storage
+ * and abort prevent the app from ever
+ * knowing a new (potentially corrupted)
+ * video file was recorded. If the
+ * duration is below the configuration
+ * threshold, we will suppress reporting
+ * the error, as it is likely due to
+ * stopping recording the video very
+ * quickly.
  *
  * @param  {Object} video
  * @private
  */
 Camera.prototype.onNewVideo = function(video) {
   debug('got new video', video);
-
-  var elapsedTime = this.get('videoElapsed');
-  var tooShort = elapsedTime < this.minRecordingTime;
   var self = this;
-
-  // Discard videos that are too
-  // short and possibly corrupted.
-  if (tooShort) {
-    debug('video too short, deleting...');
-    this.storage.video.delete(video.filepath);
-    this.ready();
-    return;
-  }
 
   // Finally extract some metadata before
   // telling the app the new video is ready.
@@ -1014,7 +1038,8 @@ Camera.prototype.onNewVideo = function(video) {
 
   function gotVideoMetaData(error, data) {
     if (error) {
-      self.onRecordingError();
+      var tooShort = video.elapsedTime < self.minRecordingTime;
+      self.onStopRecordingError(video.filepath, tooShort);
       return;
     }
 
@@ -1037,8 +1062,23 @@ Camera.prototype.onRecordingError = function(id) {
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
-  this.set('recording', false);
   this.ready();
+};
+
+Camera.prototype.onStartRecordingError = function(id) {
+  debug('start record error');
+  this.stoppedRecording();
+  this.onRecordingError(id);
+};
+
+Camera.prototype.onStopRecordingError = function(filepath, silent) {
+  debug('stop record error');
+  this.storage.video.delete(filepath);
+  if (silent) {
+    this.ready();
+  } else {
+    this.onRecordingError();
+  }
 };
 
 /**
@@ -1088,6 +1128,10 @@ Camera.prototype.onRecorderStateChange = function(e) {
   var msg = e.newState;
   if (msg === 'FileSizeLimitReached') {
     this.emit('filesizelimitreached');
+  } else if(msg === 'Started') {
+    this.startedRecording();
+  } else if(msg === 'Stopped') {
+    this.stoppedRecording(true);
   }
 };
 
@@ -1224,6 +1268,7 @@ Camera.prototype.startVideoTimer = function() {
 Camera.prototype.stopVideoTimer = function() {
   clearInterval(this.videoTimer);
   this.videoTimer = null;
+  this.updateVideoElapsed();
 };
 
 /**

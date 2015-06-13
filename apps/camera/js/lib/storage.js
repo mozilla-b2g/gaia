@@ -146,7 +146,7 @@ Storage.prototype.createVideoFilepath = function(done) {
     var req = videoStorage.addNamed(blob, dummyFilepath);
 
     req.onerror = function(e) {
-      debug('Failed to add' + filepath + 'to DeviceStorage', e);
+      debug('Failed to add ' + filepath + ' to DeviceStorage', e);
       var req = videoStorage.delete(dummyFilepath);
       req.onerror = function() { done('Error creating video file path'); };
       req.onsuccess = function() { self.createVideoFilepath(done); };
