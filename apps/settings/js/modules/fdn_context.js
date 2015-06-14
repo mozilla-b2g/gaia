@@ -17,7 +17,7 @@ define(function() {
     /**
      * internal function to help us clone object
      *
-     * @type {Object} obj
+     * @param {Object} obj
      */
     _cloneObject: function(obj) {
       return JSON.parse(JSON.stringify(obj));

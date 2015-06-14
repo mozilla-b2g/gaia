@@ -90,13 +90,11 @@ define(function(require) {
     /**
      * Makes a request to the RIL to change the current state of a specific
      * call barring option.
-     * @param options Object with the details of the new state
-     * {
-     *   'program':      // id of the service to update
-     *   'enabled':      // new state for the service
-     *   'password':     // password introduced by the user
-     *   'serviceClass': // type of RIL service (voice in this case)
-     * }
+     * @param options - options object with the details of the new state
+     * @param options.program - id of the service to update
+     * @param options.enabled - new state for the service
+     * @param options.password - password introduced by the user
+     * @param options.serviceClass - type of RIL service (voice in this case)
      */
     _setRequest: function(api, options) {
       return new Promise(function (resolve, reject) {

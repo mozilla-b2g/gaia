@@ -568,7 +568,7 @@ define(function(require) {
      * @access public
      * @memberOf AddonManager.prototype
      * @param {App} addon
-     * @returns {Promise String}
+     * @returns {Promise.<String>}
      */
     getAddonDisableType: function(addon) {
       return this._getCustomizedApps(addon.instance).then((customizedApps) => {
@@ -592,7 +592,7 @@ define(function(require) {
      * @access public
      * @memberOf AddonManager.prototype
      * @param {String} manifestURL
-     * @returns {Promise App}
+     * @returns {Promise.<App>}
      */
     findAddonByManifestURL: function(manifestURL) {
       return AppsCache.apps().then(() => {
@@ -610,7 +610,7 @@ define(function(require) {
      * @memberOf AddonManager.prototype
      * @param {DOMApplication} addon addon to check
      * @param {String} manifestURL app manifest URL to check
-     * @returns {Promise Boolean}
+     * @returns {Promise.<Boolean>}
      */
     addonAffectsApp: function(addon, manifestURL) {
       if (!manifestURL) {

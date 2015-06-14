@@ -7,12 +7,10 @@ define(function(require) {
 
       /**
        * Makes a RIL request to change the passcode.
-       * @param api Object mobileConnection to be used for the call.
-       * @param data info related to the PIN code. In the form:
-       * {
-       *    'pin':    // current passcode
-       *    'newPin': // new passcode
-       * }
+       * @param api - api object mobileConnection to be used for the call.
+       * @param pinData - data info related to the PIN code.
+       * @param pinData.pin - current passcode
+       * @param pinData.newPin - new passcode
        */
       function _changeCallBarringPasscode(api, pinData) {
         return new Promise(function finished(resolve, reject) {
