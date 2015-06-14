@@ -45,14 +45,14 @@ var ModeManager = {
   start: function(mode, callback) {
     this._modeStack = [];
     this._resetViews();
-    this._pushView(this.views[mode], false, function() {
+    this._pushMode(mode, false, function() {
       this._modeStack = [mode];
       this._updateMode(callback);
     }.bind(this));
   },
 
   push: function(mode, callback) {
-    this._pushView(this.views[mode], true, function() {
+    this._pushMode(mode, true, function() {
       this._modeStack.push(mode);
       this._updateMode(callback);
     }.bind(this));
@@ -62,7 +62,7 @@ var ModeManager = {
     if (this._modeStack.length <= 1) {
       return;
     }
-    this._popView();
+    this._popMode();
     this._modeStack.pop();
     this._updateMode();
   },
@@ -76,9 +76,23 @@ var ModeManager = {
     }
   },
 
-  initView: function(view, callback) {
-    if (!view.isLoaded) {
-      LazyLoader.load(view.path, function() {
+  waitForView: function(mode, callback) {
+    var view = this.views[mode];
+    if (view.isLoaded) {
+      if (callback) {
+        callback(view);
+        return;
+      }
+    }
+
+    new Promise((resolve, reject) => {
+      LazyLoader.load(view.path, () => {
+        // Our view might have been loaded while we were waiting so check again.
+        if (view.isLoaded) {
+          resolve();
+          return;
+        }
+
         // Remove the view's hidden style before pushing it.
         var sheet = document.getElementById(view.id);
         sheet.classList.remove('hidden');
@@ -100,29 +114,31 @@ var ModeManager = {
             SearchView.init();
             break;
         }
-        view.isLoaded = true;
 
         // The PlayerView needs the settings values before use it.
         if (view.id === 'views-player') {
-          asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
+          asyncStorage.getItem(SETTINGS_OPTION_KEY, (settings) => {
             App.playerSettings = settings;
             PlayerView.setOptions(App.playerSettings);
-            callback();
+            resolve();
           });
         } else if (view.id === 'views-search') {
           // The text normalizer is needed in search view.
-          LazyLoader.load('shared/js/text_normalizer.js', callback);
+          LazyLoader.load('shared/js/text_normalizer.js', () => { resolve(); });
         } else {
-          callback();
+          resolve();
         }
       });
-    } else {
-      callback();
-    }
+    }).then(() => {
+      view.isLoaded = true;
+      if (callback) {
+        callback(view);
+      }
+    });
   },
 
-  _pushView: function(view, animated, callback) {
-    this.initView(view, () => {
+  _pushMode: function(mode, animated, callback) {
+    this.waitForView(mode, (view) => {
       var nextId = view.id;
       var currentId = this.currentMode ?
                       this.views[this.currentMode].id : null;
@@ -150,7 +166,7 @@ var ModeManager = {
     });
   },
 
-  _popView: function(callback) {
+  _popMode: function(callback) {
     var currentId = this.views[this.currentMode].id;
     var previousId = this.views[this.previousMode].id;
     var currentSheet = document.getElementById(currentId);

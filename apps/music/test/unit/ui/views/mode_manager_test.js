@@ -244,60 +244,54 @@ suite('Mode Manager Test', function() {
     });
 
     test('Initialize TILES', function() {
-      var view = mm.views[MODE_TILES];
       var spy = this.sinon.spy(TilesView, 'init');
 
-      mm.initView(view, function() {
+      mm.waitForView(MODE_TILES, (view) => {
         assert.ok(spy.calledOnce);
         assert.equal(view.isLoaded, true);
       });
     });
 
     test('Initialize LIST', function() {
-      var view = mm.views[MODE_LIST];
       var spy = this.sinon.spy(ListView, 'init');
 
-      mm.initView(view, function() {
+      mm.waitForView(MODE_LIST, (view) => {
         assert.ok(spy.calledOnce);
         assert.equal(view.isLoaded, true);
       });
     });
 
     test('Initialize SUBLIST', function() {
-      var view = mm.views[MODE_SUBLIST];
       var spy = this.sinon.spy(SubListView, 'init');
 
-      mm.initView(view, function() {
+      mm.waitForView(MODE_SUBLIST, (view) => {
         assert.ok(spy.calledOnce);
         assert.equal(view.isLoaded, true);
       });
     });
 
     test('Initialize PLAYER', function() {
-      var view = mm.views[MODE_PLAYER];
       var spy = this.sinon.spy(PlayerView, 'init');
 
-      mm.initView(view, function() {
+      mm.waitForView(MODE_PLAYER, (view) => {
         assert.ok(spy.calledOnce);
         assert.equal(view.isLoaded, true);
       });
     });
 
     test('Initialize SEARCH(Tiles)', function() {
-      var view = mm.views[MODE_SEARCH_FROM_TILES];
       var spy = this.sinon.spy(SearchView, 'init');
 
-      mm.initView(view, function() {
+      mm.waitForView(MODE_SEARCH_FROM_TILES, (view) => {
         assert.ok(spy.calledOnce);
         assert.equal(view.isLoaded, true);
       });
     });
 
     test('Initialize SEARCH(List)', function() {
-      var view = mm.views[MODE_SEARCH_FROM_LIST];
       var spy = this.sinon.spy(SearchView, 'init');
 
-      mm.initView(view, function() {
+      mm.waitForView(MODE_SEARCH_FROM_LIST, (view) => {
         assert.ok(spy.calledOnce);
         assert.equal(view.isLoaded, true);
       });
