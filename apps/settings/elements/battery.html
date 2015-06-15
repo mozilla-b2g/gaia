@@ -8,40 +8,36 @@
     <div>
       <ul>
         <li>
-          <a id="battery-level">
-            <span data-l10n-id="batteryLevel">Current Battery Life</span>
-            <span></span>
-          </a>
+          <label class="info-item" id="battery-level">
+            <span class="info-item-title" data-l10n-id="batteryLevel"></span>
+            <span class="info-item-content"></span>
+          </label>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="powerSaveModeTitle">Power Save Mode</h2>
+        <h2 data-l10n-id="powerSaveModeTitle"></h2>
       </header>
       <ul>
         <li>
           <label class="pack-switch">
             <input type="checkbox" name="powersave.enabled" class="uninit">
-            <span data-l10n-id="powerSaveMode">Power Save Mode</span>
+            <span data-l10n-id="powerSaveMode"></span>
           </label>
         </li>
         <li>
-          <p data-l10n-id="turnOnAuto">Turn On Automatically</p>
+          <p data-l10n-id="turnOnAuto"></p>
           <span class="button icon icon-dialog">
             <select name="powersave.threshold">
-              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
-              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
-              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-              <option value="-1" data-l10n-id="never">Never</option>
+              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'></option>
+              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'></option>
+              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'></option>
+              <option value="-1" data-l10n-id="never"></option>
             </select>
           </span>
         </li>
         <li class="description">
-          <p data-l10n-id="powerSave-explanation">
-            Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and
-            Geolocation connections to extend battery life. You can still turn these
-            services back on manually.
-          </p>
+          <p data-l10n-id="powerSave-explanation"></p>
         </li>
       </ul>
     </div>
