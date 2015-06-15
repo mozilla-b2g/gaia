@@ -2,7 +2,6 @@
 /* exported MediaDB */
 
 'use strict';
-/* global enumerateAll, getreq */
 
 /**
  * MediaDB.js: a simple interface to DeviceStorage and IndexedDB that serves
