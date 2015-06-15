@@ -255,7 +255,6 @@ var NotificationScreen = {
 
     // The notification being touched is the toast
     if (this._notification.classList.contains('displayed')) {
-      this._touching = false;
       if (touchDiffY < 0) {
         this.closeToast();
       }
