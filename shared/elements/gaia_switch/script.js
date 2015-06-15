@@ -102,6 +102,7 @@ window.GaiaSwitch = (function(win) {
   template.innerHTML = `<label id="switch-label" class="pack-switch">
       <input type="checkbox">
       <span><content select="label"></content></span>
+      <content select="small"></content>
     </label>`;
 
   // Register and return the constructor
