@@ -381,47 +381,60 @@ Phase.prototype.format = function(entries, suite, startMark) {
  * Output aggregate statistical information for all suite runs to the console
  */
 Phase.prototype.logStats = function() {
+  var runner = this;
   var results = {};
-  var metrics = [];
 
   this.formattedRuns.forEach(function(run) {
     Object
       .keys(run)
       .forEach(function(key) {
-        if (!results[key]) {
-          results[key] = [];
+        var entry = run[key][0];
+        var contextResults = results[entry.context];
+
+        if (!contextResults) {
+          contextResults = results[entry.context] = {};
         }
 
-        var entry = run[key][0];
+        if (!contextResults[key]) {
+          contextResults[key] = [];
+        }
+
         var value = entry.value;
 
         if (entry.entryType === 'memory') {
           value = value / 1024 / 1024;
         }
 
-        results[key].push(value);
+        contextResults[key].push(value);
       });
   });
 
   Object
     .keys(results)
-    .forEach(function(key) {
-      var values = results[key];
-      var percentile = stats.percentile(values, 0.95);
+    .forEach(function(contextKey) {
+      var contextResults = results[contextKey];
+      var metrics = [];
 
-      metrics.push({
-        Metric: key,
-        Mean: stats.mean(values).toFixed(3),
-        Median: stats.median(values).toFixed(3),
-        Min: Math.min.apply(Math, values).toFixed(3),
-        Max: Math.max.apply(Math, values).toFixed(3),
-        StdDev: stats.stdev(values).toFixed(3),
-        p95: percentile ? percentile.toFixed(3) : 'n/a'
+      Object
+        .keys(contextResults)
+        .forEach(function(key) {
+          var values = contextResults[key];
+          var percentile = stats.percentile(values, 0.95);
+
+          metrics.push({
+            Metric: key,
+            Mean: stats.mean(values).toFixed(3),
+            Median: stats.median(values).toFixed(3),
+            Min: Math.min.apply(Math, values).toFixed(3),
+            Max: Math.max.apply(Math, values).toFixed(3),
+            StdDev: stats.stdev(values).toFixed(3),
+            p95: percentile ? percentile.toFixed(3) : 'n/a'
+          });
+        });
+
+        runner.log('Results from %s\n', contextKey);
+        console.table(metrics);
       });
-    });
-
-  console.log('');
-  console.table(metrics);
 };
 
 /**
