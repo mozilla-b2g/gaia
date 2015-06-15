@@ -282,6 +282,28 @@ function execute(config) {
     settings['devtools.qps.enabled'] = true;
   }
 
+  if (config.DOGFOOD === '1') {
+    settings['devtools.overlay'] = true;
+    settings['debug.performance_data.advanced_telemetry'] = true;
+    settings['debug.ttl.enabled'] = true;
+    settings['debug.fps.enabled'] = false;
+    settings['hud.logging'] = false;
+    settings['devtools.overlay.system'] = false;
+    settings['hud.errors'] = false;
+    settings['hud.warnings'] = false;
+    settings['hud.security'] = false;
+    settings['hud.reflows'] = true;
+    settings['hud.jank'] = true;
+    settings['hud.uss'] = false;
+    settings['hud.appmemory'] = false;
+    settings['hud.jsobjects'] = false;
+    settings['hud.jsstrings'] = false;
+    settings['hud.jsother'] = false;
+    settings['hud.dom'] = false;
+    settings['hud.style'] = false;
+    settings['hud.other'] = false;
+  }
+
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG === '1') {

@@ -124,7 +124,6 @@
   AT.prototype.start = function start() {
     this.advancedTelemetryEnabledListener =
     function advancedTelemetryEnabledListener(enabled) {
-      this.startCollecting();
       if (enabled) {
         loginfo('Start Collecting');
         this.startCollecting();
@@ -140,9 +139,9 @@
   };
 
   AT.prototype.startCollecting = function startCollecting(done) {
+    loginfo('inside of startCollecting');
     var self = this;
     this.metrics = null;
-    debug('inside of startCollecting');
     // If we're already running there is nothing to start
     if (this.collecting) {
       return;
@@ -152,18 +151,18 @@
 
     loadData();
     function loadData() {
-      debug('inside of loadData');
+      loginfo('inside of loadData');
       HistogramData.load(function(loadedMetrics) {
+        loginfo('inside of loadedMetrics');
         self.metrics = loadedMetrics;
-        debug('Calling getConfigurationSettiongs');
         getDeviceID();
       });
     }
 
     loginfo('starting app usage metrics collection');
 
-
     function getDeviceID() {
+      loginfo('inside getDeviceId');
       asyncStorage.getItem(DEVICE_ID_KEY, function(value) {
         if (value) {
           self.deviceID = value;
@@ -180,7 +179,7 @@
     }
 
     function getConfigurationSettings() {
-      loginfo('getConfigurationSettings');
+      loginfo('inside getConfigurationSettings');
       // Settings to query, mapped to default values
 //      var query = {
 //        'metrics.appusage.retryInterval': AUM.RETRY_INTERVAL
@@ -195,9 +194,9 @@
 
     function registerHandlers() {
       // Basic event handlers
-      debug('registerHandlers');
+      loginfo('inside registerHandlers');
       EVENT_TYPES.forEach(function (type) {
-        debug('REGISTERHANDLE: ' + type);
+        loginfo('REGISTERHANDLE: ' + type);
         window.addEventListener(type, self);
       });
 
@@ -265,7 +264,7 @@
       }*/
       // Otherwise, if we have not failed to transmit, then send it if the
       // reporting interval has elapsed.
-//     else if (absoluteTime - this.metrics.startTime() > AT.REPORT_INTERVAL) {
+      /* else */
       if (absoluteTime - this.metrics.startTime() > AT.REPORT_INTERVAL) {
         this.transmit();
       }
@@ -500,6 +499,7 @@
     //The key name is composite of: <app>_<category>
     var key = ed.metric.appName.concat('_', ed.metric.name);
     var value = ed.metric.value;
+    debug('adding metric, key: ' + key + ', value: ' + value);
     switch (ed.metric.name) {
       case 'uss':
         this.addUssValue(key, value);
@@ -509,6 +509,9 @@
         break;
       case 'reflows':
         this.addReflowsValue(key, value);
+        break;
+      case 'reflow-duration':
+        this.addReflowDurationValue(key, value);
         break;
       case 'security':
         this.addSecurityValue(key, value);
@@ -663,6 +666,30 @@
       debug('ADDED A NEW HISTOGRAM FOR REFLOWS:' +
         key + JSON.stringify(newValue));
     }
+    debug('Added a value for REFLOWS: ' + value);
+  };
+
+  HistogramData.prototype.addReflowDurationValue = function(key, value) {
+    var histValue = this.data.histograms.get(key, value);
+    if (histValue) {
+      // Broke the memory into ten buckets 1-300 MB each.
+      histValue.values[(Math.floor((value/300)) -1)]++;
+      this.data.histograms.set(key, histValue);
+    } else {
+      var newValue = {'sum_squares_hi': 0,
+        'sum_squares_lo': 1,
+        'sum': 0,
+        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        'histogram_type': 1,
+        'bucket_count': 10,
+        'range': [0,300]};
+
+      newValue.values[(Math.floor((value/300)) -1)]++;
+      this.data.histograms.set(key, newValue);
+      debug('ADDED A NEW HISTOGRAM FOR REFLOW DURATION:' + 
+        key + JSON.stringify(newValue));
+    }
+    debug('Added a value for REFLOW DURATION: ' + value);
   };
 
   HistogramData.prototype.addJankValue = function(key, value) {
