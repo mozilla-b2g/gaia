@@ -42,7 +42,6 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 var subject,
     _,
     realL10n,
-    Contacts,
     realFb,
     realThumbnailImage,
     mockContact,
@@ -100,7 +99,7 @@ suite('Render contact form', function() {
 
     mocksForm.suiteSetup();
 
-    Contacts.extServices = MockExtServices;
+    window.ExtServices = MockExtServices;
 
     realFb = window.fb;
     window.fb = Mockfb;

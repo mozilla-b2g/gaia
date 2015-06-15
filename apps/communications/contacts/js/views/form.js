@@ -15,6 +15,7 @@
 /* global ICEData */
 /* global MergeHelper */
 /* global MainNavigation */
+/* global ExtServices */
 /* global ContactsService */
 /* global Matcher */
 
@@ -834,7 +835,7 @@ contacts.Form = (function() {
   var cookMatchingCallbacks = function cookMatchingCallbacks(contact) {
     return {
       onmatch: function(results) {
-        Contacts.extServices.showDuplicateContacts();
+        ExtServices.showDuplicateContacts();
 
         mergeHandler = function mergeHandler(e) {
           if (e.origin !== fb.CONTACTS_APP_ORIGIN) {

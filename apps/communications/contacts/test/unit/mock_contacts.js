@@ -23,10 +23,6 @@ var MockContacts = {
   },
   cardStateChanged: function() {
   },
-  extServices: {
-    importLive: function() {},
-    importGmail: function() {}
-  },
   checkCancelableActivity: function() {},
   cancel: function() {},
   utility: function(view, callback, type) {
@@ -43,7 +39,6 @@ var MockContacts = {
       'update': function() {}
     };
   },
-  showStatus: function(status) {},
   updateSelectCountTitle: function(count) {},
   goBack: function(cb) {
     if (typeof cb === 'function') {

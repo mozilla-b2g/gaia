@@ -316,7 +316,7 @@ suite('Render contacts list', function() {
     window.Contacts = MockContacts;
     realFb = window.fb;
     window.fb = Mockfb;
-    window.Contacts.extServices = MockExtFb;
+    window.ExtServices = MockExtFb;
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};

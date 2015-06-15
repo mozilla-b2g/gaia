@@ -23,6 +23,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 requireApp('communications/contacts/services/contacts.js');
+requireApp('communications/contacts/test/unit/mock_service_extensions.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -75,6 +76,7 @@ if (!window.realMozIccManager) {
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
+  'ExtServices',
   'asyncStorage',
   'Cache',
   'ConfirmDialog',

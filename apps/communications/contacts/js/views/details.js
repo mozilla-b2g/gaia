@@ -17,6 +17,7 @@
 /* global TAG_OPTIONS */
 /* global utils */
 /* global VcardFilename */
+/* global ExtServices */
 /* global WebrtcClient */
 /* global MainNavigation */
 /* global ContactsService */
@@ -472,7 +473,7 @@ contacts.Details = (function() {
       linkButton.classList.add('hide');
     }
 
-    Contacts.extServices.initEventHandlers(social, contact, linked);
+    ExtServices.initEventHandlers(social, contact, linked);
 
     listContainer.appendChild(social);
   };
@@ -546,7 +547,7 @@ contacts.Details = (function() {
       // Only have this active if contact list has more than one entry
       findMergeButton.disabled = false;
       findMergeButton.addEventListener('click', function finding() {
-        Contacts.extServices.match(contact.id);
+        ExtServices.match(contact.id);
       });
     }
 
