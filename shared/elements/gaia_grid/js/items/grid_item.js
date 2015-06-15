@@ -207,7 +207,7 @@
         };
         icon = window.WebManifestHelper.iconURLForSize(manifest,
           this.app.manifestURL, maxSize);
-        return icon.href;
+        return icon ? icon.href : null;
       }
 
       // Create a list with the sizes and order it by descending size.
@@ -429,6 +429,10 @@
     renderIcon: function(renderCachedIcon) {
       var icon = this.icon;
       this.iconState = 'pending';
+
+      if (!icon) {
+        return;
+      }
 
       if (renderCachedIcon && this.hasCachedIcon) {
         // Display cached icons before trying to get icons again.
