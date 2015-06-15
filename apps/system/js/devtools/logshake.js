@@ -237,6 +237,7 @@
       var title = navigator.mozL10n.get(titleId) || titleId;
       var payload = {
         body: navigator.mozL10n.get(body) || body,
+        icon: '/style/notifications/images/bug.png',
         tag: 'logshake:' + this._shakeId,
         data: {
           systemMessageTarget: 'logshake',
