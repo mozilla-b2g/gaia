@@ -32,6 +32,7 @@ suite('smart-home/CardFilter', function() {
       sinon.stub(mockMenuGroup, 'querySelectorAll', function() {
         return mockSmartButtons;
       });
+      sinon.spy(mockMenuGroup, 'addEventListener');
       cardFilter = new CardFilter();
     });
 
@@ -49,6 +50,14 @@ suite('smart-home/CardFilter', function() {
           assert.isTrue(button.addEventListener.calledOnce);
         });
       });
+
+    test('start() should listen to "opened" event on menu group', function() {
+        cardFilter.start(mockMenuGroup);
+        assert.isTrue(mockMenuGroup.addEventListener.calledOnce);
+        var call = mockMenuGroup.addEventListener.firstCall;
+        assert.equal(call.args[0], 'opened');
+        assert.isTrue(typeof call.args[1] === 'function');
+    });
   });
 
   suite('> stop', function() {

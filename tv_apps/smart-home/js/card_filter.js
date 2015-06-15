@@ -25,6 +25,9 @@
 
   proto.start = function cf_start(menuGroup) {
     this.menuGroup = menuGroup;
+    this.menuGroup.addEventListener('opened', function() {
+      this.fire('opened');
+    }.bind(this));
     var buttons = this.menuGroup.querySelectorAll(
                                                 'smart-button[data-icon-type]');
     this._buttons = {};

@@ -41,6 +41,9 @@
       this._cardFilter.filter = FilterManager.FILTERS.ALL.iconName;
       this._filterChangedHandler = this.onFilterChanged.bind(this);
       this._cardFilter.on('filterchanged', this._filterChangedHandler);
+      this._cardFilter.on('opened', function() {
+        this._home.cleanFolderScrollable(true);
+      }.bind(this));
 
       this._hideFilter = this.hide.bind(this);
       this._showFilter = this.show.bind(this);
