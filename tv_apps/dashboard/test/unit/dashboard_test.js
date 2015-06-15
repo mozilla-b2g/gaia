@@ -131,5 +131,15 @@ suite('Dashboard', function() {
       assert.equal(document.body.dataset.activeDirection, '');
       assert.isTrue(mainSectionFocusSpy.calledOnce);
     });
+
+    test('should toggle body class "expand" with visibility', function() {
+      setFakeVisibility('hidden');
+      dashboard.onVisibilityChange();
+      assert.isFalse(document.body.classList.contains('active'));
+
+      setFakeVisibility('visible');
+      dashboard.onVisibilityChange();
+      assert.isTrue(document.body.classList.contains('active'));
+    });
   });
 });

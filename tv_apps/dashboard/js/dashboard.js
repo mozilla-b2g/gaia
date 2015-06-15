@@ -32,6 +32,9 @@
     onVisibilityChange: function d_onVisibilityChange() {
       if (document.visibilityState !== 'visible') {
         this._clearActiveDirection();
+        document.body.classList.remove('active');
+      } else {
+        document.body.classList.add('active');
       }
     },
 

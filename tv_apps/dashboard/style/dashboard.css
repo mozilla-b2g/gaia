@@ -140,3 +140,44 @@ iframe {
   width: 100%;
   height: 100%;
 }
+
+/* Intro animation */
+
+/*
+ * The following rules set transform origin to central point of the screen.
+ * For the formula calc(XXrem +/- 50vh/vw), they locate to respective screen
+ * edges by the former term XXrem, then componsate 50vh/50vw for centeral point.
+ */
+
+.active #bottom-panel {
+  /* 16rem is the height of its preview area. */
+  transform-origin: 50vw calc(16rem - 50vh);
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+.active #top-panel {
+  /* 25rem is the height of its hidden area. */
+  transform-origin: 50vw calc(25rem + 50vh);
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+.active #left-panel {
+  /* 39rem is the width of its hidden area. */
+  transform-origin: calc(39rem + 50vw) 50vh;
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+.active #right-panel {
+  /* 15.2rem is the width of its preview area. */
+  transform-origin: calc(15.2rem - 50vw) 50vh;
+  animation: zoomin 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s both;
+}
+
+@keyframes zoomin {
+  from {
+    transform: scale(1.7);
+  }
+  to {
+    transform: scale(1);
+  }
+}
