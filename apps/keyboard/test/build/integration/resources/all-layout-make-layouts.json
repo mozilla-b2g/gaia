@@ -610,6 +610,19 @@
     "preloaded": true
   },
   {
+    "id": "ln",
+    "name": "Lingála",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 1275,
+    "preloaded": true
+  },
+  {
     "id": "lt",
     "name": "Lietuvių",
     "imEngineId": "latin",

@@ -41,6 +41,7 @@ suite('Keyboard layouts building tests', function() {
                        'hi',
                        'ig',
                        'ko',
+                       'ln',
                        'mk',
                        'my',
                        'pl',
