@@ -76,11 +76,13 @@
     ],
 
     // All the intials except Q (including the null initial).
-    initialsNotQ: '(b|c|ch|d|đ|g|gh|gi|h|k|kh|l|m|n|' +
-                  'ng|ngh|nh|p|ph|r|s|t|th|tr|v|x|)',
+    // (Any usual Vietnamese syllable can be prefixed with an X
+    // when transcribing foreign proper nouns.)
+    initialsNotQ: '(x?(?:b|c|ch|d|đ|g|gh|gi|h|k|kh|l|m|n|' +
+                  'ng|ngh|nh|p|ph|r|s|t|th|tr|v)?)',
 
     // All the initials that start with Q.
-    initialQ: '(q)',
+    initialQ: '(x?q)',
 
     // All the finals
     finals: '(c|ch|m|n|ng|nh|p|t)',
@@ -95,12 +97,12 @@
                  'iêu|yêu|ươu|' +                 // diphthong + /w/
                  'oa|oe|uê|uy|uơ|' +              // /w/ + vowel
                  'uya|' +                         // /w/ + diphthong
-                 'oai|oay|uây)',                  // /w/ + vowel + /j/
+                 'oai|oay|uôi|uây)',              // /w/ + vowel + /j/
 
     // These vowel clusters are valid before any final,
     // (except when the intial is Q)
     nucleusClosed: '(a|ă|â|e|ê|i|o|ô|ơ|u|ư|' +    // vowel
-                   'iê|yê|uơ|ươ|' +               // diphthong
+                   'iê|yê|uô|uơ|ươ|' +            // diphthong
                    'oa|oă|uâ|oe|uê|uy|uơ|' +      // /w/ + vowel
                    'uyê|' +                       // /w/ + diphthong
                    'oo)', // 'oo' only appears in French loan words
@@ -345,11 +347,16 @@
     capitalizeNext = false;
 
     // Automatically transform E -> Ê after an I or Y. I find this really handy.
+    // And UO -> UÔ
     if (s == 'e' && buffer.match(/(y|i)$/i)) {
       keycode = 'ê'.charCodeAt(0);
     }
     else if (s == 'E' && buffer.match(/(y|i)$/i)) {
       keycode = 'Ê'.charCodeAt(0);
+    } else if (s == 'o' && buffer.match(/u$/i)) {
+      keycode = 'ô'.charCodeAt(0);
+    } else if (s == 'O' && buffer.match(/u$/i)) {
+      keycode = 'Ô'.charCodeAt(0);
     }
 
     // Letters
