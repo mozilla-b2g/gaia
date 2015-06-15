@@ -5,6 +5,7 @@ var Promise = require('promise');
 var debug = require('debug')('host/host');
 var request = require('./lib/request');
 var spawn = require('child_process').spawn;
+var spawnSync = require('child_process').spawnSync;
 var uuid = require('uuid');
 var _ = require('lodash');
 
@@ -93,6 +94,15 @@ Host.prototype = {
       console.log('There was a request in progress!');
       this.didCrashDuringRequest = true;
     }
+
+    // XXXAus: WARNING!!! ACHTUNG!!! HACK HACK HACK!!!
+    // We need to ensure that all previous b2g-bin instances are dead.
+    // We include both b2g and b2g-bin here to avoid having to branch
+    // depending on which OS we're operating on.
+    spawnSync('killall', 
+              ['b2g-bin', 'b2g'], 
+              { cwd: process.cwd(), 
+                env: process.env });
 
     this.restarting = new Promise(function(resolve) {
       // Kill ourselves.
