@@ -4,7 +4,8 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/system/js",
+    "include": ["apps/system/README.md",
+                "apps/system/js",
                 "apps/system/fxa/js",
                 "apps/system/lockscreen/js",
                 "apps/system/mobile_id/js"],
