@@ -1467,13 +1467,14 @@ var MediaDB = (function() {
 
     // Do a quick scan and then follow with a full scan
     function quickScan(timestamp) {
-      var cursor;
+      var options;
+
       if (timestamp > 0) {
         media.details.firstscan = false;
-        cursor = enumerateAll(media.details.storages, '', {
+        options = {
           // add 1 so we don't find the same newest file again
           since: new Date(timestamp + 1)
-        });
+        };
       }
       else {
         // If there is no timestamp then this is the first time we've
@@ -1481,45 +1482,51 @@ var MediaDB = (function() {
         // allows important optimizations during the scanning process
         media.details.firstscan = true;
         media.details.records = [];
-        cursor = enumerateAll(media.details.storages, '');
+        options = {};
       }
 
-      cursor.onsuccess = function() {
+      scanDS(media.details.storages, null, options)
+        .then(processFiles)
+        .catch(handleScanError);
+
+      function processFiles(files) {
         if (!media.scanning) { // Abort if scanning has been cancelled
           return;
         }
-        var file = cursor.result;
-        if (file) {
-          if (!ignore(media, file)) {
-            insertRecord(media, file);
-          }
-          cursor.continue();
-        }
-        else {
-          // Quick scan is done. When the queue is empty, force out
-          // any batched created events and move on to the slower
-          // more thorough full scan.
-          whenDoneProcessing(media, function() {
-            sendNotifications(media);
-            if (media.details.firstscan) {
-              // If this was the first scan, then we're done
-              endscan(media);
-            }
-            else {
-              // If this was not the first scan, then we need to go
-              // ensure that all of the old files we know about are still there
-              fullScan();
-            }
-          });
-        }
-      };
 
-      cursor.onerror = function() {
+        // Sort them by date from newest to oldest
+        files = files.sort(function(a, b) {
+          return b.lastModifiedDate - a.lastModifiedDate;
+        });
+
+        // And insert them all
+        for (var i = 0; i < files.length; i++) {
+          insertRecord(media, files[i]);
+        }
+
+        // Quick scan is done. When the queue is empty, force out
+        // any batched created events and move on to the slower
+        // more thorough full scan.
+        whenDoneProcessing(media, function() {
+          sendNotifications(media);
+          if (media.details.firstscan) {
+            // If this was the first scan, then we're done
+            endscan(media);
+          }
+          else {
+            // If this was not the first scan, then we need to go
+            // ensure that all of the old files we know about are still there
+            fullScan();
+          }
+        });
+      }
+
+      function handleScanError(error) {
         // We can't scan if we can't read device storage.
         // Perhaps the card was unmounted or pulled out
-        console.warning('Error while scanning', cursor.error);
+        console.warning('Error while scanning', error);
         endscan(media);
-      };
+      }
     }
 
     // Get a complete list of files from DeviceStorage
@@ -1538,31 +1545,18 @@ var MediaDB = (function() {
       // The db may be busy right about now, processing files that
       // were found during the quick scan.  So we'll start off by
       // enumerating all files in device storage
-      var dsfiles = [];
-      var cursor = enumerateAll(media.details.storages, '');
-      cursor.onsuccess = function() {
-        if (!media.scanning) { // Abort if scanning has been cancelled
-          return;
-        }
-        var file = cursor.result;
-        if (file) {
-          if (!ignore(media, file)) {
-            dsfiles.push(file);
-          }
-          cursor.continue();
-        }
-        else {
-          // We're done enumerating device storage, so get all files from db
-          getDBFiles();
-        }
-      };
-
-      cursor.onerror = function() {
-        // We can't scan if we can't read device storage.
-        // Perhaps the card was unmounted or pulled out
-        console.warning('Error while scanning', cursor.error);
-        endscan(media);
-      };
+      var dsfiles;
+      scanDS(media.details.storages)
+        .then(function(files) { // When we get the files from device storage
+          dsfiles = files;      // remember them
+          getDBFiles();         // and then move on to get the database entries
+        })
+        .catch(function(error) {
+          // We can't scan if we can't read device storage.
+          // Perhaps the card was unmounted or pulled out
+          console.warning('Error while scanning', error);
+          endscan(media);
+        });
 
       function getDBFiles() {
         var store = media.db.transaction('files').objectStore('files');
@@ -1687,6 +1681,48 @@ var MediaDB = (function() {
         insertRecord(media, null);
       }
     }
+
+    // A utility function that returns a Promise that resolves to an array
+    // of non-ignored File objects on the specified DeviceStorage.
+    function scanDS(storage, directory, options) {
+      // If the first argument is an array then recursively call this
+      // function on each element of the array, and combine the results.
+      if (Array.isArray(storage)) {
+        return Promise.all(storage.map((s) => scanDS(s, directory, options)))
+          .then(function(arrays) {
+            return Array.prototype.concat.apply([], arrays);
+          });
+      }
+
+      // Otherwise, it should be a single DeviceStorage object to enumerate.
+      return new Promise(function(resolve, reject) {
+        var files = [];
+        var cursor = storage.enumerate(directory || '', options || {});
+
+        cursor.onerror = function() {
+          // If a storage area is unmounted, don't fail, just return no files
+          if (cursor.error.name === 'NotFoundError') {
+            resolve(files);
+          }
+          else {
+            reject(cursor.error);
+          }
+        };
+
+        cursor.onsuccess = function() {
+          var result = cursor.result;
+          if (result) {
+            if (!ignore(media, result)) {
+              files.push(result);
+            }
+            cursor.continue();
+          }
+          else {
+            resolve(files);
+          }
+        };
+      });
+    }
   }
 
   // Called to send out a scanend event when scanning is done.
@@ -1793,7 +1829,7 @@ var MediaDB = (function() {
         request.onerror = function() {
           // This probably means that the file wasn't in the db yet
           console.warn('MediaDB: Unknown file in deleteRecord:',
-                       filename, getreq.error);
+                       filename, request.error);
           deleteNextFile();
         };
         request.onsuccess = function() {
