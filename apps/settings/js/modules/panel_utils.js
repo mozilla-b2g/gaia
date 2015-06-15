@@ -382,35 +382,42 @@ define(function(require) {
       }
 
       // update <input> values when the corresponding setting is changed
-      var input = panel.querySelector(`input[name="${key}"],
-        gaia-switch[name="${key}"]`);
-      if (!input) {
+      var inputs = [].slice.call(panel.querySelectorAll(`input[name="${key}"],
+        gaia-switch[name="${key}"]`));
+      if (!inputs.length) {
         return;
       }
-      switch (input.type) {
-        case 'gaia-switch':
-        case 'checkbox':
-        case 'switch':
-          if (input.checked == value) {
-            return;
-          }
-          input.checked = value;
-          break;
-        case 'range':
-          if (input.value == value) {
-            return;
-          }
-          input.value = value;
-          break;
-        case 'select':
-          for (i = 0, count = input.options.length; i < count; i++) {
-            if (input.options[i].value == value) {
-              input.options[i].selected = true;
-              break;
+
+      inputs.forEach((input) => {
+        switch (input.type) {
+          case 'gaia-switch':
+          case 'checkbox':
+          case 'switch':
+            value = !!value;
+            if (input.checked === value) {
+              return;
             }
-          }
-          break;
-      }
+            input.checked = value;
+            break;
+          case 'range':
+            if (input.value === value) {
+              return;
+            }
+            input.value = value;
+            break;
+          case 'select':
+            for (i = 0, count = input.options.length; i < count; i++) {
+              if (input.options[i].value === value) {
+                input.options[i].selected = true;
+                break;
+              }
+            }
+            break;
+          case 'radio':
+            input.checked = (input.value === value);
+            break;
+        }
+      });
     },
 
     /**

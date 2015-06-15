@@ -9,11 +9,15 @@ define(function(require) {
 
   var SettingsCache = require('modules/settings_cache');
   var SettingsListener = require('shared/settings_listener');
+  var DialogService = require('modules/dialog_service');
 
   var UsbTransfer = function() {
     this._keyUmsEnabled = 'ums.enabled';
     this._keyUmsMode = 'ums.mode';
     this._keyTransferProtocol = 'usb.transfer';
+
+    this._partialUmsSupport = !navigator.getDeviceStorages('sdcard').every(
+      storage => storage.canBeShared);
 
     this.PROTOCOL_UMS = '0';
     this.PROTOCOL_MTP = '1';
@@ -59,16 +63,30 @@ define(function(require) {
      * @memberOf UsbTransfer.prototype
      * @param {Number} mode current mode
      * @param {Number} protocol transfer protocol
+     * @return {Promise}
      */
     _changeMode: function ut_changeMode(mode, protocol) {
       if (mode !== this.MODE_MTP && protocol === this.PROTOCOL_MTP) {
         this._setMode(this.MODE_MTP);
       } else if (mode === this.MODE_MTP &&
         protocol === this.PROTOCOL_UMS) {
-        this._setMode(this.MODE_UMS);
+        if (this._partialUmsSupport) {
+          return DialogService.show('partial-ums-warning').then((result) => {
+            if (result.type === 'cancel') {
+              var param = {};
+              param[this._keyTransferProtocol] = this.PROTOCOL_MTP;
+              SettingsListener.getSettingsLock().set(param);
+            } else {
+              this._setMode(this.MODE_UMS);
+            }
+          });
+        } else {
+          this._setMode(this.MODE_UMS);
+        }
       } else {
         console.log('Error: should not be executed');
       }
+      return Promise.resolve();
     },
 
     /**
