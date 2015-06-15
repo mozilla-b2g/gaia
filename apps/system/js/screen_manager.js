@@ -380,6 +380,7 @@
           // are too many places to change that for now.
           self.screenEnabled = false;
           navigator.mozPower.screenEnabled = false;
+          navigator.mozPower.keyLightEnabled = false;
         }, 20);
 
         self.fireScreenChangeEvent();
@@ -419,6 +420,7 @@
       var power = navigator.mozPower;
       if (power) {
         power.screenEnabled = true;
+        power.keyLightEnabled = true;
       }
       this.screenEnabled = true;
 
