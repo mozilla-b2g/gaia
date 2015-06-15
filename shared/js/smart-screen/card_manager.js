@@ -655,19 +655,19 @@
 
       // Priority is:
       // 1. user given name
-      // 2. localized application/deck name if it is an application/deck
-      // 3. l10nId if any
+      // 2. l10nId if any
+      // 3. localized application/deck name if it is an application/deck
       if (card.name && card.name.raw) {
         name = {
           raw: card.name.raw
         };
+      } else if (card.name && card.name.id) {
+        name = card.name;
       } else if (card.nativeApp &&
           (card instanceof Application || card instanceof Deck)) {
         name = {
           raw: this._getLocalizedName(card.nativeApp.manifestURL, lang)
         };
-      } else if (card.name && card.name.id) {
-        name = card.name;
       }
       return name;
     },
