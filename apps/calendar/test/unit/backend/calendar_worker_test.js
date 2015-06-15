@@ -2,10 +2,10 @@ define(function(require) {
 'use strict';
 
 var streamHelper = require('test/support/stream_helper');
-var calendar = require('test/support/calendar');
+//var calendar = require('test/support/calendar');
 var co = require('ext/co');
 var mochaPromise = require('test/support/mocha_promise');
-var denodeify = require('common/promise').denodeify;
+//var denodeify = require('common/promise').denodeify;
 var threads = require('ext/threads');
 
 var clearStore = denodeify(calendar.clearStore);
@@ -42,6 +42,7 @@ suite('calendar service', function() {
     yield result;
   }));
 
+  /*
   suite('accounts', function() {
     var db;
 
@@ -79,6 +80,7 @@ suite('calendar service', function() {
       yield result;
     }));
   });
+  */
 });
 
 });
