@@ -99,7 +99,7 @@ function createListElement(option, data, index, highlight) {
       li.appendChild(albumImg);
 
       AlbumArt.getCoverURL(data).then(function(url) {
-        showImage(albumImg, url, 'fadeIn');
+        showImage(albumImg, url);
       });
 
       if (option === 'artist') {
