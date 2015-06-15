@@ -242,7 +242,7 @@
         elem.removeAttribute('data-l10n-id');
         elem.textContent = name.raw;
       } else if (name && name.id) {
-        elem.setAttribute('data-l10n-id', name.id);
+        SharedUtils.localizeElement(elem, name);
       }
     },
 

@@ -62,7 +62,12 @@
       data: {
         type: 'Application',
         group: 'tv',
-        name: {raw: 'CH ' + number},
+        name: {
+          id: 'channel-name',
+          args: {
+            number: number
+          }
+        },
         manifestURL: this.tvDeckMeta.manifestURL,
         launchURL: this.tvDeckMeta.origin + '/index.html' + window.location.hash
       }

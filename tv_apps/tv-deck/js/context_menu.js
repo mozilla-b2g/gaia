@@ -44,7 +44,12 @@
       data: {
         type: 'Application',
         group: 'tv',
-        name: {raw: 'CH ' + number},
+        name: {
+          id: 'channel-name',
+          args: {
+            number: number
+          }
+        },
         manifestURL: this.selfApp.manifestURL,
         launchURL: this.selfApp.origin + '/index.html' + window.location.hash
       }
