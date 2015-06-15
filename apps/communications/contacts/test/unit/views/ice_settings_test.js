@@ -6,7 +6,8 @@
 /* global asyncStorage */
 /* global MockContactsListObj */
 /* global ContactsService */
-/* global ICEData, MockContactsSettings, Contacts */
+/* global ConfirmDialog */
+/* global ICEData, MockContactsSettings */
 
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -17,11 +18,13 @@ requireApp('communications/contacts/js/utilities/ice_data.js');
 requireApp('communications/contacts/js/views/ice_settings.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 
 var mocksHelper = new MocksHelper([
   'asyncStorage',
   'Cache',
+  'ConfirmDialog',
   'Contacts',
   'ICEStore',
 ]);
@@ -397,14 +400,14 @@ suite('ICE Settings view', function() {
 
     function assertErrorMessage(code, expectedCode, cb) {
       assert.equal(code, expectedCode);
-      Contacts.confirmDialog.restore();
+      ConfirmDialog.show.restore();
       cb();
     }
 
     test(' repeated contact', function(done) {
       subject.refresh(function() {
         clickOnList(cid1);
-        sinon.stub(Contacts, 'confirmDialog', function(param1, code) {
+        sinon.stub(ConfirmDialog, 'show', function(param1, code) {
           assertErrorMessage(code, 'ICERepeatedContact', done);
         });
       });
@@ -413,7 +416,7 @@ suite('ICE Settings view', function() {
     test(' facebook contact', function(done) {
       subject.refresh(function() {
         clickOnList(fbcid3);
-        sinon.stub(Contacts, 'confirmDialog', function(param1, code) {
+        sinon.stub(ConfirmDialog, 'show', function(param1, code) {
           assertErrorMessage(code, 'ICEFacebookContactNotAllowed', done);
         });
       });

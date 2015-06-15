@@ -637,7 +637,7 @@ contacts.Settings = (function() {
             }
           };
 
-          Contacts.confirmDialog(null, msg, noObject, yesObject);
+          ConfirmDialog.show(null, msg, noObject, yesObject);
         }
       });
     }
@@ -819,7 +819,7 @@ contacts.Settings = (function() {
             onSimImport.bind(this, iccId)), 0);
         }
       };
-      Contacts.confirmDialog(null, 'simContacts-error', cancel, retry);
+      ConfirmDialog.show(null, 'simContacts-error', cancel, retry);
       resetWait(wakeLock);
     };
 
@@ -942,7 +942,7 @@ contacts.Settings = (function() {
           window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         }
       };
-      Contacts.confirmDialog(null, 'memoryCardContacts-error', cancel,
+      ConfirmDialog.show(null, 'memoryCardContacts-error', cancel,
         retry);
       resetWait(wakeLock);
       if (typeof cb === 'function') {

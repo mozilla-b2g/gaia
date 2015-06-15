@@ -262,7 +262,7 @@ var ActivityHandler = {
             ConfirmDialog.hide();
           }
         };
-        Contacts.confirmDialog(null, noDataStr, dismiss);
+        ConfirmDialog.show(null, noDataStr, dismiss);
         break;
       case 1:
         // if one required type of data

@@ -250,7 +250,7 @@ if (typeof Contacts.extServices === 'undefined') {
         }
       };
 
-      Contacts.confirmDialog(null, msg, noObject, yesObject);
+      ConfirmDialog.show(null, msg, noObject, yesObject);
     }
 
     function doUnlink(cid) {

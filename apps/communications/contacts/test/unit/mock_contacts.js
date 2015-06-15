@@ -1,5 +1,4 @@
 'use strict';
-/* global ConfirmDialog */
 /* exported MockContacts */
 /* exported COMMS_APP_ORIGIN */
 
@@ -30,9 +29,6 @@ var MockContacts = {
   },
   checkCancelableActivity: function() {},
   cancel: function() {},
-  confirmDialog: function() {
-    ConfirmDialog.show.apply(ConfirmDialog, arguments);
-  },
   utility: function(view, callback, type) {
     callback();
   },
