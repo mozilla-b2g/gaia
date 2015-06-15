@@ -1,8 +1,9 @@
-/* global BaseModule */
-/* global MockAudioChannelController */
+/* global BaseModule, MockAudioChannelController, MockService */
 'use strict';
 
+requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_audio_channel_controller.js');
+requireApp('system/js/service.js');
 requireApp('system/js/base_module.js');
 requireApp('system/js/audio_channel_service.js');
 
@@ -14,6 +15,16 @@ suite('system/AudioChannelService', function() {
     subject.audioChannelPolicy = {
       applyPolicy: function() {}
     };
+    var audioChannels = new Map();
+    ['normal', 'notification', 'telephony'].forEach(function(name) {
+      var audioChannel = new MockAudioChannelController(
+        { instanceID: 'appID' }, { name: name }
+      );
+      audioChannels.set(name, audioChannel);
+    });
+    subject.service = MockService;
+    MockService.mockQueryWith('SystemWindow.getAudioChannels', audioChannels);
+    this.sinon.spy(subject, '_sendContentEvent');
     subject.start();
   });
 
@@ -25,6 +36,20 @@ suite('system/AudioChannelService', function() {
   test('Should initial the module correctly', function() {
     assert.equal(subject._activeAudioChannels.size, 0);
     assert.equal(subject._interruptedAudioChannels.length, 0);
+  });
+
+  test('Set all audio channels belonged to System app as muted', function() {
+    assert.ok(subject._sendContentEvent.calledThrice);
+    ['normal', 'notification', 'telephony'].forEach(function(name , i) {
+      assert.deepEqual(
+        subject._sendContentEvent.args[i][0],
+        {
+          type: 'system-audiochannel-mute',
+          name: name,
+          isMuted: true
+        }
+      );
+    });
   });
 
   test('Handle audiochannelstatechanged event', function() {
@@ -99,6 +124,13 @@ suite('system/AudioChannelService', function() {
       window.dispatchEvent(event);
       assert.ok(subject._resumeAudioChannels.withArgs(app).calledOnce);
     });
+  });
+
+  test('Handle systemwindowaudiochannelsregistered event', function() {
+    var event = new CustomEvent('systemwindowaudiochannelsregistered');
+    this.sinon.spy(subject, '_muteSystemAudioChannels');
+    window.dispatchEvent(event);
+    assert.ok(subject._muteSystemAudioChannels.calledOnce);
   });
 
   suite('Manage audio channels', function() {
