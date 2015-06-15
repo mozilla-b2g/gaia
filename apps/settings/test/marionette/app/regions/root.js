@@ -134,8 +134,12 @@ RootPanel.prototype = {
       return false;
     }
 
-    var expected = LanguagePanel.prototype._languageMap[languageKey].desc;
-    return this.languageDesc === expected;
+    var expected;
+    this.client.waitFor(function() {
+      expected = LanguagePanel.prototype._languageMap[languageKey].desc;
+      return this.languageDesc === expected;
+    }.bind(this));
+    return true;
   },
 
   get languageDesc() {

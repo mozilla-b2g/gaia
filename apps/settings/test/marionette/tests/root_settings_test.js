@@ -61,8 +61,7 @@ marionette('check root panel settings', function() {
       });
     });
 
-    // XXX Disabled in https://bugzil.la/1061390
-    test.skip('language description on the root panel is translated',
+    test('language description on the root panel is translated',
       function() {
       settingsApp.currentLanguage = 'accented';
       assert.ok(
