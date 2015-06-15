@@ -19,7 +19,7 @@
       </header>
       <div class="wallpaper">
         <img class="wallpaper-preview" alt="wallpaper preview"/>
-        <button class="wallpaper-button"><span data-icon="change-wallpaper"></span></button>
+        <button class="wallpaper-button"><span data-icon="change-wallpaper" data-l10n-id="changeWallpaperButton"></span></button>
       </div>
       <header>
         <h2 id="brightness-heading" data-l10n-id="brightness">Brightness</h2>
@@ -33,9 +33,9 @@
         </li>
         <li class="brightness-manual">
           <label class="range-icons brightness">
-            <span data-icon="moon"></span>
+            <span data-icon="moon" aria-hidden="true"></span>
             <input aria-labelledby="brightness-heading" type="range" name="screen.brightness" step="0.01" min="0.1" value="0.5" max="1" />
-            <span data-icon="brightness"></span>
+            <span data-icon="brightness" aria-hidden="true"></span>
           </label>
         </li>
         <li id="screen-timeout">
