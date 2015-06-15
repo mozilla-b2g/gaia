@@ -14,6 +14,8 @@
   // v1 of this ID used a randomly generated String, while v2 uses a UUID
   const DEVICE_ID_KEY = 'metrics.advanced_telemetry.deviceID.v2';
 
+  const REASON = 'advancedtelemetry';
+
   // Various event types we use. Constants here to be sure we use the
   // same values when registering, unregistering and handling these.
   const IDLE = 'idle';
@@ -50,8 +52,12 @@
 
   // Export the HistogramData class so we can test it independently
 
-  // Set to true to to enable debug output
+  // Set to true to to enable debug output.  Not recommended to turn this
+  // on except while doing deep debugging.
   AT.DEBUG = false;
+  // LOGINFO method allows for debugging of initialization events and
+  // packet sending events and is at a higher level then DEBUG.
+  AT.LOGINFO = true;
 
   // This logging function is the only thing that is not exposed through
   // the AdvancedTelemetry contstructor or its instance.
@@ -61,9 +67,15 @@
       console.log.apply(console, args);
     }
   }
-  function tdebug(...args) {
-      args.unshift('[TAMARA]');
+
+  // This info level is more of a information level.  It's recommended to
+  // turn this on just to see general events related to initializations,
+  // and sending of payloads, etc.
+  function loginfo(...args) {
+    if(AT.LOGINFO) {
+      args.unshift('[AdvancedTelemetryInfo]');
       console.log.apply(console, args);
+    }
   }
 
   function debuglongLine(longLine) {
@@ -82,7 +94,7 @@
   // Needs to be formatted as:
   // /submit/telemetry/id/reason/appName/appUpdateChannel/appVersion/appBuildID
   AT.REPORT_URL = 'https://incoming.telemetry.mozilla.org/submit/telemetry';
-  //AT.REPORT_URL = 'http://10.19.2.10:4040/submit/telemetry';
+//  AT.REPORT_URL = 'http://10.19.2.10:4040/submit/telemetry';
   // How often do we try to send the reports
   // Can be overridden with metrics.appusage.reportInterval setting.
 //  AT.REPORT_INTERVAL = 24 * 60 * 60 * 1000;  // 1 DAY
@@ -110,17 +122,17 @@
 
 
   AT.prototype.start = function start() {
-    debug('CALLING START');
     this.advancedTelemetryEnabledListener =
     function advancedTelemetryEnabledListener(enabled) {
-      debug('CALLING STARTCOLLECTING');
       this.startCollecting();
-//      if (enabled) {
-//        this.startCollecting();
-//      }
-//      else {
-//        this.stopCollecting();
-//      }
+      if (enabled) {
+        loginfo('Start Collecting');
+        this.startCollecting();
+      }
+      else {
+        loginfo('Stop Collecting');
+        this.stopCollecting();
+      }
     }.bind(this);
 
     SettingsListener.observe(AT.TELEMETRY_ENABLED_KEY,
@@ -148,7 +160,7 @@
       });
     }
 
-    debug('starting app usage metrics collection');
+    loginfo('starting app usage metrics collection');
 
 
     function getDeviceID() {
@@ -168,7 +180,7 @@
     }
 
     function getConfigurationSettings() {
-      debug('getConfigurationSettings');
+      loginfo('getConfigurationSettings');
       // Settings to query, mapped to default values
 //      var query = {
 //        'metrics.appusage.retryInterval': AUM.RETRY_INTERVAL
@@ -177,7 +189,7 @@
 //      AUM.getSettings(query, function (result) {
 //        AUM.RETRY_INTERVAL = result['metrics.appusage.retryInterval'];
 //      });
-      debug('CALLING REGISTERHANDLERS');
+      loginfo('CALLING REGISTERHANDLERS');
       registerHandlers();
     }
 
@@ -264,7 +276,7 @@
   // Start a new batch of data. If the transmission fails, merge the
   // new batch with the failed batch so we can try again later.
   AT.prototype.transmit = function transmit() {
-    tdebug('TAMARA TIME TO TRANSMIT');
+    loginfo('TAMARA TIME TO TRANSMIT');
     var self = this;
 
     if (!this.collecting) {
@@ -277,7 +289,7 @@
     // Remember the existing metrics in case transmission fails
 //    var oldMetrics = this.metrics;
     var payload = this.metrics.packHistograms();
-    tdebug('TAMARA PAYLOAD IS: ' );
+    loginfo('TAMARA PAYLOAD IS: ' );
     debuglongLine(JSON.stringify(payload));
 
     // But assume that it will succeed and start collecting new metrics now
@@ -301,44 +313,26 @@
     // Query the settings db for parameters for hte URL
     AT.getSettings(deviceInfoQuery, function(deviceResponse) {
       var wrapper = {
+        type: REASON,
+        id: uuid(),
+        creationDate: new Date().toISOString(),
         version: 4,
-
-        info: {
-          reason: 'daily', // what triggered this ping:
-          revision: '1', // the Histograms.json revision
-          timezoneOffset: new Date().getTimezoneOffset(),
-          previousBuildId: '',
-          sessionId: self.deviceID,
-          subsessionId: uuid(),  // random subsession id
-          previousSessionId: null,
-          previousSubsessionId: null,
-          // null on first run.
-          subsessionCounter: 0,
-          profileSubsessionCounter: 0,
-          sessionStartDate: new Date().toISOString(), // daily precision
-          subsessionStartDate: new Date().toISOString(),
-          subsessionLength: 0 // the subsession length in seconds
+        application: {
+          architecture: 'x86',
+          buildId: deviceResponse['deviceinfo.platform_build_id'],
+          name: AT.TELEMETRY_APP_NAME,
+          version: deviceResponse['deviceinfo.platform_version'],
+          vendor: 'Mozilla',
+          platformVersion: '41.0a1',
+          xpcomAbi: 'x86-msvc',
+          channel: deviceResponse['app.update.channel']
         },
-
-        childPayloads: {},
-
-        simpleMeasurements: {},
-        gaiahistograms: payload,
-        histograms: {},
-        keyedHistograms: {},
-        chromeHangs: {},
-        threadHangStats: {},
-        log: [],
-        fileIOReports: {},
-        lateWrites: {},
-        addonDetails: {},
-        addonHistograms: {},
-        UIMeasurements: {},
-        slowSQL: {},
-        slowSQLstartup: {}
+        payload: {
+          gaiahistograms: payload
+        }
       };
 
-      tdebug('TAMARA whole thing is IS: ' );
+      loginfo('TAMARA whole thing is IS: ' );
       debuglongLine(JSON.stringify(wrapper));
 
 
@@ -348,7 +342,7 @@
     });
 
     function send(payload, deviceInfoQuery) {
-      tdebug('TAMARA: CALLING SEND');
+      loginfo('TAMARA: CALLING SEND');
 
       var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
                                               self.deviceID);
@@ -356,7 +350,7 @@
       // We don't actually have to do anything if the data is transmitted
       // successfully. We are already set up to collect the next batch of data.
       function onload() {
-        tdebug('Transmitted app usage data to');
+        loginfo('Transmitted Successfully.');
       }
 
       function retry(e) {
@@ -364,7 +358,7 @@
         // the new batch of data (which may be empty) in with the old one
         // and resave everything so we can try again later. We also record
         // the time of this failure so we don't try sending again too soon.
-        tdebug('App usage metrics transmission failure:', e.type);
+        loginfo('App usage metrics transmission failure:', e.type);
 
         // We use absolute time here because we will be comparing to
         // the absolute batch start time.
@@ -373,7 +367,6 @@
 //        self.metrics = oldMetrics;
 //        self.metrics.save(true);
       }
-      console.log('TAMARA: BEFORE CALLING SEND');
 
       request.send({
         timeout: AT.REPORT_TIMEOUT,
@@ -391,29 +384,26 @@
     }
     // clone so we don't put data into the object that was given to us
     this.packet = payload;
-    tdebug('ENTERING CTOR');
 
-    // /id/reason/appName/appUpdateChannel/appVersion/appBuildID
+    // /id/reason/appName/appVersion/appUpdateChannel/appBuildID
     var uriParts = [
         AT.REPORT_URL,
       encodeURIComponent(did),
-      encodeURIComponent('advancedtelemetry'),
+      encodeURIComponent(REASON),
       encodeURIComponent(AT.TELEMETRY_APP_NAME),
-      encodeURIComponent(deviceQuery['app.update.channel']),
       encodeURIComponent(deviceQuery['deviceinfo.platform_version']),
+      encodeURIComponent(deviceQuery['app.update.channel']),
       encodeURIComponent(deviceQuery['deviceinfo.platform_build_id'])
     ];
 
     this.url = uriParts.join('/');
-    tdebug('TAMARA URL IS: ' + this.url);
+    loginfo('TAMARA URL IS: ' + this.url);
   }
 
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
     var xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
-    tdebug('TAMARA:  INSIDE SEND');
 
     xhr.open('POST', this.url);
-    tdebug(this.url);
 
     if (xhrAttrs && xhrAttrs.timeout) {
       xhr.timeout = xhrAttrs.timeout;
@@ -425,7 +415,7 @@
     var data = JSON.stringify(this.packet);
     xhr.send(data);
     //TODO:  GZIP COMPRESS.
-    tdebug(data);
+    loginfo(data);
 
     if (xhrAttrs) {
       xhr.onload = xhrAttrs.onload;
