@@ -3,7 +3,7 @@
    "accessibility.screenreader": false,
    "achievements": [{
      "issuer": "fxos-customizer",
-     "criteria": "achievements/super-swiper"
+     "criteria": "achievements/customize-champ"
    }, {
      "issuer": "fxos-customizer",
      "criteria": "achievements/add-on-all-star"
