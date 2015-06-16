@@ -44,7 +44,8 @@ suite('system/SystemWindow', function() {
       );
     });
 
-    test('Receive MozSystemWindowChromeEvent to get audio channels', function() {
+    test('Receive MozSystemWindowChromeEvent to get audio channels',
+    function() {
       window.dispatchEvent(new CustomEvent('mozSystemWindowChromeEvent', {
         detail: {
           type: 'system-audiochannel-list',
