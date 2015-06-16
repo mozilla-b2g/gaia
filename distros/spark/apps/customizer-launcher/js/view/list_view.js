@@ -32,10 +32,10 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-list/gaia-li
     _extends(ListView, View);
 
     ListView.prototype.update = function (list) {
-      for (var manifestURL in list) {
-        var data = list[manifestURL];
-        if (!this.elements[manifestURL]) {
-          this.elements[manifestURL] = this.addElement(data);
+      for (var key in list) {
+        var data = list[key];
+        if (!this.elements[key]) {
+          this.elements[key] = this.addElement(data);
         }
       }
     };

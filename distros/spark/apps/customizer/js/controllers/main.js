@@ -141,23 +141,27 @@ define(["exports"], function (exports) {
     MainController.prototype._checkOpenFromLauncher = function () {
       var _this5 = this;
       var requestXHR = new XMLHttpRequest();
-      requestXHR.open("GET", "http://localhost:3215/request", true);
-      requestXHR.onload = function () {
-        if (requestXHR.responseText !== _this5.manifestURL) {
-          return;
-        }
+      try {
+        requestXHR.open("GET", "http://localhost:3215/request", true);
+        requestXHR.onload = function () {
+          if (requestXHR.responseText !== _this5.manifestURL) {
+            return;
+          }
 
-        _this5.open();
+          _this5.open();
 
-        var confirmXHR = new XMLHttpRequest();
-        confirmXHR.open("GET", "http://localhost:3215/confirm?url=" + _this5.manifestURL, true);
+          var confirmXHR = new XMLHttpRequest();
+          confirmXHR.open("GET", "http://localhost:3215/confirm?url=" + _this5.manifestURL, true);
 
-        console.log("Sending HTTP request confirmation to Customizer Launcher");
-        confirmXHR.send();
-      };
+          console.log("Sending HTTP request confirmation to Customizer Launcher");
+          confirmXHR.send();
+        };
 
-      console.log("Sending HTTP request check to Customizer Launcher");
-      requestXHR.send();
+        console.log("Sending HTTP request check to Customizer Launcher");
+        requestXHR.send();
+      } catch (e) {
+        console.log("HTTP request failed to Customizer Launcher", e);
+      }
     };
 
     MainController.prototype._visibilitychangeHandler = function () {

@@ -73,7 +73,12 @@ define(["exports", "components/fxos-mvc/dist/mvc", "js/model/list_model", "js/vi
     };
 
     ListController.prototype.launchApp = function (data) {
-      data.app.launch();
+      // Use entry_point to launch app, if entry_point exists
+      if (data.entry_point) {
+        data.app.launch(data.entry_point);
+      } else {
+        data.app.launch();
+      }
     };
 
     return ListController;

@@ -68,13 +68,35 @@ define(["exports", "components/fxos-mvc/dist/mvc", "js/lib/helpers"], function (
       return detail;
     };
 
+    ListModel.prototype.fillAppDetailsFromEntryPoint = function (app, entry_point) {
+      var detail = Object.create(null);
+      detail.manifestURL = app.manifestURL;
+      detail.description = app.manifest.description;
+      detail.author = app.manifest.developer ? app.manifest.developer.name : "";
+      detail.app = app;
+      detail.name = app.manifest.entry_points[entry_point].name;
+      detail.icon = IconHelper.getIconURL(app, app.manifest.entry_points[entry_point].icons);
+      detail.entry_point = entry_point;
+      return detail;
+    };
+
     ListModel.prototype.getAppList = function (allApps) {
       var _this2 = this;
       return new Promise(function (resolve, reject) {
         var installedApps = Object.create(null);
         var filterList = _this2.filterApps(allApps);
         filterList.forEach(function (app) {
-          return installedApps[app.manifestURL] = _this2.fillAppDetails(app);
+          // Check for Communications app, only app that uses
+          // multiple entry_points in manifest
+          if (app.manifest.entry_points) {
+            // Iterate manifest.entry_points to fill dialer and
+            // contacts app details
+            for (var entry_point in app.manifest.entry_points) {
+              installedApps[app.manifestURL + "/" + entry_point] = _this2.fillAppDetailsFromEntryPoint(app, entry_point);
+            }
+          } else {
+            installedApps[app.manifestURL] = _this2.fillAppDetails(app);
+          }
         });
         resolve(installedApps);
       });

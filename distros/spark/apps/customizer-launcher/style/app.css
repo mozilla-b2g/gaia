@@ -57,3 +57,7 @@ gaia-header {
   --button-background-active: white;
   --button-color-active: var(--title-color);
 }
+
+ .app-list .open-button:active {
+    background-color: transparent;
+  }

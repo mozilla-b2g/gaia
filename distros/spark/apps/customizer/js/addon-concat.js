@@ -6162,23 +6162,27 @@ var MainController = (function (Controller) {
   MainController.prototype._checkOpenFromLauncher = function () {
     var _this18 = this;
     var requestXHR = new XMLHttpRequest();
-    requestXHR.open("GET", "http://localhost:3215/request", true);
-    requestXHR.onload = function () {
-      if (requestXHR.responseText !== _this18.manifestURL) {
-        return;
-      }
+    try {
+      requestXHR.open("GET", "http://localhost:3215/request", true);
+      requestXHR.onload = function () {
+        if (requestXHR.responseText !== _this18.manifestURL) {
+          return;
+        }
 
-      _this18.open();
+        _this18.open();
 
-      var confirmXHR = new XMLHttpRequest();
-      confirmXHR.open("GET", "http://localhost:3215/confirm?url=" + _this18.manifestURL, true);
+        var confirmXHR = new XMLHttpRequest();
+        confirmXHR.open("GET", "http://localhost:3215/confirm?url=" + _this18.manifestURL, true);
 
-      console.log("Sending HTTP request confirmation to Customizer Launcher");
-      confirmXHR.send();
-    };
+        console.log("Sending HTTP request confirmation to Customizer Launcher");
+        confirmXHR.send();
+      };
 
-    console.log("Sending HTTP request check to Customizer Launcher");
-    requestXHR.send();
+      console.log("Sending HTTP request check to Customizer Launcher");
+      requestXHR.send();
+    } catch (e) {
+      console.log("HTTP request failed to Customizer Launcher", e);
+    }
   };
 
   MainController.prototype._visibilitychangeHandler = function () {
@@ -6841,7 +6845,7 @@ var CopyMoveView = (function (View) {
 /* global esprima */
 /* global html_beautify */
 
-var editViewTemplate = "<customizer-gaia-modal>\n  <style scoped>\n    .customizer-gaia-modal {\n      background: var(--background, #fff);\n      display: none;\n      position: fixed;\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n    }\n    .customizer-gaia-modal.active {\n      display: block;\n    }\n    .tab-pane {\n      box-sizing: padding-box;\n      display: none;\n      position: absolute;\n      top: 96px;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: auto;\n    }\n    .tab-pane.active {\n      display: block;\n    }\n    textarea,\n    input {\n      -moz-user-select: text !important;\n    }\n    textarea,\n    customizer-gaia-tabs,\n    .tab-pane {\n      background: #000;\n      color: #fff;\n    }\n    fxos-code-editor {\n      display: block;\n      width: 100%;\n      height: 100%;\n    }\n    .errors {\n      background: #e51e1e;\n      color: #fff;\n      position: absolute;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: 20px;\n      overflow: hidden;\n      z-index: 2;\n      opacity: 0;\n      transition: opacity 0.2s ease;\n      pointer-events: none;\n    }\n    .errors.active {\n      opacity: 1;\n    }\n    .errors.active + fxos-code-editor {\n      height: calc(100% - 20px);\n    }\n  </style>\n  <customizer-gaia-header>\n    <button aria-hidden=\"true\" data-action=\"cancel\" data-icon=\"close\"></button>\n    <h1>Edit</h1>\n    <button data-action=\"save\">Save</button>\n  </customizer-gaia-header>\n  <customizer-gaia-tabs selected=\"0\">\n    <a href=\"#\">HTML</a>\n    <a href=\"#\">Script</a>\n    <a href=\"#\">Properties</a>\n  </customizer-gaia-tabs>\n  <section class=\"tab-pane active\" data-id=\"html\">\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"script\">\n    <div class=\"errors\"></div>\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"properties\">\n    <fxos-inspector></fxos-inspector>\n  </section>\n</customizer-gaia-modal>";
+var editViewTemplate = "<customizer-gaia-modal>\n  <style scoped>\n    .customizer-gaia-modal {\n      background: var(--background, #fff);\n      display: none;\n      position: fixed;\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n    }\n    .customizer-gaia-modal.active {\n      display: block;\n    }\n    .tab-pane {\n      box-sizing: border-box;\n      display: none;\n      position: absolute;\n      top: 96px;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: auto;\n    }\n    .tab-pane.active {\n      display: block;\n    }\n    textarea,\n    input {\n      -moz-user-select: text !important;\n    }\n    textarea,\n    customizer-gaia-tabs,\n    .tab-pane {\n      background: #000;\n      color: #fff;\n    }\n    fxos-code-editor {\n      display: block;\n      width: 100%;\n      height: 100%;\n    }\n    .errors {\n      background: #e51e1e;\n      color: #fff;\n      position: absolute;\n      bottom: 0;\n      left: 0;\n      width: 100%;\n      height: 20px;\n      overflow: hidden;\n      z-index: 2;\n      opacity: 0;\n      transition: opacity 0.2s ease;\n      pointer-events: none;\n    }\n    .errors.active {\n      opacity: 1;\n    }\n    .errors.active + fxos-code-editor {\n      height: calc(100% - 20px);\n    }\n  </style>\n  <customizer-gaia-header>\n    <button aria-hidden=\"true\" data-action=\"cancel\" data-icon=\"close\"></button>\n    <h1>Edit</h1>\n    <button data-action=\"save\">Save</button>\n  </customizer-gaia-header>\n  <customizer-gaia-tabs selected=\"0\">\n    <a href=\"#\">HTML</a>\n    <a href=\"#\">Script</a>\n    <a href=\"#\">Properties</a>\n  </customizer-gaia-tabs>\n  <section class=\"tab-pane active\" data-id=\"html\">\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"script\">\n    <div class=\"errors\"></div>\n    <fxos-code-editor></fxos-code-editor>\n  </section>\n  <section class=\"tab-pane\" data-id=\"properties\">\n    <fxos-inspector></fxos-inspector>\n  </section>\n</customizer-gaia-modal>";
 
 var EditView = (function (View) {
   var EditView = function EditView(options) {
