@@ -409,29 +409,6 @@ var Contacts = (function() {
     return prop.length;
   };
 
-  // Checks if an object fields are empty, by empty means
-  // field is null and if it's an array it's length is 0
-  var isEmpty = function isEmpty(obj, fields) {
-    if (obj == null || typeof(obj) != 'object' ||
-        !fields || !fields.length) {
-      return true;
-    }
-    var attr;
-    for (var i = 0; i < fields.length; i++) {
-      attr = fields[i];
-      if (obj[attr]) {
-        if (Array.isArray(obj[attr])) {
-          if (obj[attr].length > 0) {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
   function showSelectTag() {
     var tagsList = document.getElementById('tags-list');
     var selectedTagType = contactTag.dataset.taglist;
@@ -1045,7 +1022,6 @@ var Contacts = (function() {
     'sendSms': sendSms,
     'sendEmailOrPick': sendEmailOrPick,
     'checkCancelableActivity': checkCancelableActivity,
-    'isEmpty': isEmpty,
     'getLength': getLength,
     'showForm': showForm,
     'setCurrent': setCurrent,

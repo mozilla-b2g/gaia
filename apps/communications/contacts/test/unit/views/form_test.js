@@ -27,6 +27,7 @@ require('/shared/test/unit/mocks/mock_moz_nfc.js');
 requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 requireApp('communications/contacts/js/contacts_tag.js');
 requireApp('communications/contacts/js/views/form.js');
+requireApp('communications/contacts/js/utilities/mozContact.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
@@ -442,25 +443,54 @@ suite('Render contact form', function() {
     });
 
     test('if the tel field is null, is ignored',
-      function() {
+      function(done) {
+        var calls = 0;
+        var target = document.getElementById('throbber');
+        var config = { attributes: true };
+        // we need to check for the change after the contact is saved,
+        // so we wait for the second time the throbber is modified
+        // (first shown, then hidden)
+        var observer = new MutationObserver(function(mutations) {
+          if (++calls === 2) {
+            observer.disconnect();
+            assert.equal(deviceContact.tel.length, 1);
+            done();
+          }
+        });
+        observer.observe(target, config);
+
         var deviceContact = new MockContactAllFields();
         deviceContact.tel[0].value = null;
         subject.render(deviceContact);
         assert.equal(deviceContact.tel.length, 2);
 
         subject.saveContact();
-        assert.equal(deviceContact.tel.length, 1);
     });
 
     test('if the email field is null, is ignored',
-      function() {
+      function(done) {
+        var calls = 0;
+        var target = document.getElementById('throbber');
+        var config = { attributes: true };
+        // same as before, we check for the change after the contact is saved,
+        // so we wait for the second time the throbber is modified
+        // (first shown, then hidden)
+        var observer = new MutationObserver(function(mutations) {
+          if (++calls === 2) {
+            observer.disconnect();
+            assert.equal(deviceContact.email.length, 1);
+            done();
+          }
+        });
+        observer.observe(target, config);
+
         var deviceContact = new MockContactAllFields();
         deviceContact.email[0].value = null;
+
         subject.render(deviceContact);
         assert.equal(deviceContact.email.length, 2);
 
         subject.saveContact();
-        assert.equal(deviceContact.email.length, 1);
     });
 
     test('if the address field is null, is ignored',

@@ -20,6 +20,7 @@ if (!utils.misc) {
       outContact = new mozContact(contact);
       outContact.id = contact.id || outContact.id;
     }
+
     return outContact;
   };
 
