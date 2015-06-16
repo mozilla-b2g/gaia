@@ -16,7 +16,7 @@
   ];
 
   SystemWindow.EVENTS = [
-    'mozChromeEvent'
+    'mozSystemWindowChromeEvent'
   ];
 
   BaseModule.create(SystemWindow, {
@@ -39,11 +39,11 @@
     },    
 
     /**
-     * Handle MozChromeEvent.
+     * Handle mozSystemWindowChromeEvent event.
      *
      * @param {Event} evt The event to handle.
      */
-    _handle_mozChromeEvent: function(evt) {
+    _handle_mozSystemWindowChromeEvent: function(evt) {
       var detail = evt.detail;
       switch (detail.type) {
         // Send the event after system is first time painted
