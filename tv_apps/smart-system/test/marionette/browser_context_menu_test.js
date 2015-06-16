@@ -26,7 +26,10 @@ marionette('Test Context Menu Events', function() {
 
   opts.apps[APP_HOST] = __dirname + '/../apps/' + APP_NAME;
 
-  var client = marionette.client({ profile: opts });
+  var client = marionette.client({
+    profile: opts,
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var actions;
   var system;
   var menuSelectors = [

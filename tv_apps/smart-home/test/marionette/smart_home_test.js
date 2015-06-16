@@ -31,7 +31,10 @@ marionette('Smart Home', function() {
     }
   };
 
-  var client = marionette.client({ profile: opts });
+  var client = marionette.client({
+    profile: opts,
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   setup(function() {
     // Launch test app

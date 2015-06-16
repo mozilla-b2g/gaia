@@ -7,7 +7,10 @@ var ReflowHelper =
 marionette('Dialer > Keypad', function() {
   var assert = require('assert');
 
-  var client = marionette.client({ profile: Dialer.config });
+  var client = marionette.client({
+    profile: Dialer.config,
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var subject;
   var selectors;
   var actions;

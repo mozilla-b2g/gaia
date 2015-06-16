@@ -5,7 +5,9 @@ var assert = require('assert');
 var TARGET_APP = 'app://sms.gaiamobile.org';
 
 marionette('mozPhoneNumberService: ', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   var fuzzyMatchTests = [
     ['123', '123', true, 'match same number'],

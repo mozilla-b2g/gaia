@@ -14,7 +14,8 @@
                                            '/../apps/activitycaller',
           'activitycallee.gaiamobile.org': __dirname + '/../apps/activitycallee'
         }
-      }
+      },
+      desiredCapabilities: { raisesAccessibilityExceptions: true }
     });
 
     test('Should have only one alert', function() {

@@ -14,7 +14,8 @@ marionette('using the gallery menu', function() {
         'device.storage.testing': true,
         'device.storage.prompt.testing': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {
