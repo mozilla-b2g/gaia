@@ -20,7 +20,8 @@ marionette('LockScreen status bar', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {

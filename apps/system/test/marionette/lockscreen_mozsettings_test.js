@@ -1,7 +1,9 @@
 'use strict';
 
 marionette('LockScreen: ensure mozSettings API works', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var LockScreen = require('./lib/lockscreen.js');
   var lockScreen = (new LockScreen()).start(client);
 

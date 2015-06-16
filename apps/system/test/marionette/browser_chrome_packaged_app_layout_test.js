@@ -8,7 +8,8 @@ marionette('Browser - App /w Fullscreen Navigation Chrome', function() {
       apps: {
         'hosted_nav_app.gaiamobile.org': __dirname + '/../apps/hosted_nav_app',
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system;
