@@ -18,6 +18,7 @@
 /* global utils */
 /* global VcardFilename */
 /* global ExtServices */
+/* global MatchService */
 /* global WebrtcClient */
 /* global MainNavigation */
 /* global ContactsService */
@@ -552,7 +553,7 @@ contacts.Details = (function() {
       // Only have this active if contact list has more than one entry
       findMergeButton.disabled = false;
       findMergeButton.addEventListener('click', function finding() {
-        ExtServices.match(contact.id);
+        MatchService.match(contact.id);
       });
     }
 

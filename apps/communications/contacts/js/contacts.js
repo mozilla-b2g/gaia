@@ -465,7 +465,8 @@ var Contacts = (function() {
       initDetails(function onDetails() {
         LazyLoader.load([
           SHARED_UTILS_PATH + '/misc.js',
-          '/shared/js/contacts/utilities/image_thumbnail.js'],
+          '/shared/js/contacts/utilities/image_thumbnail.js',
+          '/contacts/js/match_service.js'],
         function() {
           Contacts.view('Form', function viewLoaded() {
             formReady = true;
@@ -508,7 +509,8 @@ var Contacts = (function() {
           [SHARED_UTILS_PATH + '/misc.js',
            '/dialer/js/telephony_helper.js',
            '/shared/js/contacts/sms_integration.js',
-           '/shared/js/contacts/contacts_buttons.js'],
+           '/shared/js/contacts/contacts_buttons.js',
+           '/contacts/js/match_service.js'],
         function() {
           detailsReady = true;
           contactsDetails = contacts.Details;

@@ -15,7 +15,7 @@
 /* global ICEData */
 /* global MergeHelper */
 /* global MainNavigation */
-/* global ExtServices */
+/* global MatchService */
 /* global ContactsService */
 /* global Matcher */
 /* global TagSelector */
@@ -56,6 +56,8 @@ contacts.Form = (function() {
       deviceContact,
       fbContact,
       currentPhoto;
+
+  const CONTACTS_APP_ORIGIN = location.origin;
 
   var FB_CLASS = 'facebook';
   var INVALID_CLASS = 'invalid';
@@ -843,10 +845,10 @@ contacts.Form = (function() {
   var cookMatchingCallbacks = function cookMatchingCallbacks(contact) {
     return {
       onmatch: function(results) {
-        ExtServices.showDuplicateContacts();
+        MatchService.showDuplicateContacts();
 
         mergeHandler = function mergeHandler(e) {
-          if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+          if (e.origin !== CONTACTS_APP_ORIGIN) {
             return;
           }
 
@@ -868,7 +870,7 @@ contacts.Form = (function() {
                   name: getCompleteName(getDisplayName(contact)),
                   duplicateContacts: duplicateContacts
                 }
-              }, fb.CONTACTS_APP_ORIGIN);
+              }, CONTACTS_APP_ORIGIN);
 
             break;
 
@@ -892,7 +894,7 @@ contacts.Form = (function() {
                 window.postMessage({
                   type: 'duplicate_contacts_merged',
                   data: ids
-                }, fb.CONTACTS_APP_ORIGIN);
+                }, CONTACTS_APP_ORIGIN);
               });
 
             break;
@@ -989,7 +991,7 @@ contacts.Form = (function() {
     window.postMessage({
       type: 'abort',
       data: ''
-    }, fb.CONTACTS_APP_ORIGIN);
+    }, CONTACTS_APP_ORIGIN);
     hideThrobber();
   };
 
