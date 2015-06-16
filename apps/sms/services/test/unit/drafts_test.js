@@ -459,32 +459,7 @@ suite('Drafts', function() {
   suite('Storage and Retrieval', function() {
     setup(function() {
       Drafts.clear();
-      this.sinon.spy(Drafts, 'store');
       this.sinon.useFakeTimers();
-    });
-
-    test('Store fresh drafts', function() {
-      Drafts.add(threadDraft1);
-      Drafts.add(threadDraft2);
-      Drafts.add(draft1);
-
-      sinon.assert.calledThrice(Drafts.store);
-    });
-
-    test('Store draft with distinct content', function() {
-      Drafts.add(draft1);
-      // threadDraft5 is almost the same as draft1, b/w different content
-      Drafts.add(threadDraft5);
-
-      sinon.assert.calledTwice(Drafts.store);
-    });
-
-    test('Store draft with distinct subject', function() {
-      Drafts.add(draft1);
-      // draft2 is almost the same as draft1, b/w different subject
-      Drafts.add(draft2);
-
-      sinon.assert.calledTwice(Drafts.store);
     });
 
     test('Load drafts, has stored data', function(done) {
@@ -540,22 +515,22 @@ suite('Drafts', function() {
       }).then(done, done);
     });
 
-    test('signals to InterInstanceEventDispatcher when drafts are stored',
-    function() {
+    test('When drafts are stored', function(done) {
       this.sinon.spy(InterInstanceEventDispatcher, 'emit');
       this.sinon.stub(asyncStorage, 'setItem');
 
-      Drafts.store();
+      Drafts.store().then(() => {
+        sinon.assert.calledWith(
+          InterInstanceEventDispatcher.emit, 'drafts-changed'
+        );
+      }).then(done, done);
+
       sinon.assert.notCalled(
         InterInstanceEventDispatcher.emit,
         'Should not be called until drafts are really saved'
       );
 
       asyncStorage.setItem.yield();
-
-      sinon.assert.calledWith(
-        InterInstanceEventDispatcher.emit, 'drafts-changed'
-      );
     });
 
     suite('drafts index cache >', function() {

@@ -3,7 +3,7 @@
 /* global module */
 
 var SELECTORS = Object.freeze({
-  main: '#thread-messages',
+  main: '.panel-ConversationView',
   message: '.message .bubble',
   headerTitle: '#messages-header-text',
   container: '#messages-container',

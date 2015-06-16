@@ -29,13 +29,6 @@
     });
   }
 
-  function initHeaders() {
-    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
-    for (var header of headers) {
-      header.removeAttribute('no-font-fit');
-    }
-  }
-
   exports.Startup = {
     init() {
       MessageManager.init();
@@ -44,12 +37,9 @@
 
       InboxView.once('visually-loaded', () => {
         initLazyDependencies();
-        initHeaders();
       });
 
       InboxView.renderThreads();
-
-      Navigation.toDefaultPanel();
     }
   };
 })(window);

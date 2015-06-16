@@ -1098,4 +1098,47 @@ suite('message_manager.js >', function() {
       MessageManager.getMessages.yieldTo('done');
     });
   });
+
+  suite('ensureThreadRegistered()', function() {
+    setup(function() {
+      this.sinon.stub(Threads, 'has');
+      this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
+    });
+
+    test('registers message in Threads if no related thread', function(done) {
+      var threadId = 1;
+      Threads.has.withArgs(threadId).returns(false);
+
+      var message = MockMessages.sms();
+
+      MessageManager.ensureThreadRegistered(threadId).then(() => {
+        sinon.assert.calledWith(Threads.registerMessage, message);
+      }).then(done, done);
+
+      MockNavigatormozMobileMessage.mTriggerMessagesRequest([ message ]);
+    });
+
+    test('does not register message if thread exists', function(done) {
+      var threadId = 1;
+      Threads.has.withArgs(threadId).returns(true);
+
+      MessageManager.ensureThreadRegistered(threadId).then(() => {
+        sinon.assert.notCalled(Threads.registerMessage);
+      }).then(done, done);
+    });
+
+    test('Returns a rejected promise if no message in thread', function(done) {
+      var threadId = 1;
+      Threads.has.withArgs(threadId).returns(false);
+
+      MessageManager.ensureThreadRegistered(threadId).then(
+        () => Promise.reject(new Error('Should not return a resolved promise')),
+        () => {}
+      ).then(() => {
+        sinon.assert.notCalled(Threads.registerMessage);
+      }).then(done, done);
+
+      MockNavigatormozMobileMessage.mTriggerMessagesRequest([]);
+    });
+  });
 });

@@ -6,13 +6,11 @@
 'use strict';
 
 var MockNavigation = {
-  init: function() {},
-  isCurrentPanel: function() {},
+  back: () => Promise.resolve(),
+  init: () => Promise.resolve(),
+  isCurrentPanel: () => {},
   isDefaultPanel: () => false,
-  ensureCurrentPanel: () => Promise.resolve(),
-  toPanel: function() { return Promise.resolve(); },
-  toDefaultPanel: () => Promise.resolve(),
-  getPanelName: () => '',
+  toPanel: () => Promise.resolve(),
   setReady: () => {},
   on: () => {},
   off: () => {},

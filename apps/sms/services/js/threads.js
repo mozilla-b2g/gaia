@@ -164,5 +164,18 @@
     }
   };
 
+  Threads.Messages = {
+    get(id) {
+      id = +id;
+      var threadId = messageMap.get(id);
+
+      if (Threads.has(threadId)) {
+        return Threads.get(threadId).messages.get(id);
+      }
+
+      return null;
+    }
+  };
+
   exports.Thread = Thread;
 }(this));

@@ -25,6 +25,7 @@
 
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="/views/shared/style/sms.css">
+    <link rel="stylesheet" type="text/css" href="/views/shared/style/panel.css">
     <link rel="stylesheet" type="text/css" href="/views/shared/style/edit-mode.css">
     <link rel="stylesheet" type="text/css" href="/views/shared/style/notification.css">
     <link rel="stylesheet" type="text/css" href="/views/shared/style/common.css">
@@ -64,13 +65,13 @@
 
     <script defer src="/shared/js/event_dispatcher.js"></script>
 
+    <script defer src="/views/shared/js/utils.js"></script>
     <script defer src="/views/shared/js/navigation.js"></script>
     <script defer src="/views/shared/js/inter_instance_event_dispatcher.js"></script>
     <script defer src="/views/shared/js/time_headers.js"></script>
     <script defer src="/views/shared/js/contacts.js"></script>
     <script defer src="/services/js/drafts.js"></script>
     <script defer src="/services/js/threads.js"></script>
-    <script defer src="/views/shared/js/utils.js"></script>
     <script defer src="/views/inbox/js/inbox.js"></script>
     <script defer src="/views/shared/js/settings.js"></script>
     <script defer src="/services/js/message_manager.js"></script>
@@ -87,8 +88,8 @@
   </head>
 
   <body role="application" class="skin-comms theme-communications">
-    <article id="main-wrapper" class="wrapper" data-position='right'>
-      <section id="thread-list" class="panel default-panel" role="region">
+    <article id="main-wrapper" class="wrapper">
+      <section class="panel panel-InboxView" role="region">
         <!-- title-start and title-end indicates the button widths respectively
           at the start and end of the line -->
         <!-- see https://github.com/gaia-components/gaia-header/ for more information -->

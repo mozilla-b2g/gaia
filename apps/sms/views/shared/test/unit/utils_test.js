@@ -1022,14 +1022,46 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.params', function() {
+  suite('URL utils', function() {
     var tests = {
-      '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
+      '?foo=bar&baz=1&quux=null&bool1=true&bool2=false': {
+        foo: 'bar',
+        baz: '1',
+        quux: 'null',
+        bool1: true,
+        bool2: false
+      }
     };
 
-    Object.keys(tests).forEach(function(testIndex) {
-      test(testIndex, function() {
-        assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
+    test('Utils.params', function() {
+      Object.keys(tests).forEach(function(search) {
+        assert.deepEqual(Utils.params(search), tests[search], search);
+      });
+    });
+
+    test('Utils.url', function() {
+      Object.keys(tests).forEach(function(search) {
+        var params = tests[search];
+
+        var base = '#';
+        var expected = base + search;
+        assert.equal(
+          Utils.url(base, params), expected,
+          'base without ?: ' + search
+        );
+
+        base = '#?something';
+        expected = base + '&' + search.slice(1);
+        assert.equal(
+          Utils.url(base, params), expected,
+          'base with ?: ' + search
+        );
+
+        params = Object.assign({ test: null }, params);
+        assert.equal(
+          Utils.url(base, params), expected, 
+          'with a null value: ' + search
+        );
       });
     });
   });

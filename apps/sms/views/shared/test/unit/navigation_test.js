@@ -1,7 +1,10 @@
-/* global Navigation,
+/* global
+    AnimationEvent,
+    HashChangeEvent,
     MocksHelper,
-    Promise,
-    TransitionEvent
+    Navigation,
+    NavigationFactory,
+    Promise
  */
 
 'use strict';
@@ -18,621 +21,664 @@ var mocksHelperForNavigation = new MocksHelper([
 ]).init();
 
 suite('navigation >', function() {
+  var FAKE_VIEW_OBJECTS =
+    ['InboxView', 'ConversationView', 'ReportView', 'GroupView'];
 
-  var fakeContainer;
-  var panelContainers = {};
-  var Panel1, Panel2, Panel3, Panel4;
-
-  var saved = new Map();
-
-  function stubObject(object, properties) {
-    var savedProperties = {};
-    saved.set(object, savedProperties);
-
-    for (var key in properties) {
-      savedProperties[key] = object[key];
-      object[key] = properties[key];
-    }
-  }
-
-  function restore() {
-    saved.forEach(function(object, properties) {
-      for (var key in properties) {
-        object[key] = properties[key];
-      }
-    });
-
-    saved.clear();
-  }
+  var fakeWindow, fakeLocation;
+  var elements;
 
   mocksHelperForNavigation.attachTestHelpers();
 
-  setup(function() {
-    fakeContainer = document.createElement('div');
-    fakeContainer.id = 'main-wrapper';
-    document.body.appendChild(fakeContainer);
-    window.location.hash = '';
+  function fakeViewObjects() {
+    FAKE_VIEW_OBJECTS.forEach((objectName) => {
+      fakeWindow[objectName] = {
+        beforeLeave: sinon.stub(),
+        beforeEnter: sinon.stub(),
+        afterLeave: sinon.stub(),
+        afterEnter: sinon.stub()
+      };
+    });
+  }
 
-    Panel1 = {
-      beforeEnter: sinon.stub(),
-      beforeLeave: sinon.stub(),
-      afterEnter: sinon.stub(),
-      afterLeave: sinon.stub()
-    };
+  function resetViewObjectStubs() {
+    FAKE_VIEW_OBJECTS.map(
+      (objectName) => fakeWindow[objectName]
+    ).forEach((viewObject) => {
+      ['beforeLeave', 'beforeEnter', 'afterLeave', 'afterEnter'].forEach(
+        (stepName) => viewObject[stepName].reset()
+      );
+    });
+  }
 
-    Panel2 = {
-      beforeEnter: sinon.stub(),
-      beforeLeave: sinon.stub(),
-      afterEnter: sinon.stub(),
-      afterLeave: sinon.stub()
-    };
-
-    Panel3 = {
-      beforeEnter: sinon.stub(),
-      beforeLeave: sinon.stub(),
-      afterEnter: sinon.stub(),
-      afterLeave: sinon.stub()
-    };
-
-    Panel4 = {
-      beforeEnter: sinon.stub(),
-      beforeLeave: sinon.stub(),
-      afterEnter: sinon.stub(),
-      afterLeave: sinon.stub()
-    };
-
-    for (var i = 1; i <= 4; i++) {
-      var ident = 'panel' + i;
-      panelContainers[ident] = document.createElement('div');
-      panelContainers[ident].id = ident;
-      // Panel1 is visible by default.
-      panelContainers[ident].setAttribute('aria-hidden', ident !== 'panel1');
-      fakeContainer.appendChild(panelContainers[ident]);
+  function fakeAssign(url) {
+    if (url.startsWith('#')) {
+      fakeLocation.hash = url;
+      fakeLocation.href = fakeLocation.href.replace(/#.*$/, '') + url;
+      Promise.resolve().then(
+        () => window.dispatchEvent(new HashChangeEvent('hashchange'))
+      );
     }
+  }
 
+  function findViewElements() {
+    elements = {};
+    FAKE_VIEW_OBJECTS.forEach((viewName) => {
+      elements[viewName] = document.querySelector('.panel-' + viewName);
+    });
+  }
 
-    stubObject(Navigation, {
-      panelObjects: {
-        Panel1: Panel1,
-        Panel2: Panel2,
-        Panel3: Panel3,
-        Panel4: Panel4
+  setup(function() {
+    this.sinon.stub(window, 'setTimeout').yieldsAsync();
+    loadBodyHTML('/index.html');
+
+    fakeLocation = {
+      assign: sinon.spy(fakeAssign),
+      hash: '',
+      href: 'app://sms.gaiamobile.org/',
+      pathname: '/' // old architecture
+    };
+
+    fakeWindow = Object.create(window, {
+      location: {
+        get: () => fakeLocation
       },
-      defaultPanel: 'panel1',
-      panels: {
-        'panel1': {
-          behaviour: 'Panel1',
-          wrapperPosition: 'left',
-          container: 'panel1'
-        },
-        'panel2': {
-          behaviour: 'Panel2',
-          wrapperPosition: 'left',
-          container: 'panel3'
-        },
-        'panel3': {
-          behaviour: 'Panel3',
-          wrapperPosition: 'left',
-          container: 'panel3'
-        },
-        'panel4': {
-          behaviour: 'Panel4',
-          wrapperPosition: 'left',
-          container: 'panel4'
-        },
-        'bad-panel': {}
+      addEventListener: {
+        get: () => (...args) => window.addEventListener(...args)
+      },
+      removeEventListener: {
+        get: () => (...args) => window.removeEventListener(...args)
+      },
+      history: {
+        value: {
+          back: () => {}
+        }
       }
     });
+
+    findViewElements();
+    fakeViewObjects();
   });
 
   teardown(function() {
-    fakeContainer.remove();
-    restore();
+    Navigation.cleanup();
+    fakeWindow = null;
+    elements = null;
+    window.Navigation = null;
+    document.body.innerHTML = '';
   });
 
-  suite('init >', function() {
+  suite('non split views >', function() {
     setup(function() {
-      // we don't care about the slide operation in this test
-      this.sinon.stub(Navigation, 'toPanel');
+      window.Navigation = NavigationFactory(fakeWindow);
     });
 
-    test('ready is false while init and true when setReady called', function() {
-      Navigation.init();
+    suite('init() >', function() {
+      test('display the right panel', function(done) {
+        assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+        Navigation.init().then(() => {
+          assert.ok(elements.InboxView.classList.contains('panel-active'));
+        }).then(done, done);
+      });
 
-      assert.isFalse(Navigation.isReady);
+      test('runs lifecycle methods for the right view', function(done) {
+        fakeLocation.hash = '#/composer?id=3';
+        var transitionArgs = { id: '3' };
+        Navigation.init().then(() => {
+          sinon.assert.calledWithMatch(
+            fakeWindow.ConversationView.beforeEnter,
+            transitionArgs
+          );
+          sinon.assert.calledWithMatch(
+            fakeWindow.ConversationView.afterEnter,
+            transitionArgs
+          );
+          assert.ok(Navigation.isCurrentPanel('composer', { id: 3 }));
+        }).then(done, done);
+      });
 
-      Navigation.setReady();
+      test('Do nothing when an unknown view is asked', function(done) {
+        this.sinon.stub(console, 'error');
 
-      assert.isTrue(Navigation.isReady);
-    });
-  });
-
-  suite('toPanel >', function() {
-    setup(function() {
-      this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
-      Navigation.isReady = true;
-      Navigation.init();
-    });
-
-    test('Return a rejected promise if the panel is unknown', function(done) {
-      Navigation.toPanel('unknown').then(
-        function onresolve() {
-          done(new Error('should not return a resolved promise'));
-        }, function onreject() {
-          // we don't pass "done" directly because we don't want that done gets
-          // an argument as it interprets this as a failure
-          done();
-        }
-      );
-    });
-
-    test('Return a rejected promise if the panel is badly configured',
-    function(done) {
-      Navigation.toPanel('bad-panel').then(
-        function onresolve() {
-          done(new Error('should not return a resolved promise'));
-        }, function onreject() {
-          done();
-        }
-      );
+        fakeLocation.hash = '#/unknown?id=3';
+        Navigation.init().then(() => {
+          sinon.assert.notCalled(fakeWindow.InboxView.beforeEnter);
+          sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
+          assert.isFalse(Navigation.isCurrentPanel('thread-list'));
+          assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+          sinon.assert.called(console.error);
+        }).then(done, done);
+      });
     });
 
-    test('Queue panel requests while not ready', function(done) {
-      Navigation.isReady = false;
-      Navigation.toPanel('panel1');
-      Navigation.toPanel('panel2').then(function() {
-        sinon.assert.callOrder(
-          Panel1.beforeLeave,
-          Panel2.beforeEnter,
-          Panel1.afterLeave,
-          Panel2.afterEnter
-        );
-      }).then(done, done);
-
-      Navigation.setReady();
-    });
-
-    test('Queue panel transition requests', function(done) {
-      Navigation.toPanel('panel3');
-      Navigation.toPanel('panel4').then(function() {
-        sinon.assert.callOrder(
-          Panel3.beforeEnter,
-          Panel3.afterEnter,
-          Panel4.beforeEnter,
-          Panel4.afterEnter
-        );
-
-        assert.equal(
-          panelContainers.panel3.getAttribute('aria-hidden'),
-          'true');
-        assert.equal(
-          panelContainers.panel4.getAttribute('aria-hidden'),
-          'false');
-      }).then(done, done);
-    });
-
-    test('Transition to panel with same container', function(done) {
-      Navigation.toPanel('panel3');
-      Navigation.toPanel('panel2').then(function() {
-        assert.equal(
-          panelContainers.panel3.getAttribute('aria-hidden'),
-          'false');
-      }).then(done, done);
-    });
-
-    test('Queued panel also forwards rejections', function(done) {
-      Panel4.beforeEnter.throws(new Error('error while entering panel3'));
-
-      Promise.all([
-        Navigation.toPanel('panel3').then(() => 'resolved', () => 'rejected'),
-        Navigation.toPanel('panel4').then(() => 'resolved', () => 'rejected')
-      ]).then(function(results) {
-        assert.deepEqual(results, [ 'resolved', 'rejected' ]);
-
-        sinon.assert.callOrder(
-          Panel3.beforeEnter,
-          Panel3.afterEnter,
-          Panel4.beforeEnter
-        );
-
-        assert.equal(
-          panelContainers.panel3.getAttribute('aria-hidden'),
-          'false');
-        assert.equal(
-          panelContainers.panel4.getAttribute('aria-hidden'),
-          'true');
-      }).then(done, done);
-    });
-
-
-    suite('lifecycle >', function() {
+    suite('back() >', function() {
       setup(function(done) {
-        Navigation.toPanel('panel3').then(function() {
-          // reseting lifecycle functions because we want to test the next
-          // transition
-          Panel3.beforeLeave.reset();
-          Panel3.afterLeave.reset();
-          Panel3.beforeEnter.reset();
-          Panel3.afterEnter.reset();
-          Panel4.beforeLeave.reset();
-          Panel4.afterLeave.reset();
-          Panel4.beforeEnter.reset();
-          Panel4.afterEnter.reset();
-          Navigation.slide.reset();
-        }).then(done, done);
+        Navigation.init().then(done, done);
       });
 
-      test('lifecycle order', function(done) {
-        var onNavigatedStub = sinon.stub();
-        Navigation.on('navigated', onNavigatedStub);
-        Navigation.toPanel('panel4', { key: 'value' }).then(function() {
+      test('Properly returns back in history', function(done) {
+        this.sinon.stub(fakeWindow.history, 'back', () => {
+          fakeAssign('#/composer');
+        });
+
+        Navigation.back().then(() => {
+          sinon.assert.called(fakeWindow.InboxView.beforeLeave);
+          sinon.assert.called(fakeWindow.history.back);
+        }).then(done, done);
+      });
+    });
+
+    suite('toPanel >', function() {
+      setup(function(done) {
+        Navigation.init().then(done, done);
+      });
+
+      test('Return a rejected promise if the panel is unknown', function(done) {
+        Navigation.toPanel('unknown').then(
+          function onresolve() {
+            done(new Error('should not return a resolved promise'));
+          }, function onreject() {
+            // we don't pass "done" directly because we don't want that done
+            // gets an argument as it interprets this as a failure
+            done();
+          }
+        );
+      });
+
+      test('Return a rejected promise if the panel is badly configured',
+      function(done) {
+        Navigation.toPanel('bad-panel').then(
+          function onresolve() {
+            done(new Error('should not return a resolved promise'));
+          }, function onreject() {
+            done();
+          }
+        );
+      });
+
+      test('Queue panel requests while not ready', function(done) {
+        var fakeInbox = fakeWindow.InboxView;
+        var fakeConversation = fakeWindow.ConversationView;
+        fakeWindow.InboxView = null;
+        fakeWindow.ConversationView = null;
+
+        Navigation.toPanel('composer');
+        Navigation.toPanel('thread', { id: 1 }).then(function() {
           sinon.assert.callOrder(
-            Panel3.beforeLeave,
-            Panel4.beforeEnter,
-            Navigation.slide,
-            Panel3.afterLeave,
-            Panel4.afterEnter,
-            onNavigatedStub
+            fakeWindow.InboxView.beforeLeave,
+            fakeWindow.ConversationView.beforeEnter,
+            fakeWindow.InboxView.afterLeave,
+            fakeWindow.ConversationView.afterEnter
           );
-          sinon.assert.calledWith(
-            onNavigatedStub,
-            { panel: 'panel4', args: { key: 'value', meta: sinon.match.any }}
+        }).then(done, done);
+
+        setTimeout(() => {
+          fakeWindow.InboxView = fakeInbox;
+          fakeWindow.ConversationView = fakeConversation;
+          Navigation.setReady();
+        });
+      });
+
+      test('Queue panel transition requests', function(done) {
+        Navigation.toPanel('thread-list');
+        Navigation.toPanel('composer').then(function() {
+          sinon.assert.callOrder(
+            fakeWindow.InboxView.beforeEnter,
+            fakeWindow.InboxView.afterEnter,
+            fakeWindow.ConversationView.beforeEnter,
+            fakeWindow.ConversationView.afterEnter
           );
         }).then(done, done);
       });
 
-      test('isCurrentPanel is changed at the right time', function(done) {
-        var slidePromise = {
-          then: function lazyThen(ifResolved /*, ifRejected */) {
-            return Promise.resolve().then(function() {
-              assert.isFalse(Navigation.isCurrentPanel('panel3'));
-              assert.isFalse(Navigation.isCurrentPanel('panel4'));
-            }).then(ifResolved, done);
-          }
-        };
-        Navigation.slide.returns(slidePromise);
+      test('Queued panel also forwards rejections', function(done) {
+        fakeWindow.ConversationView.beforeLeave.throws(
+          new Error('error while entering ReportView')
+        );
 
-        var results = [];
+        var req1 = Navigation.toPanel('thread', {id: 1}).then(
+          () => 'resolved', () => 'rejected'
+        );
+        var req2 = Navigation.toPanel('report-view', {id: 1}).then(
+          () => 'resolved', () => 'rejected'
+        );
+        Promise.all([req1, req2]).then(function(results) {
+          assert.deepEqual(results, [ 'resolved', 'rejected' ]);
 
-        Panel3.beforeLeave = function() {
-          results.push(Navigation.isCurrentPanel('panel3'));
-        };
-        Panel3.afterLeave = function() {
-          results.push(Navigation.isCurrentPanel('panel4'));
-        };
-        Panel4.beforeEnter = function() {
-          results.push(Navigation.isCurrentPanel('panel3'));
-        };
-        Panel4.afterEnter = function() {
-          results.push(Navigation.isCurrentPanel('panel4'));
-        };
-
-        Navigation.toPanel('panel4').then(function() {
-          assert.equal(results.length, 4);
-          results.forEach(function(val, i) {
-            assert.ok(val, 'result ' + i);
-          });
+          sinon.assert.callOrder(
+            fakeWindow.ConversationView.beforeEnter,
+            fakeWindow.ConversationView.afterEnter,
+            fakeWindow.ConversationView.beforeLeave
+          );
         }).then(done, done);
       });
 
-      test('lifecycle methods get passed the correct args', function(done) {
-        var expectedArgs = {
-          id: 1,
-          meta: {
-            next: {
-              panel: 'panel4',
-              args: {
-                id: 1
+      suite('lifecycle >', function() {
+        var panel1, panel2, panelName1, panelName2, panelName3;
+        setup(function(done) {
+          panel1 = fakeWindow.ConversationView;
+          panel2 = fakeWindow.ReportView;
+          panelName1 = 'thread';
+          panelName2 = 'report-view';
+          panelName3 = 'thread-list';
+
+          Navigation.toPanel(panelName1).then(function() {
+            // reseting lifecycle functions because we want to test the next
+            // transition
+            resetViewObjectStubs();
+          }).then(done, done);
+        });
+
+        test('lifecycle order', function(done) {
+          var onNavigatedStub = sinon.stub();
+          Navigation.on('navigated', onNavigatedStub);
+          Navigation.toPanel(panelName2).then(function() {
+            sinon.assert.callOrder(
+              panel1.beforeLeave,
+              panel2.beforeEnter,
+              panel2.afterEnter,
+              panel1.afterLeave,
+              onNavigatedStub
+            );
+          }).then(done, done);
+        });
+
+        test('isCurrentPanel is changed at the right time', function(done) {
+          var results = [];
+
+          panel1.beforeLeave = function() {
+            results.push(Navigation.isCurrentPanel(panelName1));
+          };
+          panel1.afterLeave = function() {
+            results.push(Navigation.isCurrentPanel(panelName2));
+          };
+          panel2.beforeEnter = function() {
+            results.push(Navigation.isCurrentPanel(panelName1));
+          };
+          panel2.afterEnter = function() {
+            results.push(Navigation.isCurrentPanel(panelName2));
+          };
+
+          Navigation.toPanel(panelName2).then(function() {
+            assert.equal(results.length, 4);
+            results.forEach(function(val, i) {
+              assert.ok(val, 'result ' + i);
+            });
+          }).then(done, done);
+        });
+
+        test('lifecycle methods get passed the correct args', function(done) {
+          var expectedArgs = {
+            id: sinon.match(1),
+            meta: {
+              next: {
+                panel: panelName2,
+                args: sinon.match({
+                  id: sinon.match(1)
+                })
+              },
+              prev: {
+                panel: panelName1,
+                args: sinon.match.object
               }
-            },
-            prev: {
-              panel: 'panel3',
-              args: undefined
             }
-          }
-        };
+          };
 
-        Navigation.toPanel('panel4', { id: 1 }).then(function() {
-          sinon.assert.calledWithMatch(Panel3.beforeLeave, expectedArgs);
-          sinon.assert.calledWithMatch(Panel3.afterLeave, expectedArgs);
-          sinon.assert.calledWithMatch(Panel4.beforeEnter, expectedArgs);
-          sinon.assert.calledWithMatch(Panel4.afterEnter, expectedArgs);
+          Navigation.toPanel(panelName2, { id: 1 }).then(function() {
+            sinon.assert.calledWithMatch(panel1.beforeLeave, expectedArgs);
+            sinon.assert.calledWithMatch(panel1.afterLeave, expectedArgs);
+            sinon.assert.calledWithMatch(panel2.beforeEnter, expectedArgs);
+            sinon.assert.calledWithMatch(panel2.afterEnter, expectedArgs);
+          }).then(done, done);
+        });
+
+        suite('beforeLeave failures >', function() {
+          test('throwing', function(done) {
+            panel1.beforeLeave.onFirstCall().throws();
+
+            Navigation.toPanel(panelName2).then(function resolved_unexpected() {
+              throw new Error('toPanel should not be resolved');
+            }, function rejected_expected() {
+              sinon.assert.notCalled(panel2.beforeEnter);
+              sinon.assert.notCalled(panel1.afterLeave);
+              sinon.assert.notCalled(panel2.afterEnter);
+              assert.ok(Navigation.isCurrentPanel(panelName1));
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }).then(done, done);
+          });
+
+          test('returning a rejected promise', function(done) {
+            panel1.beforeLeave.onFirstCall().returns(Promise.reject());
+
+            Navigation.toPanel(panelName2).then(function resolved_unexpected() {
+              throw new Error('toPanel should not be resolved');
+            }, function rejected_expected() {
+              sinon.assert.notCalled(panel2.beforeEnter);
+              sinon.assert.notCalled(panel1.afterLeave);
+              sinon.assert.notCalled(panel2.afterEnter);
+              assert.ok(Navigation.isCurrentPanel(panelName1));
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }).then(done, done);
+          });
+        });
+
+        suite('beforeEnter failures >', function() {
+          test('throwing', function(done) {
+            panel2.beforeEnter.onFirstCall().throws();
+
+            Navigation.toPanel(panelName2).then(function resolved_expected() {
+              sinon.assert.callOrder(
+                panel1.beforeLeave,
+                panel2.beforeEnter,
+                panel2.afterEnter,
+                panel1.afterLeave
+              );
+              assert.ok(Navigation.isCurrentPanel(panelName2));
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }, function rejected_unexpected() {
+              throw new Error('toPanel should not be rejected');
+            }).then(done, done);
+          });
+
+          test('returning a rejected promise', function(done) {
+            panel2.beforeEnter.onFirstCall().returns(Promise.reject());
+
+            Navigation.toPanel(panelName2).then(function resolved_expected() {
+              sinon.assert.callOrder(
+                panel1.beforeLeave,
+                panel2.beforeEnter,
+                panel2.afterEnter,
+                panel1.afterLeave
+              );
+              assert.ok(Navigation.isCurrentPanel(panelName2));
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }, function rejected_unexpected() {
+              throw new Error('toPanel should not be rejected');
+            }).then(done, done);
+          });
+        });
+
+        suite('afterLeave failures >', function() {
+          test('throwing', function(done) {
+            panel1.afterLeave.onFirstCall().throws();
+
+            Navigation.toPanel(panelName2).then(function resolved_expected() {
+              sinon.assert.called(panel2.afterEnter);
+              assert.ok(Navigation.isCurrentPanel(panelName2));
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }, function rejected_unexpected() {
+              throw new Error('toPanel should not be rejected');
+            }).then(done, done);
+          });
+
+          test('returning a rejected promise', function(done) {
+            panel1.afterLeave.onFirstCall().returns(Promise.reject());
+
+            Navigation.toPanel(panelName2).then(function resolved_expected() {
+              sinon.assert.called(panel2.afterEnter);
+              assert.ok(Navigation.isCurrentPanel(panelName2));
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }, function rejected_unexpected() {
+              throw new Error('toPanel should not be rejected');
+            }).then(done, done);
+          });
+        });
+
+        suite('afterEnter failures >', function() {
+          test('throwing', function(done) {
+            panel2.afterEnter.onFirstCall().throws();
+            this.sinon.stub(console, 'error');
+
+            Navigation.toPanel(panelName2).then(function resolved_expected() {
+              assert.ok(Navigation.isCurrentPanel(panelName2));
+              sinon.assert.called(console.error);
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }, function rejected_unexpected() {
+              throw new Error('toPanel should not be rejected');
+            }).then(done, done);
+          });
+
+          test('returning a rejected promise', function(done) {
+            panel2.afterEnter.onFirstCall().returns(Promise.reject());
+            this.sinon.stub(console, 'log');
+
+            Navigation.toPanel(panelName2).then(function resolved_expected() {
+              assert.ok(Navigation.isCurrentPanel(panelName2));
+              sinon.assert.called(console.log);
+
+              // check we can have a new transition
+              return Navigation.toPanel(panelName3);
+            }, function rejected_unexpected() {
+              throw new Error('toPanel should not be rejected');
+            }).then(done, done);
+          });
+        });
+      });
+
+      test('Remove any focus left on specific elements ', function() {
+        this.sinon.spy(document.activeElement, 'blur');
+        Navigation.toPanel('thread');
+        sinon.assert.called(document.activeElement.blur);
+      });
+    });
+
+    suite('URL manipulation >', function() {
+      setup(function(done) {
+        Navigation.init().then(done, done);
+      });
+
+      test('toPanel changes the location', function(done) {
+        Navigation.toPanel('composer', { id: 3 }).then(() => {
+          sinon.assert.calledWith(
+            fakeWindow.location.assign,
+            '#/composer?id=3'
+          );
+
+          return Navigation.toPanel('thread-list');
+        }).then(() => {
+          sinon.assert.calledWith(
+            fakeWindow.location.assign,
+            '#'
+          );
+        }).then(done, done);
+      });
+    });
+
+    test('isDefaultPanel() correctly determines default panel', function() {
+      // If hash is empty.
+      fakeLocation.hash = '';
+      assert.isTrue(Navigation.isDefaultPanel());
+
+      // False if hash set to some different panel.
+      fakeLocation.hash = '#/composer';
+      assert.isFalse(Navigation.isDefaultPanel());
+    });
+
+    suite('isCurrentPanel()', function() {
+      var view1 = 'thread-list';
+      var view2 = 'thread';
+
+      setup(function(done) {
+        Navigation.init().then(done, done);
+      });
+
+      test('returns false if the argument is falsy', function() {
+        assert.isFalse(Navigation.isCurrentPanel(null));
+        assert.isFalse(Navigation.isCurrentPanel());
+      });
+
+      test('returns the correct value without args', function() {
+        assert.isTrue(Navigation.isCurrentPanel(view1));
+        assert.isFalse(Navigation.isCurrentPanel(view2));
+        assert.isFalse(Navigation.isCurrentPanel(view1, { prop: 1 }));
+      });
+
+      test('returns the correct value with args', function(done) {
+        Navigation.toPanel(view2, { prop1: 1, prop2: 'prop2' })
+        .then(function() {
+          assert.isTrue(Navigation.isCurrentPanel(view2));
+          assert.isTrue(Navigation.isCurrentPanel(view2, { prop1: 1 }));
+          assert.isTrue(Navigation.isCurrentPanel(view2, { prop2: 'prop2' }));
+          assert.isTrue(
+            Navigation.isCurrentPanel(view2, { prop1: 1, prop2: 'prop2' })
+          );
+
+          assert.isFalse(Navigation.isCurrentPanel(view1));
+          assert.isFalse(Navigation.isCurrentPanel(view2, { prop1: 2 }));
+          assert.isFalse(
+            Navigation.isCurrentPanel(view2, { prop1: 1, prop2: 'prop1' })
+          );
+          assert.isFalse(
+            Navigation.isCurrentPanel(view2, { prop2: 'prop1' })
+          );
+        }).then(done, done);
+      });
+    });
+
+    suite('sliding views', function() {
+      setup(function(done) {
+        // neutralizes the setTimeout fallback
+        window.setTimeout.restore();
+        Navigation.init().then(done, done);
+      });
+
+      function animationEndEvent() {
+        return new AnimationEvent('animationend', {
+          bubbles: true,
+          animationName: 'some-name'
+        });
+      }
+
+      test('resolve the promise after animationend events', function(done) {
+        var panel = document.querySelector('.panel-ConversationView');
+        this.sinon.spy(panel, 'removeEventListener');
+        setTimeout(
+          () => panel.dispatchEvent(animationEndEvent())
+        );
+        this.sinon.stub(window, 'setTimeout');
+
+        Navigation.toPanel('thread').then(() => {
+          sinon.assert.calledWith(panel.removeEventListener, 'animationend');
+        }).then(done, done);
+      });
+    });
+  });
+
+  suite('split views >', function() {
+    setup(function() {
+      fakeLocation.pathname = '/views/inbox/';
+      fakeLocation.href =
+        'app://sms.gaiamobile.org' +
+        fakeLocation.pathname + fakeLocation.hash;
+
+      window.Navigation = NavigationFactory(fakeWindow);
+    });
+
+    suite('init()) >', function() {
+      test('display the right panel', function(done) {
+        assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+        Navigation.init().then(() => {
+          assert.ok(elements.InboxView.classList.contains('panel-active'));
         }).then(done, done);
       });
 
-      suite('beforeLeave failures >', function() {
-        test('throwing', function(done) {
-          Panel3.beforeLeave.throws();
+      test('find the right split view', function(done) {
+        fakeLocation.hash = '#?id=3';
+        fakeLocation.pathname = '/views/conversation/';
+        fakeLocation.href =
+          'app://sms.gaiamobile.org' +
+          fakeLocation.pathname + fakeLocation.hash;
 
-          Navigation.toPanel('panel4').then(function resolved_unexpected() {
-            throw new Error('toPanel should not be resolved');
-          }, function rejected_expected() {
-            sinon.assert.notCalled(Panel4.beforeEnter);
-            sinon.assert.notCalled(Panel3.afterLeave);
-            sinon.assert.notCalled(Panel4.afterEnter);
-            sinon.assert.notCalled(Navigation.slide);
-            assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isNull(Navigation.transitionPromise);
-          }).then(done, done);
-        });
-
-        test('returning a rejected promise', function(done) {
-          Panel3.beforeLeave.returns(Promise.reject());
-
-          Navigation.toPanel('panel4').then(function resolved_unexpected() {
-            throw new Error('toPanel should not be resolved');
-          }, function rejected_expected() {
-            sinon.assert.notCalled(Panel4.beforeEnter);
-            sinon.assert.notCalled(Panel3.afterLeave);
-            sinon.assert.notCalled(Panel4.afterEnter);
-            sinon.assert.notCalled(Navigation.slide);
-            assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isNull(Navigation.transitionPromise);
-          }).then(done, done);
-        });
+        var transitionArgs = { id: '3' };
+        Navigation.init().then(() => {
+          sinon.assert.calledWithMatch(
+            fakeWindow.ConversationView.beforeEnter,
+            transitionArgs
+          );
+          sinon.assert.calledWithMatch(
+            fakeWindow.ConversationView.afterEnter,
+            transitionArgs
+          );
+          assert.ok(Navigation.isCurrentPanel('thread', { id: 3 }));
+        }).then(done, done);
       });
 
-      suite('beforeEnter failures >', function() {
-        test('throwing', function(done) {
-          Panel4.beforeEnter.throws();
+      test('find the right split subview', function(done) {
+        fakeLocation.hash = '#/report-view?id=3';
+        fakeLocation.pathname = '/views/conversation/';
+        fakeLocation.href =
+          'app://sms.gaiamobile.org' +
+          fakeLocation.pathname + fakeLocation.hash;
 
-          Navigation.toPanel('panel4').then(function resolved_unexpected() {
-            throw new Error('toPanel should not be resolved');
-          }, function rejected_expected() {
-            sinon.assert.notCalled(Panel3.afterLeave);
-            sinon.assert.notCalled(Panel4.afterEnter);
-            sinon.assert.notCalled(Navigation.slide);
-            assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isNull(Navigation.transitionPromise);
-          }).then(done, done);
-        });
-
-        test('returning a rejected promise', function(done) {
-          Panel4.beforeEnter.returns(Promise.reject());
-
-          Navigation.toPanel('panel4').then(function resolved_unexpected() {
-            throw new Error('toPanel should not be resolved');
-          }, function rejected_expected() {
-            sinon.assert.notCalled(Panel3.afterLeave);
-            sinon.assert.notCalled(Panel4.afterEnter);
-            sinon.assert.notCalled(Navigation.slide);
-            assert.ok(Navigation.isCurrentPanel('panel3'));
-            assert.isNull(Navigation.transitionPromise);
-          }).then(done, done);
-        });
+        var transitionArgs = { id: '3' };
+        Navigation.init().then(() => {
+          sinon.assert.calledWithMatch(
+            fakeWindow.ReportView.beforeEnter,
+            transitionArgs
+          );
+          sinon.assert.calledWithMatch(
+            fakeWindow.ReportView.afterEnter,
+            transitionArgs
+          );
+          assert.ok(Navigation.isCurrentPanel('report-view', { id: 3 }));
+        }).then(done, done);
       });
 
-      suite('afterLeave failures >', function() {
-        test('throwing', function(done) {
-          Panel3.afterLeave.throws();
+      test('Do nothing when an unknown view is asked', function(done) {
+        this.sinon.stub(console, 'error');
 
-          Navigation.toPanel('panel4').then(function resolved_expected() {
-            sinon.assert.called(Panel4.afterEnter);
-            assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isNull(Navigation.transitionPromise);
-          }, function rejected_unexpected() {
-            throw new Error('toPanel should not be rejected');
-          }).then(done, done);
-        });
-
-        test('returning a rejected promise', function resolved_expected(done) {
-          Panel3.afterLeave.returns(Promise.reject());
-
-          Navigation.toPanel('panel4').then(function() {
-            sinon.assert.called(Panel4.afterEnter);
-            assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isNull(Navigation.transitionPromise);
-          }, function rejected_unexpected() {
-            throw new Error('toPanel should not be rejected');
-          }).then(done, done);
-        });
-      });
-
-      suite('afterEnter failures >', function() {
-        test('throwing', function(done) {
-          Panel4.afterEnter.throws();
-          this.sinon.stub(console, 'error');
-
-          Navigation.toPanel('panel4').then(function resolved_expected() {
-            assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isNull(Navigation.transitionPromise);
-            sinon.assert.called(console.error);
-          }, function rejected_unexpected() {
-            throw new Error('toPanel should not be rejected');
-          }).then(done, done);
-        });
-
-        test('returning a rejected promise', function(done) {
-          Panel4.afterEnter.returns(Promise.reject());
-          this.sinon.stub(console, 'log');
-
-          Navigation.toPanel('panel4').then(function resolved_expected() {
-            assert.ok(Navigation.isCurrentPanel('panel4'));
-            assert.isNull(Navigation.transitionPromise);
-            sinon.assert.called(console.log);
-          }, function rejected_unexpected() {
-            throw new Error('toPanel should not be rejected');
-          }).then(done, done);
-        });
+        fakeLocation.hash = '#/unknown?id=3';
+        Navigation.init().then(() => {
+          sinon.assert.notCalled(fakeWindow.InboxView.beforeEnter);
+          sinon.assert.notCalled(fakeWindow.InboxView.afterEnter);
+          assert.isFalse(Navigation.isCurrentPanel('thread-list'));
+          assert.isFalse(elements.InboxView.classList.contains('panel-active'));
+          sinon.assert.called(console.error);
+        }).then(done, done);
       });
     });
 
-    test('Remove any focus left on specific elements ', function() {
-      this.sinon.spy(document.activeElement, 'blur');
-      Navigation.toPanel('panel2');
-      sinon.assert.called(document.activeElement.blur);
-    });
-  });
+    suite('URL manipulation >', function() {
+      setup(function(done) {
+        fakeLocation.hash = '#?id=3';
+        fakeLocation.pathname = '/views/conversation/';
+        fakeLocation.href =
+          'app://sms.gaiamobile.org' +
+          fakeLocation.pathname + fakeLocation.hash;
 
-  test('toDefaultPanel() correctly navigates to default panel', function(done) {
-    this.sinon.stub(Navigation, 'toPanel').returns(Promise.resolve());
-
-    Navigation.init();
-
-    Navigation.toDefaultPanel({ argument: 'argument '}).then(() => {
-      sinon.assert.calledWith(
-        Navigation.toPanel, Navigation.defaultPanel, { argument: 'argument '}
-      );
-    }).then(done, done);
-  });
-
-  test('isDefaultPanel() correctly determines default panel', function() {
-    Navigation.init();
-
-    // If hash is empty.
-    window.location.hash = '';
-    assert.isTrue(Navigation.isDefaultPanel());
-
-    // If hash set to default panel.
-    window.location.hash = Navigation.defaultPanel;
-    assert.isTrue(Navigation.isDefaultPanel());
-
-    // False if hash set to some different panel.
-    window.location.hash = 'other-panel';
-    assert.isFalse(Navigation.isDefaultPanel());
-  });
-
-  suite('isCurrentPanel()', function() {
-    setup(function() {
-      this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
-      Navigation.init();
-    });
-
-    test('returns false if the argument is falsy', function() {
-      assert.isFalse(Navigation.isCurrentPanel(null));
-      assert.isFalse(Navigation.isCurrentPanel());
-    });
-
-    test('returns the correct value without args', function(done) {
-      Navigation.toPanel('panel1').then(function() {
-        assert.isTrue(Navigation.isCurrentPanel('panel1'));
-        assert.isFalse(Navigation.isCurrentPanel('panel2'));
-        assert.isFalse(Navigation.isCurrentPanel('panel1', { prop: 1 }));
-      }).then(done, done);
-    });
-
-    test('returns the correct value with args', function(done) {
-      Navigation.toPanel('panel1', { prop1: 1, prop2: 'prop2' })
-      .then(function() {
-        assert.isTrue(Navigation.isCurrentPanel('panel1'));
-        assert.isTrue(Navigation.isCurrentPanel('panel1', { prop1: 1 }));
-        assert.isTrue(Navigation.isCurrentPanel('panel1', { prop2: 'prop2' }));
-        assert.isTrue(
-          Navigation.isCurrentPanel('panel1', { prop1: 1, prop2: 'prop2' })
-        );
-
-        assert.isFalse(Navigation.isCurrentPanel('panel2'));
-        assert.isFalse(Navigation.isCurrentPanel('panel1', { prop1: 2 }));
-        assert.isFalse(
-          Navigation.isCurrentPanel('panel1', { prop1: 1, prop2: 'prop1' })
-        );
-        assert.isFalse(
-          Navigation.isCurrentPanel('panel1', { prop2: 'prop1' })
-        );
-      }).then(done, done);
-    });
-  });
-
-  suite('ensureCurrentPanel >', function() {
-    setup(function() {
-      this.sinon.stub(Navigation, 'slide').returns(Promise.resolve());
-      this.sinon.spy(Navigation, 'toPanel');
-
-      Navigation.init();
-    });
-
-    test('navigates to default panel when current panel is not set',
-    function(done) {
-      // We don't have any correct current panel, so navigation to default
-      // panel should be triggered.
-      assert.isFalse(Navigation.isCurrentPanel('panel1'));
-
-      Navigation.ensureCurrentPanel().then(() => {
-        assert.isTrue(Navigation.isCurrentPanel('panel1'));
-
-        // Navigate to another panel and make sure that "ensureCurrentPanel"
-        // doesn't change it
-        return Navigation.toPanel('panel2');
-      }).then(() => {
-        assert.isTrue(Navigation.isCurrentPanel('panel2'));
-
-        return Navigation.ensureCurrentPanel();
-      }).then(() => {
-        assert.isTrue(Navigation.isCurrentPanel('panel2'));
-      }).then(done, done);
-    });
-
-    test('does not navigate to default panel when transitioning is happening',
-    function(done) {
-      var onPanelNavigated = sinon.stub();
-
-      Navigation.toPanel('panel2').then(onPanelNavigated);
-
-      // We don't have any correct current panel, but we're in transitioning
-      // state currently that means that if nothing goes wrong we'll have
-      // initialized current panel soon and no need to force navigation to
-      // default panel.
-      assert.isFalse(Navigation.isCurrentPanel('panel2'));
-
-      Navigation.ensureCurrentPanel().then(() => {
-        // Verify that ensureCurrentPanel is resolved not earlier than actual
-        // transition is completed.
-        sinon.assert.called(onPanelNavigated);
-
-        assert.isTrue(Navigation.isCurrentPanel('panel2'));
-      }).then(done, done);
-    });
-  });
-
-  suite('slide()', function() {
-    var wrapper;
-
-    setup(function() {
-      loadBodyHTML('/index.html');
-      wrapper = document.getElementById('main-wrapper');
-      Navigation.init();
-    });
-
-    teardown(function() {
-      document.body.innerHTML = '';
-    });
-
-    function transitionendEvent() {
-      return new TransitionEvent('transitionend', {
-        bubbles: true,
-        propertyName: 'transform'
+        Navigation.init().then(done, done);
       });
-    }
 
-    test('does not resolve the promise after 1 transitionend event',
-    function(done) {
-      var afterSlide = sinon.stub();
-      Navigation.slide('left').then(afterSlide);
+      test('toPanel changes the location', function(done) {
+        Navigation.toPanel('composer', { id: 3 }).then(() => {
+          sinon.assert.calledWith(
+            fakeWindow.location.assign,
+            '#/composer?id=3'
+          );
 
-      wrapper.children[0].dispatchEvent(transitionendEvent());
-
-      Promise.resolve().then(function() {
-        sinon.assert.notCalled(afterSlide);
-      }).then(done, done);
-    });
-
-    test('resolve the promise after 2 transitionend events', function(done) {
-      var afterSlide = sinon.stub();
-      Navigation.slide('left').then(afterSlide).then(done, done);
-
-      wrapper.children[0].dispatchEvent(transitionendEvent());
-      wrapper.children[1].dispatchEvent(transitionendEvent());
-    });
-
-    test('the event listener is correctly removed', function() {
-      this.sinon.spy(wrapper, 'removeEventListener');
-
-      Navigation.slide('left');
-
-      wrapper.children[0].dispatchEvent(transitionendEvent());
-      wrapper.children[1].dispatchEvent(transitionendEvent());
-
-      sinon.assert.calledWith(wrapper.removeEventListener, 'transitionend');
+          return new Promise((resolve) => {
+            fakeWindow.location.assign = sinon.spy(resolve);
+            Navigation.toPanel('thread-list');
+          });
+        }).then(() => {
+          sinon.assert.calledWith(
+            fakeWindow.location.assign, '/views/inbox/index.html#'
+          );
+        }).then(done, done);
+      });
     });
   });
 });

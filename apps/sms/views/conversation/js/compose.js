@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Settings, Utils, Attachment, MozActivity, SMIL,
+/*global Settings, Utils, Attachment, MozActivity,
         MessageManager,
         SubjectComposer,
         Promise,
@@ -406,6 +406,14 @@ var Compose = (function() {
         subject.show();
       }
 
+      if (!draft.content) {
+        return;
+      }
+
+      if (!Array.isArray(draft.content)) {
+        throw new Error('If present, the `content` property must be an array.');
+      }
+
       // draft content is an array
       draft.content.forEach(function(fragment) {
         // If the fragment is an attachment
@@ -420,40 +428,6 @@ var Compose = (function() {
         // Append each fragment in order to the composer
         Compose.append(fragment);
       }, Compose);
-    },
-
-    /** Render message (sms or mms)
-     *
-     * @param {message} message Full message to be loaded into the composer.
-     *
-     */
-    fromMessage: function(message) {
-      this.clear();
-
-      if (message.type === 'mms') {
-        if (message.subject) {
-          this.setSubject(message.subject);
-          subject.show();
-        }
-        SMIL.parse(message).then((elements) => {
-          elements.forEach(function(element) {
-            if (element.blob) {
-              var attachment = new Attachment(element.blob, {
-                name: element.name,
-                isDraft: true
-              });
-              this.append(attachment);
-            }
-            if (element.text) {
-              this.append(element.text);
-            }
-          }, this);
-          this.ignoreEvents = false;
-        });
-        this.ignoreEvents = true;
-      } else {
-        this.append(message.body);
-      }
     },
 
     getText: function() {
@@ -859,12 +833,6 @@ var Compose = (function() {
   Object.defineProperty(compose, 'isSubjectVisible', {
     get: function composeIsSubjectVisible() {
       return subject.isVisible();
-    }
-  });
-
-  Object.defineProperty(compose, 'ignoreEvents', {
-    set: function composeIgnoreEvents(value) {
-      dom.message.classList.toggle('ignoreEvents', value);
     }
   });
 

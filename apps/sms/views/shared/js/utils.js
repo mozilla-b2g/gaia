@@ -555,9 +555,33 @@
     params: function(input) {
       var parsed = {};
       input.replace(rparams, function($0, $1, $2) {
+        if ($2 === 'true') {
+          $2 = true;
+        } else if ($2 === 'false') {
+          $2 = false;
+        }
         parsed[$1] = $2;
       });
       return parsed;
+    },
+    url(base, params) {
+      if (base.indexOf('?') === -1) {
+        base += '?';
+      } else {
+        base += '&';
+      }
+
+      for (var key in params) {
+        if (params[key] == null) { // null or undefined
+          continue;
+        }
+
+        base +=
+          encodeURIComponent(key) + '=' +
+          encodeURIComponent(params[key]) + '&';
+      }
+
+      return base.slice(0, -1);
     },
     basicContact: function(number, records) {
       var record;

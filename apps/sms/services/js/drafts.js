@@ -46,8 +46,6 @@
       drafts.push(draft);
       draftIndex.set(draft.threadId, drafts);
 
-      this.store();
-
       this.emit('saved', draft);
 
       return this;
@@ -154,9 +152,14 @@
      * Stores drafts that are held in memory to local storage.
      */
     store: function() {
+      var defer = Utils.Promise.defer();
+
       asyncStorage.setItem('draft index', [...draftIndex], () => {
         InterInstanceEventDispatcher.emit('drafts-changed');
+        defer.resolve();
       });
+
+      return defer.promise;
     },
 
     /**

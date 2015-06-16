@@ -86,7 +86,7 @@ marionette('Messages Composer', function() {
     function() {
       conversation.headerTitle.tap();
       client.helper.waitForElement(messagesApp.Participants.main);
-      messagesApp.performHeaderAction();
+      messagesApp.performGroupHeaderAction();
       assert.equal(composer.messageInput.text(), message);
     });
 
@@ -95,7 +95,7 @@ marionette('Messages Composer', function() {
       messagesApp.contextMenu(conversation.message);
       messagesApp.selectAppMenuOption('View message report');
       client.helper.waitForElement(messagesApp.Report.main);
-      messagesApp.performHeaderAction();
+      messagesApp.performReportHeaderAction();
       assert.equal(composer.messageInput.text(), message);
     });
   });

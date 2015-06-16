@@ -5,12 +5,12 @@
 'use strict';
 
 var MockDrafts = {
-  add: function() {},
+  add: function() { return this; },
   delete: function() { return this; },
   byThreadId: () => null,
   byDraftId: function() {},
   clear: function() {},
-  store: function() {},
+  store: () => Promise.resolve(),
   request: () => Promise.resolve(),
   getAll: () => [],
   on: () => {}
@@ -18,4 +18,7 @@ var MockDrafts = {
 
 function MockDraft(draft) {
   Object.assign(this, draft);
+  if (!this.id) {
+    this.id = 'draftId';
+  }
 }

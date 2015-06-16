@@ -141,7 +141,8 @@ var InboxView = {
     }
   },
 
-  beforeEnter: function inbox_beforeEnter(args) {
+  beforeEnter: function inbox_beforeEnter(args = {}) {
+    this.editHeader.removeAttribute('no-font-fit');
     // If user left Conversation or New Message views saving a draft, let's
     // unobtrusively notify him that draft is successfully saved.
     if (args.notifyAboutSavedDraft) {
@@ -523,7 +524,7 @@ var InboxView = {
   },
 
   setEmpty: function inbox_setEmpty(empty) {
-    var panel = document.getElementById('thread-list');
+    var panel = document.querySelector('.panel-InboxView');
 
     // Hide the container when threadlist is empty.
     panel.classList.toggle('threadlist-is-empty', !!empty);

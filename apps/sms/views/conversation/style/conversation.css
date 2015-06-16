@@ -161,7 +161,3 @@
 .conversation-view .panel {
   left: 0;
 }
-
-#main-wrapper[data-position="left"].conversation-view .panel {
-  transform: translateX(0);
-}

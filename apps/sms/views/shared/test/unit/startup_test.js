@@ -24,7 +24,7 @@ var mocksHelper = new MocksHelper([
 ]).init();
 
 suite('Startup >', function() {
-  var container, originalMozHasPendingMessage;
+  var originalMozHasPendingMessage;
 
   mocksHelper.attachTestHelpers();
 
@@ -53,18 +53,7 @@ suite('Startup >', function() {
     this.sinon.stub(InboxView, 'once');
     this.sinon.stub(Navigation, 'once');
     this.sinon.stub(Navigation, 'isDefaultPanel');
-    this.sinon.spy(Navigation, 'toDefaultPanel');
     this.sinon.stub(App, 'setReady');
-
-    container = document.createElement('div');
-    container.innerHTML = `
-      <gaia-header no-font-fit></gaia-header>
-    `;
-    document.body.appendChild(container);
-  });
-
-  teardown(function() {
-    container.remove();
   });
 
   test('if target panel is default one', function() {
@@ -75,27 +64,17 @@ suite('Startup >', function() {
     // Navigate to Inbox immediately.
     sinon.assert.callOrder(
       MessageManager.init,
-      Navigation.init,
       InboxView.init,
-      InboxView.renderThreads,
-      Navigation.toDefaultPanel
+      Navigation.init,
+      InboxView.renderThreads
     );
     sinon.assert.notCalled(LazyLoader.load);
-    assert.isTrue(
-      container.querySelector('gaia-header').hasAttribute('no-font-fit'),
-      '<gaia-header> elements are not initialized yet'
-    );
 
     // First page of threads loaded
     InboxView.once.withArgs('visually-loaded').yield();
 
     // Lazy load the rest of scripts only once first page of threads is loaded
     sinon.assert.calledOnce(LazyLoader.load);
-
-    assert.isFalse(
-      container.querySelector('gaia-header').hasAttribute('no-font-fit'),
-      '<gaia-header> elements are initialized'
-    );
   });
 
   test('if first panel is not default one', function() {
@@ -105,19 +84,13 @@ suite('Startup >', function() {
 
     sinon.assert.callOrder(
       MessageManager.init,
-      Navigation.init,
       InboxView.init,
+      Navigation.init,
       LazyLoader.load
     );
-    sinon.assert.notCalled(Navigation.toDefaultPanel);
     sinon.assert.notCalled(InboxView.renderThreads);
 
     sinon.assert.calledOnce(LazyLoader.load);
-
-    assert.isFalse(
-      container.querySelector('gaia-header').hasAttribute('no-font-fit'),
-      '<gaia-header> elements are initialized'
-    );
 
     // Threads should start rendering only once target panel is ready.
     Navigation.once.withArgs('navigated').yield();
@@ -133,39 +106,35 @@ suite('Startup >', function() {
     sinon.assert.calledOnce(App.setReady);
   });
 
-  test('if has pending "notification" system message', function() {
-    Navigation.isDefaultPanel.returns(true);
-    navigator.mozHasPendingMessage.withArgs('notification').returns(true);
+  ['notification', 'activity'].forEach((eventName) => {
+    test('if has pending "' + eventName + '" system message', function() {
+      Navigation.isDefaultPanel.returns(true);
+      navigator.mozHasPendingMessage.withArgs(eventName).returns(true);
 
-    window.addEventListener.withArgs('DOMContentLoaded').yield();
+      window.addEventListener.withArgs('DOMContentLoaded').yield();
 
-    sinon.assert.callOrder(
-      MessageManager.init,
-      Navigation.init,
-      InboxView.init,
-      LazyLoader.load
-    );
-    sinon.assert.notCalled(Navigation.toDefaultPanel);
-    sinon.assert.notCalled(InboxView.renderThreads);
+      sinon.assert.callOrder(
+        MessageManager.init,
+        InboxView.init,
+        Navigation.init,
+        LazyLoader.load
+      );
+      sinon.assert.notCalled(InboxView.renderThreads);
 
-    sinon.assert.calledOnce(LazyLoader.load);
+      sinon.assert.calledOnce(LazyLoader.load);
 
-    assert.isFalse(
-      container.querySelector('gaia-header').hasAttribute('no-font-fit'),
-      '<gaia-header> elements are initialized'
-    );
+      // Threads should start rendering only once target panel is ready.
+      Navigation.once.withArgs('navigated').yield();
 
-    // Threads should start rendering only once target panel is ready.
-    Navigation.once.withArgs('navigated').yield();
+      // Now we have time and resources to render threads.
+      sinon.assert.calledOnce(InboxView.renderThreads);
 
-    // Now we have time and resources to render threads.
-    sinon.assert.calledOnce(InboxView.renderThreads);
+      // App is marked is ready only when all threads are loaded.
+      sinon.assert.notCalled(App.setReady);
 
-    // App is marked is ready only when all threads are loaded.
-    sinon.assert.notCalled(App.setReady);
+      InboxView.once.withArgs('fully-loaded').yield();
 
-    InboxView.once.withArgs('fully-loaded').yield();
-
-    sinon.assert.calledOnce(App.setReady);
+      sinon.assert.calledOnce(App.setReady);
+    });
   });
 });
