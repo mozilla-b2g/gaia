@@ -6,13 +6,11 @@ var assert = require('chai').assert;
 var appRoot = require('app-root-path');
 // TODO Change the path once requireFromApp becomes its own module
 
-var FromApp = require(appRoot + '/shared/test/integration/require_from_app');
-var requireFromApp = FromApp.requireFromApp;
-var filePathFromApp = FromApp.filePathFromApp;
-var Messages = requireFromApp('sms', 'lib/messages');
-var InboxView = requireFromApp('sms', 'lib/views/inbox/view');
-var ThreadGenerator = requireFromApp('sms', 'generators/thread');
-var Storage = requireFromApp('sms', './lib/storage.js');
+var fromApp = require(appRoot + '/shared/test/integration/require_from_app');
+var Messages = fromApp('sms').require('lib/messages');
+var InboxView = fromApp('sms').require('lib/views/inbox/view');
+var ThreadGenerator = fromApp('sms').require('generators/thread');
+var Storage = fromApp('sms').require('lib/storage.js');
 
 marionette('Dialer', function() {
   var messagesApp;
@@ -31,10 +29,10 @@ marionette('Dialer', function() {
     storage = Storage.create(client);
 
     client.contentScript.inject(
-      filePathFromApp('sms', 'mocks/mock_test_storages.js')
+      fromApp('sms').filePath('mocks/mock_test_storages.js')
     );
     client.contentScript.inject(
-      filePathFromApp('sms', 'mocks/mock_navigator_moz_mobile_message.js')
+      fromApp('sms').filePath('mocks/mock_navigator_moz_mobile_message.js')
     );
   });
 

@@ -9,7 +9,12 @@ var SELECTORS = Object.freeze({
   container: '#messages-container',
   callButton: '#messages-call-number-button',
   // TODO: Remove the next selector once Message has its own accessors
-  messageContent: '.message-content > p:first-child'
+  messageContent: '.message-content > p:first-child',
+  createNewContactMenuOption: '.contact-prompt ' +
+    '[data-l10n-id="createNewContact"]',
+  addToExistingContactOption: '.contact-prompt ' +
+    '[data-l10n-id="addToExistingContact"]',
+  carrierHeaderPhoneNumber: '#contact-carrier .phone-number'
 });
 
 function ConversationAccessor(client) {
@@ -26,8 +31,26 @@ ConversationAccessor.prototype = {
     return this.client.helper.waitForElement(SELECTORS.headerTitle);
   },
 
+  get carrierHeaderPhoneNumber() {
+    return this.client.helper.waitForElement(
+      SELECTORS.carrierHeaderPhoneNumber
+    );
+  },
+
   get callButton() {
     return this.client.helper.waitForElement(SELECTORS.callButton);
+  },
+
+  get createNewContactOption() {
+    return this.client.helper.waitForElement(
+      SELECTORS.createNewContactMenuOption
+    );
+  },
+
+  get addToExistingContactOption() {
+    return this.client.helper.waitForElement(
+      SELECTORS.addToExistingContactOption
+    );
   },
 
   getMessageContent: function(message) {

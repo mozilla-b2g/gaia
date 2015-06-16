@@ -87,6 +87,7 @@ Contacts.Selectors = {
   formPhotoImg: '#thumbnail-photo',
 
   groupList: ' #groups-list',
+  contacts: '#groups-list .contact-item',
   list: '#view-contacts-list',
   listContactFirst: 'li:not([data-group="ice"]).contact-item',
   listContactFirstText: 'li:not([data-group="ice"]).contact-item p',
@@ -144,13 +145,23 @@ Contacts.prototype = {
    */
   launch: function() {
     this.client.apps.launch(Contacts.URL, 'contacts');
-    this.client.apps.switchToApp(Contacts.URL, 'contacts');
+    this.switchTo();
     this.client.helper.waitForElement(Contacts.Selectors.bodyReady);
   },
 
   relaunch: function() {
-    this.client.apps.close(Contacts.URL, 'contacts');
+    this.close();
     this.launch();
+  },
+
+  close: function() {
+    this.client.apps.close(Contacts.URL, 'contacts');
+  },
+
+  switchTo: function() {
+    this.client.switchToFrame();
+    // switchToApp already waits for the app to be displayed
+    this.client.apps.switchToApp(Contacts.URL, 'contacts');
   },
 
   /**
@@ -224,9 +235,23 @@ Contacts.prototype = {
   },
 
   waitForFormTransition: function() {
-    var selectors = Contacts.Selectors,
-        form = this.client.findElement(selectors.form);
-    this.client.helper.waitForElementToDisappear(form);
+    var selectors = Contacts.Selectors;
+    var form = this.client.findElement(selectors.form);
+    try {
+      this.client.helper.waitForElementToDisappear(form);
+    } catch (e) {
+      // When the contact details pages was created in an activity and we close
+      // it, we might encounter errors like "GenericError: can't access dead
+      // object" or 'JavaScriptError: unload was called'. So we drop them as it
+      // makes the tests crash.
+      var isKnownError = e.message.indexOf(
+          'GenericError: can\'t access dead object') > -1 ||
+        e.message.indexOf('JavaScriptError: unload was called') > -1;
+
+      if (!isKnownError) {
+        throw e;
+      }
+    }
   },
 
   editContact: function() {
@@ -269,7 +294,6 @@ Contacts.prototype = {
     }
 
     this.client.findElement(selectors.formSave).click();
-
     this.waitForFormTransition();
   },
 
@@ -300,8 +324,7 @@ Contacts.prototype = {
       this.client.helper.waitForElement(selectors.duplicateMerge);
     this.clickOn(mergeAction);
 
-    this.client.switchToFrame();
-    this.client.apps.switchToApp(Contacts.URL, 'contacts');
+    this.switchTo();
     this.waitForSlideDown(duplicateFrame);
   },
 
@@ -315,6 +338,34 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
+  },
+
+  tapContact: function(contactName) {
+    // There are currently no way to search on the text of an HTML Element
+    // That's why this function do the filter and check that no more than 1
+    // contact has the name we look up.
+    var elements = this.client.findElements(Contacts.Selectors.contacts);
+    var contactsWithName = elements.filter(function(el) {
+      var data = el.text();
+      return data && data.indexOf(contactName) > -1;
+    });
+
+    if (contactsWithName.length === 1) {
+      contactsWithName[0].tap();
+    } else if (contactsWithName.length > 1) {
+      throw new Error('There are more than 1 contact that contains "' +
+        contactName + '"');
+    } else {
+      throw new Error('"' + contactName + '" was not found');
+    }
+  },
+
+  tapSave: function() {
+    this.client.helper.waitForElement(Contacts.Selectors.formSave).click();
+  },
+
+  tapUpdate: function() {
+    this.tapSave();
   },
 
   get systemMenu() {
