@@ -160,7 +160,7 @@ marionette('manipulate screenLock settings', function() {
     'passcode is enabled, and we want to edit passcode ' +
     'but failed to enter the right code',
     function() {
-      var oldCode = '1234';
+      var oldCode = '0000';
       var newCode = '4567';
       screenLockPanel.toggleScreenLock();
       screenLockPanel.togglePasscodeLock();
