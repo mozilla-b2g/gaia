@@ -289,6 +289,12 @@ marionette('Messages Composer', function() {
       newMessage = inbox.createNewMessage();
     });
 
+    test('should match an existing contact', function() {
+      newMessage.addNewRecipient('Existing Contact');
+      assert.deepEqual(contact.name, newMessage.recipients);
+      assert.equal(contact.tel[0].value, newMessage.recipientsPhoneNumbers);
+    });
+
     suite('Invalid recipients', function() {
       suite('Recipients list', function() {
         test('should display that a non existing contact is invalid',
@@ -317,10 +323,21 @@ marionette('Messages Composer', function() {
       });
     });
 
-    test('should match an existing contact', function() {
-      newMessage.addNewRecipient('Existing Contact');
-      assert.deepEqual(contact.name, newMessage.recipients);
-      assert.equal(contact.tel[0].value, newMessage.recipientsPhoneNumbers);
+    suite('Semicolon as separator', function() {
+      var separator = ';';
+
+      test('should complete the entered recipients', function() {
+        newMessage.addNewRecipient(123, separator);
+        assert.lengthOf(newMessage.recipients, 1);
+        assert.notInclude(newMessage.recipients[0], separator);
+      });
+
+      test('should leave the input ready to accept another recipient',
+      function() {
+        newMessage.addNewRecipient(123, separator);
+        newMessage.addNewRecipient(456, separator);
+        assert.lengthOf(newMessage.recipients, 2);
+      });
     });
   });
 });
