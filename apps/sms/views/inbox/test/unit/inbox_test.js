@@ -135,7 +135,7 @@ suite('thread_list_ui', function() {
     suite('(true)', function() {
       var panel;
       setup(function() {
-        panel = document.getElementById('thread-list');
+        panel = document.querySelector('.panel-thread-list');
         InboxView.setEmpty(true);
       });
       test('displays noMessages and hides container', function() {
@@ -145,7 +145,7 @@ suite('thread_list_ui', function() {
     suite('(false)', function() {
       var panel;
       setup(function() {
-        panel = document.getElementById('thread-list');
+        panel = document.querySelector('.panel-thread-list');
         InboxView.setEmpty(false);
       });
       test('hides noMessages and displays container', function() {
@@ -1385,7 +1385,7 @@ suite('thread_list_ui', function() {
       visuallyLoaded = sinon.stub();
       InboxView.once('visually-loaded', visuallyLoaded);
 
-      panel = document.getElementById('thread-list');
+      panel = document.querySelector('.panel-thread-list');
     });
 
     test('Rendering an empty screen', function(done) {

@@ -48,8 +48,6 @@
       });
 
       InboxView.renderThreads();
-
-      Navigation.toDefaultPanel();
     }
   };
 })(window);

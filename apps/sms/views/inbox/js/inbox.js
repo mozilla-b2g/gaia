@@ -522,7 +522,7 @@ var InboxView = {
   },
 
   setEmpty: function inbox_setEmpty(empty) {
-    var panel = document.getElementById('thread-list');
+    var panel = document.querySelector('.panel-thread-list');
 
     // Hide the container when threadlist is empty.
     panel.classList.toggle('threadlist-is-empty', !!empty);

@@ -5,7 +5,9 @@
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
          ConversationView, Notification, Settings, Navigation,
          ActivityClient,
-         ActivityShim
+         ActivityShim,
+         Draft,
+         Drafts
 */
 /*exported ActivityHandler */
 
@@ -145,6 +147,29 @@ var ActivityHandler = {
     this.toView({ body: dataToShare });
   },
 
+  /**
+   * Store a draft for this message, and returns a draftId.
+   *
+   * @param {Object} message to save
+   * @param {(String|Attachment|Array.<Attachment>)} [message.body] The data to
+   * add to the message's body.
+   * @param {String} [message.number] The recipient for this message.
+   * @returns {Promise.<Number>} The new draft id.
+   */
+  _storeDraft(message) {
+    var content = message.body || null;
+
+    var draft = new Draft({
+      threadId: message.threadId || null,
+      recipients: message.number && [message.number] || null,
+      content: !content || Array.isArray(content) ? content : [content],
+      type: !content || typeof content === 'string' ? 'sms' : 'mms'
+    });
+
+    Drafts.add(draft);
+    return Drafts.once('stored').then(() => draft.id);
+  },
+
   handleMessageNotification: function ah_handleMessageNotification(message) {
     //Validate if message still exists before opening message thread
     //See issue https://bugzilla.mozilla.org/show_bug.cgi?id=837029
@@ -158,10 +183,6 @@ var ActivityHandler = {
     }
 
     MessageManager.getMessage(message.id).then((message) => {
-      if (!Threads.has(message.threadId)) {
-        Threads.registerMessage(message);
-      }
-
       if (Compose.isEmpty()) {
         ActivityHandler.toView(message);
         return;
@@ -193,7 +214,7 @@ var ActivityHandler = {
    * when we navigate to Thread panel.
    */
   toView: function ah_toView(message, focusComposer) {
-    var navigateToView = function act_navigateToView() {
+    var navigateToView = () => {
       // If we have appropriate thread then let's forward user there, otherwise
       // open new message composer.
       if (message.threadId) {
@@ -204,12 +225,9 @@ var ActivityHandler = {
         return;
       }
 
-      Navigation.toPanel('composer', {
-        activity: {
-          body: message.body || null,
-          number: message.number || null
-        }
-      });
+      this._storeDraft(message).then(
+        (draftId) => Navigation.toPanel('composer', { draftId })
+      );
     };
 
     navigator.mozL10n.once(function waitLocalized() {

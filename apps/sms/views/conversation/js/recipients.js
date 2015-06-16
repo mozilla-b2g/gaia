@@ -695,6 +695,7 @@
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
     view.outer.addEventListener('transitionend', function te() {
+      this.removeEventListener('transitionend', te);
       var last = view.inner.lastElementChild;
       var previous;
 
@@ -716,7 +717,6 @@
       }
 
       state.isTransitioning = false;
-      this.removeEventListener('transitionend', te, false);
     });
 
     // Commence the transition

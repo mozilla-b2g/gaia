@@ -112,7 +112,7 @@ var ConversationView = {
     }, this);
 
     this.mainWrapper = document.getElementById('main-wrapper');
-    this.threadMessages = document.getElementById('thread-messages');
+    this.threadMessages = document.querySelector('.panel-thread');
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
 
@@ -546,34 +546,38 @@ var ConversationView = {
   },
 
   beforeEnterThread: function conv_beforeEnterThread(args) {
-    // TODO should we implement hooks to Navigation so that Threads could
-    // get an event whenever the panel changes?
-    Threads.currentId = args.id;
+    var threadId = +args.id;
+    return MessageManager.ensureThreadRegistered(threadId).then(() => {
+      // TODO should we implement hooks to Navigation so that Threads could
+      // get an event whenever the panel changes?
+      Threads.currentId = threadId;
 
-    var prevPanel = args.meta.prev;
+      var prevPanel = args.meta.prev;
 
-    var emailThread = Settings.supportEmailRecipient &&
-      Threads.active.participants.some(Utils.isEmailAddress);
+      var emailThread = Settings.supportEmailRecipient &&
+        Threads.active.participants.some(Utils.isEmailAddress);
 
-    Compose.setupLock({ forceType: () => emailThread ? 'mms' : null });
+      Compose.setupLock({ forceType: () => emailThread ? 'mms' : null });
 
-    // If transitioning from composer, we don't need to notify about type
-    // conversion but only after the type of the thread is set
-    // (afterEnterThread)
-    if (!prevPanel || prevPanel.panel !== 'composer') {
-      this.enableConvertNoticeBanners();
-    }
+      // If transitioning from the 'new message' view, we don't want to notify
+      // about type conversion right now, but only after the type of the thread
+      // is set (see afterEnterThread)
+      if (!prevPanel || prevPanel.panel !== 'composer') {
+        this.enableConvertNoticeBanners();
+      }
 
-    if (!this.isConversationPanel(args.id, prevPanel)) {
-      this.initializeRendering();
-    }
+      if (!this.isConversationPanel(threadId, prevPanel)) {
+        // we don't want to rerender if it's already rendered
+        this.initializeRendering();
+      }
 
-    // Call button should be shown only for non-email single-participant thread
-    if (Threads.active.participants.length === 1 && !emailThread) {
-      this.callNumberButton.classList.remove('hide');
-    }
+      // Call button should be shown only for non-email single-participant thread
+      if (Threads.active.participants.length === 1 && !emailThread) {
+        this.callNumberButton.classList.remove('hide');
+      }
 
-    return this.updateHeaderData();
+      return this.updateHeaderData();
+    });
   },
 
   afterEnter: function conv_afterEnter(args) {
@@ -614,6 +618,7 @@ var ConversationView = {
     var prevPanel = args.meta.prev;
 
     if (!this.isConversationPanel(threadId, prevPanel)) {
+      // we don't want to render again if this conversation is already rendered.
       this.renderMessages(threadId);
 
       // Populate draft if there is one
@@ -629,8 +634,8 @@ var ConversationView = {
       });
     }
 
-    // Let's mark thread only when inbox is fully rendered and target node
-    // is in the DOM tree.
+    // Let's mark the conversation only when inbox is fully rendered and
+    // the target node is in the DOM tree.
     App.whenReady().then(function() {
       // We use setTimeout (macrotask) here to allow reflow happen as soon as
       // possible and to not interrupt it with non-critical task since Promise
@@ -640,7 +645,8 @@ var ConversationView = {
       );
     });
 
-    // Enable notifications redirected from composer only after the user enters.
+    // When coming from the "new message" view, enable notifications only after
+    // the user enters the view.
     if (prevPanel && prevPanel.panel === 'composer') {
       this.enableConvertNoticeBanners();
     }
@@ -661,29 +667,31 @@ var ConversationView = {
     // to slide correctly. Bug 1009541
     this.cancelEdit();
 
-    if (Navigation.isCurrentPanel('thread')) {
-      // Revoke thumbnail URL for every image attachment rendered within thread
-      var nodes = this.container.querySelectorAll(
-        '.attachment-container[data-thumbnail]'
-      );
-      Array.from(nodes).forEach((node) => {
-        window.URL.revokeObjectURL(node.dataset.thumbnail);
-      });
-    }
+    // Revoke thumbnail URL for every image attachment rendered within thread
+    var nodes = this.container.querySelectorAll(
+      '.attachment-container[data-thumbnail]'
+    );
+    Array.from(nodes).forEach((node) => {
+      window.URL.revokeObjectURL(node.dataset.thumbnail);
+    });
 
     // TODO move most of back() here: Bug 1010223
     if (!this.isConversationPanel(Threads.currentId, nextPanel)) {
+      // clean fields when moving out of a conversation
       this.cleanFields();
     }
   },
 
   afterLeave: function conv_afterLeave(args) {
     if (Navigation.isCurrentPanel('thread-list')) {
+      // We don't want to clean these things when moving from composer to
+      // conversation
       this.container.textContent = '';
       this.cleanFields();
       Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
+      // cleaning things up when moving from composer to conversation
       this.threadMessages.classList.remove('new');
 
       if (this.recipients) {
@@ -694,6 +702,8 @@ var ConversationView = {
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
+      // things we do when we move from composer to inbox
+      // When we're in a thread, we already changed these things in beforeEnter.
       this.threadMessages.classList.remove('has-carrier');
       this.callNumberButton.classList.add('hide');
     }
@@ -884,19 +894,18 @@ var ConversationView = {
   /**
    * Checks if specified panel corresponds to the specified conversation id. It
    * can be true for either conversation, participants or report panels.
-   * @param {number} conversationId Id of the conversation.
+   * @param {number} id Id of the conversation.
    * @param {Object} panel Panel description object to compare against.
    * @returns {boolean}
    */
-  isConversationPanel:
-  function conv_isConversationPanel(conversationId, panel) {
+  isConversationPanel(id, panel) {
     if (!panel) {
       return false;
     }
 
-    return panel.panel === 'thread' && panel.args.id === conversationId ||
-      panel.panel === 'report-view' && panel.args.threadId === conversationId ||
-      panel.panel === 'group-view' && panel.args.id === conversationId;
+    return panel.panel === 'thread' && +panel.args.id === +id ||
+      panel.panel === 'report-view' && +panel.args.threadId === +id ||
+      panel.panel === 'group-view' && +panel.args.id === +id;
   },
 
   onMessageReceived: function conv_onMessageReceived(e) {
@@ -2099,7 +2108,7 @@ var ConversationView = {
       }
 
       // If we reach the container, quit.
-      if (node.id === 'thread-messages') {
+      if (node.classList.contains('panel-thread')) {
         return null;
       }
     } while ((node = node.parentNode));
@@ -2755,11 +2764,6 @@ var ConversationView = {
   },
 
   onHeaderActivation: function conv_onHeaderActivation() {
-    // Do nothing while in participants list view.
-    if (!Navigation.isCurrentPanel('thread')) {
-      return;
-    }
-
     var participants = Threads.active && Threads.active.participants;
 
     // >1 Participants will enter "group view"
@@ -2795,7 +2799,6 @@ var ConversationView = {
   promptContact: function conv_promptContact(opts) {
     opts = opts || {};
 
-    var inMessage = opts.inMessage || false;
     var number = opts.number || '';
     var tel, email;
 
@@ -2805,7 +2808,7 @@ var ConversationView = {
       tel = number || '';
     }
 
-    Contacts.findByAddress(number).then(function(contacts) {
+    return Contacts.findByAddress(number).then((contacts) => {
       var isContact = contacts.length;
       var contact = contacts[0];
       var id;
@@ -2824,23 +2827,19 @@ var ConversationView = {
         });
       }
 
-      this.prompt({
+      return this.prompt({
         number: tel,
-        email: email,
+        email,
         header: fragment,
         contactId: id,
-        isContact: isContact,
-        inMessage: inMessage
+        isContact,
+        inMessage: opts.inMessage
       });
-    }.bind(this));
+    });
   },
 
   prompt: function conv_prompt(opt) {
-    var complete = (function complete() {
-      if (!Navigation.isCurrentPanel('thread')) {
-        Navigation.toPanel('thread', { id: Threads.currentId });
-      }
-    }).bind(this);
+    var defer = Utils.Promise.defer();
 
     var thread = Threads.active;
     var number = opt.number || '';
@@ -2866,7 +2865,7 @@ var ConversationView = {
 
     params = {
       classes: ['contact-prompt'],
-      complete: complete,
+      complete: defer.resolve,
       header: header || '',
       items: null
     };
@@ -2955,6 +2954,7 @@ var ConversationView = {
     });
 
     new OptionMenu(params).show();
+    return defer.promise;
   },
 
   discardDraft: function conv_discardDraft() {

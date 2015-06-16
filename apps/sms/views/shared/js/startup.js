@@ -74,15 +74,7 @@ var Startup = {
 
       window.performance.mark('objectsInitEnd');
     });
-    this._initHeaders();
     return lazyLoadPromise;
-  },
-
-  _initHeaders: function() {
-    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
-    for (var i = 0, l = headers.length; i < l; i++) {
-      headers[i].removeAttribute('no-font-fit');
-    }
   },
 
   /**
@@ -98,8 +90,8 @@ var Startup = {
       window.performance.mark('navigationLoaded');
 
       MessageManager.init();
-      Navigation.init();
       InboxView.init();
+      Navigation.init();
 
       InboxView.once('fully-loaded', () => {
         window.performance.mark('fullyLoaded');
@@ -122,8 +114,6 @@ var Startup = {
         });
 
         InboxView.renderThreads();
-
-        Navigation.toDefaultPanel();
       } else {
         Navigation.once('navigated', () => InboxView.renderThreads());
 

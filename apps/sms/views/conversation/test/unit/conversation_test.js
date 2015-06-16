@@ -186,7 +186,7 @@ suite('conversation.js >', function() {
     sendButton = document.getElementById('messages-send-button');
     composeForm = document.getElementById('messages-compose-form');
     recipientsList = document.getElementById('messages-recipients-list');
-    threadMessages = document.getElementById('thread-messages');
+    threadMessages = document.querySelector('.panel-thread');
     mainWrapper = document.getElementById('main-wrapper');
     headerText = document.getElementById('messages-header-text');
     recipientSuggestions = document.getElementById(
@@ -6037,7 +6037,7 @@ suite('conversation.js >', function() {
       tree = document.createElement('div');
 
       tree.innerHTML = [
-        '<div id="thread-messages">',
+        '<div class="panel-thread panel">',
           '<ul>',
             '<li data-message-id="1">',
               '<section class="bubble">',
