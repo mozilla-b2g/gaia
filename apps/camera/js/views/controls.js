@@ -287,7 +287,7 @@ module.exports = View.extend({
         'data-l10n-id="capture-button" role="button">' +
         '<div class="circle outer-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
-        '<div class="center" data-icon="camera"></div>' +
+        '<div class="center" data-icon="camera" aria-hidden="true"></div>' +
       '</div>' +
     '</div>' +
     '<div class="controls-right">' +
@@ -296,8 +296,8 @@ module.exports = View.extend({
           '<div class="mode-switch_bg-icon rotates" data-icon="camera" aria-hidden="true"></div>' +
           '<div class="mode-switch_bg-icon rotates" data-icon="video" aria-hidden="true"></div>' +
           '<div class="mode-switch_handle js-switch-handle" aria-hidden="true">' +
-            '<div class="mode-switch_current-icon camera rotates js-icon-camera" data-icon="camera"></div>' +
-            '<div class="mode-switch_current-icon video rotates js-icon-video" data-icon="video"></div>' +
+            '<div class="mode-switch_current-icon camera rotates js-icon-camera" data-icon="camera" aria-hidden="true"></div>' +
+            '<div class="mode-switch_current-icon video rotates js-icon-video" data-icon="video" aria-hidden="true"></div>' +
           '</div>' +
         '</div>' +
       '</div>' +

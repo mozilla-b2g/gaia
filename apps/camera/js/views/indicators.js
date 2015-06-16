@@ -31,10 +31,14 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<li class="indicator_timer rotates" data-icon="self-timer"></li>' +
-    '<li class="indicator_hdr rotates" data-icon="hdr"></li>' +
-    '<li class="indicator_geolocation rotates" data-icon="location"></li>' +
-    '<li class="indicator_battery rotates" data-icon="battery-3"></li>';
+    return '<li class="indicator_timer rotates" data-icon="self-timer" ' +
+               'data-l10n-id="self-timer-indicator"></li>' +
+    '<li class="indicator_hdr rotates" data-icon="hdr" ' +
+        'data-l10n-id="hdr-indicator"></li>' +
+    '<li class="indicator_geolocation rotates" data-icon="location" ' +
+        'data-l10n-id="location-indicator"></li>' +
+    '<li class="indicator_battery rotates" data-icon="battery-3" ' +
+        'data-l10n-id="battery-low-indicator"></li>';
   }
 });
 
