@@ -27,6 +27,12 @@ NewMessageView.prototype = {
     });
   },
 
+  get recipientsPhoneNumbers() {
+    return this.accessors.recipients.map(function(recipient) {
+      return recipient.getAttribute('data-number');
+    });
+  },
+
   addNewRecipient: function(recipient) {
     this.accessors.recipientsInput.sendKeys(recipient + this.KEYS.enter);
 

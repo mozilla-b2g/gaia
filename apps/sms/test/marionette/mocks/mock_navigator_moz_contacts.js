@@ -40,6 +40,12 @@ Services.obs.addObserver(function(document) {
     return storagePromise;
   }
 
+  function contains(items, value) {
+    return items && items.length && items.some(
+      (item) => (typeof item === 'string' ? item : item.value).includes(value)
+    );
+  }
+
   /**
    * Very simplified search strategies, see real "find" implementation at:
    * http://mxr.mozilla.org/mozilla-central/source/dom/contacts/
@@ -70,10 +76,14 @@ Services.obs.addObserver(function(document) {
         return null;
       }
 
+      return (contact) => contains(contact.tel, number);
+    }
+
+    if (filter.filterOp === 'contains') {
       return (contact) => {
-        return contact.tel && contact.tel.length && contact.tel.some((tel) => {
-          return tel.value && tel.value.indexOf(number) >= 0;
-        });
+        return !!filter.filterBy.find(
+          (filterBy) => contains(contact[filterBy], filter.filterValue)
+        );
       };
     }
 
