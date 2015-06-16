@@ -124,6 +124,9 @@ RAPTOR?=0
 # Share performance and usage data
 SHARE_PERF_USAGE?=1
 
+# what major version of node we expect to run?
+NODE_VERSION=v0.10
+
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
@@ -745,8 +748,14 @@ npm-cache:
 	@echo "Using pre-deployed cache."
 	npm install
 	touch -c node_modules
+#	@echo $(shell $(NODEJS) --version |awk -F. '{print $1, $2}')
 
 node_modules:
+ifneq ($(NODEJS),)
+ifneq ($(NODE_VERSION),$(shell $(NODEJS) --version | awk -F. '{print $$1"."$$2}'))
+	@printf '\033[0;33mPlease use $(NODE_VERSION) of nodejs or it may cause unexpected error.\033[0m\n'
+endif
+endif
 	# TODO: Get rid of references to gaia-node-modules stuff.
 	npm install
 
