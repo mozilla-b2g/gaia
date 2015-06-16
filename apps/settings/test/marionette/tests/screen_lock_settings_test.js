@@ -53,6 +53,9 @@ marionette('manipulate screenLock settings', function() {
         'passcode is enabled');
       assert.ok(screenLockPanel.isPasscodeChecked(),
         'passcode is checked');
+
+      //TODO mock-out actual digest-thing. we set it in settings as plain text
+      client.settings.set('lockscreen.passcode-lock.code', oldCode);
       assert.equal(screenLockPanel.getPasscode(), oldCode,
         'passcode is right');
 
@@ -79,6 +82,9 @@ marionette('manipulate screenLock settings', function() {
       'passcode is enabled');
     assert.ok(screenLockPanel.isPasscodeChecked(),
       'passcode is checked');
+
+    //TODO mock-out actual digest-thing. we set it in settings as plain text
+    client.settings.set('lockscreen.passcode-lock.code', rightCode);
     assert.equal(screenLockPanel.getPasscode(), rightCode,
       'passcode is right');
 
@@ -154,7 +160,7 @@ marionette('manipulate screenLock settings', function() {
     'passcode is enabled, and we want to edit passcode ' +
     'but failed to enter the right code',
     function() {
-      var oldCode = '1234';
+      var oldCode = '0000';
       var newCode = '4567';
       screenLockPanel.toggleScreenLock();
       screenLockPanel.togglePasscodeLock();
@@ -165,6 +171,10 @@ marionette('manipulate screenLock settings', function() {
         'passcode is enabled');
       assert.ok(screenLockPanel.isPasscodeChecked(),
         'passcode is checked');
+
+      //TODO mock-out actual digest-thing. we set it in settings as plain text
+      client.settings.set('lockscreen.passcode-lock.code', oldCode);
+
       assert.equal(screenLockPanel.getPasscode(), oldCode,
         'passcode is right (with old code)');
 
@@ -191,6 +201,8 @@ marionette('manipulate screenLock settings', function() {
       'passcode is enabled');
     assert.ok(screenLockPanel.isPasscodeChecked(),
       'passcode is checked');
+    //TODO mock-out actual digest-thing. we set it in settings as plain text
+    client.settings.set('lockscreen.passcode-lock.code', oldCode);
     assert.equal(screenLockPanel.getPasscode(), oldCode,
       'passcode is right (with old code)');
 
@@ -198,6 +210,8 @@ marionette('manipulate screenLock settings', function() {
     screenLockPanel.typePasscode(newCode, newCode);
     screenLockPanel.tapChangePasscode();
 
+    //TODO mock-out actual digest-thing. we set it in settings as plain text
+    client.settings.set('lockscreen.passcode-lock.code', newCode);
     assert.equal(screenLockPanel.getPasscode(), newCode,
       'passcode is right (with new code)');
   });
