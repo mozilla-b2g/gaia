@@ -950,7 +950,7 @@ eslint: node_modules/.bin/eslint
 	sed 's/\s*#.*$$//' build/eslint/xfail.list | uniq > build/eslint/xfail.tmp
 	@echo Running eslint...
 	@./node_modules/.bin/eslint --ignore-path .eslintignore --ignore-path build/eslint/xfail.tmp -f compact -c .eslintrc $(JSHINTED_PATH) $(LINTED_FILES)
-	echo rm build/eslint/xfail.tmp
+	rm build/eslint/xfail.tmp
 
 csslint: b2g_sdk
 	@$(call $(BUILD_RUNNER),csslint)
