@@ -139,7 +139,18 @@ MarionetteHelper.prototype = {
       el = client.findElement(el);
     }
 
-    client.waitFor(el.displayed.bind(el));
+    client.waitFor(function() {
+      try {
+        return el.displayed.call(el);
+      } catch (err) {
+        if (err && err.type === 'ElementNotAccessibleError') {
+          // the element is not yet accessible
+          return false;
+        }
+        // the client threw an unexpected error, rethrow it
+        throw err;
+      }
+    });
     return el;
   },
 
