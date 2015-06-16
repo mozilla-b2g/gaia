@@ -6,6 +6,7 @@ var MockMozPower = {
   cpuSleepAllowed: false,
   screenBrightness: 0,
   screenEnabled: false,
+  keyLightEnabled: false,
   powerOff: function() {},
   reboot: function() {},
   factoryReset: function() {},

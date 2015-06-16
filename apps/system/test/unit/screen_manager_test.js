@@ -482,6 +482,7 @@ suite('system/ScreenManager', function() {
       assert.isTrue(stubScnClassListAdd.calledWith('screenoff'));
       assert.isTrue(stubSetBrightness.calledWith(0, true));
       assert.isFalse(MockMozPower.screenEnabled);
+      assert.isFalse(MockMozPower.keyLightEnabled);
       assert.isTrue(ScreenManager.fireScreenChangeEvent.called);
     });
 
@@ -493,6 +494,7 @@ suite('system/ScreenManager', function() {
       this.sinon.clock.tick(10);
       assert.isTrue(ScreenManager.screenEnabled);
       assert.isTrue(MockMozPower.screenEnabled);
+      assert.isTrue(MockMozPower.keyLightEnabled);
       assert.isTrue(stubScnClassListAdd.calledWith('screenoff'));
       assert.isTrue(stubScnClassListRemove.calledWith('screenoff'));
       sinon.assert.callOrder(stubScnClassListAdd, stubScnClassListRemove);
