@@ -10,24 +10,22 @@ from gaiatest.apps.base import Base
 class ScreenLock(Base):
 
     _screen_lock_section_locator = (By.ID, 'screenLock')
-    _lockscreen_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="lockScreen"]]')
-    _passcode_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="passcode-lock"]]')
+    _lockscreen_checkbox_locator = (By.XPATH, '//li/gaia-switch[@name="lockscreen.enabled"]')
+    _passcode_checkbox_locator = (By.XPATH, '//li/gaia-switch[@name="lockscreen.passcode-lock.enabled"]')
     _screen_lock_passcode_section_locator = (By.ID, 'screenLock-passcode')
     _passcode_create_locator = (By.CLASS_NAME, 'passcode-create')
 
     def enable_lockscreen(self):
-        label = Wait(self.marionette).until(
+        checkbox = Wait(self.marionette).until(
             expected.element_present(*self._lockscreen_checkbox_locator))
-        Wait(self.marionette).until(expected.element_displayed(label))
-        label.tap()
-        checkbox = label.find_element(By.TAG_NAME, 'input')
-        Wait(self.marionette).until(expected.element_selected(checkbox))
+        Wait(self.marionette).until(expected.element_displayed(checkbox))
+        checkbox.tap()
 
     def enable_passcode_lock(self):
-        label = Wait(self.marionette).until(
+        checkbox = Wait(self.marionette).until(
             expected.element_present(*self._passcode_checkbox_locator))
-        Wait(self.marionette).until(expected.element_displayed(label))
-        label.tap()
+        Wait(self.marionette).until(expected.element_displayed(checkbox))
+        checkbox.tap()
         section = self.marionette.find_element(*self._screen_lock_passcode_section_locator)
         Wait(self.marionette).until(lambda m: section.location['x'] == 0)
 
