@@ -20,6 +20,10 @@
   flex-shrink: 0;
 }
 
+.achievements-item:not(.rewarded) .icon {
+  filter: grayscale(1);
+}
+
 .achievements-item .details {
   display: flex;
   flex-direction: column;
