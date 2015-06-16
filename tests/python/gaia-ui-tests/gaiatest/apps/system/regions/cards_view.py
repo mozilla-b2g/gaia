@@ -41,17 +41,10 @@ class CardsView(Base):
         return self.accessibility.is_hidden(self.marionette.find_element(
             *self._cards_view_locator))
 
-    def _card_is_centered(self, card):
-        screen_width = int(self.marionette.execute_script('return window.innerWidth'))
-        left = card.location['x']
-        width = card.size['width']
-        # center of card should be within 1px of viewport center
-        return 1 >= abs(screen_width / 2 - (left + width / 2))
-
     def wait_for_card_ready(self, app):
+        cards = self.marionette.find_element(*self._cards_view_locator)
         card = self.marionette.find_element(*self._app_card_locator(app))
-        Wait(self.marionette).until(lambda m: self._card_is_centered(card))
-
+        Wait(self.marionette).until(lambda m: cards.size['width'] - card.size['width'] == 2 * card.location['x'])
         # TODO: Remove sleep when we find a better wait
         time.sleep(0.2)
 
