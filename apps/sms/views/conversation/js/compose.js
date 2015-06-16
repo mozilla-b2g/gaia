@@ -18,6 +18,14 @@
 
 const TYPES = ['image', 'audio', 'video'];
 
+// TODO: Move these toaster related const into toaster handler
+// duration of the notification that message type was converted
+const IMAGE_RESIZE_DURATION = 3000;
+const BANNER_DURATION = 2000;
+// Toast duration when you write a long text and need more than one SMS
+// to send it
+const ANOTHER_SMS_TOAST_DURATION = 3000;
+
 /**
  * Handle UI specifics of message composition. Namely,
  * resetting (auto manages placeholder text), getting
@@ -60,7 +68,12 @@ var Compose = (function() {
     segmentInfo: {
       segments: 0,
       charsAvailableInLastSegment: 0
-    }
+    },
+    previousSegment: 0
+  };
+
+  var timeouts = {
+    subjectLengthNotice: null
   };
 
   var subject = null;
@@ -160,7 +173,11 @@ var Compose = (function() {
     Compose.updateSendButton();
     Compose.updateType();
 
-    Compose.emit('subject-change');
+    if (Compose.isSubjectVisible && Compose.isSubjectMaxLength()) {
+      showSubjectMaxLengthNotice();
+    } else {
+      hideSubjectMaxLengthNotice();
+    }
   }
 
   function onSubjectVisibilityChanged() {
@@ -323,15 +340,51 @@ var Compose = (function() {
     attachments.delete(attachmentNode);
   }
 
+  function showMaxLengthNotice(opts) {
+    compose.lock();
+    navigator.mozL10n.setAttributes(
+      dom.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
+    );
+    dom.maxLengthNotice.classList.remove('hide');
+  }
+
+  function hideMaxLengthNotice() {
+    compose.unlock();
+    dom.maxLengthNotice.classList.add('hide');
+  }
+
+  function showSubjectMaxLengthNotice() {
+    dom.subjectMaxLengthNotice.classList.remove('hide');
+
+    if (timeouts.subjectLengthNotice) {
+      clearTimeout(timeouts.subjectLengthNotice);
+    }
+    timeouts.subjectLengthNotice = setTimeout(
+      hideSubjectMaxLengthNotice,
+      BANNER_DURATION
+    );
+  }
+
+  function hideSubjectMaxLengthNotice() {
+    dom.subjectMaxLengthNotice.classList.add('hide');
+    timeouts.subjectLengthNotice &&
+      clearTimeout(timeouts.subjectLengthNotice);
+  }
+
   var compose = {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
       dom.message = document.getElementById('messages-input');
-      dom.sendButton = document.getElementById('messages-send-button');
-      dom.attachButton = document.getElementById('messages-attach-button');
       dom.counter = dom.form.querySelector('.js-message-counter');
       dom.messagesAttach = dom.form.querySelector('.messages-attach-container');
       dom.composerButton = dom.form.querySelector('.composer-button-container');
+      [
+        'new-message-notice', 'resize-notice', 'sms-counter-notice',
+        'max-length-notice', 'subject-max-length-notice',
+        'send-button', 'attach-button'
+      ].forEach(function(id) {
+        dom[Utils.camelCase(id)] = document.getElementById('messages-' + id);
+      });
 
       subject = new SubjectComposer(
         dom.form.querySelector('.js-subject-composer')
@@ -360,6 +413,9 @@ var Compose = (function() {
       this.on('type', this.onTypeChange.bind(this));
       this.on('type', this.updateMessageCounter.bind(this));
       this.on('segmentinfochange', this.updateMessageCounter.bind(this));
+      this.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
+      // In case of input, we have to resize the input following UX Specs.
+      this.on('input', this.messageComposerInputHandler.bind(this));
 
       /* Bug 1040144: replace ConversationView direct invocation by a
        * instantiation-tim property */
@@ -619,6 +675,7 @@ var Compose = (function() {
 
       state.resizing = false;
       state.size = 0;
+      state.previousSegment = 0;
 
       resetSegmentInfo();
       segmentInfoTimeout = null;
@@ -862,7 +919,83 @@ var Compose = (function() {
       };
 
       return defer.promise;
-    }
+    },
+
+    onSegmentInfoChange: function c_onSegmentInfoChange() {
+      var currentSegment = this.segmentInfo.segments;
+
+      var isValidSegment = currentSegment > 0;
+      var isSegmentChanged = this.previousSegment !== currentSegment;
+      var isStartingFirstSegment = this.previousSegment === 0 &&
+            currentSegment === 1;
+
+      if (this.type === 'sms' && isValidSegment && isSegmentChanged &&
+          !isStartingFirstSegment) {
+        state.previousSegment = currentSegment;
+
+        navigator.mozL10n.setAttributes(
+          dom.smsCounterNotice.querySelector('p'),
+          'sms-counter-notice-label',
+          { number: currentSegment }
+        );
+        dom.smsCounterNotice.classList.remove('hide');
+        window.setTimeout(function() {
+          dom.smsCounterNotice.classList.add('hide');
+        }.bind(this), ANOTHER_SMS_TOAST_DURATION);
+      }
+    },
+
+    checkMessageSize: function c_checkMessageSize() {
+      // Counter should be updated when image resizing complete
+      if (this.isResizing) {
+        return false;
+      }
+
+      if (Settings.mmsSizeLimitation) {
+        if (this.size > Settings.mmsSizeLimitation) {
+          showMaxLengthNotice({
+            l10nId: 'multimedia-message-exceeded-max-length',
+            l10nArgs: {
+              mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
+            }
+          });
+          return false;
+        } else if (this.size === Settings.mmsSizeLimitation) {
+          showMaxLengthNotice({ l10nId: 'messages-max-length-text' });
+          return true;
+        }
+      }
+
+      hideMaxLengthNotice();
+      return true;
+    },
+
+    messageComposerInputHandler: function c_messageInputHandler(event) {
+      if (this.type === 'sms') {
+        hideMaxLengthNotice();
+        return;
+      }
+
+      if (this.isResizing) {
+        dom.resizeNotice.classList.remove('hide');
+
+        if (this._resizeNoticeTimeout) {
+          clearTimeout(this._resizeNoticeTimeout);
+          this._resizeNoticeTimeout = null;
+        }
+      } else {
+        this.checkMessageSize();
+        if (dom.resizeNotice.classList.contains('hide') ||
+            this._resizeNoticeTimeout) {
+          return;
+        }
+
+        this._resizeNoticeTimeout = setTimeout(function hideResizeNotice() {
+          dom.resizeNotice.classList.add('hide');
+          this._resizeNoticeTimeout = null;
+        }.bind(this), IMAGE_RESIZE_DURATION);
+      }
+    },
 
   };
 
@@ -912,11 +1045,16 @@ var Compose = (function() {
     }
   });
 
+  Object.defineProperty(compose, 'previousSegment', {
+    get: function composeGetPreviousSegment() {
+      return state.previousSegment;
+    }
+  });
+
   return EventDispatcher.mixin(compose, [
     'input',
     'type',
     'segmentinfochange',
-    'interact',
-    'subject-change'
+    'interact'
   ]);
 }());

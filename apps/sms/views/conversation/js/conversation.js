@@ -57,15 +57,8 @@ function conv_generateSmilSlides(slides, content) {
 
 var ConversationView = {
   CHUNK_SIZE: 10,
-  // duration of the notification that message type was converted
+
   CONVERTED_MESSAGE_DURATION: 3000,
-  IMAGE_RESIZE_DURATION: 3000,
-  BANNER_DURATION: 2000,
-
-  // Toast duration when you write a long text and need more than one SMS
-  // to send it
-  ANOTHER_SMS_TOAST_DURATION: 3000,
-
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
@@ -77,12 +70,6 @@ var ConversationView = {
   isNewMessageNoticeShown: false,
   shouldChangePanelNextEvent: false,
   showErrorInFailedEvent: '',
-  previousSegment: 0,
-
-  timeouts: {
-    update: null,
-    subjectLengthNotice: null
-  },
 
   multiSimActionButton: null,
   init: function conv_init() {
@@ -102,10 +89,8 @@ var ConversationView = {
       'container', 'to-field', 'recipients-list', 'compose-form', 'header',
       'edit-header', 'check-uncheck-all-button', 'contact-pick-button',
       'send-button', 'delete-button', 'call-number-button', 'options-button',
-      'new-message-notice', 'edit-mode', 'edit-form', 'header-text',
-      'max-length-notice', 'convert-notice', 'resize-notice',
-      'new-message-notice', 'subject-max-length-notice', 'sms-counter-notice',
-      'recipient-suggestions'
+      'edit-mode', 'edit-form', 'header-text', 'recipient-suggestions',
+      'new-message-notice', 'convert-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -220,11 +205,6 @@ var ConversationView = {
 
     Compose.init('messages-compose-form');
 
-    // In case of input, we have to resize the input following UX Specs.
-    Compose.on('input', this.messageComposerInputHandler.bind(this));
-    Compose.on('subject-change', this.onSubjectChange.bind(this));
-    Compose.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
-
     // Assimilations
     // -------------------------------------------------
     // If the user manually types a recipient number
@@ -255,8 +235,6 @@ var ConversationView = {
     );
 
     this.multiSimActionButton = null;
-
-    this.timeouts.update = null;
 
     this.shouldChangePanelNextEvent = false;
 
@@ -411,64 +389,6 @@ var ConversationView = {
 
   setHeaderAction: function conv_setHeaderAction(icon) {
     this.header.setAttribute('action', icon);
-  },
-
-  messageComposerInputHandler: function conv_messageInputHandler(event) {
-    if (Compose.type === 'sms') {
-      this.hideMaxLengthNotice();
-      return;
-    }
-
-    if (Compose.isResizing) {
-      this.resizeNotice.classList.remove('hide');
-
-      if (this._resizeNoticeTimeout) {
-        clearTimeout(this._resizeNoticeTimeout);
-        this._resizeNoticeTimeout = null;
-      }
-    } else {
-      this.checkMessageSize();
-      if (this.resizeNotice.classList.contains('hide') ||
-          this._resizeNoticeTimeout) {
-        return;
-      }
-
-      this._resizeNoticeTimeout = setTimeout(function hideResizeNotice() {
-        this.resizeNotice.classList.add('hide');
-        this._resizeNoticeTimeout = null;
-      }.bind(this), this.IMAGE_RESIZE_DURATION);
-    }
-  },
-
-  showMaxLengthNotice: function conv_showMaxLengthNotice(opts) {
-    Compose.lock();
-    navigator.mozL10n.setAttributes(
-      this.maxLengthNotice.querySelector('p'), opts.l10nId, opts.l10nArgs
-    );
-    this.maxLengthNotice.classList.remove('hide');
-  },
-
-  hideMaxLengthNotice: function conv_hideMaxLengthNotice() {
-    Compose.unlock();
-    this.maxLengthNotice.classList.add('hide');
-  },
-
-  showSubjectMaxLengthNotice: function conv_showSubjectMaxLengthNotice() {
-    this.subjectMaxLengthNotice.classList.remove('hide');
-
-    if (this.timeouts.subjectLengthNotice) {
-      clearTimeout(this.timeouts.subjectLengthNotice);
-    }
-    this.timeouts.subjectLengthNotice = setTimeout(
-      this.hideSubjectMaxLengthNotice.bind(this),
-      this.BANNER_DURATION
-    );
-  },
-
-  hideSubjectMaxLengthNotice: function conv_hideSubjectMaxLengthNotice() {
-    this.subjectMaxLengthNotice.classList.add('hide');
-    this.timeouts.subjectLengthNotice &&
-      clearTimeout(this.timeouts.subjectLengthNotice);
   },
 
   /*
@@ -928,14 +848,6 @@ var ConversationView = {
     Compose.off('type', this.onMessageTypeChange);
   },
 
-  onSubjectChange: function conv_onSubjectChange() {
-    if (Compose.isSubjectVisible && Compose.isSubjectMaxLength()) {
-      this.showSubjectMaxLengthNotice();
-    } else {
-      this.hideSubjectMaxLengthNotice();
-    }
-  },
-
   // Triggered when the onscreen keyboard appears/disappears.
   resizeHandler: function conv_resizeHandler() {
     // Scroll to bottom
@@ -1239,55 +1151,6 @@ var ConversationView = {
     new OptionMenu(options).show();
 
     return deferred.promise;
-  },
-
-  onSegmentInfoChange: function conv_onSegmentInfoChange() {
-    var currentSegment = Compose.segmentInfo.segments;
-
-    var isValidSegment = currentSegment > 0;
-    var isSegmentChanged = this.previousSegment !== currentSegment;
-    var isStartingFirstSegment = this.previousSegment === 0 &&
-          currentSegment === 1;
-
-    if (Compose.type === 'sms' && isValidSegment && isSegmentChanged &&
-        !isStartingFirstSegment) {
-      this.previousSegment = currentSegment;
-
-      navigator.mozL10n.setAttributes(
-        this.smsCounterNotice.querySelector('p'),
-        'sms-counter-notice-label',
-        { number: currentSegment }
-      );
-      this.smsCounterNotice.classList.remove('hide');
-      window.setTimeout(function() {
-        this.smsCounterNotice.classList.add('hide');
-      }.bind(this), this.ANOTHER_SMS_TOAST_DURATION);
-    }
-  },
-
-  checkMessageSize: function conv_checkMessageSize() {
-    // Counter should be updated when image resizing complete
-    if (Compose.isResizing) {
-      return false;
-    }
-
-    if (Settings.mmsSizeLimitation) {
-      if (Compose.size > Settings.mmsSizeLimitation) {
-        this.showMaxLengthNotice({
-          l10nId: 'multimedia-message-exceeded-max-length',
-          l10nArgs: {
-            mmsSize: (Settings.mmsSizeLimitation / 1024).toFixed(0)
-          }
-        });
-        return false;
-      } else if (Compose.size === Settings.mmsSizeLimitation) {
-        this.showMaxLengthNotice({ l10nId: 'messages-max-length-text' });
-        return true;
-      }
-    }
-
-    this.hideMaxLengthNotice();
-    return true;
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -2156,8 +2019,6 @@ var ConversationView = {
   },
 
   cleanFields: function conv_cleanFields() {
-    this.previousSegment = 0;
-
     if (this.recipients) {
       this.recipients.length = 0;
     }
