@@ -23,6 +23,7 @@
   <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
   <!-- App styles -->
   <link rel="stylesheet" type="text/css" href="/views/shared/style/sms.css">
+  <link rel="stylesheet" type="text/css" href="/views/shared/style/panel.css">
   <link rel="stylesheet" type="text/css" href="/views/shared/style/edit-mode.css">
   <link rel="stylesheet" type="text/css" href="/views/shared/style/notification.css">
   <link rel="stylesheet" type="text/css" href="/views/shared/style/common.css">
@@ -71,13 +72,13 @@
   <script defer src="/shared/js/fb/fb_data_reader.js"></script>
   <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
   <script defer src="/shared/js/event_dispatcher.js"></script>
+  <script defer src="/views/shared/js/utils.js"></script>
   <script defer src="/views/shared/js/navigation.js"></script>
   <script defer src="/views/shared/js/inter_instance_event_dispatcher.js"></script>
   <script defer src="/views/shared/js/time_headers.js"></script>
   <script defer src="/views/shared/js/contacts.js"></script>
   <script defer src="/services/js/drafts.js"></script>
   <script defer src="/services/js/threads.js"></script>
-  <script defer src="/views/shared/js/utils.js"></script>
   <script defer src="/views/shared/js/settings.js"></script>
   <script defer src="/services/js/message_manager.js"></script>
   <script defer src="/views/shared/js/app.js"></script>
@@ -119,8 +120,8 @@
 </head>
 
 <body role="application" class="skin-comms theme-communications">
-  <article id="main-wrapper" class="wrapper conversation-view" data-position='left'>
-    <section id="thread-messages" class="panel default-panel editable-select-mode" role="region" aria-hidden="true">
+  <article id="main-wrapper" class="wrapper conversation-view">
+    <section class="panel panel-ConversationView editable-select-mode" role="region">
       <gaia-header id="messages-header" class="view-header regular-header" action="back" no-font-fit>
         <h1 id="messages-header-text" aria-hidden="true"></h1>
         <button id="messages-call-number-button" data-icon="call" class="hide" data-l10n-id="callButton"></button>
@@ -249,7 +250,7 @@
       </section>
     </section>
 
-    <section id="information-participants" class="panel hide" role="region">
+    <section class="panel panel-GroupView" role="region">
       <gaia-header id="information-group-header" class="header" action="back" no-font-fit>
         <h1 data-l10n-id="participant" class="header-text"></h1>
       </gaia-header>
@@ -258,7 +259,7 @@
       </article>
     </section>
 
-    <section id="information-report" class="panel hide" role="region">
+    <section class="panel panel-ReportView" role="region">
       <gaia-header id="information-report-header" class="header" action="close" no-font-fit>
         <h1 data-l10n-id="message-report"></h1>
       </gaia-header>

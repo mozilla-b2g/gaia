@@ -42,14 +42,9 @@ suite('InboxView Startup', function() {
     this.sinon.spy(TimeHeaders, 'init');
     this.sinon.spy(Settings, 'init');
     this.sinon.spy(Navigation, 'setReady');
-    this.sinon.spy(Navigation, 'toDefaultPanel');
     this.sinon.spy(InterInstanceEventDispatcher, 'connect');
     this.sinon.stub(InboxView, 'once');
     this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
-
-    var gaiaHeader = document.createElement('gaia-header');
-    gaiaHeader.setAttribute('no-font-fit', '');
-    document.body.appendChild(gaiaHeader);
 
     Startup.init();
   });
@@ -59,23 +54,16 @@ suite('InboxView Startup', function() {
     sinon.assert.calledOnce(Navigation.init);
     sinon.assert.calledOnce(InboxView.init);
     sinon.assert.calledOnce(InboxView.renderThreads);
-    sinon.assert.calledOnce(Navigation.toDefaultPanel);
   });
 
   test('starts non-critical initializations only once view is visually ready',
   function() {
     // Lazy loading is not started yet and headers are not processed either.
     sinon.assert.notCalled(LazyLoader.load);
-    assert.isTrue(
-      document.querySelectorAll('gaia-header[no-font-fit]').length > 0
-    );
 
     InboxView.once.withArgs('visually-loaded').yield();
 
     sinon.assert.calledOnce(LazyLoader.load);
-    assert.isTrue(
-      document.querySelectorAll('gaia-header[no-font-fit]').length === 0
-    );
   });
 
   test('correctly initializes lazy dependencies', function(done) {

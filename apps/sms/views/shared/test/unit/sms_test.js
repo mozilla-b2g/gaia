@@ -28,12 +28,12 @@ require('/views/shared/test/unit/utils_mockup.js');
 require('/views/shared/test/unit/messages_mockup.js');
 require('/views/shared/test/unit/thread_list_mockup.js');
 
+require('/views/shared/js/utils.js');
 require('/views/shared/js/selection_handler.js');
 require('/views/shared/js/navigation.js');
 require('/views/conversation/js/link_helper.js');
 require('/services/js/drafts.js');
 require('/views/shared/js/contacts.js');
-require('/views/shared/js/utils.js');
 require('/views/conversation/js/subject_composer.js');
 require('/views/conversation/js/compose.js');
 require('/services/js/threads.js');

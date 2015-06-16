@@ -186,7 +186,7 @@ suite('conversation.js >', function() {
     sendButton = document.getElementById('messages-send-button');
     composeForm = document.getElementById('messages-compose-form');
     recipientsList = document.getElementById('messages-recipients-list');
-    threadMessages = document.getElementById('thread-messages');
+    threadMessages = document.querySelector('.panel-ConversationView');
     mainWrapper = document.getElementById('main-wrapper');
     headerText = document.getElementById('messages-header-text');
     recipientSuggestions = document.getElementById(
@@ -201,6 +201,7 @@ suite('conversation.js >', function() {
     this.sinon.stub(ActivityClient);
 
     ConversationView.recipients = null;
+    ConversationView._isReady = false;
     ConversationView.init();
 
     sticky = MockStickyHeader;
@@ -218,6 +219,10 @@ suite('conversation.js >', function() {
 
     sticky = null;
     MockOptionMenu.mTeardown();
+  });
+
+  test('View is ready after init()', function() {
+    assert.ok(ConversationView.isReady());
   });
 
   suite('scrolling', function() {
@@ -2510,20 +2515,20 @@ suite('conversation.js >', function() {
       };
     });
 
-    test('renderMessages does not render if we pressed back', function() {
+    test('renderMessages does not render if we pressed back', function(done) {
       this.sinon.stub(MessageManager, 'getMessages');
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
-      ConversationView.beforeEnter(transitionArgs);
+      ConversationView.beforeEnter(transitionArgs).then(() => {
+        // Trigger the action button on the header
+        var event = document.createEvent('HTMLEvents');
+        event.initEvent('action', true, true);
+        document.getElementById('messages-header').dispatchEvent(event);
 
-      // Trigger the action button on the header
-      var event = document.createEvent('HTMLEvents');
-      event.initEvent('action', true, true);
-      document.getElementById('messages-header').dispatchEvent(event);
-
-      Navigation.isCurrentPanel.withArgs('thread').returns(true);
-      ConversationView.afterEnter(transitionArgs);
-      sinon.assert.notCalled(MessageManager.getMessages);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        ConversationView.afterEnter(transitionArgs);
+        sinon.assert.notCalled(MessageManager.getMessages);
+      }).then(done, done);
     });
   });
 
@@ -3922,7 +3927,7 @@ suite('conversation.js >', function() {
 
     suite('message context menu actions >', function() {
       setup(function() {
-        this.sinon.spy(ConversationView, 'navigateToComposer');
+        this.sinon.spy(ConversationView, 'initiateNewMessage');
 
         link.dispatchEvent(contextMenuEvent);
       });
@@ -3932,7 +3937,7 @@ suite('conversation.js >', function() {
         MockOptionMenu.calls[0].items[0].method(messageId);
 
         sinon.assert.calledWith(
-          ConversationView.navigateToComposer, { messageId: messageId }
+          ConversationView.initiateNewMessage, { messageId: messageId }
         );
       });
     });
@@ -4287,7 +4292,7 @@ suite('conversation.js >', function() {
             MockSettings.supportEmailRecipient = true;
 
             this.sinon.spy(ActivityPicker, 'email');
-            this.sinon.spy(ConversationView, 'navigateToComposer');
+            this.sinon.spy(ConversationView, 'initiateNewMessage');
 
             ConversationView.prompt({
               email: 'a@b.com',
@@ -4328,7 +4333,7 @@ suite('conversation.js >', function() {
             items[1].method();
 
             sinon.assert.calledWith(
-              ConversationView.navigateToComposer, { number: 'a@b.com' }
+              ConversationView.initiateNewMessage, { number: 'a@b.com' }
             );
 
             // The third item is a "createNewContact" option
@@ -4498,7 +4503,7 @@ suite('conversation.js >', function() {
 
       suite('multi recipients, in group view >', function() {
         setup(function() {
-          this.sinon.spy(ConversationView, 'navigateToComposer');
+          this.sinon.spy(ConversationView, 'initiateNewMessage');
 
           Navigation.isCurrentPanel.withArgs('group-view').returns(true);
 
@@ -4539,7 +4544,7 @@ suite('conversation.js >', function() {
           items[1].method();
 
           sinon.assert.calledWith(
-            ConversationView.navigateToComposer, { number: '999' }
+            ConversationView.initiateNewMessage, { number: '999' }
           );
 
           // The third and last item is a "cancel" option
@@ -4663,26 +4668,30 @@ suite('conversation.js >', function() {
       });
     });
 
-    suite('navigateToComposer', function() {
+    suite('initiateNewMessage', function() {
       setup(function() {
         this.sinon.spy(Navigation, 'toPanel');
         this.sinon.spy(ConversationView, 'discardDraft');
         this.sinon.stub(Utils, 'confirm');
         this.sinon.stub(Compose, 'isEmpty').returns(true);
         this.sinon.stub(MessageManager, 'findThreadFromNumber');
+        this.sinon.stub(Threads.Messages, 'get');
+        this.sinon.spy(Drafts, 'add');
+        this.sinon.spy(Drafts, 'store');
       });
 
       test('immediately navigates to Composer if no unsent message',
       function(done) {
-        ConversationView.navigateToComposer({ test: 'test' }).then(() => {
+        Threads.Messages.get.withArgs(1).returns(MockMessages.sms());
+        ConversationView.initiateNewMessage({ messageId: 1 }).then(() => {
           sinon.assert.calledWith(
             Navigation.toPanel,
-            'composer',
-            {
-              activity: { test: 'test' },
-              focusComposer: sinon.match.falsy
-            }
+            'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
           );
+          sinon.assert.calledWithMatch(
+            Drafts.add, { content: ['body'], type: 'sms' }
+          );
+          sinon.assert.called(Drafts.store);
           sinon.assert.notCalled(Utils.confirm);
         }).then(done, done);
       });
@@ -4691,8 +4700,9 @@ suite('conversation.js >', function() {
       function(done) {
         Compose.isEmpty.returns(false);
         Utils.confirm.returns(Promise.resolve());
+        Threads.Messages.get.withArgs(1).returns(MockMessages.sms());
 
-        ConversationView.navigateToComposer({ test: 'test' }).then(() => {
+        ConversationView.initiateNewMessage({ messageId: 1 }).then(() => {
           sinon.assert.calledWith(
             Utils.confirm,
             'unsent-message-text',
@@ -4702,12 +4712,12 @@ suite('conversation.js >', function() {
           sinon.assert.called(ConversationView.discardDraft);
           sinon.assert.calledWith(
             Navigation.toPanel,
-            'composer',
-            {
-              activity: { test: 'test' },
-              focusComposer: sinon.match.falsy
-            }
+            'composer', { draftId: 'draftId', focusComposer: sinon.match.falsy }
           );
+          sinon.assert.calledWithMatch(
+            Drafts.add, { content: ['body'], type: 'sms' }
+          );
+          sinon.assert.called(Drafts.store);
         }).then(done, done);
       });
 
@@ -4717,38 +4727,45 @@ suite('conversation.js >', function() {
           Promise.reject()
         );
 
-        ConversationView.navigateToComposer({ number: '+123' }).then(() => {
+        ConversationView.initiateNewMessage({ number: '+123' }).then(() => {
           sinon.assert.calledWith(
             Navigation.toPanel,
-            'composer', 
-            {
-              activity: { number: '+123' },
-              focusComposer: true
-            }
+            'composer', { draftId: 'draftId', focusComposer: true }
           );
+          sinon.assert.calledWithMatch(
+            Drafts.add, { recipients: ['+123'], type: 'sms' }
+          );
+          sinon.assert.called(Drafts.store);
         }).then(done, done);
       });
 
       test('navigates to Conversation if can find conversation for number',
       function(done) {
-          MessageManager.findThreadFromNumber.withArgs('+123').returns(
-            Promise.resolve(100)
-          );
+        MessageManager.findThreadFromNumber.withArgs('+123').returns(
+          Promise.resolve(100)
+        );
 
-          ConversationView.navigateToComposer({ number: '+123' }).then(() => {
-            sinon.assert.calledWith(
-              Navigation.toPanel, 'thread', { id: 100, focusComposer: true }
-            );
-          }).then(done, done);
-        });
+        ConversationView.initiateNewMessage({ number: '+123' }).then(() => {
+          sinon.assert.calledWith(
+            Navigation.toPanel, 'thread', { id: 100, focusComposer: true }
+          );
+        }).then(done, done);
+      });
+
+      test('Rejects if called with a bad parameter', function(done) {
+        ConversationView.initiateNewMessage({ test: 'test' }).then(
+          () => new Error('Should not be resolved.'),
+          () => {}
+        ).then(done, done);
+      });
 
       test('stays in the current panel if user wants to keep unsent message',
       function(done) {
         Compose.isEmpty.returns(false);
         Utils.confirm.returns(Promise.reject());
 
-        ConversationView.navigateToComposer({ test: 'test' }).then(() => {
-          throw new Error('navigateToComposer should be rejected!');
+        ConversationView.initiateNewMessage({ test: 'test' }).then(() => {
+          throw new Error('initiateNewMessage should be rejected!');
         }, () => {
           sinon.assert.calledWith(
             Utils.confirm,
@@ -4845,15 +4862,6 @@ suite('conversation.js >', function() {
           sinon.assert.calledWithMatch(
             Navigation.toPanel, 'group-view', { id: 1 }
           );
-
-          Navigation.isCurrentPanel.withArgs('thread').returns(false);
-          Navigation.isCurrentPanel.withArgs('group-view').returns(true);
-
-          ConversationView.onHeaderActivation();
-
-          // View should not go back to thread view when header is
-          // activated in group-view
-          sinon.assert.calledOnce(Navigation.toPanel);
         });
       });
 
@@ -6111,7 +6119,7 @@ suite('conversation.js >', function() {
       tree = document.createElement('div');
 
       tree.innerHTML = [
-        '<div id="thread-messages">',
+        '<div class="panel-ConversationView panel">',
           '<ul>',
             '<li data-message-id="1">',
               '<section class="bubble">',
@@ -6320,6 +6328,8 @@ suite('conversation.js >', function() {
     var draft;
 
     setup(function() {
+      // Note that the real Draft object replaces null values. So we don't need
+      // to test this case.
       draft = new Draft({
         id: 1234,
         recipients: [],
@@ -6331,6 +6341,7 @@ suite('conversation.js >', function() {
       this.sinon.stub(Compose, 'focus');
       this.sinon.stub(Drafts, 'delete').returns(Drafts);
       this.sinon.stub(Drafts, 'store').returns(Drafts);
+      this.sinon.stub(Drafts, 'request').returns(Promise.resolve());
       this.sinon.spy(ConversationView.recipients, 'add');
       this.sinon.spy(ConversationView, 'updateHeaderData');
       this.sinon.stub(Contacts, 'findByAddress');
@@ -6342,13 +6353,15 @@ suite('conversation.js >', function() {
       ConversationView.draft = null;
     });
 
-    test('Calls Compose.fromDraft(), no recipients loaded', function() {
-      ConversationView.handleDraft(draft.id);
-
-      sinon.assert.calledOnce(Compose.fromDraft);
-      sinon.assert.notCalled(ConversationView.recipients.add);
-      sinon.assert.notCalled(ConversationView.updateHeaderData);
-      sinon.assert.notCalled(Contacts.findByAddress);
+    test('Calls Compose.fromDraft(), no recipients loaded', function(done) {
+      ConversationView.handleDraft(draft.id).then(() => {
+        sinon.assert.calledOnce(Drafts.request);
+        sinon.assert.calledOnce(Compose.fromDraft);
+        sinon.assert.calledWith(Compose.fromDraft, draft);
+        sinon.assert.notCalled(ConversationView.recipients.add);
+        sinon.assert.notCalled(ConversationView.updateHeaderData);
+        sinon.assert.notCalled(Contacts.findByAddress);
+      }).then(done, done);
     });
 
     test('with recipients', function(done) {
@@ -6362,9 +6375,9 @@ suite('conversation.js >', function() {
         Promise.resolve([new MockContact()])
       );
 
-      ConversationView.handleDraft(draft.id);
-
-      Contacts.findByAddress.lastCall.returnValue.then(() => {
+      ConversationView.handleDraft(draft.id).then(
+        () => Contacts.findByAddress.lastCall.returnValue
+      ).then(() => {
         sinon.assert.calledWith(ConversationView.recipients.add, {
           number: '800 732 0872',
           source: 'manual'
@@ -6382,133 +6395,9 @@ suite('conversation.js >', function() {
       }).then(done, done);
     });
 
-    test('discards draft record', function() {
-      ConversationView.handleDraft(draft.id);
-
-      sinon.assert.callOrder(Drafts.delete, Drafts.store);
-    });
-
-    test('focus composer', function() {
-      ConversationView.handleDraft(draft.id);
-      sinon.assert.calledWith(Compose.fromDraft, draft);
-    });
-  });
-
-  suite('handleActivity() >', function() {
-    setup(function() {
-      ConversationView.initRecipients();
-      this.sinon.stub(Compose, 'fromDraft');
-      this.sinon.stub(Compose, 'fromMessage');
-      this.sinon.stub(Compose, 'focus');
-      this.sinon.stub(ConversationView.recipients, 'focus');
-      this.sinon.stub(Contacts, 'findByAddress');
-      this.sinon.stub(MessageManager, 'getMessage');
-    });
-
-    test('with unknown contact', function(done) {
-      var activity = { number: '998' };
-
-      Contacts.findByAddress.withArgs(activity.number).returns(
-        Promise.resolve([])
-      );
-
-      ConversationView.handleActivity(activity).then(() => {
-        var recipients = ConversationView.recipients.list;
-        assert.equal(recipients.length, 1);
-        assert.equal(recipients[0].number, '998');
-        assert.equal(recipients[0].source, 'manual');
-        sinon.assert.calledWith(Compose.fromMessage, activity);
-      }).then(done, done);
-    });
-
-    test('with known contact', function(done) {
-      var activity = { number: '+346578888888' };
-      var contacts = MockContact.list();
-
-      Contacts.findByAddress.withArgs(activity.number).returns(
-        Promise.resolve(contacts)
-      );
-
-      ConversationView.handleActivity(activity).then(() => {
-        var recipients = ConversationView.recipients.list;
-        assert.equal(recipients.length, 1);
-        assert.equal(recipients[0].number, '+346578888888');
-        assert.equal(recipients[0].source, 'contacts');
-        sinon.assert.calledWith(Compose.fromMessage, activity);
-      }).then(done, done);
-    });
-
-    test('with message body', function(done) {
-      var activity = {
-        number: '998',
-        body: 'test'
-      };
-
-      Contacts.findByAddress.withArgs(activity.number).returns(
-        Promise.resolve([])
-      );
-
-      ConversationView.handleActivity(activity).then(() => {
-        sinon.assert.calledWith(Compose.fromMessage, activity);
-      }).then(done, done);
-    });
-
-    test('with message id', function(done) {
-      // This the case when user would like to forward existing message.
-      var message = MockMessages.mms();
-
-      MessageManager.getMessage.withArgs(message.id).returns(
-        Promise.resolve(message)
-      );
-
-      ConversationView.afterEnterComposer(
-        { activity: { messageId: message.id } }
-      ).then(() => {
-        sinon.assert.calledWith(Compose.fromMessage, message);
-        sinon.assert.notCalled(Compose.focus);
-        sinon.assert.called(ConversationView.recipients.focus);
-      }).then(done, done);
-    });
-
-    test('No contact and no number', function(done) {
-      var activity = {
-        number: null,
-        body: 'Youtube url'
-      };
-
-      ConversationView.handleActivity(activity).then(() => {
-        assert.equal(ConversationView.recipients.numbers.length, 0);
-        sinon.assert.calledWith(Compose.fromMessage, activity);
-      }).then(done, done);
-    });
-
-    test('focus composer if there is at least one recipient', function(done) {
-      var activity = {
-        number: '998',
-        body: 'test'
-      };
-
-      Contacts.findByAddress.withArgs(activity.number).returns(
-        Promise.resolve([])
-      );
-
-      ConversationView.afterEnterComposer(
-        { activity: activity, focusComposer: true }
-      ).then(() => {
-        sinon.assert.called(Compose.focus);
-        sinon.assert.notCalled(ConversationView.recipients.focus);
-      }).then(done, done);
-    });
-
-    test('focus recipients if there isn\'t any contact or number',
-    function(done) {
-      var activity = {
-        number: null,
-        body: 'Youtube url'
-      };
-      ConversationView.afterEnterComposer({ activity: activity }).then(() => {
-        sinon.assert.notCalled(Compose.focus);
-        sinon.assert.called(ConversationView.recipients.focus);
+    test('discards draft record', function(done) {
+      ConversationView.handleDraft(draft.id).then(() => {
+        sinon.assert.callOrder(Drafts.request, Drafts.delete, Drafts.store);
       }).then(done, done);
     });
   });
@@ -6645,23 +6534,34 @@ suite('conversation.js >', function() {
   function beforeEnterGeneralTests(getTransitionArgs) {
     suite('beforeEnter()', function() {
       var transitionArgs;
+      var header, editHeader;
 
-      setup(function() {
+      setup(function(done) {
+        header = document.getElementById('messages-header');
+        editHeader = document.getElementById('messages-edit-header');
+
         transitionArgs = getTransitionArgs();
         this.sinon.spy(MockLazyLoader, 'load');
         this.sinon.spy(window, 'MultiSimActionButton');
-        ConversationView.beforeEnter(transitionArgs);
+
+        /* make sure that the test for font-fit is meaningful */
+        assert.isTrue(header.hasAttribute('no-font-fit'));
+        assert.isTrue(editHeader.hasAttribute('no-font-fit'));
+        ConversationView.beforeEnter(transitionArgs).then(done, done);
       });
 
-      test('sets "back" header action if it is not in activity', function() {
-        var messagesHeader = document.getElementById('messages-header');
-
-        assert.equal(messagesHeader.getAttribute('action'), 'back');
+      test('sets "back" header action if not in activity', function(done) {
+        assert.equal(header.getAttribute('action'), 'back');
 
         ActivityClient.hasPendingRequest.returns(true);
-        ConversationView.beforeEnter(transitionArgs);
+        ConversationView.beforeEnter(transitionArgs).then(
+          () => assert.equal(header.getAttribute('action'), 'close')
+        ).then(done, done);
+      });
 
-        assert.equal(messagesHeader.getAttribute('action'), 'close');
+      test('enables the font-fit algorithm in headers', function() {
+        assert.isFalse(header.hasAttribute('no-font-fit'));
+        assert.isFalse(editHeader.hasAttribute('no-font-fit'));
       });
 
       test('initializes MultiSimActionButton', function() {
@@ -6673,9 +6573,10 @@ suite('conversation.js >', function() {
         );
       });
 
-      test('initializes only once', function() {
-        ConversationView.beforeEnter(transitionArgs);
-        sinon.assert.calledOnce(MultiSimActionButton);
+      test('initializes only once', function(done) {
+        ConversationView.beforeEnter(transitionArgs).then(
+          () => sinon.assert.calledOnce(MultiSimActionButton)
+        ).then(done, done);
       });
 
       test('loads the audio played when a message is sent', function() {
@@ -6696,14 +6597,15 @@ suite('conversation.js >', function() {
         );
       });
 
-      test('clear convert banners', function() {
+      test('clear convert banners', function(done) {
         var convertBanner = document.getElementById('messages-convert-notice');
         convertBanner.classList.remove('hide');
-        ConversationView.beforeEnter(transitionArgs);
-        assert.ok(
-          convertBanner.classList.contains('hide'),
-          'the conversion notice cleared'
-        );
+        ConversationView.beforeEnter(transitionArgs).then(() => {
+          assert.ok(
+            convertBanner.classList.contains('hide'),
+            'the conversion notice cleared'
+          );
+        }).then(done, done);
       });
     });
   }
@@ -6732,7 +6634,7 @@ suite('conversation.js >', function() {
       beforeEnterGeneralTests(() => transitionArgs);
 
       suite('composer-specific tests', function() {
-        setup(function() {
+        setup(function(done) {
           ConversationView.initRecipients();
           this.sinon.spy(ConversationView, 'cleanFields');
           this.sinon.spy(ConversationView.recipients, 'focus');
@@ -6746,7 +6648,7 @@ suite('conversation.js >', function() {
 
           Recipients.View.isFocusable = false;
 
-          ConversationView.beforeEnter(transitionArgs);
+          ConversationView.beforeEnter(transitionArgs).then(done, done);
         });
 
         test('Should set the isFocusable value to \'true\'', function() {
@@ -6826,12 +6728,12 @@ suite('conversation.js >', function() {
         });
       });
 
-      test('coming from a thread, should reset currentId', function() {
+      test('coming from a thread, should reset currentId', function(done) {
         setActiveThread();
 
-        ConversationView.beforeEnter(transitionArgs);
-
-        assert.isNull(Threads.currentId);
+        ConversationView.beforeEnter(transitionArgs).then(
+          () => assert.isNull(Threads.currentId)
+        ).then(done, done);
       });
     });
 
@@ -6843,38 +6745,32 @@ suite('conversation.js >', function() {
 
         // we test these functions separately so it's fine to merely test
         // they're called
-        this.sinon.stub(ConversationView, 'handleActivity');
         this.sinon.stub(ConversationView, 'handleDraft');
+        ConversationView.handleDraft.returns(Promise.resolve());
       });
 
-      test('handles the activity', function() {
-        transitionArgs.activity = {};
-        ConversationView.afterEnter(transitionArgs);
-        sinon.assert.calledWith(
-          ConversationView.handleActivity, transitionArgs.activity
-        );
-      });
-
-      test('recalls the draft', function() {
+      test('recalls the draft', function(done) {
         transitionArgs.draftId = '1';
-        ConversationView.afterEnter(transitionArgs);
-        sinon.assert.calledWith(
-          ConversationView.handleDraft, +transitionArgs.draftId
-        );
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.calledWith(
+            ConversationView.handleDraft, +transitionArgs.draftId
+          );
+        }).then(done, done);
       });
 
-      test('focus the composer', function() {
-        ConversationView.afterEnter(transitionArgs);
-        sinon.assert.called(ConversationView.recipients.focus);
+      test('focus the composer', function(done) {
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.called(ConversationView.recipients.focus);
+        }).then(done, done);
       });
 
-      test('fires visually-loaded once view is ready', function() {
+      test('fires visually-loaded once view is ready', function(done) {
         var onVisuallyLoaded = sinon.stub();
 
         ConversationView.once('visually-loaded', onVisuallyLoaded);
-        ConversationView.afterEnter(transitionArgs);
-
-        sinon.assert.calledOnce(onVisuallyLoaded);
+        ConversationView.afterEnter(transitionArgs).then(() => {
+          sinon.assert.calledOnce(onVisuallyLoaded);
+        }).then(done, done);
       });
     });
   });
@@ -6887,17 +6783,20 @@ suite('conversation.js >', function() {
 
     setup(function() {
       transitionArgs = {
-        id: threadId,
+        id: '' + threadId,
         meta: {
-          next: { panel: 'thread', args: { id: threadId } },
+          next: { panel: 'thread', args: { id: '' + threadId } },
           prev: { panel: 'thread-list', args: {} }
         }
       };
 
       multiParticipantTransitionArgs = {
-        id: multiParticipantThreadId,
+        id: '' + multiParticipantThreadId,
         meta: {
-          next: { panel: 'thread', args: { id: multiParticipantThreadId } },
+          next: {
+            panel: 'thread',
+            args: { id: '' + multiParticipantThreadId }
+          },
           prev: { panel: 'thread-list', args: {} }
         }
       };
@@ -6905,6 +6804,7 @@ suite('conversation.js >', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.stub(InboxView, 'markReadUnread');
       this.sinon.stub(MessageManager, 'markThreadRead');
+      this.sinon.spy(MessageManager, 'ensureThreadRegistered');
       this.sinon.stub(ConversationView, 'renderMessages');
       this.sinon.stub(Threads, 'get').returns({});
       this.sinon.stub(Compose, 'fromDraft');
@@ -6926,8 +6826,8 @@ suite('conversation.js >', function() {
       beforeEnterGeneralTests(() => transitionArgs);
 
       suite('beforeEnter() specific tests', function() {
-        setup(function() {
-          ConversationView.beforeEnter(transitionArgs);
+        setup(function(done) {
+          ConversationView.beforeEnter(transitionArgs).then(done, done);
         });
 
         test('calls updateHeaderData', function() {
@@ -6938,7 +6838,13 @@ suite('conversation.js >', function() {
           assert.equal(Threads.currentId, threadId);
         });
 
-        test('correctly shows "Call" header button', function() {
+        test('Properly ensure the thread is registered', function() {
+          sinon.assert.calledWith(
+            MessageManager.ensureThreadRegistered, threadId
+          );
+        });
+
+        test('correctly shows "Call" header button', function(done) {
           // It's shown for single participant non-email thread
           assert.isFalse(
             ConversationView.callNumberButton.classList.contains('hide')
@@ -6946,24 +6852,25 @@ suite('conversation.js >', function() {
 
           ConversationView.callNumberButton.classList.add('hide');
           setActiveThread(multiParticipantThreadId, ['999', '888']);
-          ConversationView.beforeEnter(multiParticipantTransitionArgs);
+          ConversationView.beforeEnter(multiParticipantTransitionArgs).then(
+            () => {
+              // Hidden for multi participant thread
+              assert.isTrue(
+                ConversationView.callNumberButton.classList.contains('hide')
+              );
 
-          // Hidden for multi participant thread
-          assert.isTrue(
-            ConversationView.callNumberButton.classList.contains('hide')
-          );
+              ConversationView.callNumberButton.classList.add('hide');
+              Settings.supportEmailRecipient = true;
 
-          ConversationView.callNumberButton.classList.add('hide');
-          Settings.supportEmailRecipient = true;
-
-          setActiveThread(threadId, ['nobody@mozilla.com']);
-
-          ConversationView.beforeEnter(transitionArgs);
-
-          // Hidden for email participant thread
-          assert.isTrue(
-            ConversationView.callNumberButton.classList.contains('hide')
-          );
+              setActiveThread(threadId, ['nobody@mozilla.com']);
+              return ConversationView.beforeEnter(transitionArgs);
+            }
+          ).then(() => {
+            // Hidden for email participant thread
+            assert.isTrue(
+              ConversationView.callNumberButton.classList.contains('hide')
+            );
+          }).then(done, done);
         });
 
         suite('conversion banner activation', function () {
@@ -6971,19 +6878,21 @@ suite('conversation.js >', function() {
             Compose.on.reset();
           });
 
-          test('coming from composer, won\'t show banners', function() {
+          test('coming from composer, won\'t show banners', function(done) {
             transitionArgs.meta.prev.panel = 'composer';
-            ConversationView.beforeEnter(transitionArgs);
-
-            var onMessageTypeChange = ConversationView.onMessageTypeChange;
-            assert.isFalse(Compose.on.calledWith('type', onMessageTypeChange));
+            ConversationView.beforeEnter(transitionArgs).then(() => {
+              var onMessageTypeChange = ConversationView.onMessageTypeChange;
+              assert.isFalse(
+                Compose.on.calledWith('type', onMessageTypeChange)
+              );
+            }).then(done, done);
           });
 
-          test('coming from elsewhere, it will show banners', function() {
-            ConversationView.beforeEnter(transitionArgs);
-
-            var onMessageTypeChange = ConversationView.onMessageTypeChange;
-            sinon.assert.calledWith(Compose.on, 'type', onMessageTypeChange);
+          test('coming from elsewhere, it will show banners', function(done) {
+            ConversationView.beforeEnter(transitionArgs).then(() => {
+              var onMessageTypeChange = ConversationView.onMessageTypeChange;
+              sinon.assert.calledWith(Compose.on, 'type', onMessageTypeChange);
+            }).then(done, done);
           });
         });
 
@@ -6996,12 +6905,12 @@ suite('conversation.js >', function() {
           assert.isNull(Compose.setupLock.lastCall.args[0].forceType());
         });
 
-        test('correctly setups Compose lock for email thread', function() {
+        test('correctly setups Compose lock for email thread', function(done) {
           Settings.supportEmailRecipient = true;
           setActiveThread(threadId, ['nobody@mozilla.com']);
-          ConversationView.beforeEnter(transitionArgs);
-
-          assert.equal(Compose.setupLock.lastCall.args[0].forceType(), 'mms');
+          ConversationView.beforeEnter(transitionArgs).then(() => {
+            assert.equal(Compose.setupLock.lastCall.args[0].forceType(), 'mms');
+          }).then(done, done);
         });
       });
     });
@@ -7106,21 +7015,22 @@ suite('conversation.js >', function() {
     });
 
     suite('enter from report view', function() {
-      setup(function() {
+      setup(function(done) {
         transitionArgs.meta.prev = {
           panel: 'report-view',
-          args: { id: 1, threadId: threadId }
+          args: { id: '' + 1, threadId: '' + threadId }
         };
 
         setActiveThread(threadId);
 
         Navigation.isCurrentPanel.withArgs('report-view').returns(true);
-        ConversationView.beforeEnter(transitionArgs);
-        Navigation.isCurrentPanel.withArgs('report-view').returns(false);
-        Navigation.isCurrentPanel.withArgs('thread').returns(true);
-        Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
-          .returns(true);
-        ConversationView.afterEnter(transitionArgs);
+        ConversationView.beforeEnter(transitionArgs).then(() => {
+          Navigation.isCurrentPanel.withArgs('report-view').returns(false);
+          Navigation.isCurrentPanel.withArgs('thread').returns(true);
+          Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
+            .returns(true);
+          return ConversationView.afterEnter(transitionArgs);
+        }).then(done, done);
       });
 
       test('does not render messages', function() {
@@ -7145,21 +7055,22 @@ suite('conversation.js >', function() {
     });
 
     suite('enter from group view', function() {
-      setup(function() {
+      setup(function(done) {
         transitionArgs.meta.prev = {
           panel: 'group-view',
-          args: { id: threadId }
+          args: { id: '' + threadId }
         };
 
         setActiveThread(threadId);
 
         Navigation.isCurrentPanel.withArgs('group-view').returns(true);
-        ConversationView.beforeEnter(transitionArgs);
-        Navigation.isCurrentPanel.withArgs('group-view').returns(false);
-        Navigation.isCurrentPanel.withArgs('thread').returns(true);
-        Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
-          .returns(true);
-        ConversationView.afterEnter(transitionArgs);
+        ConversationView.beforeEnter(transitionArgs).then(() => {
+          Navigation.isCurrentPanel.withArgs('group-view').returns(false);
+          Navigation.isCurrentPanel.withArgs('thread').returns(true);
+          Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
+            .returns(true);
+          return ConversationView.afterEnter(transitionArgs);
+        }).then(done, done);
       });
 
       test('does not render messages', function() {
@@ -7184,7 +7095,7 @@ suite('conversation.js >', function() {
     });
 
     suite('entering from composer ', function() {
-      setup(function() {
+      setup(function(done) {
         transitionArgs.meta.prev = {
           panel: 'composer'
         };
@@ -7199,13 +7110,15 @@ suite('conversation.js >', function() {
 
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
         ConversationView.beforeLeave(transitionArgs);
-        ConversationView.beforeEnter(transitionArgs);
-        Navigation.isCurrentPanel.withArgs('composer').returns(false);
-        Navigation.isCurrentPanel.withArgs('thread').returns(true);
-        Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
-          .returns(true);
-        ConversationView.afterLeave(transitionArgs);
-        ConversationView.afterEnter(transitionArgs);
+        ConversationView.beforeEnter(transitionArgs).then(() => {
+          Navigation.isCurrentPanel.withArgs('composer').returns(false);
+          Navigation.isCurrentPanel.withArgs('thread').returns(true);
+          Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
+            .returns(true);
+          return ConversationView.afterLeave(transitionArgs);
+        }).then(
+          () => ConversationView.afterEnter(transitionArgs)
+        ).then(done, done);
       });
 
       test('renders messages', function() {
@@ -7242,6 +7155,15 @@ suite('conversation.js >', function() {
     suite('recipients panel mode change', function() {
       setup(function() {
         this.sinon.stub(Recipients.prototype, 'on');
+
+        // This is added in ConversationView.init, so we need to remove the
+        // listener to prevent having the listener being called several times.
+        // We need to do this here in addition to main teardown because
+        // ConversationView.init changes the function, binding it.
+
+        document.removeEventListener(
+          'visibilitychange', ConversationView.onVisibilityChange
+        );
 
         ConversationView.init();
 

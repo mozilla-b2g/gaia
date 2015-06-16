@@ -112,7 +112,7 @@ var MessageManager = {
     try {
       cursor = this._mozMobileMessage.getThreads();
     } catch(e) {
-      console.error('Error occurred while retrieving threads: ' + e.name);
+      console.error('Error occurred while retrieving threads:', e.name, e);
       end && end();
       done && done();
 
@@ -510,9 +510,6 @@ var MessageManager = {
         _isMessageBelongTo1to1Conversation(number, message);
       if (isMessageInThread) {
         threadId = message.threadId;
-        // we need to set the current threadId,
-        // because we start sms app in a new window
-        Threads.registerMessage(message);
         return false; // found the message, stop iterating
       }
     }
@@ -535,6 +532,32 @@ var MessageManager = {
     });
 
     return deferred.promise;
+  },
+
+  ensureThreadRegistered(threadId) {
+    /** @function */
+    var getOneMessageForThread = (threadId) => {
+      var defer = Utils.Promise.defer();
+      this.getMessages({
+        each: function(message) {
+          defer.resolve(message);
+          return false;
+        },
+        done: function() {
+          defer.reject(new Error('found no message'));
+        },
+        filter: { threadId: threadId }
+      });
+      return defer.promise;
+    };
+
+    if (Threads.has(threadId)) {
+      return Promise.resolve();
+    }
+
+    return getOneMessageForThread(threadId).then(
+      (message) => Threads.registerMessage(message)
+    );
   }
 };
 

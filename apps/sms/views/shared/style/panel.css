@@ -1,0 +1,71 @@
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  transform: translate(100%);
+
+  overflow: auto;
+
+  background: white;
+
+  animation: .2s both linear;
+}
+
+.panel-active {
+  transform: translate(0);
+}
+
+.panel-will-activate {
+  animation-name: new-slide-left;
+}
+
+.panel-will-activate.panel-animation-reverse {
+  animation-name: new-slide-right;
+}
+
+.panel-will-deactivate {
+  animation-name: old-slide-left;
+}
+
+.panel-will-deactivate.panel-animation-reverse {
+  animation-name: old-slide-right;
+}
+
+@keyframes new-slide-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes old-slide-left {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes new-slide-right {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes old-slide-right {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateX(100%);
+  }
+}

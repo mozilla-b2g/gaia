@@ -21,6 +21,10 @@ var MockThreads = {
   }
 };
 
+MockThreads.Messages = {
+  get: () => {}
+};
+
 function MockThread(thread) {
   Object.assign(this, thread);
 }

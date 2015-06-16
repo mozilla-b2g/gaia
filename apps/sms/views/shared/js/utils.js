@@ -555,9 +555,33 @@
     params: function(input) {
       var parsed = {};
       input.replace(rparams, function($0, $1, $2) {
+        if ($2 === 'true') {
+          $2 = true;
+        } else if ($2 === 'false') {
+          $2 = false;
+        }
         parsed[$1] = $2;
       });
       return parsed;
+    },
+    url(base, params) {
+      if (base.indexOf('?') === -1) {
+        base += '?';
+      } else {
+        base += '&';
+      }
+
+      for (var key in params) {
+        if (params[key] == null) { // null or undefined
+          continue;
+        }
+
+        base +=
+          encodeURIComponent(key) + '=' +
+          encodeURIComponent(params[key]) + '&';
+      }
+
+      return base.slice(0, -1);
     },
     basicContact: function(number, records) {
       var record;
@@ -775,9 +799,17 @@
      */
     Promise: {
       /**
+       * The Defer type is useful when creating promises.
+       * @typedef {Object} Defer
+       * @property {function(*)} resolve The Promise's resolve function.
+       * @property {function(*)} reject The Promise's reject function.
+       * @property {Promise} promise The actual promise.
+       */
+
+      /**
        * Returns object that contains promise and related resolve\reject methods
        * to avoid wrapping long or complex code into single Promise constructor.
-       * @returns {{promise: Promise, resolve: function, reject: function}}
+       * @returns {Defer}
        */
       defer: function() {
         var deferred = {};

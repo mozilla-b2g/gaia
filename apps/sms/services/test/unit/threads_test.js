@@ -213,6 +213,7 @@ suite('Threads', function() {
         Threads.set(1, {});
         Threads.registerMessage(message);
         assert.equal(Threads.get(1).messages.get(message.id), message);
+        assert.equal(Threads.Messages.get(message.id), message);
 
         // unregister the message
         Threads.unregisterMessage(message.id);
@@ -223,11 +224,13 @@ suite('Threads', function() {
         Threads.registerMessage(message);
         assert.isTrue(Threads.has(1));
         assert.equal(Threads.get(1).messages.get(message.id), message);
+        assert.equal(Threads.Messages.get(message.id), message);
       });
 
       test('remove the message that does not exist in Threads', function() {
         Threads.unregisterMessage(message);
         sinon.assert.notCalled(Threads.get);
+        assert.isNull(Threads.Messages.get(message.id));
       });
     });
   });

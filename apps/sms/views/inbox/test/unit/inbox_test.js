@@ -96,7 +96,7 @@ suite('thread_list_ui', function() {
           '<label>' +
             '<input type="checkbox" data-mode="threads" value="' + i + '"/>' +
           '</label>' +
-          '<a href="#thread=' + i + '"</a>' +
+          '<a href="#/thread?id=' + i + '"</a>' +
         '</li>';
     }
 
@@ -135,7 +135,7 @@ suite('thread_list_ui', function() {
     suite('(true)', function() {
       var panel;
       setup(function() {
-        panel = document.getElementById('thread-list');
+        panel = document.querySelector('.panel-InboxView');
         InboxView.setEmpty(true);
       });
       test('displays noMessages and hides container', function() {
@@ -145,7 +145,7 @@ suite('thread_list_ui', function() {
     suite('(false)', function() {
       var panel;
       setup(function() {
-        panel = document.getElementById('thread-list');
+        panel = document.querySelector('.panel-InboxView');
         InboxView.setEmpty(false);
       });
       test('hides noMessages and displays container', function() {
@@ -1379,7 +1379,7 @@ suite('thread_list_ui', function() {
       visuallyLoaded = sinon.stub();
       InboxView.once('visually-loaded', visuallyLoaded);
 
-      panel = document.getElementById('thread-list');
+      panel = document.querySelector('.panel-InboxView');
     });
 
     test('Rendering an empty screen', function(done) {
@@ -1889,7 +1889,7 @@ suite('thread_list_ui', function() {
     });
 
     test('Shows draft saved banner only if requested', function() {
-      InboxView.beforeEnter({});
+      InboxView.beforeEnter();
 
       assert.isTrue(draftSavedBanner.classList.contains('hide'));
 
@@ -1906,6 +1906,13 @@ suite('thread_list_ui', function() {
 
       this.sinon.clock.tick(1);
       assert.isTrue(draftSavedBanner.classList.contains('hide'));
+    });
+
+    test('Sets up the gaia header for the edit form', function() {
+      var editHeader = document.getElementById('threads-edit-header');
+      assert.isTrue(editHeader.hasAttribute('no-font-fit'));
+      InboxView.beforeEnter();
+      assert.isFalse(editHeader.hasAttribute('no-font-fit'));
     });
   });
 

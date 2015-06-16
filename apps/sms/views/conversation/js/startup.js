@@ -14,8 +14,6 @@
 (function(exports) {
   'use strict';
 
-  const DEFAULT_PANEL = 'composer';
-
   const LAZY_DEPENDENCIES = [
     '/shared/js/settings_listener.js',
     '/shared/js/mime_mapper.js',
@@ -39,18 +37,10 @@
       TimeHeaders.init();
       Information.initDefaultViews();
       Settings.init();
-
       Navigation.setReady();
 
       InterInstanceEventDispatcher.connect();
     });
-  }
-
-  function initHeaders() {
-    var headers = document.querySelectorAll('gaia-header[no-font-fit]');
-    for (var header of headers) {
-      header.removeAttribute('no-font-fit');
-    }
   }
 
   function initShims() {
@@ -72,19 +62,17 @@
   exports.Startup = {
     init() {
       MessageManager.init();
-      Navigation.init();
       ConversationView.init();
-
-      ConversationView.once('visually-loaded', () => {
+      if (Navigation.isDefaultPanel()) {
+        ConversationView.once('visually-loaded', initLazyDependencies);
+      } else {
         initLazyDependencies();
-        initHeaders();
-      });
+      }
 
-      initShims().then(() => {
-        // Temporary workaround, navigation part will be revised in bug 1162030.
-        Navigation.defaultPanel = Navigation.getPanelName() || DEFAULT_PANEL;
-        Navigation.toDefaultPanel(Utils.params(exports.location.hash));
-      });
+      // Note that we won't be able to access report and group views directly
+      // because information.js is not loaded before ConversationView finishes
+      // loading.
+      initShims().then(() => Navigation.init());
     }
   };
 })(window);

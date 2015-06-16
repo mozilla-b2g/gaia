@@ -3,7 +3,7 @@
 /* global module */
 
 var SELECTORS = Object.freeze({
-  main: '#thread-messages',
+  main: '.panel-ConversationView',
   toField: '#messages-to-field',
   // last-child is a temporary workaound for bug 1097575
   recipientsInput: '#messages-to-field [contenteditable=true]:last-child',
