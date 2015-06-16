@@ -31,10 +31,10 @@ suite('system/SystemWindow', function() {
     });
   });
 
-  suite('MozChromeEvent handler', function(){
+  suite('MozSystemWindowChromeEvent handler', function(){
     test('Send MozContentEvent to get audio channels', function() {
       this.sinon.spy(subject, '_sendContentEvent');
-      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+      window.dispatchEvent(new CustomEvent('mozSystemWindowChromeEvent', {
         detail: { type: 'system-first-paint' }
       }));
       assert.ok(subject._sendContentEvent.calledOnce);
@@ -44,8 +44,8 @@ suite('system/SystemWindow', function() {
       );
     });
 
-    test('Receive MozChromeEvent to get audio channels', function() {
-      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+    test('Receive MozSystemWindowChromeEvent to get audio channels', function() {
+      window.dispatchEvent(new CustomEvent('mozSystemWindowChromeEvent', {
         detail: {
           type: 'system-audiochannel-list',
           audioChannels: ['normal', 'notification', 'telephony']
@@ -64,7 +64,7 @@ suite('system/SystemWindow', function() {
     });
 
     test('Get audio channels', function() {
-      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
+      window.dispatchEvent(new CustomEvent('mozSystemWindowChromeEvent', {
         detail: {
           type: 'system-audiochannel-list',
           audioChannels: ['normal', 'notification', 'telephony']
