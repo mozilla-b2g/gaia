@@ -79,6 +79,7 @@ apps/clock/test/unit/form_button_test.js # line 154, col 6, Error - Unsafe assig
 apps/clock/test/unit/tabs_test.js # line 15, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/clock/test/unit/utils_test.js # line 25, col 6, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/js/bootstrap.js # line 158, col 10, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/communications/contacts/js/cache.js # line 152, col 10, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/js/contacts_matching_ui.js # line 115, col 10, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/js/views/list.js # line 2300, col 6, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/contacts_action_menu_test.js # line 18, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
