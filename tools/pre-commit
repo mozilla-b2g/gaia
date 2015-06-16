@@ -73,7 +73,7 @@ then
     xfailed_eslint=$(
       comm -12 \
         <( echo "$js_changed_files" | sort ) \
-        <( sed 's/\s*#.*$//' "$ESLINT_XFAIL_LIST" | sort ) \
+        <( sed 's/\s*#.*$//' "$ESLINT_XFAIL_LIST" | sort | uniq ) \
         | tr '[:space:]' ' '
     )
     if [ -n "$xfailed_eslint" ] ; then
