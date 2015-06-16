@@ -2,7 +2,9 @@ marionette('Timer', function() {
   'use strict';
 
   var assert = require('assert');
-  var actions = new (require('./lib/actions'))();
+  var actions = new (require('./lib/actions'))({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var timer = actions.timer;
 
   setup(function() {

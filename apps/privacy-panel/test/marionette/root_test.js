@@ -9,7 +9,8 @@ marionette('root panel', function() {
       settings: {
         'privacy-panel-gt-complete': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var subject;
 

@@ -3,7 +3,9 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate support settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var settingsApp;
   var supportPanel;
 

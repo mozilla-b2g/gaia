@@ -2,7 +2,9 @@
 var Settings = require('../app/app');
 
 marionette('manipulate date time settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var settingsApp;
   var dateTimePanel;
 

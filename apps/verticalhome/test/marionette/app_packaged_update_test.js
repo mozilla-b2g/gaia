@@ -13,7 +13,8 @@ var iconSrc = require('./lib/icon_src');
 
 marionette('Vertical Home - Packaged App Update', function() {
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var server;
