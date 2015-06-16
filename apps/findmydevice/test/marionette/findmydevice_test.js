@@ -28,7 +28,9 @@ marionette('Find My Device lock >', function() {
     var messageInput = client.findElement('input[name="message"]');
     messageInput.sendKeys(messageText);
 
+    client.switchToFrame();
     var oldDigest = client.settings.get(SETTINGS_DIGEST_VALUE);
+    client.apps.switchToApp(FINDMYDEVICE_TEST_APP);
     var passcode = '4567';
     var passcodeInput = client.findElement('input[name="code"]');
     passcodeInput.sendKeys(passcode);
@@ -62,7 +64,6 @@ marionette('Find My Device lock >', function() {
       'lockscreen.notifications-preview.enabled': false,
       'lockscreen.lock-message': messageText,
     };
-
     for (var s in settings) {
       assert.equal(client.settings.get(s), settings[s]);
     }
