@@ -70,6 +70,18 @@ suite('system/NotificationScreen >', function() {
     }
   }
 
+  function fakeEvt(target, x, y) {
+    return {
+      timeStamp: Date.now(),
+      preventDefault: function() {},
+      touches: [{
+        target: target,
+        pageX: x,
+        pageY: y
+      }]
+    };
+  }
+
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function(done) {
@@ -712,28 +724,16 @@ suite('system/NotificationScreen >', function() {
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
-    function fakeEvt(x, y) {
-      return {
-        timeStamp: Date.now(),
-        preventDefault: function() {},
-        touches: [{
-          target: notificationNode,
-          pageX: x,
-          pageY: y
-        }]
-      };
-    }
-
     test('should disable scrolling during a swipe', function() {
       var overflow = NotificationScreen.notificationsContainer.style.overflow;
       assert.equal(overflow, '');
 
-      NotificationScreen.touchstart(fakeEvt(1, 1));
-      NotificationScreen.touchmove(fakeEvt(45, 1));
+      NotificationScreen.touchstart(fakeEvt(notificationNode, 1, 1));
+      NotificationScreen.touchmove(fakeEvt(notificationNode, 45, 1));
       overflow = NotificationScreen.notificationsContainer.style.overflow;
       assert.equal(overflow, 'hidden');
 
-      NotificationScreen.touchend(fakeEvt(45, 1));
+      NotificationScreen.touchend(fakeEvt(notificationNode, 45, 1));
       overflow = NotificationScreen.notificationsContainer.style.overflow;
       assert.equal(overflow, '');
     });
@@ -741,13 +741,13 @@ suite('system/NotificationScreen >', function() {
     test('should account for speed when dismissing', function() {
       // Short but fast swipe
       var close = this.sinon.stub(NotificationScreen, 'swipeCloseNotification');
-      NotificationScreen.touchstart(fakeEvt(1, 1));
+      NotificationScreen.touchstart(fakeEvt(notificationNode, 1, 1));
       this.sinon.clock.tick(10);
-      NotificationScreen.touchmove(fakeEvt(25, 1));
+      NotificationScreen.touchmove(fakeEvt(notificationNode, 25, 1));
       this.sinon.clock.tick(20);
-      NotificationScreen.touchmove(fakeEvt(45, 1));
+      NotificationScreen.touchmove(fakeEvt(notificationNode, 45, 1));
       this.sinon.clock.tick(30);
-      NotificationScreen.touchend(fakeEvt(45, 1));
+      NotificationScreen.touchend(fakeEvt(notificationNode, 45, 1));
 
       sinon.assert.calledOnce(close);
       var arg = close.getCall(0).args[0];
@@ -782,8 +782,9 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('tapping on the notification', function() {
-      var event = new CustomEvent('tap', { bubbles: true, cancelable: true });
-      notificationNode.dispatchEvent(event);
+      NotificationScreen.touchstart(fakeEvt(notificationNode, 10, 10));
+      NotificationScreen.touchmove(fakeEvt(notificationNode, 10, 10));
+      NotificationScreen.touchend(fakeEvt(notificationNode, 10, 10));
 
       sinon.assert.calledOnce(notifClickedStub);
       sinon.assert.calledTwice(contentNotificationEventStub);
