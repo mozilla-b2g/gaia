@@ -69,7 +69,13 @@ then
     echo "eslint check:"
 
     # check if a changed file is in the eslint xfail list
-    xfailed_eslint=`echo "$js_changed_files" | sort | comm -12 "$ESLINT_XFAIL_LIST" - | tr '[:space:]' ' '`
+    #xfailed_eslint=`echo "$js_changed_files" | sort | comm -12 "$ESLINT_XFAIL_LIST" - | tr '[:space:]' ' '`
+    xfailed_eslint=$(
+      comm -12 \
+        <( echo "$js_changed_files" | sort ) \
+        <( sed 's/\s*#.*$//' "$ESLINT_XFAIL_LIST" | sort ) \
+        | tr '[:space:]' ' '
+    )
     if [ -n "$xfailed_eslint" ] ; then
       # warn about files being xfailed
       for file in $js_changed_files ; do
