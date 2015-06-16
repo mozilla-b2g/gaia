@@ -138,6 +138,9 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   // Make sure JS error is not sliently ignored.
   p.catch(function(e) { console.error(e); });
 
+  // Show the keyboard or update to the current height.
+  this._updateHeight();
+
   this.app.console.timeEnd('LayoutRenderingManager.updateLayoutRendering()');
 
   return p;
@@ -168,9 +171,6 @@ LayoutRenderingManager.prototype._afterRenderDrew = function() {
 
   // Tell the input method about the new keyboard layout
   this._updateLayoutParams();
-
-  // Show the keyboard or update to the current height.
-  this._updateHeight();
 
   this.app.console.timeEnd('LayoutRenderingManager._afterRenderDrew()');
 };
