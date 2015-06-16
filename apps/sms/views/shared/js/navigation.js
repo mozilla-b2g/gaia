@@ -1,5 +1,4 @@
 /* global Promise,
-      Startup,
       EventDispatcher
 */
 
@@ -72,11 +71,11 @@ var Navigation = {
     this.transitionPromise = null;
 
     currentPanel = null;
+  },
 
-    Startup.on('post-initialize', function() {
-      this.isReady = true;
-      nextQueuedPanel();
-    }.bind(this));
+  setReady: function n_setReady() {
+    this.isReady = true;
+    nextQueuedPanel();
   },
 
   /**
@@ -106,7 +105,7 @@ var Navigation = {
     var currentArgs = currentPanel.args || {};
 
     for (var arg in args) {
-      if (args[arg] !== currentArgs[arg]) {
+      if (args[arg] != currentArgs[arg]) {
         return false;
       }
     }

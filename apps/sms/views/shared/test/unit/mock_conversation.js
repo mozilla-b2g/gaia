@@ -35,6 +35,7 @@ var MockConversationView = {
     });
   },
   on: function() {},
+  once: () => {},
   initSentAudio: function() {},
   getIdIterator: function() {},
   messageComposerInputHandler: function() {},

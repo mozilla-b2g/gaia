@@ -4,9 +4,10 @@
 
 var SELECTORS = Object.freeze({
   main: '#thread-list',
-  firstConversation: '.threadlist-item',
+  conversation: '.threadlist-item',
   smsConversation: '.threadlist-item[data-last-message-type="sms"]',
   mmsConversation: '.threadlist-item[data-last-message-type="mms"]',
+  conversationTitle: '.threadlist-item-title',
   navigateToComposerHeaderButton: '#threads-composer-link'
 });
 
@@ -16,7 +17,7 @@ function InboxAccessor(client) {
 
 InboxAccessor.prototype = {
   get firstConversation() {
-    return this.client.helper.waitForElement(SELECTORS.firstConversation);
+    return this.client.helper.waitForElement(SELECTORS.conversation);
   },
 
   get smsConversation() {
@@ -27,10 +28,18 @@ InboxAccessor.prototype = {
     return this.client.helper.waitForElement(SELECTORS.mmsConversation);
   },
 
+  get conversations() {
+    return this.client.findElements(SELECTORS.conversation);
+  },
+
   get createNewMessageButton() {
     return this.client.helper.waitForElement(
       SELECTORS.navigateToComposerHeaderButton
     );
+  },
+
+  getConversationTitle: function(conversation) {
+    return conversation.findElement(SELECTORS.conversationTitle);
   },
 
   waitToAppear: function() {

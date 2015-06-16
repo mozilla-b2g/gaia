@@ -7,6 +7,7 @@
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          TimeHeaders, ContactRenderer, Draft, Drafts,
          MultiSimActionButton, Navigation, Promise, LazyLoader,
+         App,
          SharedComponents,
          ActivityClient,
          Errors,
@@ -480,7 +481,6 @@ var ConversationView = {
     this.clearConvertNoticeBanners();
     this.setHeaderAction(ActivityClient.hasPendingRequest() ? 'close' : 'back');
 
-    Recipients.View.isFocusable = true;
     if (!this.multiSimActionButton) {
       // handles the various actions on the send button and encapsulates the
       // DSDS specific behavior
@@ -563,6 +563,8 @@ var ConversationView = {
       this.recipients.focus();
     }
 
+    this.emit('visually-loaded');
+
     // not strictly necessary but better for consistency
     return Promise.resolve();
   },
@@ -588,9 +590,9 @@ var ConversationView = {
       });
     }
 
-    // Let's mark thread only when thread list is fully rendered and target node
+    // Let's mark thread only when inbox is fully rendered and target node
     // is in the DOM tree.
-    InboxView.whenReady().then(function() {
+    App.whenReady().then(function() {
       // We use setTimeout (macrotask) here to allow reflow happen as soon as
       // possible and to not interrupt it with non-critical task since Promise
       // callback only (microtask) won't help here.
@@ -738,6 +740,8 @@ var ConversationView = {
   },
 
   beforeEnterComposer: function conv_beforeEnterComposer(args) {
+    Recipients.View.isFocusable = true;
+
     this.enableConvertNoticeBanners();
 
     // TODO add the activity/forward/draft stuff here
@@ -1462,6 +1466,8 @@ var ConversationView = {
     TimeHeaders.updateAll('header[data-time-update]');
     // Go to Bottom
     this.scrollViewToBottom();
+
+    this.emit('visually-loaded');
   },
 
   createMmsContent: function conv_createMmsContent(dataArray) {
@@ -1849,7 +1855,7 @@ var ConversationView = {
     }
 
     if (!this.selectionHandler) {
-      LazyLoader.load('views/shared/js/selection_handler.js', () => {
+      LazyLoader.load('/views/shared/js/selection_handler.js', () => {
         this.selectionHandler = new SelectionHandler({
           // Elements
           container: this.container,
@@ -3015,7 +3021,7 @@ Object.defineProperty(exports, 'ConversationView', {
   get: function () {
     delete exports.ConversationView;
 
-    var allowedEvents = ['recipientschange'];
+    var allowedEvents = ['recipientschange', 'visually-loaded'];
     return (exports.ConversationView =
       EventDispatcher.mixin(ConversationView, allowedEvents));
   },

@@ -9,6 +9,7 @@
          Draft, MockStickyHeader, MultiSimActionButton, Promise,
          MockLazyLoader, WaitingScreen, Navigation, MockSettings,
          ActivityClient,
+         App,
          AssetsHelper,
          DocumentFragment,
          Errors,
@@ -54,6 +55,7 @@ require('/views/shared/test/unit/mock_waiting_screen.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_inbox.js');
 require('/views/shared/test/unit/mock_selection_handler.js');
+require('/views/shared/test/unit/mock_app.js');
 require('/services/test/unit/mock_drafts.js');
 require('/services/test/unit/mock_threads.js');
 require('/services/test/unit/activity/mock_activity_client.js');
@@ -99,7 +101,8 @@ var mocksHelperForConversationView = new MocksHelper([
   'Draft',
   'Threads',
   'Thread',
-  'ActivityClient'
+  'ActivityClient',
+  'App'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -2364,12 +2367,19 @@ suite('conversation.js >', function() {
         ConversationView.renderMessages(1);
       });
 
-      suite('infinite rendering test', function(done) {
+      suite('infinite rendering test', function() {
         var chunkSize;
         var message;
+        var onVisuallyLoaded;
 
         setup(function() {
           chunkSize = ConversationView.CHUNK_SIZE;
+          onVisuallyLoaded = sinon.stub();
+          ConversationView.once('visually-loaded', onVisuallyLoaded);
+        });
+
+        teardown(function() {
+          ConversationView.offAll();
         });
 
         test('Messages are hidden before first chunk ready', function(done) {
@@ -2387,6 +2397,8 @@ suite('conversation.js >', function() {
                 'message-' + i + ' should be hidden'
               );
             }
+
+            sinon.assert.notCalled(onVisuallyLoaded);
           }).then(done, done);
         });
 
@@ -2413,6 +2425,8 @@ suite('conversation.js >', function() {
                 message.classList.contains('hidden'),
                 'message-' + id + ' should be hidden'
               );
+
+              sinon.assert.calledOnce(onVisuallyLoaded);
             });
           }).then(done, done);
         });
@@ -6617,12 +6631,6 @@ suite('conversation.js >', function() {
         sinon.assert.calledOnce(MultiSimActionButton);
       });
 
-      test('Should set the isFocusable value to \'true\'', function() {
-        Recipients.View.isFocusable = false;
-        ConversationView.beforeEnter(transitionArgs);
-        assert.isTrue(Recipients.View.isFocusable);
-      });
-
       test('loads the audio played when a message is sent', function() {
         var sentAudio = ConversationView.sentAudio;
 
@@ -6684,7 +6692,13 @@ suite('conversation.js >', function() {
           Compose.append('some stuff');
           ConversationView.recipients.add({number: '456789'});
 
+          Recipients.View.isFocusable = false;
+
           ConversationView.beforeEnter(transitionArgs);
+        });
+
+        test('Should set the isFocusable value to \'true\'', function() {
+          assert.isTrue(Recipients.View.isFocusable);
         });
 
         test(' all fields cleaned', function() {
@@ -6745,6 +6759,15 @@ suite('conversation.js >', function() {
       test('focus the composer', function() {
         ConversationView.afterEnter(transitionArgs);
         sinon.assert.called(ConversationView.recipients.focus);
+      });
+
+      test('fires visually-loaded once view is ready', function() {
+        var onVisuallyLoaded = sinon.stub();
+
+        ConversationView.once('visually-loaded', onVisuallyLoaded);
+        ConversationView.afterEnter(transitionArgs);
+
+        sinon.assert.calledOnce(onVisuallyLoaded);
       });
     });
   });
@@ -6872,7 +6895,7 @@ suite('conversation.js >', function() {
 
         sinon.assert.notCalled(InboxView.markReadUnread);
 
-        InboxView.whenReady().then(() => {
+        App.whenReady().then(() => {
           this.sinon.clock.tick();
 
           sinon.assert.calledWithExactly(
@@ -6978,7 +7001,7 @@ suite('conversation.js >', function() {
       test('calls InboxView.markReadUnread', function(done) {
         sinon.assert.notCalled(InboxView.markReadUnread);
 
-        InboxView.whenReady().then(() => {
+        App.whenReady().then(() => {
           this.sinon.clock.tick();
 
           sinon.assert.calledWithExactly(
@@ -7017,7 +7040,7 @@ suite('conversation.js >', function() {
       test('calls InboxView.markReadUnread', function(done) {
         sinon.assert.notCalled(InboxView.markReadUnread);
 
-        InboxView.whenReady().then(() => {
+        App.whenReady().then(() => {
           this.sinon.clock.tick();
 
           sinon.assert.calledWithExactly(
@@ -7062,7 +7085,7 @@ suite('conversation.js >', function() {
       test('calls InboxView.markReadUnread', function(done) {
         sinon.assert.notCalled(InboxView.markReadUnread);
 
-        InboxView.whenReady().then(() => {
+        App.whenReady().then(() => {
           this.sinon.clock.tick();
 
           sinon.assert.calledWithExactly(

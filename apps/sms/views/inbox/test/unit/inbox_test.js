@@ -10,6 +10,7 @@
 
 'use strict';
 
+require('/shared/js/event_dispatcher.js');
 require('/views/shared/js/utils.js');
 require('/views/inbox/js/inbox.js');
 
@@ -1360,7 +1361,7 @@ suite('thread_list_ui', function() {
   });
 
   suite('renderThreads', function() {
-    var firstViewDone, panel;
+    var visuallyLoaded, panel;
     setup(function() {
       this.sinon.spy(InboxView, 'setEmpty');
       this.sinon.spy(InboxView, 'prepareRendering');
@@ -1376,7 +1377,9 @@ suite('thread_list_ui', function() {
 
       this.sinon.stub(Settings, 'setReadAheadThreadRetrieval');
 
-      firstViewDone = sinon.stub();
+      visuallyLoaded = sinon.stub();
+      InboxView.once('visually-loaded', visuallyLoaded);
+
       panel = document.getElementById('thread-list');
     });
 
@@ -1386,13 +1389,15 @@ suite('thread_list_ui', function() {
         options.done();
       });
 
-      InboxView.renderThreads(firstViewDone).then(function() {
-        sinon.assert.called(firstViewDone);
+      InboxView.once('fully-loaded', () => done(() => {
+        sinon.assert.called(visuallyLoaded);
         sinon.assert.called(InboxView.renderDrafts);
         sinon.assert.called(StickyHeader);
         sinon.assert.calledWith(InboxView.finalizeRendering, true);
         assert.isTrue(panel.classList.contains('threadlist-is-empty'));
-      }).then(done, done);
+      }));
+
+      InboxView.renderThreads();
     });
 
     test('Rendering a few threads', function(done) {
@@ -1414,9 +1419,9 @@ suite('thread_list_ui', function() {
             // When the returned threads reach first panel amount, firstViewDone
             // shoule be call here instead of whole iteration finished.
             if (i < 8) {
-              sinon.assert.notCalled(firstViewDone);
+              sinon.assert.notCalled(visuallyLoaded);
             } else {
-              sinon.assert.calledOnce(firstViewDone);
+              sinon.assert.calledOnce(visuallyLoaded);
             }
 
             var threads = container.querySelectorAll(
@@ -1432,7 +1437,7 @@ suite('thread_list_ui', function() {
           done && done();
         });
 
-      InboxView.renderThreads(firstViewDone).then(function() {
+      InboxView.once('fully-loaded', () => done(() => {
         sinon.assert.calledWith(InboxView.finalizeRendering, false);
         assert.isFalse(panel.classList.contains('threadlist-is-empty'));
         sinon.assert.called(StickyHeader);
@@ -1453,7 +1458,9 @@ suite('thread_list_ui', function() {
           Settings.setReadAheadThreadRetrieval,
           InboxView.FIRST_PANEL_THREAD_COUNT
         );
-      }).then(done, done);
+      }));
+
+      InboxView.renderThreads();
     });
 
     suite('Individual thread actions', function() {
@@ -1472,11 +1479,13 @@ suite('thread_list_ui', function() {
       });
 
       test('Sets every thread to Threads object', function(done) {
-        InboxView.renderThreads(() => {
+        InboxView.once('fully-loaded', () => done(() => {
           threadList.forEach((thread) => {
             sinon.assert.calledWith(Threads.set, thread.id);
           });
-        }).then(done, done);
+        }));
+
+        InboxView.renderThreads();
       });
     });
   });
@@ -2153,16 +2162,19 @@ suite('thread_list_ui', function() {
     });
   });
 
-  suite('whenReady', function() {
-    test('only resolves when all threads are rendered', function(done) {
+  suite('On fully loaded event', function() {
+    test('only fires when all threads are rendered', function(done) {
       this.sinon.stub(MessageManager, 'getThreads');
 
-      var firstPageRenderedStub = sinon.stub();
-      var allThreadsRenderedStub = sinon.stub();
+      var visuallyLoaded = sinon.stub();
 
-      InboxView.renderThreads(firstPageRenderedStub).then(
-        allThreadsRenderedStub
-      );
+      InboxView.once('visually-loaded', visuallyLoaded);
+
+      InboxView.once('fully-loaded', () => done(() => {
+        sinon.assert.calledOnce(visuallyLoaded);
+      }));
+
+      InboxView.renderThreads();
 
       var threadList = new MockThreadList({ fullList: true });
       threadList.forEach(
@@ -2170,10 +2182,6 @@ suite('thread_list_ui', function() {
       );
       MessageManager.getThreads.yieldTo('end');
       MessageManager.getThreads.yieldTo('done');
-
-      InboxView.whenReady().then(() => {
-        sinon.assert.callOrder(firstPageRenderedStub, allThreadsRenderedStub);
-      }).then(done, done);
     });
   });
 

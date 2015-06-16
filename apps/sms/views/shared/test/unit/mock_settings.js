@@ -11,6 +11,7 @@ var MockSettings = {
   mmsServiceId: null,
   smsServiceId: null,
   supportEmailRecipient: false,
+  init: () => {},
   switchMmsSimHandler: function() {},
   isDualSimDevice: function() { return false; },
   hasSeveralSim: function() { return false; },

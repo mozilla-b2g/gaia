@@ -142,6 +142,91 @@ suite('EventDispatcher >', function() {
     });
   });
 
+  suite('once >', function() {
+    test('throws if event name is not valid string', function() {
+      assert.throws(() => eventTarget.once());
+      assert.throws(() => eventTarget.once('', () => {}));
+      assert.throws(() => eventTarget.once(null, () => {}));
+    });
+
+    test('throws if handler is not function', function() {
+      assert.throws(() => eventTarget.once('event'));
+      assert.throws(() => eventTarget.once('event', null));
+      assert.throws(() => eventTarget.once('event', {}));
+    });
+
+    test('successfully registers handler', function() {
+      var expectedHandler = sinon.stub(),
+        unexpectedHandler = sinon.stub();
+
+      eventTarget.once('not-expected-event', unexpectedHandler);
+      eventTarget.once('event', expectedHandler);
+
+      eventTarget.emit('event');
+      sinon.assert.calledOnce(expectedHandler);
+
+      // Should not call handler more than once.
+      eventTarget.emit('event');
+      sinon.assert.calledOnce(expectedHandler);
+      sinon.assert.notCalled(unexpectedHandler);
+    });
+
+    test('successfully registers multiple handlers', function() {
+      var expectedHandler1 = sinon.stub(),
+        expectedHandler2 = sinon.stub(),
+        unexpectedHandler = sinon.stub();
+
+      eventTarget.once('not-expected-event', unexpectedHandler);
+      eventTarget.once('event', expectedHandler1);
+      eventTarget.once('event', expectedHandler2);
+
+      eventTarget.emit('event');
+
+      sinon.assert.notCalled(unexpectedHandler);
+      sinon.assert.calledOnce(expectedHandler1);
+      sinon.assert.calledOnce(expectedHandler2);
+      sinon.assert.callOrder(expectedHandler1, expectedHandler2);
+    });
+
+    test('correctly passes parameters', function() {
+      var handler = sinon.stub();
+
+      eventTarget.once('event', handler);
+      eventTarget.emit('event');
+
+      sinon.assert.calledOnce(handler);
+      sinon.assert.calledWithExactly(handler, undefined);
+
+      eventTarget.once('event', handler);
+      eventTarget.emit('event', { a: 'b' });
+
+      sinon.assert.calledTwice(handler);
+      sinon.assert.calledWithExactly(handler, { a: 'b' });
+    });
+
+    suite('with allowed events >', function() {
+      test('throws if event name is not allowed', function() {
+        assert.throws(() => restrictedEventTarget.once('event'));
+      });
+
+      test('successfully registers handler for allowed event', function() {
+        var expectedHandler = sinon.stub(),
+          unexpectedHandler = sinon.stub();
+
+        restrictedEventTarget.once('allowed-event-2', unexpectedHandler);
+        restrictedEventTarget.once('allowed-event-1', expectedHandler);
+
+        restrictedEventTarget.emit('allowed-event-1');
+        sinon.assert.calledOnce(expectedHandler);
+
+        // Should not call handler more than once.
+        restrictedEventTarget.emit('allowed-event-1');
+        sinon.assert.calledOnce(expectedHandler);
+        sinon.assert.notCalled(unexpectedHandler);
+      });
+    });
+  });
+
   suite('off >', function() {
     test('throws if event name is not valid string', function() {
       assert.throws(() => eventTarget.off());
