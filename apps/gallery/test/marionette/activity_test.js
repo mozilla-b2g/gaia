@@ -2,13 +2,14 @@
 'use strict';
 
 var Gallery = require('./lib/gallery.js'),
+    Fullscreen_View = require('./lib/fullscreen_view.js'),
     GalleryActivityTester = require('./lib/galleryactivitytester.js'),
     System = require('./lib/system.js'),
     assert = require('assert');
 
 marionette('Gallery Activity Tests', function() {
 
-  var client, apps = {};
+  var fullscreenView, client, apps = {};
 
   apps[GalleryActivityTester.ORIGIN] =
     __dirname + '/apps/galleryactivitytester';
@@ -40,6 +41,7 @@ marionette('Gallery Activity Tests', function() {
       filePath: 'test_media/Pictures/firefoxOS.png'
     });
     galleryApp = new Gallery(client);
+    fullscreenView = new Fullscreen_View(client);
     activityTesterApp = GalleryActivityTester.create(client);
     system = new System(client);
   });
@@ -60,10 +62,10 @@ marionette('Gallery Activity Tests', function() {
     galleryApp.tapFirstThumbnail();
 
     client.waitFor(function(){
-      return galleryApp.editCropCanvas.displayed();
+      return fullscreenView.editCropCanvas.displayed();
     });
 
-    galleryApp.cropDoneButton.click();
+    fullscreenView.cropDoneButton.click();
     system.switchToApp(GalleryActivityTester.ORIGIN);
 
     client.waitFor(function(){
@@ -89,25 +91,26 @@ marionette('Gallery Activity Tests', function() {
 
     // Check if the filename displayed in titlebar matches
     // data sent by the initiating app
-    var title = galleryApp.openActivityImageTitle.text();
+    var title = fullscreenView.openActivityImageTitle.text();
     assert.strictEqual(title, 'firefoxOS.png');
 
     // Check if save button is displayed
-    client.helper.waitForElement(galleryApp.openActivitySaveButton);
-    assert.ok(galleryApp.openActivitySaveButton.displayed());
+    client.helper.waitForElement(fullscreenView.openActivitySaveButton);
+    assert.ok(fullscreenView.openActivitySaveButton.displayed());
 
     client.waitFor(function(){
-      return galleryApp.openActivityImage.displayed();
+      return fullscreenView.openActivityImage.displayed();
     });
 
     // Check if displayed image src is set with blob url
-    assert.ok(galleryApp.hasSrcImageBlobURL());
+    assert.ok(fullscreenView.hasSrcImageBlobURL(Gallery.ORIGIN,
+      fullscreenView.openActivityImage));
   });
 
   test('share image using gallery share activity', function() {
     galleryApp.launch();
     galleryApp.tapFirstThumbnail();
-    galleryApp.shareButton.tap();
+    fullscreenView.shareButton.tap();
 
     system.menuOptionButton('Gallery Activity Tester').tap();
     system.switchToApp(GalleryActivityTester.ORIGIN);
@@ -139,18 +142,19 @@ marionette('Gallery Activity Tests', function() {
     system.switchToApp(Gallery.ORIGIN);
 
     // Check there is no filename in title bar
-    var title = galleryApp.openActivityImageTitle.text();
+    var title = fullscreenView.openActivityImageTitle.text();
     assert.strictEqual(title, '');
 
     // Check save button is not displayed
-    assert.ok(!galleryApp.openActivitySaveButton.displayed(),
+    assert.ok(!fullscreenView.openActivitySaveButton.displayed(),
       'Save button is not displayed');
 
     client.waitFor(function(){
-      return galleryApp.openActivityImage.displayed();
+      return fullscreenView.openActivityImage.displayed();
     });
 
     // Check if displayed image src is set with blob url
-    assert.ok(galleryApp.hasSrcImageBlobURL());
-  });
+    assert.ok(fullscreenView.hasSrcImageBlobURL(Gallery.ORIGIN,
+      fullscreenView.openActivityImage));
+   });
 });
