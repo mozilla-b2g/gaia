@@ -36,8 +36,6 @@
     _start: function() {
       this.instanceID = 'systemAppID';
       this.audioChannels = new Map();
-      // Get System app's audio channels.
-      this._sendContentEvent({ type: 'system-audiochannel-list' });
     },    
 
     /**
@@ -48,6 +46,11 @@
     _handle_mozChromeEvent: function(evt) {
       var detail = evt.detail;
       switch (detail.type) {
+        case 'system-first-paint':
+          // Get System app's audio channels.
+          this._sendContentEvent({ type: 'system-audiochannel-list' });
+          break;
+
         case 'system-audiochannel-list':
           detail.audioChannels.forEach((name) => {
             this.audioChannels.set(
