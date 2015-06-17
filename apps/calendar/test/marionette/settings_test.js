@@ -13,18 +13,18 @@ marionette('settings', function() {
   });
 
   test('theme color', function() {
-    assert.equal(app.themeColor, 'var(--header-background)', 'index');
+    assert.equal(app.themeColor, '#ff7d14', 'index');
     app.openSettingsView();
-    assert.equal(app.themeColor, 'var(--header-background)', 'settings');
+    assert.equal(app.themeColor, '#ff7d14', 'settings');
     app.closeSettingsView();
     app.openDayView();
-    assert.equal(app.themeColor, 'var(--header-background)', 'day view');
+    assert.equal(app.themeColor, '#ff7d14', 'day view');
     app.openAdvancedSettingsView();
     assert.equal(app.themeColor, '#eeeeee', 'advanced settings');
     app.closeAdvancedSettingsView();
-    assert.equal(app.themeColor, 'var(--header-background)', 'settings #2');
+    assert.equal(app.themeColor, '#ff7d14', 'settings #2');
     app.closeSettingsView();
-    assert.equal(app.themeColor, 'var(--header-background)', 'day view #2');
+    assert.equal(app.themeColor, '#ff7d14', 'day view #2');
   });
 
 });

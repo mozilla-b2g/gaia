@@ -17,7 +17,7 @@
 #phone-number-view-container {
   width: 100%;
   height: 28%;
-  background: var(--header-background);
+  background: #00ADAD;
   text-align: center;
   display: flex;
   font-weight: 300;
@@ -43,7 +43,7 @@
   border: 0;
   margin: 0;
   background: transparent;
-  color: var(--header-color);
+  color: #FFF;
   text-align: left;
   cursor: none;
   padding: 0;
@@ -214,7 +214,7 @@
   align-items: center;
   flex-direction: row-reverse;
   background-image: url("keypad/images/keypad/actionicon_activecall_pickup.png");
-  background-color: #00adad;
+  background-color: #00ADAD;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 4rem 4rem;
