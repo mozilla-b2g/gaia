@@ -27,8 +27,8 @@
   filter: none;
 }
 
-#screen.utility-tray-in-transition #statusbar-tray {
-  background-image: -moz-element(#statusbar);
+#utility-tray #statusbar-tray {
+  background-image: -moz-element(#statusbar-maximized);
 }
 
 #statusbar-tray > .sb-start-upper {

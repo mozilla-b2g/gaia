@@ -71,7 +71,7 @@ marionette('Statusbar Visibility', function() {
     client.waitFor(function() {
       // The element is rendered with moz-element so we can't use
       // marionette's .displayed()
-      var filter = system.statusbar.scriptWith(function(element) {
+      var filter = system.statusbarShadow.scriptWith(function(element) {
         return window.getComputedStyle(element).filter;
       });
       return (filter != 'none');

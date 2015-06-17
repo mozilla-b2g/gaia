@@ -12,6 +12,7 @@ class System(Base):
 
     # status bar
     _status_bar_locator = (By.ID, 'statusbar')
+    _titlebar_locator = (By.CSS_SELECTOR, '.appWindow.active > .titlebar')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
@@ -64,7 +65,7 @@ class System(Base):
 
     def open_utility_tray(self):
         body = self.marionette.find_element(By.TAG_NAME, 'body')
-        statusbar = self.marionette.find_element(*self._status_bar_locator)
+        statusbar = self.marionette.find_element(*self._titlebar_locator)
         statusbar_x = int(statusbar.size['width']/2)
         statusbar_y_end = int(body.size['height'])
         Actions(self.marionette).press(statusbar).move_by_offset(statusbar_x, statusbar_y_end).release().perform()

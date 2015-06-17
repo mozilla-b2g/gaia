@@ -415,12 +415,6 @@ window.UtilityTray = {
     dy = Math.max(0, dy);
     dy = Math.min(screenHeight, dy);
 
-    if (dy >= this.grippyHeight) {
-      this.screen.classList.add('utility-tray');
-    } else {
-      this.screen.classList.remove('utility-tray');
-    }
-
     var style = this.overlay.style;
     style.transition = '';
     style.transform = 'translateY(' + dy + 'px)';
