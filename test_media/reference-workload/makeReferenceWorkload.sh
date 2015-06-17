@@ -3,19 +3,20 @@
 set -e
 
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
+ADB=${ADB:-adb}
 
 if [ -z "$1" ]; then
   echo "Must provide size parameter (light/medium/heavy/x-heavy)"
   exit 1
 fi
 
-if ! type adb > /dev/null 2>&1; then
+if ! type $ADB > /dev/null 2>&1; then
   echo "adb required to run reference-workloads"
   exit 1
 fi
 
 echo "Waiting for device to be connected..."
-adb wait-for-device
+$ADB wait-for-device
 echo "Device connected"
 
 case $1 in
@@ -73,12 +74,12 @@ esac
 
 echo "Populate Databases - $1 Workload"
 
-adb shell stop b2g
+$ADB shell stop b2g
 APPS=${APPS:-${APP}}
 
 IDB_BASE=
 for dir in /data/local/storage/permanent /data/local/storage/persistent /data/local/indexedDB; do
-  if [ -n "$(adb shell "test -d $dir/chrome && echo found")" ]; then
+  if [ -n "$($ADB shell "test -d $dir/chrome && echo found")" ]; then
     IDB_BASE=$dir
 
     if [ "$IDB_BASE" == "/data/local/storage/permanent" ]; then
@@ -95,7 +96,7 @@ if [ -z "$IDB_BASE" ]; then
   exit 1
 fi
 echo "IndexedDB base dir: $IDB_BASE"
-IDB_PRESENT=$(adb shell "ls -l $IDB_BASE/chrome/" | grep '^d.*idb')
+IDB_PRESENT=$($ADB shell "ls -l $IDB_BASE/chrome/" | grep '^d.*idb')
 if [ -z "$IDB_PRESENT" ]; then
   echo "idb directory not present"
   IDB_PATH=""
@@ -116,7 +117,7 @@ for app in $APPS; do
   case $app in
     communications/dialer)
       echo "Starting dialer"
-      adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json || exit 1
+      $ADB pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json || exit 1
       DIALER_INFO=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "communications.*/localId")
       IFS='/' read -a DIALER_PARTS <<< "$DIALER_INFO"
       DIALER_DOMAIN=${DIALER_PARTS[0]}
@@ -127,7 +128,7 @@ for app in $APPS; do
         echo "Unable to determine communications application ID - skipping dialer history..."
         LINE=" Dialer History: skipped"
       else
-        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_DEFAULT_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite || exit 1
+        $ADB push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_DEFAULT_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite || exit 1
         LINE=" Dialer History: $(printf "%4d" $DIALER_COUNT)"
       fi
       ;;
@@ -154,13 +155,13 @@ for app in $APPS; do
       echo "Starting contacts"
       # Accross versions, we can have various names for the attachment
       # directory, so let's delete all of them
-      adb shell "rm -r $IDB_BASE/chrome$IDB_PATH/*csotncta*"
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.sqlite || exit 1
+      $ADB shell "rm -r $IDB_BASE/chrome$IDB_PATH/*csotncta*"
+      $ADB push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.sqlite || exit 1
       ATTACHMENT_DIR=$SCRIPT_DIR/contactsDb-$CONTACT_COUNT
       tar -xvzf $SCRIPT_DIR/ContactPictures-$CONTACT_COUNT.tar.gz -C $SCRIPT_DIR
       # In recent builds, the directory will be automatically renamed to
       # 3406066227csotncta.files when B2G starts up.
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/ || exit 1
+      $ADB push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
       ;;
@@ -169,13 +170,13 @@ for app in $APPS; do
       echo "Starting sms"
       # Accross versions, we can have various names for the attachment
       # directory, so let's delete all of them
-      adb shell "rm -r $IDB_BASE/chrome$IDB_PATH/*ssm*"
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/226660312ssm.sqlite || exit 1
+      $ADB shell "rm -r $IDB_BASE/chrome$IDB_PATH/*ssm*"
+      $ADB push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/226660312ssm.sqlite || exit 1
       ATTACHMENT_DIR=$SCRIPT_DIR/smsDb-$SMS_COUNT
       tar -xvzf $SCRIPT_DIR/Attachments-$SMS_COUNT.tar.gz -C $SCRIPT_DIR
       # In recent builds, the directory will be automatically renamed to
       # 226660312ssm.files when B2G starts up.
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/ || exit 1
+      $ADB push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
       ;;
@@ -194,6 +195,6 @@ done
 echo ""
 echo -e "$SUMMARY"
 
-adb shell start b2g
+$ADB shell start b2g
 
 echo "Done"
