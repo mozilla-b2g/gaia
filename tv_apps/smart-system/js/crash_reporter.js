@@ -28,7 +28,7 @@ window.CrashReporter = (function() {
   // This function should only ever be called once.
   function showDialog(crashID, isChrome) {
     var title = isChrome ? {
-      id: 'crash-dialog-os2',
+      id: 'crash-dialog2-os',
       args: null
     } : {
       id: 'crash-dialog-app',

@@ -27,7 +27,7 @@ var CrashReporter = (function() {
   function showDialog(crashID, isChrome) {
     var elem = document.getElementById('crash-dialog-title');
     if (isChrome) {
-      navigator.mozL10n.setAttributes(elem, 'crash-dialog-os2');
+      navigator.mozL10n.setAttributes(elem, 'crash-dialog2-os');
     } else {
       navigator.mozL10n.setAttributes(
         elem,
