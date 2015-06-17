@@ -23,6 +23,7 @@ class Homescreen(Base):
     _bookmark_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .bookmark')
     _divider_locator = (By.CSS_SELECTOR, 'section.divider')
     _divider_separator_locator = (By.CSS_SELECTOR, 'section.divider .separator > span')
+    _exit_edit_mode_locator = (By.ID, 'exit-edit-mode')
 
     def launch(self):
         Base.launch(self)
@@ -112,6 +113,14 @@ class Homescreen(Base):
     @property
     def is_edit_mode_active(self):
         return self.is_element_present(*self._edit_mode_locator)
+
+    def tap_edit_done(self):
+         element = self.marionette.find_element(*self._exit_edit_mode_locator)
+         Wait(self.marionette).until(lambda m: element.is_displayed())
+         element.tap()
+         Wait(self.marionette).until(lambda m: not element.is_displayed())
+         Wait(self.marionette).until(expected.element_not_present(
+             *self._edit_mode_locator))
 
     def tap_collection(self, collection_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
