@@ -363,6 +363,10 @@ Phase.prototype.format = function(entries, suite, startMark) {
         entry.epoch - deviceAction.epoch : entry.duration;
     }
 
+    if (point.value < 0) {
+      return;
+    }
+
     point = merge(point, runner.getDeviceTags());
 
     if (!results[series]) {
