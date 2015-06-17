@@ -57,7 +57,7 @@
   AT.DEBUG = false;
   // LOGINFO method allows for debugging of initialization events and
   // packet sending events and is at a higher level then DEBUG.
-  AT.LOGINFO = true;
+  AT.LOGINFO = false;
 
   // This logging function is the only thing that is not exposed through
   // the AdvancedTelemetry contstructor or its instance.
@@ -76,6 +76,11 @@
       args.unshift('[AdvancedTelemetryInfo]');
       console.log.apply(console, args);
     }
+  }
+
+  function logdemo(...args) {
+    args.unshift('[AdvancedTelemetry]');
+    console.log.apply(console, args);
   }
 
   function debuglongLine(longLine) {
@@ -500,6 +505,8 @@
     var key = ed.metric.appName.concat('_', ed.metric.name);
     var value = ed.metric.value;
     debug('adding metric, key: ' + key + ', value: ' + value);
+    logdemo('adding histogram data --> ' + key + ', ' + value);
+    logdemo('');
     switch (ed.metric.name) {
       case 'uss':
         this.addUssValue(key, value);

@@ -70,11 +70,13 @@
       }
 
       var metric = {
-        name: metricName, value: data.time, appName: this.app.name
+        name: metricName, value: data.time, appName: this.app.name.toLowerCase()
       };
       var event = new CustomEvent('advanced-telemetry-update', {
         detail: { metric: metric  }
       });
+      console.log('[AdvancedTelemetry] recording metric --> ' +
+        metric.name + ', ' + metric.value + ', ' + metric.appName);
       window.dispatchEvent(event);
     }
   };
