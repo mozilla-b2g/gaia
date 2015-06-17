@@ -202,6 +202,10 @@
 
       var ep = this.entryPoint || undefined;
 
+      if (!this.app.getLocalizedValue) {
+        return new Promise((resolve, reject) => { reject(); });
+      }
+
       return this.app.getLocalizedValue('short_name', userLang, ep).then(
         shortName => localizeString(shortName),
         this.app.getLocalizedValue.bind(this.app, 'name', userLang, ep)).then(
