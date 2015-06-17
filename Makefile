@@ -947,8 +947,10 @@ hint: node_modules/.bin/jshint
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
 eslint: node_modules/.bin/eslint
+	sed 's/\s*#.*$$//' build/eslint/xfail.list | uniq > build/eslint/xfail.tmp
 	@echo Running eslint...
-	@./node_modules/.bin/eslint --ignore-path .eslintignore --ignore-path build/eslint/xfail.list -f compact -c .eslintrc $(JSHINTED_PATH) $(LINTED_FILES)
+	@./node_modules/.bin/eslint --ignore-path .eslintignore --ignore-path build/eslint/xfail.tmp -f compact -c .eslintrc $(JSHINTED_PATH) $(LINTED_FILES)
+	rm build/eslint/xfail.tmp
 
 csslint: b2g_sdk
 	@$(call $(BUILD_RUNNER),csslint)
