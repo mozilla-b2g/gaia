@@ -31,11 +31,3 @@ task:
         type: directory
         path: '/home/tester/logs'
         expires: '{{nextYear}}'
-
-  extra:
-    treeherder:
-      groupSymbol: Results
-      groupName: "Raptor Performance Tests"
-      symbol: '{{treeherderSym}}'
-    treeherderEnv:
-      - production
