@@ -100,6 +100,7 @@ apps/communications/contacts/test/unit/mock_multiple_select_dom.js # line 10, co
 apps/communications/contacts/test/unit/navigation_test.js # line 18, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/search_test.js # line 44, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/utilities/system_banner_test.js # line 13, col 2, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+apps/communications/contacts/test/unit/utilities/tagSelector_test.js # line 35, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/views/details_test.js # line 158, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/views/form_test.js # line 106, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 apps/communications/contacts/test/unit/views/ice_settings_test.js # line 100, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
