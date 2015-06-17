@@ -1,4 +1,4 @@
-/* globals Service, SettingsListener, BaseModule,
+/* globals Service, BaseModule,
            DialerAgent */
 'use strict';
 
@@ -169,13 +169,6 @@
           break;
 
         case 'attentionrequestclose':
-          //
-          // This resets the state of this settings flag.
-          // See the corresponding code in the requestopen handler.
-          //
-          window.SettingsListener && SettingsListener.getSettingsLock().set({
-            'private.broadcast.attention_screen_opening': false
-          });
           this._openedInstances.delete(attention);
           if (this._topMostWindow !== attention) {
             attention.close();
@@ -217,17 +210,6 @@
           break;
 
         case 'attentionrequestopen':
-          //
-          // The camera app needs to be notified before an attention window
-          // appears so that it can stop recording video before ringer or
-          // alarm sounds are recorded. We abuse the settings API as
-          // a simple way to broadcast this message.
-          // See bugs 995540 and 1006200
-          // XXX: We should remove this hack if bug 1034001 is landed.
-          //
-          window.SettingsListener && SettingsListener.getSettingsLock().set({
-            'private.broadcast.attention_screen_opening': true
-          });
           this._topMostWindow = attention;
           attention.ready(function() {
             if (document.mozFullScreen) {

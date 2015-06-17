@@ -194,6 +194,12 @@
       if (!this.app || !this.app.element) {
         return;
       }
+      /* The AttentionToaster will take care of that for AttentionWindows */
+      /* InputWindow & InputWindowManager will take care of visibility of IM */
+      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow &&
+          !this.app.isInputMethod) {
+        this.app.setVisible(false);
+      }
       this.switchTransitionState('closing');
     };
 
@@ -204,12 +210,6 @@
       }
 
       this.resetTransition();
-      /* The AttentionToaster will take care of that for AttentionWindows */
-      /* InputWindow & InputWindowManager will take care of visibility of IM */
-      if (!this.app.isAttentionWindow && !this.app.isCallscreenWindow &&
-          !this.app.isInputMethod) {
-        this.app.setVisible(false);
-      }
       this.app.setNFCFocus(false);
 
       this.app.element.classList.remove('active');
