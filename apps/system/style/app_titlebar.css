@@ -8,6 +8,7 @@
 }
 
 #screen:not(.cards-view) .appWindow.active:not(.inside-edges):not(.transition-closing):not(.transition-opening) .titlebar .statusbar-shadow,
+#screen:not(.cards-view) #statusbar:not(.hidden) ~ #windows > .appWindow.active .titlebar .statusbar-shadow,
 #screen.utility-tray .titlebar .statusbar-shadow {
   visibility: hidden;
 }
