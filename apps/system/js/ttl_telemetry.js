@@ -1,5 +1,5 @@
+/* global SettingsListener */
 'use strict';
-/* global AdvancedTelemetryHelper */
 
 (function(exports) {
 
@@ -12,14 +12,30 @@
    */
   function TTLTelemetry() {
 
-    // Event firing when app loads
-    window.addEventListener('apploadtime', this);
-
-    // 'appopening' is used to get the 'app' object 
-    window.addEventListener('appopening', this);
+    SettingsListener.observe('debug.ttl.enabled', false, function(value) {
+      !!value ? this.enable() : this.disable();
+    }.bind(this));
   }
 
   TTLTelemetry.prototype = {
+
+    enable: function() {
+
+      // Event firing when app loads
+      window.addEventListener('apploadtime', this);
+
+      // 'appopening' is used to get the 'app' object
+      window.addEventListener('appopening', this);
+    },
+
+    disable: function() {
+
+      // Event firing when app loads
+      window.removeEventListener('apploadtime', this);
+
+      // 'appopening' is used to get the 'app' object
+      window.removeEventListener('appopening', this);
+    },
 
     /**
      * General event handler interface.
@@ -53,8 +69,13 @@
         metricName = 'ttl-warm-start';
       }
 
-      var atHelper = new AdvancedTelemetryHelper(this.app, metricName);
-      atHelper.add(data.time);
+      var metric = {
+        name: metricName, value: data.time, appName: this.app.name
+      };
+      var event = new CustomEvent('advanced-telemetry-update', {
+        detail: { metric: metric  }
+      });
+      window.dispatchEvent(event);
     }
   };
 
