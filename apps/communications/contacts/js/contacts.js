@@ -2,7 +2,6 @@
 /* global ActivityHandler */
 /* global Cache */
 /* global contacts */
-/* global ContactsTag */
 /* global DeferredActions */
 /* global fb */
 /* global fbLoader */
@@ -47,8 +46,7 @@ var Contacts = (function() {
     MainNavigation.go('view-contact-form', transition);
   };
 
-  var contactTag,
-      settings,
+  var settings,
       settingsButton,
       header,
       addButton,
@@ -70,8 +68,6 @@ var Contacts = (function() {
   var contactsList;
   var contactsDetails;
   var contactsForm;
-
-  var customTag, customTagReset, tagDone, tagHeader, lazyLoadedTagsDom = false;
 
   // Shows the edit form for the current contact being in an update activity
   // It receives an array of two elements with the facebook data && values
@@ -409,65 +405,6 @@ var Contacts = (function() {
     return prop.length;
   };
 
-  function showSelectTag() {
-    var tagsList = document.getElementById('tags-list');
-    var selectedTagType = contactTag.dataset.taglist;
-    var options = TAG_OPTIONS[selectedTagType];
-
-    var type = selectedTagType.split('-')[0];
-    var isCustomTagVisible = (document.querySelector(
-      '[data-template]' + '.' + type + '-' +
-      'template').dataset.custom != 'false');
-
-    options = ContactsTag.filterTags(type, contactTag, options);
-
-    if (!customTag) {
-      customTag = document.querySelector('#custom-tag');
-      customTag.addEventListener('keydown', handleCustomTag);
-      customTag.addEventListener('touchend', handleCustomTag);
-    }
-    if (!customTagReset) {
-      customTagReset = document.getElementById('custom-tag-reset');
-      customTagReset.addEventListener('touchstart', handleCustomTagReset);
-    }
-    if (!tagDone) {
-      tagDone = document.querySelector('#settings-done');
-      tagDone.addEventListener('click', handleSelectTagDone);
-    }
-    if (!tagHeader) {
-      tagHeader = document.querySelector('#settings-header');
-      tagHeader.addEventListener('action', handleBack);
-    }
-
-    ContactsTag.setCustomTag(customTag);
-    // Set whether the custom tag is visible or not
-    // This is needed for dates as we only support bday and anniversary
-    // and not custom dates
-    ContactsTag.setCustomTagVisibility(isCustomTagVisible);
-
-    ContactsTag.fillTagOptions(tagsList, contactTag, options);
-
-    MainNavigation.go('view-select-tag', 'right-left');
-    if (document.activeElement) {
-      document.activeElement.blur();
-    }
-  }
-
-  var goToSelectTag = function goToSelectTag(event) {
-    contactTag = event.currentTarget.children[0];
-
-    var tagViewElement = document.getElementById('view-select-tag');
-    if (!lazyLoadedTagsDom) {
-      LazyLoader.load(tagViewElement, function() {
-        showSelectTag();
-        lazyLoadedTagsDom = true;
-       });
-    }
-    else {
-      showSelectTag();
-    }
-  };
-
   var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling ||
         ActivityHandler.currentActivityIs(['open'])) {
@@ -486,35 +423,6 @@ var Contacts = (function() {
       MainNavigation.home();
     } else {
       handleBack();
-    }
-  };
-
-  var handleSelectTagDone = function handleSelectTagDone() {
-    var prevValue = contactTag.textContent;
-    ContactsTag.clickDone(function() {
-      var valueModifiedEvent = new CustomEvent('ValueModified', {
-        bubbles: true,
-        detail: {
-          prevValue: prevValue,
-          newValue: contactTag.textContent
-        }
-      });
-      contactTag.dispatchEvent(valueModifiedEvent);
-      handleBack();
-    });
-  };
-
-  var handleCustomTag = function handleCustomTag(ev) {
-    if (ev.keyCode === 13) {
-      ev.preventDefault();
-    }
-    ContactsTag.touchCustomTag();
-  };
-
-  var handleCustomTagReset = function handleCustomTagReset(ev) {
-    ev.preventDefault();
-    if (customTag) {
-      customTag.value = '';
     }
   };
 
@@ -1018,7 +926,6 @@ var Contacts = (function() {
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
-    'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
     'sendEmailOrPick': sendEmailOrPick,
     'checkCancelableActivity': checkCancelableActivity,

@@ -18,6 +18,7 @@
 /* global ExtServices */
 /* global ContactsService */
 /* global Matcher */
+/* global TagSelector */
 
 var contacts = window.contacts || {};
 
@@ -620,7 +621,10 @@ contacts.Form = (function() {
 
   var onGoToSelectTag = function onGoToSelectTag(evt) {
     evt.preventDefault();
-    Contacts.goToSelectTag(evt);
+    var target = evt.currentTarget;
+    LazyLoader.load('/contacts/js/utilities/tagSelector.js', function() {
+      TagSelector.show(target.children[0]);
+    });
     return false;
   };
 
