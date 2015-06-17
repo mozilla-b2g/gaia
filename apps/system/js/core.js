@@ -82,6 +82,7 @@
         'TetheringMonitor',
         'UsbCore',
         'TextSelectionDialog',
+        'AppTextSelectionDialog',
         'ExternalStorageMonitor',
         'DeviceStorageWatcher',
         'AppUsageMetrics',
