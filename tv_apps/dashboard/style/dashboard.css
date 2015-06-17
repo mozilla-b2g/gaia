@@ -45,10 +45,6 @@ a:hover, a:active, a:focus {
   outline: 0;
 }
 
-section {
-  font-size: 1.6rem;
-}
-
 .background {
   position: fixed;
   top: -14.1rem;
@@ -57,6 +53,7 @@ section {
   height: calc(100% + 26.6rem);
   background-image: url(images/Default_wallpaper_02.jpg);
   background-position: center;
+  background-size: cover;
   transition: transform 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
 }
 
@@ -99,13 +96,49 @@ body[data-active-direction="left"] .background {
   height: 100%;
 }
 
+#digital-clock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -20.9rem 0 0 -57.5rem;
+  width: 115rem;
+  height: 41.8rem;
+  color: white;
+  font-weight: 100;
+  text-align: center;
+}
+
+#digital-clock .time {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  font-size: 34rem;
+  line-height: 34rem;
+  white-space: nowrap;
+}
+
+#digital-clock .time span {
+  width: 17rem;
+}
+
+#digital-clock .time span.colons {
+  position: relative;
+  top: -3rem;
+  width: 6rem;
+}
+
+#digital-clock .date {
+  margin-top: 4.4rem;
+  font-size: 3.4rem;
+  line-height: 3.4rem;
+}
+
 /* top-panel */
 
 #top-panel {
   width: 100%;
   height: 34.8rem;
   top: -25rem;
-  background-color: rgba(255, 0, 0, 0.3);
 }
 
 /* right-panel */
@@ -114,7 +147,6 @@ body[data-active-direction="left"] .background {
   width: 48rem;
   height: 100%;
   right: -32.8rem;
-  background-color: rgba(0, 0, 255, 0.3);
 }
 
 /* bottom-panel */
@@ -123,7 +155,6 @@ body[data-active-direction="left"] .background {
   width: 100%;
   height: 44.2rem;
   bottom: -28.2rem;
-  background-color: rgba(255, 0, 0, 0.3);
 }
 
 /* left-panel */
@@ -132,7 +163,6 @@ body[data-active-direction="left"] .background {
   width: 58.2rem;
   height: 100%;
   left: -39rem;
-  background-color: rgba(0, 0, 255, 0.3);
 }
 
 iframe {

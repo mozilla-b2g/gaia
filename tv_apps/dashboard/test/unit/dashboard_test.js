@@ -5,11 +5,12 @@
 require('/bower_components/evt/index.js');
 require('/shared/js/smart-screen/key_navigation_adapter.js');
 require('mock_app_widget.js');
+require('mock_digital_clock.js');
 require('/js/dashboard.js');
 
-
 var MocksHelperForUnitTest = new MocksHelper([
-  'AppWidget'
+  'AppWidget',
+  'DigitalClock'
 ]).init();
 
 suite('Dashboard', function() {
@@ -34,8 +35,9 @@ suite('Dashboard', function() {
     document.body.removeChild(mainSection);
   });
 
-  test('should initialize keyNavigationAdapter', function() {
+  test('should initialize keyNavigationAdapter and digitalClock', function() {
     assert.isDefined(dashboard.keyNavigationAdapter);
+    assert.isDefined(dashboard.digitalClock);
   });
 
   test('should change body dataset.activeDirection ' +
