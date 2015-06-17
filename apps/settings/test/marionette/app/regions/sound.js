@@ -16,7 +16,7 @@ function SoundPanel(client) {
 module.exports = SoundPanel;
 
 SoundPanel.Selectors = {
-  'vibrateCheckbox': '#sound input[name="vibration.enabled"]',
+  'vibrateCheckbox': '#sound gaia-switch[name="vibration.enabled"]',
   'vibrateLabel': '#sound label.pack-switch',
   'mediaSlider': '#sound .media input',
   'ringerSlider': '#sound .notification input',
