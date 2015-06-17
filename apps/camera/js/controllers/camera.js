@@ -454,8 +454,10 @@ CameraController.prototype.onBatteryStatusChange = function(status) {
  *
  * @private
  */
-CameraController.prototype.onStorageChanged = function() {
-  this.camera.stopRecording();
+CameraController.prototype.onStorageChanged = function(state) {
+  if (state !== 'available') {
+    this.camera.stopRecording();
+  }
 };
 
 /**
@@ -465,7 +467,7 @@ CameraController.prototype.onStorageChanged = function() {
  * @private
  */
 CameraController.prototype.onStorageVolumeChanged = function(storage) {
-  this.camera.setVideoStorage(storage.video);
+  this.camera.setStorage(storage);
 };
 
 /**
