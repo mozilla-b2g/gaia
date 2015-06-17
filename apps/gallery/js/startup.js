@@ -126,7 +126,7 @@
       // Prevents user to edit images when scanning pictures from storage
       fullscreenButtons.edit.classList.add('disabled');
       // Show the scanning indicator
-      $('progress').classList.remove('hidden');
+      $('throbber').classList.remove('hidden');
       $('throbber').classList.add('throb');
     };
 
@@ -147,7 +147,7 @@
       // Hide the scanning indicator
       // setTimeout() is to workaround Bug 1166500
       $('throbber').classList.remove('throb');
-      setTimeout(function() { $('progress').classList.add('hidden'); }, 100);
+      setTimeout(function() { $('throbber').classList.add('hidden'); }, 100);
 
       // If this was the first scan after startup, then tell
       // performance monitors that the app is finally fully loaded and stable.

@@ -378,7 +378,7 @@ body.hidden *[data-l10n-id] {
 }
 
 /* the indeterminate progress bar displayed while scanning */
-#progress {
+#throbber {
   position: absolute;
   top: 0;
   left: 0;
@@ -386,26 +386,21 @@ body.hidden *[data-l10n-id] {
   height: 0.3rem;
   border: none;
   overflow: hidden;
+  background-size: 1rem;
+  background-image: repeating-linear-gradient(135deg,
+                                              #000 0%,  #000 42%,
+                                              #32D1F2 42%, #32D1F2 57%,
+                                              #000 57%, #000 100%);
   z-index: 10; /* has to be higher than pick-top */
 }
 
-#throbber {
-  height: 2.4rem;
-  background-image: url(images/progress.png);
-  background-size: auto 100%;
-}
-
 #throbber.throb {
-  animation: 1s throb infinite steps(7);
+  animation: throb 1s steps(10) infinite;
 }
 
 @keyframes throb {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-2.1rem);
-  }
+  from { background-position: 0 0; }
+  to   { background-position: -1rem 0; }
 }
 
 #spinner {
