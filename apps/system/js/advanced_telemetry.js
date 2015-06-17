@@ -331,8 +331,9 @@
           xpcomAbi: 'x86-msvc',
           channel: deviceResponse['app.update.channel']
         },
+        clientId: self.deviceID,
         payload: {
-          gaiahistograms: payload
+          gaiaHistograms: payload
         }
       };
 
@@ -389,18 +390,19 @@
     // clone so we don't put data into the object that was given to us
     this.packet = payload;
 
-    // /id/reason/appName/appVersion/appUpdateChannel/appBuildID
+    // /id/reason/appName/appVersion/appUpdateChannel/appBuildID?v=4
     var uriParts = [
         AT.REPORT_URL,
-      encodeURIComponent(did),
+      encodeURIComponent(payload.id),
       encodeURIComponent(REASON),
       encodeURIComponent(AT.TELEMETRY_APP_NAME),
       encodeURIComponent(deviceQuery['deviceinfo.platform_version']),
       encodeURIComponent(deviceQuery['app.update.channel']),
-      encodeURIComponent(deviceQuery['deviceinfo.platform_build_id'])
+      encodeURIComponent(deviceQuery['deviceinfo.platform_build_id']),
     ];
 
     this.url = uriParts.join('/');
+    this.url += ('?v=4');
     loginfo('TAMARA URL IS: ' + this.url);
   }
 
@@ -657,22 +659,23 @@
     var histValue = this.data.histograms.get(key, value);
     if (histValue) {
       // Broke the memory into ten buckets 1-30 each.
-      histValue.values[(Math.floor((value/30)) -1)]++;
+      histValue.sum = ++histValue.values;
       this.data.histograms.set(key, histValue);
     } else {
       var newValue = {'sum_squares_hi': 0,
         'sum_squares_lo': 1,
         'sum': 0,
-        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        'histogram_type': 1,
-        'bucket_count': 10,
+        'values': 0,
+        'histogram_type': 4,
+        'bucket_count': 1,
         'range': [0,300]};
 
-      newValue.values[(Math.floor((value/100)) -1)]++;
+      newValue.sum = ++newValue.values;
       this.data.histograms.set(key, newValue);
       debug('ADDED A NEW HISTOGRAM FOR REFLOWS:' +
         key + JSON.stringify(newValue));
     }
+
     debug('Added a value for REFLOWS: ' + value);
   };
 
@@ -755,7 +758,6 @@
     var histogramData = {};
 
     this.data.histograms.forEach(function(value, key) {
-      console.log('TAMARA: KEY: ' + key);
       histogramData[key] = value;
     });
     return histogramData;
