@@ -865,6 +865,21 @@
     "preloaded": true
   },
   {
+    "id": "tl",
+    "name": "Tagalog",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 194978,
+    "preloaded": true,
+    "dictFilename": "tl.dict",
+    "dictFilePath": "dictionaries/tl.dict"
+  },
+  {
     "id": "tr-F",
     "name": "Türkçe F",
     "imEngineId": "latin",
