@@ -19,11 +19,6 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-if ! type $ADB > /dev/null 2>&1; then
-  echo "adb required to run reference-workloads"
-  exit 1
-fi
-
 echo "Waiting for device to be connected..."
 $ADB wait-for-device
 echo "Device connected"
