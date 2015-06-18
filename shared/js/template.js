@@ -5,13 +5,14 @@
 
   var priv = new WeakMap();
   var rmatcher = /\$\{([^}]+)\}/g;
-  var rentity = /[&<>"']/g;
+  var rentity = /[/&<>"']/g;
   var rentities = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    '\'': '&apos;'
+    '\'': '&apos;',
+    '/': '&#x2F;'
   };
 
   function extract(node) {
