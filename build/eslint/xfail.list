@@ -273,6 +273,7 @@ shared/js/homescreens/confirm_dialog_helper.js # line 32, col 6, Error - Unsafe 
 shared/js/html_imports.js # line 27, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/html_imports.js # line 39, col 12, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/l10n.js # line 2366, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+shared/js/l20n.js # line 245, col 10, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/lazy_loader.js # line 55, col 10, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/smart-screen/shared_utils.js # line 29, col 6, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/template.js # line 160, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
