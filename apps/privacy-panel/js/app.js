@@ -23,6 +23,9 @@ require.config({
     },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
+    },
+    'shared/passcode_helper': {
+      exports: 'PasscodeHelper'
     }
   }
 });
