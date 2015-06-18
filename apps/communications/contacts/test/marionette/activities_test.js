@@ -84,7 +84,15 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('webcontacts/contact activity', function() {
-    test('a contact with duplicate number shows merge page', function() {
+
+    // Disabling these tests by now due to we need a way to switch to an
+    // activity instead of switching to an app, due to paths can differ.
+    // More info in [1].
+    // These test must be recovered once this bug will be landed.
+
+    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+
+    test.skip('a contact with duplicate number shows merge page', function() {
 
       subject.launch();
 
@@ -131,7 +139,13 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('webcontacts/tel activity', function() {
-    test('Error message when no contacts', function() {
+    // Disabling these tests by now due to we need a way to switch to an
+    // activity instead of switching to an app, due to paths can differ.
+    // More info in [1].
+    // These test must be recovered once this bug will be landed.
+
+    // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+    test.skip('Error message when no contacts', function() {
 
       smsSubject.launch();
 

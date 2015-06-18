@@ -50,6 +50,8 @@ apps/communications/contacts/test/unit/export/generic_export_test.js
 apps/communications/contacts/test/unit/import_vcard_test.js
 apps/communications/contacts/test/unit/multiple_contact_del_test.js
 apps/communications/contacts/test/unit/views/form_test.js
+apps/communications/contacts/views/form/js/form_controller.js
+apps/communications/contacts/views/form/js/form_ui.js
 apps/communications/dialer/js/mmi.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/facebook/js/fb_sync_init.js
