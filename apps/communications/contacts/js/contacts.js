@@ -6,9 +6,7 @@
 /* global fb */
 /* global fbLoader */
 /* global LazyLoader */
-/* global MozActivity */
 /* global MainNavigation */
-/* global SmsIntegration */
 /* global TAG_OPTIONS */
 /* global utils */
 
@@ -398,13 +396,6 @@ var Contacts = (function() {
     });
   };
 
-  var sendSms = function sendSms(number) {
-    if (!ActivityHandler.currentlyHandling ||
-        ActivityHandler.currentActivityIs(['open'])) {
-      SmsIntegration.sendSms(number);
-    }
-  };
-
   var handleBack = function handleBack(cb) {
     MainNavigation.back(cb);
   };
@@ -416,22 +407,6 @@ var Contacts = (function() {
       MainNavigation.home();
     } else {
       handleBack();
-    }
-  };
-
-  var sendEmailOrPick = function sendEmailOrPick(address) {
-    try {
-      // We don't check the email format, lets the email
-      // app do that
-      new MozActivity({
-        name: 'new',
-        data: {
-          type: 'mail',
-          URI: 'mailto:' + address
-        }
-      });
-    } catch (e) {
-      console.error('WebActivities unavailable? : ' + e);
     }
   };
 
@@ -921,8 +896,6 @@ var Contacts = (function() {
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
-    'sendSms': sendSms,
-    'sendEmailOrPick': sendEmailOrPick,
     'checkCancelableActivity': checkCancelableActivity,
     'showForm': showForm,
     'setCurrent': setCurrent,
