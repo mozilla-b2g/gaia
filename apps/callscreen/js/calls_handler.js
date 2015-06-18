@@ -230,16 +230,6 @@ var CallsHandler = (function callsHandler() {
       });
 
       return;
-    } else if (remainingCall.call.state === 'disconnected') {
-      // The remaining call is disconnected so do nothing.
-      return;
-    }
-
-    // The remaining call was held, resume it
-    if (remainingCall.call.group) {
-      remainingCall.call.group.resume();
-    } else {
-      remainingCall.call.resume();
     }
   }
 

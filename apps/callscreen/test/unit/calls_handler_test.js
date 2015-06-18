@@ -759,64 +759,6 @@ suite('calls handler', function() {
         sinon.assert.calledOnce(window.close);
       });
     });
-
-    suite('> hanging up the second call', function() {
-      var firstCall;
-
-      setup(function() {
-        firstCall = new MockCall('543552', 'held');
-        var secondCall = new MockCall('12334', 'incoming');
-
-        telephonyAddCall.call(this, firstCall, {trigger: true});
-        telephonyAddCall.call(this, secondCall, {trigger: true});
-
-        MockNavigatorMozTelephony.calls = [firstCall];
-      });
-
-      test('should resume the first call', function() {
-        this.sinon.spy(firstCall, 'resume');
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        sinon.assert.called(firstCall.resume);
-      });
-    });
-
-    suite('> hanging up the second call when the first line is a conference',
-    function() {
-      var extraCall;
-
-      setup(function() {
-        var firstConfCall = new MockCall('543552', 'held');
-        var secondConfCall = new MockCall('12334', 'held');
-        extraCall = new MockCall('424242', 'incoming');
-
-        /**
-         * Don't add all 3 calls at once since |CallsHandler.addCall|
-         * would hangup the 3rd call
-         */
-        telephonyAddCall.call(this, firstConfCall, {trigger: true});
-        telephonyAddCall.call(this, secondConfCall, {trigger: true});
-
-        // Merge calls
-        MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
-                                                  secondConfCall];
-        firstConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
-        secondConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
-        MockNavigatorMozTelephony.calls = [];
-        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
-
-        // Add extra call
-        telephonyAddCall.call(this, extraCall, {trigger: true});
-        MockNavigatorMozTelephony.calls = [extraCall];
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-      });
-
-      test('should resume the conference call', function() {
-        this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'resume');
-        MockNavigatorMozTelephony.calls = [];
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        sinon.assert.called(MockNavigatorMozTelephony.conferenceGroup.resume);
-      });
-    });
   });
 
   suite('> Public methods', function() {
