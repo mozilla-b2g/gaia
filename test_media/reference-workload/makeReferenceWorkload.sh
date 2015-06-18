@@ -113,6 +113,9 @@ if [ -z "$APPS" ]; then
   APPS="gallery music video communications/contacts sms communications/dialer"
 fi
 
+# Convert comma-separate APPS to space-separated
+APPS=${APPS//,/ }
+
 SUMMARY="Summary:\n"
 
 for app in $APPS; do
