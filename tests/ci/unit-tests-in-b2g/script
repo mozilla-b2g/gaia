@@ -1,7 +1,0 @@
-#! /bin/bash -vex
-
-./node_modules/test-agent/bin/js-test-agent test \
-  --this-chunk=${THIS_CHUNK:=1} \
-  --total-chunks=${TOTAL_CHUNKS:=1} \
-  --server ws://localhost:8789 \
-  --reporter ${REPORTER:=spec}

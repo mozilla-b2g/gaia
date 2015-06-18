@@ -1,0 +1,5 @@
+node_modules
+.iojs
+build
+test/fixtures/multi-doc/.exhibition/
+test/fixtures/multi-doc/node_modules/

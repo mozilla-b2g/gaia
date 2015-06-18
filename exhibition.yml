@@ -1,0 +1,18 @@
+groups:
+  "Lint":
+    description: |
+      Run various linters such as cssling, eslint, jshint and jsonlint.
+    paths:
+    - docopt: tests/exhibition/lint.docopt
+      cli: tests/exhibition/lint.js
+
+  "Test":
+    description: |
+      Run various test suites such as build, integration and unit.
+    paths:
+    - docopt: tests/exhibition/build.docopt
+      cli: tests/exhibition/build.js
+    - docopt: tests/exhibition/integration.docopt
+      cli: tests/exhibition/integration.js
+    - docopt: tests/exhibition/unit.docopt
+      cli: tests/exhibition/unit.js

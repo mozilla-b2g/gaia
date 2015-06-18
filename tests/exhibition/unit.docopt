@@ -1,0 +1,10 @@
+Gaia Unit Tests
+
+Usage:
+  test-unit [-h | --help]
+
+Options:
+  -h, --help    Show this help message.
+
+Commands:
+  test-unit    Run Gaia unit-tests.

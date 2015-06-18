@@ -29,7 +29,7 @@ task:
 
     command:
       - entrypoint
-      - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
+      - mkdir -p artifacts && NODE_DEBUG=* ./gaia test-integration 2> artifacts/debug.log
 
 
     artifacts:

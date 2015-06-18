@@ -1,0 +1,11 @@
+Gaia Hinters and Linters
+
+Usage:
+  lint [--with=<name>] [-h | --help]
+
+Options:
+  --with=<name>  The linter to run [default: all].
+  -h, --help       Show this help message [default: false].
+
+Commands:
+  lint    Run gaia linters.

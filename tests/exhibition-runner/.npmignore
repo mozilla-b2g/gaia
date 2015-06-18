@@ -1,0 +1,5 @@
+test/
+docs/
+.git/
+.iojs/
+src/

@@ -1,0 +1,13 @@
+First Example...
+
+Usage:
+  exhibition first [options] <attack>
+
+Options:
+  --zomg=true       Show zomg? [default: true]
+  --super-attack    Super attack!
+  --another=<value> Another thing which accepts a value...
+  -h, --help        Show this message
+
+Commands:
+  first   This is the first command that I expose...

@@ -1,0 +1,11 @@
+Build System Tests
+
+Usage:
+  test-build [--suite=<name>]
+
+Options:
+  --suite=<name> Which suites to run: unit, integration [default: all].
+  -h, --help     Show this help message.
+
+Commands:
+  test-build    Run the build tests.

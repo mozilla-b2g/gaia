@@ -19,8 +19,8 @@ definitions:
   build_integration:
     chunks: 8
 
-  gaia_ui_tests:
-    chunks: 30
+#  gaia_ui_tests:
+#    chunks: 30
 
   csslint:
 
@@ -35,8 +35,5 @@ definitions:
 
   marionette_js_tv_tests:
     chunks: 10
-
-  unit_tests_b2g:
-    chunks: 30
 
   jsmarionette_unit_tests:
