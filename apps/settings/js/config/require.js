@@ -40,9 +40,6 @@ require.config({
     'shared/lazy_loader': {
       exports: 'LazyLoader'
     },
-    'shared/passcode_helper': {
-        exports: 'PasscodeHelper'
-    },
     'shared/search_provider': {
       exports: 'SearchProvider'
     },

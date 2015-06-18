@@ -21,9 +21,6 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/lazy_loader': {
         exports: 'LazyLoader'
       },
-      'shared/passcode_helper': {
-        exports: 'PasscodeHelper'
-      },
       'shared/screen_layout': {
         exports: 'ScreenLayout'
       },
