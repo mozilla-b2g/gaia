@@ -34,6 +34,7 @@
     "gulp-shell": "^0.4.1",
     "istanbul": "^0.3.2",
     "jsdoc": "^3.3.2",
+    "jsenvy": "^0.1.2",
     "jshint": "2.7.0",
     "load-grunt-tasks": "0.4.0",
     "mail-fakeservers": "0.0.24",
@@ -85,7 +86,7 @@
   },
 
   "scripts": {
-    "refresh": "npmr install",
-    "marionette": "gaia-marionette"
+    "refresh": "envy npmr install",
+    "marionette": "envy gaia-marionette"
   }
 }
