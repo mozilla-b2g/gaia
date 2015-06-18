@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Contacts, contacts, ActivityHandler, SmsIntegration, LazyLoader,
+/* global Contacts, contacts, ActivityHandler, LazyLoader,
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
           MockContactAllFields, MockContactDetails, MockContactsNfc,
@@ -18,7 +18,6 @@ requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 // requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
-requireApp('communications/contacts/test/unit/mock_sms_integration.js');
 requireApp('communications/contacts/test/unit/mock_contacts_details.js');
 requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
@@ -34,8 +33,7 @@ var mocksForStatusBar = new MocksHelper([
   'ActivityHandler',
   'Cache',
   'DatastoreMigration',
-  'LazyLoader',
-  'SmsIntegration'
+  'LazyLoader'
 ]).init();
 
 if (!window.navigationStack) {
@@ -255,38 +253,6 @@ suite('Contacts', function() {
       Contacts.cancel();
       sinon.assert.called(navigation.back);
       sinon.assert.notCalled(window.ActivityHandler.postCancel);
-    });
-
-    suite('> Send sms', function() {
-      var number = '+445312973212';
-      setup(function() {
-        this.sinon.spy(SmsIntegration, 'sendSms');
-      });
-
-      test('> send sms', function() {
-        Contacts.sendSms(number);
-
-        sinon.assert.calledWith(SmsIntegration.sendSms, number);
-      });
-
-      test('> dont send sms while in an activity', function() {
-        window.ActivityHandler.currentlyHandling = true;
-        Contacts.sendSms(number);
-
-        sinon.assert.notCalled(SmsIntegration.sendSms);
-        window.ActivityHandler.currentlyHandling = false;
-      });
-
-      test('> send the sms if the activity is a OPEN one', function() {
-        window.ActivityHandler.currentlyHandling = true;
-        window.ActivityHandler.activityName = 'open';
-        Contacts.sendSms(number);
-
-        sinon.assert.calledWith(SmsIntegration.sendSms, number);
-
-        window.ActivityHandler.currentlyHandling = false;
-        window.ActivityHandler.activityName = 'view';
-      });
     });
 
     suite('> CancelableActivity', function() {
