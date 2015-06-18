@@ -75,9 +75,7 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     acn1._transitionState = 'closing';
-    var stubSetVisible = this.sinon.stub(app1, 'setVisible');
     acn1.handleEvent({ type: '_closed' });
-    assert.isTrue(stubSetVisible.calledWith(false));
   });
 
   test('Opened notification', function() {
@@ -331,30 +329,26 @@ suite('system/AppTransitionController', function() {
     });
   });
 
-  test('Handle closing', function() {
+  test('Handle closing for attention windows', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
+    var stubSetVisible = this.sinon.stub(app1, 'setVisible');
     acn1.handle_closing();
+    assert.isTrue(stubSetVisible.calledWith(false));
   });
 
   test('Handle closed', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
-    var stubSetVisible = this.sinon.stub(app1, 'setVisible');
     this.sinon.stub(app1, 'setNFCFocus');
     acn1.handle_closed();
-    assert.isTrue(stubSetVisible.calledWith(false));
     assert.isTrue(app1.setNFCFocus.calledWith(false));
   });
 
   test('Do not send to background in closed handler for attention windows',
     function() {
       var app1 = new MockAppWindow(fakeAppConfig1);
-      app1.isAttentionWindow = true;
       var acn1 = new AppTransitionController(app1);
-      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       acn1.handle_closed();
-      assert.isFalse(stubSetVisible.calledWith(false));
-      assert.isFalse(stubSetVisible.called);
     });
 });
