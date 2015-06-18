@@ -1,12 +1,9 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         Draft, Blob,
-         Threads,
-         ConversationView, SMIL,
+         Blob,
+         SMIL,
          InputEvent,
          MessageManager,
-         Navigation,
-         Promise,
          AssetsHelper,
          FocusEvent,
          SubjectComposer,
@@ -19,37 +16,26 @@
 'use strict';
 
 require('/shared/js/event_dispatcher.js');
-require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
 require('/views/conversation/js/compose.js');
 require('/views/shared/js/utils.js');
-require('/services/js/drafts.js');
 
 require('/views/shared/test/unit/mock_attachment.js');
 require('/services/test/unit/mock_message_manager.js');
-require('/services/test/unit/mock_threads.js');
-require('/views/shared/test/unit/mock_navigation.js');
-require('/views/shared/test/unit/mock_recipients.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_utils.js');
 require('/views/shared/test/unit/mock_moz_activity.js');
-require('/views/shared/test/unit/mock_conversation.js');
 require('/views/shared/test/unit/mock_smil.js');
 require('/views/shared/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([
-  'asyncStorage',
   'MessageManager',
-  'Threads',
-  'Navigation',
   'Settings',
-  'Recipients',
   'Utils',
   'MozActivity',
   'Attachment',
-  'ConversationView',
   'SMIL',
   'SubjectComposer',
   'OptionMenu'
@@ -88,11 +74,10 @@ suite('compose_test.js', function() {
     var mimeType = data.mimeType;
     var name = data.name;
 
-    var attachment = new MockAttachment({
+    return new MockAttachment({
       type: mimeType,
       size: size
     }, { name: name });
-    return attachment;
   }
 
   function mockImgAttachment(isOversized) {
@@ -157,8 +142,6 @@ suite('compose_test.js', function() {
   });
 
   setup(function() {
-    Threads.active = undefined;
-
     clock = this.sinon.useFakeTimers();
 
     this.sinon.stub(SubjectComposer.prototype, 'on');
@@ -172,36 +155,12 @@ suite('compose_test.js', function() {
     MockOptionMenu.mTeardown();
   });
 
-  suite('Compose init without recipients', function() {
-    var mockRecipients;
-
-    setup(function() {
-      this.sinon.stub(ConversationView, 'on');
-      loadBodyHTML('/index.html');
-      mockRecipients = ConversationView.recipients;
-      Settings.supportEmailRecipient = true;
-      ConversationView.recipients = null;
-    });
-
-    teardown(function() {
-      ConversationView.recipients = mockRecipients;
-    });
-
-    test('Should be initializable without recipients', function() {
-      assert.ok(Compose.init('messages-compose-form'));
-    });
-  });
-
   suite('Message Composition', function() {
     var message, sendButton, attachButton, form;
 
     setup(function() {
-      this.sinon.stub(ConversationView, 'on');
-
       loadBodyHTML('/index.html');
       // this needs a proper DOM
-      ConversationView.initRecipients();
-      Settings.supportEmailRecipient = true;
       Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
       sendButton = document.getElementById('messages-send-button');
@@ -587,22 +546,22 @@ suite('compose_test.js', function() {
 
       setup(function() {
         Compose.clear();
-        d1 = new Draft({
+        d1 = {
           subject: '...',
           content: ['I am a draft'],
           threadId: 1
-        });
+        };
         attachment = mockAttachment();
-        d2 = new Draft({
+        d2 = {
           content: ['I have an attachment!', attachment],
           threadId: 1
-        });
+        };
 
         this.sinon.stub(SubjectComposer.prototype, 'show');
         this.sinon.stub(SubjectComposer.prototype, 'setValue');
       });
-      teardown(function() {
 
+      teardown(function() {
         Compose.clear();
       });
 
@@ -642,37 +601,6 @@ suite('compose_test.js', function() {
         var txt = Compose.getContent();
         assert.ok(txt, d2.content.join(''));
         assert.ok(txt[1] instanceof Attachment);
-      });
-    });
-
-    suite('Changing content marks draft as edited', function() {
-
-      setup(function() {
-        ConversationView.draft = new Draft({
-          isEdited: false
-        });
-      });
-
-      test('Changing message', function() {
-        Compose.append('Message');
-        assert.isTrue(ConversationView.draft.isEdited);
-      });
-
-      test('Changing subject', function() {
-        SubjectComposer.prototype.on.withArgs('change').yield();
-
-        assert.isTrue(ConversationView.draft.isEdited);
-      });
-
-      test('Hiding or showing subject', function() {
-        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
-
-        assert.isTrue(ConversationView.draft.isEdited);
-      });
-
-      test('Changing attachments', function() {
-        Compose.append(mockAttachment({ size: 12345 }));
-        assert.isTrue(ConversationView.draft.isEdited);
       });
     });
 
@@ -918,6 +846,9 @@ suite('compose_test.js', function() {
 
       teardown(function() {
         Compose.off('type', typeChangeStub);
+
+        // Clear lock
+        Compose.setupLock({});
       });
 
       test('Message switches type when adding attachment but not when clearing',
@@ -950,23 +881,16 @@ suite('compose_test.js', function() {
         assert.equal(Compose.type, 'sms');
       });
 
-      test('Message switches type when there is an e-mail among the recipients',
-      function() {
-        ConversationView.recipients.add({
-          number: 'foo@bar.com',
-          isEmail: true
-        });
+      test('Message switches type when when it is forced by lock', function() {
+        Compose.refresh();
 
-        ConversationView.on.withArgs('recipientschange').yield();
+        sinon.assert.notCalled(typeChangeStub);
+        assert.equal(Compose.type, 'sms');
 
-        sinon.assert.calledOnce(typeChangeStub);
-        assert.equal(Compose.type, 'mms');
-      });
+        Compose.setupLock({ forceType: () => 'mms' });
 
-      test('Message switches type when there is an e-mail among the ' +
-      'participants of the active thread', function() {
-        Threads.active = { participants: ['foo@bar.com'] };
-        Compose.updateType();
+        Compose.refresh();
+
         sinon.assert.calledOnce(typeChangeStub);
         assert.equal(Compose.type, 'mms');
       });
@@ -1131,366 +1055,115 @@ suite('compose_test.js', function() {
     suite('send button management:', function() {
       setup(function() {
         Compose.clear();
-
-        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       });
 
       teardown(function() {
-        Compose.clear();
+        // Clear lock
+        Compose.setupLock({});
       });
 
-      suite('In thread panel, button should be...', function() {
-        setup(function() {
-          Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
-          Compose.clear();
-        });
-
-        test('disabled at the beginning', function() {
-          assert.isTrue(sendButton.disabled);
-        });
-
-        test('enabled when there is message input', function() {
-          Compose.append('Hola');
-          assert.isFalse(sendButton.disabled);
-        });
-
-        test('enabled when there is subject input and is visible', function() {
-          SubjectComposer.prototype.isVisible.returns(true);
-          SubjectComposer.prototype.getValue.returns('test');
-          SubjectComposer.prototype.on.withArgs('visibility-change').yield();
-
-          assert.isFalse(sendButton.disabled);
-        });
-
-        test('disabled when there is subject input, but is hidden', function() {
-          sendButton.disabled = false;
-
-          SubjectComposer.prototype.isVisible.returns(false);
-          SubjectComposer.prototype.getValue.returns('test');
-          SubjectComposer.prototype.on.withArgs('visibility-change').yield();
-
-          assert.isTrue(sendButton.disabled);
-        });
-
-        test('enabled when there is message input, but too many segments',
-        function(done) {
-          var segmentInfo = {
-            segments: 11,
-            charsAvailableInLastSegment: 10
-          };
-          var promise = Promise.resolve(segmentInfo);
-          this.sinon.stub(MessageManager, 'getSegmentInfo').returns(promise);
-
-          Compose.append('Hola');
-
-          promise.then(
-            () => assert.isFalse(sendButton.disabled)
-          ).then(done, done);
-        });
-
-        test('disabled when oversized', function() {
-          Settings.mmsSizeLimitation = 1024;
-          Compose.append(mockAttachment({ size: 512 }));
-          Compose.append('sigh');
-          Compose.append(mockAttachment({ size: 512 }));
-          assert.isTrue(sendButton.disabled);
-        });
+      test('disabled at the beginning', function() {
+        assert.isTrue(sendButton.disabled);
       });
 
-      suite('In composer panel, button should be...', function() {
-        setup(function() {
-          Navigation.isCurrentPanel.withArgs('composer').returns(true);
+      test('disabled when oversized', function() {
+        Settings.mmsSizeLimitation = 1024;
 
-          Compose.clear();
-          ConversationView.recipients.length = 0;
-          ConversationView.recipients.inputValue = '';
-        });
+        Compose.append(mockAttachment({ size: 512 }));
+        assert.isFalse(sendButton.disabled);
 
-        teardown(function() {
-          Compose.clear();
-          ConversationView.recipients.length = 0;
-          ConversationView.recipients.inputValue = '';
-        });
+        Compose.append('sigh');
+        assert.isFalse(sendButton.disabled);
 
-        suite('enabled', function() {
-          setup(function() {
-            // force disabled state to see that this is correctly removed
-            sendButton.disabled = true;
-          });
+        Compose.append(mockAttachment({ size: 512 }));
+        assert.isTrue(sendButton.disabled);
+      });
 
-          suite('when there is message input...', function() {
-            setup(function() {
-              Compose.append('Hola');
-            });
+      test('disabled while resizing image and enabled when resize is completed',
+      function(done) {
+        this.sinon.stub(Utils, 'getResizedImgBlob');
 
-            test('and recipient field value is valid ', function() {
-              ConversationView.recipients.inputValue = '999';
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-
-            test('after adding a valid recipient ', function() {
-              ConversationView.recipients.add({
-                number: '999'
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-
-            test('after adding valid & questionable recipients ', function() {
-              ConversationView.recipients.add({
-                number: 'foo',
-                isQuestionable: true
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              ConversationView.recipients.add({
-                number: '999'
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-          });
-
-          test('when message input size is at the maximum', function() {
-            ConversationView.recipients.add({ number: '999' });
-            Settings.mmsSizeLimitation = 1024;
-
-            Compose.append(mockAttachment({ size: 1024 }));
-
-            assert.isFalse(sendButton.disabled);
-          });
-
-          suite('when there is visible subject with input...', function() {
-            setup(function() {
-              SubjectComposer.prototype.getValue.returns('Title');
-              SubjectComposer.prototype.isVisible.returns(true);
-
-              SubjectComposer.prototype.on.withArgs('visibility-change').
-                yield();
-            });
-
-            test('and recipient field value is valid ', function() {
-              ConversationView.recipients.inputValue = '999';
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-
-            test('after adding a valid recipient ', function() {
-              ConversationView.recipients.add({
-                number: '999'
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-
-            test('after adding valid & questionable recipients ', function() {
-              ConversationView.recipients.add({
-                number: 'foo',
-                isQuestionable: true
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              ConversationView.recipients.add({
-                number: '999'
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-          });
-
-          suite('when a valid recipient exists...', function() {
-            setup(function() {
-              ConversationView.recipients.add({
-                number: '999'
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-            });
-
-            test('after adding message input ', function() {
-              Compose.append('Hola');
-              assert.isFalse(sendButton.disabled);
-            });
-
-            test('after adding subject input', function() {
-              SubjectComposer.prototype.getValue.returns('Title');
-              SubjectComposer.prototype.isVisible.returns(true);
-
-              SubjectComposer.prototype.on.withArgs('visibility-change').
-                yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-
-            test('when message input size is at the maximum', function() {
-              Settings.mmsSizeLimitation = 1024;
-
-              Compose.append(mockAttachment({ size: 1024 }));
-
-              assert.isFalse(sendButton.disabled);
-            });
-          });
-        });
-
-        suite('disabled', function() {
-          test('when there is no message input, subject or recipient',
-            function() {
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('when message is over data limit ', function() {
-            ConversationView.recipients.add({
-              number: '999'
-            });
-
-            Compose.append(mockAttachment({ size: 295*1024 }));
-
-            assert.isFalse(sendButton.disabled);
-            Compose.append('Hola');
-
-            assert.isTrue(sendButton.disabled);
-          });
-
-          suite('when there is message input...', function() {
-            setup(function() {
-              Compose.append('Hola');
-            });
-
-            teardown(function() {
-              Compose.clear();
-            });
-
-            test('there is no recipient ', function() {
-              assert.isTrue(sendButton.disabled);
-            });
-
-            test('recipient field value is questionable ', function() {
-              ConversationView.recipients.inputValue = 'a';
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isTrue(sendButton.disabled);
-            });
-
-            test('after adding a questionable recipient ', function() {
-              ConversationView.recipients.add({
-                number: 'foo',
-                isQuestionable: true
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isFalse(sendButton.disabled);
-            });
-          });
-
-          suite('when there is subject input...', function() {
-            setup(function() {
-              sendButton.disabled = false;
-
-              SubjectComposer.prototype.getValue.returns('Title');
-              SubjectComposer.prototype.on.withArgs('change').yield();
-            });
-
-            teardown(function() {
-              Compose.clear();
-            });
-
-            test('there is no recipient ', function() {
-              assert.isTrue(sendButton.disabled);
-            });
-
-            test('recipient field value is questionable ', function() {
-              ConversationView.recipients.inputValue = 'a';
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isTrue(sendButton.disabled);
-            });
-
-            test('after adding a questionable recipient ', function() {
-              ConversationView.recipients.add({
-                number: 'foo',
-                isQuestionable: true
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isTrue(sendButton.disabled);
-            });
-
-            test('there is recipient, but subject field is hidden', function() {
-              ConversationView.recipients.add({
-                number: '999'
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isTrue(sendButton.disabled);
-            });
-          });
-
-          suite('when a valid recipient exists...', function() {
-            test('there is no message input ', function() {
-
-              ConversationView.recipients.add({
-                number: 'foo'
-              });
-
-              ConversationView.on.withArgs('recipientschange').yield();
-
-              assert.isTrue(sendButton.disabled);
-            });
-          });
-
-          test('oversized message', function() {
-            Settings.mmsSizeLimitation = 1024;
-            Compose.append(mockAttachment({ size: 512 }));
-            Compose.append('sigh');
-            Compose.append(mockAttachment({ size: 512 }));
-            assert.isTrue(sendButton.disabled);
-          });
-        });
-
-        test('disabled while resizing oversized image and ' +
-          'enabled when resize complete ',
-          function(done) {
-
-          this.sinon.stub(Utils, 'getResizedImgBlob');
-
-          ConversationView.recipients.add({
-            number: '999'
-          });
-
-          ConversationView.on.withArgs('recipientschange').yield();
-
-          function onInput() {
-            if (!Compose.isResizing) {
+        Compose.on('input', function onInput() {
+          if (!Compose.isResizing) {
+            done(() => {
               Compose.off('input', onInput);
               assert.isFalse(sendButton.disabled);
-              done();
-            }
+            });
           }
-          Compose.on('input', onInput);
-          Compose.append(mockImgAttachment(true));
-          assert.isTrue(sendButton.disabled);
-          Utils.getResizedImgBlob.yield(smallImageBlob);
         });
+
+        Compose.append(mockImgAttachment(true));
+
+        assert.isTrue(sendButton.disabled);
+
+        Utils.getResizedImgBlob.yield(smallImageBlob);
+      });
+
+      test('disabled if lock does not allow sending', function() {
+        Compose.append('Hola');
+        assert.isFalse(sendButton.disabled);
+
+        Compose.setupLock({ canSend: () => false });
+        Compose.refresh();
+
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('enabled if both lock and Compose allow sending', function() {
+        Compose.setupLock({ canSend: () => true });
+        Compose.refresh();
+
+        assert.isTrue(sendButton.disabled);
+
+        Compose.append('Hola');
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('enabled when there is message input', function() {
+        Compose.append('Hola');
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('enabled when there is subject input and is visible', function() {
+        SubjectComposer.prototype.isVisible.returns(true);
+        SubjectComposer.prototype.getValue.returns('test');
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('disabled when there is subject input, but is hidden', function() {
+        sendButton.disabled = false;
+
+        SubjectComposer.prototype.isVisible.returns(false);
+        SubjectComposer.prototype.getValue.returns('test');
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('enabled when there is message input, but too many segments',
+      function(done) {
+        var segmentInfo = {
+          segments: 11,
+          charsAvailableInLastSegment: 10
+        };
+        var promise = Promise.resolve(segmentInfo);
+        this.sinon.stub(MessageManager, 'getSegmentInfo').returns(promise);
+
+        Compose.append('Hola');
+
+        promise.then(
+          () => assert.isFalse(sendButton.disabled)
+        ).then(done, done);
+      });
+
+      test('enabled when message input size is at the maximum', function() {
+        Settings.mmsSizeLimitation = 1024;
+
+        Compose.append(mockAttachment({ size: 1024 }));
+
+        assert.isFalse(sendButton.disabled);
       });
     });
   });
@@ -2111,22 +1784,154 @@ suite('compose_test.js', function() {
     });
   });
 
-  suite('lock() and unlock()',function() {
-    test('correctly manages state of attachment button', function() {
-      var attachButton = document.getElementById('messages-attach-button');
+  suite('Compose "subject-change" event', function() {
+    var onComposeSubjectChangeStub;
 
-      // Should be enabled at the beginning
-      assert.isFalse(attachButton.disabled);
+    setup(function() {
+      loadBodyHTML('/index.html');
 
-      Compose.lock();
+      onComposeSubjectChangeStub = sinon.stub();
 
-      // Lock should disable attachment button
-      assert.isTrue(attachButton.disabled);
+      Compose.init('messages-compose-form');
+      Compose.once('subject-change', onComposeSubjectChangeStub);
+    });
 
-      Compose.unlock();
+    test('fired when subject content is changed', function() {
+      SubjectComposer.prototype.on.withArgs('change').yield();
 
-      // Unlock should enable attachment button again
-      assert.isFalse(attachButton.disabled);
+      sinon.assert.calledOnce(onComposeSubjectChangeStub);
+    });
+
+    test('fired when subject is shown or hidden', function() {
+      SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
+      sinon.assert.calledOnce(onComposeSubjectChangeStub);
+    });
+  });
+
+  suite('Compose "input" event', function() {
+    var onComposeInputStub;
+
+    setup(function() {
+      loadBodyHTML('/index.html');
+
+      onComposeInputStub = sinon.stub();
+
+      Compose.init('messages-compose-form');
+      Compose.once('input', onComposeInputStub);
+    });
+
+    test('fired when message content is changed', function() {
+      Compose.append('Message');
+
+      sinon.assert.calledOnce(onComposeInputStub);
+    });
+
+    test('fired when attachment is added', function() {
+      Compose.append(mockAttachment({ size: 12345 }));
+
+      sinon.assert.calledOnce(onComposeInputStub);
+    });
+  });
+
+  suite('Add attachment button state',function() {
+    var addAttachmentButton;
+    setup(function() {
+      Settings.mmsSizeLimitation = 1024;
+
+      addAttachmentButton = document.getElementById('messages-attach-button');
+
+      Compose.clear();
+    });
+
+    teardown(function() {
+      Compose.setupLock({});
+    });
+
+    test('disabled only when size exceeds the limit', function() {
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.append(mockAttachment({ size: 512 }));
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.append('sigh');
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.append(mockAttachment({ size: 512 }));
+      assert.isTrue(addAttachmentButton.disabled);
+    });
+
+    test('disabled if lock does not allow editing', function() {
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.append(mockAttachment({ size: 512 }));
+      Compose.append('sigh');
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.setupLock({ canEdit: () => false });
+      Compose.refresh();
+
+      assert.isTrue(addAttachmentButton.disabled);
+    });
+
+    test('disabled if lock allows editing, but Compose does not', function() {
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.append(mockAttachment({ size: 512 }));
+      Compose.append('sigh');
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.setupLock({ canEdit: () => true });
+      Compose.refresh();
+
+      assert.isFalse(addAttachmentButton.disabled);
+
+      Compose.append(mockAttachment({ size: 512 }));
+      assert.isTrue(addAttachmentButton.disabled);
+    });
+  });
+
+  suite('Compose "refresh" method', function() {
+    var sendButton, addAttachmentButton;
+    setup(function() {
+      sendButton = document.getElementById('messages-send-button');
+      addAttachmentButton = document.getElementById('messages-attach-button');
+
+      Compose.clear();
+    });
+
+    teardown(function() {
+      Compose.setupLock({});
+    });
+
+    test('updates type and state of the buttons', function() {
+      Compose.append('Hey');
+
+      assert.isFalse(sendButton.disabled);
+      assert.isFalse(addAttachmentButton.disabled);
+      assert.equal(Compose.type, 'sms');
+
+      Compose.setupLock({
+        canSend: () => false,
+        canEdit: () => false,
+        forceType: () => 'mms'
+      });
+      Compose.refresh();
+
+      assert.isTrue(sendButton.disabled);
+      assert.isTrue(addAttachmentButton.disabled);
+      assert.equal(Compose.type, 'mms');
+
+      Compose.setupLock({
+        canSend: () => true,
+        canEdit: () => true,
+        forceType: () => 'sms'
+      });
+      Compose.refresh();
+
+      assert.isFalse(sendButton.disabled);
+      assert.isFalse(addAttachmentButton.disabled);
+      assert.equal(Compose.type, 'sms');
     });
   });
 });

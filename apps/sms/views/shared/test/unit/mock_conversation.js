@@ -38,7 +38,7 @@ var MockConversationView = {
   once: () => {},
   initSentAudio: function() {},
   getIdIterator: function() {},
-  messageComposerInputHandler: function() {},
+  onMessageContentChange: function() {},
   assimilateRecipients: function() {},
   resizeHandler: function() {},
   requestContact: function() {},
