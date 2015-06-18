@@ -83,8 +83,10 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
       }
       req.onsuccess = function () {
         var apps = req.result;
+        var atLeastOneEligibleApp = false;
         apps.forEach(function (app) {
           if (_this.isEligible(app)) {
+            atLeastOneEligibleApp = true;
             var item = document.createElement("li");
             var icon = _this.getIconUrl(app.manifest, app.origin);
             item.classList.add("item");
@@ -94,6 +96,14 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
             item.addEventListener("click", _this.showForm.bind(_this, app));
           }
         });
+
+        // Inform user if we did not find any uploadable apps.
+        if (!atLeastOneEligibleApp) {
+          var item = document.createElement("li");
+          item.textContent = "No apps or addons to upload.";
+          _this.list.appendChild(item);
+          return;
+        }
       };
       req.onerror = function (e) {
         console.log("Unable to fetch installed apps.", e);

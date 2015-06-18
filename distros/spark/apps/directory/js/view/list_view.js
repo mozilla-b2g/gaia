@@ -76,14 +76,14 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-list/gaia-li
       IconHelper.setImage(item.querySelector(".icon"), data.icon);
       this.el.appendChild(item);
 
-      item.addEventListener("click", function (data, evt) {
+      item.addEventListener("click", function (manifestURL, evt) {
         if (evt.target.classList.contains("install-button")) {
           return;
         }
         this.detailsHandlers.forEach(function (handler) {
-          handler(data);
+          handler(manifestURL);
         });
-      }.bind(this, data));
+      }.bind(this, data.manifestURL));
 
       item.querySelector(".install-button").addEventListener("click", function (data) {
         this.installHandlers.forEach(function (handler) {

@@ -8,6 +8,7 @@ body {
 
   --header-height: 50px;
   --tabs-height: 45px;
+  --offline-height: 78px;
   --slide-transition: transform 0.2s ease;
 }
 
@@ -45,8 +46,12 @@ gaia-header #upload-link {
   overflow: scroll !important;
 }
 
-.install-list > .item {
-  height: 66px;
+body:not(.online) .install-list:not(.info-list) {
+  height: calc(95vh - var(--header-height) - var(--tabs-height) - var(--offline-height));
+}
+
+.install-list .description {
+  overflow: hidden;
 }
 
 .install-list .icon {
@@ -59,12 +64,18 @@ gaia-header #upload-link {
   margin: 0;
   font-size: 19px !important;
   color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .author {
   margin: 0;
   font-size: 15px !important;
   color: var(--title-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .install-list {
@@ -78,7 +89,7 @@ gaia-header #upload-link {
 .install-list .install-button {
   font-size: 12px !important;
   height: 30px !important;
-  min-width: 75px !important;
+  min-width: 70px !important;
   padding: 0 !important;
   margin: 0 !important;
   --button-color: var(--title-color);
@@ -102,6 +113,7 @@ gaia-header #upload-link {
   font-style: italic;
   color: var(--title-color);
   display: none;
+  padding: 0 9px;
 }
 
 .install-list .addon.installed .install-info {
@@ -127,7 +139,7 @@ gaia-header #upload-link {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 2;
+  z-index: 3;
   background-color: var(--background);
   color: var(--text-color);
   --header-icon-color: var(--text-color);
@@ -191,4 +203,14 @@ gaia-list.info-list {
 #upload-buttons gaia-button {
   width: 45% !important;
   display: inline !important;
+}
+
+#offline-container {
+  --text-color: white;
+  height: var(--offline-height);
+  background: #F0AD4E;
+}
+
+body.online #offline-container {
+  display: none !important;
 }

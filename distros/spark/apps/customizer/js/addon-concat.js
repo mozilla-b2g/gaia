@@ -6038,11 +6038,15 @@ var MainController = (function (Controller) {
   var MainController = function MainController(options) {
     Controller.call(this, options);
 
-    this._checkOpenFromLauncher();
     this._waitToBeOpened();
 
     this._visibilitychangeHandler = this._visibilitychangeHandler.bind(this);
     window.addEventListener("visibilitychange", this._visibilitychangeHandler);
+
+    // Wait 1 second before checking with Customizer Launcher to
+    // prevent the Customizer DOM from getting wiped out by the
+    // app initialization.
+    setTimeout(this._checkOpenFromLauncher.bind(this), 1000);
 
     console.log("[Customizer] Initialized MainController", this);
   };

@@ -1,0 +1,60 @@
+{
+    "http://fxos.github.io/camera/dist/app/manifest.webapp": {
+      "manifestURL": "http://fxos.github.io/camera/dist/app/manifest.webapp",
+      "name": "camera",
+      "description": "Take pictures and stuff.",
+      "author": "Justin D'Arcangelo",
+      "type": "hosted",
+      "url": "https://github.com/fxos/camera",
+      "revision": "8b5a7d9061a0d0210f24ff253110a8ce935104ca"
+    },
+    "http://fxos.github.io/dialer/dist/app/manifest.webapp": {
+      "manifestURL": "http://fxos.github.io/dialer/dist/app/manifest.webapp",
+      "name": "dialer",
+      "description": "A replacement for the built-in dialer app.",
+      "author": "Doug Sherk",
+      "type": "hosted",
+      "url": "https://github.com/fxos/dialer",
+      "revision": "835af6ccf608a51bc87711d1c40fc4f33a1fc12b"
+    },
+    "http://mikehenrty.github.io/fxos-magnifier/manifest.webapp": {
+      "manifestURL": "http://mikehenrty.github.io/fxos-magnifier/manifest.webapp",
+      "name": "magnifier",
+      "description": "Tap three times and hold to magnify the screen.",
+      "icon": "http://mikehenrty.github.io/fxos-magnifier/style/icons/60.png",
+      "author": "David Flanagan",
+      "type": "addon",
+      "url": "https://github.com/mikehenrty/fxos-magnifier",
+      "revision": "262d9e1cbae2d267009294ebeb045da4e4920eb4"
+    },
+    "https://callahad.github.io/fxos-tabswitcher-addon/src/manifest.webapp": {
+      "manifestURL": "https://callahad.github.io/fxos-tabswitcher-addon/src/manifest.webapp",
+      "name": "Tab Switcher Shortcut",
+      "description": "Adds a button to the browser that immediately opens the tab switcher",
+      "icon": "https://callahad.github.io/fxos-tabswitcher-addon/src/icon-128x128.png",
+      "author": "Dan Callahan",
+      "type": "addon",
+      "url": "https://github.com/callahad/fxos-tabswitcher-addon",
+      "revision": "7096c0545980e250ee5be505b746421ffb9b19ce"
+    },
+    "http://mikehenrty.github.io/fxos-cracked/manifest.webapp": {
+      "manifestURL": "http://mikehenrty.github.io/fxos-cracked/manifest.webapp",
+      "name": "cracked",
+      "description": "A virtual cracked screen for your FirefoxOS device.",
+      "icon": "http://mikehenrty.github.io/fxos-cracked/style/icons/128.png",
+      "author": "David Flanagan",
+      "type": "addon",
+      "url": "https://github.com/mikehenrty/fxos-cracked",
+      "revision": "16016c86f464c23e0465b22d43c08f52c1cc7349"
+    },
+    "https://callahad.github.io/disconnected-ensemble-src/src/manifest.webapp": {
+      "manifestURL": "https://callahad.github.io/disconnected-ensemble-src/src/manifest.webapp",
+      "name": "disconnected ensemble",
+      "description": "An app for Firefox OS that lets you share a number of musical toys that can run in your friends' devices, served from your phone, either by typing in the IP address of the phone server, or by bumping NFC devices together.",
+      "icon": "https://callahad.github.io/disconnected-ensemble-src/src/img/icons/icon128x128.png",
+      "author": "soledad penadés",
+      "type": "packaged",
+      "url": "https://github.com/callahad/disconnected-ensemble-src",
+      "revision": "94ad2d961aa5a902fe8150b280a38f48d84607eb"
+    }
+}

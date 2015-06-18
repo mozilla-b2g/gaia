@@ -20,6 +20,9 @@
     },
     "desktop-notification": {
       "description": "For sending achievements notifications to Gaia::System"
+    },
+    "systemXHR": {
+      "description": "For requesting the remote app list"
     }
   },
   "icons": {
