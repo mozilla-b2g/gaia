@@ -430,6 +430,21 @@
     "dictFilePath": "dictionaries/fr.dict"
   },
   {
+    "id": "fy",
+    "name": "Frysk",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 2813460,
+    "preloaded": false,
+    "dictFilename": "fy.dict",
+    "dictFilePath": "dictionaries/fy.dict"
+  },
+  {
     "id": "ga",
     "name": "Gaeilge",
     "imEngineId": "latin",
