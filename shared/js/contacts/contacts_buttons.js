@@ -103,7 +103,7 @@ var ContactsButtons = {
     if (!contact.tel) {
       return;
     }
-    var telLength = Contacts.getLength(contact.tel);
+    var telLength = this._getLength(contact.tel);
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var typeKey = currentTel.type;
@@ -149,7 +149,7 @@ var ContactsButtons = {
     if (!contact.email) {
       return;
     }
-    var emailLength = Contacts.getLength(contact.email);
+    var emailLength = this._getLength(contact.email);
     for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
       var escapedType = Normalizer.escapeHTML(currentEmail.type, true);
@@ -191,6 +191,13 @@ var ContactsButtons = {
     for (var i = 0; i < elements.length; i++) {
       elements[i].classList.add(remarkClass);
     }
+  },
+
+  _getLength: function(prop) {
+    if (!prop || !prop.length) {
+      return 0;
+    }
+    return prop.length;
   }
 };
 
