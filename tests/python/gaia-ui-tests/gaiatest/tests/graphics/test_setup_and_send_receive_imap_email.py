@@ -38,10 +38,7 @@ class TestSetupAndSendIMAPEmail(GaiaImageCompareTestCase):
         # take picture of the menu
         Wait(self.marionette).until(lambda m: self.email.header.is_menu_visible)
         self.email.wait_for_emails_to_sync()
-        self.email.header.tap_menu()
-        self.take_screenshot()
-        self.email.header.tap_menu()
-
+        
         _subject = 'Testing Images'
         _body = 'The quick brown fox jumps over the lazy dog ~!@#$#%^&*)(_+ <>?,./:";[]{}\\'
         Wait(self.marionette).until(lambda m: self.email.header.is_compose_visible)
