@@ -168,7 +168,7 @@ define(function(require) {
      * @access public
      * @memberOf ApnSettings.prototype
      * @params {Number} serviceId
-     * @returns {Promise Array}
+     * @returns {Promise.<Array>}
      */
     getAll: function as_getAll(serviceId) {
       return this._ready().then(function() {
@@ -183,7 +183,7 @@ define(function(require) {
      * @memberOf ApnSettings.prototype
      * @params {Number} serviceId
      * @params {String} apnType
-     * @returns {Promise Object}
+     * @returns {Promise.<Object>}
      */
     get: function as_get(serviceId, apnType) {
       return this._ready().then(function() {

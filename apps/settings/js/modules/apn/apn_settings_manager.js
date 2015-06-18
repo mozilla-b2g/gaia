@@ -103,7 +103,7 @@ define(function(require) {
      *
      * @param {Number} serviceId
      * @param {String} apnType
-     * @returns {Promise String}
+     * @returns {Promise.<String>}
      */
     _deriveActiveApnIdFromItems: function asc_fromItems(serviceId, apnType) {
       return this._apnItems(serviceId, apnType).then(function(apnItems) {
@@ -121,7 +121,7 @@ define(function(require) {
      *
      * @param {Number} serviceId
      * @param {String} apnType
-     * @returns {Promise String}
+     * @returns {Promise.<String>}
      */
     _deriveActiveApnIdFromSettings:
       function asc_deriveFromSettings(serviceId, apnType) {
@@ -158,7 +158,7 @@ define(function(require) {
      * @param {Number} serviceId
      * @param {String} apnId
      *                 id of the apn being checked.
-     * @returns {Promise String}
+     * @returns {Promise.<String>}
      */
     _getApnAppliedType: function asc_getApnAppliedType(serviceId, apnId) {
       return this._apnSelections.get(serviceId).then(function(apnSelection) {
@@ -214,7 +214,7 @@ define(function(require) {
      * @memberOf ApnSettingsManager.prototype
      * @param {Number} serviceId
      * @param {String} apnType
-     * @returns {Promise Array<ApnItem>} The apn items.
+     * @returns {Promise.<Array.<ApnItem>>} The apn items.
      */
     _apnItems: function asc_apnItems(serviceId, apnType) {
       return this._ready(serviceId).then(() => {
@@ -235,7 +235,7 @@ define(function(require) {
      *                        The function use this to restore the apn items.
      * @param {ApnItem.APN_CATEGORY} category
      *                               The category of the items to be resotred.
-     * @returns {Promise Array<String>} The id of the restored apn items.
+     * @returns {Promise.<Array.<String>>} The id of the restored apn items.
      */
     _restoreApnItemsOfCategory:
       function asc_restoreApnItems(apnList, apnsForRestoring, category) {
@@ -330,7 +330,7 @@ define(function(require) {
      * @memberOf ApnSettingsManager.prototype
      * @param {Number} serviceId
      * @param {String} apnType
-     * @returns {Promise Array<ApnItem>} The apn items
+     * @returns {Promise.<Array.<ApnItem>>} The apn items
      */
     queryApns: function asc_queryApns(serviceId, apnType) {
       return this.getActiveApnId(serviceId, apnType)
@@ -418,7 +418,7 @@ define(function(require) {
      * @memberOf ApnSettingsManager.prototype
      * @param {Number} serviceId
      * @param {String} apnType
-     * @returns {Promise String}
+     * @returns {Promise.<String>}
      */
     getActiveApnId: function asc_getActiveApnId(serviceId, apnType) {
       var that = this;

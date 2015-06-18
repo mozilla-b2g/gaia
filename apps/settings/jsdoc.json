@@ -4,18 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/settings/README.md", "apps/settings/js"],
-    "exclude": ["apps/settings/js/modules/addon_manager.js",
-                "apps/settings/js/panels/app_permissions_detail/app_permissions_detail.js",
-                "apps/settings/js/modules/apn/apn_list.js",
-                "apps/settings/js/modules/apn/apn_selections.js",
-                "apps/settings/js/modules/apn/apn_settings.js",
-                "apps/settings/js/modules/apn/apn_settings_manager.js",
-                "apps/settings/js/panels/call_barring/call_barring.js",
-                "apps/settings/js/panels/call_barring_passcode_change/call_barring_passcode_change.js",
-                "apps/settings/js/modules/fdn_context.js",
-                "apps/settings/js/panels/operator_settings/models/operator_manager.js",
-                "apps/settings/js/startup.js"]
+    "include": ["apps/settings/README.md", "apps/settings/js"]
   },
   "plugins": [
     "plugins/markdown",

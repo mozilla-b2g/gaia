@@ -369,7 +369,7 @@
      *
      * @access private
      * @memberOf AppStarter.prototype
-     * @returns {Promise String}
+     * @returns {Promise.<String>}
      */
     _getInitialPanelId: function as_getInitialPanelId() {
       return new Promise(function(resolve) {

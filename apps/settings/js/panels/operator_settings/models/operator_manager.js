@@ -142,7 +142,8 @@ define(function(require) {
 
     this.debug('search');
     this._searching = true;
-    return this._connWrapper.search().then((networks = []) => {
+    return this._connWrapper.search().then((networks) => {
+      networks = networks || [];
       var operators = networks.map((network) => OperatorItem(network));
       operators.forEach((operator) => {
         if (operator.network.state === OperatorItem.STATE.CONNECTED) {

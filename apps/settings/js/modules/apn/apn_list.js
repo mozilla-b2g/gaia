@@ -96,7 +96,7 @@ define(function(require) {
      * @memberOf ApnList.prototype
      * @params {Object} apn
      * @params {ApnItem.APN_CATEGORY} category
-     * @returns {Promise String} The apn id
+     * @returns {Promise.<String>} The apn id
      */
     _add: function al__add(apn, category) {
       return this.items().then(function(apnItems) {
@@ -177,7 +177,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf ApnList.prototype
-     * @returns {Promise Array<ApnItem>}
+     * @returns {Promise.<Array.<ApnItem>>}
      */
     items: function al_items() {
       // Because add/remove/update depend on this function so we should not
@@ -204,7 +204,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf ApnList.prototype
-     * @returns {Promise ApnItem}
+     * @returns {Promise.<ApnItem>}
      */
     item: function al_item(id) {
       // Return the apn item based on the current copy if apn items.
@@ -225,7 +225,7 @@ define(function(require) {
      * @memberOf ApnList.prototype
      * @params {Object} apn
      * @params {ApnItem.APN_CATEGORY} category
-     * @returns {Promise String} The apn id
+     * @returns {Promise.<String>} The apn id
      */
     add: function al_apns(apn, category) {
       var apnClone = ApnUtils.clone(apn);
