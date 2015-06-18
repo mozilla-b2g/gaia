@@ -711,28 +711,11 @@ endif
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha node_modules/.bin/eslint
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
-NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
-# modules.tar and git-gaia-node-modules are the possible values for
-# $(NODE_MODULES_SRC). See the node_modules target.
-modules.tar: gaia_node_modules.revision $(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)
-	-cp -f "$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV)" "$(NODE_MODULES_SRC)"
-
-$(NODE_MODULES_CACHEDIR)/$(NODE_MODULES_REV): gaia_node_modules.revision
-	@echo Downloading latest node_modules package. This may take several minutes...
-	mkdir -p "$(NODE_MODULES_CACHEDIR)"
-	-cd "$(NODE_MODULES_CACHEDIR)" && $(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
-
 gaia.zip: $(DEFAULT_KEYBOAD_SYMBOLS_FONT) $(DEFAULT_GAIA_ICONS_FONT) $(PROFILE_FOLDER)
 	@mkdir -p tmp/gaia tmp/gonk/system/fonts/hidden && cp -r $(PROFILE_FOLDER) tmp/gaia && \
 	 cp $(DEFAULT_GAIA_ICONS_FONT) tmp/gonk/system/fonts/hidden && \
 	 cp $(DEFAULT_KEYBOAD_SYMBOLS_FONT) tmp/gonk/system/fonts/hidden
 	@cd tmp/ && zip -r -9 -u ../gaia.zip . && cd ../ && rm -r tmp/
-
-git-gaia-node-modules: gaia_node_modules.revision
-	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
-		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
-	fi
-	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 
 # npm-cache target is run when our node modules source is set to npm-cache
 # which is a pre-built set of node modules for the current platform +
@@ -778,7 +761,7 @@ ifndef APPS
 endif
 
 b2g: node_modules
-	DEBUG=* ./node_modules/.bin/mozilla-download \
+	DEBUG=* npm run mozilla-download \
 	--product b2g-desktop \
 	--branch mozilla-central \
 	$(shell pwd)

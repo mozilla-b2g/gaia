@@ -24,6 +24,7 @@
     "ecstatic": "0.5.4",
     "ejs": "0.8.4",
     "empty-port": "~0.0.1",
+    "envy": "^0.1.2",
     "es6-promise": "2.0.1",
     "eslint": "0.21.2",
     "eslint-plugin-no-unsafe-innerhtml": "0.1.5",
@@ -85,7 +86,8 @@
   },
 
   "scripts": {
-    "refresh": "npmr install",
-    "marionette": "gaia-marionette"
+    "mozilla-download": "envy mozilla-download",
+    "refresh": "envy npmr install",
+    "marionette": "envy gaia-marionette"
   }
 }
