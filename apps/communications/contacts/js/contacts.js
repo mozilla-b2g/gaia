@@ -398,13 +398,6 @@ var Contacts = (function() {
     });
   };
 
-  var getLength = function getLength(prop) {
-    if (!prop || !prop.length) {
-      return 0;
-    }
-    return prop.length;
-  };
-
   var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling ||
         ActivityHandler.currentActivityIs(['open'])) {
@@ -929,7 +922,6 @@ var Contacts = (function() {
     'sendSms': sendSms,
     'sendEmailOrPick': sendEmailOrPick,
     'checkCancelableActivity': checkCancelableActivity,
-    'getLength': getLength,
     'showForm': showForm,
     'setCurrent': setCurrent,
     'onLocalized': onLocalized,

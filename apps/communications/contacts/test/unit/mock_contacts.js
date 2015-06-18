@@ -10,9 +10,6 @@ loadAsyncScriptsDeferred.promise = new Promise((resolve) => {
 });
 
 var MockContacts = {
-  getLength: function(prop) {
-    return prop.length;
-  },
   isEmpty: function(prop) {
     return false;
   },
