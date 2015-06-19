@@ -45,6 +45,11 @@ class Email(Base):
         # check if the google autocomplete on email field works as expected
         assert google_login.email == email
 
+        # dismiss the keyboard and return to the correct frame
+        google_login.keyboard.dismiss()
+        google_login.switch_to_frame()
+
+        google_login.tap_next()
         google_login.type_password(password)
         google_login.tap_sign_in()
 
