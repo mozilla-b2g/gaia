@@ -151,7 +151,7 @@
     var cardStripWidth = (cardWidth * length) +
                          (this.CARD_GUTTER * (length - 1));
     var contentWidth = margins +
-                       Math.max(1 + cardWidth, cardStripWidth);
+                       Math.max(cardWidth, cardStripWidth);
     this.cardsList.style.width = contentWidth + 'px';
   };
 

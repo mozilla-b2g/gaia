@@ -5,8 +5,7 @@
   left: 0;
   width: 100%;
   overflow-x: auto;
-  /* clip the horizontal scrollbar */
-  height: calc(100% + 1.5rem);
+  height: 100%;
   overflow-y: hidden;
   -moz-user-select: none;
   background-color: rgb(51, 51, 51);
@@ -20,9 +19,8 @@
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #cards-view {
-    /* clip the horizontal scrollbar */
-    height: calc(1.5rem + 100% - var(--software-home-button-height));
-    bottom: calc(var(--software-home-button-height) - 1.5rem);
+    height: calc(100% - var(--software-home-button-height));
+    bottom: var(--software-home-button-height);
   }
 }
 
@@ -33,17 +31,17 @@
 
 #screen.software-button-enabled #cards-view {
   /* clip the horizontal scrollbar */
-  height: calc(1.5rem + 100% - var(--software-home-button-height));
-  bottom: calc(var(--software-home-button-height) - 1.5rem);
+  height: calc(100% - var(--software-home-button-height));
+  bottom: var(--software-home-button-height);
 }
 
 @media (orientation:landscape) {
   /* not currently in use, see bug 1174325 */
   #screen.software-button-enabled #cards-view {
     height: 100%;
-    width: calc(1.5rem + 100% - var(--software-home-button-height));
+    width: calc(100% - var(--software-home-button-height));
     bottom: 0;
-    right: calc(var(--software-home-button-height) - 1.5rem);
+    right: var(--software-home-button-height);
   }
 }
 
