@@ -16,8 +16,8 @@
 
     _handle_holdcamera: function(event) {
       // Avoid triggering the Camera app multiple times if the lockscreen is
-      // locked
-      if (Service.query('locked')) {
+      // locked, and prevent bailing during FTU
+      if (Service.query('locked') || Service.query('isFtuRunning')) {
         return;
       }
 
