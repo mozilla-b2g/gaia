@@ -163,7 +163,7 @@ var UIManager = {
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
-    this.dataConnectionSwitch.addEventListener('click', this);
+    this.dataConnectionSwitch.addEventListener('change', this);
 
     this.wifiRefreshButton.addEventListener('click', this);
     this.wifiJoinButton.addEventListener('click', this);
