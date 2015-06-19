@@ -638,11 +638,7 @@ contacts.Form = (function() {
         contacts.Search.removeContact(contact.id);
         contacts.Search.exitSearchMode();
       }
-      // As we jump back to the list, stop listening for NFC and
-      // prevent sharing contacts from the contact list.
-      if ('mozNfc' in navigator && contacts.NFC) {
-        contacts.NFC.stopListening();
-      }
+
       MainNavigation.home();
     };
 
@@ -1007,9 +1003,10 @@ contacts.Form = (function() {
     // Deleting auxiliary objects created for dates
     delete contact.date;
 
-    // When we add new contact, it has no id at the beginning. We have one, if
-    // we edit current contact. We will use this information below.
-    var isNew = contact.id !== 'undefined';
+    // When we're adding new contact, it shouldn't have id at the beginning.
+    // If We have one, means we are editing the current contact.
+    // We will use this information below.
+    var editingContact = contact.id !== 'undefined';
 
     ContactsService.save(
       utils.misc.toMozContact(contact),
@@ -1028,11 +1025,12 @@ contacts.Form = (function() {
           Contacts.cancel();
         }
 
-        // Since editing current contact returns to the details view, and adding
-        // the new one to the contacts list, we call setCurrent() only in the
-        // first case, so NFC listeners are not set on the Contact List
+        // Since editing current contact returns to the details view,
+        // and adding a new one returns to the contacts list,
+        // we call setCurrent() only in the first case,
+        // so NFC listeners are not set on the Contact List
         // (Bug 1041455).
-        if (isNew) {
+        if (editingContact) {
           Contacts.setCurrent(contact);
         }
       }

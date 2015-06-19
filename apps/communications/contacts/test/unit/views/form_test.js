@@ -10,7 +10,6 @@
 /* global MocksHelper */
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
-/* global MockMozNfc */
 /* global Matcher */
 /* global utils */
 /* exported _ */
@@ -22,7 +21,6 @@ require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
-require('/shared/test/unit/mocks/mock_moz_nfc.js');
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 requireApp('communications/contacts/js/contacts_tag.js');
@@ -47,8 +45,7 @@ var subject,
     realThumbnailImage,
     mockContact,
     footer,
-    ActivityHandler,
-    realMozNfc;
+    ActivityHandler;
 
 var MOCK_DATE_STRING = 'Jan 1 1970';
 var MOCK_DATE_PLACEHOLDER = 'Date';
@@ -93,10 +90,6 @@ var mocksForm = new MocksHelper([
 suite('Render contact form', function() {
 
   suiteSetup(function() {
-    realMozNfc = window.navigator.mozNfc;
-    window.navigator.mozNfc = MockMozNfc;
-
-    requireApp('communications/contacts/js/nfc.js');
 
     mocksForm.suiteSetup();
 
@@ -121,8 +114,6 @@ suite('Render contact form', function() {
     window.fb = realFb;
     utils.thumbnailImage = realThumbnailImage;
     navigator.mozL10n = realL10n;
-
-    window.navigator.mozNfc = realMozNfc;
 
     mocksForm.suiteTeardown();
 
@@ -909,52 +900,6 @@ suite('Render contact form', function() {
       });
 
       ConfirmDialog.executeYes();
-    });
-  });
-
-  suite('> NFC use cases', function() {
-    var deleteButton;
-    var realMozContacts;
-
-    suiteSetup(function() {
-      deleteButton = document.querySelector('#delete-contact');
-
-      realMozContacts = navigator.mozContacts;
-      navigator.mozContacts = new MockMozContactsObj([]);
-    });
-
-    suiteTeardown(function() {
-      navigator.mozContacts = realMozContacts;
-    });
-
-    setup(function() {
-      this.sinon.spy(contacts.NFC, 'stopListening');
-
-      deleteButton.click();
-
-      this.sinon.stub(window.navigator.mozContacts,
-        'remove', function() {
-        return {
-          set onsuccess(cb) {
-            cb();
-          }
-        };
-      });
-
-    });
-
-    test('> delete contact with NFC disabled does nothing', function() {
-      // Fake remove the mozNFC support
-      var nfcSupport = navigator.mozNfc;
-      delete navigator.mozNfc;
-      ConfirmDialog.executeYes();
-      sinon.assert.notCalled(contacts.NFC.stopListening);
-      navigator.mozNfc = nfcSupport;
-    });
-
-    test('> delete a contact with NFC should stop NFC listening', function() {
-      ConfirmDialog.executeYes();
-      sinon.assert.calledOnce(contacts.NFC.stopListening);
     });
   });
 

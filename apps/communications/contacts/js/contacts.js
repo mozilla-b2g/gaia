@@ -89,11 +89,6 @@ var Contacts = (function() {
             ContactsService.get(id, function onSuccess(savedContact) {
               currentContact = savedContact;
 
-              // Enable NFC listening is available
-              if ('mozNfc' in navigator) {
-                contacts.NFC.startListening(currentContact);
-              }
-
               contactsDetails.render(currentContact);
 
               MainNavigation.go(sectionId, 'right-left');
@@ -255,11 +250,6 @@ var Contacts = (function() {
     initDetails(function onDetailsReady() {
       ContactsService.get(id, function findCb(contact, fbContact) {
 
-        // Enable NFC listening is available
-        if ('mozNfc' in navigator) {
-          contacts.NFC.startListening(contact);
-        }
-
         currentContact = contact;
         currentFbContact = fbContact;
 
@@ -326,7 +316,13 @@ var Contacts = (function() {
       ActivityHandler.postCancel();
       MainNavigation.home();
     } else {
-      handleBack();
+      handleBack(function() {
+        // TODO: remove all interaction with detail.js when it works
+        // as an independent view
+        if (MainNavigation.currentView() === 'view-contact-details') {
+          contactsDetails.startNFC(currentContact);
+        }
+      });
     }
   };
 
@@ -445,9 +441,6 @@ var Contacts = (function() {
 
   var setCurrent = function c_setCurrent(contact) {
     currentContact = contact;
-    if ('mozNfc' in navigator && contacts.NFC) {
-      contacts.NFC.startListening(contact);
-    }
 
     if (contacts.Details) {
       contacts.Details.setContact(contact);
@@ -544,11 +537,6 @@ var Contacts = (function() {
       '/shared/js/confirm.js',
       document.getElementById('confirmation-message')
     ];
-
-    // Lazyload nfc.js if NFC is available
-    if ('mozNfc' in navigator) {
-      lazyLoadFiles.push('/contacts/js/nfc.js');
-    }
 
     LazyLoader.load(lazyLoadFiles, function() {
       loadAsyncScriptsDeferred.resolve();

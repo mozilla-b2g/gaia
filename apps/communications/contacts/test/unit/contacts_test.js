@@ -3,7 +3,7 @@
 /* global Contacts, contacts, ActivityHandler, LazyLoader,
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
-          MockContactAllFields, MockContactDetails, MockContactsNfc,
+          MockContactAllFields, MockContactDetails,
           MockContactsSearch, MockContactsSettings, Mockfb,
           MockImportStatusData, MockMozContacts, ContactsService, HeaderUI
 */
@@ -19,7 +19,6 @@ requireApp('communications/contacts/test/unit/mock_navigation.js');
 // requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_contacts_details.js');
-requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
@@ -86,7 +85,6 @@ suite('Contacts', function() {
     window.contacts = {};
     window.contacts.List = MockContactsListObj;
     window.contacts.Details = MockContactDetails;
-    window.contacts.NFC = MockContactsNfc;
     window.contacts.Search = MockContactsSearch;
     window.contacts.Settings = MockContactsSettings;
 
@@ -312,7 +310,6 @@ suite('Contacts', function() {
         cb(theSelectedContact, null);
       });
 
-      this.sinon.spy(window.contacts.NFC, 'startListening');
       this.sinon.spy(ActivityHandler, 'dataPickHandler');
       this.sinon.spy(contacts.Details, 'render');
       this.sinon.spy(navigation, 'go');
@@ -328,20 +325,6 @@ suite('Contacts', function() {
        'view-contact-details', 'go-deeper');
       sinon.assert.notCalled(ActivityHandler.dataPickHandler);
 
-    });
-
-    test('> when nfc enabled we need to listen to it', function() {
-      var oldNFC = navigator.mozNfc;
-      navigator.mozNfc = true;
-
-      Contacts.showContactDetail('1');
-      sinon.assert.called(window.contacts.NFC.startListening);
-      sinon.assert.called(contacts.Details.render);
-      sinon.assert.calledWith(navigation.go,
-       'view-contact-details', 'go-deeper');
-      sinon.assert.notCalled(ActivityHandler.dataPickHandler);
-
-      navigator.mozNfc = oldNFC;
     });
 
     test('> when handling pick activity, don\'t navigate, send result',
@@ -416,15 +399,7 @@ suite('Contacts', function() {
         assert.isNotNull(handler);
       });
     });
-    test('> loading scripts with nfc enabled', function() {
-      var oldNFC = navigator.mozNfc;
-      navigator.mozNfc = true;
-      Contacts.onLocalized().then(() => {
-        assert.isNotNull(handler);
-        assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
-        navigator.mozNfc = oldNFC;
-      });
-    });
+
     test('> loading scripts while handling an open activity',
      function() {
       ActivityHandler.currentlyHandling = true;
@@ -480,7 +455,6 @@ suite('Contacts', function() {
           delete document.hidden;
         }
       });
-
     });
   });
 });
