@@ -6,6 +6,9 @@ var performanceParser = require('../parsers/performance');
 var debug = require('debug')('raptor:reboot');
 var noop = function() {};
 
+var VERTICAL_CONTEXT = 'verticalhome.gaiamobile.org';
+var SYSTEM_CONTEXT = 'system.gaiamobile.org';
+
 /**
  * Create a suite runner which achieves a ready state when the device has been
  * rebooted
@@ -66,6 +69,8 @@ Reboot.prototype.reboot = function() {
  */
 Reboot.prototype.testRun = function() {
   var runner = this;
+  var homescreenFullyLoaded = false;
+  var systemFullyLoaded = false;
 
   return new Promise(function(resolve) {
     var start = Date.now();
@@ -87,16 +92,20 @@ Reboot.prototype.testRun = function() {
           debug('Received performance entry `%s` for %s',
             entry.name, entry.context);
 
-          if (entry.context !== 'system.gaiamobile.org') {
+          if (entry.name !== 'fullyLoaded') {
             return;
           }
 
-          if (entry.name !== 'osLogoEnd') {
-            return;
+          if (entry.context === VERTICAL_CONTEXT) {
+            homescreenFullyLoaded = true;
+          } else if (entry.context === SYSTEM_CONTEXT) {
+            systemFullyLoaded = true;
           }
 
-          runner.dispatcher.removeListener('performanceentry', handler);
-          resolve();
+          if (homescreenFullyLoaded && systemFullyLoaded) {
+            runner.dispatcher.removeListener('performanceentry', handler);
+            resolve();
+          }
         });
       });
   });
