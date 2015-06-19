@@ -16,8 +16,7 @@ function SoundPanel(client) {
 module.exports = SoundPanel;
 
 SoundPanel.Selectors = {
-  'vibrateCheckbox': '#sound input[name="vibration.enabled"]',
-  'vibrateLabel': '#sound label.pack-switch',
+  'vibrateCheckbox': '#sound gaia-switch[name="vibration.enabled"]',
   'mediaSlider': '#sound .media input',
   'ringerSlider': '#sound .notification input',
   'alarmSlider': '#sound .alarm input',
@@ -49,7 +48,7 @@ SoundPanel.prototype = {
   },
 
   tapOnVibration: function() {
-    this.waitForElement('vibrateLabel').tap();
+    this.waitForElement('vibrateCheckbox').tap();
   },
 
   /* Volume */
