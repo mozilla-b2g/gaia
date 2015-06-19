@@ -33,8 +33,10 @@ NewMessageView.prototype = {
     });
   },
 
-  addNewRecipient: function(recipient) {
-    this.accessors.recipientsInput.sendKeys(recipient + this.KEYS.enter);
+  addNewRecipient: function(recipient, separator) {
+    separator = separator === undefined ? this.KEYS.enter : separator;
+
+    this.accessors.recipientsInput.sendKeys(recipient + separator);
 
     // Since recipient.js re-renders recipients all the time (when new
     // recipient is added or old is removed) and it can happen several
