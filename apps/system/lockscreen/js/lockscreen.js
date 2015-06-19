@@ -1,5 +1,5 @@
 /* global LockScreenClockWidget, Service, LockScreenSlide, LazyLoader,
-          LockScreenConnInfoManager */
+          LockScreenConnInfoManager, PasscodeHelper */
 'use strict';
 
 /**
@@ -335,7 +335,8 @@
      * setting this parameter to true causes the LockScreenSlide to render
      * the slider specified in that bugzilla issue
      */
-    LazyLoader.load(['shared/js/lockscreen_slide.js']).then(() => {
+    LazyLoader.load(['shared/js/lockscreen_slide.js',
+                     'shared/js/passcode_helper.js']).then(() => {
       this._unlocker = new LockScreenSlide({useNewStyle: true});
     }).catch(function(err) {console.error(err);});
     this.getAllElements();
@@ -851,15 +852,15 @@
    */
   LockScreen.prototype.checkPassCode =
   function lockscreen_checkPassCode(passcode) {
-    var request = {
-      passcode: passcode,
-      onsuccess: this.onPasscodeValidationSuccess.bind(this),
-      onerror: this.onPasscodeValidationFailed.bind(this),
-    };
-    window.dispatchEvent(new CustomEvent(
-      'lockscreen-request-passcode-validate',
-      { detail: request }
-    ));
+    PasscodeHelper.check(passcode).then((result) => {
+      if (result) {
+        this.onPasscodeValidationSuccess();
+      } else {
+        this.onPasscodeValidationFailed();
+      }
+    }) .catch(() => {
+      this.onPasscodeValidationFailed();
+    });
   };
 
   LockScreen.prototype.updateBackground =

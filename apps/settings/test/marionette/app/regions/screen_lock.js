@@ -69,7 +69,8 @@ ScreenLockPanel.prototype = {
   },
 
   getPasscode: function() {
-    return this.client.settings.get('lockscreen.passcode-lock.code');
+    throw new Error('This functions is deprecated, the lockscreen PIN is '+
+                    'hashed and can not be read.');
   },
 
   enableScreenLock: function() {

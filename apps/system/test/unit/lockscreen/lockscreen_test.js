@@ -289,16 +289,6 @@ suite('system/LockScreen >', function() {
     assert.isUndefined(subject.lockScreenClockWidget);
   });
 
-  test('Passcode: enter passcode should fire the validation event', function() {
-    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-    subject.checkPassCode('foobar');
-    assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
-      return 'lockscreen-request-passcode-validate' === event.type &&
-        'foobar' === event.detail.passcode;
-    }),
-    'it did\'t fire the correspond event to validate the passcode');
-  });
-
 
   suite('Charging status updates', function() {
     test('When lockscreen is on, start charging status updates', function() {
