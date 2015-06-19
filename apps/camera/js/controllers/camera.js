@@ -29,6 +29,11 @@ function CameraController(app) {
   this.hdrDisabled = this.settings.hdr.get('disabled');
   this.notification = app.views.notification;
   this.l10nGet = app.l10nGet;
+
+  // Wait until we get the battery state before turning
+  // on the camera
+  this.lowBattery = true;
+
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -75,7 +80,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('keydown:capture', this.onCaptureKey);
   app.on('keydown:focus', this.onFocusKey);
   app.on('timer:ended', this.capture);
-  app.on('visible', this.onVisible);
+  app.on('visible', this.loadCamera);
   app.on('capture', this.capture);
   app.on('hidden', this.shutdownCamera);
 
@@ -90,18 +95,6 @@ CameraController.prototype.bindEvents = function() {
   settings.hdr.on('change:selected', this.onHDRChange);
 
   debug('events bound');
-};
-
-/**
- * Check to see if we're still in the preview-gallery
- * and if so, prevent the camera app from loading the
- * hardware.
-*/
-CameraController.prototype.onVisible = function() {
-  if (this.galleryOpen) {
-    return;
-  }
-  this.camera.load();
 };
 
 /**
@@ -204,8 +197,7 @@ CameraController.prototype.onPickActivity = function(data) {
  * @private
  */
 CameraController.prototype.capture = function() {
-  if (this.disableCapture) {
-    this.app.emit('ready');
+  if (this.lowBattery || this.galleryOpen || this.app.hidden) {
     return;
   }
 
@@ -445,8 +437,12 @@ CameraController.prototype.onHDRChange = function(hdr) {
 };
 
 CameraController.prototype.onBatteryStatusChange = function(status) {
-  this.disableCapture = status === 'shutdown';
-  if (this.disableCapture) { this.camera.stopRecording(); }
+  this.lowBattery = status === 'shutdown';
+  if (this.lowBattery) {
+    this.shutdownCamera();
+  } else {
+    this.loadCamera();
+  }
 };
 
 /**
@@ -477,6 +473,16 @@ CameraController.prototype.onStorageVolumeChanged = function(storage) {
  */
 CameraController.prototype.onFocusPointChanged = function(focusPoint) {
   this.camera.updateFocusArea(focusPoint.area);
+};
+
+CameraController.prototype.loadCamera = function(showSpinner) {
+  if (this.lowBattery || this.galleryOpen || this.app.hidden) {
+    return;
+  }
+  if (showSpinner) {
+    this.app.showSpinner();
+  }
+  this.camera.load();
 };
 
 CameraController.prototype.shutdownCamera = function() {
@@ -516,8 +522,7 @@ CameraController.prototype.onGalleryOpened = function() {
 CameraController.prototype.onGalleryClosed = function(reason) {
   this.galleryOpen = false;
   if (this.app.hidden) { return; }
-  this.app.showSpinner();
-  this.camera.load();
+  this.loadCamera(true);
 };
 
 /**

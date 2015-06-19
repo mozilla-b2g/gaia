@@ -851,12 +851,11 @@ suite('lib/camera/camera', function() {
       assert.isTrue(requestCamera.calledOnce);
     });
 
-    test('Should just `setupNewCamera` if selected camera has\'t changed', function() {
+    test('Should just `ready` if selected camera has\'t changed', function() {
       this.camera.load();
       this.camera.requestCamera.reset();
 
       this.camera.load();
-      assert.isTrue(this.camera.setupNewCamera.called);
       sinon.assert.called(this.camera.ready);
       assert.isFalse(this.camera.requestCamera.called);
     });
