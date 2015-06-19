@@ -33,6 +33,7 @@ window.GaiaSwitch = (function(win) {
       attributes: true
     });
     this.updateInternalDir();
+    this.updateAccessibility();
   };
 
   proto.updateInternalDir = function() {
@@ -42,6 +43,11 @@ window.GaiaSwitch = (function(win) {
     } else {
       internal.removeAttribute('dir');
     }
+  };
+
+  proto.updateAccessibility = function() {
+    this.setAttribute('role', 'switch');
+    this.setAttribute('aria-checked', this.checked);
   };
 
   proto.handleClick = function(e) {
@@ -58,6 +64,7 @@ window.GaiaSwitch = (function(win) {
 
     if (!event.defaultPrevented) {
       this.checked = !this.checked;
+      this.setAttribute('aria-checked', this.checked);
     }
 
     // Dispatch a change event for the gaia-switch.
@@ -76,6 +83,7 @@ window.GaiaSwitch = (function(win) {
     },
     set: function(value) {
       this._input.checked = value;
+      this.setAttribute('aria-checked', this.checked);
     }
   });
 
