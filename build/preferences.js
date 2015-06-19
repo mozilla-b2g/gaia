@@ -173,8 +173,8 @@ PreferencesBuilder.prototype.preparePref = function() {
   if (this.config.DEVICE_DEBUG === '1') {
     this.setDeviceDebugPref();
   }
-  // If we're turning RAPTOR on, also turn on user timing output to logcat
-  if (this.config.RAPTOR === '1') {
+  // Turn on user timing output to logcat
+  if (this.config.PERF_LOGGING === '1') {
     this.userPrefs['dom.performance.enable_user_timing_logging'] = true;
   }
 
