@@ -15,6 +15,11 @@
   var TRACE = false;
   var _id = 0;
 
+  var themeGroups = [
+    'theme-communications', 'theme-media',
+    'theme-productivity', 'theme-settings'
+  ];
+
   /**
    * AppWindow creates, contains, manages a
    * [mozbrowser](https://developer.mozilla.org/en-US/docs/WebAPI/Browser)
@@ -1131,6 +1136,24 @@
             color = detail.content;
           }
           this.themeColor = color;
+
+          this.publish('themecolorchange');
+          break;
+        case 'theme-group':
+          if (!detail.type) {
+            return;
+          }
+
+          if (detail.type === 'removed') {
+            themeGroups.forEach((group) => {
+              this.element.classList.remove(group);
+            });
+          } else {
+            var group = detail.content;
+            if (themeGroups.indexOf(group) !== -1) {
+              this.element.classList.add(group);
+            }
+          }
 
           this.publish('themecolorchange');
           break;
