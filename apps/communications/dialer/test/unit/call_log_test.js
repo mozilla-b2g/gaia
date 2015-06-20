@@ -739,10 +739,10 @@ suite('dialer/call_log', function() {
 
     suite('Exiting edit mode', function() {
       setup(function() {
-        CallLog.callLogContainer.innerHTML = '' +
-         '<input type="checkbox" checked>' +
-         '<input type="checkbox" checked>' +
-         '<input type="checkbox" checked>';
+        CallLog.callLogContainer.innerHTML =
+         `<input type="checkbox" checked>
+          <input type="checkbox" checked>
+          <input type="checkbox" checked>`;
         CallLog.callLogIconEdit.removeAttribute('disabled');
         CallLog.showEditMode();
         CallLog.hideEditMode();

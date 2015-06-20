@@ -79,8 +79,6 @@ suite('font size manager', function() {
 
     viewElements.forEach(function(viewElement) {
       suite('on ' + viewElement.element, function() {
-        var originalInnerHTML;
-
         var getExpectedEllipsizedText = function(side, direction) {
           // MockL10n does not invert text when in RTL mode, but FSM will
           // treat the left side as the end for the purpose of ellipses.
@@ -88,7 +86,6 @@ suite('font size manager', function() {
         };
 
         setup(function() {
-          originalInnerHTML = document.body.innerHTML;
           document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
 
           view = document.createElement(viewElement.element);
@@ -103,7 +100,7 @@ suite('font size manager', function() {
         });
 
         teardown(function() {
-          document.body.innerHTML = originalInnerHTML;
+          document.body.innerHTML = '';
         });
 
         test('calls FSU with the proper arguments', function() {
@@ -197,11 +194,9 @@ suite('font size manager', function() {
     });
 
     suite('special view cases', function() {
-      var originalInnerHTML;
       var originalFontSize;
 
       setup(function() {
-        originalInnerHTML = document.body.innerHTML;
         document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
 
         FontSizeUtils.getMaxFontSizeInfo.returns({
@@ -211,7 +206,7 @@ suite('font size manager', function() {
       });
 
       teardown(function() {
-        document.body.innerHTML = originalInnerHTML;
+        document.body.innerHTML = '';
       });
 
       suite('on <input> with no value', function() {
@@ -228,7 +223,6 @@ suite('font size manager', function() {
 
       suite('on child <bdi>', function() {
         setup(function() {
-          originalInnerHTML = document.body.innerHTML;
           originalFontSize = document.documentElement.style.fontSize;
 
           document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
@@ -243,7 +237,7 @@ suite('font size manager', function() {
         });
 
         teardown(function() {
-          document.body.innerHTML = originalInnerHTML;
+          document.body.innerHTML = '';
           document.documentElement.style.fontSize = originalFontSize;
         });
 
@@ -292,10 +286,7 @@ suite('font size manager', function() {
   });
 
   suite('ensureFixedBaseline', function() {
-    var originalInnerHTML;
-
     setup(function() {
-      originalInnerHTML = document.body.innerHTML;
       document.documentElement.style.fontSize = ROOT_FONT_SIZE + 'px';
       view = document.createElement('div');
       view.textContent = 'foobar';
@@ -303,7 +294,7 @@ suite('font size manager', function() {
     });
 
     teardown(function() {
-      document.body.innerHTML = originalInnerHTML;
+      document.body.innerHTML = '';
     });
 
     test('sets correct line heights', function() {
@@ -317,14 +308,15 @@ suite('font size manager', function() {
   });
 
   suite('resetFixedBaseline', function() {
-    var originalInnerHTML;
-
     setup(function() {
-      originalInnerHTML = document.body.innerHTML;
       view = document.createElement('div');
       view.textContent = 'foobar';
       view.style.lineHeight = '12px';
       document.body.appendChild(view);
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
     });
 
     test('resets line heights', function() {

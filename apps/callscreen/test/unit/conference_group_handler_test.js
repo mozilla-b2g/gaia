@@ -47,31 +47,31 @@ suite('conference group handler', function() {
     _ = MockMozL10n.get;
 
     fakeDOM = document.createElement('div');
-    fakeDOM.innerHTML = '<section id="group-call" hidden>' +
-                            '<div class="numberWrapper">' +
-                            '<div id="group-show"></div>' +
-                            '<div id="group-call-label" ' +
-                              'class="number font-light"></div>' +
-                          '</div>' +
-                          '<div id="group-call-summary" ' +
-                            'class="additionalContactInfo font-light"></div>' +
-                          '<div class="duration">' +
-                            '<span class="font-light"></span>' +
-                            '<div class="total-duration"></div>' +
-                            '<div class="direction"></div>' +
-                          '</div>' +
-                        '</section>' +
-                        '<form id="group-call-details" role="dialog" ' +
-                          'data-type="action" class="overlay">' +
-                          '<header></header>' +
-                          '<menu>' +
-                            '<ul id="group-call-details-list">' +
-                            '</ul>' +
-                            '<button id="group-hide" data-l10n-id="close">' +
-                              'Close' +
-                            '</button>' +
-                          '</menu>' +
-                        '</form>';
+    fakeDOM.innerHTML = `<section id="group-call" hidden>
+                             <div class="numberWrapper">
+                             <div id="group-show"></div>
+                             <div id="group-call-label"   +
+                               class="number font-light"></div>
+                           </div>
+                           <div id="group-call-summary"   +
+                             class="additionalContactInfo font-light"></div>
+                           <div class="duration">
+                             <span class="font-light"></span>
+                             <div class="total-duration"></div>
+                             <div class="direction"></div>
+                           </div>
+                         </section>
+                         <form id="group-call-details" role="dialog"   +
+                           data-type="action" class="overlay">
+                           <header></header>
+                           <menu>
+                             <ul id="group-call-details-list">
+                             </ul>
+                             <button id="group-hide" data-l10n-id="close">
+                               Close
+                             </button>
+                           </menu>
+                         </form>`;
 
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');

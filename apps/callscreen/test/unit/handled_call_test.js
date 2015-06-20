@@ -72,35 +72,35 @@ suite('dialer/handled_call', function() {
     phoneNumber = Math.floor(Math.random() * 10000);
 
     templates = document.createElement('div');
-    templates.innerHTML = '<section id="handled-call-template" role="dialog"' +
-                          '  hidden>' +
-                          '  <div class="hangup-button" role="button"' +
-                          '    data-l10n-id="hangup-a11y-button"></div>' +
-                          '    <div class="numberWrapper ' +
-                          '      direction-status-bar">' +
-                          '    <div class="number font-light">' +
-                          '      <bdi></bdi>' +
-                          '    </div>' +
-                          '    <span role="button" id="switch-calls-button">' +
-                          '    </span>' +
-                          '  </div>' +
-                          '  <div class="additionalContactInfo font-light">' +
-                          '    <span class="tel" dir="ltr"></span>' +
-                          '    <span class="separator"></span>' +
-                          '    <span class="tel-type" dir="auto"></span>' +
-                          '  </div>' +
-                          '  <div class="duration">' +
-                          '    <span class="font-light"></span>' +
-                          '    <div class="total-duration"></div>' +
-                          '    <div class="direction"></div>' +
-                          '  </div>' +
-                          '  <div class="sim">' +
-                          '    <span class="via-sim"></span>' +
-                          '    <span class="sim-number"></span>' +
-                          '  </div>' +
-                          '  <button class="merge-button" ' +
-                          '    data-l10n-id="merge">Merge</button>' +
-                          '</section>';
+    templates.innerHTML = `<section id="handled-call-template" role="dialog"
+                             hidden>
+                             <div class="hangup-button" role="button"
+                               data-l10n-id="hangup-a11y-button"></div>
+                               <div class="numberWrapper
+                                 direction-status-bar">
+                               <div class="number font-light">
+                                 <bdi></bdi>
+                               </div>
+                               <span role="button" id="switch-calls-button">
+                               </span>
+                             </div>
+                             <div class="additionalContactInfo font-light">
+                               <span class="tel" dir="ltr"></span>
+                               <span class="separator"></span>
+                               <span class="tel-type" dir="auto"></span>
+                             </div>
+                             <div class="duration">
+                               <span class="font-light"></span>
+                               <div class="total-duration"></div>
+                               <div class="direction"></div>
+                             </div>
+                             <div class="sim">
+                               <span class="via-sim"></span>
+                               <span class="sim-number"></span>
+                             </div>
+                             <button class="merge-button"
+                               data-l10n-id="merge">Merge</button>
+                           </section>`;
     document.body.appendChild(templates);
   });
 

@@ -158,12 +158,12 @@ suite('call screen', function() {
     bluetoothMenu = document.createElement('form');
     bluetoothMenu.id = 'bluetooth-menu';
     bluetoothMenu.dataset.dummy = 'dummy';
-    bluetoothMenu.innerHTML = '<menu>' +
-        '<button data-l10n-id="cancel" id="btmenu-btdevice"></button>' +
-        '<button data-l10n-id="cancel" id="btmenu-receiver"></button>' +
-        '<button data-l10n-id="cancel" id="btmenu-speaker"></button>' +
-        '<button data-l10n-id="cancel" id="btmenu-cancel"></button>' +
-      '</menu>';
+    bluetoothMenu.innerHTML = `<menu>
+         <button data-l10n-id="cancel" id="btmenu-btdevice"></button>
+         <button data-l10n-id="cancel" id="btmenu-receiver"></button>
+         <button data-l10n-id="cancel" id="btmenu-speaker"></button>
+         <button data-l10n-id="cancel" id="btmenu-cancel"></button>
+       </menu>`;
     screen.appendChild(bluetoothMenu);
 
     // Replace the existing elements
@@ -308,8 +308,8 @@ suite('call screen', function() {
         assert.isTrue(body.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
-        calls.innerHTML = '<section></section>' +
-                          '<section></section>';
+        calls.innerHTML = `<section></section>
+                           <section></section>`;
         CallScreen.updateCallsDisplay();
         assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
@@ -320,15 +320,15 @@ suite('call screen', function() {
         assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
 
-        calls.innerHTML = '<section></section>' +
-                          '<section hidden=""></section>';
+        calls.innerHTML = `<section></section>
+                           <section hidden=""></section>`;
         CallScreen.updateCallsDisplay();
         assert.isTrue(body.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
-        calls.innerHTML = '<section></section>' +
-                          '<section></section>' +
-                          '<section hidden=""></section>';
+        calls.innerHTML = `<section></section>
+                           <section></section>
+                           <section hidden=""></section>`;
 
         CallScreen.updateCallsDisplay();
         assert.isFalse(body.classList.contains('single-line'));
