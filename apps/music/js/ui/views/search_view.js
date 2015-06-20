@@ -189,11 +189,10 @@ var SearchView = {
     } else {
       // SubListView needs to prepare the songs data before entering it,
       // So here we initialize the SubListView before push the view.
-      ModeManager.initView(ModeManager.views[MODE_SUBLIST], function() {
-        SubListView.activate(option, data, index, keyRange, 'next',
-          function() {
-            ModeManager.push(MODE_SUBLIST);
-          });
+      ModeManager.waitForView(MODE_SUBLIST, () => {
+        SubListView.activate(option, data, index, keyRange, 'next', () => {
+          ModeManager.push(MODE_SUBLIST);
+        });
       });
     }
   },

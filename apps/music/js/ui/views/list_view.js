@@ -360,11 +360,10 @@ var ListView = {
 
     // SubListView needs to prepare the songs data before entering it,
     // So here we initialize the SubListView before push the view.
-    ModeManager.initView(ModeManager.views[MODE_SUBLIST], function() {
-      SubListView.activate(option, data, index, keyRange, direction,
-        function() {
-          ModeManager.push(MODE_SUBLIST);
-        });
+    ModeManager.waitForView(MODE_SUBLIST, () => {
+      SubListView.activate(option, data, index, keyRange, direction, () => {
+        ModeManager.push(MODE_SUBLIST);
+      });
     });
   },
 

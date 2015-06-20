@@ -155,7 +155,7 @@ var MusicComms = {
   },
 
   _getPlayerReady: function(callback) {
-    ModeManager.initView(ModeManager.views[MODE_PLAYER], callback);
+    ModeManager.waitForView(MODE_PLAYER, callback);
   },
 
   _isPlayerActivated: function() {

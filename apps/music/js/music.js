@@ -218,7 +218,9 @@ var App = (function() {
         option: option
       };
 
-      ListView.activate(info);
+      ModeManager.waitForView(MODE_PICKER, () => {
+        ListView.activate(info);
+      });
     }
 
     // If it's in picking mode, we will just enumerate all the songs. We don't
@@ -241,25 +243,26 @@ var App = (function() {
       showListView();
     }
 
-    TilesView.activate(function(songs) {
-      // If there are no songs, disable the TabBar to prevent users switching to
-      // other pages.
-      TabBar.setDisabled(!songs.length);
-      app.knownSongs = songs;
+    ModeManager.waitForView(MODE_TILES, () => {
+      TilesView.activate(function(songs) {
+        // If there are no songs, disable the TabBar to prevent users switching
+        // to other pages.
+        TabBar.setDisabled(!songs.length);
+        app.knownSongs = songs;
 
-      app.showCorrectOverlay();
-      if (app.currentOverlay === null && !hidSearchBox) {
-        hidSearchBox = true;
+        app.showCorrectOverlay();
+        if (app.currentOverlay === null && !hidSearchBox) {
+          hidSearchBox = true;
 
-        // After updating the tiles view, hide the search bar. However, we want
-        // to let it stay visible for a short duration so that the user knows it
-        // exists.
-        window.setTimeout(function() { TilesView.hideSearch(); }, 1000);
-      }
-
-      if (callback) {
-        callback();
-      }
+          // After updating the tiles view, hide the search bar. However, we
+          // want to let it stay visible for a short duration so that the user
+          // knows it exists.
+          window.setTimeout(function() { TilesView.hideSearch(); }, 1000);
+        }
+        if (callback) {
+          callback();
+        }
+      });
     });
   }
 
