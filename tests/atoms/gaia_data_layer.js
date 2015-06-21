@@ -495,13 +495,17 @@ var GaiaDataLayer = {
     };
   },
 
-  sendSMS: function(recipient, content, aCallback) {
+  sendSMS: function(recipient, content, skipVerification, aCallback) {
     // requires the 'sms' permission and the 'dom.sms.enabled' pref
     var callback = aCallback || marionetteScriptFinished;
     console.log('sending sms message to number: ' + recipient);
 
     let messageManager = window.navigator.mozMobileMessage;
     let request = messageManager.send(recipient, content);
+    if (skipVerification) {
+      marionetteScriptFinished(true);
+      return;
+    }
 
     request.onsuccess = function(event) {
       var sms = event.target.result;
