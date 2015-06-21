@@ -36,15 +36,15 @@ suite('LockScreenClockWidget > ', function() {
       _timeFormat: '%p',
       resources: {
         elements: {
-          time: { innerHTML: 'dummy-innerHTML'},
+          time: { textContent: 'dummy-textContent'},
           date: { textContent: 'dummy-textContent' }
       }}
     };
     var method = LockScreenClockWidget.prototype.updateClock;
     method.call(mockThis);
     assert.equal(navigator.mozL10n.dummyLocaleFormat(),
-      mockThis.resources.elements.time.innerHTML,
-      `it doesn't update the time.innerHTML with the time in locale format`);
+      mockThis.resources.elements.time.textContent,
+      `it doesn't update the time.textContent with the time in locale format`);
 
     assert.equal(navigator.mozL10n.dummyLocaleFormat(),
       mockThis.resources.elements.date.textContent,

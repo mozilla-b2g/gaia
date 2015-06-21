@@ -229,11 +229,6 @@
   font-size: 8.5rem;
 }
 
-#lockscreen-clock-time span { /* optional meridiem */
-  font-size: 3rem;
-  display: none;
-}
-
 #lockscreen-date {
   font-weight: 300;
   font-size: 1.4rem;

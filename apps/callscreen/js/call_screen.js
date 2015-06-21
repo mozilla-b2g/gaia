@@ -383,12 +383,20 @@ var CallScreen = {
       var f = new navigator.mozL10n.DateTimeFormat();
       var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
                                                     _('shortTimeFormat24');
-      // FIXME/bug 1060333: Replace span with hidden mechanism.
-      // Don't show am/pm (for 12 or 24 time) in the callscreen
+      /* In 12h format we don't want to display the AM/PM component on the
+       * lockscreen. However there's no way to obtain such a string using
+       * DateTimeFormat(). What we do instead is to inject a fake <span> tag
+       * around the AM/PM component which we later remove from the string using
+       * a regular expression. */
       timeFormat = timeFormat.replace('%p', '<span>%p</span>');
       var dateFormat = _('longDateFormat');
-      this.lockedClockTime.innerHTML = f.localeFormat(now, timeFormat);
-      this.lockedDate.textContent = f.localeFormat(now, dateFormat);
+
+      var timeText =
+        f.localeFormat(now, timeFormat).replace(/\s<span>.*<\/span>/, '');
+      var dateText = f.localeFormat(now, dateFormat);
+
+      this.lockedClockTime.textContent = timeText;
+      this.lockedDate.textContent = dateText;
     }.bind(this));
   },
 
