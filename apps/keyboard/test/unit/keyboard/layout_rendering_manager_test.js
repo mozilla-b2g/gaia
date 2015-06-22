@@ -74,7 +74,6 @@ suite('LayoutRenderingManager', function() {
 
     teardown(function(done) {
       viewManager.render.getCall(0).args[2].call(window);
-      assert.isTrue(window.resizeTo.calledWith(600, 401));
 
       p.then(function() {
         assert.equal(
@@ -90,6 +89,7 @@ suite('LayoutRenderingManager', function() {
             keyWidth: 15,
             keyHeight: 12
           }));
+        assert.isTrue(window.resizeTo.calledWith(600, 401));
       }, function(e) {
         if (e) {
           throw e;
