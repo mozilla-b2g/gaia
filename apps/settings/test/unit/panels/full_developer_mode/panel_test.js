@@ -50,7 +50,7 @@ suite('Full developer mode panel > ', function() {
 
     // Define MockDialogService
     MockDialogService = {
-      show: sinon.stub()
+      show: sinon.stub().returns(Promise.resolve())
     };
     define('MockDialogService', function() {
       return MockDialogService;

@@ -103,21 +103,27 @@ define(function(require) {
      * @memberOf Developer.prototype
      */
     _resetDevice: function d__resetDevice() {
-      require(['modules/dialog_service'], (DialogService) => {
-        SettingsCache.getSettings(results => {
-          var unrestricted = results[DEVTOOLS_UNRESTRICTED_KEY];
-          DialogService.confirm(unrestricted ?
-            'unreset-devtools-warning-body' : 'reset-devtools-warning-body', {
-              title: 'reset-devtools-warning-title',
-              submitButton: 'factory-reset',
-              cancelButton: 'cancel'
-            }).then((result) => {
-              var type = result.type;
-              if (type === 'submit') {
-                this._wipe(unrestricted ? 'normal' : 'root');
-              }
-            });
-        });
+      SettingsCache.getSettings(results => {
+        var unrestricted = results[DEVTOOLS_UNRESTRICTED_KEY];
+        if (unrestricted) {
+          DialogService.show('full-developer-mode-warning').then((result) => {
+            if (result.type === 'submit' &&
+                result.value === 'final_warning') {
+              DialogService.show('full-developer-mode-final-warning');
+            }
+          });
+        } else {
+          DialogService.confirm('reset-devtools-warning-body', {
+            title: 'reset-devtools-warning-title',
+            submitButton: 'factory-reset',
+            cancelButton: 'cancel'
+          }).then((result) => {
+            var type = result.type;
+            if (type === 'submit') {
+              this._wipe('root');
+            }
+          });
+        }
       });
     },
 

@@ -40,7 +40,9 @@ define(function(require) {
         warningDialog.hidden = false;
         cancelBtn.onclick = this._close;
         okBtn.onclick = () => {
-          DialogService.show('full-developer-mode-final-warning');
+          DialogService.show('full-developer-mode-final-warning').then(() => {
+            this._close();
+          });
         };
       },
       _showEnableDevMenuWarning: function() {
