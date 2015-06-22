@@ -409,9 +409,9 @@ suite('navigation bar', function() {
     });
 
     suite('> Receiving a ussd', function() {
-      function triggerSysMsg(serviceId, session) {
+      function triggerSysMsg(serviceId, session, message) {
         MockNavigatormozSetMessageHandler.mTrigger('ussd-received', {
-          message: 'testing',
+          message: (message !== undefined) ? message : 'testing',
           session: session || null,
           serviceId: serviceId || 0
         });
@@ -467,13 +467,21 @@ suite('navigation bar', function() {
         });
 
         test('should send a notification for unsolicited messages', function() {
-            this.sinon.spy(MockMmiManager, 'sendNotification');
-            triggerSysMsg(0, null);
-            sinon.assert.calledOnce(MockMmiManager.sendNotification);
-            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
-            assert.isTrue(wakeLock.released);
-          }
-        );
+          this.sinon.spy(MockMmiManager, 'sendNotification');
+          triggerSysMsg(0, null);
+          sinon.assert.calledOnce(MockMmiManager.sendNotification);
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.isTrue(wakeLock.released);
+        });
+
+        test('should not send a notification for empty messages',
+        function() {
+          this.sinon.spy(MockMmiManager, 'sendNotification');
+          triggerSysMsg(0, null, null);
+          sinon.assert.notCalled(MockMmiManager.sendNotification);
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.isTrue(wakeLock.released);
+        });
 
         suite('once the app is visible', function() {
           setup(function() {
