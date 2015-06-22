@@ -354,17 +354,13 @@
         return;
       }
 
-      // Get the actual width of the rocketbar, and determine the remaining
-      // width for the minimized statusbar.
-      var element = appChrome && appChrome.element &&
-        appChrome.element.querySelector('.urlbar .chrome-title-container');
+      // Get the width of the minimized shadow element
+      var selector = '.titlebar .titlebar-minimized';
+      var element = app && app.element && app.element.querySelector(selector);
 
       if (element) {
-        this._minimizedStatusbarWidth = Math.round(
-            ((Service.query('LayoutManager.width') || window.innerWidth)) -
-            element.getBoundingClientRect().width -
-            // Remove padding and margin
-            5 - 3);
+        var elementWidth = element.getBoundingClientRect().width;
+        this._minimizedStatusbarWidth = Math.floor(elementWidth);
       } else {
         this._minimizedStatusbarWidth = this._getMaximizedStatusbarWidth();
       }
