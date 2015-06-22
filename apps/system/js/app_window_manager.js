@@ -993,9 +993,6 @@
      * We ought to be able to remove this function and the code that
      * calls it when bug 1034001 is fixed.
      *
-     * See also bugs 995540 and 1006200 and the
-     * private.broadcast.attention_screen_opening setting hack in
-     * attention_screen.js
      */
     stopRecording: function(callback) {
       // If we are not currently recording anything, just call
@@ -1004,6 +1001,7 @@
         if (callback) { callback(); }
         return;
       }
+
 
       // Otherwise, if we are recording something, then send a
       // "stop recording" signal via the settings db before
@@ -1016,11 +1014,6 @@
         if (callback) { callback(); }
       };
       setRequest.onsuccess = function() {
-        // When the setting has been set, reset it as part of a separate
-        // transaction.
-        navigator.mozSettings.createLock().set({
-          'private.broadcast.stop_recording': false
-        });
         // And meanwhile, call the callback
         if (callback) { callback(); }
       };
