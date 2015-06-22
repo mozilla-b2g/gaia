@@ -36,10 +36,10 @@ suite('system/CameraTrigger', function() {
       activitySpy = this.sinon.spy(window, 'MozActivity');
     });
 
-    suite('LockScreen not locked', function() {
+    suite('Allows MozActivity', function() {
       setup(function() {
-        this.sinon.stub(Service, 'query', function() {
-          return false;
+        this.sinon.stub(Service, 'query', function(name) {
+          return (name !== 'locked' && name !== 'isFtuRunning');
         });
       });
 
@@ -51,12 +51,24 @@ suite('system/CameraTrigger', function() {
 
     suite('LockScreen is locked', function() {
       setup(function() {
-        this.sinon.stub(Service, 'query', function() {
-          return true;
+        this.sinon.stub(Service, 'query', function(name) {
+          return (name === 'locked');
         });
       });
 
       test('holdcamera inhibited by lockscreen', function() {
+        window.dispatchEvent(new CustomEvent('holdcamera', {}));
+        sinon.assert.notCalled(activitySpy);
+      });
+    });
+
+    suite('FTU is running', function() {
+      setup(function() {
+        this.sinon.stub(Service, 'query', function(name) {
+          return (name === 'isFtuRunning');
+        });
+      });
+      test('holdcamera inhibited when FTU running', function() {
         window.dispatchEvent(new CustomEvent('holdcamera', {}));
         sinon.assert.notCalled(activitySpy);
       });
