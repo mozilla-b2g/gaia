@@ -702,28 +702,60 @@ suite('system/Statusbar', function() {
   });
 
   suite('lockscreen support', function() {
-    var lockscreenApp, app;
+    var lockscreenApp, app, cloneStatusbarStub;
 
-    setup(function() {
-      lockscreenApp = getApp(false, true);
-      app = getApp(false, false);
+    function lockScreen() {
       MockService.mockQueryWith('getTopMostWindow', lockscreenApp);
       var evt = new CustomEvent('hierarchytopmostwindowchanged', {
         detail: lockscreenApp
       });
       Statusbar.handleEvent(evt);
-    });
+    }
 
-    teardown(function() {
+    function unlockScreen() {
       var evt = new CustomEvent('hierarchytopmostwindowchanged', {
         detail: app
       });
       Statusbar.handleEvent(evt);
+    }
+
+    function emitStatusbarEvent(evtType) {
+      window.dispatchEvent(new CustomEvent(evtType));
+    }
+
+    setup(function() {
+      lockscreenApp = getApp(false, true);
+      app = getApp(false, false);
+      cloneStatusbarStub = this.sinon.spy(Statusbar, 'cloneStatusbar');
+    });
+
+    teardown(function() {
+      cloneStatusbarStub.restore();
     });
 
     test('should set the lockscreen icons color', function() {
+      lockScreen();
       assert.isFalse(Statusbar.element.classList.contains('light'));
       assert.isTrue(Statusbar.element.classList.contains('maximized'));
+      unlockScreen();
+    });
+
+    test('Locking screen while opening utility tray should not block the ' +
+      'status bar', function() {
+      emitStatusbarEvent('utilitytraywillshow');
+      assert.isFalse(cloneStatusbarStub.called);
+
+      emitStatusbarEvent('utility-tray-abortopen');
+      assert.isTrue(cloneStatusbarStub.called);
+    });
+
+    test('Locking screen while closing utility tray should not block the ' +
+      'status bar', function() {
+      emitStatusbarEvent('utilitytraywillhide');
+      assert.isFalse(cloneStatusbarStub.called);
+
+      emitStatusbarEvent('utility-tray-abortclose');
+      assert.isTrue(cloneStatusbarStub.called);
     });
   });
 
