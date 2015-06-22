@@ -4,10 +4,17 @@
   top: 0;
   left: 0;
   width: 100%;
+  overflow-x: auto;
   height: 100%;
+  overflow-y: hidden;
   -moz-user-select: none;
-  overflow: hidden;
   background-color: rgb(51, 51, 51);
+  /* Specifies that each child element’s snap coordinate should
+     align with the x-axis center of the scroll container */
+  scroll-snap-destination: 50% 0;
+  /* Requires that scrolling always end at a snap point
+     when the operation completes (hard snap). */
+  scroll-snap-type: mandatory;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -23,11 +30,13 @@
 }
 
 #screen.software-button-enabled #cards-view {
+  /* clip the horizontal scrollbar */
   height: calc(100% - var(--software-home-button-height));
   bottom: var(--software-home-button-height);
 }
 
 @media (orientation:landscape) {
+  /* not currently in use, see bug 1174325 */
   #screen.software-button-enabled #cards-view {
     height: 100%;
     width: calc(100% - var(--software-home-button-height));
@@ -61,12 +70,13 @@
   background-color: rgba(51, 51, 51, .85);
 }
 
-#cards-view ul {
+#cards-list {
   list-style: none;
+  position: absolute;
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
+  height: calc(100% - 1.5rem);
+  overflow: hidden;
   white-space: nowrap;
   text-align: center;
 }
@@ -75,23 +85,27 @@
 /* Cards */
 
 #cards-view .card {
+  display: block;
   position: absolute;
-  top: 26%;
-  left: 26%;
-  width: 48%;
-  height: 48%;
+  top: 25vh;
+  left: 25vw;
+  width: 50vw;
+  height: 50vh;
+  transform: translateY(0);
+  /* Defines the center of each card (column) as the
+     coordinate that should be used for snapping */
+  scroll-snap-coordinate: 50% 50%;
+}
 
-  margin: 0;
-  transition: transform;
-  will-change: transform;
+#cards-view .card.sliding {
+  transition: transform var(--transition-duration);
 }
 
 #cards-view .card > * {
   pointer-events: none;
 }
 
-
-/* Screenshoots */
+/* Screenshots */
 
 #cards-view .screenshotView {
   background-size: 100% calc(100% - 1.5rem), cover;
@@ -353,27 +367,6 @@ html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
 
 
 /* Animations */
-
-.card.current .titles,
-.card.current .card-tray,
-.card.current.private .privateOverlay {
-  opacity: 0;
-}
-
-#screen.cards-view .card.current .titles,
-#screen.cards-view .card.current .card-tray,
-#screen.cards-view .card.current.private .privateOverlay {
-  opacity: 1;
-  transition: opacity 0.5s ease;
-}
-
-#screen.cards-view .card.current.select .titles,
-#screen.cards-view .card.current.select .card-tray,
-#screen.cards-view .card.current.private.select .privateOverlay {
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
 #cards-view.from-home {
   animation: cardview-from-home 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -392,4 +385,3 @@ html[dir="rtl"] #cards-view .card.show-subtitle[data-ssl="secure"] p.subtitle {
   0%   { opacity: 1; }
   100% { opacity: 0; }
 }
-
