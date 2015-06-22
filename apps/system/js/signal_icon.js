@@ -71,7 +71,7 @@
       this.debug('locked simcard');
       // SIM locked
       // We check if the sim card is locked after checking hasActiveCall
-      // because we still need to show the siganl bars in the case of
+      // because we still need to show the signal bars in the case of
       // making emergency calls when the sim card is locked.
       this.hide();
     } else {
@@ -81,11 +81,7 @@
       // emergencyCallsOnly is always true if voice.connected is false. Show
       // searching icon if the device is searching. Or show the signal bars
       // with a red "x", which stands for emergency calls only.
-      this.element.dataset.searching = (voice.state === 'searching');
-      _(this.element, this.element.dataset.searching ?
-        'statusbarSignalNoneSearching' : 'statusbarEmergencyCallsOnly');
       this.updateSignal(voice);
-      this.show();
     }
   };
   SignalIcon.prototype.updateSignal = function(connInfo) {
@@ -93,10 +89,20 @@
       return;
     }
     this.show();
-    var previousLevel = parseInt(this.element.dataset.level, 10);
+    var _ = navigator.mozL10n.setAttributes;
     var previousSearching = (this.element.dataset.searching === 'true');
-    delete this.element.dataset.searching;
-    var level = Math.ceil(connInfo.relSignalStrength / 20); // 0-5
+    var previousLevel = parseInt(this.element.dataset.level, 10);
+    var searching = true;
+    var level = Math.ceil(connInfo.relSignalStrength / 20) || 0; // 0-5
+
+    if (connInfo.state === 'searching') {
+      this.element.dataset.searching = 'true';
+      _(this.element, 'statusbarSignalNoneSearching');
+    } else {
+      delete this.element.dataset.searching;
+      _(this.element, 'statusbarEmergencyCallsOnly');
+      searching = false;
+    }
     this.element.dataset.level = level;
     navigator.mozL10n.setAttributes(this.element,
       connInfo.roaming ? 'statusbarSignalRoaming' : 'statusbarSignal',
@@ -105,7 +111,8 @@
         operator: connInfo.network && connInfo.network.shortName
       }
     );
-    if (previousSearching || previousLevel !== level) {
+
+    if (previousSearching !== searching || previousLevel !== level) {
       this.publish('changed');
     }
   };

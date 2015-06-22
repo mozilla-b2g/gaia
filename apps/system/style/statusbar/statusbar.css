@@ -418,7 +418,7 @@ body .utility-tray .statusbar > .sb-start {
   background-position: 0 -4rem;
 }
 
-.sb-icon-signal[data-level="-1"][data-searching="true"] {
+.sb-icon-signal[data-searching="true"] {
   background: url('images/signal-searching.png') no-repeat;
   background-position: 0 0;
   background-size: 1.6rem;
