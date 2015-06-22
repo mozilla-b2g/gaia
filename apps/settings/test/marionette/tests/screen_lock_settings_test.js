@@ -53,6 +53,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is enabled');
       assert.ok(screenLockPanel.isPasscodeChecked(),
         'passcode is checked');
+      assert.equal(screenLockPanel.getPasscode(), oldCode,
+        'passcode is right');
 
       screenLockPanel.togglePasscodeLock();
       screenLockPanel.typePasscode(newCode);
@@ -77,7 +79,8 @@ marionette('manipulate screenLock settings', function() {
       'passcode is enabled');
     assert.ok(screenLockPanel.isPasscodeChecked(),
       'passcode is checked');
-
+    assert.equal(screenLockPanel.getPasscode(), rightCode,
+      'passcode is right');
 
     screenLockPanel.togglePasscodeLock();
     screenLockPanel.typePasscode(rightCode);
@@ -151,7 +154,7 @@ marionette('manipulate screenLock settings', function() {
     'passcode is enabled, and we want to edit passcode ' +
     'but failed to enter the right code',
     function() {
-      var oldCode = '0000';
+      var oldCode = '1234';
       var newCode = '4567';
       screenLockPanel.toggleScreenLock();
       screenLockPanel.togglePasscodeLock();
@@ -162,12 +165,11 @@ marionette('manipulate screenLock settings', function() {
         'passcode is enabled');
       assert.ok(screenLockPanel.isPasscodeChecked(),
         'passcode is checked');
-
-
+      assert.equal(screenLockPanel.getPasscode(), oldCode,
+        'passcode is right (with old code)');
 
       screenLockPanel.tapEditPasscode(newCode);
 
-      screenLockPanel.waitForElement('passcodeIncorrectLabel');
       assert.ok(screenLockPanel.isPasscodeIncorrect(),
         'passcode is not correct');
       assert.ok(screenLockPanel.isPasscodeLockEnabled(),
@@ -189,11 +191,15 @@ marionette('manipulate screenLock settings', function() {
       'passcode is enabled');
     assert.ok(screenLockPanel.isPasscodeChecked(),
       'passcode is checked');
+    assert.equal(screenLockPanel.getPasscode(), oldCode,
+      'passcode is right (with old code)');
 
     screenLockPanel.tapEditPasscode(oldCode);
     screenLockPanel.typePasscode(newCode, newCode);
     screenLockPanel.tapChangePasscode();
 
+    assert.equal(screenLockPanel.getPasscode(), newCode,
+      'passcode is right (with new code)');
   });
 
   // Disabled for intermittent failures. Bug 983171

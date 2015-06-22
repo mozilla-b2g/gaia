@@ -2,19 +2,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest import PasscodeTestCase
+from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
 
-class TestCameraUnlockWithPasscode(PasscodeTestCase):
+class TestCameraUnlockWithPasscode(GaiaTestCase):
+
+    # Input data
+    _input_passcode = '7931'
+
     def setUp(self):
         GaiaTestCase.setUp(self)
 
         # Turn off geolocation prompt
         self.apps.set_permission('Camera', 'geolocation', 'deny')
 
-        self.set_passcode_to_1337()
-
+        self.data_layer.set_setting('lockscreen.passcode-lock.code', self._input_passcode)
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
 
         # this time we need it locked!

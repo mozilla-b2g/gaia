@@ -4,13 +4,12 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
-from gaiatest.apps.lockscreen.app import LockScreen
 
 
 class TestSettingsPasscode(GaiaTestCase):
 
     # Input data
-    _input_passcode = ['1', '3', '3', '7']
+    _input_passcode = ['7', '9', '3', '1']
 
     def test_set_passcode_by_settings(self):
         settings = Settings(self.marionette)
@@ -21,14 +20,7 @@ class TestSettingsPasscode(GaiaTestCase):
         screen_lock_settings.enable_passcode_lock()
         screen_lock_settings.create_passcode(self._input_passcode)
 
+        passcode_code = self.data_layer.get_setting('lockscreen.passcode-lock.code')
         passcode_enabled = self.data_layer.get_setting('lockscreen.passcode-lock.enabled')
+        self.assertEqual(passcode_code, "".join(self._input_passcode), 'Passcode is "%s", not "%s"' % (passcode_code, "".join(self._input_passcode)))
         self.assertEqual(passcode_enabled, True, 'Passcode is not enabled.')
-
-        # test new passcode by locking and unlocking
-        self.device.lock()
-        lock_screen = LockScreen(self.marionette)
-        lock_screen.switch_to_frame()
-        passcode_pad = lock_screen.unlock_to_passcode_pad()
-        passcode_pad.type_passcode(self._input_passcode)
-        self.wait_for_condition(lambda _: self.apps.displayed_app.name ==
-                                          settings.name)
