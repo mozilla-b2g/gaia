@@ -267,6 +267,7 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   white-space: normal;
 }
 
+.hint > gaia-switch ~ .explanation,
 .hint > label:not([for]) ~ .explanation {
   -moz-padding-end: 8rem;
 }
