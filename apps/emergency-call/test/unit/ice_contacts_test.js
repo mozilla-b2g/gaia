@@ -38,23 +38,24 @@ suite('ICE contacts bar', function() {
     container.appendChild(iceContactBar);
 
     loadBodyHTML('/shared/elements/contacts/contact_list_overlay.html');
-    var iceContactsOverlayTemplate =
-      document.body.querySelector('template').innerHTML;
+    var iceContactsOverlayTemplate = document.body.querySelector('template');
     iceContactsOverlay = document.createElement('form');
     iceContactsOverlay.id = 'contact-list-overlay';
     iceContactsOverlay.setAttribute('role', 'dialog');
     iceContactsOverlay.setAttribute('data-type', 'action');
     iceContactsOverlay.classList.add('overlay');
-    iceContactsOverlay.innerHTML = iceContactsOverlayTemplate;
+    iceContactsOverlay.appendChild(
+      iceContactsOverlayTemplate.content.cloneNode(true));
     container.appendChild(iceContactsOverlay);
 
     loadBodyHTML('/shared/elements/contacts/contact_in_overlay.html');
     var iceContactsOverlayItemTemplate =
-      document.body.querySelector('template').innerHTML;
+      document.body.querySelector('template');
     var iceContactsOverlayItem = document.createElement('button');
     iceContactsOverlayItem.id = 'contact-in-overlay';
     iceContactsOverlayItem.setAttribute('hidden', '');
-    iceContactsOverlayItem.innerHTML = iceContactsOverlayItemTemplate;
+    iceContactsOverlayItem.appendChild(
+      iceContactsOverlayItemTemplate.content.cloneNode(true));
     container.appendChild(iceContactsOverlayItem);
 
     document.body.appendChild(container);

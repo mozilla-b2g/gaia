@@ -44,26 +44,27 @@ suite('Call Info', function(argument) {
 
   var injectFragmentAsSection = function(name) {
     var section = document.createElement('section');
-    section = document.createElement('section');
     section.setAttribute('role', 'region');
     section.id = name;
     section.hidden = true;
-    var html = section.innerHTML =
-      document.body.querySelector(
-        'element[name="' + name + '"] template').innerHTML;
+    var template = document.body.querySelector(
+      'element[name="' + name + '"] template');
+    section.appendChild(template.content.cloneNode(true));
     document.body.appendChild(section);
-    return html;
+
+    return section.innerHTML;
   };
 
   var initCallInfo = function() {
     document.body.innerHTML = '';
 
     loadBodyHTML('/contacts/elements/phone_details.html');
-    var phoneDetailsTemplate = document.body.innerHTML;
+    var phoneDetailsTemplate = document.querySelector('element');
     loadBodyHTML('/contacts/elements/email_details.html');
-    var emailDetailsTemplate = document.body.innerHTML;
+    var emailDetailsTemplate = document.querySelector('element');
     loadBodyHTML('/dialer/elements/call-info-view.html');
-    document.body.innerHTML += phoneDetailsTemplate + emailDetailsTemplate;
+    document.body.appendChild(phoneDetailsTemplate);
+    document.body.appendChild(emailDetailsTemplate);
 
     phoneDetailsHTML = injectFragmentAsSection('phone-details');
     emailDetailsHTML = injectFragmentAsSection('email-details');

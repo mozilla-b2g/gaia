@@ -268,7 +268,11 @@ var SuggestionBar = {
     var telTag = node.querySelector('.js-tel');
     var nameTag = node.querySelector('.js-name');
     nameTag.textContent = name ? name : null;
-    telTag.innerHTML = tel ? tel : null;
+    if (tel) {
+      telTag.innerHTML = Sanitizer.unwrapSafeHTML(tel);
+    } else {
+      telTag.innerHTML = '';
+    }
 
     if (type) {
       if (phoneTypes.some(element => element == type)) {
@@ -329,8 +333,8 @@ var SuggestionBar = {
     var startStr = str.substr(0, start);
     var middleStr = str.substr(start, end - start + 1);
     var endStr = str.substr(end + 1);
-    return Sanitizer.escapeHTML `${startStr}<mark class="ci__mark"
-      >${middleStr}</mark>${endStr}`;
+    return Sanitizer.createSafeHTML(`${startStr}<mark class="ci__mark"
+      >${middleStr}</mark>${endStr}`);
   },
 
   _initOverlay: function() {
