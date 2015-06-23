@@ -35,7 +35,7 @@ marionette('First Time Use > Wifi Hidden Network Test', function() {
 
     var hiddenWifiPanel = ftu.client.helper
                           .waitForElement('#hidden-wifi-authentication');
-    var showPassword = ftu.client.findElement('#label_hidden_show_password');
+    var showPassword = ftu.client.findElement('#hidden-wifi-show-password');
     var passwordInput = ftu.client.findElement('#hidden-wifi-password');
 
     assert(hiddenWifiPanel.displayed() &&

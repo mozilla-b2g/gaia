@@ -103,6 +103,7 @@
   <!-- Components -->
   <script defer src="/shared/js/component_utils.js"></script>
   <script defer src="/shared/elements/gaia_switch/script.js"></script>
+  <script defer src="/shared/elements/gaia_checkbox/script.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_subheader/script.js"></script>
   <script defer src="/shared/elements/config.js"></script>
@@ -294,10 +295,9 @@
               <li>
                 <label for="wifi_password" data-l10n-id="password">Password</label>
                 <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" maxlength="63" x-inputmode="verbatim"></input>
-                <label class="pack-checkbox" id="label_show_password">
-                  <input type="checkbox" data-ignore name="show_password" />
-                  <span id="wifi_show_password" data-l10n-id="showPassword">Show Password</span>
-                </label>
+                <gaia-checkbox class="inline" id="label_show_password" name="show_password">
+                  <label id="wifi_show_password" data-l10n-id="showPassword"></label>
+                </gaia-checkbox>
               </li>
             </ul>
           </form>
@@ -337,12 +337,9 @@
                   Password
                 </label>
                 <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value="" x-inputmode="verbatim" maxlength="63" />
-                <label class="pack-checkbox" id="label_hidden_show_password" for="hidden-wifi-show-password">
-                  <input type="checkbox" id="hidden-wifi-show-password">
-                  <span data-l10n-id="showPassword">
-                    Show Password
-                  </span>
-                </label>
+                <gaia-checkbox class="inline" id="hidden-wifi-show-password">
+                  <label data-l10n-id="showPassword"></label>
+                </gaia-checkbox>
               </li>
             </ul>
           </form>
@@ -600,11 +597,9 @@
           <a href="https://www.mozilla.org/privacy/firefox-os" class="external"></a>
         </p>
         <section id="form_share_statistics">
-          <label class="pack-checkbox">
-            <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
-            <span></span>
-            <p data-l10n-id="sharePerformanceAndUsageData2">Yes! Send data.</p>
-          </label>
+          <gaia-checkbox class="inline" id="share-performance" name="debug.performance_data.shared">
+            <label id="wifi_show_password" data-l10n-id="sharePerformanceAndUsageData2"></label>
+          </gaia-checkbox>
         </section>
       </section>
     </article>

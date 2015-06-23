@@ -251,7 +251,8 @@ var WifiUI = {
     var ssidHeader = document.getElementById('wifi_ssid');
     var userInput = document.getElementById('wifi_user');
     var passwordInput = document.getElementById('wifi_password');
-    var showPassword = document.querySelector('input[name=show_password]');
+    var showPassword = document.querySelector(
+      'gaia-checkbox[name=show_password]');
     var joinButton = UIManager.wifiJoinButton;
 
     joinButton.disabled = true;
@@ -266,9 +267,9 @@ var WifiUI = {
     passwordInput.type = 'password';
     passwordInput.value = '';
     showPassword.checked = false;
-    showPassword.onchange = function togglePasswordVisibility() {
-      passwordInput.type = this.checked ? 'text' : 'password';
-    };
+    showPassword.addEventListener('change', e => {
+      passwordInput.type = e.target.checked ? 'text' : 'password';
+    });
 
     // Update form
     passwordInput.value = '';

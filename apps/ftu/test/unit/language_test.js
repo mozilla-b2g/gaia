@@ -1,5 +1,5 @@
 /* global MockL10n, MockNavigatorSettings, MockLanguageList,
-          LanguageManager, LanguageList, KeyboardHelper, 
+          LanguageManager, LanguageList, KeyboardHelper,
           MockImportNavigationHTML, dispatchEvent */
 'use strict';
 
