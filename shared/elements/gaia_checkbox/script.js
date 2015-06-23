@@ -36,8 +36,24 @@ window.GaiaCheckbox = (function(win) {
     }.bind(this));
 
     ComponentUtils.style.call(this, baseurl);
+
+    // Proxy RTL changes to the shadow root so we can style for RTL.
+    var dirObserver = new MutationObserver(this.updateInternalDir.bind(this));
+    dirObserver.observe(document.documentElement, {
+      attributeFilter: ['dir'],
+      attributes: true
+    });
+    this.updateInternalDir();
   };
 
+  proto.updateInternalDir = function() {
+    var internal = this.shadowRoot.firstElementChild;
+    if (document.documentElement.dir === 'rtl') {
+      internal.setAttribute('dir', 'rtl');
+    } else {
+      internal.removeAttribute('dir');
+    }
+  };
 
   /**
    * Handles a click event on the shadow dom.
