@@ -6,8 +6,8 @@ var FTU_APP_ORIGIN = document.location.protocol + '//' +
     document.location.host;
 
 var ServicesLauncher = (function(document) {
-    var extensionFrame = document.querySelector('#fb-extensions');
-    var oauthFrame = document.querySelector('#fb-oauth');
+    var extensionFrame = document.querySelector('#onlineServices_extensions');
+    var oauthFrame = document.querySelector('#onlineServices_oauth');
 
     var BASE_IMPORT = '/shared/pages/import/import.html?ftu=1';
     function getServiceURI(service) {
@@ -50,14 +50,6 @@ var ServicesLauncher = (function(document) {
       });
       extensionFrame.className = 'closing';
       window.removeEventListener('message', messageHandler);
-
-      if (currentService === 'facebook') {
-        // Notify observers that a change from FB could have happened
-        var event = new CustomEvent('fb_imported', {
-          'detail' : true
-        });
-        document.dispatchEvent(event);
-      }
     }
 
 

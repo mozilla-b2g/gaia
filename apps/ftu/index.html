@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="style/style.css">
   <link rel="stylesheet" href="style/status.css">
   <link rel="stylesheet" href="style/overlay.css">
-  <link rel="stylesheet" href="style/fb_extensions.css">
+  <link rel="stylesheet" href="style/extensions.css">
   <link rel="stylesheet" href="style/tutorial.css">
   <link rel="stylesheet" href="style/responsive.css">
   <link rel="stylesheet" href="/shared/pages/import/style/curtain_frame.css">
@@ -32,7 +32,7 @@
   <meta name="defaultLanguage" content="en-US">
   <meta name="availableLanguages" content="en-US">
   <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
-  <!-- This is needed for not duplicating SIM Import and FB Import locales -->
+  <!-- This is needed for not duplicating SIM Import locales -->
   <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
   <link rel="localization" href="locales/ftu.{locale}.properties">
   <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
@@ -69,12 +69,6 @@
   <script defer src="/shared/js/font_size_utils.js"></script>
   <script defer src="/shared/js/basket_client.js"></script>
   <script defer src="js/services_launcher.js"></script>
-  <script defer src="/shared/js/fb/fb_request.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_data.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_utils.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_query.js"></script>
-  <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
-  <script defer src="/shared/js/contacts/import/facebook/fb_contact_utils.js"></script>
   <script defer src="/shared/js/contacts/import/import_status_data.js"></script>
   <script defer src="/shared/js/async_storage.js"></script>
   <script defer src="/shared/js/mobile_operator.js"></script>
@@ -438,28 +432,6 @@
             </li>
           </ul>
         </article>
-        <gaia-subheader skin="organic">
-          <span data-l10n-id="otherAccount">Other accounts</span>
-        </gaia-subheader>
-        <article data-type="list">
-          <ul id="fb_container">
-            <li id="fb_import" class="importOption">
-              <button id="fb-import-button" class="icon icon-fb" data-l10n-id="importFb2">
-                  Facebook
-              </button>
-              <p id="no-network" class="hidden" data-l10n-id="noConnection11">
-                To import Facebook friends connect to Wi-Fi or data network
-              </p>
-            </li>
-            <li id="fb_after_import1" class="hidden">
-              <p data-l10n-id="importFb2">Facebook</p>
-              <p id="fb_import_feedback"></p>
-            </li>
-            <li class="importOption hidden" id="fb_after_import2">
-              <p data-l10n-id="afterFbImport"></p>
-            </li>
-          </ul>
-        </article>
       </section>
 
       <section role="region" id="firefox_accounts">
@@ -770,8 +742,8 @@
     <p></p>
   </section>
 
-  <iframe id="fb-curtain" src="/shared/pages/import/curtain.html"></iframe>
-  <iframe id="fb-oauth" hidden src="/shared/pages/import/oauth.html"></iframe>
-  <iframe id="fb-extensions"></iframe>
+  <iframe id="onlineServices_curtain" src="/shared/pages/import/curtain.html"></iframe>
+  <iframe id="onlineServices_oauth" hidden src="/shared/pages/import/oauth.html"></iframe>
+  <iframe id="onlineServices_extensions"></iframe>
 </body>
 </html>

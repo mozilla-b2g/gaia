@@ -6,7 +6,8 @@ var Curtain = (function() {
 
   var _ = navigator.mozL10n.get;
 
-  var curtainFrame = parent.document.querySelector('#fb-curtain');
+  var curtainFrame = parent.document.querySelector('#fb-curtain') ||
+                     parent.document.querySelector('#onlineServices_curtain');
   var doc = curtainFrame.contentDocument;
 
   var cpuWakeLock, cancelButton, retryButton, okButton, progressElement, form,
