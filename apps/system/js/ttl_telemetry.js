@@ -48,11 +48,13 @@
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'apploadtime':
-          this.recordTelemetryData(evt.detail);
+          if (this.appName) {
+            this.recordTelemetryData(evt.detail);
+          }
           break;
 
         case 'appopening':
-          this.app = evt.detail;
+          this.appName = evt.detail.name.toLowerCase();
           break;
       }
     },
@@ -70,11 +72,13 @@
       }
 
       var metric = {
-        name: metricName, value: data.time, appName: this.app.name
+        name: metricName, value: data.time, appName: this.appName
       };
       var event = new CustomEvent('advanced-telemetry-update', {
         detail: { metric: metric  }
       });
+      console.log('[AdvancedTelemetry] recording metric --> ' +
+        metric.name + ', ' + metric.value + ', ' + metric.appName);
       window.dispatchEvent(event);
     }
   };
