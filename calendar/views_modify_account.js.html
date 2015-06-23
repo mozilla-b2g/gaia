@@ -35,6 +35,7 @@ var OAuthWindow = require('oauth_window');
 var Presets = require('common/presets');
 var URI = require('utils/uri');
 var View = require('view');
+var co = require('ext/co');
 var core = require('core');
 var isOffline = require('common/is_offline');
 var router = require('router');
@@ -193,12 +194,9 @@ ModifyAccount.prototype = {
       e.preventDefault();
     }
 
-    var id = this.model._id;
-    var store = core.storeFactory.get('Account');
-
     // begin the removal (which will emit the preRemove event) but don't wait
     // for it to complete...
-    store.remove(id);
+    core.bridge.deleteAccount(this.model._id);
 
     // semi-hack clear the :target - harmless in tests
     // but important in the current UI because css :target
@@ -410,7 +408,7 @@ ModifyAccount.prototype = {
     this.form.removeEventListener('submit', this._boundSaveUpdateModel);
   },
 
-  dispatch: function(data) {
+  dispatch: co.wrap(function *(data) {
     if (this.model) {
       this.destroy();
     }
@@ -420,34 +418,28 @@ ModifyAccount.prototype = {
 
     this.completeUrl = '/settings/';
 
-    var self = this;
-    function displayModel(err, model) {
-      self.preset = Presets[model.preset];
+    try {
+      var model;
+      if (params.id) {
+        model = yield core.bridge.getAccount(params.id);
+      } else if (params.preset) {
+        model = this._createModel(params.preset);
+      }
+
+      this.preset = Presets[model.preset];
 
       // race condition another dispatch has queued
       // while we where waiting for an async event.
-      if (self._changeToken !== changeToken) {
+      if (this._changeToken !== changeToken) {
         return;
       }
 
-      if (err) {
-        return console.error('Error displaying model in ModifyAccount', data);
-      }
-
-      self.model = model;
-      self.render();
-
-      if (self.ondispatch) {
-        self.ondispatch();
-      }
+      this.model = model;
+      this.render();
+    } catch (err) {
+      console.error('Error displaying model in ModifyAccount', data, err);
     }
-
-    if (params.id) {
-      core.storeFactory.get('Account').get(params.id, displayModel);
-    } else if (params.preset) {
-      displayModel(null, this._createModel(params.preset));
-    }
-  },
+  }),
 
   oninactive: function() {
     View.prototype.oninactive.apply(this, arguments);
@@ -470,13 +462,13 @@ ModifyAccount.prototype = {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#availablePresets">availablePresets</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jun 11 2015 15:15:31 GMT+0800 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Tue Jun 23 2015 13:12:36 GMT-0700 (PDT)
 </footer>
 
 <script> prettyPrint(); </script>

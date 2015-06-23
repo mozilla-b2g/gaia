@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: startup.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: startup.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global LazyLoader, InitialPanelHandler, RootPanelHandler, AppStarter */
+/* exported InitialPanelHandler, RootPanelHandler, AppStarter */
+
+/**
+ * InitialPanelHandler provides basic interaction including navigation and
+ * toggling settings before requirejs and other settings service get loaded.
+ * This could increase the responsiveness of the settings app.
+ *
+ * @module InitialPanelHandler
+ */
+(function(exports) {
+  'use strict';
+
+  /**
+   * @class InitialPanelHandler
+   * @param {HTMLElement} rootElement
+   *                      Root element of the panel.
+   * @param {Function} customPanelHandlerFunc
+   *                   Additional custom handler for the panel.
+   * @returns {InitialPanelHandler}
+   */
+  function InitialPanelHandler(rootElement, customPanelHandlerFunc) {
+    this._rootElement = rootElement;
+    this._pendingTargetPanel = null;
+    this._anchors = [];
+    this._inputs = [];
+    this._inputListenerInfos = [];
+    this._settings = navigator.mozSettings;
+
+    if (this._settings) {
+      this._init();
+      if (typeof customPanelHandlerFunc !== 'undefined') {
+        customPanelHandlerFunc(rootElement);
+      }
+    }
+  }
+
+  InitialPanelHandler.prototype = {
+    /**
+     * The panel that a user click on before the core modules are loaded.
+     *
+     * @access public
+     * @memberOf InitialPanelHandler.prototype
+     * @type {HTMLElement}
+     */
+    get pendingTargetPanel() {
+      return this._pendingTargetPanel;
+    },
+
+    /**
+     * Add click listeners to all list items with "href" attribute.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype
+     */
+    _addClickListeners: function iph_addClickListeners() {
+      this._anchors = Array.prototype.slice.call(
+        this._rootElement.querySelectorAll('li a[href]'));
+      this._anchors.forEach(function(anchor) {
+        anchor.onclick = (event) => {
+          event.preventDefault();
+          this._pendingTargetPanel = anchor.getAttribute('href');
+          this._pendingTargetPanel = this._pendingTargetPanel.replace('#', '');
+        };
+      }, this);
+    },
+
+    /**
+     * Remove click listeners added in _addClickListeners.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype
+     */
+    _removeClickListeners: function iph_removeClickListeners() {
+      this._anchors.forEach(function(anchor) {
+        anchor.onclick = null;
+      });
+    },
+
+    /**
+     * Add listeners added to all input elements bound to the settings database.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype
+     */
+    _addInputListeners: function iph_addInputListeners() {
+      this._inputs = Array.prototype.slice.call(
+        this._rootElement.querySelectorAll('input[name]'));
+      this._inputs.forEach(function(input) {
+        var name = input.getAttribute('name');
+        var boundOnSettingChange = this._onSettingChange.bind(this, input);
+
+        input.onchange = this._onInputChange.bind(this);
+
+        this._settings.createLock().get(name).then((result) => {
+          this._updateInput(input, result[name]);
+        });
+
+        this._settings.addObserver(name, boundOnSettingChange);
+        this._inputListenerInfos.push({
+          name: name,
+          handler: boundOnSettingChange
+        });
+      }, this);
+    },
+
+    /**
+     * Remove the listeners added in _addInputListeners.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype
+     */
+    _removeInputListeners: function iph_removeInputListeners() {
+      this._inputs.forEach(function(input) {
+        input.onchange = null;
+      });
+      this._inputListenerInfos.forEach(function(inputListenerInfo) {
+        this._settings.removeObserver(inputListenerInfo.name,
+          inputListenerInfo.handler);
+      }, this);
+    },
+
+    /**
+     * Handler for settings field changes.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype
+     * @param {HTMLInputElement} input
+     * @param {Event} event                    
+     */
+    _onSettingChange: function uph_onSettingChange(input, event) {
+      this._updateInput(input, event.settingValue);
+    },
+
+    /**
+     * Handler for input changes. It updates the chage to the settings database.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype
+     * @param {Event} event                    
+     */
+    _onInputChange: function uph_onInputChange(event) {
+      var input = event.target;
+      var type = input.type;
+      var key = input.name;
+
+      if (!key || event.type !== 'change') {
+        return;
+      }
+
+      // Not touching &lt;input> with data-setting attribute here
+      // because they would have to be committed with a explicit "submit"
+      // of their own dialog.
+      if (input.dataset.setting) {
+        return;
+      }
+
+      var value;
+      switch (type) {
+        case 'checkbox':
+        case 'switch':
+          value = input.checked; // boolean
+          break;
+        case 'range':
+          // Bug 906296:
+          //   We parseFloat() once to be able to round to 1 digit, then
+          //   we parseFloat() again to make sure to store a Number and
+          //   not a String, otherwise this will make Gecko unable to
+          //   apply new settings.
+          value = parseFloat(parseFloat(input.value).toFixed(1)); // float
+          break;
+        case 'select-one':
+        case 'radio':
+        case 'text':
+        case 'password':
+          value = input.value; // default as text
+          if (input.dataset.valueType === 'integer') { // integer
+            value = parseInt(value, 10);
+          }
+          break;
+      }
+
+      var cset = {};
+      cset[key] = value;
+      this._settings.createLock().set(cset);
+    },
+
+    /**
+     * Update the input element with a value.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype
+     * @param {HTMLInputElement} input
+     * @param {Object} value                  
+     */
+    _updateInput: function uph_updateInput(input, value) {
+      var i;
+      var count;
+
+      switch (input.type) {
+        case 'checkbox':
+        case 'switch':
+          if (input.checked === value) {
+            return;
+          }
+          input.checked = value;
+          break;
+        case 'range':
+          if (input.value === value) {
+            return;
+          }
+          input.value = value;
+          break;
+        case 'select':
+          for (i = 0, count = input.options.length; i &lt; count; i++) {
+            if (input.options[i].value === value) {
+              input.options[i].selected = true;
+              break;
+            }
+          }
+          break;
+      }
+    },
+
+    /**
+     * Add listeners for click and input changes.
+     *
+     * @access private
+     * @memberOf InitialPanelHandler.prototype              
+     */
+    _init: function iph_init() {
+      this._addClickListeners();
+      this._addInputListeners();
+    },
+
+    /**
+     * Release the control from the handler to the panel.
+     *
+     * @access public
+     * @memberOf InitialPanelHandler.prototype              
+     */
+    release: function iph_release() {
+      this._removeClickListeners();
+      this._removeInputListeners();
+    }
+  };
+
+  exports.InitialPanelHandler =
+    function ctor_InitialPanelHandler(rootElement, customPanelHandler) {
+      return new InitialPanelHandler(rootElement, customPanelHandler);
+  };
+})(window);
+
+
+/**
+ * RootPanelHandler updates UI elements in the root panel. 
+ *
+ * @module RootPanelHandler
+ */
+(function(exports) {
+  'use strict';
+
+  /**
+   * @class RootPanelHandler
+   * @param {HTMLElement} rootElement
+   *                      Root element of the panel.
+   * @returns {RootPanelHandler}
+   */
+  function RootPanelHandler(rootElement) {
+    this._rootElement = rootElement;
+    this._init();
+  }
+
+  RootPanelHandler.prototype = {
+    /**
+     * Update the sim related items based on mozMobileConnections.
+     *
+     * @access private
+     * @memberOf RootPanelHandler.prototype
+     */
+    _updateSimItems: function rph_refrehsSimItems() {
+      if (navigator.mozMobileConnections) {
+        if (navigator.mozMobileConnections.length === 1) { // single sim
+          document.getElementById('simCardManager-settings').hidden = true;
+        } else { // dsds
+          document.getElementById('simSecurity-settings').hidden = true;
+        }
+      } else {
+        // hide telephony panels
+        var elements = ['call-settings',
+                        'data-connectivity',
+                        'messaging-settings',
+                        'simSecurity-settings',
+                        'simCardManager-settings'];
+        elements.forEach(function(el) {
+          document.getElementById(el).hidden = true;
+        });
+      }
+    },
+
+    /**
+     * Update the developer menu item based on the preference.
+     *
+     * @access private
+     * @memberOf RootPanelHandler.prototype
+     */
+    _updateDeveloperMenuItem: function rph_refreshDeveloperMenuItem() {
+      var item = this._rootElement.querySelector(
+        '[data-show-name="developer.menu.enabled"]');
+      if (item &amp;&amp; navigator.mozSettings) {
+        return navigator.mozSettings.createLock()
+          .get('developer.menu.enabled').then(
+            function(result) {
+              item.hidden = !result['developer.menu.enabled'];
+          }, function(error) {
+            console.error(error);
+          });
+      } else {
+        return Promise.resolve();
+      }
+    },
+
+    /**
+     * Process all UI elements here.
+     *
+     * @access private
+     * @memberOf RootPanelHandler.prototype              
+     */
+    _init: function rph_init() {
+      var nfcItem = this._rootElement.querySelector('.nfc-settings');
+      nfcItem.hidden = !navigator.mozNfc;
+
+      // Show proper SIM items.
+      this._updateSimItems();
+
+      // Show developer menu when necessary.
+      this._updateDeveloperMenuItem();
+    }
+  };
+
+  exports.RootPanelHandler = function ctor_rootPanelHandler(rootElement) {
+    return new RootPanelHandler(rootElement);
+  };
+})(window);
+
+/**
+ * AppStarter determines the initial panel to be displayed for this launch. It
+ * is also reponsible for attaching basic panel handlers for enabling the
+ * ability of interacting with users.
+ *
+ * @module AppStarter
+ */
+(function(exports) {
+  'use strict';
+
+  /**
+   * @class AppStarter
+   * @returns {AppStarter}
+   */
+  function AppStarter() {
+    this._started = false;
+    this._launchContext = null;
+  }
+
+  AppStarter.prototype = {
+    /**
+     * Returns the initial panel id based on the pending system message. If
+     * there is no system message available, it returns 'root'.
+     *
+     * @access private
+     * @memberOf AppStarter.prototype
+     * @returns {Promise.&lt;String>}
+     */
+    _getInitialPanelId: function as_getInitialPanelId() {
+      return new Promise(function(resolve) {
+        if (navigator.mozHasPendingMessage('activity')) {
+          // Load activity handler only when we need to handle it.
+          LazyLoader.load(['js/activity_handler.js'], function ah_loaded() {
+            window.ActivityHandler.ready().then(function ah_ready() {
+              resolve(window.ActivityHandler.targetPanelId);
+            });
+          });
+        } else {
+          resolve('root');
+        }
+      });
+    },
+
+    /**
+     * Insert the elements of the initial panel.
+     *
+     * @access private
+     * @memberOf AppStarter.prototype
+     */
+    _showInitialPanel: function as_showInitialPanel(initialPanelId) {
+      var initialPanel = document.getElementById(initialPanelId);
+      // Use lazy loade because it handles the case in DEBUG mode.
+      return LazyLoader.load([initialPanel]).then(() => {
+        initialPanel.classList.add('current');
+      });
+    },
+
+    /**
+     * The function defines a launch context storing the information regarding
+     * the launch to be used by the AMD modules.
+     *
+     * @access private
+     * @memberOf AppStarter.prototype
+     */
+    _createLaunchContext: function as_createLaunchContext(initialPanelId,
+      initialPanelHandler, activityHandler) {
+
+      this._launchContext = {
+        get initialPanelId() {
+          return initialPanelId;
+        },
+        get initialPanelHandler() {
+          return initialPanelHandler;
+        },
+        get activityHandler() {
+          return activityHandler;
+        }
+      };
+
+      var that = this;
+      Object.defineProperty(exports, 'LaunchContext', {
+        configurable: true,
+        get: function() {
+          return that._launchContext;
+        }
+      });
+    },
+
+    /**
+     * Load alameda and the required modules defined in main.js.
+     *
+     * @access private
+     * @memberOf AppStarter.prototype
+     */
+    _loadAlameda: function as_loadAlameda() {
+      var scriptNode = document.createElement('script');
+      scriptNode.setAttribute('data-main', 'js/main.js');
+      scriptNode.src = 'js/vendor/alameda.js';
+      document.head.appendChild(scriptNode);
+    },
+
+    /**
+     * The function determines the first panel to be displayed and loads the
+     * minimal set of modules for basic interaction. It also exposes the launch
+     * context for the delay loaded AMD modules.
+     *
+     * @access public
+     * @memberOf AppStarter.prototype
+     */
+    start: function as_start() {
+      if (this._started) {
+        return Promise.resolve();
+      } else {
+        this._started = true;
+      }
+
+      navigator.mozL10n.once(function l10nDone() {
+        // Since the settings app contains its chrome already existing in the
+        // DOM, we can fire that it's loaded as soon as the DOM is localized
+        window.performance.mark('navigationLoaded');
+
+        // Since the settings app has no functional chrome, we can fire the
+        // interactive event now because there are no events to bind
+        window.performance.mark('navigationInteractive');
+      });
+
+      var initialPanelId;
+      return this._getInitialPanelId().then((panelId) => {
+        initialPanelId = panelId;
+        return this._showInitialPanel(panelId);
+      }).then(() => {
+        // XXX: This is an optimization for the root panel to avoid reflow that
+        //      could be observed by users.
+        var customPanelHandler;
+        if (initialPanelId === 'root') {
+          customPanelHandler = RootPanelHandler;
+        }
+
+        var initialPanelHandler =
+          InitialPanelHandler(document.getElementById(initialPanelId),
+            customPanelHandler);
+
+        // Initial panel handler registers basic events for interaction so we
+        // can fire the content interactive evnet here.
+        window.performance.mark('contentInteractive');
+
+        this._createLaunchContext(initialPanelId, initialPanelHandler,
+          window.ActivityHandler);
+      }).then(() => {
+        // Add timeout as loading the modules could block scrolling.
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            this._loadAlameda();
+            resolve();
+          }, 100);
+        });
+      });
+    }
+  };
+
+  exports.AppStarter = function ctor_appStarter() {
+    return new AppStarter();
+  };
+})(window);
+
+(function() {
+  'use strict';
+
+  var appStarter = AppStarter();
+
+  if (document.readyState !== 'loading') {
+    appStarter.start();
+  } else {
+    document.addEventListener('readystatechange', function readyStateChange() {
+      if (document.readyState == 'interactive') {
+        document.removeEventListener('readystatechange', readyStateChange);
+        appStarter.start();
+      }
+    });
+  }
+})();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-@SimPinDialog.html">@SimPinDialog</a></li><li><a href="module-abou_more_info_commitInfo.html">abou_more_info/commitInfo</a></li><li><a href="module-abou_more_info_DeviceInfo.html">abou_more_info/DeviceInfo</a></li><li><a href="module-about_FactoryReset.html">about/FactoryReset</a></li><li><a href="module-about_HardwareInfo.html">about/HardwareInfo</a></li><li><a href="module-about_UpdateCheck.html">about/UpdateCheck</a></li><li><a href="module-about_more_info_hardwareInfo.html">about_more_info/hardwareInfo</a></li><li><a href="module-achievements_achievements_template.html">achievements/achievements_template</a></li><li><a href="module-addons_addons_template.html">addons/addons_template</a></li><li><a href="module-AddonsItem.html">AddonsItem</a></li><li><a href="module-AddonsList.html">AddonsList</a></li><li><a href="module-apn_list_apn_template_factory.html">apn_list/apn_template_factory</a></li><li><a href="module-AppsCache.html">AppsCache</a></li><li><a href="module-AppStarter.html">AppStarter</a></li><li><a href="module-Bluetooth.html">Bluetooth</a></li><li><a href="module-bluetooth_bt_template_factory.html">bluetooth/bt_template_factory</a></li><li><a href="module-BluetoothAdapterManager.html">BluetoothAdapterManager</a></li><li><a href="module-BluetoothClassOfDeviceMapper.html">BluetoothClassOfDeviceMapper</a></li><li><a href="module-BluetoothConnectionManager.html">BluetoothConnectionManager</a></li><li><a href="module-BluetoothContext.html">BluetoothContext</a></li><li><a href="module-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-call_call_forwarding.html">call/call_forwarding</a></li><li><a href="module-call_call_settings_task_scheduler.html">call/call_settings_task_scheduler</a></li><li><a href="module-DateTime.html">DateTime</a></li><li><a href="module-Defer.html">Defer</a></li><li><a href="module-developer_developer.html">developer/developer</a></li><li><a href="module-DialogManager.html">DialogManager</a></li><li><a href="module-DialogService.html">DialogService</a></li><li><a href="module-display_display.html">display/display</a></li><li><a href="module-FdnContext.html">FdnContext</a></li><li><a href="module-HomescreenItem.html">HomescreenItem</a></li><li><a href="module-Hotspot.html">Hotspot</a></li><li><a href="module-HotspotSettings.html">HotspotSettings</a></li><li><a href="module-InitialPanelHandler.html">InitialPanelHandler</a></li><li><a href="module-js_activity_handler.html">js/activity_handler</a></li><li><a href="module-keyboard_enabled_layouts.html">keyboard/enabled_layouts</a></li><li><a href="module-keyboard_installed_keyboards.html">keyboard/installed_keyboards</a></li><li><a href="module-keyboard_keyboard_template.html">keyboard/keyboard_template</a></li><li><a href="module-keyboard_add_layouts_core.html">keyboard_add_layouts/core</a></li><li><a href="module-keyboard_add_layouts_keyboard_template.html">keyboard_add_layouts/keyboard_template</a></li><li><a href="module-keyboard_add_layouts_layout_template.html">keyboard_add_layouts/layout_template</a></li><li><a href="module-keyboard_add_layouts_nested_template_factory.html">keyboard_add_layouts/nested_template_factory</a></li><li><a href="module-KeyboardContext.html">KeyboardContext</a></li><li><a href="module-modules_apn_apn_item.html">modules/apn/apn_item</a></li><li><a href="module-modules_apn_apn_list.html">modules/apn/apn_list</a></li><li><a href="module-modules_apn_apn_selections.html">modules/apn/apn_selections</a></li><li><a href="module-modules_apn_apn_settings.html">modules/apn/apn_settings</a></li><li><a href="module-modules_apn_apn_settings_manager.html">modules/apn/apn_settings_manager</a></li><li><a href="module-modules_base_dependency_graph.html">modules/base/dependency_graph</a></li><li><a href="module-modules_base_module.html">modules/base/module</a></li><li><a href="module-modules_base_task_scheduler.html">modules/base/task_scheduler</a></li><li><a href="module-modules_bluetooth_version_detector.html">modules/bluetooth/version_detector</a></li><li><a href="module-modules_mvvm_observable.html">modules/mvvm/observable</a></li><li><a href="module-modules_mvvm_observable_array.html">modules/mvvm/observable_array</a></li><li><a href="module-PageTransitions.html">PageTransitions</a></li><li><a href="module-Panel.html">Panel</a></li><li><a href="module-PanelCache.html">PanelCache</a></li><li><a href="module-panels_operator_settings_models_auto_selection_model.html">panels/operator_settings/models/auto_selection_model</a></li><li><a href="module-panels_operator_settings_models_mobile_connection_wrapper.html">panels/operator_settings/models/mobile_connection_wrapper</a></li><li><a href="module-panels_operator_settings_models_network_type_manager.html">panels/operator_settings/models/network_type_manager</a></li><li><a href="module-panels_operator_settings_models_operator_manager.html">panels/operator_settings/models/operator_manager</a></li><li><a href="module-panels_operator_settings_models_panel_model.html">panels/operator_settings/models/panel_model</a></li><li><a href="module-panels_operator_settings_models_roaming_preference_manager.html">panels/operator_settings/models/roaming_preference_manager</a></li><li><a href="module-panels_root_airplane_mode_item.html">panels/root/airplane_mode_item</a></li><li><a href="module-panels_root_battery_item.html">panels/root/battery_item</a></li><li><a href="module-panels_root_bluetooth_item.html">panels/root/bluetooth_item</a></li><li><a href="module-panels_root_findmydevice_item.html">panels/root/findmydevice_item</a></li><li><a href="module-panels_root_language_item.html">panels/root/language_item</a></li><li><a href="module-panels_root_low_priority_items.html">panels/root/low_priority_items</a></li><li><a href="module-panels_root_nfc_item.html">panels/root/nfc_item</a></li><li><a href="module-PanelUtils.html">PanelUtils</a></li><li><a href="module-PermissionsList.html">PermissionsList</a></li><li><a href="module-PrivacyPanelItem.html">PrivacyPanelItem</a></li><li><a href="module-root_root.html">root/root</a></li><li><a href="module-RootPanelHandler.html">RootPanelHandler</a></li><li><a href="module-SettingsCache.html">SettingsCache</a></li><li><a href="module-SettingsPanel.html">SettingsPanel</a></li><li><a href="module-SettingsService.html">SettingsService</a></li><li><a href="module-SimCardManager.html">SimCardManager</a></li><li><a href="module-SimSecurity.html">SimSecurity</a></li><li><a href="module-SimSecurityItem.html">SimSecurityItem</a></li><li><a href="module-SliderHandler.html">SliderHandler</a></li><li><a href="module-themes_layout_template.html">themes/layout_template</a></li><li><a href="module-ThemesItem.html">ThemesItem</a></li><li><a href="module-ToneManager.html">ToneManager</a></li><li><a href="module-VolumeManager.html">VolumeManager</a></li><li><a href="module-Wallpaper.html">Wallpaper</a></li><li><a href="module-wifi_manage_networks_wifi_known_networks.html">wifi_manage_networks/wifi_known_networks</a></li><li><a href="module-wifi_wps_wifi_wps.html">wifi_wps/wifi_wps</a></li><li><a href="module-WifiContext.html">WifiContext</a></li><li><a href="module-WifiUtils.html">WifiUtils</a></li><li><a href="module-WifiWps.html">WifiWps</a></li></ul><h3>Classes</h3><ul><li><a href="AddonDetails.html">AddonDetails</a></li><li><a href="AddonManager.html">AddonManager</a></li><li><a href="AppStorageItem.html">AppStorageItem</a></li><li><a href="DeveloperHud.html">DeveloperHud</a></li><li><a href="DeveloperServiceWorkers.html">DeveloperServiceWorkers</a></li><li><a href="EventEmitter.html">EventEmitter</a></li><li><a href="module-abou_more_info_commitInfo-commitInfo.html">commitInfo</a></li><li><a href="module-abou_more_info_DeviceInfo-DeviceInfo.html">DeviceInfo</a></li><li><a href="module-about_FactoryReset-FactoryReset.html">FactoryReset</a></li><li><a href="module-about_HardwareInfo-HardwareInfo.html">HardwareInfo</a></li><li><a href="module-about_UpdateCheck-UpdateCheck.html">UpdateCheck</a></li><li><a href="module-about_more_info_hardwareInfo-HardwareInfo.html">HardwareInfo</a></li><li><a href="module-AppStarter-AppStarter.html">AppStarter</a></li><li><a href="module-BluetoothDevice-BluetoothDevice.html">BluetoothDevice</a></li><li><a href="module-call_call_forwarding-CallForwarding.html">CallForwarding</a></li><li><a href="module-call_call_settings_task_scheduler-CallSettingsTaskScheduler.html">CallSettingsTaskScheduler</a></li><li><a href="module-developer_developer-Developer.html">Developer</a></li><li><a href="module-display_display-Display.html">Display</a></li><li><a href="module-InitialPanelHandler-InitialPanelHandler.html">InitialPanelHandler</a></li><li><a href="module-keyboard_enabled_layouts-KeyboardEnabledLayoutsCore.html">KeyboardEnabledLayoutsCore</a></li><li><a href="module-keyboard_installed_keyboards-KeyboardCore.html">KeyboardCore</a></li><li><a href="module-keyboard_add_layouts_core-KeyboardAddLayoutsCore.html">KeyboardAddLayoutsCore</a></li><li><a href="module-KeyboardContext-Keyboard.html">Keyboard</a></li><li><a href="module-KeyboardContext-Layout.html">Layout</a></li><li><a href="module-modules_apn_apn_item-ApnItem.html">ApnItem</a></li><li><a href="module-modules_apn_apn_list-ApnList.html">ApnList</a></li><li><a href="module-modules_apn_apn_selections-ApnSelections.html">ApnSelections</a></li><li><a href="module-modules_apn_apn_settings_manager-ApnSettingsManager.html">ApnSettingsManager</a></li><li><a href="module-modules_apn_apn_settings-ApnSettings.html">ApnSettings</a></li><li><a href="module-modules_base_dependency_graph-DependencyGraph.html">DependencyGraph</a></li><li><a href="module-modules_base_task_scheduler-TaskScheduler.html">TaskScheduler</a></li><li><a href="module-modules_mvvm_observable_array-ObservableArray.html">ObservableArray</a></li><li><a href="module-modules_mvvm_observable-Observable.html">Observable</a></li><li><a href="module-panels_operator_settings_models_mobile_connection_wrapper-MobileConnetionWrapper.html">MobileConnetionWrapper</a></li><li><a href="module-panels_operator_settings_models_network_type_manager-NetworkTypeManager.html">NetworkTypeManager</a></li><li><a href="module-panels_operator_settings_models_operator_manager-OperatorManager.html">OperatorManager</a></li><li><a href="module-panels_operator_settings_models_panel_model-OperatorSettingsPanelModel.html">OperatorSettingsPanelModel</a></li><li><a href="module-panels_operator_settings_models_roaming_preference_manager-RoamingPreferenceManager.html">RoamingPreferenceManager</a></li><li><a href="module-panels_root_airplane_mode_item-AirplaneModeItem.html">AirplaneModeItem</a></li><li><a href="module-panels_root_battery_item-BatteryItem.html">BatteryItem</a></li><li><a href="module-panels_root_bluetooth_item-BluetoothItem.html">BluetoothItem</a></li><li><a href="module-panels_root_findmydevice_item-FindMyDeviceItem.html">FindMyDeviceItem</a></li><li><a href="module-panels_root_language_item-LanguageItem.html">LanguageItem</a></li><li><a href="module-panels_root_nfc_item-NFCItem.html">NFCItem</a></li><li><a href="module-root_root-Root.html">Root</a></li><li><a href="module-RootPanelHandler-RootPanelHandler.html">RootPanelHandler</a></li><li><a href="module-wifi_manage_networks_wifi_known_networks-WifiKnownNetworks.html">WifiKnownNetworks</a></li><li><a href="StateModel.html">StateModel</a></li><li><a href="USBStorageItem.html">USBStorageItem</a></li></ul><h3>Events</h3><ul><li><a href="module-SettingsCache.html#event:settingsChange">settingsChange</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_customize">_customize</a></li><li><a href="global.html#_datePickerChange">_datePickerChange</a></li><li><a href="global.html#_getInstance">_getInstance</a></li><li><a href="global.html#_hideActionMenu">_hideActionMenu</a></li><li><a href="global.html#_MODE">_MODE</a></li><li><a href="global.html#_renderAuthorizedNumbers">_renderAuthorizedNumbers</a></li><li><a href="global.html#_renderFdnContact">_renderFdnContact</a></li><li><a href="global.html#_renderTimeFormat">_renderTimeFormat</a></li><li><a href="global.html#_renderTimeZone">_renderTimeZone</a></li><li><a href="global.html#_showActionMenu">_showActionMenu</a></li><li><a href="global.html#_timePickerChange">_timePickerChange</a></li><li><a href="global.html#_updateContact">_updateContact</a></li><li><a href="global.html#_updateUI">_updateUI</a></li><li><a href="global.html#CarrierSettings">CarrierSettings</a></li><li><a href="global.html#DeviceStorageHelper">DeviceStorageHelper</a></li><li><a href="global.html#FileSizeFormatter">FileSizeFormatter</a></li><li><a href="global.html#getIccByIndex">getIccByIndex</a></li><li><a href="global.html#getWallpaperPath">getWallpaperPath</a></li><li><a href="global.html#loadWallpaper">loadWallpaper</a></li><li><a href="global.html#openDialog">openDialog</a></li><li><a href="global.html#openLink">openLink</a></li><li><a href="global.html#reopenSettings">reopenSettings</a></li><li><a href="global.html#requirejs">requirejs</a></li><li><a href="global.html#rollbackTheme">rollbackTheme</a></li><li><a href="global.html#saveConfig">saveConfig</a></li><li><a href="global.html#setWallpaper">setWallpaper</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Tue Jun 23 2015 13:12:43 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
