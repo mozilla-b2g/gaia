@@ -46,7 +46,6 @@ window.GaiaCheckbox = (function(win) {
    * that preserves backwards behavior and should make it easier to port apps.
    */
   proto.handleClick = function(e) {
-    this.checked = !this.checked;
     this._wrapper.setAttribute('aria-checked', this.checked);
 
     // We add this event listener twice (see above) on both the content and
@@ -62,6 +61,16 @@ window.GaiaCheckbox = (function(win) {
       cancelable: true
     });
     this.dispatchEvent(event);
+
+    if (!event.defaultPrevented) {
+      this.checked = !this.checked;
+    }
+
+    // Dispatch a change event for the gaia-switch.
+    this.dispatchEvent(new CustomEvent('change', {
+      bubbles: true,
+      cancelable: false
+    }));
   };
 
   /**
