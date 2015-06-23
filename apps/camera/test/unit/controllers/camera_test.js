@@ -82,7 +82,7 @@ suite('controllers/camera', function() {
     });
 
     test('Should load camera on app `visible`', function() {
-      assert.isTrue(this.app.on.calledWith('visible', this.controller.onVisible));
+      assert.isTrue(this.app.on.calledWith('visible', this.controller.loadCamera));
     });
 
     test('Should teardown camera on app `hidden`', function() {
@@ -195,6 +195,10 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onCaptureKey', function() {
+    setup(function() {
+      this.controller.lowBattery = false;
+    });
+
     test('`keydown:capture` triggers capture', function() {
       var callback = this.app.on.withArgs('keydown:capture').args[0][1];
       var event = { preventDefault: sinon.spy() };
@@ -468,6 +472,10 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#capture()', function() {
+    setup(function() {
+      this.controller.lowBattery = false;
+    });
+
     test('Should not start countdown if now timer setting is set', function() {
       this.app.settings.timer.selected.returns(0);
       this.app.get.withArgs('timerActive').returns(false);
@@ -508,17 +516,24 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onBatteryStatusChange()', function() {
+    setup(function() {
+      this.controller.loadCamera = sinon.stub();
+      this.controller.shutdownCamera = sinon.stub();
+    });
+
     test('Should call onBatteryStatuchange on \'change:batteryStatus\'',
       function() {
       this.app.on.calledWith('change:batteryStatus', this.onBatteryStatusChange);
     });
 
-    test('Should handle the shutDownCamera', function() {
+    test('Should load camera on `healthy` status', function() {
       this.controller.onBatteryStatusChange('healthy');
-      assert.isFalse(this.camera.stopRecording.called);
+      assert.isTrue(this.controller.loadCamera.called);
+    });
 
+    test('Should shutdown camera on `shutdown` status', function() {
       this.controller.onBatteryStatusChange('shutdown');
-      assert.isTrue(this.camera.stopRecording.called);
+      assert.isTrue(this.controller.shutdownCamera.called);
     });
 
     test('Should prevent capture on low battery', function() {
@@ -529,6 +544,58 @@ suite('controllers/camera', function() {
       this.controller.onBatteryStatusChange('healthy');
       this.controller.capture();
       assert.isTrue(this.camera.capture.called);
+    });
+  });
+
+  suite('CameraController#loadCamera()', function() {
+    setup(function() {
+      this.app.hidden = false;
+      this.app.activity.pick = false;
+      this.app.isSharingActivity = sinon.stub();
+      this.app.isSharingActivity.returns(false);
+      this.app.showSpinner = sinon.stub();
+      this.controller.galleryOpen = false;
+      this.controller.lowBattery = false;
+    });
+
+    test('It doesn\'t load the camera if the battery is low', function() {
+      this.controller.lowBattery = true;
+      this.controller.loadCamera();
+      sinon.assert.notCalled(this.camera.load);
+    });
+
+    test('It does load the camera if the battery is not low', function() {
+      this.controller.loadCamera();
+      sinon.assert.called(this.camera.load);
+    });
+
+    test('It doesn\'t load the camera if gallery is open', function() {
+      this.controller.galleryOpen = true;
+      this.controller.loadCamera();
+      sinon.assert.notCalled(this.camera.load);
+    });
+
+    test('It does load the camera if gallery is closed', function() {
+      this.controller.loadCamera();
+      sinon.assert.called(this.camera.load);
+    });
+
+    test('It doesn\'t load the camera if app is hidden', function() {
+      this.app.hidden = true;
+      this.controller.loadCamera();
+      sinon.assert.notCalled(this.camera.load);
+      sinon.assert.notCalled(this.app.showSpinner);
+    });
+
+    test('It does load the camera if app is visible', function() {
+      this.controller.loadCamera();
+      sinon.assert.called(this.camera.load);
+      sinon.assert.notCalled(this.app.showSpinner);
+    });
+
+    test('It shows the spinner if loading and requested', function() {
+      this.controller.loadCamera(true);
+      sinon.assert.called(this.app.showSpinner);
     });
   });
 
@@ -550,51 +617,23 @@ suite('controllers/camera', function() {
     });
   });
 
-  suite('CameraController#onVisible()', function() {
-    setup(function() {
-      this.app.isSharingActivity = sinon.stub();
-    });
-
-    test('It doesn\'t load the camera if gallery is open', function() {
-      this.app.activity.pick = false;
-      this.app.isSharingActivity.returns(false);
-      this.controller.galleryOpen = true;
-      this.controller.onVisible();
-      sinon.assert.notCalled(this.camera.load);
-    });
-
-    test('It does load the camera if gallery is closed', function() {
-      this.app.activity.pick = false;
-      this.app.isSharingActivity.returns(false);
-      this.controller.galleryOpen = false;
-      this.controller.onVisible();
-      sinon.assert.called(this.camera.load);
-    });
-  });
-
   suite('CameraController#onGalleryOpened()', function() {
     test('Should store gallery open state', function() {
+      this.controller.shutdownCamera = sinon.stub();
       this.controller.galleryOpen = false;
       this.controller.onGalleryOpened();
       assert.isTrue(this.controller.galleryOpen);
-      sinon.assert.called(this.camera.shutdown);
+      sinon.assert.called(this.controller.shutdownCamera);
     });
   });
 
   suite('CameraController#onGalleryClosed()', function() {
     test('It loads the camera', function() {
+      this.controller.loadCamera = sinon.stub();
       this.controller.galleryOpen = true;
       this.controller.onGalleryClosed();
       assert.isFalse(this.controller.galleryOpen);
-      sinon.assert.called(this.camera.load);
-    });
-
-    test('It doesn\'t load the camera if the app is hidden', function() {
-      this.controller.galleryOpen = true;
-      this.app.hidden = true;
-      this.controller.onGalleryClosed();
-      assert.isFalse(this.controller.galleryOpen);
-      sinon.assert.notCalled(this.camera.load);
+      sinon.assert.calledWith(this.controller.loadCamera, true);
     });
   });
 });

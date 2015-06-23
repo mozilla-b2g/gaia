@@ -122,7 +122,6 @@ Camera.prototype.load = function() {
 
   // Don't re-load hardware if selected camera is the same.
   if (this.mozCamera && !loadingNewCamera) {
-    this.setupNewCamera(this.mozCamera);
     debug('camera not changed');
     this.ready();
     return;
