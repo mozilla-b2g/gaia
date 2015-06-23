@@ -225,6 +225,28 @@ suite('id3v2 tags', function() {
         })
         .then(pass(done), fail(done));
     });
+
+    test('id3v2.4 selected frames with data length indicator', function(done) {
+      var filename = '/test-data/id3v2.4-framesunsync-datalen.mp3';
+      fetchBlobView(filename)
+        .then(ID3v2Metadata.parse)
+        .then(function(metadata) {
+          assert.strictEqual(metadata.tag_format, 'id3v2.4.0');
+          assert.strictEqual(metadata.artist, 'AC/DC');
+          assert.strictEqual(metadata.album, 'Dirty Deeds Done Dirt Cheap');
+          assert.strictEqual(metadata.title, 'Problem Child');
+          assert.strictEqual(metadata.tracknum, 5);
+          assert.strictEqual(metadata.trackcount, 9);
+          assert.strictEqual(metadata.picture.flavor, 'unsynced');
+          assert.strictEqual(metadata.picture.blob.type, 'image/jpeg');
+
+          return readBlob(metadata.picture.blob);
+        })
+        .then(function(buffer) {
+          assertBuffersEqual(buffer, expectedPicture);
+        })
+        .then(pass(done), fail(done));
+    });
   });
 
   suite('multivalue frames', function() {
