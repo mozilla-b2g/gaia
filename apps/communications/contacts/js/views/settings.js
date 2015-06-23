@@ -17,6 +17,7 @@
 /* global VCFReader */
 /* global ContactsService */
 /* global ExtServices */
+/* global Loader */
 
 var contacts = window.contacts || {};
 
@@ -177,12 +178,12 @@ contacts.Settings = (function() {
       LazyLoader.load(['/contacts/js/export/contacts_exporter.js'], loadSearch);
 
       function loadSearch() {
-        Contacts.view('search', function() {
+        Loader.view('search', function() {
           importSettingsPanel.classList.remove('import');
           importSettingsPanel.classList.add('export');
           updateImportTitle('exportContactsTitle');
           navigationHandler.go('import-settings', 'right-left');
-        }, Contacts.SHARED_CONTACTS);
+        });
       }
   }
 
@@ -239,7 +240,7 @@ contacts.Settings = (function() {
         '/contacts/js/contacts_remover.js'
       ],
       function() {
-        Contacts.view('search', function() {
+        Loader.view('search', function() {
           contacts.List.selectFromList(_('DeleteTitle'),
             function onSelectedContacts(promise, done) {
               contacts.BulkDelete.performDelete(promise, done);
@@ -250,7 +251,7 @@ contacts.Settings = (function() {
               transitionLevel: DELETE_TRANSITION_LEVEL
             }
           );
-        }, Contacts.SHARED_CONTACTS);
+        });
       }
     );
   };
@@ -416,7 +417,7 @@ contacts.Settings = (function() {
    * Loads the overlay class before showing
    */
   function requireOverlay(callback) {
-    Contacts.utility('Overlay', callback, Contacts.SHARED_UTILITIES);
+    Loader.utility('Overlay', callback);
   }
 
   /**
@@ -427,7 +428,7 @@ contacts.Settings = (function() {
     var pending = libraries.length;
 
     libraries.forEach(function onPending(library) {
-      Contacts.utility(library, next, Contacts.SHARED_UTILITIES);
+      Loader.utility(library, next);
     });
 
     function next() {

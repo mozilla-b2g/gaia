@@ -1,4 +1,4 @@
-/* global utils, ConfirmDialog, Contacts, fb, ContactsService*/
+/* global utils, ConfirmDialog, Contacts, fb, ContactsService, Loader */
 'use strict';
 
 //
@@ -169,7 +169,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   var _displayProgress = function _displayProgress() {
     var progressClass = determinativeProgress ? 'progressBar' : 'spinner';
 
-    Contacts.utility('Overlay', function _loaded() {
+    Loader.utility('Overlay', function _loaded() {
       progress = utils.overlay.show(
         strategy.getExportTitle(),
         progressClass,
@@ -186,7 +186,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         progress.setTotal(contacts.length);
         strategy.setProgressStep(progress.update);
       }
-    }, Contacts.SHARED_UTILITIES);
+    });
   };
 
   return {

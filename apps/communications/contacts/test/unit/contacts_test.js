@@ -1,10 +1,10 @@
 'use strict';
 
-/* global Contacts, contacts, ActivityHandler, LazyLoader,
+/* global Contacts, contacts, Loader, ActivityHandler, LazyLoader,
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
           MockContactAllFields, MockContactDetails,
-          MockContactsSearch, MockContactsSettings, Mockfb,
+          MockContactsSearch, MockContactsSettings, Mockfb, MockLoader,
           MockImportStatusData, MockMozContacts, ContactsService, HeaderUI
 */
 
@@ -23,6 +23,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_import_status_data.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -69,6 +70,7 @@ suite('Contacts', function() {
   var realImportStatusData;
   var mockNavigation;
   var realMozContacts;
+  var realLoader;
 
   mocksForStatusBar.attachTestHelpers();
 
@@ -101,6 +103,9 @@ suite('Contacts', function() {
     realNavigationStack = window.navigationStack;
     window.navigationStack = MockNavigationStack;
 
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
+
     sinon.spy(window, 'navigationStack');
     requireApp('communications/contacts/js/utilities/performance_helper.js');
     requireApp('communications/contacts/js/main_navigation.js');
@@ -114,6 +119,7 @@ suite('Contacts', function() {
     window.utils = realUtils;
     window.fb = realFb;
     window.ImportStatusData = realImportStatusData;
+    window.Loader = realLoader;
 
     window.navigationStack.restore();
     window.navigationStack = realNavigationStack;
@@ -302,7 +308,7 @@ suite('Contacts', function() {
     var navigation;
     setup(function() {
       navigation = window.navigationStack.firstCall.thisValue;
-      this.sinon.stub(Contacts, 'view', function(view, cb) {
+      this.sinon.stub(Loader, 'view', function(view, cb) {
         cb();
       });
       this.sinon.stub(ContactsService, 'get',
@@ -318,7 +324,7 @@ suite('Contacts', function() {
     test('> initializing details', function() {
       Contacts.showContactDetail('1');
 
-      sinon.assert.called(Contacts.view);
+      sinon.assert.called(Loader.view);
       sinon.assert.called(ContactsService.get);
       sinon.assert.called(contacts.Details.render);
       sinon.assert.calledWith(navigation.go,
@@ -419,7 +425,7 @@ suite('Contacts', function() {
       navigation = window.navigationStack.firstCall.thisValue;
       this.sinon.spy(ActivityHandler, 'isCancelable');
       this.sinon.spy(ActivityHandler, 'postCancel');
-      this.sinon.stub(Contacts, 'view', function(view, cb) {
+      this.sinon.stub(Loader, 'view', function(view, cb) {
         cb();
       });
     });

@@ -7,6 +7,7 @@
 /* global fbLoader */
 /* global LazyLoader */
 /* global MainNavigation */
+/* global Loader */
 /* global TAG_OPTIONS */
 /* global utils */
 /* global HeaderUI */
@@ -24,14 +25,6 @@ var COMMS_APP_ORIGIN = location.origin;
 var SCALE_RATIO = window.devicePixelRatio || 1;
 
 var Contacts = (function() {
-  var SHARED = 'shared';
-  var SHARED_PATH = '/' + SHARED + '/' + 'js';
-
-  var SHARED_UTILS = 'sharedUtilities';
-  var SHARED_UTILS_PATH = SHARED_PATH + '/contacts/import/utilities';
-
-  var SHARED_CONTACTS = 'sharedContacts';
-  var SHARED_CONTACTS_PATH = SHARED_PATH + '/' + 'contacts';
 
   var goToForm = function edit() {
     var transition = ActivityHandler.currentlyHandling ? 'activity-popup'
@@ -155,7 +148,7 @@ var Contacts = (function() {
         });
         break;
       case 'multiple-select-view':
-        Contacts.view('multiple_select', () => {
+        Loader.view('multiple_select', () => {
           MainNavigation.go('multiple-select-view', 'activity-popup');
         });
         break;
@@ -355,11 +348,11 @@ var Contacts = (function() {
     } else {
       initDetails(function onDetails() {
         LazyLoader.load([
-          SHARED_UTILS_PATH + '/misc.js',
+          '/shared/js/contacts/import/utilities/misc.js',
           '/shared/js/contacts/utilities/image_thumbnail.js',
           '/contacts/js/match_service.js'],
         function() {
-          Contacts.view('Form', function viewLoaded() {
+          Loader.view('Form', function viewLoaded() {
             formReady = true;
             contactsForm = contacts.Form;
             contactsForm.init(TAG_OPTIONS);
@@ -374,14 +367,14 @@ var Contacts = (function() {
     if (settingsReady) {
       callback();
     } else {
-      Contacts.view('Settings', function viewLoaded() {
+      Loader.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
           '/contacts/js/utilities/normalizer.js',
-          SHARED_UTILS_PATH + '/misc.js',
+          '/shared/js/contacts/import/utilities/misc.js',
           '/shared/js/mime_mapper.js',
-          SHARED_UTILS_PATH + '/vcard_parser.js',
+          '/shared/js/contacts/import/utilities/vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
-          SHARED_UTILS_PATH + '/sdcard.js',
+          '/shared/js/contacts/import/utilities/sdcard.js',
           '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
@@ -395,9 +388,9 @@ var Contacts = (function() {
     if (detailsReady) {
       callback();
     } else {
-      Contacts.view('Details', function viewLoaded() {
+      Loader.view('Details', function viewLoaded() {
         LazyLoader.load(
-          [SHARED_UTILS_PATH + '/misc.js',
+          ['/shared/js/contacts/import/utilities/misc.js',
            '/dialer/js/telephony_helper.js',
            '/shared/js/contacts/sms_integration.js',
            '/shared/js/contacts/contacts_buttons.js',
@@ -461,10 +454,10 @@ var Contacts = (function() {
   };
 
   var hideOverlay = function c_hideOverlay() {
-    Contacts.utility('Overlay', function _loaded() {
+    Loader.utility('Overlay', function _loaded() {
       contacts.List.show();
       utils.overlay.hide();
-    }, SHARED_UTILS);
+    });
   };
 
   var showSettings = function showSettings() {
@@ -480,11 +473,11 @@ var Contacts = (function() {
   };
 
   var enterSearchMode = function enterSearchMode(evt) {
-    Contacts.view('Search', function viewLoaded() {
+    Loader.view('Search', function viewLoaded() {
       contacts.List.initSearch(function onInit() {
         contacts.Search.enterSearchMode(evt);
       });
-    }, SHARED_CONTACTS);
+    });
   };
 
   var initEventListeners = function initEventListener() {
@@ -531,8 +524,9 @@ var Contacts = (function() {
       '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
+      '/contacts/js/loader.js',
       '/shared/js/text_normalizer.js',
-      SHARED_UTILS_PATH + '/status.js',
+      '/shared/js/contacts/import/utilities/status.js',
       '/shared/js/contacts/utilities/dom.js',
       '/shared/js/confirm.js',
       document.getElementById('confirmation-message')
@@ -664,9 +658,9 @@ var Contacts = (function() {
     utils.PerformanceHelper.chromeInteractive();
     window.setTimeout(Contacts && Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      LazyLoader.load([SHARED_UTILS_PATH + '/misc.js',
-        SHARED_UTILS_PATH + '/vcard_reader.js',
-        SHARED_UTILS_PATH + '/vcard_parser.js'],
+      LazyLoader.load(['/shared/js/contacts/import/utilities/misc.js',
+        '/shared/js/contacts/import/utilities/vcard_reader.js',
+        '/shared/js/contacts/import/utilities/vcard_parser.js'],
        function() {
         var actHandler = ActivityHandler.handle.bind(ActivityHandler);
         window.navigator.mozSetMessageHandler('activity', actHandler);
@@ -676,7 +670,7 @@ var Contacts = (function() {
     document.addEventListener('visibilitychange', function visibility(e) {
       if (document.hidden === false &&
           MainNavigation.currentView() === 'view-settings') {
-        Contacts.view('Settings', function viewLoaded() {
+        Loader.view('Settings', function viewLoaded() {
           contacts.Settings.updateTimestamps();
         });
       }
@@ -692,99 +686,6 @@ var Contacts = (function() {
     });
     LazyLoader.load('/shared/js/l10n_date.js');
   });
-
-  /**
-   * Specifies dependencies for resources
-   * E.g., mapping Facebook as a dependency of views
-   */
-  var dependencies = {
-    views: {
-      Settings: loadFacebook,
-      Details: loadFacebook,
-      Form: loadFacebook,
-      Search: function(callback) {
-        LazyLoader.load(SHARED_PATH + '/utilities.js', callback);
-      }
-    },
-    utilities: {},
-    sharedUtilities: {}
-  };
-
-  // Mapping of view names to element IDs
-  // TODO: Having a more standardized way of specifying this would be nice.
-  // Then we could get rid of this mapping entirely
-  // E.g., #details-view, #list-view, #form-view
-  var elementMapping = {
-    details: 'view-contact-details',
-    form: 'view-contact-form',
-    settings: 'settings-wrapper',
-    search: 'search-view',
-    multiple_select: 'multiple-select-view',
-    overlay: 'loading-overlay',
-    confirm: 'confirmation-message',
-    ice: 'ice-view'
-  };
-
-  function load(type, file, callback, path) {
-    /**
-     * Performs the actual lazy loading
-     * Called once all dependencies are met
-     */
-    function doLoad() {
-      var name = file.toLowerCase();
-      var finalPath = 'js' + '/' + type;
-
-      switch (path) {
-        case SHARED:
-          finalPath = SHARED_PATH;
-          break;
-        case SHARED_UTILS:
-          finalPath = SHARED_UTILS_PATH;
-          break;
-        case SHARED_CONTACTS:
-          finalPath = SHARED_CONTACTS_PATH;
-          break;
-        default:
-          finalPath = 'js' + '/' + type;
-      }
-
-      var toLoad = [finalPath + '/' + name + '.js'];
-      var node = document.getElementById(elementMapping[name]);
-      if (node) {
-        toLoad.unshift(node);
-      }
-
-      LazyLoader.load(toLoad, function() {
-          if (callback) {
-            callback();
-          }
-        });
-    }
-
-    if (dependencies[type][file]) {
-      return dependencies[type][file](doLoad);
-    }
-
-    doLoad();
-  }
-
-  /**
-   * Loads a view from the views/ folder
-   * @param {String} view name.
-   * @param {Function} callback.
-   */
-  function loadView(view, callback, type) {
-    load('views', view, callback, type);
-  }
-
-  /**
-   * Loads a utility from the utilities/ folder
-   * @param {String} utility name.
-   * @param {Function} callback.
-   */
-  function loadUtility(utility, callback, type) {
-    load('utilities', utility, callback, type);
-  }
 
   window.addEventListener('DOMContentLoaded', function onLoad() {
     window.removeEventListener('DOMContentLoaded', onLoad);
@@ -803,16 +704,8 @@ var Contacts = (function() {
     'updateContactDetail': updateContactDetail,
     'loadFacebook': loadFacebook,
     'close': close,
-    'view': loadView,
-    'utility': loadUtility,
     get asyncScriptsLoaded() {
       return loadAsyncScriptsDeferred.promise;
-    },
-    get SHARED_UTILITIES() {
-      return SHARED_UTILS;
-    },
-    get SHARED_CONTACTS() {
-      return SHARED_CONTACTS;
     }
   };
 })();

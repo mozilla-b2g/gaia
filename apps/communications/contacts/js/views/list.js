@@ -11,6 +11,7 @@
 /* global LazyLoader */
 /* global monitorTagVisibility */
 /* global Normalizer */
+/* global Loader */
 /* global utils */
 /* global ContactsService */
 /* global HeaderUI */
@@ -1004,7 +1005,7 @@ contacts.List = (function() {
   function onICEGroupClicked() {
     loadICE().then(() => {
       LazyLoader.load('/shared/js/contacts/utilities/image_loader.js', () => {
-        Contacts.view('Ice', function() {
+        Loader.view('Ice', function() {
           // Prebuild the rows here, we have all the data to
           // build them. Current amount of rows is 2.
           function rowBuilder(id, node) {
