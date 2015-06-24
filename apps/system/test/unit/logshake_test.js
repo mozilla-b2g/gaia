@@ -173,7 +173,7 @@ suite('system/LogShake', function() {
       assert.isTrue(notificationSpy.calledOnce);
       assert.isTrue(notificationSpy.calledWithNew());
       assert.equal(notificationSpy.firstCall.args[0],
-        'logsSaved');
+        'logsSavedHeader');
       assert.equal(notificationSpy.firstCall.args[1].body,
         'logsSavedBody');
       assert.equal(notificationSpy.firstCall.args[1].tag,

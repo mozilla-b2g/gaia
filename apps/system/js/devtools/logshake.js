@@ -102,7 +102,7 @@
     handleCaptureLogsSuccess: function(event) {
       debug('handling capture-logs-success');
       navigator.vibrate(100);
-      this._notify('logsSaved', 'logsSavedBody',
+      this._notify('logsSavedHeader', 'logsSavedBody',
                    this.triggerShareLogs.bind(this, event.detail.logFilenames),
                    event.detail);
       this._shakeId = null;
