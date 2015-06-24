@@ -188,6 +188,7 @@
 
           var order = iconObj && iconObj.order ? iconObj.order : 1000;
           icon.setOrder(order);
+          this._updateIconVisibility();
           break;
         case 'iconchanged':
           this.cloneStatusbar();

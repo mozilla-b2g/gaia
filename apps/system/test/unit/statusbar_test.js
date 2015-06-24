@@ -397,8 +397,10 @@ suite('system/Statusbar', function() {
         dashPureName: priority1,
         setOrder: this.sinon.stub()
       };
+      this.sinon.stub(Statusbar, '_updateIconVisibility');
       window.dispatchEvent(new CustomEvent('iconrendered', {detail: mockIcon}));
       assert.isTrue(mockIcon.setOrder.calledWith(order));
+      assert.isTrue(Statusbar._updateIconVisibility.called);
     });
 
     suite('when only 2 icons fit in the maximized status bar', function() {
