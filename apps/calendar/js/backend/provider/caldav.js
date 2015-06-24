@@ -2,41 +2,36 @@ define(function(require, exports, module) {
 'use strict';
 
 var Abstract = require('./abstract');
-var Authentication = require('common/error').Authentication;
 var Calc = require('common/calc');
 var CaldavPullEvents = require('./caldav_pull_events');
-var CalendarError = require('common/error');
-var InvalidServer = require('common/error').InvalidServer;
+var calendarError = require('common/error');
 var Local = require('./local');
-var ServerFailure = require('common/error').ServerFailure;
 var core = require('core');
+var errors = require('common/error');
 var isOffline = require('common/is_offline');
 var mutations = require('event_mutations');
 var nextTick = require('common/next_tick');
 
 var CALDAV_ERROR_MAP = {
-  'caldav-authentication': Authentication,
-  'caldav-invalid-entrypoint': InvalidServer,
-  'caldav-server-failure': ServerFailure
+  'caldav-authentication': 'authentication',
+  'caldav-invalid-entrypoint': 'invalid-server',
+  'caldav-server-failure': 'server-failure'
 };
 
 function mapError(error, detail) {
-  console.error('Error with name:', error.name);
-  var calError = CALDAV_ERROR_MAP[error.name];
-  if (!calError) {
-    calError = new CalendarError(error.name, detail);
-  } else {
-    calError = new calError(detail);
+  console.error('Caldav Error with name:', error.name);
+  if (error.name in CALDAV_ERROR_MAP) {
+    error = Object.create(error);
+    error.name = CALDAV_ERROR_MAP[error.name];
   }
-
-  return calError;
+  return calendarError.create({ error: error, detail: detail });
 }
 
 function CaldavProvider() {
   Abstract.apply(this, arguments);
 
   var storeFactory = core.storeFactory;
-  this.service = core.serviceController;
+  this.service = core.caldavManager;
   this.accounts = storeFactory.get('Account');
   this.busytimes = storeFactory.get('Busytime');
   this.events = storeFactory.get('Event');
@@ -85,8 +80,8 @@ CaldavProvider.prototype = {
     // when we receive a permanent error we should mark the account with an
     // error.
     if (
-      calendarErr instanceof Authentication ||
-      calendarErr instanceof InvalidServer
+      calendarError.isAuthentication(calendarErr) ||
+      calendarError.isInvalidServer(calendarErr)
     ) {
       // there must always be an account
       if (detail.account) {
@@ -184,8 +179,8 @@ CaldavProvider.prototype = {
   },
 
   getAccount: function(account, callback) {
-    if (this.bailWhenOffline(callback)) {
-      return;
+    if (this.isOffline()) {
+      return this.handleOfflineError(callback);
     }
 
     var self = this;
@@ -216,8 +211,8 @@ CaldavProvider.prototype = {
   },
 
   findCalendars: function(account, callback) {
-    if (this.bailWhenOffline(callback)) {
-      return;
+    if (this.isOffline()) {
+      return this.handleOfflineError(callback);
     }
 
     var self = this;
@@ -359,8 +354,8 @@ CaldavProvider.prototype = {
   syncEvents: function(account, calendar, callback) {
     var self = this;
 
-    if (this.bailWhenOffline(callback)) {
-      return;
+    if (this.isOffline()) {
+      return this.handleOfflineError(callback);
     }
 
     if (!calendar._id) {
@@ -512,9 +507,8 @@ CaldavProvider.prototype = {
       busytime = null;
     }
 
-
-    if (this.bailWhenOffline(callback)) {
-      return;
+    if (this.isOffline()) {
+      return this.handleOfflineError(callback);
     }
 
     this.events.ownersOf(event, fetchOwners);
@@ -579,8 +573,8 @@ CaldavProvider.prototype = {
       busytime = null;
     }
 
-    if (this.bailWhenOffline(callback)) {
-      return;
+    if (this.isOffline()) {
+      return this.handleOfflineError(callback);
     }
 
     this.events.ownersOf(event, fetchOwners);
@@ -657,8 +651,8 @@ CaldavProvider.prototype = {
       busytime = null;
     }
 
-    if (this.bailWhenOffline(callback)) {
-      return;
+    if (this.isOffline()) {
+      return this.handleOfflineError(callback);
     }
 
     this.events.ownersOf(event, fetchOwners);
@@ -693,19 +687,12 @@ CaldavProvider.prototype = {
     }
   },
 
-  bailWhenOffline: function(callback) {
-    if (!this.offlineMessage && 'mozL10n' in window.navigator) {
-      this.offlineMessage = window.navigator.mozL10n.get('error-offline');
+  handleOfflineError: function(callback) {
+    var err = errors.create('offline');
+    if (typeof callback === 'function') {
+      return callback(err);
     }
-
-    var ret = this.isOffline() && callback;
-    if (ret) {
-      var error = new Error();
-      error.name = 'offline';
-      error.message = this.offlineMessage;
-      callback(error);
-    }
-    return ret;
+    return Promise.reject(err);
   }
 };
 

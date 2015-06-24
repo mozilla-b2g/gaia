@@ -134,6 +134,11 @@ Store.prototype = {
     Abstract.prototype.remove.apply(this, arguments);
   },
 
+  _clearCache: function() {
+    Abstract.prototype._clearCache.call(this);
+    this._usedColors = [];
+  },
+
   _updateCalendarColor: function(calendar) {
     // we avoid storing multiple colors for same calendar in case of an
     // "update" operation

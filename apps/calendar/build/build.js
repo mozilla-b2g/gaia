@@ -23,15 +23,25 @@ function createPresetsFile(options) {
 
 exports.execute = function(options) {
   var config = utils.getFile(options.APP_DIR, 'build', 'calendar.build.js');
+  var configWorker = utils.getFile(options.APP_DIR, 'build', 'worker.build.js');
+  var configCaldav = utils.getFile(options.APP_DIR, 'build', 'caldav.build.js');
   var requirejs = r.get(options.GAIA_DIR);
 
   createPresetsFile(options);
   utils.ensureFolderExists(utils.getFile(options.STAGE_APP_DIR));
 
   dump('Will run rjs optimizer...\n');
-  var optimize = new Promise((accept, reject) => {
-    requirejs.optimize([config.path], accept, reject);
-  });
+  var optimize = Promise.all([
+    new Promise((accept, reject) => {
+      requirejs.optimize([config.path], accept, reject);
+    }),
+    new Promise((accept, reject) => {
+      requirejs.optimize([configWorker.path], accept, reject);
+    }),
+    new Promise((accept, reject) => {
+      requirejs.optimize([configCaldav.path], accept, reject);
+    })
+  ]);
 
   optimize.then(() => {
     dump('[OK] rjs optimize\n');

@@ -1,4 +1,10 @@
 {
+  "esformatter": {
+    "root": true,
+    "indent": {
+      "TopLevelFunctionBlock": 0
+    }
+  },
   "volo": {
     "baseUrl": "js/ext",
     "dependencies": {
