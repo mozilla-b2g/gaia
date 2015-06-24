@@ -65,13 +65,16 @@ Account.prototype = {
     });
   },
 
+  /**
+   * @param {Object} model account data to be persisted (plain object)
+   */
   verifyAndPersist: function(model, callback) {
     var self = this;
     var provider = core.providerFactory.get(
       model.providerType
     );
 
-    provider.getAccount(model.toJSON(), function(err, data) {
+    provider.getAccount(model, function(err, data) {
       if (err) {
         callback(err);
         return;

@@ -8,6 +8,8 @@ apps/bluetooth/js/views/pair_view_v1.js
 apps/bluetooth/test/unit/modules/pair_manager_test.js
 apps/bluetooth/test/unit/modules/pair_manager_v1_test.js
 apps/bookmark/js/activity_handler.js
+apps/calendar/js/backend/provider/caldav.js
+apps/calendar/js/backend/provider/local.js
 apps/bookmark/js/bookmark_editor.js
 apps/bookmark/js/bookmark_remover.js
 apps/calendar/js/calc.js

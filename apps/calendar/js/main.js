@@ -1,6 +1,11 @@
 (function() {
 'use strict';
 
+window.onerror = function errHandler(msg, url, line) {
+  console.error('window.onerror Error:', msg, '@', url, ':', line);
+  return false;
+};
+
 window.require = window.require || window.curl;
 
 require.config({
@@ -9,7 +14,8 @@ require.config({
   paths: {
     shared: '/shared/js',
     dom: 'curl/plugin/dom',
-    css: 'curl/plugin/css'
+    css: 'curl/plugin/css',
+    models: 'common/models'
   },
   shim: {
     'ext/caldav': { exports: 'Caldav' },

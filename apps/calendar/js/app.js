@@ -1,52 +1,26 @@
 define(function(require, exports) {
 'use strict';
 
-var Db = require('db');
-var ErrorController = require('controllers/error');
 var PendingManager = require('pending_manager');
-var RecurringEventsController = require('controllers/recurring_events');
-var ServiceController = require('controllers/service');
-var SyncController = require('controllers/sync');
-var TimeController = require('controllers/time');
 var asyncRequire = require('common/async_require');
-var bridge = require('bridge');
 var co = require('ext/co');
 var core = require('core');
 var dateL10n = require('date_l10n');
-var dayObserver = require('day_observer');
+var debounce = require('ext/mout').debounce;
 var debug = require('common/debug')('app');
 var messageHandler = require('message_handler');
 var nextTick = require('common/next_tick');
-var notificationsController = require('controllers/notifications');
 var performance = require('performance');
-var periodicSyncController = require('controllers/periodic_sync');
-var providerFactory = require('provider/factory');
+var recurringEventsListener = require('recurring_events_listener');
 var router = require('router');
-var storeFactory = require('store/factory');
+var setupCore = require('core_setup');
+var syncListener = require('sync_listener');
 var timeObserver = require('time_observer');
-var viewFactory = require('views/factory');
 
 var loadLazyStyles = null;
 var l10nReady = new Promise(resolve => navigator.mozL10n.once(() => resolve()));
 var pendingManager = new PendingManager();
 var startingURL = window.location.href;
-
-function setupCore(dbName) {
-  if (core.db) {
-    return;
-  }
-  core.bridge = bridge;
-  core.db = new Db(dbName || 'b2g-calendar');
-  core.errorController = new ErrorController();
-  core.notificationsController = notificationsController;
-  core.periodicSyncController = periodicSyncController;
-  core.providerFactory = providerFactory;
-  core.serviceController = new ServiceController();
-  core.storeFactory = storeFactory;
-  core.syncController = new SyncController();
-  core.timeController = new TimeController();
-  core.viewFactory = viewFactory;
-}
 
 function setupPendingManager() {
   pendingManager.onpending = () => {
@@ -70,7 +44,9 @@ function setupPendingManager() {
     }
   };
 
-  pendingManager.register(core.syncController);
+  syncListener.on('syncError', err => core.errorController.dispatch(err));
+  syncListener.observe();
+  pendingManager.register(syncListener);
 }
 
 function setupRouter() {
@@ -110,22 +86,21 @@ function setupRouter() {
  * Can only be initialized after db.load()
  */
 function setupControllers() {
-  // start the workers
-  core.serviceController.start(false);
+  core.notificationsController.observe();
+  core.periodicSyncController.observe();
 
-  notificationsController.observe();
-  periodicSyncController.observe();
+  pendingManager.register(recurringEventsListener);
+  recurringEventsListener.observe();
 
-  var recurringEventsController = new RecurringEventsController();
-  pendingManager.register(recurringEventsController);
-  recurringEventsController.observe();
-
-  // turn on the auto queue this means that when
-  // alarms are added to the database we manage them
-  // transparently. Defaults to off for tests.
-  var alarms = core.storeFactory.get('Alarm');
-  alarms.autoQueue = true;
+  // need to keep the selected day/month in sync between frontend and backend
+  core.timeController.on('scaleChange', notifyTimeControllerChange);
+  core.timeController.on('selectedDayChange', notifyTimeControllerChange);
+  core.timeController.on('dayChange', notifyTimeControllerChange);
 }
+
+var notifyTimeControllerChange = debounce(function() {
+  core.bridge.updateTime(core.timeController.toJSON());
+}, 50);
 
 function setupUI() {
   return co(function *() {
@@ -147,7 +122,7 @@ function setupUI() {
       nextTick(() => window.location.href = startingURL);
     });
 
-    nextTick(() => viewFactory.get('Errors'));
+    nextTick(() => core.viewFactory.get('Errors'));
 
     yield [
       renderView('TimeHeader'),
@@ -164,23 +139,10 @@ function setupUI() {
 
 function renderView(viewName) {
   return new Promise(accept => {
-    viewFactory.get(viewName, view => {
+    core.viewFactory.get(viewName, view => {
       view.render();
       accept();
     });
-  });
-}
-
-function startDayObserver() {
-  // it should only start listening for month change after we have the
-  // calendars data, otherwise we might display events from calendars
-  // that are not visible. this also makes sure we load the calendars
-  // as soon as possible
-  return co(function *() {
-    var storeFactory = core.storeFactory;
-    var calendars = storeFactory.get('Calendar');
-    yield calendars.all();
-    dayObserver.init();
   });
 }
 
@@ -210,9 +172,8 @@ function init() {
     debug('Will initialize calendar app');
     setupCore();
     setupPendingManager();
-    yield core.db.load();
     setupControllers();
-    yield [startDayObserver(), startUI()];
+    yield [core.bridge.initDay(), startUI()];
     messageHandler.start();
     configureAudioChannelManager();
   });

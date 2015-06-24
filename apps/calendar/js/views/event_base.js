@@ -117,11 +117,11 @@ EventBase.prototype = {
    * Assigns and displays event & busytime information.
    * Marks view as "loading"
    *
-   * @param {{event, busytime, capabilities}} record
+   * @param {{event, busytime, capabilities, account, calendar}} record
    */
   _useModel: function(record) {
     this.record = record;
-    this.event = new Event(record.event);
+    this.event = record.event;
     this.busytime = record.busytime;
     this.originalCalendar = record.calendar;
 

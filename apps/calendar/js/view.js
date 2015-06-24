@@ -197,6 +197,9 @@ View.prototype = {
 
     for (; i < len; i++) {
       var name = list[i].l10nID || list[i].name;
+      if (!name) {
+        console.warn(`can't find l10nID for "${list[i]}"`);
+      }
       errors += _('error-' + name) || _(DEFAULT_ERROR_ID);
     }
 

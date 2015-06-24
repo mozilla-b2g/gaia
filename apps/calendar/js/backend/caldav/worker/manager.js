@@ -40,8 +40,8 @@ Manager.prototype = {
       var err = data[1];
       var builtErr;
 
-      if (window[err.constructorName]) {
-        builtErr = Object.create(window[err.constructorName].prototype);
+      if (self[err.constructorName]) {
+        builtErr = Object.create(self[err.constructorName].prototype);
       } else {
         builtErr = Object.create(Error.prototype);
       }
@@ -66,6 +66,11 @@ Manager.prototype = {
       // the worker actually didn't crash at all, so ignore it.
       return;
     }
+
+    console.error(
+      'Caldav Worker Error:', err.message, '@', err.file, ':',
+      err.line, err.stack
+    );
 
     if (worker.instance) {
       worker.instance.terminate();

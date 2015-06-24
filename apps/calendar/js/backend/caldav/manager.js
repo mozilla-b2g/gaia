@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var Manager = require('worker/manager');
+var Manager = require('caldav/worker/manager');
 var debug = require('common/debug')('controllers/service');
 
 function Service() {
@@ -14,7 +14,7 @@ Service.prototype = {
 
   start: function() {
     debug('Will load and initialize worker...');
-    this.add('caldav', '/js/caldav_worker.js');
+    this.add('caldav', '/js/backend/caldav/caldav_worker.js');
   }
 };
 

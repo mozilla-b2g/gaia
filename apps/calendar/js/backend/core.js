@@ -7,8 +7,11 @@ define(function(require, exports, module) {
 // the plan is to not rely on the "app" namespace since we are splitting the
 // code into "backend" (worker) and "frontend" (main thread)
 
+exports.caldavManager = null;
 exports.db = null;
 exports.providerFactory = null;
 exports.storeFactory = null;
+exports.syncService = null;
+exports.timeModel = null;
 
 });

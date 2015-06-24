@@ -60,13 +60,6 @@ Time.prototype = {
   _mostRecentDayType: 'day',
 
   /**
-   * When true will lock the cache so no records are
-   * purged. This is critical during sync because some
-   * records may not yet be in the database.
-   */
-  cacheLocked: false,
-
-  /**
    * Returns the most recently changed
    * day type either 'day' or 'selectedDay'
    */
@@ -166,7 +159,23 @@ Time.prototype = {
     this._updateCache('year', yearDate);
     this._updateCache('month', monthDate);
     this._updateCache('day', date);
-  }
+  },
+
+  toJSON: function() {
+    var props = [
+      'mostRecentDayType',
+      'mostRecentDay',
+      'scale',
+      'selectedDay',
+      'month',
+      'day',
+      'year',
+      'position'
+    ];
+    var o = {};
+    props.forEach(key => o[key] = this[key]);
+    return o;
+  },
 };
 
 });

@@ -47,30 +47,31 @@ var scheduling;
 var events = new Responder();
 exports.events = events;
 
-var accounts;
-var settings;
+var accountsStream;
+var syncFrequencyStream;
 
 exports.observe = function() {
+  var bridge = core.bridge;
+
   debug('Will start periodic sync controller...');
-  var storeFactory = core.storeFactory;
-  accounts = storeFactory.get('Account');
-  settings = storeFactory.get('Setting');
   return Promise.all([
-    settings.getValue('syncAlarm'),
-    settings.getValue('syncFrequency')
+    bridge.getSetting('syncAlarm'),
+    bridge.getSetting('syncFrequency')
   ])
   .then(values => {
     [syncAlarm, syncFrequency] = values;
     // Trigger whenever there is a change to the accounts collection
     // since we need to re-evaluate whether periodic sync is still necessary.
-    accounts.on('persist', onAccountsChange);
-    accounts.on('remove', onAccountsChange);
+    accountsStream = bridge.observeAccounts();
+    accountsStream.listen(onAccountsChange);
     // Listen to the settings collection for a change to sync frequency so that
     // we can update any alarms we've sent to the alarms api accordingly.
     debug('Will listen for syncFrequencyChange...');
-    settings.on('syncFrequencyChange', exports);
+    syncFrequencyStream = bridge.observeSetting('syncFrequency');
+    syncFrequencyStream.listen(onSyncFrequencyChange);
     // Listen for sync event from alarms api.
-    messageHandler.responder.on('sync', exports);
+    // Gets triggered by mozSetMessageHandler alarm event.
+    messageHandler.responder.on('sync', onSync);
     return scheduleSync();
   });
 };
@@ -81,22 +82,9 @@ exports.unobserve = function() {
   syncFrequency = null;
   syncing = null;
   scheduling = null;
-  accounts.off('persist', onAccountsChange);
-  accounts.off('remove', onAccountsChange);
-  settings.off('syncFrequencyChange', exports);
+  accountsStream && accountsStream.cancel();
+  syncFrequencyStream && syncFrequencyStream.cancel();
   messageHandler.responder.off('sync', exports);
-};
-
-exports.handleEvent = function(event) {
-  switch (event.type) {
-    case 'sync':
-      // Gets triggered by mozSetMessageHandler alarm event.
-      return onSync();
-    case 'syncFrequencyChange':
-      // Gets triggered by settings db change to sync frequency.
-      debug('Received syncFrequencyChange!');
-      return onSyncFrequencyChange(event.data[0]);
-  }
 };
 
 /**
@@ -122,23 +110,20 @@ function onSyncFrequencyChange(value) {
  * No syncable accounts => revoke any previously scheduled sync alarms.
  * Syncable accounts and no previously scheduled sync => schedule new sync.
  */
-function onAccountsChange() {
-  debug('Looking up syncable accounts...');
-  return accounts.syncableAccounts().then(syncable => {
-    if (!syncable || !syncable.length) {
-      debug('There are no syncable accounts!');
-      revokePreviousAlarm();
-      events.emit('pause');
-      return;
-    }
+function onAccountsChange(accounts) {
+  if (!hasSyncable(accounts)) {
+    debug('There are no syncable accounts!');
+    revokePreviousAlarm();
+    events.emit('pause');
+    return;
+  }
 
-    debug('There are', syncable.length, 'syncable accounts');
+  debug('There are syncable accounts');
 
-    if (!syncAlarmIssued()) {
-      debug('The first syncable account was just added.');
-      return scheduleSync();
-    }
-  });
+  if (!syncAlarmIssued()) {
+    debug('The first sync was just scheduled.');
+    return scheduleSync();
+  }
 }
 
 function sync() {
@@ -148,7 +133,7 @@ function sync() {
       var cpuLock = navigator.requestWakeLock('cpu');
       var wifiLock = navigator.requestWakeLock('wifi');
       debug('Will start periodic sync...');
-      core.syncController.all(() => {
+      core.bridge.syncAll(() => {
         debug('Sync complete! Will release cpu and wifi wake locks...');
         cpuLock.unlock();
         wifiLock.unlock();
@@ -162,14 +147,18 @@ function sync() {
   return syncing;
 }
 
+function hasSyncable(accounts) {
+  return accounts.some(a => a.provider.canSync);
+}
+
 function scheduleSync() {
   if (scheduling) {
     return scheduling;
   }
 
-  scheduling = accounts.syncableAccounts()
-  .then(syncable => {
-    if (!syncable || !syncable.length) {
+  scheduling = core.bridge.getAllAccounts()
+  .then(accounts => {
+    if (!hasSyncable(accounts)) {
       debug('There seem to be no syncable accounts, will defer scheduling...');
       return Promise.resolve();
     }
@@ -236,7 +225,7 @@ function issueSyncAlarm() {
 function cacheSyncAlarm(alarm) {
   debug('Will save alarm:', alarm);
   syncAlarm = alarm;
-  return settings.set('syncAlarm', syncAlarm);
+  return core.bridge.setSetting('syncAlarm', syncAlarm);
 }
 
 function maybeScheduleSync() {

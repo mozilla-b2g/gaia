@@ -33,7 +33,7 @@ function Db(name) {
   Responder.call(this);
   this._upgradeOperations = [];
 
-  denodeifyAll(this, ['load']);
+  denodeifyAll(this, ['load', 'open']);
 }
 module.exports = Db;
 

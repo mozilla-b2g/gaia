@@ -7,7 +7,7 @@ var createDOMPromise = require('common/create_dom_promise');
 var core = require('core');
 var debug = require('common/debug')('store/alarm');
 var denodeifyAll = require('common/promise').denodeifyAll;
-//var object = require('common/object');
+var object = require('common/object');
 
 /**
  * The alarm store can be thought of as a big queue.
@@ -258,11 +258,9 @@ function dispatchAlarms(past, future) {
     eventToAlarm[event] = alarm;
   });
 
-  /* TODO(gareth): Should not talk to notifications controller from backend.
   object.forEach(eventToAlarm, (event, alarm) => {
-    core.notificationsController.onAlarm(alarm);
+    core.service.broadcast('alarm', alarm);
   });
-  */
 
   // If the alarm should be triggered in the future, then we can create an
   // entry in the alarms api to wake us up to issue a notification for it

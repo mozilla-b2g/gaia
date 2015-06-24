@@ -20,6 +20,7 @@ MonthDay.prototype = {
   element: null,
   month: null,
   _observer: null,
+  _active: false,
 
   create: function() {
     var dayId = Calc.getDayId(this.date);
@@ -58,12 +59,24 @@ MonthDay.prototype = {
   },
 
   activate: function() {
+    if (this._active) {
+      return;
+    }
+    this._active = true;
     this._observer = core.bridge.observeDay(this.date);
     this._observer.listen(this._updateBusyCount);
   },
 
   deactivate: function() {
-    this._observer && this._observer.cancel();
+    if (!this._active) {
+      return;
+    }
+    this._active = false;
+    // `observer.cancel` is async so to avoid race conditions we also need
+    // to unlisten
+    this._observer.unlisten(this._updateBusyCount);
+    this._observer.cancel();
+    this._observer = null;
   },
 
   destroy: function() {

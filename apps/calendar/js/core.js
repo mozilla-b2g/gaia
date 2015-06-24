@@ -7,14 +7,11 @@ define(function(require, exports, module) {
 // the plan is to not rely on the "app" namespace since we are splitting the
 // code into "backend" (worker) and "frontend" (main thread)
 
-exports.db = null;
+exports.bridge = null;
 exports.errorController = null;
 exports.notificationsController = null;
 exports.periodicSyncController = null;
-exports.providerFactory = null;
-exports.serviceController = null;
-exports.storeFactory = null;
-exports.syncController = null;
+exports.syncListener = null;
 exports.timeController = null;
 exports.viewFactory = null;
 

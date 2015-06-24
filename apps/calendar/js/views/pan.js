@@ -3,9 +3,9 @@ define(function(require, exports, module) {
 'use strict';
 
 var EventEmitter2 = require('ext/eventemitter2');
-var clamp = require('utils/mout').clamp;
-var lerp = require('utils/mout').lerp;
-var norm = require('utils/mout').norm;
+var clamp = require('ext/mout').clamp;
+var lerp = require('ext/mout').lerp;
+var norm = require('ext/mout').norm;
 
 function Pan(options) {
   EventEmitter2.call(this);

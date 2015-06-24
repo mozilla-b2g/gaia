@@ -1,11 +1,13 @@
 define(function(require, exports, module) {
 'use strict';
 
+var CalendarModel = require('models/calendar');
 var CalendarTemplate = require('templates/calendar');
 var View = require('view');
 var co = require('ext/co');
 var core = require('core');
 var debug = require('common/debug')('views/settings');
+var mixIn = require('common/object').mixIn;
 var router = require('router');
 
 require('dom!settings');
@@ -140,8 +142,8 @@ Settings.prototype = {
     });
 
     this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
-    core.syncController.on('syncStart', this._syncStartStatus.bind(this));
-    core.syncController.on('syncComplete',
+    core.syncListener.on('syncStart', this._syncStartStatus.bind(this));
+    core.syncListener.on('syncComplete',
       this._syncCompleteStatus.bind(this));
 
     this.calendars.addEventListener(
@@ -162,7 +164,8 @@ Settings.prototype = {
   },
 
   _updateCalendars: function(records) {
-    this.calendarList = records.map(r => r.calendar);
+    // template expects a CalendarModel :/
+    this.calendarList = records.map(r => new CalendarModel(r.calendar));
     this.render();
   },
 
@@ -171,7 +174,7 @@ Settings.prototype = {
       var calendar = this.calendarList.find(c => String(c._id) === String(id));
       // we "clone" the calendar otherwise the caching logic will affect the
       // 'calendarVisibilityChange' event (we check if value changed this way)
-      calendar = Object.create(calendar);
+      calendar = mixIn({}, calendar);
       calendar.localDisplayed = displayed;
       yield core.bridge.updateCalendar(calendar);
     } catch (err) {
@@ -187,7 +190,7 @@ Settings.prototype = {
   _onSyncClick: function() {
     // trigger the sync the syncStart/complete events
     // will hide/show the button.
-    core.syncController.all();
+    core.bridge.syncAll();
   },
 
   // Ajust size of drawer scroll area to fit size of calendars, within
@@ -228,7 +231,6 @@ Settings.prototype = {
       this.calendars.insertAdjacentHTML('beforeend', html);
 
       if (calendar.error) {
-        console.error('Views.Settings calendar error:', calendar.error);
         var idx = this.calendars.children.length - 1;
         var el = this.calendars.children[idx];
         el.classList.add('error');
@@ -307,7 +309,9 @@ Settings.prototype = {
     try {
       yield this._loadBaseData();
     } catch(err) {
-      console.error('Error fetching calendars in View.Settings', err);
+      console.error(
+        `Error fetching calendars in View.Settings ${err.toString()}`
+      );
       return;
     }
 
