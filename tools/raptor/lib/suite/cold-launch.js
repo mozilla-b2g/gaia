@@ -299,7 +299,9 @@ ColdLaunch.prototype.testRun = function() {
   this
     .waitForFullyLoaded()
     .then(function(entry) {
-      runner.device.log.memory(runner.appPid, entry.context);
+      setTimeout(function() {
+        runner.device.log.memory(runner.appPid, entry.context);
+      }, runner.options.memoryDelay);
     });
 
   // Delay launch to give time for pre-allocated process and system cool-down
