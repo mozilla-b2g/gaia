@@ -247,10 +247,11 @@
    * _hideScreenshotOverlay.
    */
   AppWindow.prototype.setVisible =
-    function aw_setVisible(visible) {
+    function aw_setVisible(visible, doNotPropagate) {
       this.setVisibleForScreenReader(visible);
-      if (this.frontWindow) {
+      if (!doNotPropagate && this.frontWindow && this.frontWindow.isActive()) {
         this.frontWindow.setVisible(visible);
+        return;
       }
 
       if (this._visible === visible) {

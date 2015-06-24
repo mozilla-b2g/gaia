@@ -158,6 +158,16 @@ suite('system/AppWindowManager', function() {
     parentApp: ''
   };
 
+  var fakeActivityConfigInline = {
+    url: 'app://www.fake8/index.html',
+    manifest: {},
+    manifestURL: 'app://wwww.fake8/ManifestURL',
+    origin: 'app://www.fake8',
+    isActivity: true,
+    parentApp: '',
+    inline: true
+  };
+
   var fakeBrowserConfig = {
     url: 'http://mozilla.org/index.html',
     manifest: {},
@@ -543,6 +553,17 @@ suite('system/AppWindowManager', function() {
       subject.handleEvent({ type: 'displayapp', detail: app1 });
       assert.isTrue(stubDisplay.calledWith(app1));
 
+    });
+
+    test('Launch activity dispatched on top most window', function() {
+      subject._activeApp = app1;
+      this.sinon.stub(app1, 'getTopMostWindow').returns(app2);
+      this.sinon.stub(app2, 'broadcast');
+
+      subject.handleEvent(
+        { type: 'launchactivity', detail: fakeActivityConfigInline });
+      assert.isTrue(app2.broadcast.calledWith('launchactivity',
+        fakeActivityConfigInline));
     });
 
     test('Launch app', function() {

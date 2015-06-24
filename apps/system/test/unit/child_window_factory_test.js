@@ -362,6 +362,24 @@ suite('system/ChildWindowFactory', function() {
       assert.isFalse(spy.calledWithNew());
     });
 
+  test('opened of activity should hide the back', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'ActivityWindow');
+    app1.cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(true);
+    this.sinon.stub(app1, 'isVisible').returns(true);
+    app1.element.dispatchEvent(new CustomEvent('_launchactivity',
+      {
+        detail: fakeActivityDetail
+      }));
+    this.sinon.stub(app1, 'setVisible');
+    var activity = spy.getCall(0).returnValue;
+    activity.element.dispatchEvent(new CustomEvent('_opened', {
+      detail: spy.getCall(0).returnValue
+    }));
+    assert.isTrue(app1.setVisible.calledWith(false, true));
+  });
+
   test('closing of popup should resume visibility and orientation', function() {
     MockSettingsListener.mCallbacks['in-app-sheet.enabled'](false);
     var app1 = new MockAppWindow(fakeAppConfig1);
@@ -370,18 +388,19 @@ suite('system/ChildWindowFactory', function() {
     this.sinon.stub(app1, 'isActive').returns(true);
     this.sinon.stub(app1, 'isVisible').returns(true);
     this.sinon.spy(app1, '_setVisibleForScreenReader');
+    MockService.mockQueryWith('getTopMostWindow', app1);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
         detail: fakeWindowOpenPopup
       }));
     var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
-    var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
+    this.sinon.stub(app1, 'setVisible');
     spy.getCall(0).returnValue.element
         .dispatchEvent(new CustomEvent('_closing', {
           detail: spy.getCall(0).returnValue
         }));
     assert.isTrue(stubSetOrientation.called);
-    assert.isTrue(stubRequestForeground.called);
+    assert.isTrue(app1.setVisible.calledWith(true, true));
     sinon.assert.calledWith(app1._setVisibleForScreenReader, true);
   });
 
