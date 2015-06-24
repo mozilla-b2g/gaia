@@ -5,8 +5,7 @@
 define(function(require) {
   'use strict';
 
-  var DeviceStorages = require('modules/storage/device_storages');
-  var DefaultMediaVolume = require('modules/storage/default_media_volume');
+  var DeviceStorageManager = require('modules/storage/device_storage_manager');
 
   var _debug = false;
   var Debug = function() {};
@@ -26,13 +25,10 @@ define(function(require) {
   function MediaStorageItem(elements) {
     this._enabled = false;
     this._elements = elements;
-    this._defaultMediaVolume = DefaultMediaVolume.currentVolume;
-    this._boundDefaultMediaVolumeAvailableStateChangeHandler = 
-      this._updateMediaStorageInfo.bind(this);
-    this._boundDefaultMediaVolumeAvailableFreeSpaceChangeHandler =
-      this._updateMediaStorageInfo.bind(this);
-    this._boundDefaultMediaVolumeChangeHandler =
-      this._defaultMediaVolumeChangeHandler.bind(this);
+    this._defaultVolume = DeviceStorageManager.defaultVolume;
+    this._boundUpdateMediaStorageInfo = this._updateMediaStorageInfo.bind(this);
+    this._boundDefaultVolumeChangeHandler =
+      this._defaultVolumeChangeHandler.bind(this);
   }
 
   MediaStorageItem.prototype = {
@@ -55,26 +51,26 @@ define(function(require) {
         this._enabled = value;
       }
       if (value) { //observe
-        if (this._defaultMediaVolume) {
-          this._defaultMediaVolume.observe('availableState',
-            this._boundDefaultMediaVolumeAvailableStateChangeHandler);
-          this._defaultMediaVolume.observe('volumeFreeSpace',
-            this._boundDefaultMediaVolumeAvailableFreeSpaceChangeHandler);
+        if (this._defaultVolume) {
+          this._defaultVolume.observe('availableState',
+            this._boundUpdateMediaStorageInfo);
+          this._defaultVolume.observe('volumeFreeSpace',
+            this._boundUpdateMediaStorageInfo);
         }
         // Show default media volume state on root panel
-        DefaultMediaVolume.observe('currentVolume',
-                                   this._boundDefaultMediaVolumeChangeHandler);
+        DeviceStorageManager.observe('defaultVolume',
+          this._boundDefaultVolumeChangeHandler);
         window.addEventListener('localized', this);
         this._updateMediaStorageInfo();
       } else { //unobserve
-        if (this._defaultMediaVolume) {
-          this._defaultMediaVolume.unobserve('availableState',
-            this._boundDefaultMediaVolumeAvailableStateChangeHandler);
-          this._defaultMediaVolume.unobserve('volumeFreeSpace',
-            this._boundDefaultMediaVolumeAvailableFreeSpaceChangeHandler);
+        if (this._defaultVolume) {
+          this._defaultVolume.unobserve('availableState',
+            this._boundUpdateMediaStorageInfo);
+          this._defaultVolume.unobserve('volumeFreeSpace',
+            this._boundUpdateMediaStorageInfo);
         }
-        DefaultMediaVolume.unobserve('currentVolume',
-          this._boundDefaultMediaVolumeChangeHandler);
+        DeviceStorageManager.unobserve('defaultVolume',
+          this._boundDefaultVolumeChangeHandler);
         window.removeEventListener('localized', this);
       }
     },
@@ -87,18 +83,18 @@ define(function(require) {
       }
     },
 
-    _defaultMediaVolumeChangeHandler:
-    function smi_defaultMediaVolumeChangeHandler(defaultMediaVolume) {
-      Debug('_defaultMediaVolumeChangeHandler(): defaultMediaVolume = ' +
-            JSON.stringify(defaultMediaVolume));
+    _defaultVolumeChangeHandler:
+    function smi_defaultVolumeChangeHandler(defaultVolume) {
+      Debug('_defaultVolumeChangeHandler(): defaultVolume = ' +
+            JSON.stringify(defaultVolume));
       // save current default media volume
-      this._defaultMediaVolume = defaultMediaVolume;
+      this._defaultVolume = defaultVolume;
       // update media storage info
       this._updateMediaStorageInfo();
     },
 
     _updateMediaStorageInfo: function smi_updateMediaStorageInfo() {
-      if (!this._defaultMediaVolume) {
+      if (!this._defaultVolume) {
         Debug('_updateMediaStorageInfo(): default media volume is not existed');
         this._updateVolumeState(null, 'unavailable');
         return;
@@ -106,14 +102,14 @@ define(function(require) {
 
       // If the default storage is 'unavailable'. And it's not the
       // internal storage. We show the internal storage status instead.
-      if ((this._defaultMediaVolume.availableState === 'unavailable') &&
-          (!this._defaultMediaVolume.isExternal)) {
+      if ((this._defaultVolume.availableState === 'unavailable') &&
+          (!this._defaultVolume.isExternal)) {
         Debug('_updateMediaStorageInfo(): first volume instead of external');
-        var firstVolume = DeviceStorages.getFirstVolume();
+        var firstVolume = DeviceStorageManager.getFirstVolume();
         this._updateVolumeState(firstVolume, firstVolume.availableState);
       } else {
-        this._updateVolumeState(this._defaultMediaVolume, 
-                                this._defaultMediaVolume.availableState);
+        this._updateVolumeState(this._defaultVolume, 
+                                this._defaultVolume.availableState);
       }
 
     },

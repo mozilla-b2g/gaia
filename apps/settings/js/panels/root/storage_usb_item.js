@@ -5,7 +5,7 @@
 define(function(require) {
   'use strict';
 
-  var DeviceStorages = require('modules/storage/device_storages');
+  var DeviceStorageManager = require('modules/storage/device_storage_manager');
   var SettingsListener = require('shared/settings_listener');
   var AsyncStorage = require('shared/async_storage');
   var SettingsCache = require('modules/settings_cache');
@@ -55,7 +55,7 @@ define(function(require) {
         // register USB storage split click handler
         this._elements.usbStorage.addEventListener('click', this._onItemClick);
         // observe first volume available state
-        DeviceStorages.getFirstVolume().observe('availableState',
+        DeviceStorageManager.getFirstVolume().observe('availableState',
           this._boundFirstVolumeAvailableStateChangeHandler);
       } else { //unobserve
         this._elements.usbEnabledCheckBox.removeEventListener('change', this);
@@ -65,7 +65,7 @@ define(function(require) {
         this._elements.usbStorage.removeEventListener('click',
           this._onItemClick);
         // observe first volume available state
-        DeviceStorages.getFirstVolume().unobserve('availableState',
+        DeviceStorageManager.getFirstVolume().unobserve('availableState',
           this._boundFirstVolumeAvailableStateChangeHandler);
       }
     },
@@ -96,7 +96,8 @@ define(function(require) {
       if (this._elements.usbEnabledCheckBox.checked) {
         //TODO list all enabled volume name
         key = 'enabled';
-      } else if (DeviceStorages.getFirstVolume().availableState === 'shared') {
+      } else if (DeviceStorageManager.getFirstVolume().availableState ===
+                 'shared') {
         key = 'umsUnplugToDisable';
       } else {
         key = 'disabled';

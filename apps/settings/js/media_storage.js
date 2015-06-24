@@ -889,7 +889,7 @@ require([
       var selectedOption = this.defaultMediaLocation.options[0];
       selectedOption.selected = true;
       var obj = {};
-      obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
+        obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
       Settings.mozSettings.createLock().set(obj);
     },
 

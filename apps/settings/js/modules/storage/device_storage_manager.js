@@ -1,19 +1,20 @@
 /**
- * DeviceStorages:
- *   - DeviceStorages is an Observable that wraps the platform
+ * DeviceStorageManager:
+ *   - DeviceStorageManager is an Observable that wraps the platform
  *     DeviceStorage object.
- *   - DeviceStorages is a singleton that you can easily use it to fetch some
- *     shared data across different panels.
+ *   - DeviceStorageManager is a singleton that you can easily use it to fetch
+ *     some shared data across different panels.
  *   - It has some observable properties: todo: state, enabled, address, name,
  *   - It has one observable array: _volumesList.
- * DeviceStorages only update state and does not involve in any UI logic.
+ * DeviceStorageManager only update state and does not involve in any UI logic.
  *
- * @module DeviceStorages
+ * @module DeviceStorageManager
  */
 define(function(require) {
   'use strict';
 
   var Volume = require('modules/storage/volume');
+  var Observable = require('modules/mvvm/observable');
   var ObservableArray = require('modules/mvvm/observable_array');
 
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
@@ -23,39 +24,51 @@ define(function(require) {
   var Debug = function() {};
   if (_debug) {
     Debug = function ds_debug(msg) {
-      console.log('--> [DeviceStorages]: ' + msg);
+      console.log('--> [DeviceStorageManager]: ' + msg);
     };
   }
 
-  var DeviceStorages = {
+  var DeviceStorageManager = {
     /**
      * An observable array to maintain device storages which are gotten from 
      * navigator.getDeviceStorages() API.
      *
      * @access private
-     * @memberOf DeviceStorages
+     * @memberOf DeviceStorageManager
      * @type {ObservableArray}
      */
     _volumesList: ObservableArray([]),
 
     /**
-     * Init DeviceStorages module.
+     * The default media volume used for outter UI reference.
+     *
+     * @readonly
+     * @memberOf DeviceStorageManager
+     * @type {Object}
+     */
+    defaultVolume: null,
+
+    /**
+     * Init DeviceStorageManager module.
      *
      * @access private
-     * @memberOf DeviceStorages
+     * @memberOf DeviceStorageManager
      */
-    _init: function ds__init() {
+    _init: function dsm__init() {
       // construct volumes list
       this._constructVolumesList();
+      // construct default volume
+      this._constructDefaultVolume();
+      this._watchDefaultVolume();
     },
 
     /**
      * The method will construct volumes list with all storages.
      *
      * @access private
-     * @memberOf DeviceStorages
+     * @memberOf DeviceStorageManager
      */
-    _constructVolumesList: function ds__constructVolumesList() {
+    _constructVolumesList: function dsm__constructVolumesList() {
       var volumes = this._getVolumes();
       var externalIndex = 0;
       for (var name in volumes) {
@@ -90,10 +103,10 @@ define(function(require) {
      * Then, return the volumes object.
      *
      * @access private
-     * @memberOf DeviceStorages
+     * @memberOf DeviceStorageManager
      * @returns {Obejct} volumes
      */
-    _getVolumes: function ds__init() {
+    _getVolumes: function dsm__init() {
       var volumes = {};
       // Save storages instances per type:
       // 'music', 'pictures', 'videos', 'sdcard'.
@@ -112,24 +125,70 @@ define(function(require) {
     },
 
     /**
-     * Return volumes list which is maintained in DeviceStorages module.
+     * The method will construct default volume.
+     *
+     * @access private
+     * @memberOf DeviceStorageManager
+     */
+    _constructDefaultVolume: function dsm__constructDefaultVolume() {
+      var volumesList = this.getVolumesList();
+      volumesList.array.forEach((volume) => {
+        if (volume.isDefault) {
+          this.defaultVolume = volume;
+        }
+      });
+    },    
+
+    /**
+     * The method will watch the 'isDefault' property from each volume.
+     *
+     * @access private
+     * @memberOf DeviceStorageManager
+     */
+    _watchDefaultVolume: function dsm__watchDefaultVolume() {
+      var volumesList = this.getVolumesList();
+      volumesList.array.forEach((volume) => {
+        volume.observe('isDefault',
+                       this._updateDefaultVolume.bind(this, volume));
+      });
+    },
+
+    /**
+     * The method will update default volume while each volume property is
+     * changed.
+     *
+     * @access private
+     * @memberOf DeviceStorageManager
+     * @param {Object Volume} volume
+     * @param {Boolean} newIsDefault
+     */
+    _updateDefaultVolume:
+    function dsm__updateDefaultVolume(volume, newIsDefault) {
+      if (newIsDefault) {
+        Debug('_updateDefaultVolume(): default volume changed');
+        this.defaultVolume = volume;  
+      }
+    },
+
+    /**
+     * Return volumes list which is maintained in DeviceStorageManager module.
      *
      * @access public
-     * @memberOf DeviceStorages
+     * @memberOf DeviceStorageManager
      * @return {Observable Array}
      */
-    getVolumesList: function ds_getVolumesList() {
+    getVolumesList: function dsm_getVolumesList() {
       return this._volumesList;
     },
 
     /**
-     * Return first volume which is maintained in DeviceStorages module.
+     * Return first volume which is maintained in DeviceStorageManager module.
      *
      * @access public
-     * @memberOf DeviceStorages
+     * @memberOf DeviceStorageManager
      * @return {Observable Array}
      */
-    getFirstVolume: function ds_getFirstVolume() {
+    getFirstVolume: function dsm_getFirstVolume() {
       var volumes = this.getVolumesList();
       for (var index in volumes.array) {
         if (volumes.array[index].name === FIRST_VOLUME_NAME) {
@@ -139,6 +198,8 @@ define(function(require) {
     }
   };
 
-  DeviceStorages._init();
-  return DeviceStorages;
+  // Create the observable object using the prototype.
+  var deviceStorageManager = Observable(DeviceStorageManager);
+  deviceStorageManager._init();
+  return deviceStorageManager;
 });

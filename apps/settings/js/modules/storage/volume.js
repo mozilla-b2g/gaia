@@ -6,22 +6,132 @@
  *     picturesUsedSpace, videosUsedSpace, sdcardUsedSpace, volumeFreeSpace.
  * Volume only updates storage information and does not involve in any UI logic.
  *
+ * EX:
+ * {
+ *   "music":{},
+ *   "pictures":{},
+ *   "videos":{},
+ *   "sdcard":{}
+ * }
+ *
  * @module Volume
  */
 define(function(require) {
   'use strict';
 
+  var Module = require('modules/base/module');
   var Observable = require('modules/mvvm/observable');
 
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
 
-  var _debug = false;
-  var Debug = function() {};
-  if (_debug) {
-    Debug = function ms_debug(msg) {
-      console.log('--> [Volume]: ' + msg);
-    };
-  }
+  /**
+   * @class Volume
+   * @requires module:modules/mvvm/observable
+   * @param {Object} storages
+   * @return {Observable} observableVolume
+   */
+  var Volume = Module.create(
+    function Volume(storages, isExternal, externalIndex) {
+      this.super(Observable).call(this);
+
+      this._storages = storages;
+      this._name = storages.sdcard.storageName;
+      this._isDefault = storages.sdcard.default;
+      this._isExternal = isExternal;
+      this._externalIndex = externalIndex;
+      this._canBeFormatted = storages.sdcard.canBeFormatted;
+
+      this.observe('availableState', this.updateStoragesSize.bind(this));
+      this._getAvailableState();
+      this._getStorageStatus();
+      this._watchStorageChangeEvent();
+      this._watchStorageStateChangeEvent();
+
+      this._logLevel = Module.LOG_LEVEL.NONE;
+  }).extend(Observable);
+
+  Object.defineProperty(Volume.prototype, 'data', {
+    get: function() {
+      return this._storages;
+    }
+  });
+
+  Object.defineProperty(Volume.prototype, 'name', {
+    get: function() {
+      return this._name;
+    }
+  });
+
+  Object.defineProperty(Volume.prototype, 'isExternal', {
+    get: function() {
+      return this._isExternal; // this.data.sdcard.isExternal
+    }
+  });
+
+  Object.defineProperty(Volume.prototype, 'externalIndex', {
+    get: function() {
+      return this._externalIndex;
+    }
+  });
+
+  Object.defineProperty(Volume.prototype, 'canBeFormatted', {
+    get: function() {
+      return this._canBeFormatted;
+    }
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'availableState', { // corresponding storage 'change' event
+      readonly: true,
+      value: ''
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'volumeState', { // corresponding storage 'storage-state-change' event
+      readonly: true,
+      value: ''
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'volumeFreeSpace', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'musicUsedSpace', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'picturesUsedSpace', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'videosUsedSpace', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'sdcardUsedSpace', {
+      readonly: true,
+      value: 0
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'isDefault', {
+      readonly: true
+  });
+
+  Observable.defineObservableProperty(Volume.prototype,
+    'isUnrecognised', {
+      readonly: true,
+      value: false
+  });
 
   /**
    * Provide a function to update latest storages used space.
@@ -30,10 +140,10 @@ define(function(require) {
    *
    * @access public
    * @memberOf Volume
-   * @param {Object} evt
    */
-  var updateStoragesSize = function() {
-    Debug('updateStoragesSize(): this.availableState = ' + this.availableState);
+  Volume.prototype.updateStoragesSize = function() {
+    this.debug('updateStoragesSize(): this.availableState = ' +
+               this.availableState);
     if (this.availableState !== 'available') {
       return; // Early return if the 'availableState' is not 'available'.
     }
@@ -41,115 +151,102 @@ define(function(require) {
     MEDIA_TYPE.forEach((type) => {
       // used space for each media type
       this.data[type].usedSpace().then((size) => {
-        Debug('updateStoragesSize(): usedSpace(): size = ' +
-              JSON.stringify(size));
-        this[type + 'UsedSpace'] = size;
+        this.debug('updateStoragesSize(): usedSpace(): size = ' +
+                   JSON.stringify(size));
+        this['_' + type + 'UsedSpace'] = size;
       }, (reason) => {
-        Debug('updateStoragesSize(): usedSpace(): reason = ' + reason);
+        this.debug('updateStoragesSize(): usedSpace(): reason = ' + reason);
       });
     });
     // free space remaining for this volume
     this.data.sdcard.freeSpace().then((size) => {
-      Debug('updateStoragesSize(): freeSpace(): size = ' +
-            JSON.stringify(size));
-      this.volumeFreeSpace = size;
+      this.debug('updateStoragesSize(): freeSpace(): size = ' +
+                 JSON.stringify(size));
+      this._volumeFreeSpace = size;
     }, (reason) => {
-      Debug('updateStoragesSize(): freeSpace(): reason = ' + reason);
+      this.debug('updateStoragesSize(): freeSpace(): reason = ' + reason);
     });
   };
 
   /**
-   * @class Volume
-   * @requires module:modules/mvvm/observable
-   * @param {Array} storages
-   * @return {Observable} observableVolume
+   * Init property 'availableState' via get storage available() API.
+   *
+   * @access private
+   * @memberOf Volume
    */
-  return function ctor_volume(storages, isExternal, externalIndex) {
-    var observableVolume = Observable({
-      // use sdcard storage to represent this volume
-      name: storages.sdcard.storageName,
-      isDefault: storages.sdcard.default,
-      isExternal: storages.sdcard.isExternal,
-      externalIndex: externalIndex,
-      isUnrecognised: false,
-      availableState: '', // corresponding storage 'change' event
-      volumeState: '', // corresponding storage 'storage-state-change' event
-      musicUsedSpace: 0,
-      picturesUsedSpace: 0,
-      videosUsedSpace: 0,
-      sdcardUsedSpace: 0,
-      volumeFreeSpace: 0,
-      get data() {return storages;},
-      updateStoragesSize: updateStoragesSize
+  Volume.prototype._getAvailableState = function() {
+    this._storages.sdcard.available().then((state) => {
+      this.debug('_getAvailableState(): state = ' + state);
+      this._availableState = state;
+    }, (reason) => {
+      this.debug('_getAvailableState(): get available failed, reason = ' +
+                 reason);
     });
+  };
 
-    /**
-     * Observe 'availableState' property changed event in init function.
-     * Once the property changed, we can update corrected value and description
-     * for the volume.
-     */
-    observableVolume._init = function v__init() {
-      this.observe('availableState', this.updateStoragesSize.bind(this));
-      this._getAvailableState();
-      this._getStorageStatus();
-    };
+  /**
+   * Init property 'volumeState' via get storageStatus() API.
+   *
+   * @access private
+   * @memberOf Volume
+   */
+  Volume.prototype._getStorageStatus = function() {
+    this._storages.sdcard.storageStatus().then((state) => {
+      this.debug('_getStorageStatus(): state = ' + state);
+      this._volumeState = state;
+    }, (reason) => {
+      this.debug('_getStorageStatus(): get storageStatus() failed: reason = ' +
+                 reason + ', reset to "Mount-Fail"');
+      this._volumeState = 'Mount-Fail';
+    });
+  };
 
-    // Init property 'availableState' via get storage available() API.
-    observableVolume._getAvailableState = function v__getAvailableState() {
-      storages.sdcard.available().then((state) => {
-        Debug('_getAvailableState(): state = ' + state);
-        this.availableState = state;
-      }, (reason) => {
-        Debug('_getAvailableState(): get available failed, reason = ' + reason);
-      });
-    };
-
-    // Init property 'volumeState' via get storageStatus() API.
-    observableVolume._getStorageStatus = function v__getStorageStatus() {
-      storages.sdcard.storageStatus().then((state) => {
-        Debug('_getStorageStatus(): state = ' + state);
-        this.volumeState = state;
-      }, (reason) => {
-        Debug('_getStorageStatus(): get storageStatus() failed: reason = ' +
-              reason + ', reset to "Mount-Fail"');
-        this.volumeState = 'Mount-Fail';
-      });
-    };
-
-    // Watch storage 'change' event from the volume.
-    // While the storage fires 'change' event, the volume module have to update
-    // latest 'isDefault' and 'availableState'.
-    storages.sdcard.addEventListener('change', (evt) => {
-      Debug('storage "change": evt.reason = ' + evt.reason);
+  /**
+   * Watch storage 'change' event from the volume.
+   * While the storage fires 'change' event, the volume module have to update
+   * latest 'isDefault' and 'availableState'.
+   *
+   * @access private
+   * @memberOf Volume
+   */
+  Volume.prototype._watchStorageChangeEvent = function() {
+    this._storages.sdcard.addEventListener('change', (evt) => {
+      this.debug('storage "change": evt.reason = ' + evt.reason);
       // update 'isDefault' property
       if (evt.reason === 'became-default-location') {
-        observableVolume.isDefault = true;
+        this._isDefault = true;
       }
 
       if (evt.reason === 'default-location-changed') {
-        observableVolume.isDefault = false;
+        this._isDefault = false;
       }
 
       // update 'availableState' property
       if (evt.reason === ('available' || 'unavailable' || 'shared')) {
-        observableVolume.availableState = evt.reason;
+        this._availableState = evt.reason;
       } else {
-        observableVolume._getAvailableState();
+        this._getAvailableState();
       }
     });
-
-    // Watch storage 'storage-state-change' event from the volume.
-    // While the storage fires 'storage-state-change' event, the volume module
-    // have to update latest volume state.
-    // The event reason will be as following volume state.
-    // 'Init', 'NoMedia', 'Pending', 'Unmounting', 'Shared', 'Shared-Mounted',
-    // 'Formatting', 'Checking', 'Idle', 'Mounted', and 'Mount-Fail'.
-    storages.sdcard.addEventListener('storage-state-change', (evt) => {
-      Debug('storage "storage-state-change": evt.reason = ' + evt.reason);
-      observableVolume.volumeState = evt.reason;
-    });
-
-    observableVolume._init();
-    return observableVolume;
   };
+
+  /**
+   * Watch storage 'storage-state-change' event from the volume.
+   * While the storage fires 'storage-state-change' event, the volume module
+   * have to update latest volume state.
+   * The event reason will be as following volume state.
+   * 'Init', 'NoMedia', 'Pending', 'Unmounting', 'Shared', 'Shared-Mounted',
+   * 'Formatting', 'Checking', 'Idle', 'Mounted', and 'Mount-Fail'.
+   *
+   * @access private
+   * @memberOf Volume
+   */
+  Volume.prototype._watchStorageStateChangeEvent = function() {
+    this._storages.sdcard.addEventListener('storage-state-change', (evt) => {
+      this.debug('storage "storage-state-change": evt.reason = ' + evt.reason);
+      this._volumeState = evt.reason;
+    });
+  };
+
+  return Volume;
 });
