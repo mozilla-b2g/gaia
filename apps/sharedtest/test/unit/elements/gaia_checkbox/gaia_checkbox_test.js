@@ -47,7 +47,7 @@ suite('GaiaCheckbox', function() {
     var element = this.container.firstElementChild;
     assert.ok(!element.checked);
 
-    element.addEventListener('click', function(e) {
+    element.addEventListener('change', function(e) {
       assert.equal(e.target.checked, true);
       done();
     });

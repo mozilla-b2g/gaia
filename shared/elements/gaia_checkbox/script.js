@@ -36,8 +36,24 @@ window.GaiaCheckbox = (function(win) {
     }.bind(this));
 
     ComponentUtils.style.call(this, baseurl);
+
+    // Proxy RTL changes to the shadow root so we can style for RTL.
+    var dirObserver = new MutationObserver(this.updateInternalDir.bind(this));
+    dirObserver.observe(document.documentElement, {
+      attributeFilter: ['dir'],
+      attributes: true
+    });
+    this.updateInternalDir();
   };
 
+  proto.updateInternalDir = function() {
+    var internal = this.shadowRoot.firstElementChild;
+    if (document.documentElement.dir === 'rtl') {
+      internal.setAttribute('dir', 'rtl');
+    } else {
+      internal.removeAttribute('dir');
+    }
+  };
 
   /**
    * Handles a click event on the shadow dom.
@@ -46,7 +62,6 @@ window.GaiaCheckbox = (function(win) {
    * that preserves backwards behavior and should make it easier to port apps.
    */
   proto.handleClick = function(e) {
-    this.checked = !this.checked;
     this._wrapper.setAttribute('aria-checked', this.checked);
 
     // We add this event listener twice (see above) on both the content and
@@ -62,6 +77,16 @@ window.GaiaCheckbox = (function(win) {
       cancelable: true
     });
     this.dispatchEvent(event);
+
+    if (!event.defaultPrevented) {
+      this.checked = !this.checked;
+    }
+
+    // Dispatch a change event for the gaia-switch.
+    this.dispatchEvent(new CustomEvent('change', {
+      bubbles: true,
+      cancelable: false
+    }));
   };
 
   /**

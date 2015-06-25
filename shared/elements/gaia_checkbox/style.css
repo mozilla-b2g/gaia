@@ -1,5 +1,6 @@
 gaia-checkbox {
   display: inline-block;
+  width: 100%;
 }
 
 #checkbox {
@@ -30,6 +31,17 @@ gaia-checkbox {
   margin: -1.2rem 0 0 -1.2rem;
   width: 2.2rem;
   height: 2.2rem;
+}
+
+#checkbox.inline:not([dir="rtl"]) span:after {
+  left: 1.2rem;
+  right: unset;
+  margin: -1.2rem 0 0 -1.2rem;
+}
+
+#checkbox.inline span {
+  -moz-padding-start: 3rem;
+  -moz-padding-end: 0;
 }
 
 #checkbox span:after {
