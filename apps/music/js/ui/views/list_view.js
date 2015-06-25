@@ -76,7 +76,8 @@ var ListView = {
   hideSearch: function lv_hideSearch() {
     this.searchInput.value = '';
     // XXX: we probably want to animate this...
-    if (this.view.scrollTop < this.searchBox.offsetHeight) {
+    if (this.view.scrollTop < this.searchBox.offsetHeight &&
+        ModeManager.currentMode !== MODE_SEARCH_FROM_LIST) {
       this.view.scrollTop = this.searchBox.offsetHeight;
     }
   },

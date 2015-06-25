@@ -57,7 +57,8 @@ var TilesView = {
   hideSearch: function tv_hideSearch() {
     this.searchInput.value = '';
     // XXX: we probably want to animate this...
-    if (this.view.scrollTop < this.searchBox.offsetHeight) {
+    if (this.view.scrollTop < this.searchBox.offsetHeight &&
+        ModeManager.currentMode !== MODE_SEARCH_FROM_TILES) {
       this.view.scrollTop = this.searchBox.offsetHeight;
     }
   },
@@ -147,7 +148,7 @@ var TilesView = {
     if (!result.metadata.picture) {
       container.appendChild(titleBar);
     } else {
-      container.setAttribute('aria-label', artistName.textContent + ' ' + 
+      container.setAttribute('aria-label', artistName.textContent + ' ' +
                                            albumName.textContent);
     }
 
