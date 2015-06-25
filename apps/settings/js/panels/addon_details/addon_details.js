@@ -81,14 +81,9 @@ define(function(require) {
 
     // Display the add-on developer name if there is one
     var developerName = manifest.developer && manifest.developer.name;
-    if (developerName) {
-      this._elements.developer.hidden = false;
-      l10n.setAttributes(this._elements.developer, 'addon-developer-name', {
-        developerName: developerName
-      });
-    } else {
-      this._elements.developer.hidden = true;
-    }
+    l10n.setAttributes(this._elements.developer, 'addon-developer-name', {
+      developerName: developerName || ''
+    });
 
     // Get the list of targeted apps
     this._elements.targetsList.textContent = '';  // Clear any old content here
