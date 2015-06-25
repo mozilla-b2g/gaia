@@ -1066,6 +1066,12 @@ ul li > label.range-icons.volume input {
   -moz-padding-end: 4rem;
 }
 
+/* Style components in developer panel to match existing styles. */
+#developer ul li > gaia-checkbox,
+#developer-hud ul li > gaia-checkbox {
+  padding: 1.5rem 0;
+}
+
 #developer ul li > label.pack-switch > span,
 #developer-hud ul li > label.pack-switch > span {
   -moz-padding-end: 9rem;
