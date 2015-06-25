@@ -144,6 +144,41 @@ exports.deleteAccount = function(id) {
   return accountStore.remove(id);
 };
 
+/**
+ * Sends a request to create an account.
+ *
+ * @param {Calendar.Models.Account} model account details.
+ */
+exports.createAccount = co.wrap(function *(model) {
+  var storeFactory = core.storeFactory;
+  var accountStore = storeFactory.get('Account');
+  var calendarStore = storeFactory.get('Calendar');
+
+  // begin by persisting the account
+  var [, result] = yield accountStore.verifyAndPersist(model);
+
+  // finally sync the account so when
+  // we exit the request the user actually
+  // has some calendars. This should not take
+  // too long (compared to event sync).
+  yield accountStore.sync(result);
+
+  // begin sync of calendars
+  var calendars = yield calendarStore.remotesByAccount(result._id);
+
+  // note we don't wait for any of this to complete
+  // we just begin the sync and let the event handlers
+  // on the sync controller do the work.
+  for (var key in calendars) {
+    core.syncController.calendar(
+      result,
+      calendars[key]
+    );
+  }
+
+  return result;
+});
+
 exports.observeAccounts = function() {
   var stream = new FakeClientStream();
   var accountStore = core.storeFactory.get('Account');

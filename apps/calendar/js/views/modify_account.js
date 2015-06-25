@@ -2,7 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 var Account = require('models/account');
-var AccountCreation = require('utils/account_creation');
 var OAuthWindow = require('oauth_window');
 var Presets = require('common/presets');
 var URI = require('utils/uri');
@@ -30,9 +29,6 @@ function ModifyAccount(options) {
   this.displayOAuth2 = this.displayOAuth2.bind(this);
   this.hideHeaderAndForm = this.hideHeaderAndForm.bind(this);
   this.cancelDelete = this.cancelDelete.bind(this);
-
-  this.accountHandler = new AccountCreation();
-  this.accountHandler.on('authorizeError', this);
 
   // bound so we can add remove listeners
   this._boundSaveUpdateModel = this.save.bind(this, { updateModel: true });
@@ -121,18 +117,6 @@ ModifyAccount.prototype = {
     return this._fields;
   },
 
-  handleEvent: function(event) {
-    var type = event.type;
-    var data = event.data;
-
-    switch (type) {
-      case 'authorizeError':
-        // we only expect one argument an error object.
-        this.showErrors(data[0]);
-        break;
-    }
-  },
-
   updateForm: function() {
     var update = ['user', 'fullUrl'];
 
@@ -194,16 +178,17 @@ ModifyAccount.prototype = {
     this.cancel(event);
   },
 
-  save: function(options, e) {
+  isOffline: isOffline,
+
+  save: co.wrap(function *(options, e) {
 
     if (e) {
       e.preventDefault();
     }
 
     var list = this.element.classList;
-    var self = this;
 
-    if (isOffline()) {
+    if (this.isOffline()) {
       this.showErrors([{name: 'offline'}]);
       return;
     }
@@ -216,13 +201,15 @@ ModifyAccount.prototype = {
       this.updateModel();
     }
 
-    this.accountHandler.send(this.model, function(err) {
-      list.remove(self.progressClass);
-      if (!err) {
-        router.go(self.completeUrl);
-      }
-    });
-  },
+    try {
+      yield core.bridge.createAccount(this.model);
+      list.remove(this.progressClass);
+      router.go(this.completeUrl);
+    } catch(err) {
+      list.remove(this.progressClass);
+      this.showErrors(err);
+    }
+  }),
 
   hideHeaderAndForm: function() {
     this.element.classList.add(this.removeDialogClass);
