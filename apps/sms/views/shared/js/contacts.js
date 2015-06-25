@@ -116,7 +116,7 @@
          *
          */
         return Promise.resolve(
-          filter.filterValue === undefined ? null : []
+          filter.filterValue === undefined ? [] : []
         );
       }
 
