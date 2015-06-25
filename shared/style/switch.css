@@ -1,9 +1,7 @@
 /* ----------------------------------
- * CHECKBOXES / RADIOS
+ * SWITCHES
  * ---------------------------------- */
 
-label.pack-checkbox,
-label.pack-radio,
 label.pack-switch {
   display: inline-block;
   vertical-align: middle;
@@ -13,8 +11,6 @@ label.pack-switch {
   background: none;
 }
 
-label.pack-checkbox input,
-label.pack-radio input,
 label.pack-switch input {
   margin: 0;
   opacity: 0;
@@ -27,51 +23,8 @@ label.pack-switch input {
   width: 0;
 }
 
-label.pack-checkbox input ~ span:after,
-label.pack-radio input ~ span:after {
-  content: '';
-  position: absolute;
-  /* CSS will resolve the conflict among left, right, and width "intelligently"
-     and pick left+width for LTR and right+width for RTL. */
-  left: 50%;
-  right: 50%;
-  top: 50%;
-  margin: 0;
-  margin-top: -1.1rem;
-  -moz-margin-start: -1.1rem;
-  width: 2.2rem;
-  height: 2.2rem;
-  pointer-events: none;
-}
-
-label.pack-checkbox input ~ span:after {
-  background: url(switches/images/check/default.png) no-repeat center top / 2.2rem auto;
-}
-
-label.pack-radio input ~ span:after {
-  background: url(switches/images/radio/default.png) no-repeat center top / 2.2rem auto;
-}
-
-/* checkbox & radio: disabled state */
-label.pack-checkbox input:disabled ~ span:after,
-label.pack-radio input:disabled ~ span:after {
-  opacity: 0.4;
-}
-
-label.pack-checkbox input:checked ~ span:after,
-label.pack-radio input:checked ~ span:after,
 label.pack-switch input:checked ~ span:after {
   background-position: center bottom;
-}
-
-/* 'Dangerous' switches */
-
-label.pack-checkbox.danger input ~ span:after {
-  background-image: url(switches/images/check/danger.png);
-}
-
-label.pack-radio.danger input ~ span:after {
-  background-image: url(switches/images/radio/danger.png);
 }
 
 

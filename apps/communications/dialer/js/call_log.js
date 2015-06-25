@@ -23,7 +23,8 @@ var CallLog = {
 
     var lazyFiles = [
       '/shared/style/confirm.css',
-      '/shared/style/switches.css',
+      '/shared/style/checkbox.css',
+      '/shared/style/switch.css',
       '/shared/style/lists.css',
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
