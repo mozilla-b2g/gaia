@@ -775,11 +775,11 @@ var StatusBar = {
     switch (evtType) {
       case 'utilitytraywillshow':
       case 'utility-tray-overlayopened':
-      case 'utility-tray-abortclose':
+      case 'utility-tray-abortopen':
         return 'utilitytrayopening';
       case 'utilitytraywillhide':
       case 'utility-tray-overlayclosed':
-      case 'utility-tray-abortopen':
+      case 'utility-tray-abortclose':
         return 'utilitytrayclosing';
       case 'cardviewshown':
       case 'cardviewclosed':

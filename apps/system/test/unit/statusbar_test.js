@@ -2098,34 +2098,50 @@ suite('system/Statusbar', function() {
   });
 
   suite('lockscreen support', function() {
-    var lockscreenApp, app;
+    var lockscreenApp, app, cloneStatusbarStub;
 
-    setup(function() {
-      lockscreenApp = getApp(true, true);
-      app = getApp(false, false);
+    function lockScreen() {
       var evt = new CustomEvent('lockscreen-appopened', {
         detail: lockscreenApp
       });
       MockService.currentApp = app;
       MockService.mTopMostWindow = app;
       StatusBar.handleEvent(evt);
-    });
+    }
 
-    teardown(function() {
+    function unlockScreen() {
       var evt = new CustomEvent('lockscreen-appclosing');
       StatusBar.handleEvent(evt);
       MockService.currentApp = null;
+    }
+
+    function emitStatusbarEvent(evtType) {
+      window.dispatchEvent(new CustomEvent(evtType));
+    }
+
+    setup(function() {
+      lockscreenApp = getApp(false, true);
+      app = getApp(false, false);
+      cloneStatusbarStub = this.sinon.spy(StatusBar, 'cloneStatusbar');
+    });
+
+    teardown(function() {
+      cloneStatusbarStub.restore();
     });
 
     test('should set the lockscreen icons color', function() {
+      lockScreen();
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
+      unlockScreen();
     });
 
     test('should do nothing when is locked', function() {
+      lockScreen();
       StatusBar.setAppearance();
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
+      unlockScreen();
     });
 
     test('should set the active app color when closing', function() {
@@ -2133,6 +2149,24 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('Locking screen while opening utility tray should not block the ' +
+      'status bar', function() {
+      emitStatusbarEvent('utilitytraywillshow');
+      assert.isFalse(cloneStatusbarStub.called);
+
+      emitStatusbarEvent('utility-tray-abortopen');
+      assert.isTrue(cloneStatusbarStub.called);
+    });
+
+    test('Locking screen while closing utility tray should not block the ' +
+      'status bar', function() {
+      emitStatusbarEvent('utilitytraywillhide');
+      assert.isFalse(cloneStatusbarStub.called);
+
+      emitStatusbarEvent('utility-tray-abortclose');
+      assert.isTrue(cloneStatusbarStub.called);
     });
 
     function getApp(light, maximized) {
