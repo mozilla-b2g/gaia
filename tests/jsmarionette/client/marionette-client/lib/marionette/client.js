@@ -929,7 +929,7 @@
      *
      * @method setContext
      * @chainable
-     * @param {String} context either: 'chome' or 'content'.
+     * @param {String} context either: 'chrome' or 'content'.
      * @param {Function} callback receives boolean.
      */
     setContext: function setContext(context, callback) {
