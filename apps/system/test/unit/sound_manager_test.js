@@ -143,8 +143,11 @@ suite('system/sound manager', function() {
       });
 
       test('audio channel changed', function() {
-        sendChromeEvent({'type': 'audio-channel-changed',
-                         'channel': 'alarm'});
+        window.dispatchEvent(new CustomEvent('audiochannelchangedasactive', {
+          detail: {
+            channel: 'alarm'
+          }
+        }));
 
         assert.equal('alarm', soundManager.currentChannel);
       });
@@ -441,8 +444,11 @@ suite('system/sound manager', function() {
         soundManager.currentVolume.content = 15;
         sendChromeEvent({'type': 'headphones-status-changed',
                          'state': 'on' });
-        sendChromeEvent({'type': 'audio-channel-changed',
-                         'channel': 'content'});
+        window.dispatchEvent(new CustomEvent('audiochannelchangedasactive',{
+          detail: {
+            channel: 'content'
+          }
+        }));
       });
 
       teardown(function() {

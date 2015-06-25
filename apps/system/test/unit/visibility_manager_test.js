@@ -108,9 +108,8 @@ suite('system/VisibilityManager', function() {
 
     test('Normal audio channel is on.', function() {
       visibilityManager.handleEvent({
-        type: 'mozChromeEvent',
+        type: 'visibleaudiochannelchanged',
         detail: {
-          type: 'visible-audio-channel-changed',
           channel: 'normal'
         }
       });
@@ -128,9 +127,8 @@ suite('system/VisibilityManager', function() {
 
     test('Normal audio channel is off.', function() {
       visibilityManager.handleEvent({
-        type: 'mozChromeEvent',
+        type: 'visibleaudiochannelchanged',
         detail: {
-          type: 'visible-audio-channel-changed',
           channel: 'none'
         }
       });

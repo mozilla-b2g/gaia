@@ -106,18 +106,23 @@
      */
     _manageAudioChannels: function(audioChannel) {
       if (audioChannel.isActive()) {
+        var isBackground = this._isAudioChannelInBackground(audioChannel);
         this.audioChannelPolicy.applyPolicy(
           audioChannel,
           this._activeAudioChannels,
           {
-            isNewAudioChannelInBackground:
-              this._isAudioChannelInBackground(audioChannel)
+            isNewAudioChannelInBackground: isBackground
           }
         );
         this._activeAudioChannels.forEach((audioChannel) => {
           this._handleAudioChannel(audioChannel);
         });
         this._handleAudioChannel(audioChannel);
+        var channel = { channel: audioChannel.name };
+        if (!isBackground) {
+          this.publish('visibleaudiochannelchanged', channel);
+        }
+        this.publish('audiochannelchangedasactive', channel);
       } else {
         this._resetAudioChannel(audioChannel);
         this._resumeAudioChannels();
