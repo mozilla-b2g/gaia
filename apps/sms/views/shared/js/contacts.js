@@ -306,7 +306,7 @@
       return this.findBy({
         filterBy: ['email'],
         filterOp: 'equals',
-        filterValue: fValue
+        filterValue: fvalue
       });
     },
 
