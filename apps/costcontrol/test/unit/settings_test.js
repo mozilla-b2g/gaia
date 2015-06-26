@@ -23,6 +23,7 @@ require('/js/settings/settings.js');
 require('/js/sim_manager.js');
 require('/js/utils/toolkit.js');
 require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
 require('/shared/elements/gaia-header/dist/gaia-header.js');
 require('/shared/elements/gaia_subheader/script.js');
 
@@ -316,9 +317,6 @@ suite('Settings Test Suite >', function() {
       // Init the dataLimitDialog values
       ConfigManager.mTriggerCallback('dataLimitValue', 40);
       ConfigManager.mTriggerCallback('dataLimitUnit', 'MB');
-
-      var dataLimit = document.querySelector('[data-option=dataLimit]');
-      assert.equal(dataLimit.value, 'on');
 
       // load Limit dialog
       var dataLimitButton =

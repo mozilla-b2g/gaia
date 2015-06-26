@@ -1,6 +1,8 @@
 /* global BalanceLowLimitView*/
 'use strict';
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_switch/script.js');
 requireApp('costcontrol/js/views/BalanceLowLimitView.js');
 
 suite('Balance low limit view and validator >', function() {
@@ -16,8 +18,7 @@ suite('Balance low limit view and validator >', function() {
   var lowLimitEnabler, lowLimitInput, lowLimitView;
 
   setup(function() {
-    lowLimitEnabler = document.createElement('INPUT');
-    lowLimitEnabler.setAttribute('type', 'checkbox');
+    lowLimitEnabler = document.createElement('gaia-switch');
     lowLimitInput = document.createElement('INPUT');
     lowLimitView = new BalanceLowLimitView(
       lowLimitEnabler,
@@ -118,7 +119,7 @@ suite('Balance low limit view and validator >', function() {
       lowLimitView.onvalidation = function() {
         done();
       };
-      lowLimitEnabler.click();
+      lowLimitEnabler.dispatchEvent(new CustomEvent('change'));
     }
   );
 

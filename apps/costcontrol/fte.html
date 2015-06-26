@@ -50,6 +50,7 @@
   <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_select/script.js"></script>
+  <script defer src="/shared/elements/gaia_switch/script.js"></script>
 
   <!-- Specific code -->
   <script type="text/javascript" defer src="js/fte.js"></script>
@@ -120,10 +121,9 @@
       <section class="content">
         <ul class="settings">
           <li class="active">
-            <label class="pack-switch end">
-              <input id="low-limit" class="settings-option" data-option="lowLimit" type="checkbox" checked="checked">
-              <span data-l10n-id="low-balance-alert">Low Balance alert</span>
-            </label>
+            <gaia-switch id="low-limit" class="settings-option" data-option="lowLimit">
+              <label data-l10n-id="low-balance-alert"></label>
+            </gaia-switch>
           </li>
           <li class="vbox">
             <label class="end" for="low-limit-input" data-l10n-id="low-balance-explanation2">When balance is below</label>
@@ -215,10 +215,9 @@
             </gaia-select>
           </li>
           <li class="active">
-            <label class="pack-switch end">
-              <input class="settings-option" data-option="dataLimit" type="checkbox">
-              <span data-l10n-id="data-limit-alert">Data use alert</span>
-            </label>
+            <gaia-switch class="settings-option" data-option="dataLimit">
+              <label data-l10n-id="data-limit-alert"></label>
+            </gaia-switch>
           </li>
           <li class="vbox">
             <p data-l10n-id="data-limit-value2">When use is above</p>
@@ -327,10 +326,9 @@
       <section class="content">
         <ul class="settings">
           <li class="active">
-            <label class="pack-switch end">
-              <input class="settings-option" data-option="dataLimit" type="checkbox">
-              <span data-l10n-id="data-limit-alert">Data use alert</span>
-            </label>
+            <gaia-switch class="settings-option" data-option="dataLimit">
+              <label data-l10n-id="data-limit-alert"></label>
+            </gaia-switch>
           </li>
           <li class="vbox">
             <p data-l10n-id="data-limit-value2">When use is above</p>
@@ -438,10 +436,9 @@
       </gaia-header>
       <ul class="content settings">
         <li class="active">
-          <label class="pack-switch end">
-            <input class="settings-option" data-option="dataLimit" type="checkbox">
-            <span data-l10n-id="data-limit-alert">Data use alert</span>
-          </label>
+          <gaia-switch class="settings-option" data-option="dataLimit">
+            <label data-l10n-id="data-limit-alert"></label>
+          </gaia-switch>
         </li>
         <li class="vbox">
           <p data-l10n-id="data-limit-value2">When use is above</p>

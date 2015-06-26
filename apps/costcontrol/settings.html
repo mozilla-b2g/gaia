@@ -46,6 +46,7 @@
     <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
     <script defer src="/shared/elements/gaia_select/script.js"></script>
+    <script defer src="/shared/elements/gaia_switch/script.js"></script>
 
     <!-- Specific scripts -->
     <script type="text/javascript" defer src="js/settings/settings.js"></script>
@@ -96,10 +97,9 @@
                 <p class="meta"></p>
             </li>
             <li class="active">
-              <label class="pack-switch end">
-                <input class="settings-option" data-option="lowLimit" type="checkbox" id="low-limit" />
-                <span data-l10n-id="low-balance-alert">Low balance alert</span>
-              </label>
+              <gaia-switch class="settings-option" data-option="lowLimit" id="low-limit">
+                <label data-l10n-id="low-balance-alert"></label>
+              </gaia-switch>
             </li>
            <li class="vbox">
               <label class="end" for="low-limit-input" data-l10n-id="low-balance-explanation2">When balance is below</label>
@@ -126,10 +126,9 @@
               <button data-l10n-id="reset" id="reset-data-usage">Reset</button>
             </li>
             <li class="active">
-              <label class="pack-switch end">
-                <input class="settings-option" data-option="dataLimit" type="checkbox"/>
-                <span data-l10n-id="data-limit-alert">Data use alert</span>
-              </label>
+              <gaia-switch class="settings-option" data-option="dataLimit">
+                <label data-l10n-id="data-limit-alert"></label>
+              </gaia-switch>
             </li>
             <li class="vbox not-last">
               <p data-l10n-id="data-limit-value2">When use is above</p>
