@@ -39,17 +39,6 @@
     loadService('live');
   };
 
-  extServices.match = function(contactId) {
-    closeRequested = canClose = true;
-    extensionFrame.src = currentURI = 'matching_contacts.html?contactId=' +
-                                                                    contactId;
-  };
-
-  extServices.showDuplicateContacts = function() {
-    closeRequested = canClose = true;
-    extensionFrame.src = currentURI = 'matching_contacts.html';
-  };
-
   function loadService(serviceName) {
     closeRequested = false;
     canClose = false;
@@ -370,15 +359,6 @@
         }, fb.CONTACTS_APP_ORIGIN);
         break;
 
-      case 'show_duplicate_contacts':
-        extensionFrame.contentWindow.postMessage(data,
-                                                  fb.CONTACTS_APP_ORIGIN);
-        break;
-
-      case 'duplicate_contacts_merged':
-        extensionFrame.contentWindow.postMessage(data,
-                                                  fb.CONTACTS_APP_ORIGIN);
-      break;
     }
   }
 
