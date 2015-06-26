@@ -325,7 +325,7 @@ Db.prototype = {
   /**
    * Update a collection of events and the busytimes that depend on them.
    *
-   * @param {Array.<number>>} eventIds An array of event ids for the events.
+   * @param {Array.<number>} eventIds An array of event ids for the events.
    * @param {number} calendarId A numerical id to set as calendarId.
    * @param {IDBTransaction} trans The active idb transaction during db
    *     upgrade.
@@ -354,7 +354,7 @@ Db.prototype = {
   /**
    * Delete a collection of events and the busytimes that depend on them.
    *
-   * @param {Array.<number>>} eventIds An array of event ids for the events.
+   * @param {Array.<number>} eventIds An array of event ids for the events.
    * @param {IDBTransaction} trans The active idb transaction during db
    *     upgrade.
    * @private
