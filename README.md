@@ -84,7 +84,7 @@ app>/test/marionette` and should be named `*_test.js`. Gaia's marionette
 tests run on nodejs and you'll need nodejs>=v0.10 installed.
 
 Also for the time being, shared code for tests lives in plugins at
-`tests/jsmarionette/plugins` or in helpers `shared/test/integration`.
+at `tests/jsmarionette/plugins` or in helpers `shared/test/integration`.
 
 #### Running integration tests
 
