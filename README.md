@@ -146,7 +146,7 @@ the first issue is to use Xvfb:
 xvfb-run make test-integration
 ```
 
-If you are using PulseAudio and want to keep the tests quied, then just force
+If you are using PulseAudio and want to keep the tests quiet, then just force
 an invalid server:
 
 ```sh
