@@ -52,7 +52,7 @@
     "mocha-tbpl-reporter": "file:./tests/jsmarionette/mocha/mocha-tbpl-reporter",
     "moment": "~2.4.0",
     "mozdevice": "file:./tools/mozdevice",
-    "mozilla-download": "1.0.4",
+    "mozilla-download": "^1.1.0",
     "node-static": "0.6.9",
     "npmr": "0.0.3",
     "proxyquire": "~0.4",
