@@ -88,9 +88,6 @@ Also for the time being, shared code for tests lives in plugins at
 
 #### Running integration tests
 
-NOTE: Currently unless your tests end in `_test.js` they will not be
-automatically picked up by `make test-integration` right now.
-
 ```sh
 npm run marionette
 ```
