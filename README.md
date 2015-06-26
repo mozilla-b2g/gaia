@@ -78,143 +78,48 @@ https://developer.mozilla.org/en/Mozilla/Boot_to_Gecko/Gaia_Unit_Tests
 ### Integration Tests
 
 Gaia uses
-[marionette-js-runner](https://github.com/mozilla-b2g/marionette-js-runner)
-to run the tests with a custom builder for gaia. Tests should live with the rest of your apps code (in apps/my_app/test/marionette) and
-test files should end in _test.js.
+[marionette-js-runner](https://developer.mozilla.org/en-US/Firefox_OS/Automated_testing/Gaia_integration_tests)
+for ui testing. For the time being, tests need to live in `apps/<some
+app>/test/marionette` and should be named `*_test.js`. Gaia's marionette
+tests run on nodejs and you'll need nodejs>=v0.10 installed.
 
-All integration tests run under a node environment. You need node >= 0.10
-for this to work predictably.
-
-Shared code for tests lives under shared/test/integration.
+Also for the time being, shared code for tests lives in plugins at
+`tests/jsmarionette/plugins` or in helpers `shared/test/integration`.
 
 #### Running integration tests
 
-NOTE: unless your tests end in _test.js they will not be
-automatically picked up by `make test-integration`.
+NOTE: Currently unless your tests end in `_test.js` they will not be
+automatically picked up by `make test-integration` right now.
 
 ```sh
-make test-integration
+npm run marionette
 ```
 
-#### Invoking a test file
+#### Invoking specific test files
 
 ```sh
-make test-integration TEST_FILES=<test>
-```
-
-For example, we could run the `day_view_test.js` test in calendar app with the below command.
-```
-make test-integration TEST_FILES=apps/calendar/test/marionette/day_view_test.js
-```
-
-If you would like to run more than one test, we could do the below command.
-```
-make test-integration TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
+TEST_FILES="/abs/path/to/some_test.js /abs/path/to/other_test.js" npm run marionette
 ```
 
 #### Invoking tests for a specific app
 
 ```sh
-make test-integration APP=<APP>
+APP=<APP> npm run marionette
 ```
-
-For example, we could run all tests for the calendar app with `make test-integration APP=calendar`.
 
 #### Skipping a test file
-```sh
-make test-integration SKIP_TEST_FILES=<test>
-```
-For example, we could skip the `day_view_test.js` test in calendar app with the below command.
-```
-make test-integration SKIP_TEST_FILES=apps/calendar/test/marionette/day_view_test.js
-```
-
-If you would like to skip more than one test, we could do the below command.
-```
-make test-integration SKIP_TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
-```
-
-Notice that we could not use the `TEST_FILES` and `SKIP_TEST_FILES` parameters at the same time.
-
-#### Running tests while working
-
-If you wish to run many tests in background you might not want to be disturbed
-by the b2g-desktop window popping everytime, or the sound. One solution for
-the first issue is to use Xvfb:
 
 ```sh
-xvfb-run make test-integration
+SKIP_TEST_FILES="/abs/path/to/skipped_test.js /abs/path/to/other/skipped_test.js" npm run marionette
 ```
 
-If you are using PulseAudio and want to keep the tests quied, then just force
-an invalid server:
+#### Moar things
 
-```sh
-PULSE_SERVER=":" make test-integration
-```
++ `VERBOSE=1` pipes gecko logs to your command line process for debugging.
 
-You can of course combine both:
-
-```sh
-PULSE_SERVER=":" xvfb-run make test-integration
-```
-
-#### Running tests without building profile
-
-if you would like to run tests without building profile, use `make test-integration-test`:
-```sh
-PROFILE_FOLDER=profile-test make # generate profile directory in first time
-make test-integration-test
-```
-
-#### Debugging Tests
-
-To view log out from a test
-
-```sh
-make test-integration VERBOSE=1
-```
-
-#### Running tests in OOP mode
-
-To run tests in OOP mode
-
-```sh
-make test-integration OOP=1
-```
-
-#### Where to find documentation
-  - [Node.js](http://nodejs.org)
-  - [MDN: for high level overview](https://developer.mozilla.org/en-US/docs/Marionette/Marionette_JavaScript_Tools)
-  - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
-  - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/gaia/tree/master/tests/jsmarionette/runner)
-  - [marionette-client: for anything to do with client.X](http://mozilla-b2g.github.io/marionette-js-client/api-docs/classes/Marionette.Client.html)
-
-#### Gotchas
-
-- For performance reasons we don't run `make profile` for each test
-  run this means you need to manually remove the `profile-test`
-  folder when you make changes to your apps.
-
-- If you don't have a b2g folder one will be downloaded for you.
++ If you don't have a b2g/ folder one will be downloaded for you.
   This can be problematic if you're offline. You can symlink a
   b2g-desktop directory to b2g/ in gaia to avoid the download.
-
-- If you have some weird node errors, try removing node_modules since
-  things may be stale.
-
-- To get debug information from the b2g desktop client, run this:
-`DEBUG=b2g-desktop TEST_FILES=name/of/test.js ./bin/gaia-marionette`
-
-- To get debug information from b2g desktop and all of the marionette
-plugins, run this:
-`DEBUG=* TEST_FILES=name/of/test.js ./bin/gaia-marionette`
-
-### UI Tests
-
-#### Functional
-
-See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaia-ui-tests/README.md)
 
 ### Build System Tests
 
