@@ -44,13 +44,17 @@ var LanguageManager = {
   buildLanguageList: function settings_buildLanguageList() {
     var container = document.querySelector('#languages ul');
     container.innerHTML = '';
+    var selectedLanguageNode = null;
     LanguageList.get(function fillLanguageList(allLanguages, currentLanguage) {
       for (var lang in allLanguages) {
         var input = document.createElement('input');
         input.type = 'radio';
         input.name = 'language.current';
         input.value = lang;
-        input.checked = (lang === currentLanguage);
+        if (lang === currentLanguage) {
+          input.checked = true;
+          selectedLanguageNode = input;
+        }
 
         var span = document.createElement('span');
         var p = document.createElement('p');
@@ -71,5 +75,6 @@ var LanguageManager = {
         container.appendChild(li);
       }
     });
+    selectedLanguageNode.scrollIntoView();
   }
 };
