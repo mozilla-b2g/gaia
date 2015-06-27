@@ -55,19 +55,14 @@ suite('languages >', function() {
     document.body.appendChild(section);
     var list = document.createElement('ul');
     section.appendChild(list);
-
-    // XXX in reality this method is async b/c it uses LanguageList.get;  here
-    // however it uses the mock which is sync.  Fix this in bug 1119865.
-    LanguageManager.buildLanguageList();
+    LanguageManager.get().then(function(langs) {
+        assert.equal(document.querySelectorAll('li').length,
+          Object.keys(langs).length);
+      })
+    });
     var selected = document.querySelectorAll('input[type="radio"]:checked');
     assert.equal(selected.length, 1);
     assert.equal(selected[0].value, 'en-US');
-
-    // mock's _languages is sync, too
-    LanguageList._languages.then(function(langs) {
-      assert.equal(document.querySelectorAll('li').length,
-                   Object.keys(langs).length);
-    });
     done();
   });
 

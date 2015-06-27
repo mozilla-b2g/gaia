@@ -105,7 +105,7 @@ exports.LanguageList = {
     return ver.split('.').slice(0, 2).join('.');
   },
 
-  _build: function() {
+  get: function() {
     return Promise.all([
       this._languages || (this._languages = this._readFile(LOCALES_FILE)),
       this._readSetting('deviceinfo.os'),
@@ -118,15 +118,6 @@ exports.LanguageList = {
       this._extendAdditional(langs, this._parseVersion(ver), addl);
       return [langs, current];
     }.bind(this));
-
-  },
-
-  get: function(callback) {
-    if (!callback) {
-      return;
-    }
-
-    this._build().then(Function.prototype.apply.bind(callback, null));
   },
 
   wrapBidi: function(langCode, langName) {

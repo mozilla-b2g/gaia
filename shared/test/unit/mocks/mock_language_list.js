@@ -11,8 +11,8 @@
         callback(langs);
       }
     },
-    get: function(callback) {
-      callback(langs, 'en-US');
+    get: function() {
+      Promise.resolve([langs, 'en-US']);
     },
     wrapBidi: function(lang, name) {
       return name;
