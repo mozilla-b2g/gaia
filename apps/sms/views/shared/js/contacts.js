@@ -116,7 +116,7 @@
          *
          */
         return Promise.resolve(
-          filter.filterValue === undefined ? null : []
+          filter.filterValue === undefined ? [] : []
         );
       }
 
@@ -306,7 +306,7 @@
       return this.findBy({
         filterBy: ['email'],
         filterOp: 'equals',
-        filterValue: fValue
+        filterValue: fvalue
       });
     },
 

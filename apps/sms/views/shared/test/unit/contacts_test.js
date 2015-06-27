@@ -789,7 +789,8 @@ suite('Contacts', function(done) {
     // to the console
     test('({}, ...)', function(done) {
       Contacts.findBy({}).then(function(contacts) {
-        assert.equal(contacts, null);
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 0);
       }).then(done, done);
     });
   });
