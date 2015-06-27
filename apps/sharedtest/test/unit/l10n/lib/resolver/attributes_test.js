@@ -29,13 +29,11 @@ describe('Attributes', function(){
 
     it('returns the value', function(){
       var formatted = Resolver.format(null, env.foo.attrs.attr);
-      assert.strictEqual(formatted[0].overlay, false);
       assert.strictEqual(formatted[1], 'An attribute');
     });
 
     it('returns the value with a placeable', function(){
       var formatted = Resolver.format(null, env.foo.attrs.attrComplex);
-      assert.strictEqual(formatted[0].overlay, false);
       assert.strictEqual(formatted[1], 'An attribute referencing Bar');
     });
 
@@ -53,13 +51,11 @@ describe('Attributes', function(){
 
     it('returns the value of the entity', function(){
       var formatted = Resolver.format(null, env.update);
-      assert.strictEqual(formatted[0].overlay, false);
       assert.strictEqual(formatted[1], 'Update');
     });
 
     it('returns the value of the attribute\'s member', function(){
       var formatted = Resolver.format({n: 1}, env.update.attrs.title);
-      assert.strictEqual(formatted[0].overlay, false);
       assert.strictEqual(formatted[1], 'One update available');
     });
 
@@ -81,13 +77,11 @@ describe('Attributes', function(){
 
     it('returns the value of the entity', function(){
       var formatted = Resolver.format({n: 1, k: 2}, env.update);
-      assert.strictEqual(formatted[0].overlay, false);
       assert.strictEqual(formatted[1], 'One update');
     });
 
     it('returns the value of the attribute', function(){
       var formatted = Resolver.format({n: 1, k: 2}, env.update.attrs.title);
-      assert.strictEqual(formatted[0].overlay, false);
       assert.strictEqual(formatted[1], '2 updates title');
     });
 
