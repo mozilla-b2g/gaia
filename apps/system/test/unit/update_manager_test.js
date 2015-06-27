@@ -1310,10 +1310,6 @@ suite('system/UpdateManager', function() {
           UpdateManager.checkForUpdates(true);
         });
 
-        test('should dispatch force update event if asked for', function() {
-          assert.equal('force-update-check', lastDispatchedEvent.type);
-        });
-
         test('should set the setting back to false', function() {
           var setting = 'gaia.system.checkForUpdates';
           assert.isFalse(MockNavigatorSettings.mSettings[setting]);

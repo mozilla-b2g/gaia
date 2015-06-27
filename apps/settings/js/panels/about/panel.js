@@ -24,8 +24,9 @@ define(function(require) {
         updateCheck.init({
           checkUpdateNow: panel.querySelector('.check-update-now'),
           lastUpdateDate: panel.querySelector('.last-update-date'),
-          updateStatus: panel.querySelector('.update-status'),
-          systemStatus: panel.querySelector('.system-update-status')
+          systemUpdateInfoMenuItem:
+            panel.querySelector('.system-update-info-item'),
+          systemUpdateInfo: panel.querySelector('.system-update-info')
         });
 
         factoryReset.init({

@@ -144,15 +144,53 @@ function SystemUpdatable() {
   this.downloading = false;
   this.paused = false;
   this.showingApplyPrompt = false;
+  this._updateProviderPromise = null;
+  this._idleObserver = null;
 
+  window.addEventListener('request-update-check', this);
+
+  this._initUpdateProvider();
   // XXX: this state should be kept on the platform side
   // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
-  this.checkKnownUpdate(UpdateManager.checkForUpdates.bind(UpdateManager));
-
-  window.addEventListener('mozChromeEvent', this);
+  this.checkKnownUpdate().then((value) => {
+    if (value) {
+      this._checkForUpdates();
+    }
+  });
 }
 
 SystemUpdatable.KNOWN_UPDATE_FLAG = 'known-sysupdate';
+SystemUpdatable.APPLY_IDLE_TIMEOUT = 600;
+
+SystemUpdatable.prototype._initUpdateProvider = function() {
+  this._getUpdateProvider().then((provider) => {
+    if (provider) {
+      provider.addEventListener('updateavailable', this);
+      provider.addEventListener('updateready', this);
+      provider.addEventListener('progress', this);
+      provider.addEventListener('error', this);
+    }
+  });
+};
+
+SystemUpdatable.prototype._getUpdateProvider = function() {
+  if (!this._updateProviderPromise) {
+    this._updateProviderPromise =
+    window.navigator.updateManager.getProviders().then((providerInfos) => {
+      var providerInfo = providerInfos[0];
+      return navigator.updateManager.setActiveProvider(providerInfo.uuid);
+    });
+  }
+  return this._updateProviderPromise;
+},
+
+SystemUpdatable.prototype._checkForUpdates = function() {
+  this._getUpdateProvider().then((provider) => {
+    if (provider) {
+      provider.checkForUpdate();
+    }
+  });
+};
 
 SystemUpdatable.prototype.download = function() {
   if (this.downloading) {
@@ -163,57 +201,58 @@ SystemUpdatable.prototype.download = function() {
   this.paused = false;
   UpdateManager.addToDownloadsQueue(this);
   this.progress = 0;
-  this._dispatchEvent('update-available-result', 'download');
+
+  this._getUpdateProvider().then((provider) => {
+    provider.startDownload();
+  });
 };
 
 SystemUpdatable.prototype.cancelDownload = function() {
-  this._dispatchEvent('update-download-cancel');
+  this._getUpdateProvider().then((provider) => {
+    provider.stopDownload();
+  });
   this.downloading = false;
   this.paused = false;
 };
 
 SystemUpdatable.prototype.uninit = function() {
-  window.removeEventListener('mozChromeEvent', this);
+  this._getUpdateProvider().then((provider) => {
+    if (provider) {
+      provider.removeEventListener('updateavailable', this);
+      provider.removeEventListener('updateready', this);
+      provider.removeEventListener('progress', this);
+      provider.removeEventListener('error', this);
+    }
+  });
 };
 
 SystemUpdatable.prototype.handleEvent = function(evt) {
-  if (evt.type !== 'mozChromeEvent') {
-    return;
-  }
-
-  var detail = evt.detail;
-  if (!detail.type) {
-    return;
-  }
-
-  switch (detail.type) {
-    case 'update-error':
-      this.errorCallBack();
+  switch (evt.type) {
+    case 'request-update-check':
+      this._checkForUpdates();
       break;
-    case 'update-download-started':
-      // TODO UpdateManager glue
-      this.paused = false;
+    case 'updateavailable':
+      var packageInfo = evt.detail.packageInfo;
+      this.size = packageInfo.size;
+      this.rememberKnownUpdate();
+      UpdateManager.addToUpdatesQueue(this);
       break;
-    case 'update-download-progress':
-      var delta = detail.progress - this.progress;
-      this.progress = detail.progress;
-
-      UpdateManager.downloadProgressed(delta);
-      break;
-    case 'update-download-stopped':
-      // TODO UpdateManager glue
-      this.paused = detail.paused;
-      if (!this.paused) {
-        UpdateManager.startedUncompressing();
-      }
-      break;
-    case 'update-downloaded':
+    case 'updateready':
       this.downloading = false;
       UpdateManager.downloaded(this);
-      this.showApplyPrompt(detail.isOSUpdate);
+      this.showApplyPrompt(true);
       break;
-    case 'update-prompt-apply':
-      this.showApplyPrompt(detail.isOSUpdate);
+    case 'progress':
+      var delta = evt.loaded - this.progress;
+      this.progress = evt.loaded;
+
+      if (evt.loaded/evt.total === 1) {
+        UpdateManager.startedUncompressing();
+      } else {
+        UpdateManager.downloadProgressed(delta);
+      }
+      break;
+    case 'error':
       break;
   }
 };
@@ -319,8 +358,16 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
 SystemUpdatable.prototype.declineInstall = function(reason) {
   this.showingApplyPrompt = false;
   Service.request('hideCustomDialog');
-  this._dispatchEvent('update-prompt-apply-result', reason);
-
+  switch(reason) {
+    case 'low-battery':
+      // do nothing
+      break;
+    case 'wait':
+      // register an idle observer and apply the update directly if users are
+      // idle for more than ten minutes.
+      this._registerIdleObserver();
+      break;
+  }
   UpdateManager.removeFromDownloadsQueue(this);
 };
 
@@ -331,7 +378,6 @@ SystemUpdatable.prototype.declineInstallBattery = function() {
 SystemUpdatable.prototype.declineInstallWait = function() {
   this.declineInstall('wait');
 };
-
 
 SystemUpdatable.prototype.acceptInstall = function() {
   Service.request('hideCustomDialog');
@@ -349,20 +395,20 @@ SystemUpdatable.prototype.acceptInstall = function() {
   var screen = document.getElementById('screen');
   screen.appendChild(splash);
 
-  this._dispatchEvent('update-prompt-apply-result', 'restart');
+  this._getUpdateProvider().then((provider) => {
+    provider.applyUpdate();
+  });
 };
 
 SystemUpdatable.prototype.rememberKnownUpdate = function() {
   asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
 };
 
-SystemUpdatable.prototype.checkKnownUpdate = function(callback) {
-  if (typeof callback !== 'function') {
-    return;
-  }
-
-  asyncStorage.getItem(SystemUpdatable.KNOWN_UPDATE_FLAG, function(value) {
-    callback(!!value);
+SystemUpdatable.prototype.checkKnownUpdate = function() {
+  return new Promise(function(resolve) {
+    asyncStorage.getItem(SystemUpdatable.KNOWN_UPDATE_FLAG, function(value) {
+      resolve(!!value);
+    });
   });
 };
 
@@ -370,13 +416,14 @@ SystemUpdatable.prototype.forgetKnownUpdate = function() {
   asyncStorage.removeItem(SystemUpdatable.KNOWN_UPDATE_FLAG);
 };
 
-SystemUpdatable.prototype._dispatchEvent = function(type, result) {
-  var event = document.createEvent('CustomEvent');
-  var data = { type: type };
-  if (result) {
-    data.result = result;
-  }
-
-  event.initCustomEvent('mozContentEvent', true, true, data);
-  window.dispatchEvent(event);
+SystemUpdatable.prototype._registerIdleObserver = function() {
+  this._idleObserver = {
+    time: SystemUpdatable.APPLY_IDLE_TIMEOUT,
+    onidle: () => {
+      this._getUpdateProvider().then((provider) => {
+        provider.applyUpdate();
+      });
+    }
+  };
+  navigator.addIdleObserver(this._idleObserver);
 };

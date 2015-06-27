@@ -362,7 +362,9 @@ require.config({
     {
       name: 'panels/about/panel',
       exclude: [
-        'main'
+        'main',
+        'panels/about/system_update_manager',
+        'panels/about/app_update_manager'
       ]
     },
     {
