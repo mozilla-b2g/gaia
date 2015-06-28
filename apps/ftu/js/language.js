@@ -65,6 +65,9 @@ var LanguageManager = {
         label.appendChild(span);
         label.appendChild(p);
 
+        // Needed to use a custom class with dynamic insertion.
+        radio.configureClass();
+
         var li = document.createElement('li');
         li.dataset.value = lang;
         li.appendChild(label);
