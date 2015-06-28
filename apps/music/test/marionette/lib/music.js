@@ -204,7 +204,7 @@ Music.prototype = {
   waitFinishedScanning: function() {
     this.client.waitFor(function() {
       return this.client.executeScript(function() {
-        return window.wrappedJSObject.Database.initialScanComplete === true;
+        return window.wrappedJSObject.musicdb.initialScanComplete === true;
       });
     }.bind(this));
   },

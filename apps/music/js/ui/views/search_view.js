@@ -1,8 +1,8 @@
 /* exported SearchView */
-/* global App, createListElement, Database, ListView, ModeManager, MODE_LIST,
-          MODE_PLAYER, MODE_SEARCH_FROM_TILES, MODE_SUBLIST, MODE_TILES,
-          Normalizer, PlayerView, SubListView, TabBar, TYPE_SINGLE, TYPE_LIST,
-          TilesView */
+/* global Normalizer, createListElement, App, musicdb, ModeManager,
+          MODE_PLAYER, PlayerView, TYPE_SINGLE, TYPE_LIST, SubListView,
+          MODE_SUBLIST, TilesView, ListView, TabBar, MODE_TILES, MODE_LIST,
+          MODE_SEARCH_FROM_TILES */
 'use strict';
 
 var SearchView = {
@@ -111,14 +111,14 @@ var SearchView = {
     if (!App.pendingPick) {
       if (this.searchContext === this.context.ALL ||
           this.searchContext === this.context.ARTISTS) {
-        this.searchHandles.artist = Database.enumerate(
+        this.searchHandles.artist = musicdb.enumerate(
           'metadata.artist', null, 'nextunique',
           sv_showResult.bind(this, 'artist')
         );
       }
       if (this.searchContext === this.context.ALL ||
           this.searchContext === this.context.ALBUMS) {
-        this.searchHandles.album = Database.enumerate(
+        this.searchHandles.album = musicdb.enumerate(
           'metadata.album', null, 'nextunique',
           sv_showResult.bind(this, 'album')
         );
@@ -127,7 +127,7 @@ var SearchView = {
 
     if (this.searchContext === this.context.ALL ||
         this.searchContext === this.context.SONGS) {
-      this.searchHandles.title = Database.enumerate(
+      this.searchHandles.title = musicdb.enumerate(
         'metadata.title',
         sv_showResult.bind(this, 'title')
       );
@@ -138,7 +138,7 @@ var SearchView = {
     for (var option in this.searchHandles) {
       var handle = this.searchHandles[option];
       if (handle) {
-        Database.cancelEnumeration(handle);
+        musicdb.cancelEnumeration(handle);
       }
     }
 
