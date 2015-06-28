@@ -46,8 +46,6 @@
   }
 
   function initResources() {
-    var containsFetchableLocale = false;
-
     var meta = {};
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
@@ -58,19 +56,12 @@
       var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
       switch (type) {
         case 'localization':
-          if (!('noFetch' in node.dataset)) {
-            containsFetchableLocale = true;
-          }
           this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
           L10n.onMetaInjected.call(this, node, meta);
           break;
       }
-    }
-
-    if (!containsFetchableLocale) {
-      document.documentElement.dataset.noCompleteBug = true;
     }
 
     var availableLangs = meta.availableLanguages ?

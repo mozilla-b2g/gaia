@@ -2034,20 +2034,19 @@
   }
 
   var readyStates = {
-    'loading': 0,
-    'interactive': 1,
-    'complete': 2
+    loading: 0,
+    interactive: 1,
+    complete: 2
   };
 
-  function waitFor(state, callback) {
-    state = readyStates[state];
-    if (readyStates[document.readyState] >= state) {
+  function whenInteractive(callback) {
+    if (readyStates[document.readyState] >= readyStates.interactive) {
       callback();
       return;
     }
 
     document.addEventListener('readystatechange', function l10n_onrsc() {
-      if (readyStates[document.readyState] >= state) {
+      if (readyStates[document.readyState] >= readyStates.interactive) {
         document.removeEventListener('readystatechange', l10n_onrsc);
         callback();
       }
@@ -2533,12 +2532,8 @@
     navigator.mozL10n._config.isPretranslated =
       document.documentElement.lang === navigator.language;
 
-    // XXX always pretranslate if data-no-complete-bug is set;  this is
-    // a workaround for a netError page not firing some onreadystatechange
-    // events;  see https://bugzil.la/444165
-    var pretranslate = document.documentElement.dataset.noCompleteBug ?
-      true : !navigator.mozL10n._config.isPretranslated;
-    waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
+    var forcePretranslate = !navigator.mozL10n._config.isPretranslated;
+    whenInteractive(init.bind(navigator.mozL10n, forcePretranslate));
   }
 
 })(this);
