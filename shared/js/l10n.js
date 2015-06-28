@@ -41,8 +41,7 @@
         if (e.target.status === 200 || e.target.status === 0) {
           // Sinon.JS's FakeXHR doesn't have the response property
           var res = e.target.response || e.target.responseText;
-          callback(null, (needParse && typeof res !== 'object') ?
-            JSON.parse(res) : res);
+          callback(null, needParse ? JSON.parse(res) : res);
         } else {
           callback(new L10nError('Not found: ' + url));
         }
@@ -670,10 +669,6 @@
       var value = rawValue.indexOf('{{') > -1 ?
         this.parseString(rawValue) : rawValue;
 
-      if (rawValue.indexOf('<') > -1 || rawValue.indexOf('&') > -1) {
-        value = { $o: value };
-      }
-
       if (attr) {
         pos = this.entryIds[id];
         if (pos === undefined) {
@@ -890,8 +885,6 @@
     },
 
     getString: function(opchar) {
-      var overlay = false;
-
       var opcharPos = this._source.indexOf(opchar, this._index + 1);
 
       outer:
@@ -921,15 +914,11 @@
         buf = this.unescapeString(buf, opchar);
       }
 
-      if (buf.indexOf('<') > -1 || buf.indexOf('&') > -1) {
-        overlay = true;
-      }
-
       if (!this.simpleMode && buf.indexOf('{{') !== -1) {
-        return [this.parseString(buf), overlay];
+        return this.parseString(buf);
       }
 
-      return [buf, overlay];
+      return buf;
     },
 
     getValue: function(optional, ch, index) {
@@ -939,12 +928,7 @@
         ch = this._source.charAt(this._index);
       }
       if (ch === '\'' || ch === '"') {
-        var valAndOverlay = this.getString(ch);
-        if (valAndOverlay[1]) {
-          val = {'$o': valAndOverlay[0]};
-        } else {
-          val = valAndOverlay[0];
-        }
+        val = this.getString(ch);
       } else if (ch === '{') {
         val = this.getHash();
       }
@@ -1209,12 +1193,8 @@
 
 
   function format(args, entity) {
-    var locals = {
-      overlay: false
-    };
-
     if (typeof entity === 'string') {
-      return [locals, entity];
+      return [{}, entity];
     }
 
     if (entity.dirty) {
@@ -1228,7 +1208,7 @@
     // if format fails, we want the exception to bubble up and stop the whole
     // resolving process;  however, we still need to clean up the dirty flag
     try {
-      rv = resolveValue(locals, args, entity.env, entity.value, entity.index);
+      rv = resolveValue({}, args, entity.env, entity.value, entity.index);
     } finally {
       entity.dirty = false;
     }
@@ -1300,9 +1280,6 @@
         return [prev[0], prev[1] + cur];
       } else if (cur.t === 'idOrVar'){
         var placeable = subPlaceable(locals, args, env, cur.v);
-        if (placeable[0].overlay) {
-          prev[0].overlay = true;
-        }
         return [prev[0], prev[1] + placeable[1]];
       }
     }, [locals, '']);
@@ -1339,11 +1316,6 @@
   function resolveValue(locals, args, env, expr, index) {
     if (!expr) {
       return [locals, expr];
-    }
-
-    if (expr.$o) {
-      expr = expr.$o;
-      locals.overlay = true;
     }
 
     if (typeof expr === 'string' ||
@@ -1731,13 +1703,11 @@
 
   function formatEntity(args, entity) {
     var entityTuple = formatTuple.call(this, args, entity);
-    var locals = entityTuple[0];
     var value = entityTuple[1];
 
     var formatted = {
       value: value,
       attrs: null,
-      overlay: locals.overlay
     };
 
     if (entity.attrs) {
@@ -1748,9 +1718,6 @@
       /* jshint -W089 */
       var attrTuple = formatTuple.call(this, args, entity.attrs[key]);
       formatted.attrs[key] = attrTuple[1];
-      if (attrTuple[0].overlay) {
-        formatted.overlay = true;
-      }
     }
 
     return formatted;
@@ -2277,6 +2244,9 @@
   }
 
 
+  // match the opening < in HTML tags, and HTML entities like &nbsp;
+  var reOverlay = /<|&\w+;/;
+
   function translateDocument() {
     document.documentElement.lang = this.language.code;
     document.documentElement.dir = this.language.direction;
@@ -2356,7 +2326,7 @@
     }
 
     if (typeof value === 'string') {
-      if (!entity.overlay) {
+      if (!reOverlay.test(value)) {
         element.textContent = value;
       } else {
         // start with an inert template element and move its children into

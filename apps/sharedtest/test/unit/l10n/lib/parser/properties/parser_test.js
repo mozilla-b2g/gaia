@@ -7,7 +7,7 @@ if (typeof navigator !== 'undefined') {
 } else {
   var assert = require('assert');
   var L10n = {
-    PropertiesParser: require('../../../src/lib/format/properties/parser')
+    PropertiesParser: require('../../../../src/lib/format/properties/parser')
   };
 }
 

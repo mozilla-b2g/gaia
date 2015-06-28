@@ -101,9 +101,9 @@ describe('pseudo strategy', function() {
       assert.strictEqual(
         walked.nonascii.$v,
         'Ƞȧȧïṽḗḗ ƈǿǿöƥḗḗřȧȧŧīīǿǿƞ řéşŭŭḿé ḓæḿǿǿƞ ƥħœƞīīẋ');
-      assert.strictEqual(walked.html1.$v.$o, 'ṽīīşīīŧ <a>ŭŭřŀ</a>');
+      assert.strictEqual(walked.html1.$v, 'ṽīīşīīŧ <a>ŭŭřŀ</a>');
       assert.strictEqual(
-        walked.html2.$v.$o, 'ŧẏƥḗḗ <input placeholder="your name"/>');
+        walked.html2.$v, 'ŧẏƥḗḗ <input placeholder="your name"/>');
     });
 
   });
@@ -176,9 +176,9 @@ describe('pseudo strategy', function() {
         walked.unicode.$v,
         '‮ɟoo‬ ‮ɟoo‬ ');
       assert.strictEqual(
-        walked.html1.$v.$o, '‮ʌısıʇ‬ <a>‮nɹʅ‬</a>');
+        walked.html1.$v, '‮ʌısıʇ‬ <a>‮nɹʅ‬</a>');
       assert.strictEqual(
-        walked.html2.$v.$o,
+        walked.html2.$v,
         '‮ʇʎdǝ‬ <input placeholder="your name"/>');
     });
 
