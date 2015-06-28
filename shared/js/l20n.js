@@ -1,4 +1,4 @@
-(function () {
+(function (global) {
   'use strict';
 
   const modules = new Map();
@@ -6,7 +6,7 @@
 
   function getModule(id) {
     if (!moduleCache.has(id)) {
-      moduleCache.set(id, modules.get(id)())
+      moduleCache.set(id, modules.get(id).call(global))
     }
 
     return moduleCache.get(id);
@@ -92,6 +92,7 @@
     return { negotiateLanguages };
   });
   modules.set('bindings/html/dom', function () {
+    const reOverlay = /<|&\w+;/;
     const allowed = {
       elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
       attributes: {
@@ -238,7 +239,7 @@
       }
 
       if (typeof value === 'string') {
-        if (!translation.overlay) {
+        if (!reOverlay.test(value)) {
           element.textContent = value;
         } else {
           var tmpl = element.ownerDocument.createElement('template');
@@ -735,8 +736,6 @@
         return str.replace(this._patterns.unesc, replace.bind(this));
       },
       getString: function (opchar) {
-        let overlay = false;
-
         let opcharPos = this._source.indexOf(opchar, this._index + 1);
 
         outer: while (opcharPos !== -1) {
@@ -766,15 +765,11 @@
           buf = this.unescapeString(buf, opchar);
         }
 
-        if (buf.indexOf('<') > -1 || buf.indexOf('&') > -1) {
-          overlay = true;
-        }
-
         if (!this.simpleMode && buf.indexOf('{{') !== -1) {
-          return [this.parseString(buf), overlay];
+          return this.parseString(buf);
         }
 
-        return [buf, overlay];
+        return buf;
       },
       getValue: function (optional, ch, index) {
         let val;
@@ -784,15 +779,7 @@
         }
 
         if (ch === '\'' || ch === '"') {
-          const valAndOverlay = this.getString(ch);
-
-          if (valAndOverlay[1]) {
-            val = {
-              '$o': valAndOverlay[0]
-            };
-          } else {
-            val = valAndOverlay[0];
-          }
+          val = this.getString(ch);
         } else if (ch === '{') {
           val = this.getHash();
         }
@@ -1108,12 +1095,6 @@
       setEntityValue: function (id, attr, key, rawValue, ast) {
         var pos, v;
         var value = rawValue.indexOf('{{') > -1 ? this.parseString(rawValue) : rawValue;
-
-        if (rawValue.indexOf('<') > -1 || rawValue.indexOf('&') > -1) {
-          value = {
-            $o: value
-          };
-        }
 
         if (attr) {
           pos = this.entryIds[id];
@@ -1802,12 +1783,8 @@
     }
 
     function format(ctx, args, entity) {
-      let locals = {
-        overlay: false
-      };
-
       if (typeof entity === 'string') {
-        return [locals, entity];
+        return [{}, entity];
       }
 
       if (resolutionChain.has(entity)) {
@@ -1819,7 +1796,7 @@
       let rv;
 
       try {
-        rv = resolveValue(locals, ctx, meta.get(entity).lang, args, entity.value, entity.index);
+        rv = resolveValue({}, ctx, meta.get(entity).lang, args, entity.value, entity.index);
       } catch (err) {
         const m = meta.get(entity);
         err.id = m.id;
@@ -1896,11 +1873,6 @@
           return [prev[0], prev[1] + cur];
         } else if (cur.t === 'idOrVar') {
           var placeable = subPlaceable(locals, ctx, lang, args, cur.v);
-
-          if (placeable[0].overlay) {
-            prev[0].overlay = true;
-          }
-
           return [prev[0], prev[1] + placeable[1]];
         }
       }, [locals, '']);
@@ -1936,11 +1908,6 @@
     function resolveValue(locals, ctx, lang, args, expr, index) {
       if (!expr) {
         return [locals, expr];
-      }
-
-      if (expr.$o) {
-        expr = expr.$o;
-        locals.overlay = true;
       }
 
       if (typeof expr === 'string' || typeof expr === 'boolean' || typeof expr === 'number') {
@@ -2009,26 +1976,21 @@
         return this._formatTuple.call(this, args, entity)[1];
       }
       _formatEntity(args, entity) {
-        var [locals, value] = this._formatTuple.call(this, args, entity);
+        const [, value] = this._formatTuple.call(this, args, entity);
 
-        var formatted = {
+        const formatted = {
           value,
-          attrs: null,
-          overlay: locals.overlay
+          attrs: null
         };
 
         if (entity.attrs) {
           formatted.attrs = Object.create(null);
         }
 
-        for (var key in entity.attrs) {
-          var [attrLocals, attrValue] = this._formatTuple.call(this, args, entity.attrs[key]);
+        for (let key in entity.attrs) {
+          let [, attrValue] = this._formatTuple.call(this, args, entity.attrs[key]);
 
           formatted.attrs[key] = attrValue;
-
-          if (attrLocals.overlay) {
-            formatted.overlay = true;
-          }
         }
 
         return formatted;
@@ -2329,4 +2291,4 @@
     };
   });
   getModule('runtime/web/index');
-})();
+})(this);
