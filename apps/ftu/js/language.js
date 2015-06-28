@@ -46,31 +46,25 @@ var LanguageManager = {
     container.innerHTML = '';
     LanguageList.get(function fillLanguageList(allLanguages, currentLanguage) {
       for (var lang in allLanguages) {
-        var input = document.createElement('input');
-        input.type = 'radio';
-        input.name = 'language.current';
-        input.value = lang;
-        input.checked = (lang === currentLanguage);
-
-        var span = document.createElement('span');
-        var p = document.createElement('p');
+        var label = document.createElement('label');
         // wrap the name of the language in Unicode control codes which force
         // the proper direction of the text regardless of the direction of
         // the whole app
-        p.textContent = LanguageList.wrapBidi(lang, allLanguages[lang]);
+        label.textContent = LanguageList.wrapBidi(lang, allLanguages[lang]);
 
-        var label = document.createElement('label');
-        label.classList.add('pack-radio');
-        label.appendChild(input);
-        label.appendChild(span);
-        label.appendChild(p);
+        var radio = document.createElement('gaia-radio');
+        radio.className = 'checkone';
+        radio.setAttribute('name', 'language.current');
+        radio.setAttribute('value', lang);
+        radio.checked = (lang === currentLanguage);
+        radio.appendChild(label);
 
         // Needed to use a custom class with dynamic insertion.
         radio.configureClass();
 
         var li = document.createElement('li');
         li.dataset.value = lang;
-        li.appendChild(label);
+        li.appendChild(radio);
         container.appendChild(li);
       }
     });
