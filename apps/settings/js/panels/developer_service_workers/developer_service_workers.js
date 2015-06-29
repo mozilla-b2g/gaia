@@ -104,7 +104,7 @@ define(function(require) {
         var self = this;
         this.listeners[scope] = {
           update: function() {
-            self.update(scope);
+            self.update(principal, scope);
           },
           unregister: function() {
             self.unregister(principal, scope);
@@ -199,9 +199,10 @@ define(function(require) {
       });
     },
 
-    update: function(scope) {
+    update: function(principal, scope) {
       this.iacRequest({
         name: 'update',
+        principal: principal,
         scope: scope
       }).catch(e => {
         console.error('Could not update service worker ' + e);
