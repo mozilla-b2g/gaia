@@ -9,6 +9,8 @@
   overflow-y: hidden;
   -moz-user-select: none;
   background-color: rgb(51, 51, 51);
+  /* Hide horizontal scrollbar */
+  padding-bottom: 1rem;
   /* Specifies that each child element’s snap coordinate should
      align with the x-axis center of the scroll container */
   scroll-snap-destination: 50% 0;
