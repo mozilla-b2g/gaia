@@ -1,6 +1,6 @@
 (function(exports) {
 
-  /* global fb, utils */
+  /* global utils */
   /* exported ContactsService*/
 
   'use strict';
@@ -87,14 +87,8 @@
       };
     },
     remove: function(contact, callback) {
-      var request;
-      if (fb.isFbContact(contact)) {
-        var fbContact = new fb.Contact(contact);
-        request = fbContact.remove(true);
-      } else {
-        request =
-          navigator.mozContacts.remove(utils.misc.toMozContact(contact));
-      }
+      var request =
+        navigator.mozContacts.remove(utils.misc.toMozContact(contact));
       request.onsuccess = function() {
         callback();
       };
@@ -118,17 +112,7 @@
       request.onsuccess = function findCallback(e) {
         var result = e.target.result[0];
 
-        if (!fb.isFbContact(result)) {
-          successCb(result);
-          return;
-        }
-
-        var fbContact = new fb.Contact(result);
-        var fbReq = fbContact.getData();
-        fbReq.onsuccess = function() {
-          successCb(result, fbReq.result);
-        };
-        fbReq.onerror = successCb.bind(null, result);
+        successCb(result);
       }; // request.onsuccess
 
       if (typeof errorCb === 'function') {
