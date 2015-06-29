@@ -138,10 +138,6 @@ apps/verticalhome/test/marionette/lib/verticalhome.js
 apps/video/js/thumbnail_date_group.js
 apps/video/js/video.js
 apps/video/js/view.js
-apps/wappush/js/cp_screen_helper.js
-apps/wappush/js/si_sl_screen_helper.js
-apps/wappush/js/utils.js
-apps/wappush/js/wappush.js
 dev_apps/feedback/js/feedback.js
 dev_apps/geoloc/js/geoloc.js
 shared/elements/gaia_grid/js/items/collection.js

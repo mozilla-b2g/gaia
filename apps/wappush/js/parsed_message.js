@@ -1,6 +1,3 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /* global Promise, Provisioning, MessageDB */
 
 (function(exports) {
@@ -96,7 +93,16 @@
      * Returns true if the message has already expired
      */
     isExpired: function pm_isExpired() {
-      return (this.expires && (this.expires < Date.now()));
+      return (this.expires && (this.expires < Date.now())) || false;
+    },
+
+    /**
+     * Gets the message unique identifier
+     *
+     * @returns {String} An identifier for this message
+     */
+    getUniqueId: function pm_getUniqueId() {
+      return this.timestamp;
     }
   };
 
@@ -221,16 +227,16 @@
   /**
    * Loads the message corresponding to the specified timestamp from the
    * database. Returns a promise that resolves to the message. If the message
-   * is not present the promise will be resolved with null.
+   * is not present the promise will be rejected.
    *
    * @param {Number} timestamp The timestamp of the message we want to
    *        retrieve.
    *
-   * @param {Object} A promise for this operation.
+   * @returns {Object} A promise for this operation.
    */
   ParsedMessage.load = function pm_load(timestamp) {
     return MessageDB.retrieve(timestamp).then(function(message) {
-      return message ? new ParsedMessage(message) : null;
+      return new ParsedMessage(message);
     });
   };
 
