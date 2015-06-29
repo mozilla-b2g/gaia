@@ -314,26 +314,21 @@ section[role="region"] header:first-child h1 {
   width: 100%;
   height: 0.3rem;
   overflow: hidden;
+  background-size: 1rem;
+  background-image: repeating-linear-gradient(135deg,
+                                              #000 0%,  #000 42%,
+                                              #32D1F2 42%, #32D1F2 57%,
+                                              #000 57%, #000 100%);
   z-index: 100;
 }
 
-#throbber > div {
-  height: 2.4rem;
-  background-image: url(images/progress.png);
-  background-size: auto 100%;
-}
-
-#throbber.throb > div {
-  animation: 1s throb infinite steps(7);
+#throbber.throb {
+  animation: throb 1s steps(10) infinite;
 }
 
 @keyframes throb {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-2.1rem);
-  }
+  from { background-position: 0 0; }
+  to   { background-position: -1rem 0; }
 }
 
 /* buttons */
