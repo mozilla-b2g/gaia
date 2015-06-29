@@ -1,11 +1,12 @@
 /* global MockCanvas, MockCanvasRenderingContext2D, MockImage,
-          MockService */
+          MockService, PasscodeHelper */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_canvas.js');
 require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
+require('/shared/js/passcode_helper.js');
 requireApp('system/lockscreen/js/lockscreen_charging.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -278,6 +279,22 @@ suite('system/LockScreen >', function() {
     'it didn\'t update "_lastLockedInterval" when it ends the locked session');
     assert.isTrue(subject._lastUnlockedTimeStamp > -1,
     'it didn\'t update "_lastUnlockedTimeStamp" when it unlocks');
+  });
+
+  test('Unlock: uses PasscodeHelper', function() {
+    var StubPasscodeHelper = this.sinon.stub(PasscodeHelper, 'check',
+                              function() {
+      return Promise.resolve(true);
+    });
+
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
+    subject.overlay = domOverlay;
+    subject.checkPassCode('0000');
+    assert.isTrue(StubPasscodeHelper.called,
+      'lockscreen did not use the PasscodeHelper');
   });
 
   test('Unlock: would destroy the clock widget', function() {

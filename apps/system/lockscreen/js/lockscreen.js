@@ -858,8 +858,8 @@
       } else {
         this.onPasscodeValidationFailed();
       }
-    }) .catch(() => {
-      this.onPasscodeValidationFailed();
+    }) .catch((error) => {
+      this.onPasscodeValidationFailed(error);
     });
   };
 
