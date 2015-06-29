@@ -112,12 +112,12 @@
 /* URL bar */
 .chrome .controls .urlbar {
   width: calc(100% - 4.5rem);
-  height: 3.4rem;
-  line-height: 3.4rem;
-  margin: 0 0 0.5rem;
+  height: 3.2rem;
+  line-height: 3.2rem;
+  margin: 0.2rem 0 0.5rem;
   border-radius: 1.8rem;
   color: inherit;
-  overflow: hidden;
+  overflow: visible;
   background-color: transparent;
   -moz-margin-start: .5rem;
   position: absolute;
@@ -147,7 +147,7 @@
   width: calc(100% - 3.2rem);
   padding-top: 0;
   padding-bottom: 0;
-  -moz-padding-start: 1.45rem;
+  -moz-padding-start: 3.85rem;
   -moz-padding-end: 0.8rem;
   box-sizing: padding-box;
   overflow: hidden;
@@ -266,10 +266,10 @@
 
 /* SSL Lock Icons in rocketbar */
 .chrome-combined.maximized .chrome-has-ssl-indicator .chrome-ssl-indicator {
-  -moz-padding-start: 3rem;
+  -moz-padding-start: 5.5rem;
 
   background-repeat: no-repeat;
-  background-position: 0.1rem center;
+  background-position: 3rem center;
   background-size: 3rem;
 }
 
@@ -306,6 +306,19 @@
 
 .maximized .chrome-has-ssl-indicator[data-ssl="broken"] .chrome-ssl-indicator {
   background-image: url("images/light/ssl_broken.png");
+}
+
+.site-icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  background: no-repeat center / 3.2rem content-box;
+  background-image: url('images/default_icon.png');
+  position: absolute;
+}
+
+.small-icon {
+  background: #cfcfcf no-repeat center / 1.6rem;
+  border-radius: 100%;
 }
 
 /* Handle urlbar sizing when back or forward buttons are disabled */
@@ -349,7 +362,7 @@
   background-position: center center;
   background-repeat: no-repeat;
   position: absolute;
-  bottom: 0.3rem;
+  bottom: 0.1rem;
   right: 0;
   padding: 0 0.3rem;
   width: 3rem;

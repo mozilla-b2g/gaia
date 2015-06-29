@@ -205,9 +205,8 @@
         var manifest = {
           'icons': choices
         };
-        icon = window.WebManifestHelper.iconURLForSize(manifest,
-          this.app.manifestURL, maxSize);
-        return icon ? icon.href : null;
+        icon = window.IconsHelper.getBestIconFromWebManifest(manifest, maxSize);
+        return icon ? (new URL(icon, this.app.manifestURL)).href : null;
       }
 
       // Create a list with the sizes and order it by descending size.

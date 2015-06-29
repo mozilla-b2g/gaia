@@ -20,8 +20,10 @@
       xhr.setRequestHeader('Accept', 'application/manifest+json');
       xhr.onload = function() {
         var status = xhr.status;
+        var webManifest;
         if (status == 200) {
-          resolve(xhr.response);
+          webManifest = processRawManifest(xhr.response, url);
+          resolve(webManifest);
         } else {
           reject(status);
         }
@@ -34,34 +36,17 @@
     });
   };
 
-  /**
-   *  Get the best icon URL for a given preferred size.
-   *
-   *  Inspired by /dom/apps/AppUtils.jsm in Gecko.
-   *
-   *  @param {Object} Raw manifest Manifest object.
-   *  @param {String} URL the manifest was retrieved from.
-   *  @param {Integer} size Preferred size in pixels.
-   *  @returns {URL} URL object of icon URL.
-   */
-  var iconURLForSize = function(manifest, manifestURL, size) {
-    var icons = processIcons(manifest, manifestURL);
-    if (!icons) {
-      return null;
+  var processRawManifest = function(webManifest, manifestURL) {
+    if (!manifestURL) {
+      throw new Error('WebManifestHelper.processRawManifest:' +
+                      ' no manifestURL given');
     }
-    var dist = 100000;
-    var iconURL = null;
-    icons.forEach(function(potentialIcon) {
-      potentialIcon.sizes.forEach(function(sizeEntry) {
-        var width = sizeEntry.substring(0, sizeEntry.indexOf('x'));
-        var parsedSize = parseInt(width);
-        if (Math.abs(parsedSize - size) < dist) {
-          iconURL = new URL(potentialIcon.src, manifestURL);
-          dist = Math.abs(parsedSize - size);
-        }
-      });
-    });
-    return iconURL;
+    if ('icons' in webManifest) {
+      // sanitize icons list
+      // 'src' members are URL instances resolved to manifest URL
+      webManifest.icons = processIcons(webManifest, manifestURL || '');
+    }
+    return webManifest;
   };
 
   const onlyDecimals = /^\d+$/,
@@ -72,8 +57,8 @@
    *
    * Copied from /dom/manifest/ManifestProcess.jsm in Gecko.
    *
-   * @param {Object} An un-processed manifest object.
-   * @param {String} The base URL the manifest was fetched from.
+   * @param {Object} manifest An un-processed manifest object.
+   * @param {String} baseURL The base URL the manifest was fetched from.
    * @returns {Object} A processed manifest object.
    */
   var processIcons = function(manifest, baseURL) {
@@ -211,7 +196,7 @@
 
   exports.WebManifestHelper = {
     getManifest: getManifest,
-    iconURLForSize: iconURLForSize
+    processRawManifest: processRawManifest
   };
 
 })(window);

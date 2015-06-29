@@ -1,7 +1,8 @@
-/* global AppWindow, ScreenLayout, MockService,
+/* global AppWindow, ScreenLayout, MockService, IconsHelper,
       MocksHelper, BaseModule, MockContextMenu,
       MockAppTransitionController, MockPermissionSettings, DocumentFragment,
-      MockAudioChannelController, AppChrome */
+      MockAudioChannelController, AppChrome,
+      MockWebManifestHelper, MockPromise */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -11,15 +12,20 @@ requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_transition_controller.js');
 requireApp('system/test/unit/mock_audio_channel_controller.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
+requireApp('sharedtest/test/unit/mock_web_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_promise.js');
+require('/shared/test/unit/mocks/mock_icons_helper.js');
 
 var mocksForAppWindow = new MocksHelper([
   'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout', 'AppChrome',
-  'AppTransitionController', 'Service'
+  'ManifestHelper', 'WebManifestHelper',
+  'ScreenLayout', 'AppChrome', 'IconsHelper',
+  'AppTransitionController', 'Service', 'LazyLoader'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -2463,6 +2469,86 @@ suite('system/AppWindow', function() {
         assert.equal(publishStub.getCall(i).args[1], state);
       });
     });
+
+    suite('mozbrowsermanifestchange event', function() {
+      var manifestURL = 'https://examples.com/webapp.json';
+      var manifestResult = {
+        'short_name': 'App', 'name': 'My App',
+        'icons': [{ src: new window.URL('icon.png', manifestURL) }]
+      };
+
+      setup(function() {
+        this.sinon.stub(window, 'Promise', MockPromise);
+      });
+
+      test('valid web manifest', function() {
+        var app1 = new AppWindow(fakeAppConfig1);
+        var fakeManifestResultPromise = new MockPromise();
+        this.sinon.stub(window.Promise, 'resolve')
+                        .returns(fakeManifestResultPromise);
+        app1.handleEvent({
+          type: 'mozbrowsermanifestchange',
+          detail: {
+            'href': manifestURL
+          }
+        });
+        fakeManifestResultPromise.mFulfillToValue(manifestResult);
+
+        assert.equal(app1.webManifestURL, manifestURL);
+        assert.ok(app1.webManifest);
+        assert.equal(app1.webManifest.name, 'My App');
+        assert.ok(app1.webManifest.icons[0]);
+      });
+
+      test('invalid web manifest url', function() {
+        var app1 = new AppWindow(fakeAppConfig1);
+        this.sinon.stub(MockWebManifestHelper, 'getManifest').throws();
+        app1.handleEvent({
+          type: 'mozbrowsermanifestchange',
+          detail: {
+            'href': null
+          }
+        });
+
+        assert.ok(!app1.webManifest,
+                  'webManifest property not populated without webManifestURL');
+      });
+    });
+  });
+
+  test('getIconBlob', function() {
+    var blobPromise = new MockPromise();
+    this.sinon.stub(window, 'Promise', MockPromise);
+    this.sinon.stub(IconsHelper, 'getIconBlob', function() {
+      return blobPromise;
+    });
+    var app1 = new AppWindow(fakeAppConfig1);
+    var dataURI = 'data:image/png;base64,abc+';
+    this.sinon.stub(app1, 'getIconBlob').returns(blobPromise);
+
+    var promisedIcon = app1.getSiteIconUrl();
+    promisedIcon.then(function(icon) {
+      assert.ok(icon && icon.url);
+      assert.equal(icon.url, dataURI);
+    });
+    blobPromise.mFulfillToValue({ url: dataURI });
+  });
+
+  test('getSiteIconUrl', function() {
+    this.sinon.stub(window, 'Promise', MockPromise);
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.webManifestURL = 'https://example.com/webapp.json';
+    app1.webManifest = {};
+    var blobPromise = new MockPromise();
+    var dataURI = 'data:image/png;base64,abc+';
+    this.sinon.stub(app1, 'getIconBlob').returns(blobPromise);
+
+    var promisedIcon = app1.getSiteIconUrl();
+    promisedIcon.then(function(icon) {
+      assert.ok(icon && icon.url);
+      assert.equal(icon.url, dataURI);
+    });
+    blobPromise.mFulfillToValue({ url: dataURI });
   });
 
   test('Change URL at run time', function() {

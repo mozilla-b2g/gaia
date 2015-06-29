@@ -1,10 +1,10 @@
 'use strict';
 
-/* global WebManifestHelper, requireApp, teardown, suite, test,
+/* global WebManifestHelper, teardown, suite, test,
    assert, MockXMLHttpRequest, setup */
 
 require('/shared/js/web_manifest_helper.js');
-requireApp('bookmark/test/unit/mock_xml_http_request.js');
+require('/shared/test/unit/mocks/mock_xml_http_request.js');
 
 suite('Web Manifest Helper >', function() {
   var RealXMLHttpRequest;
@@ -19,19 +19,34 @@ suite('Web Manifest Helper >', function() {
   });
 
   test('getManifest()', function(done) {
-    WebManifestHelper.getManifest().then(
+    WebManifestHelper.getManifest('http://example.com/webmanifest.json').then(
       function (result) {
-        assert.equal(result, 'foo');
+        assert.ok(result);
         done();
       },
       function (err) {
-        done(err);
         console.error(err);
-      });
+        done(err);
+      }
+    );
+    MockXMLHttpRequest.triggerReadyStateChange({
+      'status': 200,
+      'response': {
+        'icons': [
+          {
+            'src': 'icon-64.png',
+            'sizes': '32x32 64x64',
+            'type': 'image/png'
+          }
+        ]
+      }
+    });
+
   });
 
-  test('iconURLForSize()', function() {
-    var manifest1 = {
+  test('processRawManifest()', function() {
+    var manifestURL = 'http://www.example.com/manifest.json';
+    var manifest = WebManifestHelper.processRawManifest({
       'icons': [
         {
           'src': 'icon-64.png',
@@ -39,50 +54,18 @@ suite('Web Manifest Helper >', function() {
           'type': 'image/png'
         },
         {
-          'src': 'icon-128.png',
+          'bogus-entry': true,
           'sizes': '128x128',
           'type': 'image/png'
         }
       ]
-    };
-
-    var manifest2 = {
-      'icons': [
-        {
-          'src': 'icon-with-no-sizes.png',
-          'type': 'image/png'
-        },
-        {
-          'src': 'icon-128.png',
-          'sizes': '128x128',
-          'type': 'image/png'
-        }
-      ]
-    };
-
-    var manifest3 = {
-      'icons': [
-        {
-          'src': 'icon-with-no-sizes.png',
-          'type': 'image/png'
-        },
-        {
-          'src': 'icon-128.png',
-          'type': 'image/png'
-        }
-      ]
-    };
-
-    var url = WebManifestHelper.iconURLForSize(manifest1,
-      'http://example.com/manifest.json', 64);
-    assert.equal(url, 'http://example.com/icon-64.png');
-
-    url = WebManifestHelper.iconURLForSize(manifest2,
-      'http://example.com/manifest.json', 64);
-    assert.equal(url, 'http://example.com/icon-128.png');
-
-    url = WebManifestHelper.iconURLForSize(manifest3,
-      'http://example.com/manifest.json', 64);
-    assert.equal(url, null);
+    }, 'http://www.example.com/manifest.json');
+    assert.equal(1, manifest.icons.length);
+    assert.equal(typeof manifest.icons[0], 'object');
+    assert.equal(typeof manifest.icons[0].src, 'object');
+    var expectedURL = new URL(manifestURL);
+    expectedURL.pathname = 'icon-64.png';
+    assert.equal(manifest.icons[0].src.href, expectedURL);
   });
+
 });
