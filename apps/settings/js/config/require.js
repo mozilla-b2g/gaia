@@ -117,8 +117,7 @@ require.config({
       name: 'modules/apn/apn_settings_manager',
       exclude: [
         'main',
-        'modules/async_storage',
-        'modules/mvvm/observable'
+        'modules/async_storage'
       ]
     },
     {
@@ -201,18 +200,13 @@ require.config({
     },
     {
       name: 'panels/display/panel',
-      exclude: [
-        'main',
-        'modules/mvvm/observable'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/keyboard/panel',
       exclude: [
         'main',
         'modules/mvvm/list_view',
-        'modules/mvvm/observable',
-        'modules/mvvm/observable_array',
         'modules/keyboard_context'
       ]
     },
@@ -221,8 +215,6 @@ require.config({
       exclude: [
         'main',
         'modules/mvvm/list_view',
-        'modules/mvvm/observable',
-        'modules/mvvm/observable_array',
         'modules/keyboard_context',
         'shared/keyboard_helper'
       ]
@@ -288,10 +280,7 @@ require.config({
         'main',
         'dsds_settings',
         'modules/defer',
-        'modules/base/module',
         'modules/state_model',
-        'modules/mvvm/observable',
-        'modules/mvvm/observable_array',
         'modules/mvvm/list_view',
         'modules/dialog_service',
         'modules/customized_network_type_map'
@@ -301,7 +290,6 @@ require.config({
       name: 'panels/date_time/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable',
         'modules/date_time'
       ]
     },
@@ -332,16 +320,12 @@ require.config({
       name: 'panels/hotspot/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable',
         'modules/dialog_service'
       ]
     },
     {
       name: 'panels/hotspot_wifi_settings/panel',
-      exclude: [
-        'main',
-        'modules/mvvm/observable'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/messaging/panel',
@@ -361,9 +345,7 @@ require.config({
     },
     {
       name: 'panels/about/panel',
-      exclude: [
-        'main'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/about_more_info/panel',
@@ -388,10 +370,7 @@ require.config({
     },
     {
       name: 'panels/call_barring/panel',
-      exclude: [
-        'main',
-        'modules/mvvm/observable'
-      ]
+      exclude: ['main']
     },
     {
       name: 'panels/call_barring_passcode_change/panel',
