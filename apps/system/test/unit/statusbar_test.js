@@ -542,11 +542,9 @@ suite('system/Statusbar', function() {
       var mockedWidth = 100;
       this.sinon.stub(app.appChrome, 'isMaximized')
         .returns(false);
-      MockService.mockQueryWith('LayoutManager.width', 123);
-      app.appChrome.element = getMockChrome(mockedWidth);
+      app.element = getMockChrome(mockedWidth);
       Statusbar._updateMinimizedStatusbarWidth();
-      var expectedValue = 123 - mockedWidth - 5 - 3;
-      assert.equal(Statusbar._minimizedStatusbarWidth, expectedValue);
+      assert.equal(Statusbar._minimizedStatusbarWidth, mockedWidth);
     });
 
     test('minimizedWidth when minimized without rocketbar', function() {
