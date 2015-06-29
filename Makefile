@@ -121,6 +121,9 @@ BUILD_DEBUG?=0
 # Enable PerformanceTiming logs
 PERF_LOGGING?=0
 
+# Enable hardware composing by default
+HARDWARE_COMPOSER?=1
+
 # Share performance and usage data
 SHARE_PERF_USAGE?=1
 
@@ -535,6 +538,7 @@ define BUILD_CONFIG
   "GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
   "GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
   "GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
+  "HARDWARE_COMPOSER" : "$(HARDWARE_COMPOSER)", \
   "NOFTU" : "$(NOFTU)", \
   "REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
   "TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \

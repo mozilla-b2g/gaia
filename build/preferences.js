@@ -177,6 +177,10 @@ PreferencesBuilder.prototype.preparePref = function() {
   if (this.config.PERF_LOGGING === '1') {
     this.userPrefs['dom.performance.enable_user_timing_logging'] = true;
   }
+  // Turn off hardware composing
+  if (this.config.HARDWARE_COMPOSER === '0') {
+    this.userPrefs['layers.composer2d.enabled'] = false;
+  }
 
   // If this is already equal to the profile directory, no need to
   // write the preference
