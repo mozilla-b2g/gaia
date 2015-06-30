@@ -138,8 +138,14 @@
       }
       this._isFilterChanging = true;
       this._cardListElem.setAttribute('smart-bubbles-direction', 'down');
-      this._smartBubblesElem.play(
-        document.querySelectorAll('#card-list > .card > .app-button'));
+
+      // Notice that methods like document.querySelectorAll or
+      // document.getElementsByClassName returns elements based on the
+      // sequence of time that element added to DOM structure. But we should
+      // play animation in the left-to-right order. Card scrollable keeps the
+      // order of all items, we just use them directly to play animation.
+      // See http://bugzil.la/1169538
+      this._smartBubblesElem.play(this._cardScrollable.allItems);
     },
 
     hide: function fm_hide() {
