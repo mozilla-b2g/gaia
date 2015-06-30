@@ -29,6 +29,7 @@
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
+    "apps/system/test/marionette/activity_action_menu_test.js": "Bug 1168363 - Intermittent activity_action_menu_test.js | activity action menu test works after opening an app",
     "apps/system/test/marionette/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
     "apps/system/test/marionette/statusbar_icon_color_test.js": "Bug 1134018",
     "apps/system/fxa/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
