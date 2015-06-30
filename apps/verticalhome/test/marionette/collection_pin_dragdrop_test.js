@@ -7,7 +7,8 @@ var EmeServer = require(
 marionette('Vertical - Collection', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js')
+    profile: require(__dirname + '/client_options.js'),
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var actions, collection, home, selectors, server, system;
 

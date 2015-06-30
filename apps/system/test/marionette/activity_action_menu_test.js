@@ -13,7 +13,8 @@
         prefs: {
           'focusmanager.testmode': true
         }
-      }
+      },
+      desiredCapabilities: { raisesAccessibilityExceptions: true }
     });
 
     setup(function() {

@@ -12,7 +12,8 @@ marionette('Find My Device lock >', function() {
         'test-findmydevice.gaiamobile.org':
           __dirname + '/fixtures/test-findmydevice',
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {

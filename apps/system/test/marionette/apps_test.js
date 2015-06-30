@@ -4,7 +4,9 @@ var assert = require('chai').assert;
 
 marionette('mozApps', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   suite('getSelf', function() {
     test('multiple calls should all return', function() {

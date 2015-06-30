@@ -8,7 +8,8 @@ marionette('Software Home Button - Secure Fullscreen App', function() {
         'lockscreen.enabled': true,
         'software-button.enabled': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
 

@@ -24,7 +24,10 @@ marionette.skip('Test Program Navigation', function() {
     }
   };
 
-  var client = marionette.client({profile: opts});
+  var client = marionette.client({
+    profile: opts,
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var actions;
 
   setup(function() {

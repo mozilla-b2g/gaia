@@ -2,7 +2,9 @@
 
 marionette('System update - Splash screen', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var system;
 
   setup(function() {

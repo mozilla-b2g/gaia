@@ -3,7 +3,9 @@
 var UtilityTray = require('./lib/utility_tray');
 
 marionette('Utility Tray - Gestures', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   var system;
   var utilityTray;

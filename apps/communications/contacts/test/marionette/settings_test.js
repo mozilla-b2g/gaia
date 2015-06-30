@@ -4,7 +4,10 @@ var Contacts = require('./lib/contacts');
 var assert = require('assert');
 
 marionette('Contacts > Settings', function() {
-  var client = marionette.client({ profile: Contacts.config });
+  var client = marionette.client({
+    profile: Contacts.config,
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var subject;
   var selectors;
   var buttonSelectors;
