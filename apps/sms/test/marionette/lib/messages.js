@@ -182,27 +182,12 @@ var ConversationAccessor = require('./views/conversation/accessors');
           this.Composer.recipientsInput.clear();
         },
 
-        addAttachment: function() {
-          client.waitFor(function() {
-            return this.Composer.attachButton.enabled();
-          }.bind(this));
-
-          // XXX: See bug 1171950. Use click() instead of tap() to attach button
-          // action always triggers in tests.
-          this.Composer.attachButton.click();
-
-          // This line we can either leave in tests or move here, up to you
-          this.selectSystemMenuOption('Messages Activity Caller');
-        },
-
         send: function() {
           // Once send button is enabled, tap on it
           client.waitFor(function() {
             return this.Composer.sendButton.enabled();
           }.bind(this));
-          // XXX: See bug 1171950. Use click() instead of tap() to ensure the
-          // send action always triggers in tests.
-          this.Composer.sendButton.click();
+          this.Composer.sendButton.tap();
 
           // Wait when after send we're redirected to Conversation panel
           client.helper.waitForElement(this.Conversation.message);
