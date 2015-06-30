@@ -12,10 +12,10 @@
 }
 
 #statusbar {
-  position: fixed;
+  position: relative;
   width: 100%;
   height: var(--statusbar-height);
-  top: calc(var(--statusbar-height) * -1);
+  top: 0;
   left: 0;
   pointer-events: none;
 }

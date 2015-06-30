@@ -32,6 +32,7 @@
   background-color: transparent;
   visibility: hidden;
   transform: translateY(-5rem);
+  pointer-events: all;
 
   /* This transition is used when hiding the toaster. */
   transition: transform ease .3s, background-color 0s ease .3s, visibility 0s ease .3s;
@@ -44,6 +45,7 @@
   height: 5rem;
   width: 100%;
   position: relative;
+  pointer-events: all;
 }
 
 #toaster-icon {

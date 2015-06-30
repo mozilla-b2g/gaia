@@ -118,6 +118,10 @@
   width: 100%;
 }
 
+#rocketbar-results:not(.hidden) .browser-container {
+  pointer-events: all;
+}
+
 #rocketbar-backdrop {
   top: 0;
   height: 100%;
@@ -125,6 +129,7 @@
   background-color: #333;
   transition: opacity var(--transition-duration) linear;
   opacity: 0.85;
+  pointer-events: all;
 }
 
 #rocketbar-backdrop.results-shown {
