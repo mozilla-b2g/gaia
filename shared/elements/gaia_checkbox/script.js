@@ -62,8 +62,6 @@ window.GaiaCheckbox = (function(win) {
    * that preserves backwards behavior and should make it easier to port apps.
    */
   proto.handleClick = function(e) {
-    this._wrapper.setAttribute('aria-checked', this.checked);
-
     // We add this event listener twice (see above) on both the content and
     // custom element nodes. We need to stop the event propagation to prevent
     // this event from firing against both nodes.
@@ -80,6 +78,7 @@ window.GaiaCheckbox = (function(win) {
 
     if (!event.defaultPrevented) {
       this.checked = !this.checked;
+      this._wrapper.setAttribute('aria-checked', this.checked);
     }
 
     // Dispatch a change event for the gaia-switch.
@@ -99,13 +98,25 @@ window.GaiaCheckbox = (function(win) {
   /**
    * Proxy the checked property to the input element.
    */
-  Object.defineProperty( proto, 'checked', {
+  Object.defineProperty(proto, 'checked', {
     get: function() {
       return this._checked || false;
     },
     set: function(value) {
       this._wrapper.classList.toggle('checked', value);
       this._checked = value;
+    }
+  });
+
+  /**
+   * Proxy the name property to the input element.
+   */
+  Object.defineProperty(proto, 'name', {
+    get: function() {
+      return this.getAttribute('name');
+    },
+    set: function(value) {
+      this.setAttribute('name', value);
     }
   });
 
