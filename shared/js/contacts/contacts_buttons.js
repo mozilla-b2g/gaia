@@ -31,8 +31,10 @@ var ContactsButtons = {
   _call: function call(phoneNumber, cardIndex) {
     this._disableCalls();
     var enableCalls = this._enableCalls.bind(this);
-    TelephonyHelper.call(phoneNumber, cardIndex, enableCalls, enableCalls,
+    LazyLoader.load('/dialer/js/telephony_helper.js', () => {
+      TelephonyHelper.call(phoneNumber, cardIndex, enableCalls, enableCalls,
                          enableCalls, enableCalls);
+    });
   },
 
   /* For security reasons we cannot directly call MmiManager.send() thus we
@@ -88,8 +90,10 @@ var ContactsButtons = {
   },
 
   _onSendSmsClicked: function onSendSmsClicked(evt) {
-    var target = evt.target.dataset.target;
-    SmsIntegration.sendSms(target);
+    var tel = evt.target.dataset.tel;
+    LazyLoader.load('/shared/js/contacts/sms_integration.js', () => {
+      SmsIntegration.sendSms(tel);
+    });
   },
 
   _onEmailOrPickClick: function onEmailOrPickClick(evt) {
@@ -128,7 +132,7 @@ var ContactsButtons = {
 
       // Add event listeners to the phone template components
       var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
-      sendSmsButton.dataset.target = telField.value;
+      sendSmsButton.dataset.tel = telField.value;
       sendSmsButton.addEventListener('click',
                                      this._onSendSmsClicked.bind(this));
 
@@ -163,12 +167,6 @@ var ContactsButtons = {
       var emailsTemplate =
         document.querySelector('#email-details-template-\\#i\\#');
       var template = utils.templates.render(emailsTemplate, emailField);
-
-      var sendSmsButton = template.querySelector('#send-sms-to-email-button-' +
-                                                 email);
-      sendSmsButton.dataset.target = emailField.value;
-      sendSmsButton.addEventListener('click',
-                                     this._onSendSmsClicked.bind(this));
 
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);
