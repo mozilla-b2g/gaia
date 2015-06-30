@@ -4,9 +4,7 @@ var Actions = require('marionette-client').Actions;
 var SETTINGS_APP = 'app://settings.gaiamobile.org';
 
 marionette('Statusbar Visibility', function() {
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
 
   var actions = new Actions(client);
   var halfScreenHeight, system, grippyHeight;

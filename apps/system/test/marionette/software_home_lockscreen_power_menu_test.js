@@ -11,8 +11,7 @@ marionette('Software Home Button - Lockscreen Power Menu', function() {
         'software-button.enabled': true,
         'lockscreen.enabled': true
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
   var system;
 

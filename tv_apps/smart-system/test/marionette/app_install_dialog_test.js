@@ -22,10 +22,7 @@ marionette('app install manager tests', function() {
     }
   };
 
-  var client = marionette.client({
-    profile: opts,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client({ profile: opts });
   var system;
   var appInstaller;
   var server;

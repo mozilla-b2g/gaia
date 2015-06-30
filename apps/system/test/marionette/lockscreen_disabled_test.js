@@ -15,9 +15,7 @@ marionette('lockscreen disabled test', function() {
     return homescreen.join('/');
   }
 
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
 
   test.skip('launch test app', function() {
     // XXX: this should be replaced with a region when we have fuller test
