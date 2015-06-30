@@ -358,8 +358,29 @@
                               'bt_sco');
             break;
           case 'audio-channel-changed':
+            var self = this;
             this.setAudioChannel(e.detail.channel);
             this.ceAccumulator();
+
+            // Set up Inter-App Communications to update channel information to 
+            // the music app on request
+            navigator.mozApps.getSelf().onsuccess = function(evt) {
+              var app = evt.target.result;
+              app.connect('mediacomms-interrupt').then(function(ports) {
+                self.ports = ports;
+                self.ports.forEach(function(port) {
+                  port.onmessage = function(event){
+                    if(event.data.requestaudioChannel){
+                      port.postMessage({currentAudioChannel:self.currentChannel});  
+                    }
+                  }
+                });
+                // send messages
+              }, function onConnRejected(reason) {
+                // error handling
+              });
+            }
+
             break;
           case 'headphones-status-changed':
             this.setHeadsetState(e.detail.state !== 'off');

@@ -1104,6 +1104,9 @@ var PlayerView = {
       case 'mozinterruptbegin':
         this.playStatus = INTERRUPT_BEGIN;
         this.updateRemotePlayStatus();
+        if (typeof MusicComms !== 'undefined') {
+          MusicComms.updateAudioChannel();
+        }
         break;
 
       case 'mozinterruptend':

@@ -65,5 +65,13 @@
   "orientation": "default",
   "messages": [
      { "media-button": "/index.html" }
-  ]
+  ],
+  "connections": {
+    "mediacomms-interrupt": {
+      "description": "Communication with system app for getting current channel",
+      "rules": {
+                "minimumAccessLevel": "certified"
+      }
+    }
+  }
 }
