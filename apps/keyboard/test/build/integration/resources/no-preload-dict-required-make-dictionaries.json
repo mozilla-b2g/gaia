@@ -124,6 +124,16 @@
     "dictFilePath": "dictionaries/fr.dict"
   },
   {
+    "label": "Frysk",
+    "id": "latin::fy",
+    "inputIds": [
+      "fy"
+    ],
+    "preload": false,
+    "imEngineId": "latin",
+    "dictFilePath": "dictionaries/fy.dict"
+  },
+  {
     "label": "Gaeilge",
     "id": "latin::ga",
     "inputIds": [
