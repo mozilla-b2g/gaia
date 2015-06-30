@@ -56,17 +56,17 @@
   line-height: 1.5em;
 }
 
-.settings-foward div {
+.settings-forward div {
   width: 100%;
   margin-left: 15px;
 }
 
-.settings-foward .gaia-icon {
+.settings-forward .gaia-icon {
   text-align: right;
   color: #868692;
 }
 
-.settings-foward .gaia-icon::before {
+.settings-forward .gaia-icon::before {
   position: relative;
   font-size: 1.5rem;
 }
