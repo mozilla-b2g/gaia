@@ -116,6 +116,12 @@
         "swipePadding": [40, 40, 40, 40],
         "densityProperty": "qemu.sf.lcd_density",
         "scriptWriteTimeout": 250
+      },
+      "Xperia Z3 Compact (B2G)": {
+        "hdmiResolution": "1080p",
+        "inputEvent": "/dev/input/event1",
+        "dimensions": [720, 1280],
+        "swipePadding": [40, 40, 40, 40]
       }
     }
   }
