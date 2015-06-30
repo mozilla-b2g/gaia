@@ -200,9 +200,7 @@ var ConversationAccessor = require('./views/conversation/accessors');
           client.waitFor(function() {
             return this.Composer.sendButton.enabled();
           }.bind(this));
-          // XXX: See bug 1171950. Use click() instead of tap() to ensure the
-          // send action always triggers in tests.
-          this.Composer.sendButton.click();
+          this.Composer.sendButton.tap();
 
           // Wait when after send we're redirected to Conversation panel
           client.helper.waitForElement(this.Conversation.message);
