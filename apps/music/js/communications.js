@@ -23,8 +23,9 @@ var MusicComms = {
         // Check if it's resumed by the SCO disconnection, if so, we need to
         // recover the player to the original status.
         if (isResumedBySCO) {
-          if (this._statusBeforeSCO === PLAYSTATUS_PLAYING ||
-              this._statusBeforeSCO === INTERRUPT_BEGIN)
+          if ((this._statusBeforeSCO === PLAYSTATUS_PLAYING) ||
+              ((this._statusBeforeSCO === INTERRUPT_BEGIN) &&
+              (this.getCurrentAudioChannel() === "ringer")))
           {
             PlayerView.play();
           } else {
@@ -137,6 +138,11 @@ var MusicComms = {
   init: function() {
     // The Media Remote Controls object will handle the remote commands.
     this.mrc = new MediaRemoteControls();
+
+    // Load the iac_handler for Inter-App communication(IAC) between music
+    // and system APP.
+    LazyLoader.load('shared/js/iac_handler.js');
+
     // Add command listeners base on what commands the MusicComms has.
     for (var command in this.commands) {
       this.mrc.addCommandListener(command, this.commands[command].bind(this));
@@ -181,5 +187,27 @@ var MusicComms = {
         this.isSCOEnabled = status;
       }.bind(this));
     }
+  },
+
+  // Update the current channel to handle Interrupts by requesting system App
+  // using IAC handler.
+  updateAudioChannel: function() {
+    var self = this;
+    var port = IACHandler.getPort('mediacomms-interrupt');
+    if (!port) {
+      return;
+    }
+
+    // Sending request message to system app for current channel
+    port.postMessage({requestaudioChannel: 'requestaudioChannel'});
+
+    // On change of audio-channel get the channel information from System App.
+    port.onmessage = function(evt) {
+      self.mrc.audioChannel = evt.data.currentAudioChannel;
+    };
+  },
+
+  getCurrentAudioChannel: function() {
+    return this.mrc.audioChannel;
   }
 };
