@@ -180,7 +180,11 @@ marionette('Messages Composer', function() {
 
       // Case #10: Add attachment, message is converted to MMS and appropriate
       // label appears in the subject line.
-      messagesApp.addAttachment();
+      client.waitFor(function() {
+        return composer.attachButton.enabled();
+      }.bind(this));
+      composer.attachButton.tap();
+      messagesApp.selectSystemMenuOption('Messages Activity Caller');
 
       activityCallerApp.switchTo();
       activityCallerApp.pickImage();
