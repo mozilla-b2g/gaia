@@ -24,6 +24,8 @@
     this._datePicker = null;
     this._timePicker = null;
 
+    this.isShown = false;
+
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
     app.element.addEventListener('_closed', this);
@@ -106,20 +108,16 @@
         if (typesToHandle.indexOf(evt.detail.inputType) < 0) {
           return;
         }
-        if (this._injected) {
-          this.show(evt.detail);
-        } else {
-          this.render(function afterRender() {
-            // Nesting two requestionAnimationFrames stops the style changes
-            // from this.show coalescing with the creation of the elements,
-            // without forcing a synchronous style flush.
-            window.requestAnimationFrame(() => {
-              window.requestAnimationFrame(() => {
-                this.show(evt.detail);
-              });
-            });
-          }.bind(this));
+
+        this._currentDatetimeValue = evt.detail.value;
+        this._currentInputType = evt.detail.inputType;
+
+        if (this._currentInputType === 'blur') {
+          this.hide();
+          return;
         }
+
+        this.show(evt.detail);
         break;
       case 'transitionend':
         this.element.classList.remove('transitioning');
@@ -258,16 +256,34 @@
   };
 
   ValueSelector.prototype.show = function vs_show(detail) {
-    var currentInputType = detail.inputType;
-    var currentValue = detail.value;
+    this.isShown = true;
 
-    this._currentDatetimeValue = currentValue;
-    this._currentInputType = currentInputType;
-
-    if (currentInputType === 'blur') {
-      this.hide();
-      return;
+    if (this._injected) {
+      this._showSync(detail);
+    } else {
+      this.render(function afterRender() {
+        // Nesting two requestionAnimationFrames stops the style changes
+        // from this.show coalescing with the creation of the elements,
+        // without forcing a synchronous style flush.
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            // If isShown flag is reset by hide() we should not show ourselves.
+            if (!this.isShown) {
+              return;
+            }
+            // XXX: It's still possible the detail we use here ended up
+            // overwritten the currently-showning selector, but that can only
+            // happen if another show() take place before this place.
+            this._showSync(detail);
+          });
+        });
+      }.bind(this));
     }
+  };
+
+  ValueSelector.prototype._showSync = function vs__showSync(detail) {
+    var currentInputType = this._currentInputType;
+    var currentValue = this._currentDatetimeValue;
 
     this.publish('shown');
     var min = detail.min;
@@ -315,10 +331,13 @@
   },
 
   ValueSelector.prototype.hide = function vs_hide() {
-    this.app._setVisibleForScreenReader(true);
-    if (this.element.hidden) {
+    this.isShown = false;
+
+    if (!this.element || this.element.hidden) {
       return;
     }
+
+    this.app._setVisibleForScreenReader(true);
     this.element.blur();
     this.element.classList.add('transitioning');
     this.element.hidden = true;
