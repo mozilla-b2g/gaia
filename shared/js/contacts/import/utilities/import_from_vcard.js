@@ -180,7 +180,7 @@ utils.importFromVcard = function(file, callback) {
           processTextFromFile(text);
         }
       };
-      Contacts.confirmDialog(null, 'memoryCardContacts-error',
+      ConfirmDialog.show(null, 'memoryCardContacts-error',
                              cancel, retry);
       utils.overlay.hide();
     }
