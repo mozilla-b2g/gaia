@@ -3,9 +3,7 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate app storage settings', function() {
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
   var settingsApp;
   var appStoragePanel;
 

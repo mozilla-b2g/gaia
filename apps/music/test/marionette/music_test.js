@@ -17,8 +17,7 @@ marionette('Music ui tests', function() {
       },
 
       apps: apps
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var music, system;

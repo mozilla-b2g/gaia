@@ -8,9 +8,7 @@ var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
 marionette('mozChromeNotifications:', function() {
-  var client = marionette.client({
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client();
 
   var system;
   setup(function() {

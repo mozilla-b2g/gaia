@@ -21,8 +21,7 @@ marionette('Homescreen navigation >', function() {
         'hud.reflows': true,
         'notifications.resend': false
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
 

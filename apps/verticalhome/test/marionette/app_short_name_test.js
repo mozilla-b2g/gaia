@@ -10,10 +10,7 @@ marionette('Vertical Home - App manifest', function() {
   var clientOptions = require(__dirname + '/client_options.js');
   clientOptions.apps = {};
   clientOptions.apps[manifestName] = __dirname + '/fixtures/short_name_app';
-  var client = marionette.client({
-    profile: clientOptions,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client({ profile: clientOptions });
 
   var home, system;
 

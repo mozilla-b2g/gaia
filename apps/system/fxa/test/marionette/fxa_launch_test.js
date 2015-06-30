@@ -25,8 +25,7 @@ marionette('Firefox Accounts Launch Tests', function() {
           apps: {
             'test-fxa-client.gaiamobile.org': __dirname + '/test-fxa-client'
           }
-        },
-        desiredCapabilities: { raisesAccessibilityExceptions: true }
+        }
       });
 
     setup(function() {

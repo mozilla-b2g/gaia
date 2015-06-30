@@ -14,8 +14,7 @@ marionette('Web Manifest Display Modes >', function() {
         'web_app_fullscreen.gaiamobile.org':
           __dirname + '/../apps/web_app_fullscreen'
       }
-    },
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    }
   });
 
   var system, frame;

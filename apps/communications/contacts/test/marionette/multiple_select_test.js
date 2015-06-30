@@ -7,10 +7,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 marionette('Contacts > MultipleSelect', function() {
-  var client = marionette.client({
-    profile: Contacts.config,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client({ profile: Contacts.config });
   var subject;
   var smsSubject;
   var selectors;

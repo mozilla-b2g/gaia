@@ -67,8 +67,8 @@ marionette('the gallery', function() {
     client.waitFor(function() {
       return app.thumbnails.length == 2;
     });
-    assert.ok(app.fullscreenView.displayed());
-
+    assert.ok(app.fullscreenView.displayed());    
+    
     // go back to the thumbnail view, and click the first thumbnail
     app.fullscreenBackButton.click();
     client.waitFor(function() {

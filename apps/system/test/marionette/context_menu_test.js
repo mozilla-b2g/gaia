@@ -18,10 +18,7 @@ marionette('Test Context Menu Events', function() {
 
   opts.apps[APP_HOST] = __dirname + '/../apps/' + APP_NAME;
 
-  var client = marionette.client({
-    profile: opts,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client({ profile: opts });
   var actions;
 
   test('Test basic context menu functionality', function() {

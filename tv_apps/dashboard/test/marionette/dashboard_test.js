@@ -22,10 +22,7 @@ marionette('Test Arrow Key Events', function() {
     }
   };
 
-  var client = marionette.client({
-    profile: opts,
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
-  });
+  var client = marionette.client({ profile: opts });
 
   setup(function() {
     // Launch test app

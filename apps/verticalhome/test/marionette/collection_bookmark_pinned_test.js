@@ -9,8 +9,7 @@ var EmeServer = require(
 marionette('Vertical - Collection Pin Bookmark', function() {
 
   var client = marionette.client({
-    profile: require(__dirname + '/client_options.js'),
-    desiredCapabilities: { raisesAccessibilityExceptions: true }
+    profile: require(__dirname + '/client_options.js')
   });
   var actions, bookmark, collection, home, selectors, server, system;
 
