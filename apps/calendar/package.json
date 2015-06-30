@@ -14,6 +14,12 @@
       "uuid": "github:broofa/node-uuid/v1.4.1"
     }
   },
+
+  "devDependencies": {
+    "mz": "^2.0.0",
+    "requirejs": "^2.1.18"
+  },
+
   "webide": {
     "prepackage": {
       "command": "make",
