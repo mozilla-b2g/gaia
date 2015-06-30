@@ -13,7 +13,8 @@ marionette('Software Home Button - Lockscreen Appearance', function() {
         'software-button.enabled': true,
         'lockscreen.enabled': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
 

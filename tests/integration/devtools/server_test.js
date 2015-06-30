@@ -14,7 +14,8 @@ marionette('Dev Tools server', function() {
       settings: {
         'debugger.remote-mode': 'adb-devtools'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   client = client.scope({ context: 'chrome' });
 

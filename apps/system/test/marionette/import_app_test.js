@@ -11,7 +11,8 @@ marionette('Import App', function() {
       prefs: {
         'dom.apps.developer_mode': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var home, server, system;

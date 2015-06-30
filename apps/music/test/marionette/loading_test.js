@@ -21,7 +21,8 @@ marionette('Music files loading', function() {
       },
 
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var music;
