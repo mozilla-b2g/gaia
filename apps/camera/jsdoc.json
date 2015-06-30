@@ -5,7 +5,7 @@
   },
   "source": {
     "include": ["apps/camera/README.md", "apps/camera/js"],
-    "exclude": ["apps/camera/js/controllers/settings.js"]
+    "exclude": []
   },
   "plugins": [
     "plugins/markdown",
