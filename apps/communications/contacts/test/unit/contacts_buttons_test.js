@@ -1,7 +1,6 @@
 /* globals MocksHelper, ContactsButtons, MockL10n, MockContactAllFields,
            MockContactsButtonsDom, LazyLoader, TelephonyHelper,
-           MultiSimActionButton, ActivityHandler, MockActivityHandler,
-           SmsIntegration */
+           MultiSimActionButton, ActivityHandler, MockActivityHandler */
 
 'use strict';
 
@@ -21,15 +20,13 @@ require('/contacts/test/unit/mock_contacts.js');
 require('/contacts/test/unit/mock_contacts_buttons_dom.js.html');
 require('/contacts/test/unit/mock_utils.js');
 require('/contacts/test/unit/mock_activities.js');
-require('/contacts/test/unit/mock_sms_integration.js');
 
 var mocksHelperForContactsButtons = new MocksHelper([
   'LazyLoader',
   'ActivityHandler',
   'Contacts',
   'MultiSimActionButton',
-  'TelephonyHelper',
-  'SmsIntegration'
+  'TelephonyHelper'
 ]).init();
 
 suite('Render contact', function() {
@@ -184,20 +181,6 @@ suite('Render contact', function() {
       assert.include(listDetails.innerHTML, email1.type);
       assert.equal(
         -1, listDetails.innerHTML.indexOf('email-details-template-2'));
-    });
-  });
-
-  suite('> Send sms', function() {
-    var evt = {};
-    evt.target.dataset.target = '+445312973212';
-    setup(function() {
-      this.sinon.spy(SmsIntegration, 'sendSms');
-    });
-
-    test('> send sms', function() {
-      subject._onSendSmsClicked(evt);
-
-      sinon.assert.calledWith(SmsIntegration.sendSms, evt);
     });
   });
 
