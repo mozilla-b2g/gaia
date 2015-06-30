@@ -70,16 +70,29 @@
       var items = [];
 
       // contextmenu.items are specified by the web content via html5
-      // context menu api
+      // context menu api and a specific system command, copy-image.
       if (detail.contextmenu && detail.contextmenu.items.length) {
         detail.contextmenu.items.forEach(function(choice, index) {
-          items.push({
-            label: choice.label,
-            icon: choice.icon,
-            callback: function() {
-              detail.contextMenuItemSelected(choice.id);
-            }
-          });
+          var itemObj = null;
+          switch (choice.id) {
+            case 'copy-image':
+              itemObj = {
+                id: choice.id,
+                label: _(choice.id),
+              };
+              break;
+
+            default:
+              // Customized menu items
+              itemObj = {
+                label: choice.label,
+                icon: choice.icon,
+              };
+          }
+          itemObj.callback = () => {
+            detail.contextMenuItemSelected(choice.id);
+          };
+          items.push(itemObj);
         }, this);
       }
 
