@@ -59,6 +59,7 @@ class LockScreen(Base):
 
     def unlock(self):
         self._slide_to_unlock('homescreen')
+        self.wait_for_lockscreen_not_visible()
         return Homescreen(self.marionette)
 
     def unlock_to_camera(self):
@@ -67,6 +68,10 @@ class LockScreen(Base):
                 *self._lockscreen_handle_locator))))
         self._slide_to_unlock('camera')
         return Camera(self.marionette)
+
+    def unlock_to_emergency_call(self):
+        passcode_pad = self.unlock_to_passcode_pad()
+        return passcode_pad.tap_emergency_call()
 
     def unlock_to_passcode_pad(self):
         Wait(self.marionette).until(expected.element_displayed(
@@ -77,6 +82,12 @@ class LockScreen(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._lockscreen_passcode_code_locator))))
         return PasscodePad(self.marionette)
+
+    def unlock_to_homescreen_using_passcode(self, passcode):
+        passcode_pad = self.unlock_to_passcode_pad()
+        homescreen = passcode_pad.type_passcode(passcode)
+        self.wait_for_lockscreen_not_visible()
+        return homescreen
 
     def _slide_to_unlock(self, destination):
 

@@ -41,8 +41,7 @@ class TestLockScreen(GaiaImageCompareTestCase):
         # 2nd try
         self.device.turn_screen_on()
         lock_screen.switch_to_frame()
-        passcode_pad = lock_screen.unlock_to_passcode_pad()
-        homescreen = passcode_pad.type_passcode(self._input_passcode)
+        homescreen = lock_screen.unlock_to_homescreen_using_passcode(self._input_passcode)
 
         Wait(self.marionette).until(lambda m: self.apps.displayed_app.name == homescreen.name)
         self.take_screenshot()

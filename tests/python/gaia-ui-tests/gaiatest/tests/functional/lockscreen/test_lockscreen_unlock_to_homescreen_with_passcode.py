@@ -26,7 +26,6 @@ class TestLockScreen(GaiaTestCase):
         """
         lock_screen = LockScreen(self.marionette)
         lock_screen.switch_to_frame()
-        passcode_pad = lock_screen.unlock_to_passcode_pad()
-        homescreen = passcode_pad.type_passcode(self._input_passcode)
+        homescreen = lock_screen.unlock_to_homescreen_using_passcode(self._input_passcode)
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
