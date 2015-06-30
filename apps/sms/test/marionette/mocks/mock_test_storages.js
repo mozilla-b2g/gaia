@@ -51,7 +51,6 @@ Services.obs.addObserver(function(document) {
   };
 
   Object.defineProperty(window.wrappedJSObject, 'TestStorages', {
-    configurable: false,
     // The property should be writable since mock is inserted/rewritten in
     // setup function that is called for every test in the suite.
     writable: true,

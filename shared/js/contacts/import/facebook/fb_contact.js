@@ -81,7 +81,6 @@ fb.Contact = function(deviceContact, cid) {
     get: getFacebookUid,
     set: setFacebookUid,
     enumerable: true,
-    configurable: false
   });
 
   Object.defineProperty(this, 'mozContact', {
