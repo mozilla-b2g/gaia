@@ -241,12 +241,10 @@ marionette('Music player playlist', function() {
       client.executeScript(function() {
         var w = window.wrappedJSObject;
         var songData = w.SubListView.dataSource[3];
-        songData.metadata.rated = 4;
-        w.musicdb.updateMetadata(songData.name, songData.metadata);
+        w.Database.setSongRating(songData.name, 4);
 
         songData = w.SubListView.dataSource[1];
-        songData.metadata.rated = 5;
-        w.musicdb.updateMetadata(songData.name, songData.metadata);
+        w.Database.setSongRating(songData.name, 5);
       });
 
       music.switchToPlaylistsView();
@@ -321,30 +319,31 @@ marionette('Music player playlist', function() {
 
       // we set the playcount.
       client.executeScript(function() {
+        function incrementPlayCount(filename, value) {
+          for (var i = 0; i < value; i++) {
+            w.Database.incrementPlayCount(filename);
+          }
+        }
+
         var w = window.wrappedJSObject;
 
         // 'XOXO'
         var songData = w.SubListView.dataSource[1];
-        songData.metadata.played = 5;
-        w.musicdb.updateMetadata(songData.name, songData.metadata);
+        incrementPlayCount(songData.name, 5);
 
         // 'Crash'
         songData = w.SubListView.dataSource[3];
-        songData.metadata.played = 4;
-        w.musicdb.updateMetadata(songData.name, songData.metadata);
+        incrementPlayCount(songData.name, 4);
 
         songData = w.SubListView.dataSource[2];
-        songData.metadata.played = 3;
-        w.musicdb.updateMetadata(songData.name, songData.metadata);
+        incrementPlayCount(songData.name, 3);
 
         songData = w.SubListView.dataSource[4];
-        songData.metadata.played = 2;
-        w.musicdb.updateMetadata(songData.name, songData.metadata);
+        incrementPlayCount(songData.name, 2);
 
         // 'Yield to Thread'
         songData = w.SubListView.dataSource[0];
-        songData.metadata.played = 1;
-        w.musicdb.updateMetadata(songData.name, songData.metadata);
+        incrementPlayCount(songData.name, 1);
 
         // 'Abort'
         // Play count is 0 for that song.

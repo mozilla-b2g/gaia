@@ -1,7 +1,7 @@
 /* exported App */
-/* global initDB, MusicComms, TitleBar, TabBar, TilesView,
-          ListView, ModeManager, MODE_PICKER, MODE_TILES, MODE_LIST,
-          reparsingMetadata, LazyLoader */
+/* global Database, MusicComms, TitleBar, TabBar, TilesView, ListView,
+          PlayerView, ModeManager, MODE_PICKER, MODE_TILES, MODE_LIST,
+          LazyLoader */
 'use strict';
 
 /*
@@ -19,8 +19,7 @@ var App = (function() {
       // Tell performance monitors that our chrome is visible.
       window.performance.mark('navigationLoaded');
 
-      initDB();
-
+      Database.init();
       TitleBar.init();
       TabBar.init();
 
@@ -50,6 +49,15 @@ var App = (function() {
           // Display the correct ui for the pick activity.
           document.body.classList.add('picker-mode');
           app.pendingPick = a;
+
+          // If the overlay is displayed during a pick, let the user get out of
+          // it.
+          document.getElementById('overlay-cancel-button')
+            .addEventListener('click', function() {
+              if (App.pendingPick) {
+                App.pendingPick.postError('pick cancelled');
+              }
+            });
         }
 
         TabBar.option = 'title';
@@ -129,8 +137,6 @@ var App = (function() {
       if (app.currentOverlay === 'empty' || app.currentOverlay === 'upgrade') {
         app.showOverlay(null);
       }
-    } else if (reparsingMetadata) {
-      app.showOverlay('upgrade');
     } else {
       app.showOverlay('empty');
     }
@@ -204,6 +210,33 @@ var App = (function() {
     }
   }
 
+  function dbUnavailable(why) {
+    // Stop and reset the player then back to tiles mode to avoid
+    // crash.  We could be smarter here by looking at the currently
+    // playing song and only stopping it if its volume is not in the
+    // list of available volumes. But that could potentially cause
+    // problems if we are playing a playlist and some songs are on one
+    // storage area and some in another. Yanking out an sdcard is
+    // uncommon enough that it should be fine to always stop playing.
+    if (typeof PlayerView !== 'undefined') {
+      PlayerView.stop();
+    }
+
+    // TabBar should be set to "mix" to sync with the tab selection.
+    if (!app.pendingPick) {
+      TabBar.option = 'mix';
+      ModeManager.start(MODE_TILES, function() {
+        TilesView.hideSearch();
+      });
+    }
+
+    if (why === 'nocard') {
+      app.showOverlay('nocard');
+    } else if (why === 'unmounted') {
+      app.showOverlay('pluggedin');
+    }
+  }
+
   // This tracks if we've automatically hidden the search box on startup yet (it
   // should only be done once!)
   var hidSearchBox = false;
@@ -236,7 +269,7 @@ var App = (function() {
 
     // If music is not in tiles mode and refreshViews is called, that might be
     // because the user has (un)mounted his SD card and modified the songs.
-    // musicdb will be updated, and then we should update the list view if
+    // The database will be updated, and then we should update the list view if
     // music app is in list mode.
     if (ModeManager.currentMode === MODE_LIST &&
         TabBar.option !== 'playlist') {
@@ -273,13 +306,14 @@ var App = (function() {
     playerSettings: null,
     // The id of the current overlay or null if none.
     currentOverlay: null,
-    // To display a correct overlay, record the known songs from musicdb
+    // To display a correct overlay, record the known songs from the database.
     knownSongs: [],
     // Exported functions
     showOverlay: showOverlay,
     showCorrectOverlay: showCorrectOverlay,
     dbEnumerable: dbEnumerable,
     dbReady: dbReady,
+    dbUnavailable: dbUnavailable,
     refreshViews: refreshViews
   };
 
