@@ -26,16 +26,16 @@ marionette('First Time Use > Pseudo Localization', function() {
     assert.ok(panel.displayed());
 
     // the input is hidden so we can't use waitForElement
-    quickly.findElement('input[value="en-US"]');
-    quickly.helper.waitForElementToDisappear('input[value="qps-ploc"]');
+    quickly.findElement('gaia-radio[value="en-US"]');
+    quickly.helper.waitForElementToDisappear('gaia-radio[value="qps-ploc"]');
   });
 
   test('FTU Languages with pseudo localization', function() {
     quickly.settings.set('devtools.qps.enabled', true);
     quickly.apps.switchToApp(Ftu.URL);
     quickly.helper.waitForElement('#languages');
-    quickly.findElement('input[value="en-US"]');
-    quickly.findElement('input[value="qps-ploc"]');
+    quickly.findElement('gaia-radio[value="en-US"]');
+    quickly.findElement('gaia-radio[value="qps-ploc"]');
   });
 
   test('Can select accented-english', function() {

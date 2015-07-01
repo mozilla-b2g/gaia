@@ -1020,69 +1020,6 @@ i.hack-first-child {
   padding: 0 1.5rem;
 }
 
-/* .pack-value-selector make checkbox fit the whole li */
-/* .pack-value-selector should be part of "BB lists" */
-[data-type="list"] li {
-  transition: none;
-}
-
-[data-type="list"].pack-value-selector li:after {
-  content: "";
-  transition: opacity 0.2s ease;
-  background: #008aaa;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-[data-type="list"].pack-value-selector li:active:after {
-  opacity: 0.6;
-}
-
-[data-type="list"].pack-value-selector li[aria-disabled="true"]:after {
-  background-color: #e6e6e6;
-  opacity: 0.7;
-  z-index: 1;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) {
-  background: none;
-  height: 100%;
-  position: absolute;
-  left: 1.5rem;
-  right: 1.5rem;
-  pointer-events: auto;
-  width: calc(100% - 4rem);
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input {
-  height: 100%
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input + span:after {
-  background: none;
-  left: 100%;
-  -moz-margin-start: -2.2rem;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input:checked + span:after {
-  background: url("images/checked.png") no-repeat right center / 100%;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input + span + p {
-  font-weight: normal;
-}
-
-[data-type="list"].pack-value-selector li label:not([for]) input:checked + span + p {
-  font-weight: 500;
-}
-
-
 #date_and_time [data-type="list"] select,
 #date_and_time [data-type="list"] input {
   width: 8rem;
@@ -1187,11 +1124,6 @@ html[dir="rtl"] #welcome_browser #form_share_statistics p {
 html[dir="rtl"] .privacy-menuitem:before {
   left: unset;
   right: 1.4rem;
-}
-
-html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input + span:after {
-  left: unset;
-  right: 100%;
 }
 
 html[dir="rtl"] #date_and_time [data-type="list"] select,

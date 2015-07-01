@@ -3,10 +3,12 @@ require(['config/require'], function() {
 
   define('boot', function(require) {
     // The following are the scripts used by many other scripts. We load them
-    // at once here. These should be move to the dependency of each panel in the
-    // future.
+    // at once here.
     require('utils');
     require('shared/settings_listener');
+    require('modules/mvvm/observable');
+    require('modules/mvvm/observable_array');
+    require('modules/base/event_emitter');
 
     var SettingsService = require('modules/settings_service');
     var ScreenLayout = require('shared/screen_layout');

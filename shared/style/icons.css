@@ -90,7 +90,7 @@ src: url(data:application/x-font-ttf;charset=utf-8;base64,AAEAAAALAIAAAwAwT1MvMg
 .icon-browser-crashedtab:before {
   content: "\e617";
 }
-.icon-browser-foward:before {
+.icon-browser-forward:before {
   content: "\e618";
 }
 .icon-browser-moretabs:before {
@@ -315,7 +315,7 @@ src: url(data:application/x-font-ttf;charset=utf-8;base64,AAEAAAALAIAAAwAwT1MvMg
 .icon-fm-sound:before {
   content: "\e662";
 }
-.icon-foward:before {
+.icon-forward:before {
   content: "\e663";
 }
 .icon-ftu-importgmail:before {

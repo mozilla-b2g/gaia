@@ -41,9 +41,9 @@ suite('Hotspot settings panel >', function() {
 
   suite('Update settings values', function() {
     setup(function() {
-        hotspotSettings.hotspotSSID = '';
-        hotspotSettings.hotspotSecurity = '';
-        hotspotSettings.hotspotPassword = '';
+        hotspotSettings._hotspotSSID = '';
+        hotspotSettings._hotspotSecurity = '';
+        hotspotSettings._hotspotPassword = '';
     });
 
     test('Should reflect the SSID setting change', function() {
