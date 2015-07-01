@@ -4,8 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/camera/README.md", "apps/camera/js"],
-    "exclude": ["apps/camera/js/controllers/settings.js"]
+    "include": ["apps/camera/README.md", "apps/camera/js"]
   },
   "plugins": [
     "plugins/markdown",

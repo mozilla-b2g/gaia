@@ -56,7 +56,6 @@ function SettingsController(app) {
  *
  * You can always use the underlying settings
  * directly if you need that kind of control.
- * @return {[type]} [description]
  */
 SettingsController.prototype.configure = function() {
   this.setupRecorderProfilesAlias();
