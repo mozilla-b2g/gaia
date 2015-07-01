@@ -57,6 +57,8 @@ suite('Views.MonthDay', function() {
       );
     });
 
+    /*
+    // Test disabled: https://bugzilla.mozilla.org/show_bug.cgi?id=1179085
     test('future-other-month', function() {
       var future = new Date();
       future.setFullYear(future.getFullYear() + 1);
@@ -67,6 +69,7 @@ suite('Views.MonthDay', function() {
         'data-l10n-id="future-other-month-description"'
       );
     });
+    */
   });
 
   suite('#_updateBusyCount', function() {
