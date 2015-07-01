@@ -47,7 +47,11 @@ marionette('Attachment picking and sending tests', function() {
 
       var composer = messagesApp.Composer;
 
-      messagesApp.addAttachment();
+      client.waitFor(function() {
+        return composer.attachButton.enabled();
+      });
+      composer.attachButton.tap();
+      messagesApp.selectSystemMenuOption('Messages Activity Caller');
 
       activityCallerApp.switchTo();
       activityCallerApp.pickContact();
