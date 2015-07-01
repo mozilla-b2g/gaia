@@ -866,17 +866,27 @@ suite('InputWindowManager', function() {
     test('hideInputWindow', function(done) {
       var stubKBPublish = this.sinon.stub(manager, '_kbPublish')
         .returns(Promise.resolve());
+      var fakeTimer = this.sinon.useFakeTimers();
       var inputWindow = new InputWindow();
       manager._currentWindow = inputWindow;
 
       manager.hideInputWindow();
 
-      assert.isTrue(stubKBPublish.calledWith('keyboardhide', undefined));
+      assert.isFalse(stubKBPublish.calledOnce,
+        'Should not call keyboardhide without waiting for timeout.');
+      fakeTimer.tick(manager.HIDE_INPUT_WINDOW_TIMEOUT);
 
       Promise.resolve().then(function() {
+        assert.isTrue(stubKBPublish.calledWith('keyboardhide', undefined));
+
+        // Ensure the next then() block happens after iwm_hideInputWindowSync()
+        return stubKBPublish.firstCall.returnValue;
+      }).then(function() {
         assert.strictEqual(manager._currentWindow, null);
         assert.isTrue(inputWindow.close.called);
         assert.isFalse(inputWindow.close.calledWith('immediate'));
+
+        fakeTimer.restore();
       }).then(done, done);
     });
 
@@ -885,16 +895,24 @@ suite('InputWindowManager', function() {
       var stubKBPublish = this.sinon.stub(manager, '_kbPublish')
         .returns(Promise.resolve());
       var inputWindow = new InputWindow();
+      var fakeTimer = this.sinon.useFakeTimers();
       manager._currentWindow = inputWindow;
 
       manager.hideInputWindow();
 
-      assert.isTrue(stubKBPublish.calledWith('keyboardhide', undefined));
-      assert.equal(manager._currentWindow, null);
-
-      manager._currentWindow = inputWindow;
+      assert.isFalse(stubKBPublish.calledOnce,
+        'Should not call keyboardhide without waiting for timeout.');
+      fakeTimer.tick(manager.HIDE_INPUT_WINDOW_TIMEOUT);
 
       Promise.resolve().then(function() {
+        assert.isTrue(stubKBPublish.calledWith('keyboardhide', undefined));
+
+        assert.equal(manager._currentWindow, null);
+        manager._currentWindow = inputWindow;
+
+        // Ensure the next then() block happens after iwm_hideInputWindowSync()
+        return stubKBPublish.firstCall.returnValue;
+      }).then(function() {
         assert.isFalse(inputWindow.close.called);
       }).then(done, done);
     });
