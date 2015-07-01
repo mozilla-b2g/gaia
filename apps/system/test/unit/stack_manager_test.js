@@ -385,8 +385,6 @@ suite('system/StackManager >', function() {
         contactCancelQueuedShow = this.sinon.stub(contact, 'cancelQueuedShow');
         settingsQueueHide = this.sinon.stub(settings, 'queueHide');
 
-        this.sinon.stub(MockService, 'request');
-
         StackManager.goPrev();
         assert.isFalse(StackManager._didntMove);
         StackManager.goPrev();
@@ -415,10 +413,6 @@ suite('system/StackManager >', function() {
         sinon.assert.calledWith(dialerBroadcast, 'swipein');
         sinon.assert.notCalled(contactBroadcast);
         sinon.assert.calledWith(settingsBroadcast, 'swipeout');
-      });
-
-      test('it should request stopRecording', function() {
-        assert.isTrue(MockService.request.calledWith('stopRecording'));
       });
 
       suite('if we\'re back to the same place', function() {

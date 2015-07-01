@@ -15,7 +15,6 @@
    */
   var AppWindowManager = function() {};
   AppWindowManager.SERVICES = [
-    'stopRecording',
     'kill'
   ];
   AppWindowManager.STATES = [
@@ -284,8 +283,6 @@
 
       var that = this;
       if (appCurrent && this.service.query('keyboardEnabled')) {
-        this.stopRecording();
-
         // Ask keyboard to hide before we switch the app.
       window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
@@ -306,10 +303,8 @@
           that.switchApp(appCurrent, appNext, switching);
         });
       } else {
-        this.stopRecording(function() {
-          this.switchApp(appCurrent, appNext, switching,
-                         openAnimation, closeAnimation);
-        }.bind(this));
+        this.switchApp(appCurrent, appNext, switching,
+                       openAnimation, closeAnimation);
       }
     },
 
@@ -973,50 +968,6 @@
           id: notificationId
         }
       }));
-    },
-
-    /**
-     * Abuse the settings database to notify interested certified apps
-     * that the current foreground window is about to close.  This is a
-     * hack implemented to fix bug 1051172 so that apps can be notified
-     * that they will be closing without having to wait for the
-     * visibilitychange event that does not arrive until after the app
-     * has been hidden.
-     *
-     * This function is called from display() above to handle switching
-     * from an app to the homescreen or to the task switcher. It is also
-     * called from stack_manager.js to handle edge gestures. I tried calling
-     * it from screen_manager.js to handle screen blanking and the sleep
-     * button, but the visibiltychange event arrived before the will hide
-     * notification did in that case, so it was not necessary.
-     *
-     * We ought to be able to remove this function and the code that
-     * calls it when bug 1034001 is fixed.
-     *
-     */
-    stopRecording: function(callback) {
-      // If we are not currently recording anything, just call
-      // the callback synchronously
-      if (!this.service.query('isRecording')) {
-        if (callback) { callback(); }
-        return;
-      }
-
-
-      // Otherwise, if we are recording something, then send a
-      // "stop recording" signal via the settings db before
-      // calling the callback.
-      var setRequest = navigator.mozSettings.createLock().set({
-        'private.broadcast.stop_recording': true
-      });
-      setRequest.onerror = function() {
-        // If the set request failed for some reason, just call the callback
-        if (callback) { callback(); }
-      };
-      setRequest.onsuccess = function() {
-        // And meanwhile, call the callback
-        if (callback) { callback(); }
-      };
     },
 
     '_observe_continuous-transition.enabled': function(value) {

@@ -24,8 +24,7 @@ requirejs.config({
     'view': '../bower_components/view/index',
     'evt': '../bower_components/evt/index',
     'drag': '../bower_components/drag/index',
-    'device-orientation': '../bower_components/device-orientation/index',
-    'stop-recording-event': '../shared/js/stop_recording_event'
+    'device-orientation': '../bower_components/device-orientation/index'
   },
 
   // If your package uses relative `require()` paths
@@ -86,9 +85,6 @@ requirejs.config({
     },
     'CustomDialog': {
       exports: 'CustomDialog'
-    },
-    'stop-recording-event': {
-      exports: 'StopRecordingEvent'
     }
   }
 });
