@@ -8,12 +8,14 @@
    * @class DeveloperHud
    */
   function DeveloperHud() {
+    SettingsListener.observe('hud.hide', false, this.hide.bind(this));
     SettingsListener.observe('devtools.overlay.system',
                              false, this.toggleSystemHUD.bind(this));
   }
 
   DeveloperHud.prototype = {
     name: 'DeveloperHud',
+
     start: function() {
       window.addEventListener('developer-hud-update', this);
       Service.register('stop', this);
@@ -23,7 +25,13 @@
       window.removeEventListener('developer-hud-update', this);
     },
 
+    hide: function(hidden) {
+      var screen = document.getElementById('screen');
+      screen.classList.toggle('hidden-developer-hud', hidden);
+    },
+
     _showSystemHUD: false,
+
     toggleSystemHUD: function(enabled) {
       if (!enabled) {
         this.display(window, {});
