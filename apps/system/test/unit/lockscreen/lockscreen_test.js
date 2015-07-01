@@ -294,7 +294,7 @@ suite('system/LockScreen >', function() {
     subject.overlay = domOverlay;
     subject.checkPassCode('0000');
     assert.isTrue(StubPasscodeHelper.called,
-      'lockscreen did not use the PasscodeHelper');
+      'lockscreen did not call PasscodeHelper to validate passcode');
   });
 
   test('Unlock: would destroy the clock widget', function() {

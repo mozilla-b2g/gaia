@@ -68,11 +68,6 @@ ScreenLockPanel.prototype = {
     return this.findElement('screenLockHeaderLabel').displayed();
   },
 
-  getPasscode: function() {
-    throw new Error('This functions is deprecated, the lockscreen PIN is '+
-                    'hashed and can not be read.');
-  },
-
   enableScreenLock: function() {
     this.waitForElement('screenLockLabel').tap();
     this.client.waitFor(function() {
