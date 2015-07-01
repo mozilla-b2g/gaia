@@ -2,7 +2,7 @@
 
 /* exported ContactsButtons */
 
-/* globals Contacts, LazyLoader, MozActivity, MultiSimActionButton, Normalizer,
+/* globals LazyLoader, MozActivity, MultiSimActionButton, Normalizer,
            SmsIntegration, TelephonyHelper, utils */
 
 var ContactsButtons = {
@@ -95,7 +95,7 @@ var ContactsButtons = {
   _onEmailOrPickClick: function onEmailOrPickClick(evt) {
     evt.preventDefault();
     var email = evt.target.dataset.email;
-    Contacts.sendEmailOrPick(email);
+    this.sendEmailOrPick(email);
     return false;
   },
 
@@ -198,6 +198,23 @@ var ContactsButtons = {
       return 0;
     }
     return prop.length;
+  },
+
+  sendEmailOrPick: function(address) {
+    try {
+      // We don't check the email format, lets the email
+      // app do that
+      /* jshint nonew: false */
+      new MozActivity({
+        name: 'new',
+        data: {
+          type: 'mail',
+          URI: 'mailto:' + address
+        }
+      });
+    } catch (e) {
+      console.error('WebActivities unavailable? : ' + e);
+    }
   }
 };
 
