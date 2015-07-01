@@ -6,6 +6,9 @@ var performanceParser = require('../parsers/performance');
 var debug = require('debug')('raptor:restart-b2g');
 var noop = function() {};
 
+var VERTICAL_CONTEXT = 'verticalhome.gaiamobile.org';
+var SYSTEM_CONTEXT = 'system.gaiamobile.org';
+
 /**
  * Create a suite runner which achieves a ready state when b2g has been restarted
  * @param {{
@@ -60,6 +63,8 @@ RestartB2G.prototype.restart = function() {
  */
 RestartB2G.prototype.testRun = function() {
   var runner = this;
+  var homescreenFullyLoaded = false;
+  var systemFullyLoaded = false;
 
   return new Promise(function(resolve) {
     runner
@@ -67,22 +72,26 @@ RestartB2G.prototype.testRun = function() {
       .then(function() {
         runner.setup();
 
-        debug('Waiting for System restart');
+        debug('Waiting for System start');
 
         runner.dispatcher.on('performanceentry', function handler(entry) {
           debug('Received performance entry `%s` for %s',
             entry.name, entry.context);
 
-          if (entry.context !== 'system.gaiamobile.org') {
+          if (entry.name !== 'fullyLoaded') {
             return;
           }
 
-          if (entry.name !== 'osLogoEnd') {
-            return;
+          if (entry.context === VERTICAL_CONTEXT) {
+            homescreenFullyLoaded = true;
+          } else if (entry.context === SYSTEM_CONTEXT) {
+            systemFullyLoaded = true;
           }
 
-          runner.dispatcher.removeListener('performanceentry', handler);
-          resolve();
+          if (homescreenFullyLoaded && systemFullyLoaded) {
+            runner.dispatcher.removeListener('performanceentry', handler);
+            resolve();
+          }
         });
       });
   });

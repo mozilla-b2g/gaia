@@ -80,17 +80,19 @@ Reboot.prototype.testRun = function() {
       .then(function() {
         runner.setup();
 
-        debug('Waiting for System boot');
+        debug('Waiting for System start');
 
         runner.dispatcher.on('performanceentry', function handler(entry) {
-          // Due to a bug in the Flame's ability to keep consistent time after
+          // Due to a bug in a device's ability to keep consistent time after
           // a reboot, we are currently overriding the time of the event. Not
           // very accurate, but it's better than nothing
+          var originalEpoch = entry.epoch;
+
           entry.epoch = entry.name === 'deviceReboot' ?
             start : Date.now();
 
-          debug('Received performance entry `%s` for %s',
-            entry.name, entry.context);
+          debug('Received performance entry `%s` for %s (Δ %dms)',
+            entry.name, entry.context, Math.round(entry.epoch - originalEpoch));
 
           if (entry.name !== 'fullyLoaded') {
             return;
