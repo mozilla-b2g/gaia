@@ -6,7 +6,7 @@ var StopwatchActions = require('./stopwatch_actions');
 var TimerActions = require('./timer_actions');
 var AlarmActions = require('./alarm_actions');
 
-function ClockAppActions() {
+function ClockAppActions(options) {
   this._client = marionette.client({
     profile: {
       prefs: {
@@ -17,7 +17,8 @@ function ClockAppActions() {
         // system window manager) in order for it to do focus-related things.
         'focusmanager.testmode': true
       }
-    }
+    },
+    desiredCapabilities: options.desiredCapabilities
   });
 
   this.stopwatch = new StopwatchActions(this._client);

@@ -2,7 +2,9 @@
 
 marionette('Private Browser Trigger', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
 
   var search, system;
 

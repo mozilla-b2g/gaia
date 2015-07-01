@@ -16,7 +16,8 @@ marionette('editing an image', function() {
         'device.storage.prompt.testing': true,
         'webgl.force-enabled': true
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {

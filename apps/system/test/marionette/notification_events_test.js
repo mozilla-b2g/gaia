@@ -10,7 +10,9 @@ var EMAIL_APP_MANIFEST = EMAIL_APP + '/manifest.webapp';
 
 marionette('Notification events', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
+  });
   var details = {tag: 'test tag',
                  body: 'test body',
                  data: {number: 2,

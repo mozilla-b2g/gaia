@@ -14,7 +14,8 @@ marionette('run gallery without any files', function() {
         'device.storage.testing': true,
         'device.storage.prompt.testing': true,
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   setup(function() {
@@ -26,11 +27,11 @@ marionette('run gallery without any files', function() {
   });
 
   test('should display empty media message', function() {
-  
+
     // Wait for the overlay with 'Use the Camera app to get started' message.
     var overlayView = app.overlayView;
     var overlayTitle = app.overlayTitle;
-    var overlayText = app.overlayText; 
+    var overlayText = app.overlayText;
     var cameraButton = app.cameraButton;
     client.helper.waitForElement(overlayView);
     assert.ok(overlayView.displayed());

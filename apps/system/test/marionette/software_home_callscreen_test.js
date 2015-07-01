@@ -14,7 +14,8 @@ marionette('Software Home Button - Call screen Appearance', function() {
         'software-button.enabled': true
       },
       apps: apps
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
   var system;
   var fakedialer;

@@ -10,7 +10,8 @@ marionette('Fullscreen status bar visibility >', function() {
       apps: {
         'fullscreen-app.gaiamobile.org': __dirname + '/../apps/fullscreen-app'
       }
-    }
+    },
+    desiredCapabilities: { raisesAccessibilityExceptions: true }
   });
 
   var system;
