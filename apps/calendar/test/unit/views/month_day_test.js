@@ -59,7 +59,7 @@ suite('Views.MonthDay', function() {
 
     test('future-other-month', function() {
       var future = new Date();
-      future.setFullYear(future.getFullYear() + 1);
+      future.setFullYear(future.getFullYear() + 2);
       subject.date = future;
       subject.create();
       assert.include(
