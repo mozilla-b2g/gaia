@@ -2,21 +2,26 @@
 
 /* global loadBodyHTML, BookmarkEditor, BookmarksDatabase, Icon */
 /* global requireApp, require, suite, suiteTeardown, suiteSetup, test, assert,
-          sinon, MockWebManifestHelper */
+          sinon, MocksHelper */
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('sharedtest/test/unit/mock_web_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_web_manifest_helper.js');
 
+require('/shared/test/unit/mocks/mock_icons_helper.js');
 require('/shared/js/homescreens/icon.js');
 requireApp('bookmark/js/bookmark_editor.js');
 require('/shared/js/bookmarks_database.js');
 require('/shared/js/url_helper.js');
 
+var mocksForBookmarkEditor = new MocksHelper([
+  'IconsHelper', 'WebManifestHelper'
+]).init();
+
 suite('bookmark_editor.js >', function() {
 
-  var getStub, iconRenderStub, realL10n,
-  realWebManifestHelper;
+  var getStub, iconRenderStub, realL10n;
+  mocksForBookmarkEditor.attachTestHelpers();
 
   var name = 'Mozilla';
   var url = 'http://www.mozilla.org/es-ES/firefox/new/';
@@ -40,8 +45,6 @@ suite('bookmark_editor.js >', function() {
       };
     });
     iconRenderStub = sinon.stub(Icon.prototype, 'render', function() {});
-    realWebManifestHelper = window.WebManifestHelper;
-    window.WebManifestHelper = MockWebManifestHelper;
   });
 
   suiteTeardown(function() {
@@ -50,7 +53,6 @@ suite('bookmark_editor.js >', function() {
     databaseInError = false;
     getStub.restore();
     iconRenderStub.restore();
-    window.WebManifestHelper = realWebManifestHelper;
   });
 
   function noop() {
@@ -188,7 +190,7 @@ suite('bookmark_editor.js >', function() {
 
     test('_fetchManifest()', function(done) {
       var stubRenderAppIcon = sinon.stub(BookmarkEditor, '_renderAppIcon',
-        function(manifest, manifestURL, size) {}
+        function(manifest, size) {}
       );
       BookmarkEditor._fetchManifest().then(
       function () {
@@ -206,7 +208,12 @@ suite('bookmark_editor.js >', function() {
     });
 
     test('_renderAppIcon()', function() {
-      BookmarkEditor._renderAppIcon({}, 'http://example.com/manifest.json', 60);
+      this.sinon.stub(window.IconsHelper, 'getBestIconFromWebManifest',
+      function() {
+        return new URL('http://example.com/icon.png');
+      });
+
+      BookmarkEditor._renderAppIcon({}, 60);
       assert.equal(BookmarkEditor.appIcon.getAttribute('src'),
         'http://example.com/icon.png');
     });

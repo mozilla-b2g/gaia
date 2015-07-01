@@ -9,7 +9,8 @@
 
   MockXMLHttpRequest.prototype = {
     open: function() {},
-    send: function() {}
+    send: function() {},
+    setRequestHeader: function() {}
   };
 
   MockXMLHttpRequest.triggerReadyStateChange = function(options) {

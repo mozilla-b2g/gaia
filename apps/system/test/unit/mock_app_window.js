@@ -153,6 +153,7 @@
     getSSLState: function() { return ''; },
     getCachedScreenshotBlob: function() {},
     requestScreenshotURL: function() {},
+    getSiteIconUrl: function() {},
     _showFrame: function() {},
     _hideFrame: function() {}
   };

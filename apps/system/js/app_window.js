@@ -1,3 +1,4 @@
+/* global LazyLoader */
 /* global AppChrome */
 /* global AudioChannelController */
 /* global BaseModule */
@@ -6,9 +7,14 @@
 /* global ScreenLayout */
 /* global Service */
 /* global DUMP */
+/* global IconsHelper */
+/* global WebManifestHelper */
+
 'use strict';
 
 (function(exports) {
+  const ICON_SIZE = 32;
+
   // Turn on this flag to debug all windows.
   var DEBUG = false;
   // Turn on this flag to print all trace in debugging function.
@@ -1078,6 +1084,7 @@
     function aw__handle_mozbrowserlocationchange(evt) {
       this.favicons = {};
       this.webManifestURL = null;
+      this.webManifest = null;
       this.config.url = evt.detail;
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
@@ -1169,13 +1176,23 @@
           this.publish('namechanged');
           break;
       }
-
     };
 
   AppWindow.prototype._handle_mozbrowsermanifestchange =
     function aw__handle_mozbrowsermanifestchange(evt) {
       if (evt.detail.href) {
         this.webManifestURL = evt.detail.href;
+
+        LazyLoader.load('/shared/js/web_manifest_helper.js').then(() => {
+          WebManifestHelper.getManifest(this.webManifestURL)
+            .then(webManifest => {
+              this.webManifest = webManifest;
+            })
+            .catch(() => {
+              console.error('Failed to get web manifest at: ' +
+                            this.webManifestURL);
+            });
+        });
       }
     };
 
@@ -2431,5 +2448,63 @@
       this.statusbar.handleStatusbarTouch(evt, barHeight);
     }
   };
+
+
+  /**
+   * Return a promise that resolves to an icon URL.
+   *
+   * @param {number?} iconSize
+   * @returns {Promise}
+   */
+  AppWindow.prototype.getSiteIconUrl =
+    function ac_getSiteIconUrl(iconSize = ICON_SIZE) {
+    var siteObj = {};
+
+    if (this.webManifestURL && this.webManifest) {
+      siteObj = {
+        webManifestUrl: this.webManifestURL,
+        webManifest: this.webManifest
+      };
+    }
+
+    if (this.webManifestURL && !this.webManifest) {
+      this.debug('getSiteIconUrl: Manifest not loaded yet.');
+    }
+
+    return this.getIconBlob(this.config.url, iconSize,
+                             {icons: this.favicons},
+                             siteObj);
+  };
+
+
+  /**
+   * Return a promise resolving to an icon blob.
+   *
+   * @param {string} origin
+   * @param {number} iconSize
+   * @param {Object?} placeObj
+   * @param {Object?} siteObj
+   * @returns {Promise}
+   */
+  AppWindow.prototype.getIconBlob = function ac_getIconBlob(origin, iconSize,
+    placeObj = {}, siteObj = {}) {
+
+    return new Promise((resolve, reject) => {
+      LazyLoader.load('/shared/js/icons_helper.js').then(() => {
+        IconsHelper.getIconBlob(origin, iconSize, placeObj, siteObj)
+          .then(iconObject => {
+            var iconUrl = URL.createObjectURL(iconObject.blob);
+            resolve({
+              url: iconUrl,
+              isSmall: iconObject.size < iconSize
+            });
+          })
+          .catch(err => {
+            reject(err);
+          });
+      });
+    });
+  };
+
   exports.AppWindow = AppWindow;
 }(window));

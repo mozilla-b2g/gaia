@@ -77,10 +77,9 @@ var BookmarkEditor = {
     icon.render({'size': this.BOOKMARK_ICON_SIZE});
   },
 
-  _renderAppIcon: function renderAppIcon(manifest, manifestURL, size) {
+  _renderAppIcon: function renderAppIcon(manifest, size) {
     // Parse icon URL from app manifest
-    var iconURL = window.WebManifestHelper.iconURLForSize(manifest,
-      manifestURL, size);
+    var iconURL = window.IconsHelper.getBestIconFromWebManifest(manifest, size);
     if (!iconURL) {
       return;
     }
