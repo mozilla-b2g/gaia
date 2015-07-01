@@ -99,10 +99,10 @@ function createListElement(option, data, index, highlight) {
       albumImg.className = 'list-album-art';
       li.appendChild(albumImg);
 
-      LazyLoader.load('js/metadata/album_art_cache.js', function() {
-        AlbumArtCache.getThumbnailURL(data).then(function(url) {
-          showImage(albumImg, url);
-        });
+      LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+        return AlbumArtCache.getThumbnailURL(data);
+      }).then((url) => {
+        showImage(albumImg, url);
       });
 
       if (option === 'artist') {

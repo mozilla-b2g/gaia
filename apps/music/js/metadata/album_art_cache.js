@@ -268,16 +268,16 @@ var AlbumArtCache = (function() {
    */
   function getAlbumArtBlob(fileinfo) {
     var picture = fileinfo.metadata.picture;
-    return new Promise(function(resolve, reject) {
-      if (picture.blob) {
-        // We must have an unsynced picture that came from a temporary blob
-        // (i.e. from the open activity or a unit test).
-        resolve(picture.blob);
-      } else if (picture.filename) {
-        // Some audio tracks have an external file for their album art, so we
-        // need to grab it from deviceStorage. This could also be an unsynced
-        // picture that came from a regular file.
-        LazyLoader.load('/js/metadata/album_art.js', function() {
+    if (picture.blob) {
+      // We must have an unsynced picture that came from a temporary blob
+      // (i.e. from the open activity or a unit test).
+      return Promise.resolve(picture.blob);
+    } else if (picture.filename) {
+      // Some audio tracks have an external file for their album art, so we
+      // need to grab it from deviceStorage. This could also be an unsynced
+      // picture that came from a regular file.
+      return LazyLoader.load('/js/metadata/album_art.js').then(() => {
+        return new Promise((resolve, reject) => {
           var getreq = AlbumArt.pictureStorage.get(picture.filename);
           getreq.onsuccess = function() {
             resolve(this.result);
@@ -286,22 +286,19 @@ var AlbumArtCache = (function() {
             reject(this.error);
           };
         });
-      } else if (picture.start) {
-        // Other audio tracks have the album art embedded in the file, so we
-        // just need to splice out the part we want.
-        getSongBlob(fileinfo).then(function(blob) {
-          var embedded = blob.slice(
-            picture.start, picture.end, picture.type
-          );
-          resolve(embedded);
-        }).catch(reject);
-      } else {
-        // If we got here, something strange happened...
-        var err = new Error('unknown picture flavor: ' + picture.flavor);
-        console.error(err);
-        reject(err);
-      }
-    });
+      });
+    } else if (picture.start) {
+      // Other audio tracks have the album art embedded in the file, so we
+      // just need to splice out the part we want.
+      return getSongBlob(fileinfo).then((blob) => {
+        return blob.slice(picture.start, picture.end, picture.type);
+      });
+    } else {
+      // If we got here, something strange happened...
+      var err = new Error('unknown picture flavor: ' + picture.flavor);
+      console.error(err);
+      return Promise.reject(err);
+    }
   }
 
   /**

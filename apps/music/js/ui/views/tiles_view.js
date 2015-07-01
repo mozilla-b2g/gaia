@@ -126,7 +126,7 @@ var TilesView = {
     }
 
     var index = this.index;
-    LazyLoader.load('js/metadata/album_art_cache.js', function() {
+    LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
       var NUM_INITIALLY_VISIBLE_TILES = 8;
       var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 

@@ -111,26 +111,25 @@ var TitleBar = {
             ];
             var playingBlob = PlayerView.playingBlob;
 
-            LazyLoader.load('js/metadata/album_art_cache.js', function() {
-              AlbumArtCache.getThumbnailBlob(currentFileinfo).then(
-                function(picture) {
-                  var currentMetadata = currentFileinfo.metadata;
-                  App.pendingPick.postResult({
-                    type: playingBlob.type,
-                    blob: playingBlob,
-                    name: currentMetadata.title || '',
-                    // We only pass some metadata attributes so we don't share
-                    // personal details like # of times played and ratings.
-                    metadata: {
-                      title: currentMetadata.title,
-                      artist: currentMetadata.artist,
-                      album: currentMetadata.album,
-                      picture: picture
-                    }
-                  });
+            LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+              return AlbumArtCache.getThumbnailBlob(currentFileinfo);
+            }).then((picture) => {
+              var currentMetadata = currentFileinfo.metadata;
+              App.pendingPick.postResult({
+                type: playingBlob.type,
+                blob: playingBlob,
+                name: currentMetadata.title || '',
+                // We only pass some metadata attributes so we don't share
+                // personal details like # of times played and ratings.
+                metadata: {
+                  title: currentMetadata.title,
+                  artist: currentMetadata.artist,
+                  album: currentMetadata.album,
+                  picture: picture
+                }
+              });
 
-                  cleanupPick();
-                });
+              cleanupPick();
             });
             break;
         }

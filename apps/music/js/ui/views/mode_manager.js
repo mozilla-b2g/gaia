@@ -85,50 +85,44 @@ var ModeManager = {
       }
     }
 
-    new Promise((resolve, reject) => {
-      LazyLoader.load(view.path, () => {
-        // Our view might have been loaded while we were waiting so check again.
-        if (view.isLoaded) {
-          resolve();
-          return;
-        }
+    LazyLoader.load(view.path).then(() => {
+      // Our view might have been loaded while we were waiting so check again.
+      if (view.isLoaded) {
+        return;
+      }
 
-        // Remove the view's hidden style before pushing it.
-        var sheet = document.getElementById(view.id);
-        sheet.classList.remove('hidden');
+      // Remove the view's hidden style before pushing it.
+      var sheet = document.getElementById(view.id);
+      sheet.classList.remove('hidden');
 
-        switch(view.id) {
-          case 'views-tiles':
-            TilesView.init();
-            break;
-          case 'views-list':
-            ListView.init();
-            break;
-          case 'views-sublist':
-            SubListView.init();
-            break;
-          case 'views-player':
-            PlayerView.init();
-            break;
-          case 'views-search':
-            SearchView.init();
-            break;
-        }
+      switch(view.id) {
+        case 'views-tiles':
+          TilesView.init();
+          break;
+        case 'views-list':
+          ListView.init();
+          break;
+        case 'views-sublist':
+          SubListView.init();
+          break;
+        case 'views-player':
+          PlayerView.init();
+          break;
+        case 'views-search':
+          SearchView.init();
+          break;
+      }
 
-        // The PlayerView needs the settings values before use it.
-        if (view.id === 'views-player') {
-          asyncStorage.getItem(SETTINGS_OPTION_KEY, (settings) => {
-            App.playerSettings = settings;
-            PlayerView.setOptions(App.playerSettings);
-            resolve();
-          });
-        } else if (view.id === 'views-search') {
-          // The text normalizer is needed in search view.
-          LazyLoader.load('shared/js/text_normalizer.js', () => { resolve(); });
-        } else {
-          resolve();
-        }
-      });
+      // The PlayerView needs the settings values before use it.
+      if (view.id === 'views-player') {
+        asyncStorage.getItem(SETTINGS_OPTION_KEY, (settings) => {
+          App.playerSettings = settings;
+          PlayerView.setOptions(App.playerSettings);
+        });
+      } else if (view.id === 'views-search') {
+        // The text normalizer is needed in search view.
+        return LazyLoader.load('shared/js/text_normalizer.js');
+      }
     }).then(() => {
       view.isLoaded = true;
       if (callback) {

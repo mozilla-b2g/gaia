@@ -32,14 +32,12 @@ var Database = (function() {
     });
 
     function metadataParserWrapper(file, onsuccess, onerror) {
-      LazyLoader.load(
-        ['/js/metadata_scripts.js', '/js/metadata/album_art.js'],
-        function() {
-          AudioMetadata.parse(file).then(function(metadata) {
-            return AlbumArt.process(file, metadata);
-          }).then(onsuccess, onerror);
-        }
-      );
+      var files = ['/js/metadata_scripts.js', '/js/metadata/album_art.js'];
+      LazyLoader.load(files).then(() => {
+        return AudioMetadata.parse(file);
+      }).then((metadata) => {
+        return AlbumArt.process(file, metadata);
+      }).then(onsuccess, onerror);
     }
 
     var startedReparsing = false;
