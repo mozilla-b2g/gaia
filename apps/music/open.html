@@ -13,6 +13,7 @@
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="locales/music.{locale}.properties">
+    <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
 
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/gaia-theme.css" />
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
@@ -56,13 +57,13 @@
             <div id="player-cover-album"><bdi data-l10n-id="songAlbum">Song Album</bdi></div>
           </div>
           <div id="player-cover-buttons" hidden>
-            <button id="player-album-repeat" class="player-cover-button repeat-list" data-icon="repeat" disabled></button>
-            <div id="player-album-rating">
-              <button class="rating-star" data-rating="1" disabled></button>
-              <button class="rating-star" data-rating="2" disabled></button>
-              <button class="rating-star" data-rating="3" disabled></button>
-              <button class="rating-star" data-rating="4" disabled></button>
-              <button class="rating-star" data-rating="5" disabled></button>
+            <button id="player-album-repeat" data-l10n-id="repeat-off" class="player-cover-button repeat-list" data-icon="repeat" disabled></button>
+            <div id="player-album-rating" data-l10n-id="player-album-rating" role="radiogroup">
+              <button class="rating-star" data-rating="1" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"1"}'></button>
+              <button class="rating-star" data-rating="2" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"2"}'></button>
+              <button class="rating-star" data-rating="3" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"3"}'></button>
+              <button class="rating-star" data-rating="4" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"4"}'></button>
+              <button class="rating-star" data-rating="5" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"5"}'></button>
             </div>
             <button id="player-album-shuffle" class="player-cover-button shuffle-on" data-icon="shuffle" disabled data-l10n-id="shuffle-toggle"></button>
           </div>
@@ -76,9 +77,9 @@
           <span id="player-seek-remaining">00:00</span>
         </div>
         <div id="player-controls" dir="ltr">
-          <button id="player-controls-previous" class="player-controls-button" data-icon="skip-back" disabled></button>
-          <button id="player-controls-play" class="player-controls-button is-pause" data-icon="pause"></button>
-          <button id="player-controls-next" class="player-controls-button" data-icon="skip-forward" disabled></button>
+          <button id="player-controls-previous" data-l10n-id="playbackPrevious" class="player-controls-button" data-icon="skip-back" disabled></button>
+          <button id="player-controls-play" data-l10n-id="playbackPlay" class="player-controls-button is-pause" data-icon="pause"></button>
+          <button id="player-controls-next" data-l10n-id="playbackNext" class="player-controls-button" data-icon="skip-forward" disabled></button>
         </div>
         <audio id="player-audio" class="hidden"></audio>
       </div>
