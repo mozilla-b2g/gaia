@@ -90,7 +90,7 @@ exports.generateReplySubject = function generateReplySubject(origSubject) {
 var FWD_FWD = /^[Ff][Ww][Dd]:/;
 
 /**
- * Generate the foward subject for a message given the prior subject.  This is
+ * Generate the forward subject for a message given the prior subject.  This is
  * simply prepending "Fwd: " to the message if it does not already have an
  * "Fwd:" equivalent.
  */

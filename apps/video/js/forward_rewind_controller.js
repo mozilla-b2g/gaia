@@ -8,7 +8,7 @@
    * the video will jump forward or back by 10 seconds.
    *
    * When the user presses and holds on the forward or rewind icons,
-   * the video time will move foward or back at 10 times the regular speed.
+   * the video time will move forward or back at 10 times the regular speed.
    */
 
 'use strict';
