@@ -1,6 +1,6 @@
 /* exported SubListView */
-/* global AlbumArtCache, createListElement, Database, LazyLoader, ModeManager,
-          MODE_PLAYER, PlayerView, showImage, TabBar, TYPE_LIST */
+/* global LazyLoader, musicdb, TabBar, AlbumArtCache, createListElement,
+          ModeManager, MODE_PLAYER, PlayerView, TYPE_LIST, showImage */
 'use strict';
 
 var SubListView = {
@@ -41,7 +41,7 @@ var SubListView = {
   clean: function slv_clean() {
     // Cancel a pending enumeration before start a new one
     if (this.handle) {
-      Database.cancelEnumeration(this.handle);
+      musicdb.cancelEnumeration(this.handle);
     }
 
     this.dataSource = [];
@@ -74,8 +74,8 @@ var SubListView = {
     var targetOption = (option === 'date') ? option : 'metadata.' + option;
     this.clean();
 
-    this.handle = Database.enumerateAll(targetOption, keyRange, direction,
-                                        function lv_enumerateAll(dataArray) {
+    this.handle = musicdb.enumerateAll(targetOption, keyRange, direction,
+                                         function lv_enumerateAll(dataArray) {
       var albumName;
       var albumNameL10nId;
       var maxDiscNum = 1;
