@@ -1,7 +1,7 @@
 /* exported MusicComms */
-/* global musicdb, ModeManager, MODE_PLAYER, PlayerView,
-          PLAYSTATUS_PLAYING, PLAYSTATUS_STOPPED, INTERRUPT_BEGIN, TYPE_MIX,
-          MediaRemoteControls */
+/* global Database, INTERRUPT_BEGIN, MediaRemoteControls, ModeManager,
+          MODE_PLAYER, PlayerView, PLAYSTATUS_PLAYING, PLAYSTATUS_STOPPED,
+          TYPE_MIX */
 'use strict';
 
 var MusicComms = {
@@ -33,7 +33,7 @@ var MusicComms = {
         } else {
           // Play in shuffle order if music app is launched remotely.
           if (PlayerView.playStatus === PLAYSTATUS_STOPPED) {
-            musicdb.getAll(function remote_getAll(dataArray) {
+            Database.getAll(function remote_getAll(dataArray) {
               ModeManager.push(MODE_PLAYER, function() {
                 PlayerView.setSourceType(TYPE_MIX);
                 PlayerView.dataSource = dataArray;
