@@ -1,4 +1,4 @@
-/* global AlbumArt, asyncStorage, Database, ImageUtils, LazyLoader */
+/* global AlbumArt, asyncStorage, ImageUtils, LazyLoader, musicdb */
 /* exported AlbumArtCache */
 'use strict';
 
@@ -311,13 +311,21 @@ var AlbumArtCache = (function() {
    * @return {Promise} A promise returning the audio track's Blob.
    */
   function getSongBlob(fileinfo) {
-    if (fileinfo.blob) {
-      // This can happen for the open activity.
-      return Promise.resolve(fileinfo.blob);
-    } else {
-      // This is the normal case.
-      return Database.getFile(fileinfo.name);
-    }
+    return new Promise(function(resolve, reject) {
+      if (fileinfo.blob) {
+        // This can happen for the open activity.
+        resolve(fileinfo.blob);
+      } else {
+        // This is the normal case.
+        musicdb.getFile(fileinfo.name, function(file) {
+          if (file) {
+            resolve(file);
+          } else {
+            reject('unable to get file: ' + fileinfo.name);
+          }
+        });
+      }
+    });
   }
 
   /**

@@ -1,7 +1,9 @@
 /* exported ListView */
-/* global App, createListElement, Database, IDBKeyRange, ModeManager,
-          MODE_PLAYER, MODE_SUBLIST, MODE_SEARCH_FROM_LIST, PlayerView,
-          SearchView, SubListView, TabBar, TYPE_MIX, TYPE_SINGLE */
+/* global musicdb, App,
+          createListElement, TabBar, ModeManager,
+          MODE_PLAYER, PlayerView, TYPE_MIX, TYPE_SINGLE, IDBKeyRange,
+          SubListView,
+          MODE_SUBLIST, SearchView, MODE_SEARCH_FROM_LIST */
 'use strict';
 
 // Assuming the ListView will prepare 5 pages for batch loading.
@@ -64,7 +66,7 @@ var ListView = {
   cancelEnumeration: function lv_cancelEnumeration() {
     // Cancel a pending enumeration before start a new one
     if (this.handle) {
-      Database.cancelEnumeration(this.handle);
+      musicdb.cancelEnumeration(this.handle);
     }
   },
 
@@ -108,13 +110,13 @@ var ListView = {
     // Choose one of the indexes to get the count and it should be the
     // correct count because failed records don't contain metadata, so
     // here we just pick the album, artist or title as indexes.
-    Database.count('metadata.' + info.option, null, function(count) {
+    musicdb.count('metadata.' + info.option, null, function(count) {
       this.clean();
       this.info = info;
       // Keep the count with the info for later use in PlayerView.
       this.info.count = count;
 
-      this.handle = Database.enumerate(info.key, info.range, info.direction,
+      this.handle = musicdb.enumerate(info.key, info.range, info.direction,
         function(record) {
           if (record) {
             // Check if music is in picker mode because we don't to allow the
@@ -199,17 +201,18 @@ var ListView = {
         var info = this.info;
         var index = this.lastDataIndex + 1;
 
-        this.handle = Database.advancedEnumerate(
-          info.key, info.range, info.direction, index, function(record) {
-            if (record) {
-              this.dataSource[index] = record;
-              this.lastDataIndex = index;
-              index++;
-            } else {
-              this.lastDataIndex = -1;
-            }
-          }.bind(this)
-        );
+        this.handle =
+          musicdb.advancedEnumerate(info.key, info.range, info.direction, index,
+            function(record) {
+              if (record) {
+                this.dataSource[index] = record;
+                this.lastDataIndex = index;
+                index++;
+              } else {
+                this.lastDataIndex = -1;
+              }
+            }.bind(this)
+          );
       }
     }
   },
@@ -290,7 +293,7 @@ var ListView = {
     ModeManager.push(MODE_PLAYER, function() {
       PlayerView.clean();
 
-      Database.count('metadata.title', null, function(count) {
+      musicdb.count('metadata.title', null, function(count) {
         var info = {
           key: 'metadata.title',
           range: null,
