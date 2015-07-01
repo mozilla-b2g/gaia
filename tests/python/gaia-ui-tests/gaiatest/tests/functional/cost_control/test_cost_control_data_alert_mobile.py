@@ -7,6 +7,7 @@ from marionette_driver import By, Wait
 from gaiatest import GaiaTestCase
 from gaiatest.apps.search.app import Search
 from gaiatest.apps.cost_control.app import CostControl
+from gaiatest.apps.system.app import System
 
 
 class TestCostControlDataAlertMobile(GaiaTestCase):
@@ -34,8 +35,8 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
 
         settings = cost_control.tap_settings()
         settings.toggle_data_alert_switch(True)
-        settings.select_when_use_is_above_unit_and_value(u'MB', '0.1')
         settings.reset_mobile_usage()
+        settings.select_when_use_is_above_unit_and_value(u'MB', '0.1')
         settings.tap_done()
         self.assertTrue(cost_control.is_mobile_data_tracking_on)
 
@@ -49,10 +50,9 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         Wait(self.marionette, timeout=60).until(lambda m: "sample_png_02.png" in m.title)
         browser.switch_to_chrome()
 
-        # get the notification bar
-        self.device.touch_home_button()
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script("window.wrappedJSObject.UtilityTray.show()")
+        system = System(self.marionette)
+        utility_tray = system.open_utility_tray()
+        utility_tray.wait_for_notification_container_displayed()
 
         # switch to cost control widget
         usage_iframe = self.marionette.find_element(*self._cost_control_widget_locator)
@@ -64,3 +64,11 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         usage_view = self.marionette.find_element(*self._data_usage_view_locator)
         Wait(self.marionette, timeout=40).until(lambda m: 'reached-limit' in usage_view.get_attribute('class'),
              message='Data usage bar did not breach limit')
+        usage_view.tap()
+
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == cost_control.name)
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)
