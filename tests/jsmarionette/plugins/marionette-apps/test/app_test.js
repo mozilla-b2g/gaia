@@ -1,5 +1,4 @@
 'use strict';
-var BootWatcher = require('../lib/bootwatcher');
 var assert = require('assert');
 
 marionette('App', function() {
@@ -31,8 +30,6 @@ marionette('App', function() {
     });
 
     test('should launch the appropriate app', function(done) {
-      this.timeout(BootWatcher.WAIT_TIME);
-
       /**
        * @param {string} app src for app.
        */
@@ -40,13 +37,13 @@ marionette('App', function() {
         var selector = 'iframe[src="' + app + '"]';
 
         if (client.isSync) {
-          client.setSearchTimeout(BootWatcher.WAIT_TIME);
+          client.setSearchTimeout(10000);
           var result = client.findElement(selector);
           assert.notEqual(result.id, undefined);
           done();
         } else {
           client
-            .setSearchTimeout(BootWatcher.WAIT_TIME)
+            .setSearchTimeout(10000)
             .findElement(selector, function(err, result) {
               assert.notEqual(result.id, undefined);
               done();

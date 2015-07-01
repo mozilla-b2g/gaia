@@ -5,7 +5,6 @@
  */
 var EventEmitter = require('events').EventEmitter;
 
-
 /**
  * @constructor
  * @param {Marionette.Client} client Marionette client to use.
@@ -15,7 +14,6 @@ function BootWatcher(client) {
   this._client = client;
 }
 module.exports = BootWatcher;
-
 
 /**
  * Initialize the BootWatcher plugin!
@@ -31,37 +29,31 @@ BootWatcher.setup = function(client, options, cb) {
     options = undefined;
   }
 
-
-  // wait until client is booted up
-  if (cb) {
-    bootwatcher.once(
-      BootWatcher.EventType.BOOT, cb.bind(null, null, bootwatcher)
-    );
-  }
-
-  bootwatcher.start();
+  process.nextTick(function() {
+    // wait until client is booted up
+    try {
+      bootwatcher.start();
+    } catch (error) {
+      console.error('Never saw webapps-registry-ready yes');
+    } finally {
+      bootwatcher.emit('boot');
+      if (cb) {
+        cb(null, bootwatcher);
+      }
+    }
+  });
 
   return bootwatcher;
 };
 
-
-/**
- * The maximum amount of time we'll wait for startup.
- * @const {number}
- */
-BootWatcher.WAIT_TIME = 50000;
-
-
 BootWatcher.prototype = {
   __proto__: EventEmitter.prototype,
-
 
   /**
    * @type {Marionette.Client}
    * @private
    */
   _client: undefined,
-
 
   /**
    * Start watching for when we're booted.
@@ -71,7 +63,7 @@ BootWatcher.prototype = {
    * an error may be thrown while we're executing. In that case, retry.
    */
   start: function() {
-    var client = this._client.scope({ scriptTimeout: BootWatcher.WAIT_TIME });
+    var client = this._client;
     client.waitFor(function() {
       return client.executeScript(function() {
         try {
@@ -81,17 +73,7 @@ BootWatcher.prototype = {
         } catch (error) {
           return false;
         }
-      }, { timeout: BootWatcher.WAIT_TIME });
-    });
-
-    this.emit(BootWatcher.EventType.BOOT);
+      });
+    }, { timeout: 5000 });
   }
-};
-
-
-/**
- * @enum {string}
- */
-BootWatcher.EventType = {
-  BOOT: 'boot'
 };
