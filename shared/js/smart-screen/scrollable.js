@@ -528,6 +528,18 @@
       return this._isReversed;
     },
 
+    get allItems() {
+      var that = this;
+      var items = [];
+      this.nodes.forEach(function(node) {
+        var item = that.getItemFromNode(node);
+        if (item) {
+          items.push(item);
+        }
+      });
+      return items;
+    },
+
     _setOtherNodesPosition: function(skipIdx) {
       this.nodes.forEach(function(node, idx) {
         if (idx != skipIdx) {
