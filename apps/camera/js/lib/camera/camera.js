@@ -238,7 +238,7 @@ Camera.prototype.requestCamera = function(camera, config) {
   function onError(err) {
     debug('error requesting camera', err);
 
-    if (err === 'HardwareClosed' && attempts) {
+    if (err.name === 'NS_ERROR_NOT_INITIALIZED' && attempts) {
       self.cameraRequestTimeout = setTimeout(request, 1000);
       return;
     }
@@ -766,7 +766,7 @@ Camera.prototype.takePicture = function(options) {
 
     // if taking a picture fails because there's
     // already a picture being taken we ignore it.
-    if (error === 'TakePictureAlreadyInProgress') {
+    if (error.name === 'NS_ERROR_IN_PROGRESS') {
       complete();
     } else {
       alert(title + '. ' + text);
