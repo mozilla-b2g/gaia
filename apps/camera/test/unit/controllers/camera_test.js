@@ -473,6 +473,7 @@ suite('controllers/camera', function() {
 
   suite('CameraController#capture()', function() {
     setup(function() {
+      this.controller.galleryOpen = false;
       this.controller.lowBattery = false;
     });
 
@@ -512,6 +513,16 @@ suite('controllers/camera', function() {
       this.app.geolocation.position = 123;
       this.controller.capture();
       assert.ok(this.app.camera.capture.args[0][0].position === 123);
+    });
+
+    test('Should return false if low battery', function() {
+      this.controller.lowBattery = true;
+      assert.ok(this.controller.capture() === false);
+    });
+
+    test('Should return false if gallery open', function() {
+      this.controller.galleryOpen = true;
+      assert.ok(this.controller.capture() === false);
     });
   });
 

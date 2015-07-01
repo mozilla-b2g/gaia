@@ -198,7 +198,7 @@ CameraController.prototype.onPickActivity = function(data) {
  */
 CameraController.prototype.capture = function() {
   if (this.lowBattery || this.galleryOpen || this.app.hidden) {
-    return;
+    return false;
   }
 
   if (this.shouldCountdown()) {
