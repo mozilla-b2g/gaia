@@ -110,7 +110,12 @@ var GaiaDataLayer = {
     var iccId = window.navigator.mozIccManager.iccIds[0];
     var icc = window.navigator.mozIccManager.getIccById(iccId);
 
-    var req = icc.updateContact(aType, aContact);
+    var simContact = new window.mozContact(aContact);
+    if ('id' in aContact) {
+      simContact.id = aContact.id;
+    }
+
+    var req = icc.updateContact(aType, simContact);
     req.onsuccess = function() {
       console.log('success saving contact to SIM');
       marionetteScriptFinished(req.result);

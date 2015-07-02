@@ -83,7 +83,7 @@ define(function() {
      * @param {String} action
      * @param {Number} options.cardIndex
      * @param {Object} options.contact
-     * @return {Object}
+     * @return {mozContact}
      */
     createAction: function(action, options) {
       var simContact = {};
@@ -109,7 +109,13 @@ define(function() {
           simContact.tel[0].value = '';
           break;
       }
-      return simContact;
+
+      var result = new window.mozContact(simContact);
+      if ('id' in simContact) {
+        result.id = simContact.id;
+      }
+
+      return result;
     }
   };
 
