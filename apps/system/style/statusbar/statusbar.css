@@ -20,6 +20,10 @@
   pointer-events: none;
 }
 
+#statusbar:not(.maximized) #statusbar-maximized {
+  width: 50%;
+}
+
 .statusbar > div,
 .statusbar > img {
   pointer-events: auto;
@@ -30,17 +34,7 @@
   visibility: hidden;
 }
 
-#statusbar-minimized-wrapper {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#screen:not(.cards-view) #statusbar.maximized:not(.fullscreen):not(.fullscreen-layout) #statusbar-maximized-wrapper {
-  opacity: 1;
-  visibility: visible;
-}
-
-#screen:not(.cards-view) #statusbar:not(.maximized):not(.fullscreen):not(.fullscreen-layout) #statusbar-minimized-wrapper {
+#screen:not(.cards-view) #statusbar #statusbar-maximized-wrapper {
   opacity: 1;
   visibility: visible;
 }
@@ -59,15 +53,9 @@
   filter: none;
 }
 
-#screen.locked #statusbar-maximized-wrapper,
-#screen:not(.locked).minimized-tray #statusbar-minimized-wrapper {
+#screen.locked #statusbar-maximized-wrapper {
   opacity: 1;
   visibility: visible;
-}
-
-#screen:not(.locked).utility-tray #statusbar-minimized-wrapper {
-  opacity: 0;
-  visibility: hidden;
 }
 
 #screen.cards-view #statusbar {
@@ -114,7 +102,7 @@ body #statusbar {
 
 .statusbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   position: absolute;
   width: 100%;
   height: var(--statusbar-height);
@@ -125,15 +113,8 @@ body #statusbar {
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
-}
-
-#statusbar-minimized {
-  width: 100%;
-  padding-top: 0;
-  padding-bottom: 0;
-  -moz-padding-start: 0;
-  -moz-padding-end: 0.3rem;
-  box-sizing: border-box;
+  flex-wrap: wrap;
+  flex-direction: row-reverse;
 }
 
 .statusbar > * {
@@ -535,7 +516,7 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -28rem -6rem;
 }
 
-.sb-icon-emergency-cb-notification {
+.sb-icon-emergency-callback {
   background-position: -24rem -8rem;
 }
 
