@@ -18,6 +18,8 @@ module.exports = function(profiles, options) {
   var formatted = [];
   var pixelSize;
   var profile;
+  var option;
+  var defaultOption;
   var video;
 
   for (var key in profiles) {
@@ -35,15 +37,24 @@ module.exports = function(profiles, options) {
 
     pixelSize = video.width * video.height;
 
-    formatted.push({
+    option = {
       key: key,
       title: key + ' ' + video.width + 'x' + video.height,
       pixelSize: pixelSize,
       raw: profile
-    });
+    };
+    if (key === 'default') {
+      defaultOption = option;
+    } else {
+      formatted.push(option);
+    }
   }
 
+  // Sort from largest to small but put the default/preferred profile first
   formatted.sort(function(a, b) { return b.pixelSize - a.pixelSize; });
+  if (defaultOption) {
+    formatted.unshift(defaultOption);
+  }
   return formatted;
 };
 

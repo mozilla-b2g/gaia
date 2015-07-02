@@ -218,7 +218,6 @@ module.exports = {
     header: 'video-resolution-header',
     icon: 'video-size',
     options: [],
-    exclude: ['high', '1080p', '4kuhd'],
     persistent: true,
     optionsLocalizable: false,
   },
