@@ -61,7 +61,7 @@ suite('Views.MonthDay', function() {
     // Test disabled: https://bugzilla.mozilla.org/show_bug.cgi?id=1179085
     test('future-other-month', function() {
       var future = new Date();
-      future.setFullYear(future.getFullYear() + 1);
+      future.setFullYear(future.getFullYear() + 2);
       subject.date = future;
       subject.create();
       assert.include(
