@@ -12,7 +12,6 @@ Services.obs.addObserver(function(document) {
   var window = document.defaultView;
 
   Object.defineProperty(window.wrappedJSObject, 'MockIccInfo', {
-    configurable: false,
     writable: true,
     value: Components.utils.cloneInto({
       mcc: '724',

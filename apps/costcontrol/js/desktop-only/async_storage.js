@@ -16,8 +16,6 @@
   }
 
   Object.defineProperty(exports, 'asyncStorage', {
-    // Marking as non-configurable to not be overridden by real asyncStorage
-    configurable: false,
     value: {
       getItem: function asm_getItem(key, callback) {
         if (isParentAsyncStorageAvailable()) {
