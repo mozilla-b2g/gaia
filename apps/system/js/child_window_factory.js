@@ -81,6 +81,8 @@
       var caught = false;
       switch (evt.detail.features) {
         case 'dialog':
+        case 'z-lock':
+        case 'alwaysLowered':
           // Only open popupWindow by app/http/https prefix
           if (/^(app|http|https):\/\//i.test(evt.detail.url)) {
             caught = this.createPopupWindow(evt);
@@ -123,12 +125,15 @@
           this.app.frontWindow.isActive())) {
       return false;
     }
+    var stayBackground =
+      ['alwaysLowered', 'z-lock'].indexOf(evt.detail.features) >= 0;
     var configObject = {
       url: evt.detail.url,
       name: this.app.name,
       iframe: evt.detail.frameElement,
       origin: this.app.origin,
-      rearWindow: this.app
+      rearWindow: this.app,
+      stayBackground: stayBackground
     };
     var childWindow = new PopupWindow(configObject);
     childWindow.element.addEventListener('_closing', this);
