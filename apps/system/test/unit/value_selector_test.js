@@ -92,6 +92,21 @@ suite('value selector/value selector', function() {
     assert.isDefined(vs.instanceID);
   });
 
+  test('prevent blur race', function() {
+    rafStub.restore();
+    this.sinon.stub(window, 'requestAnimationFrame');
+
+    vs.handleEvent(fakeDateInputMethodContextChangeEvent);
+
+    window.requestAnimationFrame.yield();
+
+    vs.handleEvent(fakeBlurInputMethodContextChangeEvent);
+
+    window.requestAnimationFrame.yield();
+
+    assert.isTrue(vs.element.hidden, 'Should not show after blur event.');
+  });
+
   test('Time Picker (en-US)', function() {
     var stubPublish = this.sinon.stub(vs, 'publish');
     stubMozl10nGet =
