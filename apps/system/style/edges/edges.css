@@ -1,3 +1,7 @@
+.gesture-panel {
+  pointer-events: all;
+}
+
 #screen.dialog #left-panel,
 #screen.dialog #right-panel,
 #screen.screenreader .gesture-panel,
