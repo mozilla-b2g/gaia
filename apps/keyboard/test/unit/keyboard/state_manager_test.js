@@ -129,7 +129,11 @@ suite('StateManager', function() {
         value = task(value);
       });
 
+      assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledOnce);
       assert.isTrue(app.inputMethodManager.updateInputContextData.calledOnce);
+      assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledBefore(
+        app.inputMethodManager.updateInputContextData),
+        'Engine deactivates before updateInputContextData.');
 
       assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
       assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
@@ -142,9 +146,9 @@ suite('StateManager', function() {
       assert.isTrue(app.upperCaseStateManager.reset.calledOnce);
       assert.isTrue(app.candidatePanelManager.reset.calledOnce);
       assert.isTrue(
-        app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
+        app.inputMethodManager.activateIMEngine.calledWith('bar'));
       assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
-        app.inputMethodManager.switchCurrentIMEngine),
+        app.inputMethodManager.activateIMEngine),
         'Reset the state before engine activates.');
 
       assert.isTrue(
@@ -183,9 +187,9 @@ suite('StateManager', function() {
 
       assert.isTrue(app.upperCaseStateManager.reset.calledTwice);
       assert.isTrue(
-        app.inputMethodManager.switchCurrentIMEngine.calledWith('bar2'));
+        app.inputMethodManager.activateIMEngine.calledWith('bar2'));
       assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
-        app.inputMethodManager.switchCurrentIMEngine),
+        app.inputMethodManager.activateIMEngine),
         'Reset the state before engine activates.');
 
       assert.isTrue(
@@ -217,8 +221,7 @@ suite('StateManager', function() {
           .activeTargetsManager.clearAllTargets.calledOnce);
         assert.isTrue(app.feedbackManager.deactivate.calledOnce);
 
-        assert.isTrue(app.inputMethodManager.switchCurrentIMEngine
-          .getCall(1).calledWith('default'));
+        assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledTwice);
 
         // trigger visibilitychange (after inputcontextchange)
 
@@ -342,7 +345,11 @@ suite('StateManager', function() {
             value = task(value);
           });
 
+        assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledOnce);
         assert.isTrue(app.inputMethodManager.updateInputContextData.calledOnce);
+        assert.isTrue(app.inputMethodManager.deactivateIMEngine.calledBefore(
+          app.inputMethodManager.updateInputContextData),
+          'Engine deactivates before updateInputContextData.');
 
         assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
         assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
@@ -354,9 +361,9 @@ suite('StateManager', function() {
 
         assert.isTrue(app.upperCaseStateManager.reset.calledOnce);
         assert.isTrue(
-          app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
+          app.inputMethodManager.activateIMEngine.calledWith('bar'));
         assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
-          app.inputMethodManager.switchCurrentIMEngine),
+          app.inputMethodManager.activateIMEngine),
           'Reset the state before engine activates.');
 
         assert.isTrue(

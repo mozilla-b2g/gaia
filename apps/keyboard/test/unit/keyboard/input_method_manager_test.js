@@ -440,7 +440,7 @@ suite('InputMethodManager', function() {
     assert.isTrue(!!manager.currentIMEngine, 'started with default IMEngine.');
   });
 
-  test('switchCurrentIMEngine', function(done) {
+  test('activateIMEngine', function(done) {
     app.inputContext.getText.returns(Promise.resolve('foobar'));
 
     manager.updateInputContextData();
@@ -450,7 +450,7 @@ suite('InputMethodManager', function() {
     assert.isTrue(app.inputContext.getText.calledTwice,
       'Should getText() twice when calling updateInputContextData again.');
 
-    var p = manager.switchCurrentIMEngine('foo');
+    var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
       var imEngine = manager.loader.getInputMethod('foo');
@@ -479,7 +479,7 @@ suite('InputMethodManager', function() {
     }).then(done, done);
   });
 
-  test('switchCurrentIMEngine, autoCorrectPunctuation false', function(done) {
+  test('activateIMEngine, autoCorrectPunctuation false', function(done) {
     initSettingsPromise = Promise.resolve({
       suggestionsEnabled: true,
       correctionsEnabled: true
@@ -490,7 +490,12 @@ suite('InputMethodManager', function() {
       autoCorrectPunctuation: false
     };
 
-    var p = manager.switchCurrentIMEngine('foo');
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
+    var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
       var imEngine = manager.loader.getInputMethod('foo');
@@ -509,13 +514,13 @@ suite('InputMethodManager', function() {
     }).then(done, done);
   });
 
-  test('switchCurrentIMEngine (failed loader)', function(done) {
+  test('activateIMEngine (failed loader)', function(done) {
     app.inputContext.getText.returns(Promise.resolve('foobar'));
 
     manager.updateInputContextData();
     assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var p = manager.switchCurrentIMEngine('bar');
+    var p = manager.activateIMEngine('bar');
     p.then(function() {
       assert.isTrue(false, 'should not resolve');
     }, function() {
@@ -523,13 +528,13 @@ suite('InputMethodManager', function() {
     }).then(done, done);
   });
 
-  test('switchCurrentIMEngine (failed getText())', function(done) {
+  test('activateIMEngine (failed getText())', function(done) {
     app.inputContext.getText.returns(Promise.reject());
 
     manager.updateInputContextData();
     assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var p = manager.switchCurrentIMEngine('foo');
+    var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
       var imEngine = manager.loader.getInputMethod('foo');
@@ -557,13 +562,13 @@ suite('InputMethodManager', function() {
     }).then(done, done);
   });
 
-  test('switchCurrentIMEngine (reload after loaded)', function(done) {
+  test('activateIMEngine (deactivate and reload after loaded)', function(done) {
     app.inputContext.getText.returns(Promise.resolve('foobar'));
 
     manager.updateInputContextData();
     assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var p = manager.switchCurrentIMEngine('foo');
+    var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
       var imEngine = manager.loader.getInputMethod('foo');
@@ -587,12 +592,16 @@ suite('InputMethodManager', function() {
 
       manager.updateInputContextData();
 
-      var p2 = manager.switchCurrentIMEngine('foo');
+      manager.deactivateIMEngine();
 
       var deactivateStub = imEngine.deactivate;
-      assert.isTrue(deactivateStub.calledOnce);
+      assert.isTrue(deactivateStub.calledOnce,
+        'deactivate should be called at ' +
+        'InputMethodManager#deactivateIMEngine()');
       assert.equal(deactivateStub.getCall(0).thisValue,
         imEngine);
+
+      var p2 = manager.activateIMEngine('foo');
 
       assert.equal(manager.currentIMEngine,
         manager.loader.getInputMethod('default'),
@@ -637,7 +646,7 @@ suite('InputMethodManager', function() {
   test('selectionchange', function(done) {
     app.inputContext.getText.returns(Promise.resolve('foobar'));
     manager.updateInputContextData();
-    var p = manager.switchCurrentIMEngine('foo');
+    var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(app.inputContext.addEventListener.calledTwice);
 
@@ -665,7 +674,7 @@ suite('InputMethodManager', function() {
   test('surroundingtextchange', function(done) {
     app.inputContext.getText.returns(Promise.resolve('foobar'));
     manager.updateInputContextData();
-    var p = manager.switchCurrentIMEngine('foo');
+    var p = manager.activateIMEngine('foo');
     p.then(function() {
       assert.isTrue(app.inputContext.addEventListener.calledTwice);
 
