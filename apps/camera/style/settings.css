@@ -163,7 +163,7 @@
  *    we show ellipsis and prevent line wrapping
  */
 .settings_title {
-  padding: 0 1.5rem;
+  padding: 0 1.5rem 0 3rem;
   font-size: 2.4rem;
   font-weight: 300;
   font-style: italic;
