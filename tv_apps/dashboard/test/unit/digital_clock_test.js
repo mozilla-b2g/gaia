@@ -75,7 +75,6 @@ suite('DigitalClock', function() {
   test('Should clear timers after the clock is stopped', function() {
     digitalClock.stop();
     assert.isNull(digitalClock.timeoutId);
-    assert.isNull(digitalClock.intervalId);
   });
 
   test('Should update date and time after the clock starts', function() {
