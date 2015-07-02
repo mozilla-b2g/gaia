@@ -65,6 +65,8 @@ AppInstall.prototype = {
     options = options || { allowInstall: true };
     if (options.allowInstall) {
       this.waitForDialog(this.installDialog);
+      // Wait for the install button visible both to user and the screen reader.
+      this.client.helper.waitForElement(this.installButton);
       // Click install button on the app install dialog
       this.installButton.click();
     }
