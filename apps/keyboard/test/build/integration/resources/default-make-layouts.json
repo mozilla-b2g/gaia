@@ -151,6 +151,21 @@
     "dictFilePath": "dictionaries/cs.dict"
   },
   {
+    "id": "cy",
+    "name": "Cymraeg",
+    "imEngineId": "latin",
+    "types": [
+      "email",
+      "password",
+      "text",
+      "url"
+    ],
+    "dictFileSize": 933192,
+    "preloaded": false,
+    "dictFilename": "cy.dict",
+    "dictFilePath": "dictionaries/cy.dict"
+  },
+  {
     "id": "da",
     "name": "Dansk",
     "imEngineId": "latin",
