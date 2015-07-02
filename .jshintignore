@@ -59,6 +59,7 @@ apps/bluetooth/js/vendor/alameda.js
 apps/bluetooth/js/settings.js
 tv_apps/app-deck/bower_components/**
 tv_apps/dashboard/bower_components/**
+tv_apps/device-deck/bower_components/**
 tv_apps/fling-player/bower_components/**
 tv_apps/notification-sender/bower_components/**
 tv_apps/smart-home/bower_components/**
