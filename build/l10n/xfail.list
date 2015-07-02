@@ -185,7 +185,6 @@ shared/js/lazy_l10n.js
 shared/js/media/media_frame.js
 shared/js/media/media_utils.js
 shared/js/media/video_player.js
-shared/js/notification_helper.js
 shared/js/stk_helper.js
 shared/js/tz_select.js
 shared/pages/import/js/curtain.js
