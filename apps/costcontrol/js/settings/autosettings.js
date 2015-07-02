@@ -121,7 +121,7 @@ var AutoSettings = (function() {
       );
 
       // Add an event listener to switch the option
-      guiWidget.addEventListener('click', function ccapp_onSwitchChange() {
+      guiWidget.addEventListener('change', function ccapp_onSwitchChange() {
         settings.option(optionName, guiWidget.checked);
       });
     },
@@ -209,7 +209,8 @@ var AutoSettings = (function() {
         return 'customselect';
       }
 
-      if (widget.type === 'checkbox') {
+      if (widget.type === 'checkbox' ||
+          widget.nodeName.toLowerCase() === 'gaia-switch') {
         return 'switch';
       }
 

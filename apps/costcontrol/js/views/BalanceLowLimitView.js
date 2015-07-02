@@ -6,7 +6,7 @@ function BalanceLowLimitView(lowLimitEnabler, lowLimitInput) {
 
   self._lowLimitEnabler = lowLimitEnabler;
   self._lowLimitInput = lowLimitInput;
-  self._lowLimitEnabler.addEventListener('click', self);
+  self._lowLimitEnabler.addEventListener('change', self);
   self._lowLimitInput.addEventListener('input', self);
   installProperties();
   self.validate();
