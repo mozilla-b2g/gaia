@@ -4,6 +4,7 @@
     "apps/calendar/test/marionette/caldav_test.js": "Bug 972631 - CalDAV setup causing tbpl timeouts",
     "apps/calendar/test/marionette/day_view_test.js": "Bug 1076716 - TEST-UNEXPECTED-FAIL | day view before each hook",
     "apps/calendar/test/marionette/server_test.js": "",
+    "apps/calendar/test/marionette/month_view_test.js": "Bug 1179906 - Perma-fail month_view_test.js | month view should show event dots",
     "apps/calendar/test/marionette/week_view_test.js": "Bug 1060447 - Re-enable week_view_test.js",
     "apps/camera/test/marionette/capture_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/hud_test.js": "device only - missing desktop shims",
