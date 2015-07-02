@@ -375,13 +375,9 @@ var ActivityHandler = {
         }
 
         return Contacts.findByAddress(message.sender).then(function(contacts) {
-          var sender = message.sender;
-          if (!contacts) {
-            console.error('We got a null contacts for sender:', sender);
-          } else if (contacts.length && contacts[0].name &&
-            contacts[0].name.length && contacts[0].name[0]) {
-            sender = contacts[0].name[0];
-          }
+          var sender = contacts.length && contacts[0].name &&
+            contacts[0].name.length && contacts[0].name[0] ||
+            message.sender;
 
           var titlePromise = message.type === 'sms' ?
             Promise.resolve(message.body || '') : getTitleFromMms();

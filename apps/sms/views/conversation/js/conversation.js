@@ -666,7 +666,7 @@ var ConversationView = {
     if (params.number) {
       parametersPromise = Contacts.findByAddress(params.number).then(
       (contacts) => {
-        if (!contacts || !contacts.length) {
+        if (!contacts.length) {
           throw new Error('No contacts found for %s', params.number);
         }
 
@@ -1061,7 +1061,7 @@ var ConversationView = {
   showNewMessageNotice: function conv_showNewMessageNotice(message) {
     Contacts.findByPhoneNumber(message.sender).then((contacts) => {
       var sender = message.sender;
-      if (contacts && contacts.length) {
+      if (contacts.length) {
         var details = Utils.getContactDetails(sender, contacts[0]);
         sender = details.title || sender;
         // Get the first name
@@ -1345,8 +1345,7 @@ var ConversationView = {
 
     // The carrier banner is meaningless and confusing in
     // group message mode.
-    if (thread.participants.length === 1 &&
-        (contacts && contacts.length)) {
+    if (thread.participants.length === 1 && contacts.length) {
 
       address = Settings.supportEmailRecipient && Utils.isEmailAddress(number) ?
                 contacts[0].email : contacts[0].tel;
@@ -2551,7 +2550,7 @@ var ConversationView = {
       // that was actually a "delete" that removed the last
       // character in the recipient input field,
       // eg. type "a", then delete it.
-      return Promise.resolve(null);
+      return Promise.resolve([]);
     }
 
     return Contacts.findByString(fValue);
@@ -2577,7 +2576,7 @@ var ConversationView = {
     // If there is greater than zero matches,
     // process the first found contact into
     // an accepted Recipient.
-    if (contacts && contacts.length) {
+    if (contacts.length) {
       isInvalid = false;
       record = contacts[0];
       var values = props.reduce((values, prop) => {
@@ -2676,7 +2675,7 @@ var ConversationView = {
       return;
     }
 
-    if (!contacts || !contacts.length) {
+    if (!contacts.length) {
       return;
     }
 
@@ -2757,7 +2756,7 @@ var ConversationView = {
     }
 
     Contacts.findByAddress(number).then(function(contacts) {
-      var isContact = contacts && contacts.length;
+      var isContact = contacts.length;
       var contact = contacts[0];
       var id;
 

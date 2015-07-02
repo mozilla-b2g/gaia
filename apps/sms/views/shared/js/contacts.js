@@ -115,9 +115,7 @@
          *    result a no-op.
          *
          */
-        return Promise.resolve(
-          filter.filterValue === undefined ? null : []
-        );
+        return Promise.resolve([]);
       }
 
       /**
@@ -201,7 +199,7 @@
         return results;
       }).catch((e) => {
         console.error('Got an error while looking up contacts.', e.name, e);
-        return null;
+        return [];
       });
     },
 
@@ -252,7 +250,7 @@
         filterOp: 'contains',
         filterValue: filterValue
       }).then((contacts) => {
-        var contact = contacts && contacts.length ? contacts[0] : null;
+        var contact = contacts.length ? contacts[0] : null;
         var criteria = {
           fields: ['name'],
           terms: [filterValue]
@@ -273,7 +271,7 @@
         filterOp: 'match',
         filterValue: filterValue.replace(/\s+/g, '')
       }).then((contacts) => {
-        if (contacts && contacts.length) {
+        if (contacts.length) {
           return contacts;
         }
 

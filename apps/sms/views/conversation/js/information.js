@@ -450,9 +450,7 @@ Information.prototype = {
           return;
         }
 
-        var isContact = contacts !== null && !!contacts.length;
-
-        if (isContact) {
+        if (contacts.length > 0) {
           renderer.render({
             contact: contacts[0],
             input: number,

@@ -784,12 +784,10 @@ suite('Contacts', function(done) {
   });
 
   suite('Contacts.findBy (error)', function() {
-    // This test will print:
-    // "Contact finding error. Error: Mock missing filter params"
-    // to the console
     test('({}, ...)', function(done) {
       Contacts.findBy({}).then(function(contacts) {
-        assert.equal(contacts, null);
+        assert.isTrue(Array.isArray(contacts));
+        assert.equal(contacts.length, 0);
       }).then(done, done);
     });
   });
