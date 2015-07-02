@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Utils, MessageManager, Compose, NotificationHelper,
-         Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
+         Attachment, Notify, SilentSms, SMIL, Contacts,
          ConversationView, Settings, Navigation,
          ActivityClient,
          ActivityShim,
@@ -353,7 +353,8 @@ var ActivityHandler = {
 
             // Close notification if we are already in thread view and view
             // become visible.
-            if (document.hidden && threadId === Threads.currentId) {
+            if (document.hidden &&
+                Navigation.isCurrentPanel('thread', { id: threadId })) {
               document.addEventListener('visibilitychange',
                 function onVisible() {
                   document.removeEventListener('visibilitychange', onVisible);

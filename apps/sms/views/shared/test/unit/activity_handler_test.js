@@ -493,7 +493,6 @@ suite('ActivityHandler', function() {
 
       test('thread view already visible', function() {
         isDocumentHidden = false;
-        this.sinon.stub(Threads, 'currentId', message.threadId);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
         sinon.assert.notCalled(notificationStub.addEventListener);
         sinon.assert.notCalled(notificationStub.close);
@@ -508,7 +507,8 @@ suite('ActivityHandler', function() {
 
       test('In target thread view and view is hidden', function(done) {
         isDocumentHidden = true;
-        this.sinon.stub(Threads, 'currentId', message.threadId);
+        this.sinon.stub(Navigation, 'isCurrentPanel')
+          .withArgs('thread', {id: message.threadId}).returns(true);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess().then(() => {
           sinon.assert.called(document.addEventListener);

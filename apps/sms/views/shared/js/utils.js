@@ -4,8 +4,7 @@
 /* globals ContactPhotoHelper,
            Dialog,
            Notification,
-           Settings,
-           Threads
+           Settings
 */
 
 (function(exports) {
@@ -661,17 +660,14 @@
     isEmailAddress: function(email) {
       return rmail.test(email);
     },
-    /*
-      Helper function for removing notifications. It will fetch the notification
-      using the current threadId or the parameter if provided, and close them
-       from the returned list.
-    */
-    closeNotificationsForThread: function ut_closeNotificationsForThread(tid) {
-      var threadId = tid ? tid : Threads.currentId;
-      if (!threadId) {
-        return;
-      }
-
+    /**
+     * Helper function for removing notifications. It will fetch notification
+     * using threadId, and close them from the returned list.
+     * @param {String|Number} threadId of the target message.
+     * @returns {Promise.<undefined>} Return always successfully resolved
+     *  Promise with notification.close method called or console.error message.
+     */
+    closeNotificationsForThread: function(threadId) {
       var targetTag = 'threadId:' + threadId;
 
       return Notification.get({tag: targetTag})

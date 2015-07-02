@@ -1,6 +1,6 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockMozPhoneNumberService, MocksHelper,
-         MockNotification, Threads, MockSettings,
+         MockNotification, MockSettings,
          AssetsHelper, Settings, Dialog
 */
 
@@ -13,14 +13,12 @@ require('/views/shared/test/unit/mock_navigator_mozphonenumberservice.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/views/shared/js/utils.js');
 require('/shared/test/unit/mocks/mock_notification.js');
-require('/services/test/unit/mock_threads.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_dialog.js');
 
 var MocksHelperForUtilsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
   'Notification',
-  'Threads',
   'Settings',
   'Dialog'
 ]).init();
@@ -1073,15 +1071,6 @@ suite('Utils', function() {
       this.sinon.stub(Notification, 'get').returns(Promise.resolve([]));
       this.sinon.spy(console, 'error');
       closeStub = this.sinon.stub(MockNotification.prototype, 'close');
-    });
-
-    test('notification matched with no threadId given(current Id)',
-    function(done) {
-      Threads.currentId = 'currentId';
-      Utils.closeNotificationsForThread().then(function() {
-        sinon.assert.calledWith(Notification.get,
-          {tag : 'threadId:' + Threads.currentId});
-      }).then(done, done);
     });
 
     test('notification matched with specific threadId', function(done) {
