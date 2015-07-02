@@ -158,6 +158,39 @@ suite('system/AudioChannelService', function() {
         .withArgs(audioChannel).calledOnce);  
     });
 
+    suite('Foreground/background audio channel', function() {
+      setup(function() {
+        this.sinon.stub(audioChannel, 'isActive', function() {
+          return true;
+        });
+        this.sinon.spy(subject, 'publish');
+      });
+
+      test('In foreground', function() {
+        this.sinon.stub(subject, '_isAudioChannelInBackground', function() {
+          return false;
+        });
+        subject._manageAudioChannels(audioChannel);
+        var channel = { channel: 'content' };
+        assert.ok(subject.publish
+          .withArgs('visibleaudiochannelchanged', channel).calledOnce);
+        assert.ok(subject.publish
+          .withArgs('audiochannelchangedasactive', channel).calledOnce);
+      });
+
+      test('In background', function() {
+        this.sinon.stub(subject, '_isAudioChannelInBackground', function() {
+          return true;
+        });
+        subject._manageAudioChannels(audioChannel);
+        var channel = { channel: 'content' };
+        assert.ok(subject.publish
+          .withArgs('visibleaudiochannelchanged', channel).notCalled);
+        assert.ok(subject.publish
+          .withArgs('audiochannelchangedasactive', channel).calledOnce);
+      });
+    });
+
     test('Reset and resume audio channels', function() {
       var isActiveStub = this.sinon.stub(audioChannel, 'isActive', function() {
         return false;

@@ -28,7 +28,8 @@
       'apprequestforeground',
       'lockscreen-apprequestforeground',
       'secure-apprequestforeground',
-      'homescreenrequestforeground'
+      'homescreenrequestforeground',
+      'visibleaudiochannelchanged'
     ];
   };
 
@@ -121,6 +122,24 @@
           this.publish('hidewindow', { type: evt.type });
         }
         break;
+      case 'visibleaudiochannelchanged':
+        this._resetDeviceLockedTimer();
+
+        if (this._normalAudioChannelActive &&
+            evt.detail.channel !== 'normal' && Service.query('locked')) {
+          this._deviceLockedTimer = setTimeout(function setVisibility() {
+            if (window.Service.query('locked')) {
+              this.publish('hidewindow',
+                { screenshoting: false, type: evt.type });
+            }
+          }.bind(this), 3000);
+        }
+
+        this._normalAudioChannelActive = (evt.detail.channel === 'normal');
+        this.debug('Normal AudioChannel changes to ',
+          evt.detail.channel, this._normalAudioChannelActive);
+        break;
+      // TODO: Remove after Bug 1113086 is landed.
       case 'mozChromeEvent':
         if (evt.detail.type == 'visible-audio-channel-changed') {
           this._resetDeviceLockedTimer();
