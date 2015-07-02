@@ -29,14 +29,11 @@
     // an object -> {id: l10nId, args: l10nArgs}
     // an object -> {raw: string}
     send: function nh_send(titleL10n, options) {
-      return new Promise(function(resolve, reject) {
-        navigator.mozL10n.once(function() {
-          var title = getL10n(titleL10n);
-
-          if (options.bodyL10n) {
-            options.body = getL10n(options.bodyL10n);
+      return Promise.all([titleL10n, options.bodyL10n].map(getL10n)).then(
+        ([title, body]) => {
+          if (body) {
+            options.body = body;
           }
-
           options.dir = navigator.mozL10n.language.direction;
           options.lang = navigator.mozL10n.language.code;
 
@@ -49,19 +46,21 @@
             });
           }
 
-          resolve(notification);
+          return notification;
         });
-      });
     },
   };
 
   function getL10n(l10nAttrs) {
+    if (!l10nAttrs) {
+      return;
+    }
     if (typeof l10nAttrs === 'string') {
-      return navigator.mozL10n.get(l10nAttrs);
+      return navigator.mozL10n.formatValue(l10nAttrs);
     }
     if (l10nAttrs.raw) {
       return l10nAttrs.raw;
     }
-    return navigator.mozL10n.get(l10nAttrs.id, l10nAttrs.args);
+    return navigator.mozL10n.formatValue(l10nAttrs.id, l10nAttrs.args);
   }
 })(this);
