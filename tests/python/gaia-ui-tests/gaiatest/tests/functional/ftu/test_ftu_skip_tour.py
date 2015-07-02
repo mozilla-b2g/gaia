@@ -32,6 +32,7 @@ class TestFtu(GaiaTestCase):
         psk = self.testvars['wifi'].get('psk')
         keymanagement = self.testvars['wifi'].get('keyManagement')
         share_data_default = True
+        geolocation_default = True
 
         # Assume a SIM is present if we assigned a phone number
         # Don't trust internal API for this, since it's an external condition
@@ -80,11 +81,22 @@ class TestFtu(GaiaTestCase):
         # Verify Geolocation section appears
         self.ftu.tap_next_to_geolocation_section()
 
-        # Disable geolocation
-        self.ftu.disable_geolocation()
-        self.wait_for_condition(
-            lambda m: not self.data_layer.get_setting('geolocation.enabled'),
-            message='Geolocation was not disabled by the FTU app')
+        # Verify the "geolocation" option matches expected initial state
+        # There's a very small lag on this after the dialog appears.
+        Wait(self.marionette).until(
+            lambda m: self.ftu.is_geolocation_enabled == geolocation_default,
+            message="Geolocation state should match initial internal state")
+
+        # Verify that internal state matches UI state
+        self.assertEqual(self.data_layer.get_setting(
+            'geolocation.enabled'), self.ftu.is_geolocation_enabled,
+            msg='Geolocation internal state should match UI state')
+
+        # Toggle geolocation and verify that it also toggled internal state
+        self.ftu.toggle_geolocation()
+        self.assertEqual(self.data_layer.get_setting(
+            'geolocation.enabled'), not geolocation_default,
+            msg='Geolocation internal state should be changed by UI')
         self.ftu.tap_next_to_import_contacts_section()
 
         # If there's a SIM, try importing from it

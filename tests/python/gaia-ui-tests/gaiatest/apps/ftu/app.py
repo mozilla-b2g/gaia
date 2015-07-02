@@ -19,11 +19,11 @@ class Ftu(Base):
 
     # Step Languages section
     _section_languages_locator = (By.ID, 'languages')
-    _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current']")
-    _language_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current'][value='%s'] ~ p")
+    _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li")
+    _language_locator = (By.CSS_SELECTOR, "#languages ul li[data-value='%s']")
     _language_input_locator = (By.CSS_SELECTOR,
-                               "#languages ul li input[name='language.current'][value='%s']")
-    _selected_language_input_locator = (By.CSS_SELECTOR, "#languages ul li input:checked")
+                               "#languages ul li gaia-radio[name='language.current'][value='%s']")
+    _selected_language_input_locator = (By.CSS_SELECTOR, "#languages ul li gaia-radio:checked")
 
     # Step Cell data section
     _section_cell_data_locator = (By.ID, 'data_3g')
@@ -257,12 +257,21 @@ class Ftu(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._section_geolocation_locator))))
 
-    def disable_geolocation(self):
+    def toggle_geolocation(self):
         element = Wait(self.marionette).until(
             expected.element_present(*self._enable_geolocation_checkbox_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         # TODO: Remove y parameter when Bug 932804 is fixed
         element.tap(y=30)
+
+    @property
+    def is_geolocation_enabled(self):
+        # The following should work, but doesn't, see bug 1113742, hence the execute_script
+        # return self.marionette.find_element(
+        #     *self._statistic_checkbox_locator).is_selected()
+        element = self.marionette.find_element(*self._enable_geolocation_checkbox_locator)
+        return self.marionette.execute_script(
+            "return window.wrappedJSObject.document.getElementById('geolocation-switch').checked;")
 
     def a11y_disable_geolocation(self):
         element = Wait(self.marionette).until(
@@ -337,8 +346,12 @@ class Ftu(Base):
 
     @property
     def is_share_data_enabled(self):
-        return self.marionette.find_element(
-            *self._statistic_checkbox_locator).is_selected()
+        # The following should work, but doesn't, see bug 1113742, hence the execute_script
+        # return self.marionette.find_element(
+        #     *self._statistic_checkbox_locator).is_selected()
+        element = self.marionette.find_element(*self._statistic_checkbox_locator)
+        return self.marionette.execute_script(
+            "return window.wrappedJSObject.document.getElementById('share-performance').checked;")
 
     def toggle_share_data(self):
         # Use for functional operation vs. UI operation
