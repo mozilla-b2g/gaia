@@ -35,7 +35,6 @@
     "istanbul": "^0.3.2",
     "jsdoc": "^3.3.2",
     "jshint": "2.7.0",
-    "load-grunt-tasks": "0.4.0",
     "mail-fakeservers": "0.0.24",
     "marionette-apps": "file:./tests/jsmarionette/plugins/marionette-apps",
     "marionette-client": "file:./tests/jsmarionette/client/marionette-client",
