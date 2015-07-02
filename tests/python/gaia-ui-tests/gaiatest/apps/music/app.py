@@ -77,3 +77,11 @@ class Music(Base):
         Wait(self.marionette).until(expected.element_displayed(element))
         element.tap()
         return ListView(self.marionette)
+
+    def a11y_click_albums_tab(self):
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._albums_tab_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        self.accessibility.click(element)
+        return ListView(self.marionette)
+

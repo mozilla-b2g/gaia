@@ -27,7 +27,6 @@ class ListView(Base):
         Wait(self.marionette).until(expected.element_displayed(elements[0]))
         return [Media(self.marionette, element) for element in elements]
 
-
 class Media(PageRegion):
 
     _media_link_locator = (By.TAG_NAME, 'a')
@@ -43,3 +42,9 @@ class Media(PageRegion):
     def tap_first_artist(self):
         self.marionette.find_element(*self._media_link_locator).tap()
         return SublistView(self.marionette)
+
+    def a11y_click_first_album(self):
+        self.accessibility.click(
+            self.marionette.find_element(*self._media_link_locator))
+        return SublistView(self.marionette)
+
