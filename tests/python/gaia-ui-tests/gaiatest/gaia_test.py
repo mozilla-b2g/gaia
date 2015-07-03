@@ -1144,6 +1144,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
+        self.marionette.switch_to_frame()
         if self.device.is_desktop_b2g and self.device.storage_path:
             shutil.rmtree(self.device.storage_path, ignore_errors=True)
         self.apps = None
