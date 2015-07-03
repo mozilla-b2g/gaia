@@ -108,23 +108,28 @@ StateManager.prototype._updateActiveState = function(active) {
     // Perform the following async tasks with a promise chain.
     this._queue.run([
       function() {
-        // Make sure we are working in parallel,
-        // since eventually IMEngine will be switched.
-        this.app.inputMethodManager.updateInputContextData();
-
         // Before switching away, clean up anything pending in the previous
         // active layout.
         // We however don't clear active target here because the user might
         // want to input continuously between two layouts.
         this.app.candidatePanelManager.hideFullPanel();
         this.app.candidatePanelManager.updateCandidates([]);
+
+        // We would need to deactivate the IMEngine too to cancel any pending
+        // compositions.
+        this.app.inputMethodManager.deactivateIMEngine();
+
+        // Get the latest inputContext data for the new IMEngine to consume.
+        // (Make sure we are working in parallel here.)
+        this.app.inputMethodManager.updateInputContextData();
+
         this.app.feedbackManager.activate();
       }.bind(this),
       // Switch the layout,
       this.app.layoutManager.switchCurrentLayout.bind(
         this.app.layoutManager, this._layoutName),
-      // ... switch the IMEngine,
-      this._switchCurrentIMEngine.bind(this),
+      // ... activate the IMEngine for the current page,
+      this._activateIMEngineForCurrentPage.bind(this),
       // ... load the layout rendering,
       this.app.layoutRenderingManager.updateLayoutRendering
         .bind(this.app.layoutRenderingManager),
@@ -145,9 +150,9 @@ StateManager.prototype._updateActiveState = function(active) {
         this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
         this.app.feedbackManager.deactivate();
       }.bind(this),
-      // ... switch the IMEngine to default,
-      this.app.inputMethodManager.switchCurrentIMEngine.bind(
-        this.app.inputMethodManager, 'default')
+      // ... deactivate the IMEngine too.
+      this.app.inputMethodManager.deactivateIMEngine.bind(
+        this.app.inputMethodManager)
     ]);
   }
 
@@ -171,8 +176,8 @@ StateManager.prototype._preloadInputMethod = function(layout) {
   }
 };
 
-StateManager.prototype._switchCurrentIMEngine = function() {
-  this.app.console.log('StateManager._switchCurrentIMEngine()');
+StateManager.prototype._activateIMEngineForCurrentPage = function() {
+  this.app.console.log('StateManager._activateIMEngineForCurrentPage()');
 
   var page = this.app.layoutManager.currentPage;
   var imEngineName = page.imEngine || 'default';
@@ -180,7 +185,7 @@ StateManager.prototype._switchCurrentIMEngine = function() {
   this.app.upperCaseStateManager.reset();
   this.app.candidatePanelManager.reset();
 
-  var p = this.app.inputMethodManager.switchCurrentIMEngine(imEngineName);
+  var p = this.app.inputMethodManager.activateIMEngine(imEngineName);
 
   return p;
 };
