@@ -273,6 +273,10 @@ function execute(config) {
     settings['lockscreen.locked'] = false;
   }
 
+  if (config.ENABLE_APP_COMPATIBILITY) {
+    settings['app-compatibility.enabled'] = true;
+  }
+
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
 
   var queue = utils.Q.defer();

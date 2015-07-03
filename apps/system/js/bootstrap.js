@@ -74,6 +74,10 @@ window.addEventListener('load', function startup() {
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
+
+    /** @global */
+    window.appCompatibility = new window.AppCompatibility();
+    window.appCompatibility.start();
   }
 
   function safelyLaunchFTU() {
