@@ -58,6 +58,10 @@ window.addEventListener('load', function startup() {
     // To initilaize it after LockScreenWindowManager to block home button
     // when the screen is locked.
     window.AppWindowManager.init();
+
+    /** @global */
+    window.appCompatibility = new window.AppCompatibility();
+    window.appCompatibility.start();
   }
 
   function safelyLaunchFTU() {

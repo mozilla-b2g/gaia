@@ -247,6 +247,10 @@ function execute(config) {
     settings['lockscreen.locked'] = false;
   }
 
+  if (config.ENABLE_APP_COMPATIBILITY) {
+    settings['app-compatibility.enabled'] = true;
+  }
+
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
 
   // Ensure not quitting xpcshell before all asynchronous code is done
