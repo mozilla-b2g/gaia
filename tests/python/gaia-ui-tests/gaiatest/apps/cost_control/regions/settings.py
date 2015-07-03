@@ -12,8 +12,7 @@ class Settings(Base):
     _settings_iframe_locator = (By.ID, 'settings-view-placeholder')
     _settings_title_locator = (By.CSS_SELECTOR, 'section#settings-view h1')
 
-    _data_alert_label_locator = (By.XPATH, "//ul[preceding-sibling::gaia-subheader[@id='data-usage-settings']]/li[2]/label")
-    _data_alert_switch_locator = (By.CSS_SELECTOR, 'input[data-option="dataLimit"]')
+    _data_alert_switch_locator = (By.CSS_SELECTOR, 'gaia-switch[data-option="dataLimit"]')
     _when_use_is_above_button_locator = (By.CSS_SELECTOR, 'button[data-widget-type="data-limit"]')
     _unit_button_locator = (By.CSS_SELECTOR, '#data-limit-dialog form button')
     _size_input_locator = (By.CSS_SELECTOR, '#data-limit-dialog form input')
@@ -41,10 +40,17 @@ class Settings(Base):
             Wait(self.marionette).until(expected.element_present(
                 *self._settings_title_locator))))
 
-    def toggle_data_alert_switch(self, value):
-        switch = self.marionette.find_element(*self._data_alert_switch_locator)
-        if switch.is_selected() != value:
-            self.marionette.find_element(*self._data_alert_label_locator).tap()
+    def toggle_data_alert_switch(self):
+        self.marionette.find_element(*self._data_alert_switch_locator).tap()
+
+    @property
+    def is_data_alert_switch_checked(self):
+        # The following should work, but doesn't, see bug 1113742, hence the execute_script
+        # return self.marionette.find_element(
+        #     *self._data_alert_switch_locator).is_selected()
+        return self.marionette.execute_script("""
+            return window.wrappedJSObject.document.querySelector('gaia-switch[data-option="dataLimit"]').checked;
+         """)
 
     def select_when_use_is_above_unit_and_value(self, unit, value):
         when_use_is_above_button = self.marionette.find_element(*self._when_use_is_above_button_locator)
