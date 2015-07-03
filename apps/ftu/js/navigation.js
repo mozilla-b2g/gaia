@@ -221,16 +221,16 @@ var Navigation = {
         // Enabling or disabling SD import depending on card status
         SdManager.checkSDButton();
 
-        // If we have 3G or Wifi activate FB import
-        var fbState;
+        // If we have 3G or Wifi activate online services import
+        var onlineState;
         if (!WifiManager.api) {
           // Desktop
           ImportIntegration.checkImport('enabled');
           break;
         }
 
-        fbState = window.navigator.onLine ? 'enabled' : 'disabled';
-        ImportIntegration.checkImport(fbState);
+        onlineState = window.navigator.onLine ? 'enabled' : 'disabled';
+        ImportIntegration.checkImport(onlineState);
         break;
       case '#firefox_accounts':
         UIManager.mainTitle.setAttribute('data-l10n-id', 'firefox-accounts');

@@ -713,16 +713,12 @@ aside.connecting {
   border-bottom: none;
 }
 
-#import_contacts #fb_import, #import_contacts #fb_after_import2 {
-  margin-top: 1rem;
-}
-
 /* Needed due to the .icon class which is overriding this property */
 #import_contacts button:active {
   background-color: #008aaa !important;
 }
 
-#no-sim, #no-memorycard, #no-network, #fb_after_import2 p {
+#no-sim, #no-memorycard, #no-network {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;
@@ -737,10 +733,6 @@ aside.connecting {
 }
 
 /* Extending icon types*/
-#import_contacts [data-type="list"] li button.icon-fb:before {
-  background-image: url('images/f_logo.png');
-}
-
 #import_contacts [data-type="list"] li button.icon-sim:before {
   background-image: url('images/import_sim.png');
 }
@@ -778,14 +770,6 @@ aside.connecting {
   text-overflow: unset;
   overflow: unset;
   white-space: unset;
-}
-
-
-#fb_after_import1 {
-  background: url('images/import_fb.png') no-repeat center left / 3rem;
-}
-html[dir="rtl"] #fb_after_import1 {
-  background-position: right center;
 }
 
 

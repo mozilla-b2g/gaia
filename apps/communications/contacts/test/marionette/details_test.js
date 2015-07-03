@@ -59,31 +59,6 @@ marionette('Contacts > Details', function() {
     client.findElement(selectors.detailsLinkButton);
   });
 
-  test('Facebook contact correctly displayed as social contact',
-      function() {
-    contactsData.createFbContact();
-    client.helper.waitForElement(selectors.listContactFirstText).click();
-    subject.waitSlideLeft('details');
-
-    var fbLabel = client.helper.waitForElement(selectors.detailsSocialLabel);
-    assert.equal(fbLabel.text(), 'FACEBOOK');
-
-    var msgButton = client.helper.waitForElement(selectors.fbMsgButton);
-    msgButton.enabled();
-
-    var wallButton = client.helper.waitForElement(selectors.fbWallButton);
-    wallButton.enabled();
-
-    var profileButton = client.helper.waitForElement(selectors.fbProfileButton);
-    profileButton.enabled();
-
-    var coverImg = client.helper.waitForElement(selectors.detailsCoverImage);
-    assert.ok(coverImg, 'Element should exist.');
-    client.waitFor(function() {
-      return coverImg.getAttribute('style').indexOf('background-image') > -1;
-    });
-  });
-
   test('Show contact with picture', function() {
     contactsData.createMozContact(testContact, true);
     client.helper.waitForElement(selectors.listContactFirstText).click();
