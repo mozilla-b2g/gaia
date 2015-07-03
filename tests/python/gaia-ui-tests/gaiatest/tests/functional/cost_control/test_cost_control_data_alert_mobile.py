@@ -34,7 +34,9 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         self.assertFalse(cost_control.is_wifi_data_tracking_on)
 
         settings = cost_control.tap_settings()
-        settings.toggle_data_alert_switch(True)
+        self.assertFalse(settings.is_data_alert_switch_checked)
+        settings.toggle_data_alert_switch()
+        self.assertTrue(settings.is_data_alert_switch_checked)
         settings.reset_mobile_usage()
         settings.select_when_use_is_above_unit_and_value(u'MB', '0.1')
         settings.tap_done()
