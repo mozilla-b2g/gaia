@@ -392,24 +392,27 @@ Phase.prototype.logStats = function() {
     Object
       .keys(run)
       .forEach(function(key) {
-        var entry = run[key][0];
-        var contextResults = results[entry.context];
+        var entries = run[key];
 
-        if (!contextResults) {
-          contextResults = results[entry.context] = {};
-        }
+        entries.forEach(function(entry) {
+          var contextResults = results[entry.context];
 
-        if (!contextResults[key]) {
-          contextResults[key] = [];
-        }
+          if (!contextResults) {
+            contextResults = results[entry.context] = {};
+          }
 
-        var value = entry.value;
+          if (!contextResults[key]) {
+            contextResults[key] = [];
+          }
 
-        if (entry.entryType === 'memory') {
-          value = value / 1024 / 1024;
-        }
+          var value = entry.value;
 
-        contextResults[key].push(value);
+          if (entry.entryType === 'memory') {
+            value = value / 1024 / 1024;
+          }
+
+          contextResults[key].push(value);
+        });
       });
   });
 
