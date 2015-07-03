@@ -8,6 +8,7 @@ module.exports = ActivityCallerApp;
 ActivityCallerApp.ORIGIN = 'app://activitycaller.gaiamobile.org';
 
 ActivityCallerApp.Selector = Object.freeze({
+  header: 'h1',
   launchactivity: '#launchactivity',
   testchainactivity: '#testchainactivity',
   testdefaultactivity: '#testdefaultactivity',
@@ -17,6 +18,10 @@ ActivityCallerApp.Selector = Object.freeze({
 });
 
 ActivityCallerApp.prototype = {
+  get header() {
+    return this.client.findElement(ActivityCallerApp.Selector.header);
+  },
+
   get launchactivity() {
     return this.client.findElement(ActivityCallerApp.Selector.launchactivity);
   },
@@ -88,6 +93,12 @@ ActivityCallerApp.prototype = {
   focusDateInput: function() {
     this.switchTo();
     this.dateInputElement.tap();
+    this.client.switchToFrame();
+  },
+
+  blurFocusedInput: function() {
+    this.switchTo();
+    this.header.tap();
     this.client.switchToFrame();
   }
 };

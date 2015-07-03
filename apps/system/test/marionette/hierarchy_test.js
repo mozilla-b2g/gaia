@@ -277,6 +277,26 @@
         system.waitForKeyboard();
         var h2 = getAppHeight('app://' + CALLER_APP);
         assert.notEqual(h1, h2);
+
+        // Ensure the height is restored.
+        activitycaller.blurFocusedInput();
+        system.waitForKeyboardToDisappear();
+        var h3 = getAppHeight('app://' + CALLER_APP);
+        assert.equal(h1, h3);
+      });
+
+      test('App height is restored instantly when activity opens', function() {
+        activitycaller.launch();
+        var h1 = getAppHeight('app://' + CALLER_APP);
+        activitycaller.focusTextInput();
+        system.waitForKeyboard();
+        var h2 = getAppHeight('app://' + CALLER_APP);
+        assert.notEqual(h1, h2);
+
+        activitycaller.startActivity();
+
+        var h3 = getAppHeight('app://' + CALLER_APP);
+        assert.equal(h1, h3);
       });
 
       test('App should not change its height if system dialog is focused',
