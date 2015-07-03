@@ -6,7 +6,6 @@
     this.date = null;
 
     this.timeoutId = null;
-    this.intervalId = null;
 
     this.elements = {
       'hours-tens-digit': document.getElementById('hours-tens-digit'),
@@ -26,7 +25,7 @@
     },
 
     start: function () {
-      this._start(this._update.bind(this));
+      this._tick(this._update.bind(this));
     },
 
     stop: function () {
@@ -34,27 +33,19 @@
         window.clearTimeout(this.timeoutId);
         this.timeoutId = null;
       }
-
-      if (this.intervalId) {
-        window.clearInterval(this.intervalId);
-        this.intervalId = null;
-      }
     },
 
     /**
      * Start ticking the clock.
      * @param  {Function} refresh A callback to run on every tick.
      */
-    _start: function (refresh) {
+    _tick: function (refresh) {
       var now = new Date();
 
-      this.timeoutId = setTimeout(function () {
-        refresh(new Date());
+      refresh(now);
 
-        this.intervalId = setInterval(function () {
-          refresh(new Date());
-        }, 1000);
-      }.bind(this), 1000 - now.getMilliseconds());
+      self.timeoutId = setTimeout(this._tick.bind(this, refresh),
+                                  1000 - now.getMilliseconds());
     },
 
     /**
