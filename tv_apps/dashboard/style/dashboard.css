@@ -14,12 +14,22 @@ html, body {
   padding: 0;
 }
 
+a {
+  outline: 0;
+}
+
+a:hover, a:active, a:focus {
+  outline: 0;
+}
+
 #main-section {
   position: absolute;
   width: 100%;
   height: 100%;
   transition: transform 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
 }
+
+/* Activate widgets */
 
 body[data-active-direction="up"] #main-section {
   transform: translateY(25rem);
@@ -37,12 +47,26 @@ body[data-active-direction="left"] #main-section {
   transform: translateX(39rem);
 }
 
-a {
-  outline: 0;
+body[data-active-direction="up"] #center-panel,
+body[data-active-direction="right"] #center-panel,
+body[data-active-direction="down"] #center-panel,
+body[data-active-direction="left"] #center-panel {
+  opacity: 0.5;
 }
 
-a:hover, a:active, a:focus {
-  outline: 0;
+body[data-active-direction="up"] #right-panel,
+body[data-active-direction="up"] #bottom-panel,
+body[data-active-direction="up"] #left-panel,
+body[data-active-direction="right"] #top-panel,
+body[data-active-direction="right"] #bottom-panel,
+body[data-active-direction="right"] #left-panel,
+body[data-active-direction="down"] #top-panel,
+body[data-active-direction="down"] #right-panel,
+body[data-active-direction="down"] #left-panel,
+body[data-active-direction="left"] #top-panel,
+body[data-active-direction="left"] #right-panel,
+body[data-active-direction="left"] #bottom-panel {
+  opacity: 0;
 }
 
 .background {
@@ -87,6 +111,7 @@ body[data-active-direction="left"] .background {
 #bottom-panel,
 #left-panel {
   position: absolute;
+  transition: opacity 1s cubic-bezier(0.5, 0.0, 0.0, 1.0);
 }
 
 /* center-panel */
