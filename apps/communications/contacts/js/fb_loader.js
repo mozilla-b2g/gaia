@@ -14,11 +14,6 @@ var fbLoader = (function() {
     loaded = true;
     var iframesFragment = document.createDocumentFragment();
 
-    var curtain = document.createElement('iframe');
-    curtain.id = 'fb-curtain';
-    curtain.src = '/shared/pages/import/curtain.html';
-    iframesFragment.appendChild(curtain);
-
     var oauth = document.createElement('iframe');
     oauth.id = 'fb-oauth';
     oauth.hidden = true;
