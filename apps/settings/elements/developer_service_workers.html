@@ -10,7 +10,25 @@
     </gaia-header>
 
     <div id="service-workers-list-section">
-      <ul id="service-workers-list"></ul>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input id="service-workers-interception-enabled"
+                   type="checkbox" name="dom.serviceWorkers.interception.enabled">
+            <span data-l10n-id="service-workers-interception"></span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-switch">
+            <input id="service-workers-testing-enabled"
+                   type="checkbox" name="dom.serviceWorkers.testing.enabled">
+            <span data-l10n-id="service-workers-testing"></span>
+          </label>
+        </li>
+        <li>
+          <ul id="service-workers-list"></ul>
+        </li>
+      </ul>
     </div>
 
     <div id="service-workers-empty-section" class="hidden">
