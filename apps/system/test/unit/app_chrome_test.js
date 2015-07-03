@@ -1,5 +1,5 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n, PopupWindow,
-          MockModalDialog, MockService */
+          MockModalDialog, MockService, MockPromise */
 /* exported MockBookmarksDatabase */
 'use strict';
 
@@ -9,6 +9,7 @@ require('/shared/elements/gaia_progress/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_service.js');
+require('/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
@@ -37,7 +38,7 @@ suite('system/AppChrome', function() {
     stubById.returns(document.createElement('div'));
     requireApp('system/js/base_ui.js');
     requireApp('system/js/app_chrome.js', function() {
-      app = new AppWindow(fakeWebSite);
+      app = new AppWindow(cloneConfig(fakeWebSite));
       app.contextmenu = {
         isShown: function() {return false;}
       };
@@ -53,6 +54,9 @@ suite('system/AppChrome', function() {
     stubById.restore();
   });
 
+  function cloneConfig(config) {
+    return JSON.parse(JSON.stringify(config));
+  }
   var fakeWebSite = {
     url: 'http://google.com/index.html',
     origin: 'app://google.com',
@@ -153,7 +157,7 @@ suite('system/AppChrome', function() {
     });
 
     test('app ssl state is changed', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       this.sinon.stub(app, 'getSSLState', function() {
         return 'broken';
       });
@@ -176,7 +180,7 @@ suite('system/AppChrome', function() {
     });
 
     test('Combined view for navigation + bar', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
 
       var spyView = this.sinon.spy(AppChrome.prototype, 'combinedView');
       new AppChrome(app); // jshint ignore:line
@@ -284,14 +288,24 @@ suite('system/AppChrome', function() {
 
 
   suite('Navigation events', function() {
+    setup(function() {
+      this.sinon.stub(chrome, 'setSiteIcon');
+    });
+
     test('loadstart', function() {
       chrome.handleEvent({ type: 'mozbrowserloadstart' });
       assert.isTrue(chrome.containerElement.classList.contains('loading'));
+      assert.ok(chrome.setSiteIcon.calledOnce);
+      assert.equal(1, chrome.setSiteIcon.getCall(0).args.length,
+                'setSiteIcon passed default URL argument');
     });
 
     test('loadend', function() {
       chrome.handleEvent({ type: 'mozbrowserloadend' });
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
+      assert.ok(chrome.setSiteIcon.calledOnce);
+      assert.equal(0, chrome.setSiteIcon.getCall(0).args.length,
+                'setSiteIcon passed 0 argument');
     });
 
     test('namechanged - does not set when we have a fixed title', function() {
@@ -323,7 +337,7 @@ suite('system/AppChrome', function() {
       var app, chrome;
 
       setup(function() {
-        app = new AppWindow(fakeWebSite);
+        app = new AppWindow(cloneConfig(fakeWebSite));
       });
 
       test('scrollable chrome without bar', function() {
@@ -369,14 +383,14 @@ suite('system/AppChrome', function() {
     });
 
     test('should set the name when created', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       app.name = 'Phone';
       var chrome = new AppChrome(app);
       assert.equal(chrome.title.textContent, 'Phone');
     });
 
     test('should update the name when it changes', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       app.name = 'Phone';
       var chrome = new AppChrome(app);
       assert.equal(chrome.title.textContent, 'Phone');
@@ -389,7 +403,7 @@ suite('system/AppChrome', function() {
 
     test('localized app is not immediately overridden by titlechange event',
       function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       app.name = 'Phone';
 
       var chrome = new AppChrome(app);
@@ -402,7 +416,7 @@ suite('system/AppChrome', function() {
   suite('mozbrowserlocationchange', function() {
     var subject = null;
     setup(function() {
-      var website = new AppWindow(fakeWebSite);
+      var website = new AppWindow(cloneConfig(fakeWebSite));
       subject = new AppChrome(website);
       subject._registerEvents();
     });
@@ -485,7 +499,7 @@ suite('system/AppChrome', function() {
     var subject = null;
     var cbSpy = null;
     setup(function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       subject = new AppChrome(app);
       cbSpy = this.sinon.spy();
 
@@ -509,7 +523,7 @@ suite('system/AppChrome', function() {
     });
 
     test('collapse should remove the maximized css class', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       var subject = new AppChrome(app);
       subject.element.classList.add('maximized');
 
@@ -518,7 +532,7 @@ suite('system/AppChrome', function() {
     });
 
     test('rocketbar-overlayclosed should collapse the urlbar', function() {
-      var app = new AppWindow(fakeWebSite);
+      var app = new AppWindow(cloneConfig(fakeWebSite));
       var subject = new AppChrome(app);
       subject.maximize();
 
@@ -532,7 +546,7 @@ suite('system/AppChrome', function() {
 
     setup(function() {
       this.sinon.clock.restore();
-      app = new AppWindow(fakeWebSite);
+      app = new AppWindow(cloneConfig(fakeWebSite));
       chrome = new AppChrome(app);
       stubRequestAnimationFrame =
         this.sinon.stub(window, 'requestAnimationFrame').yieldsAsync();
@@ -608,6 +622,7 @@ suite('system/AppChrome', function() {
     });
 
     test('theme resets on navigation', function() {
+      this.sinon.stub(chrome, 'setSiteIcon');
       chrome.setThemeColor('orange');
       chrome.handleEvent({type: 'mozbrowserloadstart'});
       chrome.handleEvent({type: 'mozbrowserloadend'});
@@ -643,7 +658,7 @@ suite('system/AppChrome', function() {
     });
 
     test('popup window will use rear window color theme', function(done) {
-      var popup = new PopupWindow(fakeWebSite);
+      var popup = new PopupWindow(cloneConfig(fakeWebSite));
       var popupChrome = new AppChrome(popup);
       this.sinon.stub(popup, 'getBottomMostWindow').returns(app);
       chrome.setThemeColor('black');
@@ -704,7 +719,7 @@ suite('system/AppChrome', function() {
     });
 
     test('does not set for private windows', function() {
-      app = new AppWindow(fakeWebSite);
+      app = new AppWindow(cloneConfig(fakeWebSite));
       this.sinon.stub(app, 'isPrivateBrowser').returns(true);
       chrome = new AppChrome(app);
       assert.equal(chrome.scrollable.style.backgroundColor, '');
@@ -820,5 +835,61 @@ suite('system/AppChrome', function() {
       this.sinon.clock.tick(250);
       sinon.assert.calledOnce(app.publish.withArgs('chromecollapsed'));
     });
+  });
+
+  suite('setSiteIcon', function() {
+    var fakeIconURI = 'data://someimage';
+    var getIconPromise;
+    var combinedChrome;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      combinedChrome = new AppChrome(app);
+      getIconPromise = new MockPromise();
+      this.sinon.stub(combinedChrome.app, 'getSiteIconUrl')
+                     .returns(getIconPromise);
+    });
+
+    test('asks app for url when no argument is provided', function() {
+      assert.ok(combinedChrome.useCombinedChrome());
+      combinedChrome.setSiteIcon();
+      getIconPromise.mFulfillToValue({ url: fakeIconURI });
+
+      assert.ok(combinedChrome.siteIcon
+                  .style.backgroundImage.includes(fakeIconURI));
+    });
+
+    test('small icon', function() {
+      combinedChrome.setSiteIcon();
+      getIconPromise.mFulfillToValue({ url: fakeIconURI, isSmall: true });
+
+      assert.isTrue(combinedChrome.siteIcon.classList.contains('small-icon'));
+    });
+
+    test('!small icon', function() {
+      combinedChrome.setSiteIcon();
+      getIconPromise.mFulfillToValue({ url: fakeIconURI, isSmall: false });
+
+      assert.isFalse(combinedChrome.siteIcon.classList.contains('small-icon'));
+    });
+
+    test('handles url argument', function() {
+      combinedChrome.setSiteIcon(fakeIconURI);
+      assert.ok(combinedChrome.siteIcon
+                  .style.backgroundImage.includes(fakeIconURI));
+      sinon.assert.notCalled(combinedChrome.app.getSiteIconUrl);
+    });
+
+    test('failure to get icon', function() {
+      // set a default
+      combinedChrome.siteIcon.style.backgroundImage = `url(${fakeIconURI})`;
+
+      combinedChrome.setSiteIcon();
+      getIconPromise.mRejectToError();
+
+      assert.ok(combinedChrome.siteIcon
+                  .style.backgroundImage.includes(fakeIconURI));
+    });
+
   });
 });

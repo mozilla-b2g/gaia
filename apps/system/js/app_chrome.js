@@ -10,6 +10,8 @@
 'use strict';
 
 (function(exports) {
+  const DEFAULT_ICON_URL = '/style/chrome/images/default_icon.png';
+
   var _id = 0;
 
   var newTabManifestURL = null;
@@ -126,6 +128,7 @@
                         data-l10n-id="forward-button" disabled></button>
                 <div class="urlbar js-chrome-ssl-information">
                   <span class="pb-icon"></span>
+                  <div class="site-icon"></div>
                   <div class="chrome-ssl-indicator chrome-title-container">
                     <span class="title" dir="auto"></span>
                   </div>
@@ -199,6 +202,7 @@
     this.menuButton = this.element.querySelector('.menu-button');
     this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.chrome-title-container > .title');
+    this.siteIcon = this.element.querySelector('.site-icon');
     this.sslIndicator =
       this.element.querySelector('.js-chrome-ssl-information');
 
@@ -328,6 +332,10 @@
         evt.stopImmediatePropagation();
         this.onShare();
         break;
+
+      case this.siteIcon:
+        evt.stopImmediatePropagation();
+        break;
     }
   };
 
@@ -388,6 +396,7 @@
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
       this.windowsButton.addEventListener('click', this);
+      this.siteIcon.addEventListener('click', this);
     } else {
       this.header.addEventListener('action', this);
     }
@@ -602,7 +611,7 @@
         Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
 
       var wasLight = self.app.element.classList.contains('light');
-      var isLight  = brightness > 200;
+      var isLight = brightness > 200;
       if (wasLight != isLight) {
         self.app.element.classList.toggle('light', isLight);
         self.app.publish('titlestatechanged');
@@ -734,6 +743,7 @@
     this.containerElement.classList.add('loading');
     this._titleChanged = false;
     this._themeChanged = false;
+    this.setSiteIcon(DEFAULT_ICON_URL);
   };
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
@@ -741,6 +751,7 @@
     if (!this._themeChanged) {
       this.setThemeColor('');
     }
+    this.setSiteIcon();
   };
 
   AppChrome.prototype.handleError = function ac_handleError(evt) {
@@ -910,6 +921,35 @@
         this.app.config.searchName : this.title.textContent;
       this.app.contextmenu.showDefaultMenu(newTabManifestURL, name);
     }
+  };
+
+
+  /**
+   * Display the website icon in the URL bar, if any.
+   * If the url parameter is specified, it is loaded immediately. Otherwise,
+   * we look for the best possible icon for this website.
+   *
+   * @param {string?} url
+   */
+  AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
+    if (!this.siteIcon) {
+      return;
+    }
+
+    if (url) {
+      this.siteIcon.classList.remove('small-icon');
+      this.siteIcon.style.backgroundImage = `url("${url}")`;
+      return;
+    }
+
+    this.app.getSiteIconUrl()
+      .then(iconObject => {
+        this.siteIcon.classList.toggle('small-icon', iconObject.isSmall);
+        this.siteIcon.style.backgroundImage = `url("${iconObject.url}")`;
+      })
+      .catch((err) => {
+        this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
+      });
   };
 
   exports.AppChrome = AppChrome;
