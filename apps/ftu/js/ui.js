@@ -259,7 +259,7 @@ var UIManager = {
     this.updateLetsGoButton.addEventListener('click', startTutorialAction);
 
     // Enable sharing performance data (saving to settings)
-    this.sharePerformance.addEventListener('click', this);
+    this.sharePerformance.addEventListener('change', this);
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
