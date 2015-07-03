@@ -16,3 +16,8 @@ class TestCellDataSettings(GaiaTestCase):
 
         self.data_layer.disable_cell_data()
         self.assertFalse(self.data_layer.is_cell_data_enabled)
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)

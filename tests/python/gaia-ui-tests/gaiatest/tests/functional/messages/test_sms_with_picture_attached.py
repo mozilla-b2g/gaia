@@ -86,3 +86,8 @@ class TestSmsWithPictureAttached(GaiaTestCase):
 
         # Check that the attached image is displayed
         self.assertTrue(view_image.is_image_visible)
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)

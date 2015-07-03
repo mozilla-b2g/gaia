@@ -47,7 +47,10 @@ DEFAULT_SETTINGS = {
 }
 
 DEFAULT_PREFS = {
-    'webapps.update.enabled': False  # disable web apps update
+    'webapps.update.enabled': False,  # disable web apps update
+    'browser.safebrowsing.enabled': False, # disable safebrowsing, because of bug 1179770
+    'browser.safebrowsing.malware.enabled': False,
+    'privacy.trackingprotection.enabled': False
 }
 
 

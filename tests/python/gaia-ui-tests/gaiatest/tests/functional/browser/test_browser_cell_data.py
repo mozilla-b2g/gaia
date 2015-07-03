@@ -33,3 +33,8 @@ class TestBrowserCellData(GaiaTestCase):
         self.wait_for_element_present(*self._page_title_locator, timeout=120)
         heading = self.marionette.find_element(*self._page_title_locator)
         self.assertEqual(heading.text, 'We believe that the internet should be public, open and accessible.')
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)

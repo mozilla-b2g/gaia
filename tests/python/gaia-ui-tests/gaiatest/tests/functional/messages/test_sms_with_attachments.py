@@ -62,3 +62,8 @@ class TestSmsWithAttachments(GaiaTestCase):
         # Check that there are 2 picture on the sd card
         # One is the picture we sent, the second is the one saved
         self.assertEqual(2, len(self.data_layer.picture_files))
+
+    def tearDown(self):
+        self.marionette.switch_to_frame()
+        self.data_layer.disable_cell_data()
+        GaiaTestCase.tearDown(self)
