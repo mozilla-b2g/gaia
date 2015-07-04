@@ -77,19 +77,19 @@
   SourceView.prototype.show = function sv_show() {
     var viewsource = this.viewer;
     if (!viewsource) {
-      var style = '#appViewsource { ' +
-                  '  position: absolute;' +
-                  '  top: calc(10%);' +
-                  '  left: calc(10%);' +
-                  '  width: calc(80% - 2 * 1.5rem);' +
-                  '  height: calc(80% - 2 * 1.5rem);' +
-                  '  visibility: hidden;' +
-                  '  margin: 1.5rem;' +
-                  '  background-color: white;' +
-                  '  opacity: 0.92;' +
-                  '  color: black;' +
-                  '  z-index: 9999;' +
-                  '}';
+      var style = `#appViewsource {
+                    position: absolute;
+                    top: calc(10%);
+                    left: calc(10%);
+                    width: calc(80% - 2 * 1.5rem);
+                    height: calc(80% - 2 * 1.5rem);
+                    visibility: hidden;
+                    margin: 1.5rem;
+                    background-color: white;
+                    opacity: 0.92;
+                    color: black;
+                    z-index: 9999;
+                  }`;
       document.styleSheets[0].insertRule(style, 0);
 
       viewsource = document.createElement('iframe');
