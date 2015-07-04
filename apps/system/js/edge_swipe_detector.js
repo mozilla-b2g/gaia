@@ -268,17 +268,17 @@
         return;
       }
 
-      // Preparing to move the sheets...
+      // After a small threshold...
+      if ((this._deltaX < kSignificant || this._outsideApp(e)) &&
+          !this._moved) {
+        return;
+      }
+
+      // preparing to move the sheets...
       if (!this._beganTransition) {
         SheetsTransition.begin(this._direction);
         this._clearForwardTimeout();
         this._beganTransition = true;
-      }
-
-      // after a small threshold
-      if ((this._deltaX < kSignificant || this._outsideApp(e)) &&
-          !this._moved) {
-        return;
       }
 
       SheetsTransition.moveInDirection(this._direction, this._progress);
