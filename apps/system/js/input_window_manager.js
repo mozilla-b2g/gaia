@@ -80,6 +80,10 @@
     // The InputWindow that's being displayed
     this._currentWindow = null;
 
+    // This points to an InputWindow that should be closed but displayed during
+    // the timeout.
+    this._windowToClose = null;
+
     // The switched-out InputWindow that we need to deactivate when the
     // switched-in InputWindow finishes activation.
     this._lastWindow = null;
@@ -430,7 +434,7 @@
       return;
     }
 
-    var windowToClose = this._currentWindow;
+    var windowToClose = this._windowToClose = this._currentWindow;
     this._currentWindow = null;
 
     // If the focus is regain within a short time, we would not want to resize
@@ -457,8 +461,19 @@
         // the currentWindow again, which implies we have already regain the
         // focus.
         if (this._currentWindow === windowToClose) {
+          this._windowToClose = null;
           return;
         }
+
+        // We also should abort if _windowToClose is already null, indicating
+        // the keyboardhide event is already dispatched.
+        if (this._windowToClose === null) {
+          return;
+        }
+
+        // Set this flag to null so that keyboardhide event will not be
+        // dispatched again in another call.
+        this._windowToClose = null;
 
         // Publish an keyboardhide event that would cause the
         // foreground app to resize.
@@ -480,14 +495,14 @@
 
   InputWindowManager.prototype.hideInputWindowImmediately =
   function iwm_hideInputWindowImmediately() {
-    if (!this._currentWindow){
+    if (!this._currentWindow && !this._windowToClose){
       return;
     }
 
     this._kbPublish('keyboardhide', undefined);
 
-    var windowToClose = this._currentWindow;
-    this._currentWindow = null;
+    var windowToClose = this._currentWindow || this._windowToClose;
+    this._currentWindow = this._windowToClose = null;
     windowToClose.close('immediate');
   };
 

@@ -4,6 +4,7 @@
 (function() {
   var Server = require('../../../../shared/test/integration/server');
   var AppInstall = require('./lib/app_install');
+  var ActivityCallerApp = require('./lib/activitycallerapp');
   var assert = require('assert');
 
   var CALLER_APP = 'app://activitycaller.gaiamobile.org';
@@ -11,6 +12,7 @@
 
   var appInstall,
       system,
+      activitycaller,
       server;
 
   var setDefaultSelector = '[data-action=set-default-action]';
@@ -48,15 +50,14 @@
       appInstall = new AppInstall(client);
       system = client.loader.getAppClass('system');
       system.waitForFullyLoaded();
+      activitycaller = new ActivityCallerApp(client);
     });
 
     test('Default Activity chosen >', function() {
-      client.apps.launch(CALLER_APP);
+      activitycaller.launch();
 
       // Try to launch CALLEE from CALLER
-      client.apps.switchToApp(CALLER_APP);
-      client.findElement('#testdefaultactivity').click();
-      client.switchToFrame();
+      activitycaller.startDefaultActivity();
 
       // Check that app choice appear, showing default activity checkbox
       system.waitForActivityMenu();
@@ -80,9 +81,7 @@
       client.apps.close(CALLEE_APP);
 
       // Try to launch CALLEE from CALLER again
-      client.apps.switchToApp(CALLER_APP);
-      client.findElement('#testdefaultactivity').click();
-      client.switchToFrame();
+      activitycaller.startDefaultActivity();
 
       // the app choice doesn't appear this time
       try {
@@ -98,12 +97,10 @@
     });
 
     test('Default Activity ignored >', function() {
-      client.apps.launch(CALLER_APP);
+      activitycaller.launch();
 
       // Try to launch CALLEE from CALLER
-      client.apps.switchToApp(CALLER_APP);
-      client.findElement('#testdefaultactivity').click();
-      client.switchToFrame();
+      activitycaller.startDefaultActivity();
 
       // Check that app choice appear, showing default activity checkbox
       system.waitForActivityMenu();
@@ -124,9 +121,7 @@
       client.switchToFrame();
 
       // Try to launch CALLEE from CALLER again
-      client.apps.switchToApp(CALLER_APP);
-      client.findElement('#testdefaultactivity').click();
-      client.switchToFrame();
+      activitycaller.startDefaultActivity();
 
       // the app choice appears again
       checkbox = client.findElement(setDefaultSelector);
@@ -134,12 +129,10 @@
     });
 
     test('Reset after new app is installed >', function() {
-      client.apps.launch(CALLER_APP);
+      activitycaller.launch();
 
       // Try to launch CALLEE from CALLER
-      client.apps.switchToApp(CALLER_APP);
-      client.findElement('#testdefaultactivity').click();
-      client.switchToFrame();
+      activitycaller.startDefaultActivity();
 
       // Check that app choice appear, showing default activity checkbox
       system.waitForActivityMenu();
@@ -163,9 +156,7 @@
       client.apps.close(CALLEE_APP);
 
       // Try to launch CALLEE from CALLER again
-      client.apps.switchToApp(CALLER_APP);
-      client.findElement('#testdefaultactivity').click();
-      client.switchToFrame();
+      activitycaller.startDefaultActivity();
 
       // the app choice doesn't appear this time
       try {
@@ -184,10 +175,8 @@
       var serverManifestURL = server.url('manifest.webapp');
       appInstall.install(serverManifestURL);
 
-      client.apps.launch(CALLER_APP);
-      client.apps.switchToApp(CALLER_APP);
-      client.findElement('#testdefaultactivity').click();
-      client.switchToFrame();
+      activitycaller.launch();
+      activitycaller.startDefaultActivity();
 
       // Check that app choice appears again
       checkbox = client.findElement(setDefaultSelector);

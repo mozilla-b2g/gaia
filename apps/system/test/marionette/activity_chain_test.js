@@ -3,8 +3,8 @@
 
 (function() {
   var assert = require('assert');
+  var ActivityCallerApp = require('./lib/activitycallerapp');
 
-  var CALLER_APP = 'activitycaller.gaiamobile.org';
   var INLINE_CALLEE_APP = 'activitycallee.gaiamobile.org';
   var WINDOW_CALLEE_APP = 'activitycalleewindow.gaiamobile.org';
   marionette('activity chain test', function() {
@@ -28,20 +28,22 @@
       });
     }
 
-    var system;
+    var system,
+        activitycaller;
     setup(function() {
       system = client.loader.getAppClass('system');
       system.waitForFullyLoaded();
+      activitycaller = new ActivityCallerApp(client);
     });
 
     test('Should launch activitycallee app through inline-activity and ' +
          'launch activitycalleewindow app through window-activity and ' +
          'post result to activitycallee', function() {
       // Launch Caller App.
-      client.apps.launch('app://' + CALLER_APP);
-      client.apps.switchToApp('app://' + CALLER_APP);
+      activitycaller.launch();
+
       // Click button(#testchainactivity) to launch inline activity.
-      client.findElement('#testchainactivity').click();
+      activitycaller.startChainActivity();
 
       // Switch to activitycallee.gaiamobile.org
       client.switchToFrame();

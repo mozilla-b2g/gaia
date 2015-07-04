@@ -8,6 +8,7 @@
   var TaskManager = require('./lib/task_manager');
   var CALLER_APP = 'activitycaller.gaiamobile.org';
   var FakeDialerApp = require('./lib/fakedialerapp.js');
+  var ActivityCallerApp = require('./lib/activitycallerapp');
 
   marionette('hierarchyManager', function() {
     var apps = {};
@@ -84,6 +85,7 @@
     lockscreen.start(client);
     var taskManager = new TaskManager(client);
     var fakeDialerApp = new FakeDialerApp(client);
+    var activitycaller = new ActivityCallerApp(client);
 
     suite('Test aria-hidden and top most UI', function() {
       setup(function() {
@@ -95,7 +97,7 @@
 
 
       test('Lockscreen window is active', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         lockscreen.lock();
         assert.equal(getTopMost(), 'LockScreenWindowManager');
         assert.equal(getActiveAppWindowAriaHidden(), 'true');
@@ -110,9 +112,8 @@
       });
 
       test('Inline activity', function() {
-        client.apps.launch('app://' + CALLER_APP);
-        client.apps.switchToApp('app://' + CALLER_APP);
-        client.findElement('#testchainactivity').click();
+        activitycaller.launch();
+        activitycaller.startChainActivity();
         assert.equal(getWindowName(),
           'Fake Activity Callee with inline deposition');
         assert.equal(getTopMost(), 'AppWindowManager');
@@ -128,7 +129,7 @@
       });
 
       test('Launch an app', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         assert.equal(getTopMost(), 'AppWindowManager');
         assert.equal(getWindowName(), 'Fake Activity Caller');
         assert.equal(getActiveAppWindowAriaHidden(), 'false');
@@ -158,7 +159,7 @@
       });
 
       test('Launch an app and invoke task manager', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         taskManager.show();
         assert.equal(getActiveAppWindowAriaHidden(), 'true');
         taskManager.hide();
@@ -174,13 +175,13 @@
       });
 
       test('Press home while active app is not home', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         system.tapHome();
         assert.equal(getWindowName(), 'Homescreen');
       });
 
       test('Lockscreen window is active', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         lockscreen.lock();
         system.tapHome();
         lockscreen.unlock();
@@ -196,14 +197,14 @@
       });
 
       test('Press holdhome', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         system.holdHome();
         client.helper.wait(3000);
         assert.isFalse(getActiveAppWindowState());
       });
 
       test('Lockscreen window is active', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         lockscreen.lock();
         system.holdHome();
         lockscreen.unlock();
@@ -221,16 +222,15 @@
 
       test('Focus a date input in an app should trigger value selector',
         function() {
-          client.apps.launch('app://' + CALLER_APP);
-          client.apps.switchToApp('app://' + CALLER_APP);
-          client.findElement('#dateinput').click();
-          client.switchToFrame();
+          activitycaller.launch();
+          activitycaller.focusDateInput();
+
           client.helper.waitForElement('.appWindow .value-selector');
         });
 
       test('Focus a date input in system dialog should trigger value selector',
         function() {
-          client.apps.launch('app://' + CALLER_APP);
+          activitycaller.launch();
           fxASystemDialog.show();
           fxASystemDialog.goToCOPPA();
           fxASystemDialog.focusAge();
@@ -271,20 +271,38 @@
         });
 
       test('App with input is focused should change height', function() {
-        client.apps.launch('app://' + CALLER_APP);
+        activitycaller.launch();
         var h1 = getAppHeight('app://' + CALLER_APP);
-        client.findElement('#input').click();
-        client.switchToFrame();
+        activitycaller.focusTextInput();
         system.waitForKeyboard();
         var h2 = getAppHeight('app://' + CALLER_APP);
         assert.notEqual(h1, h2);
+
+        // Ensure the height is restored.
+        activitycaller.blurFocusedInput();
+        system.waitForKeyboardToDisappear();
+        var h3 = getAppHeight('app://' + CALLER_APP);
+        assert.equal(h1, h3);
+      });
+
+      test('App height is restored instantly when activity opens', function() {
+        activitycaller.launch();
+        var h1 = getAppHeight('app://' + CALLER_APP);
+        activitycaller.focusTextInput();
+        system.waitForKeyboard();
+        var h2 = getAppHeight('app://' + CALLER_APP);
+        assert.notEqual(h1, h2);
+
+        activitycaller.startActivity();
+
+        var h3 = getAppHeight('app://' + CALLER_APP);
+        assert.equal(h1, h3);
       });
 
       test('App should not change its height if system dialog is focused',
         function() {
-          client.apps.launch('app://' + CALLER_APP);
+          activitycaller.launch();
           var h1 = getAppHeight('app://' + CALLER_APP);
-          client.switchToFrame();
           fxASystemDialog.show();
           var systemDialogHeight1 = fxASystemDialog.getHeight();
           fxASystemDialog.focus();
