@@ -30,15 +30,15 @@ marionette('adjustable location accuracy panel', function() {
     var typeBlur = client.findElement('.type-blur');
     var typeCustom = client.findElement('.type-custom-location');
     var geolocationSwitcher = client.findElement(
-      'span[data-l10n-id="geolocation"]');
+      'label[data-l10n-id="geolocation"]');
     var alaSwitcher = client.findElement(
-      'span[data-l10n-id="location-adjustment"]');
+      'label[data-l10n-id="location-adjustment"]');
 
     assert.ok(!useLocationBlurBox.displayed());
 
 
     // turn geolocation on
-    geolocationSwitcher.tap();
+    geolocationSwitcher.click();
     client.waitFor(function() {
       return useLocationBlurBox.displayed();
     });

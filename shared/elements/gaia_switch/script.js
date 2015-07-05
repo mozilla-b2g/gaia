@@ -91,6 +91,15 @@ window.GaiaSwitch = (function(win) {
     }
   });
 
+  /**
+   * Proxy the input type.
+   */
+  Object.defineProperty( proto, 'type', {
+    get: function() {
+      return 'gaia-switch';
+    }
+  });
+
   // HACK: Create a <template> in memory at runtime.
   // When the custom-element is created we clone
   // this template and inject into the shadow-root.

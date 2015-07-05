@@ -1,6 +1,6 @@
 /**
  * ALA define custom location panel.
- * 
+ *
  * @module ALADefineCustomLocation
  * @return {Object}
  */
@@ -33,7 +33,7 @@ function(panels, SettingsListener, SettingsHelper) {
 
     /**
      * Initialize ALA Define Custom Location panel.
-     * 
+     *
      * @method init
      * @constructor
      */
@@ -104,6 +104,16 @@ function(panels, SettingsListener, SettingsHelper) {
 
       this.updateRegionsList();
       this.updateType();
+
+      // Initialize radio controls when showing the panel as gaia-radio
+      // will handle keeping them in the proper checked state.
+      if (!this.typeRC.checked && this.config.type === 'rc') {
+        this.typeRC.checked = true;
+        this.typeGPS.checked = false;
+      } else {
+        this.typeRC.checked = false;
+        this.typeGPS.checked = true;
+      }
 
       this.saveConfig();
     },
@@ -180,11 +190,9 @@ function(panels, SettingsListener, SettingsHelper) {
         this.updateLongitudeAndLatitude();
       }
 
-      this.typeRC.checked = modeRC;
       this.longitude.disabled = modeRC;
       this.latitude.disabled = modeRC;
 
-      this.typeGPS.checked = !modeRC;
       this.regions.disabled = !modeRC;
       this.cities.disabled = !modeRC;
     },

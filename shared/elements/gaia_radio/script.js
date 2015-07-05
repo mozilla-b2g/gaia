@@ -148,6 +148,15 @@ window.GaiaRadio = (function(win) {
     }
   });
 
+  /**
+   * Proxy the input type.
+   */
+  Object.defineProperty( proto, 'type', {
+    get: function() {
+      return 'gaia-radio';
+    }
+  });
+
   // Handle both p and label elements for now to support existing
   // building blocks. Mainly radio labels and inputs inside a list
   // as this is a rather common use case.
