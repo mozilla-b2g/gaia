@@ -24,7 +24,6 @@
     window.lockScreen = this.lockscreen;
     window.lockScreenStateManager = new window.LockScreenStateManager();
     window.lockScreenStateManager.start(window.lockScreen);
-    this.lockscreen.init();
     window.lockScreenNotifications = new LockScreenNotifications();
     window.lockScreenNotifications.start(this.lockscreen,
       this.lockscreen.notificationsContainer);

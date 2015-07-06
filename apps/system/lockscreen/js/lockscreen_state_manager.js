@@ -22,6 +22,7 @@
 /* global LockScreenStateUnlock */
 /* global LockScreenStateSlideRestore */
 /* global LockScreenStateSecureAppLaunching */
+/* global LockScreenStateWaitPasscodeEnabledRead */
 /* global LockScreenStateLogger */
 /* global Service */
 
@@ -73,8 +74,10 @@
   LockScreenStateManager.prototype.start =
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
+    this.lockScreen.init();
+    this.waitPasscodeEnabledRead = this.setupWaitPasscodeEnabledRead();
     this.logger = (new LockScreenStateLogger()).start({
-      debug: false,
+      debug: true,
       error: true
     });
     this.configs = {
@@ -113,13 +116,15 @@
       panelHide: (new LockScreenStatePanelHide()).start(this.lockScreen),
       unlock: (new LockScreenStateUnlock()).start(this.lockScreen),
       secureAppLaunching: (new LockScreenStateSecureAppLaunching())
-        .start(this.lockScreen)
+        .start(this.lockScreen),
+      waitPasscodeEnabledRead: (new LockScreenStateWaitPasscodeEnabledRead())
+        .start(this.lockScreen, this.waitPasscodeEnabledRead)
     };
 
     // Default values
     this.lockScreenDefaultStates = {
       screenOn: true,   // We assume that the screen is on after booting
-      passcodeEnabled: false,
+      passcodeEnabled: null, // It costs 3 or more seconds to read.
       passcodeTimeout: true, // If timeout, do show the keypad
       homePressed: false,
       activateUnlock: false,
@@ -149,6 +154,17 @@
     return this;
   };
 
+  // XXX: Since to read mozSettings like this would take a long time,
+  // we need to block related manipulations until it got read.
+  LockScreenStateManager.prototype.setupWaitPasscodeEnabledRead =
+  function lssm_setupWaitPasscodeEnabledRead() {
+    var r;
+    var p = new Promise((res, rej) => {
+      r = res;
+    });
+    return { promise: p, resolve: r };
+  };
+
   /**
    * Set up all basic transferring rules. When we invoke the 'transfer'
    * method, it would test if there is anyone rule match the
@@ -163,6 +179,15 @@
   LockScreenStateManager.prototype.setupRules =
   function lssm_setupRules() {
     this.rules = new Map();
+    this.registerRule({
+      passcodeEnabled: null,
+      screenOn: true,
+      activateUnlock: true
+    },
+    ['slideShow'],
+    this.states.waitPasscodeEnabledRead,
+    'Must wait the value got read and then do the following things');
+
     this.registerRule({
       secureAppOpen: true
     },
@@ -190,8 +215,9 @@
       screenOn: true,
       activateUnlock: true
     },
-    ['slideShow'],
-    this.states.slideHide,
+    ['slideShow', 'waitPasscodeEnabledRead'],
+    //this.states.slideHide,
+    this.states.unlock,
     'When it activate to unlock without passcode, unlock and animates.');
 
     this.registerRule({
@@ -200,7 +226,7 @@
       screenOn: true,
       activateUnlock: true
     },
-    ['slideShow'],
+    ['slideShow', 'waitPasscodeEnabledRead'],
     this.states.slideHide,
     'When it activate to unlock with unexpired passcode, unlock and animates.');
 
@@ -210,7 +236,7 @@
       screenOn: true,
       activateUnlock: true
     },
-    ['slideShow'],
+    ['slideShow', 'waitPasscodeEnabledRead'],
     this.states.keypadRising,
     'When it activate to unlock, show the passcode pad with' +
     ' animation.');
@@ -480,6 +506,11 @@
     this.transfer(inputs);
   };
 
+  LockScreenStateManager.prototype.onBlockingSlidingEnded =
+  function lssm_onBlockingSlidingEnded() {
+    this.transfer(this.lockScreenStates);
+  };
+
   LockScreenStateManager.prototype.onUnlock =
   function lssm_onUnlock(detail) {
     var inputs = this.extend(this.lockScreenStates, {
@@ -601,11 +632,18 @@
    */
   LockScreenStateManager.prototype.onPasscodeEnabledChanged =
   function lssm_onPasscodeEnabledChanged(value) {
+    var val;
     if ('string' === typeof value) {
-      this.lockScreenStates.passcodeEnabled = 'false' === value ? false : true;
+      val = 'false' === value ? false : true;
     } else {
-      this.lockScreenStates.passcodeEnabled = value;
+      val = value;
     }
+    // It's first time we read it.
+    if (null === this.lockScreenStates.passcodeEnabled) {
+      this.lockScreenStates.passcodeEnabled = val;
+      this.waitPasscodeEnabledRead.resolve(val);
+    }
+    this.lockScreenStates.passcodeEnabled = val;
   };
 
   LockScreenStateManager.prototype.onPasscodeValidated =
