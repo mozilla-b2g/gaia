@@ -9,15 +9,26 @@ from gaiatest.apps.base import Base
 
 class DeviceInfo(Base):
 
+    _page_locator = (By.ID, 'about')
     _phone_number_locator = (By.CSS_SELECTOR, '.deviceInfo-msisdns')
     _model_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.product_model"]')
     _software_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.software"]')
     _more_info_button_locator = (By.CSS_SELECTOR, 'a[href="#about-moreInfo"]')
+    _reset_button_locator = (By.CLASS_NAME, 'reset-phone')
+    _reset_confirm_locator = (By.CLASS_NAME, 'confirm-reset-phone')
+    _reset_cancel_locator = (By.CLASS_NAME, 'cancel-reset-phone')
+
+    _update_frequency_locator = (By.NAME, 'app.update.interval')
+    _update_ok_button_locator = (By.CLASS_NAME, 'value-option-confirm')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         Wait(self.marionette).until(
             expected.element_displayed(*self._model_locator))
+
+    @property
+    def screen_element(self):
+        return self.marionette.find_element(*self._page_locator)
 
     @property
     def phone_number(self):
@@ -35,8 +46,35 @@ class DeviceInfo(Base):
         self.marionette.find_element(*self._more_info_button_locator).tap()
         return self.MoreInfo(self.marionette)
 
+    # In order to access UI, the frame needs to be switched to root
+    def tap_update_frequency(self):
+        self.marionette.find_element(*self._update_frequency_locator).tap()
+        self.marionette.switch_to_frame()
+        Wait(self.marionette).until(expected.element_displayed(
+            self.marionette.find_element(*self._update_ok_button_locator)))
+
+    # When leaving the page, return to the saved application frame
+    def exit_update_frequency(self):
+        self.marionette.find_element(*self._update_ok_button_locator).tap()
+        self.apps.switch_to_displayed_app()
+        Wait(self.marionette).until(expected.element_displayed(
+            self.marionette.find_element(*self._page_locator)))
+
+    def tap_reset_phone(self):
+        self.marionette.find_element(*self._reset_button_locator).tap()
+        Wait(self.marionette).until(expected.element_displayed(
+            self.marionette.find_element(*self._reset_confirm_locator)))
+
+    def confirm_reset(self, response=True):
+        if response is True:
+            self.marionette.find_element(*self._reset_confirm_locator).tap()
+        else:
+            self.marionette.find_element(*self._reset_cancel_locator).tap()
+            Wait(self.marionette).until(expected.element_displayed(self.screen_element))
+
     class MoreInfo(Base):
 
+        _more_information_page_locator = (By.ID, 'about-moreInfo')
         _os_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.os"]')
         _hardware_revision_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.hardware"]')
         _mac_address_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.mac"]')
@@ -54,6 +92,10 @@ class DeviceInfo(Base):
             Base.__init__(self, marionette)
             Wait(self.marionette).until(
                 expected.element_displayed(*self._os_version_locator))
+
+        @property
+        def screen(self):
+            return self.marionette.find_element(*self._more_information_page_locator)
 
         @property
         def os_version(self):
