@@ -157,6 +157,7 @@
                     this.settings['accessibility.colors.contrast'] *
                     this.CONTRAST_CAP : '0.0'
                 });
+                this.redraw();
                 break;
 
               case 'accessibility.screenreader-captions':
@@ -180,11 +181,19 @@
                     gfxSetting['layers.effect.' + effect] = aValue;
                   }
                   SettingsListener.getSettingsLock().set(gfxSetting);
+                  this.redraw();
                 }
                 break;
             }
           }.bind(this));
       }, this);
+    },
+
+    redraw: function ar_redraw() {
+      setTimeout(function () {
+        document.body.style.transform = 'rotateZ(0deg)';
+        document.body.style.transform = 'none';
+      }.bind(this), 20);
     },
 
     /**
