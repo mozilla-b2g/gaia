@@ -1911,11 +1911,12 @@ function MessageComposition(api, handle) {
   this.body = null;
 
   this._references = null;
+
   /**
    * @property attachments
-   * @type Object[]
+   * @type {{name: string, size: number}}
    *
-   * A list of attachments currently attached or currently being attached with
+   * @description A list of attachments currently attached or currently being attached with
    * the following attributes:
    * - name: The filename
    * - size: The size of the attachment payload in binary form.  This does not

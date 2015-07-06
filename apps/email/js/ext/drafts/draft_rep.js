@@ -140,7 +140,7 @@ function convertHeaderAndBodyToDraftRep(account, header, body) {
  * @param newInfo
  * @param newInfo.id
  * @param newInfo.suid {SUID}
- * @return { header, body }
+ * @return {{header: HeaderInfo, body: BodyInfo}}
  */
 function cloneDraftMessageForSentFolderWithoutAttachments(header, body,
                                                           newInfo) {
