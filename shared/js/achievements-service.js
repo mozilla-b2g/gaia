@@ -9,7 +9,7 @@
     return Array.isArray(arr) ? arr : Array.from(arr);
   };
 
-  /* global Notification, console */
+  /* global console */
 
   var DEFAULT_IMAGE_SIZE = 64;
   var MOZ_SETTINGS_NOT_AVAILABLE_MSG = 'navigator.mozSettings is not available';
@@ -114,6 +114,7 @@
     var AchievementsService = function AchievementsService() {};
 
     AchievementsService.prototype.reward = function (_ref) {
+      var _this = this;
       var criteria = _ref.criteria;
       var evidence = _ref.evidence;
       var name = _ref.name;
@@ -152,27 +153,59 @@
 
         var image = _ref3[0];
         // Send a Notification via WebAPI to be handled by the Gaia::System
-        var notification = new Notification(name, {
-          body: description,
+        return _this.send(name, {
+          bodyL10n: description,
           icon: image,
           tag: issuedOn
         });
-
-        notification.onclick = function () {
-          var activity = new window.MozActivity({
-            name: 'configure',
-            data: {
-              target: 'device',
-              section: 'achievements'
-            }
-          });
-          activity.onsuccess = activity.onerror = function () {
-            notification.close();
-          };
-        };
       })['catch'](function (reason) {
         return console.warn(reason);
       });
+    };
+
+    AchievementsService.prototype.send = function (titleL10n, options) {
+      return Promise.all([titleL10n, options.bodyL10n].map(this.getL10n)).then(
+        function (_ref4) {
+          var _ref5 = _toArray(_ref4);
+
+          var title = _ref5[0];
+          var body = _ref5[1];
+          if (body) {
+            options.body = body;
+          }
+          options.dir = navigator.mozL10n.language.direction;
+          options.lang = navigator.mozL10n.language.code;
+
+          var notification = new window.Notification(title, options);
+
+          notification.onclick = function () {
+            var activity = new window.MozActivity({
+              name: 'configure',
+              data: {
+                target: 'device',
+                section: 'achievements'
+              }
+            });
+            activity.onsuccess = activity.onerror = function () {
+              notification.close();
+            };
+          };
+
+          return notification;
+        });
+    };
+
+    AchievementsService.prototype.getL10n = function (l10nAttrs) {
+      if (!l10nAttrs) {
+        return;
+      }
+      if (typeof l10nAttrs === 'string') {
+        return navigator.mozL10n.formatValue(l10nAttrs);
+      }
+      if (l10nAttrs.raw) {
+        return l10nAttrs.raw;
+      }
+      return navigator.mozL10n.formatValue(l10nAttrs.id, l10nAttrs.args);
     };
 
     return AchievementsService;
