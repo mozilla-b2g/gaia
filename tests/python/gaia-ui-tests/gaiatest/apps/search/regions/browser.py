@@ -14,7 +14,7 @@ class Browser(Base):
     _menu_button_locator = (By.CSS_SELECTOR, '.menu-button')
     _add_to_home_button_locator = (By.CSS_SELECTOR, 'button[data-id="add-to-homescreen"]')
     _share_button_locator = (By.CSS_SELECTOR, 'button[data-id="share"]')
-    _share_to_messages_button_locator = (By.CSS_SELECTOR, 'button[data-value="1"]')
+    _share_to_messages_button_locator = (By.CSS_SELECTOR, 'button[data-manifest="app://sms.gaiamobile.org/manifest.webapp"]')
     _browser_menu_locator = (By.CSS_SELECTOR, '.contextmenu-list')
 
     _back_button_locator = (By.CSS_SELECTOR, '.back-button')
