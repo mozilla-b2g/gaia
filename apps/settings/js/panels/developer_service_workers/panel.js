@@ -23,9 +23,23 @@ define(function(require) {
             panel.querySelector('#service-workers-list-section'),
           serviceWorkersList: panel.querySelector('#service-workers-list'),
           serviceWorkersEmptySection:
-            panel.querySelector('#service-workers-empty-section')
+            panel.querySelector('#service-workers-empty-section'),
+          serviceWorkersInterceptionEnabled:
+            panel.querySelector('#service-workers-interception-enabled'),
+          serviceWorkersTestingEnabled:
+            panel.querySelector('#service-workers-testing-enabled')
         };
         developerServiceWorkers.init(elements);
+        elements.serviceWorkersInterceptionEnabled.addEventListener(
+          'click',
+          developerServiceWorkers.onInterceptionCheckboxClick
+                                 .bind(developerServiceWorkers)
+        );
+        elements.serviceWorkersTestingEnabled.addEventListener(
+          'click',
+          developerServiceWorkers.onTestingCheckboxClick
+                                 .bind(developerServiceWorkers)
+        );
       },
       onShow: function() {
         developerServiceWorkers.refresh();
