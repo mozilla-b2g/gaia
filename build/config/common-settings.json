@@ -62,7 +62,7 @@
    "debug.ttl.enabled": false,
    "debug.log-animations.enabled": false,
    "debug.paint-flashing.enabled": false,
-   "debug.peformancedata.shared": false,
+   "debug.performance_data.shared": false,
    "debug.gaia.enabled": false,
    "deviceinfo.build_number": "",
    "deviceinfo.firmware_revision": "",
