@@ -29,7 +29,7 @@
         {"layoutId": "cs", "app": ["apps", "keyboard"]}
     ],
     "cy": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "cy", "app": ["apps", "keyboard"]}
     ],
     "da": [
         {"layoutId": "da", "app": ["apps", "keyboard"]}

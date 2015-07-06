@@ -12,6 +12,7 @@ WHITELIST = \
  bs.dict \
  ca.dict \
  cs.dict \
+ cy.dict \
  da.dict \
  de.dict \
  el.dict \
@@ -55,6 +56,6 @@ WHITELIST = \
 	node --harmony xml2dict.js -o $@ $<
 
 dependency:
-	npm install xml2js yargs
+	npm install
 
 all: $(WHITELIST)
