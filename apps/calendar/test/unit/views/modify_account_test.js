@@ -1,7 +1,6 @@
 define(function(require) {
 'use strict';
 
-var AccountCreation = require('utils/account_creation');
 var AccountModel = require('models/account');
 var Factory = require('test/support/factory');
 var FakePage = require('test/support/fake_page');
@@ -151,21 +150,6 @@ suite('Views.ModifyAccount', function() {
     );
   });
 
-  suite('initialization', function() {
-    test('when given correct fields', function() {
-      var subject = new ModifyAccount({
-        model: account,
-        type: 'new'
-      });
-
-      assert.instanceOf(
-        subject.accountHandler,
-        AccountCreation
-      );
-    });
-
-  });
-
   test('#authenticationType', function() {
     assert.equal(subject.authenticationType, 'basic');
   });
@@ -198,20 +182,37 @@ suite('Views.ModifyAccount', function() {
     assert.ok(subject.form);
   });
 
-  suite('#handleEvent', function() {
+  suite('#showErrors', function() {
     var handler;
+    var offline;
+    var sentErr;
+    var show;
     var showErrorCall;
 
     setup(function() {
-      handler = subject.accountHandler;
+      handler = core.bridge.createAccount;
+      sentErr = new Error();
+      core.bridge.createAccount = function() {
+        throw sentErr;
+      };
+      show = subject.showErrors;
       subject.showErrors = function() {
         showErrorCall = Array.slice(arguments);
       };
+      offline = subject.isOffline;
+      subject.isOffline = function() {
+        return false;
+      };
+    });
+
+    teardown(function() {
+      core.bridge.createAccount = handler;
+      subject.isOffline = offline;
+      subject.showErrors = show;
     });
 
     test('authorizeError', function() {
-      var sentErr = new Error();
-      handler.emit('authorizeError', sentErr);
+      subject.save(null);
 
       assert.deepEqual(
         showErrorCall,
@@ -319,21 +320,35 @@ suite('Views.ModifyAccount', function() {
   suite('#save', function() {
 
     var calledWith;
+    var create;
+    var offline;
 
     setup(function() {
       calledWith = null;
       subject.completeUrl = '/settings';
       FakePage.shown = null;
 
-      subject.accountHandler.send = function() {
+      create = core.bridge.createAccount;
+      core.bridge.createAccount = function() {
         calledWith = arguments;
+        return Promise.resolve();
       };
+
+      offline = subject.isOffline;
+      subject.isOffline = function() {
+        return false;
+      };
+    });
+
+    teardown(function() {
+      core.bridge.createAccount = create;
+      subject.isOffline = offline;
     });
 
     test('clears errors', function() {
       subject.errors.textContent = 'foo';
       subject.save();
-      assert.ok(!subject.errors.textContent, 'clears text');
+      assert.equal(subject.errors.textContent, '', 'clears text');
     });
 
     test('with updateModel option', function() {
@@ -342,43 +357,52 @@ suite('Views.ModifyAccount', function() {
       assert.equal(subject.model.user, 'iupdatedu');
     });
 
-    test('on success', function() {
-      subject.save();
-      assert.isTrue(hasClass(subject.progressClass));
+    test('on success', function(done) {
+      subject.save().then(() => {
+        done(() => {
+          assert.equal(calledWith[0], subject.model, 'model');
 
-      assert.equal(calledWith[0], subject.model);
-      calledWith[1]();
+          assert.equal(
+            FakePage.shown,
+            subject.completeUrl,
+            'redirects to complete url'
+          );
 
-      assert.equal(
-        FakePage.shown,
-        subject.completeUrl,
-        'redirects to complete url'
-      );
-
-      assert.isFalse(
-        hasClass(subject.progressClass),
-        'disabled progress class'
-      );
+          assert.isFalse(
+            hasClass(subject.progressClass),
+            'disabled progress class'
+          );
+        });
+      }).catch(done);
     });
 
-    test('on failure', function() {
-      subject.save();
-      assert.ok(calledWith, 'sends request');
-      assert.equal(calledWith[0], subject.model);
+    suite('on failure', function() {
+      setup(function() {
+        core.bridge.createAccount = function() {
+          calledWith = arguments;
+          return Promise.reject();
+        };
+      });
 
-      assert.isTrue(hasClass(subject.progressClass));
-      calledWith[1](new Error());
+      test('failure', function(done) {
+        subject.save().catch(() => {
+          done(() => {
+            assert.ok(calledWith, 'sends request');
+            assert.equal(calledWith[0], subject.model);
 
-      assert.ok(
-        !hasClass(subject.progressClass),
-        'hides progress'
-      );
+            assert.ok(
+              !hasClass(subject.progressClass),
+              'hides progress'
+            );
 
-      assert.notEqual(
-        FakePage.shown,
-        subject.completeUrl,
-        'does not redirect on complete'
-      );
+            assert.notEqual(
+              FakePage.shown,
+              subject.completeUrl,
+              'does not redirect on complete'
+            );
+          });
+        });
+      });
     });
 
   });
@@ -489,16 +513,24 @@ suite('Views.ModifyAccount', function() {
 
     suite('normal flow', function() {
 
+      var create;
+
       setup(function() {
+        create = core.bridge.createAccount;
         account.user = 'foo';
         subject.fields.password.value = 'foo';
         subject.render();
       });
 
+      teardown(function() {
+        core.bridge.createAccount = create;
+      });
+
+
       test('save button', function(done) {
         subject.fields.user.value = 'updated';
 
-        subject.accountHandler.send = function(model) {
+        core.bridge.createAccount = function(model) {
           done(function() {
             assert.equal(
               model.user,
@@ -691,10 +723,17 @@ suite('Views.ModifyAccount', function() {
     });
 
     suite('submit form', function() {
+      var create;
+
       setup(function() {
+        create = core.bridge.createAccount;
         account.user = 'foo';
         subject.fields.password.value = 'foo';
         subject.render();
+      });
+
+      teardown(function() {
+        core.bridge.createAccount = create;
       });
 
       test('default is prevented', function(done) {
@@ -703,7 +742,7 @@ suite('Views.ModifyAccount', function() {
           done();
         });
 
-        subject.accountHandler.send = function(model) {};
+        core.bridge.createAccount = function(model) {};
 
         triggerEvent(subject.form, 'submit');
       });

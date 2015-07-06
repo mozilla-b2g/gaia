@@ -26,6 +26,10 @@ function denodeify(fn) {
         return deferred.reject(err);
       }
 
+      // we resolve with a single value (array) in case of multiple arguments
+      if (arguments.length > 2) {
+        result = Array.prototype.slice.call(arguments, 1);
+      }
       deferred.resolve(result);
     });
 
