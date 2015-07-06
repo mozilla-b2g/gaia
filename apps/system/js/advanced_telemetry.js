@@ -78,15 +78,10 @@
     }
   }
 
-  function logdemo(...args) {
-    args.unshift('[AdvancedTelemetry]');
-    console.log.apply(console, args);
-  }
-
   function debuglongLine(longLine) {
     var array = longLine.match(/.{1,1000}/g);
     array.forEach(function(value) {
-      console.log(value);
+      console.log('[AdvancedTelemetry]' + value);
     });
   }
 
@@ -152,7 +147,7 @@
       return;
     }
     this.collecting = true;
-
+    console.info('TIMETOSTART');
 
     loadData();
     function loadData() {
@@ -245,7 +240,7 @@
         break;
       case HUDMETRICS:
         debug('GOT A HUDMETRICS: ' + JSON.stringify(e.detail));
-        this.metrics.add(e.detail);
+        this.transmit(e.detail);
         break;
       default:
         break;
@@ -257,7 +252,7 @@
     }
 
     // Is there data to be sent and is this an okay time to send it?
-    if (!this.metrics.isEmpty() && this.idle && navigator.onLine) {
+    if (/*!this.metrics.isEmpty() && */this.idle && navigator.onLine) {
       var absoluteTime = Date.now();
       // Have we tried and failed to send it before?
 /*      if (this.lastFailedTransmission > this.metrics.startTime()) {
@@ -271,7 +266,8 @@
       // reporting interval has elapsed.
       /* else */
       if (absoluteTime - this.metrics.startTime() > AT.REPORT_INTERVAL) {
-        this.transmit();
+        this.getPayload();
+//        this.metrics = new HistogramData();
       }
     }
   };
@@ -279,8 +275,14 @@
   // Transmit the current batch of metrics to the metrics server.
   // Start a new batch of data. If the transmission fails, merge the
   // new batch with the failed batch so we can try again later.
-  AT.prototype.transmit = function transmit() {
+  AT.prototype.getPayload = function getPayload() {
+    console.log('TAMARA TIME TO TRANSMIT2');
     loginfo('TAMARA TIME TO TRANSMIT');
+    console.info('telemetry|MGMT|TIMETOSHIP');
+    this.metrics = new HistogramData();
+  };
+
+  AT.prototype.transmit = function transmit(payload) {
     var self = this;
 
     if (!this.collecting) {
@@ -292,8 +294,6 @@
 
     // Remember the existing metrics in case transmission fails
 //    var oldMetrics = this.metrics;
-    var payload = this.metrics.packHistograms();
-    loginfo('TAMARA PAYLOAD IS: ' );
     debuglongLine(JSON.stringify(payload));
 
     // But assume that it will succeed and start collecting new metrics now
@@ -333,13 +333,11 @@
         },
         clientId: self.deviceID,
         payload: {
-          gaiaHistograms: payload
+          histograms: payload
         }
       };
 
-      loginfo('TAMARA whole thing is IS: ' );
       debuglongLine(JSON.stringify(wrapper));
-
 
       // Build the wrapper for the telemetry version
       send(wrapper, deviceResponse);
@@ -347,9 +345,11 @@
     });
 
     function send(payload, deviceInfoQuery) {
-      loginfo('TAMARA: CALLING SEND');
+      loginfo('TAMARA: CALLING SEND: ' + JSON.stringify(payload));
 
-      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
+
+
+/*      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
                                               self.deviceID);
 
       // We don't actually have to do anything if the data is transmitted
@@ -379,7 +379,7 @@
         onerror: retry,
         onabort: retry,
         ontimeout: retry
-      });
+      });*/
     }
   };
 
@@ -502,247 +502,6 @@
     });
   };
 
-  HistogramData.prototype.add = function(ed) {
-    //The key name is composite of: <app>_<category>
-    var key = ed.metric.appName.concat('_', ed.metric.name);
-    var value = ed.metric.value;
-    debug('adding metric, key: ' + key + ', value: ' + value);
-    logdemo('adding histogram data --> ' + key + ', ' + value);
-    logdemo('');
-    switch (ed.metric.name) {
-      case 'uss':
-        this.addUssValue(key, value);
-        break;
-      case 'jank':
-        this.addJankValue(key, value);
-        break;
-      case 'reflows':
-        this.addReflowsValue(key, value);
-        break;
-      case 'reflow-duration':
-        this.addReflowDurationValue(key, value);
-        break;
-      case 'security':
-        this.addSecurityValue(key, value);
-        break;
-      case 'errors':
-      case 'warnings':
-        this.addErrorWarningCount(key, value);
-        break;
-      case 'ttl-cold-start':
-        this.addColdStartupTime(key, value);
-        break;
-      case 'ttl-warm-start':
-        this.addWarmStartupTime(key, value);
-        break;
-      default:
-        this.addAppHistogram(key, value);
-        break;
-    }
-//    this.needsSave = true;
-  };
-
-  HistogramData.prototype.addAppHistogram = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      histValue.values++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {
-        'values': 0,
-        'histogram_type': 4
-      };
-
-      newValue.values++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR APP:' +
-        key + JSON.stringify(newValue));
-    }
-  };
-
-  HistogramData.prototype.addWarmStartupTime = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      // Broke the memory into ten buckets 1-1000 ms e.
-      histValue.values[(Math.floor((value/100)) -1)]++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {'sum_squares_hi': 0,
-        'sum_squares_lo': 1,
-        'sum': 0,
-        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        'histogram_type': 1,
-        'bucket_count': 10,
-        'range': [0,1000]};
-
-      newValue.values[(Math.floor((value/100)) -1)]++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR WARM STARTUP:' + key +
-        JSON.stringify(newValue));
-    }
-  };
-
-  HistogramData.prototype.addColdStartupTime = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      // Broke the memory into ten buckets 1-1000 ms e.
-      histValue.values[(Math.floor((value/1000)) -1)]++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {'sum_squares_hi': 0,
-        'sum_squares_lo': 1,
-        'sum': 0,
-        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        'histogram_type': 1,
-        'bucket_count': 10,
-        'range': [0,1000]};
-
-      newValue.values[(Math.floor((value/1000)) -1)]++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR COLD STARTUP:' + key +
-        JSON.stringify(newValue));
-    }
-  };
-
-  HistogramData.prototype.addSecurityValue = function(key, value) {
-    var security = [
-      'Mixed Content Blocker',
-      'Mixed Content Message',
-      'CSP',
-      'Invalid HSTS Headers',
-      'Invalid HPKP Headers',
-      'Insecure Password Field',
-      'SSL',
-      'CORS'
-    ];
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      // We just map the security array values to the values in the histogram
-      // buckets for convenience.
-      histValue.values[security.indexOf(value)]++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {'sum_squares_hi': 0,
-        'sum_squares_lo': 1,
-        'sum': 0,
-        'values': [0, 0, 0, 0, 0, 0, 0, 0],
-        'histogram_type': 1,
-        'bucket_count': 8,
-        'range': [0,300]};
-
-      newValue.values[security.indexOf(value)]++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR SECURITY:' +
-        key + JSON.stringify(newValue));
-    }
-  };
-
-  HistogramData.prototype.addErrorWarningCount = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      histValue.values++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {
-        'values': 0,
-        'histogram_type': 4
-      };
-
-      newValue.values++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR ERRORSWARNINGS:' +
-        key + JSON.stringify(newValue));
-    }
-  };
-
-  HistogramData.prototype.addReflowsValue = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      // Broke the memory into ten buckets 1-30 each.
-      histValue.sum = ++histValue.values;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {'sum_squares_hi': 0,
-        'sum_squares_lo': 1,
-        'sum': 0,
-        'values': 0,
-        'histogram_type': 4,
-        'bucket_count': 1,
-        'range': [0,300]};
-
-      newValue.sum = ++newValue.values;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR REFLOWS:' +
-        key + JSON.stringify(newValue));
-    }
-
-    debug('Added a value for REFLOWS: ' + value);
-  };
-
-  HistogramData.prototype.addReflowDurationValue = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      // Broke the memory into ten buckets 1-300 MB each.
-      histValue.values[(Math.floor((value/300)) -1)]++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {'sum_squares_hi': 0,
-        'sum_squares_lo': 1,
-        'sum': 0,
-        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        'histogram_type': 1,
-        'bucket_count': 10,
-        'range': [0,300]};
-
-      newValue.values[(Math.floor((value/300)) -1)]++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR REFLOW DURATION:' + 
-        key + JSON.stringify(newValue));
-    }
-    debug('Added a value for REFLOW DURATION: ' + value);
-  };
-
-  HistogramData.prototype.addJankValue = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      // Broke the memory into ten buckets 1-100 MB each.
-      histValue.values[(Math.floor((value/100)) -1)]++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {'sum_squares_hi': 0,
-        'sum_squares_lo': 1,
-        'sum': 0,
-        'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        'histogram_type': 1,
-        'bucket_count': 10,
-        'range': [0,100]};
-
-      newValue.values[(Math.floor((value/100)) -1)]++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR JANK:' + key + JSON.stringify(newValue));
-    }
-  };
-
-  HistogramData.prototype.addUssValue = function(key, value) {
-    var histValue = this.data.histograms.get(key, value);
-    if (histValue) {
-      // Broke the memory into ten buckets 1-100 MB each.
-      histValue.values[(Math.floor((value/1048576)/10) -1)]++;
-      this.data.histograms.set(key, histValue);
-    } else {
-      var newValue = {'sum_squares_hi': 0,
-                      'sum_squares_lo': 1,
-                      'sum': 0,
-                      'values': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                      'histogram_type': 1,
-                      'bucket_count': 10,
-                      'range': [0,100]};
-
-      newValue.values[(Math.floor((value/1048576)/10) -1)]++;
-      this.data.histograms.set(key, newValue);
-      debug('ADDED A NEW HISTOGRAM FOR USS:' + key + JSON.stringify(newValue));
-    }
-  };
 
   // Persist the current batch of metrics so we don't lose it if the user
   // switches the phone off.
