@@ -315,6 +315,7 @@
             var iconSize = Math.max(img.naturalWidth, img.naturalHeight);
 
             resolve({
+              url: iconUrl,
               blob: iconBlob,
               size: iconSize
             });

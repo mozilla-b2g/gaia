@@ -2502,7 +2502,8 @@
             var iconUrl = URL.createObjectURL(iconObject.blob);
             resolve({
               url: iconUrl,
-              isSmall: iconObject.size < iconSize
+              isSmall: iconObject.size < iconSize,
+              originalUrl: iconObject.url
             });
           })
           .catch(err => {

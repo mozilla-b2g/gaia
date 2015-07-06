@@ -240,8 +240,7 @@ suite('system/AppChrome', function() {
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
-      chrome.handleEvent({ type: '_locationchange',
-                           detail: 'new.location' });
+      chrome.handleEvent({ type: '_locationchange' });
 
       stub1.getCall(0).args[0](true);
       assert.equal(chrome.forwardButton.disabled, false);
@@ -271,9 +270,7 @@ suite('system/AppChrome', function() {
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
-      var evt = new CustomEvent('_locationchange', {
-        detail: 'http://mozilla.org'
-      });
+      var evt = new CustomEvent('_locationchange');
       app.element.dispatchEvent(evt);
 
       stub1.getCall(0).args[0](true);
@@ -297,15 +294,13 @@ suite('system/AppChrome', function() {
     test('loadstart', function() {
       chrome.handleEvent({ type: 'mozbrowserloadstart' });
       assert.isTrue(chrome.containerElement.classList.contains('loading'));
-      assert.ok(chrome.setSiteIcon.calledOnce);
-      assert.equal(1, chrome.setSiteIcon.getCall(0).args.length,
-                'setSiteIcon passed default URL argument');
+      assert.isFalse(chrome.setSiteIcon.calledOnce);
     });
 
     test('loadend', function() {
       chrome.handleEvent({ type: 'mozbrowserloadend' });
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
-      assert.ok(chrome.setSiteIcon.calledOnce);
+      assert.isTrue(chrome.setSiteIcon.calledOnce);
       assert.equal(0, chrome.setSiteIcon.getCall(0).args.length,
                 'setSiteIcon passed 0 argument');
     });
@@ -439,9 +434,7 @@ suite('system/AppChrome', function() {
         return true;
       });
       subject.collapse();
-      var evt = new CustomEvent('_locationchange', {
-        detail: 'http://example.com'
-      });
+      var evt = new CustomEvent('_locationchange');
       subject.app.element.dispatchEvent(evt);
       assert.isTrue(subject.element.classList.contains('maximized'));
       assert.equal(subject.scrollable.scrollTop, 0);
@@ -850,6 +843,33 @@ suite('system/AppChrome', function() {
       assert.ok(combinedChrome.siteIcon
                   .style.backgroundImage.includes(fakeIconURI));
     });
+  });
 
+  suite('Default icon', function() {
+    var chrome;
+
+    setup(function() {
+      var app = new AppWindow(cloneConfig(fakeWebSite));
+      chrome = new AppChrome(app);
+
+      chrome.app.config.url = 'http://origin1/';
+      chrome.handleEvent({ type: '_locationchange' });
+      chrome.setSiteIcon.reset();
+    });
+
+    test('Icon is not set to default when same origin', function() {
+      chrome.handleEvent({ type: '_locationchange' });
+
+      assert.isFalse(chrome.setSiteIcon.called);
+    });
+
+    test('Icon is set to default when same origin', function() {
+      chrome.app.config.url = 'http://origin2/';
+      chrome.handleEvent({ type: '_locationchange' });
+
+      assert.isTrue(chrome.setSiteIcon.calledOnce);
+      assert.equal(1, chrome.setSiteIcon.getCall(0).args.length,
+        'setSiteIcon passed 1 argument');
+    });
   });
 });
