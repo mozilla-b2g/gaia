@@ -72,6 +72,8 @@
    "deviceinfo.previous_os": "",
    "deviceinfo.platform_build_id": "",
    "deviceinfo.platform_version": "",
+   "deviceinfo.product_device": "",
+   "deviceinfo.product_manufacturer": "",
    "deviceinfo.product_model": "",
    "deviceinfo.software": "",
    "device.storage.writable.name": "sdcard",
