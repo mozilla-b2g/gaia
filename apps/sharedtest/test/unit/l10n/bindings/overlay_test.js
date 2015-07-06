@@ -4,7 +4,9 @@ var strings = {
  'lang1': [
    'text-em = Hello, <em title="WORLD">world</em>!',
    'text-em-sup = Hello, <em title="WORLD">world</em><sup>(foo)</sup>!',
-   'text-nbsp = Hello,&nbsp;world!',
+   'text-entity-name = Hello &amp; world',
+   'text-entity-nnnn = Hello &#0038; world',
+   'text-entity-hhhh = Hello &#x0026; world',
 
    'struct-a = Read <a title="MORE">more</a>.',
    'struct-em-a = <em>Read</em> <a>more</a>.',
@@ -75,10 +77,22 @@ suite('L10n DOM overlays', function() {
         elem.innerHTML, 'Hello, <em title="WORLD">world</em><sup>(foo)</sup>!');
     });
 
-    test('nbsp is allowed', function() {
-      navigator.mozL10n.setAttributes(elem, 'text-nbsp');
+    test('entity name is allowed', function() {
+      navigator.mozL10n.setAttributes(elem, 'text-entity-name');
       navigator.mozL10n.translateFragment(elem);
-      assert.equal(elem.innerHTML, 'Hello,&nbsp;world!');
+      assert.equal(elem.innerHTML, 'Hello &amp; world');
+    });
+
+    test('entity decimal codepoint is allowed', function() {
+      navigator.mozL10n.setAttributes(elem, 'text-entity-nnnn');
+      navigator.mozL10n.translateFragment(elem);
+      assert.equal(elem.innerHTML, 'Hello &amp; world');
+    });
+
+    test('entity hexadecimal codepoint is allowed', function() {
+      navigator.mozL10n.setAttributes(elem, 'text-entity-hhhh');
+      navigator.mozL10n.translateFragment(elem);
+      assert.equal(elem.innerHTML, 'Hello &amp; world');
     });
 
   });
