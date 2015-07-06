@@ -17,7 +17,6 @@
 /* global TAG_OPTIONS */
 /* global utils */
 /* global VcardFilename */
-/* global ExtServices */
 /* global MatchService */
 /* global WebrtcClient */
 /* global MainNavigation */
@@ -53,12 +52,6 @@ contacts.Details = (function() {
       header,
       _;
 
-  var socialButtonIds = [
-    '#profile_button',
-    '#wall_button',
-    '#msg_button'
-  ];
-
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
     dom = currentDom || document;
@@ -77,9 +70,6 @@ contacts.Details = (function() {
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
-
-    window.addEventListener('online', checkOnline);
-    window.addEventListener('offline', checkOnline);
 
     initPullEffect(cover);
 
@@ -302,9 +292,8 @@ contacts.Details = (function() {
     renderDates(contact);
 
     renderNotes(contact);
-    if (fb.isEnabled) {
-      renderSocial(contact);
-    }
+
+    renderShareButton(contact);
 
     if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
       renderDuplicate(contact);
@@ -434,68 +423,18 @@ contacts.Details = (function() {
     }
   };
 
-  var renderSocial = function cd_renderSocial(contact) {
-    var linked = isFbLinked;
-
-    var action = linked ? _('social-unlink') : _('social-link');
-    var slinked = linked ? 'false' : 'true';
-
+  var renderShareButton = function cd_renderShareButton(contact) {
     var social = utils.templates.render(socialTemplate, {
-      i: contact.id,
-      action: action,
-      linked: slinked
+      i: contact.id
     });
     currentSocial = social;
-    var linkButton = social.querySelector('#link_button');
     var shareButton = social.querySelector('#share_button');
 
     shareButton.addEventListener('click', shareContact);
-
-    if (!isFbContact) {
-      socialButtonIds.forEach(function check(id) {
-        var button = social.querySelector(id);
-        if (button) {
-          button.classList.add('hide');
-        }
-      });
-      // Checking whether link should be enabled or not
-      doDisableButton(linkButton);
-      shareButton.classList.remove('hide');
-    } else {
-        var socialLabel = social.querySelector('#social-label');
-        if (socialLabel) {
-          socialLabel.setAttribute('data-l10n-id', 'facebook');
-        }
-        shareButton.classList.add('hide');
-    }
-
-    // If it is a FB Contact but not linked unlink must be hidden
-    if (isFbContact && !linked) {
-      linkButton.classList.add('hide');
-    }
-
-    ExtServices.initEventHandlers(social, contact, linked);
+    shareButton.classList.remove('hide');
 
     listContainer.appendChild(social);
   };
-
-  var checkOnline = function() {
-    var socialTemplate = document.querySelector(
-                                        ':not([data-template])[data-social]');
-
-    if (socialTemplate && !isFbContact) {
-      doDisableButton(socialTemplate.querySelector('#link_button'));
-    }
-  };
-
-  function doDisableButton(buttonElement) {
-    if (navigator.onLine === true) {
-      buttonElement.removeAttribute('disabled');
-    }
-    else {
-      buttonElement.setAttribute('disabled', 'disabled');
-    }
-  }
 
   var renderWebrtcClient = function renderWebrtcClient(contact) {
     getWebrtcClientResources(function onLoaded() {
