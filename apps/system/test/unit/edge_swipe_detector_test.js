@@ -703,7 +703,7 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('During a tap', function() {
       test('it should not begin a transition', function() {
         var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
-        swipe(this.sinon.clock, panel, 10, 10, 10, 10);
+        swipe(this.sinon.clock, panel, 10, 10, 14, 10);
         assert.isFalse(beginSpy.called);
       });
 
