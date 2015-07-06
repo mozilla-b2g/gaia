@@ -26,6 +26,7 @@
     test('works after opening an app', function() {
       messagesApp.launch();
       messagesApp.Inbox.navigateToComposer();
+      system.waitForKeyboard();
       var composer = messagesApp.Composer;
 
       client.waitFor(function() {
@@ -45,6 +46,7 @@
     test('works after home button', function(done) {
       messagesApp.launch();
       messagesApp.Inbox.navigateToComposer();
+      system.waitForKeyboard();
       var composer = messagesApp.Composer;
 
       client.waitFor(function() {
@@ -66,6 +68,7 @@
     test('it only creates 1 action menu div', function() {
       messagesApp.launch();
       messagesApp.Inbox.navigateToComposer();
+      system.waitForKeyboard();
       var composer = messagesApp.Composer;
 
       client.waitFor(function() {
