@@ -14,6 +14,8 @@ exports.execute = function(options, webapp) {
 
   nodeHelper.require('copy-build-stage-data', options);
 
+  require('./raptor-test-transformer').execute(options, webapp);
+
   // Web app optimization steps (like precompling l10n, concatenating js files,
   // etc..).
   require('./webapp-optimize').execute(options);
