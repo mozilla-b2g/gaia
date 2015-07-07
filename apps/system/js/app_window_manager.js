@@ -339,6 +339,13 @@
             appNext.ensure(true);
           }
         }
+
+        // An app was opened while we were getting ready to
+        // transition (probaly from an edge gesture)
+        if (this._activeApp && appNext !== this._activeApp) {
+          this._activeApp.close('immediate');
+        }
+
         appNext.reviveBrowser();
         this.debug('ready to open/close' + switching);
         if (switching) {
