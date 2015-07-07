@@ -1,4 +1,5 @@
-/* global DUMP, SettingsHelper, SettingsListener, SettingsURL, FindMyDevice */
+/* global DUMP, SettingsHelper, SettingsListener, SettingsURL, FindMyDevice,
+          PasscodeHelper */
 
 'use strict';
 
@@ -136,6 +137,7 @@ var Commands = {
     },
 
     lock: function fmdc_lock(message, passcode, reply) {
+      var pr;
       var settings = {
         'lockscreen.enabled': true,
         'lockscreen.notifications-preview.enabled': false,
@@ -148,17 +150,16 @@ var Commands = {
       }
 
       if (!this.deviceHasPasscode() && passcode) {
-        settings['lockscreen.passcode-lock.code'] = passcode;
+        pr = PasscodeHelper.set(passcode);
       }
 
       var request = SettingsListener.getSettingsLock().set(settings);
-      request.onsuccess = function() {
-        reply(true);
-      };
 
-      request.onerror = function() {
-        reply(false, 'failed to set settings');
-      };
+      Promise.all([pr, request]).then(() => {
+        reply(true);
+      }).catch(() => {
+        reply(false);
+      });
 
       FindMyDevice.endHighPriority('command');
     },
