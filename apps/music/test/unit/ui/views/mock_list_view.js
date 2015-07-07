@@ -2,5 +2,8 @@
 'use strict';
 
 var MockListView = {
-  init: function() {}
+  init: function() {},
+  activate: function() {},
+  cancelEnumeration: function () {},
+  update: function() {}
 };

@@ -2,5 +2,6 @@
 'use strict';
 
 var MockTilesView = {
-  init: function() {}
+  init: function() {},
+  hideSearch: function() {}
 };
