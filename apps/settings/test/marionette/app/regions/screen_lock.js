@@ -68,10 +68,6 @@ ScreenLockPanel.prototype = {
     return this.findElement('screenLockHeaderLabel').displayed();
   },
 
-  getPasscode: function() {
-    return this.client.settings.get('lockscreen.passcode-lock.code');
-  },
-
   enableScreenLock: function() {
     this.waitForElement('screenLockLabel').tap();
     this.client.waitFor(function() {
