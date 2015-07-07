@@ -1,0 +1,39 @@
+{
+  "name": "Notification Manager",
+  "description": "Smart Screen Notification Manager",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Notification",
+      "description": "Smart Screen Notification Manager"
+    }
+  },
+  "default_locale": "en-US",
+  "widgets": {
+    "weather": {
+      "name": "Weather Widget",
+      "launch_path": "/widget.html",
+      "description": "widget for showing weather and world clock"
+    }
+  },
+  "widgetPages": [
+    "/widget.html"
+  ],
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  },
+  "orientation": "landscape",
+  "connections": {
+    "notification-message": {
+      "description": "notification message"
+    }
+  },
+  "permissions": {
+    "desktop-notification":{}
+  }
+}
