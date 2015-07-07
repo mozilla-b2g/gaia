@@ -1,11 +1,12 @@
 /* global MockCanvas, MockCanvasRenderingContext2D, MockImage,
-          MockService */
+          MockService, PasscodeHelper */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_canvas.js');
 require('/shared/test/unit/mocks/mock_canvas_rendering_context_2d.js');
+require('/shared/js/passcode_helper.js');
 requireApp('system/lockscreen/js/lockscreen_charging.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -280,6 +281,22 @@ suite('system/LockScreen >', function() {
     'it didn\'t update "_lastUnlockedTimeStamp" when it unlocks');
   });
 
+  test('Unlock: uses PasscodeHelper', function() {
+    var StubPasscodeHelper = this.sinon.stub(PasscodeHelper, 'check',
+                              function() {
+      return Promise.resolve(true);
+    });
+
+    subject._lastLockedInterval = -1;
+    subject._lastLockedTimeStamp = 0;
+    subject._lastUnlockedTimeStamp = -1;
+
+    subject.overlay = domOverlay;
+    subject.checkPassCode('0000');
+    assert.isTrue(StubPasscodeHelper.called,
+      'lockscreen did not call PasscodeHelper to validate passcode');
+  });
+
   test('Unlock: would destroy the clock widget', function() {
     var stubDestroy = this.sinon.stub(subject.lockScreenClockWidget, 'destroy');
     subject.overlay = domOverlay;
@@ -287,16 +304,6 @@ suite('system/LockScreen >', function() {
     subject.unlock(true);
     assert.isTrue(stubDestroy.called);
     assert.isUndefined(subject.lockScreenClockWidget);
-  });
-
-  test('Passcode: enter passcode should fire the validation event', function() {
-    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-    subject.checkPassCode('foobar');
-    assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
-      return 'lockscreen-request-passcode-validate' === event.type &&
-        'foobar' === event.detail.passcode;
-    }),
-    'it did\'t fire the correspond event to validate the passcode');
   });
 
 

@@ -1,6 +1,6 @@
 'use strict';
 /* global Service, LockScreenWindow, LockScreenInputWindow */
-/* global LockScreenPasscodeValidator, BaseModule, LazyLoader */
+/* global LazyLoader */
 
 (function(exports) {
   /**
@@ -95,10 +95,6 @@
     Service.register('lock', this);
     Service.request('registerHierarchy', this);
     Service.registerState('locked', this);
-    BaseModule.lazyLoad(['LockScreenPasscodeValidator']).then(function() {
-      var lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
-      lockScreenPasscodeValidator.start();
-    });
   };
 
   LockScreenWindowManager.prototype._handle_home = function() {
