@@ -1073,6 +1073,11 @@ suite('thread_list_ui', function() {
         assert.equal(
           li.querySelector('.body-text').textContent, 'from a draft'
         );
+
+        // Time is still the original thread timestamp.
+        assert.equal(
+          li.dataset.time, '' + now
+        );
       });
 
       test('Draft newer, but has no content', function() {

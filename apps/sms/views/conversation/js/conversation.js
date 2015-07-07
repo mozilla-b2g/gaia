@@ -2913,12 +2913,6 @@ var ConversationView = {
       return;
     }
 
-    // Update thread timestamp. Will be removed in bug 958105.
-    var thread = Threads.active;
-    if (thread) {
-      thread.timestamp = Date.now();
-    }
-
     Drafts.delete(this.draft).store();
 
     this.draft = null;
@@ -2948,11 +2942,6 @@ var ConversationView = {
       subject: Compose.getSubject(),
       type: Compose.type
     });
-
-    // Update thread timestamp with draft's one. Will be removed in bug 958105.
-    if (thread) {
-      thread.timestamp = draft.timestamp;
-    }
 
     Drafts.add(draft);
 
