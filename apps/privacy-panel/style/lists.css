@@ -137,14 +137,6 @@ ul li > label ~ input {
   margin-bottom: 1.5rem;
 }
 
-ul li > label.pack-checkbox > small,
-ul li > label.pack-radio > small {
-  right: 6.1rem;
-}
-
-ul li > label.pack-switch > small {
-  right: 9rem;
-}
 /******************************************************************************
  * Boolean buttons
  */
@@ -164,59 +156,12 @@ ul li label {
   text-transform: none;
 }
 
-ul li > label:not([for]),
-ul li > label.pack-checkbox,
-ul li > label.pack-radio,
-ul li > label.pack-switch {
-  padding: 0 1.5rem;
-  margin: 0 -1.5rem;
-  width: 100%;
-  height: 100%;
-  min-height: 6rem;
-  overflow: visible;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-ul li > label:not([for]) > span,
-ul li > label.pack-checkbox > span,
-ul li > label.pack-radio > span,
-ul li > label.pack-switch > span {
-  line-height: normal;
-  height: auto;
-}
-
-ul li > label.pack-checkbox > span:after,
-ul li > label.pack-radio > span:after,
-ul li > label.pack-switch > input ~ span:after {
-  left: auto;
-  right: 1.5rem;
-}
-
-ul li > label.pack-checkbox > span {
-  padding-right: 6.1rem;
-}
-
-ul li > label.pack-radio ~ p {
-  padding-right: 3rem;
-}
-
-ul li > label.pack-switch > span {
-   padding-right: 9rem;
-}
-
-ul li > label.pack-radio > span {
-  padding-right: 5.9rem;
-  text-overflow: clip;
-  white-space: normal;
-}
-
-ul li > label.pack-checkbox:active,
-ul li > label.pack-radio:active,
-ul li > label.pack-switch:active {
-  background-color: #b2f2ff;
-  color: #222;
+/* Provide additional styles for switch components to match spacing with legacy components */
+ul li > gaia-switch,
+ul li > gaia-radio {
+  -moz-margin-start: 1.5rem;
+  /* The !important is necessary to override gaia-swtich scoped style. */
+  width: calc(100% - 1.5rem) !important;
 }
 
 /******************************************************************************
@@ -364,66 +309,6 @@ html[dir="rtl"] ul > li > progress + span {
 html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
   left: 1.5rem;
   right: auto;
-}
-
-html[dir="rtl"] ul li > label.pack-checkbox > small,
-html[dir="rtl"] ul li > label.pack-radio > small {
-  left: 6.1rem;
-  right: 4rem;
-}
-
-html[dir="rtl"] ul li > label.pack-checkbox > small:not(.menu-item-desc),
-html[dir="rtl"] ul li > label.pack-radio > small:not(.menu-item-desc) {
-   left: 9rem;
-   right: 2rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > small {
-   left: 9rem;
-   right: 4rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > small:not(.menu-item-desc) {
-   left: 9rem;
-   right: 2rem;
-}
-
-html[dir="rtl"] ul li > label.pack-checkbox > span:after,
-html[dir="rtl"] ul li > label.pack-radio > span:after,
-html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
-  left: 1.5rem;
-  right: auto;
-}
-
-html[dir="rtl"] ul li > label.pack-checkbox > span {
-  padding-left: 6.1rem;
-
-}
-html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
-  padding-left: 6.1rem;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-radio ~ p {
-  padding-left: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > span {
-  padding-left: 9rem;
-}
-
-html[dir="rtl"] ul li > label.pack-switch > span:not(.menu-item) {
-  padding-left: 9rem;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li > label.pack-radio > span {
-  padding-left: 5.9rem;
-}
-
-html[dir="rtl"] ul li > label.pack-radio > span:not(.menu-item) {
-  padding-left: 5.9rem;
-  padding-right: 3rem;
 }
 
 html[dir="rtl"] ul li > label input[type="range"] {

@@ -9,10 +9,9 @@
     <div>
       <ul>
         <li>
-          <label class="pack-radio">
-            <input type="radio" class="dcl-type-rc" value="rc">
-            <span data-l10n-id="choose-a-region-city"></span>
-          </label>
+          <gaia-radio name="custom-loc" class="dcl-type-rc" value="rc">
+            <label data-l10n-id="choose-a-region-city"></label>
+          </gaia-radio>
         </li>
         <li class="dcl-rc-region">
           <p data-l10n-id="region"></p>
@@ -29,10 +28,9 @@
           </span>
         </li>
         <li>
-          <label class="pack-radio">
-            <input type="radio" class="dcl-type-gps" value="gps">
-            <span data-l10n-id="enter-gps-coordinates"></span>
-          </label>
+          <gaia-radio name="custom-loc" class="dcl-type-gps" value="gps">
+            <label data-l10n-id="enter-gps-coordinates"></label>
+          </gaia-radio>
         </li>
         <li class="dcl-gps-area">
           <p class="description" data-l10n-id="enter-gps-description"></p>

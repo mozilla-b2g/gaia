@@ -13,6 +13,19 @@ define([
 function(lazyLoader, SettingsListener, SettingsHelper) {
   'use strict';
 
+  /**
+   * Returns the interface to check or set values on an input.
+   * Helper method to bridge legacy inputs with web components.
+   */
+  function elementInterface(type) {
+    const checkedTypes = ['checkbox', 'gaia-switch', 'gaia-radio'];
+    if (checkedTypes.includes(type)) {
+      return 'checked';
+    } else {
+      return 'value';
+    }
+  }
+
   function PanelController() {}
 
   PanelController.prototype = {
@@ -68,7 +81,6 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
      */
     changePage: function(event) {
       var target, id = this.hash.replace('#', '');
-
       event.preventDefault();
 
       if (!id) {
@@ -88,7 +100,8 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
     registerEvents: function(sections) {
       sections.forEach(function(section) {
         var links = section.querySelectorAll('.pp-link');
-        var settings = section.querySelectorAll('input[name], select[name]');
+        var settings = section.querySelectorAll('input[name], select[name], ' +
+          'gaia-switch');
 
         // Redirect each click on pp-links with href attributes
         [].forEach.call(links, function(link) {
@@ -138,11 +151,7 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
      * @param  {String} value
      */
     updateSetting: function(value) {
-      if (this.type === 'checkbox') {
-        this.checked = value;
-      } else {
-        this.value = value;
-      }
+      this[elementInterface(this.type)] = value;
     },
 
     /**
@@ -151,8 +160,7 @@ function(lazyLoader, SettingsListener, SettingsHelper) {
      * @method saveSetting
      */
     saveSetting: function() {
-      var value = this.type === 'checkbox' ? this.checked : this.value;
-      SettingsHelper(this.name).set(value);
+      SettingsHelper(this.name).set(this[elementInterface(this.type)]);
     }
   };
 
