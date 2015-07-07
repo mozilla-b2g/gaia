@@ -7,4 +7,6 @@
     client: () => {},
     service: () => {}
   };
+
+  exports.MockstreamService = {};
 })(window);

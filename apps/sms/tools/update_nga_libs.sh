@@ -9,10 +9,15 @@
 ###############################################################################
 # variables
 bower_path="bower_components"
+
 threads_repo="gaia-components/threads#master"
 threads_index="$bower_path/threads/index.js"
-threads_name="bridge"
-threads_path="lib/$threads_name.js"
+threads_plugins="$bower_path/threads/lib/plugins"
+
+threads_alias="bridge"
+threads_destination="lib/$threads_alias"
+threads_index_destination="$threads_destination/$threads_alias.js"
+
 sww_repo="gaia-components/serviceworkerware#master"
 sww_dist="$bower_path/serviceworkerware/dist/sww.js"
 sww_path="lib/sww.js"
@@ -27,6 +32,10 @@ fi
 
 bower install $threads_repo $sww_repo
 
-browserify $threads_index --standalone $threads_name > $threads_path
+# Threads lib preparing.
+[ -d "$threads_destination" ] || mkdir "$threads_destination"
+browserify "$threads_index" --standalone $threads_alias > "$threads_index_destination"
+cp -r "$threads_plugins" "$threads_destination"
 
-cp $sww_dist $sww_path
+# ServiceWorkerWare lib preparing.
+cp "$sww_dist" "$sww_path"

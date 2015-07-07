@@ -30,11 +30,11 @@ var ActivityHandler = {
     }
 
     if (ActivityShim.hasPendingRequest()) {
-      // Unique identifier used to have only 1-to-1 connection between client
-      // and corresponding service.
-      var appInstanceId = Date.now();
+      // Currently both client and service for activity reside in the same
+      // context, so we spin up both in the same context/window.
+      ActivityShim.init();
 
-      ActivityClient.init(appInstanceId);
+      ActivityClient.init();
 
       ActivityClient.on(
         'new-activity-request', this._onNewActivity.bind(this)
@@ -43,10 +43,6 @@ var ActivityHandler = {
       ActivityClient.on(
         'share-activity-request', this._onShareActivity.bind(this)
       );
-
-      // Currently both client and service for activity reside in the same
-      // context, so we spin up both in the same context/window.
-      ActivityShim.init(appInstanceId);
     } else {
       // We don't want to register these system handlers when app is run as
       // inline activity

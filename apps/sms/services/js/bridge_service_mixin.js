@@ -1,4 +1,6 @@
-/*global bridge */
+/*global bridge,
+         streamService
+*/
 /*jshint esnext: true */
 
 'use strict';
@@ -26,7 +28,7 @@
   var serviceMixin = {
     initService() {
       if (!('bridge' in self)) {
-        importScripts('/lib/bridge.js');
+        importScripts('/lib/bridge/bridge.js');
       }
 
       var service = bridge.service(this[priv.name]);
@@ -35,9 +37,20 @@
         service.method(exposedMethod, this[exposedMethod].bind(this));
       });
 
-      this[priv.streams].forEach((exposedStream) => {
-        service.stream(exposedStream, this[exposedStream].bind(this));
-      });
+      var streams = this[priv.streams];
+      if (streams.length > 0) {
+        if (!('streamService' in self)) {
+          importScripts('/lib/bridge/plugins/stream/service.js');
+        }
+
+        service.plugin(streamService);
+
+        streams.forEach((exposedStream) => {
+          service.stream(exposedStream, this[exposedStream].bind(this));
+        });
+      }
+
+      service.listen();
 
       this[priv.service] = service;
     },
@@ -72,12 +85,13 @@
         }
 
         this[method] = serviceMixin[method];
-
-        this[priv.name] = name;
-        this[priv.methods] = methods || [];
-        this[priv.streams] = streams || [];
-        this[priv.events] = events || [];
       }, target);
+
+      target[priv.service] = null;
+      target[priv.name] = name;
+      target[priv.methods] = methods || [];
+      target[priv.streams] = streams || [];
+      target[priv.events] = events || [];
 
       return target;
     }

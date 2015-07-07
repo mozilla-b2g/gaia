@@ -94,7 +94,7 @@ if (!('BridgeServiceMixin' in self)) {
     findConversationFromAddress(address) {}
   };
 
-  exports.ConversationService = Object.freeze(
+  exports.ConversationService = Object.seal(
     BridgeServiceMixin.mixin(
       ConversationService,
       SERVICE_NAME,

@@ -40,16 +40,9 @@
   var ActivityClient = {
     /**
      * Initialized activity service client bridge.
-     * @type {number} appInstanceId Unique identifier of the app instance that
-     * is used to establish 1-to-1 only connection between this client and
-     * corresponding service hosted in the same app instance.
      */
-    init(appInstanceId) {
-      if (!appInstanceId) {
-        throw new Error('App instance id is not specified!');
-      }
-
-      client = bridge.client(SERVICE_NAME + appInstanceId);
+    init() {
+      client = bridge.client(SERVICE_NAME, exports);
       hasPendingRequest = false;
 
       client.on('activity-request', (request) => {

@@ -127,17 +127,12 @@ suite('ActivityHandler', function() {
     });
 
     test('if app is run as inline activity', function() {
-      this.sinon.stub(Date, 'now').returns(12345);
-
       ActivityShim.hasPendingRequest.returns(true);
 
       ActivityHandler.init();
 
       sinon.assert.calledOnce(ActivityShim.init);
-      sinon.assert.calledWith(ActivityShim.init, 12345);
-
       sinon.assert.calledOnce(ActivityClient.init);
-      sinon.assert.calledWith(ActivityClient.init, 12345);
 
       sinon.assert.calledWith(ActivityClient.on, 'new-activity-request');
       sinon.assert.calledWith(ActivityClient.on, 'share-activity-request');

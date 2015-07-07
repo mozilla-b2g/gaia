@@ -14,7 +14,7 @@ var MocksHelperForAttachment = new MocksHelper([
 ]).init();
 
 suite('ActivityClient >', function() {
-  var clientStub, appInstanceId;
+  var clientStub;
 
   MocksHelperForAttachment.attachTestHelpers();
 
@@ -27,10 +27,7 @@ suite('ActivityClient >', function() {
 
     this.sinon.stub(bridge, 'client').returns(clientStub);
 
-    // It should throw if app instance id is not specified.
-    assert.throws(() => ActivityClient.init());
-
-    ActivityClient.init(appInstanceId = Date.now());
+    ActivityClient.init();
 
     assert.isFalse(ActivityClient.hasPendingRequest());
   });
@@ -41,7 +38,7 @@ suite('ActivityClient >', function() {
 
   test('bridge client is correctly initialized', function() {
     sinon.assert.calledOnce(bridge.client);
-    sinon.assert.calledWith(bridge.client, 'activity-service' + appInstanceId);
+    sinon.assert.calledWith(bridge.client, 'activity-service', window);
   });
 
   test('postResult throws if there is no activity request', function(done) {
