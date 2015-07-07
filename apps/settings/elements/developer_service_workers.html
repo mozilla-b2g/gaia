@@ -12,18 +12,16 @@
     <div id="service-workers-list-section">
       <ul>
         <li>
-          <label class="pack-switch">
-            <input id="service-workers-interception-enabled"
-                   type="checkbox" name="dom.serviceWorkers.interception.enabled">
-            <span data-l10n-id="service-workers-interception"></span>
-          </label>
+          <gaia-switch id="service-workers-interception-enabled"
+                       name="dom.serviceWorkers.interception.enabled">
+            <label data-l10n-id="service-workers-interception"></label>
+          </gaia-switch>
         </li>
         <li>
-          <label class="pack-switch">
-            <input id="service-workers-testing-enabled"
-                   type="checkbox" name="dom.serviceWorkers.testing.enabled">
-            <span data-l10n-id="service-workers-testing"></span>
-          </label>
+          <gaia-switch id="service-workers-testing-enabled"
+                       name="dom.serviceWorkers.testing.enabled">
+            <label data-l10n-id="service-workers-testing"></label>
+          </gaia-switch>
         </li>
         <li>
           <ul id="service-workers-list"></ul>
