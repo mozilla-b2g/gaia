@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 PYTHON_VERSION=2.7.3
+USE_PYTHON=`which python`
 
 if [[ ! -z "$VIRTUALENV_EXISTS" ]]; then
   # If virtualenv already exists then we don't have to setup.
@@ -10,11 +11,10 @@ if [[ ! -z "$VIRTUALENV_EXISTS" ]]; then
   exit
 fi
 
-if [[ ! -z "$(which virtualenv)" ]]; then
+if [[ -z "$(which virtualenv)" ]]; then
   # If we're not on ci and the user doesn't have virtualenv
   # then we can try to install it but probably ruh roh...
   echo "checking python version"
-
 
   function notify_sudo {
     if [ "$SUDO_NOTIFY" = "1" ]; then
