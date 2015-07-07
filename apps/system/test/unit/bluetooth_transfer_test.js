@@ -1,6 +1,6 @@
 /* global MocksHelper, MockNavigatormozSetMessageHandler,
    MockNavigatorGetDeviceStorage,  MockL10n, MockBTAdapter, MockDOMRequest,
-   BluetoothTransfer, MockNotificationHelper, MockUtilityTray,
+   BluetoothTransfer, MockNotificationHelper, MockNotification, MockUtilityTray,
    NotificationHelper, MockCustomDialog, MimeMapper, mockMozActivityInstance,
    Service, MockService */
 'use strict';
@@ -12,6 +12,7 @@ require('/test/unit/mock_navigator_get_device_storage.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth_v2.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/js/mime_mapper.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_nfc_handover_manager.js');
@@ -34,6 +35,7 @@ suite('system/bluetooth_transfer', function() {
   var realSetMessageHandler;
   var realNavigatorGetDeviceStorage;
   var realL10n;
+  var realNotification;
   var real_sendingFilesQueue;
 
   var fake_sendingFilesQueue;
@@ -48,6 +50,9 @@ suite('system/bluetooth_transfer', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    realNotification = window.Notification;
+    window.Notification = MockNotification;
+
     MockNavigatormozSetMessageHandler.mSetup();
 
     requireApp('system/js/bluetooth_transfer.js', done);
@@ -58,6 +63,7 @@ suite('system/bluetooth_transfer', function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.getDeviceStorage = realNavigatorGetDeviceStorage;
     navigator.mozL10n = realL10n;
+    window.Notification = realNotification;
   });
 
   suite('Initialize', function() {
@@ -92,6 +98,13 @@ suite('system/bluetooth_transfer', function() {
           'bluetooth-opp-receiving-file-confirmation'));
         assert.ok(window.navigator.mozSetMessageHandler.calledWith(
           'bluetooth-opp-update-progress'));
+    });
+
+    test('Service Request called', function() {
+      assert.isTrue(MockService.request.calledOnce);
+      assert.isTrue(MockService.request.calledWith(
+        'handleSystemMessageNotification', 'BluetoothTransfer',
+        BluetoothTransfer));
     });
   });
 
@@ -319,6 +332,7 @@ suite('system/bluetooth_transfer', function() {
             MockNotificationHelper.mOptions.icon,
             'style/bluetooth_transfer/images/icon_bluetooth.png'
           );
+
           NotificationHelper.mEmit('click');
           assert.isTrue(MockUtilityTray.hide.called);
           assert.isTrue(BluetoothTransfer.showReceivePrompt.called);
@@ -811,6 +825,64 @@ suite('system/bluetooth_transfer', function() {
           success: true,
           received: false
         });
+      });
+    });
+
+    suite('handleSystemMessageNotification behavior', function() {
+      test('calls openReceivedFile', function() {
+        var message = {
+          body: 'someFile.txt',
+          data: {
+            systemMessageTarget: 'BluetoothTransfer',
+            transferInfo: {
+              'fileName': 'someFile.txt',
+              'contentType': ''
+            },
+          }
+        };
+        this.sinon.spy(BluetoothTransfer, 'openReceivedFile');
+        this.sinon.spy(BluetoothTransfer, 'closeSystemMessageNotification');
+        BluetoothTransfer.handleSystemMessageNotification(message);
+
+        assert.isTrue(BluetoothTransfer.openReceivedFile.calledOnce);
+        assert.isTrue(
+          BluetoothTransfer.closeSystemMessageNotification.calledOnce);
+      });
+    });
+
+    suite('closeSystemMessageNotification behavior', function() {
+      var notifCloseSpy, notificationGetStub;
+      var notification = {
+        body: 'fake',
+        data: {
+          systemMessageTarget: 'BluetoothTransfer'
+        },
+        close: function() {}
+      };
+
+      setup(function() {
+        notifCloseSpy = this.sinon.spy(notification, 'close');
+        notificationGetStub = function notificationGet() {
+          return {
+            then: function(cb) {
+              cb && cb([ notification ]);
+            }
+          };
+        };
+        this.sinon.stub(window.Notification, 'get', notificationGetStub);
+      });
+
+      test('closes notification by body', function() {
+        var tag = notification.tag;
+        notification.tag = undefined;
+
+        BluetoothTransfer.closeSystemMessageNotification(notification);
+        assert.isTrue(window.Notification.get.calledOnce);
+        assert.isTrue(window.Notification.get.calledWith(
+          { tag: notification.tag}));
+        assert.isTrue(notifCloseSpy.calledOnce);
+
+        notification.tag = tag;
       });
     });
   });

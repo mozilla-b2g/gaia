@@ -19,6 +19,7 @@ var BluetoothTransfer = {
    * @type {Boolean} turn on/off the console log
    */
   onDebug: false,
+  bluetoothIcon: 'style/bluetooth_transfer/images/icon_bluetooth.png',
 
   get _deviceStorage() {
     return navigator.getDeviceStorage('sdcard');
@@ -34,6 +35,11 @@ var BluetoothTransfer = {
 
   /**
    * Initialize BluetoothTransfer module.
+   *
+   * Service request handleSystemMessageNotification is used to filter
+   * and relay BluetoothTransfer related notifications handle event after
+   * reboot. Now only `_onTransferComplete` method generate notifications
+   * that need to be handled after reboot.
    *
    * @public
    */
@@ -67,6 +73,8 @@ var BluetoothTransfer = {
 
     Service.registerState('isSendFileQueueEmpty', this);
     Service.registerState('isFileTransferInProgress', this);
+    Service.request('handleSystemMessageNotification',
+      'BluetoothTransfer', this);
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -168,18 +176,16 @@ var BluetoothTransfer = {
     // received.
     this.debug('show receive confirm dialog');
     var address = evt.address;
-    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
 
     this.getDeviceName(address).then((deviceName) => {
       var title = {
         id: 'transfer-confirmation-title',
         args: { deviceName: deviceName }
       };
-      var body = 'transfer-confirmation-description';
 
       NotificationHelper.send(title, {
-        'bodyL10n': body,
-        'icon': icon
+        'bodyL10n': 'transfer-confirmation-description',
+        'icon': this.bluetoothIcon
       }).then((notification) => {
         notification.addEventListener('click', () => {
           UtilityTray.hide();
@@ -205,8 +211,7 @@ var BluetoothTransfer = {
     };
 
     this.getDeviceName(address).then(function(deviceName) {
-      Service.request('showCustomDialog',
-        'acceptFileTransfer',
+      Service.request('showCustomDialog', 'acceptFileTransfer',
         {
           id: 'wantToReceiveFile',
           args: {
@@ -264,9 +269,8 @@ var BluetoothTransfer = {
         }
       };
 
-      var body = msg;
       Service.request('showCustomDialog',
-        'cannotReceiveFile', body, confirm, null);
+        'cannotReceiveFile', msg, confirm, null);
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
@@ -466,16 +470,21 @@ var BluetoothTransfer = {
     }
   },
 
+  /**
+   * Create notification when transfer complete.
+   *
+   * @param {Object} evt bluetooth-opp-transfer-complete event
+   */
   _onTransferComplete: function bt__onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
     // Remove transferring progress
     this.removeProgress(transferInfo);
-    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
 
     // Show notification
     var nData = {
       titleL10n: null,
-      icon: icon,
+      icon: this.bluetoothIcon,
+      transferInfo: null,
       onclick: null
     };
 
@@ -483,6 +492,7 @@ var BluetoothTransfer = {
       if (transferInfo.received) {
         // Received file can be opened only
         nData.titleL10n = 'transferFinished-receivedSuccessful-title';
+        nData.transferInfo = transferInfo;
         nData.onclick = this.openReceivedFile.bind(this, transferInfo);
       } else {
         nData.titleL10n = 'transferFinished-sentSuccessful-title';
@@ -496,17 +506,21 @@ var BluetoothTransfer = {
     }
 
     var l10nArgs = {
-      icon: nData.icon
+      icon: nData.icon,
+      data: {
+        systemMessageTarget: 'BluetoothTransfer'
+      }
     };
 
     if (transferInfo.fileName) {
       l10nArgs.body = transferInfo.fileName;
+      // put original message in data for reference
+      l10nArgs.data.transferInfo = nData.transferInfo;
     } else {
       l10nArgs.bodyL10n = 'unknown-file';
     }
 
     var promise = NotificationHelper.send(nData.titleL10n, l10nArgs);
-
     if (nData.onclick) {
       promise.then(function(notification) {
         notification.addEventListener('click', nData.onclick);
@@ -528,6 +542,42 @@ var BluetoothTransfer = {
 
     window.dispatchEvent(new CustomEvent('nfc-transfer-completed', {
       detail: details}));
+  },
+
+  /**
+   * Handle related system notification message operation after reboot.
+   * Need close notification message by ourself.
+   *
+   * @param {Object} message system notification message
+   */
+  handleSystemMessageNotification: function(message) {
+    this.debug('Received system message: ' + JSON.stringify(message));
+    if (message.data && message.data.transferInfo) {
+      var evt = {
+        fileName: message.data.transferInfo.fileName,
+        contentType: message.data.transferInfo.contentType
+      };
+      this.openReceivedFile(evt);
+    } else {
+      console.error('The notification does not carry correct data');
+    }
+    this.closeSystemMessageNotification(message);
+  },
+
+  /**
+   * Close the system notification message.
+   *
+   * @param {Object} message system notification message
+   */
+  closeSystemMessageNotification: function(message) {
+    Notification.get({ tag: message.tag }).then(notifs => {
+      notifs.forEach(notif => {
+        // check on the body
+        if (notif.body === message.body) {
+          notif.close && notif.close();
+        }
+      });
+    });
   },
 
   summarizeSentFilesReport:
@@ -571,7 +621,7 @@ var BluetoothTransfer = {
                 numUnsuccessful: numUnsuccessful
               }
             },
-            'icon': 'style/bluetooth_transfer/images/icon_bluetooth.png'
+            'icon': this.bluetoothIcon
           });
 
           // Remove the finished sending task from the queue
