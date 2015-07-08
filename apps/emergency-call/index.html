@@ -3,8 +3,11 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
+    <meta name="theme-group" content="theme-communications">
+    <meta name="theme-color" content="var(--header-background)">
     <title>Emergency Call Dialer</title>
 
+    <!-- Localization -->
     <meta name="defaultLanguage" content="en-US">
     <meta name="availableLanguages" content="en-US">
     <link rel="localization" href="shared/locales/phone_types/phone_types.{locale}.properties">
@@ -14,6 +17,7 @@
     <link rel="localization" href="shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
 
+    <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
@@ -22,6 +26,10 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
     <link rel="stylesheet" type="text/css" href="style/ice_contacts.css">
 
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/gaia-icons.css">
+
+    <!-- JS -->
     <script defer type="application/javascript" src="/shared/js/contacts/utilities/ice_store.js"></script>
     <script defer type="application/javascript" src="/shared/js/dialer/utils.js"></script>
     <script defer type="application/javascript" src="/shared/js/dialer/dtmf_tone.js"></script>
@@ -34,6 +42,8 @@
     <script defer type="application/javascript" src="js/ice_contacts.js"></script>
     <script defer type="application/javascript" src="js/keypad.js"></script>
     <script defer type="application/javascript" src="js/dialer.js"></script>
+
+    <script defer src="/shared/elements/config.js"></script>
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
@@ -51,7 +61,7 @@
     <link rel="import" href="/shared/elements/contacts/contact_in_overlay.html">
     <link rel="import" href="/shared/elements/contacts/contact_list_overlay.html">
   </head>
-  <body class="hidden">
+  <body class="skin-comms theme-communications">
     <article id="views" class="full-height">
       <section id="keyboard-view" class="full-height">
         <div id="phone-number-view-container" dir="ltr">
