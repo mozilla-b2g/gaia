@@ -24,6 +24,7 @@ var mocksForFindMyDevice = new MocksHelper([
 
 suite('FindMyDevice >', function() {
   var realMozPower;
+  var realKillSwitch;
   var realMozApps;
   var fakeClock;
   var realMozSettings;
@@ -34,9 +35,15 @@ suite('FindMyDevice >', function() {
   setup(function(done) {
     realMozPower = navigator.mozPower;
     navigator.mozPower = {
-      factoryReset:function(reason) {}
+      factoryReset: function(reason) {},
     };
-    sinon.stub(navigator.mozPower, 'factoryReset');
+
+    this.sinon.spy(navigator.mozPower, 'factoryReset');
+
+    realKillSwitch = navigator.mozKillSwitch;
+    navigator.mozKillSwitch = {
+      enable: function() {}
+    };
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = {
@@ -352,25 +359,63 @@ suite('FindMyDevice >', function() {
     assert.equal(false, subject.deviceHasPasscode());
   });
 
+  suite('KillSwitch command', function() {
+    suite('With API existing', function() {
+      setup(function() {
+        this.sinon.spy(navigator.mozKillSwitch, 'enable');
+      });
+
+      test('Basic invocation', function(done) {
+        subject.invokeCommand('killswitch', [ function(retval, error) {
+          sinon.assert.calledOnce(navigator.mozKillSwitch.enable);
+
+          sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+          sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+        } ]);
+
+        sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
+
+        done();
+      });
+    });
+
+    suite('Without API existing', function() {
+      setup(function() {
+        navigator.mozKillSwitch = undefined;
+      });
+
+      test('No invocation', function(done) {
+        subject.invokeCommand('killswitch', [ function(retval, error) {
+          sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+          sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+        } ]);
+
+        sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
+
+        done();
+      });
+    });
+  });
+
   test('List of accepted commands', function() {
     MockSettingsListener.mTriggerCallback('geolocation.enabled', true);
 
-    var allCommands = ['track', 'erase', 'ring', 'lock'];
+    var allCommands = ['track', 'erase', 'ring', 'lock', 'killswitch'];
     var enabledCommands = subject.getEnabledCommands();
     assert.deepEqual(enabledCommands.sort(), allCommands.sort());
 
     // track should be disabled when geolocation is disabled
     MockSettingsListener.mTriggerCallback('geolocation.enabled', false);
-    allCommands = ['erase', 'ring', 'lock'];
+    allCommands = ['erase', 'ring', 'lock', 'killswitch'];
     enabledCommands = subject.getEnabledCommands();
     assert.deepEqual(enabledCommands.sort(), allCommands.sort());
   });
 
   teardown(function() {
-    // clean up sinon.js stubs
-    navigator.mozPower.factoryReset.restore();
-
     navigator.mozPower = realMozPower;
+    navigator.mozKillSwitch = realKillSwitch;
     navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
 
