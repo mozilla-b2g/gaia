@@ -481,6 +481,11 @@ window.UtilityTray = {
   },
 
   hide: function ut_hide(instant = false) {
+    // Do nothing if the utility tray is hidden
+    if (!this.active && !this.showing) {
+      return;
+    }
+
     if (!this.active) {
       window.dispatchEvent(new CustomEvent('utilitytraywillhide'));
     }
