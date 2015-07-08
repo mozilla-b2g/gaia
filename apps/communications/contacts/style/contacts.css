@@ -443,12 +443,6 @@ gaia-header [data-icon] {
   display: flex;
   justify-content: space-between;
 }
-#view-settings [data-type="list"] li#settingsOrder aside {
-  top: 0.5rem;
-  margin: 0;
-  pointer-events: none;
-  align-self: center;
-}
 
 /* Cutom FB item */
 #view-settings [data-type="list"] .fb-item {

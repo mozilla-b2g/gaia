@@ -59,12 +59,10 @@ contacts.ICE = (function() {
     // All the controls do the same, just modifications on the
     // specific order.
     iceContactItems.forEach(function(item, index) {
-      item.addEventListener('click', function(i) {
+      iceContactCheckboxes[index].addEventListener('change', function(i) {
         return function(evt) {
           var localIceContacts = ICEData.iceContacts;
-          var wasActive = iceContactCheckboxes[i].checked;
-          iceContactCheckboxes[i].checked = !wasActive;
-          iceContactItems[i].setAttribute('aria-checked', !wasActive);
+          var wasActive = !iceContactCheckboxes[i].checked;
 
           if (wasActive) {
             resetIceGroupState(i);

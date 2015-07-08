@@ -375,6 +375,7 @@ var Contacts = (function() {
           '/shared/js/contacts/import/utilities/vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
           '/shared/js/contacts/import/utilities/sdcard.js',
+          '/shared/elements/gaia_switch/script.js',
           '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
