@@ -1,4 +1,4 @@
-#onlineServices_extensions {
+#iframe_extensions {
   position: fixed;
   top: 100%;
   left: 0;
@@ -12,10 +12,10 @@
   background: #f4f4f4;
 }
 
-#onlineServices_extensions.opening {
+#iframe_extensions.opening {
   transform: translateY(-100%);
 }
 
-#onlineServices_extensions.closing {
+#iframe_extensions.closing {
   transform: translateY(0);
 }

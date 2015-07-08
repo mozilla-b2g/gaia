@@ -1,5 +1,4 @@
-#fb-curtain,
-#onlineServices_curtain {
+#iframe_curtain {
   position: absolute;
   top: 0;
   left: 0;
@@ -12,8 +11,7 @@
   pointer-events: none;
 }
 
-#fb-curtain.visible,
-#onlineServices_curtain.visible {
+#iframe_curtain.visible {
   pointer-events: auto;
   z-index: 1001;
 }
