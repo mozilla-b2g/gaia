@@ -7,6 +7,7 @@
 
 require('/services/test/unit/mock_bridge.js');
 require('/shared/js/event_dispatcher.js');
+require('/services/js/bridge_service_mixin.js');
 require('/services/js/activity/activity_shim.js');
 
 var MocksHelperForAttachment = new MocksHelper([
@@ -14,7 +15,7 @@ var MocksHelperForAttachment = new MocksHelper([
 ]).init();
 
 suite('ActivityShim >', function() {
-  var serviceStub, realSetMessageHandler, realHasPendingMessage, appInstanceId;
+  var serviceStub, realSetMessageHandler, realHasPendingMessage;
 
   MocksHelperForAttachment.attachTestHelpers();
 
@@ -32,24 +33,27 @@ suite('ActivityShim >', function() {
   });
 
   setup(function() {
+    this.sinon.useFakeTimers();
+
     serviceStub = sinon.stub({
       method: () => {},
-      broadcast: () => {}
+      broadcast: () => {},
+      listen: () => {}
     });
 
     this.sinon.stub(bridge, 'service').returns(serviceStub);
     this.sinon.stub(navigator, 'mozSetMessageHandler');
     this.sinon.stub(navigator, 'mozHasPendingMessage');
 
-    // It should throw if app instance id is not specified.
-    assert.throws(() => ActivityShim.init());
+    ActivityShim.init();
 
-    ActivityShim.init(appInstanceId = Date.now());
+    // To allow shim to register system message handler.
+    this.sinon.clock.tick();
   });
 
   test('bridge service is correctly initialized', function() {
     sinon.assert.calledOnce(bridge.service);
-    sinon.assert.calledWith(bridge.service, 'activity-service' + appInstanceId);
+    sinon.assert.calledWith(bridge.service, 'activity-service');
   });
 
   test('hasPendingRequest based on mozHasPendingMessage', function() {
@@ -66,8 +70,6 @@ suite('ActivityShim >', function() {
     var activityRequest;
 
     setup(function() {
-      this.sinon.useFakeTimers();
-
       activityRequest = sinon.stub({
         postResult: () => {},
         postError: () => {},
@@ -82,8 +84,6 @@ suite('ActivityShim >', function() {
       navigator.mozSetMessageHandler.withArgs('activity').yield(
         activityRequest
       );
-
-      this.sinon.clock.tick();
     });
 
     test('activity request is broadcasted', function() {

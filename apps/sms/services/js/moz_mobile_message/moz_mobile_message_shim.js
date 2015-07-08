@@ -2,7 +2,10 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 
-/* global bridge, Utils */
+/* global bridge,
+          streamService,
+          Utils
+*/
 
 /* exported MozMobileMessageShim */
 
@@ -48,6 +51,8 @@ var MozMobileMessageShim = {
     mozMobileMessage = mobileMessage;
     service = bridge.service(SERVICE_NAME);
 
+    service.plugin(streamService);
+
     EVENTS.forEach((event) => {
       mozMobileMessage.addEventListener(
         event,
@@ -62,6 +67,8 @@ var MozMobileMessageShim = {
     STREAMS.forEach((shimStream) => {
       service.stream(shimStream, this[shimStream]);
     });
+
+    service.listen();
   },
 
   /* Events */
@@ -98,7 +105,7 @@ var MozMobileMessageShim = {
     }
   },
 
-  /* Methods */  
+  /* Methods */
 
   getMessage(id) {
     return mozMobileMessage.getMessage(id);
@@ -174,7 +181,7 @@ var MozMobileMessageShim = {
    */
   getMessages(stream, options) {
     /*
-    options { 
+    options {
       filter: a MobileMessageFilter or similar object
       invert: option to invert the selection
     }

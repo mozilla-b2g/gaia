@@ -2,6 +2,7 @@
          MockNavigatormozMobileMessage,
          MocksHelper,
          MozMobileMessageShim,
+         streamService,
          Utils
 */
 
@@ -13,7 +14,8 @@ require('/services/test/unit/mock_navigatormoz_sms.js');
 require('/views/shared/js/utils.js');
 
 var MocksHelperForAttachment = new MocksHelper([
-  'bridge'
+  'bridge',
+  'streamService'
 ]).init();
 
 suite('MozMobileMessageShim >', function() {
@@ -33,7 +35,9 @@ suite('MozMobileMessageShim >', function() {
     serviceStub = sinon.stub({
       method: () => {},
       stream: () => {},
-      broadcast: () => {}
+      broadcast: () => {},
+      plugin: () => {},
+      listen: () => {}
     });
 
     sinon.stub(bridge, 'service').returns(serviceStub);
@@ -47,6 +51,8 @@ suite('MozMobileMessageShim >', function() {
   test('bridge service is correctly initialized', function() {
     sinon.assert.calledOnce(bridge.service);
     sinon.assert.calledWith(bridge.service, 'mozMobileMessageShim');
+    sinon.assert.calledWith(serviceStub.plugin, streamService);
+    sinon.assert.calledOnce(serviceStub.listen);
   });
 
   test('event listener is correctly initialized', function() {
@@ -251,7 +257,7 @@ suite('MozMobileMessageShim >', function() {
         cursor.result = {};
         cursor.continue = sinon.stub();
         cursor.onsuccess();
-        
+
         sinon.assert.calledWith(streamStub.write, cursor.result);
         sinon.assert.called(cursor.continue);
       });
@@ -261,7 +267,7 @@ suite('MozMobileMessageShim >', function() {
         MozMobileMessageShim.getThreads(streamStub);
         cursor.result = null;
         cursor.onsuccess();
-        
+
         sinon.assert.called(streamStub.close);
       });
 
@@ -274,7 +280,7 @@ suite('MozMobileMessageShim >', function() {
           console.error,
           'Error occurred while retrieving threads: retrieving error'
         );
-        sinon.assert.called(streamStub.abort);          
+        sinon.assert.called(streamStub.abort);
       });
 
       test('error while reading the database', function() {
@@ -288,7 +294,7 @@ suite('MozMobileMessageShim >', function() {
           console.error,
           'Reading the database. Error: fake error'
         );
-        sinon.assert.called(streamStub.abort);  
+        sinon.assert.called(streamStub.abort);
       });
     });
 
@@ -312,7 +318,7 @@ suite('MozMobileMessageShim >', function() {
         cursor.result = {};
         cursor.continue = sinon.stub();
         cursor.onsuccess();
-        
+
         sinon.assert.calledWith(streamStub.write, cursor.result);
         sinon.assert.called(cursor.continue);
       });
@@ -320,7 +326,7 @@ suite('MozMobileMessageShim >', function() {
       test('done', function() {
         cursor.done = true;
         cursor.onsuccess();
-        
+
         sinon.assert.called(streamStub.close);
       });
 

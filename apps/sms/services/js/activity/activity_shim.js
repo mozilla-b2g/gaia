@@ -1,7 +1,13 @@
-/* global bridge */
+/* global BridgeServiceMixin */
+/* exported ActivityShim */
+'use strict';
 
 (function(exports) {
-  'use strict';
+  const priv = Object.freeze({
+    request: Symbol('request'),
+
+    onActivityRequest: Symbol('onActivityRequest')
+  });
 
   /**
    * Name of the service that is responsible for managing activities.
@@ -16,58 +22,16 @@
   const SYSTEM_MESSAGE_NAME = 'activity';
 
   /**
-   * Reference to active bridge service instance.
-   * @type {Service}
+   * List of methods exposed by shim.
+   * @type {Array.<string>}
    */
-  var service = null;
+  const METHODS = Object.freeze(['postResult', 'postError']);
 
   /**
-   * Reference to currently active activity request.
-   * @type {ActivityRequestHandler}
+   * List of event that can be broadcasted by shim.
+   * @type {Array.<string>}
    */
-  var activityRequest = null;
-
-  /**
-   * Posts activity request result.
-   * @param {*} result Data to post as activity request result.
-   */
-  function onPostResult(result) {
-    if (!activityRequest) {
-      throw new Error('There is no any activity request to post result to!');
-    }
-
-    activityRequest.postResult(result || { success: true });
-
-    activityRequest = null;
-  }
-
-  /**
-   * Posts activity request error.
-   * @param {*} error Error to post as activity request error.
-   */
-  function onPostError(error) {
-    if (!activityRequest) {
-      throw new Error('There is no any activity request to post error to!');
-    }
-
-    activityRequest.postError(error);
-
-    activityRequest = null;
-  }
-
-  /**
-   * Handler that fires once app receives activity request via system message.
-   * @param {ActivityRequestHandler} request Activity request.
-   */
-  function onActivityRequest(request) {
-    activityRequest = request;
-
-    // Should be removed once the following "bridge" issue is resolved:
-    // https://github.com/gaia-components/threads/issues/40
-    setTimeout(() => {
-      service.broadcast('activity-request', request.source);
-    });
-  }
+  const EVENTS = Object.freeze(['activity-request']);
 
   /**
    * ActivityShim is a shim around "activity" system message handling code that
@@ -78,22 +42,25 @@
    */
   var ActivityShim = {
     /**
-     * Initialized activity service bridge.
-     * @type {number} appInstanceId Unique identifier of the app instance that
-     * is used to establish 1-to-1 only connection between this service and
-     * corresponding client hosted in the same app instance.
+     * Reference to currently active activity request.
+     * @type {ActivityRequestHandler}
      */
-    init(appInstanceId) {
-      if (!appInstanceId) {
-        throw new Error('App instance id is not specified!');
-      }
+    [priv.request]: null,
 
-      service = bridge.service(SERVICE_NAME + appInstanceId);
+    /**
+     * Initialized activity service bridge.
+     */
+    init() {
+      this.initService();
 
-      service.method('postResult', onPostResult);
-      service.method('postError', onPostError);
-
-      navigator.mozSetMessageHandler(SYSTEM_MESSAGE_NAME, onActivityRequest);
+      // We use setTimeout here to allow activity client to do connection
+      // handshake with the service first, so that it will be able to receive
+      // event broadcasted by service.
+      setTimeout(() => {
+        navigator.mozSetMessageHandler(
+          SYSTEM_MESSAGE_NAME, this[priv.onActivityRequest].bind(this)
+        );
+      });
     },
 
     /**
@@ -101,8 +68,57 @@
      */
     hasPendingRequest() {
       return navigator.mozHasPendingMessage(SYSTEM_MESSAGE_NAME);
+    },
+
+    /**
+     * Posts activity request result.
+     * @param {*} result Data to post as activity request result.
+     * @private
+     */
+    postResult(result) {
+      var request = this[priv.request];
+      if (!request) {
+        throw new Error('There is no any activity request to post result to!');
+      }
+
+      request.postResult(result || { success: true });
+
+      this[priv.request] = null;
+    },
+
+    /**
+     * Posts activity request error.
+     * @param {*} error Error to post as activity request error.
+     * @private
+     */
+    postError(error) {
+      var request = this[priv.request];
+      if (!request) {
+        throw new Error('There is no any activity request to post error to!');
+      }
+
+      request.postError(error);
+
+      this[priv.request] = null;
+    },
+
+    /**
+     * Handler that fires once app receives activity request via system message.
+     * @param {ActivityRequestHandler} request Activity request.
+     * @private
+     */
+    [priv.onActivityRequest](request) {
+      this[priv.request] = request;
+
+      this.broadcast('activity-request', request.source);
     }
   };
 
-  exports.ActivityShim = Object.freeze(ActivityShim);
+  exports.ActivityShim = Object.seal(
+    BridgeServiceMixin.mixin(
+      ActivityShim,
+      SERVICE_NAME,
+      { methods: METHODS, events: EVENTS }
+    )
+  );
 })(window);

@@ -1,7 +1,8 @@
 /*global
   bridge,
   BridgeServiceMixin,
-  MocksHelper
+  MocksHelper,
+  streamService
  */
 
 'use strict';
@@ -12,7 +13,8 @@ require('/shared/test/unit/mocks/mocks_helper.js');
 require('/services/js/bridge_service_mixin.js');
 
 var mocksHelperForServiceMixin = new MocksHelper([
-  'bridge'
+  'bridge',
+  'streamService'
 ]).init();
 
 suite('BridgeServiceMixin >', function() {
@@ -24,7 +26,9 @@ suite('BridgeServiceMixin >', function() {
     service = {
       method: sinon.stub(),
       stream: sinon.stub(),
-      broadcast: sinon.stub()
+      broadcast: sinon.stub(),
+      listen: sinon.stub(),
+      plugin: sinon.stub()
     };
 
     target = {
@@ -49,6 +53,7 @@ suite('BridgeServiceMixin >', function() {
 
   test('Service is exposed', function() {
     sinon.assert.calledWith(bridge.service, 'my-service');
+    sinon.assert.calledOnce(service.listen);
   });
 
   test('Methods and streams are exposed', function() {
@@ -56,6 +61,8 @@ suite('BridgeServiceMixin >', function() {
 
     sinon.assert.calledWith(target.usefulMethod, 1);
     sinon.assert.calledOn(target.usefulMethod, target);
+
+    sinon.assert.calledWith(service.plugin, streamService);
 
     service.stream.withArgs('usefulStream').yield(2);
     sinon.assert.calledWith(target.usefulStream, 2);

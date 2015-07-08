@@ -44,7 +44,8 @@ var Startup = {
     '/views/shared/js/notify.js',
     '/views/shared/js/activity_handler.js',
     '/views/shared/js/localization_helper.js',
-    '/lib/bridge.js',
+    '/lib/bridge/bridge.js',
+    '/services/js/bridge_service_mixin.js',
     '/services/js/activity/activity_shim.js',
     '/services/js/activity/activity_client.js'
   ],
