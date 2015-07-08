@@ -7,7 +7,13 @@
 
 var fs = require('fs');
 module.exports = function(filepath, outpath) {
-  var requirepath = process.env.DEBUGUY + '/node_modules/';
+  var requirepath;
+  if (process.env.RAPTOR_TRANSFORMER_PATH) {
+    requirepath = process.env.RAPTOR_TRANSFORMER_PATH + '/node_modules/';
+  } else {
+    // We guess we're in Gaia and could find it according to such relative path
+    requirepath = __dirname + '/../node_modules/debuguy/node_modules/';
+  }
   var testdir = process.env.TESTDIR;
   var filename = require('path').basename(filepath).replace('.js', '');
   var esname = filename + '.esp.js';

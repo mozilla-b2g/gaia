@@ -18,7 +18,6 @@
     "chai": "1.9.1",
     "dateformat": "1.0.6-1.2.3",
     "debug": "*",
-    "debuguy": "0.0.2",
     "del": "^1.1.1",
     "download": "0.1.7",
     "ecstatic": "0.5.4",

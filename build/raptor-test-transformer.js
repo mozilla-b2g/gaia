@@ -11,7 +11,11 @@
 var utils = require('utils');
 
 exports.execute = function(options, webapp) {
-  var debuguypath = options.DEBUGUY;
+  var debuguypath = options.RAPTOR_TRANSFORMER_PATH;
+  if (!debuguypath) {
+    debuguypath = options.GAIA_DIR + '/node_modules/debuguy';
+  }
+
   var file = utils.getFile(debuguypath);
   if (!file.exists()) {
     throw new Error('Cannot find debuguy: set the path of tool as DEBUGUY');
