@@ -1289,6 +1289,10 @@ var Browser = {
   },
 
   selectTab: function browser_selectTab(id) {
+    if (!this.tabs[id]) {
+      console.error('Tab does not exist with ID ' + id);
+      return;
+    }
     this.currentTab = this.tabs[id];
     // If the tab crashed, bring it back to life
     if (this.currentTab.crashed)
