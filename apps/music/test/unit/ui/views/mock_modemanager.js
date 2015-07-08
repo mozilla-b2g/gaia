@@ -11,6 +11,9 @@ var MODE_SEARCH_FROM_TILES = 5;
 var SETTINGS_OPTION_KEY = 'settings_option_key';
 
 var MockModeManager = {
+  get currentMode() {
+    return 0;
+  },
   start: function() {},
   push: function() {}
 };
