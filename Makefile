@@ -801,7 +801,7 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test: b2g node_modules
-	TEST_MANIFEST=$(TEST_MANIFEST) npm run marionette -- --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
+	TEST_MANIFEST=$(TEST_MANIFEST) npm run marionette --buildapp="$(BUILDAPP)" --reporter="$(REPORTER)"
 
 .PHONY: jsmarionette-unit-tests
 jsmarionette-unit-tests: b2g node_modules $(PROFILE_FOLDER) tests/jsmarionette/runner/marionette-js-runner/venv
