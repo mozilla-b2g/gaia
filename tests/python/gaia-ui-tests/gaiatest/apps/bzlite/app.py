@@ -1,6 +1,6 @@
 from marionette import Marionette
 from gaiatest.apps.base import Base
-from marionette_driver import By, Wait, expected
+from marionette_driver import By
 
 class BugzillaLite(Base):
 
@@ -17,7 +17,7 @@ class BugzillaLite(Base):
         Base.launch(self)
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(
-                *self!;_app_ready_locator))))
+                *self!._app_ready_locator))))
 
     
     #Switch context
