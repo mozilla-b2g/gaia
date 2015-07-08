@@ -135,6 +135,15 @@ var Commands = {
       reply(true);
     },
 
+    killswitch: function fmdc_killswitch(reply) {
+      if (navigator.mozKillSwitch) {
+        navigator.mozKillSwitch.enable();
+      }
+
+      FindMyDevice.endHighPriority('command');
+      reply(true);
+    },
+
     lock: function fmdc_lock(message, passcode, reply) {
       var settings = {
         'lockscreen.enabled': true,
