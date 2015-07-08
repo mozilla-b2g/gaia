@@ -26,4 +26,5 @@ module.exports = function(filepath, outpath) {
   var subesp = require(espath);
   // And then apply on that.
   subesp(filepath, outpath, requirepath);
+  // For each test, there is one esp file for that.
 };
