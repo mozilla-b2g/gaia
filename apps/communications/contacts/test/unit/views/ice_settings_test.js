@@ -9,6 +9,7 @@
 /* global ConfirmDialog */
 /* global ICEData, MockContactsSettings */
 
+requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -27,6 +28,7 @@ var mocksHelper = new MocksHelper([
   'ConfirmDialog',
   'Contacts',
   'ICEStore',
+  'HeaderUI'
 ]);
 mocksHelper.init();
 

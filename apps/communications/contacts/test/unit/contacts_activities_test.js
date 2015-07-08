@@ -1,4 +1,4 @@
-/* globals Contacts, ActivityHandler, ConfirmDialog,
+/* globals ActivityHandler, ConfirmDialog,
            MockContactAllFields, MocksHelper, MockMozL10n
  */
 
@@ -11,6 +11,7 @@ require('/shared/js/contact2vcard.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/setImmediate.js');
 
+requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -33,7 +34,8 @@ var mocksHelperForActivities = new MocksHelper([
   'Contacts',
   'ConfirmDialog',
   'LazyLoader',
-  'mozContact'
+  'mozContact',
+  'HeaderUI'
 ]).init();
 
 suite('Test Activities', function() {
@@ -86,7 +88,7 @@ suite('Test Activities', function() {
       window.utils.importedID = null;
       document.location.hash = '';
 
-      this.sinon.spy(Contacts, 'checkCancelableActivity');
+      this.sinon.spy(ActivityHandler, 'isCancelable');
     });
 
     test('New contact', function() {
@@ -154,7 +156,7 @@ suite('Test Activities', function() {
         }
       };
       assertIsOpened(activity, 'add-parameters');
-      assert.isTrue(Contacts.checkCancelableActivity.called,
+      assert.isTrue(ActivityHandler.isCancelable.called,
                                             'checks for activity UI specifics');
     });
 
@@ -167,7 +169,7 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
-      assert.isTrue(Contacts.checkCancelableActivity.called,
+      assert.isTrue(ActivityHandler.isCancelable.called,
                                             'checks for activity UI specifics');
       assert.equal(ActivityHandler._currentActivity, activity);
     });
@@ -201,7 +203,7 @@ suite('Test Activities', function() {
       assertIsOpened(activity, 'view-contact-list');
       assert.equal(document.location.hash.indexOf('id'), -1,
         'no contact id as parameter');
-      assert.isTrue(Contacts.checkCancelableActivity.called,
+      assert.isTrue(ActivityHandler.isCancelable.called,
         'checks for activity UI specifics');
     });
   });

@@ -10,6 +10,7 @@
 /* global MockNavigationStack */
 /* global MockUtils */
 
+requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
@@ -30,7 +31,8 @@ var mocksForCacheEviction = new MocksHelper([
   'Cache',
   'Contacts',
   'ICEStore',
-  'LazyLoader'
+  'LazyLoader',
+  'HeaderUI'
 ]).init();
 
 if (!window.navigationStack) {

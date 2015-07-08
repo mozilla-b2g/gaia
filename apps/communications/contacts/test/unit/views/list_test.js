@@ -17,6 +17,7 @@
 /* global Normalizer */
 /* global ICEStore */
 /* global LazyLoader */
+/* global MockMozL10n */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
@@ -26,6 +27,8 @@ require('/shared/js/contacts/utilities/templates.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/contacts/utilities/ice_store.js');
+requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/contacts/test/unit/mock_header_ui.js');
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
@@ -77,7 +80,8 @@ if (!window.asyncStorage) {
 var mocksForListView = new MocksHelper([
   'ContactPhotoHelper',
   'ActivityHandler',
-  'Cache'
+  'Cache',
+  'HeaderUI'
 ]).init();
 
 suite('Render contacts list', function() {
@@ -299,18 +303,9 @@ suite('Render contacts list', function() {
     containerUnd = container.querySelector('#contacts-list-und');
   }
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      DateTimeFormat: function() {
-        this.localeFormat = function(date, format) {
-          return date;
-        };
-      }
-    };
+    navigator.mozL10n = MockMozL10n;
 
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
@@ -338,6 +333,8 @@ suite('Render contacts list', function() {
     window.asyncStorage = MockasyncStorage;
 
     resetDom(window.document);
+
+    requireApp('communications/contacts/js/header_ui.js', done);
 
     subject.setOrderByLastName(true);
     subject.init(list);
@@ -1195,7 +1192,7 @@ suite('Render contacts list', function() {
       var numFilteredContacts = 3;
 
       subject.selectFromList('', null, function onSelectMode() {
-        var stub = sinon.stub(window.Contacts, 'updateSelectCountTitle',
+        var stub = sinon.stub(window.HeaderUI, 'updateSelectCountTitle',
          function(count) {
             stub.restore();
             subject.exitSelectMode();
