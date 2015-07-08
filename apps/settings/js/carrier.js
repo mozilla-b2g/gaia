@@ -97,13 +97,6 @@ var CarrierSettings = (function(window, document, undefined) {
     // Init network type selector.
     cs_initNetworkTypeText(cs_initNetworkTypeSelector());
 
-    // Set the navigation correctly when on a multi ICC card device.
-    if (DsdsSettings.getNumberOfIccSlots() > 1) {
-      var carrierSimPanel = document.getElementById('carrier');
-      var backButton = carrierSimPanel.querySelector('a');
-      backButton.setAttribute('href', '#carrier-iccs');
-    }
-
     /*
      * Displaying all GSM and CDMA options by default for CDMA development.
      * We should remove CDMA options after the development finished.
@@ -113,6 +106,8 @@ var CarrierSettings = (function(window, document, undefined) {
     getSupportedNetworkInfo(_mobileConnection, function(result) {
       var content =
         document.getElementById('carrier-operatorSettings-content');
+
+      cs_initIccsUI();
 
       cs_initOperatorSelector();
       cs_initRoamingPreferenceSelector();
@@ -136,12 +131,15 @@ var CarrierSettings = (function(window, document, undefined) {
             _mobileConnection.voice && _mobileConnection.voice.type);
           // Show carrier name.
           cs_showCarrierName();
-          cs_disabeEnableDataCallCheckbox();
           return;
+        } else if (currentHash === '#carrier-detail') {
+          var detailHeader =
+            document.querySelector('#carrier-detail header h1');
+          navigator.mozL10n.localize(detailHeader, 'simSettingsWithIndex',
+            {index: DsdsSettings.getIccCardIndexForCellAndDataSettings() + 1});
         }
 
         if (!currentHash.startsWith('#carrier-') ||
-            (currentHash === '#carrier-iccs') ||
             (currentHash === '#carrier-dc-warning') ||
             (currentHash === '#carrier-dr-warning')) {
           return;
@@ -190,6 +188,31 @@ var CarrierSettings = (function(window, document, undefined) {
         cs_refreshItems('ims');
       }
     });
+  }
+
+  function cs_initIccsUI() {
+    var isMultiSim = DsdsSettings.getNumberOfIccSlots() > 1;
+    var carrierInfo = document.querySelector('#carrier .carrier-info');
+    var advancedSettings =
+      document.querySelector('#carrier .carrier-advancedSettings');
+    var simSettings = document.querySelector('#carrier .carrier-simSettings');
+    var operatorSettingsHeader =
+      document.querySelector('#carrier-operatorSettings header');
+
+    if (isMultiSim) {
+      LazyLoader.load([
+        '/js/carrier_iccs.js'
+      ], function() {
+        IccHandlerForCarrierSettings.init();
+      });
+
+      operatorSettingsHeader.dataset.href = '#carrier-detail';
+    } else {
+      operatorSettingsHeader.dataset.href = '#carrier';
+    }
+    carrierInfo.hidden = isMultiSim;
+    advancedSettings.hidden = isMultiSim;
+    simSettings.hidden = !isMultiSim;
   }
 
   function cs_refreshItems(usage) {
@@ -315,30 +338,6 @@ var CarrierSettings = (function(window, document, undefined) {
         callback(defaultServiceId);
       }
     };
-  }
-
-  /**
-   * Disable the checkbox for enabling data calls in case the user has opened
-   * the panel for the settings for the ICC card which is not the active one
-   * for data calls.
-   */
-  function cs_disabeEnableDataCallCheckbox() {
-    var menuItem = document.getElementById('menuItem-enableDataCall');
-    var input = menuItem.querySelector('input');
-
-    cs_getDefaultServiceIdForData(
-      function getDefaultServiceIdForDataCb(defaultServiceId) {
-        var currentServiceId =
-          DsdsSettings.getIccCardIndexForCellAndDataSettings();
-
-        var disable = (defaultServiceId !== currentServiceId);
-        if (disable) {
-          menuItem.setAttribute('aria-disabled', true);
-        } else {
-          menuItem.removeAttribute('aria-disabled');
-        }
-        input.disabled = disable;
-    });
   }
 
   function cs_initNetworkTypeText(aNext) {
@@ -1387,16 +1386,4 @@ var CarrierSettings = (function(window, document, undefined) {
   };
 })(this, document);
 
-/**
- * Startup.
- */
-navigator.mozL10n.once(function loadWhenIdle() {
-  var idleObserver = {
-    time: 3,
-    onidle: function() {
-      navigator.removeIdleObserver(idleObserver);
-      CarrierSettings.init();
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
-});
+CarrierSettings.init();
