@@ -6,11 +6,11 @@ var Curtain = (function() {
 
   var _ = navigator.mozL10n.get;
 
-  var curtainFrame = parent.document.querySelector('#onlineServices_curtain');
+  var curtainFrame = parent.document.querySelector('#iframe_curtain');
 
   if (!curtainFrame) {
     curtainFrame = document.createElement('iframe');
-    curtainFrame.id = 'onlineServices_curtain';
+    curtainFrame.id = 'iframe_curtain';
     curtainFrame.src = '/shared/pages/import/curtain.html';
     parent.document.body.appendChild(curtainFrame);
   }

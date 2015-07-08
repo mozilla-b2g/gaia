@@ -6,8 +6,8 @@ var FTU_APP_ORIGIN = document.location.protocol + '//' +
     document.location.host;
 
 var ServicesLauncher = (function(document) {
-    var extensionFrame = document.querySelector('#onlineServices_extensions');
-    var oauthFrame = document.querySelector('#onlineServices_oauth');
+    var extensionFrame = document.querySelector('#iframe_extensions');
+    var oauthFrame = document.querySelector('#iframe_oauth');
 
     var BASE_IMPORT = '/shared/pages/import/import.html?ftu=1';
     function getServiceURI(service) {
