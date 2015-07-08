@@ -16,6 +16,11 @@ gulp.task('to5', function () {
 					])
 					.pipe(concat('shim.js')),
 				gulp
+					.src([
+						'./node_modules/sanitizer/sanitizer.js'
+					])
+					.pipe(concat('deps.js')),
+				gulp
 					.src('./mvc.js')
 					.pipe(to5({
 							modules: 'amd'

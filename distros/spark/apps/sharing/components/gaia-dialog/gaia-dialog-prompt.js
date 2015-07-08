@@ -1,13 +1,14 @@
 /* global define */
-;(function(define){'use strict';define(['require','exports','module','gaia-text-input','gaia-dialog','gaia-component'],function(require,exports,module){
+;(function(define){'use strict';define(['require','exports','module','gaia-dialog','gaia-component','gaia-text-input'],function(require,exports,module){
 
 /**
  * Dependencies
  */
 
-require('gaia-text-input');
-require('gaia-dialog');
+var GaiaDialogProto = require('gaia-dialog').prototype;
 var component = require('gaia-component');
+
+require('gaia-text-input');
 
 /**
  * Exports
@@ -37,11 +38,13 @@ module.exports = component.register('gaia-dialog-prompt', {
   },
 
   open: function(e) {
-    this.els.dialog.open(e);
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.open(e));
   },
 
   close: function() {
-    this.els.dialog.close();
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `

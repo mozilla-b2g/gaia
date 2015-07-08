@@ -5,7 +5,7 @@
  * Dependencies
  */
 
-require('gaia-dialog');
+var GaiaDialogProto = require('gaia-dialog').prototype;
 var component = require('gaia-component');
 
 /**
@@ -21,24 +21,18 @@ module.exports = component.register('gaia-dialog-confirm', {
       cancel: this.shadowRoot.querySelector('.cancel')
     };
 
-    this.els.dialog.addEventListener('opened', () => {
-      this.setAttribute('opened', '');
-    });
-
-    this.els.dialog.addEventListener('closed', () => {
-      this.removeAttribute('opened');
-    });
-
     this.els.cancel.addEventListener('click', this.close.bind(this));
     this.els.submit.addEventListener('click', this.close.bind(this));
   },
 
   open: function(e) {
-    this.els.dialog.open(e);
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.open(e));
   },
 
   close: function() {
-    this.els.dialog.close();
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `

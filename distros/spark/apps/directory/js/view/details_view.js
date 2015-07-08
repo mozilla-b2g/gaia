@@ -46,6 +46,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
       this.addonSection = this.el.querySelector("#addon-section");
       this.affectedApps = this.el.querySelector("#affected-apps");
       this.installButton = this.el.querySelector(".install-button");
+      this.repoLink = this.el.querySelector("#repo-link");
 
       this.installButton.addEventListener("click", function () {
         _this.installHandlers.forEach(function (handler) {
@@ -131,6 +132,13 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
       this.installButton.classList.toggle("installed", details.installed);
       this.installButton.disabled = false;
       this.addonSection.hidden = true;
+      if (details.url) {
+        this.repoLink.parentElement.hidden = false;
+        this.repoLink.href = details.url;
+        this.repoLink.textContent = details.url;
+      } else {
+        this.repoLink.parentElement.hidden = true;
+      }
 
       // Addons need the affected apps section, and no Open button.
       if (details.type === "addon") {
@@ -166,7 +174,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
     };
 
     DetailsView.prototype.template = function () {
-      var string = "\n      <gaia-header>\n        <a id=\"close-button\" class=\"close\"><i data-icon=\"close\"></i></a>\n        <h1 id=\"details-title\">App Details</h1>\n      </gaia-header>\n      <gaia-list class=\"info-list install-list\">\n        <li class=\"item\">\n          <img class=\"icon\" />\n          <div flex class=\"description\">\n            <p class=\"name\"></p>\n            <p class=\"author\"></p>\n          </div>\n          <span class=\"install-info\">Installed</span>\n          <gaia-button class=\"install-button\"></gaia-button>\n        </li>\n      </gaia-list>\n      <p id=\"full-description\"></p>\n      <div id=\"addon-section\">\n        <gaia-sub-header>Affected Apps</gaia-sub-header>\n        <p id=\"affected-apps\"></div>\n      </div>";
+      var string = "\n      <gaia-header>\n        <a id=\"close-button\" class=\"close\"><i data-icon=\"close\"></i></a>\n        <h1 id=\"details-title\">App Details</h1>\n      </gaia-header>\n      <gaia-list class=\"info-list install-list\">\n        <li class=\"item\">\n          <img class=\"icon\" />\n          <div flex class=\"description\">\n            <p class=\"name\"></p>\n            <p class=\"author\"></p>\n          </div>\n          <span class=\"install-info\">Installed</span>\n          <gaia-button class=\"install-button\"></gaia-button>\n        </li>\n      </gaia-list>\n      <p id=\"full-description\"></p>\n      <p id=\"repo\"><a target=\"_blank\" id=\"repo-link\"></a></p>\n      <div id=\"addon-section\">\n        <gaia-sub-header>Affected Apps</gaia-sub-header>\n        <p id=\"affected-apps\"></div>\n      </div>";
       return string;
     };
 

@@ -1,6 +1,6 @@
 {
   "name": "fxos-mvc",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "homepage": "https://github.com/fxos/mvc",
   "license": "MPL",
   "main": "mvc.js",

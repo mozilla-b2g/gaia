@@ -13,6 +13,7 @@ define(["exports", "components/fxos-web-server/dist/fxos-web-server"], function 
         var request = evt.request;
         var response = evt.response;
         response.headers["Access-Control-Allow-Origin"] = "*";
+        response.headers["Cache-Control"] = "no-cache";
 
         if (request.path === "/request") {
           response.send(_this.lastLaunchedManifestURL);

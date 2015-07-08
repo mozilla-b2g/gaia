@@ -11,8 +11,8 @@
   },
   "orientation": "default",
   "developer": {
-    "name": "Your name",
-    "url": "http://example.com"
+    "name": "The Gaia Team",
+    "url": "https://github.com/fxos/"
   },
   "type": "certified",
   "permissions": {

@@ -1,24 +1,6 @@
 {
-    "http://fxos.github.io/camera/dist/app/manifest.webapp": {
-      "manifestURL": "http://fxos.github.io/camera/dist/app/manifest.webapp",
-      "name": "camera",
-      "description": "Take pictures and stuff.",
-      "author": "Justin D'Arcangelo",
-      "type": "hosted",
-      "url": "https://github.com/fxos/camera",
-      "revision": "8b5a7d9061a0d0210f24ff253110a8ce935104ca"
-    },
-    "http://fxos.github.io/dialer/dist/app/manifest.webapp": {
-      "manifestURL": "http://fxos.github.io/dialer/dist/app/manifest.webapp",
-      "name": "dialer",
-      "description": "A replacement for the built-in dialer app.",
-      "author": "Doug Sherk",
-      "type": "hosted",
-      "url": "https://github.com/fxos/dialer",
-      "revision": "835af6ccf608a51bc87711d1c40fc4f33a1fc12b"
-    },
-    "http://mikehenrty.github.io/fxos-magnifier/manifest.webapp": {
-      "manifestURL": "http://mikehenrty.github.io/fxos-magnifier/manifest.webapp",
+    "https://mikehenrty.github.io/fxos-magnifier/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/fxos-magnifier/manifest.webapp",
       "name": "magnifier",
       "description": "Tap three times and hold to magnify the screen.",
       "icon": "http://mikehenrty.github.io/fxos-magnifier/style/icons/60.png",
@@ -37,8 +19,8 @@
       "url": "https://github.com/callahad/fxos-tabswitcher-addon",
       "revision": "7096c0545980e250ee5be505b746421ffb9b19ce"
     },
-    "http://mikehenrty.github.io/fxos-cracked/manifest.webapp": {
-      "manifestURL": "http://mikehenrty.github.io/fxos-cracked/manifest.webapp",
+    "https://mikehenrty.github.io/fxos-cracked/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/fxos-cracked/manifest.webapp",
       "name": "cracked",
       "description": "A virtual cracked screen for your FirefoxOS device.",
       "icon": "http://mikehenrty.github.io/fxos-cracked/style/icons/128.png",
@@ -49,12 +31,99 @@
     },
     "https://callahad.github.io/disconnected-ensemble-src/src/manifest.webapp": {
       "manifestURL": "https://callahad.github.io/disconnected-ensemble-src/src/manifest.webapp",
-      "name": "disconnected ensemble",
+      "name": "ensemble",
       "description": "An app for Firefox OS that lets you share a number of musical toys that can run in your friends' devices, served from your phone, either by typing in the IP address of the phone server, or by bumping NFC devices together.",
       "icon": "https://callahad.github.io/disconnected-ensemble-src/src/img/icons/icon128x128.png",
       "author": "soledad penadés",
       "type": "packaged",
       "url": "https://github.com/callahad/disconnected-ensemble-src",
       "revision": "94ad2d961aa5a902fe8150b280a38f48d84607eb"
+    },
+    "https://mikehenrty.github.io/IRCCloudNotifier/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/IRCCloudNotifier/manifest.webapp",
+      "name": "IRCCloud Notifier",
+      "description": "Allows you to log into IRCCloud and get alerts on new notifications. Not a full IRC client.",
+      "icon": "http://mikehenrty.github.io/IRCCloudNotifier/img/icons/icon60x60.png",
+      "author": "Nathaniel van Diepen",
+      "type": "hosted",
+      "url": "https://github.com/Eeems/IRCCloudNotifier",
+      "revision": "a96a83b1f01903bc04be2a5097c82765f3b7d0f7"
+    },
+    "https://fxos.github.io/camera/dist/app/manifest.webapp": {
+      "manifestURL": "https://fxos.github.io/camera/dist/app/manifest.webapp",
+      "name": "New Camera",
+      "description": "Take pictures and stuff.",
+      "author": "Justin D'Arcangelo",
+      "type": "hosted",
+      "url": "https://github.com/fxos/camera",
+      "revision": "8b5a7d9061a0d0210f24ff253110a8ce935104ca"
+    },
+    "https://fxos.github.io/dialer/dist/app/manifest.webapp": {
+      "manifestURL": "https://fxos.github.io/dialer/dist/app/manifest.webapp",
+      "name": "New Dialer",
+      "description": "A replacement for the built-in dialer app.",
+      "author": "Doug Sherk",
+      "type": "hosted",
+      "url": "https://github.com/fxos/dialer",
+      "revision": "835af6ccf608a51bc87711d1c40fc4f33a1fc12b"
+    },
+    "https://mikehenrty.github.io/fxos-shb-plus/manifest.webapp": {
+      "manifestURL": "https://mikehenrty.github.io/fxos-shb-plus/manifest.webapp",
+      "name": "Homebar Plus",
+      "description": "Add show windows, and kill app button to the software home button bar",
+      "icon": "http://mikehenrty.github.io/fxos-shb-plus/icons/home.png",
+      "author": "Michael Henretty",
+      "type": "addon",
+      "url": "https://github.com/mikehenrty/fxos-shb-plus",
+      "revision": "9b4ed3b83735a3fcd764b317499efde5b1e64f68"
+    },
+    "https://marumari.github.io/sunset-fxos-addon/manifest.webapp": {
+      "manifestURL": "https://marumari.github.io/sunset-fxos-addon/manifest.webapp",
+      "name": "Sunset",
+      "description": "Save your eyeballs by changing the color balance of your screen throughout the day.",
+      "icon": "https://marumari.github.io/sunset-fxos-addon/img/sunset-128.png",
+      "author": "April King",
+      "type": "addon",
+      "url": "https://github.com/marumari/sunset-fxos-addon",
+      "revision": "7b8cdec443ba73fa876632ba424a079738c0a0130f7d5cd04073d730bd1bf054"
+    },
+    "https://john-hu.github.io/no-more-contextmenu/manifest.webapp": {
+      "manifestURL": "https://john-hu.github.io/no-more-contextmenu/manifest.webapp",
+      "name": "No Context Menu",
+      "description": "Disable context menu in apps without handle it",
+      "icon": "http://john-hu.github.io/no-more-contextmenu/icons/128.png",
+      "author": "John Hu",
+      "type": "addon",
+      "url": "https://github.com/john-hu/no-more-contextmenu",
+      "revision": "41eddc4f6929d1cc591fcb9b123c13bcce31ec76"
+    },
+    "https://lmorchard.github.io/fxos-addon-quick-brightness/manifest.webapp": {
+      "manifestURL": "https://lmorchard.github.io/fxos-addon-quick-brightness/manifest.webapp",
+      "name": "Quick Brightness",
+      "description": "Adds a brightness slider to the notification tray",
+      "author": "Les Orchard",
+      "type": "addon",
+      "url": "https://github.com/lmorchard/fxos-addon-quick-brightness",
+      "revision": "cbabf181afb19ccb414fb2501a4f4264d3373272"
+    },
+    "https://begeeben.github.io/fxos-facebook-menubar/manifest.webapp": {
+      "manifestURL": "https://begeeben.github.io/fxos-facebook-menubar/manifest.webapp",
+      "name": "Facebook Menubar",
+      "description": "Keep the menu bar always available on Firefox OS Facebook app.",
+      "icon": "http://begeeben.github.io/fxos-facebook-menubar/icons/facebook-menubar.png",
+      "author": "begeeben",
+      "type": "addon",
+      "url": "https://github.com/begeeben/fxos-facebook-menubar",
+      "revision": "39430a5564e48c7cd4ab5d574db3c299eda02f08"
+    },
+    "https://john-hu.github.io/kill-all-active-apps/manifest.webapp": {
+      "manifestURL": "https://john-hu.github.io/kill-all-active-apps/manifest.webapp",
+      "name": "Kill Actives",
+      "description": "Add a button to kill all active apps",
+      "icon": "http://john-hu.github.io/kill-all-active-apps/icons/128.png",
+      "author": "John Hu",
+      "type": "addon",
+      "url": "https://github.com/john-hu/kill-all-active-apps",
+      "revision": "0f6a5a76c9a9d69527b0bd751611b21aac86a117"
     }
 }

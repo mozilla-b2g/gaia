@@ -162,7 +162,8 @@ gaia-list.info-list {
 }
 
 #app-details #full-description,
-#app-details #affected-apps {
+#app-details #affected-apps,
+#app-details #repo {
   font-size: 15px;
   line-height: 20px;
   padding: 2px 16px;

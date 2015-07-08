@@ -14,6 +14,7 @@
   <script src="bower_components/gaia-component/gaia-component.js"></script>
   <script src="bower_components/gaia-button/gaia-button.js"></script>
   <script src="bower_components/gaia-text-input/gaia-text-input.js"></script>
+  <!-- <script src="bower_components/dom-scheduler/lib/dom-scheduler.js"></script> -->
   <script src="gaia-dialog.js"></script>
   <script src="gaia-dialog-alert.js"></script>
   <script src="gaia-dialog-confirm.js"></script>
@@ -49,8 +50,8 @@
 
     <gaia-dialog-action>
       <h1>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur eu mollis tortor.</h1>
-      <button>Action 1</button>
-      <button>Action 2</button>
+      <button on-click="close">Action 1</button>
+      <button on-click="close">Action 2</button>
     </gaia-dialog-action>
 
     <gaia-dialog-select>
@@ -74,10 +75,10 @@
     </gaia-dialog-select>
 
     <gaia-dialog-menu>
-      <button data-icon="firefox">Open in new window</button>
-      <button data-icon="firefox">Add to Home Screen</button>
-      <button data-icon="firefox">Share link</button>
-      <button data-icon="firefox">Settings</button>
+      <button on-click="close" data-icon="firefox">Open in new window</button>
+      <button on-click="close" data-icon="firefox">Add to Home Screen</button>
+      <button on-click="close" data-icon="firefox">Share link</button>
+      <button on-click="close" data-icon="firefox">Settings</button>
     </gaia-dialog-menu>
 
     <gaia-dialog id="custom-dialog-1">
@@ -86,8 +87,8 @@
         <p>Do you want to download and install this application?</p>
       </section>
       <fieldset>
-        <button>Cancel</button>
-        <button>Action</button>
+        <button on-click="close">Cancel</button>
+        <button on-click="close">Action</button>
       </fieldset>
     </gaia-dialog>
 
@@ -96,8 +97,8 @@
       <h2>Sub Heading</h2>
       <hr></hr>
       <p>Lorem ipsum dolor sit amet, consecutor adipisicing elit, sed do eiusod tempor incidenti ut la et dolore magna...</p>
-      <button>Action</button>
-      <button>Cancel</button>
+      <button on-click="close">Action</button>
+      <button on-click="close">Cancel</button>
     </gaia-dialog>
 
     <gaia-dialog>
@@ -105,9 +106,9 @@
       <p>Lorem ipsum dolor sit amet, consecutor adipisicing elit, sed do eiusod tempor incidenti ut la et dolore magna...</p>
       <hr>
       <p>Lorem ipsum dolor sit amet, consecutor adipisicing elit, sed do eiusod tempor incidenti ut la et dolore magna...</p>
-      <button>Action</button>
-      <button>Action</button>
-      <button>Cancel</button>
+      <button on-click="close">Action</button>
+      <button on-click="close">Action</button>
+      <button on-click="close">Cancel</button>
     </gaia-dialog>
   </div>
   <script>

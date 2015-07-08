@@ -1936,7 +1936,7 @@ var Service = (function () {
     // Matches a whole line break (where CRLF is considered a single
     // line break). Used to count lines.
 
-    var lineBreak = /\r\n|[\n\r\u2028\u2029]/g;
+    var lineBreak = exports.lineBreak = /\r\n|[\n\r\u2028\u2029]/g;
 
     // Test whether a given character code starts an identifier.
 
@@ -2024,7 +2024,6 @@ var Service = (function () {
       TK_OPERATOR: handle_operator,
       TK_COMMA: handle_comma,
       TK_BLOCK_COMMENT: handle_block_comment,
-      TK_INLINE_COMMENT: handle_inline_comment,
       TK_COMMENT: handle_comment,
       TK_DOT: handle_dot,
       TK_UNKNOWN: handle_unknown,
@@ -2098,6 +2097,8 @@ var Service = (function () {
     opt.end_with_newline = (options.end_with_newline === undefined) ? false : options.end_with_newline;
     opt.comma_first = (options.comma_first === undefined) ? false : options.comma_first;
 
+    // For testing of beautify ignore:start directive
+    opt.test_output_raw = (options.test_output_raw === undefined) ? false : options.test_output_raw;
 
     // force opt.space_after_anon_function to true if opt.jslint_happy
     if (opt.jslint_happy) {
@@ -2130,6 +2131,9 @@ var Service = (function () {
     last_type = "TK_START_BLOCK"; // last token type
     last_last_text = ""; // pre-last token text
     output = new Output(indent_string, baseIndentString);
+
+    // If testing the ignore directive, start with output disable set to true
+    output.raw = opt.test_output_raw;
 
 
     // Stack of parsing/formatting states, including MODE.
@@ -2174,7 +2178,7 @@ var Service = (function () {
       }
 
       if (opt.eol != "\n") {
-        sweet_code = sweet_code.replace(/[\r]?[\n]/mg, opt.eol);
+        sweet_code = sweet_code.replace(/[\n]/g, opt.eol);
       }
 
       return sweet_code;
@@ -2269,6 +2273,11 @@ var Service = (function () {
     }
 
     function print_token(printable_token) {
+      if (output.raw) {
+        output.add_raw_token(current_token);
+        return;
+      }
+
       if (opt.comma_first && last_type === "TK_COMMA" && output.just_added_newline()) {
         if (output.previous_line.last() === ",") {
           output.previous_line.pop();
@@ -2933,6 +2942,35 @@ var Service = (function () {
     }
 
     function handle_block_comment() {
+      if (output.raw) {
+        output.add_raw_token(current_token);
+        if (current_token.directives && current_token.directives.preserve === "end") {
+          // If we're testing the raw output behavior, do not allow a directive to turn it off.
+          if (!opt.test_output_raw) {
+            output.raw = false;
+          }
+        }
+        return;
+      }
+
+      if (current_token.directives) {
+        print_newline(false, true);
+        print_token();
+        if (current_token.directives.preserve === "start") {
+          output.raw = true;
+        }
+        print_newline(false, true);
+        return;
+      }
+
+      // inline block
+      if (!acorn.newline.test(current_token.text) && !current_token.wanted_newline) {
+        output.space_before_token = true;
+        print_token();
+        output.space_before_token = true;
+        return;
+      }
+
       var lines = split_newlines(current_token.text);
       var j; // iterator for this case
       var javadoc = false;
@@ -2968,12 +3006,6 @@ var Service = (function () {
 
       // for comments of more than one line, make sure there's a new line after
       print_newline(false, true);
-    }
-
-    function handle_inline_comment() {
-      output.space_before_token = true;
-      print_token();
-      output.space_before_token = true;
     }
 
     function handle_comment() {
@@ -3096,6 +3128,7 @@ var Service = (function () {
     this.indent_cache = [baseIndentString];
     this.baseIndentLength = baseIndentString.length;
     this.indent_length = indent_string.length;
+    this.raw = false;
 
     var lines = [];
     this.baseIndentString = baseIndentString;
@@ -3103,6 +3136,16 @@ var Service = (function () {
     this.previous_line = null;
     this.current_line = null;
     this.space_before_token = false;
+
+    this.add_outputline = function () {
+      this.previous_line = this.current_line;
+      this.current_line = new OutputLine(this);
+      lines.push(this.current_line);
+    };
+
+    // initialize
+    this.add_outputline();
+
 
     this.get_line_number = function () {
       return lines.length;
@@ -3115,17 +3158,14 @@ var Service = (function () {
       }
 
       if (force_newline || !this.just_added_newline()) {
-        this.previous_line = this.current_line;
-        this.current_line = new OutputLine(this);
-        lines.push(this.current_line);
+        if (!this.raw) {
+          this.add_outputline();
+        }
         return true;
       }
 
       return false;
     };
-
-    // initialize
-    this.add_new_line(true);
 
     this.get_code = function () {
       var sweet_code = lines.join("\n").replace(/[\r\n\t ]+$/, "");
@@ -3144,6 +3184,15 @@ var Service = (function () {
       }
       this.current_line.set_indent(0);
       return false;
+    };
+
+    this.add_raw_token = function (token) {
+      for (var x = 0; x < token.newlines; x++) {
+        this.add_outputline();
+      }
+      this.current_line.push(token.whitespace_before);
+      this.current_line.push(token.text);
+      this.space_before_token = false;
     };
 
     this.add_token = function (printable_token) {
@@ -3219,17 +3268,31 @@ var Service = (function () {
     this.wanted_newline = newlines > 0;
     this.whitespace_before = whitespace_before || "";
     this.parent = null;
+    this.directives = null;
   };
 
   function tokenizer(input, opts, indent_string) {
     var whitespace = "\n\r\t ".split("");
     var digit = /[0-9]/;
+    var digit_hex = /[0123456789abcdefABCDEF]/;
 
     var punct = ("+ - * / % & ++ -- = += -= *= /= %= == === != !== > < >= <= >> << >>> >>>= >>= <<= && &= | || ! ~ , : ? ^ ^= |= :: =>" + " <%= <% %> <?= <? ?>").split(" "); // try to be a good boy and try not to break the markup language identifiers
 
     // words which should always start on new line.
     this.line_starters = "continue,try,throw,return,var,let,const,if,switch,case,default,for,while,break,function,import,export".split(",");
     var reserved_words = this.line_starters.concat(["do", "in", "else", "get", "set", "new", "catch", "finally", "typeof", "yield", "async", "await"]);
+
+    //  /* ... */ comment ends with nearest */ or end of file
+    var block_comment_pattern = /([\s\S]*?)((?:\*\/)|$)/g;
+
+    // comment ends just before nearest linefeed or end of file
+    var comment_pattern = /([^\n\r\u2028\u2029]*)/g;
+
+    var directives_block_pattern = /\/\* beautify( \w+[:]\w+)+ \*\//g;
+    var directive_pattern = / (\w+)[:](\w+)/g;
+    var directives_end_ignore_pattern = /([\s\S]*?)((?:\/\*\sbeautify\signore:end\s\*\/)|$)/g;
+
+    var template_pattern = /((<\?php|<\?=)[\s\S]*?\?>)|(<%[\s\S]*?%>)/g;
 
     var n_newlines, whitespace_before_token, in_html_comment, tokens, parser_pos;
     var input_length;
@@ -3250,7 +3313,10 @@ var Service = (function () {
       while (!(last && last.type === "TK_EOF")) {
         token_values = tokenize_next();
         next = new Token(token_values[1], token_values[0], n_newlines, whitespace_before_token);
-        while (next.type === "TK_INLINE_COMMENT" || next.type === "TK_COMMENT" || next.type === "TK_BLOCK_COMMENT" || next.type === "TK_UNKNOWN") {
+        while (next.type === "TK_COMMENT" || next.type === "TK_BLOCK_COMMENT" || next.type === "TK_UNKNOWN") {
+          if (next.type === "TK_BLOCK_COMMENT") {
+            next.directives = token_values[2];
+          }
           comments.push(next);
           token_values = tokenize_next();
           next = new Token(token_values[1], token_values[0], n_newlines, whitespace_before_token);
@@ -3277,6 +3343,23 @@ var Service = (function () {
       return tokens;
     };
 
+    function get_directives(text) {
+      if (!text.match(directives_block_pattern)) {
+        return null;
+      }
+
+      var directives = {};
+      directive_pattern.lastIndex = 0;
+      var directive_match = directive_pattern.exec(text);
+
+      while (directive_match) {
+        directives[directive_match[1]] = directive_match[2];
+        directive_match = directive_pattern.exec(text);
+      }
+
+      return directives;
+    }
+
     function tokenize_next() {
       var i, resulting_string;
       var whitespace_on_this_line = [];
@@ -3301,15 +3384,13 @@ var Service = (function () {
       parser_pos += 1;
 
       while (in_array(c, whitespace)) {
-        if (c === "\n") {
-          n_newlines += 1;
-          whitespace_on_this_line = [];
-        } else if (n_newlines) {
-          if (c === indent_string) {
-            whitespace_on_this_line.push(indent_string);
-          } else if (c !== "\r") {
-            whitespace_on_this_line.push(" ");
+        if (acorn.newline.test(c)) {
+          if (!(c === "\n" && input.charAt(parser_pos - 2) === "\r")) {
+            n_newlines += 1;
+            whitespace_on_this_line = [];
           }
+        } else {
+          whitespace_on_this_line.push(c);
         }
 
         if (parser_pos >= input_length) {
@@ -3335,7 +3416,7 @@ var Service = (function () {
           allow_e = false;
           c += input.charAt(parser_pos);
           parser_pos += 1;
-          local_digit = /[0123456789abcdefABCDEF]/;
+          local_digit = digit_hex;
         } else {
           // we know this first loop will run.  It keeps the logic simpler.
           c = "";
@@ -3415,39 +3496,29 @@ var Service = (function () {
       if (c === "/") {
         var comment = "";
         // peek for comment /* ... */
-        var inline_comment = true;
         if (input.charAt(parser_pos) === "*") {
           parser_pos += 1;
-          if (parser_pos < input_length) {
-            while (parser_pos < input_length && !(input.charAt(parser_pos) === "*" && input.charAt(parser_pos + 1) && input.charAt(parser_pos + 1) === "/")) {
-              c = input.charAt(parser_pos);
-              comment += c;
-              if (c === "\n" || c === "\r") {
-                inline_comment = false;
-              }
-              parser_pos += 1;
-              if (parser_pos >= input_length) {
-                break;
-              }
-            }
+          block_comment_pattern.lastIndex = parser_pos;
+          var comment_match = block_comment_pattern.exec(input);
+          comment = "/*" + comment_match[0];
+          parser_pos += comment_match[0].length;
+          var directives = get_directives(comment);
+          if (directives && directives.ignore === "start") {
+            directives_end_ignore_pattern.lastIndex = parser_pos;
+            comment_match = directives_end_ignore_pattern.exec(input);
+            comment += comment_match[0];
+            parser_pos += comment_match[0].length;
           }
-          parser_pos += 2;
-          if (inline_comment && n_newlines === 0) {
-            return ["/*" + comment + "*/", "TK_INLINE_COMMENT"];
-          } else {
-            return ["/*" + comment + "*/", "TK_BLOCK_COMMENT"];
-          }
+          comment = comment.replace(acorn.lineBreak, "\n");
+          return [comment, "TK_BLOCK_COMMENT", directives];
         }
         // peek for comment // ...
         if (input.charAt(parser_pos) === "/") {
-          comment = c;
-          while (input.charAt(parser_pos) !== "\r" && input.charAt(parser_pos) !== "\n") {
-            comment += input.charAt(parser_pos);
-            parser_pos += 1;
-            if (parser_pos >= input_length) {
-              break;
-            }
-          }
+          parser_pos += 1;
+          comment_pattern.lastIndex = parser_pos;
+          var comment_match = comment_pattern.exec(input);
+          comment = "//" + comment_match[0];
+          parser_pos += comment_match[0].length;
           return [comment, "TK_COMMENT"];
         }
       }
@@ -3509,6 +3580,7 @@ var Service = (function () {
             var xmlLength = match ? match.index + match[0].length : xmlStr.length;
             xmlStr = xmlStr.slice(0, xmlLength);
             parser_pos += xmlLength - 1;
+            xmlStr = xmlStr.replace(acorn.lineBreak, "\n");
             return [xmlStr, "TK_STRING"];
           }
         } else {
@@ -3518,11 +3590,14 @@ var Service = (function () {
           // Template strings can travers lines without escape characters.
           // Other strings cannot
           while (parser_pos < input_length && (esc || (input.charAt(parser_pos) !== sep && (sep === "`" || !acorn.newline.test(input.charAt(parser_pos)))))) {
-            resulting_string += input.charAt(parser_pos);
             // Handle \r\n linebreaks after escapes or in template strings
-            if (input.charAt(parser_pos) === "\r" && input.charAt(parser_pos + 1) === "\n") {
-              parser_pos += 1;
+            if ((esc || sep === "`") && acorn.newline.test(input.charAt(parser_pos))) {
+              if (input.charAt(parser_pos) === "\r" && input.charAt(parser_pos + 1) === "\n") {
+                parser_pos += 1;
+              }
               resulting_string += "\n";
+            } else {
+              resulting_string += input.charAt(parser_pos);
             }
             if (esc) {
               if (input.charAt(parser_pos) === "x" || input.charAt(parser_pos) === "u") {
@@ -3591,10 +3666,21 @@ var Service = (function () {
         }
       }
 
+      if (c === "<" && (input.charAt(parser_pos) === "?" || input.charAt(parser_pos) === "%")) {
+        template_pattern.lastIndex = parser_pos - 1;
+        var template_match = template_pattern.exec(input);
+        if (template_match) {
+          c = template_match[0];
+          parser_pos += c.length - 1;
+          c = c.replace(acorn.lineBreak, "\n");
+          return [c, "TK_STRING"];
+        }
+      }
+
       if (c === "<" && input.substring(parser_pos - 1, parser_pos + 3) === "<!--") {
         parser_pos += 3;
         c = "<!--";
-        while (input.charAt(parser_pos) !== "\n" && parser_pos < input_length) {
+        while (!acorn.newline.test(input.charAt(parser_pos)) && parser_pos < input_length) {
           c += input.charAt(parser_pos);
           parser_pos++;
         }
@@ -3777,11 +3863,16 @@ var Service = (function () {
 (function () {
   function css_beautify(source_text, options) {
     options = options || {};
+    source_text = source_text || "";
+    // HACK: newline parsing inconsistent. This brute force normalizes the input.
+    source_text = source_text.replace(/\r\n|[\r\u2028\u2029]/g, "\n");
+
     var indentSize = options.indent_size || 4;
     var indentCharacter = options.indent_char || " ";
     var selectorSeparatorNewline = (options.selector_separator_newline === undefined) ? true : options.selector_separator_newline;
     var end_with_newline = (options.end_with_newline === undefined) ? false : options.end_with_newline;
     var newline_between_rules = (options.newline_between_rules === undefined) ? true : options.newline_between_rules;
+    var eol = options.eol ? options.eol : "\n";
 
     // compatibility
     if (typeof indentSize === "string") {
@@ -3792,6 +3883,9 @@ var Service = (function () {
       indentCharacter = "\t";
       indentSize = 1;
     }
+
+    eol = eol.replace(/\\r/, "\r").replace(/\\n/, "\n");
+
 
     // tokenizer
     var whiteRe = /^\s+$/;
@@ -3884,11 +3978,20 @@ var Service = (function () {
     // and the next special character found opens
     // a new block
     function foundNestedPseudoClass() {
+      var openParen = 0;
       for (var i = pos + 1; i < source_text.length; i++) {
         var ch = source_text.charAt(i);
         if (ch === "{") {
           return true;
-        } else if (ch === ";" || ch === "}" || ch === ")") {
+        } else if (ch === "(") {
+          // pseudoclasses can contain ()
+          openParen += 1;
+        } else if (ch === ")") {
+          if (openParen == 0) {
+            return false;
+          }
+          openParen -= 1;
+        } else if (ch === ";" || ch === "}") {
           return false;
         }
       }
@@ -3946,6 +4049,12 @@ var Service = (function () {
       }
     };
 
+    print.preserveSingleSpace = function () {
+      if (isAfterSpace) {
+        print.singleSpace();
+      }
+    };
+
     print.trim = function () {
       while (print._lastCharWhitespace()) {
         output.pop();
@@ -3957,6 +4066,7 @@ var Service = (function () {
     /*_____________________--------------------_____________________*/
 
     var insideRule = false;
+    var insidePropertyValue = false;
     var enteringConditionalGroup = false;
     var top_ch = "";
     var last_top_ch = "";
@@ -3992,10 +4102,7 @@ var Service = (function () {
         output.push(eatComment());
         print.newLine();
       } else if (ch === "@") {
-        // pass along the space we found as a separate item
-        if (isAfterSpace) {
-          print.singleSpace();
-        }
+        print.preserveSingleSpace();
         output.push(ch);
 
         // strip trailing space, if present, for hash property checks
@@ -4018,6 +4125,9 @@ var Service = (function () {
             enteringConditionalGroup = true;
           }
         }
+      } else if (ch === "#" && peek() === "{") {
+        print.preserveSingleSpace();
+        output.push(eatString("}"));
       } else if (ch === "{") {
         if (peek(true) === "}") {
           eatWhitespace();
@@ -4044,6 +4154,7 @@ var Service = (function () {
         outdent();
         print["}"](ch);
         insideRule = false;
+        insidePropertyValue = false;
         if (nestedLevel) {
           nestedLevel--;
         }
@@ -4055,6 +4166,7 @@ var Service = (function () {
         if ((insideRule || enteringConditionalGroup) && !(lookBack("&") || foundNestedPseudoClass())) {
           // 'property: value' delimiter
           // which could be in a conditional group query
+          insidePropertyValue = true;
           output.push(":");
           print.singleSpace();
         } else {
@@ -4070,11 +4182,10 @@ var Service = (function () {
           }
         }
       } else if (ch === "\"" || ch === "'") {
-        if (isAfterSpace) {
-          print.singleSpace();
-        }
+        print.preserveSingleSpace();
         output.push(eatString(ch));
       } else if (ch === ";") {
+        insidePropertyValue = false;
         output.push(ch);
         print.newLine();
       } else if (ch === "(") {
@@ -4091,9 +4202,7 @@ var Service = (function () {
           }
         } else {
           parenLevel++;
-          if (isAfterSpace) {
-            print.singleSpace();
-          }
+          print.preserveSingleSpace();
           output.push(ch);
           eatWhitespace();
         }
@@ -4103,7 +4212,7 @@ var Service = (function () {
       } else if (ch === ",") {
         output.push(ch);
         eatWhitespace();
-        if (!insideRule && selectorSeparatorNewline && parenLevel < 1) {
+        if (selectorSeparatorNewline && !insidePropertyValue && parenLevel < 1) {
           print.newLine();
         } else {
           print.singleSpace();
@@ -4111,9 +4220,7 @@ var Service = (function () {
       } else if (ch === "]") {
         output.push(ch);
       } else if (ch === "[") {
-        if (isAfterSpace) {
-          print.singleSpace();
-        }
+        print.preserveSingleSpace();
         output.push(ch);
       } else if (ch === "=") {
         // no whitespace before or after
@@ -4121,10 +4228,7 @@ var Service = (function () {
         ch = "=";
         output.push(ch);
       } else {
-        if (isAfterSpace) {
-          print.singleSpace();
-        }
-
+        print.preserveSingleSpace();
         output.push(ch);
       }
     }
@@ -4140,6 +4244,10 @@ var Service = (function () {
     // establish end_with_newline
     if (end_with_newline) {
       sweetCode += "\n";
+    }
+
+    if (eol != "\n") {
+      sweetCode = sweetCode.replace(/[\n]/g, eol);
     }
 
     return sweetCode;
@@ -4271,7 +4379,7 @@ var Service = (function () {
   function style_html(html_source, options, js_beautify, css_beautify) {
     //Wrapper function to invoke all the necessary constructors and deal with the output.
 
-    var multi_parser, indent_inner_html, indent_size, indent_character, wrap_line_length, brace_style, unformatted, preserve_newlines, max_preserve_newlines, indent_handlebars, wrap_attributes, wrap_attributes_indent_size, end_with_newline, extra_liners;
+    var multi_parser, indent_inner_html, indent_size, indent_character, wrap_line_length, brace_style, unformatted, preserve_newlines, max_preserve_newlines, indent_handlebars, wrap_attributes, wrap_attributes_indent_size, end_with_newline, extra_liners, eol;
 
     options = options || {};
 
@@ -4292,12 +4400,15 @@ var Service = (function () {
     wrap_attributes = (options.wrap_attributes === undefined) ? "auto" : options.wrap_attributes;
     wrap_attributes_indent_size = (options.wrap_attributes_indent_size === undefined) ? indent_size : parseInt(options.wrap_attributes_indent_size, 10) || indent_size;
     end_with_newline = (options.end_with_newline === undefined) ? false : options.end_with_newline;
-    extra_liners = Array.isArray(options.extra_liners) ? options.extra_liners.concat() : (typeof options.extra_liners === "string") ? options.extra_liners.split(",") : "head,body,/html".split(",");
+    extra_liners = (typeof options.extra_liners == "object") && options.extra_liners ? options.extra_liners.concat() : (typeof options.extra_liners === "string") ? options.extra_liners.split(",") : "head,body,/html".split(",");
+    eol = options.eol ? options.eol : "\n";
 
     if (options.indent_with_tabs) {
       indent_character = "\t";
       indent_size = 1;
     }
+
+    eol = eol.replace(/\\r/, "\r").replace(/\\n/, "\n");
 
     function Parser() {
       this.pos = 0; //Parser position
@@ -4315,7 +4426,7 @@ var Service = (function () {
 
       this.Utils = { //Uilities made available to the various functions
         whitespace: "\n\r\t ".split(""),
-        single_token: "br,input,link,meta,source,!doctype,basefont,base,area,hr,wbr,param,img,isindex,?xml,embed,?php,?,?=".split(","), //all the single tags for HTML
+        single_token: "br,input,link,meta,source,!doctype,basefont,base,area,hr,wbr,param,img,isindex,embed".split(","), //all the single tags for HTML
         extra_liners: extra_liners, //for tags that need a line of whitespace before them
         in_array: function (what, arr) {
           for (var i = 0; i < arr.length; i++) {
@@ -4572,7 +4683,7 @@ var Service = (function () {
           this.line_char_count++;
           content.push(input_char); //inserts character at-a-time (or string)
 
-          if (content[1] && content[1] === "!") {
+          if (content[1] && (content[1] === "!" || content[1] === "?" || content[1] === "%")) {
             //if we're in a comment, do something special
             // We treat all comments as literals, even more than preformatted tags
             // we just look for the appropriate close tag
@@ -4600,16 +4711,16 @@ var Service = (function () {
         if (tag_complete.indexOf(" ") !== -1) {
           //if there's whitespace, thats where the tag name ends
           tag_index = tag_complete.indexOf(" ");
-        } else if (tag_complete[0] === "{") {
+        } else if (tag_complete.charAt(0) === "{") {
           tag_index = tag_complete.indexOf("}");
         } else {
           //otherwise go with the tag ending
           tag_index = tag_complete.indexOf(">");
         }
-        if (tag_complete[0] === "<" || !indent_handlebars) {
+        if (tag_complete.charAt(0) === "<" || !indent_handlebars) {
           tag_offset = 1;
         } else {
-          tag_offset = tag_complete[2] === "#" ? 3 : 2;
+          tag_offset = tag_complete.charAt(2) === "#" ? 3 : 2;
         }
         var tag_check = tag_complete.substring(tag_offset, tag_index).toLowerCase();
         if (tag_complete.charAt(tag_complete.length - 2) === "/" || this.Utils.in_array(tag_check, this.Utils.single_token)) {
@@ -4617,7 +4728,7 @@ var Service = (function () {
           if (!peek) {
             this.tag_type = "SINGLE";
           }
-        } else if (indent_handlebars && tag_complete[0] === "{" && tag_check === "else") {
+        } else if (indent_handlebars && tag_complete.charAt(0) === "{" && tag_check === "else") {
           if (!peek) {
             this.indent_to_tag("if");
             this.tag_type = "HANDLEBARS_ELSE";
@@ -4696,7 +4807,7 @@ var Service = (function () {
           comment += input_char;
 
           // only need to check for the delimiter if the last chars match
-          if (comment[comment.length - 1] === delimiter[delimiter.length - 1] && comment.indexOf(delimiter) !== -1) {
+          if (comment.charAt(comment.length - 1) === delimiter.charAt(delimiter.length - 1) && comment.indexOf(delimiter) !== -1) {
             break;
           }
 
@@ -4721,6 +4832,14 @@ var Service = (function () {
             } else if (comment.indexOf("{{!") === 0) {
               // {{! handlebars comment
               delimiter = "}}";
+              matched = true;
+            } else if (comment.indexOf("<?") === 0) {
+              // {{! handlebars comment
+              delimiter = "?>";
+              matched = true;
+            } else if (comment.indexOf("<%") === 0) {
+              // {{! handlebars comment
+              delimiter = "%>";
               matched = true;
             }
           }
@@ -4771,7 +4890,7 @@ var Service = (function () {
           this.line_char_count++;
           space = true;
 
-          if (indent_handlebars && input_char === "{" && content.length && content[content.length - 2] === "{") {
+          if (indent_handlebars && input_char === "{" && content.length && content.charAt(content.length - 2) === "{") {
             // Handlebars expressions in strings should also be unformatted.
             content += this.get_unformatted("}}");
             // These expressions are opaque.  Ignore delimiters found in them.
@@ -4854,6 +4973,10 @@ var Service = (function () {
         //handles input/output and some other printing functions
 
         this.input = js_source || ""; //gets the input for the Parser
+
+        // HACK: newline parsing inconsistent. This brute force normalizes the input.
+        this.input = this.input.replace(/\r\n|[\r\u2028\u2029]/g, "\n");
+
         this.output = [];
         this.indent_character = indent_character;
         this.indent_string = "";
@@ -4910,7 +5033,7 @@ var Service = (function () {
           }
 
           if (text && text !== "") {
-            if (text.length > 1 && text[text.length - 1] === "\n") {
+            if (text.length > 1 && text.charAt(text.length - 1) === "\n") {
               // unformatted tags can grab newlines as their last character
               this.output.push(text.slice(0, -1));
               this.print_newline(false, this.output);
@@ -5028,7 +5151,12 @@ var Service = (function () {
             var indentation = multi_parser.get_full_indent(script_indent_level);
             if (_beautifier) {
               // call the Beautifier if avaliable
-              text = _beautifier(text.replace(/^\s*/, indentation), options);
+              var Child_options = function () {
+                this.eol = "\n";
+              };
+              Child_options.prototype = options;
+              var child_options = new Child_options();
+              text = _beautifier(text.replace(/^\s*/, indentation), child_options);
             } else {
               // simply indent the string otherwise
               var white = text.match(/^\s*/)[0];
@@ -5055,9 +5183,16 @@ var Service = (function () {
       multi_parser.last_text = multi_parser.token_text;
     }
     var sweet_code = multi_parser.output.join("").replace(/[\r\n\t ]+$/, "");
+
+    // establish end_with_newline
     if (end_with_newline) {
       sweet_code += "\n";
     }
+
+    if (eol != "\n") {
+      sweet_code = sweet_code.replace(/[\n]/g, eol);
+    }
+
     return sweet_code;
   }
 

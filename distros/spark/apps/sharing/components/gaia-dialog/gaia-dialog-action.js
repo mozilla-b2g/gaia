@@ -4,7 +4,7 @@
  * Dependencies
  */
 
-require('gaia-dialog');
+var GaiaDialogProto = require('gaia-dialog').prototype;
 var component = require('gaia-component');
 
 /**
@@ -19,22 +19,16 @@ module.exports = component.register('gaia-dialog-action', {
       submit: this.shadowRoot.querySelector('.submit'),
       cancel: this.shadowRoot.querySelector('.cancel')
     };
-
-    this.els.dialog.addEventListener('opened', () => {
-      this.setAttribute('opened', '');
-    });
-
-    this.els.dialog.addEventListener('closed', () => {
-      this.removeAttribute('opened');
-    });
   },
 
   open: function(e) {
-    this.els.dialog.open(e);
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.open(e));
   },
 
   close: function() {
-    this.els.dialog.close();
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `
@@ -43,7 +37,7 @@ module.exports = component.register('gaia-dialog-action', {
         <content select="h1"></content>
       </section>
       <content select="button"></content>
-      <button class="cancel">Cancel</button>
+      <button on-click="close" class="cancel">Cancel</button>
     </gaia-dialog>
 
     <style>

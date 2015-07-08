@@ -5,7 +5,7 @@
  * Dependencies
  */
 
-require('gaia-dialog');
+var GaiaDialogProto = require('gaia-dialog').prototype;
 var component = require('gaia-component');
 
 /**
@@ -14,29 +14,19 @@ var component = require('gaia-component');
 module.exports = component.register('gaia-dialog-alert', {
   created: function() {
     this.setupShadowRoot();
-
     this.els = {
-      dialog: this.shadowRoot.querySelector('gaia-dialog'),
-      submit: this.shadowRoot.querySelector('.submit')
+      dialog: this.shadowRoot.querySelector('gaia-dialog')
     };
-
-    this.els.dialog.addEventListener('opened', () => {
-      this.setAttribute('opened', '');
-    });
-
-    this.els.dialog.addEventListener('closed', () => {
-      this.removeAttribute('opened');
-    });
-
-    this.els.submit.addEventListener('click', this.close.bind(this));
   },
 
   open: function(e) {
-    this.els.dialog.open(e);
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.open(e));
   },
 
   close: function() {
-    this.els.dialog.close();
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `
@@ -45,24 +35,19 @@ module.exports = component.register('gaia-dialog-alert', {
         <p><content></content></p>
       </section>
       <div>
-        <button class="submit primary">Ok</button>
+        <button class="submit primary" on-click="close">Ok</button>
       </div>
     </gaia-dialog>
 
     <style>
- 
+
     :host {
       display: none;
-    }
-
-    :host[opened],
-    :host.animating {
-      display: block;
       position: fixed;
       width: 100%;
       height: 100%;
     }
- 
+
     </style>`
 });
 

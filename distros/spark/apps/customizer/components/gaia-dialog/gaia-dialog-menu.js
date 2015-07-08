@@ -5,7 +5,7 @@
  * Dependencies
  */
 
-require('gaia-dialog');
+var GaiaDialogProto = require('gaia-dialog').prototype;
 var component = require('gaia-component');
 
 /**
@@ -14,28 +14,19 @@ var component = require('gaia-component');
 module.exports = component.register('gaia-dialog-menu', {
   created: function() {
     this.setupShadowRoot();
-
     this.els = {
-      dialog: this.shadowRoot.querySelector('gaia-dialog'),
-      submit: this.shadowRoot.querySelector('.submit'),
-      cancel: this.shadowRoot.querySelector('.cancel')
+      dialog: this.shadowRoot.querySelector('gaia-dialog')
     };
-
-    this.els.dialog.addEventListener('opened', () => {
-      this.setAttribute('opened', '');
-    });
-
-    this.els.dialog.addEventListener('closed', () => {
-      this.removeAttribute('opened');
-    });
   },
 
   open: function(e) {
-    this.els.dialog.open(e);
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.open(e));
   },
 
   close: function() {
-    this.els.dialog.close();
+    return GaiaDialogProto.show.call(this)
+      .then(() => this.els.dialog.close());
   },
 
   template: `
@@ -47,11 +38,6 @@ module.exports = component.register('gaia-dialog-menu', {
 
     :host {
       display: none;
-    }
-
-    :host[opened],
-    :host.animating {
-      display: block;
       position: fixed;
       width: 100%;
       height: 100%;
@@ -62,13 +48,13 @@ module.exports = component.register('gaia-dialog-menu', {
       display: block;
       width: 100%;
       height: 50px;
-      line-height: 50px;
+      line-height: 51px;
       margin: 0;
       border: 0;
       padding: 0rem 16px;
       font: inherit;
       font-style: italic;
-      text-align: -moz-start;
+      text-align: start;
       background: var(--color-beta);
       color: var(--highlight-color);
     }
@@ -76,9 +62,7 @@ module.exports = component.register('gaia-dialog-menu', {
     ::content > button[data-icon]:before {
       width: 50px;
       font-size: 22px;
-      -moz-margin-start: -16px;
       vertical-align: middle;
-      text-align: center;
     }
 
     /** Button Divider Line

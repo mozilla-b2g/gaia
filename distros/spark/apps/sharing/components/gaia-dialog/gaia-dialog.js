@@ -1,5 +1,4 @@
-/* global define */
-;(function(define){'use strict';define(['require','exports','module','gaia-component'],function(require,exports,module){
+;(function(define){'use strict';define(['require','exports','module','gaia-component'],(require,exports,module) => {
 
 /**
  * Dependencies
@@ -11,16 +10,30 @@ var component = require('gaia-component');
  *
  * @type {Function}
  */
-var debug = 0 ? console.log.bind(console) : function() {};
+var debug = 0 ? console.log.bind(console) : () => {};
+
+/**
+ * Use the dom-scheduler if it's around,
+ * else fallback to fake shim.
+ *
+ * @type {Object}
+ */
+var schedule = window.scheduler || {
+  mutation: block => Promise.resolve(block()),
+  transition(block, el, event, timeout) {
+    block();
+    return after(el, event, timeout || 500);
+  }
+};
 
 /**
  * Exports
  */
 
 module.exports = component.register('gaia-dialog', {
-  created: function() {
+  created() {
     this.setupShadowRoot();
-    
+
     this.els = {
       inner: this.shadowRoot.querySelector('.dialog-inner'),
       background: this.shadowRoot.querySelector('.background'),
@@ -28,127 +41,108 @@ module.exports = component.register('gaia-dialog', {
     };
 
     this.shadowRoot.addEventListener('click', e => this.onClick(e));
-    this.setupAnimationListeners();
   },
 
-  onClick: function(e) {
-    var el = closest('[on-click]', e.target, this);
+  onClick(e) {
+    var el = e.target.closest('[on-click]');
     if (!el) { return; }
     debug('onClick');
     var method = el.getAttribute('on-click');
     if (typeof this[method] == 'function') { this[method](); }
   },
 
-  setupAnimationListeners: function() {
-    this.addEventListener('animationstart', this.onAnimationStart.bind(this));
-    this.addEventListener('animationend', this.onAnimationEnd.bind(this));
-  },
-
-  open: function(options) {
+  open(options) {
     if (this.isOpen) { return; }
     debug('open dialog');
-    requestAnimationFrame(this.animateIn.bind(this, options));
     this.isOpen = true;
-    this.setAttr('opened', '');
-    this.dispatch('opened');
+
+    this.show()
+      .then(() => this.animateBackgroundIn(options))
+      .then(() => this.animateWindowIn());
   },
 
-  close: function(options) {
+  close(options) {
     if (!this.isOpen) { return; }
     debug('close dialog');
     this.isOpen = false;
-    requestAnimationFrame(this.animateOut.bind(this, () => {
-      this.removeAttr('opened');
-      this.dispatch('closed');
-    }));
+
+    this.animateWindowOut()
+      .then(() => this.animateBackgroundOut())
+      .then(() => this.hide());
   },
 
-  animateIn: function(e) {
-    var hasTarget = e && ('clientX' in e || e.touches);
-    if (hasTarget) { return this.animateInFromTarget(e); }
-    var background = this.els.background;
-    var end = 'animationend';
+  animateBackgroundIn(options) {
+    if (options) { return this.animateBackgroundInFrom(options); }
 
-    debug('animate in');
-    this.dispatch('animationstart');
-    background.classList.add('animate-in');
-    background.addEventListener(end, function fn() {
-      background.removeEventListener(end, fn);
-      debug(end);
-      this.els.window.classList.add('animate-in');
-      this.dispatch('animationend');
-    }.bind(this));
+    var el = this.els.background;
+    return schedule.transition(() => {
+      debug('animate background in');
+      el.classList.remove('animate-out');
+      el.classList.add('animate-in');
+    }, el, 'animationend');
   },
 
-  // popup dialog
-  animateInFromTarget: function(e) {
-    debug('animate in from target');
-    var pos = e.touches && e.touches[0] || e;
-    var scale = Math.sqrt(window.innerWidth * window.innerHeight) / 10;
-    var background = this.els.background;
-    var duration = scale * 7;
-    var end = 'transitionend';
-    var self = this;
-
-    background.style.transform =
-      'translate(' + pos.clientX + 'px, ' + pos.clientY + 'px)';
-    background.style.transitionDuration = duration + 'ms';
-    background.classList.add('circular');
-    debug('animation start');
-    this.dispatch('animationstart');
-
-    background.offsetTop;
-
-    background.style.transform += ' scale(' + scale + ')';
-    background.style.opacity = 1;
-
-    background.addEventListener(end, function fn() {
-      background.removeEventListener(end, fn);
-      debug(end);
-      self.els.window.classList.add('animate-in');
-      self.dispatch('animationend');
-    });
+  animateBackgroundOut() {
+    var el = this.els.background;
+    return schedule.transition(() => {
+      debug('animate background out');
+      el.classList.add('animate-out');
+      el.classList.remove('animate-in');
+    }, el, 'animationend')
+      .then(() => el.style = '');
   },
 
-  animateOut: function(callback) {
-    var end = 'animationend';
-    var background = this.els.background;
-    var self = this;
-    var classes = {
-      el: this.classList,
-      window: this.els.window.classList,
-      background: this.els.background.classList
-    };
+  animateBackgroundInFrom(pos) {
+    var el = this.els.background;
+    var scale = Math.sqrt(window.innerWidth * window.innerHeight) / 15;
+    var duration = scale * 9;
 
-    this.dispatch('animationstart');
-    classes.window.add('animate-out');
+    return schedule.mutation(() => {
+        el.classList.add('circular');
+        el.classList.remove('animate-out');
+        el.style.transform = `translate(${pos.clientX}px, ${pos.clientY}px)`;
+        el.style.transitionDuration = duration + 'ms';
+        el.offsetTop; // Hack, any ideas?
+      })
 
-    this.els.window.addEventListener(end, function fn(e) {
-      self.els.window.removeEventListener(end, fn);
-      e.stopPropagation();
-      classes.background.add('animate-out');
-      self.els.background.addEventListener(end, function fn() {
-        self.els.background.removeEventListener(end, fn);
-        classes.window.remove('animate-out', 'animate-in');
-        classes.background.remove('animate-out', 'animate-in');
-        background.classList.remove('circular');
-        background.style = '';
-        self.dispatch('animationend');
-        if (callback) { callback(); }
+      .then(() => {
+        return schedule.transition(() => {
+          debug('animate background in from', pos);
+          el.style.transform += ` scale(${scale})`;
+          el.style.opacity = 1;
+        }, el, 'transitionend', duration * 1.5);
       });
+  },
+
+  show() {
+    return schedule.mutation(() => {
+      debug('show');
+      this.style.display = 'block';
     });
   },
 
-  onAnimationStart: function() {
-    this.classList.add('animating');
+  hide() {
+    return schedule.mutation(() => {
+      debug('hide');
+      this.style.display = 'none';
+    });
   },
 
-  onAnimationEnd: function() {
-    this.classList.remove('animating');
+  animateWindowIn() {
+    var el = this.els.window;
+    return schedule.transition(() => {
+      debug('animate window in');
+      el.classList.add('animate-in');
+    }, el, 'animationend');
   },
 
-  dispatch: function(name) {
-    this.dispatchEvent(new CustomEvent(name));
+  animateWindowOut() {
+    var el = this.els.window;
+
+    return schedule.transition(() => {
+      debug('animate window out');
+      el.classList.remove('animate-out', 'animate-in');
+    }, el, 'animationend');
   },
 
   attrs: {
@@ -199,11 +193,6 @@ module.exports = component.register('gaia-dialog', {
       text-align: center;
     }
 
-    :host[opened],
-    :host.animating {
-      display: block;
-    }
-
     /** Inner
      ---------------------------------------------------------*/
 
@@ -247,7 +236,7 @@ module.exports = component.register('gaia-dialog', {
 
     .background.animate-in {
       animation-name: gaia-dialog-fade-in;
-      animation-duration: 300ms;
+      animation-duration: 260ms;
       animation-fill-mode: forwards;
     }
 
@@ -257,8 +246,7 @@ module.exports = component.register('gaia-dialog', {
 
     .background.animate-out {
       animation-name: gaia-dialog-fade-out;
-      animation-delay: 300ms;
-      animation-duration: 300ms;
+      animation-duration: 260ms;
       animation-fill-mode: forwards;
       opacity: 1;
     }
@@ -287,8 +275,7 @@ module.exports = component.register('gaia-dialog', {
 
     .window.animate-out {
       animation-name: gaia-dialog-fade-out;
-      animation-duration: 200ms;
-      animation-delay: 100ms;
+      animation-duration: 150ms;
       animation-timing-function: linear;
       animation-fill-mode: forwards;
       opacity: 1;
@@ -457,9 +444,20 @@ module.exports = component.register('gaia-dialog', {
     }`
 });
 
-function closest(selector, el, top) {
-  return el && el !== top ? (el.matches(selector) ? el : closest(el.parentNode))
-    : null;
+/**
+ * Utils
+ */
+
+function after(target, event, timeout) {
+  return new Promise(resolve => {
+    var timer = timeout && setTimeout(cb, timeout);
+    target.addEventListener(event, cb);
+    function cb() {
+      target.removeEventListener(event, cb);
+      clearTimeout(timer);
+      resolve();
+    }
+  });
 }
 
 });})(typeof define=='function'&&define.amd?define

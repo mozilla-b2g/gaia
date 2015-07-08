@@ -66,7 +66,12 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-header/dist/
       if (this.uploadBlacklist.indexOf(app.manifestURL) !== -1) {
         return false;
       }
-      if (app.manifest.role === "theme" || app.manifest.role === "addon") {
+      // We don't support themes at the moment.
+      if (app.manifest.role === "theme") {
+        return false;
+      }
+      // All non-blacklisted add-ons are eligible.
+      if (app.manifest.role === "addon") {
         return true;
       }
       // Only non-gaia non-marketplace apps are eligible for hackerplace.
