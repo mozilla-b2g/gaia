@@ -287,6 +287,7 @@
         return;
       }
       this.element.setAttribute('aria-hidden', !visible);
+      this._setVisibleForScreenReader(visible);
     };
 
   /**
@@ -298,11 +299,11 @@
     this.reviveBrowser();
 
     // If we're already showing, do nothing!
-    if (!this.browser.element.classList.contains('hidden')) {
+    if (!this.element.classList.contains('inactive')) {
       return;
     }
 
-    this.browser.element.classList.remove('hidden');
+    this.element.classList.remove('inactive');
     this._setVisible(true);
 
     if (this.isHomescreen) {
@@ -325,12 +326,12 @@
     this.debug('before hiding frame');
 
     // If we're already hidden, we have nothing to do!
-    if (!this.browser || this.browser.element.classList.contains('hidden')) {
+    if (!this.browser || this.element.classList.contains('inactive')) {
       return;
     }
 
     this._setVisible(false);
-    this.browser.element.classList.add('hidden');
+    this.element.classList.add('inactive');
   };
 
   /**

@@ -137,7 +137,7 @@
   height: calc(100% - 7rem - var(--software-home-button-height));
 }
 
-#rocketbar-results.hidden, #rocketbar-results iframe.hidden,
+#rocketbar-results.hidden, #rocketbar-results .inactive iframe,
 #rocketbar-backdrop.hidden {
   opacity: 0;
   pointer-events: none;
