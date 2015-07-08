@@ -1,5 +1,4 @@
 [
   "communications/facebook/test/unit/facebook_connector_test.js",
-  "ftu/test/unit/tutorial_test.js",
   "keyboard/test/unit/imes/jspinyin/jspinyin_test.js"
 ]
