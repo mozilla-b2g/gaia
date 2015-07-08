@@ -67,7 +67,9 @@ var Settings = {
     //     points to the root panel.
     if (this._currentActivity !== null &&
           (hash === '#home' ||
-          (hash === '#root' && Settings._currentActivitySection !== 'root'))) {
+          (hash === '#root' && Settings._currentActivitySection !== 'root') ||
+          (hash === '#call-iccs' && Settings._currentActivitySection !== 'root')
+          )) {
       Settings.finishActivityRequest();
       return;
     }
@@ -189,6 +191,7 @@ var Settings = {
   webActivityHandler: function settings_handleActivity(activityRequest) {
     var name = activityRequest.source.name;
     var section = 'root';
+
     Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
@@ -213,6 +216,11 @@ var Settings = {
           var filterBy = activityRequest.source.data.filterBy;
           if (filterBy) {
             document.body.dataset.filterBy = filterBy;
+          }
+        } else if (section === 'call') {
+          var serviceId = activityRequest.source.data.serviceId;
+          if (serviceId) {
+            DsdsSettings.setIccCardIndexForCallSettings(serviceId);
           }
         }
 

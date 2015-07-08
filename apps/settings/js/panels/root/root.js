@@ -69,7 +69,6 @@ define(function(require) {
         'js/security_privacy.js',
         'js/icc_menu.js',
         'js/nfc.js',
-        'js/dsds_settings.js',
         'js/telephony_settings.js',
         'js/telephony_items_handler.js',
         'js/screen_lock.js'

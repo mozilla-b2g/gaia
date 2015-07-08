@@ -257,14 +257,16 @@ suite('voicemail notification', function() {
         });
 
         test('send MozActivity to display voicemail settings', function() {
+          var fakeServiceId = 0;
           var expectedActivity = {
             name: 'configure',
             data: {
               target: 'device',
-              section: 'call'
+              section: 'call',
+              serviceId: serviceId
             }
           };
-          Voicemail.showVoicemailSettings();
+          Voicemail.showVoicemailSettings(fakeServiceId);
           sinon.assert.calledWith(activitySpy, expectedActivity);
         });
     });
