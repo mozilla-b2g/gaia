@@ -19,6 +19,7 @@
     "device-storage:crashes":{ "access": "readwrite" },
     "firefox-accounts": {},
     "geolocation-noprompt":{},
+    "killswitch":{},
     "power":{},
     "push": {},
     "settings":{ "access": "readwrite" },
