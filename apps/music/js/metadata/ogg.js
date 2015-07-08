@@ -73,8 +73,8 @@ var OggMetadata = (function() {
     var sum = function(a, b) { return a + b; };
     var comment_length = Array.reduce(header.segment_table, sum, 0);
 
-    return new Promise(function(resolve, reject) {
-      page.getMore(page.index, comment_length, function(fullpage, err) {
+    return new Promise((resolve, reject) => {
+      page.getMore(page.index, comment_length, (fullpage, err) => {
         if (err) {
           reject(err);
           return;
@@ -101,9 +101,9 @@ var OggMetadata = (function() {
 
           readAllComments(fullpage, metadata);
 
-          LazyLoader.load('js/metadata/vorbis_picture.js', function() {
-            VorbisPictureComment.parsePictureComment(metadata).then(resolve);
-          });
+          LazyLoader.load('js/metadata/vorbis_picture.js').then(() => {
+            return VorbisPictureComment.parsePictureComment(metadata);
+          }).then(resolve);
         } catch(e) {
           reject(e);
         }

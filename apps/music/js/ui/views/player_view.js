@@ -251,18 +251,18 @@ var PlayerView = {
   },
 
   setCoverImage: function pv_setCoverImage(fileinfo) {
-    LazyLoader.load('js/metadata/album_art_cache.js', function() {
-      AlbumArtCache.getFullSizeURL(fileinfo).then(function(url) {
-        if (this.coverImageURL !== url) {
-          this.coverImageURL = url;
+    LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+      return AlbumArtCache.getFullSizeURL(fileinfo);
+    }).then((url) => {
+      if (this.coverImageURL !== url) {
+        this.coverImageURL = url;
 
-          var back = this.backCoverImage, fore = this.foreCoverImage;
-          back.style.backgroundImage = 'url(' + url + ')';
-          back.classList.add('visible');
-          fore.classList.remove('visible');
-        }
-      }.bind(this));
-    }.bind(this));
+        var back = this.backCoverImage, fore = this.foreCoverImage;
+        back.style.backgroundImage = 'url(' + url + ')';
+        back.classList.add('visible');
+        fore.classList.remove('visible');
+      }
+    });
   },
 
   setOptions: function pv_setOptions(settings) {
@@ -436,14 +436,13 @@ var PlayerView = {
     // picture. If .picture is null, something went wrong and listeners should
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
-      LazyLoader.load('js/metadata/album_art_cache.js', function() {
-        AlbumArtCache.getThumbnailBlob(fileinfo).then(function(blob) {
-          notifyMetadata.picture = blob;
-          MusicComms.notifyMetadataChanged(notifyMetadata);
-        });
+      LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+        return AlbumArtCache.getThumbnailBlob(fileinfo);
+      }).then((blob) => {
+        notifyMetadata.picture = blob;
+        MusicComms.notifyMetadataChanged(notifyMetadata);
       });
-    }
-    else {
+    } else {
       MusicComms.notifyMetadataChanged(notifyMetadata);
     }
   },
@@ -812,120 +811,119 @@ var PlayerView = {
   },
 
   share: function pv_shareFile() {
-    // We try to fix Bug 814323 by using
-    // current workaround of bluetooth transfer
-    // so we will pass both filenames and filepaths
-    // The filepaths can be removed after Bug 811615 is fixed
+    // We try to fix Bug 814323 by using current workaround of bluetooth
+    // transfer so we will pass both filenames and filepaths. The filepaths can
+    // be removed after Bug 811615 is fixed.
     var songData = this.dataSource[this.currentIndex];
 
     if (songData.metadata.locked) {
       return;
     }
 
-    LazyLoader.load('js/metadata/album_art_cache.js', function() {
-      Promise.all([
+    LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+      return Promise.all([
         Database.getFile(songData.name),
         AlbumArtCache.getThumbnailBlob(songData)
-      ]).then(function([file, pictureBlob]) {
-        var filename = songData.name,
-        name = filename.substring(filename.lastIndexOf('/') + 1);
+      ]);
+    }).then(function([file, pictureBlob]) {
+      var filename = songData.name,
+      name = filename.substring(filename.lastIndexOf('/') + 1);
 
-        var activityData = {
-          type: 'audio/*',
-          number: 1,
-          blobs: [file],
-          filenames: [name],
-          filepaths: [filename],
-          // We only pass some metadata attributes so we don't share personal
-          // details like # of times played and ratings
-          metadata: [{
-            title: songData.metadata.title,
-            artist: songData.metadata.artist,
-            album: songData.metadata.album,
-            picture: pictureBlob
-          }]
+      var activityData = {
+        type: 'audio/*',
+        number: 1,
+        blobs: [file],
+        filenames: [name],
+        filepaths: [filename],
+        // We only pass some metadata attributes so we don't share personal
+        // details like # of times played and ratings
+        metadata: [{
+          title: songData.metadata.title,
+          artist: songData.metadata.artist,
+          album: songData.metadata.album,
+          picture: pictureBlob
+        }]
+      };
+
+      if (PlayerView.playStatus !== PLAYSTATUS_PLAYING) {
+        var a = new MozActivity({
+          name: 'share',
+          data: activityData
+        });
+
+        a.onerror = function(e) {
+          console.warn('share activity error:', a.error.name);
         };
+      }
+      else {
+        // HACK HACK HACK
+        //
+        // Bug 956811: If we are currently playing music and share the
+        // music with an inline activity handler (like the set
+        // ringtone app) that wants to play music itself, we have a
+        // problem because we have two foreground apps playing music
+        // and neither one takes priority over the other. This is an
+        // underlying bug in the way that inline activities are
+        // handled and in our "audio competing policy". See bug
+        // 892371.
+        //
+        // To work around this problem, if the music app is currently
+        // playing anything, then before we launch the activity we start
+        // listening for changes on a property in the settings database.
+        // If the setting changes, we pause our playback and don't resume
+        // until the activity returns. Then we pass the name of this magic
+        // setting as a secret undocumented property of the activity so that
+        // the ringtones app can use it.
+        //
+        // This done as much as possible in a self-invoking function to make
+        // it easier to remove the hack when we have a real bug fix.
+        //
+        // See also the corresponding code in apps/ringtones/js/share.js
+        //
+        // HACK HACK HACK
+        (function() {
+          // This are the magic names we'll use for this hack
+          var hack_activity_property = '_hack_hack_shut_up';
+          var hack_setting_property = 'music._hack.pause_please';
 
-        if (PlayerView.playStatus !== PLAYSTATUS_PLAYING) {
+          // Listen for changes to the magic setting
+          navigator.mozSettings.addObserver(hack_setting_property,
+                                            observer);
+
+          // Pass the magic setting name as part of the activity request
+          activityData[hack_activity_property] = hack_setting_property;
+
+          // Now initiate the activity. This code is the same as the
+          // normal non-hack code in the if clause above.
           var a = new MozActivity({
             name: 'share',
             data: activityData
           });
 
-          a.onerror = function(e) {
-            console.warn('share activity error:', a.error.name);
-          };
-        }
-        else {
-          // HACK HACK HACK
-          //
-          // Bug 956811: If we are currently playing music and share the
-          // music with an inline activity handler (like the set
-          // ringtone app) that wants to play music itself, we have a
-          // problem because we have two foreground apps playing music
-          // and neither one takes priority over the other. This is an
-          // underlying bug in the way that inline activities are
-          // handled and in our "audio competing policy". See bug
-          // 892371.
-          //
-          // To work around this problem, if the music app is currently
-          // playing anything, then before we launch the activity we start
-          // listening for changes on a property in the settings database.
-          // If the setting changes, we pause our playback and don't resume
-          // until the activity returns. Then we pass the name of this magic
-          // setting as a secret undocumented property of the activity so that
-          // the ringtones app can use it.
-          //
-          // This done as much as possible in a self-invoking function to make
-          // it easier to remove the hack when we have a real bug fix.
-          //
-          // See also the corresponding code in apps/ringtones/js/share.js
-          //
-          // HACK HACK HACK
-          (function() {
-            // This are the magic names we'll use for this hack
-            var hack_activity_property = '_hack_hack_shut_up';
-            var hack_setting_property = 'music._hack.pause_please';
+          a.onerror = a.onsuccess = cleanup;
 
-            // Listen for changes to the magic setting
-            navigator.mozSettings.addObserver(hack_setting_property,
-                                              observer);
+          // This is the function that pauses the music if the activity
+          // handler sets the magic settings property.
+          function observer(e) {
+            // If the value of the setting has changed, then we pause the
+            // music. Note that we don't care what the new value of the
+            // setting is.  We only care whether it has changed. The
+            // ringtones app will just toggle it back and forth between
+            // true and false.
+            PlayerView.pause();
+          }
 
-            // Pass the magic setting name as part of the activity request
-            activityData[hack_activity_property] = hack_setting_property;
-
-            // Now initiate the activity. This code is the same as the
-            // normal non-hack code in the if clause above.
-            var a = new MozActivity({
-              name: 'share',
-              data: activityData
-            });
-
-            a.onerror = a.onsuccess = cleanup;
-
-            // This is the function that pauses the music if the activity
-            // handler sets the magic settings property.
-            function observer(e) {
-              // If the value of the setting has changed, then we pause the
-              // music. Note that we don't care what the new value of the
-              // setting is.  We only care whether it has changed. The
-              // ringtones app will just toggle it back and forth between
-              // true and false.
-              PlayerView.pause();
+          // When the activity is done, we stop observing the setting.
+          // And if we have been paused, then we resume playing.
+          function cleanup() {
+            navigator.mozSettings.removeObserver(hack_setting_property,
+                                                 observer);
+            if (PlayerView.playStatus === PLAYSTATUS_PAUSED) {
+              PlayerView.play();
             }
-
-            // When the activity is done, we stop observing the setting.
-            // And if we have been paused, then we resume playing.
-            function cleanup() {
-              navigator.mozSettings.removeObserver(hack_setting_property,
-                                                   observer);
-              if (PlayerView.playStatus === PLAYSTATUS_PAUSED) {
-                PlayerView.play();
-              }
-            }
-          }());
-        }
-      });
+          }
+        }());
+      }
     });
   },
 

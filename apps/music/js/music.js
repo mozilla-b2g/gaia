@@ -192,7 +192,7 @@ var App = (function() {
       'js/communications.js',
     ];
 
-    LazyLoader.load(files, function() {
+    LazyLoader.load(files).then(() => {
       MusicComms.init();
     });
   }

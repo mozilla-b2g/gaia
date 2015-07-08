@@ -58,10 +58,10 @@ var SubListView = {
       fileinfo = this.dataSource[0];
     }
 
-    LazyLoader.load('js/metadata/album_art_cache.js', () => {
-      AlbumArtCache.getThumbnailURL(fileinfo).then((url) => {
-        showImage(this.albumImage, url);
-      });
+    LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
+      return AlbumArtCache.getThumbnailURL(fileinfo);
+    }).then((url) => {
+      showImage(this.albumImage, url);
     });
   },
 

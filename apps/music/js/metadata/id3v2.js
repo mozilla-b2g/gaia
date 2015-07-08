@@ -36,8 +36,8 @@ var ID3v2Metadata = (function() {
       console.warn('mp3 file with unknown metadata version');
       return Promise.resolve({});
     }
-    return new Promise(function(resolve, reject) {
-      blobview.getMore(blobview.index, header.length, function(moreview, err) {
+    return new Promise((resolve, reject) => {
+      blobview.getMore(blobview.index, header.length, (moreview, err) => {
         if (err) {
           reject(err);
           return;
@@ -46,7 +46,7 @@ var ID3v2Metadata = (function() {
           resolve(parseFrames(header, moreview));
         } catch(e) {
           console.warn('Invalid ID3v2 data for', blobview.blob.name, ':', e);
-          LazyLoader.load('js/metadata/id3v1.js', function() {
+          LazyLoader.load('js/metadata/id3v1.js').then(() => {
             resolve(ID3v1Metadata.parse(blobview));
           });
         }
