@@ -703,7 +703,6 @@ var InboxView = {
     var draft = thread.getDraft();
 
     if (!isDraft && draft) {
-      timestamp = Math.max(draft.timestamp, timestamp);
       // If the draft is newer than the message, update
       // the body with the draft content's first string.
       if (draft.timestamp >= record.timestamp) {
@@ -861,12 +860,7 @@ var InboxView = {
     }
 
     var timestamp = +thread.timestamp;
-    var draft = Drafts.byThreadId(thread.id);
     var firstThreadInContainer = false;
-
-    if (draft) {
-      timestamp = Math.max(draft.timestamp, timestamp);
-    }
 
     // We create the DOM element of the thread
     var node = this.createThread(thread);

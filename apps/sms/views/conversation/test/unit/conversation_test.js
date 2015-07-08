@@ -5547,16 +5547,6 @@ suite('conversation.js >', function() {
           Drafts.add, sinon.match({ threadId: 1, content: ['foobazfoo'] })
         );
       });
-
-      test('Update thread timestamp', function() {
-        this.sinon.stub(window, 'Draft').returns({
-          timestamp: 2
-        });
-
-        ConversationView.saveDraft();
-
-        assert.equal(Threads.active.timestamp, 2);
-      });
     });
   });
 
