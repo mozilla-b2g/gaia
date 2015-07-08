@@ -37,6 +37,9 @@
     "de": [
         {"layoutId": "de", "app": ["apps", "keyboard"]}
     ],
+    "dsb": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "ee": [
         {"layoutId": "en-Africa", "app": ["apps", "keyboard"]}
     ],
@@ -101,6 +104,9 @@
     ],
     "hr": [
         {"layoutId": "hr", "app": ["apps", "keyboard"]}
+    ],
+    "hsb": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ht": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
