@@ -1,30 +1,36 @@
-#desktop-notifications-container {
+#notifications-container {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: calc(2rem + 6rem + 4.5rem);
+  top: 5.4rem;
+  width: 100%;
+  /* minus cost control, quick settings, bar and grippy + status bar */
+  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem - 2.4rem);
 
-  overflow-x: hidden;
   overflow-y: scroll;
+  overflow-x: hidden;
 
   pointer-events: none;
   z-index: -1;
 }
 
-#desktop-notifications-container.above {
+#notifications-container.above {
   pointer-events: auto;
+  z-index: auto;
 }
 
-#desktop-notifications-placeholder {
-  height: 100%;
+#notifications-placeholder {
   width: 100%;
-  background: -moz-element(#desktop-notifications-container) no-repeat;
+  /* minus cost control, quick settings, bar and grippy */
+  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem);
+  overflow: hidden; /* we never want this to scroll */
+
+  background: -moz-element(#notifications-container) no-repeat;
 }
 
-#desktop-notifications-placeholder.below {
+#notifications-placeholder.below {
   visibility: hidden;
   pointer-events: none;
+
+  background: none;
 }
 
 #notification-toaster {
@@ -127,15 +133,6 @@
 /* remove ugly dotted outline when focus */
 #notification-bar button::-moz-focus-inner {
   border: 0;
-}
-
-#notifications-container {
-  width: 100%;
-
-  /* minus cost control, quick settings, bar and grippy */
-  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem);
-  overflow-y: scroll;
-  overflow-x: hidden;
 }
 
 .notification {

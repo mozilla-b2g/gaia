@@ -18,10 +18,10 @@ var UtilityTray = {
 
   screen: document.getElementById('screen'),
 
-  notifications:
-    document.getElementById('desktop-notifications-container'),
+  notificationsContainer:
+    document.getElementById('notifications-container'),
   notificationsPlaceholder:
-    document.getElementById('desktop-notifications-placeholder'),
+    document.getElementById('notifications-placeholder'),
 
   init: function ut_init() {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
@@ -209,17 +209,12 @@ var UtilityTray = {
   },
 
   _showNotificationsContainer: function ut_showNotificationsContainer() {
-    this.notifications.classList.add('above');
+    this.notificationsContainer.classList.add('above');
     this.notificationsPlaceholder.classList.add('below');
-
-    if (this.notifications && this.notificationsPlaceholder) {
-      var rect = this.notificationsPlaceholder.getBoundingClientRect();
-      this.notifications.style.top = rect.top + 'px';
-    }
   },
 
   _hideNotificationsContainer: function ut_hideNotificationsContainer() {
-    this.notifications.classList.remove('above');
+    this.notificationsContainer.classList.remove('above');
     this.notificationsPlaceholder.classList.remove('below');
   },
 

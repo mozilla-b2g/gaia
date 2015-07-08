@@ -66,8 +66,8 @@ suite('system/UtilityTray', function() {
     var screen = document.createElement('div');
     screen.style.cssText = 'height: 100px; display: block;';
 
-    var notifications = document.createElement('div');
-    notifications.style.cssText = 'height: 100px; display: block;';
+    var notificationsContainer = document.createElement('div');
+    notificationsContainer.style.cssText = 'height: 100px; display: block;';
 
     var notificationsPlaceholder = document.createElement('div');
     notificationsPlaceholder.style.cssText = 'height: 100px; display: block;';
@@ -84,9 +84,9 @@ suite('system/UtilityTray', function() {
           return overlay;
         case 'screen':
           return screen;
-        case 'desktop-notifications-container':
-          return notifications;
-        case 'desktop-notifications-placeholder':
+        case 'notifications-container':
+          return notificationsContainer;
+        case 'notifications-placeholder':
           return notificationsPlaceholder;
         default:
           return null;
@@ -118,11 +118,10 @@ suite('system/UtilityTray', function() {
     });
 
     test('the real notification container is on top', function() {
-      assert.isTrue(UtilityTray.notifications.classList.contains('above'));
+      var container = UtilityTray.notificationsContainer;
+      assert.isTrue(container.classList.contains('above'));
       var placeHolder = UtilityTray.notificationsPlaceholder;
-      var top = placeHolder.getBoundingClientRect().top;
       assert.isTrue(placeHolder.classList.contains('below'));
-      assert.equal(UtilityTray.notifications.style.top, top + 'px');
     });
   });
 
@@ -147,7 +146,8 @@ suite('system/UtilityTray', function() {
     });
 
     test('the real notification container is below', function() {
-      assert.isFalse(UtilityTray.notifications.classList.contains('above'));
+      var container = UtilityTray.notificationsContainer;
+      assert.isFalse(container.classList.contains('above'));
       var placeHolder = UtilityTray.notificationsPlaceholder;
       assert.isFalse(placeHolder.classList.contains('below'));
     });

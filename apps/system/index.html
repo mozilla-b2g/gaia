@@ -552,72 +552,7 @@
           <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
         </div>
 
-        <div id="notifications-container">
-          <!-- Update Manager -->
-          <div id="update-manager-container" class="fake-notification" role="link">
-            <div class="icon">
-            </div>
-            <div class="activity">
-            </div>
-            <div class="message">
-            </div>
-          </div>
-          <!-- Emergency callback Manager -->
-          <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
-            <div class="icon">
-            </div>
-            <div class="message" data-l10n-id="emergency-callback-mode">
-            </div>
-            <div class="timer">
-            </div>
-          </div>
-          <!-- Storage watcher notification -->
-          <div id="storage-watcher-container" class="fake-notification" role="link">
-            <div class="icon">
-            </div>
-            <div class="message">
-            </div>
-            <div class="available-space">
-            </div>
-          </div>
-          <!-- Media playback notification -->
-          <div id="media-playback-container" class="fake-notification" hidden>
-            <div class="media-playback-nowplaying">
-              <div class="icon">
-              </div>
-              <div class="albumart">
-              </div>
-              <div class="title" data-l10n-id="mediaPlaybackTitle">
-              </div>
-              <div class="artist" data-l10n-id="mediaPlaybackArtist">
-              </div>
-            </div>
-            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-              <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-              <button class="play-pause"></button>
-              <button class="next" data-l10n-id="mediaPlaybackNext"></button>
-            </div>
-          </div>
-          <!-- App Install Manager -->
-          <div id="install-manager-notification-container">
-          </div>
-          <!-- bluetooth transfer -->
-          <div id="bluetooth-transfer-status-list">
-          </div>
-          <!-- Another entry to show IME list when the keyboard is activated -->
-          <div id="keyboard-show-ime-list">
-            <div class="fake-notification" role="link">
-                <div class="message">
-                </div>
-                <div class="tip">
-                </div>
-            </div>
-          </div>
-          <!-- media recording status -->
-          <div id="media-recoding-status-list" role="list">
-          </div>
-
-          <div id="desktop-notifications-placeholder"></div>
+        <div id="notifications-placeholder">
         </div>
 
         <!-- credit module -->
@@ -640,7 +575,72 @@
         </div>
       </div>
 
-      <div id="desktop-notifications-container" data-z-index-level="part-of-utility-tray"></div>
+      <div id="notifications-container" data-z-index-level="part-of-utility-tray">
+        <!-- Update Manager -->
+        <div id="update-manager-container" class="fake-notification" role="link">
+          <div class="icon">
+          </div>
+          <div class="activity">
+          </div>
+          <div class="message">
+          </div>
+        </div>
+        <!-- Emergency callback Manager -->
+        <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
+          <div class="icon">
+          </div>
+          <div class="message" data-l10n-id="emergency-callback-mode">
+          </div>
+          <div class="timer">
+          </div>
+        </div>
+        <!-- Storage watcher notification -->
+        <div id="storage-watcher-container" class="fake-notification" role="link">
+          <div class="icon">
+          </div>
+          <div class="message">
+          </div>
+          <div class="available-space">
+          </div>
+        </div>
+        <!-- Media playback notification -->
+        <div id="media-playback-container" class="fake-notification" hidden>
+          <div class="media-playback-nowplaying">
+            <div class="icon">
+            </div>
+            <div class="albumart">
+            </div>
+            <div class="title" data-l10n-id="mediaPlaybackTitle">
+            </div>
+            <div class="artist" data-l10n-id="mediaPlaybackArtist">
+            </div>
+          </div>
+          <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+            <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
+            <button class="play-pause"></button>
+            <button class="next" data-l10n-id="mediaPlaybackNext"></button>
+          </div>
+        </div>
+        <!-- App Install Manager -->
+        <div id="install-manager-notification-container">
+        </div>
+        <!-- bluetooth transfer -->
+        <div id="bluetooth-transfer-status-list">
+        </div>
+        <!-- Another entry to show IME list when the keyboard is activated -->
+        <div id="keyboard-show-ime-list">
+          <div class="fake-notification" role="link">
+              <div class="message">
+              </div>
+              <div class="tip">
+              </div>
+          </div>
+        </div>
+        <!-- media recording status -->
+        <div id="media-recoding-status-list" role="list">
+        </div>
+        <div id="desktop-notifications-container"></div>
+      </div>
 
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
