@@ -8,7 +8,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
 
   var client = marionette.client();
 
-  var home, rocketbar, search, server, system;
+  var home, rocketbar, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -24,7 +24,6 @@ marionette('Private Browser - Basic Sanity Test', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
   });
@@ -42,8 +41,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    search.triggerFirstRun(rocketbar);
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
     system.gotoBrowser(url);
     client.executeScript(function(STORAGE_KEY) {
       window.wrappedJSObject.localStorage.setItem(STORAGE_KEY, 'bar');
@@ -55,7 +53,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
     system.goHome();
     rocketbar.homescreenFocus();
     var url2 = server.url('darkpage.html');
-    rocketbar.enterText(url2 + '\uE006');
+    rocketbar.enterText(url2, true);
     system.gotoBrowser(url2);
     assert.equal(getStorageValue(), 'bar');
 
@@ -68,7 +66,7 @@ marionette('Private Browser - Basic Sanity Test', function() {
 
     client.switchToFrame();
     system.appUrlbar.tap();
-    rocketbar.enterText(url2 + '\uE006');
+    rocketbar.enterText(url2, true);
     system.gotoBrowser(url2);
     assert.equal(getStorageValue(), null);
   });

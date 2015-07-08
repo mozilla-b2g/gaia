@@ -72,8 +72,8 @@ marionette('Search - Notice Test', function() {
 
     // Notice should be dismissed if we press enter
     client.switchToFrame();
-    var searchText = 'abc\uE006';
-    rocketbar.enterText(searchText);
+    var searchText = 'abc';
+    rocketbar.enterText(searchText, true);
     rocketbar.switchToSearchFrame(server.url('sample.html'), searchText);
     client.switchToFrame();
     home.pressHomeButton();

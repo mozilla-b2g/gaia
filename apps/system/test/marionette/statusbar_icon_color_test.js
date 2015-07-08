@@ -89,7 +89,7 @@ marionette('Statusbar colors', function() {
     helper.unlockScreen(client);
     rocketbar.homescreenFocus();
     var url = server.url('sample.html');
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Ensure that the page is loaded.
     system.gotoBrowser(url);

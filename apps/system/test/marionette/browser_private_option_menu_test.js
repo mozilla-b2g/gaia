@@ -14,7 +14,7 @@ marionette('Private Browser - option menu', function() {
     }
   });
 
-  var home, rocketbar, search, server, system;
+  var home, rocketbar, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -30,7 +30,6 @@ marionette('Private Browser - option menu', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForStartup();
   });
@@ -39,9 +38,7 @@ marionette('Private Browser - option menu', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    search.triggerFirstRun(rocketbar);
-    rocketbar.enterText(url + '\uE006');
-    system.gotoBrowser(url);
+    rocketbar.enterText(url, true);
 
     client.switchToFrame();
     system.appChromeContextLink.tap();

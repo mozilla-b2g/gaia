@@ -43,7 +43,7 @@ marionette('Software Home Button - File Open Error', function() {
 
     // Navigate to the url.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
     system.gotoBrowser(url);
 
     // Save the file.

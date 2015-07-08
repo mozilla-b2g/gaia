@@ -35,7 +35,7 @@ marionette('Browser - Launch the same origin after navigating away',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Switch to the app, and navigate to a different url.
     var frame = client.helper.waitForElement(
@@ -63,7 +63,7 @@ marionette('Browser - Launch the same origin after navigating away',
     // rest condition, the alert might be show up quciker than new page
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Switch to the app, and navigate to a different url.
     system.gotoBrowser(url);

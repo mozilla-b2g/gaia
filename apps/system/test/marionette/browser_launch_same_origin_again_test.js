@@ -40,7 +40,7 @@ marionette('Browser - Launch the same origin after navigating away',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url1 + '\uE006');
+    rocketbar.enterText(url1, true);
 
     // Switch to the app, and navigate to a different url.
     var frame = client.helper.waitForElement(
@@ -59,7 +59,7 @@ marionette('Browser - Launch the same origin after navigating away',
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
     });
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url1 + '\uE006');
+    rocketbar.enterText(url1, true);
 
     // Validate that a new sheet opens.
     browsingFrames = client.findElements('iframe[src*="http://localhost"]');

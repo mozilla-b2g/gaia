@@ -42,7 +42,7 @@ marionette('Browser - Site loading background', function() {
 
     // Use the home-screen search box to open up the system browser
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     var frame = client.helper.waitForElement(
       'div[transition-state="opened"] iframe[src="' + url + '"]');

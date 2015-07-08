@@ -70,7 +70,7 @@ Bookmark.prototype = {
    */
   openAndSave: function(url) {
     this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url + '\uE006');
+    this.rocketbar.enterText(url, true);
 
     this.system.appChromeContextLink.click();
     this.system.appChromeContextMenuBookmark.click();
@@ -84,7 +84,7 @@ Bookmark.prototype = {
    */
   openAndInstall: function(url, name, iconURL) {
     this.rocketbar.homescreenFocus();
-    this.rocketbar.enterText(url + '\uE006');
+    this.rocketbar.enterText(url, true);
 
     this.system.appChromeContextLink.click();
     this.system.appChromeContextMenuBookmark.click();
@@ -104,7 +104,7 @@ Bookmark.prototype = {
   renameAndPressEnter: function(newName) {
     this.client.switchToFrame(this.currentTabFrame);
     this.bookmarkTitle.clear();
-    this.bookmarkTitle.sendKeys(newName + '\uE006');
+    this.bookmarkTitle.sendKeys(newName);
     this.addButton.click();
 
     this.client.switchToFrame();

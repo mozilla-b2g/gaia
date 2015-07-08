@@ -13,7 +13,7 @@ marionette('Private Browser - Window.open', function() {
     }
   });
 
-  var home, rocketbar, search, server, system;
+  var home, rocketbar, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -29,7 +29,6 @@ marionette('Private Browser - Window.open', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
   });
@@ -38,9 +37,7 @@ marionette('Private Browser - Window.open', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    search.triggerFirstRun(rocketbar);
-    rocketbar.enterText(url + '\uE006');
-    system.gotoBrowser(url);
+    rocketbar.enterText(url, true);
 
     client.switchToFrame();
     system.appChromeContextLink.tap();
@@ -51,7 +48,7 @@ marionette('Private Browser - Window.open', function() {
     system.appUrlbar.tap();
 
     var opener = server.url('windowopen.html');
-    rocketbar.enterText(opener + '\uE006');
+    rocketbar.enterText(opener, true);
     system.gotoBrowser(opener);
     client.findElement('#trigger1').click();
     client.switchToFrame();

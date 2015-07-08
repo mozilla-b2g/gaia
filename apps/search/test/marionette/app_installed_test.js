@@ -30,7 +30,6 @@ marionette('Search - Installed Apps Test', function() {
   test('app result after install/uninstall', function() {
     home.waitForLaunch();
     home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('Calendar');
     search.goToResults();
 

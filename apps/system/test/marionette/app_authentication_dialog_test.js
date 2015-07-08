@@ -41,7 +41,7 @@ marionette('App Authentication Dialog',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     var authDialog;
     client.waitFor(function() {
@@ -63,7 +63,7 @@ marionette('App Authentication Dialog',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     var authDialog;
     client.waitFor(function() {
@@ -84,7 +84,7 @@ marionette('App Authentication Dialog',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     var authDialog;
     client.waitFor(function() {
