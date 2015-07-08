@@ -315,7 +315,13 @@ System.prototype = {
   },
 
   getAppIframe: function(url) {
-    return this.client.findElement('iframe[src*="' + url + '"]');
+    var iframe = this.client.findElement('iframe[src*="' + url + '"]');
+
+    iframe.ariaDisplayed = function() {
+      return this.getAttribute('aria-hidden') !== 'true';
+    };
+
+    return iframe;
   },
 
   /**
@@ -348,6 +354,10 @@ System.prototype = {
     this.client.waitFor(function() {
       return iframe.displayed();
     });
+
+    iframe.ariaDisplayed = function() {
+      return this.getAttribute('aria-hidden') !== 'true';
+    };
 
     return iframe;
   },

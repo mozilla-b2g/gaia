@@ -451,6 +451,7 @@
   LockScreenWindowManager.prototype.onInputpadOpen =
     function lwm_onInputpadOpen() {
       this.states.instance.inputWindow.open();
+      this.states.instance.inputWindow.setVisible(true);
       this.states.instance.resize();
     };
 

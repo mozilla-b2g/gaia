@@ -157,6 +157,7 @@ suite('system/CallscreenWindow', function() {
       subject = new CallscreenWindow();
       subject.browser.element = {
         src: 'app://callscreen.gaiamobile.org/index.html#stuff',
+        setAttribute: function() {},
         classList: {
           contains: function() { return true; }
         }

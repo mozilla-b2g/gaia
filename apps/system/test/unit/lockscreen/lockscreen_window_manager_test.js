@@ -383,7 +383,22 @@ suite('system/LockScreenWindowManager', function() {
       subject.unregisterApp(appFake);
     });
 
-    test('onInputpadOpen would open the window and call resize', function() {
+    test('onInputpadOpen would open the window, setVisible and call resize',
+    function() {
+      subject.states.instance = appFake;
+      appFake.inputWindow = {
+        open: this.sinon.stub(),
+        close: this.sinon.stub(),
+        setVisible: this.sinon.stub()
+      };
+      var stubResize = this.sinon.stub(appFake, 'resize');
+      subject.onInputpadOpen();
+      assert.isTrue(appFake.inputWindow.open.called, 'called |open|');
+      assert.isTrue(stubResize.called, 'called no |resize|');
+      assert.isTrue(appFake.inputWindow.setVisible.calledWith(true));
+    });
+
+    test('onInputpadClose would close the window and call resize', function() {
       subject.states.instance = appFake;
       appFake.inputWindow = {
         open: this.sinon.stub(),
@@ -391,7 +406,7 @@ suite('system/LockScreenWindowManager', function() {
       };
       var stubResize = this.sinon.stub(appFake, 'resize');
       subject.onInputpadClose();
-      assert.isTrue(appFake.inputWindow.close.called, 'called no |open|');
+      assert.isTrue(appFake.inputWindow.close.called, 'called |close|');
       assert.isTrue(stubResize.called, 'called no |resize|');
     });
 
