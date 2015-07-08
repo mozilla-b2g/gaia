@@ -1,10 +1,11 @@
-/* global PlayerView, loadBodyHTML, MockL10n, MocksHelper,
-   PLAYSTATUS_PLAYING, PLAYSTATUS_PAUSED, INTERRUPT_BEGIN,
-   KeyboardEvent, KeyEvent */
+/* global INTERRUPT_BEGIN, KeyboardEvent, KeyEvent, loadBodyHTML, MockL10n,
+          MocksHelper, PlaybackQueue, PlayerView, PLAYSTATUS_PAUSED,
+          PLAYSTATUS_PLAYING */
 
 'use strict';
 
 require('/js/ui/views/player_view.js');
+require('/js/queue.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/load_body_html_helper.js');
@@ -39,7 +40,7 @@ suite('Player View Test', function() {
     });
   }
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     navigator.mozL10n = MockL10n;
     //Insert the star-rating bar into the dom
     loadBodyHTML('/index.html');
@@ -49,8 +50,11 @@ suite('Player View Test', function() {
 
     //Override #setSeekBar with stub to avoid excess work in init()
     sinon.stub(pv, 'setSeekBar');
-    pv.init();
-    ratings = pv.ratings;
+    PlaybackQueue.loadSettings().then(() => {
+      pv.init();
+      ratings = pv.ratings;
+      done();
+    });
   });
 
   suiteTeardown(function() {

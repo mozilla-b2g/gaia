@@ -1,20 +1,12 @@
 /* exported PlayerView */
-/* global AlbumArtCache, App, asyncStorage, AudioMetadata, Database, formatTime,
-          ForwardLock, LazyLoader, ListView, MusicComms, ModeManager,
-          MODE_PLAYER, MozActivity, SETTINGS_OPTION_KEY */
+/* global AlbumArtCache, Database, formatTime, LazyLoader, MusicComms,
+          ModeManager, MODE_PLAYER, MozActivity, PlaybackQueue */
 'use strict';
 
-// We have four types of the playing sources
+// We have two types of the playing sources
 // These are for player to know which source type is playing
-var TYPE_MIX = 'mix';
 var TYPE_LIST = 'list';
 var TYPE_SINGLE = 'single';
-var TYPE_BLOB = 'blob';
-
-// Repeat option for player
-var REPEAT_OFF = 0;
-var REPEAT_LIST = 1;
-var REPEAT_SONG = 2;
 
 // AVRCP spec defined the statuses in capitalized and to be simple,
 // our player just use them instead of defining new constant strings.
@@ -29,6 +21,8 @@ var INTERRUPT_BEGIN = 'mozinterruptbegin';
 
 // View of Player
 var PlayerView = {
+  _repeatModes: ['off', 'list', 'song'],
+
   get view() {
     return document.getElementById('views-player');
   },
@@ -53,28 +47,11 @@ var PlayerView = {
     this._playStatus = val;
   },
 
-  get dataSource() {
-    return this._dataSource;
+  get isQueued() {
+    return Boolean(this.queue && this.queue.length);
   },
 
-  set dataSource(source) {
-    this._dataSource = source;
-
-    if (this.sourceType) {
-      if (this.sourceType === TYPE_MIX || this.sourceType === TYPE_LIST) {
-        // Shuffle button will be disabled if an album only contains one song
-        this.shuffleButton.disabled = (this._dataSource.length < 2);
-      } else {
-        // These buttons aren't necessary when playing a blob or a single track
-        this.shuffleButton.disabled = true;
-        this.repeatButton.disabled = true;
-        this.previousControl.disabled = true;
-        this.nextControl.disabled = true;
-      }
-    }
-  },
-
-  init: function pv_init() {
+  init: function pv_init(type = TYPE_LIST) {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
     this.artistText = document.querySelector('#player-cover-artist bdi');
@@ -108,9 +85,8 @@ var PlayerView = {
     this.playStatus = PLAYSTATUS_STOPPED;
     this.pausedPosition = null;
     this.handle = null;
-    this.dataSource = [];
+    this.currentFileInfo = null;
     this.playingBlob = null;
-    this.currentIndex = 0;
     this.setSeekBar(0, 0); // Set 0 to default seek position
     this.intervalID = null;
 
@@ -149,6 +125,14 @@ var PlayerView = {
 
     // Listen to language changes to update the language direction accordingly
     navigator.mozL10n.ready(this.updateL10n.bind(this));
+
+    this.type = type;
+    if (this.type === TYPE_SINGLE) {
+      this.shuffleButton.disabled = true;
+      this.repeatButton.disabled = true;
+      this.previousControl.disabled = true;
+      this.nextControl.disabled = true;
+    }
   },
 
   // When SCO is connected, music is unable to play sounds even it's in the
@@ -173,20 +157,17 @@ var PlayerView = {
       Database.cancelEnumeration(this.handle);
     }
 
-    this.dataSource = [];
+    this.queue = null;
     this.playingBlob = null;
     this.coverImageURL = null;
     this.foreCoverImage.style.backgroundImage = '';
   },
 
-  setSourceType: function pv_setSourceType(type) {
-    this.sourceType = type;
-  },
-
-  // We only use the DBInfo for playing all songs.
-  setDBInfo: function pv_setDBInfo(info) {
-    this.DBInfo = info;
-    this.dataSource.length = info.count;
+  activate: function pv_activate(queue) {
+    this.queue = queue;
+    this.shuffleButton.disabled = (this.queue.length < 2);
+    this.setRepeat(PlaybackQueue.repeat);
+    this.setShuffle(PlaybackQueue.shuffle);
   },
 
   // This function is for the animation on the album art (cover).
@@ -211,6 +192,7 @@ var PlayerView = {
   },
 
   setInfo: function pv_setInfo(fileinfo) {
+    this.currentFileInfo = fileinfo;
     var metadata = fileinfo.metadata;
 
     // Handle the title bar and the share button when the player is not launched
@@ -221,7 +203,7 @@ var PlayerView = {
 
       // If it is a locked music file, or if we are handling a Pick activity
       // then we should not give the user the option of sharing the file.
-      if (metadata.locked || App.pendingPick) {
+      if (metadata.locked || this.type === TYPE_SINGLE) {
         this.shareButton.classList.add('hidden');
         this.artist.classList.add('hidden-cover-share');
         this.album.classList.add('hidden-cover-share');
@@ -265,47 +247,20 @@ var PlayerView = {
     });
   },
 
-  setOptions: function pv_setOptions(settings) {
-    var repeatOption = (settings && settings.repeat) ?
-      settings.repeat : REPEAT_OFF;
-    var shuffleOption = (settings && settings.shuffle) ?
-      settings.shuffle : false;
-
-    this.setRepeat(repeatOption);
-    this.setShuffle(shuffleOption);
+  getRepeat: function pv_getRepeat() {
+    this._repeatModes.indexOf(this.repeatButton.value);
   },
 
   setRepeat: function pv_setRepeat(value) {
-    var repeatModes = ['repeat-off', 'repeat-list', 'repeat-song'];
-
-    // Remove all repeat classes before applying a new one
-    repeatModes.forEach(function pv_resetRepeat(targetClass) {
-      this.repeatButton.classList.remove(targetClass);
-    }.bind(this));
-
-    this.repeatOption = value;
-    this.repeatButton.classList.add(repeatModes[this.repeatOption]);
+    this.repeatButton.value = this._repeatModes[value];
     this.repeatButton.setAttribute(
-      'data-l10n-id', repeatModes[this.repeatOption]);
+      'data-l10n-id', 'repeat-' + this._repeatModes[value]
+    );
   },
 
-  setShuffle: function pv_setShuffle(value, index) {
-    this.shuffleOption = value;
-
-    if (this.shuffleOption) {
-      this.shuffleButton.classList.add('shuffle-on');
-      // if index exists, that means player is playing a list,
-      // so shuffle that list with the index
-      // or just create one with a random number
-      if (arguments.length > 1) {
-        this.shuffleList(this.currentIndex);
-      } else {
-        this.shuffleList();
-      }
-    } else {
-      this.shuffleButton.classList.remove('shuffle-on');
-    }
-    this.shuffleButton.setAttribute('aria-pressed', this.shuffleOption);
+  setShuffle: function pv_setShuffle(value) {
+    this.shuffleButton.classList.toggle('shuffle-on', value);
+    this.shuffleButton.setAttribute('aria-pressed', value);
   },
 
   setRatings: function pv_setRatings(rated) {
@@ -325,62 +280,6 @@ var PlayerView = {
       }
     }
   },
-
-  shuffleList: function slv_shuffleList(index) {
-    if (this.dataSource.length === 0) {
-      return;
-    }
-
-    this.shuffleIndex = 0;
-    this.shuffledList = [];
-
-    for (var i = 0; i < this.dataSource.length; i++) {
-      this.shuffledList.push(i);
-    }
-
-    // If with an index, that means the index is the currectIndex
-    // so it doesn't need to be shuffled
-    // It will be placed to the first element of shuffled list
-    // then we append the rest shuffled indexes to it
-    // to become a new shuffled list
-    if (arguments.length > 0) {
-      var currentItem = this.shuffledList.splice(index, 1);
-
-      slv_shuffle(this.shuffledList);
-      this.shuffledList = currentItem.concat(this.shuffledList);
-    } else {
-      slv_shuffle(this.shuffledList);
-    }
-
-    // shuffle the elements of array a in place
-    // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-    function slv_shuffle(a) {
-      for (var i = a.length - 1; i >= 1; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        if (j < i) {
-          var tmp = a[j];
-          a[j] = a[i];
-          a[i] = tmp;
-        }
-      }
-    }
-  },
-
-  getMetadata: function pv_getMetadata(blob, callback) {
-    AudioMetadata.parse(blob).then(pv_gotMetadata, pv_metadataError.bind(this));
-
-    function pv_gotMetadata(metadata) {
-      callback(metadata);
-    }
-    function pv_metadataError(e) {
-      console.warn('parseAudioMetadata: error parsing metadata - ', e);
-      /* jshint validthis:true */
-      if (this.onerror) {
-        this.onerror(e);
-      }
-    }
-  },
-
   setAudioSrc: function pv_setAudioSrc(file) {
     var url = URL.createObjectURL(file);
     this.playingBlob = file;
@@ -409,25 +308,23 @@ var PlayerView = {
   },
 
   updateRemoteMetadata: function pv_updateRemoteMetadata() {
-    // If MusicComms does not exist or data source is empty, we don't have to
-    // update the metadata.
-    if (typeof MusicComms === 'undefined' || this.dataSource.length === 0) {
+    // If MusicComms does not exist or queue is empty, we don't have to update
+    // the metadata.
+    if (typeof MusicComms === 'undefined' || this.queue.length === 0) {
       return;
     }
 
-    // Update the playing information to AVRCP devices
-    var fileinfo = this.dataSource[this.currentIndex];
-    var metadata = fileinfo.metadata;
-
-    // AVRCP expects the duration in ms, note that it's converted from s to ms.
+    // Update the playing information to AVRCP devices.
+    var metadata = this.currentFileInfo.metadata;
     var notifyMetadata = {
       title: metadata.title || navigator.mozL10n.get('unknownTitle'),
       artist: metadata.artist || navigator.mozL10n.get('unknownArtist'),
       album: metadata.album || navigator.mozL10n.get('unknownAlbum'),
 
+      // AVRCP expects the duration in ms, so we convert from s to ms.
       duration: this.audio.duration * 1000,
-      mediaNumber: this.currentIndex + 1,
-      totalMediaCount: this.dataSource.length
+      mediaNumber: this.rawIndex + 1,
+      totalMediaCount: this.queue.length
     };
 
     // Grab the album art if this is a new song; otherwise, don't bother, since
@@ -437,7 +334,7 @@ var PlayerView = {
     // probably use a blank picture (or their own placeholder).
     if (this.audio.currentTime === 0) {
       LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
-        return AlbumArtCache.getThumbnailBlob(fileinfo);
+        return AlbumArtCache.getThumbnailBlob(this.currentFileInfo);
       }).then((blob) => {
         notifyMetadata.picture = blob;
         MusicComms.notifyMetadataChanged(notifyMetadata);
@@ -473,50 +370,6 @@ var PlayerView = {
     MusicComms.notifyStatusChanged(info);
   },
 
-  // The song data might return from the existed dataSource
-  // or we will retrieve it directly from the MediaDB.
-  getSongData: function pv_getSongData(index, callback) {
-    var info = this.DBInfo;
-    var songData = this.dataSource[index];
-
-    if (songData) {
-      callback(songData);
-    } else {
-      // Cancel the ongoing enumeration so that it will not
-      // slow down the next enumeration if we start a new one.
-      ListView.cancelEnumeration();
-
-      var handle =
-        Database.advancedEnumerate(
-          info.key, info.range, info.direction, index, function(record) {
-            Database.cancelEnumeration(handle);
-            this.dataSource[index] = record;
-            callback(record);
-          }.bind(this)
-        );
-    }
-  },
-
-  /*
-   * Get a blob for the specified song, decrypting it if necessary, and return
-   * it in a Promise.
-   */
-  getFile: function pv_getFile(songData) {
-    return Database.getFile(songData.name).then(function(blob) {
-      if (!songData.metadata.locked) {
-        return blob;
-      }
-
-      // If here, then this is a locked music file, so we have
-      // to decrypt it before playing it.
-      return new Promise(function(resolve, reject) {
-        ForwardLock.getKey(function(secret) {
-          ForwardLock.unlockBlob(secret, blob, resolve, null, reject);
-        });
-      });
-    });
-  },
-
   PLAYER_IS_OCCUPIED_BY: 'music-player-is-occupied-by',
 
   _handleInterpageMessage: function(evt) {
@@ -540,63 +393,57 @@ var PlayerView = {
     }
   },
 
+  /**
+   * Start playing the current song in the queue.
+   */
+  start: function pv_start() {
+    this.checkSCOStatus();
+    this._sendInterpageMessage();
+    this.showInfo();
+
+    this.queue.current().then((songData) => {
+      this.setInfo(songData);
+
+      if (songData.blob) {
+        return songData.blob;
+      }
+
+      this.setRatings(songData.metadata.rated);
+      Database.incrementPlayCount(songData);
+      return Database.getFile(songData, true);
+    }).then((file) => {
+      this.setAudioSrc(file);
+
+      // When we need to preview an audio like in picker mode,
+      // we will not autoplay the picked song unless the user taps to play
+      // And we just call pause right after play.
+      // Also we pause at beginning when SCO is enabled, the user can still
+      // select songs to the player but it won't start, they have to wait
+      // until the SCO is disconnected.
+      if (this.type === TYPE_SINGLE || MusicComms.isSCOEnabled) {
+        this.pause();
+      }
+    }).catch(function(msg) {
+      console.error(msg);
+    });
+  },
+
   play: function pv_play(targetIndex) {
     this.checkSCOStatus();
     this._sendInterpageMessage();
     this.showInfo();
 
-    if (arguments.length > 0) {
-      this.getSongData(targetIndex, function(songData) {
-        this.currentIndex = targetIndex;
-        this.setInfo(songData);
-
-        // set ratings of the current song
-        this.setRatings(songData.metadata.rated);
-
-        // update the metadata of the current song
-        Database.incrementPlayCount(songData);
-
-        this.getFile(songData).then(function(file) {
-          this.setAudioSrc(file);
-          // When we need to preview an audio like in picker mode,
-          // we will not autoplay the picked song unless the user taps to play
-          // And we just call pause right after play.
-          // Also we pause at beginning when SCO is enabled, the user can still
-          // select songs to the player but it won't start, they have to wait
-          // until the SCO is disconnected.
-          if (this.sourceType === TYPE_SINGLE || MusicComms.isSCOEnabled) {
-            this.pause();
-          }
-        }.bind(this)).catch(function(msg) {
-          console.error(msg);
-        });
-      }.bind(this));
-    } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
-      // When we have to play a blob, we need to parse the metadata
-      this.getMetadata(this.dataSource, function(metadata) {
-        // Add the blob from the dataSource to the fileinfo because we want use
-        // the cover image which embedded in that blob so that we don't have to
-        // count on the database.
-        this.setInfo({metadata: metadata,
-                      name: this.dataSource.name,
-                      blob: this.dataSource});
-
-        this.setAudioSrc(this.dataSource);
-      }.bind(this));
+    // The player must be paused, so let's resume it. However, if we're very
+    // close to the end of the song (and if the song is not really short) then
+    // just skip to the next song rather than finishing this one. (This works
+    // around Bug 1157118 where if we're within a fraction of a second of the
+    // end of a .m4a file, it takes a long time to get an ended event and move
+    // to the next song.)
+    if (this.audio.duration > 20 &&
+        this.audio.duration - this.audio.currentTime < 1) {
+      this.next(true);
     } else {
-      // If we reach here, the player is paused so resume it.
-      // But if we're very close to the end of the song (and if the song
-      // is not really short) then just skip to the next song rather than
-      // finishing this one. (This works around Bug 1157118 where if we're
-      // within a fraction of a second of the end of a .m4a file, it takes
-      // a long time to get an ended event and move to the next song.)
-      if (this.audio.duration > 20 &&
-          this.audio.duration - this.audio.currentTime < 1) {
-        this.next(true);
-      }
-      else {
-        this.audio.play();
-      }
+      this.audio.play();
     }
   },
 
@@ -630,88 +477,22 @@ var PlayerView = {
   },
 
   next: function pv_next(isAutomatic) {
-    if (this.sourceType === TYPE_BLOB || this.sourceType === TYPE_SINGLE) {
-      // When the player ends, reassign src it if the dataSource is a blob
-      this.setAudioSrc(this.playingBlob);
-      this.pause();
-      return;
-    }
-
-    // We only repeat a song automatically. (when the song is ended)
-    // If users click skip forward, player will go on to next one
-    if (this.repeatOption === REPEAT_SONG && isAutomatic) {
-      this.play(this.currentIndex);
-      return;
-    }
-
-    var playingIndex = (this.shuffleOption) ?
-      this.shuffleIndex : this.currentIndex;
-
-    // If it's a last song and repeat list is OFF, ignore it.
-    // but if repeat list is ON, player will restart from the first song
-    if (playingIndex >= this.dataSource.length - 1) {
-      if (this.repeatOption === REPEAT_LIST) {
-        if (this.shuffleOption) {
-          // After finished one round of shuffled list,
-          // re-shuffle again and start from the first song of shuffled list
-          this.shuffleList(this.shuffledList[0]);
-        } else {
-          this.currentIndex = 0;
-        }
-      } else {
-        // When reaches the end, stop and back to the previous mode
-        this.stop();
-        return;
-      }
+    if (this.queue.next(isAutomatic)) {
+      this.start();
     } else {
-      if (this.shuffleOption) {
-        this.shuffleIndex++;
-      } else {
-        this.currentIndex++;
-      }
+      this.stop();
     }
-
-    var realIndex = (this.shuffleOption) ?
-      this.shuffledList[this.shuffleIndex] : this.currentIndex;
-
-    this.play(realIndex);
   },
 
   previous: function pv_previous() {
     // If a song starts more than 3 (seconds),
     // when users click skip backward, it will restart the current song
     // otherwise just skip to the previous song
-    if (this.audio.currentTime > 3) {
-      this.play(this.currentIndex);
-      return;
+    if (this.audio.currentTime <= 3) {
+      this.queue.previous();
     }
 
-    var playingIndex = (this.shuffleOption) ?
-      this.shuffleIndex : this.currentIndex;
-
-    // If it's a first song and repeat list is ON, go to the last one
-    // or just restart from the beginning when repeat list is OFF
-    if (playingIndex <= 0) {
-      var newIndex = (this.repeatOption === REPEAT_LIST) ?
-        this.dataSource.length - 1 : 0;
-
-      if (this.shuffleOption) {
-        this.shuffleIndex = newIndex;
-      } else {
-        this.currentIndex = newIndex;
-      }
-    } else {
-      if (this.shuffleOption) {
-        this.shuffleIndex--;
-      } else {
-        this.currentIndex--;
-      }
-    }
-
-    var realIndex = (this.shuffleOption) ?
-      this.shuffledList[this.shuffleIndex] : this.currentIndex;
-
-    this.play(realIndex);
+    this.start();
   },
 
   startFastSeeking: function pv_startFastSeeking(direction) {
@@ -814,7 +595,7 @@ var PlayerView = {
     // We try to fix Bug 814323 by using current workaround of bluetooth
     // transfer so we will pass both filenames and filepaths. The filepaths can
     // be removed after Bug 811615 is fixed.
-    var songData = this.dataSource[this.currentIndex];
+    var songData = this.currentFileInfo;
 
     if (songData.metadata.locked) {
       return;
@@ -822,7 +603,7 @@ var PlayerView = {
 
     LazyLoader.load('js/metadata/album_art_cache.js').then(() => {
       return Promise.all([
-        Database.getFile(songData.name),
+        Database.getFile(songData),
         AlbumArtCache.getThumbnailBlob(songData)
       ]);
     }).then(function([file, pictureBlob]) {
@@ -951,36 +732,26 @@ var PlayerView = {
           case 'player-album-repeat':
             this.showInfo();
 
-            var newValue = ++this.repeatOption % 3;
-            // Store the option when it's triggered by users
-            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
-              repeat: newValue,
-              shuffle: this.shuffleOption
-            });
-
-            this.setRepeat(newValue);
+            var repeat = PlaybackQueue.Repeat.next(this.getRepeat());
+            PlaybackQueue.repeat = repeat;
+            this.setRepeat(repeat);
             break;
           case 'player-album-shuffle':
             this.showInfo();
 
-            // Store the option when it's triggered by users
-            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
-              repeat: this.repeatOption,
-              shuffle: !this.shuffleOption
-            });
-
-            this.setShuffle(!this.shuffleOption, this.currentIndex);
+            var shuffle = !target.classList.contains('shuffle-on');
+            PlaybackQueue.shuffle = shuffle;
+            this.setShuffle(shuffle);
             break;
           case 'player-cover-share':
             this.share();
-
             break;
         }
 
         if (target.dataset.rating) {
           this.showInfo();
 
-          var songData = this.dataSource[this.currentIndex];
+          var songData = this.currentFileInfo;
           var targetRating = parseInt(target.dataset.rating, 10);
           var newRating = (targetRating === songData.metadata.rated) ?
             targetRating - 1 : targetRating;

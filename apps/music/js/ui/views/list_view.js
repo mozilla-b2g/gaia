@@ -1,7 +1,7 @@
 /* exported ListView */
 /* global App, createListElement, Database, IDBKeyRange, ModeManager,
-          MODE_PLAYER, MODE_SUBLIST, MODE_SEARCH_FROM_LIST, PlayerView,
-          SearchView, SubListView, TabBar, TYPE_MIX, TYPE_SINGLE */
+          MODE_PLAYER, MODE_SUBLIST, MODE_SEARCH_FROM_LIST, PlaybackQueue,
+          PlayerView, SearchView, SubListView, TabBar */
 'use strict';
 
 // Assuming the ListView will prepare 5 pages for batch loading.
@@ -287,10 +287,10 @@ var ListView = {
   },
 
   playWithShuffleAll: function lv_playWithShuffleAll() {
-    ModeManager.push(MODE_PLAYER, function() {
+    ModeManager.push(MODE_PLAYER, () => {
       PlayerView.clean();
 
-      Database.count('metadata.title', null, function(count) {
+      Database.count('metadata.title', null, (count) => {
         var info = {
           key: 'metadata.title',
           range: null,
@@ -299,47 +299,26 @@ var ListView = {
           count: count
         };
 
-        PlayerView.setSourceType(TYPE_MIX);
-        // Assign an empty array with correct length to the data source
-        // so that the PlayerView knows we have a queue in playing and
-        // the play icon in the title bar can be displayed correctly.
-        PlayerView.dataSource = new Array(count);
-        PlayerView.setDBInfo(info);
-        PlayerView.setShuffle(true);
-        PlayerView.play(PlayerView.shuffledList[0]);
+        PlaybackQueue.shuffle = true;
+        PlayerView.activate(new PlaybackQueue.DynamicQueue(info));
+        PlayerView.start();
       });
     });
   },
 
   playWithIndex: function lv_playWithIndex(index) {
-    ModeManager.push(MODE_PLAYER, function() {
-      PlayerView.clean();
-
-      if (App.pendingPick) {
-        PlayerView.setSourceType(TYPE_SINGLE);
-      } else {
-        PlayerView.setSourceType(TYPE_MIX);
-      }
-
+    ModeManager.push(MODE_PLAYER, () => {
       // Because the ListView might still retrieving the records, and
       // we are assigning the dataSource to the PlayerView, since
       // setDBInfo will expand the dataSource length to the total
       // count we will be retrieved, we must cancel the enumeration
       // or the length will be expanded to a wrong number.
       this.cancelEnumeration();
-      PlayerView.dataSource = this.dataSource;
-      PlayerView.setDBInfo(this.info);
 
-      if (PlayerView.shuffleOption) {
-        // Shuffled list does not exist yet in all songs.
-        // Here we need to create a new shuffled list
-        // and start from the song which the user clicked.
-        PlayerView.shuffleList(index);
-        PlayerView.play(PlayerView.shuffledList[0]);
-      } else {
-        PlayerView.play(index);
-      }
-    }.bind(this));
+      PlayerView.clean();
+      PlayerView.activate(new PlaybackQueue.DynamicQueue(this.info, index));
+      PlayerView.start();
+    });
   },
 
   activateSubListView: function lv_activateSubListView(target) {
@@ -386,7 +365,7 @@ var ListView = {
           if (option === 'shuffleAll') {
             this.playWithShuffleAll();
           } else if (option === 'title') {
-            this.playWithIndex(target.dataset.index);
+            this.playWithIndex(parseInt(target.dataset.index, 10));
           } else if (option) {
             this.activateSubListView(target);
           }

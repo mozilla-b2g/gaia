@@ -3,7 +3,6 @@
 
 var MockApp = {
   pendingPick: null,
-  playerSettings: null,
   currentOverlay: null,
   knownSongs: [],
   // Exported functions

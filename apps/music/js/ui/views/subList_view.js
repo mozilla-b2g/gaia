@@ -1,6 +1,6 @@
 /* exported SubListView */
 /* global AlbumArtCache, createListElement, Database, LazyLoader, ModeManager,
-          MODE_PLAYER, PlayerView, showImage, TabBar, TYPE_LIST */
+          MODE_PLAYER, PlaybackQueue, PlayerView, showImage, TabBar */
 'use strict';
 
 var SubListView = {
@@ -152,47 +152,22 @@ var SubListView = {
 
     switch (evt.type) {
       case 'click':
-        if (target === this.shuffleButton) {
-          ModeManager.push(MODE_PLAYER, function() {
+        if (target === this.shuffleButton || target === this.playAllButton) {
+          ModeManager.push(MODE_PLAYER, () => {
             PlayerView.clean();
-            PlayerView.setSourceType(TYPE_LIST);
-            PlayerView.dataSource = this.dataSource;
-            PlayerView.setShuffle(true);
-            PlayerView.play(PlayerView.shuffledList[0]);
-          }.bind(this));
-          return;
-        }
-
-        if (target.dataset.index || target === this.playAllButton) {
-          ModeManager.push(MODE_PLAYER, function() {
+            PlaybackQueue.shuffle = (target === this.shuffleButton);
+            PlayerView.activate(new PlaybackQueue.StaticQueue(this.dataSource));
+            PlayerView.start();
+          });
+        } else if (target.dataset.index) {
+          ModeManager.push(MODE_PLAYER, () => {
             PlayerView.clean();
-            PlayerView.setSourceType(TYPE_LIST);
-            PlayerView.dataSource = this.dataSource;
-
-            if (target === this.playAllButton) {
-              // Clicking the play all button is the same as clicking
-              // on the first item in the list.
-              target = this.view.querySelector('li > a[data-index="0"]');
-              // we have to unshuffle here
-              // because play all button should play from the first song
-              PlayerView.setShuffle(false);
-            }
-
             var targetIndex = parseInt(target.dataset.index, 10);
-
-            if (PlayerView.shuffleOption) {
-              // Shuffled list maybe not exist yet
-              // because shuffleOption might be set by callback of asyncStorage.
-              // We are unable to create one since
-              // there is no playing dataSource when an user first launch Music.
-              // Here we need to create a new shuffled list
-              // and start from the song which a user clicked.
-              PlayerView.shuffleList(targetIndex);
-              PlayerView.play(PlayerView.shuffledList[0]);
-            } else {
-              PlayerView.play(targetIndex);
-            }
-          }.bind(this));
+            PlayerView.activate(new PlaybackQueue.StaticQueue(
+              this.dataSource, targetIndex
+            ));
+            PlayerView.start();
+          });
         }
         break;
 
