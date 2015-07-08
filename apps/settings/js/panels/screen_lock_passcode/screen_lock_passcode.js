@@ -49,6 +49,8 @@ define(function(require) {
         this.createPasscodeButton.addEventListener('click', this);
         this.changePasscodeButton.addEventListener('click', this);
 
+        this._disablePasscodeButtons(true);
+
         // If the pseudo-input loses focus, then allow the user to restore focus
         // by touching the container around the pseudo-input.
         this.passcodeContainer.addEventListener('click', function(evt) {
@@ -90,8 +92,8 @@ define(function(require) {
             if (this._passcodeBuffer === '') {
               this._hideErrorMessage();
             }
-
             var code = evt.charCode;
+
             if (code !== 0 && (code < 0x30 || code > 0x39)) {
               return;
             }
@@ -228,6 +230,16 @@ define(function(require) {
             delete this.passcodeDigits[i].dataset.dot;
           }
         }
+        if (this._passcodeBuffer.length !== 8) {
+          this._disablePasscodeButtons(true);
+        } else {
+          this._disablePasscodeButtons(false);
+        }
+      },
+
+      _disablePasscodeButtons: function sld__disablePasscodeButtons(value) {
+        this.createPasscodeButton.disabled = value;
+        this.changePasscodeButton.disabled = value;
       },
 
       _checkPasscode: function sld_checkPasscode() {
