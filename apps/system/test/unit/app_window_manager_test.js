@@ -886,6 +886,25 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(home.ensure.called);
     });
 
+    test('app to home, and appopening on the way', function() {
+      injectRunningApps(home, app1, app2);
+      subject._activeApp = app1;
+      var stubReady = this.sinon.stub(home, 'ready');
+      var stubClose = this.sinon.stub(app2, 'close');
+
+      subject.switchApp(app1, home);
+
+      subject.handleEvent({
+        type: 'appopening',
+        detail: app2
+      });
+
+      stubReady.yield();
+
+      assert.isTrue(stubClose.calledOnce);
+      assert.isTrue(stubClose.calledWith('immediate'));
+    });
+
     test('lockscreen to home', function() {
       injectRunningApps(home);
       subject._activeApp = null;
