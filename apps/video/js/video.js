@@ -349,7 +349,7 @@ function handleScreenLayoutChange() {
     if (!thumbnailList) {
       return;
     }
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitles();
   } else {
     pendingUpdateTitleText = true;
   }
@@ -373,7 +373,7 @@ function switchLayout(mode) {
   // Update title text when leaving fullscreen mode with pending task.
   if (oldMode === LAYOUT_MODE.fullscreenPlayer && pendingUpdateTitleText) {
     pendingUpdateTitleText = false;
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitles();
   }
 }
 
@@ -1344,7 +1344,7 @@ function showPickView() {
   // view.
   if (!isPhone && !isPortrait) {
     // update all title text when rotating.
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitles();
   }
 }
 

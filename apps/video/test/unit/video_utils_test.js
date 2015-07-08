@@ -143,22 +143,41 @@ suite('Video Utils Unit Tests', function() {
         configurable: true,
         enumerable: true,
         get: function videoUtilsTestClientHeightStub() {
+
+          function getPaddingInt(paddingInput) {
+            var paddingInt = parseInt(paddingInput, 10);
+            return Number.isInteger(paddingInt) ? paddingInt : 0;
+          }
+
+          //
+          // the video_utils getTruncated function uses clientHeight
+          // to determine the height of the title text. clientHeight
+          // includes padding, therfore, we have tests that set
+          // padding on the title node to test that getTruncated
+          // filters out the padding when determine the line height.
+          //
+          var padding = getPaddingInt(this.style.paddingTop) +
+                        getPaddingInt(this.style.paddingBottom);
+
           if (this.textContent.length >= 60) {
-            return 6;
+            return 6 + padding;
           }
           if (this.textContent.length >= 50) {
-            return 5;
+            return 5 + padding;
           }
           if (this.textContent.length >= 40) {
-            return 4;
+            return 4 + padding;
           }
           if (this.textContent.length >= 30) {
-            return 3;
+            return 3 + padding;
           }
           if (this.textContent.length >= 20) {
-            return 2;
+            return 2 + padding;
           }
-          return 1;
+          if (this.textContent === '.') {
+            return 1 + padding;
+          }
+          return 1 + padding;
         }
       });
     });
@@ -168,27 +187,20 @@ suite('Video Utils Unit Tests', function() {
     });
 
     setup(function() {
-      inputTitleText = '1111111111222222222233333333334444444444';
       titleNode.style.visibility = 'visible';
       titleNode.style.wordBreak = 'normal';
+      titleNode.style.paddingTop = '';
+      titleNode.style.paddingBottom = '';
     });
 
-    /*
-     * Parameters:
-     *  - name (to truncate -- or not)
-     *  - options
-     *    + node of element containing 'name'
-     *    + max line
-     *    + ellipsis index
-     *    + ellipsis character (string)
-     */
-    test('title fits within max lines', function() {
 
+    test('title fits within max lines, maxLine specified', function() {
+
+      inputTitleText = '1111111111222222222233333333334444444444';
       var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
                                                    {
                                                      node: titleNode,
-                                                     maxLine: 4,
-                                                     ellipsisIndex: 0
+                                                     maxLine: 4
                                                    });
 
       assert.equal(inputTitleText, truncatedTitle);
@@ -196,14 +208,59 @@ suite('Video Utils Unit Tests', function() {
       assert.equal(titleNode.style.wordBreak, 'normal');
     });
 
-    test('title doesnt fit, ellipse at end', function() {
+    test('title fits within max lines, maxLine specified, padding', function() {
+
+      inputTitleText = '1111111111222222222233333333334444444444';
+      titleNode.style.paddingTop = '4px';
+      titleNode.style.paddingBottom = '4px';
+
+      var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
+                                                   {
+                                                     node: titleNode,
+                                                     maxLine: 4
+                                                   });
+
+      assert.equal(inputTitleText, truncatedTitle);
+      assert.equal(titleNode.style.visibility, 'visible');
+      assert.equal(titleNode.style.wordBreak, 'normal');
+    });
+
+    test('title fits within max lines, maxLine not specified', function() {
+
+      inputTitleText = '1111111111222222222233333333334444444444';
+      var inputTitleText = '11111111112222222222';
+      var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
+                                                   {
+                                                     node: titleNode
+                                                   });
+
+      assert.equal(inputTitleText, truncatedTitle);
+      assert.equal(titleNode.style.visibility, 'visible');
+      assert.equal(titleNode.style.wordBreak, 'normal');
+    });
+
+    test('title doesnt fit, maxLine not specified', function() {
+      inputTitleText = '111111111122222222223333333333';
+      var expectedTruncatedTitle = '11111111112222222222333333...';
+
+      var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
+                                                   {
+                                                     node: titleNode
+                                                   });
+
+      assert.equal(truncatedTitle, expectedTruncatedTitle);
+      assert.equal(titleNode.style.visibility, 'visible');
+      assert.equal(titleNode.style.wordBreak, 'normal');
+    });
+
+    test('title doesnt fit, maxLine specified', function() {
+      inputTitleText = '1111111111222222222233333333334444444444';
       var expectedTruncatedTitle = '111111111122222222223333333333444444...';
 
       var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
                                                    {
                                                      node: titleNode,
-                                                     maxLine: 3,
-                                                     ellipsisIndex: 0
+                                                     maxLine: 3
                                                    });
 
       assert.equal(truncatedTitle, expectedTruncatedTitle);
@@ -211,45 +268,11 @@ suite('Video Utils Unit Tests', function() {
       assert.equal(titleNode.style.wordBreak, 'normal');
     });
 
-    test('title doesnt fit, ellipse in middle', function() {
-      var expectedTruncatedTitle = '11111111112222222222333333...4444444444';
-
-      var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
-                                                   {
-                                                     node: titleNode,
-                                                     maxLine: 3,
-                                                     ellipsisIndex: 10
-                                                   });
-
-      assert.equal(truncatedTitle, expectedTruncatedTitle);
-      assert.equal(titleNode.style.visibility, 'visible');
-      assert.equal(titleNode.style.wordBreak, 'normal');
-    });
-
-    test('title doesnt fit, ellipse in middle, ellispse specified',
-        function() {
-      var ellipseString = '---';
-      var expectedTruncatedTitle = '11111111112222222222333333' +
-                            ellipseString +
-                            '4444444444';
-
-      var truncatedTitle =
-          VideoUtils.getTruncated(inputTitleText,
-                                  {
-                                    node: titleNode,
-                                    maxLine: 3,
-                                    ellipsisIndex: 10,
-                                    ellipsisCharacter: ellipseString
-                                  });
-
-      assert.equal(truncatedTitle, expectedTruncatedTitle);
-      assert.equal(titleNode.style.visibility, 'visible');
-      assert.equal(titleNode.style.wordBreak, 'normal');
-    });
-
-    test('title doesnt fit, default ellipse position',
-        function() {
-      var expectedTruncatedTitle = '111111111122222222223333333333444...444';
+    test('title doesnt fit, maxLine specified, padding', function() {
+      titleNode.style.paddingTop = '4px';
+      titleNode.style.paddingBottom = '4px';
+      inputTitleText = '1111111111222222222233333333334444444444';
+      var expectedTruncatedTitle = '111111111122222222223333333333444444...';
 
       var truncatedTitle = VideoUtils.getTruncated(inputTitleText,
                                                    {
@@ -276,5 +299,5 @@ suite('Video Utils Unit Tests', function() {
       assert.equal(titleNode.style.visibility, 'visible');
       assert.equal(titleNode.style.wordBreak, 'normal');
     });
-});
+  });
 });

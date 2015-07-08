@@ -17,7 +17,7 @@
  *    isSelectMode: returns if ThumbnailList is in selection mode.
  *    setSelectMode: set ThumbnailList as selection mode or not.
  *    reset: clears all the internal data structure.
- *    upateAllThumbnailTitle: update all thuambnail title text.
+ *    updateAllThumbnailTitles: update all thumbnail title text.
  *    findNextFocused: find the next focused item after the file name.
  *           filename: the referenced filename.
  *
@@ -139,9 +139,42 @@ ThumbnailList.prototype.setSelectMode = function(select) {
   }
 };
 
-ThumbnailList.prototype.upateAllThumbnailTitle = function() {
-  for (var key in this.thumbnailMap) {
-    this.thumbnailMap[key].updateTitleText();
+// Asynchronously call updateTitleText on all of the thumbnails
+ThumbnailList.prototype.updateAllThumbnailTitles = function() {
+  var self = this;
+
+  // Cancel any pending title text update. Note that we cancel not by
+  // deleting the array but by setting its length to zero. Previous
+  // invocations will see this new length in their closure and will
+  // terminate. This handles the case where the user is switching
+  // orientations back and forth. We need to be sure that we don't
+  // keep adding work in this case.
+  if (this.pendingTitleTextUpdate && this.pendingTitleTextUpdate.length) {
+    this.pendingTitleTextUpdate.length = 0;
+  }
+
+  // Get a list of thumbnails that need to be updated
+  var thumbnailKeys = Object.keys(this.thumbnailMap);
+
+  // Remember the list in case we need to cancel it.
+  this.pendingTitleTextUpdate = thumbnailKeys;
+
+  setTimeout(updateNextThumbnailBatch);
+
+  function updateNextThumbnailBatch() {
+    // If we just do one at a time, it takes quite a bit longer
+    for (var i = 0; i < 10; i++) {
+      // If there aren't any thumbnails left, we're done
+      if (thumbnailKeys.length === 0) {
+        return;
+      }
+
+      // Otherwise, update the next thumbnail
+      var nextKey = thumbnailKeys.shift();
+      self.thumbnailMap[nextKey].updateTitleText();
+    }
+    // And schedule another call ASAP
+    setTimeout(updateNextThumbnailBatch);
   }
 };
 
