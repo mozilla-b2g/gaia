@@ -28,58 +28,21 @@
 
 .appWindow .titlebar .titlebar-maximized {
   background-image: -moz-element(#statusbar-maximized);
+  background-size: cover;
+  right: 0;
+  position: absolute;
   width: 100%;
 }
 
-.appWindow .titlebar .titlebar-minimized {
-  background-image: -moz-element(#statusbar-minimized);
-  background-size: cover;
+.appWindow:not(.homescreen) > .chrome:not(.maximized) + .titlebar .titlebar-maximized {
   width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
-  right: 0;
-  position: absolute;
-}
-
-/* Transitions between the maximized / minimized status bars */
-#statusbar:not(.maximized) ~ #windows > .appWindow.active > .titlebar .titlebar-maximized {
-  opacity: 0;
 }
 
 #statusbar.maximized ~ #windows > .appWindow.active > .titlebar .titlebar-maximized {
   opacity: 1;
 }
 
-#statusbar:not(.maximized) ~ #windows > .appWindow.active > .titlebar .titlebar-minimized {
-  transform: translateY(calc(var(--statusbar-height) * -1));
-  opacity: 1;
-}
-
-#statusbar.maximized ~ #windows > .appWindow.active > .titlebar .titlebar-minimized {
-  opacity: 0;
-}
-
-[data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-minimized,
-.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized,
-.attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized {
-  opacity: 0;
-}
-
-[data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-maximized,
-.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized,
-.attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized {
-  opacity: 1;
-}
-
-/* Special cases */
-#screen.attention #statusbar-minimized {
-  display: none;
-}
-
 /* RTL View */
 html[dir="rtl"] .appWindow .titlebar .statusbar-shadow {
   background-position: bottom left;
-}
-
-html[dir="rtl"] .appWindow .titlebar .titlebar-minimized {
-  left: 0;
-  right: unset;
 }

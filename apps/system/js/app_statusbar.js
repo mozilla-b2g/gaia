@@ -22,7 +22,6 @@
     var content = `<div class="titlebar">
              <div class="notifications-shadow"></div>
              <div class="statusbar-shadow titlebar-maximized"></div>
-             <div class="statusbar-shadow titlebar-minimized"></div>
            </div>`;
     return content;
   };
@@ -133,7 +132,7 @@
         }
         break;
       }
-  }; 
+  };
 
   AppStatusbar.prototype._releaseBar = function() {
     this.app.debug('releasing statusbar');
