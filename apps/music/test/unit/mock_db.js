@@ -9,25 +9,29 @@ var MockDatabase = {
     {
       metadata: {
         album: 'Crime of the Century',
-        artist: 'Supertramp'
+        artist: 'Supertramp',
+        title: 'School'
       }
     },
     {
       metadata: {
         album: 'Crisis? What Crisis?',
-        artist: 'Supertramp'
+        artist: 'Supertramp',
+        title: 'Lady'
       }
     },
     {
       metadata: {
         album: 'Even in the Quietests Moments...',
-        artist: 'Supertramp'
+        artist: 'Supertramp',
+        title: 'Fool\'s Overture'
       }
     },
     {
       metadata: {
         album: 'Breakfast in America',
-        artist: 'Supertramp'
+        artist: 'Supertramp',
+        title: 'Goodbye Stranger'
       }
     }
   ],
