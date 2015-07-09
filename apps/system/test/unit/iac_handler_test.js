@@ -105,7 +105,7 @@ suite('IACHandler > ', function() {
 
     test('IACHandler can send to fxa-mgmt successfully', function() {
       var message = {
-        method: 'getAccounts'
+        method: 'getAccount'
       };
 
       fakePort.postMessage({

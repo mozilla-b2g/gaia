@@ -145,12 +145,12 @@ suite('firefox accounts panel > ', function() {
     var getAccountsSpy;
 
     suiteSetup(function() {
-      getAccountsSpy = sinon.stub(MockFxAccountsIACHelper, 'getAccounts');
+      getAccountsSpy = sinon.stub(MockFxAccountsIACHelper, 'getAccount');
       FxaPanel.init(MockFxAccountsIACHelper);
     });
 
     suiteTeardown(function() {
-      MockFxAccountsIACHelper.getAccounts.restore();
+      MockFxAccountsIACHelper.getAccount.restore();
       getAccountsSpy = null;
     });
 

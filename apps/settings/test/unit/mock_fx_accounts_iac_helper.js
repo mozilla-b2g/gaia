@@ -11,7 +11,7 @@ var MockFxAccountsIACHelper = (function() {
 
   var currentState = null;
 
-  function getAccounts(cb) {
+  function getAccount(cb) {
     cb(currentState);
   }
 
@@ -62,7 +62,7 @@ var MockFxAccountsIACHelper = (function() {
   }
 
   return {
-    getAccounts: getAccounts,
+    getAccount: getAccount,
     resendVerificationEmail: resendVerificationEmail,
     setCurrentState: setCurrentState,
     getCurrentState: getCurrentState,

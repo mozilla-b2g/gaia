@@ -19,7 +19,7 @@ var MockFxAccountsIACHelper = {
 
   openFlow: function() {},
 
-  getAccounts: function(successCb, errorCb) {
+  getAccount: function(successCb, errorCb) {
     if (this.getAccountsNoCallback) {
       return;
     }

@@ -71,9 +71,9 @@ suite('system/FxAccountsClient >', function() {
 
   // API calls
 
-  suite('getAccounts', function() {
+  suite('getAccount', function() {
     setup(function() {
-      FxAccountsClient.getAccounts(successCb, errorCb);
+      FxAccountsClient.getAccount(successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -82,12 +82,12 @@ suite('system/FxAccountsClient >', function() {
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
-        method: 'getAccounts'
+        method: 'getAccount'
       });
     });
   });
 
-  suite('getAccounts reply success', function() {
+  suite('getAccount reply success', function() {
     setup(function() {
       MockEventListener.mozFxAccountsChromeEvent({
         detail: {
@@ -113,9 +113,9 @@ suite('system/FxAccountsClient >', function() {
     });
   });
 
-  suite('getAccounts', function() {
+  suite('getAccount', function() {
     setup(function() {
-      FxAccountsClient.getAccounts(successCb, errorCb);
+      FxAccountsClient.getAccount(successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -124,12 +124,12 @@ suite('system/FxAccountsClient >', function() {
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
-        method: 'getAccounts'
+        method: 'getAccount'
       });
     });
   });
 
-  suite('getAccounts reply error', function() {
+  suite('getAccount reply error', function() {
     setup(function() {
       MockEventListener.mozFxAccountsChromeEvent({
         detail: {

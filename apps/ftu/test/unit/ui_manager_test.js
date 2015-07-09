@@ -277,7 +277,7 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('Account login - getAccounts no account', function() {
+    suite('Account login - getAccount no account', function() {
       setup(function() {
         createAccountButton.disabled = false;
         nextButton.setAttribute('data-l10n-id', 'skip');
@@ -298,7 +298,7 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('Account login - getAccounts error', function() {
+    suite('Account login - getAccount error', function() {
       setup(function() {
         MockFxAccountsIACHelper.getAccountsError = 'WHATEVER';
         createAccountButton.disabled = false;
@@ -339,7 +339,7 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts does not ' +
+    suite('FTU initiates with a existing FxA login - getAccount does not ' +
           'give any results (or maybe it does but not in time)', function() {
       setup(function() {
         MockFxAccountsIACHelper.getAccountsNoCallback = true;
@@ -356,7 +356,7 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+    suite('FTU initiates with a existing FxA login - getAccount error - ' +
           'logout ok', function() {
       var logoutSpy;
 
@@ -380,7 +380,7 @@ suite('UI Manager > ', function() {
       });
     });
 
-    suite('FTU initiates with a existing FxA login - getAccounts error - ' +
+    suite('FTU initiates with a existing FxA login - getAccount error - ' +
           'logout no result or error', function() {
       var logoutSpy;
 
