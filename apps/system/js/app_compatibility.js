@@ -1,4 +1,4 @@
-/* global dump, applications, AppWindowManager*/
+/* global dump, applications, AppWindowManager, Notification*/
 'use strict';
 
 (function(exports) {

@@ -19,6 +19,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
 
+requireApp('system/js/app_compatibility.js');
 requireApp('system/js/accessibility.js');
 requireApp('system/js/activities.js');
 requireApp('system/js/activity_window_factory.js');
