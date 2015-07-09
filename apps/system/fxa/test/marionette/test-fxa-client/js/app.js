@@ -23,14 +23,15 @@ var Overlay = {
 
 var TestFxAClient = function TestFxAClient() {
 
-  var getFxAccountsButton, launchFxAFlowButton, logoutButton,
-      refreshAuthButton, resultTextEl, resultEl, timer, eventsEl,
-      eventsTextEl, eventsTimer, accountIdInput;
+  var getFxAccountsButton, getKeysButton, launchFxAFlowButton,
+      logoutButton, refreshAuthButton, resultTextEl, resultEl,
+      timer, eventsEl, eventsTextEl, eventsTimer, accountIdInput;
 
   var init = function init() {
     resultEl = document.getElementById('result');
     resultTextEl = document.getElementById('result-text');
     getFxAccountsButton = document.getElementById('getAccounts');
+    getKeysButton = document.getElementById('getKeys');
     launchFxAFlowButton = document.getElementById('openFlow');
     logoutButton = document.getElementById('logout');
     refreshAuthButton = document.getElementById('refreshAuthentication');
@@ -38,10 +39,10 @@ var TestFxAClient = function TestFxAClient() {
     eventsTextEl = document.getElementById('events-text');
     accountIdInput = document.getElementById('accountId');
 
-    getFxAccountsButton.addEventListener('click', handler);
-    launchFxAFlowButton.addEventListener('click', handler);
-    logoutButton.addEventListener('click', handler);
-    refreshAuthButton.addEventListener('click', handler);
+    [getFxAccountsButton, getKeysButton, launchFxAFlowButton,
+     logoutButton, refreshAuthButton].forEach((button) => {
+      button.addEventListener('click', handler);
+    });
 
     FxAccountsIACHelper.addEventListener('onlogin', function() {
       showEvent('onlogin');
@@ -102,6 +103,7 @@ var TestFxAClient = function TestFxAClient() {
         FxAccountsIACHelper[method](showResponse, showError);
         break;
       case 'getAccounts':
+      case 'getKeys':
       case 'logout':
         Overlay.show();
         FxAccountsIACHelper[method](showResponse, showError);
