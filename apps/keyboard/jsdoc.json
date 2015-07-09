@@ -2,7 +2,8 @@
   "keyboard": {
     "src": ["apps/keyboard/js/**/*.js",
             "!apps/keyboard/js/render.js",
-            "!apps/keyboard/js/imes/vietnamese/vietnamese.js"
+            "!apps/keyboard/js/imes/vietnamese/vietnamese.js",
+            "!apps/keyboard/js/imes/myanmar/myanmar.js"
     ],
     "options": {
       "destination": "docs/keyboard"
