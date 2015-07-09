@@ -8,8 +8,8 @@
   var extServices = {};
   var contactId;
 
-  var extensionFrame = document.querySelector('#fb-extensions');
-  var oauthFrame = document.querySelector('#fb-oauth');
+  var extensionFrame = document.querySelector('#extensions');
+  var oauthFrame = document.querySelector('#oauth');
   oauthFrame.src = '/shared/pages/import/oauth.html';
   var currentURI, access_token;
   var canClose = true, canCloseLogout = true;

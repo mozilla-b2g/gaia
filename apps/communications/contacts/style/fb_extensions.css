@@ -1,4 +1,4 @@
-#fb-extensions {
+#extensions {
   position: fixed;
   top: 100%;
   left: 0;
@@ -12,11 +12,11 @@
   background: #f4f4f4;
 }
 
-#fb-extensions.opening {
+#extensions.opening {
   -moz-transform: translateY(-100%);
 }
 
-#fb-extensions.hidden {
+#extensions.hidden {
   visibility: hidden;
 }
 
