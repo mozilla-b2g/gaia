@@ -367,6 +367,62 @@ Services.obs.addObserver(function(document) {
       return request;
     },
 
+    delete: function(id) {
+      var request = Services.DOMRequest.createRequest(window);
+      var messageToDeleteIds = Array.isArray(id) ? id : [id];
+
+      getStorage().then((storage) => {
+        var messagesToDelete = [];
+        for (var thread of storage.threads.values()) {
+          messageToDeleteIds.forEach((id) => {
+            var messageToDeleteIndex = thread.messages.findIndex((message) => {
+              return message.id === id;
+            });
+
+            if (messageToDeleteIndex >= 0) {
+              messagesToDelete.push({
+                thread: thread,
+                messageIndex: messageToDeleteIndex
+              });
+            }
+          });
+
+          // All messages found.
+          if (messagesToDelete.length === messageToDeleteIds.length) {
+            break;
+          }
+        }
+
+        if (messagesToDelete.length) {
+          var deletedThreadIds = [];
+          messagesToDelete.forEach((messageToDeleteInfo) => {
+            messageToDeleteInfo.thread.messages.splice(
+              messageToDeleteInfo.messageIndex, 1
+            );
+
+            if (!messageToDeleteInfo.thread.messages.length) {
+              storage.threads.delete(messageToDeleteInfo.thread.id);
+              deletedThreadIds.push(messageToDeleteInfo.thread.id);
+            }
+          });
+
+          // See description at the top of the file about "cloneInto" necessity.
+          Services.DOMRequest.fireSuccess(request, null);
+
+          if (deletedThreadIds.length) {
+            callEventHandlers(
+              'deleted',
+              Cu.cloneInto({ deletedThreadIds: deletedThreadIds }, window)
+            );
+          }
+        } else {
+          Services.DOMRequest.fireError(request, 'No message found!');
+        }
+      });
+
+      return request;
+    },
+
     markMessageRead: function() {
       var request = Services.DOMRequest.createRequest(window);
 
