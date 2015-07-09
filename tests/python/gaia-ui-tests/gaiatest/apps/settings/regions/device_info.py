@@ -10,7 +10,7 @@ from gaiatest.apps.base import Base
 class DeviceInfo(Base):
 
     _phone_number_locator = (By.CSS_SELECTOR, '.deviceInfo-msisdns')
-    _model_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.hardware"]')
+    _model_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.product_model"]')
     _software_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.software"]')
     _more_info_button_locator = (By.CSS_SELECTOR, 'a[href="#about-moreInfo"]')
 
