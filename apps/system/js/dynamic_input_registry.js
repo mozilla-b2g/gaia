@@ -40,8 +40,8 @@ DynamicInputRegistry.prototype.handleEvent = function(evt) {
   this.taskQueue = this.taskQueue.then(function() {
     return KeyboardHelper.inputAppList.getList();
   }).then(function(inputApps) {
-    var inputApp = (inputApps.filter(function(app) {
-      return (app.manifestURL === detail.manifestURL);
+    var inputApp = (inputApps.filter(function(inputApp) {
+      return (inputApp.domApp.manifestURL === detail.manifestURL);
     }) || [])[0];
 
     if (!inputApp) {
@@ -49,9 +49,10 @@ DynamicInputRegistry.prototype.handleEvent = function(evt) {
       return;
     }
 
-    var currentInputIds = Object.keys(inputApp.manifest.inputs);
+    var currentInputs = inputApp.getInputs();
+    var currentInputIds = Object.keys(currentInputs);
     if (currentInputIds.indexOf(detail.inputId) !== -1 &&
-        !inputApp.manifest.inputs[detail.inputId].isDynamic) {
+        !currentInputs[detail.inputId].isDynamic) {
       this._sendContentEvent(detail,
         'Can\'t mutate a statically declared input.');
       return;
