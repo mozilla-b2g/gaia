@@ -8,15 +8,8 @@ var MockMessageManager = {
   init: () => {},
   getThreads: function() {},
   getMessages: function() {},
-  getMessage: function() {
-    this._message = {};
-    return this._message;
-  },
-  deleteMessages: function(messageId, callback) {
-    if (callback) {
-      callback();
-    }
-  },
+  getMessage: () => {},
+  deleteMessages: () => Promise.resolve(),
   sendSMS: function() {
     return {};
   },
@@ -33,15 +26,5 @@ var MockMessageManager = {
   },
   ensureThreadRegistered() { return Promise.resolve(); },
   on: function() {},
-  off: function() {},
-  mTriggerOnSuccess: function() {
-    if (this._message.onsuccess) {
-      this._message.onsuccess();
-    }
-  },
-  mTriggerOnError: function() {
-    if (this._message.onerror) {
-      this._message.onerror();
-    }
-  }
+  off: function() {}
 };

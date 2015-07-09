@@ -21,7 +21,7 @@ marionette('Message Type Conversion Banner', function() {
     }
   });
 
-  var messagesApp, storage, composer, inbox;
+  var messagesApp, storage, composer, inbox, newMessage;
 
   function assertIsDisplayed(element) {
     assert.isTrue(element.displayed(), 'Element should be displayed');
@@ -32,14 +32,11 @@ marionette('Message Type Conversion Banner', function() {
   }
 
   function waitForBannerToDisappear() {
-    client.helper.waitForElementToDisappear(
-      messagesApp.Composer.conversionBanner
-    );
+    client.helper.waitForElementToDisappear(newMessage.conversionBanner);
   }
 
-  function exitConversation(draftOption) {
+  function exitConversation() {
     messagesApp.performHeaderAction();
-    draftOption && messagesApp.selectAppMenuOption(draftOption);
 
     // Wait for the thread list to appear
     inbox.waitToAppear();
@@ -55,6 +52,7 @@ marionette('Message Type Conversion Banner', function() {
 
     composer = messagesApp.Composer;
     inbox = messagesApp.Inbox;
+    newMessage = messagesApp.NewMessage;
 
     client.contentScript.inject(
       __dirname + '/mocks/mock_test_storages.js'
@@ -80,23 +78,23 @@ marionette('Message Type Conversion Banner', function() {
       // Force it to be MMS
       messagesApp.addRecipient('a@b.c');
       // Without waiting for the banner to disappear, return to thread list
-      exitConversation('Delete Draft');
+      exitConversation();
       // Create another new message
       inbox.navigateToComposer();
 
       // The banner should not be displayed
-      assertIsNotDisplayed(messagesApp.Composer.conversionBanner);
+      assertIsNotDisplayed(newMessage.conversionBanner);
     });
 
     test('MMS to email conversion and reminders', function() {
       // Case #1: When we open composer initially we should see not banner while
       // we are in SMS mode.
-      assertIsNotDisplayed(composer.conversionBanner);
+      assertIsNotDisplayed(newMessage.conversionBanner);
 
       // Case #2: Add an email recipient and the message becomes MMS and the
       // banner should appear.
       messagesApp.addRecipient('a@b.c');
-      assertIsDisplayed(composer.conversionBanner);
+      assertIsDisplayed(newMessage.conversionBanner);
 
       // Case #3: Wait for the banner to disappear, then send a message to
       // be redirected to the thread view. We are still in MMS mode but no
@@ -106,13 +104,13 @@ marionette('Message Type Conversion Banner', function() {
       composer.messageInput.sendKeys('test');
       messagesApp.send();
 
-      assertIsNotDisplayed(composer.conversionBanner);
+      assertIsNotDisplayed(newMessage.conversionBanner);
 
       // Case #4: Return to threads view and re-enter the thread to be reminded
       // about being in a MMS thread.
       exitConversation();
       inbox.firstConversation.tap();
-      client.helper.waitForElement(composer.conversionBanner);
+      client.helper.waitForElement(newMessage.conversionBanner);
     });
   });
 
@@ -149,11 +147,11 @@ marionette('Message Type Conversion Banner', function() {
     test('The banner is not shown after sending another message',
     function() {
       navigateToMMSConversation();
-      messagesApp.Composer.messageInput.sendKeys('Another message');
+      composer.messageInput.sendKeys('Another message');
       waitForBannerToDisappear();
       messagesApp.send();
 
-      assertIsNotDisplayed(composer.conversionBanner);
+      assertIsNotDisplayed(newMessage.conversionBanner);
     });
 
     test('The banner for SMS is not shown when entering a SMS thread after ' +
@@ -162,7 +160,7 @@ marionette('Message Type Conversion Banner', function() {
       exitConversation();
       navigateToSMSConversation();
 
-      assertIsNotDisplayed(composer.conversionBanner);
+      assertIsNotDisplayed(newMessage.conversionBanner);
     });
   });
 });

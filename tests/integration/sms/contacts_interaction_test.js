@@ -66,7 +66,7 @@ marionette('Contacts', function() {
     setup(function() {
       thread = ThreadGenerator.generate();
       storage.setMessagesStorage([thread], ThreadGenerator.uniqueMessageId);
-      conversation = inbox.goToFirstThread();
+      conversation = inbox.goToConversation(thread.id);
     });
 
     // Disabling these tests by now due to we need a way to switch to an

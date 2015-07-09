@@ -20,14 +20,29 @@
 
             var recipientToThreadId = new Map();
 
+            var messageMap = new Map();
+
             var threadMap = new Map(threads.map(function(thread) {
               recipientToThreadId.set(thread.participants[0], thread.id);
+
+              // Messages should be placed into dedicated map to simplify
+              // message-based manipulations.
+              if (thread.messages) {
+                thread.messages = new Set(
+                  thread.messages.map(function(message) {
+                    messageMap.set(message.id, message);
+
+                    return message.id;
+                  })
+                );
+              }
 
               return [thread.id, thread];
             }));
 
             window.wrappedJSObject.TestStorages.setStorage(STORAGE_NAME, {
               threads: threadMap,
+              messages: messageMap,
               recipientToThreadId: recipientToThreadId,
               uniqueMessageIdCounter: uniqueMessageIdCounter
             });

@@ -2,7 +2,9 @@
          loadBodyHTML, ConversationView, Threads, MessageManager,
          InboxView, Contacts, MockContact, MockThreadList,
          MockThreadMessages, getMockupedDate, Utils,
-         Threads */
+         Threads,
+         TaskRunner
+*/
 /*
   InboxView Tests
 */
@@ -486,8 +488,13 @@ suite('SMS App Unit-Test', function() {
     var _tci;
     // Setup for getting all messages rendered before every test
     setup(function(done) {
-      ConversationView.renderMessages(1, done);
+      this.sinon.spy(TaskRunner.prototype, 'push');
+
+      ConversationView.renderMessages(1);
+
       _tci = ConversationView.updateSelectionStatus;
+
+      TaskRunner.prototype.push.lastCall.returnValue.then(done, done);
     });
 
     suite('Thread-messages rendering (bubbles view)', function() {
@@ -515,15 +522,12 @@ suite('SMS App Unit-Test', function() {
 
     suite('Thread-messages Edit mode (bubbles view)', function() {
       // Setup for getting all messages rendered before every test
-      setup(function(done) {
+      setup(function() {
         this.sinon.spy(ConversationView, 'updateSelectionStatus');
         this.sinon.stub(InboxView, 'setContact');
-        ConversationView.activeThread = threadSetup();
-        ConversationView.renderMessages(1, function() {
-          ConversationView.startEdit();
-          done();
-        });
 
+        ConversationView.activeThread = threadSetup();
+        ConversationView.startEdit();
       });
 
       teardown(function() {
@@ -568,8 +572,30 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all while receiving new message', function(done) {
+        // now a new message comes in...
+        var incomingMessage = {
+          sender: '197746797',
+          body: 'Recibidas!',
+          delivery: 'received',
+          id: 9999,
+          threadId: 1,
+          timestamp: Date.now(),
+          type: 'sms',
+          channel: 'sms'
+        };
+
         this.sinon.stub(Utils, 'confirm').returns(Promise.resolve());
-        this.sinon.stub(Threads, 'unregisterMessage');
+        this.sinon.stub(MessageManager, 'deleteMessages').returns(
+          Promise.resolve()
+        );
+        this.sinon.stub(MessageManager, 'getMessage').returns(
+          Promise.resolve(incomingMessage)
+        );
+
+        ConversationView.activeThread.messages.set(
+          incomingMessage.id, incomingMessage
+        );
+
         var checkboxes = Array.from(ConversationView.container.querySelectorAll(
           'input[type=checkbox]'
         ));
@@ -589,17 +615,6 @@ suite('SMS App Unit-Test', function() {
           checkboxes.filter((item) => item.checked).length,
           'All items should be checked'
         );
-        // now a new message comes in...
-        var incomingMessage = {
-          sender: '197746797',
-          body: 'Recibidas!',
-          delivery: 'received',
-          id: 9999,
-          threadId: 1,
-          timestamp: Date.now(),
-          type: 'sms',
-          channel: 'sms'
-        };
 
         ConversationView.appendMessage(incomingMessage).then(() => {
           // new checkbox should have been added
@@ -616,16 +631,8 @@ suite('SMS App Unit-Test', function() {
             'Check-Uncheck all enabled'
           );
 
-          // now delete the selected messages...
-          this.sinon.stub(MessageManager, 'deleteMessages').yields();
-
-          var getMessageReq = {
-            result: incomingMessage
-          };
-          this.sinon.stub(MessageManager, 'getMessage').returns(getMessageReq);
 
           return ConversationView.delete().then(() => {
-            getMessageReq.onsuccess();
             sinon.assert.calledOnce(MessageManager.deleteMessages);
             assert.equal(MessageManager.deleteMessages.args[0][0].length, 5);
             assert.equal(

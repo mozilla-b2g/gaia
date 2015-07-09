@@ -113,7 +113,7 @@ marionette('Conversation Panel Tests', function() {
 
       // Forward message
       messagesApp.contextMenu(messagesApp.Conversation.message);
-      messagesApp.selectAppMenuOption('Forward');
+      messagesApp.Menu.selectAppMenuOption('Forward');
       // Wait for message to be forwarded to fill out composer fields
       client.waitFor(function() {
         return messagesApp.Composer.messageInput.text() !== '';
@@ -132,7 +132,7 @@ marionette('Conversation Panel Tests', function() {
       );
 
       assertIsFocused(
-        messagesApp.Composer.recipientsInput,
+        messagesApp.NewMessage.recipientsInput,
         'Recipients input should be focused'
       );
     });
@@ -142,7 +142,7 @@ marionette('Conversation Panel Tests', function() {
 
       // Forward message
       messagesApp.contextMenu(messagesApp.Conversation.message);
-      messagesApp.selectAppMenuOption('Forward');
+      messagesApp.Menu.selectAppMenuOption('Forward');
       // Wait for message to be forwarded to fill out composer fields
       client.waitFor(function() {
         return messagesApp.Composer.messageInput.text() !== '';
@@ -154,10 +154,10 @@ marionette('Conversation Panel Tests', function() {
         'Forwarded body is the initial body'
       );
 
-      var composerAttachment =  messagesApp.Composer.attachment;
-      assert.isNotNull(composerAttachment);
+      var composerAttachments =  messagesApp.Composer.attachments;
+      assert.equal(composerAttachments.length, 1);
       assert.equal(
-        composerAttachment.getAttribute('data-attachment-type'), 'img'
+        composerAttachments[0].getAttribute('data-attachment-type'), 'img'
       );
 
       assert.equal(
@@ -167,7 +167,7 @@ marionette('Conversation Panel Tests', function() {
       );
 
       assertIsFocused(
-        messagesApp.Composer.recipientsInput,
+        messagesApp.NewMessage.recipientsInput,
         'Recipients input should be focused'
       );
     });
@@ -208,10 +208,10 @@ marionette('Conversation Panel Tests', function() {
         '[data-dial="+200000"]'
       );
       unknownNumberLink.tap();
-      messagesApp.selectContactPromptMenuOption('Send message');
+      messagesApp.Menu.selectContactPromptMenuOption('Send message');
 
       // Wait for the recipient input to be filled
-      var recipients = messagesApp.Composer.recipients;
+      var recipients = messagesApp.NewMessage.recipients;
       client.waitFor(function() {
         return recipients.length === 1;
       });
@@ -230,10 +230,10 @@ marionette('Conversation Panel Tests', function() {
         '[data-dial="+300000"]'
       );
       unknownNumberLink.tap();
-      messagesApp.selectContactPromptMenuOption('Send message');
+      messagesApp.Menu.selectContactPromptMenuOption('Send message');
 
       // Wait for the recipient input to be filled
-      var recipients = messagesApp.Composer.recipients;
+      var recipients = messagesApp.NewMessage.recipients;
       client.waitFor(function() {
         return recipients.length === 1;
       });
@@ -252,7 +252,7 @@ marionette('Conversation Panel Tests', function() {
         '[data-dial="+400000"]'
       );
       threadNumberLink.tap();
-      messagesApp.selectContactPromptMenuOption('Send message');
+      messagesApp.Menu.selectContactPromptMenuOption('Send message');
 
       // Verify that we entered the right thread
       var message = messagesApp.Conversation.message;
@@ -288,7 +288,7 @@ marionette('Conversation Panel Tests', function() {
 
       var inboxView = new InboxView(client);
 
-      conversationView = inboxView.goToFirstThread();
+      conversationView = inboxView.goToConversation(thread.id);
     });
 
     test('MMS should be retrieved successfully', function() {

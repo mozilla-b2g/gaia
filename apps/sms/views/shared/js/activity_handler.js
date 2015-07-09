@@ -1,9 +1,9 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Utils, MessageManager, Compose, NotificationHelper,
+/*global Utils, MessageManager, NotificationHelper,
          Attachment, Notify, SilentSms, SMIL, Contacts,
-         ConversationView, Settings, Navigation,
+         Settings, Navigation,
          ActivityClient,
          ActivityShim,
          Draft,
@@ -196,19 +196,7 @@ var ActivityHandler = {
     }
 
     MessageManager.getMessage(message.id).then((message) => {
-      if (Compose.isEmpty()) {
-        ActivityHandler.toView(message);
-        return;
-      }
-
-      Utils.confirm(
-        'discard-new-message',
-        'unsent-message-title',
-        { text: 'unsent-message-option-discard', className: 'danger' }
-      ).then(() => {
-        ConversationView.cleanFields();
-        ActivityHandler.toView(message);
-      });
+      ActivityHandler.toView(message);
     }, function onGetMessageError() {
       Utils.alert('deleted-sms');
     });
@@ -297,7 +285,7 @@ var ActivityHandler = {
         var app = event.target.result;
 
         // We have to remove the SMS due to it does not have to be shown.
-        MessageManager.deleteMessages(message.id, function() {
+        MessageManager.deleteMessages(message.id).then(() => {
           app.launch();
           Notify.ringtone();
           Notify.vibrate();

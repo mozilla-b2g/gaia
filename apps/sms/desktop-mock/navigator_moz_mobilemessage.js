@@ -1424,9 +1424,8 @@
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
   MockNavigatormozMobileMessage.delete = function(id) {
-    var request = {
-      error: null
-    };
+    var deferred = Utils.Promise.defer();
+
     // Convenience alias
     var threads = messagesDb.threads;
     var msgs = messagesDb.messages;
@@ -1435,24 +1434,15 @@
 
     setTimeout(function() {
       if (simulation.failState()) {
-        request.error = {
-          name: window.MessagesDebugError
-        };
-        if (typeof request.onerror === 'function') {
-          request.onerror({
-            target: {
-              error: request.error
-            }
-          });
-        }
+        deferred.reject({ name: window.MessagesDebugError });
         return;
       }
 
-      request.result = false;
+      var result = false;
 
       for (idx = 0, len = msgs.length; idx < len; ++idx) {
         if (msgs[idx].id === id) {
-          request.result = true;
+          result = true;
           threadId = msgs[idx].threadId;
           msgs.splice(idx, 1);
           break;
@@ -1472,12 +1462,10 @@
         }
       }
 
-      if (typeof request.onsuccess === 'function') {
-        request.onsuccess.call(request);
-      }
+      deferred.resolve(result);
     }, simulation.delay());
 
-    return request;
+    return deferred.promise;
   };
 
   MockNavigatormozMobileMessage.markMessageRead = function(id, readBool) {
