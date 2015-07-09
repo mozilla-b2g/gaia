@@ -8,19 +8,30 @@ class BugzillaLite(Base):
     _given_username = (By.CSS_SELECTOR, "#login input[type='email']")
     _given_password = (By.CSS_SELECTOR, "#login input[type='password']")
     _button_login = (By.CSS_SELECTOR, "#login input[type='submit']")
-    _app_ready_locator = (By.XPATH, "//div[@class='icon']//span[contains(text(),'Bugzilla Lite')]")
-    #launch
+    _app_ready_locator = (By.XPATH, "#content header")
+    _dashboard_navigator_locator = (By.ID, 'dashboardNav')
+    
     def launch (self):
         Base.launch(self)
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element.element_present(
                 *self._app_ready_locator))
 
-    #login
-    def login_bzlite (self, username, passwrd):
-        marionette.find_element(*self._given_username).tap()
-        marionette.find_element(*self._given_username).send_keys(username)
-        marionette.find_element(*self._given_password).tap()
-        marionette.find_element(*self._given_password).send_keys(passwrd)
+    def login (self, username, password):
+        username_element = marionette.find_element(*self._given_username)
+        username_element.tap()
+        username_element.send_keys(username)
+        password_element = marionette.find_element(*self._given_password)
+        password_element.tap()
+        password_element.send_keys(password)
         marionette.find_element(*self._button_login).tap()
-        
+
+    @property
+    def is_logged_in(self):
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(by, locator))))
+        return True
+
+    def wait_for_dashboard_navigator_to_be_displayed(self):
+        Wait(self.marionette).until(expected.element_displayed(
+            Wait(self.marionette).until(expected.element_present(*self._dashboard_navigator_locator))))
