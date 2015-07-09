@@ -589,6 +589,17 @@ suite('system/Statusbar', function() {
       assert.isFalse(Statusbar.element.classList.contains('maximized'));
     });
 
+    test('setAppearance with utility tray adds maximized', function() {
+      this.sinon.stub(app.appChrome, 'isMaximized').returns(false);
+      app.isHomescreen = undefined;
+      app.isAttentionWindow = undefined;
+      app.isLockscreen = undefined;
+      UtilityTray.shown = true;
+      Statusbar.setAppearance();
+      assert.isTrue(Statusbar.element.classList.contains('maximized'));
+      UtilityTray.shown = false;
+    });
+
     test('setAppearance no appChrome', function() {
       MockService.mockQueryWith('getTopMostWindow', {
         isFullScreen: function isFullScreen() {
@@ -874,12 +885,26 @@ suite('system/Statusbar', function() {
       testEventThatHides.bind(this)('sheets-gesture-begin');
     });
 
+    test('appwillopen', function() {
+      testEventThatHides.bind(this)('appwillopen');
+    });
+
+    test('appwillclose', function() {
+      testEventThatHides.bind(this)('appwillclose');
+    });
+
     test('homescreenopened', function() {
       testEventThatShows.bind(this)('homescreenopened');
     });
 
     test('appopened', function() {
       testEventThatShows.bind(this)('appopened');
+      assert.isTrue(resumeUpdateStub.called);
+    });
+
+    test('appclosed', function() {
+      testEventThatShows.bind(this)('appopened');
+      assert.isTrue(resumeUpdateStub.called);
     });
 
     test('appchromecollapsed', function() {
@@ -900,6 +925,12 @@ suite('system/Statusbar', function() {
       testEventThatShows.bind(this)('appchromeexpanded');
     });
 
+    test('appchromeexpanded does not show if paused', function() {
+      this.sinon.stub(Statusbar, 'isPaused').returns(true);
+      triggerEvent.bind(this)('appchromeexpanded');
+      assert.isTrue(Statusbar.element.classList.contains('hidden'));
+    });
+
     test('apptitlestatechanged', function() {
       testEventThatShows.bind(this)('apptitlestatechanged');
     });
@@ -918,14 +949,17 @@ suite('system/Statusbar', function() {
 
     test('utilitytraywillshow', function() {
       testEventThatPause.bind(this)('utilitytraywillshow');
+      assert.isTrue(setAppearanceStub.called);
     });
 
     test('utilitytraywillhide', function() {
       testEventThatPause.bind(this)('utilitytraywillhide');
+      assert.isTrue(setAppearanceStub.called);
     });
 
     test('cardviewshown', function() {
       testEventThatPause.bind(this)('cardviewshown');
+      assert.isTrue(setAppearanceStub.called);
     });
 
     test('sheets-gesture-begin', function() {

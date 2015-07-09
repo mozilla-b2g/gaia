@@ -138,8 +138,10 @@
       window.addEventListener('system-resize', this);
 
       window.addEventListener('attentionopened', this);
-      window.addEventListener('appopening', this);
+      window.addEventListener('appwillopen', this);
+      window.addEventListener('appwillclose', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('appclosed', this);
       window.addEventListener('hierarchytopmostwindowchanged', this);
       window.addEventListener('activityopened', this);
       window.addEventListener('activitydestroyed', this);
@@ -211,6 +213,8 @@
           break;
 
         case 'sheets-gesture-begin':
+        case 'appwillopen':
+        case 'appwillclose':
           this.element.classList.add('hidden');
           this.pauseUpdate(evt.type);
           break;
@@ -219,6 +223,7 @@
         case 'utilitytraywillhide':
         case 'cardviewshown':
           this.pauseUpdate(evt.type);
+          this.setAppearance();
           break;
 
         case 'utility-tray-overlayopened':
@@ -227,6 +232,7 @@
         case 'utility-tray-abortclose':
         case 'cardviewclosed':
           this.resumeUpdate(evt.type);
+          this.setAppearance();
           break;
 
         case 'wheel':
@@ -259,10 +265,15 @@
           break;
 
         case 'appopened':
+        case 'appclosed':
+          this.resumeUpdate(evt.type);
+          /* falls through */
         case 'hierarchytopmostwindowchanged':
         case 'appchromeexpanded':
+          if (!this.isPaused()) {
+            this.element.classList.remove('hidden');
+          }
           this.setAppearance();
-          this.element.classList.remove('hidden');
           this._updateMinimizedStatusbarWidth();
           break;
 
@@ -329,7 +340,8 @@
       });
 
       var chromeMaximized = !!(app.appChrome && app.appChrome.isMaximized());
-      var shouldMaximize = noRocketbar || chromeMaximized;
+      var trayActive = !!(this.utilityTray && this.utilityTray.shown);
+      var shouldMaximize = noRocketbar || chromeMaximized || trayActive;
 
       // Important: we need a boolean to make the toggle method
       // takes the right decision
@@ -384,6 +396,8 @@
     _eventGroupStates: {
       utilitytrayopening: false,
       utilitytrayclosing: false,
+      appopening: false,
+      appclosing: false,
       cardview: false,
       sheetsgesture: false,
       marionette: false
@@ -431,6 +445,12 @@
         case 'cardviewshown':
         case 'cardviewclosed':
           return 'cardview';
+        case 'appwillopen':
+        case 'appopened':
+          return 'appopening';
+        case 'appwillclose':
+        case 'appclosed':
+          return 'appclosing';
         case 'sheets-gesture-begin':
         case 'sheets-gesture-end':
         case 'homescreenopened':

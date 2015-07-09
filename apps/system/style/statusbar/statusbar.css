@@ -15,9 +15,10 @@
   position: fixed;
   width: 100%;
   height: var(--statusbar-height);
-  top: calc(var(--statusbar-height) * -1);
+  top: 0;
   left: 0;
   pointer-events: none;
+  transform: translateY(0);
 }
 
 .statusbar > div,
@@ -25,9 +26,12 @@
   pointer-events: auto;
 }
 
-#statusbar.hidden {
-  opacity: 0;
-  visibility: hidden;
+
+/* Hide the statusbar out of the viewport in order
+to be available for moz-elements */
+#statusbar.hidden,
+#screen.utility-tray-in-transition > #statusbar {
+  transform: translateY(-100%);
 }
 
 #statusbar-minimized-wrapper {
@@ -75,6 +79,13 @@
   visibility: hidden;
 }
 
+/* Hide the minimized statusbar in the utility-tray */
+#screen:not(.utility-tray-in-transition) #statusbar:not(.maximized) #statusbar-maximized-wrapper,
+#screen.utility-tray-in-transition #statusbar-minimized-wrapper,
+#screen #statusbar.maximized  #statusbar-minimized-wrapper {
+  visibility: hidden;
+}
+
 @media (orientation: landscape) {
   #screen.software-button-enabled #statusbar-background,
   #screen.software-button-enabled #statusbar {
@@ -92,7 +103,7 @@
 }
 
 body #statusbar {
-  transition: transform 0.2s linear;
+  transition: none;
 }
 
 /* Hiding the black background while the homescreen is in foreground but not

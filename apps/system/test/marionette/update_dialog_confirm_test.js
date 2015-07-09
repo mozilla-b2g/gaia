@@ -73,7 +73,7 @@ marionette('Software Home Button - Update Dialog Confirm', function() {
   });
 
   test('Rocketbar should not be expandable in update dialog', function() {
-    var input = client.findElement('#homescreen .titlebar');
+    var input = client.findElement('#statusbar');
     client.waitFor(input.displayed.bind(input));
     triggerUpdateDownload();
     client.helper.waitForElement('#dialog-screen');

@@ -48,22 +48,6 @@ marionette('Statusbar Visibility', function() {
     });
   });
 
-  test('Filter is none when passing the grippyHeight', function() {
-    client.apps.launch(SETTINGS_APP);
-    actions
-      .press(system.topPanel)
-      .moveByOffset(0, grippyHeight + 1)
-      .perform();
-    client.waitFor(function() {
-      // The element is rendered with moz-element so we can't use
-      // marionette's .displayed()
-      var filter = system.statusbar.scriptWith(function(element) {
-        return window.getComputedStyle(element).filter;
-      });
-      return (filter == 'none');
-    });
-  });
-
   test('Filter is applied before passing the grippyHeight', function() {
     client.apps.launch(SETTINGS_APP);
     actions
