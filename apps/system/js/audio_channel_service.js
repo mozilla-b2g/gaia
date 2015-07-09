@@ -223,8 +223,9 @@
      */
     _isAudioChannelInBackground: function(audioChannel) {
       var isAudioChannelInBackground = true;
-      if (this._topMostWindow &&
-          this._topMostWindow.instanceID === audioChannel.app.instanceID) {
+      if ((this._topMostWindow &&
+          this._topMostWindow.instanceID === audioChannel.app.instanceID) ||
+          (audioChannel.isActive() && audioChannel.app.isInputMethod)) {
         isAudioChannelInBackground = false;
       }
       return isAudioChannelInBackground;

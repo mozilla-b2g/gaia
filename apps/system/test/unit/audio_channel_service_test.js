@@ -147,8 +147,10 @@ suite('system/AudioChannelService', function() {
         return true;
       });
       this.sinon.spy(subject.audioChannelPolicy, 'applyPolicy');
-      this.sinon.spy(subject, '_isAudioChannelInBackground');
       this.sinon.spy(subject, '_handleAudioChannel');
+      this.sinon.stub(subject, '_isAudioChannelInBackground', function() {
+        return false;
+      });
       subject._manageAudioChannels(audioChannel);
       assert.ok(isActiveStub.calledOnce);
       assert.ok(subject.audioChannelPolicy.applyPolicy.calledOnce);
@@ -344,24 +346,36 @@ suite('system/AudioChannelService', function() {
   suite('App is in foreground or background', function() {
     var audioChannel;
 
-    setup(function() {
+    test('Keybaord app is in foreground', function() {
       audioChannel = new MockAudioChannelController(
-        { instanceID: 'app1ID' }, { name: 'content' }
+        { instanceID: 'app1ID', isInputMethod: true }, { name: 'normal' }
       );
-    });
-
-    test('In foreground', function() {
-      subject._topMostWindow = { instanceID: 'app1ID' };
+      this.sinon.stub(audioChannel, 'isActive', function() {
+        return true;
+      });
       assert.equal(subject._isAudioChannelInBackground(audioChannel), false);
     });
 
-    test('In background', function() {
-      subject._topMostWindow = { instanceID: 'app2ID' };
-      assert.equal(subject._isAudioChannelInBackground(audioChannel), true);
-    });
+    suite('Other apps except Keyboard app', function() {
+      setup(function() {
+        audioChannel = new MockAudioChannelController(
+          { instanceID: 'app1ID' }, { name: 'content' }
+        );
+      });
 
-    test('Top most window is not changed', function() {
-      assert.equal(subject._isAudioChannelInBackground(audioChannel), true);
+      test('In foreground', function() {
+        subject._topMostWindow = { instanceID: 'app1ID' };
+        assert.equal(subject._isAudioChannelInBackground(audioChannel), false);
+      });
+
+      test('In background', function() {
+        subject._topMostWindow = { instanceID: 'app2ID' };
+        assert.equal(subject._isAudioChannelInBackground(audioChannel), true);
+      });
+
+      test('Top most window is not changed', function() {
+        assert.equal(subject._isAudioChannelInBackground(audioChannel), true);
+      });
     });
   });
 });
