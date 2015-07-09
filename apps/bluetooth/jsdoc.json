@@ -4,7 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/bluetooth/js"]
+    "include": ["apps/bluetooth/README.md", "apps/bluetooth/js"]
   },
   "plugins": [
     "plugins/markdown",
