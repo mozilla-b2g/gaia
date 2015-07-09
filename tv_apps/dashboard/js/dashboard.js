@@ -37,7 +37,6 @@
         this._clearActiveDirection();
         document.body.classList.remove('active');
       } else {
-        this.digitalClock.generateGreeting();
         document.body.classList.add('active');
       }
     },
