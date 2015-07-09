@@ -8,6 +8,9 @@
         {"layoutId": "ar", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "am": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "as": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
