@@ -3,6 +3,8 @@
 'use strict';
 
 var MockCompose = {
+  isSubjectVisible: false,
+
   init: function() {},
   on: function(type, handler) {},
   off: function(type, handler) {},
@@ -11,16 +13,14 @@ var MockCompose = {
   getText: function() {},
   isEmpty: () => true,
   isSubjectMaxLength: () => false,
-  lock: function() {},
-  unlock: function() {},
-  disable: function(state) {},
+  setupLock() {},
+  refresh() {},
   scrollToTarget: function(target) {},
   scrollMessageContent: function() {},
   prepend: function(item) {},
   append: () => {},
   clear: () => {},
   focus: function() {},
-  updateType: function() {},
 
   getSubject: function() {},
   setSubject: function() {},
@@ -29,12 +29,7 @@ var MockCompose = {
   fromDraft: function() {},
   fromMessage: function() {},
 
-  mSubjectEmpty: true,
-  mSubjectShowing: false,
-
   mSetup: function() {
-    this.mSubjectEmpty = true;
-    this.mSubjectShowing = false;
     this.size = null;
     this.type = 'sms';
   }

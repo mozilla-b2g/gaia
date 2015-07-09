@@ -13,7 +13,6 @@
          AssetsHelper,
          DocumentFragment,
          Errors,
-         MockCompose,
          SMIL,
          TaskRunner,
          Thread
@@ -23,8 +22,6 @@
 
 require('/shared/js/event_dispatcher.js');
 
-require('/views/conversation/js/subject_composer.js');
-require('/views/conversation/js/compose.js');
 require('/views/conversation/js/conversation.js');
 require('/views/shared/js/shared_components.js');
 require('/views/shared/js/utils.js');
@@ -102,7 +99,8 @@ var mocksHelperForConversationView = new MocksHelper([
   'Threads',
   'Thread',
   'ActivityClient',
-  'App'
+  'App',
+  'Compose'
 ]).init();
 
 suite('conversation.js >', function() {
@@ -297,25 +295,22 @@ suite('conversation.js >', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
-      Compose.clear();
+      this.sinon.spy(Compose, 'clear');
+
       ConversationView.initRecipients();
       ConversationView.recipients.length = 0;
       ConversationView.recipients.inputValue = '';
     });
 
     teardown(function() {
-      Compose.clear();
       ConversationView.recipients.length = 0;
       ConversationView.recipients.inputValue = '';
     });
 
     test('composer cleared', function() {
-      Compose.append('foo');
-      Compose.setSubject('foo');
-
       ConversationView.cleanFields();
-      assert.equal(Compose.getContent(), '');
-      assert.equal(Compose.getSubject(), '');
+
+      sinon.assert.calledOnce(Compose.clear);
     });
 
     suite('rendering suggestions list', function() {
@@ -474,21 +469,7 @@ suite('conversation.js >', function() {
         form,
         counterMsgContainer;
 
-    var realCompose;
-
-    suiteSetup(function() {
-      realCompose = window.Compose;
-      window.Compose = MockCompose;
-    });
-
-    suiteTeardown(function() {
-      window.Compose = realCompose;
-      realCompose = null;
-    });
-
     setup(function() {
-      MockCompose.mSetup();
-
       // This is added in ConversationView.init, so we need to remove the
       // listener to prevent having the listener being called several times.
       // We need to do this here in addition to main teardown because
@@ -671,14 +652,11 @@ suite('conversation.js >', function() {
 
     suite('type converted >', function() {
       setup(function() {
-        this.sinon.spy(Compose, 'lock');
         yieldType('mms');
         yieldInput();
       });
 
       test('The composer has the correct state', function() {
-        sinon.assert.notCalled(Compose.lock);
-
         assert.isFalse(
           convertBanner.classList.contains('hide'),
           'the conversion notice is displayed'
@@ -699,7 +677,6 @@ suite('conversation.js >', function() {
 
     suite('at size limit in mms >', function() {
       setup(function() {
-        this.sinon.spy(Compose, 'lock');
         Settings.mmsSizeLimitation = 1024;
         yieldType('mms');
         Compose.size = 1024;
@@ -715,14 +692,11 @@ suite('conversation.js >', function() {
           banner.querySelector('p').getAttribute('data-l10n-id'),
           'messages-max-length-text'
         );
-
-        sinon.assert.called(Compose.lock);
       });
     });
 
     suite('over size limit in mms >', function() {
       setup(function() {
-        this.sinon.spy(Compose, 'lock');
         Settings.mmsSizeLimitation = 1024;
         yieldType('mms');
         Compose.size = 1025;
@@ -738,20 +712,14 @@ suite('conversation.js >', function() {
 
         assert.equal(l10nAttrs.id, 'multimedia-message-exceeded-max-length');
         assert.deepEqual(l10nAttrs.args, {mmsSize: '1'});
-        sinon.assert.called(Compose.lock);
       });
     });
 
     suite('size is below limit again', function() {
-      setup(function() {
-        this.sinon.spy(Compose, 'unlock');
-      });
-
       test('banner is hidden when the size is decreased to the limit',
         function() {
         ConversationView.hideMaxLengthNotice();
         assert.isTrue(banner.classList.contains('hide'));
-        sinon.assert.called(Compose.unlock);
       });
     });
   });
@@ -761,12 +729,15 @@ suite('conversation.js >', function() {
 
     setup(function() {
       banner = document.getElementById('messages-subject-max-length-notice');
-      Compose.showSubject();
+
+      Compose.isSubjectVisible = true;
+      Compose.on.withArgs('subject-change').yield();
     });
 
     teardown(function() {
       banner.classList.add('hide');
-      Compose.clear();
+
+      Compose.isSubjectVisible = false;
     });
 
     test('should be hidden if limit not reached', function() {
@@ -775,7 +746,7 @@ suite('conversation.js >', function() {
 
     suite('when trying to pass the limit...', function() {
       setup(function() {
-        Compose.setSubject('1234567890123456789012345678901234567890');
+        this.sinon.stub(Compose, 'isSubjectMaxLength').returns(true);
         Compose.on.withArgs('subject-change').yield();
       });
 
@@ -797,22 +768,9 @@ suite('conversation.js >', function() {
   });
 
   suite('message type conversion >', function() {
-    var realCompose;
     var convertBanner, convertBannerText, form;
 
-    suiteSetup(function() {
-      realCompose = window.Compose;
-      window.Compose = MockCompose;
-    });
-
-    suiteTeardown(function() {
-      window.Compose = realCompose;
-      realCompose = null;
-    });
-
     setup(function() {
-      MockCompose.mSetup();
-
       // This is added in ConversationView.init, so we need to remove the
       // listener to prevent having the listener being called several times.
       // We need to do this here in addition to main teardown because
@@ -926,7 +884,7 @@ suite('conversation.js >', function() {
     });
   });
 
-  suite('Recipient Assimiliation', function() {
+  suite('Recipient Assimilation', function() {
     setup(function() {
       this.sinon.spy(ConversationView, 'validateContact');
       ConversationView.initRecipients();
@@ -4923,10 +4881,14 @@ suite('conversation.js >', function() {
 
     setup(function() {
       this.sinon.stub(Compose, 'focus');
+      this.sinon.stub(Compose, 'getContent');
+      this.sinon.stub(Compose, 'isEmpty').returns(false);
+
+      Compose.type = 'sms';
+
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
 
-      this.sinon.stub(Compose, 'isEmpty').returns(false);
       this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
       this.sinon.stub(Settings, 'isDualSimDevice').returns(false);
 
@@ -4945,7 +4907,7 @@ suite('conversation.js >', function() {
         number: recipient
       });
 
-      Compose.append(body);
+      Compose.getContent.returns([body]);
 
       clickButton();
 
@@ -4979,7 +4941,8 @@ suite('conversation.js >', function() {
         number: recipient
       });
 
-      Compose.append(mockAttachment(512));
+      Compose.getContent.returns([mockAttachment(512)]);
+      Compose.type = 'mms';
 
       clickButton();
 
@@ -5015,7 +4978,7 @@ suite('conversation.js >', function() {
           });
         });
 
-        Compose.append(body);
+        Compose.getContent.returns([body]);
 
         clickButton();
 
@@ -5066,7 +5029,8 @@ suite('conversation.js >', function() {
         });
       });
 
-      Compose.append(mockAttachment(512));
+      Compose.getContent.returns([mockAttachment(512)]);
+      Compose.type = 'mms';
 
       clickButton();
 
@@ -5109,7 +5073,8 @@ suite('conversation.js >', function() {
           number: recipient
         });
 
-        Compose.append(mockAttachment(512));
+        Compose.getContent.returns([mockAttachment(512)]);
+        Compose.type = 'mms';
 
         clickButtonAndSelectSim(targetServiceId);
 
@@ -5131,7 +5096,7 @@ suite('conversation.js >', function() {
           number: recipient
         });
 
-        Compose.append(body);
+        Compose.getContent.returns([body]);
 
         clickButtonAndSelectSim(targetServiceId);
 
@@ -5154,7 +5119,8 @@ suite('conversation.js >', function() {
 
       test('called if SMS is successfully sent', function() {
         MessageManager.sendSMS.yieldsTo('oncomplete', {});
-        Compose.append('foo');
+
+        Compose.getContent.returns(['foo']);
 
         clickButton();
 
@@ -5168,7 +5134,8 @@ suite('conversation.js >', function() {
             success: true
           }]
         });
-        Compose.append('foo');
+
+        Compose.getContent.returns(['foo']);
 
         clickButton();
 
@@ -5177,7 +5144,9 @@ suite('conversation.js >', function() {
 
       test('called if MMS is successfully sent', function() {
         MessageManager.sendMMS.yieldsTo('onsuccess', {});
-        Compose.append(mockAttachment(512));
+
+        Compose.getContent.returns([mockAttachment(512)]);
+        Compose.type = 'mms';
 
         clickButton();
 
@@ -5186,7 +5155,9 @@ suite('conversation.js >', function() {
 
       test('is not called if MMS is failed to be sent', function() {
         MessageManager.sendMMS.yieldsTo('onerror', new Error('failed'));
-        Compose.append(mockAttachment(512));
+
+        Compose.getContent.returns([mockAttachment(512)]);
+        Compose.type = 'mms';
 
         clickButton();
 
@@ -5202,7 +5173,8 @@ suite('conversation.js >', function() {
       ConversationView.recipients.add({
         number: '888'
       });
-      Compose.append('foo');
+
+      Compose.getContent.returns(['foo']);
 
       clickButton();
 
@@ -5222,7 +5194,8 @@ suite('conversation.js >', function() {
         });
         ConversationView.showErrorInFailedEvent = '';
 
-        Compose.append(mockAttachment(512));
+        Compose.getContent.returns([mockAttachment(512)]);
+        Compose.type = 'mms';
 
         clickButton();
       });
@@ -5316,9 +5289,10 @@ suite('conversation.js >', function() {
 
   suite('recipient handling >', function() {
     var setL10nAttributes;
-    var onRecipientsChange;
 
     setup(function() {
+      this.sinon.spy(Compose, 'refresh');
+
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
@@ -5328,8 +5302,6 @@ suite('conversation.js >', function() {
 
       setL10nAttributes = this.sinon.spy(navigator.mozL10n, 'setAttributes');
 
-      onRecipientsChange = sinon.stub();
-      ConversationView.on('recipientschange', onRecipientsChange);
       ConversationView.initRecipients();
     });
 
@@ -5349,8 +5321,8 @@ suite('conversation.js >', function() {
         sinon.assert.calledWith(setL10nAttributes, headerText, 'newMessage');
       });
 
-      test('no event is sent', function() {
-        sinon.assert.notCalled(onRecipientsChange);
+      test('Compose.refresh is not called', function() {
+        sinon.assert.notCalled(Compose.refresh);
       });
 
       testPickButtonEnabled();
@@ -5372,8 +5344,8 @@ suite('conversation.js >', function() {
         );
       });
 
-      test('One `recipientschange` event is sent', function() {
-        sinon.assert.calledOnce(onRecipientsChange);
+      test('Compose.refresh is called once', function() {
+        sinon.assert.calledOnce(Compose.refresh);
       });
 
       testPickButtonEnabled();
@@ -5396,8 +5368,8 @@ suite('conversation.js >', function() {
         );
       });
 
-      test('Two `recipientschange` events are sent', function() {
-        sinon.assert.calledTwice(onRecipientsChange);
+      test('Compose.refresh is called twice', function() {
+        sinon.assert.calledTwice(Compose.refresh);
       });
 
       testPickButtonEnabled();
@@ -5414,10 +5386,6 @@ suite('conversation.js >', function() {
       test('header is correct', function() {
         sinon.assert.notCalled(setL10nAttributes);
       });
-
-      test('No `recipientschange` event is sent', function() {
-        sinon.assert.notCalled(onRecipientsChange);
-      });
     });
 
     suite('edit a recipient', function() {
@@ -5433,8 +5401,8 @@ suite('conversation.js >', function() {
         placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
       });
 
-      test('An `recipientschange` event is sent', function() {
-        sinon.assert.calledOnce(onRecipientsChange);
+      test('Compose.refresh is called', function() {
+        sinon.assert.calledOnce(Compose.refresh);
       });
     });
   });
@@ -5452,7 +5420,7 @@ suite('conversation.js >', function() {
         number: '999'
       });
 
-      Compose.append('foo');
+      this.sinon.stub(Compose, 'getContent').returns(['foo']);
     });
 
     suite('threadless >', function() {
@@ -5494,7 +5462,7 @@ suite('conversation.js >', function() {
       });
 
       test('has entered recipients but not content', function() {
-        Compose.clear();
+        Compose.getContent.returns([]);
         ConversationView.saveDraft();
         arg = addSpy.firstCall.args[0];
 
@@ -5533,14 +5501,14 @@ suite('conversation.js >', function() {
           Drafts.add, sinon.match({ threadId: 1, content: ['foo'] })
         );
 
-        Compose.append('baz');
+        Compose.getContent.returns(['foobaz']);
         ConversationView.saveDraft();
 
         sinon.assert.calledWith(
           Drafts.add, sinon.match({ threadId: 1, content: ['foobaz'] })
         );
 
-        Compose.append('foo');
+        Compose.getContent.returns(['foobazfoo']);
         ConversationView.saveDraft();
 
         sinon.assert.calledWith(
@@ -5705,6 +5673,9 @@ suite('conversation.js >', function() {
           hide: function() {}
         });
 
+        this.sinon.stub(Compose, 'getContent');
+        this.sinon.stub(Compose, 'isEmpty');
+
         this.sinon.stub(ConversationView, 'isKeyboardDisplayed').returns(false);
         this.sinon.stub(ConversationView, 'stopRendering');
 
@@ -5734,9 +5705,9 @@ suite('conversation.js >', function() {
       });
 
       test('Displays OptionMenu prompt if recipients & content',
-        function(done) {
-
-        Compose.append('foo');
+      function(done) {
+        Compose.getContent.returns(['foo']);
+        Compose.isEmpty.returns(false);
 
         ConversationView.back().then(function() {
           assert.isTrue(OptionMenu.calledOnce);
@@ -5753,7 +5724,8 @@ suite('conversation.js >', function() {
 
       test('Displays OptionMenu prompt if content', function(done) {
         ConversationView.recipients.remove('999');
-        Compose.append('foo');
+        Compose.getContent.returns(['foo']);
+        Compose.isEmpty.returns(false);
 
         ConversationView.back().then(function() {
           assert.isTrue(OptionMenu.calledOnce);
@@ -5847,8 +5819,9 @@ suite('conversation.js >', function() {
           });
 
           test('Prompts for replacement if recipients & content',
-            function(done) {
-            Compose.append('foo');
+          function(done) {
+            Compose.getContent.returns(['foo']);
+            Compose.isEmpty.returns(false);
 
             ConversationView.back().then(function() {
               assert.isTrue(OptionMenu.calledOnce);
@@ -5865,7 +5838,8 @@ suite('conversation.js >', function() {
 
           test('Prompts for replacement if content', function(done) {
             ConversationView.recipients.remove('999');
-            Compose.append('foo');
+            Compose.getContent.returns(['foo']);
+            Compose.isEmpty.returns(false);
 
             ConversationView.back().then(function() {
               assert.isTrue(OptionMenu.calledOnce);
@@ -5898,10 +5872,11 @@ suite('conversation.js >', function() {
           });
 
           test('No prompt for replacement if recipients & content',
-            function(done) {
-
-            Compose.append('foo');
+          function(done) {
             ConversationView.draft.isEdited = false;
+
+            Compose.getContent.returns(['foo']);
+            Compose.isEmpty.returns(false);
 
             ConversationView.back().then(function() {
               assert.isNull(ConversationView.draft);
@@ -5912,8 +5887,10 @@ suite('conversation.js >', function() {
 
           test('No prompt for replacement if content', function(done) {
             ConversationView.recipients.remove('999');
-            Compose.append('foo');
             ConversationView.draft.isEdited = false;
+
+            Compose.getContent.returns(['foo']);
+            Compose.isEmpty.returns(false);
 
             ConversationView.back().then(function() {
               assert.isNull(ConversationView.draft);
@@ -6337,7 +6314,7 @@ suite('conversation.js >', function() {
 
     test('focus composer', function() {
       ConversationView.handleDraft(draft.id);
-      sinon.assert.called(Compose.focus);
+      sinon.assert.calledWith(Compose.fromDraft, draft);
     });
   });
 
@@ -6525,12 +6502,12 @@ suite('conversation.js >', function() {
   suite('afterLeave()', function() {
     setup(function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.spy(Compose, 'clear');
     });
 
     test('properly clean the composer when moving back to thread list',
     function() {
       Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
-      Compose.append('some stuff');
       ConversationView.initRecipients();
       ConversationView.recipients.add({
         number: '999'
@@ -6539,7 +6516,7 @@ suite('conversation.js >', function() {
 
       ConversationView.afterLeave();
 
-      assert.equal(Compose.getContent(), '');
+      sinon.assert.calledOnce(Compose.clear);
       assert.equal(ConversationView.recipients.length, 0);
       assert.isFalse(threadMessages.classList.contains('new'));
     });
@@ -6668,6 +6645,8 @@ suite('conversation.js >', function() {
     suite('beforeEnter()', function() {
       setup(function() {
         Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+
+        this.sinon.stub(Compose, 'setupLock');
       });
 
       beforeEnterGeneralTests(() => transitionArgs);
@@ -6678,8 +6657,11 @@ suite('conversation.js >', function() {
           this.sinon.spy(ConversationView, 'cleanFields');
           this.sinon.spy(ConversationView.recipients, 'focus');
 
+          this.sinon.stub(Compose, 'getContent').returns(['some stuff']);
+          this.sinon.stub(Compose, 'isEmpty').returns(false);
+          this.sinon.spy(Compose, 'clear');
+
           ConversationView.draft = null;
-          Compose.append('some stuff');
           ConversationView.recipients.add({number: '456789'});
 
           Recipients.View.isFocusable = false;
@@ -6700,12 +6682,67 @@ suite('conversation.js >', function() {
         });
 
         test('cleans up the state', function() {
-          assert.equal(Compose.getContent(), '');
+          sinon.assert.calledOnce(Compose.clear);
           assert.equal(ConversationView.recipients.length, 0);
         });
 
         test('updates the header', function() {
           assert.equal(headerText.dataset.l10nId, 'newMessage');
+        });
+
+        suite('Setups correct Composer lock', function() {
+          var composeLock;
+          setup(function() {
+            composeLock = Compose.setupLock.lastCall.args[0];
+
+            ConversationView.initRecipients();
+          });
+
+          test('lock object consists of correct functions', function() {
+            sinon.assert.calledOnce(Compose.setupLock);
+            sinon.assert.calledWith(Compose.setupLock, {
+              canSend: sinon.match.func,
+              forceType: sinon.match.func
+            });
+          });
+
+          test('forceType works correctly', function() {
+            // Returns null if email recipients are not supported.
+            Settings.supportEmailRecipient = false;
+            assert.isNull(composeLock.forceType());
+
+            // Returns null if email recipients are supported, but email
+            // recipients are not entered.
+            Settings.supportEmailRecipient = true;
+            ConversationView.recipients.add({
+              number: '888'
+            });
+            assert.isNull(composeLock.forceType());
+
+            ConversationView.recipients.add({
+              number: 'moz@example.com'
+            });
+            assert.equal(composeLock.forceType(), 'mms');
+          });
+
+          test('canSend works correctly', function() {
+            // Returns false if there is no recipients found.
+            assert.isFalse(composeLock.canSend());
+
+            ConversationView.recipients.add({
+              number: '888'
+            });
+            assert.isTrue(composeLock.canSend());
+
+            // Returns false if currently edited number is not valid.
+            ConversationView.recipients.remove('888');
+            ConversationView.recipients.inputValue = 'invalid';
+            assert.isFalse(composeLock.canSend());
+
+            // Returns true if currently edited number is valid.
+            ConversationView.recipients.inputValue = '+123';
+            assert.isTrue(composeLock.canSend());
+          });
         });
       });
 
@@ -6802,6 +6839,8 @@ suite('conversation.js >', function() {
         setActiveThread(threadId, ['999']);
 
         Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+
+        this.sinon.stub(Compose, 'setupLock');
       });
 
       beforeEnterGeneralTests(() => transitionArgs);
@@ -6866,6 +6905,23 @@ suite('conversation.js >', function() {
             var onMessageTypeChange = ConversationView.onMessageTypeChange;
             sinon.assert.calledWith(Compose.on, 'type', onMessageTypeChange);
           });
+        });
+
+        test('correctly setups Compose lock for non-email thread', function() {
+          sinon.assert.calledOnce(Compose.setupLock);
+          sinon.assert.calledWith(Compose.setupLock, {
+            forceType: sinon.match.func
+          });
+
+          assert.isNull(Compose.setupLock.lastCall.args[0].forceType());
+        });
+
+        test('correctly setups Compose lock for email thread', function() {
+          Settings.supportEmailRecipient = true;
+          setActiveThread(threadId, ['nobody@mozilla.com']);
+          ConversationView.beforeEnter(transitionArgs);
+
+          assert.equal(Compose.setupLock.lastCall.args[0].forceType(), 'mms');
         });
       });
     });
@@ -7052,7 +7108,8 @@ suite('conversation.js >', function() {
 
         setActiveThread(threadId);
 
-        Compose.append('some existing text');
+        this.sinon.stub(Compose, 'getContent').returns(['some existing text']);
+        this.sinon.stub(Compose, 'isEmpty').returns(false);
 
         // threadMessages is in edit mode
         threadMessages.classList.add('new');
@@ -7099,10 +7156,6 @@ suite('conversation.js >', function() {
   });
 
   suite('Compose mode tests', function() {
-    teardown(function() {
-      Compose.clear();
-    });
-
     suite('recipients panel mode change', function() {
       setup(function() {
         this.sinon.stub(Recipients.prototype, 'on');
@@ -7233,6 +7286,36 @@ suite('conversation.js >', function() {
       messageDOM.querySelector('section').dispatchEvent(ctMenuEvent);
 
       assert.equal(MockOptionMenu.calls.length, 1);
+    });
+  });
+
+  suite('Handling draft modifications', function() {
+    setup(function() {
+      ConversationView.draft = { isEdited: false };
+
+      ConversationView.initRecipients();
+    });
+
+    test('Draft is marked as modified if subject is changed', function() {
+      Compose.on.withArgs('subject-change').yield();
+
+      assert.isTrue(ConversationView.draft.isEdited);
+    });
+
+    test('Draft is marked as modified if content is changed', function() {
+      Compose.on.withArgs('input').yield();
+
+      assert.isTrue(ConversationView.draft.isEdited);
+    });
+
+    test('Draft is marked as modified if recipients are changed', function() {
+      ConversationView.recipients.add({ number: '999' });
+      assert.isTrue(ConversationView.draft.isEdited);
+
+      ConversationView.draft.isEdited = false;
+
+      ConversationView.recipients.remove('999');
+      assert.isTrue(ConversationView.draft.isEdited);
     });
   });
 });

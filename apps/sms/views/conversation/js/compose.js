@@ -4,10 +4,7 @@
 /*global Settings, Utils, Attachment, MozActivity, SMIL,
         MessageManager,
         SubjectComposer,
-        Navigation,
         Promise,
-        ConversationView,
-        Threads,
         EventDispatcher,
         DOMError,
         OptionMenu
@@ -51,11 +48,14 @@ var Compose = (function() {
     lastScrollPosition: 0,
     resizing: false,
 
-    // Stop further input because the max size is exceeded
-    locked: false,
-
     // 'sms' or 'mms'
     type: 'sms',
+
+    lock: {
+      canSend: null,
+      canEdit: null,
+      forceType: null
+    },
 
     segmentInfo: {
       segments: 0,
@@ -110,11 +110,6 @@ var Compose = (function() {
 
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
-    // Track when content is edited for draft replacement case
-    if (ConversationView.draft) {
-      ConversationView.draft.isEdited = true;
-    }
-
     // if the duck is an image attachment or object, handle resizes
     if ((duck instanceof Attachment && duck.type === 'img') ||
        (duck && duck.containsImage)) {
@@ -143,22 +138,19 @@ var Compose = (function() {
     state.emptyMessage = isEmptyMessage;
 
     Compose.updateEmptyState();
-    Compose.updateSendButton();
     Compose.updateType();
+    Compose.updateSendButton();
+    Compose.updateAttachButton();
     updateSegmentInfoThrottled();
 
     Compose.emit('input');
   }
 
   function onSubjectChanged() {
-    // Track when content is edited for draft replacement case
-    if (ConversationView.draft) {
-      ConversationView.draft.isEdited = true;
-    }
-
     Compose.updateEmptyState();
-    Compose.updateSendButton();
     Compose.updateType();
+    Compose.updateSendButton();
+    Compose.updateAttachButton();
 
     Compose.emit('subject-change');
   }
@@ -182,13 +174,12 @@ var Compose = (function() {
   }
 
   function composeKeyEvents(e) {
-    // if locking and no-backspace pressed, cancel
-    if (state.locked && e.which !== 8) {
+    // If message can't be edited anymore and no-backspace pressed, cancel.
+    if (!compose.canEdit() && e.which !== 8) {
       e.preventDefault();
     } else {
-      // trigger a recompute of size on the keypresses
+      // Trigger a recompute of size on the keypress events.
       state.size = null;
-      compose.unlock();
     }
   }
 
@@ -361,15 +352,6 @@ var Compose = (function() {
       this.on('type', this.updateMessageCounter.bind(this));
       this.on('segmentinfochange', this.updateMessageCounter.bind(this));
 
-      /* Bug 1040144: replace ConversationView direct invocation by a
-       * instantiation-tim property */
-      ConversationView.on('recipientschange', this.updateSendButton.bind(this));
-      // Bug 1026384: call updateType as well when the recipients change
-
-      if (Settings.supportEmailRecipient) {
-        ConversationView.on('recipientschange', this.updateType.bind(this));
-      }
-
       var onInteracted = this.emit.bind(this, 'interact');
 
       dom.message.addEventListener('focus', onInteracted);
@@ -487,25 +469,16 @@ var Compose = (function() {
       return state.empty;
     },
 
-    /**
-     * Lock composer when size limit is reached.
-     */
-    lock: function() {
-      state.locked = true;
-      dom.attachButton.disabled = true;
+    setupLock({ canSend, canEdit, forceType }) {
+      state.lock.canSend = canSend;
+      state.lock.canEdit = canEdit;
+      state.lock.forceType = forceType;
     },
 
-    /**
-     * Unlock composer when size is decreased again.
-     */
-    unlock: function() {
-      state.locked = false;
-      dom.attachButton.disabled = false;
-    },
-
-    disable: function(state) {
-      dom.sendButton.disabled = state;
-      return this;
+    refresh() {
+      this.updateType();
+      this.updateSendButton();
+      this.updateAttachButton();
     },
 
     scrollToTarget: function(target) {
@@ -646,73 +619,58 @@ var Compose = (function() {
     },
 
     updateType: function() {
-      var isTextTooLong =
-        state.segmentInfo.segments > Settings.maxConcatenatedMessages;
-
-      /* Bug 1040144: replace ConversationView direct invocation by a
-       * instantiation-time property
-       */
-      var recipients = Threads.active ?
-        Threads.active.participants :
-        ConversationView.recipients && ConversationView.recipients.numbers;
-      var hasEmailRecipient = recipients ?
-        recipients.some(Utils.isEmailAddress) :
-        false;
-
-      /* Note: in the future, we'll maybe want to force 'mms' from the UI */
-      var newType =
-        hasAttachment() || hasSubject() || hasEmailRecipient || isTextTooLong ?
-        'mms' : 'sms';
-
+      var newType = this.getType();
       if (newType !== state.type) {
         state.type = newType;
         this.emit('type');
       }
     },
 
+    getType() {
+      var typeForcedByLock = state.lock.forceType && state.lock.forceType();
+      if (typeForcedByLock) {
+        return typeForcedByLock;
+      }
+
+      var isTextTooLong =
+        state.segmentInfo.segments > Settings.maxConcatenatedMessages;
+
+      return isTextTooLong || hasSubject() || hasAttachment() ? 'mms' : 'sms';
+    },
+
     updateEmptyState: function() {
       state.empty = state.emptyMessage && !hasSubject();
     },
 
-    // Send button management
-    /* The send button should be enabled only in the situations where:
-     * - The subject is showing and is not empty (it has text)
-     * - The message is not empty (it has text or attachment)
-    */
     updateSendButton: function() {
-      // should disable if we have no message input
-      var disableSendMessage = state.empty || state.resizing;
-      var messageNotLong = compose.size <= Settings.mmsSizeLimitation;
+      dom.sendButton.disabled = !this.canSend();
+    },
 
-      /* Bug 1040144: replace ConversationView direct invocation by a
-       * instantiation-time property */
-      var recipients = ConversationView.recipients;
-      var recipientsValue = recipients && recipients.inputValue;
-      var hasRecipients = false;
+    updateAttachButton: function() {
+      dom.attachButton.disabled = !this.canEdit();
+    },
 
-      // Set hasRecipients to true based on the following conditions:
-      //
-      //  1. There is a valid recipients object
-      //  2. One of the following is true:
-      //      - The recipients object contains at least 1 valid recipient
-      //        - OR -
-      //      - There is >=1 character typed and the value is a finite number
-      //
-      if (recipients &&
-          (recipients.numbers.length ||
-            (recipientsValue && isFinite(recipientsValue)))) {
+    canSend() {
+      var isSendAllowedByLock = !state.lock.canSend || state.lock.canSend();
 
-        hasRecipients = true;
-      }
+      var sizeExceedsLimit = this.type === 'mms' &&
+        Settings.mmsSizeLimitation && this.size > Settings.mmsSizeLimitation;
 
-      // should disable if the message is too long
-      disableSendMessage = disableSendMessage || !messageNotLong;
+      // We can't send if message is empty, we're in the process of resizing or
+      // message is already too big.
+      return isSendAllowedByLock && !sizeExceedsLimit && !this.isEmpty() &&
+        !this.isResizing;
+    },
 
-      // should disable if we have no recipients in the "new thread" view
-      disableSendMessage = disableSendMessage ||
-        (Navigation.isCurrentPanel('composer') && !hasRecipients);
+    canEdit() {
+      var isEditAllowedByLock = !state.lock.canEdit || state.lock.canEdit();
 
-      this.disable(disableSendMessage);
+      var sizeExceedsOrEqualToLimit = this.type === 'mms' &&
+        Settings.mmsSizeLimitation && this.size >= Settings.mmsSizeLimitation;
+
+      // User can continue to type message if it's either SMS, MMS which size
+      // doesn't exceed maximum allowed size or maximum allowed size is not set.
+      return isEditAllowedByLock && !sizeExceedsOrEqualToLimit;
     },
 
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
