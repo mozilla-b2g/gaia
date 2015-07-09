@@ -52,10 +52,17 @@ class StatusBar(PageRegion):
 
     class StatusBarRegion(PageRegion):
         _status_bar_time_locator = (By.ID, 'statusbar-time')
+        _status_bar_battery_locator = (By.ID, 'statusbar-battery')
 
         @property
         def time(self):
             return self.root_element.find_element(*self._status_bar_time_locator).text
+
+        @property
+        def is_battery_displayed(self):
+            battery_icon = self.root_element.find_element(
+                *self._status_bar_battery_locator)
+            return battery_icon.is_displayed()
 
         def a11y_wheel_status_bar_time(self):
             self.accessibility.wheel(self.root_element.find_element(
