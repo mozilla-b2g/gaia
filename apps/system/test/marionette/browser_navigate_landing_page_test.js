@@ -47,7 +47,7 @@ marionette('Browser - Navigating from the landing page',
     client.waitFor(function() {
       return (nApps + 1) === system.getAppWindows().length;
     });
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Wait for the new browser window.
     // It should override the search app.

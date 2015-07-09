@@ -38,7 +38,7 @@ marionette('Browser - fullscreen utility tray access', function() {
     var url = server.url('fullscreen_request.html');
     // Open the URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     frame = client.helper.waitForElement(
       'div[transition-state="opened"] iframe[src="' + url + '"]');

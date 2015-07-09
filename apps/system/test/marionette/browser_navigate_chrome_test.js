@@ -35,7 +35,7 @@ marionette('Browser - Chrome on browser navigation',
     server.cork(url);
 
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     client.waitFor(function() {
       return system.appChrome.displayed();

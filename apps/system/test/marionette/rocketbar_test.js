@@ -44,7 +44,7 @@ marionette('Rocketbar', function() {
   test.skip('show results on submit', function() {
     rocketbar.waitForLoad();
     rocketbar.focus();
-    rocketbar.enterText('\uE006');
+    rocketbar.enterText('', true);
     client.waitFor(function() {
       return rocketbar.results.displayed();
     });
@@ -57,7 +57,7 @@ marionette('Rocketbar', function() {
     var element = rocketbar.rocketbar;
     var url = server.url('sample.html');
     rocketbar.focus();
-    rocketbar.enterText(url + '\uE006'); // Enter the URL with enter key
+    rocketbar.enterText(url, true); // Enter the URL with enter key
     rocketbar.switchToBrowserFrame(url);
     client.switchToFrame();
     client.waitFor(function() {

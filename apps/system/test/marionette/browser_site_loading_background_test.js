@@ -8,7 +8,7 @@ marionette('Browser - Site loading background', function() {
 
   var client = marionette.client();
 
-  var home, rocketbar, search, server, system;
+  var home, rocketbar, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -24,7 +24,6 @@ marionette('Browser - Site loading background', function() {
   setup(function() {
     home = client.loader.getAppClass('verticalhome');
     rocketbar = new Rocketbar(client);
-    search = client.loader.getAppClass('search');
     system = client.loader.getAppClass('system');
     system.waitForFullyLoaded();
 
@@ -73,15 +72,20 @@ marionette('Browser - Site loading background', function() {
 
     // Use the home-screen search box to open up the system browser
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
+
+    client.waitFor(function() {
+      return system.appChrome.displayed();
+    });
 
     var frame = client.helper.waitForElement(
       'div[transition-state="opened"] iframe[src="' + url + '"]');
+
     validateBackgroundColor(255, 255, 255);
 
     server.uncork(url);
     client.switchToFrame(frame);
-    client.helper.waitForElement('body');
+    client.helper.waitForElement('header >  h1');
     validateBackgroundColor(0, 0, 0);
   });
 });

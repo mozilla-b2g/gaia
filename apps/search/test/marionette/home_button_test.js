@@ -20,7 +20,6 @@ marionette('Search - Home Button Press', function() {
   test('Home button returns to home screen', function() {
     home.waitForLaunch();
     home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('calendar');
 
     // Ensure search results are displayed.

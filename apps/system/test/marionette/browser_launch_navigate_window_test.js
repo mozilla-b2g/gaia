@@ -35,7 +35,7 @@ marionette('Browser - Launch a URL navigates the same window',
 
     // Open the first URL in a sheet.
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Switch to the app, and navigate to a different url.
     system.gotoBrowser(url);
@@ -46,7 +46,7 @@ marionette('Browser - Launch a URL navigates the same window',
     // Navigate to a page (just a fixture we have sitting around.)
     var nextUrl = server.url('darkpage.html');
     system.appUrlbar.tap();
-    rocketbar.enterText(nextUrl + '\uE006');
+    rocketbar.enterText(nextUrl, true);
     system.gotoBrowser(nextUrl);
 
     // Validate that we have the same number of apps.

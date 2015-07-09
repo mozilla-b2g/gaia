@@ -34,7 +34,7 @@ marionette('Browser Chrome - Open New Window', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
 
     // Count the number of currently open apps
     var nApps = system.getAppWindows().length;

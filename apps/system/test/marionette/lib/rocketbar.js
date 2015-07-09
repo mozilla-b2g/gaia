@@ -79,12 +79,16 @@ Rocketbar.prototype = {
   /**
    * Send keys to the Rocketbar (needs to be focused first).
    */
-  enterText: function(text) {
+  enterText: function(text, submit) {
     var input =
       this.client.findElement(this.selectors.input);
     input.clear();
     this.client.waitFor(input.displayed.bind(input));
     input.sendKeys(text);
+
+    if (submit) {
+      input.sendKeys('\uE006');
+    }
 
     if (!text.length) {
       this.client.executeScript(function() {

@@ -62,7 +62,7 @@ marionette('Browser Chrome - Title content', function() {
     // Use the home-screen search box to open up the system browser
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
-    rocketbar.enterText(url + '\uE006');
+    rocketbar.enterText(url, true);
     system.gotoBrowser(url);
     client.switchToFrame();
 
@@ -80,7 +80,7 @@ marionette('Browser Chrome - Title content', function() {
     var sampleUrl = server.url('sample.html');
 
     rocketbar.homescreenFocus();
-    rocketbar.enterText(customAppUrl + '\uE006');
+    rocketbar.enterText(customAppUrl, true);
     system.gotoBrowser(customAppUrl);
     client.switchToFrame();
 
@@ -89,7 +89,7 @@ marionette('Browser Chrome - Title content', function() {
     });
 
     system.appUrlbar.tap();
-    rocketbar.enterText(sampleUrl + '\uE006');
+    rocketbar.enterText(sampleUrl, true);
     system.gotoBrowser(sampleUrl);
     client.switchToFrame();
 
