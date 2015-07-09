@@ -3,9 +3,14 @@ from gaiatest.apps.bzlite.app import Bugzilla_Lite
 
 
 class TestBugzillaLite(GaiaTestCase):
+
+    def SetUp(self):
+        GaiaTestCase.SetUp(self)
+        self.connect_to_local_area_network()
+
     def test_login_BugzillaLite(self):
-        Bugzilla_Lite = Bugzilla_Lite(marionette)
-        Bugzilla_Lite.launch()
-        self.BugzillaLite.login(self.testvars['bugzilla']['user'], self.testvars['bugzilla']['password'])
-        self.assertTrue(self.BugzillaLite.is_logged_in)
+        BugzillaLite = Bugzilla_Lite(self.marionette)
+        BugzillaLite.launch()
+        BugzillaLite.login(self.testvars['bugzilla']['user'], self.testvars['bugzilla']['password'])
+        slef.assertTrue(BugzillaLite.is_logged_in)
 
