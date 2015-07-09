@@ -4,8 +4,8 @@ from gaiatest.apps.bzlite.app import Bugzilla_Lite
 
 class TestBugzillaLite(GaiaTestCase):
 
-    def SetUp(self):
-        GaiaTestCase.SetUp(self)
+    def setUp(self):
+        GaiaTestCase.setUp(self)
         self.connect_to_local_area_network()
 
     def test_login_BugzillaLite(self):
