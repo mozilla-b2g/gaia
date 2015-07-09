@@ -14,6 +14,7 @@ build/csslinter.js
 build/esomin/escodegen.js
 build/esomin/esprima.js
 build/jsmin.js
+build/l10n/l20n.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/common/presets.js
 apps/email/js/alameda.js

@@ -279,6 +279,7 @@ shared/js/smart-screen/shared_utils.js # line 29, col 6, Error - Unsafe assignme
 shared/js/template.js # line 160, col 8, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/js/utilities.js # line 145, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 shared/test/unit/load_body_html_helper.js # line 38, col 2, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
+build/l10n/l20n.js # line 480, col 7, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 build/test/unit/webapp_optimize_test.js # line 162, col 6, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 build/utils-node.js # line 40, col 4, Error - Unsafe assignment to innerHTML (no-unsafe-innerhtml/no-unsafe-innerhtml)
 build/utils-xpc.js # line 175, col 16, Error - Unexpected token if
