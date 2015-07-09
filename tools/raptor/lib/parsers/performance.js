@@ -1,4 +1,5 @@
 var Parser = require('./parser');
+var url = require('url');
 var TOKEN = 'PerformanceTiming';
 var OLD_TOKEN = 'Performance Entry: ';
 
@@ -29,9 +30,10 @@ var parser = function(item) {
     .replace(OLD_TOKEN, '')
     .split('|');
   var name = parts[2].split('@');
+  var context = name[1] && url.parse(name[1]).host;
 
   return {
-    context: name[1] || parts[0],
+    context: context || parts[0],
     entryType: parts[1],
     name: name[0],
     startTime: parseFloat(parts[3]),
