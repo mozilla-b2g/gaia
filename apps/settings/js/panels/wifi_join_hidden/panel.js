@@ -21,7 +21,11 @@ define(function(require) {
           panel.querySelector('select[name="security"]');
         elements.submitButton = panel.querySelector('button[type=submit]');
         elements.showPassword = panel.querySelector('input[name=show-pwd]');
-
+        elements.authPhase2 = panel.querySelector('li.auth-phase2 select');
+        elements.userCertificate =
+          panel.querySelector('li.user-certificate select');
+        elements.serverCertificate =
+          panel.querySelector('li.server-certificate select');
         elements.ssid.oninput = this._onSSIDchange;
         elements.securitySelect.onchange = this._onSecurityChange;
       },
@@ -49,11 +53,16 @@ define(function(require) {
         network.ssid = elements.ssid.value;
         network.hidden = true;
 
+        // TODO
+        // add other fields here
         return Promise.resolve({
+          network: network,
           password: elements.password.value,
           identity: elements.identity.value,
           eap: elements.eap.value,
-          network: network
+          authPhase2: elements.authPhase2.value,
+          userCertificate: elements.userCertificate.value,
+          serverCertificate: elements.serverCertificate.value
         });
       },
       _onSecurityChange: function() {
@@ -67,7 +76,6 @@ define(function(require) {
           !WifiHelper.isValidInput(key, password, identity, eap);
 
         WifiHelper.setSecurity(network, [key]);
-        WifiUtils.changeDisplay(elements.panel, key);
       },
       _onSSIDchange: function(event) {
         // Bug 1082394, during composition, we should not change the input

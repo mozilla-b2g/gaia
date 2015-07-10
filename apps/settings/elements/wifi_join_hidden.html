@@ -13,7 +13,7 @@
           <p data-l10n-id="ssid-name"></p>
           <input type="text" data-ignore name="ssid" dir="auto" />
         </li>
-        <li>
+        <li class="security">
           <p data-l10n-id="security"></p>
           <span class="button icon icon-dialog">
             <select name="security">
@@ -30,19 +30,8 @@
             <select name="eap">
               <option value="SIM">SIM</option>
               <option value="PEAP">PEAP</option>
+              <option value="TLS">TLS</option>
               <option value="TTLS">TTLS</option>
-            </select>
-          </span>
-        </li>
-        <li class="auth-phase2">
-          <p data-l10n-id="auth-phase2"></p>
-          <span class="button icon icon-dialog">
-            <select>
-              <option value="No">No</option>
-              <option value="PAP">PAP</option>
-              <option value="MSCHAP">MSCHAP</option>
-              <option value="MSCHAPV2">MSCHAP V2</option>
-              <option value="GTC">GTC</option>
             </select>
           </span>
         </li>
@@ -58,6 +47,12 @@
             <span data-l10n-id="showPassword"></span>
           </label>
         </li>
+        <li class="auth-phase2">
+          <p data-l10n-id="auth-phase2"></p>
+          <span class="button icon icon-dialog">
+            <select></select>
+          </span>
+        </li>
         <li class="server-certificate">
           <p data-l10n-id="server-certificate"></p>
           <span class="button icon icon-dialog">
@@ -66,7 +61,15 @@
             </select>
           </span>
         </li>
-        <li class="description server-certificate-description">
+        <li class="user-certificate">
+          <p data-l10n-id="user-certificate"></p>
+          <span class="button icon icon-dialog">
+            <select>
+              <option value="none">--</option>
+            </select>
+          </span>
+        </li>
+        <li class="description certificate-description">
           <p data-l10n-id="import-certificate-msg"></p>
         </li>
       </ul>

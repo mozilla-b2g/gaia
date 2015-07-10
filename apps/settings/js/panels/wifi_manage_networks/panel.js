@@ -41,7 +41,10 @@ define(function(require) {
                 network,
                 value.password,
                 value.identity,
-                value.eap
+                value.eap,
+                value.authPhase2,
+                value.serverCertificate,
+                value.userCertificate
               );
               WifiContext.associateNetwork(network, function(error) {
                 if (error) {

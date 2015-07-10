@@ -317,30 +317,50 @@ ul[data-state="ready"] li > a {
  * Wi-Fi authentication fields:
  *   - hide password field on open networks
  *   - hide identifier field on non-EAP networks
+ *   
+ * These rules should be applied only for wifi-* panels
  */
-
-section li.password,
-section li.password[hidden],
-section li.eap,
-section li.auth-phase2,
-section li.server-certificate,
-section li.server-certificate-description,
-section li.identity {
+section[id*="wifi-"] li.password,
+section[id*="wifi-"] li.password[hidden],
+section[id*="wifi-"] li.eap,
+section[id*="wifi-"] li.auth-phase2,
+section[id*="wifi-"] li.server-certificate,
+section[id*="wifi-"] li.user-certificate,
+section[id*="wifi-"] li.certificate-description,
+section[id*="wifi-"] li.identity {
   display: none;
 }
 
-section[data-security*="WEP"] li.password,
-section[data-security*="WPA"] li.password,
-section[data-security*="EAP"] li.eap,
-section[data-security*="EAP"] li.auth-phase2,
-section[data-security*="EAP"] li.server-certificate,
-section[data-security*="EAP"] li.server-certificate-description,
-section[data-security*="EAP"] li.identity {
+/* WEP */
+section[id*="wifi-"][data-security="WEP"] li.password,
+/* WPA */
+section[id*="wifi-"][data-security="WPA"] li.password,
+/* WPA-PSK */
+section[id*="wifi-"][data-security="WPA-PSK"] li.password,
+/* WPA-EAP */
+section[id*="wifi-"][data-security="WPA-EAP"] li.eap,
+/* WPA-EAP > SIM - Nothing is needed here */
+/* WPA-EAP > PEAP */
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="PEAP"] li.password,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="PEAP"] li.auth-phase2,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="PEAP"] li.identity,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="PEAP"] li.server-certificate,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="PEAP"] li.certificate-description,
+/* WPA-EAP > TTLS */
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TTLS"] li.password,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TTLS"] li.auth-phase2,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TTLS"] li.identity,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TTLS"] li.server-certificate,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TTLS"] li.certificate-description,
+/* WPA-EAP > TLS   */
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TLS"] li.user-certificate,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TLS"] li.server-certificate,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TLS"] li.certificate-description,
+section[id*="wifi-"][data-security="WPA-EAP"][data-eap="TLS"] li.identity {
   display: inherit;
 }
 
 section li.password {
-  display: inherit; /*asf*/
   height: 12rem;
   -moz-padding-end: 0;
 }
@@ -357,7 +377,6 @@ section li.password > label > span:after {
   right: auto;
   -moz-margin-start: 0;
 }
-
 
 section li.password > label > span {
   -moz-padding-start: 3rem;

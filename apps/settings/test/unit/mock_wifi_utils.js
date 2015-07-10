@@ -17,9 +17,6 @@ define(function() {
     },
     checkPassword: function() {
 
-    },
-    changeDisplay: function() {
-  
     }
   };
 
