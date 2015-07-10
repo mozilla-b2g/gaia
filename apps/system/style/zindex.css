@@ -94,10 +94,12 @@
 }
 
 /*
- * Promote keyboards to stk message screen level when
+ * Promote keyboards to stk message screen level even
+ * when device is locked
  */
 #screen.icc > [data-z-index-level="keyboards"],
-#screen.icc.attention:not(.active-statusbar) > [data-z-index-level="keyboards"] {
+#screen.icc.attention:not(.active-statusbar) > [data-z-index-level="keyboards"],
+#screen.icc.locked > [data-z-index-level="keyboards"] {
   z-index: 16386;
 }
 
