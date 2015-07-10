@@ -2,7 +2,6 @@
   "system": {
     "src": ["apps/system/js/**/*.js",
             "!apps/system/js/accessibility.js",
-            "!apps/system/js/advanced_telemetry.js",
             "!apps/system/js/app_chrome.js",
             "!apps/system/js/app_install_manager.js",
             "!apps/system/js/app_usage_metrics.js",
