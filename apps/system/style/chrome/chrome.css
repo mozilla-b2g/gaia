@@ -313,7 +313,6 @@
   height: 3.2rem;
   background: no-repeat center / 3.2rem content-box;
   background-image: url('images/default_icon.png');
-  border-radius: 50%;
   position: absolute;
 }
 
