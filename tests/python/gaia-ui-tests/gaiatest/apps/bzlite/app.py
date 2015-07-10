@@ -26,8 +26,7 @@ class Bugzilla_Lite(Base):
 
     @property
     def is_logged_in(self):
-        Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(by, locator))))
+        self.wait_for_dashboard_navigator_to_be_displayed()
         return True
 
     def wait_for_dashboard_navigator_to_be_displayed(self):
