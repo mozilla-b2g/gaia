@@ -155,15 +155,15 @@ module.exports =
 
 	var _legacyEnv = __webpack_require__(13);
 
-	var _bindingsHtmlHead = __webpack_require__(17);
+	var _bindingsHtmlHead = __webpack_require__(18);
 
 	var _bindingsHtmlDom = __webpack_require__(4);
 
-	var _bindingsHtmlLangs = __webpack_require__(18);
+	var _bindingsHtmlLangs = __webpack_require__(19);
 
-	var _serialize = __webpack_require__(20);
+	var _serialize = __webpack_require__(21);
 
-	var _legacySerialize = __webpack_require__(21);
+	var _legacySerialize = __webpack_require__(22);
 
 	var View = (function () {
 	  function View(htmloptimizer, fetch) {
@@ -2471,86 +2471,59 @@ module.exports =
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	exports.LegacyEnv = LegacyEnv;
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 	var _libErrors = __webpack_require__(2);
 
 	var _libEnv = __webpack_require__(6);
 
-	var _resolver = __webpack_require__(14);
+	var _context = __webpack_require__(14);
 
-	var _parser = __webpack_require__(15);
+	var _resolver = __webpack_require__(15);
+
+	var _parser = __webpack_require__(16);
 
 	var _parser2 = _interopRequireDefault(_parser);
 
-	var _pseudo = __webpack_require__(16);
+	var _pseudo = __webpack_require__(17);
 
 	var _libPseudo = __webpack_require__(5);
 
-	var _libEvents = __webpack_require__(12);
+	function LegacyEnv(defaultLang, fetch) {
+	  _libEnv.Env.call(this, defaultLang, fetch);
+	}
 
-	var LegacyEnv = (function () {
-	  function LegacyEnv(defaultLang, fetch) {
-	    _classCallCheck(this, LegacyEnv);
+	LegacyEnv.prototype = Object.create(_libEnv.Env.prototype);
 
-	    this.defaultLang = defaultLang;
-	    this.fetch = fetch;
+	LegacyEnv.prototype.createContext = function (resIds) {
+	  return new _context.LegacyContext(this, resIds);
+	};
 
-	    this._resCache = Object.create(null);
+	LegacyEnv.prototype._parse = function (syntax, lang, data) {
+	  var _this = this;
 
-	    var listeners = {};
-	    this.emit = _libEvents.emit.bind(this, listeners);
-	    this.addEventListener = _libEvents.addEventListener.bind(this, listeners);
-	    this.removeEventListener = _libEvents.removeEventListener.bind(this, listeners);
+	  var emit = function (type, err) {
+	    return _this.emit(type, (0, _libEnv.amendError)(lang, err));
+	  };
+	  return _parser2.default.parse.call(_parser2.default, emit, data);
+	};
+
+	LegacyEnv.prototype._create = function (lang, ast) {
+	  var entries = Object.create(null);
+	  var create = lang.src === 'qps' ? createPseudoEntry : _resolver.createEntry;
+
+	  for (var i = 0, node = undefined; node = ast[i]; i++) {
+	    var id = node.$i;
+	    if (id in entries) {
+	      this.emit('duplicateerror', new _libErrors.L10nError('Duplicate string "' + id + '" found in ' + lang.code, id, lang));
+	    }
+	    entries[id] = create(node, lang);
 	  }
 
-	  _createClass(LegacyEnv, [{
-	    key: 'createContext',
-	    value: function createContext(resIds) {
-	      return _libEnv.Env.prototype.createContext.call(this, resIds);
-	    }
-	  }, {
-	    key: '_parse',
-	    value: function _parse(syntax, lang, data) {
-	      var _this = this;
-
-	      var emit = function (type, err) {
-	        return _this.emit(type, (0, _libEnv.amendError)(lang, err));
-	      };
-	      return _parser2.default.parse.call(_parser2.default, emit, data);
-	    }
-	  }, {
-	    key: '_create',
-	    value: function _create(lang, ast) {
-	      var entries = Object.create(null);
-	      var create = lang.src === 'qps' ? createPseudoEntry : _resolver.createEntry;
-
-	      for (var i = 0, node = undefined; node = ast[i]; i++) {
-	        var id = node.$i;
-	        if (id in entries) {
-	          this.emit('duplicateerror', new _libErrors.L10nError('Duplicate string "' + id + '" found in ' + lang.code, id, lang));
-	        }
-	        entries[id] = create(node, lang);
-	      }
-
-	      return entries;
-	    }
-	  }, {
-	    key: '_getResource',
-	    value: function _getResource(lang, res) {
-	      return _libEnv.Env.prototype._getResource.call(this, lang, res);
-	    }
-	  }]);
-
-	  return LegacyEnv;
-	})();
-
-	exports.LegacyEnv = LegacyEnv;
+	  return entries;
+	};
 
 	function createPseudoEntry(node, lang) {
 	  return (0, _resolver.createEntry)((0, _pseudo.walkContent)(node, _libPseudo.qps[lang.code].translate));
@@ -2565,7 +2538,55 @@ module.exports =
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
+	exports.LegacyContext = LegacyContext;
+
+	var _libContext = __webpack_require__(7);
+
+	var _resolver = __webpack_require__(15);
+
+	function LegacyContext(env, resIds) {
+	  _libContext.Context.call(this, env, resIds);
+	}
+
+	LegacyContext.prototype = Object.create(_libContext.Context.prototype);
+
+	LegacyContext.prototype._formatTuple = function (lang, args, entity, id, key) {
+	  try {
+	    return (0, _resolver.format)(this, lang, args, entity);
+	  } catch (err) {
+	    err.id = key ? id + '::' + key : id;
+	    err.lang = lang;
+	    this._env.emit('resolveerror', err, this);
+	    return [{ error: err }, err.id];
+	  }
+	};
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
 	exports.createEntry = createEntry;
+	exports.format = format;
+
+	var _libErrors = __webpack_require__(2);
+
+	var KNOWN_MACROS = ['plural'];
+	var MAX_PLACEABLE_LENGTH = 2500;
+
+	var nonLatin1 = /[^\x01-\xFF]/;
+
+	var FSI = '⁨';
+	var PDI = '⁩';
+
+	var resolutionChain = new WeakSet();
 
 	function createEntry(node) {
 	  var keys = Object.keys(node);
@@ -2605,8 +2626,161 @@ module.exports =
 	  };
 	}
 
+	function format(ctx, lang, args, entity) {
+	  if (typeof entity === 'string') {
+	    return [{}, entity];
+	  }
+
+	  if (resolutionChain.has(entity)) {
+	    throw new _libErrors.L10nError('Cyclic reference detected');
+	  }
+
+	  resolutionChain.add(entity);
+
+	  var rv = undefined;
+
+	  try {
+	    rv = resolveValue({}, ctx, lang, args, entity.value, entity.index);
+	  } finally {
+	    resolutionChain.delete(entity);
+	  }
+	  return rv;
+	}
+
+	function resolveIdentifier(ctx, lang, args, id) {
+	  if (KNOWN_MACROS.indexOf(id) > -1) {
+	    return [{}, ctx._getMacro(lang, id)];
+	  }
+
+	  if (args && args.hasOwnProperty(id)) {
+	    if (typeof args[id] === 'string' || typeof args[id] === 'number' && !isNaN(args[id])) {
+	      return [{}, args[id]];
+	    } else {
+	      throw new _libErrors.L10nError('Arg must be a string or a number: ' + id);
+	    }
+	  }
+
+	  if (id === '__proto__') {
+	    throw new _libErrors.L10nError('Illegal id: ' + id);
+	  }
+
+	  var entity = ctx._getEntity(lang, id);
+
+	  if (entity) {
+	    return format(ctx, lang, args, entity);
+	  }
+
+	  throw new _libErrors.L10nError('Unknown reference: ' + id);
+	}
+
+	function subPlaceable(locals, ctx, lang, args, id) {
+	  var res = undefined;
+
+	  try {
+	    res = resolveIdentifier(ctx, lang, args, id);
+	  } catch (err) {
+	    return [{ error: err }, '{{ ' + id + ' }}'];
+	  }
+
+	  var value = res[1];
+
+	  if (typeof value === 'number') {
+	    return res;
+	  }
+
+	  if (typeof value === 'string') {
+	    if (value.length >= MAX_PLACEABLE_LENGTH) {
+	      throw new _libErrors.L10nError('Too many characters in placeable (' + value.length + ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
+	    }
+
+	    if (locals.contextIsNonLatin1 || value.match(nonLatin1)) {
+	      res[1] = FSI + value + PDI;
+	    }
+
+	    return res;
+	  }
+
+	  return [{}, '{{ ' + id + ' }}'];
+	}
+
+	function interpolate(locals, ctx, lang, args, arr) {
+	  return arr.reduce(function (_ref, cur) {
+	    var _ref2 = _slicedToArray(_ref, 2);
+
+	    var localsSeq = _ref2[0];
+	    var valueSeq = _ref2[1];
+
+	    if (typeof cur === 'string') {
+	      return [localsSeq, valueSeq + cur];
+	    } else if (cur.t === 'idOrVar') {
+	      var _subPlaceable = subPlaceable(locals, ctx, lang, args, cur.v);
+
+	      var _subPlaceable2 = _slicedToArray(_subPlaceable, 2);
+
+	      var value = _subPlaceable2[1];
+
+	      return [localsSeq, valueSeq + value];
+	    }
+	  }, [locals, '']);
+	}
+
+	function resolveSelector(ctx, lang, args, expr, index) {
+	  var selectorName = index[0].v;
+	  var selector = resolveIdentifier(ctx, lang, args, selectorName)[1];
+
+	  if (typeof selector !== 'function') {
+	    return selector;
+	  }
+
+	  var argValue = index[1] ? resolveIdentifier(ctx, lang, args, index[1])[1] : undefined;
+
+	  if (selectorName === 'plural') {
+	    if (argValue === 0 && 'zero' in expr) {
+	      return 'zero';
+	    }
+	    if (argValue === 1 && 'one' in expr) {
+	      return 'one';
+	    }
+	    if (argValue === 2 && 'two' in expr) {
+	      return 'two';
+	    }
+	  }
+
+	  return selector(argValue);
+	}
+
+	function resolveValue(locals, ctx, lang, args, expr, index) {
+	  if (!expr) {
+	    return [locals, expr];
+	  }
+
+	  if (typeof expr === 'string' || typeof expr === 'boolean' || typeof expr === 'number') {
+	    return [locals, expr];
+	  }
+
+	  if (Array.isArray(expr)) {
+	    locals.contextIsNonLatin1 = expr.some(function ($_) {
+	      return typeof $_ === 'string' && $_.match(nonLatin1);
+	    });
+	    return interpolate(locals, ctx, lang, args, expr);
+	  }
+
+	  if (index) {
+	    var selector = resolveSelector(ctx, lang, args, expr, index);
+	    if (expr.hasOwnProperty(selector)) {
+	      return resolveValue(locals, ctx, lang, args, expr[selector]);
+	    }
+	  }
+
+	  if ('other' in expr) {
+	    return resolveValue(locals, ctx, lang, args, expr.other);
+	  }
+
+	  throw new _libErrors.L10nError('Unresolvable value');
+	}
+
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2810,7 +2984,7 @@ module.exports =
 	module.exports = exports.default;
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2843,7 +3017,7 @@ module.exports =
 	}
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2946,7 +3120,7 @@ module.exports =
 	}
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2957,7 +3131,7 @@ module.exports =
 	exports.negotiateLanguages = negotiateLanguages;
 	exports.getDirection = getDirection;
 
-	var _libIntl = __webpack_require__(19);
+	var _libIntl = __webpack_require__(20);
 
 	var _libPseudo = __webpack_require__(5);
 
@@ -3018,7 +3192,7 @@ module.exports =
 	}
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3046,7 +3220,7 @@ module.exports =
 	}
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3110,16 +3284,12 @@ module.exports =
 	}
 
 	function resolvesToString(entity) {
-	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || entity.index !== null;
+	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
 	}
 
-	function areEntityStructsEqual(entity1, entity2) {
-	  if (resolvesToString(entity1) && resolvesToString(entity2)) {
-	    return true;
-	  }
-
-	  var keys1 = Object.keys(entity1);
-	  var keys2 = Object.keys(entity2);
+	function areAttrsEqual(attrs1, attrs2) {
+	  var keys1 = Object.keys(attrs1 || Object.create(null));
+	  var keys2 = Object.keys(attrs2 || Object.create(null));
 
 	  if (keys1.length !== keys2.length) {
 	    return false;
@@ -3134,8 +3304,20 @@ module.exports =
 	  return true;
 	}
 
+	function areEntityStructsEqual(source, translation) {
+	  if (resolvesToString(source) && !resolvesToString(translation)) {
+	    return false;
+	  }
+
+	  if (source.attrs || translation.attrs) {
+	    return areAttrsEqual(source.attrs, translation.attrs);
+	  }
+
+	  return true;
+	}
+
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3237,16 +3419,12 @@ module.exports =
 	}
 
 	function resolvesToString(entity) {
-	  return typeof entity === 'string' || Array.isArray(entity.value) || entity.index !== null;
+	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
 	}
 
-	function areEntityStructsEqual(entity1, entity2) {
-	  if (resolvesToString(entity1) && resolvesToString(entity2)) {
-	    return true;
-	  }
-
-	  var keys1 = Object.keys(entity1);
-	  var keys2 = Object.keys(entity2);
+	function areAttrsEqual(attrs1, attrs2) {
+	  var keys1 = Object.keys(attrs1 || Object.create(null));
+	  var keys2 = Object.keys(attrs2 || Object.create(null));
 
 	  if (keys1.length !== keys2.length) {
 	    return false;
@@ -3256,6 +3434,18 @@ module.exports =
 	    if (keys2.indexOf(keys1[i]) === -1) {
 	      return false;
 	    }
+	  }
+
+	  return true;
+	}
+
+	function areEntityStructsEqual(source, translation) {
+	  if (resolvesToString(source) && !resolvesToString(translation)) {
+	    return false;
+	  }
+
+	  if (source.attrs || translation.attrs) {
+	    return areAttrsEqual(source.attrs, translation.attrs);
 	  }
 
 	  return true;
