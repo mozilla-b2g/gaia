@@ -125,7 +125,7 @@
         "type": "webcontacts/contact"
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?new",
+      "href": "/contacts/views/form/form.html",
       "returnValue": true
     },
     "update": {

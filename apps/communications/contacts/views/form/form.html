@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="theme-group" content="theme-communications">
+    <meta name="theme-color" content="var(--header-background)">
+    <title> Contacts </title>
+
+    <!-- Hack for avoiding 'glitch' when loading the view -->
+    <style type="text/css">
+        html, body {
+            background: #00b7b7 !important;
+        }
+    </style>
+
+    <!-- Building Blocks -->
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/lists.css" rel="stylesheet">
+    <link href="/shared/style/scrolling.css" rel="stylesheet">
+    <link href="/shared/style/buttons.css" rel="stylesheet">
+    <link href="/shared/style/progress_activity.css" rel="stylesheet">
+    <link href="/shared/style/status.css" rel="stylesheet">
+    <link href="/shared/style/switches.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style/action_menu.css" rel="stylesheet">
+    <link href="/shared/style/edit_mode.css" rel="stylesheet">
+    <link href="/shared/style/animations.css" rel="stylesheet">
+
+    <link href="/contacts/style/app.css" rel="stylesheet">
+    <link href="/contacts/style/contacts.css" rel="stylesheet">
+    <link href="/contacts/style/overlay.css" rel="stylesheet">
+    <link href="/shared/pages/import/style/search.css" rel="stylesheet">
+    <link href="/shared/pages/import/style/curtain_frame.css" rel="stylesheet">
+    <link href="/contacts/style/status.css" rel="stylesheet">
+    <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
+    <link href="/shared/style/contacts.css" rel="stylesheet">
+    <link href="/shared/style/contacts/contacts_buttons.css" rel="stylesheet">
+
+
+
+    <link rel="stylesheet" type="text/css" href="app://theme.gaiamobile.org/shared/elements/gaia-theme/gaia-theme.css" />
+
+
+    <!-- Web Components -->
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+
+
+    <!-- Localization -->
+    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
+
+    <script defer src="/shared/js/html_imports.js"></script>
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/contacts/js/utilities/performance_helper.js"></script>
+    <script defer src='/contacts/views/form/js/boot.js'></script>
+
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="/contacts/locales/contacts.{locale}.properties">
+    <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
+
+
+    <!-- Some CSS magic needed to work in a separate html -->
+    <link href="/contacts/views/form/style/overwrite.css" rel="stylesheet">
+
+    <!-- Load just the templates needed -->
+    <link rel="import" href="/contacts/elements/tag.html">
+    <link rel="import" href="/contacts/elements/form.html">
+
+  </head>
+
+  <body role="application" class="app-contacts skin-comms theme-communications">
+    <section is="view-contact-form" id="view-contact-form" role="region" class="view view-bottom view-edit-contact"></section>
+    <form id="action-menu" role="dialog" data-type="action" class="hide">
+      <header id="org-title" data-l10n-id="select_recipient"> Select recipient </header>
+      <menu id="value-menu" type="toolbar">
+      </menu>
+    </form>
+    <section is="view-select-tag" id="view-select-tag" role="region" class="view view-right view-select-tag"></section>
+    <form id="action-menu" role="dialog" data-type="action" class="hide">
+      <header id="org-title" data-l10n-id="select_recipient"> Select recipient </header>
+      <menu id="value-menu" type="toolbar">
+      </menu>
+    </form>
+    <iframe src="/shared/pages/import/curtain.html" id="iframe_curtain"></iframe>
+  </body>
+</html>
