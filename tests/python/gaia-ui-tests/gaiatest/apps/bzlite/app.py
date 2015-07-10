@@ -2,18 +2,15 @@ from marionette import Marionette
 from gaiatest.apps.base import Base
 from marionette_driver import By, Wait, expected
 
-class Bugzilla_Lite(Base):
+class Bugzilla_lite(Base):
 
     name = 'Bugzilla Lite'
     _given_username = (By.CSS_SELECTOR, "#login input[type='email']")
     _given_password = (By.CSS_SELECTOR, "#login input[type='password']")
     _button_login = (By.CSS_SELECTOR, "#login input[type='submit']")
-    _app_ready_locator = (By.XPATH, "#content header")
     _dashboard_navigator_locator = (By.ID, 'dashboardNav')
-    
-    def launch (self):
-        Base.launch(self)
-
+    _popup_intro = (By.ID, 'intro')
+    _button_popup_intro = (By.ID, 'intro-submit')        
     def login (self, username, password):
         username_element = self.marionette.find_element(*self._given_username)
         username_element.tap()
@@ -32,3 +29,7 @@ class Bugzilla_Lite(Base):
     def wait_for_dashboard_navigator_to_be_displayed(self):
         Wait(self.marionette).until(expected.element_displayed(
             Wait(self.marionette).until(expected.element_present(*self._dashboard_navigator_locator))))
+
+    def dismiss_tooltip(self):
+        tooltip_element = self.marionette.find_element(*self._popup_intro).find_element(*self._button_popup_intro)
+        tooltip_element.tap()
