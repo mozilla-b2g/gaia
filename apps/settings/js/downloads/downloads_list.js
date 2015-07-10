@@ -233,11 +233,13 @@
   // Methods for controlling the edit mode
 
   function _getAllChecks() {
-    return downloadsContainer.querySelectorAll('input');
+    return downloadsContainer.querySelectorAll('gaia-checkbox');
   }
 
   function _getAllChecked() {
-    return downloadsContainer.querySelectorAll('input:checked');
+    return [].filter.call(_getAllChecks(), el => {
+      return el.checked;
+    });
   }
 
   function _markAllChecksAs(condition) {
@@ -275,7 +277,7 @@
 
   function _onDownloadSelected(event) {
     if (isEditMode && event.target.tagName === 'LI') {
-      var input = event.target.querySelector('input[type=checkbox]');
+      var input = event.target.querySelector('gaia-checkbox');
       if (typeof input === 'undefined') {
         return;
       }
@@ -297,7 +299,7 @@
         force: multipleDelete
       });
       downloadElements[downloadsChecked[i].value] =
-        downloadsChecked[i].parentNode.parentNode;
+        downloadsChecked[i].parentNode;
       if (multipleDelete) {
         downloadList.push(downloadElements[downloadsChecked[i].value]);
       }

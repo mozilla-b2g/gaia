@@ -16,8 +16,7 @@ function NotificationsPanel(client) {
 module.exports = NotificationsPanel;
 
 NotificationsPanel.Selectors = {
-  'showOnLockScreenCheckbox': '#notifications input',
-  'showOnLockScreenLabel': '#notifications label'
+  'showOnLockScreenCheckbox': '#notifications gaia-checkbox'
 };
 
 NotificationsPanel.prototype = {
@@ -31,7 +30,7 @@ NotificationsPanel.prototype = {
   },
 
   tapOnShowOnLockScreen: function() {
-    this.waitForElement('showOnLockScreenLabel').tap();
+    this.waitForElement('showOnLockScreenCheckbox').click();
   }
 
 };

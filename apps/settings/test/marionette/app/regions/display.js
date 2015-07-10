@@ -21,9 +21,7 @@ DisplayPanel.Selectors = {
     '#display gaia-switch[name="screen.orientation.lock"]',
   'autoBrightnessItem': '.brightness-auto',
   'autoBrightnessCheckbox':
-    '#display input[name="screen.automatic-brightness"]',
-  'autoBrightnessSpan':
-    '#display input[name="screen.automatic-brightness"] ~ span',
+    '#display gaia-checkbox[name="screen.automatic-brightness"]',
   'manualBrightnessItem': '.brightness-manual',
   'screenTimeoutSelectorItem': '#screen-timeout',
   'screenTimeoutSelector': '#screen-timeout select'
@@ -43,7 +41,10 @@ DisplayPanel.prototype = {
   },
 
   get isAutoBrightnessChecked() {
-    return !!this.findElement('autoBrightnessCheckbox').getAttribute('checked');
+    return !!this.findElement('autoBrightnessCheckbox')
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   get isAutoBrightnessItemVisible() {
@@ -75,7 +76,7 @@ DisplayPanel.prototype = {
   },
 
   tapAutoBrightnessCheckbox: function() {
-    this.waitForElement('autoBrightnessSpan').tap();
+    this.waitForElement('autoBrightnessCheckbox').tap();
   },
 
   tapScreenTimeoutSelector: function() {

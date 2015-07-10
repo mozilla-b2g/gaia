@@ -45,7 +45,7 @@ apps/settings/style/lists.css 2 2
 apps/settings/style/settings.css 0 9
 apps/settings/style/settings_large.css 1 1
 apps/settings/style/screen_lock.css 0 2
-apps/settings/style/downloads.css 0 3
+apps/settings/style/downloads.css 0 6
 apps/sms/views/shared/style/common.css 0 1
 apps/sms/views/shared/style/sms.css 0 2
 apps/sms/views/inbox/style/inbox.css 0 2
