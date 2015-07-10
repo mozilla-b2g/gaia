@@ -6,7 +6,7 @@
          FtuLauncher, SourceView, ScreenManager, Places,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, TaskManager, Import,
-         SuspendingAppPriorityManager, TTLView, TTLTelemetry,
+         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils,
@@ -16,7 +16,7 @@
          BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
          BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
-         DevToolsAuth, AdvancedTelemetry */
+         DevToolsAuth */
 'use strict';
 
 /* === Shortcuts === */
@@ -140,8 +140,6 @@ window.addEventListener('load', function startup() {
   // Please sort it alphabetically
   window.accessibility = new Accessibility();
   window.accessibility.start();
-  window.advancedTelemetry = new AdvancedTelemetry();
-  window.advancedTelemetry.start();
   window.appMigrator = new AppMigrator();
   window.appMigrator.start();
   window.appUsageMetrics = new AppUsageMetrics();
@@ -195,7 +193,6 @@ window.addEventListener('load', function startup() {
   window.taskManager = new TaskManager();
   window.taskManager.start();
   window.ttlView = new TTLView();
-  window.ttlTelemetry = new TTLTelemetry();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();
   window.wallpaperManager = new window.WallpaperManager();
