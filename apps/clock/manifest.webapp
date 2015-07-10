@@ -41,6 +41,15 @@
     "284": "/style/icons/clock_284.png"
   },
   "orientation": "default",
+  "connections": {
+    "create_alarm": {
+      "handler_path": "/index.html",
+      "description": "Create alarm",
+      "rules": {
+        "manifestURLs": ["app://vaani.gaiamobile.org/manifest.webapp"]
+      }
+    }
+  },
   "messages": [
      { "alarm": "/index.html" }
   ]

@@ -3,6 +3,7 @@ define(function(require) {
 
 var Tabs = require('tabs');
 var View = require('view');
+var connectionHandler = require('connection/handler');
 var rAF = mozRequestAnimationFrame || requestAnimationFrame;
 
 /**
@@ -13,6 +14,7 @@ var App = {
    * Load the Tabs and Panels, attach events and navigate to the default view.
    */
   init: function() {
+    connectionHandler.init();
     this.tabs = new Tabs(document.getElementById('clock-tabs'));
 
     window.addEventListener('hashchange', this);
