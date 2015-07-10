@@ -295,9 +295,6 @@ suite('Homescreen app', () => {
       app.addApp({});
       assert.isFalse(addAppIconStub.called, 'Empty app objects');
 
-      app.addApp({ origin: 'app://privacy-panel.gaiamobile.org' });
-      assert.isFalse(addAppIconStub.called, 'Blacklisted app');
-
       app.addApp({ manifest: {} });
       assert.isTrue(addAppIconStub.calledOnce);
     });
