@@ -20,7 +20,8 @@ define(function(require) {
         elements.securitySelect =
           panel.querySelector('select[name="security"]');
         elements.submitButton = panel.querySelector('button[type=submit]');
-        elements.showPassword = panel.querySelector('input[name=show-pwd]');
+        elements.showPassword = panel.querySelector(
+          'gaia-checkbox[name=show-pwd]');
 
         elements.ssid.oninput = this._onSSIDchange;
         elements.securitySelect.onchange = this._onSecurityChange;
