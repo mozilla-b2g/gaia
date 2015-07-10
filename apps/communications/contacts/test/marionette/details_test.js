@@ -56,7 +56,6 @@ marionette('Contacts > Details', function() {
     client.helper.waitForElement(selectors.listContactFirstText).click();
     subject.waitSlideLeft('details');
     assertContactData(testContact);
-    client.findElement(selectors.detailsLinkButton);
   });
 
   test('Show contact with picture', function() {
