@@ -2,7 +2,7 @@
   ManifestHelper,ThumbnailItem,ThumbnailList,ThumbnailDateGroup,initDB,
   ForwardRewindController,ScreenLayout,processingQueue,VideoUtils,MediaUtils,
   MozActivity,MediaDB,metadataQueue,processingQueue,LazyLoader,Dialogs,
-  captureFrame,VideoStats,AdvancedTelemetryHelper,noMoreWorkCallback:true */
+  captureFrame,VideoStats,noMoreWorkCallback:true */
 /* exported resetCurrentVideo,updateLoadingSpinner,thumbnailClickHandler,
   showThrobber,hideThrobber,$ */
 'use strict';
@@ -1012,9 +1012,6 @@ function setNFCSharing(enable) {
 
 // show video player
 function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
-  var ath = new AdvancedTelemetryHelper();
-  ath.add('rn-metric', 99);
-
   if (currentVideo) {
     var old = thumbnailList.thumbnailMap[currentVideo.name];
     old.htmlNode.classList.remove('focused');
