@@ -190,6 +190,7 @@ shared/js/media/video_player.js
 shared/js/stk_helper.js
 shared/js/tz_select.js
 shared/pages/import/js/curtain.js
+shared/pages/import/js/curtain_panel.js
 tv_apps/smart-home/js/edit.js
 tv_apps/smart-home/js/home.js
 tv_apps/smart-system/js/accessibility.js
