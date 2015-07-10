@@ -143,9 +143,9 @@ module.exports =
 	  value: true
 	});
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
-	function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -206,11 +206,7 @@ module.exports =
 	    value: function emit() {
 	      var _env;
 
-	      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	        args[_key] = arguments[_key];
-	      }
-
-	      return (_env = this.env).emit.apply(_env, args);
+	      return (_env = this.env).emit.apply(_env, arguments);
 	    }
 	  }, {
 	    key: 'observe',
@@ -480,7 +476,8 @@ module.exports =
 
 	var parsers = {
 	  properties: _formatPropertiesParser2.default,
-	  l20n: _formatL20nEntriesParser2.default };
+	  l20n: _formatL20nEntriesParser2.default
+	};
 
 	var Env = (function () {
 	  function Env(defaultLang, fetch) {
@@ -581,9 +578,9 @@ module.exports =
 	  value: true
 	});
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
-	function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -654,7 +651,8 @@ module.exports =
 
 	      var formatted = {
 	        value: value,
-	        attrs: null };
+	        attrs: null
+	      };
 
 	      if (entity.attrs) {
 	        formatted.attrs = Object.create(null);
@@ -745,9 +743,10 @@ module.exports =
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
-	exports.format = format;
 
-	function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+	exports.format = format;
 
 	var _errors = __webpack_require__(2);
 
@@ -1399,7 +1398,8 @@ module.exports =
 	      unicode: /\\u([0-9a-fA-F]{1,4})/g,
 	      entries: /[^\r\n]+/g,
 	      controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g,
-	      placeables: /\{\{\s*([^\s]*?)\s*\}\}/ };
+	      placeables: /\{\{\s*([^\s]*?)\s*\}\}/
+	    };
 	  },
 
 	  parse: function (emit, source) {
@@ -1587,7 +1587,7 @@ module.exports =
 	  },
 
 	  error: function (msg) {
-	    var type = arguments[1] === undefined ? 'parsererror' : arguments[1];
+	    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
 
 	    var err = new _errors.L10nError(msg);
 	    if (this.emit) {
@@ -1608,7 +1608,7 @@ module.exports =
 	  value: true
 	});
 
-	function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
 	var _errors = __webpack_require__(2);
 
@@ -1708,8 +1708,8 @@ module.exports =
 	  },
 
 	  getValue: function () {
-	    var ch = arguments[0] === undefined ? this._source[this._index] : arguments[0];
-	    var optional = arguments[1] === undefined ? false : arguments[1];
+	    var ch = arguments.length <= 0 || arguments[0] === undefined ? this._source[this._index] : arguments[0];
+	    var optional = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
 	    switch (ch) {
 	      case '\'':
@@ -2099,7 +2099,7 @@ module.exports =
 	  },
 
 	  error: function (message) {
-	    var type = arguments[1] === undefined ? 'parsererror' : arguments[1];
+	    var type = arguments.length <= 1 || arguments[1] === undefined ? 'parsererror' : arguments[1];
 
 	    var pos = this._index;
 
@@ -2114,7 +2114,8 @@ module.exports =
 	      this.emit(type, err);
 	    }
 	    return err;
-	  } };
+	  }
+	};
 	module.exports = exports.default;
 
 /***/ },
@@ -2297,7 +2298,8 @@ module.exports =
 	  return {
 	    value: node.$v !== undefined ? node.$v : null,
 	    index: node.$x || null,
-	    attrs: attrs || null };
+	    attrs: attrs || null
+	  };
 	}
 
 	function createAttribute(node) {
@@ -2307,7 +2309,8 @@ module.exports =
 
 	  return {
 	    value: node.$v || (node !== undefined ? node : null),
-	    index: node.$x || null };
+	    index: node.$x || null
+	  };
 	}
 
 /***/ },
@@ -2337,7 +2340,8 @@ module.exports =
 	      unicode: /\\u([0-9a-fA-F]{1,4})/g,
 	      entries: /[^\r\n]+/g,
 	      controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g,
-	      placeables: /\{\{\s*([^\s]*?)\s*\}\}/ };
+	      placeables: /\{\{\s*([^\s]*?)\s*\}\}/
+	    };
 	  },
 
 	  parse: function (emit, source) {
@@ -2555,10 +2559,11 @@ module.exports =
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
+
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
 	exports.getResourceLinks = getResourceLinks;
 	exports.getMeta = getMeta;
-
-	function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
 
 	function getResourceLinks(head) {
 	  return Array.prototype.map.call(head.querySelectorAll('link[rel="localization"]'), function (el) {
@@ -2673,6 +2678,7 @@ module.exports =
 	    global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
 	    a: ['download'],
 	    area: ['download', 'alt'],
+
 	    input: ['alt', 'placeholder'],
 	    menuitem: ['label'],
 	    menu: ['label'],
@@ -3103,16 +3109,12 @@ module.exports =
 	}
 
 	function resolvesToString(entity) {
-	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || entity.index !== null;
+	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
 	}
 
-	function areEntityStructsEqual(entity1, entity2) {
-	  if (resolvesToString(entity1) && resolvesToString(entity2)) {
-	    return true;
-	  }
-
-	  var keys1 = Object.keys(entity1);
-	  var keys2 = Object.keys(entity2);
+	function areAttrsEqual(attrs1, attrs2) {
+	  var keys1 = Object.keys(attrs1 || Object.create(null));
+	  var keys2 = Object.keys(attrs2 || Object.create(null));
 
 	  if (keys1.length !== keys2.length) {
 	    return false;
@@ -3122,6 +3124,18 @@ module.exports =
 	    if (keys2.indexOf(keys1[i]) === -1) {
 	      return false;
 	    }
+	  }
+
+	  return true;
+	}
+
+	function areEntityStructsEqual(source, translation) {
+	  if (resolvesToString(source) && !resolvesToString(translation)) {
+	    return false;
+	  }
+
+	  if (source.attrs || translation.attrs) {
+	    return areAttrsEqual(source.attrs, translation.attrs);
 	  }
 
 	  return true;
@@ -3168,7 +3182,8 @@ module.exports =
 	  }
 
 	  var node = {
-	    $i: id };
+	    $i: id
+	  };
 
 	  if (entry.value !== null) {
 	    node.$v = entry.value;
@@ -3204,16 +3219,12 @@ module.exports =
 	}
 
 	function resolvesToString(entity) {
-	  return typeof entity === 'string' || Array.isArray(entity.value) || entity.index !== null;
+	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
 	}
 
-	function areEntityStructsEqual(entity1, entity2) {
-	  if (resolvesToString(entity1) && resolvesToString(entity2)) {
-	    return true;
-	  }
-
-	  var keys1 = Object.keys(entity1);
-	  var keys2 = Object.keys(entity2);
+	function areAttrsEqual(attrs1, attrs2) {
+	  var keys1 = Object.keys(attrs1 || Object.create(null));
+	  var keys2 = Object.keys(attrs2 || Object.create(null));
 
 	  if (keys1.length !== keys2.length) {
 	    return false;
@@ -3223,6 +3234,18 @@ module.exports =
 	    if (keys2.indexOf(keys1[i]) === -1) {
 	      return false;
 	    }
+	  }
+
+	  return true;
+	}
+
+	function areEntityStructsEqual(source, translation) {
+	  if (resolvesToString(source) && !resolvesToString(translation)) {
+	    return false;
+	  }
+
+	  if (source.attrs || translation.attrs) {
+	    return areAttrsEqual(source.attrs, translation.attrs);
 	  }
 
 	  return true;
