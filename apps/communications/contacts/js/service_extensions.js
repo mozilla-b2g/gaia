@@ -6,9 +6,8 @@
 (function(exports) {
   var extServices = {};
 
-  // TODO Remove fb- prefixes: Bug 1181469
-  var extensionFrame = document.querySelector('#fb-extensions');
-  var oauthFrame = document.querySelector('#fb-oauth');
+  var extensionFrame = document.querySelector('#iframe_extensions');
+  var oauthFrame = document.querySelector('#iframe_oauth');
   oauthFrame.src = '/shared/pages/import/oauth.html';
   var currentURI, access_token;
   var canClose = true, canCloseLogout = true;
