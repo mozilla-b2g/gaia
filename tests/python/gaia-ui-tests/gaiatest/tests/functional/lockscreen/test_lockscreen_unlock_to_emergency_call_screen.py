@@ -7,7 +7,7 @@ from gaiatest.apps.lockscreen.app import LockScreen
 
 class TestLockScreen(PasscodeTestCase):
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        PasscodeTestCase.setUp(self)
 
         self.set_passcode_to_1337()
 

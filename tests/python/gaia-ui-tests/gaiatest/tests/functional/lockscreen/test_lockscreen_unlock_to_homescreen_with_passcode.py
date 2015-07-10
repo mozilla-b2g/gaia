@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest import PasscodeTestCase, GaiaTestCase
+from gaiatest import PasscodeTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
 
@@ -11,7 +11,7 @@ class TestLockScreen(PasscodeTestCase):
     _input_passcode = '1337'
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        PasscodeTestCase.setUp(self)
 
         self.set_passcode_to_1337()
 
