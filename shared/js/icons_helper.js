@@ -6,6 +6,7 @@
  *  different sources.
  */
 (function IconsHelper(exports) {
+  const ICON_CACHE_PERIOD = 24 * 60 * 60 * 1000; // 1 day
   const FETCH_XHR_TIMEOUT = 10000;
   const DEBUG = false;
 
@@ -106,7 +107,8 @@
           // @todo Need a better syntax.
           getStore().then(iconStore => {
             iconStore.get(iconUrl).then(iconObj => {
-              if (!iconObj) {
+              if (!iconObj || !iconObj.timestamp ||
+                Date.now() - iconObj.timestamp >= ICON_CACHE_PERIOD) {
                 return fetchIcon(iconUrl)
                   .then(iconObject => {
                     // We resolve here to avoid I/O blocking on dataStore and
@@ -154,7 +156,7 @@
       var nearestSize = getNearestSize(sizes, iconSize, bestSize);
 
       if (nearestSize !== bestSize &&
-          sizeIsNearer(nearestSize, bestSize, iconSize)) {
+        sizeIsNearer(nearestSize, bestSize, iconSize)) {
         iconURL = potentialIcon.src;
         bestSize = nearestSize;
       }
@@ -215,7 +217,7 @@
       var nearestSize = getNearestSize(sizes, iconSize, bestSize);
 
       if (nearestSize !== bestSize &&
-          sizeIsNearer(nearestSize, bestSize, iconSize)) {
+        sizeIsNearer(nearestSize, bestSize, iconSize)) {
         iconURL = uri;
         bestSize = nearestSize;
       }
@@ -281,6 +283,17 @@
     });
   }
 
+  /**
+   * Clear all the icons in the store.
+   *
+   * @returns {Promise}
+   */
+  function clear() {
+    return getStore().then(iconStore => {
+      iconStore.clear();
+    });
+  }
+
 
   /**
    * Return a promise that resolves to an object containing the blob and size
@@ -317,7 +330,8 @@
             resolve({
               url: iconUrl,
               blob: iconBlob,
-              size: iconSize
+              size: iconSize,
+              timestamp: Date.now()
             });
           };
 
@@ -346,9 +360,13 @@
     getBestIconFromMetaTags: getBestIconFromMetaTags,
 
     fetchIcon: fetchIcon,
+
     get defaultIconSize() {
       return getDefaultIconSize();
     },
+
+    clear: clear,
+
     // Make public for unit test purposes.
     getNearestSize: getNearestSize,
   };

@@ -1,14 +1,18 @@
 'use strict';
-/* global BrowserSettings, MockNavigatormozApps,
-   MockNavigatorSettings, MockService, MocksHelper */
+/* global BrowserSettings, MockNavigatormozApps, MockNavigatorSettings,
+          MockService, MocksHelper, MockLazyLoader, IconsHelper */
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_service.js');
+requireApp('system/test/unit/mock_lazy_loader.js');
+requireApp('system/shared/test/unit/mocks/mock_icons_helper.js');
 
 
 var mocksForBrowserSettings = new MocksHelper([
-  'Service'
+  'Service',
+  'LazyLoader',
+  'IconsHelper'
 ]).init();
 
 suite('system/BrowserSettings', function() {
@@ -29,6 +33,9 @@ suite('system/BrowserSettings', function() {
       browserSettings.start();
       done();
     });
+
+    MockLazyLoader.mLoadRightAway = true;
+    sinon.spy(MockLazyLoader, 'load');
   });
 
   suiteTeardown(function() {
@@ -68,6 +75,17 @@ suite('system/BrowserSettings', function() {
                       'Browser data clear should be requested');
       }
     );
+
+    test('setting clear.browser.private-data should clear icons dataStore',
+      function() {
+        var iconsHelperStub = this.sinon.stub(IconsHelper, 'clear');
+        navigator.mozSettings.createLock().set({
+          'clear.browser.private-data': true
+        });
+
+        assert.isTrue(iconsHelperStub.called,
+          'IconsHelper.clear() should be called');
+      }
+    );
   });
 });
-
