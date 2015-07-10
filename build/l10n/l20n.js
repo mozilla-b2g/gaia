@@ -56,7 +56,7 @@ module.exports =
 
 	var _bindingsGaiabuildView = __webpack_require__(3);
 
-	var _libPseudo = __webpack_require__(4);
+	var _libPseudo = __webpack_require__(5);
 
 	Object.defineProperty(exports, 'qps', {
 	  enumerable: true,
@@ -149,17 +149,15 @@ module.exports =
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _libErrors = __webpack_require__(2);
+	var _libPseudo = __webpack_require__(5);
 
-	var _libPseudo = __webpack_require__(4);
+	var _libEnv = __webpack_require__(6);
 
-	var _libEnv = __webpack_require__(5);
+	var _legacyEnv = __webpack_require__(13);
 
-	var _legacyEnv = __webpack_require__(12);
+	var _bindingsHtmlHead = __webpack_require__(17);
 
-	var _bindingsHtmlHead = __webpack_require__(16);
-
-	var _bindingsHtmlDom = __webpack_require__(17);
+	var _bindingsHtmlDom = __webpack_require__(4);
 
 	var _bindingsHtmlLangs = __webpack_require__(18);
 
@@ -240,12 +238,12 @@ module.exports =
 	        src: code in _libPseudo.qps ? 'qps' : 'app'
 	      };
 	      return fetchContext(this.ctx, lang).then(function () {
-	        var _serializeContext = serializeContext(_this2.ctx, lang, _this2.isLegacy ? _legacySerialize.serializeLegacyEntries : _serialize.serializeEntries);
+	        var _ref = _this2.isLegacy ? (0, _legacySerialize.serializeLegacyContext)(_this2.ctx, lang) : (0, _serialize.serializeContext)(_this2.ctx, lang);
 
-	        var _serializeContext2 = _slicedToArray(_serializeContext, 2);
+	        var _ref2 = _slicedToArray(_ref, 2);
 
-	        var errors = _serializeContext2[0];
-	        var entries = _serializeContext2[1];
+	        var errors = _ref2[0];
+	        var entries = _ref2[1];
 
 	        if (errors.length) {
 	          var notFoundErrors = errors.filter(function (err) {
@@ -306,30 +304,324 @@ module.exports =
 	  }));
 	}
 
-	function serializeContext(ctx, lang, fn) {
-	  var cache = ctx._env._resCache;
-	  return ctx._resIds.reduce(function (_ref, cur) {
-	    var _ref2 = _slicedToArray(_ref, 2);
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
 
-	    var errorsSeq = _ref2[0];
-	    var entriesSeq = _ref2[1];
+	'use strict';
 
-	    var sourceRes = cache[cur + 'en-USapp'];
-	    var langRes = cache[cur + lang.code + lang.src];
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+	exports.setAttributes = setAttributes;
+	exports.getAttributes = getAttributes;
+	exports.translateMutations = translateMutations;
+	exports.translateFragment = translateFragment;
+	exports.translateElement = translateElement;
 
-	    var _fn = fn(lang, langRes instanceof _libErrors.L10nError ? {} : langRes, sourceRes instanceof _libErrors.L10nError ? {} : sourceRes);
+	var _libErrors = __webpack_require__(2);
 
-	    var _fn2 = _slicedToArray(_fn, 2);
+	var reOverlay = /<|&#?\w+;/;
 
-	    var errors = _fn2[0];
-	    var entries = _fn2[1];
+	var allowed = {
+	  elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
+	  attributes: {
+	    global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
+	    a: ['download'],
+	    area: ['download', 'alt'],
 
-	    return [errorsSeq.concat(errors), entriesSeq.concat(entries)];
-	  }, [[], []]);
+	    input: ['alt', 'placeholder'],
+	    menuitem: ['label'],
+	    menu: ['label'],
+	    optgroup: ['label'],
+	    option: ['label'],
+	    track: ['label'],
+	    img: ['alt'],
+	    textarea: ['placeholder'],
+	    th: ['abbr']
+	  }
+	};
+
+	function setAttributes(element, id, args) {
+	  element.setAttribute('data-l10n-id', id);
+	  if (args) {
+	    element.setAttribute('data-l10n-args', JSON.stringify(args));
+	  }
+	}
+
+	function getAttributes(element) {
+	  return {
+	    id: element.getAttribute('data-l10n-id'),
+	    args: JSON.parse(element.getAttribute('data-l10n-args'))
+	  };
+	}
+
+	function getTranslatables(element) {
+	  var nodes = [];
+
+	  if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
+	    nodes.push(element);
+	  }
+
+	  return nodes.concat.apply(nodes, element.querySelectorAll('*[data-l10n-id]'));
+	}
+
+	function translateMutations(view, langs, mutations) {
+	  var targets = new Set();
+
+	  var _iteratorNormalCompletion = true;
+	  var _didIteratorError = false;
+	  var _iteratorError = undefined;
+
+	  try {
+	    for (var _iterator = mutations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	      var mutation = _step.value;
+
+	      switch (mutation.type) {
+	        case 'attributes':
+	          targets.add(mutation.target);
+	          break;
+	        case 'childList':
+	          var _iteratorNormalCompletion2 = true;
+	          var _didIteratorError2 = false;
+	          var _iteratorError2 = undefined;
+
+	          try {
+	            for (var _iterator2 = mutation.addedNodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	              var addedNode = _step2.value;
+
+	              if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
+	                targets.add(addedNode);
+	              }
+	            }
+	          } catch (err) {
+	            _didIteratorError2 = true;
+	            _iteratorError2 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+	                _iterator2['return']();
+	              }
+	            } finally {
+	              if (_didIteratorError2) {
+	                throw _iteratorError2;
+	              }
+	            }
+	          }
+
+	          break;
+	      }
+	    }
+	  } catch (err) {
+	    _didIteratorError = true;
+	    _iteratorError = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion && _iterator['return']) {
+	        _iterator['return']();
+	      }
+	    } finally {
+	      if (_didIteratorError) {
+	        throw _iteratorError;
+	      }
+	    }
+	  }
+
+	  if (targets.size === 0) {
+	    return;
+	  }
+
+	  var elements = [];
+
+	  targets.forEach(function (target) {
+	    return target.childElementCount ? elements.concat(getTranslatables(target)) : elements.push(target);
+	  });
+
+	  Promise.all(elements.map(function (elem) {
+	    return getElementTranslation(view, langs, elem);
+	  })).then(function (translations) {
+	    return applyTranslations(view, elements, translations);
+	  });
+	}
+
+	function translateFragment(view, langs, frag) {
+	  var elements = getTranslatables(frag);
+	  return Promise.all(elements.map(function (elem) {
+	    return getElementTranslation(view, langs, elem);
+	  })).then(function (translations) {
+	    return applyTranslations(view, elements, translations);
+	  });
+	}
+
+	function camelCaseToDashed(string) {
+	  if (string === 'ariaValueText') {
+	    return 'aria-valuetext';
+	  }
+
+	  return string.replace(/[A-Z]/g, function (match) {
+	    return '-' + match.toLowerCase();
+	  }).replace(/^-/, '');
+	}
+
+	function getElementTranslation(view, langs, elem) {
+	  var l10n = getAttributes(elem);
+
+	  return l10n.id ? view.ctx.formatEntity(langs, l10n.id, l10n.args) : false;
+	}
+
+	function translateElement(view, langs, elem) {
+	  return getElementTranslation(view, langs, elem).then(function (translation) {
+	    if (!translation) {
+	      return false;
+	    }
+
+	    view.disconnect();
+	    applyTranslation(view, elem, translation);
+	    view.observe();
+	  });
+	}
+
+	function applyTranslations(view, elements, translations) {
+	  view.disconnect();
+	  for (var i = 0; i < elements.length; i++) {
+	    if (translations[i] === false) {
+	      continue;
+	    }
+	    applyTranslation(view, elements[i], translations[i]);
+	  }
+	  view.observe();
+	}
+
+	function applyTranslation(view, element, translation) {
+	  var value = undefined;
+	  if (translation.attrs && translation.attrs.innerHTML) {
+	    value = translation.attrs.innerHTML;
+	    view.emit('deprecatewarning', new _libErrors.L10nError('L10n Deprecation Warning: using innerHTML in translations is unsafe ' + 'and will not be supported in future versions of l10n.js. ' + 'See https://bugzil.la/1027117'));
+	  } else {
+	    value = translation.value;
+	  }
+
+	  if (typeof value === 'string') {
+	    if (!reOverlay.test(value)) {
+	      element.textContent = value;
+	    } else {
+	      var tmpl = element.ownerDocument.createElement('template');
+	      tmpl.innerHTML = value;
+
+	      overlayElement(element, tmpl.content);
+	    }
+	  }
+
+	  for (var key in translation.attrs) {
+	    var attrName = camelCaseToDashed(key);
+	    if (isAttrAllowed({ name: attrName }, element)) {
+	      element.setAttribute(attrName, translation.attrs[key]);
+	    }
+	  }
+	}
+
+	function overlayElement(sourceElement, translationElement) {
+	  var result = translationElement.ownerDocument.createDocumentFragment();
+	  var k = undefined,
+	      attr = undefined;
+
+	  var childElement = undefined;
+	  while (childElement = translationElement.childNodes[0]) {
+	    translationElement.removeChild(childElement);
+
+	    if (childElement.nodeType === childElement.TEXT_NODE) {
+	      result.appendChild(childElement);
+	      continue;
+	    }
+
+	    var index = getIndexOfType(childElement);
+	    var sourceChild = getNthElementOfType(sourceElement, childElement, index);
+	    if (sourceChild) {
+	      overlayElement(sourceChild, childElement);
+	      result.appendChild(sourceChild);
+	      continue;
+	    }
+
+	    if (isElementAllowed(childElement)) {
+	      for (k = 0, attr; attr = childElement.attributes[k]; k++) {
+	        if (!isAttrAllowed(attr, childElement)) {
+	          childElement.removeAttribute(attr.name);
+	        }
+	      }
+	      result.appendChild(childElement);
+	      continue;
+	    }
+
+	    result.appendChild(translationElement.ownerDocument.createTextNode(childElement.textContent));
+	  }
+
+	  sourceElement.textContent = '';
+	  sourceElement.appendChild(result);
+
+	  if (translationElement.attributes) {
+	    for (k = 0, attr; attr = translationElement.attributes[k]; k++) {
+	      if (isAttrAllowed(attr, sourceElement)) {
+	        sourceElement.setAttribute(attr.name, attr.value);
+	      }
+	    }
+	  }
+	}
+
+	function isElementAllowed(element) {
+	  return allowed.elements.indexOf(element.tagName.toLowerCase()) !== -1;
+	}
+
+	function isAttrAllowed(attr, element) {
+	  var attrName = attr.name.toLowerCase();
+	  var tagName = element.tagName.toLowerCase();
+
+	  if (allowed.attributes.global.indexOf(attrName) !== -1) {
+	    return true;
+	  }
+
+	  if (!allowed.attributes[tagName]) {
+	    return false;
+	  }
+
+	  if (allowed.attributes[tagName].indexOf(attrName) !== -1) {
+	    return true;
+	  }
+
+	  if (tagName === 'input' && attrName === 'value') {
+	    var type = element.type.toLowerCase();
+	    if (type === 'submit' || type === 'button' || type === 'reset') {
+	      return true;
+	    }
+	  }
+	  return false;
+	}
+
+	function getNthElementOfType(context, element, index) {
+	  var nthOfType = 0;
+	  for (var i = 0, child = undefined; child = context.children[i]; i++) {
+	    if (child.nodeType === child.ELEMENT_NODE && child.tagName === element.tagName) {
+	      if (nthOfType === index) {
+	        return child;
+	      }
+	      nthOfType++;
+	    }
+	  }
+	  return null;
+	}
+
+	function getIndexOfType(element) {
+	  var index = 0;
+	  var child = undefined;
+	  while (child = element.previousElementSibling) {
+	    if (child.tagName === element.tagName) {
+	      index++;
+	    }
+	  }
+	  return index;
 	}
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -443,7 +735,7 @@ module.exports =
 	exports.qps = qps;
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -460,19 +752,19 @@ module.exports =
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _context = __webpack_require__(6);
+	var _context = __webpack_require__(7);
 
-	var _formatPropertiesParser = __webpack_require__(9);
+	var _formatPropertiesParser = __webpack_require__(10);
 
 	var _formatPropertiesParser2 = _interopRequireDefault(_formatPropertiesParser);
 
-	var _formatL20nEntriesParser = __webpack_require__(10);
+	var _formatL20nEntriesParser = __webpack_require__(11);
 
 	var _formatL20nEntriesParser2 = _interopRequireDefault(_formatL20nEntriesParser);
 
-	var _pseudo = __webpack_require__(4);
+	var _pseudo = __webpack_require__(5);
 
-	var _events = __webpack_require__(11);
+	var _events = __webpack_require__(12);
 
 	var parsers = {
 	  properties: _formatPropertiesParser2.default,
@@ -569,7 +861,7 @@ module.exports =
 	}
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -586,9 +878,9 @@ module.exports =
 
 	var _errors = __webpack_require__(2);
 
-	var _resolver = __webpack_require__(7);
+	var _resolver = __webpack_require__(8);
 
-	var _plurals = __webpack_require__(8);
+	var _plurals = __webpack_require__(9);
 
 	var Context = (function () {
 	  function Context(env, resIds) {
@@ -735,7 +1027,7 @@ module.exports =
 	exports.Context = Context;
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -919,7 +1211,7 @@ module.exports =
 	}
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1371,7 +1663,7 @@ module.exports =
 	}
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1599,7 +1891,7 @@ module.exports =
 	module.exports = exports.default;
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2119,7 +2411,7 @@ module.exports =
 	module.exports = exports.default;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2171,7 +2463,7 @@ module.exports =
 	}
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2188,19 +2480,19 @@ module.exports =
 
 	var _libErrors = __webpack_require__(2);
 
-	var _libEnv = __webpack_require__(5);
+	var _libEnv = __webpack_require__(6);
 
-	var _resolver = __webpack_require__(13);
+	var _resolver = __webpack_require__(14);
 
-	var _parser = __webpack_require__(14);
+	var _parser = __webpack_require__(15);
 
 	var _parser2 = _interopRequireDefault(_parser);
 
-	var _pseudo = __webpack_require__(15);
+	var _pseudo = __webpack_require__(16);
 
-	var _libPseudo = __webpack_require__(4);
+	var _libPseudo = __webpack_require__(5);
 
-	var _libEvents = __webpack_require__(11);
+	var _libEvents = __webpack_require__(12);
 
 	var LegacyEnv = (function () {
 	  function LegacyEnv(defaultLang, fetch) {
@@ -2265,7 +2557,7 @@ module.exports =
 	}
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2314,7 +2606,7 @@ module.exports =
 	}
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2518,7 +2810,7 @@ module.exports =
 	module.exports = exports.default;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2551,7 +2843,7 @@ module.exports =
 	}
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2654,322 +2946,6 @@ module.exports =
 	}
 
 /***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-	exports.setAttributes = setAttributes;
-	exports.getAttributes = getAttributes;
-	exports.translateMutations = translateMutations;
-	exports.translateFragment = translateFragment;
-	exports.translateElement = translateElement;
-
-	var _libErrors = __webpack_require__(2);
-
-	var reOverlay = /<|&#?\w+;/;
-
-	var allowed = {
-	  elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'],
-	  attributes: {
-	    global: ['title', 'aria-label', 'aria-valuetext', 'aria-moz-hint'],
-	    a: ['download'],
-	    area: ['download', 'alt'],
-
-	    input: ['alt', 'placeholder'],
-	    menuitem: ['label'],
-	    menu: ['label'],
-	    optgroup: ['label'],
-	    option: ['label'],
-	    track: ['label'],
-	    img: ['alt'],
-	    textarea: ['placeholder'],
-	    th: ['abbr']
-	  }
-	};
-
-	function setAttributes(element, id, args) {
-	  element.setAttribute('data-l10n-id', id);
-	  if (args) {
-	    element.setAttribute('data-l10n-args', JSON.stringify(args));
-	  }
-	}
-
-	function getAttributes(element) {
-	  return {
-	    id: element.getAttribute('data-l10n-id'),
-	    args: JSON.parse(element.getAttribute('data-l10n-args'))
-	  };
-	}
-
-	function getTranslatables(element) {
-	  var nodes = [];
-
-	  if (typeof element.hasAttribute === 'function' && element.hasAttribute('data-l10n-id')) {
-	    nodes.push(element);
-	  }
-
-	  return nodes.concat.apply(nodes, element.querySelectorAll('*[data-l10n-id]'));
-	}
-
-	function translateMutations(view, langs, mutations) {
-	  var targets = new Set();
-
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
-
-	  try {
-	    for (var _iterator = mutations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var mutation = _step.value;
-
-	      switch (mutation.type) {
-	        case 'attributes':
-	          targets.add(mutation.target);
-	          break;
-	        case 'childList':
-	          var _iteratorNormalCompletion2 = true;
-	          var _didIteratorError2 = false;
-	          var _iteratorError2 = undefined;
-
-	          try {
-	            for (var _iterator2 = mutation.addedNodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	              var addedNode = _step2.value;
-
-	              if (addedNode.nodeType === addedNode.ELEMENT_NODE) {
-	                targets.add(addedNode);
-	              }
-	            }
-	          } catch (err) {
-	            _didIteratorError2 = true;
-	            _iteratorError2 = err;
-	          } finally {
-	            try {
-	              if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-	                _iterator2['return']();
-	              }
-	            } finally {
-	              if (_didIteratorError2) {
-	                throw _iteratorError2;
-	              }
-	            }
-	          }
-
-	          break;
-	      }
-	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator['return']) {
-	        _iterator['return']();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
-	    }
-	  }
-
-	  if (targets.size === 0) {
-	    return;
-	  }
-
-	  var elements = [];
-
-	  targets.forEach(function (target) {
-	    return target.childElementCount ? elements.concat(getTranslatables(target)) : elements.push(target);
-	  });
-
-	  Promise.all(elements.map(function (elem) {
-	    return getElementTranslation(view, langs, elem);
-	  })).then(function (translations) {
-	    return applyTranslations(view, elements, translations);
-	  });
-	}
-
-	function translateFragment(view, langs, frag) {
-	  var elements = getTranslatables(frag);
-	  return Promise.all(elements.map(function (elem) {
-	    return getElementTranslation(view, langs, elem);
-	  })).then(function (translations) {
-	    return applyTranslations(view, elements, translations);
-	  });
-	}
-
-	function camelCaseToDashed(string) {
-	  if (string === 'ariaValueText') {
-	    return 'aria-valuetext';
-	  }
-
-	  return string.replace(/[A-Z]/g, function (match) {
-	    return '-' + match.toLowerCase();
-	  }).replace(/^-/, '');
-	}
-
-	function getElementTranslation(view, langs, elem) {
-	  var l10n = getAttributes(elem);
-
-	  return l10n.id ? view.ctx.formatEntity(langs, l10n.id, l10n.args) : false;
-	}
-
-	function translateElement(view, langs, elem) {
-	  return getElementTranslation(view, langs, elem).then(function (translation) {
-	    if (!translation) {
-	      return false;
-	    }
-
-	    view.disconnect();
-	    applyTranslation(view, elem, translation);
-	    view.observe();
-	  });
-	}
-
-	function applyTranslations(view, elements, translations) {
-	  view.disconnect();
-	  for (var i = 0; i < elements.length; i++) {
-	    if (translations[i] === false) {
-	      continue;
-	    }
-	    applyTranslation(view, elements[i], translations[i]);
-	  }
-	  view.observe();
-	}
-
-	function applyTranslation(view, element, translation) {
-	  var value = undefined;
-	  if (translation.attrs && translation.attrs.innerHTML) {
-	    value = translation.attrs.innerHTML;
-	    view.emit('deprecatewarning', new _libErrors.L10nError('L10n Deprecation Warning: using innerHTML in translations is unsafe ' + 'and will not be supported in future versions of l10n.js. ' + 'See https://bugzil.la/1027117'));
-	  } else {
-	    value = translation.value;
-	  }
-
-	  if (typeof value === 'string') {
-	    if (!reOverlay.test(value)) {
-	      element.textContent = value;
-	    } else {
-	      var tmpl = element.ownerDocument.createElement('template');
-	      tmpl.innerHTML = value;
-
-	      overlayElement(element, tmpl.content);
-	    }
-	  }
-
-	  for (var key in translation.attrs) {
-	    var attrName = camelCaseToDashed(key);
-	    if (isAttrAllowed({ name: attrName }, element)) {
-	      element.setAttribute(attrName, translation.attrs[key]);
-	    }
-	  }
-	}
-
-	function overlayElement(sourceElement, translationElement) {
-	  var result = translationElement.ownerDocument.createDocumentFragment();
-	  var k = undefined,
-	      attr = undefined;
-
-	  var childElement = undefined;
-	  while (childElement = translationElement.childNodes[0]) {
-	    translationElement.removeChild(childElement);
-
-	    if (childElement.nodeType === childElement.TEXT_NODE) {
-	      result.appendChild(childElement);
-	      continue;
-	    }
-
-	    var index = getIndexOfType(childElement);
-	    var sourceChild = getNthElementOfType(sourceElement, childElement, index);
-	    if (sourceChild) {
-	      overlayElement(sourceChild, childElement);
-	      result.appendChild(sourceChild);
-	      continue;
-	    }
-
-	    if (isElementAllowed(childElement)) {
-	      for (k = 0, attr; attr = childElement.attributes[k]; k++) {
-	        if (!isAttrAllowed(attr, childElement)) {
-	          childElement.removeAttribute(attr.name);
-	        }
-	      }
-	      result.appendChild(childElement);
-	      continue;
-	    }
-
-	    result.appendChild(translationElement.ownerDocument.createTextNode(childElement.textContent));
-	  }
-
-	  sourceElement.textContent = '';
-	  sourceElement.appendChild(result);
-
-	  if (translationElement.attributes) {
-	    for (k = 0, attr; attr = translationElement.attributes[k]; k++) {
-	      if (isAttrAllowed(attr, sourceElement)) {
-	        sourceElement.setAttribute(attr.name, attr.value);
-	      }
-	    }
-	  }
-	}
-
-	function isElementAllowed(element) {
-	  return allowed.elements.indexOf(element.tagName.toLowerCase()) !== -1;
-	}
-
-	function isAttrAllowed(attr, element) {
-	  var attrName = attr.name.toLowerCase();
-	  var tagName = element.tagName.toLowerCase();
-
-	  if (allowed.attributes.global.indexOf(attrName) !== -1) {
-	    return true;
-	  }
-
-	  if (!allowed.attributes[tagName]) {
-	    return false;
-	  }
-
-	  if (allowed.attributes[tagName].indexOf(attrName) !== -1) {
-	    return true;
-	  }
-
-	  if (tagName === 'input' && attrName === 'value') {
-	    var type = element.type.toLowerCase();
-	    if (type === 'submit' || type === 'button' || type === 'reset') {
-	      return true;
-	    }
-	  }
-	  return false;
-	}
-
-	function getNthElementOfType(context, element, index) {
-	  var nthOfType = 0;
-	  for (var i = 0, child = undefined; child = context.children[i]; i++) {
-	    if (child.nodeType === child.ELEMENT_NODE && child.tagName === element.tagName) {
-	      if (nthOfType === index) {
-	        return child;
-	      }
-	      nthOfType++;
-	    }
-	  }
-	  return null;
-	}
-
-	function getIndexOfType(element) {
-	  var index = 0;
-	  var child = undefined;
-	  while (child = element.previousElementSibling) {
-	    if (child.tagName === element.tagName) {
-	      index++;
-	    }
-	  }
-	  return index;
-	}
-
-/***/ },
 /* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -2983,7 +2959,7 @@ module.exports =
 
 	var _libIntl = __webpack_require__(19);
 
-	var _libPseudo = __webpack_require__(4);
+	var _libPseudo = __webpack_require__(5);
 
 	var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
@@ -3078,9 +3054,34 @@ module.exports =
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
-	exports.serializeEntries = serializeEntries;
+
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+	exports.serializeContext = serializeContext;
 
 	var _libErrors = __webpack_require__(2);
+
+	function serializeContext(ctx, lang) {
+	  var cache = ctx._env._resCache;
+	  return ctx._resIds.reduceRight(function (_ref, cur) {
+	    var _ref2 = _slicedToArray(_ref, 2);
+
+	    var errorsSeq = _ref2[0];
+	    var entriesSeq = _ref2[1];
+
+	    var sourceRes = cache[cur + 'en-USapp'];
+	    var langRes = cache[cur + lang.code + lang.src];
+
+	    var _serializeEntries = serializeEntries(lang, langRes instanceof _libErrors.L10nError ? {} : langRes, sourceRes instanceof _libErrors.L10nError ? {} : sourceRes);
+
+	    var _serializeEntries2 = _slicedToArray(_serializeEntries, 2);
+
+	    var errors = _serializeEntries2[0];
+	    var entries = _serializeEntries2[1];
+
+	    return [errorsSeq.concat(errors), Object.assign(entriesSeq, entries)];
+	  }, [[], Object.create(null)]);
+	}
 
 	function serializeEntries(lang, langEntries, sourceEntries) {
 	  var errors = [];
@@ -3109,12 +3110,16 @@ module.exports =
 	}
 
 	function resolvesToString(entity) {
-	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
+	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || entity.index !== null;
 	}
 
-	function areAttrsEqual(attrs1, attrs2) {
-	  var keys1 = Object.keys(attrs1 || Object.create(null));
-	  var keys2 = Object.keys(attrs2 || Object.create(null));
+	function areEntityStructsEqual(entity1, entity2) {
+	  if (resolvesToString(entity1) && resolvesToString(entity2)) {
+	    return true;
+	  }
+
+	  var keys1 = Object.keys(entity1);
+	  var keys2 = Object.keys(entity2);
 
 	  if (keys1.length !== keys2.length) {
 	    return false;
@@ -3129,18 +3134,6 @@ module.exports =
 	  return true;
 	}
 
-	function areEntityStructsEqual(source, translation) {
-	  if (resolvesToString(source) && !resolvesToString(translation)) {
-	    return false;
-	  }
-
-	  if (source.attrs || translation.attrs) {
-	    return areAttrsEqual(source.attrs, translation.attrs);
-	  }
-
-	  return true;
-	}
-
 /***/ },
 /* 21 */
 /***/ function(module, exports, __webpack_require__) {
@@ -3150,11 +3143,36 @@ module.exports =
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
-	exports.serializeLegacyEntries = serializeLegacyEntries;
+
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+	exports.serializeLegacyContext = serializeLegacyContext;
 
 	var _libErrors = __webpack_require__(2);
 
-	function serializeLegacyEntries(lang, langEntries, sourceEntries) {
+	function serializeLegacyContext(ctx, lang) {
+	  var cache = ctx._env._resCache;
+	  return ctx._resIds.reduce(function (_ref, cur) {
+	    var _ref2 = _slicedToArray(_ref, 2);
+
+	    var errorsSeq = _ref2[0];
+	    var entriesSeq = _ref2[1];
+
+	    var sourceRes = cache[cur + 'en-USapp'];
+	    var langRes = cache[cur + lang.code + lang.src];
+
+	    var _serializeEntries = serializeEntries(lang, langRes instanceof _libErrors.L10nError ? {} : langRes, sourceRes instanceof _libErrors.L10nError ? {} : sourceRes);
+
+	    var _serializeEntries2 = _slicedToArray(_serializeEntries, 2);
+
+	    var errors = _serializeEntries2[0];
+	    var entries = _serializeEntries2[1];
+
+	    return [errorsSeq.concat(errors), entriesSeq.concat(entries)];
+	  }, [[], []]);
+	}
+
+	function serializeEntries(lang, langEntries, sourceEntries) {
 	  var errors = [];
 	  var entries = Object.keys(sourceEntries).map(function (id) {
 	    var sourceEntry = sourceEntries[id];
@@ -3219,12 +3237,16 @@ module.exports =
 	}
 
 	function resolvesToString(entity) {
-	  return typeof entity === 'string' || typeof entity.value === 'string' || Array.isArray(entity.value) || typeof entity.value === 'object' && entity.index !== null;
+	  return typeof entity === 'string' || Array.isArray(entity.value) || entity.index !== null;
 	}
 
-	function areAttrsEqual(attrs1, attrs2) {
-	  var keys1 = Object.keys(attrs1 || Object.create(null));
-	  var keys2 = Object.keys(attrs2 || Object.create(null));
+	function areEntityStructsEqual(entity1, entity2) {
+	  if (resolvesToString(entity1) && resolvesToString(entity2)) {
+	    return true;
+	  }
+
+	  var keys1 = Object.keys(entity1);
+	  var keys2 = Object.keys(entity2);
 
 	  if (keys1.length !== keys2.length) {
 	    return false;
@@ -3234,18 +3256,6 @@ module.exports =
 	    if (keys2.indexOf(keys1[i]) === -1) {
 	      return false;
 	    }
-	  }
-
-	  return true;
-	}
-
-	function areEntityStructsEqual(source, translation) {
-	  if (resolvesToString(source) && !resolvesToString(translation)) {
-	    return false;
-	  }
-
-	  if (source.attrs || translation.attrs) {
-	    return areAttrsEqual(source.attrs, translation.attrs);
 	  }
 
 	  return true;
