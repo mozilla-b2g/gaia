@@ -9,6 +9,7 @@
 /* global MainNavigation */
 /* global TAG_OPTIONS */
 /* global utils */
+/* global HeaderUI */
 
 /* global ContactsService */
 
@@ -32,24 +33,11 @@ var Contacts = (function() {
   var SHARED_CONTACTS = 'sharedContacts';
   var SHARED_CONTACTS_PATH = SHARED_PATH + '/' + 'contacts';
 
-  const SELECT_MODE_CLASS = {
-    'pick' : {
-      'text/vcard' : ['disable-fb-items']
-    }
-  };
-
   var goToForm = function edit() {
     var transition = ActivityHandler.currentlyHandling ? 'activity-popup'
                                                        : 'fade-in';
     MainNavigation.go('view-contact-form', transition);
   };
-
-  var settings,
-      settingsButton,
-      header,
-      addButton,
-      appTitleElement,
-      editModeTitleElement;
 
   var loadAsyncScriptsDeferred = {};
   loadAsyncScriptsDeferred.promise = new Promise((resolve) => {
@@ -205,15 +193,6 @@ var Contacts = (function() {
     }
   };
 
-  var initContainers = function initContainers() {
-    settings = document.getElementById('view-settings');
-    settingsButton = document.getElementById('settings-button');
-    header = document.getElementById('contacts-list-header');
-    addButton = document.getElementById('add-contact-button');
-    editModeTitleElement = document.getElementById('edit-title');
-    appTitleElement = document.getElementById('app-title');
-  };
-
   var onLocalized = function onLocalized() {
     init();
 
@@ -267,68 +246,9 @@ var Contacts = (function() {
     getFirstContacts();
     contactsList.initAlphaScroll();
     contactsList.handleClick(contactListClickHandler);
-    checkCancelableActivity();
-  };
-
-  function setupCancelableHeader(alternativeTitle) {
-    header.setAttribute('action', 'close');
-    settingsButton.hidden = true;
-    addButton.hidden = true;
-    if (alternativeTitle) {
-      appTitleElement.setAttribute('data-l10n-id', alternativeTitle);
-    }
-    // Trigger the title to re-run font-fit/centering logic
-    appTitleElement.textContent = appTitleElement.textContent;
-  }
-
-  function setupActionableHeader() {
-    header.removeAttribute('action');
-    settingsButton.hidden = false;
-    addButton.hidden = false;
-
-    appTitleElement.setAttribute('data-l10n-id', 'contacts');
-  }
-
-  var lastCustomHeaderCallback;
-
-  var setCancelableHeader = function setCancelableHeader(cb, titleId) {
-    setupCancelableHeader(titleId);
-    header.removeEventListener('action', handleCancel);
-    lastCustomHeaderCallback = cb;
-    header.addEventListener('action', cb);
-  };
-
-  var setNormalHeader = function setNormalHeader() {
-    setupActionableHeader();
-    header.removeEventListener('action', lastCustomHeaderCallback);
-    header.addEventListener('action', handleCancel);
-  };
-
-  var setSelectModeClass = function(element, activityName, activityType) {
-    var classesByType = SELECT_MODE_CLASS[activityName] || {};
-    activityType = Array.isArray(activityType) ? activityType : [activityType];
-    activityType.forEach(function(type) {
-      var classesToAdd = classesByType[type];
-      if (classesToAdd) {
-        element.classList.add.apply(element.classList, classesToAdd);
-      }
+    ActivityHandler.isCancelable().then(isCancelable => {
+      HeaderUI.updateHeader(isCancelable);
     });
-  };
-
-  var checkCancelableActivity = function cancelableActivity() {
-    if (ActivityHandler.currentlyHandling) {
-      var alternativeTitle = null;
-      var activityName = ActivityHandler.activityName;
-      if (activityName === 'pick' || activityName === 'update') {
-        alternativeTitle = 'selectContact';
-      }
-      var groupsList = document.getElementById('groups-list');
-      setSelectModeClass(groupsList, activityName,
-                                              ActivityHandler.activityDataType);
-      setupCancelableHeader(alternativeTitle);
-    } else {
-      setupActionableHeader();
-    }
   };
 
   var contactListClickHandler = function originalHandler(id) {
@@ -368,7 +288,7 @@ var Contacts = (function() {
   };
 
   var selectList = function selectList(params, fromUpdateActivity) {
-    addButton.classList.add('hide');
+    HeaderUI.hideAddButton();
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
       var data = {};
@@ -569,10 +489,6 @@ var Contacts = (function() {
   var enterSearchMode = function enterSearchMode(evt) {
     Contacts.view('Search', function viewLoaded() {
       contacts.List.initSearch(function onInit() {
-        var searchList = document.getElementById('search-list'),
-            activityName = ActivityHandler.activityName,
-            activityType = ActivityHandler.activityDataType;
-        setSelectModeClass(searchList, activityName, activityType);
         contacts.Search.enterSearchMode(evt);
       });
     }, SHARED_CONTACTS);
@@ -755,7 +671,6 @@ var Contacts = (function() {
   };
 
   var initContacts = function initContacts(evt) {
-    initContainers();
     initEventListeners();
     utils.PerformanceHelper.contentInteractive();
     utils.PerformanceHelper.chromeInteractive();
@@ -883,12 +798,6 @@ var Contacts = (function() {
     load('utilities', utility, callback, type);
   }
 
-  var updateSelectCountTitle = function updateSelectCountTitle(count) {
-    navigator.mozL10n.setAttributes(editModeTitleElement,
-                                    'SelectedTxt',
-                                    {n: count});
-  };
-
   window.addEventListener('DOMContentLoaded', function onLoad() {
     window.removeEventListener('DOMContentLoaded', onLoad);
   });
@@ -896,7 +805,6 @@ var Contacts = (function() {
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
-    'checkCancelableActivity': checkCancelableActivity,
     'showForm': showForm,
     'setCurrent': setCurrent,
     'onLocalized': onLocalized,
@@ -909,9 +817,6 @@ var Contacts = (function() {
     'close': close,
     'view': loadView,
     'utility': loadUtility,
-    'updateSelectCountTitle': updateSelectCountTitle,
-    'setCancelableHeader': setCancelableHeader,
-    'setNormalHeader': setNormalHeader,
     get asyncScriptsLoaded() {
       return loadAsyncScriptsDeferred.promise;
     },

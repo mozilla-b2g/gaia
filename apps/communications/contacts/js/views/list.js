@@ -13,6 +13,7 @@
 /* global Normalizer */
 /* global utils */
 /* global ContactsService */
+/* global HeaderUI */
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -2175,7 +2176,7 @@ contacts.List = (function() {
     }
   };
   function updateSelectCount(count) {
-    Contacts.updateSelectCountTitle(count);
+    HeaderUI.updateSelectCountTitle(count);
   }
 
   // Given a UUID we will call the callback function

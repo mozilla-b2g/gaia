@@ -1,4 +1,4 @@
-/* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu,
+/* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu, HeaderUI,
    ContactToVcardBlob, VcardFilename, VcardActivityHandler, MainNavigation */
 /* exported ActivityHandler */
 
@@ -77,13 +77,21 @@ var ActivityHandler = {
     return this.currentlyHandling && list.indexOf(this.activityName) === -1;
   },
 
+  isCancelable: function() {
+    return new Promise(resolve => {
+      resolve(!!this.currentlyHandling);
+    });
+  },
+
   launch_activity: function ah_launch(activity, action) {
     if (this._launchedAsInlineActivity) {
       return;
     }
 
     this._currentActivity = activity;
-    Contacts.checkCancelableActivity();
+    this.isCancelable().then(isCancelable => {
+      HeaderUI.updateHeader(isCancelable);
+    });
 
     var hash = action;
     var param, params = [];
@@ -123,7 +131,9 @@ var ActivityHandler = {
           return;
         }
         this._currentActivity = activity;
-        Contacts.checkCancelableActivity();
+        this.isCancelable().then(isCancelable => {
+          HeaderUI.updateHeader(isCancelable);
+        });
         MainNavigation.home();
         break;
       case 'import':
