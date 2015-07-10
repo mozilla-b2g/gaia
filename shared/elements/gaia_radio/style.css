@@ -1,3 +1,8 @@
+gaia-radio {
+  display: inline-block;
+  width: 100%;
+}
+
 #radio {
   display: inline-block;
   vertical-align: middle;

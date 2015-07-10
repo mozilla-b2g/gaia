@@ -48,8 +48,8 @@ var DataUsageTab = (function() {
 
       // Update and chart visibility
       document.addEventListener('visibilitychange', updateWhenVisible);
-      wifiToggle.addEventListener('click', toggleWifi);
-      mobileToggle.addEventListener('click', toggleMobile);
+      wifiToggle.addEventListener('change', toggleWifi);
+      mobileToggle.addEventListener('change', toggleMobile);
 
       // Setup the model
       SimManager.requestDataSimIcc(function(dataSimIcc) {
