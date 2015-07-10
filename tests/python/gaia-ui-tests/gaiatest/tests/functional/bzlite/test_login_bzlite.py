@@ -12,5 +12,5 @@ class TestBugzillaLite(GaiaTestCase):
         BugzillaLite = Bugzilla_Lite(self.marionette)
         BugzillaLite.launch()
         BugzillaLite.login(self.testvars['bugzilla']['user'], self.testvars['bugzilla']['password'])
-        slef.assertTrue(BugzillaLite.is_logged_in)
+        assertTrue(BugzillaLite.is_logged_in)
 
