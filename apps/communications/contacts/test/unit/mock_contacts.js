@@ -46,5 +46,6 @@ var MockContacts = {
   get asyncScriptsLoaded() {
     loadAsyncScriptsDeferred.resolve();
     return loadAsyncScriptsDeferred.promise;
-  }
+  },
+  showForm: function() {}
 };

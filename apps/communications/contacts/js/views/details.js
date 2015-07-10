@@ -9,6 +9,7 @@
 /* global ContactPhotoHelper */
 /* globals ContactToVcardBlob */
 /* global fb */
+/* global NFC */
 /* global ICEData */
 /* global LazyLoader */
 /* global MozActivity */
@@ -83,15 +84,11 @@ contacts.Details = (function() {
 
     initPullEffect(cover);
 
-    utils.listeners.add({
-      '#toggle-favorite': toggleFavorite,
-      '#details-view-header': [
-        {
-          event: 'action',
-          handler: handleDetailsBack
-        }
-      ],
-      '#edit-contact-button': showEditContact
+    // to avoid race conditions with NFC, we load it before handleDetails
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      favoriteMessage.addEventListener('click', toggleFavorite);
+      editContactButton.addEventListener('click', showEditContact);
+      header.addEventListener('action', handleDetailsBack);
     });
 
     ContactsButtons.init(listContainer, contactDetails, ActivityHandler);
@@ -111,10 +108,8 @@ contacts.Details = (function() {
   };
 
   var handleDetailsBack = function handleDetailsBack() {
-    // disable NFC listeners if NFC is available
-    if ('mozNfc' in navigator) {
-      contacts.NFC.stopListening();
-    }
+    // disable NFC listeners when going out of Details view
+    stopNFC();
 
     if (WebrtcClient) {
       getWebrtcClientResources(WebrtcClient.stop);
@@ -154,11 +149,27 @@ contacts.Details = (function() {
   };
 
   var showEditContact = function showEditContact() {
+    // Disable NFC listeners when editing a contact
+    stopNFC();
     Contacts.showForm(true, contactData);
   };
 
   var setContact = function cd_setContact(currentContact) {
     contactData = currentContact;
+    startNFC(currentContact);
+  };
+
+  // Needed for now because of external call from contacts.js
+  var startNFC = function(contact) {
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      NFC.startListening(contact);
+    });
+  };
+
+  var stopNFC = function() {
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      NFC.stopListening();
+    });
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
@@ -213,12 +224,16 @@ contacts.Details = (function() {
 
   // readOnly tells us if we should allow editing the rendered contact.
   var render = function cd_render(currentContact, fbContactData, readOnly) {
+
     if(isAFavoriteChange){
       isAFavoriteChange = false;
       return Promise.resolve(isAFavoriteChange);
     }
 
+
     contactData = currentContact || contactData;
+
+    startNFC(contactData);
 
     isFbContact = fb.isFbContact(contactData);
     isFbLinked = fb.isFbLinked(contactData);
@@ -688,6 +703,7 @@ contacts.Details = (function() {
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
-    'defaultTelType' : DEFAULT_TEL_TYPE
+    'defaultTelType': DEFAULT_TEL_TYPE,
+    'startNFC': startNFC
   };
 })();

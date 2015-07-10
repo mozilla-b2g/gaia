@@ -10,6 +10,8 @@
 /* global MockDetailsDom */
 /* global MockExtFb */
 /* global Mockfb */
+/* global MockMozNfc */
+/* global MockContactsNfc */
 /* global MocksHelper */
 /* global MainNavigation */
 /* global MockMozContacts */
@@ -20,6 +22,7 @@
 /* global triggerEvent */
 /* exported SCALE_RATIO */
 /* global utils */
+/* global NFC */
 
 /* exported _ */
 
@@ -40,6 +43,7 @@ require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
 
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/js/views/details.js');
+requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_main_navigation.js');
@@ -55,6 +59,7 @@ requireApp('communications/contacts/js/utilities/extract_params.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 require('/shared/test/unit/mocks/mock_moz_contact.js');
+require('/shared/test/unit/mocks/mock_moz_nfc.js');
 
 var _ = function(key) { return key; },
     subject,
@@ -85,7 +90,9 @@ var _ = function(key) { return key; },
     realContactsList,
     mozL10nGetSpy,
     header,
-    realListeners;
+    realListeners,
+    realNFC,
+    realMozNFC;
 
 requireApp('communications/contacts/js/tag_optionsstem.js');
 
@@ -153,6 +160,10 @@ suite('Render contact', function() {
     contacts.List = MockContactsListObj;
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
+    realNFC = window.NFC;
+    window.NFC = MockContactsNfc;
+    realMozNFC = window.navigator.mozNfc;
+    window.navigator.mozNfc = MockMozNfc;
     realFb = window.fb;
     window.fb = Mockfb;
     window.ExtServices = MockExtFb;
@@ -196,6 +207,9 @@ suite('Render contact', function() {
 
     mozL10nGetSpy.restore();
     window.mozL10n = realL10n;
+
+    window.NFC = realNFC;
+    window.navigator.mozNfc = realMozNFC;
 
     utils.listeners = realListeners;
 
@@ -249,7 +263,6 @@ suite('Render contact', function() {
       assert.notEqual(detailsNameText.textContent, '');
       assert.isTrue(mozL10nGetSpy.calledWith('noName'));
     });
-
   });
 
   suite('Render favorite', function() {
@@ -710,6 +723,32 @@ suite('Render contact', function() {
       });
 
       subject.render(null, TAG_OPTIONS);
+    });
+  });
+
+  suite('NFC activation', function() {
+    setup(function() {
+      this.sinon.spy(NFC, 'startListening');
+      this.sinon.spy(NFC, 'stopListening');
+    });
+
+    test('> start listening when render a contact', function() {
+      subject.render(null, TAG_OPTIONS);
+      sinon.assert.calledOnce(NFC.startListening);
+    });
+
+    test('> stop listening when opening edit mode', function() {
+      // subject.render(null, TAG_OPTIONS);
+      // sinon.assert.calledOnce(NFC.startListening);
+      editContactButton.click();
+      sinon.assert.calledOnce(NFC.stopListening);
+    });
+
+    test('> stop listening when closing details', function() {
+      // subject.render(null, TAG_OPTIONS);
+      // sinon.assert.calledOnce(NFC.startListening);
+      triggerEvent(header, 'action');
+      sinon.assert.calledOnce(NFC.stopListening);
     });
   });
 
