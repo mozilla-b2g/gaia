@@ -1,23 +1,31 @@
-/* global asyncStorage, SettingsListener, performance, uuid*/
+/**
+ * This module is responsible for managing the AdvancedTelemetry features in
+ * Gaia. Advanced Telemetry includes:
+ *  1) Engineering Performance metrics on a per app basis that are collected
+ *  by the HUD engine in gecko.
+ *  2) Custom App Metrics.  Apps can define their custom metrics and have them
+ *  collected in a histogram as well.  This API is defined via the
+ *  AdvancedTelemetryHelper.
+ *
+ * Metrics are gathered in gecko and requested from AdvancedTelemetry Module
+ * when it is time to ship the metrics to the server depending on the send
+ * interval desired.
+ */
+
+/* global asyncStorage, SettingsListener, uuid */
 (function(exports) {
   'use strict';
 
-  /*
-   * Simple constants used in this module.
-   */
-
-  // This is the asyncStorage key we use to persist our app usage data so
-  // that it survives across device restarts.
-  const PERSISTENCE_KEY = 'metrics.advanced_telemetry.data.v2';
+  // This is the asyncStorage key we use to persist the histograms in case of a
+  // shutdown.
+  const BATCH_KEY = 'metrics.advanced_telemetry.data.v4';
 
   // This is the asyncStorage key we use to persist our device ID
-  // v1 of this ID used a randomly generated String, while v2 uses a UUID
-  const DEVICE_ID_KEY = 'metrics.advanced_telemetry.deviceID.v2';
+  const DEVICE_ID_KEY = 'metrics.advanced_telemetry.deviceID.v4';
 
   const REASON = 'advancedtelemetry';
 
-  // Various event types we use. Constants here to be sure we use the
-  // same values when registering, unregistering and handling these.
+  // Constants for events we register/unreg for
   const IDLE = 'idle';
   const ACTIVE = 'active';
   const HUDMETRICS = 'advanced-telemetry-update';
@@ -41,8 +49,7 @@
   // references to class variables and constants more legible.
   const AT = AdvancedTelemetry;
 
-  AT.HistogramData = HistogramData;
-
+  AT.BatchTiming = BatchTiming;
 
   /*
    * Exported and configurable properties. Properties of AT are visible
@@ -50,14 +57,13 @@
    * external configuration.
    */
 
-  // Export the HistogramData class so we can test it independently
-
   // Set to true to to enable debug output.  Not recommended to turn this
   // on except while doing deep debugging.
-  AT.DEBUG = false;
+  AT.DEBUG = true;
+
   // LOGINFO method allows for debugging of initialization events and
   // packet sending events and is at a higher level then DEBUG.
-  AT.LOGINFO = false;
+  AT.LOGINFO = true;
 
   // This logging function is the only thing that is not exposed through
   // the AdvancedTelemetry contstructor or its instance.
@@ -78,50 +84,49 @@
     }
   }
 
+  // Debugging function to handle the case where the output length exceeds that
+  // which the adb console can handle.
   function debuglongLine(longLine) {
-    var array = longLine.match(/.{1,1000}/g);
-    array.forEach(function(value) {
-      console.log('[AdvancedTelemetry]' + value);
-    });
+    if (AT.DEBUG) {
+      var array = longLine.match(/.{1,1000}/g);
+      array.forEach(function (value) {
+        console.log('[AdvancedTelemetry]' + value);
+      });
+    }
   }
 
-  // What setting do we listen to to turn app usage metrics on or off.
-  // This default value is the same setting that turns telemetry on and off.
+  // This value is what turns advanced telemetry on/off
   AT.TELEMETRY_ENABLED_KEY = 'debug.performance_data.advanced_telemetry';
 
   // Base URL for sending data reports
-  // Can be overridden with metrics.appusage.reportURL setting.
   // Needs to be formatted as:
   // /submit/telemetry/id/reason/appName/appUpdateChannel/appVersion/appBuildID
   AT.REPORT_URL = 'https://incoming.telemetry.mozilla.org/submit/telemetry';
-//  AT.REPORT_URL = 'http://10.19.2.10:4040/submit/telemetry';
+//  AT.REPORT_URL = 'http://10.19.2.11:4040/submit/telemetry';
   // How often do we try to send the reports
-  // Can be overridden with metrics.appusage.reportInterval setting.
+  // Can be overridden with metrics.advancedtelemetry.reportInterval setting.
 //  AT.REPORT_INTERVAL = 24 * 60 * 60 * 1000;  // 1 DAY
   AT.REPORT_INTERVAL = 2 * 60 * 1000;  // 1 DAY
 
   // If the telemetry server does not respond within this amount of time
   // just give up and try again later.
-  // Can be overridden with metrics.appusage.reportTimeout setting.
+  // Can be overridden with metrics.advancedtelemetry.reportTimeout setting.
   AT.REPORT_TIMEOUT = 20 * 1000;             // 20 seconds
 
   // If sending a report fails (even though the we're online) how
   // long do we wait before trying it again?
-  // Can be overridden with metrics.appusage.retryTimeout setting.
+  // Can be overridden with metrics.advancedtelemetry.retryTimeout setting.
   AT.RETRY_INTERVAL = 60 * 60 * 1000;        // 1 hour
 
-  // How much user idle time (in seconds, not ms) do we wait for before
-  // persisting our data to asyncStorage or trying to transmit it.
-  AT.IDLE_TIME = 5;                          // seconds
-
   // Telemetry payload version
-  AT.TELEMETRY_VERSION = 1;
+  AT.TELEMETRY_VERSION = 4;
 
   // App name (static for Telemetry)
   AT.TELEMETRY_APP_NAME = 'FirefoxOS';
 
 
   AT.prototype.start = function start() {
+    loginfo('Starting AdvancedTelemetry');
     this.advancedTelemetryEnabledListener =
     function advancedTelemetryEnabledListener(enabled) {
       if (enabled) {
@@ -139,30 +144,18 @@
   };
 
   AT.prototype.startCollecting = function startCollecting(done) {
-    loginfo('inside of startCollecting');
     var self = this;
-    this.metrics = null;
     // If we're already running there is nothing to start
     if (this.collecting) {
       return;
     }
     this.collecting = true;
-    console.info('TIMETOSTART');
 
-    loadData();
-    function loadData() {
-      loginfo('inside of loadData');
-      HistogramData.load(function(loadedMetrics) {
-        loginfo('inside of loadedMetrics');
-        self.metrics = loadedMetrics;
-        getDeviceID();
-      });
-    }
+    this.metrics = new BatchTiming(true);
 
-    loginfo('starting app usage metrics collection');
+    getDeviceID();
 
     function getDeviceID() {
-      loginfo('inside getDeviceId');
       asyncStorage.getItem(DEVICE_ID_KEY, function(value) {
         if (value) {
           self.deviceID = value;
@@ -174,46 +167,20 @@
         }
 
         // Move on to the next step in the startup process
-        getConfigurationSettings();
+        registerHandlers();
       });
-    }
-
-    function getConfigurationSettings() {
-      loginfo('inside getConfigurationSettings');
-      // Settings to query, mapped to default values
-//      var query = {
-//        'metrics.appusage.retryInterval': AUM.RETRY_INTERVAL
-//      };
-//
-//      AUM.getSettings(query, function (result) {
-//        AUM.RETRY_INTERVAL = result['metrics.appusage.retryInterval'];
-//      });
-      loginfo('CALLING REGISTERHANDLERS');
-      registerHandlers();
     }
 
     function registerHandlers() {
       // Basic event handlers
-      loginfo('inside registerHandlers');
       EVENT_TYPES.forEach(function (type) {
-        loginfo('REGISTERHANDLE: ' + type);
         window.addEventListener(type, self);
       });
 
-      self.idleObserver = {
-        time: AT.IDLE_TIME,
-        onidle: function () {
-          self.handleEvent(new CustomEvent(IDLE));
-        },
-        onactive: function () {
-          self.handleEvent(new CustomEvent(ACTIVE));
-        }
-      };
-
-      // Register for idle events
-      navigator.addIdleObserver(self.idleObserver);
+      self.startBatch();
 
       if (done) {
+        loginfo('Initialization Complete');
         done();
       }
     }
@@ -228,60 +195,43 @@
 
   // Reset (or initialize) the AdvancedTelemetry instance variables
   AT.prototype.reset = function() {
+    this.collecting = false;
+    this.metrics = null;
+    this.deviceID = null;
   };
 
   AT.prototype.handleEvent = function handleEvent(e) {
     switch (e.type) {
-      case IDLE:
-        this.idle = true;
-        break;
-      case ACTIVE:
-        this.idle = false;
-        break;
       case HUDMETRICS:
-        debug('GOT A HUDMETRICS: ' + JSON.stringify(e.detail));
         this.transmit(e.detail);
         break;
       default:
         break;
     }
-
-    // If we're idle, persist the metrics
-    if (this.idle) {
-      this.metrics.save(); // Doesn't do anything if metrics have not changed
-    }
-
-    // Is there data to be sent and is this an okay time to send it?
-    if (/*!this.metrics.isEmpty() && */this.idle && navigator.onLine) {
-      var absoluteTime = Date.now();
-      // Have we tried and failed to send it before?
-/*      if (this.lastFailedTransmission > this.metrics.startTime()) {
-
-        // If so, then send it if the retry interval has elapsed
-        if (absoluteTime - this.lastFailedTransmission > AT.RETRY_INTERVAL) {
-          this.transmit();
-        }
-      }*/
-      // Otherwise, if we have not failed to transmit, then send it if the
-      // reporting interval has elapsed.
-      /* else */
-      if (absoluteTime - this.metrics.startTime() > AT.REPORT_INTERVAL) {
-        this.getPayload();
-//        this.metrics = new HistogramData();
-      }
-    }
   };
 
-  // Transmit the current batch of metrics to the metrics server.
-  // Start a new batch of data. If the transmission fails, merge the
-  // new batch with the failed batch so we can try again later.
+  // Signal gecko to send the histograms with a telemetry message.
   AT.prototype.getPayload = function getPayload() {
-    console.log('TAMARA TIME TO TRANSMIT2');
-    loginfo('TAMARA TIME TO TRANSMIT');
     console.info('telemetry|MGMT|TIMETOSHIP');
-    this.metrics = new HistogramData();
   };
 
+  // Start a timer to notify when to send the payload.
+  AT.prototype.startBatch = function startBatch() {
+    var self = this;
+    this.timer = setTimeout(function() {
+      if (navigator.onLine) {
+        self.getPayload();
+      }
+    }, self.metrics.getInterval());
+  };
+
+  AT.prototype.stopBatch = function stopBatch() {
+    clearTimeout(this.timer);
+  };
+
+  // Once we have the histogram payload, we can send it to the telemetry
+  // server.  Once we receive 200 OK back from telemetry server, we can
+  // start a fresh batch of metrics.
   AT.prototype.transmit = function transmit(payload) {
     var self = this;
 
@@ -289,22 +239,9 @@
       return;
     }
 
-    // Make a private copy of the metrics data we're going to transmit
-//    var data = JSON.parse(JSON.stringify(this.metrics.data));
-
-    // Remember the existing metrics in case transmission fails
-//    var oldMetrics = this.metrics;
-    debuglongLine(JSON.stringify(payload));
-
     // But assume that it will succeed and start collecting new metrics now
-    this.metrics = new HistogramData();
-
-    // Erase the old data by forcing this new empty batch to be saved.
-    // This means that if the phone crashes or is switched off before we
-    // transmit the data this batch of data will be lost. That is unlikely
-    // to happen and data transmission is optional, so it is not worth
-    // the extra effort to design something more robust.
-    this.metrics.save(true);
+    this.metrics = new BatchTiming(false);
+    this.startBatch();
 
     var deviceInfoQuery = {
       'deviceinfo.hardware': 'unknown',
@@ -314,63 +251,50 @@
     };
 
 
-    // Query the settings db for parameters for hte URL
+    // Query the settings db for parameters for the URL
     AT.getSettings(deviceInfoQuery, function(deviceResponse) {
+      // Note that this wrapper is using the new v4 Unified Telemetry format
       var wrapper = {
         type: REASON,
         id: uuid(),
         creationDate: new Date().toISOString(),
-        version: 4,
+        version: AT.TELEMETRY_VERSION,
         application: {
           architecture: 'x86',
           buildId: deviceResponse['deviceinfo.platform_build_id'],
           name: AT.TELEMETRY_APP_NAME,
           version: deviceResponse['deviceinfo.platform_version'],
           vendor: 'Mozilla',
-          platformVersion: '41.0a1',
+          platformVersion: deviceResponse['deviceinfo.platform_version'],
           xpcomAbi: 'x86-msvc',
           channel: deviceResponse['app.update.channel']
         },
         clientId: self.deviceID,
-        payload: {
-          histograms: payload
-        }
+        payload: payload
       };
 
       debuglongLine(JSON.stringify(wrapper));
 
       // Build the wrapper for the telemetry version
       send(wrapper, deviceResponse);
-      // Now transmit the data
     });
 
     function send(payload, deviceInfoQuery) {
-      loginfo('TAMARA: CALLING SEND: ' + JSON.stringify(payload));
-
-
-
-/*      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
+      var request = new AdvancedTelemetryPing(payload, deviceInfoQuery,
                                               self.deviceID);
 
       // We don't actually have to do anything if the data is transmitted
       // successfully. We are already set up to collect the next batch of data.
       function onload() {
         loginfo('Transmitted Successfully.');
+        // TODO: Add this line below to AdvancedTelemetryHelper as an API.
+        console.info('telemetry|MGMT|CLEARMETRICS');
       }
 
       function retry(e) {
-        // If the attempt to transmit a batch of data fails, we'll merge
-        // the new batch of data (which may be empty) in with the old one
-        // and resave everything so we can try again later. We also record
-        // the time of this failure so we don't try sending again too soon.
+        // If the attempt to transmit a batch of data fails, refresh the payload
         loginfo('App usage metrics transmission failure:', e.type);
-
-        // We use absolute time here because we will be comparing to
-        // the absolute batch start time.
-//        self.lastFailedTransmission = Date.now();
-//        oldMetrics.merge(self.metrics);
-//        self.metrics = oldMetrics;
-//        self.metrics.save(true);
+        self.getPayload();
       }
 
       request.send({
@@ -379,7 +303,7 @@
         onerror: retry,
         onabort: retry,
         ontimeout: retry
-      });*/
+      });
     }
   };
 
@@ -390,7 +314,7 @@
     // clone so we don't put data into the object that was given to us
     this.packet = payload;
 
-    // /id/reason/appName/appVersion/appUpdateChannel/appBuildID?v=4
+    // URL format: /id/reason/appName/appVersion/appUpdateChannel/appBuildID?v=4
     var uriParts = [
         AT.REPORT_URL,
       encodeURIComponent(payload.id),
@@ -403,7 +327,7 @@
 
     this.url = uriParts.join('/');
     this.url += ('?v=4');
-    loginfo('TAMARA URL IS: ' + this.url);
+    debug('Telemetry URL is: ' + this.url);
   }
 
   AdvancedTelemetryPing.prototype.send = function(xhrAttrs) {
@@ -421,7 +345,6 @@
     var data = JSON.stringify(this.packet);
     xhr.send(data);
     //TODO:  GZIP COMPRESS.
-    loginfo(data);
 
     if (xhrAttrs) {
       xhr.onload = xhrAttrs.onload;
@@ -434,7 +357,7 @@
   };
 
   /*
-   * A utility function get values for all of the specified settings.
+   * A utility function to get values for all of the specified settings.
    * settingKeysAndDefaults is an object that maps settings keys to default
    * values. We query the value of each of those settings and then create an
    * object that maps keys to values (or to the default values) and pass
@@ -467,63 +390,36 @@
   };
 
   /*
-   * A helper class that holds (and persists) a batch of app usage data
+   * A helper class that tracks the start time of the current batch.
    */
-  function HistogramData() {
-    this.data = {
-      start: Date.now(),
-      histograms: new Map() // Maps app URLs to usage data
-    };
-    this.needsSave = false;
-    // Record the relative start time, which we can use to adjust
-    // this.data.start if we get a moztimechange event.
-    this.relativeStartTime = performance.now();
+  function BatchTiming(startup) {
+    var self = this;
+    this.start = Date.now();
+    if (startup) {
+      asyncStorage.getItem(BATCH_KEY, function(value) {
+        if (value) {
+          var oldDate = new Date(value);
+          var nowDate = Date.now();
+          self.interval = nowDate.getTime() - oldDate.getTime();
+        } else {
+          // here if it's the first time it's being run and there is nothing
+          // saved in async.
+          asyncStorage.setItem(BATCH_KEY, self.start);
+          self.interval = AT.REPORT_INTERVAL;
+        }
+      });
+    } else {
+      asyncStorage.setItem(BATCH_KEY, this.start);
+      this.interval = AT.REPORT_INTERVAL;
+    }
   }
 
-  HistogramData.prototype.isEmpty = function() {
-    return this.data.histograms.size === 0;
+  BatchTiming.prototype.startTime = function() {
+    return this.start;
   };
 
-  HistogramData.load = function(callback) {
-    asyncStorage.getItem(PERSISTENCE_KEY, function(data) {
-      var usage = new HistogramData();
-//      if (data) {
-//        usage.data = data;
-//        Handle a scenario with old app data that does not have searches
-//        if (typeof usage.data.searches === 'undefined') {
-//          usage.data.searches = {};
-//        }
-//
-//        If we loaded persisted data, then the absolute start time can
-        // and should no longer be adjusted. So remove the relative time.
-//        delete usage.relativeStartTime;
-//      }
-      callback(usage);
-    });
-  };
-
-
-  // Persist the current batch of metrics so we don't lose it if the user
-  // switches the phone off.
-  HistogramData.prototype.save = function(force) {
-//    if (force || this.needsSave) {
-//      asyncStorage.setItem(PERSISTENCE_KEY, this.data);
-//      this.needsSave = false;
-//      debug('Saved advanced telemetry data');
-//    }
-  };
-
-  HistogramData.prototype.packHistograms = function() {
-    var histogramData = {};
-
-    this.data.histograms.forEach(function(value, key) {
-      histogramData[key] = value;
-    });
-    return histogramData;
-  };
-
-  HistogramData.prototype.startTime = function() {
-    return this.data.start;
+  BatchTiming.prototype.getInterval = function(){
+    return this.interval;
   };
 
   // The AdvancedTelemetry constructor is the single value we export.
