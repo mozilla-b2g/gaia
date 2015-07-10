@@ -43,46 +43,58 @@ var GaiaDataLayer = {
     marionetteScriptFinished(true);
   },
 
-  disableBluetooth: function() {
+  getBluetoothDefaultAdapter: function() {
     var bluetooth = window.navigator.mozBluetooth;
-    if (bluetooth.enabled) {
-      console.log('trying to disable bluetooth');
-      this.setSetting('bluetooth.enabled', false, false);
-      waitFor(
-        function() {
-          marionetteScriptFinished(true);
-        },
-        function() {
-          console.log('bluetooth enable status: ' + bluetooth.enabled);
-          return bluetooth.enabled === false;
-        }
-      );
-    }
-    else {
-      console.log('bluetooth already disabled');
-      marionetteScriptFinished(true);
+    if (bluetooth.defaultAdapter) {
+      return bluetooth.defaultAdapter;
+    } else {
+      return bluetooth.getAdapters()[0];
     }
   },
 
-  enableBluetooth: function() {
-    var bluetooth = window.navigator.mozBluetooth;
-    if (!bluetooth.enabled) {
-      console.log('trying to enable bluetooth');
-      this.setSetting('bluetooth.enabled', true, false);
-      waitFor(
-        function() {
-          marionetteScriptFinished(true);
-        },
-        function() {
-          console.log('bluetooth enable status: ' + bluetooth.enabled);
-          return bluetooth.enabled === true;
-        }
-      );
-    }
-    else {
-      console.log('bluetooth already enabled');
+  setBluetooth: function(aState) {
+    var adapter = this.getBluetoothDefaultAdapter();
+
+    if (adapter.state == aState) {
+      console.log('bluetooth already ' + aState);
       marionetteScriptFinished(true);
+      return;
     }
+
+    waitFor(
+      function() {
+        console.log('bluetooth ' + aState);
+        marionetteScriptFinished(true);
+      },
+      function() {
+        console.log('bluetooth enable status: ' + adapter.state);
+
+        // Wait for the adapter state to become 'disabled' or 'enabled'
+        if (adapter.state === 'disabling' || adapter.state === 'enabling') {
+          return false;
+        }
+
+        if (adapter.state != aState) {
+          console.log('trying to make bluetooth ' + aState);
+          if (aState === 'enabled') {
+            adapter.enable();
+          } else {
+            adapter.disable();
+          }
+          return false;
+        }
+
+        return adapter.state === aState;
+      }
+    );
+  },
+
+  disableBluetooth: function() {
+    this.setBluetooth('disabled');
+  },
+
+  enableBluetooth: function() {
+    this.setBluetooth('enabled');
   },
 
   insertContact: function(aContact) {
