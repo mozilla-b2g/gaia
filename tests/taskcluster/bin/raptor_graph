@@ -46,6 +46,9 @@ const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_test_
 // number of times each app is launched during the launch test
 const LAUNCH_TEST_RUNS = 30;
 
+// number of times b2g is restarted during the restart-b2g test
+const RESTART_TEST_RUNS = 15;
+
 // Cache for task definitions...
 var TASK_DEFINITIONS = {};
 function loadTask(name, parameters) {
@@ -67,8 +70,10 @@ function params() {
 var taskIdMap = {};
 var config = {};
 var suiteName, symbol, taskName;
-var requiredBaseTasks = [];
-var requiredPatchTasks = [];
+var requiredLaunchBaseTasks = [];
+var requiredLaunchPatchTasks = [];
+var requiredRestartBaseTasks = [];
+var requiredRestartPatchTasks = [];
 
 /*
 baseTask: run test on 'base' build
@@ -93,19 +98,20 @@ to 'patch build' and flags if is above threshold.
 // dependent upon all the base and patch tasks completed
 var config = {};
 
+// Tasks for the application launch test
+
 LAUNCH_TEST_APPS.map(function(nextApp) {
   // results task requires all base and patch tasks
-  requiredBaseTasks = [];
-  requiredPatchTasks = [];
+  requiredLaunchBaseTasks = [];
+  requiredLaunchPatchTasks = [];
 
-  // base tasks
-
+  // launch test base tasks
   suiteName = nextApp.th_name + " app launch test (on base)";
 
   for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
     symbol = nextApp.th_test_prefix + iteration;
     taskName = nextApp.gaia_name + "BaseTask" + iteration;
-    requiredBaseTasks.push(taskName);
+    requiredLaunchBaseTasks.push(taskName);
     config[taskName] = {
       definition: 'raptor_launch',
       build: 'base',
@@ -119,14 +125,14 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
     };
   };
 
-  // patch tasks
+  // launch test patch tasks
   suiteName = nextApp.th_name + " app launch test (on base + pr)";
 
   for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
     // want the symbol number to continue to increment from the base tasks
     symbol = nextApp.th_test_prefix + (iteration + TEST_ITERATIONS);
     taskName = nextApp.gaia_name + "PatchTask" + iteration;
-    requiredPatchTasks.push(taskName);
+    requiredLaunchPatchTasks.push(taskName);
     config[taskName] = {
       definition: 'raptor_launch',
       build: 'patch',
@@ -140,14 +146,14 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
     };
   };
 
-  // single result task for all of the base and patch tasks
+  // launch test single result task for all of the base and patch tasks
   suiteName = nextApp.th_name + " app launch test results";
   taskName = nextApp.gaia_name + 'ResultsTask';
   symbol = nextApp.th_test_prefix;
   config[taskName] = {
     definition: 'raptor_result',
-    requiredBaseTasks: requiredBaseTasks,
-    requiredPatchTasks: requiredPatchTasks,
+    requiredBaseTasks: requiredLaunchBaseTasks,
+    requiredPatchTasks: requiredLaunchPatchTasks,
     params: {
       raptorApp: nextApp.gaia_name,
       raptorSuiteName: suiteName,
@@ -155,6 +161,65 @@ LAUNCH_TEST_APPS.map(function(nextApp) {
     }
   };
 });
+
+// Tasks for the b2g-restart test (not app-specific)
+
+// results task requires all base and patch tasks
+requiredRestartBaseTasks = [];
+requiredRestartPatchTasks = [];
+
+// restart-b2g test base tasks
+suiteName = "Restart-b2g test (on base)";
+
+for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
+  symbol = "restart" + iteration;
+  taskName = "Restart-b2g BaseTask" + iteration;
+  requiredRestartBaseTasks.push(taskName);
+  config[taskName] = {
+    definition: 'raptor_restart',
+    build: 'base',
+    params: {
+      raptorSuiteName: suiteName,
+      gaiaRev: process.env.GITHUB_BASE_REV,
+      raptorRuns: RESTART_TEST_RUNS,
+      treeherderSym: symbol
+    }
+  };
+};
+
+// restart-b2g test patch tasks
+suiteName = "Restart-b2g test (on base + pr)";
+
+for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
+  // want the symbol number to continue to increment from the base tasks
+  symbol = "restart" + (iteration + TEST_ITERATIONS);
+  taskName = "Restart-b2g PatchTask" + iteration;
+  requiredRestartPatchTasks.push(taskName);
+  config[taskName] = {
+    definition: 'raptor_restart',
+    build: 'patch',
+    params: {
+      raptorSuiteName: suiteName,
+      gaiaRev: process.env.GITHUB_HEAD_REV,
+      raptorRuns: RESTART_TEST_RUNS,
+      treeherderSym: symbol
+    }
+  };
+};
+
+// restart-b2g single result task for all of the base and patch tasks
+suiteName = "Restart-b2g test results";
+taskName = "Restart-b2g ResultsTask";
+symbol = "restart";
+config[taskName] = {
+  definition: 'raptor_result',
+  requiredBaseTasks: requiredRestartBaseTasks,
+  requiredPatchTasks: requiredRestartPatchTasks,
+  params: {
+    raptorSuiteName: suiteName,
+    treeherderSym: symbol
+  }
+};
 
 /**
  * Execute the built command in a child process
@@ -289,12 +354,10 @@ getEmulator()
         var requiredBaseTaskIds = [];
 
         config[raptorTask].requiredBaseTasks.map(function(nextTaskName) {
-        //requiredBaseTasks.map(function(nextTaskName) {
           requiredBaseTaskIds.push(taskIdMap[nextTaskName]);
         });
         var requiredPatchTaskIds = [];
         config[raptorTask].requiredPatchTasks.map(function(nextTaskName) {
-        //requiredPatchTasks.map(function(nextTaskName) {
             requiredPatchTaskIds.push(taskIdMap[nextTaskName]);
         });
 
