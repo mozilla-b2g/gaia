@@ -79,11 +79,14 @@
    * lists
    */
   section[role="region"] header h2 {
-    padding-left: 2rem;
+    -moz-padding-start: 2rem;
   }
 
   section[role="region"]#root ul li {
-    margin: 0 1.5rem 0 3.5rem;
+    margin-top: 0;
+    margin-bottom: 0;
+    -moz-margin-start: 3.5rem;
+    -moz-margin-end: 1.5rem;
   }
 
   section[role="region"]:not([id='root']) ul li {
@@ -93,7 +96,7 @@
 
   section[role="region"]#root ul li > a.menu-item {
     margin: 0 -3.5rem;
-    padding-left: 7.5rem;
+    -moz-padding-start: 7.5rem;
   }
 
   section[role="region"]#root .menu-item::before {
@@ -105,36 +108,37 @@
   }
 
   section[role="region"]#root .pack-switch > .menu-item {
-    padding-left: 6rem;
+    -moz-padding-start: 6rem;
   }
 
   section[role="region"]#root ul li > label.pack-switch {
-    margin-left: calc(-4.5rem / 2);
+    -moz-margin-start: calc(-4.5rem / 2);
   }
 
   section[role="region"]#root ul li > label.pack-switch > small {
     left: 6.25rem;
-    margin: 0 0 0 4.5rem;
+    margin-top: 0;
+    margin-bottom: 0;
+    -moz-margin-start: 4.5rem;
+    -moz-margin-end: 0;
+    
   }
 
-  section[role="region"]:not([id='root']) ul li > label.pack-switch > span {
-    padding-left: 1.5rem;
-  }
-
+  section[role="region"]:not([id='root']) ul li > label.pack-switch > span,
   section[role="region"]:not([id='root']) ul li > label.pack-checkbox > span {
-    padding-left: 1.5rem;
+    -moz-padding-start: 1.5rem;
   }
 
   section[role="region"]:not([id='root']) ul li > a,
   section[role="region"]:not([id='root']) ul li > span:not(.button),
   section[role="region"]:not([id='root']) ul li > p {
     margin: 0 -4rem;
-    padding-left: 4rem;
-    padding-right: 4rem;
+    -moz-padding-start: 4rem;
+    -moz-padding-end: 4rem;
   }
 
   section[role="region"]:not([id='root']) ul li > progress + span:not(.button) {
-    padding-left: 6rem;
+    -moz-padding-start: 6rem;
   }
 
   section[role="region"]:not([id='root']) ul:not([class='wifi-availableNetworks']) li > progress {
@@ -150,7 +154,7 @@
   }
 
   section[role="region"]:not([id='root']) ul li.hint .explanation {
-    padding-left: 4rem;
+    -moz-padding-start: 4rem;
   }
 
   /**
@@ -177,7 +181,7 @@
    */
   section[role="region"]#hotspot-wifiSettings ul li.password > label > span,
   section[role="region"]#wifi-auth ul li.password > label > span {
-    padding-left: 3rem;
+    -moz-padding-start: 3rem;
   }
 
   /**
@@ -212,11 +216,11 @@
   }
 
   ul li > label.range-icons.volume input {
-    margin-left: 0;
+    -moz-margin-start: 0px !important;
   }
 
   ul li > label.range-icons.volume p {
-    padding-left: 0;
+    -moz-padding-start: 0;
   }
 
   ul li > label.range-icons span {
@@ -244,7 +248,7 @@
   }
 
   section[role="region"]#mediaStorage .stackedbar-color-label + a {
-    padding-left: 8rem;
+    -moz-padding-start: 8rem;
   }
 
   section[role="region"]#mediaStorage .color-music.stackedbar-item,
@@ -273,8 +277,8 @@
 
   section[role="region"]#about-yourPrivacy .privacy-menuitem {
     margin: 0 -4rem;
-    padding-left: 8.7rem;
-    padding-right: 4rem;
+    -moz-padding-start: 8.7rem;
+    -moz-padding-end: 4rem;
   }
 
   section[role="region"]#about-yourPrivacy .privacy-menuitem:before {
@@ -362,7 +366,10 @@
     font-size: 2.4rem;
     line-height: 5rem;
     color: #fff;
-    padding: 0 1rem 0 2rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    -moz-padding-start: 2rem;
+    -moz-padding-start: 1rem;
   }
 
   section[role="region"] > header:first-child menu[type="toolbar"] a,
@@ -446,5 +453,95 @@
   section[role="region"].skin-organic > header:first-child button:after,
   .skin-organic section[role="region"] > header:first-child button:after {
     background: url("images/ui/tablet_button_separator.png") no-repeat right / 0.2rem transparent;
+  }
+}
+
+/* RTL View */
+
+@media (min-width: 768px) and (orientation: landscape) {
+  html[dir="rtl"] section[role="region"]#root {
+    left: unset;
+    right: 0;
+  }
+
+  html[dir="rtl"] section[role="region"],
+  html[dir="rtl"] section[role="region"].previous,
+  html[dir="rtl"] section[role="region"].current {
+    left: unset;
+    right: 40rem;
+  }
+
+ html[dir="rtl"] section[role="region"]#root .menu-item::before {
+    left: unset;
+    right: calc(-2.5rem / 2);
+  }
+
+  html[dir="rtl"] section[role="region"]#root .pack-switch > .menu-item::before {
+    left: unset;
+    right: 1rem;
+  }
+
+  html[dir="rtl"] section[role="region"]#root ul li > label.pack-switch > small {
+    left: unset;
+    right: 6.25rem;
+  }
+
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li > a span {
+    left: 0;
+    right: unset;
+  }
+
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li > small {
+    left: unset;
+    right: 0;
+  }
+
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li button,
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li div.button,
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li span.button,
+  html[dir="rtl"] section[role="region"]:not([id='root']) ul li a[role='button'] {
+    left: unset;
+    right: calc(100% - 20rem);
+  }
+
+  html[dir="rtl"] section[role="region"]#findmydevice ul li button {
+    left: unset;
+    right: 0;
+  }
+
+  html[dir="rtl"] section[role="region"]#mediaStorage .stackedbar-color-label {
+    left: unset;
+    right: 4rem;
+  }
+
+  html[dir="rtl"] section[role="region"]#about-yourPrivacy .privacy-menuitem:before {
+    left: unset;
+    right: 0;
+  }
+
+  html[dir="rtl"] section[role="region"] ul li.brightness-manual > label input[type="range"] {
+    left: unset;
+    right: 4rem;
+  }
+
+  html[dir="rtl"] section[role="region"] ul li > label input[type='range'] {
+    left: 0;
+    right: 50%;
+  }
+}
+
+@media (min-width: 768px) {
+  html[dir="rtl"] section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:after,
+  html[dir="rtl"] section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:after,
+  html[dir="rtl"] section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:after,
+  html[dir="rtl"] section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:after  {
+    left: unset;
+    right: 0;
+    background: url("images/ui/tablet_button_separator.png") no-repeat right / 0.2rem transparent;
+  }
+
+  html[dir="rtl"] section[role="region"] > header:first-child > button,
+  html[dir="rtl"] section[role="region"] > header:first-child > a {
+    float: right;
   }
 }
