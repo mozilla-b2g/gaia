@@ -63,12 +63,6 @@
         document.getElementById('permission-device-selector');
       this.devices = document.getElementById('permission-devices');
 
-      var self = this;
-      this.rememberSection.addEventListener('click',
-        function onLabelClick() {
-        self.remember.checked = !self.remember.checked;
-      });
-
       window.addEventListener('mozChromeEvent', this);
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);

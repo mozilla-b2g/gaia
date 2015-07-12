@@ -105,6 +105,11 @@ html[dir="rtl"] #permission-message {
   border-bottom: 0.1rem solid #686868;
 }
 
+#permission-remember-section label {
+  /* !important to get around scoped styles from gaia-checkbox */
+  color: #fbfbfb !important;
+}
+
 #permission-screen[data-type] #permission-remember-section {
   display: block;
 }
