@@ -45,6 +45,7 @@
     <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
     <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
     <script defer src="shared/elements/gaia_buttons/script.js"></script>
+    <script defer src="shared/elements/gaia_checkbox/script.js"></script>
     <script defer src="shared/elements/gaia_progress/script.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
     <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
@@ -456,11 +457,9 @@
               <div id="permission-more-info-box" class="hidden"> </div>
             </div>
             <div id="permission-remember-section">
-              <label class="pack-checkbox">
-                <input type="checkbox" id="permission-remember-checkbox" />
-                <span></span>
+              <gaia-checkbox id="permission-remember-checkbox" class="inline">
+                <label data-l10n-id="remember-my-choice" id="permission-remember-label"></label>
               </label>
-              <a data-l10n-id="remember-my-choice" id="permission-remember-label"></a>
             </div>
             <div id="permission-device-selector"></div>
             <ul id="permission-devices">
