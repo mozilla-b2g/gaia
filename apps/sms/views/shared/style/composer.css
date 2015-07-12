@@ -4,14 +4,22 @@
 
   height: auto; /* overrides building blocks */
   min-height: 4rem;
-
   background-color: #fff;
 }
 
-/* Overwrite. No more fixed height */
-form[role="search"] p input,
-form[role="search"] p textarea,
-form[role="search"] button[type="submit"] + p > textarea {
+/* 
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=1055357
+ * Instead of sticking to id selector I added a class to compose form,
+ * that holds styles which were related before to form[role="search"]
+ */
+
+.messages-compose {
+  z-index: 3;
+}
+
+.messages-compose p input,
+.messages-compose p textarea,
+.messages-compose button[type="submit"] + p > textarea {
   height: auto;
 }
 
@@ -60,12 +68,6 @@ form[role="search"] button[type="submit"] + p > textarea {
 
 #messages-input.placeholder:after {
   visibility: visible;
-}
-
-/* Overwrite BB because of the previous rule */
-form[role="search"] button[type="submit"]:after {
-    content: "";
-    background: none;
 }
 
 .mms-label-line {
@@ -197,6 +199,15 @@ form[role="search"] button[type="submit"]:after {
   transform: translate(.2rem);
 }
 
+/* 
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=1055357
+ * Margin reset for send button, since role="search" attribute was deleted,
+ * actually this thing broke look
+ */
+.messages-submit {
+  margin: 0;
+}
+
 #messages-send-button:after {
   display: none
 }
@@ -265,14 +276,6 @@ button[disabled] .sim-indication {
 
 .has-preferred-sim .sim-indication {
   display: block;
-}
-
-/**
- * Override Building Block [Input areas] styles
- * We should get rid of all [role="search"] Messages rules in bug 1055357.
- */
-form.bottom[role="search"] {
-  z-index: 3;
 }
 
 /* RTL modifications */
