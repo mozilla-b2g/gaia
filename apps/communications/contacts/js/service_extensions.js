@@ -1,35 +1,18 @@
 'use strict';
 /* global utils */
-/* global ConfirmDialog */
 /* global fb */
 /* exported extServices*/
 
 (function(exports) {
   var extServices = {};
-  var contactId;
 
+  // TODO Remove fb- prefixes: Bug 1181469
   var extensionFrame = document.querySelector('#fb-extensions');
   var oauthFrame = document.querySelector('#fb-oauth');
   oauthFrame.src = '/shared/pages/import/oauth.html';
   var currentURI, access_token;
   var canClose = true, canCloseLogout = true;
   var closeRequested = false;
-
-  extServices.startLink = function(cid, linked) {
-    canClose = true;
-    canCloseLogout = true;
-    contactId = cid;
-    if (!linked) {
-      load('fb_link.html' + '?contactId=' + contactId, 'proposal',
-           'facebook');
-    } else {
-      unlink(contactId);
-    }
-  };
-
-  extServices.importFB = function(evt) {
-    loadService('facebook');
-  };
 
   extServices.importGmail = function(evt) {
     loadService('gmail');
@@ -81,180 +64,6 @@
     // Otherwise we do nothing as the sync process will finish sooner or later
     });
     extensionFrame.classList.remove('opening');
-  }
-
-  function openURL(url) {
-    window.open(url, '', 'dialog');
-  }
-
-  extServices.showProfile = function(cid) {
-    var req = fb.utils.getContactData(cid);
-
-    req.onsuccess = function() {
-      var fbContact = new fb.Contact(req.result);
-
-      var uid = fbContact.uid;
-      var profileUrl = 'https://m.facebook.com/' + uid;
-
-      openURL(fb.utils.getNonCacheableUrl(profileUrl));
-    };
-
-    req.onerror = function() {
-      window.console.error('Contacts FB Profile: Contact not found');
-    };
-  };
-
-  extServices.wallPost = function(cid) {
-    contactId = cid;
-    fb.msg.ui.wallPost(contactId);
-  };
-
-  extServices.sendPrivateMsg = function(cid) {
-    contactId = cid;
-    fb.msg.ui.sendPrivateMsg(contactId);
-  };
-
-  extServices.initEventHandlers = function(socialNode, contact, linked) {
-    var elements = {
-      '#msg_button': {
-        'elems': ['id'],
-        'callback': onPrivateMsgClick
-      },
-      '#wall_button': {
-        'elems': ['id'],
-        'callback': onWallClick
-      },
-      '#profile_button': {
-        'elems': ['id'],
-        'callback': onProfileClick
-      },
-      '#link_button': {
-        'elems': ['id', 'fb_is_linked'],
-        'callback': onLinkClick
-      }
-    };
-
-    // Add extra info too
-    var extras = {};
-    extras.fb_is_linked = linked;
-
-    /* jshint loopfunc:true */
-    for (var nodeName in elements) {
-      var node = socialNode.querySelector(nodeName);
-      var variables = elements[nodeName].elems;
-      variables.forEach(function appendData(data) {
-        var value = contact[data] || extras[data];
-        node.dataset[data] = value;
-      });
-      node.addEventListener('click', elements[nodeName].callback);
-    }
-  };
-
-  function onClickWithId(evt, callback) {
-    var contactId = evt.target.dataset.id;
-    callback(contactId);
-  }
-
-  /*
-    The following functons are similar,
-    but have been splitted for better reading
-    and future different handling
-  */
-  function onPrivateMsgClick(evt) {
-    onClickWithId(evt, extServices.sendPrivateMsg);
-  }
-
-  function onWallClick(evt) {
-    onClickWithId(evt, extServices.wallPost);
-  }
-
-  function onProfileClick(evt) {
-    onClickWithId(evt, extServices.showProfile);
-  }
-
-  // Note this is slightly different
-  function onLinkClick(evt) {
-    var contactId = evt.target.dataset.id;
-    var linked = evt.target.dataset.fb_is_linked;
-
-    linked = (linked === 'true');
-    extServices.startLink(contactId, linked);
-  }
-
-  function doLink(fData) {
-    var uid = fData.uid;
-    // We need to obtain the mozContact id for the UID
-    var mozContReq = fb.utils.getMozContact(uid);
-
-    mozContReq.onsuccess = function() {
-      // contactId is the device contact about to be linked
-      var fbContact = new fb.Contact(null, contactId);
-
-      // mozContactReq.result is id in mozContacts for that UID
-      var originalFbContact = mozContReq.result;
-
-      var req = fbContact.linkTo({
-        uid: uid,
-        photoUrl: fData.url,
-        mozContact: originalFbContact
-      });
-
-      req.onsuccess = function success() {
-        close();
-
-        if (originalFbContact && !fb.isFbLinked(originalFbContact)) {
-          window.Contacts && window.Contacts.List.remove(originalFbContact.id);
-        }
-         window.Contacts && window.Contacts.showContactDetail(contactId);
-      };
-
-      req.onerror = function() {
-         window.console.error('FB: Error while linking contacts', req.error);
-      };
-    };
-
-    mozContReq.onerror = function() {
-       window.console.error('FB: Error while linking contacts',
-                            mozContReq.error);
-    };
-  }
-
-  function unlink(cid) {
-    var msg = 'social-unlink-confirm-title';
-    var yesObject = {
-      title: 'social-unlink-confirm-accept',
-      isDanger: true,
-      callback: function onAccept() {
-        ConfirmDialog.hide();
-        doUnlink(cid);
-      }
-    };
-
-    var noObject = {
-      title: 'cancel',
-      callback: function onCancel() {
-        ConfirmDialog.hide();
-      }
-    };
-
-    ConfirmDialog.show(null, msg, noObject, yesObject);
-  }
-
-  function doUnlink(cid) {
-    var fbContact = new fb.Contact(null, cid);
-
-    var freq = fbContact.unlink();
-
-    freq.onsuccess = function() {
-      window.Contacts && window.Contacts.updateContactDetail(cid);
-      if (freq.result) {
-        window.Contacts && window.Contacts.updateContactDetail(cid);
-      }
-    };
-
-    freq.onerror = function() {
-      window.console.error('FB: Error while unlinking', freq.error);
-    };
   }
 
   function notifySettings(evtype) {
@@ -342,14 +151,6 @@
         if (closeRequested && canClose) {
           unload();
         }
-      break;
-
-      case 'item_selected':
-        var fData = data.data;
-        doLink(fData);
-
-        // Not needed to notifySettings as when settings will be open
-        // the info from FB will be refreshed anyway
       break;
 
       case 'messaging_ready':

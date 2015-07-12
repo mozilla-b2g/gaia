@@ -3,9 +3,9 @@
 /* global Contacts, contacts, ActivityHandler, LazyLoader,
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
-          MockContactAllFields, MockContactDetails, MockContactsNfc,
+          MockContactAllFields, MockContactDetails,
           MockContactsSearch, MockContactsSettings, Mockfb,
-          MockImportStatusData, MockMozContacts, ContactsService
+          MockImportStatusData, MockMozContacts, ContactsService, HeaderUI
 */
 
 requireApp('communications/contacts/services/contacts.js');
@@ -19,7 +19,6 @@ requireApp('communications/contacts/test/unit/mock_navigation.js');
 // requireApp('communications/contacts/test/unit/mock_main_navigation.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_contacts_details.js');
-requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
@@ -86,7 +85,6 @@ suite('Contacts', function() {
     window.contacts = {};
     window.contacts.List = MockContactsListObj;
     window.contacts.Details = MockContactDetails;
-    window.contacts.NFC = MockContactsNfc;
     window.contacts.Search = MockContactsSearch;
     window.contacts.Settings = MockContactsSettings;
 
@@ -121,7 +119,7 @@ suite('Contacts', function() {
     window.navigationStack = realNavigationStack;
   });
 
-  setup(function() {
+  setup(function(done) {
     this.sinon.spy(window.utils.PerformanceHelper, 'chromeInteractive');
     this.sinon.spy(window.utils.PerformanceHelper, 'contentInteractive');
     loadBodyHTML('/contacts/index.html');
@@ -138,6 +136,8 @@ suite('Contacts', function() {
 
     Contacts.init();
     mockNavigation = window.navigationStack.firstCall.thisValue;
+
+    requireApp('communications/contacts/js/header_ui.js', done);
 
     navigator.mozL10n.fireOnce();
   });
@@ -256,8 +256,7 @@ suite('Contacts', function() {
     });
 
     suite('> CancelableActivity', function() {
-      var settingsButton, header, addButton, appTitleElement,
-          prevCurrentlyHandling, prevActivityName, prevActivityDataType;
+      var prevCurrentlyHandling, prevActivityName, prevActivityDataType;
 
       suiteSetup(function() {
         prevCurrentlyHandling = window.ActivityHandler.currentlyHandling;
@@ -267,10 +266,6 @@ suite('Contacts', function() {
       });
 
       setup(function() {
-        settingsButton = document.getElementById('settings-button');
-        header = document.getElementById('contacts-list-header');
-        addButton = document.getElementById('add-contact-button');
-        appTitleElement = document.getElementById('app-title');
       });
 
       teardown(function() {
@@ -282,33 +277,19 @@ suite('Contacts', function() {
         window.ActivityHandler.currentlyHandling = prevCurrentlyHandling;
       });
 
-      function checkClassAdded(isFiltered, activityName, activityType) {
-        window.ActivityHandler.activityName = activityName;
-        window.ActivityHandler.activityDataType = [activityType];
-        var classList = document.getElementById('groups-list').classList;
-        Contacts.checkCancelableActivity();
-        assert.isTrue(isFiltered === classList.contains('disable-fb-items'));
-        classList.remove('disable-fb-items');
-      }
-
       test('> handling an activity', function() {
-        Contacts.checkCancelableActivity();
-
-        // Settings is hidden
-        assert.isTrue(settingsButton.hidden);
-        // Add contact is hidden
-        assert.isTrue(addButton.hidden);
-        // Cancel is visible
-        assert.equal(header.getAttribute('action'), 'close');
-        // Title shows CONTACTS
-        assert.equal(appTitleElement.getAttribute('data-l10n-id'), 'contacts');
-      });
-
-      test('> text/vcard pick activity disables Facebook contacts', function() {
-        checkClassAdded(true, 'pick', 'text/vcard');
-        checkClassAdded(false, 'open', 'text/vcard');
-        checkClassAdded(false, 'open', 'webcontacts/contact');
-        checkClassAdded(false, 'pick', 'webcontacts/contact');
+        ActivityHandler.isCancelable().then(() => {
+          HeaderUI.updateHeader(true);
+          // Settings is hidden
+          assert.isTrue(HeaderUI.settingsButton.hidden);
+          // Add contact is hidden
+          assert.isTrue(HeaderUI.addButton.hidden);
+          // Cancel is visible
+          assert.equal(HeaderUI.header.getAttribute('action'), 'close');
+          // Title shows CONTACTS
+          assert.equal(HeaderUI.appTitleElement.getAttribute('data-l10n-id'),
+            'contacts');
+        });
       });
     });
   });
@@ -329,7 +310,6 @@ suite('Contacts', function() {
         cb(theSelectedContact, null);
       });
 
-      this.sinon.spy(window.contacts.NFC, 'startListening');
       this.sinon.spy(ActivityHandler, 'dataPickHandler');
       this.sinon.spy(contacts.Details, 'render');
       this.sinon.spy(navigation, 'go');
@@ -345,20 +325,6 @@ suite('Contacts', function() {
        'view-contact-details', 'go-deeper');
       sinon.assert.notCalled(ActivityHandler.dataPickHandler);
 
-    });
-
-    test('> when nfc enabled we need to listen to it', function() {
-      var oldNFC = navigator.mozNfc;
-      navigator.mozNfc = true;
-
-      Contacts.showContactDetail('1');
-      sinon.assert.called(window.contacts.NFC.startListening);
-      sinon.assert.called(contacts.Details.render);
-      sinon.assert.calledWith(navigation.go,
-       'view-contact-details', 'go-deeper');
-      sinon.assert.notCalled(ActivityHandler.dataPickHandler);
-
-      navigator.mozNfc = oldNFC;
     });
 
     test('> when handling pick activity, don\'t navigate, send result',
@@ -433,15 +399,7 @@ suite('Contacts', function() {
         assert.isNotNull(handler);
       });
     });
-    test('> loading scripts with nfc enabled', function() {
-      var oldNFC = navigator.mozNfc;
-      navigator.mozNfc = true;
-      Contacts.onLocalized().then(() => {
-        assert.isNotNull(handler);
-        assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
-        navigator.mozNfc = oldNFC;
-      });
-    });
+
     test('> loading scripts while handling an open activity',
      function() {
       ActivityHandler.currentlyHandling = true;
@@ -459,7 +417,7 @@ suite('Contacts', function() {
     }
     setup(function() {
       navigation = window.navigationStack.firstCall.thisValue;
-      this.sinon.spy(Contacts, 'checkCancelableActivity');
+      this.sinon.spy(ActivityHandler, 'isCancelable');
       this.sinon.spy(ActivityHandler, 'postCancel');
       this.sinon.stub(Contacts, 'view', function(view, cb) {
         cb();
@@ -497,7 +455,6 @@ suite('Contacts', function() {
           delete document.hidden;
         }
       });
-
     });
   });
 });

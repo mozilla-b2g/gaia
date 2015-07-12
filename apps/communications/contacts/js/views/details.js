@@ -9,6 +9,7 @@
 /* global ContactPhotoHelper */
 /* globals ContactToVcardBlob */
 /* global fb */
+/* global NFC */
 /* global ICEData */
 /* global LazyLoader */
 /* global MozActivity */
@@ -17,7 +18,6 @@
 /* global TAG_OPTIONS */
 /* global utils */
 /* global VcardFilename */
-/* global ExtServices */
 /* global MatchService */
 /* global WebrtcClient */
 /* global MainNavigation */
@@ -53,12 +53,6 @@ contacts.Details = (function() {
       header,
       _;
 
-  var socialButtonIds = [
-    '#profile_button',
-    '#wall_button',
-    '#msg_button'
-  ];
-
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
     dom = currentDom || document;
@@ -78,20 +72,13 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
-    window.addEventListener('online', checkOnline);
-    window.addEventListener('offline', checkOnline);
-
     initPullEffect(cover);
 
-    utils.listeners.add({
-      '#toggle-favorite': toggleFavorite,
-      '#details-view-header': [
-        {
-          event: 'action',
-          handler: handleDetailsBack
-        }
-      ],
-      '#edit-contact-button': showEditContact
+    // to avoid race conditions with NFC, we load it before handleDetails
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      favoriteMessage.addEventListener('click', toggleFavorite);
+      editContactButton.addEventListener('click', showEditContact);
+      header.addEventListener('action', handleDetailsBack);
     });
 
     ContactsButtons.init(listContainer, contactDetails, ActivityHandler);
@@ -111,10 +98,8 @@ contacts.Details = (function() {
   };
 
   var handleDetailsBack = function handleDetailsBack() {
-    // disable NFC listeners if NFC is available
-    if ('mozNfc' in navigator) {
-      contacts.NFC.stopListening();
-    }
+    // disable NFC listeners when going out of Details view
+    stopNFC();
 
     if (WebrtcClient) {
       getWebrtcClientResources(WebrtcClient.stop);
@@ -154,11 +139,27 @@ contacts.Details = (function() {
   };
 
   var showEditContact = function showEditContact() {
+    // Disable NFC listeners when editing a contact
+    stopNFC();
     Contacts.showForm(true, contactData);
   };
 
   var setContact = function cd_setContact(currentContact) {
     contactData = currentContact;
+    startNFC(currentContact);
+  };
+
+  // Needed for now because of external call from contacts.js
+  var startNFC = function(contact) {
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      NFC.startListening(contact);
+    });
+  };
+
+  var stopNFC = function() {
+    LazyLoader.load('/contacts/js/nfc.js', () => {
+      NFC.stopListening();
+    });
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
@@ -213,12 +214,16 @@ contacts.Details = (function() {
 
   // readOnly tells us if we should allow editing the rendered contact.
   var render = function cd_render(currentContact, fbContactData, readOnly) {
+
     if(isAFavoriteChange){
       isAFavoriteChange = false;
       return Promise.resolve(isAFavoriteChange);
     }
 
+
     contactData = currentContact || contactData;
+
+    startNFC(contactData);
 
     isFbContact = fb.isFbContact(contactData);
     isFbLinked = fb.isFbLinked(contactData);
@@ -302,9 +307,8 @@ contacts.Details = (function() {
     renderDates(contact);
 
     renderNotes(contact);
-    if (fb.isEnabled) {
-      renderSocial(contact);
-    }
+
+    renderShareButton(contact);
 
     if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
       renderDuplicate(contact);
@@ -434,68 +438,18 @@ contacts.Details = (function() {
     }
   };
 
-  var renderSocial = function cd_renderSocial(contact) {
-    var linked = isFbLinked;
-
-    var action = linked ? _('social-unlink') : _('social-link');
-    var slinked = linked ? 'false' : 'true';
-
+  var renderShareButton = function cd_renderShareButton(contact) {
     var social = utils.templates.render(socialTemplate, {
-      i: contact.id,
-      action: action,
-      linked: slinked
+      i: contact.id
     });
     currentSocial = social;
-    var linkButton = social.querySelector('#link_button');
     var shareButton = social.querySelector('#share_button');
 
     shareButton.addEventListener('click', shareContact);
-
-    if (!isFbContact) {
-      socialButtonIds.forEach(function check(id) {
-        var button = social.querySelector(id);
-        if (button) {
-          button.classList.add('hide');
-        }
-      });
-      // Checking whether link should be enabled or not
-      doDisableButton(linkButton);
-      shareButton.classList.remove('hide');
-    } else {
-        var socialLabel = social.querySelector('#social-label');
-        if (socialLabel) {
-          socialLabel.setAttribute('data-l10n-id', 'facebook');
-        }
-        shareButton.classList.add('hide');
-    }
-
-    // If it is a FB Contact but not linked unlink must be hidden
-    if (isFbContact && !linked) {
-      linkButton.classList.add('hide');
-    }
-
-    ExtServices.initEventHandlers(social, contact, linked);
+    shareButton.classList.remove('hide');
 
     listContainer.appendChild(social);
   };
-
-  var checkOnline = function() {
-    var socialTemplate = document.querySelector(
-                                        ':not([data-template])[data-social]');
-
-    if (socialTemplate && !isFbContact) {
-      doDisableButton(socialTemplate.querySelector('#link_button'));
-    }
-  };
-
-  function doDisableButton(buttonElement) {
-    if (navigator.onLine === true) {
-      buttonElement.removeAttribute('disabled');
-    }
-    else {
-      buttonElement.setAttribute('disabled', 'disabled');
-    }
-  }
 
   var renderWebrtcClient = function renderWebrtcClient(contact) {
     getWebrtcClientResources(function onLoaded() {
@@ -688,6 +642,7 @@ contacts.Details = (function() {
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
-    'defaultTelType' : DEFAULT_TEL_TYPE
+    'defaultTelType': DEFAULT_TEL_TYPE,
+    'startNFC': startNFC
   };
 })();

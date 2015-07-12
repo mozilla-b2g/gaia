@@ -10,6 +10,8 @@
 /* global MockDetailsDom */
 /* global MockExtFb */
 /* global Mockfb */
+/* global MockMozNfc */
+/* global MockContactsNfc */
 /* global MocksHelper */
 /* global MainNavigation */
 /* global MockMozContacts */
@@ -20,6 +22,7 @@
 /* global triggerEvent */
 /* exported SCALE_RATIO */
 /* global utils */
+/* global NFC */
 
 /* exported _ */
 
@@ -40,6 +43,7 @@ require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
 
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/js/views/details.js');
+requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
 requireApp('communications/contacts/test/unit/mock_cache.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_main_navigation.js');
@@ -55,6 +59,7 @@ requireApp('communications/contacts/js/utilities/extract_params.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 require('/shared/test/unit/mocks/mock_moz_contact.js');
+require('/shared/test/unit/mocks/mock_moz_nfc.js');
 
 var _ = function(key) { return key; },
     subject,
@@ -80,12 +85,12 @@ var _ = function(key) { return key; },
     realContacts,
     realFb,
     mockContact,
-    fbButtons,
-    linkButtons,
     realContactsList,
     mozL10nGetSpy,
     header,
-    realListeners;
+    realListeners,
+    realNFC,
+    realMozNFC;
 
 requireApp('communications/contacts/js/tag_optionsstem.js');
 
@@ -153,6 +158,10 @@ suite('Render contact', function() {
     contacts.List = MockContactsListObj;
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
+    realNFC = window.NFC;
+    window.NFC = MockContactsNfc;
+    realMozNFC = window.navigator.mozNfc;
+    window.navigator.mozNfc = MockMozNfc;
     realFb = window.fb;
     window.fb = Mockfb;
     window.ExtServices = MockExtFb;
@@ -177,16 +186,6 @@ suite('Render contact', function() {
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite');
     header = dom.querySelector('#details-view-header');
-
-    fbButtons = [
-      '#profile_button',
-      '#msg_button',
-      '#wall_button'
-    ];
-
-    linkButtons = [
-      '#link_button'
-    ];
   });
 
   suiteTeardown(function() {
@@ -196,6 +195,9 @@ suite('Render contact', function() {
 
     mozL10nGetSpy.restore();
     window.mozL10n = realL10n;
+
+    window.NFC = realNFC;
+    window.navigator.mozNfc = realMozNFC;
 
     utils.listeners = realListeners;
 
@@ -249,7 +251,6 @@ suite('Render contact', function() {
       assert.notEqual(detailsNameText.textContent, '');
       assert.isTrue(mozL10nGetSpy.calledWith('noName'));
     });
-
   });
 
   suite('Render favorite', function() {
@@ -306,119 +307,11 @@ suite('Render contact', function() {
   });
 
   suite('Render social', function() {
-     teardown(function() {
-      window.fb.setIsFbContact(false);
-      window.fb.setIsFbLinked(false);
-    });
-
-    function assertFbButtons(buttons, mode, state) {
-      buttons.forEach(function(buttonid) {
-        var selector = buttonid;
-        if (state) {
-          selector += '[' + state + ']';
-        }
-        if (mode === 'present') {
-          assert.isNotNull(container.querySelector(selector));
-        }
-        else {
-          assert.isNull(container.querySelector(selector));
-        }
-      });
-    }
-
-    test('It is not a Facebook Contact', function() {
-      window.fb.setIsEnabled(true);
-      window.fb.setIsFbContact(false);
+    test('Share button must be renderer properly', function() {
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'social-template');
-      assert.isFalse(container.querySelector('#link_button').
-                    classList.contains('hide'));
       assert.isFalse(container.querySelector('#share_button').
                     classList.contains('hide'));
-      assert.isTrue(container.
-                       querySelector('#profile_button').
-                       classList.contains('hide')
-      );
-    });
-
-    test('It is a Facebook Contact', function() {
-      window.fb.setIsFbContact(true);
-
-      // The edit mode should be disabled
-      subject.render();
-      assert.equal('FB', orgTitle.textContent);
-
-      assert.isFalse(container.
-                       querySelector('#profile_button').
-                       classList.contains('hide')
-      );
-
-      assert.isFalse(container.
-                       querySelector('#msg_button').
-                       classList.contains('hide')
-      );
-
-      assert.isFalse(container.
-                       querySelector('#wall_button').
-                       classList.contains('hide')
-      );
-
-      assert.isTrue(container.
-                       querySelector('#share_button').
-                       classList.contains('hide')
-      );
-
-      window.fb.setIsFbContact(false);
-    });
-
-    test('Facebook is not enabled', function() {
-      window.fb.setIsEnabled(false);
-
-      subject.render(null, TAG_OPTIONS);
-      var incSocial = container.innerHTML.indexOf('social-template');
-      assert.isTrue(incSocial === -1);
-
-      assertFbButtons(linkButtons, 'absent');
-
-      window.fb.setIsEnabled(true);
-    });
-
-    test('FB Contact. Device is offline', function() {
-      navigator.onLine = false;
-      window.fb.setIsFbContact(true);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(fbButtons, 'present');
-    });
-
-    test('FB Contact. Device is online', function() {
-      navigator.onLine = true;
-      window.fb.setIsFbContact(true);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(fbButtons, 'present');
-      assertFbButtons(fbButtons, 'absent', 'disabled');
-    });
-
-    test('Not FB Contact. Device is offline', function() {
-      navigator.onLine = false;
-      window.fb.setIsFbContact(false);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(linkButtons, 'present', 'disabled');
-    });
-
-    test('Not FB Contact. Device is online', function() {
-      navigator.onLine = true;
-      window.fb.setIsFbContact(false);
-
-      subject.render(null, TAG_OPTIONS);
-
-      assertFbButtons(linkButtons, 'present');
-      assertFbButtons(linkButtons, 'absent', 'disabled');
     });
   });
 
@@ -710,6 +603,32 @@ suite('Render contact', function() {
       });
 
       subject.render(null, TAG_OPTIONS);
+    });
+  });
+
+  suite('NFC activation', function() {
+    setup(function() {
+      this.sinon.spy(NFC, 'startListening');
+      this.sinon.spy(NFC, 'stopListening');
+    });
+
+    test('> start listening when render a contact', function() {
+      subject.render(null, TAG_OPTIONS);
+      sinon.assert.calledOnce(NFC.startListening);
+    });
+
+    test('> stop listening when opening edit mode', function() {
+      // subject.render(null, TAG_OPTIONS);
+      // sinon.assert.calledOnce(NFC.startListening);
+      editContactButton.click();
+      sinon.assert.calledOnce(NFC.stopListening);
+    });
+
+    test('> stop listening when closing details', function() {
+      // subject.render(null, TAG_OPTIONS);
+      // sinon.assert.calledOnce(NFC.startListening);
+      triggerEvent(header, 'action');
+      sinon.assert.calledOnce(NFC.stopListening);
     });
   });
 

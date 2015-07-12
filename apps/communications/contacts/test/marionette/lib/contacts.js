@@ -48,11 +48,7 @@ Contacts.Selectors = {
   detailsSocialLabel: '#contact-detail-inner #details-list #social-label',
   detailsSocialTemplate: '#contact-detail-inner #details-list .social-actions',
   detailsCoverImage: '#cover-img',
-  detailsLinkButton: '#contact-detail-inner #link_button',
   detailsShareButton: '#contact-detail-inner #share_button',
-  fbMsgButton: '#contact-detail-inner #msg_button',
-  fbWallButton: '#contact-detail-inner #wall_button',
-  fbProfileButton: '#contact-detail-inner #profile_button',
 
   findDupsButton: '#details-list #find-merge-button',
 

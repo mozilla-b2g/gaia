@@ -20,7 +20,6 @@ var MockContacts = {
   },
   cardStateChanged: function() {
   },
-  checkCancelableActivity: function() {},
   cancel: function() {},
   utility: function(view, callback, type) {
     callback();
@@ -36,7 +35,6 @@ var MockContacts = {
       'update': function() {}
     };
   },
-  updateSelectCountTitle: function(count) {},
   goBack: function(cb) {
     if (typeof cb === 'function') {
       cb();
@@ -45,9 +43,9 @@ var MockContacts = {
   setCurrent: function(ct) {
 
   },
-  setCancelableHeader: function() {},
   get asyncScriptsLoaded() {
     loadAsyncScriptsDeferred.resolve();
     return loadAsyncScriptsDeferred.promise;
-  }
+  },
+  showForm: function() {}
 };

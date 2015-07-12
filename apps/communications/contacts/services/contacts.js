@@ -111,9 +111,8 @@
 
       request.onsuccess = function findCallback(e) {
         var result = e.target.result[0];
-
         successCb(result);
-      }; // request.onsuccess
+      };
 
       if (typeof errorCb === 'function') {
         request.onerror = errorCb;

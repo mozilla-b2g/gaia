@@ -2,6 +2,7 @@
 /* global ICEData */
 /* global ConfirmDialog */
 /* global ContactsService */
+/* global HeaderUI */
 
 /**
  * ICE Settings view. In charge of selecting
@@ -196,7 +197,7 @@ contacts.ICE = (function() {
   function goBack() {
     contacts.List.clearClickHandlers();
     contacts.List.handleClick(Contacts.showContactDetail);
-    Contacts.setNormalHeader();
+    HeaderUI.setNormalHeader();
 
     var hasICESet = ICEData.iceContacts.find(function(x) {
       return x.active === true;
@@ -297,7 +298,7 @@ contacts.ICE = (function() {
    */
   function showSelectList(target) {
     contacts.List.toggleICEGroup(false);
-    Contacts.setCancelableHeader(goBack, 'selectContact');
+    HeaderUI.setCancelableHeader(goBack, 'selectContact');
     contacts.Settings.navigation.go('view-contacts-list', 'right-left');
     currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
     contacts.List.clearClickHandlers();
