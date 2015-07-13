@@ -594,26 +594,10 @@ return [
     },
 
     getAttachmentBlob: function(attachment, callback) {
-      try {
-        // Get the file contents as a blob, so we can open the blob
-        var storageType = attachment._file[0];
-        var filename = attachment._file[1];
-        var storage = navigator.getDeviceStorage(storageType);
-        var getreq = storage.get(filename);
-
-        getreq.onerror = function() {
-          console.warn('Could not open attachment file: ', filename,
-                       getreq.error.name);
-        };
-
-        getreq.onsuccess = function() {
-          // Now that we have the file, return the blob within callback function
-          var blob = getreq.result;
-          callback(blob);
-        };
-      } catch (ex) {
-        console.warn('Exception getting attachment from device storage:',
-                     attachment._file, '\n', ex, '\n', ex.stack);
+      if (attachment._file && attachment._file.size) {
+        callback(attachment._file);
+      } else {
+        console.warn('Attachment is not a Blob:', attachment._file);
       }
     },
 
@@ -1088,6 +1072,8 @@ return [
 
             if (attachment.isDownloaded) {
               state = 'downloaded';
+            } else if (attachment.isDownloading) {
+              state = 'downloading';
             } else if (!attachment.isDownloadable) {
               state = 'nodownload';
               attachmentDownloadable = false;
