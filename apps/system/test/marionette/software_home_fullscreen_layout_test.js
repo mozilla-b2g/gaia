@@ -69,7 +69,6 @@ marionette('Software Home Button - Fullscreen Layout', function() {
     var reflowHelper = new ReflowHelper(client);
     system.stopDevtools();
     system.stopClock();
-    system.stopStatusbar();
 
     assert.ok(system.softwareHomeFullscreenLayout.displayed());
 

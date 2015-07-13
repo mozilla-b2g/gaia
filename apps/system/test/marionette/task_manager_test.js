@@ -235,7 +235,6 @@ marionette('Task Manager', function() {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=971008
     system.stopDevtools();
     system.stopClock();
-    system.stopStatusbar();
     var reflowHelper = new ReflowHelper(client);
 
     taskManager.show();

@@ -58,7 +58,6 @@ marionette('Homescreen navigation >', function() {
     // Since the clock will cause reflows we're disabling it
     // Also disabling the developer hud because of
     // https://bugzilla.mozilla.org/show_bug.cgi?id=971008
-    sys.stopStatusbar();
     sys.stopDevtools();
     sys.stopClock();
 

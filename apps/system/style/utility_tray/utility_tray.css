@@ -79,6 +79,8 @@
 
 #statusbar-tray {
   background-image: none;
+  background-repeat: no-repeat;
+  background-position: right;
   width: 100%;
   top: 0;
   height: 3rem;
@@ -86,8 +88,9 @@
 }
 
 #screen.utility-tray-in-transition #statusbar-tray,
-#screen:-moz-full-screen-ancestor #statusbar-tray {
-  background-image: -moz-element(#statusbar-maximized);
+#screen:-moz-full-screen-ancestor #statusbar-tray,
+#screen.utility-tray-in-transition #utility-tray #statusbar-tray {
+  background-image: -moz-element(#statusbar-icons);
 }
 
 #statusbar-tray > .sb-start-upper {

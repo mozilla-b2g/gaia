@@ -21,8 +21,7 @@
   AppStatusbar.prototype.view = function() {
     var content = `<div class="titlebar">
              <div class="notifications-shadow"></div>
-             <div class="statusbar-shadow titlebar-maximized"></div>
-             <div class="statusbar-shadow titlebar-minimized"></div>
+             <div class="statusbar-shadow titlebar-icons"></div>
            </div>`;
     return content;
   };

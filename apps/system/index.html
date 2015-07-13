@@ -207,23 +207,21 @@
 
   <body class="theme-settings" role="application">
     <div id="screen" aria-hidden="true">
-      <div id="windows" data-z-index-level="app">
-        <!-- application windows are added here -->
-      </div>
-
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
       </div>
 
       <!-- Statusbar -->
       <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Statusbar icons -->
-        <div id="statusbar-icons">
-          <div id="statusbar-maximized-wrapper">
-            <div id="statusbar-maximized" class="statusbar" role="group" data-l10n-id="statusbar" aria-describedby="ambient-indicator">
-            </div>
-          </div>
+        <div id="statusbar-wrapper">
+          <!-- Statusbar icons -->
+          <div id="statusbar-icons" class="statusbar" role="group" data-l10n-id="statusbar" aria-describedby="ambient-indicator">
         </div>
+        </div>
+      </div>
+
+      <div id="windows" data-z-index-level="app">
+        <!-- application windows are added here -->
       </div>
 
       <!-- Rocketbar-->

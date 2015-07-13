@@ -72,7 +72,6 @@ marionette('Edges gesture >', function() {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=971008
     sys.stopDevtools();
     sys.stopClock();
-    sys.stopStatusbar();
 
     assert(calendar.ariaDisplayed(), 'calendar is visible');
     assert(!settings.ariaDisplayed(), 'settings is invisible');
