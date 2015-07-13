@@ -36,15 +36,17 @@ suite('system/AppChrome', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+
     requireApp('system/js/base_ui.js');
     requireApp('system/js/app_chrome.js', function() {
+      this.sinon.stub(AppChrome.prototype, 'setSiteIcon');
       app = new AppWindow(cloneConfig(fakeWebSite));
       app.contextmenu = {
         isShown: function() {return false;}
       };
       chrome = new AppChrome(app);
       done();
-    });
+    }.bind(this));
 
     window.SettingsListener = { observe: function() {} };
   });
@@ -289,7 +291,7 @@ suite('system/AppChrome', function() {
 
   suite('Navigation events', function() {
     setup(function() {
-      this.sinon.stub(chrome, 'setSiteIcon');
+      chrome.setSiteIcon.reset();
     });
 
     test('loadstart', function() {
@@ -574,7 +576,6 @@ suite('system/AppChrome', function() {
     });
 
     test('theme resets on navigation', function() {
-      this.sinon.stub(chrome, 'setSiteIcon');
       chrome.setThemeColor('orange');
       chrome.handleEvent({type: 'mozbrowserloadstart'});
       chrome.handleEvent({type: 'mozbrowserloadend'});
@@ -755,6 +756,12 @@ suite('system/AppChrome', function() {
       chrome.reConfig();
       assert.isFalse(chrome.app.element.classList.contains('search-app'));
     });
+
+    test('sets the site icon', function() {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      assert.isTrue(chrome.setSiteIcon.called);
+    });
   });
 
   suite('transition events', function() {
@@ -797,6 +804,7 @@ suite('system/AppChrome', function() {
     setup(function() {
       var app = new AppWindow(cloneConfig(fakeWebSite));
       combinedChrome = new AppChrome(app);
+      combinedChrome.setSiteIcon.restore();
       getIconPromise = new MockPromise();
       this.sinon.stub(combinedChrome.app, 'getSiteIconUrl')
                      .returns(getIconPromise);
