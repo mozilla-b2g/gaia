@@ -37,6 +37,8 @@
     this.containerElement = app.element;
     this._themeChanged = false;
     this.scrollable = app.browserContainer;
+    this._currentOrigin = '';
+    this._currentIconUrl = '';
     this.render();
 
     if (this.app.themeColor) {
@@ -661,6 +663,16 @@
 
       this.updateAddToHomeButton();
 
+      // We only change the icon back to the default one if the new page is not
+      // on the same domain than the previous one.
+      // In both cases, we look for the best icon after `mozbrowserloadend`.
+      var origin = new URL(this._currentURL).origin;
+
+      if (this._currentOrigin !== origin) {
+        this.setSiteIcon(DEFAULT_ICON_URL);
+        this._currentOrigin = origin;
+      }
+
       if (!this.app.isBrowser()) {
         return;
       }
@@ -690,7 +702,6 @@
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
     this.containerElement.classList.add('loading');
     this._themeChanged = false;
-    this.setSiteIcon(DEFAULT_ICON_URL);
   };
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
@@ -892,7 +903,13 @@
     this.app.getSiteIconUrl()
       .then(iconObject => {
         this.siteIcon.classList.toggle('small-icon', iconObject.isSmall);
-        this.siteIcon.style.backgroundImage = `url("${iconObject.url}")`;
+
+        // We compare the original icon URL, otherwise there is a flickering
+        // effect because a different object url is created each time.
+        if (this._currentIconUrl !== iconObject.originalUrl) {
+          this.siteIcon.style.backgroundImage = `url("${iconObject.url}")`;
+          this._currentIconUrl = iconObject.originalUrl;
+        }
       })
       .catch((err) => {
         this.app.debug('setSiteIcon, error from getSiteIcon: %s', err);
