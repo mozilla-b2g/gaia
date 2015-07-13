@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="theme-group" content="theme-media">
+    <meta name="theme-color" content="var(--header-background)">
+    <title>Music</title>
+    <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/gaia-theme.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
+    <link rel="stylesheet" type="text/css" href="style/music.css"/>
+    <!-- Localization -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/music.{locale}.properties">
+    <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
+    <!-- Shared code -->
+    <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/mediadb.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
+    <script defer src="shared/js/accessibility_helper.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
+    <script defer src="shared/js/image_utils.js"></script>
+    <script defer src="shared/js/omadrm/fl.js"></script>
+    <!-- Web components -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <!-- Specific code -->
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/music.js"></script>
+    <script defer src="js/db.js"></script>
+    <script defer src="js/ui/title_bar.js"></script>
+    <script defer src="js/ui/tab_bar.js"></script>
+    <script defer src="js/ui/views/mode_manager.js"></script>
+    <!-- Lazy load code -->
+    <!--
+    <script defer src="shared/js/text_normalizer.js"></script>
+    <script defer src="shared/js/bluetooth_helper.js"></script>
+    <script defer src="shared/js/media/remote_controls.js"></script>
+    <script defer src="js/metadata/*.js"></script>
+    <script defer src="js/communications.js"></script>
+    <script defer src="js/ui/views/tiles_view.js"></script>
+    <script defer src="js/ui/views/list_view.js"></script>
+    <script defer src="js/ui/views/subList_view.js"></script>
+    <script defer src="js/ui/views/search_view.js"></script>
+     -->
+  </head>
+
+  <body role="application" class="theme-media">
+    <gaia-header id="title" action="back" no-font-fit>
+      <h1 id="title-text"><bdi data-l10n-id="music"></bdi></h1>
+      <button id="title-player" data-icon="play-circle" data-l10n-id="go-to-player-view" hidden></button>
+      <button id="title-done" data-l10n-id="done" hidden>Done</button>
+    </gaia-header>
+    <div id="views">
+      <div id="views-tiles" class="view bb-tabpanel hidden" aria-labelledby="tabs-mix" role="tabpanel">
+        <form id="views-tiles-search" role="search" class="skin-dark">
+          <button id="views-tiles-search-close" data-l10n-id="search-close" type="submit">close</button>
+          <p>
+            <input id="views-tiles-search-input" type="search" dir="auto"
+                   x-inputmode="verbatim"
+                   data-l10n-id="search-music" placeholder="SearcH MusiC">
+            <button id="views-tiles-search-clear" type="reset">Clear</button>
+          </p>
+        </form>
+        <div id="views-tiles-anchor"></div>
+      </div>
+      <div id="views-list" class="view bb-tabpanel hidden" role="tabpanel">
+        <form id="views-list-search" role="search" class="skin-dark">
+          <button id="views-list-search-close" data-l10n-id="search-close" type="submit">close</button>
+          <p>
+            <input id="views-list-search-input" type="search"
+                   x-inputmode="verbatim"
+                   data-l10n-id="search-music" placeholder="SearcH MusiC">
+            <button id="views-list-search-clear" type="reset">Clear</button>
+          </p>
+        </form>
+        <div id="views-list-anchor" role="listbox"></div>
+      </div>
+      <div id="views-sublist" class="view hidden">
+        <div id="views-sublist-header">
+          <img id="views-sublist-header-image">
+          <div id="views-sublist-header-controls">
+            <bdi id="views-sublist-header-name">Name</bdi>
+            <button id="views-sublist-controls-play" class="album-controls-button" data-icon="play" data-l10n-id="playbackPlay"></button>
+            <button id="views-sublist-controls-shuffle" class="album-controls-button" data-icon="shuffle" data-l10n-id="shuffle-toggle"></button>
+          </div>
+        </div>
+        <!-- Bug 968456. Scrollable area needs to be inside an opaque background div to help gecko -->
+        <div id="views-scrollable-sublist-anchor"><div id="views-sublist-anchor" role="listbox"></div></div>
+      </div>
+      <div id="views-player" class="view hidden">
+        <div id="player-cover">
+          <!-- We have two cover image elements so we can crossfade between
+               album art. -->
+          <div id="player-cover-image-1" class="cover-image visible"></div>
+          <div id="player-cover-image-2" class="cover-image"></div>
+          <div id="player-cover-caption">
+            <div id="player-cover-artist"><bdi data-l10n-id="songArtist">Song Artist</bdi></div>
+            <div id="player-cover-album"><bdi data-l10n-id="songAlbum">Song Album</bdi></div>
+            <button id="player-cover-share" class="player-cover-button" data-icon="share" data-l10n-id="share-song"></button>
+          </div>
+          <div id="player-cover-buttons">
+            <button id="player-album-repeat" data-l10n-id="repeat-off" class="player-cover-button" data-icon="repeat"></button>
+            <div id="player-album-rating" data-l10n-id="player-album-rating" role="radiogroup">
+              <button class="rating-star" data-rating="1" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"1"}'></button>
+              <button class="rating-star" data-rating="2" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"2"}'></button>
+              <button class="rating-star" data-rating="3" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"3"}'></button>
+              <button class="rating-star" data-rating="4" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"4"}'></button>
+              <button class="rating-star" data-rating="5" role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"5"}'></button>
+            </div>
+            <button id="player-album-shuffle" class="player-cover-button" data-icon="shuffle" aria-pressed="true" data-l10n-id="shuffle-toggle"></button>
+          </div>
+          <section id="info-banner" role="status">
+            <p data-l10n-id="music-paused-notification"></p>
+          </section>
+        </div>
+        <div id="player-seek" role="slider" aria-valuemin="0">
+          <span id="player-seek-elapsed" dir="ltr">00:00</span>
+          <div id="player-seek-bar">
+            <progress id="player-seek-bar-progress" value="0"></progress>
+            <div id="player-seek-bar-indicator"></div>
+          </div>
+          <span id="player-seek-remaining" dir="ltr">00:00</span>
+        </div>
+        <div id="player-controls" dir="ltr">
+          <button id="player-controls-previous" class="player-controls-button" data-icon="skip-back" data-l10n-id="playbackPrevious"></button>
+          <button id="player-controls-play" class="player-controls-button is-pause" data-icon="pause" data-l10n-id="playbackPause"></button>
+          <button id="player-controls-next" class="player-controls-button" data-icon="skip-forward" data-l10n-id="playbackNext"></button>
+        </div>
+        <audio id="player-audio" class="hidden"></audio>
+      </div>
+      <div id="views-search" class="view hidden">
+        <form id="views-search-form" role="search" class="skin-dark">
+          <button id="views-search-close" data-l10n-id="search-close" type="submit">close</button>
+          <p>
+            <input id="views-search-input" type="search" dir="auto"
+                   x-inputmode="verbatim"
+                   data-l10n-id="search-music" placeholder="SearcH MusiC">
+            <button id="views-search-clear" type="reset">Clear</button>
+          </p>
+        </form>
+        <div id="views-search-no-result" class="search-category hidden">
+          <p id="search-no-result" data-l10n-id="search-no-result">No musiC founD</p>
+        </div>
+        <div id="views-search-anchor">
+          <div id="views-search-artists" class="search-category hidden">
+            <gaia-subheader skin="dark">
+              <span data-l10n-id="search-artists">ArtistS</span>
+                (<span class="search-result-count"></span>)
+            </gaia-subheader>
+            <div class="search-results" role="listbox"></div>
+          </div>
+          <div id="views-search-albums" class="search-category hidden">
+            <gaia-subheader skin="dark">
+              <span data-l10n-id="search-albums">AlbumS</span>
+                (<span class="search-result-count"></span>)
+            </gaia-subheader>
+            <div class="search-results" role="listbox"></div>
+          </div>
+          <div id="views-search-titles" class="search-category hidden">
+            <gaia-subheader skin="dark">
+              <span data-l10n-id="search-titles">TrackS</span>
+                (<span class="search-result-count"></span>)
+            </gaia-subheader>
+            <div class="search-results" role="listbox"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- BB tabs -->
+    <div id="tabs">
+      <ul role="tablist" class="bb-tablist skin-dark">
+        <li id="mix" role="presentation">
+          <a id="tabs-mix" data-option="mix" role="tab" aria-selected="false" aria-controls="views-tiles" data-icon="grid" data-l10n-id="mix-tab"></a>
+        </li>
+        <li id="playlists" role="presentation">
+          <a id="tabs-playlists" data-option="playlist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="playlist" data-l10n-id="playlists-tab"></a>
+        </li>
+        <li id="artists" role="presentation">
+          <a id="tabs-artists" data-option="artist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="artist" data-l10n-id="artists-tab"></a>
+        </li>
+        <li id="albums" role="presentation">
+          <a id="tabs-albums" data-option="album" role="tab" aria-selected="false" aria-controls="views-list" data-icon="album" data-l10n-id="albums-tab"></a>
+        </li>
+        <li id="songs" role="presentation">
+          <a id="tabs-songs" data-option="title" role="tab" aria-selected="false" aria-controls="views-list" data-icon="songs" data-l10n-id="songs-tab"></a>
+        </li>
+      </ul>
+    </div>
+    <!-- display scanning progress over the titlebar -->
+    <div id="scan-progress" class="hidden">
+      <progress id="scan-spinner" class="hidden"></progress>
+      <div id="scan-count"></div>
+      <div id="scan-artist"></div>
+      <div id="scan-title"></div>
+    </div>
+    <!-- display messages like "Scanning", "No Songs" and "No SD Card" here -->
+    <form id="overlay" role="dialog" data-type="confirm" class="hidden">
+      <section id="overlay-content">
+        <h1 id="overlay-title"></h1>
+        <p id="overlay-text"></p>
+      </section>
+      <menu id="overlay-menu" class="hidden">
+        <button type="button" id="overlay-cancel-button" class="full"
+                data-l10n-id="overlay-cancel-button">Cancel</button>
+      </menu>
+    </form>
+    <!-- display this at startup while we load music -->
+    <div id="spinner-overlay"><progress id="spinner"></progress></div>
+  </body>
+</html>
+

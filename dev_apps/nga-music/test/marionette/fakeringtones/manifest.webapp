@@ -1,0 +1,14 @@
+{
+  "name": "Fake Ringtones",
+  "description": "A fake ringtones app",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "device-storage:music":{ "access": "readwrite" },
+    "audio-channel-ringer":{}
+  }
+}

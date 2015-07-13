@@ -1,0 +1,1190 @@
+/*
+ * By default do not allow any user text selection, only enable
+ * for certain parts on a per-element/region area.
+*/
+* {
+  -moz-user-select: none;
+}
+
+html {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-size: 10px;
+  overflow: hidden;
+}
+
+body {
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: black;
+}
+
+/* Hide the default placeholder */
+img:-moz-loading {
+  visibility: hidden;
+}
+
+/*
+ * The overlay is where we display messages like Scanning, No Songs,
+ * No SD card and SD Card in Use along with instructions for resolving
+ * the issue.  The user can't interact with the app while the overlay
+ * is displayed.
+ */
+#overlay {
+  /* it takes up the whole screen */
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  /* almost transparent gray */
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 30;
+}
+
+/*
+ * The overlay content area holds the text of the overlay.
+ * It has borders and a less transparent background so that
+ * the overlay text shows up more clearly
+ */
+#overlay-content {
+  background:
+  url(images/ui/pattern.png) repeat left top,
+  url(images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  /* We can't use shortand with background size because is not implemented yet:
+  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-size: 0;
+  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
+  created by white-spaces and break lines in the code betewen inline-block elements */
+  color: #fff;
+  padding: 11rem 2.5rem 0 2.5rem;
+}
+
+#overlay-title {
+  font-weight: normal;
+  font-size: 1.9rem;
+  color: #fff;
+  margin: 0 0.5rem 0 0.5rem;
+  padding: 0;
+}
+
+#overlay-text {
+  padding: 1rem 0.5rem 0 0.5rem;
+  border-top: 0.1rem solid #686868;
+  font-weight: 300;
+  font-size: 2.5rem;
+  color: #ebebeb;
+}
+
+#overlay-menu {
+  z-index: 100;
+}
+
+/* For overriding the style from BB */
+#overlay-menu.hidden {
+  display: none;
+}
+
+/* Spinner */
+#spinner-overlay { /* just like the #overlay element above */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/*
+ * spinner animation styles copied from
+ * shared/style/progress_activity.css
+ */
+#spinner {
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  left: calc(50% - 1.5rem);
+}
+
+/*
+ * We have to make this explicit for progress elements because
+ * shared/style/progress_activity.css has a display property that
+ * takes priority over the generic .hidden style in this file
+ */
+progress.hidden { display: none; }
+
+/* Display the names of the songs we scan here */
+#scan-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5rem;
+  border: none;
+  overflow: hidden;
+  z-index: 31;
+  background-color: #333;
+  color: #fff;
+}
+
+/* Never show the scan progress when the title bar has a back button, since the
+   progress display would make it impossible to go back! */
+#title[action="back"] ~ #scan-progress {
+  display: none;
+}
+
+#scan-spinner {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+#scan-count {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5rem;
+  height: 5rem;
+  border: none;
+  background-color: rgba(0,0,0,0);
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  padding-top: 1.7rem;
+}
+
+#scan-artist {
+  position: absolute;
+  top: 0;
+  left: 5rem;
+  right: 0;
+  height: 3rem;
+  line-height: 3rem;
+  padding-left: .5rem;
+  font-size: 1.9rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#scan-title {
+  position: absolute;
+  top: 3rem;
+  left: 5rem;
+  right: 0;
+  height: 2rem;
+  line-height: 1.9rem;
+  padding-left: .5rem;
+  font-size: 1.4rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#views {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 5rem);
+  background-color: #0E1214;
+  transition: transform 300ms ease;
+}
+
+#views-search-no-result {
+  position: absolute;
+  top: 3.7rem;
+  left: 0;
+  right: 0;
+  height: calc(100% - 3.7rem);
+}
+
+#search-no-result {
+  margin: 9.5rem 1.5rem 0;
+  padding-top: 1.5rem;
+  font-size: 2.4rem;
+  font-weight: 300;
+  text-align: left;
+  border-top: 0.1rem solid #bdbdbd;
+}
+
+.view {
+  width: 100%;
+  height: auto;
+  /*
+   * The visibility property makes the transition blinks
+   * Need to think some way to fix this
+   */
+  visibility: hidden;
+  z-index: 1;
+}
+
+.animated {
+  transition: visibility 300ms, transform 300ms ease, opacity 300ms ease;
+}
+
+.next {
+  transform: translateX(100%);
+  visibility: hidden;
+  opacity: 0;
+}
+
+.current {
+  transform: translateX(0%);
+  visibility: visible;
+  opacity: 1;
+}
+
+.previous {
+  transform: translateX(-100%);
+  visibility: hidden;
+  opacity: 0;
+}
+
+#views-tiles,
+#views-list,
+#views-sublist,
+#views-player,
+#views-search {
+  position: absolute;
+}
+
+#views-tiles,
+#views-list,
+#views-sublist,
+#views-search {
+  height: calc(100% - 4.5rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #0E1214;
+  will-change: scroll-position;
+}
+
+body.picker-mode #views-list {
+  height: 100%;
+}
+
+#views-player {
+  height: 100%;
+  overflow: hidden;
+}
+
+#views-player.open-mode {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+#views-search {
+  height: calc(100% + 5rem);
+}
+
+/* Make sure the tiles and list views are tall enough that we can scroll the
+ * search box off-screen. */
+#views-tiles-anchor,
+#views-list-anchor {
+  min-height: 100%;
+  transition: visibility 300ms;
+}
+
+#views-search-anchor {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  height: calc(100% - 3.7rem);
+}
+
+/*
+ * Enable the text selection in the tiles and list search inputs.
+ */
+#views-tiles-search-input,
+#views-list-search-input {
+  -moz-user-select: text;
+}
+
+/*
+ * Bug 968456 - Ensure background
+ * scrolls w/ the content
+ */
+#views-tiles-anchor,
+#views-list-anchor,
+#views-sublist-anchor {
+  background-color: #0E1214;
+}
+
+#views-sublist-header,
+#views-sublist-anchor {
+  position: relative;
+  float: left;
+  width: 100%;
+}
+
+#views-sublist-header {
+  height: 8.1rem;
+}
+
+#views-scrollable-sublist-anchor {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  height: calc(100% - 8rem);
+}
+
+#views-sublist-anchor {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  will-change: scroll-position;
+}
+
+#views-sublist-header-image,
+#views-sublist-header-controls {
+  position: relative;
+  float: left;
+  left: 3rem;
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+}
+
+html[dir="rtl"] #views-sublist-header-image,
+html[dir="rtl"] #views-sublist-header-controls {
+  float: right;
+  left: auto;
+  right: 3rem;
+}
+
+#views-sublist-header-image {
+  width: 8rem;
+  height: 8rem;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+#views-sublist-header-name {
+  position:relative;
+  display: block;
+  font-size: 1.9rem;
+  padding: 0 1rem;
+  width: calc(100% - 2rem);
+  height: 4rem;
+  line-height: 4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[dir="rtl"] #views-sublist-header-name {
+  text-align: right;
+}
+
+#views-sublist-header-controls {
+  /* left: 3rem and album-art: 8rem */
+  width: calc(100% - 3rem - 8rem);
+  height: 8rem;
+}
+
+#views-sublist-controls-play,
+#views-sublist-controls-shuffle {
+  position:relative;
+  float: left;
+  font-size: 1.9rem;
+  padding: 0 1rem;
+  width: 50%;
+  height: 4rem;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+  color: #fff;
+}
+
+html[dir="rtl"] #views-sublist-controls-play,
+html[dir="rtl"] #views-sublist-controls-shuffle {
+  float: right;
+}
+
+.album-controls-button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: background 200ms ease;
+}
+
+.album-controls-button:hover {
+  background: transparent;
+}
+
+.album-controls-button:active {
+  background: rgb(0, 138, 170);
+}
+
+.album-controls-button:disabled {
+  opacity: 0.3;
+}
+
+.album-controls-button:disabled:active {
+  background: transparent;
+}
+
+.tile {
+  position: relative;
+}
+
+/* Tiles are grouped in 6. Left and right groups. */
+html[dir="ltr"] .tile:nth-child(12n+1),
+html[dir="ltr"] .tile:nth-child(12n+2),
+html[dir="ltr"] .tile:nth-child(12n+3),
+html[dir="ltr"] .tile:nth-child(12n+4),
+html[dir="ltr"] .tile:nth-child(12n+5),
+html[dir="ltr"] .tile:nth-child(12n+6),
+html[dir="rtl"] .tile:nth-child(12n+7),
+html[dir="rtl"] .tile:nth-child(12n+8),
+html[dir="rtl"] .tile:nth-child(12n+9),
+html[dir="rtl"] .tile:nth-child(12n+10),
+html[dir="rtl"] .tile:nth-child(12n+11),
+html[dir="rtl"] .tile:nth-child(12n+12) {
+  float: left;
+  left: 0.5%;
+}
+
+/* right groups */
+html[dir="ltr"] .tile:nth-child(12n+7),
+html[dir="ltr"] .tile:nth-child(12n+8),
+html[dir="ltr"] .tile:nth-child(12n+9),
+html[dir="ltr"] .tile:nth-child(12n+10),
+html[dir="ltr"] .tile:nth-child(12n+11),
+html[dir="ltr"] .tile:nth-child(12n+12),
+html[dir="rtl"] .tile:nth-child(12n+1),
+html[dir="rtl"] .tile:nth-child(12n+2),
+html[dir="rtl"] .tile:nth-child(12n+3),
+html[dir="rtl"] .tile:nth-child(12n+4),
+html[dir="rtl"] .tile:nth-child(12n+5),
+html[dir="rtl"] .tile:nth-child(12n+6) {
+  float: right;
+  right: 0.5%;
+}
+
+.main-tile {
+  width: 66%;
+  height: 0;
+  padding-bottom: 66%;
+  background-color: black;
+  overflow: hidden;
+}
+
+.tile:after {
+  display:block;
+  width: 100%;
+  height: 100%;
+  border:0.1rem solid black;
+  -moz-box-sizing: border-box;
+  content: ' ';
+  top: 0;
+  left: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.sub-tile {
+  width: 33%;
+  height: 0;
+  padding-bottom: 33%;
+  font-weight: 300;
+  background-color: #303030;
+  overflow: hidden;
+}
+
+.tile-album-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.tile-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  background-color: rgba(0 ,0, 0, 0);
+  transition: opacity 166ms ease-in-out;
+}
+
+.tile-container:active {
+  opacity: 0.5;
+}
+
+.tile-title-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.tile-title-artist,
+.tile-title-album {
+  padding: 0.15rem 1rem;
+  width: calc(100% - 2rem);
+  height: 2.5rem;
+  line-height: 2.5rem;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: black 0.1rem 0.1rem;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.tile-title-artist {
+  color: rgba(255, 255, 255, 1);
+  font-size: 1.4rem;
+}
+
+.tile-title-album {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 1.4rem;
+}
+
+html[dir="rtl"] .tile-title-artist,
+html[dir="rtl"] .tile-title-album {
+  text-align: right;
+}
+
+.main-tile-title {
+  font-size: 1.9rem;
+}
+
+.sub-tile-title {
+  padding: 0.15rem 0.5rem;
+  width: calc(100% - 1rem);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+#player-cover {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 9.1rem);
+  overflow: hidden;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.fadeIn {
+  animation-name: fadeIn;
+  animation-duration: 166ms;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+  animation-delay: 0ms;
+}
+
+.cover-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  background-position: center;
+  background-size: cover;
+  /* Wait 50ms to start the transition to give the image some time to load. */
+  transition: opacity 500ms ease-in-out 50ms;
+}
+
+.cover-image.visible {
+  opacity: 1;
+}
+
+#player-cover.slideOut #player-cover-caption {
+  transform: translateY(100%);
+  visibility: visible;
+}
+
+#player-cover.slideOut #player-cover-buttons {
+  transform: translateY(-100%);
+  visibility: visible;
+}
+
+#player-cover-caption,
+#player-cover-buttons {
+  position: relative;
+  width: 100%;
+  height: 5rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: transform 700ms ease-in-out, visibility 700ms ease-in-out;
+  visibility: hidden;
+}
+
+#player-cover-caption {
+  top: -5rem;
+}
+
+#player-cover-artist,
+#player-cover-album {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  text-indent: 3rem;
+  text-shadow: black 0.1rem 0.1rem;
+  line-height: 2.5rem;
+  width: 75%;
+  height: auto;
+}
+
+#player-cover-artist {
+  font-size: 1.9rem;
+}
+
+#player-cover-album {
+  font-size: 1.7rem;
+}
+
+html[dir="rtl"] #player-cover-artist,
+html[dir="rtl"] #player-cover-album {
+  text-align: right;
+}
+
+#player-cover-artist.hidden-cover-share,
+#player-cover-album.hidden-cover-share {
+  width: 100%;
+}
+
+#player-cover-share {
+  width: calc(25% - 2rem);
+  height: 80%;
+  padding: 0;
+  border-radius: 3.5rem;
+  margin: 0 1rem;
+  font-weight: 500;
+  position: absolute;
+  top: 10%;
+  right: -2%;
+  z-index: 1;
+  color: #fff;
+}
+
+html[dir="rtl"] #player-cover-share {
+  right: unset;
+  left: -2%;
+  margin: 0 0 0 1rem;
+}
+
+#player-cover-buttons {
+  bottom: calc(-100% + 5rem);
+}
+
+#player-album-shuffle,
+#player-album-rating,
+#player-album-repeat {
+  position: relative;
+  float: left;
+}
+
+#player-album-shuffle,
+#player-album-repeat {
+  top: 10%;
+  width: calc(25% - 2rem);
+  height: 80%;
+  padding: 0;
+  border-radius: 3.5rem;
+  margin: 0 1rem;
+  font-weight: 500;
+  color: #777;
+}
+
+#player-album-shuffle.shuffle-on {
+  color: #fff;
+}
+
+#player-album-shuffle:disabled {
+  color: #777;
+}
+
+#player-album-repeat:disabled {
+  color: #777;
+}
+
+#player-album-repeat.repeat-list,
+#player-album-repeat.repeat-song {
+  color: #fff;
+}
+
+#player-album-repeat.repeat-song:before {
+  content: 'repeat-once';
+}
+
+#player-album-rating {
+  width: 50%;
+  height: 100%;
+  text-align: center;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: none;
+}
+
+.rating-star {
+  position: relative;
+  float: left;
+  width: 20%;
+  height: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  border: 0;
+  outline: none;
+  background-image: url('./images/star_off.png');
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-size: 2.2rem;
+}
+
+html[dir="rtl"] .rating-star {
+  float: right;
+}
+
+.star-on {
+  background-image: url('./images/star_on.png');
+}
+
+#player-seek {
+  position: relative;
+  height: 4.2rem;
+  font-size: 0;
+  background-color: rgba(0,0,0, 0.85);
+}
+
+#player-seek.disabled {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+#player-seek-elapsed,
+#player-seek-bar,
+#player-seek-remaining {
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+}
+
+#player-seek-elapsed,
+#player-seek-remaining {
+  width: 5.3rem;
+  line-height: 4.2rem;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #e7e7e7;
+}
+
+#player-seek-elapsed {
+  padding-left: 1.5rem;
+}
+
+#player-seek-remaining {
+  text-align: right;
+  padding-right: 1.5rem;
+}
+
+#player-seek-bar {
+  display: inline-block;
+  width: calc(100% - 13.6rem);
+  height: 100%;
+  z-index: 1;
+}
+
+#player-seek-bar-progress {
+  pointer-events: none;
+  -moz-appearance: none;
+  position: absolute;
+  top: calc(50% - 0.1rem);
+  left: 0;
+  height: 0.1rem;
+  border-width: 0;
+  border-radius: 0;
+  background-color: #a6b4b7;
+}
+
+#player-seek-bar-progress::-moz-progress-bar {
+  height: 0.3rem;
+  margin-top: -0.1rem;
+  background-color: #00CAF2;
+}
+
+#player-seek-bar-indicator {
+  position: absolute;
+  top: calc(50% - 1.15rem);
+  width: 2.3rem;
+  height: 2.3rem;
+  pointer-events: none;
+}
+
+#player-seek-bar-indicator:after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 1.25rem);
+  left: calc(50% - 1.15rem);
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 0.1rem solid #ffffff;
+  background-color: #ffffff;
+}
+
+
+#player-seek-bar-indicator.highlight:before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 3.05rem);
+  left: calc(50% - 3.05rem);
+  width: 6.1rem;
+  height: 6.1rem;
+  border-radius: 50%;
+  background-color: #00CAF2;
+}
+
+#player-controls {
+  position: relative;
+  height: 4.8rem;
+  font-size: 0;
+  vertical-align: top;
+  border-top: 0.1rem solid rgba(255,255,255, 0.1);
+  background-color: #000;
+  overflow: hidden;
+}
+
+#player-controls-previous,
+#player-controls-play,
+#player-controls-next {
+  position: relative;
+  height: 100%;
+  padding: 0;
+  font-weight: 500;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+#player-controls-previous {
+  width: 33%;
+}
+
+#player-controls-play {
+  width: 34%;
+}
+
+#player-controls-play.is-pause:before {
+  content: 'play';
+}
+
+#player-controls-next {
+  width: 33%;
+}
+
+.player-controls-button {
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: background 200ms ease;
+}
+.player-controls-button:hover {
+  background: transparent;
+}
+.player-controls-button:active {
+  background: #00caf2;
+}
+.player-controls-button:disabled {
+  opacity: 0.3;
+}
+.player-controls-button:disabled:active {
+  background: transparent;
+}
+
+#tabs {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  z-index: 20;
+  transition: transform 300ms ease, opacity 300ms ease;
+}
+
+#tabs.away {
+  opacity: 0;
+  transform: translateY(4.5rem);
+}
+
+body.picker-mode #tabs {
+  display: none;
+}
+
+#tabs li:last-child {
+  margin-bottom: 0;
+}
+
+#tabs a {
+  outline: none;
+}
+
+#tabs li {
+  overflow: hidden;
+}
+
+.player-cover-button {
+  border: none;
+  border-radius: 0;
+  background: none;
+  transition: background 200ms ease;
+}
+.player-cover-button:hover {
+  background: transparent;
+}
+.player-cover-button:active {
+  background: rgb(0, 138, 170);
+}
+.player-cover-button:disabled {
+  opacity: 0.3;
+}
+.player-cover-button:disabled:active {
+  background: transparent;
+}
+
+.hidden {
+  display: none;
+}
+
+li.list-header {
+  list-style-type: none;
+  position: relative;
+  margin: 0 8rem 0 3rem;
+  width: calc(100% - 11.5rem);
+  height: 2.5rem;
+  line-height: 2.5rem;
+  font-size: 1.9rem;
+  color: rgb(0, 138, 170);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+html[dir="rtl"] li.list-header {
+  margin: 0 3rem 0 8rem;
+}
+
+li.list-item {
+  list-style-type: none;
+  position: relative;
+  width: 100%;
+}
+
+li.list-item a {
+  display: block;
+  text-decoration: none;
+  margin: 0;
+  width: 100%;
+  height: 6rem;
+  background-color: transparent;
+  transition: background-color 200ms ease;
+}
+
+li.list-item a:active {
+  background-color: rgba(52,140,158, .6);
+}
+
+.list-album-art {
+  position: absolute;
+  right: 2.5rem;
+  top: 0;
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+html[dir="rtl"] .list-album-art {
+  left: 2.5rem;
+  right: auto;
+}
+
+/* title width is 100% - 1rem(padding) - 6rem(albumArt) */
+.list-main-title,
+.list-sub-title,
+.list-single-title,
+.list-playlist-title,
+.list-song-title {
+  position: absolute;
+  top: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.list-main-title {
+  top: 10%;
+  width: calc(100% - 12rem);
+  padding: 0 0.5rem 0 3rem;
+  font-size: 1.9rem;
+  color: white;
+}
+
+html[dir="rtl"] .list-main-title {
+  text-align: right;
+  padding: 0 3rem 0 0.5rem;
+}
+
+.list-sub-title {
+  top: 3rem;
+  width: calc(100% - 12rem);
+  padding: 0 0.5rem 0 3rem;
+  font-size: 1.7rem;
+  color: #8a9699;
+}
+
+html[dir="rtl"] .list-sub-title {
+  text-align: right;
+  padding: 0 3rem 0 0.5rem;
+}
+
+.list-single-title {
+  width: calc(100% - 12rem);
+  height: 6rem;
+  line-height: 6rem;
+  padding: 0 0.5rem 0 3rem;
+  font-size: 1.9rem;
+  color: white;
+}
+
+html[dir="rtl"] .list-single-title {
+  text-align: right;
+  padding: 0 3rem 0 0.5rem;
+}
+
+.list-playlist-title {
+  width: calc(100% - 3.5rem);
+  height: 6rem;
+  padding-left: 3rem;
+  padding-right: 0.5rem;
+  line-height: 6rem;
+  font-size: 1.9rem;
+  color: white;
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+}
+
+html[dir="rtl"] .list-playlist-title {
+  text-align: right;
+  padding-left: 0.5rem;
+  padding-right: 3rem;
+}
+
+.list-playlist-icon {
+  position: absolute;
+  top: 0;
+  right: 2rem;
+  width: 4rem;
+  height: 6rem;
+  line-height: 6rem;
+  pointer-events: none;
+}
+
+html[dir="rtl"] .list-playlist-icon {
+  right: unset;
+  left: 2rem;
+}
+
+.list-song-index,
+.list-song-length {
+  position: absolute;
+  top: 0;
+  height: 6rem;
+  line-height: 6rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  pointer-events: none;
+}
+
+.list-song-index {
+  width: 3rem;
+}
+
+.list-song-title {
+  left: 3rem;
+  width: calc(100% - 3.5rem - 5.5rem);
+  height: 6rem;
+  line-height: 6rem;
+  padding-right: 0.5rem;
+  font-size: 1.9rem;
+  color: white;
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+}
+
+html[dir="rtl"] .list-song-title {
+  text-align: right;
+  right: 3rem;
+  padding-left: 0.5rem;
+  padding-right: 0;
+}
+
+.list-song-length {
+  right: 0;
+  width: 5rem;
+  padding-right: 0.5rem;
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
+}
+
+html[dir="rtl"] .list-song-length {
+  text-align: right;
+  left: 0;
+  right: auto;
+  padding-left: 0.5rem;
+  padding-right: 0;
+}
+
+.search-highlight {
+  background-color: rgb(0, 138, 170);
+}
+
+#info-banner {
+  z-index: -1;
+  opacity: 0;
+  transition: all 600ms ease;
+}
+
+#info-banner.visible {
+  z-index: 100;
+  opacity: 1;
+  transition: all 600ms ease;
+}
+
+/* See bug 1158043 */
+#title-text bdi {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

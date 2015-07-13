@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#242d33">
+    <title>Music</title>
+    <link rel="stylesheet" href="style/music.css" type="text/css" />
+    <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
+    <!-- Localization -->
+    <meta name="defaultLanguage" content="en-US">
+    <meta name="availableLanguages" content="en-US">
+    <link rel="localization" href="locales/music.{locale}.properties">
+    <link rel="localization" href="/shared/locales/media/media.{locale}.properties">
+
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/gaia-theme.css" />
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css" />
+
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/device_storage/get_storage_if_available.js"></script>
+    <script type="text/javascript" src="shared/js/device_storage/get_unused_filename.js"></script>
+    <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
+    <script type="text/javascript" defer src="shared/js/mime_mapper.js"></script>
+    <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
+    <script type="text/javascript" defer src="shared/js/image_utils.js"></script>
+    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
+
+    <!-- Web components -->
+    <script defer src="shared/elements/gaia-header/dist/gaia-header.js"></script>
+
+    <!-- Specific code -->
+    <script type="text/javascript" defer src="js/metadata_scripts.js"></script>
+    <script type="text/javascript" defer src="js/metadata/album_art_cache.js"></script>
+    <script type="text/javascript" defer src="js/utils.js"></script>
+    <script type="text/javascript" defer src="js/ui/views/player_view.js"></script>
+    <script type="text/javascript" defer src="js/open.js"></script>
+</head>
+
+  <body role="application" class="theme-media">
+    <section id="title" role="region" class="skin-dark">
+      <gaia-header id="header" action="back">
+        <h1 id="title-text"><bdi></bdi></h1>
+        <button id="title-save" data-l10n-id="save" hidden></button>
+      </gaia-header>
+    </section>
+    <div id="views">
+      <div id="views-player" class="view open-mode">
+        <div id="player-cover">
+          <!-- We have two cover image elements so we can crossfade between
+               album art (though this really only matters for index.html). -->
+          <div id="player-cover-image-1" class="cover-image visible"></div>
+          <div id="player-cover-image-2" class="cover-image"></div>
+          <div id="player-cover-caption">
+            <div id="player-cover-artist"><bdi data-l10n-id="songArtist">Song Artist</bdi></div>
+            <div id="player-cover-album"><bdi data-l10n-id="songAlbum">Song Album</bdi></div>
+          </div>
+          <div id="player-cover-buttons" hidden>
+            <button id="player-album-repeat" data-l10n-id="repeat-off" class="player-cover-button repeat-list" data-icon="repeat" disabled></button>
+            <div id="player-album-rating" data-l10n-id="player-album-rating" role="radiogroup">
+              <button class="rating-star" data-rating="1" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"1"}'></button>
+              <button class="rating-star" data-rating="2" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"2"}'></button>
+              <button class="rating-star" data-rating="3" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"3"}'></button>
+              <button class="rating-star" data-rating="4" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"4"}'></button>
+              <button class="rating-star" data-rating="5" disabled role="radio" data-l10n-id="rating-star" data-l10n-args='{"n":"5"}'></button>
+            </div>
+            <button id="player-album-shuffle" class="player-cover-button shuffle-on" data-icon="shuffle" disabled data-l10n-id="shuffle-toggle"></button>
+          </div>
+        </div>
+        <div id="player-seek" role="slider" aria-valuemin="0">
+          <span id="player-seek-elapsed">00:00</span>
+          <div id="player-seek-bar">
+            <progress id="player-seek-bar-progress" value="0"></progress>
+            <div id="player-seek-bar-indicator"></div>
+          </div>
+          <span id="player-seek-remaining">00:00</span>
+        </div>
+        <div id="player-controls" dir="ltr">
+          <button id="player-controls-previous" data-l10n-id="playbackPrevious" class="player-controls-button" data-icon="skip-back" disabled></button>
+          <button id="player-controls-play" data-l10n-id="playbackPlay" class="player-controls-button is-pause" data-icon="pause"></button>
+          <button id="player-controls-next" data-l10n-id="playbackNext" class="player-controls-button" data-icon="skip-forward" disabled></button>
+        </div>
+        <audio id="player-audio" class="hidden"></audio>
+      </div>
+      <section id="banner" role="status" hidden>
+        <p id="message"></p>
+      </section>
+    </div>
+  </body>
+</html>

@@ -1,6 +1,7 @@
 apps/*
 outoftree_apps/*
 dev_apps/marketplace-dev.allizom.org
+dev_apps/nga-music
 dev_apps/in_app_pay_test
 dev_apps/marketplace.allizom.org
 dev_apps/mochitest

@@ -1,0 +1,10 @@
+{
+  "webide": {
+    "prepackage": {
+      "command": "make",
+      "env": ["APP=music"],
+      "cwd": "../.."
+    },
+    "packageDir": "../../build_stage/music/"
+  }
+}

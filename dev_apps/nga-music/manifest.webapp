@@ -1,0 +1,69 @@
+{
+  "name": "NGA Music",
+  "description": "Gaia Music",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "themeable":{},
+    "device-storage:music":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readwrite" },
+    "settings":{ "access": "readonly" },
+    "bluetooth":{},
+    "audio-channel-content":{},
+    "nfc-share":{}
+  },
+  "activities": {
+    "pick": {
+      "filters": {
+        "type": ["audio/*", "audio/mpeg", "audio/ogg", "audio/mp4",
+                 "audio/flac"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html#pick"
+    },
+    "open": {
+      "filters": {
+        "type": ["audio/mpeg", "audio/ogg", "audio/mp4", "audio/amr",
+                 "audio/flac"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/open.html"
+    }
+  },
+  "locales": {
+    "ar": {
+      "name": "موسيقى",
+      "description": "Gaia موسيقى"
+    },
+    "en-US": {
+      "name": "NGA Music",
+      "description": "Gaia Music"
+    },
+    "fr": {
+      "name": "Musique",
+      "description": "Lecteur audio Gaia"
+    },
+    "zh-TW": {
+      "name": "音樂",
+      "description": "Gaia 音樂"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "84": "/style/icons/music_84.png",
+    "126": "/style/icons/music_126.png",
+    "142": "/style/icons/music_142.png",
+    "189": "/style/icons/music_189.png",
+    "284": "/style/icons/music_284.png"
+  },
+  "orientation": "default",
+  "messages": [
+     { "media-button": "/index.html" }
+  ]
+}
