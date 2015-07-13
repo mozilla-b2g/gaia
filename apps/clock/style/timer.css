@@ -13,6 +13,11 @@
   margin-top: 14rem;
 }
 
+[lang="ar"] #timer-time {
+  font-size: 6rem;
+  letter-spacing: 0;
+}
+
 #timer-time-display {
   text-align: center;
   position: absolute;

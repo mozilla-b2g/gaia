@@ -14,11 +14,24 @@
 }
 
 /**
+ * font being used in Arabic needs to be
+ * 30% smaller than the usual system font.
+ */
+[lang="ar"] .stopwatch-time {
+  font-size: 6rem;
+  letter-spacing: 0;
+}
+
+/**
  * When the stopwatch shows over 100 minutes, it becomes extra wide.
  * Tweak the font size to compensate.
  */
 .stopwatch-time.over-100-minutes {
   font-size: 8rem;
+}
+
+[lang="ar"] .stopwatch-time.over-100-minutes {
+  font-size: 5.6rem;
 }
 
 #stopwatch-controls {
@@ -56,9 +69,14 @@
   border-top: 1px solid rgba(115, 125, 128, 0.2);
 
   color: #CFE2E6;
-  font: 2.5rem sans-serif;
+  font-family: sans-serif;
+  font-size: 2.5rem;
   font-weight: 300;
   text-decoration: none;
+}
+
+[lang="ar"] .stopwatch-laps li.lap-cell {
+  font-size: 1.9rem;
 }
 
 .lap-name {

@@ -15,6 +15,7 @@ var App = {
    */
   init: function() {
     connectionHandler.init();
+    window.NumeralsHelper.init();
     this.tabs = new Tabs(document.getElementById('clock-tabs'));
 
     window.addEventListener('hashchange', this);

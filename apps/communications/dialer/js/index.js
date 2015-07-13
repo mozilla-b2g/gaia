@@ -1,4 +1,5 @@
-/* globals KeypadManager, NavbarManager, LazyLoader, CallHandler */
+/* globals KeypadManager, NavbarManager, LazyLoader, CallHandler,
+           NumeralsHelper */
 'use strict';
 
 function onLoadDialer() {
@@ -48,6 +49,7 @@ function onLoadDialer() {
       });
     });
   });
+  NumeralsHelper.init();
 }
 
 window.addEventListener('load', onLoadDialer);
