@@ -1,4 +1,4 @@
-/* global LazyLoader, FormUI, FormController */
+/* global LazyLoader, FormUI, FormController, ContactsService */
 'use strict';
 
 /*
@@ -43,8 +43,47 @@ window.addEventListener('load', function() {
   LazyLoader.load(
     dependencies,
     function() {
-      FormUI.init();
+
+      window.addEventListener('renderdone', function fn() {
+        window.removeEventListener('renderdone', fn);
+        document.body.classList.remove('hidden');
+      });
+
+      function getParams() {
+        var params = {};
+        var raw = window.location.search.split('?')[1];
+        var pairs = raw.split('&');
+        for (var i = 0; i < pairs.length; i++) {
+
+          var data = pairs[i].split('=');
+          params[data[0]] = data[1];
+        }
+        return params;
+      }
+
+      // Get action from URL (new or update)
+      var params = getParams();
+
+      // Initialize view and controller
+      FormUI.init(params.action);
       FormController.init();
+
+      if (params.action === 'update') {
+        ContactsService.get(
+          params.contact,
+          function(contact) {
+            FormUI.render(contact, params.action);
+            FormController.setContact(
+              contact
+            );
+          },
+          function() {
+            console.error('Unable to retrieve contact');
+          }
+        );
+      }
+
+
       navigator.mozSetMessageHandler(
         'activity',
         function(activity) {

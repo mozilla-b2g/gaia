@@ -11,7 +11,8 @@
 /* global TAG_OPTIONS */
 /* global utils */
 /* global HeaderUI */
-
+/* global GaiaHeader */
+/* global GaiaSubheader */
 /* global ContactsService */
 
 /* exported COMMS_APP_ORIGIN */
@@ -41,8 +42,7 @@ var Contacts = (function() {
   var detailsReady = false;
   var formReady = false;
 
-  var currentContact = {},
-      currentFbContact;
+  var currentContact = {};
 
   var contactsList;
   var contactsDetails;
@@ -240,27 +240,29 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
-    initDetails(function onDetailsReady() {
-      ContactsService.get(id, function findCb(contact, fbContact) {
+    if (!ActivityHandler.currentlyHandling) {
+      window.location.href =
+        '/contacts/views/details/details.html?contact=' + id;
+      return;
+    }
 
-        currentContact = contact;
-        currentFbContact = fbContact;
-
-        if (ActivityHandler.currentActivityIsNot(['import'])) {
-          if (ActivityHandler.currentActivityIs(['pick'])) {
-            ActivityHandler.dataPickHandler(currentFbContact || currentContact);
-          }
-          return;
+    ContactsService.get(id, function findCb(contact) {
+      currentContact = contact;
+      if (ActivityHandler.currentActivityIsNot(['import'])) {
+        if (ActivityHandler.currentActivityIs(['pick'])) {
+          ActivityHandler.dataPickHandler(currentContact);
         }
+        return;
+      }
 
-        contactsDetails.render(currentContact, currentFbContact);
-        if (contacts.Search && contacts.Search.isInSearchMode()) {
-          MainNavigation.go('view-contact-details', 'go-deeper-search');
-        } else {
-          MainNavigation.go('view-contact-details', 'go-deeper');
-        }
-      });
+      // contactsDetails.render(currentContact, currentFbContact);
+      // if (contacts.Search && contacts.Search.isInSearchMode()) {
+      //   MainNavigation.go('view-contact-details', 'go-deeper-search');
+      // } else {
+      //   MainNavigation.go('view-contact-details', 'go-deeper');
+      // }
     });
+
   };
 
   var updateContactDetail = function updateContactDetail(id) {
@@ -689,6 +691,32 @@ var Contacts = (function() {
 
   window.addEventListener('DOMContentLoaded', function onLoad() {
     window.removeEventListener('DOMContentLoaded', onLoad);
+  });
+
+  window.addEventListener('pageshow', function onPageshow() {
+    // XXX: Workaround until the platform will be fixed
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1184953
+    document.registerElement(
+      'gaia-header',
+      { prototype: GaiaHeader.prototype }
+    );
+    document.registerElement(
+      'gaia-subheader',
+      { prototype: GaiaSubheader.prototype }
+    );
+
+    // Handle changes in contacts
+    var contactID = sessionStorage.getItem('contactID');
+    var reason = sessionStorage.getItem('reason');
+    if (!contactID || (contactID.length && contactID.length ===0)) {
+      return;
+    }
+    performOnContactChange({
+      contactID: contactID,
+      reason: reason
+    });
+    sessionStorage.setItem('contactID', null);
+    sessionStorage.setItem('reason', null);
   });
 
   return {

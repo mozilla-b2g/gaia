@@ -15,7 +15,7 @@
   'use strict';
 
   var _;
-  var _activity;
+  var _activity, _contact, _reason;
   const CONTACTS_APP_ORIGIN = location.origin;
 
   function close() {
@@ -172,6 +172,7 @@
   function doSave(contact) {
     ContactsService.addListener('contactchange',
       function oncontactchange(event) {
+        _reason = event.reason;
         sessionStorage.setItem('contactID', event.contactID);
         sessionStorage.setItem('reason', event.reason);
         ContactsService.removeListener('contactchange', oncontactchange);
@@ -179,6 +180,21 @@
       }
     );
     ContactsService.save(contact, function(error) {
+      // Use if needed.
+    });
+  }
+
+  function doRemove(contact) {
+    ContactsService.addListener('contactchange',
+      function oncontactchange(event) {
+        _reason = event.reason;
+        sessionStorage.setItem('contactID', event.contactID);
+        sessionStorage.setItem('reason', event.reason);
+        ContactsService.removeListener('contactchange', oncontactchange);
+        close();
+      }
+    );
+    ContactsService.remove(contact, function(error) {
       // Use if needed.
     });
   }
@@ -193,7 +209,21 @@
 
 
       function saveContactHandler(event) {
-        var contact = utils.misc.toMozContact(event.detail);
+        var contact;
+        var preContact = event.detail;
+        if (_contact) {
+          var readOnly = ['id', 'updated', 'published'];
+          for (var field in _contact) {
+            if (readOnly.indexOf(field) == -1) {
+              _contact[field] = preContact[field];
+            }
+          }
+
+          contact = _contact;
+        } else {
+          contact = utils.misc.toMozContact(preContact);
+        }
+
         LazyLoader.load(
           [
             '/contacts/style/match_service.css',
@@ -209,9 +239,20 @@
         'save-contact',
         saveContactHandler
       );
+
+
+      window.addEventListener(
+        'delete-contact',
+        function() {
+          doRemove(_contact);
+        }
+      );
     },
     setActivity: function(activity) {
       _activity = activity;
+    },
+    setContact: function(contact) {
+      _contact = contact;
     }
   };
 }(window));

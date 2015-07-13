@@ -2,3 +2,11 @@
 	visibility: visible;
 	transform: translateY(0);
 }
+
+body * {
+  transition: opacity 0.15s ease;
+}
+
+body.hidden * {
+  opacity: 0;
+}
