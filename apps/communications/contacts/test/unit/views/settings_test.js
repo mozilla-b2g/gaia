@@ -13,6 +13,7 @@
 /* global MockNavigatorMozMobileConnections */
 /* global MockNavigatorSettings */
 /* global MockSdCard */
+/* global MockLoader */
 /* global utils */
 
 require('/shared/js/lazy_loader.js');
@@ -33,6 +34,7 @@ requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -62,7 +64,8 @@ var real_,
     realCookie,
     realOnLine,
     realMozIccManager,
-    realMozMobileConnections;
+    realMozMobileConnections,
+    realLoader;
 
 if (!window.realMozContacts) {
   realMozContacts = null;
@@ -111,6 +114,9 @@ suite('Contacts settings >', function() {
     window.utils = window.utils || {};
     window.utils.cookie = MockCookie;
 
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
+
     if (!window.utils) {
       window.utils = { sdcard: MockSdCard };
     } else {
@@ -132,6 +138,7 @@ suite('Contacts settings >', function() {
     window._ = real_;
     window.utils = realUtils;
     window.utils.cookie = realCookie;
+    window.Loader = realLoader;
 
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);

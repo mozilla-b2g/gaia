@@ -1,4 +1,4 @@
-/* globals Contacts, utils, contactsRemover, Promise, ConfirmDialog */
+/* globals Contacts, utils, contactsRemover, Promise, ConfirmDialog, Loader */
 'use strict';
 
 var contacts = window.contacts || {};
@@ -11,7 +11,7 @@ contacts.BulkDelete = (function() {
    * Loads the overlay class before showing
    */
   function requireOverlay(callback) {
-    Contacts.utility('Overlay', callback, Contacts.SHARED_UTILITIES);
+    Loader.utility('Overlay', callback);
   }
 
   // Shows a dialog to confirm the bulk delete

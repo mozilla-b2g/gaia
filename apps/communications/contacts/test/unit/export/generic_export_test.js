@@ -7,6 +7,7 @@
 /* global MockMozContacts */
 /* global MockMozL10n */
 /* global MocksHelper */
+/* global MockLoader */
 
 requireApp('communications/contacts/services/contacts.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -15,6 +16,7 @@ require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/js/fb/fb_reader_utils.js');
 
@@ -22,6 +24,7 @@ requireApp('communications/contacts/js/export/contacts_exporter.js');
 
 var realUtils = null;
 var realStatus = null;
+var realLoader = null;
 var real_ = null;
 
 if (!window.utils) {
@@ -46,7 +49,8 @@ if (!window._) {
 
 var mocksHelperForExporter = new MocksHelper([
   'Contacts',
-  'ConfirmDialog'
+  'ConfirmDialog',
+  'Loader'
 ]).init();
 
 suite('Contacts Exporter', function() {
@@ -79,6 +83,9 @@ suite('Contacts Exporter', function() {
 
     real_ = window._;
     window._ = navigator.mozL10n.get;
+
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
 
     navigator.mozContacts = MockMozContacts;
 
@@ -116,6 +123,7 @@ suite('Contacts Exporter', function() {
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
+    window.Loader = realLoader;
 
     MockExportStrategy.shouldShowProgress.restore();
     MockExportStrategy.doExport.restore();

@@ -1,4 +1,4 @@
-/* global Contacts, VCardReader, ConfirmDialog, contacts, LazyLoader */
+/* global VCardReader, ConfirmDialog, contacts, LazyLoader, Loader */
 /* global Matcher */
 'use strict';
 
@@ -18,9 +18,9 @@ utils.importFromVcard = function(file, callback) {
     '/shared/js/contacts/contacts_matcher.js'
   ];
 
-  Contacts.utility('Overlay', function() {
+  Loader.utility('Overlay', function() {
     LazyLoader.load(MERGE_DEPENDENCIES, _loaded);
-  }, Contacts.SHARED_UTILITIES);
+  });
 
   function _loaded() {
     var importedContacts = 0;

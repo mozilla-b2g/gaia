@@ -1,5 +1,5 @@
 /*jshint node: true, browser: true */
-/* globals MockContactsList, MockMozContacts, Mockfb, utils,
+/* globals MockContactsList, MockMozContacts, Mockfb, MockLoader, utils,
 MocksHelper, contactsRemover, contacts, MockContactsSettings */
 
 'use strict';
@@ -16,6 +16,7 @@ requireApp('communications/contacts/js/contacts_remover.js');
 require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 /* jshint ignore:start */
@@ -34,7 +35,8 @@ var mocksHelperForDelete = new MocksHelper([
   'mozContact'
 ]).init();
 
-var subject, fb, real_, realOverlay, realFb, realContacts, realSettings;
+var subject, fb, real_, realOverlay, realFb, realContacts, realSettings,
+    realLoader;
 
 suite('Multiple Contacts Delete', function() {
   function getContactIds() {
@@ -92,6 +94,8 @@ suite('Multiple Contacts Delete', function() {
     };
     realContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
     real_ = window._;
     window._ = navigator.mozL10n.get;
     realFb = fb;
@@ -109,6 +113,7 @@ suite('Multiple Contacts Delete', function() {
     fb = realFb;
     navigator.mozContacts = realContacts;
     window.utils.overlay = realOverlay;
+    window.Loader = realLoader;
     mocksHelperForDelete.suiteTeardown();
     contacts.Settings = realSettings;
     delete window.utils.misc;

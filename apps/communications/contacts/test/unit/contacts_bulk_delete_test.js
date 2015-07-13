@@ -1,5 +1,5 @@
 /*jshint node: true, browser: true */
-/* globals MocksHelper, Contacts, contacts, ConfirmDialog */
+/* globals MocksHelper, MockLoader, Contacts, contacts, ConfirmDialog */
 
 'use strict';
 
@@ -7,6 +7,7 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_confirm_dialog.js');
+requireApp('communications/contacts/test/unit/mock_loader.js');
 
 requireApp('communications/contacts/js/contacts_bulk_delete.js');
 
@@ -24,6 +25,7 @@ if (!this.utils) {
 suite('contacts_bulk_delete.js', function() {
 
   var realOverlay = null;
+  var realLoader = null;
 
   var promise = {};
 
@@ -39,10 +41,13 @@ suite('contacts_bulk_delete.js', function() {
     window.utils.overlay = {
       show: function() {}
     };
+    realLoader = window.Loader;
+    window.Loader = MockLoader;
   });
 
   suiteTeardown(function() {
     window.utils.overlay = realOverlay;
+    window.Loader = realLoader;
   });
 
   setup(function() {
