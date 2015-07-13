@@ -4,12 +4,12 @@
 /* global BaseModule */
 /* global BrowserFrame */
 /* global ManifestHelper */
+/* global WebManifestHelper */
 /* global ScreenLayout */
 /* global Service */
 /* global DUMP */
 /* global IconsHelper */
-/* global WebManifestHelper */
-
+/* global LazyLoader */
 'use strict';
 
 (function(exports) {
@@ -128,10 +128,10 @@
     // Store initial configuration in this.config
     this.config = configuration;
 
-    if (!this.manifest && this.config && this.config.title) {
-      this.updateName(this.config.title);
-    } else {
+    if (this.manifest) {
       this.name = new ManifestHelper(this.manifest).displayName;
+    } else if (this.config.url) {
+      this.name = new URL(this.config.url).hostname;
     }
 
     // Get icon splash
@@ -194,17 +194,6 @@
       // requests the |navigation| flag in their manifest.
       this.config.chrome.maximized = true;
     }
-  };
-
-  /**
-   * Update the name of this window.
-   * @param {String} name The new name.
-   */
-  AppWindow.prototype.updateName = function aw_updateName(name) {
-    if (this.config && this.config.title) {
-      this.config.title = name;
-    }
-    this.name = name;
   };
 
   /**
@@ -760,6 +749,7 @@
       // Handle navigating from an app -> browser.
       this.manifestURL = null;
       this.manifest = null;
+      this.name = null;
       this.element.classList.add('browser');
 
       // Reset the browser
@@ -768,12 +758,12 @@
         title: url,
         oop: true
       });
+      this.appChrome && this.appChrome.reConfig();
       this.browserContainer.removeChild(this.browser.element);
       this.browser = new BrowserFrame(this.browser_config);
       this.browserContainer.appendChild(this.browser.element);
       this.iframe = this.browser.element;
       this.launchTime = Date.now();
-      this.appChrome && this.appChrome.reConfig();
     }
 
     this.browser.element.src = url;
@@ -1086,6 +1076,10 @@
       this.webManifestURL = null;
       this.webManifest = null;
       this.config.url = evt.detail;
+      this.title = evt.detail;
+      if (!this.manifest) {
+        this.name = new URL(evt.detail).hostname;
+      }
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
       this.publish('locationchange');
@@ -1169,10 +1163,10 @@
         case 'application-name':
           // Apps have a compulsory name field in their manifest
           // which takes precedence.
-          if (!this.isBrowser()) {
+          if (this.manifestURL || this.webManifestURL) {
             return;
           }
-          this.updateName(detail.content);
+          this.name = detail.content;
           this.publish('namechanged');
           break;
       }
@@ -1180,21 +1174,27 @@
 
   AppWindow.prototype._handle_mozbrowsermanifestchange =
     function aw__handle_mozbrowsermanifestchange(evt) {
-      if (evt.detail.href) {
-        this.webManifestURL = evt.detail.href;
-
-        LazyLoader.load('/shared/js/web_manifest_helper.js').then(() => {
-          WebManifestHelper.getManifest(this.webManifestURL)
-            .then(webManifest => {
-              this.webManifest = webManifest;
-            })
-            .catch(() => {
-              console.error('Failed to get web manifest at: ' +
-                            this.webManifestURL);
-            });
-        });
+      if (!evt.detail.href) {
+        return;
       }
+      this.webManifestURL = evt.detail.href;
+      this._updateManifest(this.webManifestURL);
     };
+
+  AppWindow.prototype._updateManifest =
+    function aw_updateManifest(manifestURL) {
+    return LazyLoader.load('/shared/js/web_manifest_helper.js').then(() => {
+      return WebManifestHelper.getManifest(manifestURL);
+    }).then((webManifest) => {
+      this.webManifest = webManifest;
+      if (webManifest.short_name || webManifest.name) {
+        this.name = webManifest.short_name || webManifest.name;
+        this.publish('namechanged');
+      }
+    }).catch(() => {
+      console.error('Failed to get web manifest from ' + manifestURL);
+    });
+  };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
     if (this.element === null) {

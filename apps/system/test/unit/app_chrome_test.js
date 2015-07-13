@@ -132,10 +132,10 @@ suite('system/AppChrome', function() {
     });
 
     test('app location is changed', function() {
-      var stubHandleLocationChanged =
-        this.sinon.stub(chrome, 'handleLocationChanged');
-      chrome.handleEvent({ type: 'mozbrowserlocationchange' });
-      assert.isTrue(stubHandleLocationChanged.called);
+      var stubHandleLocationChange =
+        this.sinon.stub(chrome, 'handleLocationChange');
+      chrome.handleEvent({ type: '_locationchange' });
+      assert.isTrue(stubHandleLocationChange.called);
     });
 
     test('app location is changed - private browser landing page', function() {
@@ -144,7 +144,7 @@ suite('system/AppChrome', function() {
       this.sinon.stub(app, 'isPrivateBrowser').returns(true);
 
       var chrome = new AppChrome(app);
-      chrome.handleEvent({ type: 'mozbrowserlocationchange' });
+      chrome.handleEvent({ type: '_locationchange' });
       assert.equal(chrome.title.dataset.l10nId, 'search-or-enter-address');
 
 
@@ -238,7 +238,7 @@ suite('system/AppChrome', function() {
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
+      chrome.handleEvent({ type: '_locationchange',
                            detail: 'new.location' });
 
       stub1.getCall(0).args[0](true);
@@ -257,7 +257,7 @@ suite('system/AppChrome', function() {
 
       chrome._currentURL = fakeWebSite.url;
       chrome.containerElement.classList.add('scrollable');
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
+      chrome.handleEvent({ type: '_locationchange',
                            detail: fakeWebSite.url + '#anchor' });
       assert.isTrue(chrome.containerElement.classList.contains('scrollable'));
     });
@@ -269,7 +269,7 @@ suite('system/AppChrome', function() {
       var stub1 = this.sinon.stub(app, 'canGoForward');
       var stub2 = this.sinon.stub(app, 'canGoBack');
 
-      var evt = new CustomEvent('mozbrowserlocationchange', {
+      var evt = new CustomEvent('_locationchange', {
         detail: 'http://mozilla.org'
       });
       app.element.dispatchEvent(evt);
@@ -313,24 +313,6 @@ suite('system/AppChrome', function() {
       chrome.title.textContent = 'foo';
       chrome.handleEvent({ type: '_namechanged' });
       assert.equal(chrome.title.textContent, 'foo');
-    });
-
-    test('titlechange', function() {
-
-      assert.equal(chrome.title.textContent, '');
-
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
-                           detail: app.config.url });
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: '' });
-
-      assert.equal(chrome.title.textContent, app.config.url);
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: 'Hello' });
-
-      assert.equal(chrome.title.textContent, 'Hello');
     });
 
     suite('error', function() {
@@ -438,36 +420,6 @@ suite('system/AppChrome', function() {
       chrome._unregisterEvents();
     });
 
-    test('should wait before updating the title', function() {
-      subject.title.textContent = 'Google';
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'http://bing.com');
-    });
-
-    test('should not update the title if we get a titlechange right after',
-    function() {
-      subject.title.textContent = 'Google';
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(100);
-      var titleEvent = new CustomEvent('mozbrowsertitlechange', {
-        detail: 'Bing'
-      });
-      subject.app.element.dispatchEvent(titleEvent);
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'Bing');
-    });
-
     test('browser start page should always have the same title',
     function() {
       var app = new AppWindow(fakeSearchApp);
@@ -485,7 +437,7 @@ suite('system/AppChrome', function() {
         return true;
       });
       subject.collapse();
-      var evt = new CustomEvent('mozbrowserlocationchange', {
+      var evt = new CustomEvent('_locationchange', {
         detail: 'http://example.com'
       });
       subject.app.element.dispatchEvent(evt);
