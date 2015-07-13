@@ -8,7 +8,7 @@ from gaiatest.apps.base import Base
 
 class ContactImportPicker(Base):
 
-    _contact_import_picker_frame_locator = (By.ID, 'fb-extensions')
+    _contact_import_picker_frame_locator = (By.ID, 'iframe_extensions')
     _import_button_locator = (By.ID, 'import-action')
     _friends_list_locator = (By.ID, 'friends-list')
 

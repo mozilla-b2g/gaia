@@ -15,12 +15,12 @@ var fbLoader = (function() {
     var iframesFragment = document.createDocumentFragment();
 
     var oauth = document.createElement('iframe');
-    oauth.id = 'fb-oauth';
+    oauth.id = 'iframe_oauth';
     oauth.hidden = true;
     iframesFragment.appendChild(oauth);
 
     var extensions = document.createElement('iframe');
-    extensions.id = 'fb-extensions';
+    extensions.id = 'iframe_extensions';
     iframesFragment.appendChild(extensions);
 
     document.body.appendChild(iframesFragment);

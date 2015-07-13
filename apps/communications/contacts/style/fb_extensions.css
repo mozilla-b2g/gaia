@@ -1,4 +1,4 @@
-#fb-extensions {
+#iframe_extensions {
   position: fixed;
   top: 100%;
   left: 0;
@@ -12,11 +12,11 @@
   background: #f4f4f4;
 }
 
-#fb-extensions.opening {
+#iframe_extensions.opening {
   -moz-transform: translateY(-100%);
 }
 
-#fb-extensions.hidden {
+#iframe_extensions.hidden {
   visibility: hidden;
 }
 
