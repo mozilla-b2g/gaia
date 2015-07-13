@@ -723,34 +723,6 @@ suite('AppUsageMetrics:', function() {
     });
   });
 
-  /*
-   * Test that the getSettings() utility function works as expected.
-   * This is required for proper configuration of the module and for
-   * gathering the settings that are sent along with usage data.
-   */
-  suite('getSettings():', function() {
-    var getSettings;
-
-    suiteSetup(function() {
-      AppUsageMetrics.DEBUG = false; // Shut up console output in test logs
-      getSettings = AppUsageMetrics.getSettings;
-
-      var mockSettings = MockNavigatorSettings.mSettings;
-      mockSettings.x = '1';
-      mockSettings.y = '2';
-    });
-
-    setup(function() {
-      stubDial(this);
-    });
-
-    test('getSettings()', function(done) {
-      getSettings({x: '3', y: '4', z: '5'}, function(result) {
-        done(assert.deepEqual(result, {x: '1', y: '2', z: '5'}));
-      });
-    });
-  });
-
   suite('settings', function() {
     var aum, mockSettings;
     setup(function() {

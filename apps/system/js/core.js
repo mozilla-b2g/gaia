@@ -84,6 +84,7 @@
         'ExternalStorageMonitor',
         'DeviceStorageWatcher',
         'AppUsageMetrics',
+        'AdvancedTelemetry',
         'CellBroadcastSystem',
         // This should be loaded by MobileConnectionCore.
         // However, the integration test is testing this on desktop b2g
