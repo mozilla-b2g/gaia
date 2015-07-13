@@ -1,5 +1,5 @@
 from gaiatest import GaiaTestCase
-from gaiatest.apps.bzlite.app import Bugzilla_lite
+from gaiatest.apps.bzlite.app import BugzillaLite
 
 
 class TestBugzillaLite(GaiaTestCase):
@@ -9,9 +9,9 @@ class TestBugzillaLite(GaiaTestCase):
         self.connect_to_local_area_network()
 
     def test_login_BugzillaLite(self):
-        BugzillaLite = Bugzilla_lite(self.marionette)
-        BugzillaLite.launch()
-        BugzillaLite.dismiss_tooltip()
-        BugzillaLite.login(self.testvars['bugzilla']['user'], self.testvars['bugzilla']['password'])
-        self.assertTrue(BugzillaLite.is_logged_in)
+        bugzilla_lite = BugzillaLite(self.marionette)
+        bugzilla_lite.launch()
+        bugzilla_lite.dismiss_tooltip()
+        bugzilla_lite.login(self.testvars['bugzilla']['user'], self.testvars['bugzilla']['password'])
+        self.assertTrue(bugzilla_lite.is_logged_in)
 
