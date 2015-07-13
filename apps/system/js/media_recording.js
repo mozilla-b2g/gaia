@@ -199,6 +199,7 @@
 
       // remember element in item
       item.element = panelElement;
+      panelElement.onclick = this.openApp.bind(this, detail);
 
       this.container.appendChild(panelElement);
       this.updateRecordingStatus();
@@ -265,6 +266,17 @@
       timeFormat = timeFormat.replace('%p', '<span>%p</span>');
       var formatted = f.localeFormat(now, timeFormat);
       return formatted;
+    },
+
+    openApp: function mr_openapp(detail) {
+      var data = {};
+      if (detail.requestURL.substring(0, 5) === 'http') {
+        data.url = detail.requestURL;
+      } else {
+        data.manifestURL = detail.requestURL;
+      }
+      var event = new CustomEvent('webapps-launch', {detail: data});
+      window.dispatchEvent(event);
     }
   };
 
