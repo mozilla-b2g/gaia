@@ -35,7 +35,8 @@ var Phase = function(options) {
     timeout: options.emulator ? 150 * 1000 : 60 * 1000,
     retries: 1,
     runs: 1,
-    launchDelay: 10 * 1000
+    launchDelay: 10 * 1000,
+    memoryDelay: 0
   }, options);
 
   if (process.env.TIMEOUT) {
@@ -44,6 +45,10 @@ var Phase = function(options) {
 
   if (process.env.LAUNCH_DELAY) {
     this.options.launchDelay = process.env.LAUNCH_DELAY;
+  }
+
+  if (process.env.MEMORY_DELAY) {
+    this.options.memoryDelay = process.env.MEMORY_DELAY;
   }
 
   this.log('Preparing to start testing...');
