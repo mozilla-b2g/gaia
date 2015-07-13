@@ -104,8 +104,6 @@
         this.app.element.classList.add('scrollable');
       }
     }
-
-    this.setSiteIcon();
   };
 
   AppChrome.prototype.combinedView = function an_combinedView() {

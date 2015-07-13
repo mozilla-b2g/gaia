@@ -2555,48 +2555,21 @@ suite('system/AppWindow', function() {
     blobPromise.mFulfillToValue({ url: dataURI });
   });
 
-  suite('getSiteIconUrl', function() {
-    var app1;
-    var SIZE = 64;
-    var origin = 'http://test.com';
+  test('getSiteIconUrl', function() {
+    this.sinon.stub(window, 'Promise', MockPromise);
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.webManifestURL = 'https://example.com/webapp.json';
+    app1.webManifest = {};
+    var blobPromise = new MockPromise();
+    var dataURI = 'data:image/png;base64,abc+';
+    this.sinon.stub(app1, 'getIconBlob').returns(blobPromise);
 
-    setup(function() {
-      app1 = new AppWindow(fakeAppConfig1);
+    var promisedIcon = app1.getSiteIconUrl();
+    promisedIcon.then(function(icon) {
+      assert.ok(icon && icon.url);
+      assert.equal(icon.url, dataURI);
     });
-
-
-    test('getSiteIconUrl', function() {
-      this.sinon.stub(window, 'Promise', MockPromise);
-      app1.webManifestURL = 'https://example.com/webapp.json';
-      app1.webManifest = {};
-      var blobPromise = new MockPromise();
-      var dataURI = 'data:image/png;base64,abc+';
-      this.sinon.stub(app1, 'getIconBlob').returns(blobPromise);
-
-      var promisedIcon = app1.getSiteIconUrl();
-      promisedIcon.then(function(icon) {
-        assert.ok(icon && icon.url);
-        assert.equal(icon.url, dataURI);
-      });
-      blobPromise.mFulfillToValue({ url: dataURI });
-    });
-
-    test('getSiteIconUrl uses manifest icons if available', function() {
-      app1.manifestURL = 'https://example.com/webapp.json';
-      app1.manifest = {
-        origin: origin,
-        icons: {
-          '64': '/test.png'
-        }
-      };
-
-      this.sinon.stub(app1, 'getIconBlob', function (url, size, place, site) {
-        assert.isTrue(size === SIZE);
-        assert.isTrue(site.manifest === app1.manifest);
-      });
-
-      app1.getSiteIconUrl(SIZE);
-    });
+    blobPromise.mFulfillToValue({ url: dataURI });
   });
 
   test('Change URL at run time', function() {

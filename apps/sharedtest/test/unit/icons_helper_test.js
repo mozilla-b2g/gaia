@@ -56,7 +56,7 @@ suite('Icons Helper', () => {
   suite('IconsHelper.getIcon()', () => {
     var placeObj, siteObj;
 
-    setup(() => {
+    suiteSetup(() => {
       placeObj = {
         icons: {
           'http://example.com/metaTagIconUrl': {
@@ -75,57 +75,6 @@ suite('Icons Helper', () => {
           ]
         }, 'http://example.com')
       };
-    });
-
-    test('Prioritise icons from the Web manifest over the rest', done => {
-      var origin = 'http://origin.com';
-      var path = '/test.png';
-      siteObj.manifest = {
-        origin: origin,
-        icons: {
-          '32': path
-        }
-      };
-      IconsHelper.getIcon('http://example.com', 32, placeObj, siteObj)
-        .then(iconUrl => {
-          assert.equal((new URL(iconUrl)).pathname, '/webManifestIconUrl');
-          done();
-        });
-    });
-
-    test('Prioritise Firefox manifest after Web manifest', done => {
-      var origin = 'http://origin.com';
-      var path = '/test.png';
-      siteObj.webManifest = null;
-      siteObj.manifest = {
-        origin: origin,
-        icons: {
-          '32': path
-        }
-      };
-      IconsHelper.getIcon('http://example.com', 32, placeObj, siteObj)
-        .then(iconUrl => {
-          assert.equal((new URL(iconUrl)).href, origin + path);
-          done();
-        });
-    });
-
-
-    test('Works with external icons', done => {
-      var origin = 'http://origin.com';
-      var path = 'http://test.com/test.png';
-      siteObj.webManifest = null;
-      siteObj.manifest = {
-        origin: origin,
-        icons: {
-          '32': path
-        }
-      };
-      IconsHelper.getIcon('http://example.com', 32, placeObj, siteObj)
-        .then(iconUrl => {
-          assert.equal((new URL(iconUrl)).href, path);
-          done();
-        });
     });
 
     test('Prioritise icons from the web manifest over the rest', done => {

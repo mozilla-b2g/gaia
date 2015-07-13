@@ -2461,17 +2461,10 @@
     var siteObj = {};
 
     if (this.webManifestURL && this.webManifest) {
-      siteObj.webManifestUrl = this.webManifestURL;
-      siteObj.webManifest = this.webManifest;
-    }
-
-    if (this.manifest && this.manifest.icons) {
-      //Getting the icons from the FirefoxOS manifest
-      if (!this.manifest.origin) {
-        this.manifest.origin = new URL(this.manifestURL).origin;
-      }
-      siteObj.manifestUrl = this.manifestURL;
-      siteObj.manifest = this.manifest;
+      siteObj = {
+        webManifestUrl: this.webManifestURL,
+        webManifest: this.webManifest
+      };
     }
 
     if (this.webManifestURL && !this.webManifest) {
@@ -2482,6 +2475,7 @@
                              {icons: this.favicons},
                              siteObj);
   };
+
 
   /**
    * Return a promise resolving to an icon blob.
