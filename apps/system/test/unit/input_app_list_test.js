@@ -2,7 +2,7 @@
 
 /* global MockNavigatorMozSettings, MockNavigatorMozSettingsLock,
           MockEventTarget, MockDOMRequest, Promise,
-          InputAppListSettings, InputAppList */
+          InputAppListSettings, InputAppList, InputApp */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
@@ -12,6 +12,31 @@ require('/shared/js/input_mgmt/input_app_list.js');
 
 var KEY_THIRD_PARTY_APP_ENABLED = 'keyboard.3rd-party-app.enabled';
 var KEY_DYNAMIC_INPUTS = 'keyboard.dynamic-inputs';
+
+var MOCK_DOM_APP = {
+  manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+  manifest: {
+    role: 'input',
+    type: 'certified',
+    inputs: {
+      en: {
+        types: ['url', 'text'],
+        launch_path: '/index.html#en'
+      },
+      es: {
+        types: ['url', 'text'],
+        launch_path: '/index.html#es'
+      },
+      number: {
+        types: ['number'],
+        launch_path: '/index.html#number'
+      }
+    },
+    permissions: {
+      input: {}
+    }
+  }
+};
 
 suite('InputAppListSettings', function() {
   var realMozSettings;
@@ -140,31 +165,6 @@ suite('InputAppListSettings', function() {
 });
 
 suite('InputAppList', function() {
-  var INPUT_APP = {
-    manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
-    manifest: {
-      role: 'input',
-      type: 'certified',
-      inputs: {
-        en: {
-          types: ['url', 'text'],
-          launch_path: '/index.html#en'
-        },
-        es: {
-          types: ['url', 'text'],
-          launch_path: '/index.html#es'
-        },
-        number: {
-          types: ['number'],
-          launch_path: '/index.html#number'
-        }
-      },
-      permissions: {
-        input: {}
-      }
-    }
-  };
-
   var realMozApps;
   var MockMozAppsMgmt;
 
@@ -174,6 +174,9 @@ suite('InputAppList', function() {
   var getAllReq;
 
   var list;
+
+  var inputApp;
+  var domApp;
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -209,6 +212,9 @@ suite('InputAppList', function() {
     list = new InputAppList();
     list.start();
 
+    domApp = Object.create(MOCK_DOM_APP);
+    inputApp = new InputApp(domApp);
+
     lockGetReq = lockGetSpy.getCall(0).returnValue;
     lockGetReq2 = lockGetSpy.getCall(1).returnValue;
     getAllReq = getAllSpy.getCall(0).returnValue;
@@ -216,7 +222,7 @@ suite('InputAppList', function() {
 
   test('getList before ready', function(done) {
     list.getList().then(function(inputApps) {
-      assert.deepEqual(inputApps, [ INPUT_APP ]);
+      assert.deepEqual(inputApps, [ inputApp ]);
     }).then(done, done);
 
     var obj = {};
@@ -227,9 +233,7 @@ suite('InputAppList', function() {
     obj2[KEY_DYNAMIC_INPUTS] = {};
     lockGetReq2.fireSuccess(obj2);
 
-    getAllReq.fireSuccess([
-      INPUT_APP
-    ]);
+    getAllReq.fireSuccess([ domApp ]);
   });
 
   suite('after ready', function(done) {
@@ -242,88 +246,88 @@ suite('InputAppList', function() {
       obj2[KEY_DYNAMIC_INPUTS] = {};
       lockGetReq2.fireSuccess(obj2);
 
-      getAllReq.fireSuccess([
-        INPUT_APP
-      ]);
+      getAllReq.fireSuccess([ domApp ]);
 
       list.onready = function(inputApps) {
         return Promise.resolve().then(function() {
-          assert.deepEqual(inputApps, [ INPUT_APP ]);
+          assert.deepEqual(inputApps, [ inputApp ]);
         }).then(done, done);
       };
     });
 
     test('getList()', function(done) {
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP ]);
+        assert.deepEqual(inputApps, [ inputApp ]);
       }).then(done, done);
     });
 
     test('getListSync()', function() {
       var inputApps = list.getListSync();
 
-      assert.deepEqual(inputApps, [ INPUT_APP ]);
+      assert.deepEqual(inputApps, [ inputApp ]);
     });
 
     test('install app', function(done) {
-      var newApp = Object.create(INPUT_APP);
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      var newInputApp = new InputApp(newDomApp);
 
       list.onupdate = function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP, newApp ]);
-        assert.deepEqual(list.getListSync(), [ INPUT_APP, newApp ]);
+        assert.deepEqual(inputApps, [ inputApp, newInputApp ]);
+        assert.deepEqual(list.getListSync(), [ inputApp, newInputApp ]);
 
         done();
       };
 
       navigator.mozApps.mgmt.dispatchEvent({
         type: 'install',
-        application: newApp
+        application: newDomApp
       });
     });
 
     test('install app -- mark as downloading', function(done) {
-      var newApp = Object.create(INPUT_APP);
-      var manifest = newApp.manifest;
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      var newInputApp = new InputApp(newDomApp);
 
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-      newApp.downloading = true;
-      newApp.manifest = undefined;
+      var manifest = newDomApp.manifest;
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newDomApp.downloading = true;
+      newDomApp.manifest = undefined;
 
-      // XXX: newApp should be a MockEventTarget instance,
+      // XXX: newDomApp should be a MockEventTarget instance,
       // but we are too lazy to make a real MockDOMApplication here.
-      newApp.addEventListener = this.sinon.stub();
+      newDomApp.addEventListener = this.sinon.stub();
 
       list.onupdate = function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP, newApp ]);
-        assert.deepEqual(list.getListSync(), [ INPUT_APP, newApp ]);
+        assert.deepEqual(inputApps, [ inputApp, newInputApp ]);
+        assert.deepEqual(list.getListSync(), [ inputApp, newInputApp ]);
 
         done();
       };
 
       navigator.mozApps.mgmt.dispatchEvent({
         type: 'install',
-        application: newApp
+        application: newDomApp
       });
 
       assert.isTrue(
-        newApp.addEventListener.calledWith('downloadsuccess', list));
+        newDomApp.addEventListener.calledWith('downloadsuccess', list));
 
-      newApp.downloading = false;
-      newApp.manifest = manifest;
+      newDomApp.downloading = false;
+      newDomApp.manifest = manifest;
 
       list.handleEvent({
         type: 'downloadsuccess',
-        target: newApp
+        target: newDomApp
       });
     });
 
     test('install non-input app', function() {
-      var newApp = Object.create(INPUT_APP);
-      newApp.manifest = Object.create(INPUT_APP.manifest);
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      newDomApp.manifest = Object.create(MOCK_DOM_APP.manifest);
 
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-      newApp.manifest.role = undefined;
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newDomApp.manifest.role = undefined;
 
       list.onupdate = function(inputApps) {
         assert.isTrue(false, 'Should not call onupdate.');
@@ -331,10 +335,10 @@ suite('InputAppList', function() {
 
       navigator.mozApps.mgmt.dispatchEvent({
         type: 'install',
-        application: newApp
+        application: newDomApp
       });
 
-      assert.deepEqual(list.getListSync(), [ INPUT_APP ]);
+      assert.deepEqual(list.getListSync(), [ inputApp ]);
     });
 
     test('uninstall app', function(done) {
@@ -347,7 +351,7 @@ suite('InputAppList', function() {
 
       navigator.mozApps.mgmt.dispatchEvent({
         type: 'uninstall',
-        application: INPUT_APP
+        application: domApp
       });
     });
   });
@@ -364,58 +368,60 @@ suite('InputAppList', function() {
     });
 
     test('role=input', function(done) {
-      var newApp = Object.create(INPUT_APP);
-      newApp.manifest = Object.create(INPUT_APP.manifest);
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      newDomApp.manifest = Object.create(MOCK_DOM_APP.manifest);
 
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-      newApp.manifest.role = undefined;
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newDomApp.manifest.role = undefined;
 
-      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
+      getAllReq.fireSuccess([ domApp, newDomApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP ]);
+        assert.deepEqual(inputApps, [ inputApp ]);
       }).then(done, done);
     });
 
     test('type=privileged', function(done) {
-      var newApp = Object.create(INPUT_APP);
-      newApp.manifest = Object.create(INPUT_APP.manifest);
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      newDomApp.manifest = Object.create(MOCK_DOM_APP.manifest);
 
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-      newApp.manifest.type = 'privileged';
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newDomApp.manifest.type = 'privileged';
 
-      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
+      var newInputApp = new InputApp(newDomApp);
+
+      getAllReq.fireSuccess([ domApp, newDomApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP, newApp ]);
+        assert.deepEqual(inputApps, [ inputApp, newInputApp ]);
       }).then(done, done);
     });
 
-    test('with input permission', function(done) {
-      var newApp = Object.create(INPUT_APP);
-      newApp.manifest = Object.create(INPUT_APP.manifest);
+    test('without input permission', function(done) {
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      newDomApp.manifest = Object.create(MOCK_DOM_APP.manifest);
 
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-      newApp.manifest.permissions = {};
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newDomApp.manifest.permissions = {};
 
-      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
+      getAllReq.fireSuccess([ domApp, newDomApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP ]);
+        assert.deepEqual(inputApps, [ inputApp ]);
       }).then(done, done);
     });
 
     test('with no inputs', function(done) {
-      var newApp = Object.create(INPUT_APP);
-      newApp.manifest = Object.create(INPUT_APP.manifest);
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      newDomApp.manifest = Object.create(MOCK_DOM_APP.manifest);
 
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-      newApp.manifest.inputs = undefined;
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newDomApp.manifest.inputs = undefined;
 
-      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
+      getAllReq.fireSuccess([ domApp, newDomApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP ]);
+        assert.deepEqual(inputApps, [ inputApp ]);
       }).then(done, done);
     });
   });
@@ -432,31 +438,33 @@ suite('InputAppList', function() {
     });
 
     test('type=privileged', function(done) {
-      var newApp = Object.create(INPUT_APP);
-      newApp.manifest = Object.create(INPUT_APP.manifest);
+      var newDomApp = Object.create(MOCK_DOM_APP);
+      newDomApp.manifest = Object.create(MOCK_DOM_APP.manifest);
 
-      newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-      newApp.manifest.type = 'privileged';
+      newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+      newDomApp.manifest.type = 'privileged';
 
-      getAllReq.fireSuccess([ INPUT_APP, newApp ]);
+      getAllReq.fireSuccess([ domApp, newDomApp ]);
 
       list.getList().then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP ]);
+        assert.deepEqual(inputApps, [ inputApp ]);
       }).then(done, done);
     });
   });
 
   test('insert dynamic inputs', function(done) {
-    var newApp = Object.create(INPUT_APP);
-    newApp.manifest = Object.create(INPUT_APP.manifest);
-    newApp.manifest.inputs = Object.create(INPUT_APP.manifest.inputs);
-    var FOO_INPUT_MANIFEST = newApp.manifest.inputs.foo = {
+    var FOO_INPUT_MANIFEST = {
       types: ['url', 'text'],
       launch_path: '/index.html#foo'
     };
 
+    inputApp = new InputApp(domApp, {
+      foo: FOO_INPUT_MANIFEST
+    });
+
     list.getList().then(function(inputApps) {
-      assert.deepEqual(inputApps, [ newApp ]);
+      assert.deepEqual(inputApps, [ inputApp ]);
+      assert.deepEqual(inputApps[0].getInputs(), inputApp.getInputs());
     }).then(done, done);
 
     var obj = {};
@@ -471,7 +479,7 @@ suite('InputAppList', function() {
     };
     lockGetReq2.fireSuccess(obj2);
 
-    getAllReq.fireSuccess([ INPUT_APP ]);
+    getAllReq.fireSuccess([ domApp ]);
   });
 
   test('KEY_THIRD_PARTY_APP_ENABLED setting changes', function(done) {
@@ -483,38 +491,35 @@ suite('InputAppList', function() {
     obj2[KEY_DYNAMIC_INPUTS] = {};
     lockGetReq2.fireSuccess(obj2);
 
-    var newApp = Object.create(INPUT_APP);
-    newApp.manifest = Object.create(INPUT_APP.manifest);
+    var newDomApp = Object.create(MOCK_DOM_APP);
+    newDomApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
+    newDomApp.manifest = Object.create(MOCK_DOM_APP.manifest);
+    newDomApp.manifest.type = 'privileged';
 
-    newApp.manifestURL = 'app://myfunnykeyboard.org/manifest.webapp';
-    newApp.manifest.type = 'privileged';
+    var newInputApp = new InputApp(newDomApp);
 
-    getAllReq.fireSuccess([ INPUT_APP, newApp ]);
-
-    var updatePromise = new Promise(function(resolve) {
-      list.onupdate = resolve;
-    });
+    getAllReq.fireSuccess([ domApp, newDomApp ]);
 
     list.getList().then(function(inputApps) {
-      assert.deepEqual(inputApps, [ INPUT_APP ]);
+      assert.deepEqual(inputApps, [ inputApp ]);
     }).then(function() {
-      var p = updatePromise.then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP, newApp ],
-          'onupdate does not receive the right list');
-
-        return list.getList().then(function(inputApps) {
-          assert.deepEqual(inputApps, [ INPUT_APP, newApp ],
-            'getList() follows does not receive the right list');
-        });
-      });
-
       navigator.mozSettings.dispatchSettingChange(
         KEY_THIRD_PARTY_APP_ENABLED, true);
 
       var getAllReq2 = navigator.mozApps.mgmt.getAll.getCall(1).returnValue;
-      getAllReq2.fireSuccess([ INPUT_APP, newApp ]);
-
-      return p;
+      getAllReq2.fireSuccess([ domApp, newDomApp ]);
+    }).then(function() {
+      return new Promise(function(resolve) {
+        list.onupdate = resolve;
+      });
+    }).then(function(inputApps) {
+      assert.deepEqual(inputApps, [ inputApp, newInputApp ],
+        'onupdate does not receive the right list');
+    }).then(function() {
+      return list.getList();
+    }).then(function(inputApps) {
+      assert.deepEqual(inputApps, [ inputApp, newInputApp ],
+        'getList() follows does not receive the right list');
     }).then(done, done);
   });
 
@@ -527,33 +532,20 @@ suite('InputAppList', function() {
     obj2[KEY_DYNAMIC_INPUTS] = {};
     lockGetReq2.fireSuccess(obj2);
 
-    var newApp = Object.create(INPUT_APP);
-    newApp.manifest = Object.create(INPUT_APP.manifest);
-    newApp.manifest.inputs = Object.create(INPUT_APP.manifest.inputs);
-    var FOO_INPUT_MANIFEST = newApp.manifest.inputs.foo = {
+    getAllReq.fireSuccess([ domApp ]);
+
+    var FOO_INPUT_MANIFEST = {
       types: ['url', 'text'],
       launch_path: '/index.html#foo'
     };
 
-    getAllReq.fireSuccess([ INPUT_APP ]);
-
-    var updatePromise = new Promise(function(resolve) {
-      list.onupdate = resolve;
+    var inputApp2 = new InputApp(domApp, {
+      foo: FOO_INPUT_MANIFEST
     });
 
     list.getList().then(function(inputApps) {
-      assert.deepEqual(inputApps, [ INPUT_APP ]);
+      assert.deepEqual(inputApps, [ inputApp ]);
     }).then(function() {
-      var p = updatePromise.then(function(inputApps) {
-        assert.deepEqual(inputApps, [ newApp ],
-          'onupdate does not receive the right list');
-
-        return list.getList().then(function(inputApps) {
-          assert.deepEqual(inputApps, [ newApp ],
-            'getList() follows does not receive the right list');
-        });
-      });
-
       navigator.mozSettings.dispatchSettingChange(
         KEY_DYNAMIC_INPUTS, {
           'app://keyboard.gaiamobile.org/manifest.webapp': {
@@ -562,9 +554,35 @@ suite('InputAppList', function() {
         });
 
       var getAllReq2 = navigator.mozApps.mgmt.getAll.getCall(1).returnValue;
-      getAllReq2.fireSuccess([ INPUT_APP ]);
+      getAllReq2.fireSuccess([ domApp ]);
+    }).then(function() {
+      return new Promise(function(resolve) {
+        list.onupdate = resolve;
+      });
+    }).then(function(inputApps) {
+      assert.deepEqual(inputApps, [ inputApp2 ],
+        'onupdate does not receive the right list');
 
-      return p;
+      var inputs = {};
+      for (var inputId in domApp.manifest.inputs) {
+        inputs[inputId] = domApp.manifest.inputs[inputId];
+      }
+      inputs.foo = FOO_INPUT_MANIFEST;
+
+      assert.deepEqual(inputApps[0].getInputs(), inputs);
+    }).then(function() {
+      return list.getList();
+    }).then(function(inputApps) {
+      assert.deepEqual(inputApps, [ inputApp2 ],
+        'getList() follows does not receive the right list');
+
+      var inputs = {};
+      for (var inputId in domApp.manifest.inputs) {
+        inputs[inputId] = domApp.manifest.inputs[inputId];
+      }
+      inputs.foo = FOO_INPUT_MANIFEST;
+
+      assert.deepEqual(inputApps[0].getInputs(), inputs);
     }).then(done, done);
   });
 
@@ -573,6 +591,10 @@ suite('InputAppList', function() {
       types: ['url', 'text'],
       launch_path: '/index.html#foo'
     };
+
+    var inputApp2 = new InputApp(domApp, {
+      foo: FOO_INPUT_MANIFEST
+    });
 
     var obj = {};
     obj[KEY_THIRD_PARTY_APP_ENABLED] = true;
@@ -586,40 +608,70 @@ suite('InputAppList', function() {
     };
     lockGetReq2.fireSuccess(obj2);
 
-    var newApp = Object.create(INPUT_APP);
-    newApp.manifest = Object.create(INPUT_APP.manifest);
-    newApp.manifest.inputs = Object.create(INPUT_APP.manifest.inputs);
-    newApp.manifest.inputs.foo = FOO_INPUT_MANIFEST;
-
-    getAllReq.fireSuccess([ INPUT_APP ]);
-
-    var updatePromise = new Promise(function(resolve) {
-      list.onupdate = resolve;
-    });
+    getAllReq.fireSuccess([ domApp ]);
 
     list.getList().then(function(inputApps) {
-      assert.deepEqual(inputApps, [ newApp ]);
-      assert.isTrue('foo' in INPUT_APP.manifest.inputs,
-        'Modified object in place.');
+      assert.deepEqual(inputApps, [ inputApp2 ]);
+
+      assert.deepEqual(inputApps[0].getInputs(), inputApp2.getInputs());
     }).then(function() {
-      var p = updatePromise.then(function(inputApps) {
-        assert.deepEqual(inputApps, [ INPUT_APP ],
-          'onupdate does not receive the right list');
-
-        return list.getList().then(function(inputApps) {
-          assert.deepEqual(inputApps, [ INPUT_APP ],
-            'getList() follows does not receive the right list');
-          assert.isFalse('foo' in INPUT_APP.manifest.inputs,
-            'Does not remove modification in place.');
-        });
-      });
-
       navigator.mozSettings.dispatchSettingChange(KEY_DYNAMIC_INPUTS, {});
 
       var getAllReq2 = navigator.mozApps.mgmt.getAll.getCall(1).returnValue;
-      getAllReq2.fireSuccess([ INPUT_APP ]);
+      getAllReq2.fireSuccess([ domApp ]);
+    }).then(function() {
+      return new Promise(function(resolve) {
+        list.onupdate = resolve;
+      });
+    }).then(function(inputApps) {
+      assert.deepEqual(inputApps, [ inputApp ],
+        'onupdate does not receive the right list');
 
-      return p;
+      assert.deepEqual(inputApps[0].getInputs(), inputApp.getInputs());
+    }).then(function() {
+      return list.getList();
+    }).then(function(inputApps) {
+      assert.deepEqual(inputApps, [ inputApp ],
+        'getList() follows does not receive the right list');
+
+      assert.deepEqual(inputApps[0].getInputs(), inputApp.getInputs());
     }).then(done, done);
+  });
+});
+
+suite('InputApp', function() {
+  var domApp;
+
+  setup(function() {
+    domApp = Object.create(MOCK_DOM_APP);
+  });
+
+  test('construct w/o dynamic input', function() {
+    var inputApp = new InputApp(domApp);
+
+    assert.equal(inputApp.domApp, domApp);
+    assert.deepEqual(inputApp.dynamicInputs, {});
+
+    assert.deepEqual(inputApp.getInputs(), domApp.manifest.inputs);
+  });
+
+  test('construct w/ dynamic input', function() {
+    var FOO_INPUT_MANIFEST = {
+      types: ['url', 'text'],
+      launch_path: '/index.html#foo'
+    };
+
+    var inputApp = new InputApp(domApp, { foo: FOO_INPUT_MANIFEST });
+
+    assert.equal(inputApp.domApp, domApp);
+    assert.deepEqual(inputApp.dynamicInputs, { foo: FOO_INPUT_MANIFEST });
+
+    var inputs = {};
+    for (var inputId in domApp.manifest.inputs) {
+      inputs[inputId] = domApp.manifest.inputs[inputId];
+    }
+    inputs.foo = FOO_INPUT_MANIFEST;
+
+    assert.deepEqual(inputApp.getInputs(), inputs);
   });
 });

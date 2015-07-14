@@ -40,7 +40,7 @@ define(function(require) {
                      The launch path of the keyboard.
    * @param {Array} layouts
                     All layouts included in the keyboard.
-   * @param {App} app
+   * @param {DOMApplication} app
                   The keyboard app object.
    * @returns {Keyboard}
    */
@@ -189,15 +189,10 @@ define(function(require) {
         var keyboardAppInstance = keyboard.app;
         var keyboardManifest =
           new ManifestHelper(keyboardAppInstance.manifest);
-        var inputs = keyboardManifest.inputs;
         keyboard.name = keyboardManifest.name;
         keyboard.description = keyboardManifest.description;
         keyboard.layouts.forEach(function(layout) {
-          var key = layout.id;
-          var layoutInstance = inputs[key];
           layout.appName = keyboardManifest.name;
-          layout.name = layoutInstance.name;
-          layout.description = layoutInstance.description;
         });
       });
     });

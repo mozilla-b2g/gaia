@@ -6,6 +6,36 @@
  */
 (function(exports) {
 
+var InputApp = function(domApp, dynamicInputs) {
+  this.domApp = domApp;
+  this.dynamicInputs = dynamicInputs || {};
+
+  if (!this.domApp.manifest) {
+    throw new Error(
+      'InputApp: should not be constructed before DOMApplication ' +
+      'has manifest ready.');
+  }
+};
+
+InputApp.prototype.getInputs = function() {
+  var dict = {};
+  var inputId;
+  for (inputId in this.domApp.manifest.inputs) {
+    dict[inputId] = this.domApp.manifest.inputs[inputId];
+  }
+  for (inputId in this.dynamicInputs) {
+    if (inputId in dict) {
+      // Staticly declaired?
+      break;
+    }
+
+    dict[inputId] = this.dynamicInputs[inputId];
+    dict[inputId].isDynamic = true;
+  }
+
+  return dict;
+};
+
 var InputAppListSettings = function() {
   this._values = {
     enable3rdPartyApps: undefined,
@@ -254,30 +284,8 @@ InputAppList.prototype._setInputApps = function(values) {
   var apps = values[1];
   var dynamicInputs = this.settings.getSettingsSync().dynamicInputs || {};
 
-  var inputApps = apps.filter(this._isInputApp, this).map(function(inputApp) {
-    // Remove the dynamic layouts we have added in place (see below)
-    Object.keys(inputApp.manifest.inputs).forEach(function(inputId) {
-      if (inputApp.manifest.inputs[inputId].isDynamic) {
-        delete inputApp.manifest.inputs[inputId];
-      }
-    });
-
-    if (inputApp.manifestURL in dynamicInputs) {
-      Object.keys(dynamicInputs[inputApp.manifestURL]).forEach(
-        function(inputId) {
-          if (inputId in inputApp.manifest.inputs) {
-            // Staticly declaired?
-            return;
-          }
-
-          // XXX: We are in fact modifying the manifest exposed in
-          // DOMApplication in place, but the modification is arguably harmless.
-          // Also, there is no alternatives (trust me, I tried).
-          inputApp.manifest.inputs[inputId] =
-            dynamicInputs[inputApp.manifestURL][inputId];
-          inputApp.manifest.inputs[inputId].isDynamic = true;
-        });
-    }
+  var inputApps = apps.filter(this._isInputApp, this).map(function(domApp) {
+    var inputApp = new InputApp(domApp, dynamicInputs[domApp.manifestURL]);
 
     return inputApp;
   });
@@ -289,19 +297,19 @@ InputAppList.prototype._setInputApps = function(values) {
   this._inputApps = inputApps;
 };
 
-InputAppList.prototype._addInputApp = function(app) {
-  if (!this._isInputApp(app)) {
+InputAppList.prototype._addInputApp = function(domApp) {
+  if (!this._isInputApp(domApp)) {
     return false;
   }
 
-  this._inputApps.push(app);
+  this._inputApps.push(new InputApp(domApp));
 
   return true;
 };
 
-InputAppList.prototype._removeInputApp = function(app) {
+InputAppList.prototype._removeInputApp = function(domApp) {
   var index = this._inputApps.findIndex(function(appInList) {
-    return (appInList.manifestURL === app.manifestURL);
+    return (appInList.domApp.manifestURL === domApp.manifestURL);
   });
 
   if (index === -1) {
@@ -313,34 +321,35 @@ InputAppList.prototype._removeInputApp = function(app) {
   return true;
 };
 
-InputAppList.prototype._isInputApp = function(app) {
-  if (!app.manifest || 'input' !== app.manifest.role) {
+InputAppList.prototype._isInputApp = function(domApp) {
+  if (!domApp.manifest || 'input' !== domApp.manifest.role) {
     return false;
   }
 
   // Check app type
-  if (app.manifest.type !== 'certified' &&
-      app.manifest.type !== 'privileged') {
+  if (domApp.manifest.type !== 'certified' &&
+      domApp.manifest.type !== 'privileged') {
     return false;
   }
 
   var settingValues = this.settings.getSettingsSync();
-  if (!settingValues.enable3rdPartyApps && app.manifest.type !== 'certified') {
+  if (!settingValues.enable3rdPartyApps &&
+       domApp.manifest.type !== 'certified') {
     console.warn('InputAppList: ' +
       'A 3rd-party input app is installed but the feature is not enabled.',
-      app.manifestURL);
+      domApp.manifestURL);
 
     return false;
   }
 
   // Check permission
   // TODO: Maybe we shouldn't be checking permission ourselves?
-  if (app.manifest.permissions &&
-      (typeof app.manifest.permissions.input !== 'object')) {
+  if (domApp.manifest.permissions &&
+      (typeof domApp.manifest.permissions.input !== 'object')) {
     return false;
   }
 
-  if (typeof app.manifest.inputs !== 'object') {
+  if (typeof domApp.manifest.inputs !== 'object') {
     return false;
   }
 
@@ -361,5 +370,6 @@ InputAppList.prototype._refresh = function() {
 
 exports.InputAppListSettings = InputAppListSettings;
 exports.InputAppList = InputAppList;
+exports.InputApp = InputApp;
 
 }(window));

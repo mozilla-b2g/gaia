@@ -604,8 +604,8 @@ var KeyboardHelper = exports.KeyboardHelper = {
         .forEach(function(manifestURL) {
           // if the manifestURL doesn't exist in the list of apps, delete it
           // from the settings maps
-          if (!inputApps.some(function(app) {
-            return app.manifestURL === manifestURL;
+          if (!inputApps.some(function(inputApp) {
+            return (inputApp.domApp.manifestURL === manifestURL);
           })) {
             delete currentSettings.enabledLayouts[manifestURL];
             delete currentSettings.defaultLayouts[manifestURL];
@@ -646,7 +646,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
       options = {};
     }
 
-    function withApps(apps) {
+    function withApps(inputApps) {
       /* jshint loopfunc: true */
       // we'll delete keys in this active copy (= the purpose of copying)
       var fallbackLayoutNames = {};
@@ -655,18 +655,21 @@ var KeyboardHelper = exports.KeyboardHelper = {
       }
       this.fallbackLayouts = {};
 
-      var layouts = apps.reduce(function eachApp(result, app) {
+      var layouts = inputApps.reduce(function eachApp(result, inputApp) {
+        var domApp = inputApp.domApp;
 
-        var manifest = new ManifestHelper(app.manifest);
-        for (var layoutId in manifest.inputs) {
-          var inputManifest = manifest.inputs[layoutId];
+        var manifest = new ManifestHelper(domApp.manifest);
+        var inputs = inputApp.getInputs();
+        for (var layoutId in inputs) {
+          var inputManifest = inputs[layoutId];
           if (!inputManifest.types) {
-            console.warn(app.manifestURL, layoutId, 'did not declare type.');
+            console.warn(domApp.manifestURL, layoutId, 'did not declare type.');
             continue;
           }
 
           var layout = new KeyboardLayout({
-            app: app,
+            app: domApp,
+            inputApp: inputApp,
             manifest: manifest,
             inputManifest: inputManifest,
             layoutId: layoutId
@@ -675,7 +678,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
           // bug 1035117: insert a fallback layout regardless of its
           // and enabledness
           // XXX: we only do this for built-in keyboard?
-          if (app.manifestURL === defaultKeyboardManifestURL) {
+          if (domApp.manifestURL === defaultKeyboardManifestURL) {
             for (var group in fallbackLayoutNames) {
               if (layoutId === fallbackLayoutNames[group]) {
                 this.fallbackLayouts[group] = layout;

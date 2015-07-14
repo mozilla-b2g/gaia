@@ -1,4 +1,4 @@
-/* global InputAppList, KeyboardHelper, ManifestHelper,
+/* global InputAppList, InputApp, KeyboardHelper, ManifestHelper,
           MocksHelper, MockNavigatorSettings */
 // Tests the keyboard_helper.js from shared
 'use strict';
@@ -20,36 +20,7 @@ suite('KeyboardHelper', function() {
   var keyboardAppOrigin = 'app://keyboard.gaiamobile.org';
   var keyboardAppManifestURL =
       'app://keyboard.gaiamobile.org/manifest.webapp';
-  var standardKeyboards = [
-    {
-      manifestURL: keyboardAppManifestURL,
-      manifest: {
-        role: 'input',
-        inputs: {
-          en: {
-            types: ['url', 'text'],
-            launch_path: '/index.html#en'
-          },
-          es: {
-            types: ['url', 'text'],
-            launch_path: '/index.html#es'
-          },
-          fr: {
-            types: ['url', 'text'],
-            launch_path: '/index.html#fr'
-          },
-          pl: {
-            types: ['url', 'text'],
-            launch_path: '/index.html#pl'
-          },
-          number: {
-            types: ['number'],
-            launch_path: '/index.html#number'
-          }
-        }
-      }
-    }
-  ];
+  var inputApps;
 
   var defaultSettings = {
     oldEnabled: [
@@ -215,14 +186,47 @@ suite('KeyboardHelper', function() {
   });
 
   suite('getApps', function() {
+    setup(function() {
+      inputApps = [
+        new InputApp({
+          manifestURL: keyboardAppManifestURL,
+          manifest: {
+            role: 'input',
+            inputs: {
+              en: {
+                types: ['url', 'text'],
+                launch_path: '/index.html#en'
+              },
+              es: {
+                types: ['url', 'text'],
+                launch_path: '/index.html#es'
+              },
+              fr: {
+                types: ['url', 'text'],
+                launch_path: '/index.html#fr'
+              },
+              number: {
+                types: ['number'],
+                launch_path: '/index.html#number'
+              }
+            }
+          }
+        }, {
+          pl: {
+            types: ['url', 'text'],
+            launch_path: '/index.html#pl'
+          }
+        })
+      ];
+    });
+
     test('inputAppList is not ready', function(done) {
       KeyboardHelper.inputAppList.ready = false;
-      KeyboardHelper.inputAppList.getList.returns(Promise.resolve([
-        standardKeyboards
-      ]));
+      KeyboardHelper.inputAppList.getList
+        .returns(Promise.resolve(inputApps));
 
-      var callback = this.sinon.spy(function callback(inputApps) {
-        assert.deepEqual(inputApps, [standardKeyboards]);
+      var callback = this.sinon.spy(function callback(apps) {
+        assert.deepEqual(apps, inputApps);
 
         done();
       });
@@ -232,10 +236,11 @@ suite('KeyboardHelper', function() {
 
     test('inputAppList is ready', function() {
       KeyboardHelper.inputAppList.ready = true;
-      KeyboardHelper.inputAppList.getListSync.returns([standardKeyboards]);
+      KeyboardHelper.inputAppList.getListSync
+        .returns(inputApps);
 
-      var callback = this.sinon.spy(function callback(inputApps) {
-        assert.deepEqual(inputApps, [standardKeyboards]);
+      var callback = this.sinon.spy(function callback(apps) {
+        assert.deepEqual(apps, inputApps);
       });
       KeyboardHelper.getApps(callback);
       assert.isTrue(callback.calledOnce);
@@ -250,7 +255,7 @@ suite('KeyboardHelper', function() {
         defaultSettings.enabled;
       this.sinon.stub(KeyboardHelper, 'getApps');
       this.sinon.spy(window, 'ManifestHelper');
-      this.apps = [{
+      this.apps = [ new InputApp({
         origin: keyboardAppOrigin,
         manifestURL: keyboardAppManifestURL,
         manifest: {
@@ -265,7 +270,7 @@ suite('KeyboardHelper', function() {
             noType: {}
           }
         }
-      }, {
+      }), new InputApp({
         origin: 'app://keyboard2.gaiamobile.org',
         manifestURL: 'app://keyboard2.gaiamobile.org/manifest.webapp',
         manifest: {
@@ -276,7 +281,7 @@ suite('KeyboardHelper', function() {
             }
           }
         }
-      }];
+      })];
     });
     suite('waits for settings to load to reply', function() {
       setup(function() {
@@ -306,21 +311,21 @@ suite('KeyboardHelper', function() {
         assert.equal(this.result.length, 3);
       });
       test('Created ManifestHelpers', function() {
-        assert.ok(ManifestHelper.calledWith(this.apps[0].manifest));
-        assert.ok(ManifestHelper.calledWith(this.apps[1].manifest));
+        assert.ok(ManifestHelper.calledWith(this.apps[0].domApp.manifest));
+        assert.ok(ManifestHelper.calledWith(this.apps[1].domApp.manifest));
       });
       test('Correct info', function() {
-        assert.equal(this.result[0].app, this.apps[0]);
+        assert.equal(this.result[0].app, this.apps[0].domApp);
         assert.equal(this.result[0].layoutId, 'en');
         assert.equal(this.result[0].enabled, true);
         assert.equal(this.result[0]['default'], true);
 
-        assert.equal(this.result[1].app, this.apps[0]);
+        assert.equal(this.result[1].app, this.apps[0].domApp);
         assert.equal(this.result[1].layoutId, 'number');
         assert.equal(this.result[1].enabled, true);
         assert.equal(this.result[1]['default'], true);
 
-        assert.equal(this.result[2].app, this.apps[1]);
+        assert.equal(this.result[2].app, this.apps[1].domApp);
         assert.equal(this.result[2].layoutId, 'number');
         assert.equal(this.result[2].enabled, false);
         assert.equal(this.result[2]['default'], false);
@@ -428,7 +433,7 @@ suite('KeyboardHelper', function() {
       this.sinon.spy(window, 'ManifestHelper');
       // since defaultSettings.default does not include fr layout,
       // fallback with password-type should be set with fr layout
-      this.apps = [{
+      this.apps = [ new InputApp({
         origin: keyboardAppOrigin,
         manifestURL: keyboardAppManifestURL,
         manifest: {
@@ -445,7 +450,7 @@ suite('KeyboardHelper', function() {
             }
           }
         }
-      }];
+      }) ];
 
       MockNavigatorSettings.mReplyToRequests();
 
