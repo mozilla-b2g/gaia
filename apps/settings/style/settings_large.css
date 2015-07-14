@@ -121,7 +121,7 @@
     padding-left: 1.5rem;
   }
 
-  section[role="region"]:not([id='root']) ul li > gaia-checkbox > label {
+  section[role="region"]:not([id='root']) ul li > label.pack-checkbox > span {
     padding-left: 1.5rem;
   }
 

@@ -12,7 +12,7 @@ define(function(require) {
         methodName: 'alertConfirm' },
       { elementName: 'doneBtn', eventType: 'click', methodName: 'done' },
       { elementName: 'sendBtn', eventType: 'click', methodName: 'send' },
-      { elementName: 'emailEnable', eventType: 'change',
+      { elementName: 'emailEnable', eventType: 'click',
         methodName: 'enableEmail' },
       { elementName: 'header', eventType: 'action', methodName: 'back' }
     ];

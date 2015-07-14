@@ -913,7 +913,7 @@ ul li > label.range-icons.volume input {
   white-space: normal;
 }
 
-#sendFeedback gaia-checkbox label {
+#sendFeedback .pack-checkbox span {
   left: 3rem;
   right: auto;
   top: 2rem;
@@ -1154,7 +1154,7 @@ html[dir="rtl"] #dateTime .timezone.disabled select {
   right: 1rem;
 }
 
-html[dir="rtl"] #sendFeedback gaia-checkbox label {
+html[dir="rtl"] #sendFeedback .pack-checkbox span {
   left: auto;
   right: 3rem;
 }

@@ -16,7 +16,7 @@ define(function(require) {
           passwordItem: panel.querySelector('.password'),
           passwordInput: panel.querySelector('input[name="password"]'),
           submitBtn: panel.querySelector('button.save-hotspotSettings'),
-          showPassword: panel.querySelector('[name="show_password"]'),
+          showPassword: panel.querySelector('input[name="show_password"]'),
           passwordDesc: panel.querySelector('.password-description'),
           tethering_ssid: panel.querySelector(
             '[data-setting="tethering.wifi.ssid"]'),

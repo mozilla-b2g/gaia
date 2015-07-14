@@ -95,7 +95,7 @@ suite('KeyboardAddLayoutsPanel', function() {
           var children = Array.prototype.slice.apply(ul.children);
           children.forEach(function(li, index2) {
             assert.equal(
-              li.querySelector('label').textContent,
+              li.querySelector('span').textContent,
               keyboard.layouts[index2].name,
               'keyboards[' + index + '].layouts[' + index2 + '] name correct'
             );
@@ -125,26 +125,25 @@ suite('KeyboardAddLayoutsPanel', function() {
         );
 
         keyboard.layouts[0].name = 'test';
-        assert.equal(keyboardContainer
-          .querySelector('li:nth-child(1) gaia-checkbox').textContent,
+        assert.equal(
+          keyboardContainer.querySelector('li:nth-child(1) span').textContent,
           'test'
         );
 
         var enabled = !keyboard.layouts[0].enabled;
         keyboard.layouts[0].enabled = enabled;
         assert.equal(
-          keyboardContainer.querySelector(
-            'li:nth-child(1) gaia-checkbox').checked,
+          keyboardContainer.querySelector('li:nth-child(1) input').checked,
           enabled
         );
       });
       test('click event on checkbox changes enabled', function() {
         var layout = keyboards.get(0).layouts[0];
         var checkbox = this.container.children[1]
-                          .querySelector('li:nth-child(1) gaia-checkbox');
+                          .querySelector('li:nth-child(1) input');
         checkbox.checked = !checkbox.checked;
         // might want to fire this as a custom event some day
-        checkbox.dispatchEvent(new CustomEvent('change'));
+        checkbox.onchange();
         assert.equal(layout.enabled, checkbox.checked);
       });
     });

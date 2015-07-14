@@ -11,22 +11,27 @@ define(function(require) {
     var nameBdi, checkbox;
     if (recycled) {
       container = recycled;
-      checkbox = container.querySelector('gaia-checkbox');
+      checkbox = container.querySelector('input');
       nameBdi = container.querySelector('bdi');
     } else {
       container = document.createElement('li');
-      checkbox = document.createElement('gaia-checkbox');
+      checkbox = document.createElement('input');
+      var label = document.createElement('label');
       nameBdi = document.createElement('bdi');
 
-      checkbox.appendChild(document.createElement('label'));
-      checkbox.lastChild.appendChild(nameBdi);
+      label.className = 'pack-checkbox';
+      checkbox.type = 'checkbox';
 
-      container.appendChild(checkbox);
+      label.appendChild(checkbox);
+      label.appendChild(document.createElement('span'));
+      label.lastChild.appendChild(nameBdi);
+
+      container.appendChild(label);
     }
 
-    checkbox.addEventListener('change', function(e) {
-      layout.enabled = e.target.checked;
-    });
+    checkbox.onchange = function() {
+      layout.enabled = this.checked;
+    };
 
     helper.observeAndCall(layout, {
       name: function refreshName() {

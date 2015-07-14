@@ -168,7 +168,7 @@ define(function(require) {
       var ssid = panel.querySelector('input[name=ssid]');
       var identity = panel.querySelector('input[name=identity]');
       var password = panel.querySelector('input[name=password]');
-      var showPassword = panel.querySelector('gaia-checkbox[name=show-pwd]');
+      var showPassword = panel.querySelector('input[name=show-pwd]');
       var eap = panel.querySelector('li.eap select');
       var certificate = panel.querySelector('li.server-certificate select');
       var submitButton = panel.querySelector('button[type=submit]');
