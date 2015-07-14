@@ -137,13 +137,6 @@ LayoutPageView.prototype.render = function render() {
     content.appendChild(kbRow);
   }).bind(this));
 
-  // If this layout does not require different rendering for lowercase state,
-  // we default to uppercase rendering -- this class will tell CSS file to
-  // never toggle button label <span> elements.
-  if (!layout.secondLayout) {
-    container.classList.add('uppercase-only');
-  }
-
   container.appendChild(content);
 
   container.setAttribute('lang', layout.lang);
