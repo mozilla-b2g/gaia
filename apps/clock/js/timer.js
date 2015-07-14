@@ -33,7 +33,6 @@ function Timer(opts) {
   }, extractProtected(opts)));
   // public properties
   Utils.extend(this, {
-    onend: null, // callback when the timer ends
     startTime: now,
     duration: null,
     configuredDuration: null,
@@ -199,6 +198,10 @@ Timer.prototype.start = function timerStart() {
     this.startTime = Date.now();
     this.duration = (typeof this.duration === 'number') ? this.duration :
       this.configuredDuration;
+    window.dispatchEvent(new CustomEvent('timer-start', {
+      detail: { remaining: this.remaining }
+    }));
+    this._tick();
   }
 };
 
@@ -208,6 +211,10 @@ Timer.prototype.pause = function timerPause() {
     var priv = timerPrivate.get(this);
     priv.state = Timer.PAUSED;
     this.startTime = null;
+    this._cancelTick();
+    window.dispatchEvent(new CustomEvent('timer-pause', {
+      detail: { remaining: this.remaining }
+    }));
   }
 };
 
@@ -217,7 +224,8 @@ Timer.prototype.cancel = function timerReset() {
     priv.state = Timer.INITIAL;
     this.startTime = null;
     this.duration = this.configuredDuration;
-    this.onend && this.onend();
+    this._cancelTick();
+    this._dispatchEnd();
   }
 };
 
@@ -235,6 +243,42 @@ Timer.prototype.plus = function timerPlus(seconds) {
   this.duration += ms;
 
   return this;
+};
+
+Timer.prototype._dispatchEnd = function timerDispatchEnd() {
+  // cancel and end are basically the same thing
+  window.dispatchEvent(new CustomEvent('timer-end', {
+    detail: { remaining: 0 }
+  }));
+};
+
+Timer.prototype._tick = function timerTick() {
+  if (this.state !== Timer.STARTED) {
+    return;
+  }
+
+  // we cache the previous value posted to avoid triggering multiple "tick"
+  // messages for the same second
+  var remaining = this.remaining;
+  var current = Math.round(remaining / 1000);
+  if (current !== this._previousTick) {
+    this._previousTick = current;
+    window.dispatchEvent(new CustomEvent('timer-tick', {
+      detail: { remaining: remaining }
+    }));
+  }
+
+  if (remaining > 0) {
+    // use setTimeout instead of requestAnimationFrame because window will
+    // probably be hidden when handling connections
+    this._tickTimeout = window.setTimeout(() => this._tick(), 100);
+  } else {
+    this._dispatchEnd();
+  }
+};
+
+Timer.prototype._cancelTick = function timerCancelTick() {
+  window.clearTimeout(this._tickTimeout);
 };
 
 /**

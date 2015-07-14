@@ -2,7 +2,8 @@ define(function(require, exports) {
 'use strict';
 
 var handlers = {
-  'create_alarm': require('./create_alarm')
+  'gaia_alarm': require('./alarm'),
+  'gaia_timer': require('./timer')
 };
 
 exports.init = function() {
@@ -15,7 +16,21 @@ exports.init = function() {
       return;
     }
 
-    port.onmessage = event => handler(event, port);
+    // IACMessagePort don't support onstart & onclose events as of 2015-07-21
+    // but for timer we do need to emulate this behavior
+    if (handler.onstart) {
+      handler.onstart(req);
+    }
+
+    if (handler.onmessage || handler.onclose) {
+      port.onmessage = event => {
+        if (event.data.type === 'close' && handler.onclose) {
+          handler.onclose(req);
+          return;
+        }
+        handler.onmessage && handler.onmessage(event, port);
+      };
+    }
   });
 };
 
