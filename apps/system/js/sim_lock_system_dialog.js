@@ -187,9 +187,9 @@
 
     function checkDialogDone() {
       if (inputField.value.length >= 4) {
-        self.dialogDone.disabled = false;
+        self.dialogDone.removeAttribute('disabled');
       } else {
-        self.dialogDone.disabled = true;
+        self.dialogDone.setAttribute('disabled', 'disabled');
       }
     }
 
