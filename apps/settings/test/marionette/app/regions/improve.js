@@ -20,7 +20,9 @@ ImprovePanel.Selectors = {
     '#improveBrowserOS-chooseFeedback',
 
   'submitPerfData':
-    '#menuItem-sharePerformanceData gaia-checkbox',
+    '#menuItem-sharePerformanceData span',
+  'submitPerfDataCheckbox':
+    '#menuItem-sharePerformanceData input',
 
   'alwaysSendReport':
     '#menuItem-alwaysSendReport span',
@@ -40,9 +42,8 @@ ImprovePanel.prototype = {
   __proto__: Base.prototype,
 
   get isSubmitPerfData() {
-    return this.findElement('submitPerfData').scriptWith(function(el) {
-      return el.wrappedJSObject.checked;
-    });
+    return this.findElement('submitPerfDataCheckbox')
+      .getAttribute('checked');
   },
 
   selectedReport: function(type) {
@@ -60,7 +61,7 @@ ImprovePanel.prototype = {
 
   enableSubmitPerfData: function() {
     var initialState = this.isSubmitPerfData;
-    this.waitForElement('submitPerfData').click();
+    this.waitForElement('submitPerfData').tap();
     this.client.waitFor(function() {
       // Ensure tapping the element changed its state
       return this.isSubmitPerfData !== initialState;

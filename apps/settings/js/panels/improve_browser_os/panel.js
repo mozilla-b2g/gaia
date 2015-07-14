@@ -9,7 +9,7 @@ define(function(require) {
       onInit: function(panel) {
         var appUsage = panel.querySelector('#appUsageByRegion');
         var sharePrefDataToggle =
-          panel.querySelector('#menuItem-sharePerformanceData gaia-checkbox');
+          panel.querySelector('#menuItem-sharePerformanceData input');
 
         appUsage.addEventListener('click', this._openAppUsage.bind(this));
 

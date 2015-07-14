@@ -1,8 +1,6 @@
 /* global loadBodyHTML*/
 'use strict';
 
-require('/shared/js/component_utils.js');
-require('/shared/elements/gaia_checkbox/script.js');
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
 
 suite('Improve browser os panel > ', function() {
@@ -66,8 +64,8 @@ suite('Improve browser os panel > ', function() {
         'debug.performance_data.dogfooding': null
       };
       panel.init(document.body).then(() => {
-        var toggle = document.querySelector(
-          '#menuItem-sharePerformanceData gaia-checkbox');
+        var toggle =
+          document.querySelector('#menuItem-sharePerformanceData input');
         assert.isFalse(toggle.disabled);
       }).then(done, done);
     });
@@ -77,8 +75,8 @@ suite('Improve browser os panel > ', function() {
         'debug.performance_data.dogfooding': true
       };
       panel.init(document.body).then(() => {
-        var toggle = document.querySelector(
-          '#menuItem-sharePerformanceData gaia-checkbox');
+        var toggle =
+          document.querySelector('#menuItem-sharePerformanceData input');
         assert.isTrue(toggle.disabled);
       }).then(done, done);
     });
