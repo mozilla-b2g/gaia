@@ -29,15 +29,9 @@ var cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
     dataIdCounter = 0;
 
 /**
- * Previously we limited to 5MiB because of device limitations primarily
- * related to downloading attachments larger than 5MiB on Tarako devices.
- * On more capable devices this is less of a concern and the dominating
- * factor becomes the limits of the mail providers themselves.  The value
- * converged upon by most providers is 25MiB.  Because of encoding overhead
- * and message body concerns, for now we're sticking to 22MiB, but we should
- * bump this as appropriate.
+ * Max composer attachment size is defined as 5120000 bytes.
  */
-var MAX_ATTACHMENT_SIZE = 22 * 1024 * 1024;
+var MAX_ATTACHMENT_SIZE = 5120000;
 
 /**
  * To make it easier to focus input boxes, we have clicks on their owning
