@@ -10,4 +10,4 @@ class testBzLogout(GaiaTestCase):
         bugzilla_lite = BugzillaLite(self.marionette)
         bugzilla_lite.launch()
         bugzilla_lite.logout()
-        #self.assertTrue(bugzilla_lite.is_logged_out)
+        self.assertTrue(bugzilla_lite.is_logged_out)

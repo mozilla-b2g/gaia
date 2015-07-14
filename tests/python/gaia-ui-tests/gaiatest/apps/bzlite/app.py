@@ -11,6 +11,7 @@ class BugzillaLite(Base):
     _profile_icon = (By.CSS_SELECTOR, ".profile")
     _button_logout = (By.CSS_SELECTOR, ".btn")
     _dashboard_navigator_locator = (By.ID, 'dashboardNav')
+    _dashboard_login_locator = (By.ID, 'login')
     _popup_intro = (By.ID, 'intro')
     _button_popup_intro = (By.ID, 'intro-submit')        
     def login (self, username, password):
@@ -33,10 +34,14 @@ class BugzillaLite(Base):
     def is_logged_in(self):
         self.wait_for_dashboard_navigator_to_be_displayed()
         return True
+    @property
+    def is_logged_out(self):
+        self.wait_for_dashboard_login_to_be_displayed()
+        return True
 
-    def wait_for_dashboard_navigator_to_be_displayed(self):
+    def wait_for_dashboard_login_to_be_displayed(self):
         Wait(self.marionette).until(expected.element_displayed(
-            Wait(self.marionette).until(expected.element_present(*self._dashboard_navigator_locator))))
+            Wait(self.marionette).until(expected.element_present(*self._dashboard_login_locator))))
 
     def dismiss_tooltip(self):
         tooltip_element = self.marionette.find_element(*self._popup_intro).find_element(*self._button_popup_intro)
