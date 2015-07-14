@@ -3,45 +3,12 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
-/* global marionetteScriptFinished, pair, device:true, mozContact, i */
-/* global waitFor, adapter:true, aContacts */
+/* global marionetteScriptFinished, pair, mozContact, i */
+/* global waitFor, aContacts */
 /* exported pair, discovery, GaiaDataLayer */
 /* jshint -W083 */
 
 var GaiaDataLayer = {
-
-  pairBluetoothDevice: function(aDeviceName) {
-    var req = window.navigator.mozBluetooth.getDefaultAdapter();
-    req.onsuccess = function() {
-      var adapter = req.result;
-      var discovery;
-      adapter.ondevicefound = function(aEvent) {
-        device = aEvent.device;
-        var pair;
-        if (device.name === aDeviceName) {
-          pair = adapter.pair(device.address);
-          marionetteScriptFinished(true);
-        }
-      };
-      discovery = adapter.startDiscovery();
-    };
-  },
-
-  unpairAllBluetoothDevices: function() {
-    var req_get_adapter = window.navigator.mozBluetooth.getDefaultAdapter();
-    req_get_adapter.onsuccess = function() {
-      adapter = req_get_adapter.result;
-      var req = adapter.getPairedDevices();
-      req.onsuccess = function() {
-        var total = req.result.slice().length;
-        var up;
-        for (var i = total; i > 0; i--) {
-          up = adapter.unpair(req.result.slice()[i - 1].address);
-        }
-      };
-    };
-    marionetteScriptFinished(true);
-  },
 
   getBluetoothDefaultAdapter: function() {
     var bluetooth = window.navigator.mozBluetooth;
@@ -630,58 +597,6 @@ var GaiaDataLayer = {
         callback(false);
       };
     }
-  },
-
-  bluetoothSetDeviceName: function(device_name, aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    console.log('Setting device\'s bluetooth name to \'%s\'', device_name);
-
-    var req = window.navigator.mozBluetooth.getDefaultAdapter();
-    req.onsuccess = function() {
-      var adapter = req.result;
-      var req_set_name = adapter.setName(device_name);
-      req_set_name.onsuccess = function() {
-        callback(true);
-      };
-      req_set_name.onerror = function(event) {
-        console.log('setName returned unexpected error: ' +
-                    event.target.error.name);
-        callback(false);
-      };
-    };
-    req.onerror = function(event) {
-      console.log('getDefaultAdapter returned unexpected error: ' +
-                  event.target.error.name);
-      callback(false);
-    };
-  },
-
-  bluetoothSetDeviceDiscoverableMode: function(discoverable, aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    if (discoverable === true) {
-      console.log('Making the device discoverable via bluetooth');
-    } else {
-      console.log('Turning device bluetooth discoverable mode OFF');
-    }
-
-    var req = window.navigator.mozBluetooth.getDefaultAdapter();
-    req.onsuccess = function() {
-      var adapter = req.result;
-      var req_discoverable = adapter.setDiscoverable(discoverable);
-      req_discoverable.onsuccess = function() {
-        callback(true);
-      };
-      req_discoverable.onerror = function(event) {
-        console.log('setDiscoverable returned unexpected error: ' +
-                    event.target.error.name);
-        callback(false);
-      };
-    };
-    req.onerror = function(event) {
-      console.log('getDefaultAdapter returned unexpected error: ' +
-                  event.target.error.name);
-      callback(false);
-    };
   },
 
   deleteAllAlarms: function() {
