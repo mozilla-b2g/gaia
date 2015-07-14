@@ -1,6 +1,7 @@
 /* globals AudioCompetingHelper, CallsHandler, CallScreen,
            ConferenceGroupHandler, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer */
+           FontSizeManager, FontSizeUtils, LazyL10n, Utils, Voicemail,
+           TonePlayer */
 
 'use strict';
 
@@ -65,6 +66,16 @@ function HandledCall(aCall) {
   }.bind(this));
 
   this.updateCallNumber();
+  this.createCustomStyles();
+
+  /* Observe changes to the node that holds the call duration, this is also
+   * used for displaying the call ended string and needs to be resized
+   * dynamically to accomodate for certain locales. */
+  this.mutationObserverConfig = { childList: true };
+  this.mutationObserver =
+    new MutationObserver(this.observeMutation.bind(this));
+  this.mutationObserver.observe(this.durationChildNode,
+                                this.mutationObserverConfig);
 
   LazyL10n.get((function localized(_) {
     var durationMessage = (this.call.state == 'incoming') ?
@@ -88,6 +99,85 @@ function HandledCall(aCall) {
     this.connected();
   }
 }
+
+/**
+ * Creates the global custom style used for resizing the call ended string.
+ * Re-uses the existing one it if the style is already present.
+ */
+HandledCall.prototype.createCustomStyles = function hc_createCustomStyles() {
+  const CUSTOM_STYLE_ID = 'call-ended-custom-style';
+
+  var style = document.getElementById(CUSTOM_STYLE_ID);
+
+  if (!style) {
+    style = document.createElement('style');
+    style.id = CUSTOM_STYLE_ID;
+    document.head.appendChild(style);
+  }
+
+  this.callEndedStyleSheet = style.sheet;
+};
+
+/**
+ * Recomputes the font size rules so that the call ended string fits both in
+ * the callscreen display and in the statusbar.
+ */
+HandledCall.prototype.computeCallEndedFontSizeRules =
+function hc_computeCallEndedFontSizeRules() {
+  // Remove the existing rules
+  while (this.callEndedStyleSheet.cssRules.length > 0) {
+    this.callEndedStyleSheet.deleteRule(0);
+  }
+
+  var computedStyle = window.getComputedStyle(this.durationChildNode);
+  var fontFamily = computedStyle.fontFamily;
+  var allowedSizes = [ 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 ];
+
+  /* Compute the size of the font for displaying the string in the callscreen,
+   * this rules only apply when there's a single call, i.e. when the
+   * big-duration class is present in the calls node. */
+  var info = FontSizeUtils.getMaxFontSizeInfo(
+    this.durationChildNode.textContent, allowedSizes, fontFamily, 180);
+  var rule =
+    '@media (min-height: 4.5em) {' +
+    '  #calls.big-duration > section.ended .duration > span,' +
+    '  #calls.big-duration > section.ended .total-duration {' +
+    '    font-size: ' + (info.fontSize / 10.0) + 'rem;' +
+    '  }' +
+    '}';
+  this.callEndedStyleSheet.insertRule(rule,
+    this.callEndedStyleSheet.cssRules.length);
+
+  // Compute the size of the font for displaying the string in the statusbar
+  info = FontSizeUtils.getMaxFontSizeInfo(
+    this.durationChildNode.textContent, allowedSizes, fontFamily, 160);
+  rule =
+    '@media (max-height: 4.5em) {' +
+    '  .handled-call.ended .duration > span,' +
+    '  .handled-call.ended .total-duration {' +
+    '    font-size: ' + (info.fontSize / 10.0) + 'rem;' +
+    '  }' +
+    '}';
+  this.callEndedStyleSheet.insertRule(rule,
+    this.callEndedStyleSheet.cssRules.length);
+};
+
+/**
+ * Observe DOM mutations. This will automatically resize the call ended string
+ * once it's displayed at the end of a call.
+ */
+HandledCall.prototype.observeMutation =
+function hc_observeMutation(mutations) {
+  if (this.durationChildNode.hasAttribute('data-l10n-id') &&
+      this.durationChildNode.getAttribute('data-l10n-id') === 'callEnded') {
+    /* Disable the observer to prevent it from being called recursively
+     * while we modify the DOM tree, re-enable it once we're done . */
+    this.mutationObserver.disconnect();
+    this.computeCallEndedFontSizeRules();
+    this.mutationObserver.observe(this.durationChildNode,
+                                  this.mutationObserverConfig);
+  }
+};
 
 HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
   return !this.node.dataset.groupHangup &&
@@ -331,16 +421,18 @@ HandledCall.prototype.remove = function hc_remove() {
   CallScreen.stopTicker(this.durationNode);
   var currentDuration = ConferenceGroupHandler.isGroupDetailsShown() ?
     ConferenceGroupHandler.currentDuration : this.durationChildNode.textContent;
+
+  this.node.classList.add('ended');
+  this.durationNode.classList.remove('isTimer');
+
+  /* This string will be resized automatically to fit its container, see
+   * hc_mutationObserver() & hc_computeCallEndedFontSizeRules. */
+  navigator.mozL10n.setAttributes(this.durationChildNode, 'callEnded');
+
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
   var totalDuration = !!currentDuration.match(/\d+/g) ? currentDuration : '';
   this.totalDurationNode.textContent = totalDuration;
-  this.node.classList.add('ended');
-
-  LazyL10n.get(function localized(_) {
-    self.durationNode.classList.remove('isTimer');
-    self.durationChildNode.textContent = _('callEnded');
-  });
 
   setTimeout(function(evt) {
     CallScreen.removeCall(self.node);
