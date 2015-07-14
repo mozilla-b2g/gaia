@@ -13,7 +13,10 @@ class BugzillaLite(Base):
     _dashboard_navigator_locator = (By.ID, 'dashboardNav')
     _dashboard_login_locator = (By.ID, 'login')
     _popup_intro = (By.ID, 'intro')
-    _button_popup_intro = (By.ID, 'intro-submit')        
+    _button_popup_intro = (By.ID, 'intro-submit')
+    _assigned_icon = (By.CSS_SELECTOR, ".assigned")
+    _flagged_icon = (By.CSS_SELECTOR, ".flagged")
+    _filed_icon = (By.CSS_SELECTOR, ".filed")        
     def login (self, username, password):
         username_element = self.marionette.find_element(*self._given_username)
         username_element.tap()
@@ -29,6 +32,13 @@ class BugzillaLite(Base):
         profile_element.tap()
         logout_element = self.marionette.find_element(*self._button_logout)
         logout_element.tap()
+    def followBugs(self):
+        assigned_element = self.marionette.find_element(*self._dashboard_navigator_locator).find_element(*self._assigned_icon)
+        assigned_element.tap()
+        flagged_element = self.marionette.find_element(*self._dashboard_navigator_locator).find_element(*self._flagged_icon)
+        flagged_element.tap()
+        filed_element = self.marionette.find_element(*self._dashboard_navigator_locator).find_element(*self._filed_icon)
+        filed_element.tap()
 
     @property
     def is_logged_in(self):
