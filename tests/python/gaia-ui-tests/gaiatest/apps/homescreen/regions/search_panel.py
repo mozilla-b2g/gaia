@@ -58,7 +58,7 @@ class SearchPanel(Base):
 
         Wait(self.marionette).until(lambda m: self.keyboard.is_keyboard_displayed)
         self.keyboard.tap_enter()
-        Wait(self.marionette).until(lambda m: urllib.quote(url, safe=':/?=&~') in self.apps.displayed_app.name)
+        Wait(self.marionette).until(lambda m: self.apps.displayed_app.name in urllib.quote(url, safe=':/?=&~'))
 
         from gaiatest.apps.search.regions.browser import Browser
         return Browser(self.marionette)
