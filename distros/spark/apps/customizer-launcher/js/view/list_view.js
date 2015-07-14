@@ -1,6 +1,14 @@
 define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-list/gaia-list", "components/gaia-button/gaia-button", "js/lib/helpers"], function (exports, _componentsFxosMvcDistMvc, _componentsGaiaListGaiaList, _componentsGaiaButtonGaiaButton, _jsLibHelpers) {
   "use strict";
 
+  var _taggedTemplateLiteral = function (strings, raw) {
+    return Object.defineProperties(strings, {
+      raw: {
+        value: raw
+      }
+    });
+  };
+
   var _extends = function (child, parent) {
     child.prototype = Object.create(parent.prototype, {
       constructor: {
@@ -49,7 +57,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-list/gaia-li
     ListView.prototype.addElement = function (data) {
       var item = document.createElement("li");
       item.classList.add("app");
-      item.innerHTML = this.listItemTemplate(data);
+      item.innerHTML = Sanitizer.unwrapSafeHTML(this.listItemTemplate(data));
       IconHelper.setImage(item.querySelector(".icon"), data.icon);
       this.el.appendChild(item);
 
@@ -63,7 +71,7 @@ define(["exports", "components/fxos-mvc/dist/mvc", "components/gaia-list/gaia-li
     ListView.prototype.listItemTemplate = function (_ref) {
       var name = _ref.name;
       var author = _ref.author;
-      var string = "\n      <img class=\"icon\" />\n      <div flex class=\"description\">\n        <p class=\"name\">" + capitalize(name) + "</p>\n        <p class=\"author\">" + author + "</p>\n      </div>\n      <gaia-button class=\"open-button\">Open</gaia-button>";
+      var string = Sanitizer.createSafeHTML(_taggedTemplateLiteral(["\n      <img class=\"icon\" />\n      <div flex class=\"description\">\n        <p class=\"name\">", "</p>\n        <p class=\"author\">", "</p>\n      </div>\n      <gaia-button class=\"open-button\">Open</gaia-button>"], ["\n      <img class=\"icon\" />\n      <div flex class=\"description\">\n        <p class=\"name\">", "</p>\n        <p class=\"author\">", "</p>\n      </div>\n      <gaia-button class=\"open-button\">Open</gaia-button>"]), capitalize(name), author);
       return string;
     };
 

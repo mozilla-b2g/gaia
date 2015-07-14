@@ -125,5 +125,55 @@
       "type": "addon",
       "url": "https://github.com/john-hu/kill-all-active-apps",
       "revision": "0f6a5a76c9a9d69527b0bd751611b21aac86a117"
+    },
+    "https://eeejay.github.io/quick-filter/manifest.webapp": {
+      "manifestURL": "https://eeejay.github.io/quick-filter/manifest.webapp",
+      "name": "Quick Filter",
+      "description": "Toggle accessibility color filter settings by triple pressing the camera button",
+      "icon": "http://eeejay.github.io/quick-filter/img/icons/icon128x128.png",
+      "author": "Eitan Isaacson",
+      "type": "addon",
+      "url": "https://github.com/eeejay/quick-filter",
+      "revision": "bee2f57eafc6408a5e95d20e570c95501c57b911"
+    },
+    "https://yzen.github.io/fxos-user-hub/manifest.webapp": {
+      "manifestURL": "https://yzen.github.io/fxos-user-hub/manifest.webapp",
+      "name": "User Hub",
+      "icon": "https://yzen.github.io/fxos-user-hub/icons/user.png",
+      "description": "User hub for user preferences",
+      "author": "Yura Zenevich",
+      "type": "addon",
+      "url": "https://github.com/yzen/fxos-user-hub",
+      "revision": "ab558b02058553d8b58fd5c3a9104462de054fe1"
+    },
+    "https://sunbox.github.io/mozweekend_AddOn_Demo/manifest.webapp": {
+      "manifestURL": "https://sunbox.github.io/mozweekend_AddOn_Demo/manifest.webapp",
+      "name": "Status Bar - Temperature",
+      "icon": "http://sunbox.github.io/mozweekend_AddOn_Demo/icons/icon120.png",
+      "description": "Adds the current local temperature to the status bar",
+      "author": "André Fiedler",
+      "type": "addon",
+      "url": "https://github.com/SunboX/mozweekend_AddOn_Demo",
+      "revision": "cb642afdc973c72d2be3b7625e255df39427e01c"
+    },
+    "https://etiennesegonzac.github.io/snappy-twitter/manifest.webapp": {
+      "manifestURL": "https://etiennesegonzac.github.io/snappy-twitter/manifest.webapp",
+      "name": "Snappy Twitter",
+      "description": "Firefox OS addon making the Twitter app snappier",
+      "icon": "https://etiennesegonzac.github.io/snappy-twitter/icon.png",
+      "author": "Etienne Segonzac",
+      "type": "addon",
+      "url": "https://github.com/etiennesegonzac/snappy-twitter",
+      "revision": "08b21dfd542ea431557ec10ab2316ce2e65fef5c"
+    },
+    "https://eeejay.github.io/responsive-irccloud/manifest.webapp": {
+      "manifestURL": "https://eeejay.github.io/responsive-irccloud/manifest.webapp",
+      "name": "Responsive IRCCloud",
+      "description": "Make IRCCloud web app mobile friendly",
+      "icon": "http://eeejay.github.io/responsive-irccloud/img/icons/icon128x128.png",
+      "author": "Eitan Isaacson",
+      "type": "addon",
+      "url": "https://github.com/eeejay/responsive-irccloud",
+      "revision": "9c754fd49c4ebb878c4f370acc048605f4904f33"
     }
 }

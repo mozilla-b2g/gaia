@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var merge = require('gulp-merge');
 var concat = require('gulp-concat');
+var wrapper = require('gulp-wrapper');
 var to5 = require('gulp-6to5');
 
 /**
@@ -19,6 +20,10 @@ gulp.task('to5', function () {
 					.src([
 						'./node_modules/sanitizer/sanitizer.js'
 					])
+					.pipe(wrapper({
+						header: '(function(){var define,exports;',
+						footer: '})(window);'
+					}))
 					.pipe(concat('deps.js')),
 				gulp
 					.src('./mvc.js')

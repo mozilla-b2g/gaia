@@ -2,7 +2,8 @@ body {
   margin: 0;
   font-size: 17px;
   font-family: "FiraSans";
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
   background-color: var(--background);
   color: var(--title-color);
 
@@ -42,12 +43,12 @@ gaia-header #upload-link {
 .install-list {
   position: absolute !important;
   width: 100%;
-  height: calc(95vh - var(--header-height) - var(--tabs-height));
+  height: calc(100vh - var(--header-height) - var(--tabs-height));
   overflow: scroll !important;
 }
 
 body:not(.online) .install-list:not(.info-list) {
-  height: calc(95vh - var(--header-height) - var(--tabs-height) - var(--offline-height));
+  height: calc(100vh - var(--header-height) - var(--tabs-height) - var(--offline-height));
 }
 
 .install-list .description {

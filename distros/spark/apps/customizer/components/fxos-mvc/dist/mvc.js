@@ -1275,7 +1275,7 @@
     ObserveUtils.List = List;
 
 })(this);
-/* globals define, module */
+(function(){var define,exports;/* globals define, module */
 
 /**
  * A simple library to help you escape HTML using template strings.
@@ -1359,7 +1359,7 @@
   return Sanitizer;
 
 }));
-
+})(window);
 define(["exports"], function (exports) {
   "use strict";
 
