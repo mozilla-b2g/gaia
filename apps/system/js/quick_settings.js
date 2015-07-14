@@ -195,8 +195,7 @@
       SettingsListener.observe('wifi.enabled', true, function(value) {
         // check self.wifi.dataset.enabled and value are identical
         if ((self.wifi.dataset.enabled === 'true' && value) ||
-          ((self.wifi.dataset.enabled === undefined ||
-            self.wifi.dataset.enabled === 'false') && !value)) {
+            (self.wifi.dataset.enabled === undefined && !value)) {
           return;
         }
 
