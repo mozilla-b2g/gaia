@@ -9,7 +9,6 @@
   <!-- Building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-  <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
   <link rel="stylesheet" type="text/css" href="shared/style/layout.css">
 
   <!-- App and Views -->
@@ -51,6 +50,7 @@
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
   <script defer src="/shared/elements/gaia_select/script.js"></script>
   <script defer src="/shared/elements/gaia_switch/script.js"></script>
+  <script defer src="/shared/elements/gaia_radio/script.js"></script>
 
   <!-- Specific code -->
   <script type="text/javascript" defer src="js/fte.js"></script>
@@ -90,16 +90,14 @@
       </gaia-header>
       <ul class="content choices">
         <li class="active">
-          <label for="prepaid-plan" class="pack-radio">
-            <input type="radio" name="plan" id="prepaid-plan" value="prepaid">
-            <span data-l10n-id="im-prepaid">I’m Pre-paid</span>
-          </label>
+          <gaia-radio name="plan" id="prepaid-plan" value="prepaid">
+            <label data-l10n-id="im-prepaid"></label>
+          </gaia-radio>
         </li>
         <li class="active">
-          <label for="postpaid-plan" class="pack-radio">
-            <input type="radio" name="plan" id="postpaid-plan" value="postpaid">
-            <span data-l10n-id="im-postpaid">I’m Post-paid</span>
-          </label>
+          <gaia-radio name="plan" id="postpaid-plan" value="postpaid">
+            <label data-l10n-id="im-postpaid"></label>
+          </gaia-radio>
         </li>
         <li>
           <p data-l10n-id="fte-plantype-hint">Select the type of contract you have with your mobile service provider.</p>

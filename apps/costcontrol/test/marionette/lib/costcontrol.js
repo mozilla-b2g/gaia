@@ -21,7 +21,7 @@
       frame: '#fte_view',
       main: '#firsttime-view',
 
-      nextButton: 'button[data-navigation=next]',
+      nextButton: 'button[data-navigation=next]:not([disabled])',
       backButton: 'button[data-navigation=back]',
       finishButton: 'button[data-navigation=finish]',
 
@@ -31,8 +31,8 @@
 
       TypeOfContract: {
         main: '#step-2',
-        prepaidPlanOption: 'label[for=prepaid-plan]',
-        postpaidPlanOption: 'label[for=postpaid-plan]'
+        prepaidPlanOption: '#prepaid-plan',
+        postpaidPlanOption: '#postpaid-plan'
       },
 
       PrepaidLowBalanceAlert: {
