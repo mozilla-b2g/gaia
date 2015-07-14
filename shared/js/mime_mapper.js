@@ -45,7 +45,8 @@ var MimeMapper = {
     'application/vcard': 'vcf',
     // Text
     'text/vcard': 'vcf',
-    'text/x-vcard': 'vcf'
+    'text/x-vcard': 'vcf',
+    'text/html': 'html'
   },
 
   // This list only contains the mimetypes we currently supported
@@ -81,7 +82,8 @@ var MimeMapper = {
     // If we want to support some extensions, like pdf, just add
     // 'pdf': 'application/pdf'
     // Text
-    'vcf': 'text/vcard'
+    'vcf': 'text/vcard',
+    'html': 'text/html'
   },
   _parseExtension: function(filename) {
     var array = filename.split('.');

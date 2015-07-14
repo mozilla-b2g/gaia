@@ -94,6 +94,13 @@
           "patternFlags": "i"
         }
       }
+    },
+    "open" : {
+      "filters": {
+        "type": "text/html"
+      },
+      "disposition": "inline",
+      "returnValue": true
     }
   },
   "messages": [

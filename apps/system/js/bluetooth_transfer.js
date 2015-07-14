@@ -661,7 +661,7 @@ var BluetoothTransfer = {
           originalType : MimeMapper.guessTypeFromExtension(extension);
 
         var a = new MozActivity({
-          name: mappedType == 'text/vcard' ? 'import' : 'open',
+          name: mappedType === 'text/vcard' ? 'import' : 'open',
           data: {
             type: mappedType,
             blob: file,
