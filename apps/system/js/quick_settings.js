@@ -60,6 +60,18 @@
     DATA_ROAMING_KEY: 'ril.data.roaming_enabled',
 
     /**
+     * Settings states.
+     * @memberof QuickSettings.prototype
+     * @type {Object}
+     */
+    settings: {
+      wifi: false,
+      airplaneMode: false,
+      data: false,
+      bluetooth: false
+    },
+
+    /**
      * Starts listening for events.
      * @memberof QuickSettings.prototype
      */
@@ -156,11 +168,7 @@
          * @memberof QuickSettings.prototype
          */
         SettingsListener.observe('ril.data.enabled', true, function(value) {
-          if (value) {
-            this.data.dataset.enabled = 'true';
-          } else {
-            delete this.data.dataset.enabled;
-          }
+          this.setSettingEnabled('data', value);
           this.setAccessibilityAttributes(this.data, 'dataButton',
             this.data.dataset.network);
         }.bind(this));
@@ -193,18 +201,11 @@
       var self = this;
       var wifiFirstSet = true;
       SettingsListener.observe('wifi.enabled', true, function(value) {
-        // check self.wifi.dataset.enabled and value are identical
-        if ((self.wifi.dataset.enabled === 'true' && value) ||
-          ((self.wifi.dataset.enabled === undefined ||
-            self.wifi.dataset.enabled === 'false') && !value)) {
+        if (self.settings.wifi === value) {
           return;
         }
 
-        if (value) {
-          self.wifi.dataset.enabled = 'true';
-        } else {
-          delete self.wifi.dataset.enabled;
-        }
+        self.setSettingEnabled('wifi', value);
         // Set to the initializing state to block user interaction until the
         // operation completes. (unless we are being called for the first time,
         // where Wifi is already initialize
@@ -248,11 +249,11 @@
         switch (value) {
           case 'enabled':
             self.data.classList.add('quick-settings-airplane-mode');
-            self.airplaneMode.dataset.enabled = 'true';
+            self.setSettingEnabled('airplaneMode', true);
             break;
           case 'disabled':
             self.data.classList.remove('quick-settings-airplane-mode');
-            delete self.airplaneMode.dataset.enabled;
+            self.setSettingEnabled('airplaneMode', false);
             break;
           case 'enabling':
             self.airplaneMode.dataset.enabling = 'true';
@@ -287,7 +288,7 @@
                 this.airplaneModeSwitching) {
                 return;
               }
-              enabled = !!this.wifi.dataset.enabled;
+              enabled = this.settings.wifi;
               SettingsListener.getSettingsLock().set({
                 'wifi.enabled': !enabled
               });
@@ -302,7 +303,7 @@
             case this.data:
               if (this.data.dataset.airplaneMode !== 'true') {
                 // TODO should ignore the action if initialization isn't done
-                enabled = !!this.data.dataset.enabled;
+                enabled = this.settings.data;
                 if (enabled) {
                   var cset = {};
                   cset[this.DATA_KEY] = !enabled;
@@ -322,7 +323,7 @@
                 return;
               }
 
-              enabled = !!this.bluetooth.dataset.enabled;
+              enabled = this.settings.bluetooth;
               if (enabled) {
                 window.dispatchEvent(
                   new CustomEvent('request-disable-bluetooth'));
@@ -337,7 +338,7 @@
               if (this.airplaneModeSwitching) {
                 return;
               }
-              var toggle = this.airplaneMode.dataset.enabled ?
+              var toggle = this.settings.airplaneMode ?
                 'request-airplane-mode-disable' :
                 'request-airplane-mode-enable';
               window.dispatchEvent(new CustomEvent(toggle));
@@ -361,19 +362,19 @@
 
           // unlock bluetooth toggle
         case 'bluetooth-enabled':
-          this.bluetooth.dataset.enabled = 'true';
+          this.setSettingEnabled('bluetooth', true);
           delete this.bluetooth.dataset.initializing;
           this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
           break;
         case 'bluetooth-disabled':
-          delete this.bluetooth.dataset.enabled;
+          this.setSettingEnabled('bluetooth', false);
           delete this.bluetooth.dataset.initializing;
           this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
           break;
           // unlock wifi toggle
         case 'wifi-enabled':
           delete this.wifi.dataset.initializing;
-          this.wifi.dataset.enabled = 'true';
+          this.setSettingEnabled('wifi', true);
           this.setAccessibilityAttributes(this.wifi, 'wifiButton');
           if (this.toggleAutoConfigWifi) {
             // Check whether it found a wifi to connect after a timeout.
@@ -383,7 +384,7 @@
           break;
         case 'wifi-disabled':
           delete this.wifi.dataset.initializing;
-          delete this.wifi.dataset.enabled;
+          this.setSettingEnabled('wifi', false);
           this.setAccessibilityAttributes(this.wifi, 'wifiButton');
           if (this.toggleAutoConfigWifi) {
             clearTimeout(this.wifiStatusTimer);
@@ -500,6 +501,15 @@
           resolve(reqSetting.result[self.DATA_ROAMING_KEY]);
         };
       });
+    },
+
+    setSettingEnabled: function qa_setSettingEnabled(settingKey, enabled) {
+      this.settings[settingKey] = enabled;
+      if (enabled) {
+        this[settingKey].dataset.enabled = 'true';
+      } else {
+        delete this[settingKey].dataset.enabled;
+      }
     },
 
     /**

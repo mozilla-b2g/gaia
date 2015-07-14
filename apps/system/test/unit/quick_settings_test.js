@@ -176,6 +176,7 @@ suite('quick settings > ', function() {
     });
     assert.equal(
       subject.airplaneMode.dataset.enabled, 'true');
+    assert.isTrue(subject.settings.airplaneMode);
 
     assert.equal(subject.airplaneModeSwitching, false);
 
@@ -198,6 +199,7 @@ suite('quick settings > ', function() {
     });
     assert.equal(
       subject.airplaneMode.dataset.enabled, undefined);
+    assert.isFalse(subject.settings.airplaneMode);
 
     assert.equal(subject.airplaneModeSwitching, false);
 
