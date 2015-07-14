@@ -846,8 +846,6 @@ suite('system/AppChrome', function() {
   });
 
   suite('Default icon', function() {
-    /*
-    Disabled for backing out bug 1181602.
     var chrome;
 
     setup(function() {
@@ -873,6 +871,5 @@ suite('system/AppChrome', function() {
       assert.equal(1, chrome.setSiteIcon.getCall(0).args.length,
         'setSiteIcon passed 1 argument');
     });
-    */
   });
 });
