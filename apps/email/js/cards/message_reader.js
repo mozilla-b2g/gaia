@@ -1081,10 +1081,7 @@ return [
             var attachment = body.attachments[iAttach], state;
             var extension = attachment.filename.split('.').pop();
 
-            // Keeping in-sync with the compose.js value of 22 now, plus some
-            // slop to deal with encoding and just be fine with the general
-            // provider upper bound of 25.
-            var MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
+            var MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
             var attachmentDownloadable = true;
             var mimeClass = mimeToClass(attachment.mimetype ||
                             MimeMapper.guessTypeFromExtension(extension));
