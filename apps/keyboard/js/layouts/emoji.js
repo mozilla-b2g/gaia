@@ -2,10 +2,6 @@ Keyboards.emoji = {
   label: 'Emoji',
   types: ['text', 'url', 'email'],
   menuLabel: 'Emoji',
-  // We don't want to ship this yet even when enable/downloadable layout is
-  // set to include this.
-  // User must explicitly include emoji to test this layout.
-  noIncludeInExpandLayoutIdSet: true,
   pages: [{   // Page 0 - People
     panelKeys: [ { compositeKey: '😄', type: 'emoji' }, { compositeKey: '😃', type: 'emoji' },
                  { compositeKey: '😀', type: 'emoji' }, { compositeKey: '😊', type: 'emoji' },
@@ -59,12 +55,6 @@ Keyboards.emoji = {
           value: '',
           keyCode: -3,
           className: 'emoji-ime-switch'
-        },
-        {
-          value: '',
-          keyCode: KeyboardEvent.DOM_VK_ALT,
-          className: 'emoji-recent',
-          targetPage: 0
         },
         {
           value: '',
@@ -160,12 +150,6 @@ Keyboards.emoji = {
           value: '',
           keyCode: -3,
           className: 'alternate-indicator emoji-ime-switch'
-        },
-        {
-          value: '',
-          keyCode: KeyboardEvent.DOM_VK_ALT,
-          className: 'emoji-recent',
-          targetPage: 0
         },
         {
           value: '',
@@ -280,12 +264,6 @@ Keyboards.emoji = {
         {
           value: '',
           keyCode: KeyboardEvent.DOM_VK_ALT,
-          className: 'emoji-recent',
-          targetPage: 0
-        },
-        {
-          value: '',
-          keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'emoji-people',
           targetPage: 0
         },
@@ -370,12 +348,6 @@ Keyboards.emoji = {
         {
           value: '',
           keyCode: KeyboardEvent.DOM_VK_ALT,
-          className: 'emoji-recent',
-          targetPage: 0
-        },
-        {
-          value: '',
-          keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'emoji-people',
           targetPage: 0
         },
@@ -416,12 +388,6 @@ Keyboards.emoji = {
           value: '',
           keyCode: -3,
           className: 'alternate-indicator emoji-ime-switch'
-        },
-        {
-          value: '',
-          keyCode: KeyboardEvent.DOM_VK_ALT,
-          className: 'emoji-recent',
-          targetPage: 0
         },
         {
           value: '',
