@@ -161,6 +161,17 @@
         }
       };
       cursor.onerror = onErrorCB;
+    },
+
+    getCount: function(callback) {
+      var req = navigator.mozContacts.getCount();
+      req.onsuccess = function() {
+        callback(req.result);
+      };
+
+      req.onerror = function() {
+        callback(new Error('Error while retrieving the number of Contacts'));
+      };
     }
   };
 
