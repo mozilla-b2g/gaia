@@ -111,25 +111,15 @@
       "href": "/contacts/index.html?open",
       "returnValue": true
     },
-    "open": [
-    {
+    "open": {
       "filters": {
-        "type": ["webcontacts/contact"]
-      },
-      "disposition": "inline",
-      "href": "/contacts/views/details/details.html",
-      "returnValue": true
-    },
-    {
-      "filters": {
-        "type": ["text/vcard", "text/x-vcard",
+        "type": ["webcontacts/contact", "text/vcard", "text/x-vcard",
                  "text/directory"]
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",
       "returnValue": true
-    }
-    ],
+    },
     "new": {
       "filters": {
         "type": "webcontacts/contact"
