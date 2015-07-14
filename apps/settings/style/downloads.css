@@ -27,10 +27,12 @@
  * Edit mode styles
  */
 
-#downloads .pack-checkbox {
+#downloads gaia-checkbox {
   position: absolute;
-  width: 2.8rem;
-  display: none;
+  top: 1.2rem;
+  /* Important is necessary to override scoped component styles */
+  width: 2.8rem !important;
+  display: none !important;
 }
 
 /**
@@ -60,16 +62,16 @@
   height: calc(100% - 5rem);
 }
 
-#downloads.edit .pack-checkbox span {
+#downloads.edit gaia-checkbox label {
   z-index: 100;
 }
 
-#downloads.edit .pack-checkbox:active span {
+#downloads.edit gaia-checkbox:active label {
   background: none;
 }
 
-#downloads.edit .pack-checkbox {
-  display: block;
+#downloads.edit gaia-checkbox {
+  display: block !important;
 }
 
 #downloads.edit #downloadList li {
