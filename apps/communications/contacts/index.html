@@ -71,6 +71,7 @@
     <script defer src="/contacts/js/contacts.js"></script>
     <script defer src="/shared/js/contacts/utilities/image_loader.js"></script>
     <script defer src="/contacts/js/fb_loader.js"></script>
+    <script defer src="/shared/elements/navigation-effect/lib/dom-scheduler.js"></script>
     -->
 
     <!-- Web Components -->
@@ -78,6 +79,7 @@
     <script defer src="/shared/js/component_utils.js"></script>
     <script defer src="/shared/elements/gaia_subheader/script.js"></script>
     <script defer src="/shared/elements/gaia-header/dist/gaia-header.js"></script>
+    <script defer src="/shared/elements/navigation-effect/navigation_effect.js"></script>
 
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
     <link rel="localization" href="/shared/elements/gaia_sim_picker/locales/gaia_sim_picker.{locale}.properties">
@@ -153,7 +155,7 @@
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
         <gaia-header id="contacts-list-header">
           <h1 id="app-title" data-l10n-id="contacts"></h1>
-          <button id="add-contact-button" data-icon="add" data-l10n-id="addButton"></button>
+          <a id="add-contact-button" data-icon="add" class="circular-effect" href="/contacts/views/form/form.html?action=new" data-l10n-id="addButton"></a>
           <button id="settings-button" data-icon="settings" data-l10n-id="settingsButton"></button>
         </gaia-header>
 
@@ -258,5 +260,6 @@
     <section is="multiple-select-view" id="multiple-select-view" role="region" class="view hidden"></section>
     <gaia-sim-picker id="sim-picker" tabindex="-1"></gaia-sim-picker>
     <iframe id="iframe_curtain" src="/shared/pages/import/curtain.html"></iframe>
+    <gaia-navigation-effect></gaia-navigation-effect>
   </body>
 </html>
