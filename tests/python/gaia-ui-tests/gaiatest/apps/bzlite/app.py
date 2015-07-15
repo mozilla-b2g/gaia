@@ -14,9 +14,16 @@ class BugzillaLite(Base):
     _dashboard_login_locator = (By.ID, 'login')
     _popup_intro = (By.ID, 'intro')
     _button_popup_intro = (By.ID, 'intro-submit')
-    _assigned_icon = (By.CSS_SELECTOR, ".assigned")
-    _flagged_icon = (By.CSS_SELECTOR, ".flagged")
-    _filed_icon = (By.CSS_SELECTOR, ".filed")        
+    _assigned_icon = (By.CSS_SELECTOR, '.assigned')
+    _flagged_icon = (By.CSS_SELECTOR, '.flagged')
+    _filed_icon = (By.CSS_SELECTOR, '.filed')
+    _search_bar = (By.ID, 'searchLink')
+    _button_cancel_search = (By.LINK_TEXT, 'Cancel')
+
+    def uninstall (self, name):
+        result = self.marionette.execute_async_script('GaiaApps.uninstallWithName("%s")' % name)
+        assert (result is True), 'Failed to uninstall app: %s' % result
+
     def login (self, username, password):
         username_element = self.marionette.find_element(*self._given_username)
         username_element.tap()
@@ -32,13 +39,23 @@ class BugzillaLite(Base):
         profile_element.tap()
         logout_element = self.marionette.find_element(*self._button_logout)
         logout_element.tap()
-    def followBugs(self):
-        assigned_element = self.marionette.find_element(*self._dashboard_navigator_locator).find_element(*self._assigned_icon)
-        assigned_element.tap()
-        flagged_element = self.marionette.find_element(*self._dashboard_navigator_locator).find_element(*self._flagged_icon)
-        flagged_element.tap()
-        filed_element = self.marionette.find_element(*self._dashboard_navigator_locator).find_element(*self._filed_icon)
-        filed_element.tap()
+
+    def follow_bugs(self):
+        self.marionette.find_element(*self._flagged_icon).tap()
+        self.marionette.find_element(*self._filed_icon).tap()
+        self.marionette.find_element(*self._assigned_icon).tap()
+
+    def search(self, number):
+        searchbar_element = self.marionette.find_element(*self._search_bar)
+        searchbar_element.tap()
+        number_to_enter = self.keyboard.send(number)
+        searchbar_element.send_keys(number_to_enter)
+
+    def cancelSearch(self):
+        searchbar_element = self.marionette.find_element(*self._search_bar)
+        searchbar_element.tap()
+        cancelsearch_element = self.marionette.find_element(*self._button_cancel_search)
+        cancelsearch_element.tap()
 
     @property
     def is_logged_in(self):
