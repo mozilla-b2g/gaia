@@ -1603,8 +1603,8 @@ suite('system/UpdateManager', function() {
         roaming: true
       },
       {
-        title: 'Not WIFI, 2G, no Setting update2G, wifi prioritized' +
-          '-> download not available',
+        title: 'Not WIFI, 2G, no Setting update2G, wifi prioritized, ' +
+          'System update available -> download not available',
         wifi: false,
         conns: [
           {
@@ -1617,11 +1617,30 @@ suite('system/UpdateManager', function() {
         ],
         update2g: false,
         wifiPrioritized: true,
+        systemUpdate: true,
         testResult: 'forbidden'
       },
       {
-        title: 'Not WIFI, 2G, no Setting update2G, wifi not prioritized' +
-          '-> download not available',
+        title: 'Not WIFI, 2G, no Setting update2G, wifi prioritized, ' +
+          'System update unavailable -> download available',
+        wifi: false,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'gprs',
+            connected: true
+          }
+        ],
+        update2g: false,
+        wifiPrioritized: true,
+        systemUpdate: false,
+        testResult: 'wifiPrioritized'
+      },
+      {
+        title: 'Not WIFI, 2G, no Setting update2G, wifi not prioritized, ' +
+          'System update available -> download not available',
         wifi: false,
         conns: [
           {
@@ -1634,7 +1653,26 @@ suite('system/UpdateManager', function() {
         ],
         update2g: false,
         wifiPrioritized: false,
+        systemUpdate: true,
         testResult: 'forbidden'
+      },
+      {
+        title: 'Not WIFI, 2G, no Setting update2G, wifi not prioritized, ' +
+          'System update unavailable -> download available',
+        wifi: false,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'gprs',
+            connected: true
+          }
+        ],
+        update2g: false,
+        wifiPrioritized: false,
+        systemUpdate: false,
+        testResult: 'additionalCostIfNeeded'
       },
       {
         title: 'Not WIFI, No Data connection -> download not available',
@@ -1708,6 +1746,9 @@ suite('system/UpdateManager', function() {
             };
           }
         }
+
+        UpdateManager._systemUpdateDisplayed =
+           testCase.systemUpdate ? true : false;
 
         if (testCase.noConnection) {
           UpdateManager.downloadDialog.dataset.online = false;

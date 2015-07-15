@@ -246,7 +246,7 @@ var UpdateManager = {
       }
 
       //2G connection
-      if (self.connection2G) {
+      if (self.connection2G && self._systemUpdateDisplayed) {
         self.showForbiddenDownload();
         return;
       }
