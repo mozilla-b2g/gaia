@@ -215,8 +215,8 @@
 
     /*
      * Performs an action once Bluetooth is enabled. If Bluetooth is disabled,
-     * it is enabled and the action is queued. If Bluetooth is already enabled,
-     * performs the action directly.
+     * enable Bluetooth and queue the action. If Bluetooth is already enabled,
+     * request the bluetooth adapter and perform the action.
      * @param {Object} action action to be performed
      * @param {function} action.callback function to be executed
      * @param {Array} action.args arguments for the function
@@ -238,7 +238,13 @@
           this.settingsNotified = true;
         }
       } else {
-        action.callback.apply(this, action.args);
+        Service.request('Bluetooth:adapter').then((adapter) => {
+          this.debug('Got the adapter, start the action');
+          this._adapter = adapter;
+          action.callback.apply(this, action.args);
+        }).catch((err) => {
+          this._logVisibly('Failed to get bluetooth adapter');
+        });
       }
     },
 
@@ -305,11 +311,6 @@
      */
     _doConnect: function _doConnect(device) {
       this.debug('doConnect with: ' + device.address);
-      if (this._adapter === null) {
-        this._logVisibly('No Bluetooth Adapter');
-        return;
-      }
-
       var req = this._adapter.connect(device);
       req.onsuccess = () => { this.debug('Connect succeeded'); };
       req.onerror = () => { this.debug('Connect failed'); };
@@ -322,13 +323,7 @@
      */
     _doPairing: function _doPairing(mac) {
       this.debug('doPairing: ' + mac);
-
       var alreadyPaired = (device) => {
-        if (this._adapter === null) {
-          this._logVisibly('No Bluetooth Adapter');
-          return;
-        }
-
         this._adapter.connect(device);
       };
 
@@ -447,10 +442,6 @@
          */
         return;
       }
-      if (this._adapter === null) {
-        this._logVisibly('No Bluetooth Adapter');
-        return;
-      }
 
       if (nfcPeer.isLost) {
         this._logVisibly('NFC peer went away during doHandoverRequest');
@@ -487,57 +478,50 @@
      * @param {String} msg.requestId Request ID.
      * @memberof NfcHandoverManager.prototype
      */
-    _initiateFileTransfer:
-      function _initiateFileTransfer(msg) {
-        this.debug('initiateFileTransfer');
-        if (this._adapter === null) {
-          this._logVisibly('No Bluetooth Adapter');
-          this._restoreBluetoothStatus();
-          return;
-        }
+    _doInitiateFileTransfer: function _doInitiateFileTransfer(msg) {
+      this.debug('initiateFileTransfer');
+      /*
+       * Initiate a file transfer by sending a Handover Request to the
+       * remote device.
+       */
+      var onsuccess = () => {
+        this._dispatchSendFileStatus(0, msg.requestId);
+      };
+      var onerror = () => {
+        this._dispatchSendFileStatus(1, msg.requestId);
+      };
 
-        /*
-         * Initiate a file transfer by sending a Handover Request to the
-         * remote device.
-         */
-        var onsuccess = () => {
-          this._dispatchSendFileStatus(0, msg.requestId);
-        };
-        var onerror = () => {
-          this._dispatchSendFileStatus(1, msg.requestId);
-        };
+      if (msg.peer.isLost) {
+        this._logVisibly('NFC peer went away during initiateFileTransfer');
+        onerror();
+        this._restoreBluetoothStatus();
+        this._showFailedNotification('transferFinished-sentFailed-title',
+                                     msg.blob.name);
+        return;
+      }
+      var job = {nfcPeer: msg.peer, blob: msg.blob, requestId: msg.requestId,
+                 onsuccess: onsuccess, onerror: onerror};
+      this.sendFileQueue.push(job);
+      var cps = Service.query('Bluetooth.isEnabled') ?
+                              NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
+      var mac = this._adapter.address;
+      var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
 
-        if (msg.peer.isLost) {
-          this._logVisibly('NFC peer went away during initiateFileTransfer');
-          onerror();
-          this._restoreBluetoothStatus();
-          this._showFailedNotification('transferFinished-sentFailed-title',
-                                       msg.blob.name);
-          return;
-        }
-        var job = {nfcPeer: msg.peer, blob: msg.blob, requestId: msg.requestId,
-                   onsuccess: onsuccess, onerror: onerror};
-        this.sendFileQueue.push(job);
-        var cps = Service.query('Bluetooth.isEnabled') ?
-                                NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
-        var mac = this._adapter.address;
-        var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
-
-        msg.peer.sendNDEF(hr).then(() => {
-          this.debug('sendNDEF(hr) succeeded');
-        }).catch((e) => {
-          this.debug('sendNDEF(hr) failed : ' + e);
-          onerror();
-          this.sendFileQueue.pop();
-          this._clearTimeout();
-          this._restoreBluetoothStatus();
-          this._showFailedNotification('transferFinished-sentFailed-title',
-                                       msg.blob.name);
-        });
+      msg.peer.sendNDEF(hr).then(() => {
+        this.debug('sendNDEF(hr) succeeded');
+      }).catch((e) => {
+        this.debug('sendNDEF(hr) failed : ' + e);
+        onerror();
+        this.sendFileQueue.pop();
         this._clearTimeout();
-        this.responseTimeoutFunction =
-          setTimeout(this._cancelSendFileTransfer.bind(this),
-                     this.responseTimeoutMillis);
+        this._restoreBluetoothStatus();
+        this._showFailedNotification('transferFinished-sentFailed-title',
+                                     msg.blob.name);
+      });
+      this._clearTimeout();
+      this.responseTimeoutFunction =
+        setTimeout(this._cancelSendFileTransfer.bind(this),
+                   this.responseTimeoutMillis);
     },
 
     /**
@@ -765,7 +749,7 @@
       }
       this._saveBluetoothStatus();
       this._doAction({
-        callback: this._initiateFileTransfer,
+        callback: this._doInitiateFileTransfer,
         args: [msg]});
     },
 
