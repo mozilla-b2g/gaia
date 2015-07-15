@@ -85,7 +85,8 @@ var WifiHelper = {
      * the network is already connected or not.
      */
     var currentNetwork = this.getWifiManager().connection.network;
-    if (!currentNetwork || !network) {
+    var currentStatus = this.getWifiManager().connection.network.status;
+    if ( (!currentNetwork || !network) || (currentStatus == "associated") ) {
       return false;
     }
     var key = network.ssid + '+' + this.getSecurity(network).join('+');
