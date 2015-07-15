@@ -114,7 +114,7 @@ module.exports =
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -466,7 +466,7 @@ module.exports =
 	function getElementTranslation(view, langs, elem) {
 	  var l10n = getAttributes(elem);
 
-	  return l10n.id ? view.ctx.formatEntity(langs, l10n.id, l10n.args) : false;
+	  return l10n.id ? view.ctx.resolve(langs, l10n.id, l10n.args) : false;
 	}
 
 	function translateElement(view, langs, elem) {
@@ -622,7 +622,7 @@ module.exports =
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -891,21 +891,6 @@ module.exports =
 	  }
 
 	  _createClass(Context, [{
-	    key: 'fetch',
-	    value: function fetch(langs) {
-	      return this._fetchResources(langs);
-	    }
-	  }, {
-	    key: 'formatValue',
-	    value: function formatValue(langs, id, args) {
-	      return this.fetch(langs).then(this._fallback.bind(this, Context.prototype._formatValue, id, args));
-	    }
-	  }, {
-	    key: 'formatEntity',
-	    value: function formatEntity(langs, id, args) {
-	      return this.fetch(langs).then(this._fallback.bind(this, Context.prototype._formatEntity, id, args));
-	    }
-	  }, {
 	    key: '_formatTuple',
 	    value: function _formatTuple(lang, args, entity, id, key) {
 	      try {
@@ -918,28 +903,13 @@ module.exports =
 	      }
 	    }
 	  }, {
-	    key: '_formatValue',
-	    value: function _formatValue(lang, args, entity, id) {
-	      if (typeof entity === 'string') {
-	        return entity;
-	      }
-
+	    key: '_formatEntity',
+	    value: function _formatEntity(lang, args, entity, id) {
 	      var _formatTuple$call = this._formatTuple.call(this, lang, args, entity, id);
 
 	      var _formatTuple$call2 = _slicedToArray(_formatTuple$call, 2);
 
 	      var value = _formatTuple$call2[1];
-
-	      return value;
-	    }
-	  }, {
-	    key: '_formatEntity',
-	    value: function _formatEntity(lang, args, entity, id) {
-	      var _formatTuple$call3 = this._formatTuple.call(this, lang, args, entity, id);
-
-	      var _formatTuple$call32 = _slicedToArray(_formatTuple$call3, 2);
-
-	      var value = _formatTuple$call32[1];
 
 	      var formatted = {
 	        value: value,
@@ -948,23 +918,22 @@ module.exports =
 
 	      if (entity.attrs) {
 	        formatted.attrs = Object.create(null);
-	      }
+	        for (var key in entity.attrs) {
+	          var _formatTuple$call3 = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
 
-	      for (var key in entity.attrs) {
-	        var _formatTuple$call4 = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
+	          var _formatTuple$call32 = _slicedToArray(_formatTuple$call3, 2);
 
-	        var _formatTuple$call42 = _slicedToArray(_formatTuple$call4, 2);
+	          var attrValue = _formatTuple$call32[1];
 
-	        var attrValue = _formatTuple$call42[1];
-
-	        formatted.attrs[key] = attrValue;
+	          formatted.attrs[key] = attrValue;
+	        }
 	      }
 
 	      return formatted;
 	    }
 	  }, {
-	    key: '_fetchResources',
-	    value: function _fetchResources(langs) {
+	    key: 'fetch',
+	    value: function fetch(langs) {
 	      if (langs.length === 0) {
 	        return Promise.resolve(langs);
 	      }
@@ -974,24 +943,28 @@ module.exports =
 	      });
 	    }
 	  }, {
-	    key: '_fallback',
-	    value: function _fallback(method, id, args, langs) {
+	    key: 'resolve',
+	    value: function resolve(langs, id, args) {
+	      var _this = this;
+
 	      var lang = langs[0];
 
 	      if (!lang) {
 	        this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in any language', id), this);
-	        return id;
+	        return { value: id, attrs: null };
 	      }
 
 	      var entity = this._getEntity(lang, id);
 
 	      if (entity) {
-	        return method.call(this, lang, args, entity, id);
+	        return Promise.resolve(this._formatEntity(lang, args, entity, id));
 	      } else {
 	        this._env.emit('notfounderror', new _errors.L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), this);
 	      }
 
-	      return this._fetchResources(langs.slice(1)).then(this._fallback.bind(this, method, id, args));
+	      return this.fetch(langs.slice(1)).then(function (langs) {
+	        return _this.resolve(langs, id, args);
+	      });
 	    }
 	  }, {
 	    key: '_getEntity',
@@ -1212,7 +1185,7 @@ module.exports =
 
 /***/ },
 /* 9 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -2412,7 +2385,7 @@ module.exports =
 
 /***/ },
 /* 12 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -2985,7 +2958,7 @@ module.exports =
 
 /***/ },
 /* 17 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -3018,7 +2991,7 @@ module.exports =
 
 /***/ },
 /* 18 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
@@ -3193,7 +3166,7 @@ module.exports =
 
 /***/ },
 /* 20 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
