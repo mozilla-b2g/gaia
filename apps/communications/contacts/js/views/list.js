@@ -1593,14 +1593,9 @@ contacts.List = (function() {
       return;
     }
 
-    // Passed an ID, so look up contact
-    LazyLoader.load([
-     '/contacts/js/fb/fb_init.js',
-     '/contacts/js/fb_loader.js'
-    ], () => {
-      ContactsService.get(idOrContact, function(contact) {
-        refreshContact(contact, null, callback);
-      });
+
+    ContactsService.get(idOrContact, function(contact) {
+      refreshContact(contact, null, callback);
     });
   };
 
