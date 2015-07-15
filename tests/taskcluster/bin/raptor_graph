@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 /**
-Entrypoint for the task graph extension / decisions for gaia raptor tests.
+Task graph extension / decisions for gaia raptor tests
 */
 var decorate = require('../lib/decorate_task');
 var yaml = require('js-yaml');
@@ -18,30 +18,24 @@ var emulatorBuildURL;
 var raptorTimeout = 600000;
 var appLaunchDelay = 6000;
 var gaiaBaseMinusOne = '0';
-var originalBaseRev = process.env.GITHUB_BASE_REV;
-var originalHeadRev = process.env.GITHUB_HEAD_REV;
 
 const TC_CLIENT_OPTS = { timeout: 30 * 1000 };
 
 // taskcluster worker type for raptor tasks
 RAPTOR_WORKER_TYPE = 'raptor';
 
-// number of times to repeat entire suite on 'base' and on 'patch' builds
-const TEST_ITERATIONS = 6;
-
-// FirefoxOS apps to include in the launch test
-const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_test_prefix: "ca", th_result: "Cal" },
-                          { gaia_name: "clock", th_name: "Clock", th_test_prefix: "cl", th_result: "Clk" },
-                          { gaia_name: "communications/contacts", th_name: "Contacts", th_test_prefix: "co", th_result: "Con" },
-                          { gaia_name: "communications/dialer", th_name: "Dialer", th_test_prefix: "di", th_result: "Dlr" },
-                          { gaia_name: "email", th_name: "Email", th_test_prefix: "em", th_result: "Eml"},
-                          { gaia_name: "fm", th_name: "FM", th_test_prefix: "fm", th_result: "FM" },
-                          { gaia_name: "gallery", th_name: "Gallery", th_test_prefix: "ga", th_result: "Gal" },
-                          { gaia_name: "music", th_name: "Music", th_test_prefix: "mu", th_result: "Mus" },
-                          { gaia_name: "settings", th_name: "Settings", th_test_prefix: "se", th_result: "Set" },
-                          { gaia_name: "sms", th_name: "SMS", th_test_prefix: "sm", th_result: "SMS" },
-                          { gaia_name: "video", th_name: "Video", th_test_prefix: "vi", th_result: "Vid" },
-                          { gaia_name: "test-startup-limit", th_name: "Test-startup", th_test_prefix: "te", th_result: "Tst" }];
+const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_symbol: "cal" },
+                          { gaia_name: "clock", th_name: "Clock", th_symbol: "clk" },
+                          { gaia_name: "communications/contacts", th_name: "Contacts", th_symbol: "con" },
+                          { gaia_name: "communications/dialer", th_name: "Dialer", th_symbol: "dlr" },
+                          { gaia_name: "email", th_name: "Email", th_symbol: "eml"},
+                          { gaia_name: "fm", th_name: "FM", th_symbol: "fm" },
+                          { gaia_name: "gallery", th_name: "Gallery", th_symbol: "gal" },
+                          { gaia_name: "music", th_name: "Music", th_symbol: "mus" },
+                          { gaia_name: "settings", th_name: "Settings", th_symbol: "set" },
+                          { gaia_name: "sms", th_name: "SMS", th_symbol: "sms" },
+                          { gaia_name: "video", th_name: "Video", th_symbol: "vid" },
+                          { gaia_name: "test-startup-limit", th_name: "Test-startup", th_symbol: "tst" }];
 
 // number of times each app is launched during the launch test
 const LAUNCH_TEST_RUNS = 30;
@@ -71,10 +65,6 @@ var requiredBaseTasks = [];
 var requiredPatchTasks = [];
 
 /*
-baseTask: run test on 'base' build
-patchTask: run test on 'patch' build
-resultTask: compare results, check for regression
-
 When testing a pull request:
 'base build' will be the provided BASE_REV
 'patch build' will be the provided PR / HEAD_REV
@@ -88,70 +78,20 @@ to 'patch build' and flags if is above threshold.
 */
 
 // build the task config object for each app
-// each app will have 1 base task and 1 patch task x TEST_ITERATIONS,
-// and there is always just one result task (per app) that is
-// dependent upon all the base and patch tasks completed
 var config = {};
 
 LAUNCH_TEST_APPS.map(function(nextApp) {
-  // results task requires all base and patch tasks
-  requiredBaseTasks = [];
-  requiredPatchTasks = [];
-
-  // base tasks
-
-  suiteName = nextApp.th_name + " app launch test (on base)";
-
-  for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
-    symbol = nextApp.th_test_prefix + iteration;
-    taskName = nextApp.gaia_name + "BaseTask" + iteration;
-    requiredBaseTasks.push(taskName);
-    config[taskName] = {
-      definition: 'raptor_launch',
-      build: 'base',
-      params: {
-        raptorSuiteName: suiteName,
-        gaiaRev: process.env.GITHUB_BASE_REV,
-        raptorRuns: LAUNCH_TEST_RUNS,
-        raptorApps: nextApp.gaia_name,
-        treeherderSym: symbol
-      }
-    };
-  };
-
-  // patch tasks
-  suiteName = nextApp.th_name + " app launch test (on base + pr)";
-
-  for (var iteration = 1; iteration <= TEST_ITERATIONS; iteration++) {
-    // want the symbol number to continue to increment from the base tasks
-    symbol = nextApp.th_test_prefix + (iteration + TEST_ITERATIONS);
-    taskName = nextApp.gaia_name + "PatchTask" + iteration;
-    requiredPatchTasks.push(taskName);
-    config[taskName] = {
-      definition: 'raptor_launch',
-      build: 'patch',
-      params: {
-        raptorSuiteName: suiteName,
-        gaiaRev: process.env.GITHUB_HEAD_REV,
-        raptorRuns: LAUNCH_TEST_RUNS,
-        raptorApps: nextApp.gaia_name,
-        treeherderSym: symbol
-      }
-    };
-  };
-
-  // single result task for all of the base and patch tasks
-  suiteName = nextApp.th_name + " app launch test results";
-  taskName = nextApp.gaia_name + 'ResultsTask';
-  symbol = nextApp.th_test_prefix;
+  taskName = nextApp.gaia_name;
   config[taskName] = {
-    definition: 'raptor_result',
-    requiredBaseTasks: requiredBaseTasks,
-    requiredPatchTasks: requiredPatchTasks,
+    definition: 'raptor',
     params: {
+      raptorSuiteName: 'App launch test: ' + nextApp.th_name,
+      baseGaia: process.env.GITHUB_BASE_REV,
+      patchGaia: process.env.GITHUB_HEAD_REV,
+      raptorRuns: LAUNCH_TEST_RUNS,
       raptorApp: nextApp.gaia_name,
-      raptorSuiteName: suiteName,
-      treeherderSym: nextApp.th_result
+      treeherderSym: nextApp.th_symbol,
+      workerType: RAPTOR_WORKER_TYPE
     }
   };
 });
@@ -261,7 +201,6 @@ getEmulator()
     Object.keys(config).forEach(function(raptorTask) {
       var definition = config[raptorTask].definition;
 
-      config[raptorTask].params.workerType = RAPTOR_WORKER_TYPE;
       config[raptorTask].params.provisionerId = 'aws-provisioner-v1';
       config[raptorTask].params.raptorTimeout = raptorTimeout;
       config[raptorTask].params.emulatorURL = emulatorBuildURL;
@@ -271,42 +210,10 @@ getEmulator()
 
       // when not a PR 'base' should be BASE -1 commit (before the
       // merge) and 'patch' should be BASE_REV (has the merged code)
-      if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "base") {
-        var oldSuiteName = config[raptorTask].params.raptorSuiteName;
-        var newSuiteName = oldSuiteName.substring(0, oldSuiteName.indexOf('test (on ')) + "test (on base -1 commit)";
-        config[raptorTask].params.raptorSuiteName = newSuiteName;
-        config[raptorTask].params.gaiaRev = gaiaBaseMinusOne;
+      if (process.env.GITHUB_PULL_REQUEST === '0') {
+        config[raptorTask].params.baseGaia = gaiaBaseMinusOne;
+        config[raptorTask].params.patchGaia = process.env.GITHUB_BASE_REV;
       }
-      if (process.env.GITHUB_PULL_REQUEST === '0' && config[raptorTask].build === "patch") {
-        var oldSuiteName = config[raptorTask].params.raptorSuiteName;
-        var newSuiteName = oldSuiteName.substring(0, oldSuiteName.indexOf('test (on ')) + "test (on base)";
-        config[raptorTask].params.raptorSuiteName = newSuiteName;
-        config[raptorTask].params.gaiaRev = process.env.GITHUB_BASE_REV;
-      }
-
-      // for result tasks, specify the tasks that they are dependent upon
-      if (definition === 'raptor_result') {
-        var requiredBaseTaskIds = [];
-
-        config[raptorTask].requiredBaseTasks.map(function(nextTaskName) {
-        //requiredBaseTasks.map(function(nextTaskName) {
-          requiredBaseTaskIds.push(taskIdMap[nextTaskName]);
-        });
-        var requiredPatchTaskIds = [];
-        config[raptorTask].requiredPatchTasks.map(function(nextTaskName) {
-        //requiredPatchTasks.map(function(nextTaskName) {
-            requiredPatchTaskIds.push(taskIdMap[nextTaskName]);
-        });
-
-        config[raptorTask].params.completedBranchTask = requiredBaseTaskIds.join(', ');
-        config[raptorTask].params.completedPatchTask = requiredPatchTaskIds.join(', ');
-
-        // dependent gaia revs
-        base = config[raptorTask].requiredBaseTasks[0];
-        patch = config[raptorTask].requiredPatchTasks[0];
-        config[raptorTask].params.branchGaiaRev = config[base].params.gaiaRev; 
-        config[raptorTask].params.patchGaiaRev = config[patch].params.gaiaRev;
-      };
 
       var task = loadTask(definition, params(config[raptorTask].params, {
         // Useful for environment variables
