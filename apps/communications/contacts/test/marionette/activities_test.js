@@ -29,40 +29,18 @@ marionette('Contacts > Activities', function() {
   });
 
   suite('open text/vcard activity', function() {
-    function assertFormData() {
-      var formSelectors = [
-        selectors.formGivenName,
-        selectors.formFamilyName,
-        selectors.formOrg,
-        selectors.formTel,
-        selectors.formEmailFirst
-      ];
-
-      var dataArray = [
-        'Forrest',
-        'Gump',
-        'Bubba Gump Shrimp Co.',
-        '+1-111-555-1212',
-        'forrestgump@example.com'
-      ];
-
-      var testObject = {};
-
-      for (var i = 0, len = dataArray.length; i < len; i++) {
-        testObject[formSelectors[i]] = dataArray[i];
-      }
-
-      for (var key in testObject) {
-        var value = client.findElement(key).getAttribute('value');
-        assert.equal(value, testObject[key]);
-      }
-    }
 
     setup(function() {
       smsSubject.launch(); // We open some app to start a Marionette session.
     });
 
-    test('open text/vcard activity opens form filled', function() {
+    function getListItems() {
+      return client.executeScript(function() {
+        return document.querySelectorAll('#multiple-select-container li');
+      });
+    }
+
+    test('> with only one contact', function() {
       client.executeScript(function(vCardFile) {
         new MozActivity({
           name: 'open',
@@ -76,10 +54,28 @@ marionette('Contacts > Activities', function() {
 
       client.switchToFrame();
       client.apps.switchToApp(Contacts.URL, 'contacts');
-      client.helper.waitForElement(selectors.form);
+      client.helper.waitForElement(selectors.multipleSelectSave);
 
-      assertFormData();
-      assert.ok(client.findElement(selectors.formSave).enabled);
+      assert.ok(getListItems().length === 1); // vcard has one element
+    });
+
+    test('> with multiple contacts', function() {
+      client.executeScript(function(vCardFile) {
+        new MozActivity({
+          name: 'open',
+          data: {
+            type: 'text/vcard',
+            filename: 'vcard_21_multiple.vcf',
+            blob: new Blob([vCardFile], {type: 'text/vcard'})
+          }
+        });
+      }, [fs.readFileSync(__dirname + '/data/vcard_21_multiple.vcf', 'utf8')]);
+
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+      client.helper.waitForElement(selectors.multipleSelectSave);
+
+      assert.ok(getListItems().length === 2); // vcard has one element
     });
   });
 

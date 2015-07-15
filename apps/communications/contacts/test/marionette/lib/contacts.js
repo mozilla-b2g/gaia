@@ -126,6 +126,7 @@ Contacts.Selectors = {
 
   multipleSelectSave: '#save-button',
   multipleSelectStatus: '#statusMsg p',
+  multipleSelectList: '#multiple-select-container',
 
   systemMenu: 'form[data-z-index-level="action-menu"]',
 
@@ -296,8 +297,7 @@ Contacts.prototype = {
   addContact: function(details) {
     var selectors = Contacts.Selectors;
 
-    // Also wait for the formNew to be available to the screen reader.
-    var addContact = this.client.helper.waitForElement(selectors.formNew);
+    var addContact = this.client.findElement(selectors.formNew);
     addContact.click();
 
     this.enterContactDetails(details);
