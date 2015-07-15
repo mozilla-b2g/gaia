@@ -32,7 +32,7 @@ marionette('Homescreen navigation >', function() {
   function launchSettings() {
     var settings = sys.waitForLaunch(SETTINGS_APP);
     client.waitFor(function() {
-      return settings.ariaDisplayed() && !homescreen.ariaDisplayed();
+      return settings.displayed() && !homescreen.displayed();
     });
     return settings;
   }
@@ -40,7 +40,7 @@ marionette('Homescreen navigation >', function() {
   function goHome() {
     sys.goHome();
     client.waitFor(function() {
-      return !settings.ariaDisplayed() && homescreen.ariaDisplayed();
+      return !settings.displayed() && homescreen.displayed();
     });
   }
 

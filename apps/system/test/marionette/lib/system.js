@@ -315,13 +315,7 @@ System.prototype = {
   },
 
   getAppIframe: function(url) {
-    var iframe = this.client.findElement('iframe[src*="' + url + '"]');
-
-    iframe.ariaDisplayed = function() {
-      return this.getAttribute('aria-hidden') !== 'true';
-    };
-
-    return iframe;
+    return this.client.findElement('iframe[src*="' + url + '"]');
   },
 
   /**
@@ -354,10 +348,6 @@ System.prototype = {
     this.client.waitFor(function() {
       return iframe.displayed();
     });
-
-    iframe.ariaDisplayed = function() {
-      return this.getAttribute('aria-hidden') !== 'true';
-    };
 
     return iframe;
   },

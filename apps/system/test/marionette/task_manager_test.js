@@ -83,7 +83,7 @@ marionette('Task Manager', function() {
 
       client.waitFor(function(){
         return client.findElement(system.Selector.activeHomescreenFrame)
-          .getAttribute('aria-hidden') !== 'true';
+          .displayed();
       });
     });
   });
@@ -123,7 +123,7 @@ marionette('Task Manager', function() {
 
       client.waitFor(function(){
         return client.findElement(system.Selector.activeHomescreenFrame)
-          .getAttribute('aria-hidden') !== 'true';
+          .displayed();
       });
     });
   });
@@ -188,8 +188,7 @@ marionette('Task Manager', function() {
     element.tap();
 
     client.waitFor(function() {
-      return firstApp.iframe.getAttribute('aria-hidden') !== 'true' &&
-             secondApp.iframe.getAttribute('aria-hidden') === 'true';
+      return firstApp.iframe.displayed() && !secondApp.iframe.displayed();
     });
   });
 

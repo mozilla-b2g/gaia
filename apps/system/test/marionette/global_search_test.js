@@ -32,7 +32,7 @@ marionette('Global search >', function() {
 
     // Making sure the opening transition for the calendar app is over.
     client.waitFor(function() {
-      return calendar.ariaDisplayed() && !settings.ariaDisplayed();
+      return calendar.displayed() && !settings.displayed();
     });
 
     var width = client.executeScript(function() {
@@ -65,7 +65,7 @@ marionette('Global search >', function() {
                   halfHeight, 100).tap(top, 10, 0, 10).perform();
 
     client.waitFor(function() {
-      return !calendar.ariaDisplayed() && settings.ariaDisplayed();
+      return !calendar.displayed() && settings.displayed();
     });
 
     // No permission prompt, no focused rocketbar either

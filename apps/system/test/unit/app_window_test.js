@@ -1460,19 +1460,13 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
       app1.setVisible(false);
-      var spyShowFrame = this.sinon.spy(app1,
-        '_showFrame');
 
-      var mozBrowserSetVisible = this.sinon.stub(app1.browser.element,
-                                                 'setVisible');
+      var stub_showFrame = this.sinon.stub(app1,
+        '_showFrame');
 
       app1.setVisible(true);
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
-      assert.isTrue(spyShowFrame.called);
-      assert.isFalse(app1.element.classList.contains('inactive'));
-      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'false');
-      assert.isTrue(mozBrowserSetVisible.calledOnce);
-      assert.isTrue(mozBrowserSetVisible.calledWith(true));
+      assert.isTrue(stub_showFrame.called);
     });
 
     test('setVisible: true, multiple times', function() {
@@ -1493,19 +1487,11 @@ suite('system/AppWindow', function() {
     test('setVisible: false', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      var spyHideFrame = this.sinon.spy(app1,
+      var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
 
-      var mozBrowserSetVisible = this.sinon.stub(app1.browser.element,
-                                                 'setVisible');
-
-
       app1.setVisible(false);
-      assert.isTrue(spyHideFrame.called);
-      assert.isTrue(app1.element.classList.contains('inactive'));
-      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'true');
-      assert.isTrue(mozBrowserSetVisible.calledOnce);
-      assert.isTrue(mozBrowserSetVisible.calledWith(false));
+      assert.isTrue(stub_hideFrame.called);
     });
 
     test('setVisible: false, multiple times', function() {

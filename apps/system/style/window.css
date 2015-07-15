@@ -256,7 +256,6 @@
   pointer-events: all;
 }
 
-.appWindow.inactive .touch-blocker,
 .appWindow.overlay .touch-blocker,
 .appWindow.transition-closing .touch-blocker,
 .appWindow.transition-opening .touch-blocker {
@@ -421,6 +420,10 @@
 
 .private .identification-overlay > div .title {
   color: #e7e7e7;
+}
+
+.appWindow iframe.hidden {
+  visibility: hidden;
 }
 
 /* inline components */
