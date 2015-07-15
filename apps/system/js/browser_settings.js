@@ -1,4 +1,4 @@
-/* global Service */
+/* global Service, LazyLoader, IconsHelper */
 (function(exports) {
   'use strict';
 
@@ -46,6 +46,11 @@
         request.onsuccess = function() {
           request.result.clearBrowserData();
         };
+
+        // Clear the icon dataStore.
+        LazyLoader.load('shared/js/icons_helper.js').then(() => {
+          IconsHelper.clear();
+        });
       }
     );
   };

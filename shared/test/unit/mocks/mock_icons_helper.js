@@ -11,6 +11,9 @@ var MockIconsHelper = {
 
   getBestIconFromWebManifest: function() {},
 
-  getBestIconFromMetaTags: function() {}
+  getBestIconFromMetaTags: function() {},
 
+  fetchIcon: function() {},
+
+  clear: function() {}
 };
