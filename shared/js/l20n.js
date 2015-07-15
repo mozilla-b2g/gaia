@@ -183,7 +183,7 @@
 
     function getElementTranslation(view, langs, elem) {
       const l10n = getAttributes(elem);
-      return l10n.id ? view.ctx.formatEntity(langs, l10n.id, l10n.args) : false;
+      return l10n.id ? view.ctx.resolve(langs, l10n.id, l10n.args) : false;
     }
 
     function translateElement(view, langs, elem) {
@@ -451,14 +451,11 @@
       emit(...args) {
         return this.service.env.emit(...args);
       }
-      formatValue(id, args) {
-        return this.service.languages.then(langs => this.ctx.formatValue(langs, id, args));
-      }
-      formatEntity(id, args) {
-        return this.service.languages.then(langs => this.ctx.formatEntity(langs, id, args));
+      format(id, args) {
+        return this.service.languages.then(langs => this.ctx.fetch(langs)).then(langs => this.ctx.resolve(langs, id, args));
       }
       translateFragment(frag) {
-        return this.service.languages.then(langs => translateFragment(this, langs, frag));
+        return this.service.languages.then(langs => this.ctx.fetch(langs)).then(langs => translateFragment(this, langs, frag));
       }
     }
 
@@ -2069,15 +2066,6 @@
         this._env = env;
         this._resIds = resIds;
       }
-      fetch(langs) {
-        return this._fetchResources(langs);
-      }
-      formatValue(langs, id, args) {
-        return this.fetch(langs).then(this._fallback.bind(this, Context.prototype._formatValue, id, args));
-      }
-      formatEntity(langs, id, args) {
-        return this.fetch(langs).then(this._fallback.bind(this, Context.prototype._formatEntity, id, args));
-      }
       _formatTuple(lang, args, entity, id, key) {
         try {
           return format(this, lang, args, entity);
@@ -2092,15 +2080,6 @@
           }, err.id];
         }
       }
-      _formatValue(lang, args, entity, id) {
-        if (typeof entity === 'string') {
-          return entity;
-        }
-
-        const [, value] = this._formatTuple.call(this, lang, args, entity, id);
-
-        return value;
-      }
       _formatEntity(lang, args, entity, id) {
         const [, value] = this._formatTuple.call(this, lang, args, entity, id);
 
@@ -2111,41 +2090,44 @@
 
         if (entity.attrs) {
           formatted.attrs = Object.create(null);
-        }
 
-        for (let key in entity.attrs) {
-          const [, attrValue] = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
+          for (let key in entity.attrs) {
+            const [, attrValue] = this._formatTuple.call(this, lang, args, entity.attrs[key], id, key);
 
-          formatted.attrs[key] = attrValue;
+            formatted.attrs[key] = attrValue;
+          }
         }
 
         return formatted;
       }
-      _fetchResources(langs) {
+      fetch(langs) {
         if (langs.length === 0) {
           return Promise.resolve(langs);
         }
 
         return Promise.all(this._resIds.map(this._env._getResource.bind(this._env, langs[0]))).then(() => langs);
       }
-      _fallback(method, id, args, langs) {
+      resolve(langs, id, args) {
         const lang = langs[0];
 
         if (!lang) {
           this._env.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in any language', id), this);
 
-          return id;
+          return {
+            value: id,
+            attrs: null
+          };
         }
 
         const entity = this._getEntity(lang, id);
 
         if (entity) {
-          return method.call(this, lang, args, entity, id);
+          return Promise.resolve(this._formatEntity(lang, args, entity, id));
         } else {
           this._env.emit('notfounderror', new L10nError('"' + id + '"' + ' not found in ' + lang.code, id, lang), this);
         }
 
-        return this._fetchResources(langs.slice(1)).then(this._fallback.bind(this, method, id, args));
+        return this.fetch(langs.slice(1)).then(langs => this.resolve(langs, id, args));
       }
       _getEntity(lang, id) {
         const cache = this._env._resCache;
@@ -2385,7 +2367,6 @@
   modules.set('runtime/web/index', function () {
     const { fetch } = getModule('runtime/web/io');
     const { Service } = getModule('bindings/html/service');
-    const { setAttributes, getAttributes } = getModule('bindings/html/dom');
 
     const readyStates = {
       loading: 0,
@@ -2414,17 +2395,6 @@
     }
 
     whenInteractive(init);
-
-    // XXX for easier testing with existing Gaia apps; remove later on
-    const once = callback => whenInteractive(() => document.l10n.ready.then(callback));
-
-    navigator.mozL10n = {
-      get: id => id,
-      once: once,
-      ready: once,
-      setAttributes: setAttributes,
-      getAttributes: getAttributes
-    };
   });
   getModule('runtime/web/index');
 })(this);
