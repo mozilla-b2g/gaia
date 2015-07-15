@@ -139,8 +139,19 @@ window.UtilityTray = {
   ambientHeight: 0,
   hideStartCallback: null,
 
-  setHierarchy: function() {
-    return false;
+  setHierarchy: function(active) {
+    if (active && this.isActive()) {
+      return true;
+    } else if (active && !this.isActive()) {
+      // this.isActive is false, we cannot focus it. Something wrong, fallback
+      // to lower UI.
+      return false;
+    } else if (!active && this.isActive()) {
+      return true;
+    } else {
+      // utility tray is not active and we try to deactivate it. It's fine.
+      return true;
+    }
   },
 
   _handle_home: function() {
