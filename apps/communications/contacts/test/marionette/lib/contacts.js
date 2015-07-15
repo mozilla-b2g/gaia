@@ -296,7 +296,8 @@ Contacts.prototype = {
   addContact: function(details) {
     var selectors = Contacts.Selectors;
 
-    var addContact = this.client.findElement(selectors.formNew);
+    // Also wait for the formNew to be available to the screen reader.
+    var addContact = this.client.helper.waitForElement(selectors.formNew);
     addContact.click();
 
     this.enterContactDetails(details);
