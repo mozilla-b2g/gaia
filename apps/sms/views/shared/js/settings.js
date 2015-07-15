@@ -2,8 +2,6 @@
   Message app settings related value and utilities.
 */
 
-/* global MobileOperator, Promise */
-
 /* exported Settings */
 
 
@@ -168,34 +166,6 @@ var Settings = {
     var index = this._serviceIds.indexOf(iccId);
 
     return index > -1 ? index : null;
-  },
-
-  /**
-   * Will return SIM1 or SIM2 (locale dependent) depending on the iccId.
-   * Will return the empty string in a single SIM scenario.
-   */
-  getSimNameByIccId: function getSimNameByIccId(iccId) {
-    var index = this.getServiceIdByIccId(iccId);
-    if (index === null) {
-      return '';
-    }
-
-    var simName = navigator.mozL10n.get('sim-id-label', { id: index + 1 });
-    return simName;
-  },
-
-  /**
-   * Will return operator name depending on the iccId.
-   * Will return the empty string in a single SIM scenario.
-   */
-  getOperatorByIccId: function getOperatorByIccId(iccId) {
-    var index = this.getServiceIdByIccId(iccId);
-    if (index === null) {
-      return '';
-    }
-
-    var conn = navigator.mozMobileConnections[index];
-    return MobileOperator.userFacingInfo(conn).operator;
   },
 
   setReadAheadThreadRetrieval: function(value) {

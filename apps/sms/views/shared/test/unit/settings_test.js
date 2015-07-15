@@ -4,26 +4,17 @@
 
 /*global Settings,
    MockNavigatorSettings,
-   MockL10n,
-   MocksHelper,
-   MobileOperator
+   MockL10n
 */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_mobile_operator.js');
 require('/views/shared/js/settings.js');
-
-var mocksHelperForSettings = new MocksHelper([
-  'MobileOperator'
-]).init();
 
 suite('Settings >', function() {
   var nativeSettings;
-
-  mocksHelperForSettings.attachTestHelpers();
 
   setup(function() {
     nativeSettings = navigator.mozSettings;
@@ -34,14 +25,6 @@ suite('Settings >', function() {
     navigator.mozSettings = nativeSettings;
     Settings.mmsSizeLimitation = 295 * 1024;
     Settings.maxConcatenatedMessages = 10;
-  });
-
-  test('getSimNameByIccId returns the empty string before init', function() {
-    assert.equal('', Settings.getSimNameByIccId('anything'));
-  });
-
-  test('getOperatorByIccId returns the empty string before init', function() {
-    assert.equal('', Settings.getOperatorByIccId('anything'));
   });
 
   suite('Without mozSettings', function() {
@@ -74,14 +57,6 @@ suite('Settings >', function() {
     test('Reports no dual SIM', function() {
       assert.isFalse(Settings.isDualSimDevice());
       assert.isFalse(Settings.hasSeveralSim());
-    });
-
-    test('getOperatorByIccId returns the empty string', function() {
-      assert.equal('', Settings.getOperatorByIccId('anything'));
-    });
-
-    test('getSimNameByIccId returns the empty string', function() {
-      assert.equal('', Settings.getSimNameByIccId('anything'));
     });
 
     test('getServiceIdByIccId returns null', function() {
@@ -217,37 +192,6 @@ suite('Settings >', function() {
           var setting = Settings.SERVICE_ID_KEYS[prop];
           assertSettingIsRetrieved(prop, setting, 0);
         }
-      });
-
-      suite('getOperatorByIccId returns the correct operator', function() {
-        setup(function() {
-          this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
-            operator: 'operator'
-          });
-        });
-
-        test('iccId does not match any connection', function(){
-          assert.equal(Settings.getOperatorByIccId('SIM 3'), '');
-          sinon.assert.notCalled(MobileOperator.userFacingInfo);
-        });
-
-        test('iccId match one connection', function(){
-          assert.equal(Settings.getOperatorByIccId('SIM 1'), 'operator');
-          sinon.assert.calledWith(MobileOperator.userFacingInfo,
-            navigator.mozMobileConnections[0]);
-        });
-      });
-
-      test('getSimNameByIccId returns the correct name', function() {
-        assert.equal(
-          Settings.getSimNameByIccId('SIM 1'),
-          'sim-id-label{"id":1}'
-        );
-        assert.equal(
-          Settings.getSimNameByIccId('SIM 2'),
-          'sim-id-label{"id":2}'
-        );
-        assert.equal(Settings.getSimNameByIccId('SIM 3'), '');
       });
 
       test('getServiceIdByIccId returns the correct id', function() {

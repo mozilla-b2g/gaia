@@ -16,8 +16,6 @@ var MockSettings = {
   isDualSimDevice: function() { return false; },
   hasSeveralSim: function() { return false; },
   getServiceIdByIccId: function() { return null; },
-  getSimNameByIccId: function(id) { return 'sim-name-' + id; },
-  getOperatorByIccId: function(id) { return 'sim-operator-' + id; },
   setReadAheadThreadRetrieval: function() {},
 
   mSetup: function() {

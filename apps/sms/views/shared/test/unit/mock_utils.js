@@ -31,5 +31,6 @@ var MockUtils = {
   debounce: Utils.debounce,
   alert: Utils.alert,
   confirm: Utils.confirm,
-  Promise: Utils.Promise
+  Promise: Utils.Promise,
+  getSimNameByIccId: Utils.getSimNameByIccId
 };
