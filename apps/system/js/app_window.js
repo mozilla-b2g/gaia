@@ -851,8 +851,10 @@
       }
 
       // Register audio channels.
+      console.log('bug 1181982: ' + this.name + ' registers audio channels');
       this.audioChannels = new Map();
       var audioChannels = this.browser.element.allowedAudioChannels;
+      console.log('bug 1181982: audioChannels: ' + audioChannels);
       audioChannels && audioChannels.forEach((audioChannel) => {
         this.audioChannels.set(
           audioChannel.name,
