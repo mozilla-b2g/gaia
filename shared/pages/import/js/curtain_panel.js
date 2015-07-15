@@ -26,11 +26,14 @@ var Curtain = (function() {
   var cpuWakeLock;
   var messages = [];
   var elements = ['error', 'timeout', 'wait', 'message', 'progress', 'alert'];
-  var _cancelCB, _retryCB, _okCB;
+  var _cancelCB = function foo() {};
+  var _retryCB = function foo() {};
+  var _okCB = function foo() {};
 
-  var form = document.createElement('form');
-  form.dataset.type = 'confirm';
-  form.id = 'curtain';
+  var form;
+
+  var panel = document.createElement('panel');
+  panel.id = 'curtain';
 
   var link = document.createElement('link');
   link.setAttribute('rel', 'import');
@@ -63,8 +66,6 @@ var Curtain = (function() {
 
     progressElement = document.querySelector('#progressElement');
 
-    form = document.querySelector('form');
-
     elements.forEach(function createElementRef(name) {
       messages[name] = document.getElementById(name + 'Msg');
     });
@@ -77,9 +78,9 @@ var Curtain = (function() {
 
       document.head.appendChild(link);
 
-      form.setAttribute('is', 'curtain');
-      form.className = 'fade-out';
-      document.body.appendChild(form);
+      panel.setAttribute('is', 'curtain');
+      panel.className = 'fade-out';
+      document.body.appendChild(panel);
       LazyLoader.load([
         document.getElementById('curtain')
       ], function() {
@@ -91,8 +92,9 @@ var Curtain = (function() {
   }
 
   function clean() {
-    document.body.removeChild(form);
+    document.body.removeChild(panel);
     // Clean unnecessary dom elements:
+    form = null;
     cancelButton = null;
     retryButton = null;
     okButton = null;
@@ -102,13 +104,14 @@ var Curtain = (function() {
 
   function doShow(type) {
     if (!form) {
-      return;
+      form = panel.querySelector('form');
     }
-    form.classList.remove('no-menu');
     form.dataset.state = type;
-    form.classList.add('visible');
-    form.classList.remove('fade-out');
-    form.classList.add('fade-in');
+
+    panel.classList.remove('no-menu');
+    panel.classList.add('visible');
+    panel.classList.remove('fade-out');
+    panel.classList.add('fade-in');
   }
 
   function capitalize(str) {
@@ -223,11 +226,11 @@ var Curtain = (function() {
         cpuWakeLock = null;
       }
 
-      form.classList.add('fade-out');
-      form.addEventListener('animationend', function cu_fadeOut(ev) {
-        form.removeEventListener('animationend', cu_fadeOut);
-        clean();
+      panel.classList.add('fade-out');
+      panel.addEventListener('animationend', function cu_fadeOut(ev) {
+        panel.removeEventListener('animationend', cu_fadeOut);
         delete form.dataset.state;
+        clean();
         if (typeof hiddenCB === 'function') {
           hiddenCB();
         }
@@ -286,14 +289,14 @@ var Curtain = (function() {
      *
      */
     get visible() {
-      return form.classList.contains('visible');
+      return panel.classList.contains('visible');
     },
 
     /**
      *  Hides the menu
      */
     hideMenu: function c_hideMenu() {
-      form.classList.add('no-menu');
+      panel.classList.add('no-menu');
     }
   };
 
