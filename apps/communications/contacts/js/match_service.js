@@ -73,6 +73,7 @@
         break;
       case 'window_close':
         closeWindow(data.messageId, data.additionalMessageId);
+        window.dispatchEvent(new CustomEvent('contacts-merged'));
         break;
       case 'show_duplicate_contacts':
         matcherWindow.postMessage(data, CONTACTS_APP_ORIGIN);

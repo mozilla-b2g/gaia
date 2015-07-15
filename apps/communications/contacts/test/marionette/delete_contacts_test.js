@@ -13,7 +13,14 @@ marionette('Contacts > Delete', function() {
     selectors = Contacts.Selectors;
   });
 
-  test(' > Edit menu is not visible on search mode', function() {
+  // Disabling these tests by now due to we need a way to switch between
+  // different locations within the app (Form & Setting will be no longer
+  // in the same document).
+  // More info in [1].
+  // These test must be recovered once this bug will be landed.
+
+  // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=1140344#c9
+  test.skip(' > Edit menu is not visible on search mode', function() {
     subject.addContact({
       givenName: 'Hello',
       tel: 1231231234
