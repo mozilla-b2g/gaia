@@ -16,7 +16,7 @@ from mozdevice import ADBDevice
 from mozlog.structured.handlers import StreamHandler
 import mozversion
 import requests
-from thclient import TreeherderRequest, TreeherderJobCollection
+from thclient import TreeherderClient, TreeherderJobCollection
 
 DEVICE_GROUP_MAP = {
     'flame': {
@@ -234,17 +234,11 @@ class TreeherderTestRunnerMixin(object):
 
         # Send the collection to Treeherder
         url = urlparse(self.treeherder_url)
-        request = TreeherderRequest(
-            protocol=url.scheme,
-            host=url.hostname,
-            project=project,
-            oauth_key=os.environ.get('TREEHERDER_KEY'),
-            oauth_secret=os.environ.get('TREEHERDER_SECRET'))
+        client = TreeherderClient(protocol=url.scheme, host=url.hostname)
         self.logger.debug('Sending results to Treeherder: %s' %
                           job_collection.to_json())
-        response = request.post(job_collection)
-        self.logger.debug('Response: %s' % response.read())
-        assert response.status == 200, 'Failed to send results!'
+        client.post_collection(project, os.environ.get('TREEHERDER_KEY'),
+            os.environ.get('TREEHERDER_SECRET'), job_collection)
         self.logger.info('Results are available to view at: %s' % (
             urljoin(self.treeherder_url, '/ui/#/jobs?repo=%s&revision=%s' % (
                 project, revision))))
