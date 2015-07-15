@@ -1,30 +1,28 @@
 'use strict';
-/* global contacts */
 /* global CORRECT_MATCHED_VALUE */
 /* global dataImage */
 /* global dupContacts */
 /* global matchingDetailsData */
 /* global MockMatchingContactsHtml */
-/* global MockMatchingController */
 /* global MocksHelper */
 /* global MockImageLoader */
 /* global MockMozL10n */
 /* global MockURL */
+/* global MatchingUI */
+
+/* eslint-disable */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/sanitizer.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-requireApp('communications/contacts/test/unit/' +
-                                        'mock_contacts_matching_controller.js');
-requireApp('communications/contacts/test/unit/mock_matching_contacts.html.js');
+requireApp('communications/contacts/test/unit/mock_matching_contacts.js.html');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/' +
            'contacts_matching_ui_test_data.js');
 
-requireApp('communications/contacts/js/contacts_matching_ui.js');
-
+requireApp('communications/contacts/views/matching/js/matching_ui.js');
 
 if (!window.ImageLoader) {
   window.ImageLoader = null;
@@ -34,13 +32,13 @@ var mocksHelperForContactMatchingUI = new MocksHelper([
   'ContactPhotoHelper'
 ]).init();
 
-suite('Matching duplicate contacts UI Test Suite', function() {
+suite('MatchingUI', function() {
 
   mocksHelperForContactMatchingUI.attachTestHelpers();
 
   var wrapper = null,
     realImageLoader, realURL, list, matchingDetails, matchingName, matchingImg,
-    matchingDetailList, realMatchingController, mergeAction, realL10n;
+    matchingDetailList, mergeAction, realL10n;
 
   var masterContact = {
     givenName: ['Manolo'],
@@ -71,10 +69,8 @@ suite('Matching duplicate contacts UI Test Suite', function() {
   suiteSetup(function() {
     realImageLoader = window.ImageLoader;
     realURL = window.URL || {};
-    realMatchingController = contacts.MatchingController;
     realL10n = window.navigator.mozL10n;
 
-    window.contacts.MatchingController = MockMatchingController;
     window.ImageLoader = MockImageLoader;
     window.URL = MockURL;
     window.navigator.mozL10n = MockMozL10n;
@@ -82,22 +78,21 @@ suite('Matching duplicate contacts UI Test Suite', function() {
     wrapper = document.createElement('section');
     wrapper.innerHTML = MockMatchingContactsHtml;
     document.body.appendChild(wrapper);
-    contacts.MatchingUI.init();
+    MatchingUI.init();
     list = wrapper.querySelector('#contacts-list-container ol');
     mergeAction = wrapper.querySelector('#merge-action');
   });
 
   suiteTeardown(function() {
     window.ImageLoader = realImageLoader;
-    window.contacts.MatchingController = realMatchingController;
     window.URL = realURL;
     window.navigator.mozL10n = realL10n;
     document.body.removeChild(wrapper);
   });
 
   test('The UI is initialized correctly ', function(done) {
-    contacts.MatchingUI.load('matching', masterContact, dupContacts,
-                             function() {
+    window.addEventListener('UIReady', function fn() {
+      window.removeEventListener('UIReady', fn);
       // The merge button is initially enabled because there are some duplicate
       // contacts
       assert.isFalse(mergeAction.disabled);
@@ -115,9 +110,10 @@ suite('Matching duplicate contacts UI Test Suite', function() {
         checkItem(list.querySelector('li[data-uuid="' + id + '"]'),
                   dupContacts[id].matchingContact);
       });
-
       done();
     });
+
+    MatchingUI.load('matching', masterContact, dupContacts);
   });
 
   test('Users are able to un-select contacts ', function(done) {
@@ -148,22 +144,17 @@ suite('Matching duplicate contacts UI Test Suite', function() {
     });
   });
 
-  test('Merging contacts works fine ', function(done) {
+  test('Merge button throws an event ', function(done) {
     // We are un-selecting the two first ones
     list.querySelector('li[data-uuid="1a"]').click();
     list.querySelector('li[data-uuid="2b"]').click();
 
-    setTimeout(function() {
-      // User clicks on merge button
-      mergeAction.click();
-      setTimeout(function() {
-        var checkedContacts = MockMatchingController.checkedContacts;
-        // Only one duplicate contact to merge
-        assert.equal(Object.keys(checkedContacts).length, 1);
-        assert.isDefined(checkedContacts['3c']);
-        done();
-      });
+    window.addEventListener('merge', function(evt) {
+      assert.equal(Object.keys(evt.detail.checkedContacts).length, 1);
+      done();
     });
+
+    mergeAction.click();
   });
 
   suite('duplicate contact details', function() {
@@ -176,7 +167,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       document.body.removeChild(wrapper);
       wrapper.innerHTML = MockMatchingContactsHtml;
       document.body.appendChild(wrapper);
-      contacts.MatchingUI.init();
+      MatchingUI.init();
       matchingDetails = wrapper.querySelector('#matching-details');
       matchingName = matchingDetails.querySelector('figcaption');
       matchingImg = matchingDetails.querySelector('img');
@@ -184,10 +175,12 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       // Add a photo to the matching contact with id 'user_id_1'.
       matchingDetailsData.user_id_1.matchingContact.photo[0] =
         matchingImg.src;
-      contacts.MatchingUI.load('matching', masterContact, matchingDetailsData,
-        function() {
-          done();
-        });
+
+      window.addEventListener('UIReady', function fn() {
+        window.removeEventListener('UIReady', fn);
+        done();
+      });
+      MatchingUI.load('matching', masterContact, matchingDetailsData);
     });
 
     test('should show the duplicate contact details overlay', function(done) {
@@ -198,7 +191,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+      MatchingUI.displayMatchingDetails('user_id_1');
     });
 
     test('should show the duplicate contact name and highlight it',
@@ -211,7 +204,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+      MatchingUI.displayMatchingDetails('user_id_1');
     });
 
     test('should show the duplicate contact name but not highlight it',
@@ -224,7 +217,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_2');
+      MatchingUI.displayMatchingDetails('user_id_2');
     });
 
     test('should show the duplicate contact image', function(done) {
@@ -235,7 +228,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+      MatchingUI.displayMatchingDetails('user_id_1');
     });
 
     test('should hide the duplicate contact image', function(done) {
@@ -247,7 +240,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
       // 'user_id_2' has no photo.
-      contacts.MatchingUI.displayMatchingDetails('user_id_2');
+      MatchingUI.displayMatchingDetails('user_id_2');
     });
 
     test('should show the phone number but not highlight it', function(done) {
@@ -264,7 +257,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+      MatchingUI.displayMatchingDetails('user_id_1');
     });
 
     test('should show the phone number and highlight it', function(done) {
@@ -281,7 +274,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+      MatchingUI.displayMatchingDetails('user_id_1');
     });
 
     test('should show the email but not highlight it', function(done) {
@@ -298,7 +291,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+      MatchingUI.displayMatchingDetails('user_id_1');
     });
 
     test('should show the email and highlight it', function(done) {
@@ -315,9 +308,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       };
       var observer = new MutationObserver(checkAssertions);
       observer.observe(matchingDetails, observerConfig);
-      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+      MatchingUI.displayMatchingDetails('user_id_1');
     });
-
   });
-
 });
