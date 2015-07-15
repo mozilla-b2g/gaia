@@ -43,7 +43,8 @@
     search: ['search-view', SHARED_CONTACTS],
     multiple_select: ['multiple-select-view'],
     overlay: ['loading-overlay', SHARED_UTILS],
-    ice: ['ice-view']
+    ice: ['ice-view'],
+    import_sim_contacts: [null, SHARED_UTILS]
   };
 
   function load(type, file, callback) {
@@ -53,7 +54,10 @@
      */
     function doLoad() {
       var name = file.toLowerCase();
-      var path = elementMapping[name][1];
+      var path = null;
+      if (elementMapping[name] && elementMapping[name][1]) {
+        path = elementMapping[name][1];
+      }
       var finalPath = 'js' + '/' + type;
 
       switch (path) {
@@ -71,9 +75,11 @@
       }
 
       var toLoad = [finalPath + '/' + name + '.js'];
-      var node = document.getElementById(elementMapping[name][0]);
-      if (node) {
-        toLoad.unshift(node);
+      if (elementMapping[name] && elementMapping[name][0]) {
+        var node = document.getElementById(elementMapping[name][0]);
+        if (node) {
+          toLoad.unshift(node);
+        }
       }
 
       LazyLoader.load(toLoad, function() {
