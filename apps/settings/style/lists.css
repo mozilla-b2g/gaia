@@ -26,7 +26,7 @@ ul li > gaia-switch {
 }
 
 /* Provide additional styling for gaia-checkbox to match legacy components */
-ul li > gaia-checkbox {
+ul li > gaia-checkbox:not(.inline) {
  -moz-margin-start: 1.5rem;
   /* The !important is necessary to override gaia-checkbox scoped style. */
   width: calc(100% - 1.5rem) !important;
