@@ -94,12 +94,17 @@ suite('Nfc Handover Manager Functions', function() {
     });
 
     test('start', function() {
+      var fakePromise = new MockPromise();
+      this.sinon.stub(Service, 'request', () => fakePromise);
       this.sinon.stub(window.navigator, 'mozSetMessageHandler');
       nfcHandoverManager.start();
 
       assert.isFalse(nfcHandoverManager.incomingFileTransferInProgress);
       assert.isFalse(nfcHandoverManager.bluetoothStatusSaved);
       assert.isFalse(nfcHandoverManager.bluetoothAutoEnabled);
+      fakePromise.mFulfillToValue(MockBTAdapter);
+      assert.equal(nfcHandoverManager._adapter, MockBTAdapter);
+      assert.ok(Service.request.calledWith('Bluetooth:adapter'));
       assert.ok(window.navigator.mozSetMessageHandler
         .calledWith('nfc-manager-send-file'));
     });
@@ -117,6 +122,10 @@ suite('Nfc Handover Manager Functions', function() {
   });
 
   suite('Events', function() {
+    setup(function() {
+      nfcHandoverManager.actionQueue = [];
+    });
+
     teardown(function() {
       nfcHandoverManager.stop();
     });
@@ -151,10 +160,9 @@ suite('Nfc Handover Manager Functions', function() {
     test('adapter is not retrieved', function() {
       var fakePromise = new MockPromise();
       var callback = this.sinon.stub();
-      this.sinon.stub(Service, 'request', () => fakePromise);
       nfcHandoverManager.actionQueue.push({callback: callback});
-
       nfcHandoverManager.start();
+      this.sinon.stub(Service, 'request', () => fakePromise);
       window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
 
       fakePromise.mRejectToError();
@@ -166,23 +174,23 @@ suite('Nfc Handover Manager Functions', function() {
 
     test('bluetooth-enabled event is handled', function() {
       var fakePromise = new MockPromise();
-      this.sinon.stub(Service, 'request', () => fakePromise);
       nfcHandoverManager.start();
+      this.sinon.stub(Service, 'request', () => fakePromise);
       window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
 
       fakePromise.mFulfillToValue(MockBTAdapter);
       assert.ok(Service.request.calledWith('Bluetooth:adapter'));
       assert.isFalse(nfcHandoverManager.settingsNotified);
-      assert.equal(nfcHandoverManager.actionQueue, 0);
+      assert.equal(nfcHandoverManager.actionQueue.length, 0);
       Service.request.restore();
     });
 
     test('adapter is retrieved with 1 action in queue', function() {
-      var fakePromise = new MockPromise();
       var callback = this.sinon.stub();
-      this.sinon.stub(Service, 'request', () => fakePromise);
+      var fakePromise = new MockPromise();
       nfcHandoverManager.actionQueue.push({callback: callback});
       nfcHandoverManager.start();
+      this.sinon.stub(Service, 'request', () => fakePromise);
       window.dispatchEvent(new CustomEvent('bluetooth-enabled'));
 
       fakePromise.mFulfillToValue(MockBTAdapter);

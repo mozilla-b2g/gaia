@@ -132,6 +132,15 @@
       this.bluetoothStatusSaved = false;
       this.bluetoothAutoEnabled = false;
 
+      // Besides listening to bluetooth-enabled event,
+      // request the adapter at module start to 
+      // avoid the module loading dependency
+      Service.request('Bluetooth:adapter').then((adapter) => {
+        this._adapter = adapter;
+      }).catch((err) => {
+        this._logVisibly('Failed to get bluetooth adapter at start');
+      });
+
       window.navigator.mozSetMessageHandler('nfc-manager-send-file',
         (msg) => {
           this.debug('In New event nfc-manager-send-file' +
