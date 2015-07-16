@@ -90,6 +90,10 @@ Rocketbar.prototype = {
     title.click();
   },
 
+  waitForInputToBecomeVisible: function() {
+    this.client.helper.waitForElement(this.selectors.input);
+  },
+
   /**
    * Send keys to the Rocketbar (needs to be focused first).
    */

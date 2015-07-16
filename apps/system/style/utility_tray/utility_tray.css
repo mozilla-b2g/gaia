@@ -1,23 +1,74 @@
-#screen.lockscreen-camera > #utility-tray {
-  display: none;
-}
-
-#utility-tray {
-  position: absolute;
-  top: calc(-100% + .2rem);
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: hsla(0, 0%, 20%, .95);
-  margin: 0;
-
-  transform: translateY(0);
+/* Since the UtilityTray overlays the entire screen, we must ensure that it
+   doesn't get displayed until after it has loaded. This class is removed in
+   utility_tray.js. */
+.utility-tray-loading {
   visibility: hidden;
 }
 
-#utility-tray.visible {
-  visibility: visible;
+.tray {
+  --tray-invisible-gripper-height: 2rem;
+  --scrollbar-width: 15px;
+  --software-buttons-width-adjustment: 0px;
+  --software-buttons-height-adjustment: 0px;
+
+  position: relative;
+  width: calc(100% + var(--scrollbar-width));
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  pointer-events: none;
+  will-change: scroll-position;
 }
+
+/* NOTE: csslint treats variable-only rules as "empty" errors, per
+   <https://github.com/CSSLint/csslint/issues/538>. */
+@media (orientation: portrait) {
+  #screen.software-button-enabled .tray {
+    --software-buttons-height-adjustment: var(--software-home-button-height);
+  }
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled .tray {
+    --software-buttons-width-adjustment: var(--software-home-button-height);
+  }
+}
+
+.tray-dead-area {
+  height: calc(100% - var(--tray-invisible-gripper-height));
+}
+
+.tray-content {
+  height: calc(100% - var(--software-buttons-height-adjustment));
+  width: calc(100% - var(--scrollbar-width) - var(--software-buttons-width-adjustment));
+  pointer-events: all;
+  background-color: hsla(0, 0%, 20%, .95);
+  position: relative;
+}
+
+.tray-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+#tray-invisible-gripper {
+  height: var(--tray-invisible-gripper-height);
+  pointer-events: all;
+}
+
+.tray.open #tray-invisible-gripper {
+  pointer-events: none;
+}
+
+/* Special visibility overrides */
+
+#screen.lockscreen-camera > #utility-tray {
+  visibility: hidden;
+}
+
+/* Statusbar */
 
 #statusbar-tray {
   background-image: none;
@@ -27,7 +78,8 @@
   filter: none;
 }
 
-#screen.utility-tray-in-transition #utility-tray #statusbar-tray {
+#screen.utility-tray-in-transition #statusbar-tray,
+#screen:-moz-full-screen-ancestor #statusbar-tray {
   background-image: -moz-element(#statusbar-maximized);
 }
 
@@ -35,12 +87,14 @@
   position: absolute;
   left: 0;
   line-height: var(--statusbar-height);
-  visibility: hidden;
 }
 
-#utility-tray.visible #statusbar-tray > .sb-start-upper {
-  visibility: visible;
+html[dir="rtl"] #statusbar-tray > .sb-start-upper {
+  left: unset;
+  right: 0;
 }
+
+/* Notifications indicator */
 
 #ambient-indicator {
   height: .2rem;
@@ -50,13 +104,9 @@
   background-color: #00D3FF;
   transition: opacity .5s ease .5s;
   position: absolute;
-  bottom: 0;
   pointer-events: none;
 }
 
-#utility-tray.on-edge-gesture {
-  top: -100%;
-}
 
 #screen:not(.locked) #ambient-indicator.unread {
   opacity: 1;
@@ -87,93 +137,81 @@
   margin: -0.4rem auto;
 }
 
-.utility-tray #utility-tray {
-  visibility: visible;
-}
-
 @keyframes handle {
   0%   { transform: scaleX(1.0); opacity: 1;}
   100% { transform: scaleX(4.0); opacity: 0;}
 }
 
-
-@media (orientation: portrait) {
-  #screen.software-button-enabled #utility-tray {
-    top: calc(-100% + .2rem + var(--software-home-button-height));
-    height: calc(100% - var(--software-home-button-height));
-  }
-}
-
-@media (orientation: landscape) {
-  #screen.software-button-enabled #utility-tray {
-    width: calc(100% - var(--software-home-button-height));
-  }
-}
-
-#notifications {
-  height: calc(100% - 2rem);
-  overflow: hidden;
-}
-
 #utility-tray-notifications {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  position: sticky;
+  top: 0;
+  margin-bottom: 2rem;
 }
+
+/* Utility Tray Footer (the buttons at the bottom of the tray) */
 
 #utility-tray-footer {
   background: hsla(0, 0%, 100%, .05);
 }
 
-#utility-tray > #utility-tray-grippy {
+@keyframes tray-footer-in {
+  0% { transform: scaleY(0.9); opacity: 0; }
+  15% { transform: scaleY(1.08); opacity: 1; }
+  30% { transform: scaleY(0.94); }
+  65% { transform: scaleY(1.03); }
+  100% { transform: scaleY(1); }
+}
+
+/* NOTE: We cannot modify transform() on the way out, because the user may be
+   dragging from on top of the footer; changing the transform mid-scroll
+   interrupts the scroll gesture. Fortunately, opacity is fine. */
+@keyframes tray-footer-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+#utility-tray-footer {
+  transform-origin: bottom left;
+  opacity: 0;
+  transform: scaleY(0);
+}
+
+#utility-tray-footer.animate-in {
+  animation: tray-footer-in 200ms;
+  animation-timing-function: ease-in-out;
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+#utility-tray-footer.animate-out {
+  animation: tray-footer-out 50ms;
+  animation-timing-function: ease-out;
+  opacity: 0;
+  transform: scaleY(1);
+}
+
+/* The _visible_ grippy at the bottom of the utility tray. */
+
+#utility-tray-grippy {
   width: 100%;
   height: 2rem;
   margin: 0;
+  position: relative; /* float above */
   background: hsla(0, 0%, 20%, 1) url(images/grippy.png) no-repeat center / 7.2rem;
 }
 
-/* In order to make the utility tray easier to drag when the SHB is enabled */
-/* we  use a pseudoelement that increases the dragging area */
-@media (orientation: portrait) {
-  #screen.software-button-enabled #utility-tray > #utility-tray-grippy:after {
-    height: var(--software-home-button-height);
-    content: "";
-    display: block;
-    position: relative;
-    bottom: -2rem;
-    background-color: transparent;
-    pointer-events: none;
-  }
-}
+/* Icons */
 
-#screen.utility-tray.software-button-enabled #utility-tray > #utility-tray-grippy:after {
-  pointer-events: all;
-}
-
-[data-icon] {
-  float: left;
+#utility-tray .utility-tray-notifications [data-icon] {
+  display: inline-block;
   width: 3rem;
   height: 3rem;
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;
 }
 
-[data-icon]:before {
+#utility-tray .utility-tray-notifications [data-icon]:before {
   /* The icons should appear 24 x 24px but each glyph only takes 80% of the space
    So we compensate by adding 20%, that is 30px. */
   font-size: 3rem;
   line-height: 3rem;
-}
-
-@media (orientation: landscape) {
-  #screen.software-button-enabled #utility-tray-notifications {
-    width: calc(100%);
-  }
-}
-
-/* RTL View */
-
-html[dir="rtl"] #statusbar-tray > .sb-start-upper {
-  left: unset;
-  right: 0
 }

@@ -358,12 +358,12 @@ suite('system/Statusbar', function() {
       });
 
       test('it should not forward events when the tray is opened', function() {
-        UtilityTray.active = true;
+        UtilityTray.shown = true;
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 100);
 
         assert.isFalse(app.handleStatusbarTouch.called);
-        UtilityTray.active = false;
+        UtilityTray.shown = false;
       });
     });
   });

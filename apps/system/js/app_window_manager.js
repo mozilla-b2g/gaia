@@ -879,6 +879,9 @@
         return;
       }
 
+      this.screen.classList.toggle(
+        'fullscreen-app', this._activeApp.isFullScreen());
+
       var fullScreenLayout = this._activeApp.isFullScreenLayout();
       this.screen.classList.toggle('fullscreen-layout-app', fullScreenLayout);
 

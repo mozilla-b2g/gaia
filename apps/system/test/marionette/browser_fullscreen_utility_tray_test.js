@@ -52,10 +52,9 @@ marionette('Browser - fullscreen utility tray access', function() {
   });
 
   test('test fullscreen webpage utility tray access', function() {
-    utilityTray.swipeDown(system.topPanel);
-    utilityTray.waitForOpened();
+    utilityTray.open();
 
-    var sameIndex = system.utilityTray.scriptWith(function(element) {
+    var sameIndex = system.utilityTrayMotion.scriptWith(function(element) {
       var fsElem = document.mozFullScreenElement;
       var fsIndex = getComputedStyle(fsElem).getPropertyValue('z-index');
       var utIndex = getComputedStyle(element).getPropertyValue('z-index');
@@ -63,7 +62,7 @@ marionette('Browser - fullscreen utility tray access', function() {
     });
     assert.ok(sameIndex, 'UtilityTray has the same (maximum) zIndex value');
 
-    var after = system.utilityTray.scriptWith(function(element) {
+    var after = system.utilityTrayMotion.scriptWith(function(element) {
       var fsElem = document.mozFullScreenElement;
       var expected = Node.DOCUMENT_POSITION_FOLLOWING;
       return fsElem.compareDocumentPosition(element) === expected;

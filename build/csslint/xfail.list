@@ -73,7 +73,7 @@ apps/system/style/net_error.css 1 0
 apps/system/style/sound_manager/sound_manager.css 1 3
 apps/system/style/system/system.css 0 2
 apps/system/style/themes/default/core.css 0 5
-apps/system/style/utility_tray/utility_tray.css 1 0
+apps/system/style/utility_tray/utility_tray.css 3 0
 apps/system/style/window.css 0 3
 apps/system/style/wrapper/wrapper.css 0 1
 apps/system/style/zindex.css 0 4

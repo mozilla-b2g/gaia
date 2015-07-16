@@ -218,6 +218,11 @@ suite('system/AppStatusbar', function() {
             assertStatusBarReleased();
           });
 
+          test('or if the utility tray hides', function() {
+            window.dispatchEvent(new CustomEvent('utilitytraywillshow'));
+            assertStatusBarReleased();
+          });
+
           test('or if the user interacts with the app', function() {
             // We're faking a touchstart event on the app iframe
             var iframe = app.browser.element;

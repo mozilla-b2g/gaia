@@ -140,7 +140,7 @@
       // need to ensure that all events are properly fired so that the chrome
       // collapses. If for example we early exit, currently the chrome will
       // not collapse.
-      if (UtilityTray.active || UtilityTray.shown) {
+      if (UtilityTray.shown) {
         this._activateCall
           .then(this._closeSearch.bind(this));
       }
@@ -549,7 +549,7 @@
 
       this.rocketbar.classList.toggle('has-text', input.length);
 
-      if (UtilityTray.active || UtilityTray.shown) {
+      if (UtilityTray.shown) {
         this._closeSearch();
         return;
       }
