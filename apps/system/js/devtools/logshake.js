@@ -112,7 +112,7 @@
       var error    = event ? event.detail.error : '';
       var errorMsg = this.formatError(error);
       this._notify('logsSaveError', errorMsg,
-                   this.showErrorMessage.bind(this, error),
+                   this.showErrorMessage.bind('logsSaveError', this, error),
                    event.detail);
       this._shakeId = null;
     },
@@ -169,9 +169,14 @@
         }
       }
 
+      // Only report error one time.
+      var inError = false;
       function onError() {
-        /* jshint validthis: true */
-        self.handleCaptureLogsError({detail: {error: this.error}});
+        if (!inError) {
+          inError = true;
+          /* jshint validthis: true */
+          self.showErrorMessage('logsShareError', this.error);
+	}
       }
 
       for (var logPath of logPaths) {
@@ -182,8 +187,9 @@
     },
 
     ERRNO_TO_MSG: {
-       0: 'logsGenericError',
-      30: 'logsSDCardMaybeShared' // errno: filesystem ro-mounted
+                    0: 'logsGenericError',
+                   30: 'logsSDCardMaybeShared', // errno: filesystem ro-mounted
+      'NotFoundError': 'logsNotFoundError'
     },
 
     formatError: function(error) {
@@ -196,12 +202,16 @@
           return navigator.mozL10n.get('logsOperationFailed',
                                        { operation: error.operation });
         }
+
+        if ('name' in error && error.name === 'NotFoundError') {
+          return navigator.mozL10n.get('logsNotFoundError');
+        }
       }
 
       return '';
     },
 
-    showErrorMessage: function(error, notif) {
+    showErrorMessage: function(title, error, notif) {
       if (notif) {
         notif.close();
       }
@@ -216,20 +226,23 @@
         return;
       }
 
+      var errorKey;
       // Small heuristic for some frequent unix error cases
       if ('unixErrno' in error) {
-        var errno = error.unixErrno;
-        debug('errno: ' + errno);
-
-        // Gracefully fallback to a generic error messages if we don't know
-        // this errno code.
-        if (!this.ERRNO_TO_MSG[errno]) {
-          errno = 0;
-        }
-
-        ModalDialog.alert('logsSaveError',
-                          this.ERRNO_TO_MSG[errno], { title: 'ok' });
+        errorKey = error.unixErrno;
+      } else if ('name' in error) {
+        errorKey = error.name;
       }
+
+      debug('errorKey: ' + errorKey);
+
+      // Gracefully fallback to a generic error messages if we don't know
+      // this errno code.
+      if (!this.ERRNO_TO_MSG[errorKey]) {
+        errorKey = 0;
+      }
+
+      ModalDialog.alert(title, this.ERRNO_TO_MSG[errorKey], { title: 'ok' });
     },
 
     _notify: function(titleId, body, onclick, dataPayload) {
@@ -261,7 +274,7 @@
       debug('Message payload: ' + message.data.logshakePayload);
       var payload = message.data.logshakePayload;
       if ('error' in payload) {
-        this.showErrorMessage(payload.error);
+        this.showErrorMessage('logsSaveError', payload.error);
       } else if ('logPaths' in payload) {
         this.triggerShareLogs(payload.logPaths, message);
       } else {
