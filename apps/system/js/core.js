@@ -1,5 +1,4 @@
-/* global BaseModule, LazyLoader, RemoteDebugger,
-          DeveloperHud */
+/* global BaseModule, LazyLoader, RemoteDebugger, DeveloperHud, DevToolsAuth */
 'use strict';
 
 (function(exports) {
@@ -121,11 +120,13 @@
             'js/devtools/logshake.js',
             'js/devtools/remote_debugger.js',
             'js/devtools/developer_hud.js',
-            'js/devtools/devtools_auth.js'
+            'js/devtools/devtools_auth.js',
+            'js/devtools/devtools_auth_dialog.js'
           ])
         ]).then(() => {
           this.remoteDebugger = new RemoteDebugger();
           this.developerHud = new DeveloperHud();
+          this.devToolsAuth = new DevToolsAuth();
           return Promise.resolve(this.developerHud.start());
         });
       });
