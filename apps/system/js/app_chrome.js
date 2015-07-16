@@ -37,7 +37,7 @@
     this.containerElement = app.element;
     this._themeChanged = false;
     this.scrollable = app.browserContainer;
-    this._currentOrigin = '';
+    this._currentOrigin = app.origin || '';
     this._currentIconUrl = '';
     this.render();
 

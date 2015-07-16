@@ -115,6 +115,10 @@ suite('system/AppChrome', function() {
   var fadeTransitionEndEvent = new CustomEvent('transitionend');
   fadeTransitionEndEvent.propertyName = 'background-color';
 
+  test('it sets currentOrigin to the app origin', function() {
+    assert.isTrue(chrome._currentOrigin === app.origin);
+  });
+
   suite('Old Navigation - Application events', function() {
     test('app is loading', function() {
       var stubShowProgress = this.sinon.stub(chrome, 'show');
