@@ -876,12 +876,12 @@ function init() {
   });
 }
 
-window.addEventListener('localized', function onDOMLocalized(e) {
+document.addEventListener('DOMLocalized', function onDOMLocalized(e) {
   // PERFORMANCE MARKER (1): navigationLoaded
   // Designates that the app's *core* chrome or navigation interface
   // exists in the DOM and is marked as ready to be displayed.
   window.performance.mark('navigationLoaded');
-  window.removeEventListener('localized', onDOMLocalized);
+  document.removeEventListener('DOMLocalized', onDOMLocalized);
 
   AirplaneModeHelper.ready(function() {
     airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';
