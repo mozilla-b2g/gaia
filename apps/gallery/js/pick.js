@@ -1,5 +1,5 @@
 /* global $, setView, LAYOUT_MODE, photodb, LazyLoader, Spinner, ImageEditor */
-/* global cropResizeRotate */
+/* global cropResizeRotate, MediaFrame */
 /* global CONFIG_MAX_PICK_PIXEL_SIZE, CONFIG_MAX_IMAGE_PIXEL_SIZE */
 /* exported Pick */
 
@@ -194,9 +194,10 @@ var Pick = (function() {
         if (nocrop) {
           // Set a fake crop region even though we won't display it
           // so that hasBeenCropped() works.
-          cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
-          cropEditor.cropRegion.right = cropEditor.dest.w;
-          cropEditor.cropRegion.bottom = cropEditor.dest.h;
+          cropEditor.cropOverlayRegion.left = 0;
+          cropEditor.cropOverlayRegion.top = 0;
+          cropEditor.cropOverlayRegion.right = cropEditor.dest.w;
+          cropEditor.cropOverlayRegion.bottom = cropEditor.dest.h;
           return;
         }
 
@@ -280,12 +281,15 @@ var Pick = (function() {
     else {
       // If no desired size is specified, we have to impose some kind of limit
       // so that really big images aren't decoded at full size. If there is no
-      // build time configuration that specifies the desired maximum pick
-      // size, then we use half of the configured maximum decode size. Pick
+      // build time configuration that specifies the desired maximum pick size, 
+      // check for maximum decode size device can handle based on device memory
+      // and set outputsize to MediaFrame.maxImageDecodeSize
+      // else we use half of the configured maximum decode size. Pick
       // activities are memory-sensitive because the system app needs to keep
       // both the requesting app and the gallery app alive at once.
       outputSize =
         CONFIG_MAX_PICK_PIXEL_SIZE ||
+        MediaFrame.maxImageDecodeSize ||
         CONFIG_MAX_IMAGE_PIXEL_SIZE >> 1;
 
       // If the pick request specifed a maxFileSizeBytes parameter then
