@@ -234,7 +234,7 @@ suite('DetailsUI', function() {
       var strong = dates[0].querySelector('strong');
       var formatDate = utils.misc.formatDate(mozContact.bday);
 
-      assert.equal(h2.textContent, 'birthday');
+      assert.equal(h2.getAttribute('data-l10n-id'), 'birthday');
       assert.equal(strong.textContent, formatDate);
     });
   });
