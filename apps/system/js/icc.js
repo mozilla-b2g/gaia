@@ -309,6 +309,7 @@ var icc = {
     }
     var form = viewId.getElementsByTagName('form');
     var height = (window.innerHeight - keyboardHeight);
+    height -= (Service.query('Statusbar.height') || 0);
     height -= (Service.query('SoftwareButtonManager.height') || 0);
     viewId.style.height = height + 'px';
     if (form && viewId.clientHeight > 0) {
@@ -319,7 +320,6 @@ var icc = {
       var formHeight = viewId.clientHeight;
       formHeight -= (header.clientHeight + headerSubtitle.clientHeight);
       formHeight -= menu.clientHeight;
-      formHeight -= (Service.query('SoftwareButtonManager.height') || 0);
       form[0].style.height = formHeight + 'px';
       input.scrollIntoView();
     }
@@ -330,6 +330,8 @@ var icc = {
       return;
     }
     this.icc_view.style.top = Service.query('Statusbar.height') + 'px';
+    this.icc_view.style.bottom =
+      Service.query('SoftwareButtonManager.height') + 'px';
   },
 
   alert: function icc_alert(stkMessage, message, icons) {

@@ -514,6 +514,13 @@ suite('STK (icc) >', function() {
       window.icc.resize();
       assert.equal(icc.icc_view.style.top, '13px');
     });
+
+    test('it sets the bottom depending on Software Home Button', function() {
+      MockService.mockQueryWith('SoftwareButtonManager.height', 20);
+      this.sinon.stub(window.icc, 'isVisible').returns(true);
+      window.icc.resize();
+      assert.equal(icc.icc_view.style.bottom, '20px');
+    });
   });
 
   suite('Replace STK messages >', function() {
