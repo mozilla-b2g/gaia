@@ -10,7 +10,7 @@ var MockImageEditor = (function() {
     this.croponly = croponly;
     
     this.dest = {};
-    this.cropRegion = {};
+    this.cropOverlayRegion = {};
 
     setTimeout(ready);
   };
@@ -20,14 +20,14 @@ var MockImageEditor = (function() {
   MockImageEditor.prototype.destroy = sinon.spy();
 
   MockImageEditor.prototype.hasBeenCropped = function() {
-    return (this.cropRegion.left !== 0 ||
-            this.cropRegion.top !== 0 ||
-            this.cropRegion.right !== this.dest.width ||
-            this.cropRegion.bottom !== this.dest.height);
+    return (this.cropOverlayRegion.left !== 0 ||
+            this.cropOverlayRegion.top !== 0 ||
+            this.cropOverlayRegion.right !== this.dest.width ||
+            this.cropOverlayRegion.bottom !== this.dest.height);
   };
 
   MockImageEditor.prototype.getCropRegion = function() {
-    var region = this.cropRegion;
+    var region = this.cropOverlayRegion;
     var previewRect = this.dest;
 
     // Convert the preview crop region to fractions

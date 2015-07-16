@@ -105,8 +105,8 @@ MediaFrame.computeMaxImageDecodeSize = function(mem) {
     return 5 * 1024 * 1024;   // 5 megapixels
   }
   else {                 // A high-end device with 1 gigabyte or more of memory
-    // Allow 8 megapixels of image decode size per gigabyte of memory
-    return (mem / 1024) * 8 * 1024 * 1024;
+    // Allow 10 megapixels of image decode size per gigabyte of memory
+    return (mem / 1024) * 10 * 1024 * 1024;
   }
 };
 

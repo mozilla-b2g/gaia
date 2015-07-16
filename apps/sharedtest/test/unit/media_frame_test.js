@@ -54,14 +54,16 @@ suite('Media Frame Unit Tests', function() {
 
   suite('Runtime memory detection', function() {
     test('navigator.getFeature() is called', function() {
-      // We're faking 4gb of memory, so we should get 4 * 8mb of decode size
-      assert.equal(MediaFrame.maxImageDecodeSize, 32 * 1024 * 1024);
+      // We're faking 4gb of memory, so we should get 4 * 10mb of decode size
+      assert.equal(MediaFrame.maxImageDecodeSize, 40 * 1024 * 1024);
     });
 
     test('computeMaxImageDecodeSize() works correctly', function() {
       assert.equal(MediaFrame.computeMaxImageDecodeSize(128), 2 * 1024 * 1024);
       assert.equal(MediaFrame.computeMaxImageDecodeSize(512), 5 * 1024 * 1024);
-      assert.equal(MediaFrame.computeMaxImageDecodeSize(1024), 8 * 1024 * 1024);
+      assert.equal(
+        MediaFrame.computeMaxImageDecodeSize(1024), 10 * 1024 * 1024
+      );
 
       // For low-memory devices, the image size may also depend on
       // screen size
