@@ -157,6 +157,13 @@ suite('system/UtilityTray', function() {
       UtilityTray.hide(true);
     });
 
+    test('should do nothing if is already hidden', function() {
+      assert.equal(UtilityTray.shown, false);
+      this.sinon.stub(UtilityTray, 'validateCachedSizes');
+      UtilityTray.hide(true);
+      assert.isFalse(UtilityTray.validateCachedSizes.called);
+    });
+
     test('shown should be false', function() {
       assert.equal(UtilityTray.shown, false);
     });
@@ -688,6 +695,7 @@ suite('system/UtilityTray', function() {
 
   suite('hide() events', function() {
     function doAction(shown) {
+      UtilityTray.showing = true;
       UtilityTray.shown = shown;
       UtilityTray.hide();
       fakeTransitionEnd();
