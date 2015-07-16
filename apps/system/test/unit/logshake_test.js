@@ -157,15 +157,48 @@ suite('system/LogShake', function() {
     });
   });
 
-  suite('Capture success handling', function() {
-    var filename = 'logs/2014-06-03-00-00/log.log';
+
+  suite('Uncompressed LogShake', function() {
+    var logFilenames = ['log.log', 'bog.log'];
+    var logPrefix = 'logs/2014-06-03-00-00/';
+    var logPaths = logFilenames.map(function(filename) {
+      return logPrefix + filename;
+    });
+    var compressed = false;
+    var logBlobs = logPaths.map(function(path) {
+      return {
+        type: 'text/plain',
+        name: path
+      };
+    });
+
+    suite('Capture success handling',
+          captureSuccessSuite(logFilenames, logPaths, compressed, logBlobs));
+  });
+
+  suite('Compressed LogShake', function() {
+    var logFilenames = ['log.log', 'bog.log'];
+    var zipPath = 'logs/2014-06-03-00-00-logs.zip';
+    var compressed = true;
+    var zipBlob = {
+      type: 'application/zip',
+      name: zipPath
+    };
+
+    suite('Capture success handling',
+          captureSuccessSuite(logFilenames, [zipPath], compressed, [zipBlob]));
+
+  });
+
+  function captureSuccessSuite(logFilenames, logPaths, compressed, mockBlobs) {
     var notificationSpy;
 
     setup(function() {
       notificationSpy = this.sinon.spy(window, 'Notification');
 
       window.dispatchEvent(new CustomEvent('capture-logs-success',
-        { detail: { logFilenames: [filename]  } }));
+        { detail: { logFilenames: logFilenames, logPaths: logPaths,
+                    compressed: compressed } }));
     });
 
     test('Notification sent', function() {
@@ -188,29 +221,27 @@ suite('system/LogShake', function() {
       var notification = notificationSpy.firstCall.thisValue;
       notification.onclick();
 
-      assert.isTrue(storageSpy.calledOnce, 'getDeviceStorage should be called');
-      assert.isTrue(getSpy.calledOnce, '.get() should be called');
-      assert.equal(getSpy.firstCall.args[0], filename,
-        '.get() should have been called with filename from event');
+      assert.isTrue(storageSpy.callCount > 0,
+                    'getDeviceStorage should be called at least once');
+      assert.equal(getSpy.callCount, logPaths.length,
+                   '.get() should be called for all log paths');
+      for (var i = 0; i < getSpy.callCount; i++) {
+        assert.equal(getSpy.getCall(i).args[0], logPaths[i],
+                     '.get() should have been called with filename from event');
+      }
     });
 
     suite('MozActivity handling', function() {
-      var filename, mockBlob, expectedActivity, mockDeviceStorage, notification;
-      var getSpy, activityStub, closeSpy, closeSystemSpy;
+      var expectedActivity, mockDeviceStorage, notification, getSpy;
+      var activityStub, closeSpy, closeSystemSpy;
 
       setup(function() {
-        filename = 'dev-log-main.log';
-        mockBlob = {
-          type: 'text/plain',
-          name: 'logs/timestamp/dev-log-main.log'
-        };
-
         expectedActivity = {
           name: 'share',
           data: {
             type: 'application/vnd.moz-systemlog',
-            blobs: [ mockBlob ],
-            filenames: [ filename ]
+            blobs: mockBlobs,
+            filenames: logFilenames
           }
         };
 
@@ -231,22 +262,28 @@ suite('system/LogShake', function() {
 
       function triggerGetSuccess() {
         // Simulate success of reading file
-        var getRequest = getSpy.getCall(0).returnValue;
-        getRequest.fireSuccess(mockBlob);
+        for (var i = 0; i < getSpy.callCount; i++) {
+          var getRequest = getSpy.getCall(i).returnValue;
+          getRequest.fireSuccess(mockBlobs[i]);
+        }
       }
 
       function triggerActivitySuccess() {
-        var activity = activityStub.getCall(0).returnValue;
-        activity.fireSuccess();
+        for (var i = 0; i < activityStub.callCount; i++) {
+          var activity = activityStub.getCall(i).returnValue;
+          activity.fireSuccess();
+        }
       }
 
       function triggerActivityError() {
-        var activity = activityStub.getCall(0).returnValue;
-        activity.fireError();
+        for (var i = 0; i < activityStub.callCount; i++) {
+          var activity = activityStub.getCall(i).returnValue;
+          activity.fireError();
+        }
       }
 
       test('triggerShareLogs launches MozActivity', function() {
-        logshake.triggerShareLogs([ filename ]);
+        logshake.triggerShareLogs(logPaths);
 
         triggerGetSuccess();
 
@@ -254,7 +291,7 @@ suite('system/LogShake', function() {
       });
 
       test('close notification with MozActivity success', function() {
-        logshake.triggerShareLogs([ filename ], notification);
+        logshake.triggerShareLogs(logPaths, notification);
 
         triggerGetSuccess();
         triggerActivitySuccess();
@@ -265,7 +302,7 @@ suite('system/LogShake', function() {
       test('calls closeSystemMessageNotification with MozActivity success',
         function() {
           // Use an empty object since we just want one without 'close()'
-          logshake.triggerShareLogs([ filename ], {});
+          logshake.triggerShareLogs(logPaths, {});
 
           triggerGetSuccess();
           triggerActivitySuccess();
@@ -274,7 +311,7 @@ suite('system/LogShake', function() {
         });
 
       test('keep notification with MozActivity error', function() {
-        logshake.triggerShareLogs([ filename ], notification);
+        logshake.triggerShareLogs(logPaths, notification);
 
         triggerGetSuccess();
         triggerActivityError();
@@ -285,16 +322,15 @@ suite('system/LogShake', function() {
       test('dont call closeSystemMessageNotification with MozActivity error',
         function() {
           // Use an empty object since we just want one without 'close()'
-          logshake.triggerShareLogs([ filename ], {});
+          logshake.triggerShareLogs(logPaths, {});
 
           triggerGetSuccess();
           triggerActivityError();
 
           sinon.assert.notCalled(closeSystemSpy);
         });
-
     });
-  });
+  }
 
   suite('Capture error handling >', function() {
     var notificationSpy, errorMessage,
@@ -479,12 +515,13 @@ suite('system/LogShake', function() {
     suite('handleSystemMessageNotification behavior', function() {
       test('calls triggerShareLogs for success cases', function() {
         var triggerShareLogsSpy = this.sinon.spy(logshake, 'triggerShareLogs');
-        notification.data.logshakePayload = { logFilenames: [] };
+        notification.data.logshakePayload = { logPaths: [], logFilenames: [],
+                                              compressed: false };
         logshake.handleSystemMessageNotification(notification);
         assert.isTrue(triggerShareLogsSpy.calledOnce);
         assert.isTrue(
           triggerShareLogsSpy.calledWith(
-            notification.data.logshakePayload.logFilenames));
+            notification.data.logshakePayload.logPaths));
         delete notification.data.logshakePayload;
       });
 
