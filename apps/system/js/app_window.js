@@ -853,15 +853,18 @@
         }
       }
 
-      // Register audio channels.
-      this.audioChannels = new Map();
-      var audioChannels = this.browser.element.allowedAudioChannels;
-      audioChannels && audioChannels.forEach((audioChannel) => {
-        this.audioChannels.set(
-          audioChannel.name,
-          new AudioChannelController(this, audioChannel)
-        );
-        this.debug('Registered ' + audioChannel.name + ' audio channel');
+      // Need to wait for mozbrowserloadend to get allowedAudioChannels.
+      this.browser.element.addEventListener('mozbrowserloadend', () => {
+        // Register audio channels.
+        this.audioChannels = new Map();
+        var audioChannels = this.browser.element.allowedAudioChannels;
+        audioChannels && audioChannels.forEach((audioChannel) => {
+          this.audioChannels.set(
+            audioChannel.name,
+            new AudioChannelController(this, audioChannel)
+          );
+          this.debug('Registered ' + audioChannel.name + ' audio channel');
+        });
       });
 
       if (this.isInputMethod) {

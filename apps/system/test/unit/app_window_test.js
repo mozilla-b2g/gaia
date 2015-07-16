@@ -2858,10 +2858,12 @@ suite('system/AppWindow', function() {
     setup(function() {
       window.AudioChannelController = MockAudioChannelController;
       app = new AppWindow(fakeAppConfig1);
-      app.browser.element.allowedAudioChannels = [
+      var element = app.browser.element;
+      element.allowedAudioChannels = [
         { name: 'normal' }, { name: 'content' }
       ];
       app.installSubComponents();
+      element.dispatchEvent(new CustomEvent('mozbrowserloadend'));
     });
 
     teardown(function() {

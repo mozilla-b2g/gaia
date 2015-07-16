@@ -182,15 +182,17 @@
      * @param {AppWindow} [app] The app window in foreground.
      */
     _resumeAudioChannels: function(app) {
-      var audioChannel;
+      // FIXME: The `app` param should always have `audioChannels`,
+      // then we don't need to check it.
       // Resume the app's audio channels.
-      app && app.audioChannels.forEach((audioChannel) => {
+      app && app.audioChannels && app.audioChannels.forEach((audioChannel) => {
         audioChannel.isActive() && this._manageAudioChannels(audioChannel);
         if (audioChannel.isPlaying()) {
           this._deleteAudioChannelFromInterruptedAudioChannels(audioChannel);
         }
       });
       // Resume the latest interrupted audio channel.
+      var audioChannel;
       var length = this._interruptedAudioChannels.length;
       if (this._activeAudioChannels.size === 0 && length) {
         audioChannel = this._interruptedAudioChannels[length - 1];
