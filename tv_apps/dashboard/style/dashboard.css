@@ -14,6 +14,11 @@ html, body {
   padding: 0;
 }
 
+body {
+  transform-style: preserve-3d;
+  perspective: 25rem;
+}
+
 a {
   outline: 0;
 }
@@ -121,6 +126,8 @@ body[data-active-direction="left"] .background {
   height: 100%;
 }
 
+/* digital clock */
+
 #digital-clock {
   position: absolute;
   top: 50%;
@@ -153,9 +160,21 @@ body[data-active-direction="left"] .background {
 }
 
 #digital-clock .date {
+  position: relative;
   margin-top: 4.4rem;
   font-size: 3.4rem;
   line-height: 3.4rem;
+  overflow: hidden;
+}
+
+#today-is {
+  position: relative;
+  /*top: -4rem;*/
+}
+
+#greeting {
+  position: relative;
+  top: 4rem;
 }
 
 /* top-panel */
@@ -197,6 +216,55 @@ iframe {
 }
 
 /* Intro animation */
+
+/*
+ * Animation for background.
+ */
+
+.active .background {
+  animation: shrink 1s cubic-bezier(0.0, 0.0, 0.0, 1.0) 1.2s;
+}
+
+@keyframes shrink {
+  from { transform: translateZ(10rem); }
+  to { transform: translateZ(0); }
+}
+
+/*
+ * Animations for greetings and date.
+ */
+
+/* XXX: 'both' will keep the animation at running state, not sure if it'll affect performance. ; */
+/*      Come back to this if there's a performance issue. */
+.active #today-is {
+  animation: slidedown 0.3s cubic-bezier(0.0, 0.0, 0.0, 1.0) 4.5s both;
+}
+
+.active #greeting {
+  animation: slideupdown 2.6s cubic-bezier(0.0, 0.0, 0.0, 1.0) 2.2s both;
+}
+
+@keyframes slidedown {
+  from {
+    top: -4rem;
+  }
+  to {
+    top: 0;
+  }
+}
+
+@keyframes slideupdown {
+  0% {
+    top: 4rem;
+  }
+  11.54% {
+    top: -3.4rem;
+  }
+  88.46% {
+    top: -3.4rem;
+  }
+  100% { top: 4rem;}
+}
 
 /*
  * The following rules set transform origin to central point of the screen.

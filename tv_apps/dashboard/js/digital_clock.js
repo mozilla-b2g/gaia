@@ -14,7 +14,8 @@
       'minutes-units-digit': document.getElementById('minutes-units-digit'),
       'seconds-tens-digit': document.getElementById('seconds-tens-digit'),
       'seconds-units-digit': document.getElementById('seconds-units-digit'),
-      'today': document.getElementById('today-is')
+      'today': document.getElementById('today-is'),
+      'greeting': document.getElementById('greeting')
     };
   }
 
@@ -70,6 +71,11 @@
       this.date = date;
     },
 
+    generateGreeting: function () {
+      var hours = this.date ? this.date.getHours() : (new Date()).getHours;
+      this.elements.greeting.dataset.l10nId = 'greeting-at-' + hours;
+    },
+
     /**
      * Update the display date and time.
      * @param  {Date} date The Date to be displayed.
@@ -117,9 +123,8 @@
      * @param  {[Date} date The date to be displayed.
      */
     _changeDate: function (date) {
-      navigator.mozL10n.ready(function() {
-        var dateTimeFormat = new navigator.mozL10n.DateTimeFormat();
-        var format = navigator.mozL10n.get('dateFormat');
+      var dateTimeFormat = new navigator.mozL10n.DateTimeFormat();
+      navigator.mozL10n.formatValue('dateFormat').then(function (format) {
         var formatted = dateTimeFormat.localeFormat(date, format);
         this.elements.today.dataset.l10nArgs =
           JSON.stringify({ 'date': formatted });
