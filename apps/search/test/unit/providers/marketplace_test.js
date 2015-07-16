@@ -69,7 +69,14 @@ suite('search/providers/marketplace', function() {
     setup(function() {
       xhr = sinon.useFakeXMLHttpRequest();
       requests = [];
-      xhr.onCreate = function(req) { requests.push(req); };
+      xhr.onCreate = function(req) {
+        setTimeout(function() {
+          requests.push(req);
+          req.responseText = JSON.stringify(marketplaceContent);
+          req.status = 200;
+          req.onload();
+        });
+      };
     });
 
     teardown(function() {
@@ -78,9 +85,7 @@ suite('search/providers/marketplace', function() {
     });
 
     test('escapes search terms', function(done) {
-      subject.search('foo#');
-
-      setTimeout(function() {
+      subject.search('foo#').then(function(results) {
         assert.equal(requests[0].url, 'http://localhost?foo%23');
         done();
       });
