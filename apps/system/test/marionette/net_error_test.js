@@ -18,7 +18,6 @@ marionette('net_error.html:', function() {
   test('in an iframe', function() {
     // clear our content, and append an error iframe
     client.executeScript(function(src) {
-      document.body.innerHTML = '';
       var frame = document.createElement('iframe');
       frame.id = 'error-frame';
       frame.src = src;
@@ -37,12 +36,14 @@ marionette('net_error.html:', function() {
       // do nothing
     } finally {
       // now we can test the about:neterror page
+
+      // Wait for the retry icon to show up.
+      client.helper.waitForElement('#retry-icon');
+      // Make sure close and retry buttons are hidden.
       assert.ok(!client.findElement('#close-btn').displayed(),
                 'Close button is hidden in iframe');
       assert.ok(!client.findElement('#retry-btn').displayed(),
                 'Retry button is hidden in iframe');
-      assert.ok(client.findElement('#retry-icon').displayed(),
-                'Retry icon is displayed');
     }
   });
 });
