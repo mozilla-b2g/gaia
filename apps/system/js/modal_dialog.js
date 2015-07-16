@@ -62,6 +62,7 @@ var ModalDialog = {
     window.addEventListener('appwillclose', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('resize', this);
+    window.addEventListener('system-resize', this);
     window.addEventListener('keyboardchange', this);
     window.addEventListener('keyboardhide', this);
     window.addEventListener('home', this);
@@ -131,6 +132,7 @@ var ModalDialog = {
         }
         break;
 
+      case 'system-resize':
       case 'keyboardchange':
         if (this.isVisible()) {
           this.updateHeight();
