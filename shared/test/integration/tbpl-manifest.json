@@ -44,7 +44,6 @@
     "apps/communications/contacts/test/marionette/ice_test.js": "Bug 1147601 - Intermittent failures",
     "apps/system/test/marionette/hierarchy_test.js": "Bug 1147618 - Disable intermittent test",
     "apps/system/test/marionette/keyboard_edge_resize_test.js": "Bug 1147618",
-    "apps/system/test/marionette/notification_behavior_test.js": "Bug 1148336",
     "tests/jsmarionette/plugins/marionette-helper/test/index_test.js": "Bug 1165660"
   }
 }
