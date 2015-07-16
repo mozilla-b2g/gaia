@@ -3,8 +3,8 @@
 
 var MockPlayerView = {
   init: function() {},
-
-  dataSource: [],
-
+  currentIndex: 1,
+  dataSource: [ {}, {} ],
+  stop: function() {},
   setOptions: function() {}
 };
