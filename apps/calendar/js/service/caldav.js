@@ -535,7 +535,7 @@ Service.prototype = {
    *      ...
    *    ]
    *
-   * @param {Array[icalComponent]} components list of icalComponents.
+   * @param {Array.<icalComponent>} components list of icalComponents.
    * @param {Calendar.Responder} stream to emit events.
    * @param {Object} options list of options.
    * @param {Object} options.maxDate maximum date to expand to.

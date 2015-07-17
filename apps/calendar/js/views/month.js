@@ -37,7 +37,10 @@ Month.prototype = {
   /** @type {SingleMonth} */
   currentFrame: null,
 
-  /** @type {DOMElement} used to detect if dbltap happened on same date */
+  /**
+   * used to detect if dbltap happened on same date
+   * @type {DOMElement}
+   */
   _lastTarget: null,
 
   /**

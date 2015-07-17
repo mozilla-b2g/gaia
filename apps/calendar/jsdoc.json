@@ -5,11 +5,7 @@
   },
   "source": {
     "include": ["apps/calendar/README.md", "apps/calendar/js"],
-    "exclude": ["apps/calendar/js/ext",
-                "apps/calendar/js/backend/db.js",
-                "apps/calendar/js/db.js",
-                "apps/calendar/js/service/caldav.js",
-                "apps/calendar/js/views/month.js"]
+    "exclude": ["apps/calendar/js/ext"]
   },
   "plugins": [
     "plugins/markdown",
