@@ -1,9 +1,11 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings,
+/* globals ContactPhotoHelper,
            Dialog,
-           Promise
+           Notification,
+           Settings,
+           Threads
 */
 
 (function(exports) {
@@ -735,6 +737,24 @@
           }
         };
       }
+    },
+
+    /**
+     * Return the localized SIM name for multi-SIM scenario or empty string for
+     * single-SIM scenario
+     * @param {Number} iccId Integrate circuit card identity for SIM.
+     * @return {Promise} Return the async translation result like SIM1 or SIM2
+     *  (locale dependent) depending on the iccId or empty string for single-sim
+     *  scenario.
+     */
+    getSimNameByIccId(iccId) {
+      var index = Settings.getServiceIdByIccId(iccId);
+
+      if (index === null) {
+        return Promise.resolve('');
+      }
+
+      return navigator.mozL10n.formatValue('sim-id-label', { id: index + 1 });
     }
   };
 

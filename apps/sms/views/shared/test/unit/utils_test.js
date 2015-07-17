@@ -1,8 +1,7 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
-         MockMozPhoneNumberService, MocksHelper, Notification,
-         MockNotification, Threads, Promise, MockSettings,
-         AssetsHelper,
-         Dialog
+         MockMozPhoneNumberService, MocksHelper,
+         MockNotification, Threads, MockSettings,
+         AssetsHelper, Settings, Dialog
 */
 
 'use strict';
@@ -13,7 +12,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/views/shared/test/unit/mock_navigator_mozphonenumberservice.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/views/shared/js/utils.js');
-requireApp('sms/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_notification.js');
 require('/services/test/unit/mock_threads.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_dialog.js');
@@ -1353,6 +1352,38 @@ suite('Utils', function() {
           ).
           then(done, done);
       });
+    });
+  });
+
+  suite('getSimNameByIccId', function() {
+    setup(function () {
+      this.sinon.stub(Settings, 'getServiceIdByIccId');
+      this.sinon.stub(navigator.mozL10n, 'formatValue').returns(
+        Promise.resolve('SIM name')
+      );
+    });
+
+    test('returns the correct name when service id existed', function(done) {
+      var index = 0;
+      var iccId = 'sim1';
+      Settings.getServiceIdByIccId.withArgs(iccId).returns(index);
+      Utils.getSimNameByIccId(iccId).then((name) => {
+        sinon.assert.calledWith(
+          navigator.mozL10n.formatValue,
+          'sim-id-label',
+          { id: index + 1 }
+        );
+        assert.equal(name, 'SIM name');
+      }).then(done, done);
+    });
+
+    test('returns empty string when service id is null', function(done) {
+      var iccId = 'sim3';
+      Settings.getServiceIdByIccId.withArgs(iccId).returns(null);
+      Utils.getSimNameByIccId(iccId).then((name) => {
+        sinon.assert.notCalled(navigator.mozL10n.formatValue);
+        assert.equal(name, '');
+      }).then(done, done);
     });
   });
 });

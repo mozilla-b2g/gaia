@@ -1,5 +1,13 @@
-/*global Utils, Template, Threads, ConversationView, MessageManager,
-         ContactRenderer, Contacts, Settings, Navigation
+/*global ContactRenderer,
+         Contacts,
+         ConversationView,
+         MessageManager,
+         MobileOperator,
+         Navigation,
+         Settings,
+         Template,
+         Threads,
+         Utils
  */
 
 /*exported Information */
@@ -90,8 +98,10 @@ function l10nContainsDateSetup(element, timestamp) {
   element.textContent = completeLocaleFormat(timestamp);
 }
 
-// Generate report Div contains delivery report and read report for showing
-// report information within contact list
+/**
+ * Generate report Div contains delivery report and read report for showing
+ * report information within contact list
+ */
 function createReportDiv(reports) {
   var reportDiv = document.createElement('div');
   reportDiv.className = 'network-status';
@@ -155,7 +165,7 @@ function showSimInfo(element, iccId) {
       'dsds-unknown-sim'
     );
   } else {
-    var operator = Settings.getOperatorByIccId(iccId);
+    var operator = getOperatorByServiceId(simId);
     var icc = iccManager.getIccById(iccId);
     var number = icc && icc.iccInfo.msisdn;
 
@@ -179,8 +189,10 @@ function showSimInfo(element, iccId) {
   element.classList.remove('hide');
 }
 
-// Incoming message: return array of sender number string;
-// Outgoing message: return array of object(number and report div block).
+/**
+ * Incoming message: return array of sender number string;
+ * Outgoing message: return array of object(number and report div block).
+ */
 function createListWithMsgInfo(message) {
   var list = [];
   if (message.delivery === 'received' ||
@@ -199,6 +211,15 @@ function createListWithMsgInfo(message) {
                infoBlock: createReportDiv(info)});
   }
   return list;
+}
+
+/**
+ * Will return operator name depending on the iccId.
+ * Will return the empty string in a single SIM scenario.
+ */
+function getOperatorByServiceId(index) {
+  var conn = navigator.mozMobileConnections[index];
+  return MobileOperator.userFacingInfo(conn).operator;
 }
 
 var VIEWS = {

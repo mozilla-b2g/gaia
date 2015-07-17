@@ -3,7 +3,8 @@
          Threads,
          MockMessages, Settings, Navigation,
          AssetsHelper,
-         Contacts
+         Contacts,
+         MobileOperator
 */
 
 'use strict';
@@ -20,6 +21,7 @@ require('/views/shared/test/unit/mock_messages.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_settings.js');
 require('/services/test/unit/mock_message_manager.js');
+require('/shared/test/unit/mocks/mock_mobile_operator.js');
 require('/views/shared/test/unit/mock_contact_renderer.js');
 require('/views/conversation/js/information.js');
 
@@ -32,7 +34,8 @@ var mocksHelperForInformation = new MocksHelper([
   'Settings',
   'ConversationView',
   'Threads',
-  'Utils'
+  'Utils',
+  'MobileOperator'
 ]).init();
 
 suite('Information view', function() {
@@ -591,7 +594,7 @@ suite('Information view', function() {
 
       setup(function() {
         if (!('mozMobileConnections' in navigator)) {
-          navigator.mozMobileConnections = null;
+          navigator.mozMobileConnections = [];
         }
 
         if (!('mozIccManager' in navigator)) {
@@ -621,7 +624,6 @@ suite('Information view', function() {
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
-        this.sinon.stub(Settings, 'getOperatorByIccId').returns('');
         reportView.render();
 
         sinon.assert.calledWithMatch(
@@ -645,7 +647,9 @@ suite('Information view', function() {
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
-        this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
+          operator: 'operator'
+        });
         reportView.render();
 
         sinon.assert.calledWithMatch(
@@ -673,7 +677,9 @@ suite('Information view', function() {
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
-        this.sinon.stub(Settings, 'getOperatorByIccId').returns('');
+        this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
+          operator: ''
+        });
         reportView.render();
 
         sinon.assert.calledWithMatch(
@@ -701,7 +707,9 @@ suite('Information view', function() {
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(1);
-        this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
+          operator: 'operator'
+        });
         reportView.render();
 
         sinon.assert.calledWithMatch(

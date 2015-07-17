@@ -3,7 +3,7 @@
 
 /*global Utils, MessageManager, Compose, NotificationHelper,
          Attachment, Notify, SilentSms, Threads, SMIL, Contacts,
-         ConversationView, Notification, Settings, Navigation,
+         ConversationView, Settings, Navigation,
          ActivityClient,
          ActivityShim
 */
@@ -302,24 +302,29 @@ var ActivityHandler = {
           var titlePromise;
 
           if (Settings.hasSeveralSim() && message.iccId) {
-            var simName = Settings.getSimNameByIccId(message.iccId);
-            titlePromise = formatValue(
-              'dsds-notification-title-with-sim',
-              { sim: simName, sender: sender }
+            titlePromise = Utils.getSimNameByIccId(message.iccId).then(
+              (simName) => ({
+                id: 'dsds-notification-title-with-sim',
+                args: { sim: simName, sender: sender }
+              })
             );
           } else {
             titlePromise = Promise.resolve(sender);
           }
 
+          // Force the helper to leave close behavior as it is because it should
+          // be handled in Utils.closeNotificationsForThread later.
           var options = {
             icon: NotificationHelper.getIconURI(app),
             body: body,
             tag: 'threadId:' + threadId,
-            data: { id, threadId }
+            data: { id, threadId },
+            closeOnClick: false
           };
 
-          return titlePromise.then((title) => {
-            var notification = new Notification(title, options);
+          return titlePromise.then((title) =>
+            NotificationHelper.send(title, options)
+          ).then((notification) => {
             notification.addEventListener('click', goToMessage);
             releaseWakeLock();
 
