@@ -81,6 +81,26 @@ suite('sim lock dialog', function() {
       assert.isTrue(subject.requestFocus.called);
     });
 
+  suite('input text', function() {
+    var inputField;
+
+    setup(function() {
+      inputField = subject.getNumberPasswordInputField();
+    });
+
+    test('when chars < 4, the ok button is disabled', function() {
+      inputField.value = 'aaa';
+      inputField.dispatchEvent(new CustomEvent('input'));
+      assert.isTrue(subject.dialogDone.getAttribute('disabled') === 'disabled');
+    });
+
+    test('when chars >= 4, the ok button is enabled', function() {
+      inputField.value = 'aaaa';
+      inputField.dispatchEvent(new CustomEvent('input'));
+      assert.isTrue(subject.dialogDone.getAttribute('disabled') !== 'disabled');
+    });
+  });
+
   suite('unlock', function() {
     var stubClear, stubUnlockCardLock, stubDisable, slot, domreq;
 
