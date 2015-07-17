@@ -58,12 +58,13 @@ class GaiaImageCompareTestCase(GaiaTestCase):
             settings['language.current'] = self.locale
         return settings
 
-    def take_screenshot(self,page_name = None):
+    def take_screenshot(self,page_name=None, prewait=0):
         """
         invokes screen capture event, crops the status bar, and saves to the file
         page_name: a (optional) name that is given to the screenshot image file
         """
-
+        if prewait > 0:
+            time.sleep(prewait)
         # if the status bar is visible, crop it off
         current_frame = self.marionette.get_active_frame()
         self.marionette.switch_to_frame()

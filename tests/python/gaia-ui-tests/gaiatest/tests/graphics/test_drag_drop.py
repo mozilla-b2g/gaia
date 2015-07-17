@@ -19,7 +19,6 @@ class testDragDrop(GaiaImageCompareTestCase):
 
     def test_drag_drop(self):
 
-        self.take_screenshot()
         self.homescreen.wait_for_number_of_apps(1)
 
         # Assert that we are not in edit mode.

@@ -38,23 +38,32 @@ class TestCalendar(GaiaImageCompareTestCase):
 
         calendar.tap_week_display_button()
         self.take_screenshot()
-        self.scroll(calendar._week_view_locator, 'down', 300)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down',
+                                        300, locator=calendar._week_view_locator)
         self.take_screenshot()
-        self.scroll(calendar._week_view_locator, 'up', 300)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'up',
+                                        300, locator=calendar._week_view_locator)
         self.take_screenshot()
-        self.scroll(calendar._week_view_locator, 'right', 100)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'right',
+                                        100, locator=calendar._week_view_locator)
         self.take_screenshot()
-        self.scroll(calendar._week_view_locator, 'left', 100)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'left',
+                                        100, locator=calendar._week_view_locator)
         self.take_screenshot()
 
         calendar.tap_day_display_button()
         self.take_screenshot()
-        self.scroll(calendar._day_view_locator, 'down', 300)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down',
+                                        300, locator=calendar._day_view_locator)
         self.take_screenshot()
-        self.scroll(calendar._day_view_locator, 'up', 300)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'up',
+                                        300, locator=calendar._day_view_locator)
         self.take_screenshot()
-        self.scroll(calendar._day_view_locator, 'right', 100)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'right',
+                                        100, locator=calendar._day_view_locator)
         self.take_screenshot()
-        self.scroll(calendar._day_view_locator, 'left', 100)
-        self.scroll(calendar._day_view_locator, 'left', 100)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'left',
+                                        100, locator=calendar._day_view_locator)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'left',
+                                        100, locator=calendar._day_view_locator)
         self.take_screenshot()

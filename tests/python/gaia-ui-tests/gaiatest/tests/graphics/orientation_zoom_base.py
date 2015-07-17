@@ -8,7 +8,6 @@ from marionette_driver import By
 
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.gallery.app import Gallery
-from gaiatest.apps.search.app import Search
 
 
 class OrientationZoomBase(GaiaImageCompareTestCase):
@@ -42,10 +41,13 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
         # scroll back and forth in different display mode
         self.change_orientation('landscape-primary')
         self.take_screenshot()
-        self.scroll(image._current_image_locator, 'right', 400)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'right',
+                                        400, locator=image._current_image_locator)
+
         self.change_orientation('portrait-primary')
         self.take_screenshot()
-        self.scroll(image._current_image_locator, 'left', 400)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'left',
+                                        400, locator=image._current_image_locator)
 
         # flip A LOT
         for x in range(0, 4):
@@ -53,47 +55,29 @@ class OrientationZoomBase(GaiaImageCompareTestCase):
             self.change_orientation('portrait-primary')
         self.take_screenshot()
 
-        # do pinch zoom while filpping the phone
-        self.pinch(image._current_frame_locator, 'in', 20)
+        # do pinch zoom while flipping the phone
+        GaiaImageCompareTestCase.pinch(self.marionette, image._current_frame_locator, 'in', 20)
+
         self.take_screenshot()
-        self.scroll(image._current_frame_locator, 'right', 300)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'right',
+                                        300, locator=image._current_image_locator)
         self.take_screenshot()
         self.change_orientation('landscape-primary')
-        self.pinch(image._current_frame_locator, 'out', 50)
+        GaiaImageCompareTestCase.pinch(self.marionette, image._current_frame_locator, 'out', 50)
         self.take_screenshot()
         self.change_orientation('portrait-primary')
 
         image.double_tap_image()
-        self.take_screenshot()
+        self.take_screenshot(prewait=3) #takes time for zoom-in action to complete
 
         # go back and forth with flicking then exit gallery app
-        self.scroll(image._current_frame_locator, 'right', 150)
-        self.take_screenshot()
-        self.scroll(image._current_frame_locator, 'left', 150)
-        self.take_screenshot()
-        self.apps.kill(gallery.app)
-        time.sleep(2)
-        self.take_screenshot()
+        GaiaImageCompareTestCase.scroll(self.marionette, 'right',
+                                        150, locator=image._current_frame_locator)
 
-        # Launch browser.  Go to Mozilla FirefoxOS site
-        # Scroll up/down, change orientation, scroll up/down
-        # commented out due to bug 1127324
-
-        # search = Search(self.marionette)
-        # search.launch()
-        # browser = search.go_to_url('http://mozilla.org/firefoxos')
-        # browser.wait_for_page_to_load()
-        # browser.switch_to_content()
-        #
-        # self.take_screenshot()
-        # self.marionette.switch_to_frame()
-        # self.scroll(browser._browser_frame_locator, 'up', 400)
-        # self.take_screenshot()
-        # self.change_orientation('landscape-primary')
-        # self.scroll(browser._browser_frame_locator, 'down', 300)
-        # self.take_screenshot()
-        # self.scroll(browser._browser_frame_locator, 'down', 300)
-        # self.take_screenshot()
+        self.take_screenshot()
+        GaiaImageCompareTestCase.scroll(self.marionette, 'left',
+                                        150, locator=image._current_frame_locator)
+        self.take_screenshot()
 
     # take screenshot and pause, otherwise there will be a collision
     def change_orientation(self, orientation, wait=2):

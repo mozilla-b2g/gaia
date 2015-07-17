@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 
@@ -18,7 +20,8 @@ class TestHomescreenChangeWallpaper(GaiaImageCompareTestCase):
         https://moztrap.mozilla.org/manage/case/1902/
         reusing /functional/homescreen/test_homescreen_change_wallpaper.py script
         """
-
+        # wait until the homescreen is fully drawn
+        time.sleep(3)
         self.take_screenshot()
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
