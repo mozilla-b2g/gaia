@@ -11,7 +11,7 @@ class TestSettingsDeviceInfo(GaiaTestCase):
     def test_that_device_info_is_populated(self):
         settings = Settings(self.marionette)
         settings.launch()
-        device_info = settings.open_device_info_settings()
+        device_info = settings.open_device_info()
 
         # devices without sim cards have no phone number
         if self.environment.phone_numbers:

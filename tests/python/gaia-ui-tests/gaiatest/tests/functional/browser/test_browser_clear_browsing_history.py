@@ -35,7 +35,7 @@ class TestBrowserClearHistory(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        browsing_privacy = settings.open_browsing_privacy_settings()
+        browsing_privacy = settings.open_browsing_privacy()
 
         browsing_privacy.tap_clear_browsing_history()
         browsing_privacy.tap_clear()

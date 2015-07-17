@@ -22,7 +22,7 @@ class TestSettingsDoNotTrack(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        do_not_track_settings = settings.open_do_not_track_settings()
+        do_not_track_settings = settings.open_do_not_track()
 
         # turn to "disallow tracking"
         do_not_track_settings.tap_disallow_tracking()

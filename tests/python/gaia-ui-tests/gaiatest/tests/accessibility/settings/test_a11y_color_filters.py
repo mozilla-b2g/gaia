@@ -21,7 +21,7 @@ class TestColorFiltersAccessibility(GaiaTestCase):
         self.settings.launch()
 
     def test_a11y_color_filters(self):
-        accessibility_settings = self.settings.a11y_open_accessibility_settings()
+        accessibility_settings = self.settings.open_accessibility()
         colors_settings = accessibility_settings.a11y_open_color_settings()
 
         # make sure the actual settings are hidden

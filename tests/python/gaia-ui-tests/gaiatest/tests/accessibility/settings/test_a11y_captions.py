@@ -18,7 +18,7 @@ class TestCaptionsAccessibility(GaiaTestCase):
         self.settings.launch()
 
     def test_a11y_captions(self):
-        accessibility_settings = self.settings.a11y_open_accessibility_settings()
+        accessibility_settings = self.settings.open_accessibility()
         screenreader_settings = accessibility_settings.a11y_open_screenreader_settings()
 
         # Captions should be invisible when screen reader is disabled

@@ -15,7 +15,7 @@ class TestBatteryPowerSaveMode(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        battery_settings = settings.open_battery_settings()
+        battery_settings = settings.open_battery()
 
         # Asserting as a integer because this is how it's defined in the default value file.
         self.assertEqual(self.data_layer.get_setting('powersave.threshold'), -1)
