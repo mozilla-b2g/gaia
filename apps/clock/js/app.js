@@ -4,7 +4,6 @@ define(function(require) {
 var Tabs = require('tabs');
 var View = require('view');
 var connectionHandler = require('connection/handler');
-var rAF = mozRequestAnimationFrame || requestAnimationFrame;
 
 /**
  * Global Application event handling and paging
@@ -112,7 +111,7 @@ var App = {
           instance.visible = true;
           if (currentIndex !== -1 && currentIndex !== panelIndex) {
             var direction = currentIndex < panelIndex;
-            rAF(function startAnimation(oldPanel) {
+            requestAnimationFrame(function startAnimation(oldPanel) {
               instance.transition =
                 direction ? 'slide-in-right' : 'slide-in-left';
 

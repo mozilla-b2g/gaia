@@ -3296,7 +3296,6 @@ function copyTempDouble(ptr) {
       },requestAnimationFrame:function (func) {
         if (!window.requestAnimationFrame) {
           window.requestAnimationFrame = window['requestAnimationFrame'] ||
-                                         window['mozRequestAnimationFrame'] ||
                                          window['webkitRequestAnimationFrame'] ||
                                          window['msRequestAnimationFrame'] ||
                                          window['oRequestAnimationFrame'] ||
