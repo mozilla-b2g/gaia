@@ -19,8 +19,8 @@ window.GaiaSwitch = (function(win) {
       this._input.checked = true;
     }
 
-    var label = this._template.getElementById('switch-label');
-    label.addEventListener('click', this.handleClick.bind(this));
+    var wrapper = this._template.getElementById('switch');
+    wrapper.addEventListener('click', this.handleClick.bind(this));
 
     shadow.appendChild(this._template);
 
@@ -111,10 +111,10 @@ window.GaiaSwitch = (function(win) {
   // hack until we can import entire custom-elements
   // using HTML Imports (bug 877072).
   var template = document.createElement('template');
-  template.innerHTML = `<label id="switch-label" class="pack-switch">
+  template.innerHTML = `<span id="switch">
       <input type="checkbox">
       <span><content select="label"></content></span>
-    </label>`;
+    </span>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-switch', { prototype: proto });

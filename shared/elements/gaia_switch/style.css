@@ -1,37 +1,33 @@
-/* ----------------------------------
- * SWITCHES
- * ---------------------------------- */
-
 gaia-switch {
   display: inline-block;
   width: 100%;
 }
 
-label.pack-switch {
+#switch {
   display: inline-block;
   vertical-align: middle;
   width: 100%;
-  height: 5rem;
   position: relative;
   background: none;
 }
 
-label.pack-switch span {
+#switch span {
   float: left;
   font-size: 1.9rem;
   color: #000;
-  padding: 1rem 0 0;
-  height: 6rem;
+  padding: 1rem 0;
   line-height: 3rem;
   box-sizing: border-box;
   display: block;
+  /* Override inheriting nowrap from legacy lists building blocks. */
+  white-space: normal;
 }
 
-label.pack-switch span:not(:empty) {
+#switch span:not(:empty) {
   -moz-padding-end: 6rem;
 }
 
-label.pack-switch input {
+#switch input {
   margin: 0;
   opacity: 0;
   position: absolute;
@@ -39,7 +35,7 @@ label.pack-switch input {
   left: 0;
 }
 
-label.pack-switch input:checked ~ span:after {
+#switch input:checked ~ span:after {
   background-position: center bottom;
 }
 
@@ -47,7 +43,7 @@ label.pack-switch input:checked ~ span:after {
  * ON/OFF SWITCHES
  * ---------------------------------- */
 
-label.pack-switch input ~ span:after {
+#switch input ~ span:after {
   content: '';
   position: absolute;
   right: 0;
@@ -62,16 +58,16 @@ label.pack-switch input ~ span:after {
 }
 
 /* switch: 'ON' state */
-label.pack-switch input:checked ~ span:after {
+#switch input:checked ~ span:after {
   background: #e6e6e6 url(images/background.png) no-repeat 0 0 / 9.2rem 2.7rem;
 }
 
 /* switch: disabled state */
-label.pack-switch input:disabled ~ span:after {
+#switch input:disabled ~ span:after {
   opacity: 0.4;
 }
 
-label.pack-switch input.uninit ~ span:after {
+#switch input.uninit ~ span:after {
   transition: none;
 }
 
@@ -79,16 +75,16 @@ label.pack-switch input.uninit ~ span:after {
  * Right-To-Left tweaks
  */
 
-label[dir="rtl"].pack-switch span {
+span[dir="rtl"]#switch span {
   float: right;
 }
 
-label[dir="rtl"].pack-switch input {
+span[dir="rtl"]#switch input {
   left: unset;
   right: 0;
 }
 
-label[dir="rtl"].pack-switch input ~ span:after {
+span[dir="rtl"]#switch input ~ span:after {
   left: 0;
   right: unset;
 }

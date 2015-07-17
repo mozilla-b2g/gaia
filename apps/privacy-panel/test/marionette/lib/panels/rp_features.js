@@ -106,7 +106,7 @@ AlaMainPanel.prototype = {
   },
 
   tapOnLocate: function() {
-    this.client.findElement(this.selectors.locateLabel).click();
+    this.client.findElement(this.selectors.locateLabel).tap();
   }
 
 };
