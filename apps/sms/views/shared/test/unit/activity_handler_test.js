@@ -5,6 +5,7 @@
          MockNavigatorWakeLock,
          MockMessages, MockL10n, MockSilentSms,
          Settings,
+         SMIL,
          Utils,
          ActivityShim,
          ActivityClient,
@@ -36,6 +37,7 @@ require('/views/shared/test/unit/mock_settings.js');
 require('/views/shared/test/unit/mock_notify.js');
 require('/views/shared/test/unit/mock_navigation.js');
 require('/views/shared/test/unit/mock_silent_sms.js');
+require('/views/shared/test/unit/mock_smil.js');
 
 require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
@@ -52,6 +54,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Settings',
   'SettingsURL',
   'SilentSms',
+  'SMIL',
   'Threads',
   'ConversationView',
   'Utils',
@@ -522,6 +525,59 @@ suite('ActivityHandler', function() {
           { raw: 'sender' }
         );
       });
+    });
+  });
+
+  suite('mms received', function() {
+    function simulateMessageReceived(message) {
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+      return MockSilentSms.checkSilentModeFor.lastCall.returnValue.then(
+        () => MockNavigatormozApps.mTriggerLastRequestSuccess()
+      );
+    }
+
+    setup(function() {
+      var notificationStub = sinon.stub({
+        addEventListener: () => {},
+        close: () => {}
+      });
+
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor').returns(
+        Promise.resolve(false)
+      );
+      this.sinon.stub(NotificationHelper, 'send').returns(notificationStub);
+    });
+
+    test('MMS without subject nor text', function(done) {
+      var message = MockMessages.mms();
+      simulateMessageReceived(message).then(() => {
+        sinon.assert.calledWithMatch(
+          NotificationHelper.send,
+          sinon.match.string, { body: 'mms-messageundefined' }
+        );
+      }).then(done, done);
+    });
+
+    test('MMS with subject', function(done) {
+      var message = MockMessages.mms({ subject: 'subject' });
+      simulateMessageReceived(message).then(() => {
+        sinon.assert.calledWithMatch(
+          NotificationHelper.send,
+          sinon.match.string, { body: 'subject' }
+        );
+      }).then(done, done);
+    });
+
+    test('MMS with text', function(done) {
+      var message = MockMessages.mms();
+      SMIL.mParsed = [{ text: 'some text' }];
+
+      simulateMessageReceived(message).then(() => {
+        sinon.assert.calledWithMatch(
+          NotificationHelper.send,
+          sinon.match.string, { body: 'some text' }
+        );
+      }).then(done, done);
     });
   });
 

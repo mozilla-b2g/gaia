@@ -1,6 +1,3 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /*global SMIL, MocksHelper,
          AssetsHelper,
          Promise
@@ -68,15 +65,13 @@ suite('SMIL', function() {
           {content: new Blob([text[1]], {type: 'text/plain'})}
         ]
       };
-      SMIL.parse(messageData, function(output) {
-        done(() => {
-          // one slide for each attachment is returned
-          assert.equal(output.length, 2);
-          // the text has not been joined in one slide
-          assert.equal(output[0].text, text[0]);
-          assert.equal(output[1].text, text[1]);
-        });
-      });
+      SMIL.parse(messageData).then((output) => {
+        // one slide for each attachment is returned
+        assert.equal(output.length, 2);
+        // the text has not been joined in one slide
+        assert.equal(output[0].text, text[0]);
+        assert.equal(output[1].text, text[1]);
+      }).then(done, done);
     });
     test('Text and image message without smil', function(done) {
       var text = ['Test above image', 'Text below image'];
@@ -90,18 +85,16 @@ suite('SMIL', function() {
           {content: new Blob([text[1]], {type: 'text/plain'})},
         ]
       };
-      SMIL.parse(messageData, function(output) {
-        done(() => {
-          // three slides returned
-          assert.equal(output.length, 3);
-          // the order of the attached components should be respected, the text
-          // is located on two different slides (not joined)
-          assert.equal(output[0].text, text[0]);
-          assert.equal(output[1].blob, testImageBlob);
-          assert.equal(output[1].name, 'example.jpg');
-          assert.equal(output[2].text, text[1]);
-        });
-      });
+      SMIL.parse(messageData).then((output) => {
+        // three slides returned
+        assert.equal(output.length, 3);
+        // the order of the attached components should be respected, the text
+        // is located on two different slides (not joined)
+        assert.equal(output[0].text, text[0]);
+        assert.equal(output[1].blob, testImageBlob);
+        assert.equal(output[1].name, 'example.jpg');
+        assert.equal(output[2].text, text[1]);
+      }).then(done, done);
     });
 
     test('Image only message without smil', function(done) {
@@ -114,19 +107,14 @@ suite('SMIL', function() {
           }
         ]
       };
-      var stub = sinon.stub();
-      SMIL.parse(messageData, function(output) {
-        done(() => {
-          // one slide returned
-          assert.equal(output.length, 1);
-          // no text in this slide !
-          assert.ok(!output[0].text);
-          assert.equal(output[0].blob, testImageBlob);
-          assert.equal(output[0].name, 'example.jpg');
-          sinon.assert.called(stub);
-        });
-      });
-      stub();
+      SMIL.parse(messageData).then((output) => {
+        // one slide returned
+        assert.equal(output.length, 1);
+        // no text in this slide !
+        assert.ok(!output[0].text);
+        assert.equal(output[0].blob, testImageBlob);
+        assert.equal(output[0].name, 'example.jpg');
+      }).then(done, done);
     });
 
     test('Minimal SMIL doc', function(done) {
@@ -142,13 +130,11 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[0].blob, testImageBlob);
-          assert.equal(output[0].name, 'example.jpg');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[0].blob, testImageBlob);
+        assert.equal(output[0].name, 'example.jpg');
+      }).then(done, done);
     });
     test('SMIL doc with 2 text only slides', function(done) {
       var text = ['Test slide 1', 'Test slide 2'];
@@ -165,13 +151,11 @@ suite('SMIL', function() {
           content: new Blob([text[1]], {type: 'text/plain'})
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output.length, 2);
-          assert.equal(output[0].text, text[0]);
-          assert.equal(output[1].text, text[1]);
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output.length, 2);
+        assert.equal(output[0].text, text[0]);
+        assert.equal(output[1].text, text[1]);
+      }).then(done, done);
     });
     test('SMIL doc with cid: prefixes on src', function(done) {
       var testText = 'Testing 1 2 3';
@@ -187,13 +171,11 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[0].blob, testImageBlob);
-          assert.equal(output[0].name, 'example.jpg');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[0].blob, testImageBlob);
+        assert.equal(output[0].name, 'example.jpg');
+      }).then(done, done);
     });
     test('SMIL doc with cid: prefixes on src and no location', function(done) {
       // iphone!
@@ -210,13 +192,11 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[1].blob, testImageBlob);
-          assert.isUndefined(output[1].name, 'name is undefined');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[1].blob, testImageBlob);
+        assert.isUndefined(output[1].name, 'name is undefined');
+      }).then(done, done);
     });
     test('SMIL doc with cid: prefixes on src pointing to ids', function(done) {
       var testText = 'Testing 1 2 3';
@@ -233,13 +213,11 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[0].blob, testImageBlob);
-          assert.equal(output[0].name, 'example.jpg');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[0].blob, testImageBlob);
+        assert.equal(output[0].name, 'example.jpg');
+      }).then(done, done);
     });
 
     test('SMIL doc with bad cid: references', function(done) {
@@ -257,13 +235,11 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[1].blob, testImageBlob);
-          assert.equal(output[1].name, 'example.jpg');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[1].blob, testImageBlob);
+        assert.equal(output[1].name, 'example.jpg');
+      }).then(done, done);
     });
 
     suite('SMIL doc: audio and image on same <par>', function() {
@@ -289,10 +265,9 @@ suite('SMIL', function() {
             content: testImageBlob
           }]
         };
-        SMIL.parse(message, function(output) {
+        SMIL.parse(message).then((output) => {
           result = output;
-          done();
-        });
+        }).then(done, done);
       });
       test('Results in two "slides"', function() {
         assert.equal(result.length, 2);
@@ -328,13 +303,11 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[1].blob, testImageBlob);
-          assert.equal(output[1].name, 'example.jpg');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[1].blob, testImageBlob);
+        assert.equal(output[1].name, 'example.jpg');
+      }).then(done, done);
     });
 
     test('empty SMIL doc with attachments and no location', function(done) {
@@ -349,13 +322,11 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[1].blob, testImageBlob);
-          assert.isUndefined(output[1].name, 'name is undefined');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[1].blob, testImageBlob);
+        assert.isUndefined(output[1].name, 'name is undefined');
+      }).then(done, done);
     });
 
     test('Type of attachment is WBMP format', function(done) {
@@ -367,12 +338,10 @@ suite('SMIL', function() {
           content: testWbmpBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].blob.type, 'image/png');
-          assert.equal(output[0].name, 'grid.png');
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].blob.type, 'image/png');
+        assert.equal(output[0].name, 'grid.png');
+      }).then(done, done);
     });
 
     suite('Type of attachment is vcard format', function() {
@@ -395,13 +364,11 @@ suite('SMIL', function() {
                 '</par></body></smil>',
           attachments: attachments
         };
-        SMIL.parse(message, function(output) {
-          done(() => {
-            assert.equal(output[0].blob, testContactBlob);
-            assert.equal(output[0].name, 'contacts.vcf');
-            assert.isUndefined(output[0].text);
-          });
-        });
+        SMIL.parse(message).then((output) => {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.isUndefined(output[0].text);
+        }).then(done, done);
       });
 
       test('contact with text', function(done) {
@@ -411,26 +378,22 @@ suite('SMIL', function() {
                 '<ref src="contacts.vcf"/></par></body></smil>',
           attachments: attachments
         };
-        SMIL.parse(message, function(output) {
-          done(() => {
-            assert.equal(output[0].blob, testContactBlob);
-            assert.equal(output[0].name, 'contacts.vcf');
-            assert.equal(output[0].text, 'test Text');
-          });
-        });
+        SMIL.parse(message).then((output) => {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.equal(output[0].text, 'test Text');
+        }).then(done, done);
       });
 
       test('contact attachment with no smil', function(done) {
         var message = {
           attachments: attachments
         };
-        SMIL.parse(message, function(output) {
-          done(() => {
-            assert.equal(output[0].blob, testContactBlob);
-            assert.equal(output[0].name, 'contacts.vcf');
-            assert.isUndefined(output[0].text);
-          });
-        });
+        SMIL.parse(message).then((output) => {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.isUndefined(output[0].text);
+        }).then(done, done);
       });
 
       test('contact attachment/text with no smil', function(done) {
@@ -438,13 +401,11 @@ suite('SMIL', function() {
         var message = {
           attachments: attachments
         };
-        SMIL.parse(message, function(output) {
-          done(() => {
-            assert.equal(output[0].blob, testContactBlob);
-            assert.equal(output[0].name, 'contacts.vcf');
-            assert.equal(output[1].text, 'test Text');
-          });
-        });
+        SMIL.parse(message).then((output) => {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.equal(output[1].text, 'test Text');
+        }).then(done, done);
       });
     });
 
@@ -463,12 +424,10 @@ suite('SMIL', function() {
           content: testImageBlob
         }]
       };
-      SMIL.parse(message, function(output) {
-        done(() => {
-          assert.equal(output[0].text, testText);
-          assert.equal(output[1].blob, testImageBlob);
-        });
-      });
+      SMIL.parse(message).then((output) => {
+        assert.equal(output[0].text, testText);
+        assert.equal(output[1].blob, testImageBlob);
+      }).then(done, done);
     });
   });
   suite('SMIL.generate', function() {

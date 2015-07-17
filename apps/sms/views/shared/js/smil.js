@@ -1,6 +1,3 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /*global Utils, WBMP, TextEncoder */
 
 (function() {
@@ -176,49 +173,42 @@ window.SMIL = {
   // message.attachments[].content = blob
   // message.attachments[].location = src attr in smil
 
-  // callback(parsedArray):
+  // Promise.resolve(parsedArray):
   // parsedArray = []
   // parsedArray[].text = 'plain text'
   // parsedArray[].name = name of key
   // parsedArray[].blob = data blob
 
-  parse: function SMIL_parse(message, callback) {
+  parse: function SMIL_parse(message) {
     var smil = message.smil;
     var attachments = message.attachments;
     var slides = [];
-    var activeReaders = 0;
     var attachmentsNotFound = false;
     var smilMismatched = false;
     var doc;
     var parTags;
 
-    function readTextBlob(blob, callback) {
-
+    function readTextBlob(blob) {
       // short circuit on null blobs
       if (!blob) {
-        return callback('');
+        return Promise.resolve('');
       }
+
+      var defer = Utils.Promise.defer();
 
       var textReader = new FileReader();
       textReader.onload = function(event) {
-        activeReaders--;
-        callback(event, event.target.result);
+        defer.resolve(event.target.result);
       };
       textReader.onerror = function(event) {
         console.error('Error reading text blob');
-        activeReaders--;
-        callback(event, '');
+        defer.resolve('');
       };
-      activeReaders++;
 
       // The text blob must be encoded as 'utf-8' by Gecko.
       textReader.readAsText(blob, 'UTF-8');
-    }
 
-    function exitPoint() {
-      if (!activeReaders) {
-        setTimeout(callback.bind(null, slides));
-      }
+      return defer.promise;
     }
 
     function findAttachment(name) {
@@ -238,23 +228,24 @@ window.SMIL = {
     }
 
     function convertWbmpToPng(slide) {
+      var defer = Utils.Promise.defer();
+
       var reader;
       slide.name = slide.name.slice(0, -5) + '.png';
       reader = new FileReader();
       reader.onload = function(event) {
         WBMP.decode(event.target.result, function callback(blob) {
-          activeReaders--;
           slide.blob = blob;
-          exitPoint();
+          defer.resolve();
         });
       };
       reader.onerror = function(event) {
-        activeReaders--;
         console.error('Error reading text blob');
-        exitPoint();
+        defer.resolve();
       };
-      activeReaders++;
       reader.readAsArrayBuffer(slide.blob);
+
+      return defer.promise;
     }
 
     // handle mms messages without smil
@@ -262,28 +253,32 @@ window.SMIL = {
     function SMIL_parseWithoutSMIL(attachment, idx) {
       var blob = attachment.content;
       if (!blob) {
-        return;
+        return Promise.resolve();
       }
+
+      var result;
+
       var type = Utils.typeFromMimeType(blob.type);
 
       // handle text blobs (plain text blob only) by reading them and
       // converting to text on the last slide
       if (type === 'text' && blob.type === 'text/plain') {
-        readTextBlob(blob, function SMIL_parseAttachmentRead(event, text) {
+        result = readTextBlob(blob).then((text) => {
           slides[idx] = {
             text: text
           };
-          exitPoint();
         });
 
       // make sure the type was something we want, otherwise ignore it
       } else if (type) {
         var slide = { name: attachment.location, blob: attachment.content };
         if (slide.name && slide.name.slice(-5) === '.wbmp') {
-          convertWbmpToPng(slide);
+          result = convertWbmpToPng(slide);
         }
         slides[idx] = slide;
       }
+
+      return result || Promise.resolve();
     }
 
     function SMIL_parseHandleParTag(par, index) {
@@ -296,7 +291,9 @@ window.SMIL = {
       var textElement = par.querySelector('text');
       var attachment, src;
 
-      Array.prototype.forEach.call(mediaElements, function setSlide(element) {
+      var promises = Array.from(mediaElements).map((element) => {
+        var result;
+
         var slide = {};
         src = element.getAttribute('src');
         attachment = findAttachment(src);
@@ -305,11 +302,13 @@ window.SMIL = {
           slide = { name: attachment.location, blob: attachment.content };
           slides.push(slide);
           if (slide.name && slide.name.slice(-5) === '.wbmp') {
-            convertWbmpToPng(slide);
+            result = convertWbmpToPng(slide);
           }
         } else {
           attachmentsNotFound = true;
         }
+
+        return result || Promise.resolve();
       });
 
       if (textElement) {
@@ -332,17 +331,20 @@ window.SMIL = {
 
           // read the text blob, and store it in the "slide" this function
           // will hold onto
-          readTextBlob(attachment.content,
-            function SMIL_parseSMILAttachmentRead(event, text) {
-              slide.text = text;
-              exitPoint();
-            }
+          promises.push(
+            readTextBlob(attachment.content).then(
+              (text) => slide.text = text
+            )
           );
         } else {
           attachmentsNotFound = true;
         }
       }
+
+      return Promise.all(promises);
     }
+
+    var result;
 
     // handle MMS messages with SMIL
     if (smil) {
@@ -357,7 +359,7 @@ window.SMIL = {
       if (elements !== attachments.length) {
         smilMismatched = true;
       } else {
-        Array.prototype.forEach.call(parTags, SMIL_parseHandleParTag);
+        result = Promise.all(Array.from(parTags).map(SMIL_parseHandleParTag));
       }
     }
 
@@ -365,9 +367,10 @@ window.SMIL = {
     if (!smil || attachmentsNotFound || !slides.length || smilMismatched) {
       // reset slides in the attachments not found case
       slides = Array(attachments.length);
-      attachments.forEach(SMIL_parseWithoutSMIL);
+      result = Promise.all(attachments.map(SMIL_parseWithoutSMIL));
     }
-    exitPoint();
+
+    return (result || Promise.resolve()).then(() => slides);
   },
 
   // SMIL.generate - takes a array with slides and return smil string and

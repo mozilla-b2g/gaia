@@ -356,9 +356,7 @@ var ActivityHandler = {
             return Promise.resolve(message.subject);
           }
 
-          var defer = Utils.Promise.defer();
-
-          SMIL.parse(message, function slideCb(slideArray) {
+          return SMIL.parse(message).then((slideArray) => {
             var text, slidesLength = slideArray.length;
             for (var i = 0; i < slidesLength; i++) {
               if (!slideArray[i].text) {
@@ -369,10 +367,8 @@ var ActivityHandler = {
               break;
             }
 
-            defer.resolve(text || formatValue('mms-message'));
+            return text || formatValue('mms-message');
           });
-
-          return defer.promise;
         }
 
         return Contacts.findByAddress(message.sender).then(function(contacts) {
