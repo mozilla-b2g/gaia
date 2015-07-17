@@ -26,6 +26,7 @@
     "apps/email/test/marionette/send_imap_email_test.js": "Bug 975588 - Re-enable email marionette js tests",
     "apps/ftu/test/marionette/statusbar_test.js": "Bug 1117976 - Intermittent statusbar_test.js | First Time Use > statusbar icons should change",
     "apps/ringtones/test/marionette/manage_test.js": "Bug 1037716 - Disable intermittent test after TC change.",
+    "apps/search/test/marionette/places_search_test.js": "Bug 1180068 - Intermittent | Places tests Test url searching",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
