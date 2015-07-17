@@ -31,7 +31,7 @@ definitions:
   eslint:
 
   marionette_js_tests:
-    chunks: 30
+    chunks: 40
 
   marionette_js_tv_tests:
 
