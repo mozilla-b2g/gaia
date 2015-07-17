@@ -32,7 +32,7 @@ class BugzillaLite(Base):
 
     @property
     def is_logged_in(self):
-        self.wait_for_dashboard_navigator_to_be_displayed()
+        self.wait_for_dashboard_login_to_be_displayed()
         return True
 
     def wait_for_dashboard_login_to_be_displayed(self):
