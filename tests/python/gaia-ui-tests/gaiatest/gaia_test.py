@@ -1154,14 +1154,17 @@ class PasscodeTestCase(GaiaTestCase):
         SET_DIGEST_ITERATIONS = 'lockscreen.passcode-lock.digest.iterations'
         SET_DIGEST_ALGORITHM = 'lockscreen.passcode-lock.digest.algorithm'
 
-        digestNums = [195, 174, 33, 98, 39, 43, 135, 112,
-                      126, 176, 82, 150, 236, 112, 87, 54,
-                      96, 60, 208, 18, 86, 178, 19, 20,
-                      129, 91, 168, 134, 241, 138, 59, 210]
-
         settings = {}
-        settings[SET_DIGEST_VALUE] = digestNums
-        settings[SET_DIGEST_SALT] = [4, 8, 15, 16, 23, 42, 108, 0]
+        # ArrayBuffers are represented as objects keys from 0 to n-1.
+        # The passcode is stored using PBKDF2 with a non-deterministic salt.
+        # These values are the result of a pre-computation of PBKDF2 with the given salt,
+        # 1000 iterations of SHA-1 and the passcode "1337".
+        settings[SET_DIGEST_VALUE] = {"0": 119, "1": 161, "2": 123, "3": 75, "4": 210,
+                                      "5": 67, "6": 1, "7": 189, "8": 48, "9": 33, "10": 242,
+                                      "11": 167, "12": 140, "13": 241, "14": 255,
+                                      "15": 39, "16": 5, "17": 23, "18": 43, "19": 150}
+        settings[SET_DIGEST_SALT] = {"0": 89, "1": 203, "2": 232, "3": 38,
+                                     "4": 249, "5": 94, "6": 109, "7": 54}
         settings[SET_DIGEST_ITERATIONS] = 1000
         settings[SET_DIGEST_ALGORITHM] = 'SHA-1'
 
