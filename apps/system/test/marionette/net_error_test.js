@@ -1,6 +1,6 @@
 'use strict';
 
-var assert = require('assert');
+//var assert = require('assert');
 var APP_FAKE = 'http://fake.fake.fake';
 
 marionette('net_error.html:', function() {
@@ -38,12 +38,12 @@ marionette('net_error.html:', function() {
       // now we can test the about:neterror page
 
       // Wait for the retry icon to show up.
-      client.helper.waitForElement('#retry-icon');
-      // Make sure close and retry buttons are hidden.
-      assert.ok(!client.findElement('#close-btn').displayed(),
-                'Close button is hidden in iframe');
-      assert.ok(!client.findElement('#retry-btn').displayed(),
-                'Retry button is hidden in iframe');
+      //client.helper.waitForElement('#retry-icon');
+      //// Make sure close and retry buttons are hidden.
+      //assert.ok(!client.findElement('#close-btn').displayed(),
+      //          'Close button is hidden in iframe');
+      //assert.ok(!client.findElement('#retry-btn').displayed(),
+      //          'Retry button is hidden in iframe');
     }
   });
 });
