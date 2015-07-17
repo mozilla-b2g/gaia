@@ -17,7 +17,7 @@ class TestWallpaper(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        display_settings = settings.open_display_settings()
+        display_settings = settings.open_display()
 
         self._default_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
 

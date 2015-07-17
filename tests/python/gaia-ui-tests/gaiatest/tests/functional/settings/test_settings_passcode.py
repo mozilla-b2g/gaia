@@ -15,7 +15,7 @@ class TestSettingsPasscode(GaiaTestCase):
     def test_set_passcode_by_settings(self):
         settings = Settings(self.marionette)
         settings.launch()
-        screen_lock_settings = settings.open_screen_lock_settings()
+        screen_lock_settings = settings.open_screen_lock()
 
         screen_lock_settings.enable_lockscreen()
         screen_lock_settings.enable_passcode_lock()

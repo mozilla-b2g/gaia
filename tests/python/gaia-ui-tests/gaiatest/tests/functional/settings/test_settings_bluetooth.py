@@ -22,7 +22,7 @@ class TestBluetoothSettings(GaiaTestCase):
 
         self.assertFalse(self.data_layer.bluetooth_is_enabled)
 
-        bluetooth_settings = settings.open_bluetooth_settings()
+        bluetooth_settings = settings.open_bluetooth()
         bluetooth_settings.enable_bluetooth()
 
         self.assertTrue(self.data_layer.bluetooth_is_enabled)

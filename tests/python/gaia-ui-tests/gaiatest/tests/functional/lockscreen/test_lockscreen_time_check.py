@@ -23,7 +23,7 @@ class TestLockScreen(GaiaTestCase):
 
         self.settings = Settings(self.marionette)
         self.settings.launch()
-        datetime_setting = self.settings.open_date_and_time_settings()
+        datetime_setting = self.settings.open_date_and_time()
         old_time = datetime_setting.get_current_time_datetime
 
         # Auto time update is by default set to true, turn it off to make region change

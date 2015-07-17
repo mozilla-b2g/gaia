@@ -24,7 +24,7 @@ class TestChangeLanguage(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        language_settings = settings.open_language_settings()
+        language_settings = settings.open_language()
         language_settings.select_language(lang_name)
         Wait(self.marionette).until(
             lambda m: language_settings.current_language == 'qps-ploc')

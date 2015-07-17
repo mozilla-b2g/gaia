@@ -25,7 +25,7 @@ class TestChangeSimManager(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        sim_manager_settings = settings.open_sim_manager_settings()
+        sim_manager_settings = settings.open_sim_manager()
 
         sim_manager_settings.select_outgoing_calls(default_sim_option)
         sim_manager_settings.select_outgoing_messages(default_sim_option)

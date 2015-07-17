@@ -48,7 +48,7 @@ class TestMusicShareRingtone(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        sound = settings.open_sound_settings()
+        sound = settings.open_sound()
 
         # desktop b2g doesn't have this option visible, see bug 1130538
         if sound.ring_tone_selector_visible:

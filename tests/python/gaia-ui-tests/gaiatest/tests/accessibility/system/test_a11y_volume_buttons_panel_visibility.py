@@ -27,7 +27,7 @@ class TestVolumeButtonsAccessibility(GaiaTestCase):
 
     def test_a11y_volume_buttons(self):
         # Open accessibility settings panel
-        accessibility_settings = self.settings.a11y_open_accessibility_settings()
+        accessibility_settings = self.settings.open_accessibility()
 
         # Panel should not be visible by default
         self.assertFalse(self.data_layer.get_setting(

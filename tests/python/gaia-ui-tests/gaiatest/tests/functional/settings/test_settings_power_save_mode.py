@@ -21,7 +21,7 @@ class TestPowerSaveMode(GaiaTestCase):
         settings.launch()
 
         # Tap on Battery menu item.
-        battery_settings = settings.open_battery_settings()
+        battery_settings = settings.open_battery()
         battery_settings.toggle_power_save_mode()
 
         # Wait for Cell Data to be disabled.

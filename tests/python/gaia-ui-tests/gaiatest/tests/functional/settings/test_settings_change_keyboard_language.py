@@ -18,7 +18,7 @@ class TestChangeKeyboardLanguage(GaiaTestCase):
     def test_change_keyboard_language_settings(self):
         settings = Settings(self.marionette)
         settings.launch()
-        keyboard_settings = settings.open_keyboard_settings()
+        keyboard_settings = settings.open_keyboard()
 
         # Tap 'add more keyboards' button
         add_more_keyboards = keyboard_settings.tap_add_more_keyboards()

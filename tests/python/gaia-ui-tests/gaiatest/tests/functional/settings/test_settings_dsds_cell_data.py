@@ -19,7 +19,7 @@ class TestDSDSCellData(GaiaTestCase):
         settings.launch()
 
         # Open cell data settings
-        cell_and_data_settings = settings.open_cell_and_data_settings()
+        cell_and_data_settings = settings.open_cell_and_data()
 
         # verify that a carrier is displayed
         self.assertTrue(len(cell_and_data_settings.carrier_name) > 0)

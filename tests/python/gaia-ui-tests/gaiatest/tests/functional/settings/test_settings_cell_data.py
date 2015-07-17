@@ -17,7 +17,7 @@ class TestSettingsCellData(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-        cell_and_data_settings = settings.open_cell_and_data_settings()
+        cell_and_data_settings = settings.open_cell_and_data()
 
         self.assertNotEqual(cell_and_data_settings.carrier_name, '')
 

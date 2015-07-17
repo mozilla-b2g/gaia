@@ -29,7 +29,7 @@ class TestHomescreenLayout(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
-        homescreen_settings = settings.open_homescreen_settings()
+        homescreen_settings = settings.open_homescreen()
         homescreen_settings.select_icon_layout('Four Columns')
         self.device.touch_home_button()
 
