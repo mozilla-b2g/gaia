@@ -19,6 +19,8 @@ var MockScreenManager = (function() {
   return {
     turnScreenOn: turnScreenOn,
     turnScreenOff: turnScreenOff,
+    turnShadeOn: function() {},
+    turnShadeOff: function() {},
     get screenEnabled() {
       return screenEnabled;
     },
