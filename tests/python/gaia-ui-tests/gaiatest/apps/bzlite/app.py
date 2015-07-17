@@ -62,7 +62,7 @@ class BugzillaLite(Base):
         cancelsearch_element = self.marionette.find_element(*self._button_cancel_search)
         cancelsearch_element.tap()
 
-    def tap_new_bug(self, title, description):
+    def create_new_bug(self, title, description):
         title_element = self.marionette.find_element(*self._title_input)
         title_element.tap()
         title_element.send_keys(title)
