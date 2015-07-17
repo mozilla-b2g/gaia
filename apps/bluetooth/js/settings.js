@@ -27,7 +27,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
     window.close();
   };
 
-  var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
+  var gBluetoothCheckBox = document.querySelector('#bluetooth-status gaia-switch');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
@@ -35,13 +35,13 @@ navigator.mozL10n.once(function bluetoothSettings() {
   }
 
   // activate main button
-  gBluetoothCheckBox.onchange = function changeBluetooth() {
+  gBluetoothCheckBox.addEventListener('change', function() {
     var req = settings.createLock().set({'bluetooth.enabled': this.checked});
     this.disabled = true;
     req.onerror = function() {
       gBluetoothCheckBox.disabled = false;
     };
-  };
+  });
 
   function initialDefaultAdapter() {
     if (!bluetooth.enabled)
@@ -68,9 +68,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   // device information
   var gMyDeviceInfo = (function deviceInfo() {
-    var visibleItem = document.getElementById('device-visible');
-    var visibleName = document.getElementById('bluetooth-device-name');
-    var visibleCheckBox = document.querySelector('#device-visible input');
+    var visibleItem = document.querySelector('.device-visible');
+    var visibleName = document.querySelector('.bluetooth-device-name');
+    var visibleCheckBox = document.querySelector('.device-visible gaia-switch');
     var bluetoothRename = document.getElementById('bluetooth-rename');
     var renameButton = document.getElementById('rename-device');
     var updateNameDialog = document.getElementById('update-device-name');
@@ -84,9 +84,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
     var myName = '';
 
-    visibleCheckBox.onchange = function changeDiscoverable() {
-      setDiscoverable(this.checked);
-    };
+    visibleCheckBox.addEventListener('change', function() {
+      setDiscoverable(visibleCheckBox.checked);
+    });
 
     renameButton.onclick = function renameBtnClicked() {
       if (myName === '') {
