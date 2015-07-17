@@ -21,7 +21,7 @@ class GaiaImageCompareOptionsMixin(object):
 
         group.add_option('--fuzz-factor',
                          type='int',
-                         default=10,
+                         default=15,
                          metavar='int',
                          help='fuzz value supplied to ImageMagick call, in percentage. '
                               'Default value is %default percent.')

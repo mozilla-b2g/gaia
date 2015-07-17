@@ -37,5 +37,7 @@ class TestBrowserNavigation(GaiaImageCompareTestCase):
         self.take_screenshot()
 
         self.marionette.switch_to_frame()
-        self.scroll(browser._browser_frame_locator, 'down', 400)
+        GaiaImageCompareTestCase.scroll(self.marionette, 'down',
+                                        400, locator=browser._browser_frame_locator)
+
         self.take_screenshot()
