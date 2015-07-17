@@ -27,7 +27,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
     window.close();
   };
 
-  var gBluetoothCheckBox = document.querySelector('#bluetooth-status gaia-switch');
+  var gBluetoothCheckBox = document.querySelector('.bluetooth-status gaia-switch');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
@@ -36,10 +36,11 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   // activate main button
   gBluetoothCheckBox.addEventListener('change', function() {
+    console.log("GOT CHANGE EVENT!, setting disabled");
     var req = settings.createLock().set({'bluetooth.enabled': this.checked});
-    this.disabled = true;
+    gBluetoothCheckBox.setAttribute('disabled', true);
     req.onerror = function() {
-      gBluetoothCheckBox.disabled = false;
+      gBluetoothCheckBox.removeAttribute('disabled');
     };
   });
 
@@ -858,7 +859,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       return;
 
     // lock UI toggle
-    gBluetoothCheckBox.disabled = true;
+    gBluetoothCheckBox.setAttribute('disabled', true);
 
     lastMozSettingValue = enabled;
     updateBluetoothState(enabled);
@@ -889,12 +890,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   bluetooth.addEventListener('adapteradded', function() {
     // enable UI toggle
-    gBluetoothCheckBox.disabled = false;
+    gBluetoothCheckBox.removeAttribute('disabled');
     initialDefaultAdapter();
   });
 
   bluetooth.addEventListener('disabled', function() {
-    gBluetoothCheckBox.disabled = false;  // enable UI toggle
+    gBluetoothCheckBox.removeAttribute('disabled'); // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
   });
 });
