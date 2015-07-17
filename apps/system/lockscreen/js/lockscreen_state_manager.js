@@ -22,7 +22,6 @@
 /* global LockScreenStateUnlock */
 /* global LockScreenStateSlideRestore */
 /* global LockScreenStateSecureAppLaunching */
-/* global LockScreenStateWaitPasscodeEnabledRead */
 /* global LockScreenStateLogger */
 /* global Service */
 
@@ -75,9 +74,17 @@
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
     this.lockScreen.init();
-    this.waitPasscodeEnabledRead = this.setupWaitPasscodeEnabledRead();
+    // Since we have async setups. We need to pass them to states.
+    // This is because in design the manager should collect all information
+    // to determinate which state should be transferr in, and before the
+    // transferring the information should all be collected. However since
+    // some info are gathered asynchronously, we need these promises to
+    // let state to do decision when it could to transferTo or transferOut.
+    this.setups = {
+      passcodeEnabledRead: this.createSetupPendingRequest()
+    };
     this.logger = (new LockScreenStateLogger()).start({
-      debug: true,
+      debug: false,
       error: true
     });
     this.configs = {
@@ -107,18 +114,24 @@
     // The state 'templates'. This component would do transfer among
     // these states.
     this.states = {
-      slideRestore: (new LockScreenStateSlideRestore()).start(this.lockScreen),
-      slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
-      slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
-      keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
-      keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
-      keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
-      panelHide: (new LockScreenStatePanelHide()).start(this.lockScreen),
-      unlock: (new LockScreenStateUnlock()).start(this.lockScreen),
+      slideRestore: (new LockScreenStateSlideRestore())
+        .start(this.lockScreen, this.setups),
+      slideShow: (new LockScreenStateSlideShow())
+        .start(this.lockScreen, this.setups),
+      slideHide: (new LockScreenStateSlideHide())
+        .start(this.lockScreen, this.setups),
+      keypadShow: (new LockScreenStateKeypadShow())
+        .start(this.lockScreen, this.setups),
+      keypadHiding: (new LockScreenStateKeypadHiding())
+        .start(this.lockScreen, this.setups),
+      keypadRising: (new LockScreenStateKeypadRising())
+        .start(this.lockScreen, this.setups),
+      panelHide: (new LockScreenStatePanelHide())
+        .start(this.lockScreen, this.setups),
+      unlock: (new LockScreenStateUnlock())
+        .start(this.lockScreen, this.setups),
       secureAppLaunching: (new LockScreenStateSecureAppLaunching())
-        .start(this.lockScreen),
-      waitPasscodeEnabledRead: (new LockScreenStateWaitPasscodeEnabledRead())
-        .start(this.lockScreen, this.waitPasscodeEnabledRead)
+        .start(this.lockScreen, this.setups)
     };
 
     // Default values
@@ -154,10 +167,8 @@
     return this;
   };
 
-  // XXX: Since to read mozSettings like this would take a long time,
-  // we need to block related manipulations until it got read.
-  LockScreenStateManager.prototype.setupWaitPasscodeEnabledRead =
-  function lssm_setupWaitPasscodeEnabledRead() {
+  LockScreenStateManager.prototype.createSetupPendingRequest =
+  function lssm_createSetupPendingRequest() {
     var r;
     var p = new Promise((res, rej) => {
       r = res;
@@ -179,14 +190,6 @@
   LockScreenStateManager.prototype.setupRules =
   function lssm_setupRules() {
     this.rules = new Map();
-    this.registerRule({
-      passcodeEnabled: null,
-      screenOn: true,
-      activateUnlock: true
-    },
-    ['slideShow'],
-    this.states.waitPasscodeEnabledRead,
-    'Must wait the value got read and then do the following things');
 
     this.registerRule({
       secureAppOpen: true
@@ -215,7 +218,7 @@
       screenOn: true,
       activateUnlock: true
     },
-    ['slideShow', 'waitPasscodeEnabledRead'],
+    ['slideShow'],
     //this.states.slideHide,
     this.states.unlock,
     'When it activate to unlock without passcode, unlock and animates.');
@@ -226,7 +229,7 @@
       screenOn: true,
       activateUnlock: true
     },
-    ['slideShow', 'waitPasscodeEnabledRead'],
+    ['slideShow'],
     this.states.slideHide,
     'When it activate to unlock with unexpired passcode, unlock and animates.');
 
@@ -236,7 +239,7 @@
       screenOn: true,
       activateUnlock: true
     },
-    ['slideShow', 'waitPasscodeEnabledRead'],
+    ['slideShow'],
     this.states.keypadRising,
     'When it activate to unlock, show the passcode pad with' +
     ' animation.');
@@ -641,7 +644,7 @@
     // It's first time we read it.
     if (null === this.lockScreenStates.passcodeEnabled) {
       this.lockScreenStates.passcodeEnabled = val;
-      this.waitPasscodeEnabledRead.resolve(val);
+      this.setups.passcodeEnabledRead.resolve(val);
     }
     this.lockScreenStates.passcodeEnabled = val;
   };
