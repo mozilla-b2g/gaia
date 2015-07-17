@@ -69,21 +69,25 @@
       }, this);
 
       // event handlers
-      navigator.mozL10n.ready(this.updateConnStates.bind(this));
-
-      window.addEventListener('simslot-cardstatechange', (function(evt) {
+      this.simSlotCardStateChangeListener = (function(evt) {
         this.updateConnState(evt.detail);
-      }).bind(this));
+      }).bind(this);
+      window.addEventListener('simslot-cardstatechange',
+                              this.simSlotCardStateChangeListener);
 
-      window.addEventListener('simslot-iccinfochange', (function(evt) {
+      this.simSlotIccInfoChangeListener = (function(evt) {
         this.updateConnState(evt.detail);
-      }).bind(this));
+      }).bind(this);
+      window.addEventListener('simslot-iccinfochange',
+                              this.simSlotIccInfoChangeListener);
 
       // Handle incoming CB messages that need to be displayed.
-      window.addEventListener('cellbroadcastmsgchanged', (function(evt) {
+      this.cellBroadcastMsgChangedListener = (function(evt) {
         this._cellbroadcastLabel = evt.detail;
         this.updateConnStates();
-      }).bind(this));
+      }).bind(this);
+      window.addEventListener('cellbroadcastmsgchanged',
+                              this.cellBroadcastMsgChangedListener);
 
       this._settings.addObserver('ril.radio.disabled', (function(evt) {
         this._airplaneMode = evt.settingValue;
@@ -110,6 +114,16 @@
         }).bind(this);
       }).bind(this);
   };
+
+  LockScreenConnInfoManagerPrototype.teardown =
+    function lscs_teardown() {
+      window.removeEventListener('simslot-cardstatechange',
+                                 this.simSlotCardStateChangeListener);
+      window.removeEventListener('simslot-iccinfochange',
+                                 this.simSlotIccInfoChangeListener);
+      window.removeEventListener('cellbroadcastmsgchanged',
+                                 this.cellBroadcastMsgChangedListener);
+    };
 
   /**
    * Create connection state element.
