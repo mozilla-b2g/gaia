@@ -194,6 +194,10 @@
   background-color: transparent;
 }
 
+.homescreen .chrome-combined .chrome-title-container {
+  width: calc(100% - 2rem);
+  -moz-padding-start: 2rem;
+}
 
 .controls .forward-button:not([disabled]) + .urlbar,
 .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
@@ -314,6 +318,10 @@
   background: no-repeat center / 3.2rem content-box;
   background-image: url('images/default_icon.png');
   position: absolute;
+}
+
+.homescreen > .chrome .site-icon {
+  display: none;
 }
 
 .small-icon {

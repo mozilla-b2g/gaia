@@ -73,7 +73,10 @@
     } else {
       this._fixedTitle = false;
       this.app.element.classList.remove('search-app');
-      this.title.textContent = this.app.name;
+
+      if (!this.app.isHomescreen) {
+        this.title.textContent = this.app.name;
+      }
     }
 
     if (this.app.isHomescreen || this.isSearchApp()) {
@@ -641,7 +644,7 @@
       }
 
       this._currentURL = this.app.config.url;
-      if (!this._fixedTitle) {
+      if (!this._fixedTitle && !this.app.isHomescreen) {
         this.title.textContent = this.app.name;
       }
 
