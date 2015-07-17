@@ -1,5 +1,7 @@
 'use strict';
+
 /* global LogShake,
+          DOMError,
           MockDOMRequest,
           MockModalDialog,
           MockMozActivity,
@@ -335,6 +337,7 @@ suite('system/LogShake', function() {
   suite('Capture error handling >', function() {
     var notificationSpy, errorMessage,
         errorUnixSharedSD, errorUnixGeneric,
+        errorNotFoundError, errorNotFoundErrorExpectedBody,
         errorUnixExpectedBody;
 
     function sendError(e) {
@@ -366,7 +369,10 @@ suite('system/LogShake', function() {
         operation: 'makeDir',
         unixErrno: 0
       };
-      errorUnixExpectedBody = 'logsOperationFailed{"operation":"makeDir"}';
+      errorNotFoundError             = new DOMError('NotFoundError');
+      errorUnixExpectedBody          =
+        'logsOperationFailed{"operation":"makeDir"}';
+      errorNotFoundErrorExpectedBody = 'logsNotFoundError';
     });
 
     test('Handling capture-logs-error event with string error', function() {
@@ -387,6 +393,12 @@ suite('system/LogShake', function() {
         notificationAsserts(notificationSpy);
         assertBody(errorUnixExpectedBody);
       });
+
+      test('Handling NotFoundError', function() {
+        sendError(errorNotFoundError);
+        notificationAsserts(notificationSpy);
+        assertBody(errorNotFoundErrorExpectedBody);
+      });
     });
 
     suite('formatError behavior >', function() {
@@ -403,6 +415,11 @@ suite('system/LogShake', function() {
         };
         var msg = logshake.formatError(error);
         assert.equal(msg, 'logsOperationFailed{"operation":"makeDir"}');
+      });
+
+      test('formatError() with a NotFoundError', function() {
+        var msg = logshake.formatError(errorNotFoundError);
+        assert.equal(msg, 'logsNotFoundError');
       });
     });
 
@@ -431,6 +448,17 @@ suite('system/LogShake', function() {
         notification.onclick();
         assert.isTrue(modalSpy.calledWith('logsSaveError',
                                           'logsGenericError',
+                                          { title: 'ok' }));
+        sinon.assert.calledOnce(closeSpy);
+      });
+
+      test('NotFoundError DOMError', function() {
+        sendError(errorNotFoundError);
+        notification = notificationSpy.firstCall.thisValue;
+        closeSpy = this.sinon.spy(notification, 'close');
+        notification.onclick();
+        assert.isTrue(modalSpy.calledWith('logsShareError',
+                                          'logsNotFoundError',
                                           { title: 'ok' }));
         sinon.assert.calledOnce(closeSpy);
       });
