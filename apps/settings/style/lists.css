@@ -202,64 +202,68 @@ ul li > label.pack-switch > small {
 }
 
 /* color previews */
-ul li > label.pack-checkbox > .color-preview:before {
+ul li > gaia-checkbox.color-preview:before {
   height: 2rem;
   width: 2rem;
   content: "";
   margin: 0;
   margin-top: -1.1rem;
-  -moz-margin-start: -3rem;
+  -moz-margin-start: -1.8rem;
   top: 50%;
   position: absolute;
 }
 
-ul.disabled li > label.pack-checkbox > .color-preview:before {
+ul li > gaia-checkbox.color-preview label {
+  -moz-margin-start: 1rem;
+}
+
+ul.disabled li > gaia-checkbox.color-preview:before {
   opacity: 0.4;
 }
 
-ul li > label.pack-checkbox > .warning-counter:before {
+ul li > gaia-checkbox.warning-counter:before {
   background-color: orange;
 }
 
-ul li > label.pack-checkbox > .error-counter:before {
+ul li > gaia-checkbox.error-counter:before {
   background-color: red;
 }
 
-ul li > label.pack-checkbox > .security-counter:before {
+ul li > gaia-checkbox.security-counter:before {
   background-color: black;
 }
 
-ul li > label.pack-checkbox > .reflow-counter:before {
+ul li > gaia-checkbox.reflow-counter:before {
   background-color: purple;
 }
 
-ul li > label.pack-checkbox > .jank-monitor:before {
+ul li > gaia-checkbox.jank-monitor:before {
   background-color: cornflowerblue;
 }
 
-ul li > label.pack-checkbox > .fps-monitor:before {
+ul li > gaia-checkbox.fps-monitor:before {
   background-color: fuchsia;
 }
 
-ul li > label.pack-checkbox > .ttl-monitor:before {
+ul li > gaia-checkbox.ttl-monitor:before {
   background-color: darkgreen;
 }
 
-ul li > label.pack-checkbox > .uss-monitor:before {
+ul li > gaia-checkbox.uss-monitor:before {
   background-color: dimgrey;
 }
 
-ul li > label.pack-checkbox > .memory-monitor:before {
+ul li > gaia-checkbox.memory-monitor:before {
   background-color: lightslategrey;
 }
 
-ul li > label.pack-checkbox > .memory-item:before {
+ul li > gaia-checkbox.memory-item:before {
   background-color: lightslategrey;
   height: 2rem;
   width: 2rem;
   margin: 0;
   margin-top: -1.1rem;
-  -moz-margin-start: -3rem;
+  -moz-margin-start: -1.8rem;
 }
 
 
