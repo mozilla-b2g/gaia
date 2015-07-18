@@ -1,3 +1,7 @@
+/* Only include gaia-theme to get CSS variables, the transition-duration one
+   in particular. Other parts of gaia-theme are not used. */
+@import url('../shared/elements/gaia-theme/gaia-theme.css');
+
 /**
  * Disable selection by default except for elements with
  * "contenteditable".
