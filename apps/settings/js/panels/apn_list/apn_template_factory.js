@@ -9,48 +9,49 @@ define(function(require) {
   function apnTemplate(apnType, onItemclick, onRadioClick, item) {
     var rawApn = item.apn;
 
-    // create an <input type="radio"> element
-    var input = document.createElement('input');
-    input.type = 'radio';
-    input.checked = item.active;
-    input.name = apnType;
+    // create an <gaia-radio> element
+    var radio = document.createElement('gaia-radio');
+    radio.checked = item.active;
+    radio.name = apnType;
 
     // include the radio button element in a list item
-    var radioSpan = document.createElement('span');
     var radioLabel = document.createElement('label');
-    radioLabel.classList.add('pack-radio');
-    radioLabel.appendChild(input);
-    radioLabel.appendChild(radioSpan);
 
-    var nameSpan = document.createElement('span');
-    var nameLabel = document.createElement('label');
-    nameLabel.classList.add('name');
+    radioLabel.classList.add('name');
     if (!rawApn.carrier || rawApn.carrier === '_custom_') {
-      nameSpan.textContent = rawApn.apn;
+      radioLabel.textContent = rawApn.apn;
     } else {
-      nameSpan.textContent = rawApn.carrier;
+      radioLabel.textContent = rawApn.carrier;
     }
-    nameLabel.appendChild(nameSpan);
+    radio.appendChild(radioLabel);
 
     var li = document.createElement('li');
     li.classList.add('apn-item');
-    li.appendChild(radioLabel);
-    li.appendChild(nameLabel);
+    li.appendChild(radio);
+
+    // Keep track if we clicked the label or not.
+    // This is needed because you can't stop the event from propagating to the
+    // shadow DOM from the label currently.
+    var labelClicked = false;
 
     // Register the handler for the checked change.
     if (typeof onRadioClick === 'function') {
-      input.onclick = function(event) {
-        onRadioClick(item, input);
+      radio.addEventListener('change', event => {
+        if (!labelClicked) {
+          onRadioClick(item, radio);
+        }
+        labelClicked = false;
         event.stopPropagation();
         event.preventDefault();
-      };
+      });
     }
 
     // Register the handler for the click event.
     if (typeof onItemclick === 'function') {
-      nameLabel.onclick = function() {
+      radioLabel.addEventListener('click', () => {
+        labelClicked = true;
         onItemclick(item);
-      };
+      });
     }
 
     return li;

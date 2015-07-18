@@ -23,16 +23,16 @@ ImprovePanel.Selectors = {
     '#menuItem-sharePerformanceData gaia-checkbox',
 
   'alwaysSendReport':
-    '#menuItem-alwaysSendReport span',
+    '#menuItem-alwaysSendReport gaia-radio',
 
   'neverSendReport':
-    '#menuItem-neverSendReport span',
+    '#menuItem-neverSendReport gaia-radio',
 
   'askEachTime':
-    '#menuItem-askToSendReport2 span',
+    '#menuItem-askToSendReport2 gaia-radio',
 
   'reportCrashes':
-    'input[name="app.reportCrashes"]'
+    'gaia-radio[name="app.reportCrashes"]'
 };
 
 ImprovePanel.prototype = {

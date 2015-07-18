@@ -18,17 +18,12 @@ ul li {
   color: #000;
 }
 
-/* Provide additional margin around gaia-switch to match spacing with legacy components */
-ul li > gaia-switch {
+/* Provide additional margin around web components to match spacing with legacy components */
+ul li > gaia-radio,
+ul li > gaia-switch,
+ul li > gaia-checkbox:not(.inline) {
   -moz-margin-start: 1.5rem;
   /* The !important is necessary to override gaia-swtich scoped style. */
-  width: calc(100% - 1.5rem) !important;
-}
-
-/* Provide additional styling for gaia-checkbox to match legacy components */
-ul li > gaia-checkbox:not(.inline) {
- -moz-margin-start: 1.5rem;
-  /* The !important is necessary to override gaia-checkbox scoped style. */
   width: calc(100% - 1.5rem) !important;
 }
 
@@ -192,11 +187,6 @@ ul li > label ~ input {
   margin-bottom: 1.5rem;
 }
 
-ul li > label.pack-checkbox > small,
-ul li > label.pack-radio > small {
-  right: 6.1rem;
-}
-
 ul li > label.pack-switch > small {
   right: 9rem;
 }
@@ -287,8 +277,6 @@ ul li label {
 }
 
 ul li > label:not([for]),
-ul li > label.pack-checkbox,
-ul li > label.pack-radio,
 ul li > label.pack-switch {
   -moz-margin-start: -1.5rem;
   -moz-margin-end: -1.5rem;
@@ -302,38 +290,16 @@ ul li > label.pack-switch {
 }
 
 ul li > label:not([for]) > span,
-ul li > label.pack-checkbox > span,
-ul li > label.pack-radio > span,
 ul li > label.pack-switch > span {
   line-height: normal;
   height: auto;
 }
 
-ul li > label.pack-checkbox > span:after,
-ul li > label.pack-radio > span:after,
 ul li > label.pack-switch > input ~ span:after {
   left: auto;
   right: 1.5rem;
 }
 
-ul li > label.pack-checkbox > span {
-  -moz-padding-end: 6.1rem;
-}
-
-ul li > label.pack-radio ~ p {
-  -moz-padding-end: 3rem;
-}
-
-ul li > label.pack-switch > span {
-  -moz-padding-end: 9rem;
-}
-
-ul li > label.pack-radio > span {
-  -moz-padding-end: 5.9rem;
-}
-
-ul li > label.pack-checkbox:active,
-ul li > label.pack-radio:active,
 ul li > label.pack-switch:active {
   background-color: #b2f2ff;
   color: #222;
@@ -496,19 +462,11 @@ html[dir="rtl"] ul li > a span:nth-of-type(2):not(.button) {
   right: unset;
 }
 
-html[dir="rtl"] ul li > label.pack-checkbox > small,
-html[dir="rtl"] ul li > label.pack-radio > small {
-  left: 6.1rem;
-  right: unset;
-}
-
 html[dir="rtl"] ul li > label.pack-switch > small {
   left: 9rem;
   right: unset;
 }
 
-html[dir="rtl"] ul li > label.pack-checkbox > span:after,
-html[dir="rtl"] ul li > label.pack-radio > span:after,
 html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
   left: 1.5rem;
   right: auto;

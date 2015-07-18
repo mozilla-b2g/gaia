@@ -45,7 +45,7 @@ suite('GaiaRadio', function() {
   });
 
   test('Gets right value after click', function(done) {
-    inputs[0].addEventListener('click', function(e) {
+    inputs[0].addEventListener('change', function(e) {
       assert.equal(e.target.checked, true);
       assert.equal(inputs[0].checked, true);
       assert.equal(inputs[1].checked, false);
