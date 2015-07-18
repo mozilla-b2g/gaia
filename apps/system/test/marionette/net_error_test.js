@@ -38,7 +38,7 @@ marionette('net_error.html:', function() {
       // now we can test the about:neterror page
 
       // Wait for the retry icon to show up.
-      //client.helper.waitForElement('#retry-icon');
+      client.helper.waitForElement('#retry-icon');
       //// Make sure close and retry buttons are hidden.
       //assert.ok(!client.findElement('#close-btn').displayed(),
       //          'Close button is hidden in iframe');
