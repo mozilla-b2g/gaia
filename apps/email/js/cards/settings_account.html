@@ -27,38 +27,30 @@
               class="tng-account-name list-sub-text"></span>
       </li>
       <li>
-        <label class="tng-notify-mail-label pack-switch list-pack-switch">
-          <input class="tng-notify-mail" type="checkbox" />
-          <span data-l10n-id="settings-account-display-notifications"
-                class="list-text list-pack-switch-text">
-            DisplaY NotificationS FoR NeW MessageS</span>
-        </label>
+        <gaia-switch class="tng-notify-mail list-switch">
+          <label data-l10n-id="settings-account-display-notifications"
+                 class="list-text list-switch-text"></label>
+        </gaia-switch>
       </li>
       <li>
-        <label class="tng-sound-onsend-label pack-switch list-pack-switch">
-          <input class="tng-sound-onsend" type="checkbox" />
-          <span data-l10n-id="settings-account-play-sound-onsend"
-                class="list-text list-pack-switch-text">
-            PlaY SounD AfteR MessagE SenT</span>
-        </label>
+        <gaia-switch class="tng-sound-onsend list-switch">
+          <label data-l10n-id="settings-account-play-sound-onsend"
+                 class="list-text list-switch-text"></label>
+        </gaia-switch>
       </li>
       <li>
-        <label data-prop="defaultLabelNode"
-               class="pack-checkbox tng-default-label list-pack-checkbox">
-          <input data-prop="defaultInputNode"
-                 class="tng-default-input" type="checkbox">
-          <span data-l10n-id="settings-default-account"
-                class="list-text list-pack-checkbox-text">
-            SeT AS DefaulT EmaiL</span>
-        </label>
+        <gaia-checkbox data-prop="defaultLabelNode"
+               class="tng-default-input list-checkbox"
+               data-prop="defaultInputNode">
+          <label data-l10n-id="settings-default-account"
+                class="list-text list-checkbox-text"></label>
+        </gaia-checkbox>
       </li>
       <li class="settings-signature settings-input-list">
-        <label class="pack-switch tng-default-label list-pack-switch">
-          <input class="tng-signature-input" type="checkbox">
-          <span data-l10n-id="settings-account-signature-label"
-                class="list-text list-pack-switch-text">
-            SignaturE</span>
-        </label>
+        <gaia-switch class="tng-signature-input list-switch">
+          <label data-l10n-id="settings-account-signature-label"
+                class="list-text list-switch-text"></label>
+        </gaia-switch>
         <button class="signature-button button icon">
           <div dir="auto" class="signature-button-content"></div>
         </button>

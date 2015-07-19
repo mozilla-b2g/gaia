@@ -32,7 +32,7 @@ var Selector = {
   msgListScrollOuter: 'cards-message-list .msg-list-scrollouter',
   editMode: 'cards-message-list .msg-edit-btn',
   editModeCheckBoxes:
-    'cards-message-list .msg-header-item[data-index="0"] label.pack-checkbox',
+    'cards-message-list .msg-header-item[data-index="0"] gaia-checkbox',
   editModeTrash: 'cards-message-list button.msg-delete-btn',
   msgUpBtn: 'cards-message-reader .msg-up-btn',
   msgEnvelopeSubject: 'cards-message-reader .msg-envelope-subject',

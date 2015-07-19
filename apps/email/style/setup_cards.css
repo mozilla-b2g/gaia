@@ -263,7 +263,7 @@ li a:active {
   line-height: 2.2rem;
 }
 
-label.list-pack-switch, label.list-pack-checkbox {
+gaia-switch.list-switch, gaia-checkbox.list-checkbox {
   padding: 1.5rem 0;
   width: 100%;
   display: flex;
@@ -271,23 +271,23 @@ label.list-pack-switch, label.list-pack-checkbox {
   height: auto;
 }
 
-label.list-pack-checkbox, .settings-input-list .list-pack-switch {
+gaia-checkbox.list-checkbox, .settings-input-list .list-switch {
   height: 3rem;
 }
 
-.list-pack-switch .list-pack-switch-text,
-.list-pack-checkbox .list-pack-checkbox-text {
+.list-switch .list-switch-text,
+.list-checkbox .list-checkbox-text {
   flex-grow: 2;
   -moz-margin-end: 7.5rem;
   line-height: inherit;
 }
 
-.list-pack-checkbox .list-pack-checkbox-text:after {
+.list-checkbox .list-checkbox-text:after {
   left: auto;
   right: 1.5rem;
 }
 
-html:-moz-dir(rtl) .list-pack-checkbox .list-pack-checkbox-text:after {
+html:-moz-dir(rtl) .list-checkbox .list-checkbox-text:after {
   right: auto;
   left: 1.5rem;
 }
