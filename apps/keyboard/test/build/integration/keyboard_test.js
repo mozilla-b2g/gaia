@@ -10,6 +10,25 @@ var helper = require('helper');
 var AdmZip = require('adm-zip');
 var jsdom = require('jsdom-nogyp').jsdom;
 
+function checkLayoutsJSON(zipPath, expectedArr) {
+  var zip = new AdmZip(zipPath);
+  var entry = zip.getEntry('js/settings/layouts.json');
+  var actualArr = JSON.parse(zip.readAsText(entry));
+
+  actualArr.forEach(function(layout) {
+    assert.isTrue(
+      !!layout.dictFileSize,
+      'Expect layout contain to non-zero dictFileSize, id=' + layout.id);
+    delete layout.dictFileSize;
+  });
+
+  expectedArr.forEach(function(layout) {
+    delete layout.dictFileSize;
+  });
+
+  assert.deepEqual(actualArr, expectedArr);
+}
+
 suite('Keyboard layouts building tests', function() {
   suiteSetup(helper.cleanupWorkspace);
   teardown(helper.cleanupWorkspace);
@@ -105,8 +124,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'default-make-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
@@ -209,8 +227,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'all-layout-make-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
@@ -254,8 +271,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'no-preload-dict-required-make-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
@@ -332,8 +348,7 @@ suite('Keyboard layouts building tests', function() {
             '/test/build/integration/resources/' +
             'default-make-en-dict-layouts.json'));
 
-      helper.checkFileContentInZip(
-        zipPath, 'js/settings/layouts.json', dictJSON, true);
+      checkLayoutsJSON(zipPath, dictJSON);
 
       done();
     });
