@@ -437,7 +437,7 @@ var Compose = (function() {
           this.setSubject(message.subject);
           this.showSubject();
         }
-        SMIL.parse(message, function(elements) {
+        SMIL.parse(message).then((elements) => {
           elements.forEach(function(element) {
             if (element.blob) {
               var attachment = new Attachment(element.blob, {
@@ -451,7 +451,7 @@ var Compose = (function() {
             }
           }, this);
           this.ignoreEvents = false;
-        }.bind(this));
+        });
         this.ignoreEvents = true;
       } else {
         this.append(message.body);

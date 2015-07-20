@@ -1304,32 +1304,33 @@
   //  - id: Number specifying the message to retrieve
   //  Returns: request object
   MockNavigatormozMobileMessage.getMessage = function(id) {
-    var request = {
-      error: null
-    };
-
-    setTimeout(function() {
-      if (simulation.failState()) {
-        request.error = { name: window.MessagesDebugError };
-        if (typeof request.onerror === 'function') {
-          request.onerror({
-            target: {
-              error: request.error
-            }
-          });
+    var request = new Promise((resolve, reject) => {
+      setTimeout(function() {
+        if (simulation.failState()) {
+          request.error = { name: window.MessagesDebugError };
+          reject(request.error);
+          if (typeof request.onerror === 'function') {
+            request.onerror({
+              target: {
+                error: request.error
+              }
+            });
+          }
+          return;
         }
-        return;
-      }
 
-      request.result = messagesDb.messages.filter(function(message) {
-        return message.id === id;
-      })[0];
+        request.result = messagesDb.messages.filter(function(message) {
+          return message.id === id;
+        })[0];
 
-      if (typeof request.onsuccess === 'function') {
-        request.onsuccess();
-      }
-    }, simulation.delay());
+        resolve(request.result);
+        if (typeof request.onsuccess === 'function') {
+          request.onsuccess();
+        }
+      }, simulation.delay());
+    });
 
+    request.error = null;
     return request;
   };
 

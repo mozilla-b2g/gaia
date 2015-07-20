@@ -938,7 +938,7 @@ suite('compose_test.js', function() {
       setup(function() {
         this.sinon.spy(Compose, 'append');
         this.sinon.spy(HTMLElement.prototype, 'focus');
-        this.sinon.stub(SMIL, 'parse');
+        this.sinon.stub(SMIL, 'parse').returns(Promise.resolve([]));
       });
 
       test('from sms', function() {
@@ -956,31 +956,36 @@ suite('compose_test.js', function() {
         );
       });
 
-      test('from mms', function() {
+      test('from mms', function(done) {
         var testString = [
           'test\nstring 1\nin slide 1' + xssString,
           'It\'s test\nstring 2\nin slide 2'
         ];
+        SMIL.parse.returns(
+          Promise.resolve([{text: testString[0]}, {text: testString[1]}])
+        );
+
         Compose.fromMessage({type: 'mms'});
 
         // Should not be focused before parse complete.
         sinon.assert.notCalled(message.focus);
         assert.isTrue(message.classList.contains('ignoreEvents'));
-        SMIL.parse.yield([{text: testString[0]}, {text: testString[1]}]);
 
-        sinon.assert.called(Compose.append);
-        sinon.assert.notCalled(message.focus);
-        assert.isFalse(message.classList.contains('ignoreEvents'));
-        assert.isDefined(Compose, 'XSS should not be successful');
-        assert.equal(
-          message.textContent,
-          testString.join('').replace(/\n/g, '')
-        );
-        assert.equal(
-          message.innerHTML,
-          'test<br>string 1<br>in slide 1' + escapedXssString +
-          'It\'s test<br>string 2<br>in slide 2<br>'
-        );
+        SMIL.parse.lastCall.returnValue.then(() => {
+          sinon.assert.called(Compose.append);
+          sinon.assert.notCalled(message.focus);
+          assert.isFalse(message.classList.contains('ignoreEvents'));
+          assert.isDefined(Compose, 'XSS should not be successful');
+          assert.equal(
+            message.textContent,
+            testString.join('').replace(/\n/g, '')
+          );
+          assert.equal(
+            message.innerHTML,
+            'test<br>string 1<br>in slide 1' + escapedXssString +
+            'It\'s test<br>string 2<br>in slide 2<br>'
+          );
+        }).then(done, done);
       });
 
       test('empty body', function() {

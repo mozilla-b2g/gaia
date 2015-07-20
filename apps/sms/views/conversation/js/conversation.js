@@ -1763,22 +1763,20 @@ var ConversationView = {
       pElement.setAttribute('data-l10n-id', 'no-attachment-text');
     }
 
+    var result;
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
-      return this.mmsContentParser(message).then((mmsContent) => {
-        pElement.appendChild(mmsContent);
-        return messageDOM;
-      });
+      result = SMIL.parse(message).then(
+        (slideArray) => this.createMmsContent(slideArray)
+      ).then(
+        (mmsContent) => pElement.appendChild(mmsContent)
+      ).then(
+        () => messageDOM
+      );
+    } else {
+      result = Promise.resolve(messageDOM);
     }
 
-    return Promise.resolve(messageDOM);
-  },
-
-  mmsContentParser: function conv_mmsContentParser(message) {
-    return new Promise((resolver) => {
-      SMIL.parse(message, (slideArray) => {
-        resolver(this.createMmsContent(slideArray));
-      });
-    });
+    return result;
   },
 
   getMessageStatusMarkup: function(status) {

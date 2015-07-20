@@ -2103,7 +2103,7 @@ suite('conversation.js >', function() {
   suite('buildMessageDOM >', function() {
     setup(function() {
       this.sinon.spy(Template, 'escape');
-      this.sinon.stub(MockSMIL, 'parse').yields([]);
+      this.sinon.stub(MockSMIL, 'parse').returns(Promise.resolve([]));
       this.sinon.spy(ConversationView.tmpl.message, 'interpolate');
     });
 
@@ -2120,14 +2120,14 @@ suite('conversation.js >', function() {
     test('escapes the body for SMS', function() {
       var payload = 'hello <a href="world">world</a>';
       ConversationView.buildMessageDOM(buildSMS(payload));
-      assert.ok(Template.escape.calledWith(payload));
+      sinon.assert.calledWith(Template.escape, payload);
     });
 
     test('escapes all text for MMS', function(done) {
       var payload = 'hello <a href="world">world</a>';
-      MockSMIL.parse.yields([{ text: payload }]);
+      MockSMIL.parse.returns(Promise.resolve([{ text: payload }]));
       ConversationView.buildMessageDOM(buildMMS(payload)).then(() => {
-        assert.ok(Template.escape.calledWith(payload));
+        sinon.assert.calledWith(Template.escape, payload);
       }).then(done, done);
     });
 
@@ -4050,7 +4050,7 @@ suite('conversation.js >', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
-        this.sinon.stub(SMIL, 'parse').yields(inputArray);
+        this.sinon.stub(SMIL, 'parse').returns(Promise.resolve(inputArray));
 
         // fake content so that there is something to scroll
         container.innerHTML = ConversationView.tmpl.message.interpolate({
