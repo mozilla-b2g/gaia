@@ -1,7 +1,13 @@
 boto>=2.32.1
 marionette_driver==0.9
 marionette_client==0.16
-mozdevice>=0.34
-moztest>=0.6
+mozlog==2.11
+mozcrash==0.14
+moznetwork==0.26
+mozprofile==0.24
+mozrunner==6.7
+mozversion==1.2
+mozdevice==0.45
+moztest==0.7
 requests
 treeherder-client==1.5
