@@ -18,7 +18,7 @@ function ClockAppActions(options) {
         'focusmanager.testmode': true
       }
     },
-    desiredCapabilities: options.desiredCapabilities
+    desiredCapabilities: options && options.desiredCapabilities
   });
 
   this.stopwatch = new StopwatchActions(this._client);
