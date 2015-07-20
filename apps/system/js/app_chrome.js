@@ -893,7 +893,7 @@
    * @param {string?} url
    */
   AppChrome.prototype.setSiteIcon = function ac_setSiteIcon(url) {
-    if (!this.siteIcon) {
+    if (!this.siteIcon || this.app.isPrivateBrowser()) {
       return;
     }
 

@@ -851,6 +851,22 @@ suite('system/AppChrome', function() {
       assert.ok(combinedChrome.siteIcon
                   .style.backgroundImage.includes(fakeIconURI));
     });
+
+    test('has no effect for private browsers', function() {
+      this.sinon.stub(combinedChrome.app, 'isPrivateBrowser').returns(true);
+      var siteIcon = combinedChrome.siteIcon;
+      var origSiteIcon = siteIcon && siteIcon.style.backgroundImage;
+      var origClassName = siteIcon && siteIcon.className;
+
+      combinedChrome.setSiteIcon(fakeIconURI);
+
+      var newSiteIcon = siteIcon && siteIcon.style.backgroundImage;
+      var newClassName = siteIcon && siteIcon.className;
+
+      assert.equal(origSiteIcon, newSiteIcon);
+      assert.equal(origClassName, newClassName);
+      assert.ok(!combinedChrome.app.getSiteIconUrl.called);
+    });
   });
 
   suite('Default icon', function() {
