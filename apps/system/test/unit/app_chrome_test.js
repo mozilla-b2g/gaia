@@ -122,19 +122,23 @@ suite('system/AppChrome', function() {
   suite('Old Navigation - Application events', function() {
     test('app is loading', function() {
       var stubShowProgress = this.sinon.stub(chrome, 'show');
-      var progressStart = this.sinon.stub(chrome.progress, 'start');
+      var spyProgressStart = this.sinon.spy(chrome.progress, 'start');
       assert.isFalse(chrome.progress.hasAttribute('animated'));
       chrome.handleEvent({ type: '_loading' });
+      assert.equal(chrome.progress.getAttribute('data-l10n-id'),
+        'gaia-progress-loading');
       assert.isTrue(stubShowProgress.calledWith(chrome.progress));
-      assert.isTrue(progressStart.calledOnce);
+      assert.isTrue(spyProgressStart.calledOnce);
     });
 
     test('app is loaded', function() {
       var stubHideProgress = this.sinon.stub(chrome, 'hide');
-      var progressStop = this.sinon.stub(chrome.progress, 'stop');
+      var spyProgressStop = this.sinon.spy(chrome.progress, 'stop');
       chrome.handleEvent({ type: '_loaded' });
+      assert.equal(chrome.progress.getAttribute('data-l10n-id'),
+        'gaia-progress-loaded');
       assert.isTrue(stubHideProgress.calledWith(chrome.progress));
-      assert.isTrue(progressStop.calledOnce);
+      assert.isTrue(spyProgressStop.calledOnce);
     });
 
     test('app location is changed', function() {
