@@ -1,4 +1,4 @@
-/* global LazyLoader, MatchingController, MatchingUI */
+/* global LazyLoader, MatchingUI */
 
 'use strict';
 
@@ -8,15 +8,10 @@ requireApp('communications/contacts/views/matching/js/boot.js');
 
 
 suite('Matching Boot', function() {
-  var realMatchingController, realMatchingUI;
+  var realMatchingUI;
 
   setup(function() {
-    realMatchingController = window.MatchingController;
     realMatchingUI = window.MatchingUI;
-
-    window.MatchingController = {
-      init: function foo() {}
-    };
 
     window.MatchingUI = {
       init: function foo() {}
@@ -24,10 +19,8 @@ suite('Matching Boot', function() {
   });
 
   teardown(function() {
-    window.MatchingController = realMatchingController;
     window.MatchingUI = realMatchingUI;
 
-    realMatchingController = null;
     realMatchingUI = null;
   });
 
@@ -82,12 +75,6 @@ suite('Matching Boot', function() {
           }
         };
       });
-    });
-
-    test(' > Controller is initialized', function() {
-      var MatchingControllerSpy = this.sinon.spy(MatchingController, 'init');
-      window.dispatchEvent(new CustomEvent('load'));
-      assert.isTrue(MatchingControllerSpy.called );
     });
 
     test(' > UI is initialized', function() {

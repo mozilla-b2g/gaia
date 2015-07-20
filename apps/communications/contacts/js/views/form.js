@@ -872,6 +872,7 @@ contacts.Form = (function() {
 
             case 'merge_duplicate_contacts':
               window.removeEventListener('message', mergeHandler);
+              Contacts.goBack();
 
               // List of duplicate contacts to merge (identifiers)
               var list = [];
@@ -899,13 +900,13 @@ contacts.Form = (function() {
               // The list of duplicate contacts has been loaded
               formHeader.removeEventListener('action', cancelHandler);
               hideThrobber();
-              window.setTimeout(Contacts.goBack, 300);
 
             break;
 
             case 'window_close':
               // If user igonores duplicate contacts we save the contact
               window.removeEventListener('message', mergeHandler);
+              Contacts.goBack();
               doSave(contact, true);
 
             break;

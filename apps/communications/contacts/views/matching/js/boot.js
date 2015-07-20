@@ -1,5 +1,5 @@
 'use strict';
-/* global LazyLoader, MatchingUI, MatchingController */
+/* global LazyLoader, MatchingUI */
 
 window.addEventListener('DOMContentLoaded', function() {
   LazyLoader.load(['/shared/js/l10n.js']).then(function() {
@@ -12,12 +12,10 @@ window.onload = function() {
     '/shared/js/contact_photo_helper.js',
     '/shared/js/sanitizer.js',
     '/shared/js/contacts/import/utilities/misc.js',
-    '/contacts/views/matching/js/matching_ui.js',
-    '/contacts/views/matching/js/matching_controller.js'
+    '/contacts/views/matching/js/matching_ui.js'
   ];
 
   LazyLoader.load(dependencies).then(function() {
       MatchingUI.init();
-      MatchingController.init();
   });
 };

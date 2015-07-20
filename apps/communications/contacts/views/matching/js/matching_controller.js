@@ -30,11 +30,13 @@
    */
   var type = 'matching';
 
+  var parentWindow = null;
+
   function start(cid) {
     if (!cid) {
       type = 'listing';
       window.addEventListener('message', duplicateContactsHandler);
-      parent.postMessage({
+      parentWindow.postMessage({
         type: 'duplicate_contacts_loaded'
       }, CONTACTS_APP_ORIGIN);
       return;
@@ -61,7 +63,7 @@
                                '/shared/js/simple_phone_matcher.js',
                                '/shared/js/contacts/contacts_matcher.js'];
     LazyLoader.load(matcherDependencies, function loaded() {
-      parent.ContactsService.get(cid, function success(mContact) {
+      parentWindow.ContactsService.get(cid, function success(mContact) {
         // Master contact
         contact = mContact;
         Matcher.match(contact, 'active', callbacks);
@@ -93,7 +95,7 @@
       };
 
       Object.keys(duplicateContacts).forEach(function(cid) {
-         parent.ContactsService.get(cid, function success(contact) {
+         parentWindow.ContactsService.get(cid, function success(contact) {
           duplicateContacts[cid] = {
             matchingContact: contact,
             matchings: duplicateContacts[cid].matchings
@@ -101,6 +103,13 @@
           matchingReady();
         }, matchingReady);
       });
+
+    } else if(data && data.type === 'sync'){
+        parentWindow = e.source;
+        navigator.mozL10n.once(function localized(evt) {
+          // The controller is started when the literals are available
+          start(window.location.search.substring('contactId'.length + 2));
+        });
     }
   }
 
@@ -113,7 +122,7 @@
       window.removeEventListener('message', contactsMergedHandler);
 
       Curtain.hide(function() {
-        parent.postMessage({
+        parentWindow.postMessage({
           type: 'window_close',
           data: ''
         }, CONTACTS_APP_ORIGIN);
@@ -143,7 +152,7 @@
   }
 
   function sendReadyEvent() {
-    parent.postMessage({
+    parentWindow.postMessage({
       type: 'ready',
       data: ''
     }, CONTACTS_APP_ORIGIN);
@@ -151,7 +160,7 @@
 
   function abort() {
     var notifyParent = function cmc_notifyParent() {
-      parent.postMessage({
+      parentWindow.postMessage({
         type: 'abort',
         data: ''
       }, CONTACTS_APP_ORIGIN);
@@ -165,7 +174,7 @@
 
     if (type === 'listing') {
       // Delegating the merge action to caller and this is the end
-      parent.postMessage({
+      parentWindow.postMessage({
         type: 'merge_duplicate_contacts',
         data: checkedContacts
       }, CONTACTS_APP_ORIGIN);
@@ -176,7 +185,7 @@
     LazyLoader.load(MERGE_DEPS, function loaded() {
       var cb = function cb() {
         Curtain.hide(function() {
-          parent.postMessage({
+          parentWindow.postMessage({
             type: 'window_close',
             data: ''
           }, CONTACTS_APP_ORIGIN);
@@ -192,18 +201,10 @@
     });
   }
 
-  function init() {
-    navigator.mozL10n.once(function localized(evt) {
-      // The controller is started when the literals are available
-      start(window.location.search.substring('contactId'.length + 2));
-    });
+  window.addEventListener('message', duplicateContactsHandler);
 
-    window.addEventListener('merge', evt => {
-      merge(evt.detail.checkedContacts);
-    });
-  }
+  window.addEventListener('merge', evt => {
+    merge(evt.detail.checkedContacts);
+  });
 
-  exports.MatchingController = {
-    init: init
-  };
 })(window);
