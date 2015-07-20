@@ -211,6 +211,11 @@ input:focus {
   color: #657073;
 }
 
+html[dir="rtl"] a.menu-item:after {
+  left: 1.5rem;
+  right: unset;
+}
+
 [data-type="list"] li > a.menu-item:active:after {
   /* the background specified in shared lists.css is semi-transparent
      so you'd see extra background on the icon if we don't disable it */
