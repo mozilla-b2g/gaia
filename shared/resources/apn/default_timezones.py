@@ -41,7 +41,7 @@ conflicts = {
     'PT': 'Europe/Lisbon',
     'RU': 'Europe/Moscow',
     'TR': 'Europe/Istanbul',
-    'UA': 'Europe/Kiev',
+    'UA': 'Europe/Kyiv',
     'AS': 'Pacific/Samoa',
     'EC': 'Pacific/Galapagos',
     'FM': 'Pacific/Ponape',

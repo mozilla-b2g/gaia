@@ -368,7 +368,7 @@
   {"cc":"TR", "offset":"+02:00,+03:00", "city":"Istanbul"},
   {"cc":"JE", "offset":"+00:00,+01:00", "city":"Jersey", "id":"Europe/London"},
   {"cc":"RU", "offset":"+03:00,+03:00", "city":"Kaliningrad"},
-  {"cc":"UA", "offset":"+02:00,+03:00", "city":"Kiev"},
+  {"cc":"UA", "offset":"+02:00,+03:00", "city":"Kyiv"},
   {"cc":"PT", "offset":"+00:00,+01:00", "city":"Lisbon"},
   {"cc":"SI", "offset":"+01:00,+02:00", "city":"Ljubljana", "id":"Europe/Belgrade"},
   {"cc":"GB", "offset":"+00:00,+01:00", "city":"London"},
