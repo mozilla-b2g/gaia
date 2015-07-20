@@ -121,6 +121,12 @@ fi
 # find xpcshell and put it in the path
 XPCSHELL_DIR=$(dirname "$XPCSHELLSDK")
 
+HOST_LOG_OPTS=""
+if [ "$HOST_LOG" ]; then
+  HOST_LOG_OPTS="--host-log $HOST_LOG"
+fi
+
+
 VERBOSE_OPTS=""
 if [ "$VERBOSE" ]; then
   VERBOSE_OPTS="--verbose"
@@ -191,6 +197,7 @@ export TEST_FILES
 # xpcshell in available for email fake servers.
 $TARGET \
   $VERBOSE_OPTS \
+  $HOST_LOG_OPTS \
   $OOP_OPTS \
   $RUNTIME_OPTS \
   $DEVICE_OPTS \
