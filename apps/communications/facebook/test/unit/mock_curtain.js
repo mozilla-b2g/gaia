@@ -18,5 +18,6 @@ var MockCurtain = {
   },
   hide: function() {
 
-  }
+  },
+  hideMenu: function(){}
 };

@@ -14,11 +14,12 @@
 
   matchService.match = function(contactId) {
     extensionFrame.src = currentURI = 
-      '/contacts/matching_contacts.html?contactId=' + contactId;
+      '/contacts/views/matching/matching_contacts.html?contactId=' + contactId;
   };
 
   matchService.showDuplicateContacts = function() {
-    extensionFrame.src = currentURI = '/contacts/matching_contacts.html';
+    extensionFrame.src = currentURI = 
+      '/contacts/views/matching/matching_contacts.html';
   };
 
   function close(messageId, additionalMessageId) {

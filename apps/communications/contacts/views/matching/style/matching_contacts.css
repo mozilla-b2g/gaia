@@ -1,7 +1,7 @@
-@import url("root.css");
+@import url("/contacts/style/root.css");
 
 .hide, *[data-template] {
-  display: none !important;
+  display: none;
 }
 
 #main {
@@ -26,7 +26,7 @@
 #contacts-list-container > ol > li[data-uuid] {
   display: block;
   -moz-padding-start: 4rem;
-  border-top: none !important;
+  border-top: none;
 }
 
 #contacts-list-container > ol > li[data-uuid] aside,
@@ -41,7 +41,7 @@
 }
 
 #contacts-list-container > ol > li[data-uuid]:last-child {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 
 /* BB overrides */
