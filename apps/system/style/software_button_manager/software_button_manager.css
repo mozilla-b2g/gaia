@@ -30,6 +30,9 @@
 #screen.locked.attention #software-buttons.visible,
 #screen.locked.secure-app #software-buttons.visible {
   visibility: visible;
+}
+
+#screen.utility-tray #software-buttons.visible {
   pointer-events: none;
 }
 
