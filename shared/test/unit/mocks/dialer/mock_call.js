@@ -62,12 +62,10 @@ function MockCall(aNumber, aState, aServiceId) {
   }).bind(this);
 
   this._hold = (function() {
-    this.mChangeState('holding');
     this.mChangeState('held');
   }).bind(this);
 
   this._resume = (function() {
-    this.mChangeState('resuming');
     this.mChangeState('connected');
   }).bind(this);
 

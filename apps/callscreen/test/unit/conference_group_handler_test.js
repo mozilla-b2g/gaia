@@ -281,13 +281,6 @@ suite('conference group handler', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
-    test('should set photo when resuming', function() {
-      MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
-      MockNavigatorMozTelephony.mTriggerGroupStateChange();
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-    });
-
     test('should stop timer when groupcall ends', function() {
       assert.isFalse(MockCallScreen.mCalledStopTicker);
 
@@ -319,13 +312,13 @@ suite('conference group handler', function() {
       assert.isTrue(fakeGroupLine.classList.contains('held'));
     });
 
-    test('should remove the held class while resuming', function() {
+    test('should remove the held class when connected', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'held';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(fakeGroupLine.classList.contains('held'));
 
-      MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
+      MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isFalse(fakeGroupLine.classList.contains('held'));

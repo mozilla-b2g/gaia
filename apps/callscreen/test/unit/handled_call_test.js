@@ -531,79 +531,40 @@ suite('dialer/handled_call', function() {
     });
   });
 
-  suite('holding', function() {
-    setup(function() {
-      this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
-      this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
-      this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
-      this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
-      mockCall._hold();
-    });
-
-    test('add the css class', function() {
-      assert.isTrue(subject.node.classList.contains('held'));
-    });
-
-    test('AudioCompetingHelper leaveCompetition gets called when held',
-    function() {
-      sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
-    });
-
-    test('the place new call button status is updated', function() {
-      // Call passes through the 'holding' and 'held' states.
-      sinon.assert.calledTwice(MockCallsHandler.updatePlaceNewCall);
-    });
-
-    test('the merge and on hold buttons status is updated', function() {
-      // Call passes through the 'holding' and 'held' states.
-      sinon.assert.calledTwice(MockCallsHandler.updateMergeAndOnHoldStatus);
-    });
-
-    test('the mute and speaker buttons status is updated', function() {
-      // Call passes through the 'holding' and 'held' states.
-      sinon.assert.calledTwice(MockCallsHandler.updateMuteAndSpeakerStatus);
-    });
-  });
-
-  suite('resuming', function() {
+  suite('on hold', function() {
     setup(function() {
       this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
       this.sinon.spy(MockCallsHandler, 'updateMergeAndOnHoldStatus');
       this.sinon.spy(MockCallsHandler, 'updateMuteAndSpeakerStatus');
       mockCall._hold();
-      MockCallScreen.mSyncSpeakerCalled = false;
-      MockCallScreen.mEnableKeypadCalled = false;
-      subject.photo = 'dummy_photo_1';
-      mockCall._resume();
     });
 
-    test('remove the css class', function() {
-      assert.isFalse(subject.node.classList.contains('held'));
+    test('show the node', function() {
+      assert.isFalse(subject.node.hidden);
     });
 
-    test('sync speaker', function() {
-      assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
+    test('put the callscreen in connected-hold mode', function() {
+      assert.equal(MockCallScreen.mLastRenderMode, 'connected-hold');
     });
 
-    test('changed the user photo', function() {
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+    test('mute is off', function() {
+      assert.isFalse(MockCallScreen.mMuteOn);
+    });
+
+    test('speaker is off', function() {
+      assert.isFalse(MockCallScreen.mSpeakerOn);
     });
 
     test('the place new call button status is updated', function() {
-      // Call passes through the 'holding', 'held', 'resuming' and 'connected'
-      //  states.
-      sinon.assert.callCount(MockCallsHandler.updatePlaceNewCall, 4);
+      sinon.assert.calledOnce(MockCallsHandler.updatePlaceNewCall);
     });
 
     test('the merge and on hold buttons status is updated', function() {
-      // Call passes through the 'holding', 'held', 'resuming' and 'connected'
-      //  states.
-      sinon.assert.callCount(MockCallsHandler.updateMergeAndOnHoldStatus, 4);
+      sinon.assert.calledOnce(MockCallsHandler.updateMergeAndOnHoldStatus);
     });
 
-    test('the mute and speaker buttons status is updated', function() {
-      // Call passes through the 'holding' and 'held' states.
-      sinon.assert.callCount(MockCallsHandler.updateMuteAndSpeakerStatus, 4);
+    test('the mute and speaker buttons\' status is updated', function() {
+      sinon.assert.calledOnce(MockCallsHandler.updateMuteAndSpeakerStatus);
     });
   });
 
