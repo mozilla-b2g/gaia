@@ -430,8 +430,10 @@
     if (!this.browser) {
       return;
     }
+    this.inError = false;
     this.loading = false;
     this.loaded = false;
+    this.metachangeDetail = null;
     this.suspended = true;
     this.element && this.element.classList.add('suspended');
     this.browserContainer.removeChild(this.browser.element);
@@ -881,6 +883,10 @@
             that.appChrome.handleEvent({type: 'mozbrowserloadstart'});
             that.appChrome.handleEvent({type: '_loading'});
           }
+          if (that.metachangeDetail) {
+            that.appChrome.handleEvent({type: 'mozbrowsermetachange',
+                                        detail: that.metachangeDetail});
+          }
         });
       } else {
         this.appChrome = new AppChrome(this);
@@ -1124,7 +1130,7 @@
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
 
-      var detail = evt.detail;
+      var detail = this.metachangeDetail = evt.detail;
 
       switch (detail.name) {
         case 'theme-color':

@@ -2031,22 +2031,29 @@ suite('system/AppWindow', function() {
       assert.isFalse(app1.loading);
     });
 
-    test('Load event before _opened', function() {
+    test('mozbrowser events before _opened', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       var app1 = new AppWindow(fakeChromeConfigWithNavigationBar);
-      app1.handleEvent({
-        type: 'mozbrowserloadstart'
-      });
+      var events = [{ type: 'mozbrowserloadstart' },
+                    { type: 'mozbrowsererror',
+                      detail: { type: '' } },
+                    { type: 'mozbrowsermetachange',
+                      detail: {} }];
+      var expected = [{ type: 'mozbrowserloadstart' },
+                      { type: '_loading' },
+                      { type: 'mozbrowsererror' },
+                      { type: 'mozbrowsermetachange',
+                        detail: {} }];
+
+      events.forEach(app1.handleEvent, app1);
       assert.isFalse(spy.calledWithNew());
 
       var chromeEventSpy = this.sinon.stub(AppChrome.prototype, 'handleEvent');
-
-      app1.inError = true;
       app1.element.dispatchEvent(new CustomEvent('_opened'));
 
-      sinon.assert.calledWith(chromeEventSpy, {type: 'mozbrowsererror'});
-      sinon.assert.calledWith(chromeEventSpy, {type: 'mozbrowserloadstart'});
-      sinon.assert.calledWith(chromeEventSpy, {type: '_loading'});
+      expected.forEach((event) => {
+        sinon.assert.calledWith(chromeEventSpy, event);
+      });
     });
 
     test('Locationchange event', function() {
