@@ -41,7 +41,7 @@
     this._currentIconUrl = '';
     this.render();
 
-    if (this.app.themeColor) {
+    if (this.app.themeColor && this.app.themeColor !== '') {
       // If titlestatechanged is fired during creation, appChrome won't have
       // been set yet.
       app.appChrome = this;
