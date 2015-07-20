@@ -39,10 +39,7 @@
         this.duplicateMessage = document.querySelector('#duplicate-msg > p');
         this.contactsList =
           document.querySelector('#contacts-list-container > ol');
-        this.title = document.getElementById('title');
 
-        this.mergeHeader = document.getElementById('merge-header');
-        this.mergeHeader.addEventListener('action', this.onClose);
         this.contactsList.addEventListener('click', this.onClick.bind(this));
         this.mergeButton.addEventListener('click', this.onMerge.bind(this));
 
@@ -82,7 +79,7 @@
                                           'suggestedDuplicatesMessage',
                                           params);
         } else {
-          this.title.setAttribute('data-l10n-id', 'duplicatesFoundTitle');
+          document.title = this._('duplicatesFoundTitle');
           // "xxx duplicates information in the following contacts"
           navigator.mozL10n.setAttributes(this.duplicateMessage,
                                           'foundDuplicatesMessage',
