@@ -160,17 +160,6 @@ suite('system/AudioChannelService', function() {
         .withArgs(audioChannel).calledOnce);  
     });
 
-    test('Handle inactive audio channel ', function() {
-      this.sinon.stub(audioChannel, 'isActive', function() {
-        return false;
-      });
-      this.sinon.spy(subject, 'publish');
-      subject._manageAudioChannels(audioChannel);
-      var channel = { channel: 'none' };
-      assert.ok(subject.publish
-        .withArgs('audiochannelchanged', channel).calledOnce);
-    });
-
     suite('Foreground/background audio channel', function() {
       setup(function() {
         this.sinon.stub(audioChannel, 'isActive', function() {
@@ -188,7 +177,7 @@ suite('system/AudioChannelService', function() {
         assert.ok(subject.publish
           .withArgs('visibleaudiochannelchanged', channel).calledOnce);
         assert.ok(subject.publish
-          .withArgs('audiochannelchanged', channel).calledOnce);
+          .withArgs('audiochannelchangedasactive', channel).calledOnce);
       });
 
       test('In background', function() {
@@ -200,7 +189,7 @@ suite('system/AudioChannelService', function() {
         assert.ok(subject.publish
           .withArgs('visibleaudiochannelchanged', channel).notCalled);
         assert.ok(subject.publish
-          .withArgs('audiochannelchanged', channel).calledOnce);
+          .withArgs('audiochannelchangedasactive', channel).calledOnce);
       });
     });
 

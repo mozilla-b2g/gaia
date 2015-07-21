@@ -83,7 +83,7 @@
 
   /**
    * Store the current active channel;
-   * change with 'audiochannelchanged' event
+   * change with 'audiochannelchangedasactive' event
    * All candidates and definitions can be found at AudioChannels link.
    *
    * @see {@link https://wiki.mozilla.org/WebAPI/AudioChannels|AudioChannels}
@@ -265,7 +265,7 @@
     window.addEventListener('holdhome', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
-    window.addEventListener('audiochannelchanged', this);
+    window.addEventListener('audiochannelchangedasactive', this);
 
     LazyLoader.load(['js/headphone_icon.js',
                      'js/mute_icon.js',
@@ -326,7 +326,7 @@
     window.removeEventListener('holdhome', this);
     window.removeEventListener('homescreenopening', this);
     window.removeEventListener('homescreenopened', this);
-    window.removeEventListener('audiochannelchanged', this);
+    window.removeEventListener('audiochannelchangedasactive', this);
 
     Service.unregisterState('isHeadsetConnected', this);
     Service.unregisterState('currentChannel', this);
@@ -353,7 +353,7 @@
       case 'unmute':
         this.setMute(false);
         break;
-      case 'audiochannelchanged':
+      case 'audiochannelchangedasactive':
         this.setAudioChannel(e.detail.channel);
         this.ceAccumulator();
         break;

@@ -122,11 +122,10 @@
         if (!isBackground) {
           this.publish('visibleaudiochannelchanged', channel);
         }
-        this.publish('audiochannelchanged', channel);
+        this.publish('audiochannelchangedasactive', channel);
       } else {
         this._resetAudioChannel(audioChannel);
         this._resumeAudioChannels();
-        this.publish('audiochannelchanged', { channel: 'none' });
       }
     },
 
