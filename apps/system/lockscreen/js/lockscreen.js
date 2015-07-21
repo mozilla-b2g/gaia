@@ -576,6 +576,12 @@
     }
   };
 
+  LockScreen.prototype.forcePassCodeUnlock =
+  function ls_forcePassCodeUnlock() {
+    this._lastLockedTimeStamp = 0;
+    this._lastUnlockedTimeStamp = 0;
+  };
+
   LockScreen.prototype.loadPanel =
   function ls_loadPanel(panel, callback) {
     this._loadingPanel = true;
