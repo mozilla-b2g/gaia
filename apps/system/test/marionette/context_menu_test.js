@@ -73,13 +73,15 @@ marionette('Test Context Menu Events', function() {
     // Cancel the context menu
     var cancel = client.helper.waitForElement('#ctx-cancel-button');
 
+    var menu = client.helper.waitForElement('.appWindow.active .contextmenu');
+
     assert.isTrue(cancel.scriptWith(function(el) {
       return document.activeElement === el;
     }), 'cancel button should be focused.');
 
     cancel.sendKeys(ENTER_CHAR);
 
-    client.helper.waitForElementToDisappear(cancel);
+    client.helper.waitForElementToDisappear(menu);
 
   });
 
