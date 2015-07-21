@@ -531,6 +531,10 @@
      * @memberof SpatialNavigator.prototype
      */
     focus: function snFocus(elem) {
+      if (typeof elem === 'undefined') {
+        elem = this._focus;
+      }
+
       if (this.focusSilently(elem)) {
         this.fire('focus', this._focus);
         return true;

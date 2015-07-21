@@ -66,10 +66,6 @@ section {
   opacity: 0;
 }
 
-#card-list.card-list-slide {
-  transition-timing-function: cubic-bezier(0.25, 0, 0, 1);
-}
-
 #card-list.no-transition,
 #folder-list.no-transition {
   transition-property: none;
