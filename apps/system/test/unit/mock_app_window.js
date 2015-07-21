@@ -1,5 +1,4 @@
 'use strict';
-
 (function(exports) {
   var _id = 0;
 
@@ -103,7 +102,7 @@
     back: function() {},
     reload: function() {},
     stop: function() {},
-    isBrowser: function() {},
+    isBrowser: function() { return false; },
     isPrivateBrowser: function() { return false; },
     isCertified: function() {},
     navigate: function() {},

@@ -51,6 +51,7 @@ var MockSettingsListener = {
   mTeardown: function teardown() {
     this.mName = null;
     this.mDefaultValue = null;
-    this.mDefaultCallback = null;
+    this.mCallback = null;
+    this.mCallbacks = {};
   }
 };
