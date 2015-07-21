@@ -286,7 +286,8 @@ var InboxView = {
           var draftId = parent.dataset.draftId;
           if (draftId) {
             Navigation.toPanel('composer', {
-              draftId: +draftId
+              draftId: +draftId,
+              focusComposer: true
             });
           } else {
             Navigation.toPanel('thread', {

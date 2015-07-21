@@ -174,6 +174,8 @@ suite('compose_test.js', function() {
         this.sinon.stub(SubjectComposer.prototype, 'hide');
         this.sinon.stub(SubjectComposer.prototype, 'setValue');
         this.sinon.stub(SubjectComposer.prototype, 'getMaxLength');
+        this.sinon.stub(SubjectComposer.prototype, 'focus');
+        this.sinon.spy(message, 'focus');
       });
 
       test('Visibility', function() {
@@ -184,12 +186,17 @@ suite('compose_test.js', function() {
         assert.isFalse(Compose.isSubjectVisible);
       });
 
-      test('Toggle field', function() {
+      test('showSubject()', function() {
         Compose.showSubject();
         sinon.assert.called(SubjectComposer.prototype.show);
+        sinon.assert.called(SubjectComposer.prototype.focus);
+      });
 
+      test('hideSubject()', function() {
         Compose.hideSubject();
         sinon.assert.called(SubjectComposer.prototype.hide);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+        sinon.assert.calledOnce(message.focus);
       });
 
       test('Get content from subject field', function() {
@@ -559,6 +566,7 @@ suite('compose_test.js', function() {
 
         this.sinon.stub(SubjectComposer.prototype, 'show');
         this.sinon.stub(SubjectComposer.prototype, 'setValue');
+        this.sinon.stub(SubjectComposer.prototype, 'focus');
       });
 
       teardown(function() {
@@ -570,8 +578,9 @@ suite('compose_test.js', function() {
         assert.equal(Compose.getContent(), d1.content.join(''));
       });
 
-      test('Place cursor at the end of the compose field', function() {
+      test('Focus place cursor at the end of the compose field', function() {
         Compose.fromDraft(d1);
+        Compose.focus();
 
         var range = window.getSelection().getRangeAt(0);
         assert.equal(message.lastChild.tagName, 'BR');
@@ -587,6 +596,7 @@ suite('compose_test.js', function() {
           SubjectComposer.prototype.setValue,
           d1.subject
         );
+        sinon.assert.notCalled(SubjectComposer.prototype.focus);
       });
 
       test('Draft without subject', function() {

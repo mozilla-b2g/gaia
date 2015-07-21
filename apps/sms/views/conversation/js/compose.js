@@ -157,7 +157,6 @@ var Compose = (function() {
 
   function onSubjectVisibilityChanged() {
     if (subject.isVisible()) {
-      subject.focus();
       dom.form.classList.add('subject-composer-visible');
     } else {
       dom.message.focus();
@@ -381,6 +380,7 @@ var Compose = (function() {
 
     showSubject: function() {
       subject.show();
+      subject.focus();
     },
 
     hideSubject: function() {
@@ -403,7 +403,7 @@ var Compose = (function() {
 
       if (draft.subject) {
         this.setSubject(draft.subject);
-        this.showSubject();
+        subject.show();
       }
 
       // draft content is an array
@@ -420,8 +420,6 @@ var Compose = (function() {
         // Append each fragment in order to the composer
         Compose.append(fragment);
       }, Compose);
-
-      this.focus();
     },
 
     /** Render message (sms or mms)
@@ -435,7 +433,7 @@ var Compose = (function() {
       if (message.type === 'mms') {
         if (message.subject) {
           this.setSubject(message.subject);
-          this.showSubject();
+          subject.show();
         }
         SMIL.parse(message).then((elements) => {
           elements.forEach(function(element) {

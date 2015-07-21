@@ -4617,7 +4617,12 @@ suite('conversation.js >', function() {
       function(done) {
         ConversationView.navigateToComposer({ test: 'test' }).then(() => {
           sinon.assert.calledWith(
-            Navigation.toPanel, 'composer', { activity: { test: 'test' } }
+            Navigation.toPanel,
+            'composer',
+            {
+              activity: { test: 'test' },
+              focusComposer: sinon.match.falsy
+            }
           );
           sinon.assert.notCalled(Utils.confirm);
         }).then(done, done);
@@ -4637,7 +4642,12 @@ suite('conversation.js >', function() {
           );
           sinon.assert.called(ConversationView.discardDraft);
           sinon.assert.calledWith(
-            Navigation.toPanel, 'composer', { activity: { test: 'test' } }
+            Navigation.toPanel,
+            'composer',
+            {
+              activity: { test: 'test' },
+              focusComposer: sinon.match.falsy
+            }
           );
         }).then(done, done);
       });
@@ -4650,7 +4660,12 @@ suite('conversation.js >', function() {
 
         ConversationView.navigateToComposer({ number: '+123' }).then(() => {
           sinon.assert.calledWith(
-            Navigation.toPanel, 'composer', { activity: { number: '+123' } }
+            Navigation.toPanel,
+            'composer', 
+            {
+              activity: { number: '+123' },
+              focusComposer: true
+            }
           );
         }).then(done, done);
       });
@@ -6385,7 +6400,9 @@ suite('conversation.js >', function() {
         Promise.resolve(message)
       );
 
-      ConversationView.handleActivity({ messageId: message.id }).then(() => {
+      ConversationView.afterEnterComposer(
+        { activity: { messageId: message.id } }
+      ).then(() => {
         sinon.assert.calledWith(Compose.fromMessage, message);
         sinon.assert.notCalled(Compose.focus);
         sinon.assert.called(ConversationView.recipients.focus);
@@ -6414,7 +6431,9 @@ suite('conversation.js >', function() {
         Promise.resolve([])
       );
 
-      ConversationView.handleActivity(activity).then(() => {
+      ConversationView.afterEnterComposer(
+        { activity: activity, focusComposer: true }
+      ).then(() => {
         sinon.assert.called(Compose.focus);
         sinon.assert.notCalled(ConversationView.recipients.focus);
       }).then(done, done);
@@ -6426,7 +6445,7 @@ suite('conversation.js >', function() {
         number: null,
         body: 'Youtube url'
       };
-      ConversationView.handleActivity(activity).then(() => {
+      ConversationView.afterEnterComposer({ activity: activity }).then(() => {
         sinon.assert.notCalled(Compose.focus);
         sinon.assert.called(ConversationView.recipients.focus);
       }).then(done, done);
@@ -6999,6 +7018,8 @@ suite('conversation.js >', function() {
             { then: (callback) => callback() }
           );
 
+          this.sinon.stub(Compose, 'focus');
+
           // ensures a clean state
           ConversationView.draft = null;
 
@@ -7015,6 +7036,7 @@ suite('conversation.js >', function() {
             ConversationView.renderMessages, Compose.fromDraft
           );
           sinon.assert.calledWith(Compose.fromDraft, draft);
+          sinon.assert.called(Compose.focus);
           assert.equal(draft, ConversationView.draft);
           assert.isFalse(ConversationView.draft.isEdited);
         });

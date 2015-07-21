@@ -598,6 +598,10 @@ var ConversationView = {
       this.handleActivity(args.activity);
     } else if (args.draftId) {
       this.handleDraft(+args.draftId);
+    }
+
+    if (args.focusComposer) {
+      Compose.focus();
     } else {
       this.recipients.focus();
     }
@@ -625,6 +629,7 @@ var ConversationView = {
           this.draft.isEdited = false;
 
           Compose.fromDraft(this.draft);
+          Compose.focus();
         }
       });
     }
@@ -725,18 +730,9 @@ var ConversationView = {
       parametersPromise = Promise.resolve(params);
     }
 
-    return parametersPromise.then((parameters) => {
-      Compose.fromMessage(parameters);
-
-      if (this.recipients.length) {
-        Compose.focus();
-      } else {
-        // If message had subject then it's focused as well causing "interact"
-        // Compose event that sets Recipients.View.isFocusable to false.
-        Recipients.View.isFocusable = true;
-        this.recipients.focus();
-      }
-    });
+    return parametersPromise.then(
+      (parameters) => Compose.fromMessage(parameters)
+    );
   },
 
   // recalling draft for composer only
@@ -745,37 +741,36 @@ var ConversationView = {
     // We'll revisit this.draft necessity in bug 1164435.
     this.draft = Drafts.byDraftId(draftId);
 
-    // Draft recipients are added as the composer launches
-    if (this.draft) {
-      // Recipients will exist for draft messages in threads
-      // Otherwise find them from draft recipient numbers
-      this.draft.recipients.forEach(function(number) {
-        Contacts.findByAddress(number).then(function(contacts) {
-          var recipient;
-          if (contacts.length) {
-            recipient = Utils.basicContact(number, contacts[0]);
-            recipient.source = 'contacts';
-          } else {
-            recipient = {
-              number: number,
-              source: 'manual'
-            };
-          }
-
-          this.recipients.add(recipient);
-        }.bind(this));
-      }, this);
-
-      // Render draft contents into the composer input area.
-      Compose.fromDraft(this.draft);
-
-      // Discard this draft object and update the backing store
-      Drafts.delete(this.draft).store();
-
-      this.draft.isEdited = false;
-    } else {
-      this.recipients.focus();
+    if (!this.draft) {
+      return;
     }
+
+    // Recipients will exist for draft messages in threads
+    // Otherwise find them from draft recipient numbers
+    this.draft.recipients.forEach(function(number) {
+      Contacts.findByAddress(number).then(function(contacts) {
+        var recipient;
+        if (contacts.length) {
+          recipient = Utils.basicContact(number, contacts[0]);
+          recipient.source = 'contacts';
+        } else {
+          recipient = {
+            number: number,
+            source: 'manual'
+          };
+        }
+
+        this.recipients.add(recipient);
+      }.bind(this));
+    }, this);
+
+    // Render draft contents into the composer input area.
+    Compose.fromDraft(this.draft);
+
+    // Discard this draft object and update the backing store
+    Drafts.delete(this.draft).store();
+
+    this.draft.isEdited = false;
   },
 
   beforeEnterComposer() {
@@ -1193,7 +1188,10 @@ var ConversationView = {
       return threadPromise.then((id) => {
         return Navigation.toPanel('thread', { id: id, focusComposer: true });
       }, () => {
-        return Navigation.toPanel('composer', { activity: parameters });
+        return Navigation.toPanel('composer', {
+          activity: parameters,
+          focusComposer: !!(parameters && parameters.number)
+        });
       });
     });
   },
