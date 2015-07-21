@@ -2847,9 +2847,13 @@ suite('system/AppWindow', function() {
     var url = 'http://changed.url';
 
     this.sinon.stub(app1, 'reConfig');
+    this.sinon.stub(app1, '_unregisterAudioChannels');
+    this.sinon.stub(app1, '_registerAudioChannels');
     app1.navigate(url);
 
     assert.ok(app1.reConfig.calledOnce);
+    assert.ok(app1._unregisterAudioChannels.calledOnce);
+    assert.ok(app1._registerAudioChannels.calledOnce);
     assert.ok(app1.element.classList.contains('browser'));
   });
 

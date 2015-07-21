@@ -767,8 +767,10 @@
       this.browserContainer.appendChild(this.browser.element);
       this.iframe = this.browser.element;
       this.launchTime = Date.now();
+      // Register audio channels for new browser frame.
+      this._unregisterAudioChannels();
+      this._registerAudioChannels();
     }
-
     this.browser.element.src = url;
   };
 
@@ -856,16 +858,7 @@
 
       // Need to wait for mozbrowserloadend to get allowedAudioChannels.
       this.browser.element.addEventListener('mozbrowserloadend', () => {
-        // Register audio channels.
-        this.audioChannels = new Map();
-        var audioChannels = this.browser.element.allowedAudioChannels;
-        audioChannels && audioChannels.forEach((audioChannel) => {
-          this.audioChannels.set(
-            audioChannel.name,
-            new AudioChannelController(this, audioChannel)
-          );
-          this.debug('Registered ' + audioChannel.name + ' audio channel');
-        });
+        this._registerAudioChannels();
       });
 
       if (this.isInputMethod) {
@@ -906,16 +899,34 @@
         this[componentName] = null;
       }
 
+      this._unregisterAudioChannels();
+
+      if (this.appChrome) {
+        this.appChrome.destroy();
+        this.appChrome = null;
+      }
+    };
+
+  AppWindow.prototype._registerAudioChannels =
+    function aw_registerAudioChannels() {
+      this.audioChannels = new Map();
+      var audioChannels = this.browser.element.allowedAudioChannels;
+      audioChannels && audioChannels.forEach((audioChannel) => {
+        this.audioChannels.set(
+          audioChannel.name,
+          new AudioChannelController(this, audioChannel)
+        );
+        this.debug('Registered ' + audioChannel.name + ' audio channel');
+      });
+    };
+
+  AppWindow.prototype._unregisterAudioChannels =
+    function aw_unregisterAudioChannels() {
       if (this.audioChannels) {
         this.audioChannels.forEach(function(audioChannel) {
           audioChannel.destroy();
         });
         this.audioChannels = null;
-      }
-
-      if (this.appChrome) {
-        this.appChrome.destroy();
-        this.appChrome = null;
       }
     };
 
