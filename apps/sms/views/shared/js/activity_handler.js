@@ -208,7 +208,8 @@ var ActivityHandler = {
         activity: {
           body: message.body || null,
           number: message.number || null
-        }
+        },
+        focusComposer: focusComposer
       });
     };
 

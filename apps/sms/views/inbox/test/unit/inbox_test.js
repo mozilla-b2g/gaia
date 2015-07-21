@@ -1991,7 +1991,10 @@ suite('thread_list_ui', function() {
     test('click on draft', function() {
       draft1.querySelector('label').click();
 
-      sinon.assert.calledWith(Navigation.toPanel, 'composer', { draftId: 101 });
+      sinon.assert.calledWith(
+        Navigation.toPanel,
+        'composer', { draftId: 101, focusComposer: true }
+      );
     });
   });
 

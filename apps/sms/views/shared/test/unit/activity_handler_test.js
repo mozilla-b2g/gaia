@@ -200,8 +200,9 @@ suite('ActivityHandler', function() {
             sinon.match.instanceOf(Attachment),
             sinon.match.instanceOf(Attachment)
           ],
-          number: null
-        }
+          number: null,
+        },
+        focusComposer: sinon.match.falsy
       });
     });
 
@@ -240,7 +241,8 @@ suite('ActivityHandler', function() {
         activity: {
           body: [sinon.match.instanceOf(Attachment)],
           number: null
-        }
+        },
+        focusComposer: sinon.match.falsy
       });
     });
 
@@ -259,7 +261,8 @@ suite('ActivityHandler', function() {
         activity: {
           body: [sinon.match.instanceOf(Attachment)],
           number: null
-        }
+        },
+        focusComposer: sinon.match.falsy
       });
     });
 
@@ -280,7 +283,8 @@ suite('ActivityHandler', function() {
         activity: {
           body: urlActivityData.url,
           number: null
-        }
+        },
+        focusComposer: sinon.match.falsy
       });
     });
 
@@ -837,7 +841,8 @@ suite('ActivityHandler', function() {
           activity: {
             number: '123',
             body: 'foo'
-          }
+          },
+          focusComposer: true
         });
       }).then(done,done);
     });
@@ -854,7 +859,8 @@ suite('ActivityHandler', function() {
           Navigation.toPanel, 'composer', {
             activity: {
               body: 'foo'
-            }
+            },
+            focusComposer: sinon.match.falsy
           }
         );
       }).then(done,done);
@@ -872,7 +878,8 @@ suite('ActivityHandler', function() {
           activity: {
             number: emailActivityData.target,
             body: emailActivityData.body
-          }
+          },
+          focusComposer: true
         });
       }).then(done,done);
     });
