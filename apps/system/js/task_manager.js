@@ -5,15 +5,27 @@
   'use strict';
 
   var DEBUG = false;
+  var _idCount = 0;
 
   /**
    * Represent a stack of apps as cards
    * @class TaskManager
    */
   function TaskManager(appWindowManager) {
+    this._id = 'TaskManager_' + _idCount++;
     this.appWindowManager = appWindowManager;
-    this.stack = null;
+    // initialize state
+    this.stack = [];
+    this.unfilteredStack = [];
     this.cardsByAppID = {};
+
+    this._settings = {};
+    this._settings[this.SCREENSHOT_PREVIEWS_SETTING_KEY] = true;
+
+    this._stackIndex = -1;
+    this._shouldGoBackHome = false;
+    this._active = false;
+
   }
 
   TaskManager.prototype = Object.create({
@@ -30,12 +42,31 @@
      */
     useAppScreenshotPreviews: true,
 
+    /**
+     * cardsByAppID is one:one lookup for the card associated with a given
+     * app window
+     * @memberof TaskManager.prototype
+     */
+    cardsByAppID: null,
+
+    /**
+     * array containing the possibly-filtered copy of StackManager's snapshot
+     * @memberof TaskManager.prototype
+     */
+    stack: null,
+
+    /**
+     * array containing original StackManager snapshot
+     * @memberof TaskManager.prototype
+     */
+    unfilteredStack: null,
+
    /**
      * Index into StackManager's stack array
      * @memberOf TaskManager.prototype
      */
     _stackIndex: 0,
-     _shouldGoBackHome: false,
+    _shouldGoBackHome: false,
     _active: false,
 
     windowWidth: 0,
@@ -73,6 +104,16 @@
         var idx = this._getPositionFromScrollOffset(this.element.scrollLeft);
         return this.getCardAtIndex(idx);
       }
+    },
+    /**
+     * Getter for the setting-backed screenshots.enabled flag
+     * @memberOf TaskManager.prototype
+     */
+    useAppScreenshotPreviews: {
+      get: function() {
+        var key = this.SCREENSHOT_PREVIEWS_SETTING_KEY;
+        return this._settings[key];
+      }
     }
   });
 
@@ -89,6 +130,7 @@
   TaskManager.prototype.start = function() {
     this._fetchElements();
     this._registerEvents();
+    this._observeSettings();
     this._appClosedHandler = this._appClosed.bind(this);
     Service.request('registerHierarchy', this);
     return LazyLoader.load([
@@ -99,6 +141,7 @@
 
   TaskManager.prototype.stop = function() {
     this._unregisterEvents();
+    this._unobserveSettings();
     Service.request('unregisterHierarchy', this);
   };
 
@@ -108,23 +151,30 @@
     this.screenElement = document.getElementById('screen');
   };
 
+  TaskManager.prototype._observeSettings = function() {
+    Object.keys(this._settings).forEach(name => {
+      this['_handle_' + name] = (settingValue) => {
+        this._settings[name] = settingValue;
+      };
+      SettingsListener.observe(name,
+                               this._settings[name],
+                               this['_handle_' + name]);
+    });
+  };
+  TaskManager.prototype._unobserveSettings = function() {
+    Object.keys(this._settings).forEach(name => {
+      SettingsListener.unobserve(name,
+                               this['_handle_' + name]);
+      delete this['_handle_' + name];
+    });
+  };
+
   TaskManager.prototype._registerEvents = function() {
     window.addEventListener('taskmanagershow', this);
-
-    this.onPreviewSettingsChange = function(settingValue) {
-      this.useAppScreenshotPreviews = settingValue;
-    }.bind(this);
-
-    SettingsListener.observe(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
-                             this.useAppScreenshotPreviews,
-                             this.onPreviewSettingsChange);
   };
 
   TaskManager.prototype._unregisterEvents = function() {
     window.removeEventListener('taskmanagershow', this);
-
-    SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
-                               this.onPreviewSettingsChange);
   };
 
   TaskManager.prototype._appClosed = function cs_appClosed(evt) {
@@ -178,6 +228,7 @@
     // the card view is showing
     this._registerShowingEvents();
 
+    this.unfilteredStack = StackManager.snapshot();
     if (this.filter(filterName)) {
       // Update visual style to indicate we're filtered.
       this.element.classList.add('filtered');
@@ -224,21 +275,21 @@
    *
    */
   TaskManager.prototype.hide = function cs_hideCardSwitcher() {
-    if (!this.isActive()) {
-      return;
-    }
-    this._unregisterShowingEvents();
-    this._removeCards();
-    this.setActive(false);
-    window.removeEventListener('appclosed', this._appClosedHandler);
-    window.removeEventListener('homescreenclosed', this._appClosedHandler);
-    this.screenElement.classList.remove('cards-view');
+    if (this.isActive()) {
+      this._unregisterShowingEvents();
+      this._removeCards();
+      this.setActive(false);
+      window.removeEventListener('appclosed', this._appClosedHandler);
+      window.removeEventListener('homescreenclosed', this._appClosedHandler);
+      this.screenElement.classList.remove('cards-view');
 
-    var detail;
-    if (!isNaN(this.newStackPosition)) {
-      detail = { 'detail': { 'newStackPosition': this.newStackPosition }};
+      var detail;
+      if (!isNaN(this.newStackPosition)) {
+        detail = { 'detail': { 'newStackPosition': this.newStackPosition }};
+      }
+      this.publishNextTick('cardviewclosed', detail);
     }
-    this.publishNextTick('cardviewclosed', detail);
+    this.stack = this.unfilteredStack = [];
   };
 
 
@@ -323,8 +374,7 @@
    * @returns true if a filter was applied, false if not.
    */
   TaskManager.prototype.filter = function cs_filterCardStack(filterName) {
-    var unfilteredStack = this.unfilteredStack = StackManager.snapshot();
-
+    var unfilteredStack = this.unfilteredStack;
     var noRecentWindows = document.getElementById('cards-no-recent-windows');
     switch (filterName) {
       // Filter out any application that is not a system browser window.
@@ -496,8 +546,9 @@
       app = app || Service.query('getHomescreen', true);
     } else if (!app) {
       var currentCard = this.currentCard;
-      app = (this.stack && this.stack.length) ? currentCard && currentCard.app :
-                         Service.query('getHomescreen', true);
+      app = (this.stack && this.stack.length) ?
+              currentCard && currentCard.app :
+              Service.query('getHomescreen', true);
     }
     // to know if position has changed we need index into original stack,
     var position = this.unfilteredStack ? this.unfilteredStack.indexOf(app) :
