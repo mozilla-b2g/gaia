@@ -79,6 +79,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
     var myName = '';
 
     visibleCheckBox.onchange = function changeDiscoverable() {
+      console.log('--> visibleCheckBox.onchange this.checked = ' +
+                  this.checked + ', setDiscoverable');
       setDiscoverable(this.checked);
     };
 
@@ -159,6 +161,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
           setDiscoverable(visible);
         };
         req.onerror = function bt_getVisibleError() {
+          console.log('--> updateDeviceInfo(): req.onerror from get settings ' +
+                      'key "bluetooth.visible", then set ' +
+                      'visibleCheckBox.checked = true;');
           visibleCheckBox.checked = true;
         };
       } else {
@@ -174,6 +179,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     // initial this device information and do default actions
     // when DefaultAdapter is ready.
     function initial() {
+      console.log('initial(): visibleCheckBox.checked = ' +
+                  'defaultAdapter.discoverable = ' +
+                  defaultAdapter.discoverable + ', then setDiscoverable');
       visibleCheckBox.checked = defaultAdapter.discoverable;
       setDiscoverable(visibleCheckBox.checked);
       // we can't get device name immediately, wait a while
@@ -204,6 +212,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
           visibleTimeout = null;
         }
       }
+      console.log('--> setDiscoverable(): set visibleCheckBox.checked = ' +
+                  visible);
       visibleCheckBox.checked = visible;
     }
 
