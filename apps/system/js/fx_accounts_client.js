@@ -82,6 +82,12 @@ var FxAccountsClient = function FxAccountsClient() {
     }, successCb, errorCb);
   };
 
+  var getKeys = function getKeys(successCb, errorCb) {
+    sendMessage({
+      method: 'getKeys'
+    }, successCb, errorCb);
+  };
+
   var logout = function logout(successCb, errorCb) {
     sendMessage({
       method: 'logout'
@@ -129,6 +135,7 @@ var FxAccountsClient = function FxAccountsClient() {
 
   return {
     'getAccounts': getAccounts,
+    'getKeys': getKeys,
     'logout': logout,
     'queryAccount': queryAccount,
     'resendVerificationEmail': resendVerificationEmail,

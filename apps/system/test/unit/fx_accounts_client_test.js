@@ -61,7 +61,7 @@ suite('system/FxAccountsClient >', function() {
   suite('Init', function() {
     test('Integrity', function() {
       assert.isNotNull(FxAccountsClient);
-      assert.equal(Object.keys(FxAccountsClient).length, 7);
+      assert.equal(Object.keys(FxAccountsClient).length, 8);
     });
 
     test('No event listeners', function() {
@@ -251,6 +251,47 @@ suite('system/FxAccountsClient >', function() {
 
     suiteTeardown(function() {
       MockDispatchedEvents = [];
+    });
+  });
+
+  suite('getKeys', function() {
+    setup(function() {
+      FxAccountsClient.getKeys(successCb, errorCb);
+    });
+
+    test('Event dispatched to chrome side', function() {
+      assert.equal(MockDispatchedEvents.length, 1);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
+      assert.ok(MockDispatchedEvents[0].detail.id);
+      assert.ok(MockDispatchedEvents[0].detail.data);
+      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
+        method: 'getKeys'
+      });
+    });
+  });
+
+  suite('getKeys response', function() {
+    setup(function() {
+      MockEventListener.mozFxAccountsChromeEvent({
+        detail: {
+          id: MockDispatchedEvents[0].detail.id,
+          data: expectedData
+        }
+      });
+    });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
+      result = null;
+      error = null;
+      successCbCalled = false;
+      errorCbCalled = false;
+    });
+
+    test('On chrome event', function() {
+      assert.isTrue(successCbCalled);
+      assert.isFalse(errorCbCalled);
+      assert.equal(result, expectedData);
     });
   });
 
