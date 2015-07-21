@@ -3,6 +3,7 @@
 'use strict';
 require('/shared/test/unit/mocks/mock_service.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/shared/js/event_safety.js');
 requireApp('system/js/base_ui.js');
 requireApp('system/js/context_menu_view.js');
 
@@ -82,7 +83,7 @@ suite('ContextMenuView', function() {
     fakeClock.restore();
   });
 
-  test('click menu', function() {
+  test('click menu', function(done) {
     var requestStub = this.sinon.stub(Service, 'request');
     contextMenu.show([fakeMenuItem1, fakeMenuItem2]);
     contextMenu.element.dispatchEvent(new CustomEvent('transitionend'));
@@ -92,12 +93,17 @@ suite('ContextMenuView', function() {
     var callbackStub = this.sinon.stub(fakeMenuItem1, 'callback');
 
     contextMenu.elements.list.querySelector('button:first-child').click();
-    assert.isTrue(callbackStub.called);
     assert.isFalse(contextMenu.isShown());
     assert.isTrue(requestStub.calledWith('focus'));
 
-    callbackStub.restore();
-    requestStub.restore();
+    assert.isFalse(callbackStub.called);
+    contextMenu.element.dispatchEvent(new CustomEvent('transitionend'));
+    Promise.resolve().then(() => {
+      assert.isTrue(callbackStub.called);
+      callbackStub.restore();
+      requestStub.restore();
+      done();
+    });
   });
 
   test('click cancel', function() {

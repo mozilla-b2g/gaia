@@ -1,5 +1,5 @@
 /* exported ContextMenuView */
-/* global BaseUI, Service */
+/* global BaseUI, Service, eventSafety */
 (function(exports) {
   'use strict';
 
@@ -88,15 +88,18 @@
 
   ContextMenuView.prototype.hide = function(evt) {
     if (!this.element) {
-      return;
+      return Promise.resolve();
     }
 
     if (evt) {
       evt.preventDefault();
     }
 
-    this.element.classList.remove('visible');
-    this._requestFocus();
+    return new Promise((resolve, reject) => {
+      this.element.classList.remove('visible');
+      this._requestFocus();
+      eventSafety(this.element, 'transitionend', resolve, 400);
+    });
   };
 
   ContextMenuView.prototype.buildMenu = function(items) {
@@ -113,8 +116,9 @@
       }
 
       action.addEventListener('click', function(evt) {
-        this.hide(evt);
-        item.callback();
+        this.hide(evt).then(() => {
+          item.callback();
+        });
       }.bind(this));
 
       this.elements.list.appendChild(action);
