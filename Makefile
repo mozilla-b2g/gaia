@@ -51,7 +51,6 @@
 #                                                                             #
 ###############################################################################
 
-
 # Eliminate use of the built-in implicit rules to get faster.
 MAKEFLAGS=-r
 
@@ -254,6 +253,8 @@ GAIA_DIR := $(CURDIR)
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
 MSYS_FIX=
+
+CPU_NUM?=1
 ifeq (${SYS}/${ARCH},Darwin/i386)
 ARCH=x86_64
 endif
@@ -265,6 +266,8 @@ SEP=\\
 SEP_FOR_SED=\\\\
 # Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
 MSYS_FIX=/
+else
+CPU_NUM=$(shell getconf _NPROCESSORS_ONLN)
 endif
 
 # The b2g_sdk target arranges to get b2g desktop downloaded and set up.
@@ -336,7 +339,7 @@ endif # Firefox build workaround
 # XULRUNNERSDK used to be run-mozilla.sh, but some builds don't include it
 # Without that, Linux needs to reference the directory containing libxul.so
 ifeq (,$(XULRUNNERSDK)$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
-XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
+XULRUNNERSDK := LD_LIBRARY_PATH='$(dir $(XPCSHELLSDK))'
 endif
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
@@ -499,6 +502,8 @@ TEST_DIRS ?= $(GAIA_DIR)/tests
 PROFILE_DIR?=$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)
 COREWEBAPPS_DIR?=$(PROFILE_DIR)
 
+CONFIGURE_JS?=$(GAIA_DIR)$(SEP)build$(SEP)configure$(SEP)configure.js
+
 define BUILD_CONFIG
 { \
   "ADB" : "$(patsubst "%",%,$(ADB))", \
@@ -557,7 +562,12 @@ define BUILD_CONFIG
   "PERF_LOGGING" : "$(PERF_LOGGING)", \
   "SHARE_PERF_USAGE": "$(SHARE_PERF_USAGE)", \
   "DEFAULT_KEYBOAD_SYMBOLS_FONT": "$(DEFAULT_KEYBOAD_SYMBOLS_FONT)", \
-  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)" \
+  "DEFAULT_GAIA_ICONS_FONT": "$(DEFAULT_GAIA_ICONS_FONT)", \
+  "BUILDAPP" : "$(BUILDAPP)", \
+  "APP" : "$(APP)", \
+  "XPCSHELLSDK" : "$(XPCSHELLSDK)", \
+  "XULRUNNERSDK" : "$(XULRUNNERSDK)", \
+  "CPU_NUM" : "$(CPU_NUM)" \
 }
 endef
 
@@ -579,8 +589,8 @@ build-app: app
 	@$(call $(BUILD_RUNNER),update-webapps-json)
 
 .PHONY: app
-app: b2g_sdk profile-dir
-	@$(call $(BUILD_RUNNER),app)
+app: b2g_sdk profile-dir node_modules
+	@node --harmony $(CONFIGURE_JS) BUILD_CONFIG=$(BUILD_CONFIG)
 
 .PHONY: pre-app
 pre-app: b2g_sdk profile-dir
@@ -614,6 +624,7 @@ ifeq ($(BUILD_APP_NAME),*)
 ifdef CONTACTS_PATH
 	@echo "Copying preload contacts to profile"
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
+	@mkdir -p $(PROFILE_FOLDER)/defaults
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)/defaults/contacts.json
 else
 	@rm -f $(PROFILE_FOLDER)/contacts.json

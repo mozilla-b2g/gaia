@@ -79,15 +79,23 @@ try {
 }
 
 var CommonjsRunner = function(module, appOptions) {
-  appOptions = appOptions || '{}';
-  try {
-    appOptions = JSON.parse(appOptions);
-  } catch (err) {
-    dump('Unable to parse options ' + err.message);
-    throw err;
+  if (appOptions) {
+    appOptions = appOptions || '{}';
+    try {
+      if (typeof appOptions === 'string') {
+        appOptions = JSON.parse(appOptions);
+      } else {
+        options = appOptions;
+      }
+    } catch (err) {
+      dump('Unable to parse appOptions ' + err.message);
+      throw err;
+    }
+  } else {
+    appOptions = options;
   }
-  const GAIA_DIR = env.get('GAIA_DIR');
-  const APP_DIR = appOptions.APP_DIR || env.get('APP_DIR');
+  const GAIA_DIR = env.get('GAIA_DIR') || appOptions.GAIA_DIR;
+  const APP_DIR = (appOptions && appOptions.APP_DIR) || env.get('APP_DIR');
   let gaiaDirFile = new FileUtils.File(GAIA_DIR);
   let appBuildDirFile, appDirFile;
 
@@ -157,10 +165,11 @@ CommonjsRunner.prototype.run = function() {
     // ...and to allow doing easily such thing \o/
     if (this.appDirFile) {
       var stageAppDir = this.gaiaDirFile.clone();
+      let appPath = this.appDirFile.path;
       stageAppDir.append('build_stage');
       stageAppDir.append(this.appDirFile.leafName);
       options.STAGE_APP_DIR = stageAppDir.path;
-      options.APP_DIR = this.appDirFile.path;
+      options.APP_DIR = appPath;
       output += this.appDirFile.leafName;
     }
     output += '/' + this.module;

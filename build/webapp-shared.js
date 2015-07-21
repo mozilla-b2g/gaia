@@ -5,14 +5,18 @@
  */
 
 var utils = require('./utils');
+var CopyHelper = require('./configure/copy-helper');
+var DependencyGraph = require('./configure/dependency-graph');
 
-var WebappShared = function() {
+var WebappShared = function(options) {
+  this.options = options;
 };
 
 WebappShared.prototype.setOptions = function(options) {
-  this.config = options.config;
   this.gaia = options.gaia;
   this.webapp = options.webapp;
+  this.generator = options.generator;
+  this.copyHelper = new CopyHelper('all', this.generator);
   this.used = {
     js: [],              // List of JS file paths to copy
     locales: [],         // List of locale names to copy
@@ -22,8 +26,8 @@ WebappShared.prototype.setOptions = function(options) {
     elements: [],        // List of elements names to copy,
     pages: []            // List of pages to copy
   };
-  this.localesFile = utils.resolve(this.config.LOCALES_FILE,
-    this.config.GAIA_DIR);
+  this.localesFile = utils.resolve(this.options.LOCALES_FILE,
+    this.options.GAIA_DIR);
   if (!this.localesFile.exists()) {
     throw new Error('LOCALES_FILE doesn\'t exists: ' + this.localesFile.path);
   }
@@ -35,32 +39,20 @@ WebappShared.prototype.moveToBuildDir = function(file, targetPath) {
   if (file.isHidden()) {
     return;
   }
-  var path = file.path;
-
-  if (!file.exists()) {
-    throw new Error('Can\'t add inexistent file to  : ' + path);
-  }
+  var filePath = file.path;
 
   if (utils.getOsType().indexOf('WIN') !== -1) {
     targetPath = targetPath.replace(/\//g, '\\\\');
   }
 
   var fullTargetPath = utils.joinPath(this.buildDir.path, targetPath);
-  // Case 1/ Regular file
+
+  // Ensure we pass folder as destination
   if (file.isFile()) {
-    try {
-      utils.copyFileTo(file, utils.dirname(fullTargetPath),
-        utils.basename(fullTargetPath));
-    } catch (e) {
-      throw new Error('Unable to add following file in stage: ' +
-        path + '\n' + e);
-    }
+    fullTargetPath = utils.dirname(fullTargetPath);
   }
-  // Case 2/ Directory
-  else if (file.isDirectory()) {
-    utils.copyDirTo(file, utils.dirname(fullTargetPath),
-        utils.basename(fullTargetPath));
-  }
+
+  this.copyHelper.copy(filePath, fullTargetPath);
 };
 
 /**
@@ -117,11 +109,6 @@ WebappShared.prototype.pushJS = function(path) {
 WebappShared.prototype.copyPage = function(path) {
   var file = utils.getFile(this.gaia.sharedFolder.path, 'pages', path);
 
-  if (!file.exists()) {
-    throw new Error('Using inexistent shared page file: ' + path +
-                    ' from: ' + this.webapp.domain);
-  }
-
   var pathInStage = 'shared/pages/' + path;
   this.moveToBuildDir(file, pathInStage);
 
@@ -139,10 +126,10 @@ WebappShared.prototype.pushResource = function(path) {
     paths = utils.joinPath(paths, segment);
     if (utils.isSubjectToBranding(paths)) {
       paths = utils.joinPath(paths,
-        (this.config.OFFICIAL === '1' ? 'official' : 'unofficial'));
+        (this.options.OFFICIAL === '1' ? 'official' : 'unofficial'));
     }
     if (utils.isSubjectToDeviceType(paths)) {
-      paths = utils.joinPath(paths, this.config.GAIA_DEVICE_TYPE);
+      paths = utils.joinPath(paths, this.options.GAIA_DEVICE_TYPE);
     }
   }.bind(this));
   var file = utils.getFile(paths);
@@ -196,9 +183,8 @@ WebappShared.prototype.pushLocale = function(name) {
   // And the locale folder itself
   this.moveToBuildDir(localeFolder, 'shared/locales/' + name );
   utils.ls(localeFolder, true).forEach(function(fileInSharedLocales) {
-
     var relativePath =
-      fileInSharedLocales.path.substr(this.config.GAIA_DIR.length + 1);
+      fileInSharedLocales.path.substr(this.options.GAIA_DIR.length + 1);
 
     this.moveToBuildDir(fileInSharedLocales, relativePath);
   }.bind(this));
@@ -300,7 +286,7 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
       }
       break;
     case 'elements':
-      if (this.used.elements.indexOf(path) == -1) {
+      if (this.used.elements.indexOf(path) === -1) {
         this.used.elements.push(path);
         this.pushElements(path);
       }
@@ -356,9 +342,9 @@ WebappShared.prototype.filterFileByExtenstion = function(type, file) {
  * and copy them to '/build_stage' with their proper structures.
  */
 WebappShared.prototype.copyShared = function() {
-  // If config.BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (this.config.BUILD_APP_NAME !== '*' &&
-    this.webapp.sourceDirectoryName !== this.config.BUILD_APP_NAME) {
+  // If options.BUILD_APP_NAME isn't `*`, we only accept one webapp
+  if (this.options.BUILD_APP_NAME !== '*' &&
+    this.webapp.sourceDirectoryName !== this.options.BUILD_APP_NAME) {
     return;
   }
   // Zip generation is not needed for external apps, aplication data
@@ -394,12 +380,27 @@ WebappShared.prototype.execute = function(options) {
   this.copyShared();
 };
 
-function execute(config) {
-  var gaia = utils.gaia.getInstance(config);
-  gaia.rebuildWebapps.forEach(function(webapp) {
-    (new WebappShared()).execute({
-      config: config, gaia: gaia, webapp: webapp});
+function execute(options) {
+  var gaia = utils.gaia.getInstance(options);
+  var makefilesFolder = utils.getFile(options.STAGE_DIR, 'Makefiles');
+  utils.ensureFolderExists(makefilesFolder);
+  var commonMkPath = utils.joinPath(options.STAGE_DIR, 'Makefiles',
+    'webapp-shared.mk');
+  var generator = new DependencyGraph(commonMkPath);
+
+  generator.insertTask('phony', 'all');
+
+  options.GAIA_APPDIRS.split(' ').forEach(function(appDir) {
+    var webapp = utils.getWebapp(appDir, options);
+    var webappShared = new WebappShared(options);
+    webappShared.execute({
+      gaia: gaia,
+      webapp: webapp,
+      generator: generator,
+    });
   });
+
+  generator.genBackend();
 }
 
 exports.execute = execute;

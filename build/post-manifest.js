@@ -7,7 +7,7 @@
 var utils = require('./utils');
 
 function execute(options) {
-  var webapp = options.webapp;
+  var webapp = utils.getWebapp(options.APP_DIR, options);
   if (utils.isExternalApp(webapp)) {
     return;
   }

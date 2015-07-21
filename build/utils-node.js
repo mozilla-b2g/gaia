@@ -103,6 +103,7 @@ module.exports = {
         return /^\./.test(path.basename(src));
       },
       path: src,
+      parent: path.dirname(src),
       leafName: path.basename(src)
     };
   },
@@ -118,7 +119,6 @@ module.exports = {
     this.run = function(args, callback) {
       var q = Q.defer();
       var cmds = args.join(' ');
-
       // In *nix and OSX version commands are run via sh -c YOUR_COMMAND,
       // but in Windows commands are run via cmd /C YOUR_COMMAND,
       // so, we just let execSync module to handle the difference.
@@ -127,13 +127,12 @@ module.exports = {
       } else {
         cmds = cmd + ' ' + cmds;
       }
-      console.log(cmds);
       // XXX: Most cmds should run synchronously, we should use either promise
       //      pattern inside each script or find a sync module which doesn't
       //      require recompile again since TPBL doesn't support that.
-      childProcess.exec(cmds, function(err, stdout) {
-        if (err === null && typeof callback === 'function') {
-          callback(stdout);
+      childProcess.exec(cmds, function(err, stdout, stderr) {
+        if (err !== null && typeof callback === 'function') {
+          callback(stdout, stderr);
         }
         q.resolve();
       });
@@ -453,7 +452,8 @@ module.exports = {
 
   },
 
-  writeContent :function(file, content) {
+  writeContent: function(file, content) {
+    this.ensureFolderExists(this.getFile(file.parent));
     fs.writeFileSync(file.path, content);
   },
 

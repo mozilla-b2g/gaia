@@ -520,7 +520,7 @@ function L10nManager(gaiaDir,
 }
 
 function execute(options) {
-  var webapp = options.webapp;
+  var webapp = utils.getWebapp(options.APP_DIR, options);
   var localeBasedir = null;
 
   if (options.LOCALE_BASEDIR) {

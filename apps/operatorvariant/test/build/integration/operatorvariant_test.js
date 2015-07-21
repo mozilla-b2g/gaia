@@ -11,21 +11,18 @@ suite('Operatorvariant tests', function() {
 
   test('APP=operatorvariant make', function(done) {
     // Create settings for operatorvariant
-    helper.exec('make settings' , function(error, stdout, stderr) {
+    helper.exec('APP=operatorvariant make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
-      helper.exec('APP=operatorvariant make', function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
 
-        var zipPath = process.cwd() +
-          '/profile/webapps/operatorvariant.gaiamobile.org/application.zip';
-        var checkList = ['manifest.webapp'];
+      var zipPath = process.cwd() +
+        '/profile/webapps/operatorvariant.gaiamobile.org/application.zip';
+      var checkList = ['manifest.webapp'];
 
-        checkList.forEach(function(filePath) {
-          helper.checkFilePathInZip(zipPath, filePath);
-        });
-
-        done();
+      checkList.forEach(function(filePath) {
+        helper.checkFilePathInZip(zipPath, filePath);
       });
+
+      done();
     });
   });
 });
