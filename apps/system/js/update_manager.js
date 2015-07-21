@@ -26,6 +26,7 @@
     _systemUpdateDisplayed: false,
     _startedDownloadUsingDataConnection: false,
     _settings: null,
+    _hasDialog: false,
     UPDATE_NOTIF_ID: 'update-notification',
     NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
     TOASTER_TIMEOUT: 1200,
@@ -163,6 +164,7 @@
 
     cancelAllDownloads: function um_cancelAllDownloads() {
       Service.request('hideCustomDialog');
+      this._hasDialog = false;
 
       // We're emptying the array while iterating
       while (this.downloadsQueue.length) {
@@ -294,6 +296,7 @@
           cancel,
           confirm
         );
+        this._hasDialog = true;
       } else {
         this.showDownloadPrompt();
       }
@@ -322,6 +325,7 @@
 
       Service.request('showCustomDialog',
         'systemUpdate', 'downloadUpdatesVia2GForbidden3', ok, null);
+      this._hasDialog = true;
     },
 
     showPromptNoConnection: function um_showPromptNoConnection() {
@@ -336,6 +340,7 @@
 
       Service.request('showCustomDialog',
         'systemUpdate', 'downloadOfflineWarning2', ok, null);
+      this._hasDialog = true;
     },
 
     showDownloadPrompt: function um_showDownloadPrompt() {
@@ -435,11 +440,13 @@
 
     cancelPrompt: function um_cancelPrompt() {
       Service.request('hideCustomDialog');
+      this._hasDialog = false;
       this._closeDownloadDialog();
     },
 
     cancelDataConnectionUpdatesPrompt: function um_cancelDCUpdatesPrompt() {
       Service.request('hideCustomDialog');
+      this._hasDialog = false;
       this.downloadViaDataConnectionDialog.classList.remove('visible');
       this._closeDownloadDialog();
     },
@@ -488,6 +495,7 @@
       function um_showPrompt3GAdditionalCostIfNeeded() {
       this._openDownloadViaDataDialog();
       Service.request('hideCustomDialog');
+      this._hasDialog = false;
     },
 
     showPromptWifiPrioritized:
@@ -520,6 +528,7 @@
         notNow,
         download
       );
+      this._hasDialog = true;
     },
 
     downloadProgressed: function um_downloadProgress(bytes) {
@@ -766,7 +775,10 @@
           }
           this.downloadViaDataConnectionDialog.classList.remove('visible');
           this._closeDownloadDialog();
-          Service.request('hideCustomDialog');
+          // only request while update manager shows a dialog
+          if (this._hasDialog) {
+            Service.request('hideCustomDialog');
+          }
           break;
       }
 

@@ -423,6 +423,8 @@ suite('system/UpdateManager', function() {
         assert.isFalse(UpdateManager.downloadViaDataConnectionDialog.
           classList.contains('visible'));
         assert.isFalse(MockCustomDialog.mShown);
+        // should not close all custom dialog when no custom dialog is opened
+        assert.isFalse(Service.request.calledWith('hideCustomDialog'));
       });
 
       test('should decline install if showing apply prompt', function() {
@@ -490,6 +492,51 @@ suite('system/UpdateManager', function() {
               UpdateManager.cancelPrompt();
               break;
           }
+        });
+      });
+
+      // Places to create new custom dialog
+      var hasDialogTestCases = [
+        {
+          method: 'containerClicked'
+        },
+        {
+          method: 'showPromptWifiPrioritized'
+        },
+        {
+          method: 'showForbiddenDownload'
+        },
+        {
+          method: 'showPromptNoConnection'
+        }
+      ];
+
+      hasDialogTestCases.forEach(function(testCase) {
+        test('should close all dialogs when ' + testCase.method +
+          ' dialog is opened', function() {
+          switch (testCase.method) {
+            case 'containerClicked':
+              UpdateManager._downloading = true;
+              UpdateManager.containerClicked();
+              break;
+            case 'showPromptWifiPrioritized':
+              UpdateManager.showPromptWifiPrioritized();
+              break;
+            case 'showForbiddenDownload':
+              UpdateManager.showForbiddenDownload();
+              break;
+            case 'showPromptNoConnection':
+              UpdateManager.showPromptNoConnection();
+              break;
+          }
+          window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
+
+          assert.isFalse(UpdateManager.downloadDialog.
+            classList.contains('visible'));
+          assert.isFalse(UpdateManager.downloadViaDataConnectionDialog.
+            classList.contains('visible'));
+          assert.isFalse(MockCustomDialog.mShown);
+          assert.ok(Service.request.calledWith('hideCustomDialog'));
         });
       });
     });
