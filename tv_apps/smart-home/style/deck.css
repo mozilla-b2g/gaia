@@ -116,46 +116,46 @@ smart-button[type="app-button"].deck-dashboard {
 }
 
 @keyframes defaultWaveAnimation {
-  from {left: 0;}
-  to {left: -80.64rem;}
+  from {transform: translateX(0);}
+  to {transform: translateX(-67.2rem);}
 }
 
 @keyframes tvWaveFrontAnimation {
-  from {left: 0;}
-  to {left: -80.64rem;}
+  from {transform: translateX(0);}
+  to {transform: translateX(-67.2rem);}
 }
 
 @keyframes tvWaveBackAnimation {
-  from {left: -3rem;}
-  to {left: -83.64rem;}
+  from {transform: translateX(-3rem);}
+  to {transform: translateX(-70.2rem);}
 }
 
 @keyframes applicationWaveFrontAnimation {
-  from {left: -16rem;}
-  to {left: -96.64rem;}
+  from {transform: translateX(-16rem);}
+  to {transform: translateX(-83.2rem);}
 }
 
 @keyframes applicationWaveBackAnimation {
-  from {left: -23rem;}
-  to {left: -103.64rem;}
+  from {transform: translateX(-23rem);}
+  to {transform: translateX(-90.2rem);}
 }
 
 @keyframes deviceWaveFrontAnimation {
-  from {left: 3rem;}
-  to {left: -77.64rem;}
+  from {transform: translateX(-22rem);}
+  to {transform: translateX(-89.2rem);}
 }
 
 @keyframes deviceWaveBackAnimation {
-  from {left: 0;}
-  to {left: -80.64rem;}
+  from {transform: translateX(-25rem);}
+  to {transform: translateX(-92.2rem);}
 }
 
 @keyframes dashboardWaveFrontAnimation {
-  from {left: -35rem;}
-  to {left: -115.64rem;}
+  from {transform: translateX(-35rem);}
+  to {transform: translateX(-102.2rem);}
 }
 
 @keyframes dashboardWaveBackAnimation {
-  from {left: -32rem;}
-  to {left: -112.64rem;}
+  from {transform: translateX(-32rem);}
+  to {transform: translateX(-99.2rem);}
 }
