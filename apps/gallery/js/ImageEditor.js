@@ -548,9 +548,10 @@ function applyEditTool() {
 }
 
 function onCancelButton() {
-  // Check for currentEditTool to find if user is cancelling out
-  // from edit tool screen or main edit screen
-  if (currentEditTool === null) {
+  // Check for currentEditTool to find if user is cancelling out from
+  // edit tool screen - crop, effect, exposure or main edit screen
+  if (currentEditTool === null || currentEditTool === 'enhance') {
+    currentEditTool = null;
     // Exit main edit screen withot saving edited image
     exitEdit(false);
   } else {
