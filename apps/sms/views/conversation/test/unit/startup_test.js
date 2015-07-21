@@ -4,6 +4,7 @@
          LazyLoader,
          LocalizationHelper,
          MessageManager,
+         MessagingClient,
          MocksHelper,
          Navigation,
          Settings,
@@ -21,6 +22,7 @@ require('/views/shared/test/unit/mock_conversation.js');
 require('/views/shared/test/unit/mock_information.js');
 require('/views/shared/test/unit/mock_localization_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/services/test/unit/messaging/mock_messaging_client.js');
 require('/services/test/unit/mock_message_manager.js');
 require('/views/shared/js/utils.js');
 require('/views/shared/test/unit/mock_utils.js');
@@ -34,6 +36,7 @@ var MocksHelperForInboxStartup = new MocksHelper([
   'LazyLoader',
   'LocalizationHelper',
   'MessageManager',
+  'MessagingClient',
   'Navigation',
   'TimeHeaders',
   'Settings',
@@ -57,6 +60,7 @@ suite('ConversationView Startup,', function() {
     this.sinon.stub(LazyLoader, 'load').returns(Promise.resolve());
     this.sinon.stub(MessageManager, 'getThreads');
     this.sinon.stub(Navigation, 'isDefaultPanel');
+    this.sinon.spy(MessagingClient, 'init');
   });
 
   suite('In default panel,', function() {

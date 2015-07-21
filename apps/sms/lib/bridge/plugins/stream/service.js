@@ -6,56 +6,54 @@
  * @type {Function}
  */
 
-var debug = 1 ? console.log.bind(console, '[ServiceStream]') : function() {};
+var debug = 0 ? function(arg1, ...args) {
+  var type = `[${self.constructor.name}][${location.pathname}]`;
+  console.log(`[ServiceStream]${type} - "${arg1}"`, ...args);
+} : () => {};
 
-module.exports = function(service, utils) {
+module.exports = function(service) {
   debug('attaching plugin');
 
   service
-    .on('stream', onStream)
-    .on('streamcancel', onStreamCancel);
+    .method('_stream', onStream)
+    .method('_streamcancel', onStreamCancel);
 
-  service.streamHandlers = {};
+  service._streamHandlers = {};
   service._activeStreams = [];
 
   service.stream = function(name, fn) {
-    this.streamHandlers[name] = fn;
+    debug('register stream', name);
+    this._streamHandlers[name] = fn;
     return this;
   };
 
-  function onStream(message) {
-    debug('on stream', message);
-    var data = message.data;
-    var fn = service.streamHandlers[data.name];
-    var clientId = data.clientId;
+  function onStream(name, id, clientId, args) {
+    debug('on stream open', name);
+    var e = {
+      preventDefault: () => e.defaultPrevented = true,
+      arguments: arguments
+    };
 
-    // if (!fn) throw error(6, data.name);
+    // Allow other plugins to override default behaviour
+    service.emit('before-stream', e);
+    if (e.defaultPrevented) return;
 
-    var stream = new ServiceStream(message.source, data.id, {
-      client: service.clients[clientId],
-      serviceId: service.id,
-      clientId: clientId
-    }, utils);
+    var fn = service._streamHandlers[name];
+    if (!fn) throw error(1, name);
 
-    service._activeStreams[data.id] = stream;
+    var stream = new ServiceStream(id, service, clientId);
+    service._activeStreams[id] = stream;
 
-    // always pass stream object as first
+    // Always pass stream object as first
     // argument to simplify the process
-    fn.apply(service, [stream].concat(data.args));
-
-    // stream doesn't return anything on purpose,
-    // we create another stream object
-    // on the client during request
-    message.respond();
+    fn.apply(service, [stream].concat(args));
   }
 
-  function onStreamCancel(message) {
+  function onStreamCancel(id, reason) {
     debug('stream cancel');
-    var data = message.data;
-    var id = data.id;
     var stream = service._activeStreams[id];
     delete service._activeStreams[id];
-    message.respond(stream._cancel(data.reason));
+    return stream.cancel(reason);
   }
 };
 
@@ -70,11 +68,10 @@ module.exports = function(service, utils) {
  * @param {String} options.clientId ID of client that should receive message
  */
 
-function ServiceStream(endpoint, id, data, utils) {
-  this.id = id;
-  this.endpoint = endpoint;
-  this.clientId = data.clientId;
-  this.message = utils.message;
+function ServiceStream(streamId, service, clientId) {
+  this.id = streamId;
+  this.service = service;
+  this.clientId = clientId;
   this.writable = true;
   debug('initialized');
 }
@@ -116,8 +113,8 @@ ServiceStreamPrototype.cancel = function(reason) {
 
 ServiceStreamPrototype.abort = function(data) {
   debug('abort', data);
-  return this._post('abort', data)
-    .then(() => this.writable = false);
+  this._post('abort', data);
+  this.writable = false;
 };
 
 /**
@@ -130,7 +127,7 @@ ServiceStreamPrototype.abort = function(data) {
 
 ServiceStreamPrototype.write = function(data) {
   debug('write', data);
-  return this._post('write', data);
+  this._post('write', data);
 };
 
 /**
@@ -145,8 +142,8 @@ ServiceStreamPrototype.write = function(data) {
 
 ServiceStreamPrototype.close = function() {
   debug('close');
-  return this._post('close')
-    .then(() => this.writable = false);
+  this._post('close');
+  this.writable = false;
 };
 
 /**
@@ -183,16 +180,26 @@ ServiceStreamPrototype._cancel = function(reason) {
 ServiceStreamPrototype._post = function(type, data) {
   debug('post', type, data, this.writable);
   if (!this.writable) return Promise.reject();
-  return this.message('streamevent')
-    .set('noRespond', true)
-    .set('recipient', this.clientId)
-    .set('data', {
-      streamId: this.id,
-      type: type,
-      data: data
-    })
-    .send(this.endpoint);
+  this.service.broadcast('streamevent', {
+    streamId: this.id,
+    type: type,
+    data: data
+  }, [this.clientId]);
 };
+
+/**
+ * Create new `Error` from registery.
+ *
+ * @param  {Number} id Error Id
+ * @return {Error}
+ * @private
+ */
+function error(id) {
+  var args = [].slice.call(arguments, 1);
+  return new Error({
+    1: 'stream "' + args[0] + '" doesn\'t exist'
+  }[id]);
+}
 
 });})((typeof define)[0]=='f'&&define.amd?define:((n,w)=>{return(typeof
 module)[0]=='o'?c=>{c(require,exports,module);}:(c)=>{var m={exports:{}};

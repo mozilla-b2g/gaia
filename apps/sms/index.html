@@ -120,6 +120,7 @@
     <script defer src="services/js/bridge_service_mixin.js"></script>
     <script defer src="services/js/activity/activity_client.js"></script>
     <script defer src="services/js/activity/activity_shim.js"></script>
+    <script defer src="services/js/messaging/messaging_client.js"></script>
     <script defer src="views/shared/js/activity_handler.js"></script>
     <script defer src="views/shared/js/contact_renderer.js"></script>
     <script defer src="views/shared/js/localization_helper.js"></script>
@@ -128,6 +129,7 @@
   </head>
 
   <body role="application" class="skin-comms theme-communications">
+    <iframe src="/views/shared/shim_host.html" class="shim-host" hidden></iframe>
     <article id="main-wrapper" class="wrapper">
       <section class="panel panel-InboxView" role="region">
         <!-- title-start and title-end indicates the button widths respectively

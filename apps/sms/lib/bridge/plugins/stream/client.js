@@ -6,7 +6,10 @@
  * @type {Function}
  */
 
-var debug = 0 ? console.log.bind(console, '[ClientStream]') : () => {};
+var debug = 0 ? function(arg1, ...args) {
+  var type = `[${self.constructor.name}][${location.pathname}]`;
+  console.log(`[ClientStream]${type} - "${arg1}"`, ...args);
+} : () => {};
 
 /**
  * Exports
@@ -14,47 +17,39 @@ var debug = 0 ? console.log.bind(console, '[ClientStream]') : () => {};
 
 module.exports = (client, utils) => {
   client._activeStreams = [];
-  client.receiver.on('streamevent', onStreamEvent);
+  client.on('streamevent', onStreamEvent);
 
-  client.stream = function(method) {
+  client.stream = function(name) {
+    debug('stream open', name);
     var args = [].slice.call(arguments, 1);
     var stream = new ClientStream(client, utils);
+    var self = this;
+
+    this.method('_stream', name, stream.id, this.id, args)
+      .then(() => {
+        debug('stream connected', name);
+        stream._connected.resolve();
+      })
+
+      .catch(err => {
+        debug('error', err);
+        onStreamEvent({
+          type: 'abort',
+          id: stream.id,
+          data: err
+        });
+      });
 
     this._activeStreams[stream.id] = stream;
+    stream.emitter.on('cancel', onEnd);
+    stream.emitter.on('abort', onEnd);
+    stream.emitter.on('close', onEnd);
 
-    // Don't attempt to establish a stream
-    // until the client is connected.
-    this.connect().then(() => {
-      debug('stream', method, args);
-
-      utils.message('stream')
-        .set('data', {
-          id: stream.id,
-          clientId: client.id,
-          name: method,
-          args: args
-        })
-
-        .send(client.endpoint)
-        .then(() => stream._connected.resolve())
-        .catch(err => {
-          onStreamEvent({
-            type: 'abort',
-            id: stream.id,
-            data: err
-          });
-        });
-
-      stream.emitter.on('cancel', onEnd);
-      stream.emitter.on('abort', onEnd);
-      stream.emitter.on('close', onEnd);
-
-      function onEnd() {
-        debug('end');
-        delete client._activeStreams[stream.id];
-        stream.destroy();
-      }
-    });
+    function onEnd() {
+      debug('end');
+      delete self._activeStreams[stream.id];
+      stream.destroy();
+    }
 
     return stream;
   };
@@ -69,9 +64,8 @@ module.exports = (client, utils) => {
    * @private
    */
 
-  function onStreamEvent(message) {
-    debug('stream event', message.data.type);
-    var data = message.data;
+  function onStreamEvent(data) {
+    debug('stream event', data.type);
     var stream = client._activeStreams[data.streamId];
     stream.emitter.emit(data.type, data.data);
   }
@@ -88,16 +82,15 @@ module.exports = (client, utils) => {
 
 function ClientStream(client, utils) {
   this.id = utils.uuid();
-  this.endpoint = client.endpoint;
-  this.message = utils.message;
+  this.client = client;
   this.emitter = new utils.Emitter();
   this.emitter.on('close', this.onClose.bind(this));
   this.emitter.on('abort', this.onAbort.bind(this));
-  this._connected = deferred();
+  this._connected = defer();
   this.connected = this._connected.promise;
-  this._closed = deferred();
+  this._closed = defer();
   this.closed = this._closed.promise;
-  debug('initialized', this);
+  debug('initialized');
 }
 
 /**
@@ -142,28 +135,16 @@ ClientStream.prototype = {
 
   cancel(reason) {
     debug('cancel', reason);
-    return this.connected.then(() => {
-      var promise = deferred();
-      var data = {
-        id: this.id,
-        reason: reason
-      };
+    return this.client.method('_streamcancel', this.id, reason)
+      .then(result => {
+        debug('cancelled', result);
+        this.emitter.emit('cancel');
+        return result;
+      })
 
-      this.message('streamcancel')
-        .set('data', data)
-        .send(this.endpoint)
-        .then(result => {
-          debug('cancelled', result);
-          this.emitter.emit('cancel');
-          promise.resolve(result.value);
-        })
-        .catch(e => {
-          this.emitter.emit('cancel');
-          promise.reject(e);
-        });
-
-      return promise.promise;
-    });
+      .catch(e => {
+        this.emitter.emit('cancel');
+      });
   },
 
   /**
@@ -202,7 +183,7 @@ ClientStream.prototype = {
  * Utils
  */
 
-function deferred() {
+function defer() {
   var result = {};
   result.promise = new Promise((resolve, reject) => {
     result.resolve = resolve;

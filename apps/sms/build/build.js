@@ -18,7 +18,8 @@ function removeDesktopOnlyScripts(appStageDir) {
   [
     'index.html',
     'views/inbox/index.html',
-    'views/conversation/index.html'
+    'views/conversation/index.html',
+    'views/shared/shim_host.html'
   ].forEach((indexFilePath) => {
     var indexFile = utils.getFile(appStageDir, indexFilePath);
     var indexDocument = utils.getDocument(utils.getFileContent(indexFile));
