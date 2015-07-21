@@ -862,7 +862,7 @@ suite('call screen', function() {
   suite('showClock in screen locked status', function() {
     var formatArgs = [],
         currentDate,
-        fakeClockTime12 = '12:02 <span>PM</span>',
+        fakeClockTime12 = '12:02',
         fakeClockTime24 = '13:14',
         fakeDate = 'Monday, September 16';
 
@@ -895,14 +895,14 @@ suite('call screen', function() {
     test('clock should display current 12 hour time info', function() {
       window.navigator.mozHour12 = true;
       CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.innerHTML;
+      var clockTime = CallScreen.lockedClockTime.textContent;
       assert.equal(clockTime, fakeClockTime12);
     });
 
     test('clock should display current 24 hour time info', function() {
       window.navigator.mozHour12 = false;
       CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.innerHTML;
+      var clockTime = CallScreen.lockedClockTime.textContent;
       assert.equal(clockTime, fakeClockTime24);
     });
   });
