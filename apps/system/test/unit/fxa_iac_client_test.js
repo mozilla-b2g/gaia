@@ -69,7 +69,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
     assert.equal(Object.keys(FxAccountsIACHelper).length, 9);
   });
 
-  ['getAccounts', 'openFlow', 'logout'].forEach(function(method) {
+  ['getAccount', 'openFlow', 'logout'].forEach(function(method) {
     suite(method + ' suite', function() {
       setup(function() {
         postMessageSpy = sinon.spy(port, 'postMessage');
@@ -306,7 +306,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
       // two requests -- one to be sent as soon as the connection's ready,
       // the other after that.
       FxAccountsIACHelper.logout(otherListener);
-      FxAccountsIACHelper.getAccounts(listener);
+      FxAccountsIACHelper.getAccount(listener);
       this.clock.tick(1000);
       assert.isTrue(callbackCalled);
       assert.isTrue(otherCallbackCalled);
@@ -316,8 +316,8 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
       callbackCalled = false;
       otherCallbackCalled = false;
       FxAccountsIACHelper.reset();
-      FxAccountsIACHelper.getAccounts(listener);
-      FxAccountsIACHelper.getAccounts(otherListener);
+      FxAccountsIACHelper.getAccount(listener);
+      FxAccountsIACHelper.getAccount(otherListener);
       this.clock.tick(1000);
       assert.isTrue(callbackCalled);
       assert.isTrue(otherCallbackCalled);

@@ -77,7 +77,8 @@ var FxAccountsManager = {
     var methodName = event.detail.name;
 
     switch (methodName) {
-      case 'getAccounts':
+      case 'getAccount':
+      case 'getKeys':
       case 'logout':
         (function(methodName) {
           LazyLoader.load('js/fx_accounts_client.js', function() {

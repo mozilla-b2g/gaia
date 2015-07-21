@@ -20,7 +20,7 @@ var FxaMenu = (function fxa_menu() {
   }
 
   function refreshStatus() {
-    fxaHelper.getAccounts(onStatusChange, onStatusError);
+    fxaHelper.getAccount(onStatusChange, onStatusError);
   }
 
   // if e == null, user is logged out.

@@ -14,7 +14,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
   var port;
 
   // callbacks is a set of arrays containing {successCb, errorCb} pairs,
-  // keyed on the method name, for example, callbacks.getAccounts.
+  // keyed on the method name, for example, callbacks.getAccount.
   var callbacks = {};
   var eventListeners = {};
 
@@ -186,9 +186,15 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     port.postMessage(message);
   };
 
-  var getAccounts = function getAccounts(successCb, errorCb) {
+  var getAccount = function getAccount(successCb, errorCb) {
     sendMessage({
-      'name': 'getAccounts'
+      'name': 'getAccount'
+    }, successCb, errorCb);
+  };
+
+  var getKeys = function getKeys(successCb, errorCb) {
+    sendMessage({
+      'name': 'getKeys'
     }, successCb, errorCb);
   };
 
@@ -228,7 +234,8 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
 
   return {
     'addEventListener': addEventListener,
-    'getAccounts': getAccounts,
+    'getAccount': getAccount,
+    'getKeys': getKeys,
     'init': init,
     'logout': logout,
     'openFlow': openFlow,
