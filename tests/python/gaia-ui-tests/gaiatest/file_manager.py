@@ -13,8 +13,8 @@ class GaiaFileManager(object):
     """Abstract file manager for Gaia."""
     __metaclass__ = ABCMeta
 
-    def __init__(self, device, log_level=mozlog.ERROR):
-        self._logger = mozlog.getLogger('GaiaFileManager')
+    def __init__(self, device, log_level=mozlog.unstructured.ERROR):
+        self._logger = mozlog.unstructured.getLogger('GaiaFileManager')
         self._logger.setLevel(log_level)
         self.device = device
 
