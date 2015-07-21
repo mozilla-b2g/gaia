@@ -61,6 +61,7 @@
       window.settingsCore = BaseModule.instantiate('SettingsCore');
       window.settingsCore.start();
       window.launcher = BaseModule.instantiate('Launcher');
+      window.NumeralsHelper.init();
       return Promise.all([
         // XXX:
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=1161489

@@ -226,8 +226,8 @@ define(function(require) {
   }
 
   function updateLapDom(num, time, li) {
-    li.querySelector('.lap-duration').textContent =
-      Utils.format.durationMs(time);
+    li.querySelector('.lap-duration')
+      .textContent = Utils.format.durationMs(time);
     mozL10n.setAttributes(
       li.querySelector('.lap-name'),
       'lap-number',

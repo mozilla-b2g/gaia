@@ -229,6 +229,11 @@
   font-size: 8.5rem;
 }
 
+:lang(ar) #lockscreen-clock-time {
+  font-size: 6rem;
+  margin-bottom: 0.5rem;
+}
+
 #lockscreen-clock-time span { /* optional meridiem */
   font-size: 3rem;
   display: none;

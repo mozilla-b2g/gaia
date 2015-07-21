@@ -36,7 +36,7 @@
 
   TimeIcon.prototype.view = function view() {
     return `<div id="statusbar-time"
-              class="sb-icon-time" role="listitem">
+              class="sb-icon-time" role="listitem" data-intl-numerals>
             </div>`;
   };
 
