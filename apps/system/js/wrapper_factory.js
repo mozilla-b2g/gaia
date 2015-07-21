@@ -73,7 +73,8 @@
         var manifestURL = callerIframe.getAttribute('mozapp');
 
         var callerApp = applications.getByManifestURL(manifestURL);
-        if (!this.hasPermission(callerApp, 'open-remote-window')) {
+        if (!this.hasPermission(callerApp, 'open-remote-window') &&
+            !this.hasPermission(callerApp, 'homescreen-webapps-manage')) {
           return;
         }
 
