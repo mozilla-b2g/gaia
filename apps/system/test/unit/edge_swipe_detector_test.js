@@ -1032,9 +1032,22 @@ suite('system/EdgeSwipeDetector >', function() {
       MockService.mockQueryWith('getTopMostUI', {
         name: 'AppWindowManager'
       });
-      MockService.mockQueryWith('getTopMostWindow', { isHomescreen: false});
+      var app = new MockAppWindow();
+      MockService.mockQueryWith('getTopMostWindow', app);
       window.dispatchEvent(new CustomEvent('hierarchychanged'));
       assert.isTrue(subject.lifecycleEnabled);
+    });
+
+    test('Hierarchy top most ui is appWindowManager but FTU Running',
+    function() {
+      MockService.mockQueryWith('getTopMostUI', {
+        name: 'AppWindowManager'
+      });
+      MockService.mockQueryWith('isFtuRunning', true);
+      var app = new MockAppWindow();
+      MockService.mockQueryWith('getTopMostWindow', app);
+      window.dispatchEvent(new CustomEvent('hierarchychanged'));
+      assert.isFalse(subject.lifecycleEnabled);
     });
 
     test('Hierarchy top most ui is appWindowManager and top most window' +
@@ -1042,7 +1055,19 @@ suite('system/EdgeSwipeDetector >', function() {
       MockService.mockQueryWith('getTopMostUI', {
         name: 'AppWindowManager'
       });
-      MockService.mockQueryWith('getTopMostWindow', { isHomescreen: true});
+      MockService.mockQueryWith('getTopMostWindow', home);
+      window.dispatchEvent(new CustomEvent('hierarchychanged'));
+      assert.isFalse(subject.lifecycleEnabled);
+    });
+
+    test('Hierarchy top most ui is appWindowManager and top most window' +
+          ' is homescreen activity', function() {
+      MockService.mockQueryWith('getTopMostUI', {
+        name: 'AppWindowManager'
+      });
+      var activity = new MockAppWindow();
+      this.sinon.stub(activity, 'getBottomMostWindow').returns(home);
+      MockService.mockQueryWith('getTopMostWindow', activity);
       window.dispatchEvent(new CustomEvent('hierarchychanged'));
       assert.isFalse(subject.lifecycleEnabled);
     });

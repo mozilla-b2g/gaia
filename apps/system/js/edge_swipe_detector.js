@@ -104,18 +104,18 @@
           // XXX: Use this.appWindowManager instead if
           // we become part of appWindowManager submodules.
           // i.e., Service.query('getTopMostUI') === this.parent
-          if (Service.query('getTopMostUI') &&
-              Service.query('getTopMostUI').name === 'AppWindowManager') {
-            if (Service.query('getTopMostWindow') &&
-                !Service.query('getTopMostWindow').isHomescreen &&
+          var topMostUI = Service.query('getTopMostUI');
+          var topMostWindow = Service.query('getTopMostWindow');
+          if (topMostUI && topMostUI.name === 'AppWindowManager') {
+            if (topMostWindow &&
+                !topMostWindow.getBottomMostWindow().isHomescreen &&
                 !Service.query('isFtuRunning')) {
               this.lifecycleEnabled = true;
-            } else {
-              this.lifecycleEnabled = false;
+              break;
             }
-          } else {
-            this.lifecycleEnabled = false;
           }
+
+          this.lifecycleEnabled = false;
           break;
         case 'mousedown':
         case 'mousemove':
