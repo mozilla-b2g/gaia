@@ -1,5 +1,7 @@
 'use strict';
 
+/* Bug 1148165, disabled this test for high level of intermittent
+
 var assert = require('assert');
 var APP_FAKE = 'http://fake.fake.fake';
 
@@ -47,3 +49,4 @@ marionette('net_error.html:', function() {
     }
   });
 });
+*/
