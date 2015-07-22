@@ -315,6 +315,10 @@
 /****************** Screenshot Overlay ******************/
 .appWindow .screenshot-overlay {
   pointer-events: none;
+
+  position: absolute;
+  top: 0;
+  width: 100%;
   height: 100%;
   visibility: hidden;
 
@@ -439,6 +443,10 @@
 
 .appWindow > .identification-overlay {
   z-index: 1024;
+}
+
+.appWindow > .browser-container .screenshot-overlay {
+  z-index: 10;
 }
 
 .appWindow > .chrome {

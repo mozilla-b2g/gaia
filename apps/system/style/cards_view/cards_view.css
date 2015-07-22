@@ -75,7 +75,7 @@
   position: absolute;
   margin: 0;
   padding: 0;
-  height: calc(100% - 1.5rem);
+  height: 100%;
   overflow: hidden;
   white-space: nowrap;
   text-align: center;
@@ -87,10 +87,10 @@
 #cards-view .card {
   display: block;
   position: absolute;
-  top: 25vh;
+  top: 25%;
   left: 25vw;
   width: 50vw;
-  height: 50vh;
+  height: 50%;
   transform: translateY(0);
   /* Defines the center of each card (column) as the
      coordinate that should be used for snapping */
