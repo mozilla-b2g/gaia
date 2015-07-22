@@ -223,11 +223,6 @@
         return;
       }
 
-      if (!this._injected) {
-        this.render();
-        this._injected = true;
-      }
-
       if (states.indexOf('selectall') !== -1 ||
           states.indexOf('mouseup') !== -1 ||
           (states.indexOf('updateposition') !== -1 &&
@@ -405,6 +400,11 @@
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
+    // Check this._injected here to make sure this.elements is initialzed.
+    if (!this._injected) {
+      this.render();
+      this._injected = true;
+    }
     // Based on UI spec, we should have dividers ONLY between each select option
     // So, we use css to put divider in pseudo element and set the last visible
     // option without it.
