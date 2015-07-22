@@ -26,8 +26,8 @@ RAPTOR_WORKER_TYPE = 'raptor';
 
 const LAUNCH_TEST_APPS = [{ gaia_name: "calendar", th_name: "Calendar", th_symbol: "cal" },
                           { gaia_name: "clock", th_name: "Clock", th_symbol: "clk" },
-                          { gaia_name: "communications/contacts", th_name: "Contacts", th_symbol: "con" },
-                          { gaia_name: "communications/dialer", th_name: "Dialer", th_symbol: "dlr" },
+                          { gaia_name: "contacts", th_name: "Contacts", th_symbol: "con" },
+                          { gaia_name: "dialer", th_name: "Dialer", th_symbol: "dlr" },
                           { gaia_name: "email", th_name: "Email", th_symbol: "eml"},
                           { gaia_name: "fm", th_name: "FM", th_symbol: "fm" },
                           { gaia_name: "gallery", th_name: "Gallery", th_symbol: "gal" },
