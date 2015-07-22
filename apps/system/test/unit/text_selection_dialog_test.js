@@ -372,14 +372,6 @@ suite('system/TextSelectionDialog', function() {
       assert.isFalse(stubRender.calledOnce);
     });
 
-    test('should render when first show', function() {
-      testDetail.visible = true;
-      testDetail.isCollapsed = false;
-      td.handleEvent(fakeTextSelectInAppEvent);
-      assert.isTrue(stubRender.calledOnce);
-      assert.isTrue(td._injected);
-    });
-
     test('should not render when bubble has showed before', function() {
       td._injected = true;
       td.handleEvent(fakeTextSelectInAppEvent);
