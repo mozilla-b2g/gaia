@@ -16,8 +16,7 @@ function BluetoothPanel(client) {
 module.exports = BluetoothPanel;
 
 BluetoothPanel.Selectors = {
-  'bluetoothEnabledCheckbox': '#bluetooth-status input',
-  'bluetoothEnabledLabel': '#bluetooth-status span'
+  'bluetoothEnabledCheckbox': '.bluetooth-status gaia-switch'
 };
 
 BluetoothPanel.prototype = {
@@ -26,18 +25,20 @@ BluetoothPanel.prototype = {
 
   get isBluetoothEnabled() {
     return this.findElement('bluetoothEnabledCheckbox')
-      .getAttribute('checked');
+      .scriptWith(function(el) {
+        return el.wrappedJSObject.checked;
+      });
   },
 
   enableBluetooth: function() {
-    this.waitForElement('bluetoothEnabledLabel').tap();
+    this.waitForElement('bluetoothEnabledCheckbox').tap();
       this.client.waitFor(function() {
         return this.isBluetoothEnabled;
     }.bind(this));
   },
 
   disableBluetooth: function() {
-    this.waitForElement('bluetoothEnabledLabel').tap();
+    this.waitForElement('bluetoothEnabledCheckbox').tap();
       this.client.waitFor(function() {
         return !this.isBluetoothEnabled;
     }.bind(this));

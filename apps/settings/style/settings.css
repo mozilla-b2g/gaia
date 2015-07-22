@@ -287,7 +287,8 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 .disabled label,
 .disabled select,
 .disabled gaia-checkbox,
-.disabled gaia-switch {
+.disabled gaia-switch,
+gaia-switch[disabled] {
   opacity: 0.6;
   pointer-events: none;
 }

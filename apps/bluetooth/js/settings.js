@@ -27,7 +27,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
     window.close();
   };
 
-  var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
+  var gBluetoothCheckBox = document.querySelector('.bluetooth-status gaia-switch');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
@@ -35,13 +35,14 @@ navigator.mozL10n.once(function bluetoothSettings() {
   }
 
   // activate main button
-  gBluetoothCheckBox.onchange = function changeBluetooth() {
+  gBluetoothCheckBox.addEventListener('change', function() {
+    console.log("GOT CHANGE EVENT!, setting disabled");
     var req = settings.createLock().set({'bluetooth.enabled': this.checked});
-    this.disabled = true;
+    gBluetoothCheckBox.setAttribute('disabled', true);
     req.onerror = function() {
-      gBluetoothCheckBox.disabled = false;
+      gBluetoothCheckBox.removeAttribute('disabled');
     };
-  };
+  });
 
   function initialDefaultAdapter() {
     if (!bluetooth.enabled)
@@ -68,9 +69,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   // device information
   var gMyDeviceInfo = (function deviceInfo() {
-    var visibleItem = document.getElementById('device-visible');
-    var visibleName = document.getElementById('bluetooth-device-name');
-    var visibleCheckBox = document.querySelector('#device-visible input');
+    var visibleItem = document.querySelector('.device-visible');
+    var visibleName = document.querySelector('.bluetooth-device-name');
+    var visibleCheckBox = document.querySelector('.device-visible gaia-switch');
     var bluetoothRename = document.getElementById('bluetooth-rename');
     var renameButton = document.getElementById('rename-device');
     var updateNameDialog = document.getElementById('update-device-name');
@@ -84,9 +85,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
     var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
     var myName = '';
 
-    visibleCheckBox.onchange = function changeDiscoverable() {
-      setDiscoverable(this.checked);
-    };
+    visibleCheckBox.addEventListener('change', function() {
+      setDiscoverable(visibleCheckBox.checked);
+    });
 
     renameButton.onclick = function renameBtnClicked() {
       if (myName === '') {
@@ -858,7 +859,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       return;
 
     // lock UI toggle
-    gBluetoothCheckBox.disabled = true;
+    gBluetoothCheckBox.setAttribute('disabled', true);
 
     lastMozSettingValue = enabled;
     updateBluetoothState(enabled);
@@ -889,12 +890,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   bluetooth.addEventListener('adapteradded', function() {
     // enable UI toggle
-    gBluetoothCheckBox.disabled = false;
+    gBluetoothCheckBox.removeAttribute('disabled');
     initialDefaultAdapter();
   });
 
   bluetooth.addEventListener('disabled', function() {
-    gBluetoothCheckBox.disabled = false;  // enable UI toggle
+    gBluetoothCheckBox.removeAttribute('disabled'); // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
   });
 });

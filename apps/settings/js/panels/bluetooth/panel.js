@@ -60,12 +60,12 @@ define(function(require) {
 
         elements = {
           panel: panel,
-          enableCheckbox: panel.querySelector('.bluetooth-status input'),
+          enableCheckbox: panel.querySelector('.bluetooth-status gaia-switch'),
           enableCheckboxMsg: panel.querySelector('.bluetooth-enable-msg'),
           visible: {
             visibleItem: panel.querySelector('.device-visible'),
             visibleName: panel.querySelector('.bluetooth-device-name'),
-            visibleCheckBox: panel.querySelector('.device-visible input')
+            visibleCheckBox: panel.querySelector('.device-visible gaia-switch')
           },
           rename: {
             renameItem: panel.querySelector('.bluetooth-rename'),
@@ -94,10 +94,10 @@ define(function(require) {
         };
 
         // element related events
-        elements.enableCheckbox.addEventListener('click',
+        elements.enableCheckbox.addEventListener('change',
           this._onEnableCheckboxClick.bind(this));
 
-        elements.visible.visibleCheckBox.addEventListener('click',
+        elements.visible.visibleCheckBox.addEventListener('change',
           this._onVisibleCheckBoxClick.bind(this));
 
         elements.rename.renameButton.addEventListener('click',
@@ -325,8 +325,11 @@ define(function(require) {
         // Update Bluetooth enable checkbox
         elements.enableCheckbox.checked =
           (state === 'enabled') || (state === 'enabling');
-        elements.enableCheckbox.disabled =
-          (state === 'enabling') || (state === 'disabling');
+        if ((state === 'enabling') || (state === 'disabling')) {
+          elements.enableCheckbox.setAttribute('disabled', 'true');
+        } else {
+          elements.enableCheckbox.removeAttribute('disabled');
+        }
 
         // Update Bluetooth enable checkbox message
         elements.enableCheckboxMsg.hidden =
