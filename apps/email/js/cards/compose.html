@@ -18,65 +18,69 @@
       data-l10n-id="compose-header-short"></h1>
   </header>
 </section>
-<div data-prop="scrollContainer" class="scrollregion-below-header">
-  <div data-prop="addrBar" class="cmp-envelope-bar">
-    <div class="cmp-addr-bar">
-      <div data-event="click:onContainerClick"
-           class="cmp-envelope-line cmp-combo"
-           role="group" data-l10n-id="to-group">
-        <span class="cmp-to-label cmp-addr-label"
-              data-l10n-id="compose-to" aria-hidden="true"></span>
-        <div class="cmp-to-container cmp-addr-container">
-          <div class="cmp-bubble-container">
-              <input data-prop="toNode"
+<div data-prop="scrollContainer"
+     class="scrollregion-below-header cmp-autocomplete-origin">
+  <div data-prop="addrBar">
+    <div class="cmp-autocomplete-input-container">
+      <div class="cmp-autocomplete-input-list">
+        <div data-prop="firstEnvelopeLine"
+             data-event="click:onContainerClick"
+             class="cmp-envelope-line cmp-combo cmp-autocomplete-input-label"
+             role="group" data-l10n-id="to-group">
+          <span class="cmp-to-label cmp-addr-label"
+                data-l10n-id="compose-to" aria-hidden="true"></span>
+          <div class="cmp-to-container cmp-addr-container">
+            <div class="cmp-bubble-container">
+                <input data-prop="toNode"
+                      data-event="keydown:onAddressKeydown,input:onAddressInput"
+                      dir="auto"
+                      class="cmp-to-text cmp-addr-text" type="email" />
+            </div>
+          </div>
+          <div data-event="click:onContactAdd"
+               class="cmp-to-add cmp-contact-add"
+               role="button"
+               data-l10n-id="compose-contact-add"></div>
+        </div>
+        <!-- XXX: spec calls for showing cc/bcc merged until selected,
+             but there is also the case where replying itself might need
+             to expand, so we are deferring that feature -->
+        <div data-event="click:onContainerClick"
+             class="cmp-envelope-line cmp-combo cmp-autocomplete-input-label"
+             role="group" data-l10n-id="cc-group">
+          <span class="cmp-cc-label cmp-addr-label"
+                 data-l10n-id="compose-cc" aria-hidden="true"></span>
+          <div class="cmp-cc-container cmp-addr-container">
+            <div class="cmp-bubble-container">
+              <input data-prop="ccNode"
                      data-event="keydown:onAddressKeydown,input:onAddressInput"
                      dir="auto"
-                     class="cmp-to-text cmp-addr-text" type="email" />
+                     class="cmp-cc-text cmp-addr-text" type="email" />
+            </div>
           </div>
+          <div data-event="click:onContactAdd"
+               class="cmp-cc-add cmp-contact-add"
+               role="button"
+               data-l10n-id="compose-contact-add"></div>
         </div>
-        <div data-event="click:onContactAdd"
-             class="cmp-to-add cmp-contact-add"
-             role="button"
-             data-l10n-id="compose-contact-add"></div>
-      </div>
-      <!-- XXX: spec calls for showing cc/bcc merged until selected,
-           but there is also the case where replying itself might need
-           to expand, so we are deferring that feature -->
-      <div data-event="click:onContainerClick"
-           class="cmp-envelope-line cmp-combo"
-           role="group" data-l10n-id="cc-group">
-        <span class="cmp-cc-label cmp-addr-label"
-               data-l10n-id="compose-cc" aria-hidden="true"></span>
-        <div class="cmp-cc-container cmp-addr-container">
-          <div class="cmp-bubble-container">
-            <input data-prop="ccNode"
-                   data-event="keydown:onAddressKeydown,input:onAddressInput"
-                   dir="auto"
-                   class="cmp-cc-text cmp-addr-text" type="email" />
+        <div data-event="click:onContainerClick"
+             class="cmp-envelope-line cmp-combo cmp-autocomplete-input-label"
+             role="group" data-l10n-id="bcc-group">
+          <span class="cmp-bcc-label cmp-addr-label"
+                 data-l10n-id="compose-bcc" aria-hidden="true"></span>
+          <div class="cmp-bcc-container cmp-addr-container">
+            <div class="cmp-bubble-container">
+              <input data-prop="bccNode"
+                     data-event="keydown:onAddressKeydown,input:onAddressInput"
+                     dir="auto"
+                     class="cmp-bcc-text cmp-addr-text" type="email" />
+            </div>
           </div>
+          <div data-event="click:onContactAdd"
+               class="cmp-bcc-add cmp-contact-add"
+               role="button"
+               data-l10n-id="compose-contact-add"></div>
         </div>
-        <div data-event="click:onContactAdd"
-             class="cmp-cc-add cmp-contact-add"
-             role="button"
-             data-l10n-id="compose-contact-add"></div>
-      </div>
-      <div data-event="click:onContainerClick"
-           class="cmp-envelope-line cmp-combo"
-           role="group" data-l10n-id="bcc-group">
-        <span class="cmp-bcc-label cmp-addr-label"
-               data-l10n-id="compose-bcc" aria-hidden="true"></span>
-        <div class="cmp-bcc-container cmp-addr-container">
-          <div class="cmp-bubble-container">
-            <input data-prop="bccNode"
-                   data-event="keydown:onAddressKeydown,input:onAddressInput"
-                   dir="auto"
-                   class="cmp-bcc-text cmp-addr-text" type="email" />
-          </div>
-        </div>
-        <div data-event="click:onContactAdd"
-             class="cmp-bcc-add cmp-contact-add"
-             role="button"
-             data-l10n-id="compose-contact-add"></div>
       </div>
     </div>
     <div class="cmp-envelope-line cmp-subject">
@@ -106,4 +110,10 @@
        class="cmp-body-html"
        data-l10n-id="message-body-container">
   </div>
+  <!-- Autocomplete at the bottom since it should have the highest z order
+       placement, so that the autocomplete matches are visible. -->
+  <cmp-autocomplete data-prop="autocomplete"
+                    data-event="autocompleteSelected"
+                    data-source="cards/cmp/autocomplete_source">
+  </cmp-autocomplete>
 </div>
