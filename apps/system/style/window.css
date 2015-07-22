@@ -271,16 +271,11 @@
   visibility: hidden;
 }
 
-.appWindow > .contextmenu {
-  visibility: visible;
-}
-
 .appWindow.searchWindow {
   overflow: visible;
 }
 
 .appWindow > .modal-dialog.visible,
-.appWindow > .contextmenu.visible,
 .appWindow > .authentication-dialog.visible,
 .authentication-dialog > .authentication-dialog-http.visible {
   visibility: visible;
