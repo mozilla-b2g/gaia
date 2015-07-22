@@ -4,14 +4,13 @@
   "version": "0.0.3",
   "description": "A bundle of components which Gaia needs.",
   "author": "The Gaia Team <dev-gaia@lists.mozilla.org>",
-
   "engineStrict": "true",
   "engines": {
     "node": ">=0.10",
     "npm": ">=2"
   },
-
   "devDependencies": {
+    "SMS": "file:./apps/sms",
     "adm-zip": "0.4.3",
     "app-root-path": "^1.0.0",
     "archiver": "^0.10.0",
@@ -62,7 +61,6 @@
     "rimraf": "2.2.5",
     "sinon": "1.7.3",
     "slugid": "^1.0.2",
-    "SMS": "file:./apps/sms",
     "superagent-promise": ">=0.2.0",
     "taskcluster-client": "0.21.4",
     "taskcluster-npm-cache": "1.1.14",
@@ -82,7 +80,6 @@
     "node-uuid": "^1.4.2",
     "yargs": "^1.3.2"
   },
-
   "scripts": {
     "refresh": "npmr install",
     "marionette": "gaia-marionette"
