@@ -17,12 +17,19 @@
     <!-- building blocks -->
     <script defer src="bower_components/smart-button/script.js"></script>
 
+    <!-- For test purpose on phone only -->
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/smart-screen/init_gesture.js"></script>
+
     <!-- Shared libraries -->
     <script defer src="shared/js/smart-screen/shared_utils.js"></script>
     <script defer src="shared/js/smart-screen/spatial_navigator.js"></script>
     <script defer src="shared/js/smart-screen/key_navigation_adapter.js"></script>
 
     <!-- Specific code -->
+    <script defer src="js/bluetooth_loader.js"></script>
+    <script defer src="js/bluetooth_cod_mapper.js"></script>
+    <script defer src="js/bluetooth_manager.js"></script>
     <script defer src="js/device_deck.js"></script>
 
     <!-- Shared L10n libraries -->
@@ -45,19 +52,11 @@
       <section role="region" class="skin-dark" id="grid">
         <div id="connected-devices-container" class="devices-container">
           <div class="devices-caption" data-l10n-id="connected"></div>
-          <div id="connected-devices-list" class="devices-list">
-            <!-- some dummy device icons-->
-            <smart-button type="app-button" app-type="device" label="Nexus 5" data-icon="phone" class="navigable"></smart-button>
-            <smart-button type="app-button" app-type="device" label="GamdPad" data-icon="game" class="navigable"></smart-button>
-            <smart-button type="app-button" app-type="device" label="Keyboard" data-icon="keyboard" class="navigable"></smart-button>
-          </div>
+          <div id="connected-devices-list" class="devices-list"></div>
         </div>
         <div id="newly-found-device-container" class="devices-container">
           <div class="devices-caption" data-l10n-id="newly-found"></div>
-          <div id="newly-found-devices-list" class="devices-list">
-            <!-- some dummy device icons-->
-            <smart-button type="app-button" app-type="device" label="BT Speaker" data-icon="speaker" class="navigable"></smart-button>
-          </div>
+          <div id="newly-found-devices-list" class="devices-list"></div>
         </div>
       </section>
     </article>

@@ -17,11 +17,11 @@
     "README.md",
     "package.json"
   ],
-  "_release": "2f16605d7c",
+  "_release": "096856d7f3",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "2f16605d7c965c5d801149b9fed6598621342c54"
+    "commit": "096856d7f3ff97352f5b0a822497f7057de96825"
   },
   "_source": "git://github.com/smart-components/smart-icons.git",
   "_target": "*",
