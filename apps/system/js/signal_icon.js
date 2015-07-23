@@ -7,6 +7,7 @@
   };
   SignalIcon.prototype = Object.create(BaseIcon.prototype);
   SignalIcon.prototype.name = 'SignalIcon';
+  SignalIcon.prototype.DEBUG = 1;
   SignalIcon.prototype.view = function() {
     // jshint ignore: start
     var index = this.index;
@@ -30,6 +31,7 @@
     var conn = simslot.conn;
     var voice = conn.voice;
     var data = conn.data;
+    var connected = data && data.connected;
 
     var _ = navigator.mozL10n.setAttributes;
 
@@ -53,7 +55,7 @@
       this.element.dataset.inactive = true;
 
       _(this.element, 'statusbarSignalNoSimCard');
-    } else if (data && data.connected && data.type.startsWith('evdo')) {
+    } else if (connected && data.type &&  data.type.startsWith('evdo')) {
       // "Carrier" / "Carrier (Roaming)" (EVDO)
       // Show signal strength of data call as EVDO only supports data call.
       this.debug('data connection, level=', data.relSignalStrength);

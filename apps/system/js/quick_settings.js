@@ -9,6 +9,7 @@
   function QuickSettings() {}
 
   QuickSettings.prototype = {
+    DEBUG: 1,
     /**
      * Indicate setting status of geolocation.enabled
      * @memberof QuickSettings.prototype
@@ -156,6 +157,7 @@
             for (var j = 0; j < conns.length; j++) {
               dataType = label[conns[j].data.type] || dataType;
             }
+            console.debug('datachange quick settings', dataType);
             this.data.dataset.network = dataType;
             this.data.dataset.icon = LABEL_TO_ICON[String(dataType)];
             this.setAccessibilityAttributes(this.data, 'dataButton', dataType);
