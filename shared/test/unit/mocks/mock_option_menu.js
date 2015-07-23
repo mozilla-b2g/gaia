@@ -8,7 +8,8 @@ function MockOptionMenu(options) {
 MockOptionMenu.prototype = {
   show: function() {
     this.show.called = true;
-  }
+  },
+  hide: () => {}
 };
 // create an array to hold any calls to this function to test them
 MockOptionMenu.mSetup = function() {

@@ -169,10 +169,12 @@ var OptionMenu = function(options) {
     if (typeof action !== 'undefined') {
       method = action.method || function() {};
 
-      method.apply(null, action.params || []);
+      method(...(action.params || []));
 
-      // Hide action menu when click is received
-      this.hide();
+      // Hide action menu automatically when hideMenuManually is not true.
+      if (!action.hideMenuManually) {
+        this.hide();
+      }
 
       if (typeof options.complete === 'function' && !action.incomplete) {
         options.complete();

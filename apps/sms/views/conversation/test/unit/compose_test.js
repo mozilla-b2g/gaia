@@ -1211,6 +1211,7 @@ suite('compose_test.js', function() {
       Compose.append(this.attachment);
       this.attachmentSize = Compose.size;
       this.sinon.stub(window.URL, 'revokeObjectURL');
+      this.sinon.stub(MockOptionMenu.prototype, 'hide');
 
       // trigger a click on attachment
       this.attachment.mNextRender.click();
@@ -1247,8 +1248,10 @@ suite('compose_test.js', function() {
 
     suite('replace', function() {
       var requestPromise;
+      var hideStub;
 
       setup(function() {
+        hideStub = sinon.stub();
         this.replacement = mockImgAttachment(true);
         this.sinon.stub(Compose, 'requestAttachment');
         this.sinon.stub(Utils, 'getResizedImgBlob');
@@ -1259,12 +1262,20 @@ suite('compose_test.js', function() {
           requestPromise = Promise.resolve(this.replacement);
           Compose.requestAttachment.returns(requestPromise);
           // trigger click on replace
-          call.items[2].method();
+          call.items[2].method(hideStub);
         });
 
         test('clicking on replace requests an attachment', function() {
-           sinon.assert.called(Compose.requestAttachment);
+          sinon.assert.called(Compose.requestAttachment);
         });
+
+        test('hide menu manually', function(done) {
+          sinon.assert.notCalled(MockOptionMenu.prototype.hide);
+          requestPromise.then(() => {
+            sinon.assert.called(MockOptionMenu.prototype.hide);
+          }).then(done, done);
+        });
+
         test('removes the original attachment', function(done) {
           requestPromise.then(() => {
             sinon.assert.calledWith(
@@ -1314,7 +1325,7 @@ suite('compose_test.js', function() {
 
           Compose.requestAttachment.returns(requestPromise);
           // trigger click on replace
-          call.items[2].method();
+          call.items[2].method(hideStub);
 
           requestPromise.catch(() => {
             sinon.assert.notCalled(window.URL.revokeObjectURL);
@@ -1325,6 +1336,21 @@ suite('compose_test.js', function() {
                 args: { n: 1, mmsSize: '295' }
               }
             );
+            sinon.assert.called(MockOptionMenu.prototype.hide);
+          }).then(done, done);
+        });
+
+        test('ActivityCanceled', function(done) {
+          var requestPromise = Promise.reject(new Error('ActivityCanceled'));
+
+          Compose.requestAttachment.returns(requestPromise);
+          // trigger click on replace
+          call.items[2].method(hideStub);
+
+          requestPromise.catch(() => {
+            sinon.assert.notCalled(window.URL.revokeObjectURL);
+            assert.isTrue(document.body.contains(this.attachment.mNextRender));
+            sinon.assert.notCalled(MockOptionMenu.prototype.hide);
           }).then(done, done);
         });
 
@@ -1334,7 +1360,7 @@ suite('compose_test.js', function() {
 
           Compose.requestAttachment.returns(requestPromise);
           // trigger click on replace
-          call.items[2].method();
+          call.items[2].method(hideStub);
 
           requestPromise.catch(() => {
             sinon.assert.notCalled(window.URL.revokeObjectURL);
@@ -1345,6 +1371,7 @@ suite('compose_test.js', function() {
               'Unhandled error: ',
               sinon.match.same(err)
             );
+            sinon.assert.called(MockOptionMenu.prototype.hide);
           }).then(done, done);
         });
       });

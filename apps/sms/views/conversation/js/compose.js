@@ -656,9 +656,12 @@ var Compose = (function() {
           }
         });
 
-      //'pick cancelled' is the error thrown when the pick activity app is
-      // canceled normally
-      } else if (errId !== 'ActivityCanceled' && errId !== 'pick cancelled') {
+      // Some possible 'activity cancel' error name:
+      // 'pick cancelled': error thrown when the pick activity canceled in most
+      //   of the apps.
+      // 'cancelled': error thrown when the pick activity canceled in contacts.
+      // 'ActivityCanceled': error thrown when pick activity canceled from menu.
+      } else if (!/cancel/i.test(errId)) {
         console.warn('Unhandled error: ', err);
       }
     },
@@ -689,6 +692,7 @@ var Compose = (function() {
         mimeFirstPart: 'other';
 
       var onView = () => { currentAttachment.view(); };
+      var menu;
 
       function onRemove() {
         dom.message.removeChild(currentAttachmentDOM);
@@ -699,23 +703,36 @@ var Compose = (function() {
 
       var onReplace = () => {
         this.requestAttachment().then((newAttachment) => {
+          menu.hide();
           var fragment = insert(newAttachment);
 
           dom.message.insertBefore(fragment, currentAttachmentDOM);
           dom.message.removeChild(currentAttachmentDOM);
           disposeAttachmentNode(currentAttachmentDOM);
           onContentChanged(newAttachment);
-        }, this._onAttachmentRequestError);
+        }, (err) => {
+          var errId = err instanceof DOMError ? err.name : err.message;
+          // Don't hide the menu when error is activity canceled. 
+          if (!/cancel/i.test(errId)) {
+            menu.hide();
+          }
+          return this._onAttachmentRequestError(err);
+        });
       };
 
       options.items = [
         { l10nId: `view-attachment-${fileType}`, method: onView },
         { l10nId: `remove-attachment-${fileType}`, method: onRemove },
-        { l10nId: `replace-attachment-${fileType}`, method: onReplace },
+        { 
+          l10nId: `replace-attachment-${fileType}`,
+          method: onReplace,
+          hideMenuManually: true
+        },
         { l10nId: 'cancel' }
       ];
 
-      new OptionMenu(options).show();
+      menu = new OptionMenu(options);
+      menu.show();
     },
 
     onTypeChange: function c_onTypeChange() {
