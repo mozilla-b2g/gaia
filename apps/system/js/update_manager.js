@@ -189,6 +189,12 @@ var UpdateManager = {
 
   launchDownload: function um_launchDownload() {
     var self = this;
+
+    function systemUpdateAvailable() {
+      return self.updatesQueue.some(
+        updatable => updatable instanceof SystemUpdatable);
+    }
+
     // If it's not connected to a wifi we need to verify what kind of
     // connection it has
     if (self._isNotWifiConnected()) {
@@ -198,9 +204,9 @@ var UpdateManager = {
         var update2G =
              reqUpdate.result && reqUpdate.result[self.UPDATE_2G_SETT] || false;
 
-        // If update 2G is available we don't need to know what kind
-        // of connection the phone has
-        if (update2G) {
+        // If update 2G is available or it isn't system update we don't need to
+        // know what kind of connection the phone has
+        if (update2G || !systemUpdateAvailable()) {
           self.showDownloadPrompt();
         } else {
           // We can download the update only if the current connection
