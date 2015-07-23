@@ -379,25 +379,24 @@ var CallScreen = {
   },
 
   showClock: function cs_showClock(now) {
-    LazyL10n.get(function localized(_) {
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
-                                                    _('shortTimeFormat24');
-      /* In 12h format we don't want to display the AM/PM component on the
-       * lockscreen. However there's no way to obtain such a string using
-       * DateTimeFormat(). What we do instead is to inject a fake <span> tag
-       * around the AM/PM component which we later remove from the string using
-       * a regular expression. */
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
-      var dateFormat = _('longDateFormat');
+    // this is a non-standard, Gecko only API, but we have
+    // no other way to get the am/pm portion of the date and remove it.
+    var amPm = now.toLocaleFormat('%p');
 
-      var timeText =
-        f.localeFormat(now, timeFormat).replace(/\s<span>.*<\/span>/, '');
-      var dateText = f.localeFormat(now, dateFormat);
+    var timeText = now.toLocaleString(navigator.languages, {
+      hour12: navigator.mozHour12,
+      hour: 'numeric',
+      minute: 'numeric'
+    }).replace(amPm, '').trim();
 
-      this.lockedClockTime.textContent = timeText;
-      this.lockedDate.textContent = dateText;
-    }.bind(this));
+    var dateText = now.toLocaleString(navigator.languages, {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    this.lockedClockTime.textContent = timeText;
+    this.lockedDate.textContent = dateText;
   },
 
   showIncoming: function cs_showIncoming() {

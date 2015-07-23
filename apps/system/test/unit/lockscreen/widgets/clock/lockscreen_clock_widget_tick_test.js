@@ -39,6 +39,9 @@ suite('LockScreenClockWidgetTick > ', function() {
         updateClock: {
           bind: this.sinon.stub().returns('component.updateClock')
         },
+        updateFormatters: {
+          bind: this.sinon.stub().returns('component.updateFormatters')
+        },
         getTimeformat: function() {
           mockThis.stream.steps.push('component.getTimeformat');
         }
@@ -47,7 +50,7 @@ suite('LockScreenClockWidgetTick > ', function() {
     this.sinon.stub(window.Stream.prototype.ready, 'bind').returns('ready');
     var method = LockScreenClockWidgetTick.prototype.start;
     method.call(mockThis);
-    assert.include(mockThis.stream.steps, 'component.getTimeformat',
+    assert.include(mockThis.stream.steps, 'component.updateFormatters',
         `it doesn't check out the timeformat`);
     assert.include(mockThis.stream.steps, 'component.updateClock',
         `it doesn't schedule to update the clock`);
@@ -76,7 +79,8 @@ suite('LockScreenClockWidgetTick > ', function() {
   test(`when events it would call the corresponding functions`, function() {
     var mockThis = {
       component: {
-        updateClock: this.sinon.stub()
+        updateClock: this.sinon.stub(),
+        updateFormatters: this.sinon.stub(),
       },
       transferToSuspend: this.sinon.stub()
     };
