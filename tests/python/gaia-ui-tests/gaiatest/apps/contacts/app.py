@@ -71,6 +71,7 @@ class Contacts(Base):
 
     def tap_settings(self):
         settings = self.marionette.find_element(*self._settings_button_locator)
+        Wait(self.marionette).until(expected.element_displayed(settings))
         settings.tap()
         Wait(self.marionette).until(expected.element_not_displayed(settings))
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm

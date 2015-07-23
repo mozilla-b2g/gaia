@@ -341,11 +341,9 @@ keyboard.removeFocus();""")
         expected_y = int(input_window.size['height']) - System(self.marionette).software_buttons_height
 
         Wait(self.marionette).until(
-            lambda m: 'active' not in input_window.get_attribute('class') and
+            lambda m: 'inactive' in input_window.get_attribute('class') and
             not input_window.is_displayed() and
-            (int(input_window.location['y']) == expected_y),
-            message="Keyboard was not dismissed. Debug is_displayed(): %s, class: %s."
-                    %(input_window.is_displayed(), input_window.get_attribute('class')))
+            (int(input_window.location['y']) == expected_y))
         self.apps.switch_to_displayed_app()
 
     def tap_first_predictive_word(self):
