@@ -44,7 +44,8 @@
     if (simslot.isAbsent() || simslot.isLocked()) {
       this.debug('simcard absent or locked');
       this.hide();
-    } else if (data && data.connected && data.type.startsWith('evdo')) {
+    } else if (data && data.connected &&
+               data.type && data.type.startsWith('evdo')) {
       this.debug('data roaming?', data.roaming);
       data.roaming ? this.show() : this.hide();
     } else if (voice.connected || Service.query('hasActiveCall', this.index)) {

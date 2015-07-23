@@ -278,6 +278,16 @@ suite('system/SignalIcon', function() {
       assert.equal(subject.dataText.hidden, true);
     });
 
+    test('Should circle when data drops from connected', function() {
+      subject.manager.conn.data = {
+        connected: true,
+        roaming: false
+      };
+      subject.update();
+      subject.updateDataText();
+      assert.isTrue(subject.element.classList.contains('sb-icon-data-circle'));
+    });
+
     test('update data text', function() {
       MockService.mockQueryWith('getDataConnectionType', 'LTE');
       this.sinon.stub(subject, 'publish');
