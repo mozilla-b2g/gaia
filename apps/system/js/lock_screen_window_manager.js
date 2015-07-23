@@ -241,8 +241,6 @@
       var lockListener = (event) => {
         if (true === event.settingValue) {
           this.openApp();
-          // Ensure passcode lock is enforced immediately
-          window.lockScreen.forcePassCodeUnlock();
         }
       };
 

@@ -353,7 +353,11 @@
       // keep track of its value.
       navigator.mozSettings.addObserver('lockscreen.lock-immediately',
         (function(event) {
+        if (event.settingValue === true) {
           this.lock(true);
+          // Enforce immediate pass code unlock
+          this.resetTimeoutForcibly();
+        }
       }).bind(this));
 
       navigator.mozL10n.ready(this.l10nInit.bind(this));
@@ -576,10 +580,20 @@
     }
   };
 
-  LockScreen.prototype.forcePassCodeUnlock =
-  function ls_forcePassCodeUnlock() {
+  LockScreen.prototype.resetTimeoutForcibly =
+  function ls_resetTimeoutForcibly() {
+    // Pass code unlock requirement is checked against timeout of
+    // either timestamp. Resetting these to epoch 0 ensures that both
+    // will timeout even if one timestamp is set to Date.now()
+    // due to lockscreen activation or deactivation in a different
+    // code path, avoiding a potential race condition. The respective
+    // pre-calculated intervals are adjusted accordingly.
+    // Fixes bug 1186100
+    var now = Date.now();
     this._lastLockedTimeStamp = 0;
+    this._lastLockedInterval = now;
     this._lastUnlockedTimeStamp = 0;
+    this._lastUnlockedInterval = now;
   };
 
   LockScreen.prototype.loadPanel =
