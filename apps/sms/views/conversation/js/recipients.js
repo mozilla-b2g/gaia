@@ -430,7 +430,6 @@
 
     new GestureDetector(outer).startDetecting();
 
-    // Set focus on the last "placeholder" element
     this.reset();
   };
 

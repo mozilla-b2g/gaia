@@ -7018,6 +7018,8 @@ suite('conversation.js >', function() {
             { then: (callback) => callback() }
           );
 
+          this.sinon.stub(Compose, 'focus');
+
           // ensures a clean state
           ConversationView.draft = null;
 
@@ -7034,6 +7036,7 @@ suite('conversation.js >', function() {
             ConversationView.renderMessages, Compose.fromDraft
           );
           sinon.assert.calledWith(Compose.fromDraft, draft);
+          sinon.assert.called(Compose.focus);
           assert.equal(draft, ConversationView.draft);
           assert.isFalse(ConversationView.draft.isEdited);
         });

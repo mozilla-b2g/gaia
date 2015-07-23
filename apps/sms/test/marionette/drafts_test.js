@@ -67,6 +67,12 @@ marionette('Messages Drafts', function() {
     messagesApp.selectAppMenuOption('Replace existing Draft');
   }
 
+  function assertIsFocused(element, message) {
+    assert.isTrue(element.scriptWith(function(el) {
+      return document.activeElement === el;
+    }), message);
+  }
+
   function assertDraft(draft) {
     var conversation = messagesApp.Inbox.firstConversation;
     assert.ok(conversation.getAttribute('class').indexOf('draft') !== -1);
@@ -100,6 +106,11 @@ marionette('Messages Drafts', function() {
     if (draft.shouldHaveAttachment) {
       assert.ok(messagesApp.Composer.attachment);
     }
+
+    // Check that focus is in composer
+    assertIsFocused(
+      messagesApp.Composer.messageInput, 'Message input should be focused'
+    );
   }
 
   setup(function() {

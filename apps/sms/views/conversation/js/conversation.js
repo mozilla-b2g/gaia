@@ -629,6 +629,7 @@ var ConversationView = {
           this.draft.isEdited = false;
 
           Compose.fromDraft(this.draft);
+          Compose.focus();
         }
       });
     }
