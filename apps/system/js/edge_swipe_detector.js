@@ -108,7 +108,6 @@
           var topMostWindow = Service.query('getTopMostWindow');
           if (topMostUI && topMostUI.name === 'AppWindowManager') {
             if (topMostWindow &&
-                !topMostWindow.getBottomMostWindow().isHomescreen &&
                 !Service.query('isFtuRunning')) {
               this.lifecycleEnabled = true;
               break;
@@ -174,8 +173,7 @@
         case 'updateprompthidden':
         case 'installprompthidden':
         case 'shrinking-stop':
-          if (Service.query('getTopMostWindow') &&
-              !Service.query('getTopMostWindow').isHomescreen) {
+          if (Service.query('getTopMostWindow')) {
             this.lifecycleEnabled = true;
           }
           break;

@@ -1,4 +1,4 @@
-/* global StackManager, Service, SettingsListener */
+/* global StackManager, SettingsListener */
 'use strict';
 
 (function(exports) {
@@ -15,10 +15,7 @@
     begin: function st_begin(direction) {
       this.transitioning = true;
       this._cleanupPreviousTransitions();
-      // Ask Homescreen App to fade out when sheets begin moving.
-      // Homescreen App would fade in next time it's opened automatically.
-      var home = Service.query('getHomescreen');
-      home && home.fadeOut();
+
       var currentApp = StackManager.getCurrent();
       var newApp = (direction == 'ltr') ?
         StackManager.getPrev() : StackManager.getNext();

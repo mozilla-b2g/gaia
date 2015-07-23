@@ -358,7 +358,7 @@
       this.publish(this.EVENT_PREFIX + '-deactivated');
     }
     this.element.classList.toggle('active', active);
-    this.element.classList.toggle('empty', !this.stack.length && active);
+    this.element.classList.toggle('empty', this.stack.length <= 1 && active);
 
     // XXX This code is weird as it does not seems symetric.
     // In one direction we considered that the card view is already shown,
