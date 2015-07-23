@@ -20,6 +20,7 @@ suite('system/HomescreenWindowManager', function() {
 
   suite('getHomescreen', function() {
     var homescreenWinMgr;
+    var spyGetHome;
     var stubEnsureHome;
     setup(function() {
       homescreenWinMgr = BaseModule.instantiate('HomescreenWindowManager');
@@ -34,6 +35,7 @@ suite('system/HomescreenWindowManager', function() {
         ready: true
       });
       homescreenWinMgr.homescreenLauncher.start();
+      spyGetHome = this.sinon.spy(fakeLauncher, 'getHomescreen');
       stubEnsureHome = this.sinon.stub(fakeHome, 'ensure');
     });
 
@@ -44,14 +46,16 @@ suite('system/HomescreenWindowManager', function() {
       homescreenWinMgr.homescreenLauncher.mTeardown();
     });
 
-    test('with isHomeEvent = false', function() {
+    test('with ensure = false', function() {
       assert.deepEqual(homescreenWinMgr.getHomescreen(), fakeHome);
+      assert.isTrue(spyGetHome.calledWith(undefined));
       assert.isFalse(stubEnsureHome.called,
         'we donot ensure home while not called with home event');
     });
 
-    test('with isHomeEvent = true', function() {
+    test('with ensure = true', function() {
       assert.deepEqual(homescreenWinMgr.getHomescreen(true), fakeHome);
+      assert.isTrue(spyGetHome.calledWith(undefined));
       assert.isTrue(stubEnsureHome.called,
         'we should ensure home with home event');
       assert.isTrue(stubEnsureHome.calledWith(true),
