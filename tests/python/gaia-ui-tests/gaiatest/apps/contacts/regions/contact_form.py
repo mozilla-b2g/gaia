@@ -20,6 +20,11 @@ class ContactForm(Base):
     _city_locator = (By.ID, 'locality_0')
     _country_locator = (By.ID, 'countryName_0')
     _comment_locator = (By.ID, 'note_0')
+    _add_new_email_locator = (By.ID, 'add-new-email')
+    _add_new_address_locator = (By.ID, 'add-new-address')
+    _add_new_note_locator = (By.ID, 'add-new-note')
+    _screen_locator = (By.ID, 'screen')
+    _statusbar_locator = (By.ID, 'statusbar')
 
     _thumbnail_photo_locator = (By.ID, 'thumbnail-photo')
 
@@ -55,6 +60,8 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._email_locator).text
 
     def type_email(self, value):
+        Wait(self.marionette).until(
+            expected.element_present(*self._add_new_email_locator)).tap()
         element = self.marionette.find_element(*self._email_locator)
         element.clear()
         element.send_keys(value)
@@ -64,6 +71,7 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._street_locator).text
 
     def type_street(self, value):
+        self.marionette.find_element(*self._add_new_address_locator).tap()
         element = self.marionette.find_element(*self._street_locator)
         element.clear()
         element.send_keys(value)
@@ -100,11 +108,13 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._comment_locator).text
 
     def type_comment(self, value):
+        self.marionette.find_element(*self._add_new_note_locator).tap()
         element = self.marionette.find_element(*self._comment_locator)
         element.clear()
         element.send_keys(value)
 
     def tap_comment(self):
+        self.marionette.find_element(*self._add_new_note_locator).tap()
         element = self.marionette.find_element(*self._comment_locator)
         element.tap()
 
@@ -194,7 +204,16 @@ class NewContact(ContactForm):
         Wait(self.marionette).until(lambda m: done.location['y'] == 0)
 
     def tap_done(self, return_contacts=True):
-        self.marionette.find_element(*self._done_button_locator).tap()
+        # Workaround for bug 1109213, where tapping on the button inside the app itself
+        # makes Marionette spew out NoSuchWindowException errors
+        element = self.marionette.find_element(*self._done_button_locator)
+        x = element.rect['x'] + element.rect['width']//2
+        y = element.rect['y'] + element.rect['height']//2
+        self.marionette.switch_to_frame()
+        statusbar = self.marionette.find_element(*self._statusbar_locator)
+        self.marionette.find_element(*self._screen_locator).tap(x, y + statusbar.rect['height'])
+
+        self.apps.switch_to_displayed_app()
         return self.wait_for_done(return_contacts)
 
     def a11y_click_done(self, return_contacts=True):
