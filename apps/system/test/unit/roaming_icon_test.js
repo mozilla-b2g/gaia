@@ -104,6 +104,16 @@ suite('system/RoamingIcon', function() {
     assert.isTrue(subject.show.called);
   });
 
+  test('Data is dropped', function() {
+    subject.manager.conn.data = {
+      connected: true,
+      roaming: true
+    };
+    this.sinon.stub(subject, 'hide');
+    subject.update();
+    assert.isTrue(subject.hide.called);
+  });
+
   test('emergency calls, roaming', function() {
     subject.manager.conn.voice = {
       connected: false,

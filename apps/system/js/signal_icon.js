@@ -53,7 +53,8 @@
       this.element.dataset.inactive = true;
 
       _(this.element, 'statusbarSignalNoSimCard');
-    } else if (data && data.connected && data.type.startsWith('evdo')) {
+    } else if (data && data.connected &&
+               data.type && data.type.startsWith('evdo')) {
       // "Carrier" / "Carrier (Roaming)" (EVDO)
       // Show signal strength of data call as EVDO only supports data call.
       this.debug('data connection, level=', data.relSignalStrength);
