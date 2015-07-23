@@ -27,7 +27,7 @@
 
     /**
      * Place to put key migration code when the new key is used in system.
-     * @param  {[type]} result all settings keys
+     * @param  {type} result all settings keys
      */
     keyMigration: function km_keyMigration(result) {
       // locale.hour12
