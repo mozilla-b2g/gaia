@@ -1,11 +1,5 @@
-#text-selection-dialog-root {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  z-index: 10;
-}
-
-#text-selection-dialog-root > .textselection-dialog {
+#text-selection-dialog-root > .textselection-dialog,
+.appWindow > .textselection-dialog {
   display: none;
   height: 5.2rem;
   width: auto;
@@ -16,16 +10,26 @@
   opacity: 0;
   transition: opacity var(--transition-duration) ease;
 }
+.appWindow > .textselection-dialog {
+  z-index: 2;
+}
 
-#text-selection-dialog-root > .textselection-dialog.visible {
+#text-selection-dialog-root > .textselection-dialog {
+  z-index: 16383;
+}
+
+#text-selection-dialog-root > .textselection-dialog.visible,
+.appWindow > .textselection-dialog.visible {
   opacity: 1;
 }
 
-#text-selection-dialog-root > .textselection-dialog.active {
+#text-selection-dialog-root > .textselection-dialog.active,
+.appWindow > .textselection-dialog.active {
   display: block;
 }
 
-#text-selection-dialog-root > .textselection-dialog div {
+#text-selection-dialog-root > .textselection-dialog div,
+.appWindow > .textselection-dialog div {
   background-repeat: no-repeat;
   background-position: center;
   background-size: 3rem;
@@ -34,16 +38,19 @@
   display: inline-block;
 }
 
-#text-selection-dialog-root > .textselection-dialog div.hidden {
+#text-selection-dialog-root > .textselection-dialog div.hidden,
+.appWindow > .textselection-dialog div.hidden {
   display: none;
 }
 
-#text-selection-dialog-root > .textselection-dialog div:active {
+#text-selection-dialog-root > .textselection-dialog div:active,
+.appWindow > .textselection-dialog div:active {
   background-color: #4e595c;
   border-radius: 0.2rem;
 }
 
-#text-selection-dialog-root > .textselection-dialog div:after {
+#text-selection-dialog-root > .textselection-dialog div:after,
+.appWindow > .textselection-dialog div:after {
   content: '';
   background-color: #525b5e;
   width: 0.1rem;
@@ -52,27 +59,30 @@
   display: none;
 }
 
-#text-selection-dialog-root > .textselection-dialog > div:not(.last-option):after {
+#text-selection-dialog-root > .textselection-dialog > div:not(.last-option):after,
+.appWindow > .textselection-dialog > div:not(.last-option):after {
   display: block;
 }
 
 #text-selection-dialog-root > .textselection-dialog div:active:after,
-#text-selection-dialog-root > .textselection-dialog div:active + div:after{
+#text-selection-dialog-root > .textselection-dialog div:active + div:after,
+.appWindow > .textselection-dialog div:active:after,
+.appWindow > .textselection-dialog div:active + div:after {
   display: none;
 }
 
-#text-selection-dialog-root .textselection-dialog-copy {
+.textselection-dialog-copy {
   background-image: url('images/textselection_copy.png');
 }
 
-#text-selection-dialog-root .textselection-dialog-cut {
+.textselection-dialog-cut {
   background-image: url('images/textselection_cut.png');
 }
 
-#text-selection-dialog-root .textselection-dialog-paste {
+.textselection-dialog-paste {
   background-image: url('images/textselection_paste.png');
 }
 
-#text-selection-dialog-root .textselection-dialog-selectall{
+.textselection-dialog-selectall {
   background-image: url('images/textselection_select_all.png');
 }

@@ -805,7 +805,8 @@
     'authDialog': 'AppAuthenticationDialog',
     'contextmenu': 'BrowserContextMenu',
     'childWindowFactory': 'ChildWindowFactory',
-    'statusbar': 'AppStatusbar'
+    'statusbar': 'AppStatusbar',
+    'textSelectionDialog': 'AppTextSelectionDialog'
   };
 
   AppWindow.SUB_MODULES = {
