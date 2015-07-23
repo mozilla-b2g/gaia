@@ -12,7 +12,7 @@
   if (window.navigator.mozHour12 || window.navigator.hour12) {return;}
 
   // mock mozHour12 onto window.navigator
-  window.navigator.mozHour12 = null;
+  window.navigator.mozHour12 = undefined;
 
   // set hour12 and emit the locale change event if value changed
   var _setMozHour12 = function(result) {
