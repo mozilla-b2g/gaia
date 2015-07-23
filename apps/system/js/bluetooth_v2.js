@@ -560,7 +560,7 @@ Bluetooth.prototype = {
    * Console log.
    *
    * @private
-   * @param  {type} msg debug message
+   * @param  {Object} msg debug message
    */
   debug: function bt_debug(msg) {
     if (!this.onDebug) {

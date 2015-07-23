@@ -672,7 +672,7 @@
    * See 'setupRules' to get the details of rules.
    *
    * @param conditions {object} - map of the LockScreen conditions
-   * @param previousStateTypes {string} - in which state(s) we can transfer
+   * @param previousStateTypes {string[]} - in which state(s) we can transfer
    * @param newState {LockScreenState} - the target state instance
    * @param comment {string} - optional, to add comment for this rule
    */
@@ -688,7 +688,7 @@
    * It would remove the rule if the conditions matched.
    *
    * @param states {object} - map of the LockScreen states
-   * @param previousStateTypes {string} - in which state(s) we can transfer
+   * @param previousStateTypes {string[]} - in which state(s) we can transfer
    */
   LockScreenStateManager.prototype.unregisterRule =
   function lssm_unregisterRule(states, previousStateTypes) {
@@ -710,8 +710,8 @@
   /**
    * To check if one or multiple types of state is acceptable.
    *
-   * @param acceptables {string} - all state types that can be accepted.
-   * @param target {string} - the type(s) need to check
+   * @param acceptables {string[]} - all state types that can be accepted.
+   * @param target {string|string[]} - the type(s) need to check
    */
   LockScreenStateManager.prototype.matchAcceptableState =
   function lssm_matchPrevious(acceptables, target) {
