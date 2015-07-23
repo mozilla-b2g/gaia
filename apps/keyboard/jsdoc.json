@@ -4,9 +4,7 @@
     "dictionaries": ["jsdoc"]
   },
   "source": {
-    "include": ["apps/keyboard/README.md", "apps/keyboard/js"],
-    "exclude": ["apps/keyboard/js/imes/jspinyin/libpinyin.js",
-                "apps/keyboard/js/imes/handwriting/hwr/emscripten_zinnia.js"]
+    "include": ["apps/keyboard/README.md", "apps/keyboard/js"]
   },
   "plugins": [
     "plugins/markdown",
