@@ -30,7 +30,6 @@
 'use strict';
 
 var Account = require('models/account');
-var AccountCreation = require('utils/account_creation');
 var OAuthWindow = require('oauth_window');
 var Presets = require('common/presets');
 var URI = require('utils/uri');
@@ -58,9 +57,6 @@ function ModifyAccount(options) {
   this.displayOAuth2 = this.displayOAuth2.bind(this);
   this.hideHeaderAndForm = this.hideHeaderAndForm.bind(this);
   this.cancelDelete = this.cancelDelete.bind(this);
-
-  this.accountHandler = new AccountCreation();
-  this.accountHandler.on('authorizeError', this);
 
   // bound so we can add remove listeners
   this._boundSaveUpdateModel = this.save.bind(this, { updateModel: true });
@@ -149,18 +145,6 @@ ModifyAccount.prototype = {
     return this._fields;
   },
 
-  handleEvent: function(event) {
-    var type = event.type;
-    var data = event.data;
-
-    switch (type) {
-      case 'authorizeError':
-        // we only expect one argument an error object.
-        this.showErrors(data[0]);
-        break;
-    }
-  },
-
   updateForm: function() {
     var update = ['user', 'fullUrl'];
 
@@ -222,16 +206,17 @@ ModifyAccount.prototype = {
     this.cancel(event);
   },
 
-  save: function(options, e) {
+  isOffline: isOffline,
+
+  save: co.wrap(function *(options, e) {
 
     if (e) {
       e.preventDefault();
     }
 
     var list = this.element.classList;
-    var self = this;
 
-    if (isOffline()) {
+    if (this.isOffline()) {
       this.showErrors([{name: 'offline'}]);
       return;
     }
@@ -244,13 +229,15 @@ ModifyAccount.prototype = {
       this.updateModel();
     }
 
-    this.accountHandler.send(this.model, function(err) {
-      list.remove(self.progressClass);
-      if (!err) {
-        router.go(self.completeUrl);
-      }
-    });
-  },
+    try {
+      yield core.bridge.createAccount(this.model);
+      list.remove(this.progressClass);
+      router.go(this.completeUrl);
+    } catch(err) {
+      list.remove(this.progressClass);
+      this.showErrors(err);
+    }
+  }),
 
   hideHeaderAndForm: function() {
     this.element.classList.add(this.removeDialogClass);
@@ -462,13 +449,13 @@ ModifyAccount.prototype = {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#availablePresets">availablePresets</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#availablePresets">availablePresets</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#createAccount">createAccount</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Tue Jun 23 2015 13:12:36 GMT-0700 (PDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:29 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

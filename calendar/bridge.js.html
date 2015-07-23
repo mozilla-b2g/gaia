@@ -172,6 +172,41 @@ exports.deleteAccount = function(id) {
   return accountStore.remove(id);
 };
 
+/**
+ * Sends a request to create an account.
+ *
+ * @param {Calendar.Models.Account} model account details.
+ */
+exports.createAccount = co.wrap(function *(model) {
+  var storeFactory = core.storeFactory;
+  var accountStore = storeFactory.get('Account');
+  var calendarStore = storeFactory.get('Calendar');
+
+  // begin by persisting the account
+  var [, result] = yield accountStore.verifyAndPersist(model);
+
+  // finally sync the account so when
+  // we exit the request the user actually
+  // has some calendars. This should not take
+  // too long (compared to event sync).
+  yield accountStore.sync(result);
+
+  // begin sync of calendars
+  var calendars = yield calendarStore.remotesByAccount(result._id);
+
+  // note we don't wait for any of this to complete
+  // we just begin the sync and let the event handlers
+  // on the sync controller do the work.
+  for (var key in calendars) {
+    core.syncController.calendar(
+      result,
+      calendars[key]
+    );
+  }
+
+  return result;
+});
+
 exports.observeAccounts = function() {
   var stream = new FakeClientStream();
   var accountStore = core.storeFactory.get('Account');
@@ -275,13 +310,13 @@ FakeClientStream.prototype._cancel = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#availablePresets">availablePresets</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#_localizeElement">_localizeElement</a></li><li><a href="global.html#_localizeElements">_localizeElements</a></li><li><a href="global.html#absoluteOffsetTop">absoluteOffsetTop</a></li><li><a href="global.html#availablePresets">availablePresets</a></li><li><a href="global.html#buildElement">buildElement</a></li><li><a href="global.html#chromeInteractive">chromeInteractive</a></li><li><a href="global.html#closest">closest</a></li><li><a href="global.html#createAccount">createAccount</a></li><li><a href="global.html#dateFromId">dateFromId</a></li><li><a href="global.html#dateFromTransport">dateFromTransport</a></li><li><a href="global.html#dateToTransport">dateToTransport</a></li><li><a href="global.html#dayOfWeek">dayOfWeek</a></li><li><a href="global.html#dayOfWeekFromMonday">dayOfWeekFromMonday</a></li><li><a href="global.html#dayOfWeekFromStartDay">dayOfWeekFromStartDay</a></li><li><a href="global.html#daysBetween">daysBetween</a></li><li><a href="global.html#domLoaded">domLoaded</a></li><li><a href="global.html#fetchRecord">fetchRecord</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getDayId">getDayId</a></li><li><a href="global.html#getMonthId">getMonthId</a></li><li><a href="global.html#getPort">getPort</a></li><li><a href="global.html#getScheme">getScheme</a></li><li><a href="global.html#getUTC">getUTC</a></li><li><a href="global.html#getWeeksDays">getWeeksDays</a></li><li><a href="global.html#getWeekStartDate">getWeekStartDate</a></li><li><a href="global.html#hourDiff">hourDiff</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isAllDay">isAllDay</a></li><li><a href="global.html#isFuture">isFuture</a></li><li><a href="global.html#isOnlyDate">isOnlyDate</a></li><li><a href="global.html#isPast">isPast</a></li><li><a href="global.html#isSameDate">isSameDate</a></li><li><a href="global.html#isToday">isToday</a></li><li><a href="global.html#monthReady">monthReady</a></li><li><a href="global.html#monthsDayReady">monthsDayReady</a></li><li><a href="global.html#observeCalendars">observeCalendars</a></li><li><a href="global.html#pendingReady">pendingReady</a></li><li><a href="global.html#relativeDuration">relativeDuration</a></li><li><a href="global.html#relativeOffset">relativeOffset</a></li><li><a href="global.html#relativeState">relativeState</a></li><li><a href="global.html#removeElements">removeElements</a></li><li><a href="global.html#spanOfDay">spanOfDay</a></li><li><a href="global.html#spanOfMonth">spanOfMonth</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Tue Jun 23 2015 13:12:36 GMT-0700 (PDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Thu Jul 23 2015 17:05:29 GMT+0800 (CST)
 </footer>
 
 <script> prettyPrint(); </script>
