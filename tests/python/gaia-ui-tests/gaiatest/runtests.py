@@ -78,7 +78,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
                 except:
                     logger = mozlog.structured.get_default_logger()
                     if not logger:
-                        logger = mozlog.unstructured.getLogger('gaiatest')
+                        logger = mozlog.getLogger('gaiatest')
                     logger.warning('Failed to gather test failure debug.', exc_info=True)
             return rv
 
