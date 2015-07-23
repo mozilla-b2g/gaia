@@ -79,6 +79,7 @@
     "alarms": {},
     "systemXHR": {},
     "audio-channel-notification":{},
+    "audio-channel-system":{},
     "idle":{},
     "device-storage:sdcard": { "access": "readcreate" },
     "phonenumberservice": {},

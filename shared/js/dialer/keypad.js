@@ -183,7 +183,9 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init(this._onCall ? 'telephony' : 'notification');
+    // According to the UX sound spec, we should use the "system" type for the
+    // dialer pad. See the attachment of the bug1068219.
+    TonePlayer.init('system');
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
