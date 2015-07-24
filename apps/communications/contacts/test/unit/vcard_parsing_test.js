@@ -671,5 +671,16 @@ suite('vCard parsing settings', function() {
         });
       });
     });
+    test('- vcard with fields with empty values', function(done) {
+      initializeVCFReader('vcard_undefined.vcf', function(reader) {
+        reader.onread = stub();
+        reader.onimported = stub();
+        reader.onerror = stub();
+        reader.process(function(result) {
+          sinon.assert.length(result, 1);
+          sinon.assert.length(result[0].org, 0);
+        });
+      });
+    });
   });
 });
